@@ -44,6 +44,13 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
 
     for (auto const& node : bp.nodes()) {
         if (!registry.has(node.type)) {
+            // Embedded blueprint proxy nodes carry a user-given type name
+            // that won't be in the library registry.  They are valid as long
+            // as a matching embedded nested definition exists.
+            if (node.expandable) {
+                const auto* nested = bp.find_nested(node.id);
+                if (nested && nested->embedded) continue;
+            }
             out.error = "unknown node type at node id=" + iid_to_string(node.id)
                 + " type=" + iid_to_string(node.type);
             return out;

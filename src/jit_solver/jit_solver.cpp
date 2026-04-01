@@ -304,6 +304,26 @@ BuildResult build_systems_dev(
         }
     }
 
+    // === PARITY GUARD: General Alias Port Union ===
+    // INVARIANT: must match AOT codegen (codegen.cpp) alias union step.
+    // If a port has an alias field, unify both ports so they share a signal.
+    // Currently no library components use alias ports, but this guard
+    // ensures JIT/AOT stay in sync if any are added.
+    for (const auto& dev : devices) {
+        if (dev.visual_only) continue;
+        for (const auto& [port_name, port] : dev.ports) {
+            if (port.alias.has_value() && !port.alias->empty()) {
+                std::string full_port  = dev.name + "." + port_name;
+                std::string full_alias = dev.name + "." + *port.alias;
+                auto it_port  = port_to_idx.find(full_port);
+                auto it_alias = port_to_idx.find(full_alias);
+                if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
+                    uf.unite(it_port->second, it_alias->second);
+                }
+            }
+        }
+    }
+
     std::map<uint32_t, uint32_t> root_to_signal;
     uint32_t next_signal = 0;
     for (const auto& [port, idx] : port_to_idx) {

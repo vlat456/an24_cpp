@@ -149,6 +149,37 @@ static bool is_known_port_type_value(int v) {
         || v == static_cast<int>(PortType::Any);
 }
 
+/// Infer bp2 Domain from editor PortType so that decoded nodes carry a
+/// self-contained Interface usable by the path resolver.
+static Domain domain_from_port_type(PortType t) {
+    switch (t) {
+        case PortType::V:
+        case PortType::I:
+        case PortType::Any:
+            return Domain::Electrical;
+        case PortType::Bool:
+            return Domain::Logical;
+        case PortType::RPM:
+        case PortType::Position:
+            return Domain::Mechanical;
+        case PortType::Pressure:
+            return Domain::Hydraulic;
+        case PortType::Temperature:
+            return Domain::Thermal;
+    }
+    return Domain::Electrical;
+}
+
+/// Convert editor PortSide to bp2 Direction.
+static Direction direction_from_port_side(PortSide s) {
+    switch (s) {
+        case PortSide::Input:  return Direction::Input;
+        case PortSide::Output: return Direction::Output;
+        case PortSide::InOut:  return Direction::InOut;
+    }
+    return Direction::Output;
+}
+
 static bool is_default_node_content(const Blueprint::Node& node) {
     return node.content_type == NodeContentType::None
         && node.content_label.empty()
@@ -873,6 +904,38 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
             throw std::runtime_error("invalid node entry: ports must be an object");
         }
 
+        // Build node.iface from decoded EditorPorts so that PathResolver can
+        // resolve wire endpoints against the node's own interface, even when
+        // the node type is not in the library registry (e.g. embedded
+        // blueprint proxy nodes with a custom type name).
+        {
+            std::unordered_map<ui::InternedId, PortDescriptor> merged;
+            for (auto const& ep : node.inputs) {
+                auto it = merged.find(ep.name);
+                if (it == merged.end()) {
+                    merged[ep.name] = {ep.name, domain_from_port_type(ep.type),
+                                       direction_from_port_side(ep.side)};
+                } else if (it->second.direction != Direction::InOut) {
+                    it->second.direction = Direction::InOut;
+                }
+            }
+            for (auto const& ep : node.outputs) {
+                auto it = merged.find(ep.name);
+                if (it == merged.end()) {
+                    merged[ep.name] = {ep.name, domain_from_port_type(ep.type),
+                                       direction_from_port_side(ep.side)};
+                } else if (it->second.direction != Direction::InOut) {
+                    it->second.direction = Direction::InOut;
+                }
+            }
+            std::vector<PortDescriptor> iface_ports;
+            iface_ports.reserve(merged.size());
+            for (auto& [_, pd] : merged) {
+                iface_ports.push_back(std::move(pd));
+            }
+            node.iface = Interface(std::move(iface_ports));
+        }
+
         bp = bp.with_node(std::move(node));
     }
     return bp;
@@ -984,6 +1047,7 @@ Blueprint decode_nested(Blueprint bp, nlohmann::json const& arr,
                 n["definition"].dump(), interner, arena, registry, &inner_err);
             if (inner) {
                 nested.inline_def = std::make_unique<Blueprint>(std::move(*inner));
+                nested.iface = nested.inline_def->iface();
             } else {
                 if (!inner_err.message.empty()) {
                     throw std::runtime_error(

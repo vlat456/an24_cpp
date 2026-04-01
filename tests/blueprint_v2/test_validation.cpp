@@ -409,3 +409,107 @@ TEST(BlueprintRepair, DiagnoseReportsUnknownNodeType) {
     }
     EXPECT_TRUE(saw_unknown_type_issue);
 }
+
+// ===========================================================================
+// Regression: Embedded blueprint proxy nodes must be skipped during type checks.
+//
+// An embedded blueprint proxy has:  node.expandable=true, a matching nested
+// entry with embedded=true, and a user-given type that is NOT in any registry.
+// All validation paths must accept this pattern.
+// ===========================================================================
+
+TEST(BlueprintValidate, EmbeddedProxyNodePassesInvariantChecker) {
+    ui::StringInterner I;
+    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(I);
+    PathArena arena(I);
+
+    // Build a blueprint with an embedded proxy node whose type is unknown.
+    bp2::Blueprint bp;
+    bp2::Blueprint::Node proxy;
+    proxy.id = I.intern("rn180_inst");
+    proxy.type = I.intern("RN-180-Exciter");   // not in any registry
+    proxy.expandable = true;
+    bp = bp.with_node(std::move(proxy));
+
+    // Add matching embedded nested definition.
+    bp2::Blueprint::Nested nested;
+    nested.id = I.intern("rn180_inst");
+    nested.embedded = true;
+    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    *nested.inline_def = nested.inline_def->with_id(I.intern("RN-180-Exciter"));
+    bp = bp.with_nested(std::move(nested));
+
+    auto r = bp2::InvariantChecker::validate(bp, arena, reg);
+    EXPECT_TRUE(r.valid) << "InvariantChecker rejected embedded proxy: " << r.error;
+    EXPECT_NO_THROW(bp.validate(reg));
+}
+
+TEST(BlueprintValidate, NonEmbeddedExpandableNodeStillFailsTypeCheck) {
+    ui::StringInterner I;
+    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(I);
+    PathArena arena(I);
+
+    // An expandable node WITHOUT a matching embedded nested must still fail.
+    bp2::Blueprint bp;
+    bp2::Blueprint::Node proxy;
+    proxy.id = I.intern("bad_proxy");
+    proxy.type = I.intern("NonExistentType");
+    proxy.expandable = true;
+    bp = bp.with_node(std::move(proxy));
+
+    // No nested entry at all.
+    auto r = bp2::InvariantChecker::validate(bp, arena, reg);
+    EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("unknown node type"), std::string::npos);
+    EXPECT_THROW(bp.validate(reg), std::runtime_error);
+}
+
+TEST(BlueprintRepair, DiagnoseSkipsEmbeddedProxyNodes) {
+    ui::StringInterner I;
+    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(I);
+    PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp2::Blueprint::Node proxy;
+    proxy.id = I.intern("gen_inst");
+    proxy.type = I.intern("GSC-18-Starter");
+    proxy.expandable = true;
+    bp = bp.with_node(std::move(proxy));
+
+    bp2::Blueprint::Nested nested;
+    nested.id = I.intern("gen_inst");
+    nested.embedded = true;
+    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    bp = bp.with_nested(std::move(nested));
+
+    auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg);
+
+    for (const auto& issue : report.issues) {
+        EXPECT_NE(issue.kind, bp2::diagnostics::IntegrityIssue::Kind::UnknownNodeType)
+            << "False positive: embedded proxy reported as unknown type: " << issue.message;
+    }
+}
+
+TEST(BlueprintRepair, DiagnoseStillReportsNonProxyUnknownType) {
+    ui::StringInterner I;
+    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(I);
+    PathArena arena(I);
+
+    // An expandable node with no matching embedded nested → should still report.
+    bp2::Blueprint bp;
+    bp2::Blueprint::Node bad;
+    bad.id = I.intern("orphan");
+    bad.type = I.intern("MadeUpType");
+    bad.expandable = true;
+    bp = bp.with_node(std::move(bad));
+
+    auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg);
+    bool found = false;
+    for (const auto& issue : report.issues) {
+        if (issue.kind == bp2::diagnostics::IntegrityIssue::Kind::UnknownNodeType) {
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found);
+}

@@ -68,7 +68,17 @@ std::string Document::build_simulation_json() const {
     std::set<std::string> emitted_ids;
 
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        // Don't skip expandable (composite) nodes – emit them as regular
+        // Embedded blueprint proxy nodes are visual-only collapsed
+        // representations.  Their internal component nodes already exist in
+        // the blueprint (under the nested group) and will be emitted as
+        // regular devices — skip the proxy to avoid an "Unknown component
+        // classname" error in the json parser.
+        if (n.expandable) {
+            const auto* nested = bp.find_nested(n.id);
+            if (nested && nested->embedded) continue;
+        }
+
+        // Non-embedded expandable (composite) nodes — emit them as regular
         // devices so that parse_json_impl() can expand them via TypeRegistry.
         if (n.expandable) {
             // Expandable nodes only carry exposed interface ports.  Emit a
@@ -468,8 +478,11 @@ void Document::buildEnergizedWireSet(
 
         const bp2::Blueprint::Node* node = bp.find_node(src_node_id);
         editor::SignalEndpoint endpoint{node, src_node_id, src_port_id};
-        editor::SignalKeyContext context{editor::SignalKeyContextMode::Root, ""};
+        editor::SignalKeyContext context = editor::root_signal_context();
         std::string port_key = editor::resolve_runtime_signal_key(bp, interner_, endpoint, context);
+
+        // Skip if resolver failed to produce a key (e.g., empty endpoint IDs)
+        if (port_key.empty()) continue;
 
         if (simulation_.wire_is_energized(port_key)) {
             out.insert(interner_.resolve(w.id));
@@ -496,8 +509,11 @@ void Document::buildEnergizedWireSetExternal(
 
         const bp2::Blueprint::Node* node = external_bp.find_node(src_node_iid);
         editor::SignalEndpoint endpoint{node, src_node_iid, src_port_iid};
-        editor::SignalKeyContext context{editor::SignalKeyContextMode::ExternalReference, parent_instance_id};
+        editor::SignalKeyContext context = editor::external_ref_signal_context(parent_instance_id);
         std::string parent_key = editor::resolve_runtime_signal_key(external_bp, external_interner, endpoint, context);
+
+        // Skip if resolver failed to produce a key (e.g., empty endpoint IDs)
+        if (parent_key.empty()) continue;
 
         if (simulation_.wire_is_energized(parent_key)) {
             out.insert(external_interner.resolve(w.id));

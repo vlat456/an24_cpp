@@ -1627,6 +1627,19 @@ external_ref_signal_mapping_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build
 .PHONY : external_ref_signal_mapping_tests/fast
 
+#=============================================================================
+# Target rules for targets named signal_key_resolver_tests
+
+# Build rule for target.
+signal_key_resolver_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 signal_key_resolver_tests
+.PHONY : signal_key_resolver_tests
+
+# fast build rule for target.
+signal_key_resolver_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/build
+.PHONY : signal_key_resolver_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1726,6 +1739,7 @@ help:
 	@echo "... radiator_regression_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
+	@echo "... signal_key_resolver_tests"
 	@echo "... sim_debug"
 	@echo "... slew_rate_tests"
 	@echo "... spdlog"

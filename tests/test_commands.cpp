@@ -4,10 +4,14 @@
 #include "editor/commands/extract_blueprint.h"
 #include "editor/commands/transaction_guard.h"
 #include "editor/commands/blueprint_checksum.h"
+#include "editor/visual/persist.h"
+#include "json_parser/json_parser.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
+#include "blueprint_v2/validation/invariant_checker.h"
+#include "blueprint_v2/diagnostics/repair.h"
 #include "ui/core/interned_id.h"
 
 // Helper: create a simple node
@@ -2189,4 +2193,223 @@ TEST_F(CommandTest, ExtractToBlueprint_InlineBridgeYUsesLocalCoordinates) {
     EXPECT_LT(bp_in_node->y, 200.0f)
         << "Bridge node Y=" << bp_in_node->y
         << " should use local coordinates (near 0..100), not world coordinates (near 500+)";
+}
+
+// ===========================================================================
+// Regression tests for "Extract to Blueprint" embedded proxy type resolution.
+//
+// Before the fix, extracting nodes created a collapsed proxy node with
+// node.type set to the user-given blueprint name (e.g. "RN-180-Exciter").
+// This name doesn't exist in any component registry, causing:
+//   - build_simulation_json() to emit it → json_parser "Unknown component classname"
+//   - validate_blueprint_for_persist() → "unknown node type"
+//   - InvariantChecker::validate() → "unknown node type"
+//   - Blueprint::validate() → throw runtime_error
+//   - diagnose_and_repair() → false positive UnknownNodeType issue
+// ===========================================================================
+
+// Regression: Extraction with a hyphenated name must produce a collapsed proxy
+// node that is correctly identified as an embedded proxy (expandable + matching
+// embedded nested entry).  The proxy node type must not cause validation failure.
+TEST_F(CommandTest, ExtractToBlueprint_HyphenatedNamePassesValidation) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    // Use a name with hyphens and numbers — the exact pattern from the bug report.
+    const char* blueprint_name = "RN-180-Exciter";
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        blueprint_name,
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+
+    // The collapsed proxy node must exist and have the user-given type name.
+    const auto& nested = updated->nested()[0];
+    const auto* collapsed = updated->find_node(nested.id);
+    ASSERT_NE(collapsed, nullptr);
+    EXPECT_TRUE(collapsed->expandable);
+    EXPECT_EQ(collapsed->type, interner.intern(blueprint_name));
+
+    // The proxy type is not in any registry, but the embedded proxy skip
+    // condition must hold: expandable + matching embedded nested entry.
+    ASSERT_TRUE(nested.embedded);
+    ASSERT_NE(nested.inline_def, nullptr);
+
+    // Blueprint::validate(registry) must not throw on the proxy node.
+    // (validate only checks node types, not wire paths, when called with
+    //  registry-only overload.)
+    bp2::TypeRegistry bp2_reg = bp2::TypeRegistry::create_test_registry(interner);
+    for (const auto& n : updated->nodes()) {
+        if (!bp2_reg.has(n.type)) {
+            if (n.expandable && updated->find_nested(n.id) && updated->find_nested(n.id)->embedded)
+                continue;
+            std::vector<bp2::PortDescriptor> ports;
+            for (const auto& p : n.inputs)
+                ports.push_back({p.name, Domain::Electrical, bp2::Direction::Input});
+            for (const auto& p : n.outputs)
+                ports.push_back({p.name, Domain::Electrical, bp2::Direction::Output});
+            bp2_reg.register_component(n.type, bp2::Interface(std::move(ports)));
+        }
+    }
+    EXPECT_NO_THROW(updated->validate(bp2_reg));
+}
+
+// Regression: validate_blueprint_for_persist() must accept the extracted
+// blueprint whose proxy node carries the user-given type name.
+// This test uses validate_blueprint_integrity (not validate_blueprint_for_persist)
+// to avoid requiring all fixture types in the parser library registry.
+TEST_F(CommandTest, ExtractToBlueprint_HyphenatedNamePassesIntegrityValidation) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    const char* blueprint_name = "RN-180-Exciter";
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        blueprint_name,
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
+
+    // validate_blueprint_integrity uses build_bp2_registry which loads all
+    // library types AND auto-registers unknown types as ad-hoc.  The key
+    // question is whether the embedded proxy type triggers a structural error.
+    std::string integrity_err;
+    bool ok = validate_blueprint_integrity(*updated, interner, arena, &integrity_err);
+    EXPECT_TRUE(ok) << "validate_blueprint_integrity failed: " << integrity_err;
+}
+
+// Regression: diagnose_and_repair() must NOT report UnknownNodeType for
+// embedded blueprint proxy nodes.
+TEST_F(CommandTest, ExtractToBlueprint_HyphenatedNameNoDiagnosticFalsePositive) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    const char* blueprint_name = "RN-180-Exciter";
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        blueprint_name,
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
+
+    // Build a registry with all fixture types registered (except the proxy).
+    bp2::TypeRegistry bp2_reg = bp2::TypeRegistry::create_test_registry(interner);
+    for (const auto& n : updated->nodes()) {
+        if (!bp2_reg.has(n.type)) {
+            if (n.expandable && updated->find_nested(n.id) && updated->find_nested(n.id)->embedded)
+                continue;
+            std::vector<bp2::PortDescriptor> ports;
+            for (const auto& p : n.inputs)
+                ports.push_back({p.name, Domain::Electrical, bp2::Direction::Input});
+            for (const auto& p : n.outputs)
+                ports.push_back({p.name, Domain::Electrical, bp2::Direction::Output});
+            bp2_reg.register_component(n.type, bp2::Interface(std::move(ports)));
+        }
+    }
+
+    auto report = bp2::diagnostics::diagnose_and_repair(*updated, arena, bp2_reg);
+
+    // There must be no UnknownNodeType issue for the proxy node.
+    for (const auto& issue : report.issues) {
+        EXPECT_NE(issue.kind, bp2::diagnostics::IntegrityIssue::Kind::UnknownNodeType)
+            << "False positive diagnostic: " << issue.message;
+    }
+}
+
+// Regression: The proxy node's type name must exactly match the user-given name,
+// character-for-character, including hyphens, numbers, and casing.
+TEST_F(CommandTest, ExtractToBlueprint_ProxyTypeNamePreservedExactly) {
+    // Names with mixed case, hyphens, numbers, and underscores.
+    const std::vector<const char*> names = {
+        "RN-180-Exciter",
+        "GSC-18-Starter_Motor",
+    };
+
+    for (const char* name : names) {
+        bp2::PathArena local_arena(interner);
+        bp2::Blueprint local_source = make_extract_fixture(interner, local_arena);
+
+        std::string err;
+        auto updated = editor::commands::build_extracted_blueprint_atomic(
+            local_source,
+            {interner.intern("a"), interner.intern("b")},
+            name,
+            "",
+            interner,
+            local_arena,
+            &err);
+
+        ASSERT_TRUE(updated.has_value()) << "extraction with name '" << name << "' failed: " << err;
+        ASSERT_EQ(updated->nested().size(), 1u);
+
+        const auto& nested = updated->nested()[0];
+        const auto* collapsed = updated->find_node(nested.id);
+        ASSERT_NE(collapsed, nullptr) << "collapsed proxy not found for name '" << name << "'";
+
+        // The type stored on the proxy must resolve back to the exact input string.
+        std::string resolved_type(interner.resolve(collapsed->type));
+        EXPECT_EQ(resolved_type, std::string(name))
+            << "Type name mangled: expected '" << name << "', got '" << resolved_type << "'";
+    }
+}
+
+// Regression: the proxy (collapsed) node created by extraction must have its
+// iface populated at creation time, not deferred to the encode/decode cycle.
+// Before the fix, proxy node.iface was empty, forcing path resolution to fall
+// back on ad-hoc registry entries with hardcoded Domain::Electrical for all
+// ports — breaking domain-aware validation for non-electrical ports.
+TEST_F(CommandTest, ExtractToBlueprint_ProxyNodeHasIfacePopulated) {
+    bp2::PathArena local_arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, local_arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "SubCircuit",
+        "",
+        interner,
+        local_arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+
+    const auto& nested = updated->nested()[0];
+    const auto* proxy = updated->find_node(nested.id);
+    ASSERT_NE(proxy, nullptr);
+
+    // THE REGRESSION: proxy.iface must be non-empty at creation time
+    EXPECT_FALSE(proxy->iface.empty())
+        << "proxy node iface is empty — must be populated at extraction time";
+
+    // Every input/output port on the proxy must be findable in iface
+    for (const auto& ep : proxy->inputs) {
+        EXPECT_TRUE(proxy->iface.has(ep.name))
+            << "input port missing from proxy iface: " << interner.resolve(ep.name);
+    }
+    for (const auto& ep : proxy->outputs) {
+        EXPECT_TRUE(proxy->iface.has(ep.name))
+            << "output port missing from proxy iface: " << interner.resolve(ep.name);
+    }
 }

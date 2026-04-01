@@ -167,8 +167,6 @@ public:
         std::string toggle_probe_group_id;
         bool has_toggle_probe_world_pos = false;
         Pt toggle_probe_world_pos;
-
-        std::string open_document_path;
     };
     InputResultAction applyInputResult(const InputResult& r, const std::string& group_id = "");
 

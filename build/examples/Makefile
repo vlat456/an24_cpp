@@ -725,6 +725,30 @@ __/src/editor/pi_zn_tuner.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/pi_zn_tuner.cpp.s
 .PHONY : __/src/editor/pi_zn_tuner.cpp.s
 
+__/src/editor/signal_key_resolver.o: __/src/editor/signal_key_resolver.cpp.o
+.PHONY : __/src/editor/signal_key_resolver.o
+
+# target to build an object file
+__/src/editor/signal_key_resolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/signal_key_resolver.cpp.o
+.PHONY : __/src/editor/signal_key_resolver.cpp.o
+
+__/src/editor/signal_key_resolver.i: __/src/editor/signal_key_resolver.cpp.i
+.PHONY : __/src/editor/signal_key_resolver.i
+
+# target to preprocess a source file
+__/src/editor/signal_key_resolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/signal_key_resolver.cpp.i
+.PHONY : __/src/editor/signal_key_resolver.cpp.i
+
+__/src/editor/signal_key_resolver.s: __/src/editor/signal_key_resolver.cpp.s
+.PHONY : __/src/editor/signal_key_resolver.s
+
+# target to generate assembly for a file
+__/src/editor/signal_key_resolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/signal_key_resolver.cpp.s
+.PHONY : __/src/editor/signal_key_resolver.cpp.s
+
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
 
@@ -1738,6 +1762,9 @@ help:
 	@echo "... __/src/editor/pi_zn_tuner.o"
 	@echo "... __/src/editor/pi_zn_tuner.i"
 	@echo "... __/src/editor/pi_zn_tuner.s"
+	@echo "... __/src/editor/signal_key_resolver.o"
+	@echo "... __/src/editor/signal_key_resolver.i"
+	@echo "... __/src/editor/signal_key_resolver.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"

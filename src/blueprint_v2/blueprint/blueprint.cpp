@@ -325,6 +325,12 @@ void Blueprint::validate(TypeRegistry const& registry) const {
 
     for (auto const& node : nodes_) {
         if (!registry.has(node.type)) {
+            // Embedded blueprint proxy nodes carry a user-given type name
+            // that won't be in the library registry.
+            if (node.expandable) {
+                const auto* nested = find_nested(node.id);
+                if (nested && nested->embedded) continue;
+            }
             throw std::runtime_error("Blueprint validation: unknown node type");
         }
     }

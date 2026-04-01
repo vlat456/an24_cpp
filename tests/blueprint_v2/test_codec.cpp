@@ -3,6 +3,8 @@
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
+#include "blueprint_v2/validation/path_resolver.h"
+#include "blueprint_v2/validation/wire_validator.h"
 #include <nlohmann/json.hpp>
 
 TEST(BlueprintCodec, Placeholder) {
@@ -2080,6 +2082,294 @@ TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
     EXPECT_FLOAT_EQ(result->nodes()[0].y, -7.5f);
 }
 
+// =============================================================================
+// Regression: node.iface must be populated from decoded ports so that
+// PathResolver can resolve wire endpoints even when the node type is NOT
+// in the library registry (e.g. embedded blueprint proxy nodes).
+// Bug: closed_circuit.blueprint saved OK but failed to reload with
+//   "[persist] Failed to load blueprint: wire id=186: wire endpoint path unresolved"
+// Root cause: decode_nodes() populated node.inputs/node.outputs but never
+// built node.iface, so node_interface() returned nullptr for non-registry types.
+// =============================================================================
+
+TEST(BlueprintCodec, DecodePopulatesNodeIfaceFromPorts) {
+    // After decoding a node with "ports", node.iface must be non-empty
+    // and contain the correct PortDescriptors — even for known types.
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    reg.register_component(interner.intern("Battery"), bp2::Interface(), "");
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "iface_test",
+        "display_name": "Iface Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "bat1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "ports": {
+                    "feedback": {"direction": "In", "type": "V"},
+                    "output":   {"direction": "Out", "type": "V"},
+                    "bidir":    {"direction": "InOut", "type": "Any"}
+                }
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    bp2::DecodeError err;
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
+    ASSERT_EQ(result->nodes().size(), 1u);
+
+    const auto& node = result->nodes()[0];
+    // The fix: node.iface must be populated from the decoded ports
+    EXPECT_FALSE(node.iface.empty());
+    EXPECT_EQ(node.iface.size(), 3u);
+
+    // Verify each port is findable by name
+    EXPECT_TRUE(node.iface.has(interner.intern("feedback")));
+    EXPECT_TRUE(node.iface.has(interner.intern("output")));
+    EXPECT_TRUE(node.iface.has(interner.intern("bidir")));
+
+    // Verify directions
+    auto fb = node.iface.find(interner.intern("feedback"));
+    ASSERT_TRUE(fb.has_value());
+    EXPECT_EQ(fb->direction, bp2::Direction::Input);
+
+    auto out = node.iface.find(interner.intern("output"));
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(out->direction, bp2::Direction::Output);
+
+    auto bd = node.iface.find(interner.intern("bidir"));
+    ASSERT_TRUE(bd.has_value());
+    EXPECT_EQ(bd->direction, bp2::Direction::InOut);
+}
+
+TEST(BlueprintCodec, DecodeNodeIfaceEmptyWhenNoPorts) {
+    // When a node has NO "ports" block, iface should remain empty
+    // (the registry may provide it separately via node_interface())
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    reg.register_component(interner.intern("SomeType"), bp2::Interface(), "");
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "no_ports_test",
+        "display_name": "No Ports",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "SomeType",
+                "position": {"x": 0, "y": 0}
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    bp2::DecodeError err;
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
+    EXPECT_TRUE(result->nodes()[0].iface.empty());
+}
+
+TEST(BlueprintCodec, RoundTripProxyNodeWithWires_EndpointsResolve) {
+    // This is the exact regression scenario: a blueprint with a proxy node
+    // whose type is NOT in the registry (embedded blueprint proxy), but whose
+    // ports are serialized. The proxy node has expandable=true and a matching
+    // embedded nested definition. Wires target the proxy's ports.
+    // After save → load roundtrip, wire endpoint resolution must succeed.
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    // Register Battery (standard library type)
+    reg.register_component(
+        interner.intern("Battery"),
+        bp2::Interface({
+            {interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
+        }),
+        "Battery"
+    );
+    // Do NOT register "RN-180-Exciter" — it's a custom proxy type
+
+    // --- Build a blueprint with a proxy node and wires to it ---
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("roundtrip_proxy"));
+    bp = bp.with_display_name("Roundtrip Proxy Test");
+
+    // Standard node (Battery)
+    bp2::Blueprint::Node bat;
+    bat.id = interner.intern("bat1");
+    bat.type = interner.intern("Battery");
+    bat.x = 10.0f;
+    bat.y = 20.0f;
+    bat.outputs.emplace_back(interner.intern("v_out"), PortSide::Output, PortType::V);
+    bp = bp.with_node(std::move(bat));
+
+    // Proxy node (type NOT in registry, expandable with embedded nested def)
+    bp2::Blueprint::Node proxy;
+    proxy.id = interner.intern("extract_inst_1");
+    proxy.type = interner.intern("RN-180-Exciter");
+    proxy.expandable = true;
+    proxy.x = 100.0f;
+    proxy.y = 200.0f;
+    proxy.inputs.emplace_back(interner.intern("feedback"), PortSide::Input, PortType::V);
+    proxy.outputs.emplace_back(interner.intern("output"), PortSide::Output, PortType::V);
+    proxy.iface = bp2::Interface({
+        {interner.intern("feedback"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("output"), Domain::Electrical, bp2::Direction::Output},
+    });
+    bp = bp.with_node(std::move(proxy));
+
+    // Matching embedded nested definition (required by InvariantChecker for
+    // expandable proxy nodes with unknown type)
+    bp2::Blueprint inner;
+    inner = inner.with_id(interner.intern("RN-180-Exciter"));
+    inner = inner.with_display_name("RN-180 Exciter");
+    bp2::Blueprint::Nested nested;
+    nested.id = interner.intern("extract_inst_1"); // same as proxy node id
+    nested.blueprint_id = interner.intern("RN-180-Exciter");
+    nested.embedded = true;
+    nested.inline_def = std::make_unique<bp2::Blueprint>(inner);
+    nested.x = 100.0f;
+    nested.y = 200.0f;
+    bp = bp.with_nested(std::move(nested));
+
+    // Wire: bat1:v_out → extract_inst_1:feedback
+    bp2::Blueprint::Wire w;
+    w.id = interner.intern("w_proxy");
+    w.source = arena.make_port(
+        arena.make_node(arena.root(), interner.intern("bat1")),
+        interner.intern("v_out")
+    );
+    w.target = arena.make_port(
+        arena.make_node(arena.root(), interner.intern("extract_inst_1")),
+        interner.intern("feedback")
+    );
+    w.domain = Domain::Electrical;
+    bp = bp.with_wire(std::move(w));
+
+    // --- Encode (save) ---
+    std::string json_saved = bp2::BlueprintCodec::encode(bp, interner, arena);
+
+    // --- Decode (load) — this is where the bug manifested ---
+    bp2::DecodeError err;
+    auto loaded = bp2::BlueprintCodec::decode(json_saved, interner, arena, reg, &err);
+    ASSERT_TRUE(loaded.has_value()) << "Roundtrip decode failed: " << err.message;
+
+    // Verify structure preserved
+    ASSERT_EQ(loaded->nodes().size(), 2u);
+    ASSERT_EQ(loaded->wires().size(), 1u);
+
+    // --- The actual regression check: wire endpoint resolution ---
+    // This is what WireValidator does internally; it must succeed.
+    bp2::PathResolver resolver;
+    const auto& wire = loaded->wires()[0];
+    auto src = resolver.resolve(wire.source, *loaded, arena, reg);
+    auto tgt = resolver.resolve(wire.target, *loaded, arena, reg);
+    EXPECT_TRUE(src.has_value()) << "Source endpoint unresolved after roundtrip";
+    EXPECT_TRUE(tgt.has_value()) << "Target endpoint unresolved after roundtrip (THE BUG)";
+
+    // Also verify via WireValidator (the actual code path that produces the error)
+    auto vr = bp2::WireValidator::validate(wire, *loaded, arena, reg);
+    EXPECT_TRUE(vr.valid) << "Wire validation failed: " << vr.error;
+}
+
+TEST(BlueprintCodec, RoundTripProxyNodeWithWires_DoubleRoundTrip) {
+    // Encode → Decode → Encode → Decode: verify stability across two roundtrips.
+    // This catches any loss of iface data that could accumulate.
+    // Uses expandable proxy nodes with embedded nested definitions.
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    reg.register_component(
+        interner.intern("Generator"),
+        bp2::Interface({
+            {interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
+        }),
+        "Generator"
+    );
+    // "CustomSubsystem" is NOT registered — it's a proxy type
+
+    std::string json1 = R"({
+        "version": "3.0",
+        "id": "double_rt",
+        "display_name": "Double Roundtrip",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "src_node",
+                "type": "Generator",
+                "position": {"x": 0, "y": 0},
+                "ports": {
+                    "v_out": {"direction": "Out", "type": "V"}
+                }
+            },
+            {
+                "id": "proxy_node",
+                "type": "CustomSubsystem",
+                "expandable": true,
+                "position": {"x": 100, "y": 0},
+                "ports": {
+                    "input":  {"direction": "In",  "type": "V"},
+                    "output": {"direction": "Out", "type": "V"}
+                }
+            }
+        ],
+        "wires": [
+            {"id": "w1", "source": "/src_node:v_out", "target": "/proxy_node:input"}
+        ],
+        "nested": [
+            {
+                "id": "proxy_node",
+                "blueprint": "CustomSubsystem",
+                "embedded": true,
+                "position": {"x": 100, "y": 0},
+                "definition": {
+                    "version": "3.0",
+                    "id": "CustomSubsystem",
+                    "display_name": "Custom Subsystem",
+                    "interface": [],
+                    "nodes": [],
+                    "wires": [],
+                    "nested": []
+                }
+            }
+        ]
+    })";
+
+    // First decode
+    bp2::DecodeError err;
+    auto bp1 = bp2::BlueprintCodec::decode(json1, interner, arena, reg, &err);
+    ASSERT_TRUE(bp1.has_value()) << "First decode failed: " << err.message;
+
+    // First re-encode
+    std::string json2 = bp2::BlueprintCodec::encode(*bp1, interner, arena);
+
+    // Second decode
+    auto bp2_result = bp2::BlueprintCodec::decode(json2, interner, arena, reg, &err);
+    ASSERT_TRUE(bp2_result.has_value()) << "Second decode failed: " << err.message;
+
+    // Wire must still resolve after double roundtrip
+    bp2::PathResolver resolver;
+    const auto& wire = bp2_result->wires()[0];
+    auto src = resolver.resolve(wire.source, *bp2_result, arena, reg);
+    auto tgt = resolver.resolve(wire.target, *bp2_result, arena, reg);
+    EXPECT_TRUE(src.has_value()) << "Source unresolved after double roundtrip";
+    EXPECT_TRUE(tgt.has_value()) << "Target unresolved after double roundtrip";
+
+    // Validate wire
+    auto vr = bp2::WireValidator::validate(wire, *bp2_result, arena, reg);
+    EXPECT_TRUE(vr.valid) << "Wire validation failed after double roundtrip: " << vr.error;
+}
+
 TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -2134,4 +2424,115 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
         EXPECT_FLOAT_EQ(node.x, 0.0f);
         EXPECT_FLOAT_EQ(node.y, 0.0f);
     }
+}
+
+// Regression: decode of embedded nested entry must populate nested.iface
+// from the inline definition's interface.  Before the fix, nested.iface
+// was left default-constructed (empty) for embedded nested entries, which
+// broke PathResolver resolution of nested boundary ports and any code
+// that relied on nested.iface after a load.
+TEST(BlueprintCodec, DecodeEmbeddedNestedPopulatesIfaceFromInlineDef) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "nested_iface_test",
+        "display_name": "Nested Iface Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": [
+            {
+                "id": "sub1",
+                "blueprint": "InnerBP",
+                "embedded": true,
+                "position": {"x": 10, "y": 20},
+                "definition": {
+                    "version": "3.0",
+                    "id": "InnerBP",
+                    "display_name": "Inner Blueprint",
+                    "interface": [
+                        {"name": "in_port",  "domain": 1, "direction": 0},
+                        {"name": "out_port", "domain": 1, "direction": 1}
+                    ],
+                    "nodes": [],
+                    "wires": [],
+                    "nested": []
+                }
+            }
+        ]
+    })";
+
+    bp2::DecodeError err;
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
+    ASSERT_EQ(result->nested().size(), 1u);
+
+    const auto& nested = result->nested()[0];
+    EXPECT_TRUE(nested.embedded);
+    ASSERT_NE(nested.inline_def, nullptr);
+
+    // THE REGRESSION: nested.iface must mirror inline_def's interface
+    EXPECT_FALSE(nested.iface.empty())
+        << "nested.iface is empty after decode — inline_def iface not propagated";
+    EXPECT_EQ(nested.iface.size(), 2u);
+    EXPECT_TRUE(nested.iface.has(interner.intern("in_port")));
+    EXPECT_TRUE(nested.iface.has(interner.intern("out_port")));
+
+    // Verify directions match the inline definition
+    auto in_port = nested.iface.find(interner.intern("in_port"));
+    ASSERT_TRUE(in_port.has_value());
+    EXPECT_EQ(in_port->direction, bp2::Direction::Input);
+
+    auto out_port = nested.iface.find(interner.intern("out_port"));
+    ASSERT_TRUE(out_port.has_value());
+    EXPECT_EQ(out_port->direction, bp2::Direction::Output);
+}
+
+// Regression: embedded nested iface must survive encode→decode roundtrip.
+TEST(BlueprintCodec, RoundTripEmbeddedNestedPreservesIface) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+
+    // Build a blueprint with an embedded nested that has a real interface
+    bp2::Blueprint inner;
+    inner = inner.with_id(interner.intern("SubSystem"));
+    inner = inner.with_display_name("Sub System");
+    inner = inner.with_interface(bp2::Interface({
+        {interner.intern("sig_in"),  Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("sig_out"), Domain::Electrical, bp2::Direction::Output},
+    }));
+
+    bp2::Blueprint::Nested nested;
+    nested.id = interner.intern("inst1");
+    nested.blueprint_id = interner.intern("SubSystem");
+    nested.embedded = true;
+    nested.inline_def = std::make_unique<bp2::Blueprint>(inner);
+    nested.iface = inner.iface();
+    nested.x = 5.0f;
+    nested.y = 10.0f;
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("roundtrip_nested_iface"));
+    bp = bp.with_display_name("RT Nested Iface");
+    bp = bp.with_nested(std::move(nested));
+
+    // Encode
+    std::string json = bp2::BlueprintCodec::encode(bp, interner, arena);
+
+    // Decode
+    bp2::DecodeError err;
+    auto loaded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(loaded.has_value()) << "Roundtrip decode failed: " << err.message;
+    ASSERT_EQ(loaded->nested().size(), 1u);
+
+    const auto& loaded_nested = loaded->nested()[0];
+    EXPECT_FALSE(loaded_nested.iface.empty())
+        << "nested.iface lost during roundtrip";
+    EXPECT_EQ(loaded_nested.iface.size(), 2u);
+    EXPECT_TRUE(loaded_nested.iface.has(interner.intern("sig_in")));
+    EXPECT_TRUE(loaded_nested.iface.has(interner.intern("sig_out")));
 }

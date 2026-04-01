@@ -98,3 +98,4 @@ include("/Users/vladimir/an24_cpp/build/tests/bp2_validation_tests[1]_include.cm
 include("/Users/vladimir/an24_cpp/build/tests/electrical_primitives_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/electrical_parity_fixtures_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/external_ref_signal_mapping_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/signal_key_resolver_tests[1]_include.cmake")

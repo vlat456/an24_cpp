@@ -17,6 +17,9 @@ Use this file as the entry point before crawling the rest of the repo.
 | UI framework | `knowledge/09_ui_framework.md` | Widgets, math, layout, rendering |
 | Quick reference | `knowledge/10_quick_reference.md` | Build commands, paths, tuning defaults |
 | External blueprint rendering | `knowledge/nesting/01_external_blueprint_rendering_plan.md` | Plan for editor support of reusable referenced blueprints via second rendering mode |
+| Nesting final-pass architecture | `knowledge/architecture/01_nesting_external_ref_final_pass.md` | Final-pass architecture review notes and staged cleanup plan for external references |
+| Signal key resolver TODO/PR | `knowledge/architecture/02_signal_key_resolver_todo_pr.md` | Action plan to centralize runtime signal-key resolution and remove fragile string plumbing |
+| Final review findings | `knowledge/architecture/03_final_review_findings.md` | Final review of nesting/signal-key/parity work — findings, fixes, test results |
 
 ## Practical Notes
 

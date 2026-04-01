@@ -277,7 +277,4 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
         const ui::Pt* click = action.has_toggle_probe_world_pos ? &action.toggle_probe_world_pos : nullptr;
         oscilloscope.toggle_probe(doc, action.toggle_probe_group_id, action.toggle_probe_wire_id, click);
     }
-    if (!action.open_document_path.empty()) {
-        openDocument(action.open_document_path);
-    }
 }

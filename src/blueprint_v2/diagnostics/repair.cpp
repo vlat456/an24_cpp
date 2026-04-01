@@ -27,10 +27,17 @@ RepairReport diagnose_and_repair(Blueprint& bp,
             });
         }
         if (!registry.has(n.type)) {
-            report.issues.push_back({
-                IntegrityIssue::Kind::UnknownNodeType,
-                "unknown node type at node id=" + iid(n.id)
-            });
+            // Skip embedded blueprint proxy nodes — their user-given type
+            // is not in the library registry by design.
+            const bool is_embedded_proxy = n.expandable
+                && bp.find_nested(n.id) != nullptr
+                && bp.find_nested(n.id)->embedded;
+            if (!is_embedded_proxy) {
+                report.issues.push_back({
+                    IntegrityIssue::Kind::UnknownNodeType,
+                    "unknown node type at node id=" + iid(n.id)
+                });
+            }
         }
     }
 

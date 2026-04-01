@@ -1487,6 +1487,20 @@ external_ref_signal_mapping_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build
 .PHONY : external_ref_signal_mapping_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/signal_key_resolver_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/signal_key_resolver_tests.dir/rule
+.PHONY : tests/CMakeFiles/signal_key_resolver_tests.dir/rule
+
+# Convenience name for target.
+signal_key_resolver_tests: tests/CMakeFiles/signal_key_resolver_tests.dir/rule
+.PHONY : signal_key_resolver_tests
+
+# fast build rule for target.
+signal_key_resolver_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/build
+.PHONY : signal_key_resolver_tests/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -1684,6 +1698,33 @@ __/src/editor/pi_zn_math.s: __/src/editor/pi_zn_math.cpp.s
 __/src/editor/pi_zn_math.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/__/src/editor/pi_zn_math.cpp.s
 .PHONY : __/src/editor/pi_zn_math.cpp.s
+
+__/src/editor/signal_key_resolver.o: __/src/editor/signal_key_resolver.cpp.o
+.PHONY : __/src/editor/signal_key_resolver.o
+
+# target to build an object file
+__/src/editor/signal_key_resolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/__/src/editor/signal_key_resolver.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/__/src/editor/signal_key_resolver.cpp.o
+.PHONY : __/src/editor/signal_key_resolver.cpp.o
+
+__/src/editor/signal_key_resolver.i: __/src/editor/signal_key_resolver.cpp.i
+.PHONY : __/src/editor/signal_key_resolver.i
+
+# target to preprocess a source file
+__/src/editor/signal_key_resolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/__/src/editor/signal_key_resolver.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/__/src/editor/signal_key_resolver.cpp.i
+.PHONY : __/src/editor/signal_key_resolver.cpp.i
+
+__/src/editor/signal_key_resolver.s: __/src/editor/signal_key_resolver.cpp.s
+.PHONY : __/src/editor/signal_key_resolver.s
+
+# target to generate assembly for a file
+__/src/editor/signal_key_resolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/__/src/editor/signal_key_resolver.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/__/src/editor/signal_key_resolver.cpp.s
+.PHONY : __/src/editor/signal_key_resolver.cpp.s
 
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
@@ -3968,6 +4009,30 @@ test_scene_mutations.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/test_scene_mutations.cpp.s
 .PHONY : test_scene_mutations.cpp.s
 
+test_signal_key_resolver.o: test_signal_key_resolver.cpp.o
+.PHONY : test_signal_key_resolver.o
+
+# target to build an object file
+test_signal_key_resolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/test_signal_key_resolver.cpp.o
+.PHONY : test_signal_key_resolver.cpp.o
+
+test_signal_key_resolver.i: test_signal_key_resolver.cpp.i
+.PHONY : test_signal_key_resolver.i
+
+# target to preprocess a source file
+test_signal_key_resolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/test_signal_key_resolver.cpp.i
+.PHONY : test_signal_key_resolver.cpp.i
+
+test_signal_key_resolver.s: test_signal_key_resolver.cpp.s
+.PHONY : test_signal_key_resolver.s
+
+# target to generate assembly for a file
+test_signal_key_resolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/test_signal_key_resolver.cpp.s
+.PHONY : test_signal_key_resolver.cpp.s
+
 test_slew_rate.o: test_slew_rate.cpp.o
 .PHONY : test_slew_rate.o
 
@@ -4628,6 +4693,7 @@ help:
 	@echo "... radiator_regression_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
+	@echo "... signal_key_resolver_tests"
 	@echo "... slew_rate_tests"
 	@echo "... splitter_tests"
 	@echo "... spring_tests"
@@ -4672,6 +4738,9 @@ help:
 	@echo "... __/src/editor/pi_zn_math.o"
 	@echo "... __/src/editor/pi_zn_math.i"
 	@echo "... __/src/editor/pi_zn_math.s"
+	@echo "... __/src/editor/signal_key_resolver.o"
+	@echo "... __/src/editor/signal_key_resolver.i"
+	@echo "... __/src/editor/signal_key_resolver.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
@@ -4945,6 +5014,9 @@ help:
 	@echo "... test_scene_mutations.o"
 	@echo "... test_scene_mutations.i"
 	@echo "... test_scene_mutations.s"
+	@echo "... test_signal_key_resolver.o"
+	@echo "... test_signal_key_resolver.i"
+	@echo "... test_signal_key_resolver.s"
 	@echo "... test_slew_rate.o"
 	@echo "... test_slew_rate.i"
 	@echo "... test_slew_rate.s"

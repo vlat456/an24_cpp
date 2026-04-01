@@ -1,4 +1,5 @@
 #include "signal_key_resolver.h"
+#include "external_ref_mapping.h"
 
 namespace editor {
 
@@ -8,8 +9,13 @@ std::string resolve_runtime_signal_key(
     const SignalEndpoint& endpoint,
     const SignalKeyContext& context) {
     
+    // Defensive: reject empty endpoint IDs early
+    if (endpoint.node_iid.empty() || endpoint.port_iid.empty()) {
+        return "";
+    }
+    
     std::string_view node_sv = interner.resolve(endpoint.node_iid);
-    std::string_view port_sv = interner.resolve(endpoint.port_iif);
+    std::string_view port_sv = interner.resolve(endpoint.port_iid);
 
     if (context.mode == SignalKeyContextMode::Root) {
         // Root mode: check if node is expandable composite

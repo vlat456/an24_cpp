@@ -1165,3 +1165,110 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
             << "execute() must come before commit() in generated step";
     }
 }
+
+// =============================================================================
+// Regression: AOT codegen must unify BlueprintInput/BlueprintOutput ext↔port
+// signals via UnionFind, matching JIT solver behavior. Without this, composites
+// with bridge nodes have broken signal routing in AOT mode because ext and port
+// get allocated as separate signals instead of being unified.
+// =============================================================================
+TEST(AotComposite, BridgeNodeExtPortUnification) {
+    TypeRegistry registry;
+
+    // BlueprintInput: port (Out, Any), ext (In, Any, alias→port)
+    TypeDefinition bp_in;
+    bp_in.classname = "BlueprintInput";
+    bp_in.cpp_class = true;
+    bp_in.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
+    bp_in.ports["ext"]  = Port{PortDirection::In, PortType::Any, std::string("port")};
+    bp_in.domains = {{Domain::Electrical}};
+    bp_in.execution = make_execution(true, false, true, false, false, false, true, true, true);
+    registry.types["BlueprintInput"] = bp_in;
+
+    // BlueprintOutput: port (In, Any), ext (Out, Any, alias→port)
+    TypeDefinition bp_out;
+    bp_out.classname = "BlueprintOutput";
+    bp_out.cpp_class = true;
+    bp_out.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    bp_out.ports["ext"]  = Port{PortDirection::Out, PortType::Any, std::string("port")};
+    bp_out.domains = {{Domain::Electrical}};
+    bp_out.execution = make_execution(true, false, true, false, false, false, true, true, true);
+    registry.types["BlueprintOutput"] = bp_out;
+
+    // IndicatorLight (simple pass-through component)
+    TypeDefinition light;
+    light.classname = "IndicatorLight";
+    light.cpp_class = true;
+    light.ports["v_in"]       = Port{PortDirection::In, PortType::V, std::nullopt};
+    light.ports["v_out"]      = Port{PortDirection::Out, PortType::V, std::nullopt};
+    light.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
+    light.domains = {{Domain::Electrical}};
+    light.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    registry.types["IndicatorLight"] = light;
+
+    // Composite: vin→lamp→vout
+    TypeDefinition composite;
+    composite.classname = "bridge_test";
+    composite.cpp_class = false;
+
+    DeviceInstance d_vin;
+    d_vin.name = "vin";
+    d_vin.classname = "BlueprintInput";
+    DeviceInstance d_lamp;
+    d_lamp.name = "lamp";
+    d_lamp.classname = "IndicatorLight";
+    DeviceInstance d_vout;
+    d_vout.name = "vout";
+    d_vout.classname = "BlueprintOutput";
+    composite.devices = {d_vin, d_lamp, d_vout};
+    composite.connections = {
+        {"vin.port", "lamp.v_in", {}},
+        {"lamp.v_out", "vout.port", {}}
+    };
+    composite.ports["vin"]  = Port{PortDirection::In, PortType::V, std::nullopt};
+    composite.ports["vout"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    registry.types["bridge_test"] = composite;
+
+    // Generate AOT code
+    auto aot_result = CodeGen::generate_composite_systems(composite, registry);
+    ASSERT_FALSE(aot_result.header.empty());
+
+    // Extract SIGNAL_COUNT
+    std::regex signal_count_re(R"(SIGNAL_COUNT\s*=\s*(\d+))");
+    std::smatch match;
+    ASSERT_TRUE(std::regex_search(aot_result.header, match, signal_count_re))
+        << "AOT header should contain SIGNAL_COUNT";
+    uint32_t aot_signal_count = static_cast<uint32_t>(std::stoul(match[1].str()));
+
+    // Also run through JIT path
+    std::set<std::string> loading_stack;
+    auto expanded = expand_sub_blueprint_references(composite, registry, loading_stack);
+    for (auto& dev : expanded.devices) {
+        const auto* type_def = registry.get(dev.classname);
+        if (type_def) dev = merge_device_instance(dev, *type_def);
+    }
+    std::vector<std::pair<std::string, std::string>> conn_pairs;
+    for (const auto& c : expanded.connections) {
+        conn_pairs.push_back({c.from, c.to});
+    }
+    BuildResult jit_result = build_systems_dev(expanded.devices, conn_pairs);
+
+    // Key assertion: vin.ext and vin.port MUST share a signal in JIT
+    auto jit_sig = [&](const std::string& port) -> uint32_t {
+        auto it = jit_result.port_to_signal.find(port);
+        EXPECT_NE(it, jit_result.port_to_signal.end()) << port << " should exist in JIT map";
+        return it != jit_result.port_to_signal.end() ? it->second : UINT32_MAX;
+    };
+
+    EXPECT_EQ(jit_sig("vin.ext"), jit_sig("vin.port"))
+        << "JIT must unify BlueprintInput ext↔port";
+    EXPECT_EQ(jit_sig("vout.ext"), jit_sig("vout.port"))
+        << "JIT must unify BlueprintOutput ext↔port";
+
+    // AOT signal count must match JIT (ext↔port unification reduces signal count).
+    // JIT adds +1 for a sentinel signal at the end (see jit_solver.cpp line 317),
+    // so we compare aot_signal_count == jit_result.signal_count - 1.
+    // Without the bridge fix, AOT would allocate 2 extra signals (one for each bridge).
+    EXPECT_EQ(aot_signal_count + 1, jit_result.signal_count)
+        << "AOT and JIT signal counts must match (JIT includes +1 sentinel)";
+}

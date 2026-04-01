@@ -48,9 +48,9 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterne
         if (*data.width >= editor_constants::PORT_LAYOUT_GRID) w = *data.width;
         if (*data.height >= editor_constants::PORT_LAYOUT_GRID) h = *data.height;
     }
-    spdlog::info("[DEBUG-WIDGET] NodeWidget: node={} type={} preferred=({},{}) has_explicit_size={} -> final=({},{})",
-                 data.name, type_name_, preferred.x, preferred.y,
-                 has_explicit, w, h);
+    spdlog::debug("[widget] NodeWidget layout: node='{}' type='{}' preferred=({},{}) explicit_size={} final=({},{})",
+                  data.name, type_name_, preferred.x, preferred.y,
+                  has_explicit, w, h);
 
     // Snap to layout grid (round up to nearest PORT_LAYOUT_GRID)
     Pt snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));

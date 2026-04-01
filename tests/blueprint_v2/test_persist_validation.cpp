@@ -164,3 +164,60 @@ TEST(PersistValidation, WireDomainMismatchIsToleratedWithoutThrow) {
     });
     EXPECT_TRUE(err.empty());
 }
+
+// ===========================================================================
+// Regression: validate_blueprint_for_persist must accept embedded blueprint
+// proxy nodes whose type name is not in the parser TypeRegistry.
+// ===========================================================================
+
+TEST(PersistValidation, ValidatePersistAcceptsEmbeddedProxyNode) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry parser_registry = load_type_registry("library/");
+
+    bp2::Blueprint bp;
+
+    // A regular known node to ensure the basic path works.
+    bp2::Blueprint::Node bat;
+    bat.id = interner.intern("bat1");
+    bat.type = interner.intern("Battery");
+    bp = bp.with_node(std::move(bat));
+
+    // An embedded blueprint proxy node with a user-given type name.
+    bp2::Blueprint::Node proxy;
+    proxy.id = interner.intern("exciter_inst");
+    proxy.type = interner.intern("RN-180-Exciter");
+    proxy.expandable = true;
+    bp = bp.with_node(std::move(proxy));
+
+    bp2::Blueprint::Nested nested;
+    nested.id = interner.intern("exciter_inst");
+    nested.embedded = true;
+    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    *nested.inline_def = nested.inline_def->with_id(interner.intern("RN-180-Exciter"));
+    bp = bp.with_nested(std::move(nested));
+
+    std::string err;
+    bool ok = validate_blueprint_for_persist(bp, interner, arena, parser_registry, &err);
+    EXPECT_TRUE(ok) << "validate_blueprint_for_persist rejected embedded proxy: " << err;
+}
+
+TEST(PersistValidation, ValidatePersistStillRejectsNonProxyUnknownType) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry parser_registry = load_type_registry("library/");
+
+    bp2::Blueprint bp;
+
+    // A node with unknown type that is NOT an embedded proxy.
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("n1");
+    n.type = interner.intern("TotallyFakeType");
+    n.expandable = false;
+    bp = bp.with_node(std::move(n));
+
+    std::string err;
+    bool ok = validate_blueprint_for_persist(bp, interner, arena, parser_registry, &err);
+    EXPECT_FALSE(ok);
+    EXPECT_NE(err.find("unknown node type"), std::string::npos);
+}

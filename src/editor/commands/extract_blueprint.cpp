@@ -811,6 +811,17 @@ static std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
             : ec.port_type;
         collapsed.outputs.emplace_back(interner.intern(ec.iface_name), PortSide::Output, pt);
     }
+    {
+        std::vector<bp2::PortDescriptor> proxy_ports;
+        proxy_ports.reserve(sorted_inputs.size() + sorted_outputs.size());
+        for (const auto& ec : sorted_inputs) {
+            proxy_ports.push_back({interner.intern(ec.iface_name), ec.domain, bp2::Direction::Input});
+        }
+        for (const auto& ec : sorted_outputs) {
+            proxy_ports.push_back({interner.intern(ec.iface_name), ec.domain, bp2::Direction::Output});
+        }
+        collapsed.iface = bp2::Interface(std::move(proxy_ports));
+    }
     out = out.with_node(std::move(collapsed));
 
     std::unordered_map<std::string, ui::InternedId> input_bridge_ids;
