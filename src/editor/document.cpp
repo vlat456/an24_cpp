@@ -10,7 +10,7 @@
 #include "json_parser/json_parser.h"
 #include "parse_number.h"
 #include "subwindow_open_target.h"
-#include "external_ref_mapping.h"
+#include "signal_key_resolver.h"
 #include <nlohmann/json.hpp>
 #include "blueprint_v2/path/path.h"
 #include <spdlog/spdlog.h>
@@ -466,22 +466,10 @@ void Document::buildEnergizedWireSet(
         auto [src_node_id, src_port_id] = bp2_path_to_node_port(w.source);
         if (src_node_id.empty() || src_port_id.empty()) continue;
 
-        std::string_view node_sv = interner_.resolve(src_node_id);
-        std::string_view port_sv = interner_.resolve(src_port_id);
-
-        // For expandable composite nodes (with blueprint_path), the parser
-        // rewrites parent connections: "node.port" → "node:port.ext".
-        // Use the mapped key so the simulator lookup succeeds.
-        const bp2::Blueprint::Node* src_node = bp.find_node(src_node_id);
-        std::string port_key;
-        if (src_node && src_node->expandable && !src_node->blueprint_path.empty()) {
-            port_key = editor::map_composite_port_key(node_sv, port_sv);
-        } else {
-            port_key.reserve(node_sv.size() + 1 + port_sv.size());
-            port_key.append(node_sv);
-            port_key.push_back('.');
-            port_key.append(port_sv);
-        }
+        const bp2::Blueprint::Node* node = bp.find_node(src_node_id);
+        editor::SignalEndpoint endpoint{node, src_node_id, src_port_id};
+        editor::SignalKeyContext context{editor::SignalKeyContextMode::Root, ""};
+        std::string port_key = editor::resolve_runtime_signal_key(bp, interner_, endpoint, context);
 
         if (simulation_.wire_is_energized(port_key)) {
             out.insert(interner_.resolve(w.id));
@@ -506,13 +494,10 @@ void Document::buildEnergizedWireSetExternal(
         if (src_parent.kind() != bp2::PathKind::Node) continue;
         ui::InternedId src_node_iid = src_parent.segment();
 
-        std::string_view node_sv = external_interner.resolve(src_node_iid);
-        std::string_view port_sv = external_interner.resolve(src_port_iid);
-
-        // Build child-local key, then map to parent
-        std::string child_key = editor::build_signal_key(node_sv, port_sv);
-        std::string parent_key = editor::resolve_external_ref_signal_key(
-            parent_instance_id, child_key);
+        const bp2::Blueprint::Node* node = external_bp.find_node(src_node_iid);
+        editor::SignalEndpoint endpoint{node, src_node_iid, src_port_iid};
+        editor::SignalKeyContext context{editor::SignalKeyContextMode::ExternalReference, parent_instance_id};
+        std::string parent_key = editor::resolve_runtime_signal_key(external_bp, external_interner, endpoint, context);
 
         if (simulation_.wire_is_energized(parent_key)) {
             out.insert(external_interner.resolve(w.id));

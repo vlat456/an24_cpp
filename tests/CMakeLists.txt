@@ -1631,6 +1631,7 @@ gtest_discover_tests(electrical_parity_fixtures_tests
 # External reference signal mapping tests (parent-bound blueprint rendering)
 add_executable(external_ref_signal_mapping_tests
     test_external_ref_signal_mapping.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
 )
 target_include_directories(external_ref_signal_mapping_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1644,3 +1645,18 @@ target_link_libraries(external_ref_signal_mapping_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(external_ref_signal_mapping_tests)
+
+add_executable(signal_key_resolver_tests
+    test_signal_key_resolver.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
+)
+target_include_directories(signal_key_resolver_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(signal_key_resolver_tests PRIVATE
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(signal_key_resolver_tests)

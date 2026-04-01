@@ -9,7 +9,7 @@
 #include "editor/visual/oscilloscope_plot.h"
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
-#include "editor/external_ref_mapping.h"
+#include "editor/signal_key_resolver.h"
 #include "blueprint_v2/path/path.h"
 #include <imgui.h>
 #include <unordered_set>
@@ -158,19 +158,27 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         std::string_view port_name = port->name();
         Pt port_screen = win.viewport.world_to_screen(port->worldPos(), cmin);
         std::string signal_key;
-        // For external-ref windows, map through parent instance prefix
+        
+        // Use resolver for signal key lookup
         if (win.is_external_ref() && !win.parent_instance_id.empty()) {
-            signal_key = editor::resolve_external_ref_signal_key(
-                win.parent_instance_id,
-                editor::build_signal_key(node_id, port_name));
+            auto node_iid = win.external_interner ? win.external_interner->lookup(node_id) : ui::InternedId();
+            auto port_iid = win.external_interner ? win.external_interner->lookup(port_name) : ui::InternedId();
+            if (!node_iid.empty() && !port_iid.empty() && win.external_blueprint) {
+                const bp2::Blueprint::Node* node = win.external_blueprint->find_node(node_iid);
+                editor::SignalEndpoint endpoint{node, node_iid, port_iid};
+                editor::SignalKeyContext context{editor::SignalKeyContextMode::ExternalReference, win.parent_instance_id};
+                signal_key = editor::resolve_runtime_signal_key(*win.external_blueprint, *win.external_interner, endpoint, context);
+            } else {
+                signal_key = editor::build_signal_key(node_id, port_name);
+            }
         } else {
-            // For expandable composite nodes (with blueprint_path), the parser
-            // rewrites parent connections: "node.port" → "node:port.ext".
             auto node_iid = doc.interner().lookup(node_id);
-            const bp2::Blueprint::Node* bp_node = node_iid.empty()
-                ? nullptr : doc.blueprint().find_node(node_iid);
-            if (bp_node && bp_node->expandable && !bp_node->blueprint_path.empty()) {
-                signal_key = editor::map_composite_port_key(node_id, port_name);
+            auto port_iid = doc.interner().lookup(port_name);
+            if (!node_iid.empty() && !port_iid.empty()) {
+                const bp2::Blueprint::Node* node = doc.blueprint().find_node(node_iid);
+                editor::SignalEndpoint endpoint{node, node_iid, port_iid};
+                editor::SignalKeyContext context{editor::SignalKeyContextMode::Root, ""};
+                signal_key = editor::resolve_runtime_signal_key(doc.blueprint(), doc.interner(), endpoint, context);
             } else {
                 signal_key = editor::build_signal_key(node_id, port_name);
             }
@@ -201,24 +209,18 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         if (node_path.kind() != bp2::PathKind::Node) return;
         ui::InternedId node_iid = node_path.segment();
 
-        std::string_view node_sv = interner.resolve(node_iid);
-        std::string_view port_sv = interner.resolve(port_iid);
         std::string signal_key;
-        // For external-ref windows, map through parent instance prefix
+        // Use resolver for signal key lookup
+        const bp2::Blueprint::Node* bp_node = bp_ref.find_node(node_iid);
+        editor::SignalEndpoint endpoint{bp_node, node_iid, port_iid};
         if (win.is_external_ref() && !win.parent_instance_id.empty()) {
-            signal_key = editor::resolve_external_ref_signal_key(
-                win.parent_instance_id,
-                editor::build_signal_key(node_sv, port_sv));
+            editor::SignalKeyContext context{editor::SignalKeyContextMode::ExternalReference, win.parent_instance_id};
+            signal_key = editor::resolve_runtime_signal_key(bp_ref, interner, endpoint, context);
         } else {
-            // For expandable composite nodes (with blueprint_path), the parser
-            // rewrites parent connections: "node.port" → "node:port.ext".
-            const bp2::Blueprint::Node* bp_node = bp_ref.find_node(node_iid);
-            if (bp_node && bp_node->expandable && !bp_node->blueprint_path.empty()) {
-                signal_key = editor::map_composite_port_key(node_sv, port_sv);
-            } else {
-                signal_key = editor::build_signal_key(node_sv, port_sv);
-            }
+            editor::SignalKeyContext context{editor::SignalKeyContextMode::Root, ""};
+            signal_key = editor::resolve_runtime_signal_key(bp_ref, interner, endpoint, context);
         }
+        
         // Project mouse onto wire segment for tooltip anchor
         const auto& poly = wire->polyline();
         size_t seg = hw->segment;
