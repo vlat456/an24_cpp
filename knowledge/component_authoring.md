@@ -34,227 +34,193 @@ public:
 
     float param = 1.0f;
 
-    void solve_electrical(SimulationState& st, float dt);
-    void finalize_step(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load();
 };
 ```
 
 ## Rules
 
-### 1. `solve_*()` should stamp, not evolve memory
+### 1. `execute()` should compute outputs, `commit()` should update state
 
-Do not update persistent internal state in `solve_electrical()`, `solve_hydraulic()`, etc.
+Do not update persistent internal state in `execute()`. Use `commit()` for state transitions.
 
 Bad:
 
 ```cpp
-void solve_electrical(SimulationState& st, float dt) {
+void execute(SimulationState& st, double dt) {
     integrator_state += error * dt;
-    st.across[provider.get(PortNames::out)] = integrator_state;
+    st.values[provider.get(PortNames::out)] = integrator_state;
 }
 ```
 
 Good:
 
 ```cpp
-void solve_electrical(SimulationState& st, float /*dt*/) {
-    st.across[provider.get(PortNames::out)] = integrator_state;
+void execute(SimulationState& st, double /*dt*/) {
+    st.values[provider.get(PortNames::out)] = integrator_state;
 }
 
-void finalize_step(SimulationState& st, float dt) {
+void commit(SimulationState& st, double dt) {
     integrator_state += error * dt;
 }
 ```
 
 Why:
 
-- `solve_*()` participates in the relaxation process
-- changing hidden state there makes behavior depend on solver iteration behavior
-- `finalize_step()` runs once per frame and is the right place for memory/state transitions
+- `execute()` runs during scheduler step
+- state changes in `commit()` take effect next frame (one-frame delay semantics)
+- this prevents combinatorial feedback loops
 
-### 2. Two-port physics must use two-port stamps
+### 2. Electrical components participate in subsolver, not push
 
-If the device passes current/flow between two nodes, use `stamp_two_port(...)`.
+Components that model electrical elements (resistors, sources, etc.) don't use `execute()` for electrical stamping. Instead:
 
-Good:
+- They contribute elements to the **electrical build plan** at build time
+- The **electrical subsolver** solves node voltages for connected islands
+- Components read solved values via `st.electrical_rt` in `execute()` or `commit()`
+
+See `knowledge/how_to_create_electrical_components.md` for details on solver roles.
+
+### 3. State transitions go in `commit()`, not `execute()`
+
+For stateful components (Relay, Switch, AZS, etc.):
+
+- Read inputs in `execute()` — from previous frame's committed state
+- Stage state changes in `execute()` or compute outputs
+- Apply state changes in `commit()` — visible next frame
+
+This is the one-frame delay semantics of push propagation.
+
+Bad (state change in execute):
 
 ```cpp
-stamp_two_port(
-    st.conductance.data(),
-    st.through.data(),
-    st.across.data(),
-    provider.get(PortNames::v_in),
-    provider.get(PortNames::v_out),
-    g
-);
+void execute(SimulationState& st, double dt) {
+    // This runs every frame, can cause feedback loops
+    if (st.values[ctrl] > threshold) {
+        closed = true;  // BAD: direct state mutation
+    }
+}
 ```
 
-Do not fake it as two separate loads to ground.
-
-### 3. One-port loads should use the helper
-
-For resistive load to ground:
+Good (state change in commit):
 
 ```cpp
-stamp_one_port_ground(
-    st.conductance.data(),
-    st.through.data(),
-    st.across.data(),
-    provider.get(PortNames::input),
-    conductance
-);
+void execute(SimulationState& st, double /*dt*/) {
+    // Read state, compute outputs
+    float g = closed ? on_conductance : off_conductance;
+    st.values[out] = st.values[in] * g;
+}
+
+void commit(SimulationState& st, double /*dt*/) {
+    // Stage state change for next frame
+    if (st.values[ctrl] > threshold) {
+        next_closed = true;
+    }
+    closed = next_closed;
+}
 ```
 
-### 4. Voltage sources should be stamped in Norton-compatible form
+### 4. Use helpers for mathematical operations
 
-Prefer the existing helper/patterns instead of inventing a custom residual equation unless you really need it.
+```cpp
+// Safe division
+float safe_r = std::max(r_internal, 1e-9f);
 
-Important:
+// Safe volume
+float safe_volume = std::max(gas_volume, 0.01);
 
-- clamp tiny internal resistance
-- avoid exact ideal source behavior
-- always keep a finite path for conditioning
+// Clamp outputs
+float out = std::clamp(value, 0.0f, 1.0f);
+```
 
 ### 5. Keep defaults moderate
 
-Avoid dangerous defaults such as:
-
-- extremely high conductance
+Avoid dangerous defaults:
+- extremely high conductance (near-short)
 - near-zero resistance
 - huge gains
-- idealized no-loss behavior unless absolutely needed
+- idealized no-loss behavior unless needed
 
-Examples:
+### 6. Separate physical unknowns from convenience outputs
 
-- measurement devices should not default to near-short values unless there is a strong reason
-- controlled sources should have reasonable internal resistance
-
-### 6. Separate physical unknowns from convenience outputs mentally
-
-Some outputs are just measurements or signals.
-
-Examples:
-
+Some outputs are just measurements or derived signals:
 - `i_out` on `CurrentSense`
 - logic outputs
 - display values
 
-These should not destabilize the physical solve. Keep their computation simple and derived from already-available state.
-
-### 7. Clamp nonlinear expressions
-
-Use safe bounds for divisions and nonlinear laws.
-
-Examples:
-
-```cpp
-float safe_r = std::max(r_internal, 1e-9f);
-float safe_v = std::max(v_diff, 1e-3f);
-float safe_volume = std::max(gas_volume, 0.01f);
-```
-
-### 8. Prefer bounded approximations
-
-For sim use, a bounded approximation is usually better than a more realistic but explosive model.
-
-Examples:
-
-- clamp source output ranges
-- clamp rates of change
-- use finite conductance instead of ideal wire behavior
+These should be computed simply from available solved state.
 
 ## Recommended workflow for new components
 
-### Step 1. Start with the simplest stable model
+### Step 1. Determine the component role
 
-Example resistive pass-through:
+For electrical components, decide:
+- **Solver-owned**: contributes to electrical subsolver (Battery, Generator, Resistor, etc.)
+- **Push component**: runs in scheduler, reads solved values
+
+See `knowledge/how_to_create_electrical_components.md`.
+
+### Step 2. Implement push component pattern
 
 ```cpp
 template <typename Provider>
-void MyPassThrough<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    stamp_two_port(
-        st.conductance.data(),
-        st.through.data(),
-        st.across.data(),
-        provider.get(PortNames::v_in),
-        provider.get(PortNames::v_out),
-        conductance
-    );
+void MyComponent<Provider>::execute(SimulationState& st, double /*dt*/) {
+    float in = st.values[provider.get(PortNames::v_in)];
+    st.values[provider.get(PortNames::v_out)] = in * param;
+}
+
+template <typename Provider>
+void MyComponent<Provider>::commit(SimulationState& st, double dt) {
+    if (state_transition_condition) {
+        next_state = new_state;
+    }
+    state = next_state;
 }
 ```
 
-### Step 2. Add state only in `finalize_step()`
-
-Example relay-like behavior:
+### Step 3. Add state machine for stateful components
 
 ```cpp
-template <typename Provider>
-void MyRelay<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void MyComponent::execute(SimulationState& st, double /*dt*/) {
+    // Read inputs from committed state
+    float ctrl = st.values[provider.get(PortNames::ctrl)];
+    
+    // Compute outputs
     float g = closed ? on_conductance : off_conductance;
-    stamp_two_port(
-        st.conductance.data(),
-        st.through.data(),
-        st.across.data(),
-        provider.get(PortNames::v_in),
-        provider.get(PortNames::v_out),
-        g
-    );
+    st.values[provider.get(PortNames::v_out)] = g;
 }
 
-template <typename Provider>
-void MyRelay<Provider>::finalize_step(SimulationState& st, float /*dt*/) {
-    float ctrl = st.across[provider.get(PortNames::ctrl)];
-    closed = ctrl > threshold;
+void MyComponent::commit(SimulationState& st, double /*dt*/) {
+    // Stage transition
+    if (st.values[provider.get(PortNames::ctrl)] > threshold) {
+        next_closed = true;
+    } else {
+        next_closed = false;
+    }
+    // Apply for next frame
+    closed = next_closed;
 }
-```
-
-### Step 3. Add measurements last
-
-Example current measurement:
-
-```cpp
-float v_diff = st.across[provider.get(PortNames::v_in)]
-             - st.across[provider.get(PortNames::v_out)];
-st.across[provider.get(PortNames::i_out)] = v_diff * conductance;
 ```
 
 ## Red flags
 
-If a component does any of these, inspect it carefully:
+If a component does any of these, inspect carefully:
 
-- updates internal accumulators inside `solve_*()`
-- writes to unrelated ports as a shortcut
-- stamps both sides of a through-device independently to ground
+- updates internal accumulators inside `execute()` without using `commit()`
+- writes to solver-owned signals (those in electrical_plan)
 - uses huge default conductance to simulate ideal behavior
 - divides by a runtime value without a floor
-- changes topology-like behavior continuously inside the solve phase
-
-## Good test cases
-
-For each new component, add tests for:
-
-1. nominal behavior
-2. disconnected ports
-3. short-circuit / near-short case
-4. zero or near-zero parameter edge case
-5. stability over many steps
-
-Example cases:
-
-- source -> component -> load
-- source -> component -> ground
-- one side disconnected
-- extreme parameter clamps
+- changes topology-like behavior inside execute phase
 
 ## Quick checklist
 
-- use helper stamps where possible
-- keep `solve_*()` stateless except for stamping/reading
-- move memory/state transitions to `finalize_step()`
-- clamp dangerous math
-- choose moderate defaults
-- test disconnected and shorted topologies
+- Use `commit()` for state transitions, not `execute()`
+- Electrical components should have solver roles, not use execute for stamping
+- Clamp dangerous math operations
+- Choose moderate defaults
+- Test disconnected and shorted topologies
 
 ## Bottom line
 

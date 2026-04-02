@@ -44,25 +44,25 @@ cd build && ctest
 | `generated/*.cpp, generated/*.h` | AOT-generated outputs |
 | `build*/`, `Testing/Temporary/*`, `.cache/clangd/*` | Build/cache artifacts, never hand-edit/commit |
 
-See also: `knowledge/17_generated_files.md`.
-
 ## Knowledge Notes
 
 | Topic | File |
 |------|------|
 | Stable component design | `knowledge/component_authoring.md` |
-| Scheduler refactor plan | `knowledge/13_scheduler_refactor_plan.md` |
-| Scheduler refactor epic | `knowledge/14_scheduler_refactor_epic.md` |
-| Architecture overview | `knowledge/01_architecture.md` |
-
-## Knowledge Notes
-
-| Topic | File |
-|------|------|
 | Component internals | `knowledge/03_components.md` |
 | Blueprint/library format | `knowledge/07_library.md` |
-| Electrical-logical bridge nodes | `knowledge/11_domain_bridges.md` |
-| `GSC.blueprint` bridge migration plan | `knowledge/12_gsc_bridge_plan.md` |
+| Architecture overview | `knowledge/01_architecture.md` |
+
+## AOT Code Generation
+
+The code generator (`src/codegen/codegen.cpp`) produces optimized C++ from blueprints:
+- `port_registry.h` — auto-generated from library, do not edit
+- `generated/` — AOT output directory
+
+Run codegen after library changes:
+```bash
+cmake --build build --target update_port_registry
+```
 
 ## Domain Values
 
@@ -106,12 +106,12 @@ public:
     Provider provider;
     float param = 1.0f;
     
-    void execute(SimulationState& st, float dt) {
+    void execute(SimulationState& st, double dt) {
         float in = st.values[provider.get(PortNames::v_in)];
         st.values[provider.get(PortNames::v_out)] = in * param;
     }
     
-    void commit(SimulationState& st) {}  // Optional
+    void commit(SimulationState& st, double dt) {}  // Optional
     void pre_load() {}  // Optional
 };
 ```
@@ -150,7 +150,7 @@ TEST(MyTest, Scenario_ExpectedResult) {
     st.values[0] = 1.0f;
     
     // Execute
-    comp.execute(st, 1.0f/60.0f);
+    comp.execute(st, 1.0/60.0);
     
     // Verify
     EXPECT_NEAR(st.values[1], expected, tolerance);

@@ -4,6 +4,8 @@
 
 Uses Google Test (gtest). Tests are organized by feature area in `tests/`.
 
+> **Note:** This document references the legacy solver API (`st.across`, `st.through`, `st.conductance`). The current push runtime uses `st.values[]` only. See `tests/test_architecture_regression.cpp` for current test patterns.
+
 ## Running Tests
 
 ```bash
@@ -20,7 +22,7 @@ ctest -R "editor_data" --output-on-failure
 ./build/tests/editor_data_tests --gtest_filter="DataTest.TestName"
 ```
 
-## Test Structure
+## Current Test Pattern
 
 ```cpp
 #include <gtest/gtest.h>
@@ -38,9 +40,9 @@ static AND<JitProvider> make_and() {
 
 static SimulationState make_state() {
     SimulationState st;
-    st.across.resize(3, 0.0f);
-    st.through.resize(3, 0.0f);
-    st.conductance.resize(3, 0.0f);
+    st.allocate_signal(0.0f, {Domain::Logical, false});  // A
+    st.allocate_signal(0.0f, {Domain::Logical, false}); // B
+    st.allocate_signal(0.0f, {Domain::Logical, false});  // out
     return st;
 }
 
@@ -48,24 +50,12 @@ TEST(ANDTest, BothTrue_ReturnsTrue) {
     auto comp = make_and();
     auto st = make_state();
     
-    st.across[0] = 1.0f;  // A = TRUE
-    st.across[1] = 1.0f;  // B = TRUE
+    st.values[0] = 1.0f;  // A = TRUE
+    st.values[1] = 1.0f;  // B = TRUE
     
-    comp.solve_logical(st, 1.0f/60.0f);
+    comp.execute(st, 1.0/60.0);
     
-    EXPECT_NEAR(st.across[2], 1.0f, 0.001f);
-}
-
-TEST(ANDTest, OneFalse_ReturnsFalse) {
-    auto comp = make_and();
-    auto st = make_state();
-    
-    st.across[0] = 1.0f;  // A = TRUE
-    st.across[1] = 0.0f;  // B = FALSE
-    
-    comp.solve_logical(st, 1.0f/60.0f);
-    
-    EXPECT_NEAR(st.across[2], 0.0f, 0.001f);
+    EXPECT_NEAR(st.values[2], 1.0f, 0.001f);
 }
 ```
 

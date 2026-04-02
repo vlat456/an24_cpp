@@ -37,20 +37,18 @@ Blueprint V2 uses copy-on-write semantics:
 - Thread-safe by design
 
 ### 3. Structure of Arrays (SoA)
-SimulationState stores physics data in separate arrays:
-- `across[]` - potentials (voltage, pressure, temperature)
-- `through[]` - flows (current, flow rate, heat flux)
-- `conductance[]` - accumulated conductances for circuit solver
+SimulationState stores physics data in a unified signal array:
+- `values[]` - node values used by both push scheduler and electrical subsolver
 
-### 4. Domain-Based Scheduling
-Components run at different frequencies based on physics domain:
-| Domain | Frequency | Method |
-|--------|-----------|--------|
-| Electrical | 60 Hz | `solve_electrical()` |
-| Logical | 60 Hz | `solve_logical()` |
-| Mechanical | 20 Hz | `solve_mechanical()` |
-| Hydraulic | 5 Hz | `solve_hydraulic()` |
-| Thermal | 1 Hz | `solve_thermal()` |
+### 4. Hybrid Execution Model
+The simulator uses both push scheduling and local electrical subsolver:
+| Domain | Frequency | Execution |
+|--------|-----------|-----------|
+| Electrical | 60 Hz | Local island subsolver |
+| Logical | 60 Hz | Push scheduler |
+| Mechanical | 20 Hz | Push scheduler |
+| Hydraulic | 5 Hz | Push scheduler |
+| Thermal | 1 Hz | Push scheduler |
 
 ### 5. ComponentVariant (Type-Safe Polymorphism)
 Uses `std::variant` instead of virtual functions:
@@ -93,19 +91,16 @@ examples/                 # Demo programs
 generated/                # AOT-generated C++ code
 ```
 
-## Simulation Loop
+## Simulation Loop (Current)
 
 ```
 For each frame (60 Hz):
-  1. Clear through[] and conductance[]
-  2. For each electrical component: solve_electrical()
-  3. For each logical component: solve_logical()
-  4. If step % 3 == 0: solve_mechanical() (20 Hz)
-  5. If step % 12 == 0: solve_hydraulic() (5 Hz)
-  6. If step % 60 == 0: solve_thermal() (1 Hz)
-  7. Push update: across += through * inv_conductance
-  8. For each component: finalize_step()
+  1. Electrical subsolver solves connected islands
+  2. Push scheduler executes logical/mechanical/etc. components
+  3. Commit pass for stateful components (Battery discharge, state transitions)
 ```
+
+The electrical subsolver handles closed electrical networks while the push scheduler handles the rest.
 
 ## Key Files Quick Reference
 

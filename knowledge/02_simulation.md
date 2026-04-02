@@ -42,16 +42,20 @@ Notes:
 
 Current `Simulator::step(dt)` sequence:
 
-1. set `state.electrical_rt = &electrical_rt_` (guarded cleanup)
-2. run `solve_electrical(electrical_plan, state, electrical_rt_, dt)`
-3. run push scheduler `scheduler.step(state, dt)`
-4. explicit commit pass for solver-owned components (Battery, etc.)
-5. clear `state.electrical_rt` via RAII guard
+1. **Clamp dt** (`dt = std::min(dt, MAX_DT)` where `MAX_DT = 0.1`) to prevent physics explosions
+2. Set `state.electrical_rt = &electrical_rt_` (RAII guard ensures cleanup)
+3. **Pre-solve**: `update_dynamic_sources()` — stamp actuator states from previous frame
+4. **Solve electrical**: `solve_electrical(electrical_plan, state, electrical_rt_, dt)`
+5. **Push scheduler**: `scheduler.step(state, dt)` — execute all logical/mechanical/etc. components
+6. **Commit pass**: `commit_solver_owned_devices()` — battery discharge, state transitions
+7. Clear `state.electrical_rt` via RAII guard
+8. Advance `time_ += dt`, `step_count_++`
 
 Key consequence:
 
 - electrical node voltages are solved before push consumers read them
 - solver-owned electrical propagators do not write pass-through voltages in push phase
+- one-frame delay for actuator state changes (AZS toggle, relay close) is intentional
 
 ---
 
