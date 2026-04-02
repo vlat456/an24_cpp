@@ -6,16 +6,16 @@
   "interface": [
     {
       "name": "Va",
-      "domain": 1,
+      "domain": 3,
       "direction": 0,
-      "type": "V",
+      "type": "Any",
       "source_writer": false
     },
     {
       "name": "Vb",
-      "domain": 1,
+      "domain": 3,
       "direction": 0,
-      "type": "V",
+      "type": "Any",
       "source_writer": false
     },
     {
