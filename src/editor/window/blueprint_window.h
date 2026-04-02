@@ -32,6 +32,8 @@ struct BlueprintWindow {
     bool read_only = false;
     void set_read_only(bool v) { read_only = v; input.read_only = v; }
 
+    bool pending_auto_fit = false;
+
     // ── External reference mode ──
 
     BlueprintWindowMode mode = BlueprintWindowMode::RootDocument;

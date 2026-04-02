@@ -16,6 +16,7 @@
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 int Document::next_id_ = 1;
@@ -567,6 +568,11 @@ void Document::openExternalRefWindow(const std::string& instance_id,
     win->external_arena = std::move(ext_arena);
     win->parent_instance_id = instance_id;
     win->set_read_only(true);
+    const bool has_default_viewport =
+        std::abs(win->external_blueprint->pan_x()) < 1e-6f
+        && std::abs(win->external_blueprint->pan_y()) < 1e-6f
+        && std::abs(win->external_blueprint->zoom() - 1.0f) < 1e-6f;
+    win->pending_auto_fit = has_default_viewport;
 
     // Rebuild scene from the external blueprint (root scope = empty group_id)
     visual::mutations::rebuild(win->scene, *win->external_blueprint,
@@ -798,6 +804,12 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
         if (win) {
             // Non-embedded (reference) sub-blueprints are read-only
             win->set_read_only(!nested->embedded);
+
+            const bool has_default_viewport =
+                std::abs(nested->inline_def->pan_x()) < 1e-6f
+                && std::abs(nested->inline_def->pan_y()) < 1e-6f
+                && std::abs(nested->inline_def->zoom() - 1.0f) < 1e-6f;
+            win->pending_auto_fit = has_default_viewport;
         }
 
         spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);

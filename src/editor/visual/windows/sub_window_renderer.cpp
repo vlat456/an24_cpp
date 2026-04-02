@@ -34,6 +34,10 @@ void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, ::Wind
     }
     
     renderToolbar(doc, win, ws);
+    if (win.pending_auto_fit) {
+        fitViewToContent(doc, win);
+        win.pending_auto_fit = false;
+    }
     renderCanvas(doc, win, ws);
     
     ImGui::End();
@@ -107,4 +111,3 @@ void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
         win.viewport.fit_content(bmin, bmax, ws.x, ws.y);
     }
 }
-
