@@ -9,9 +9,9 @@
   "nested": [],
   "cpp_class": false,
   "description": "Visual grouping rectangle for organizing circuit sections. No logic, no ports.",
-  "render_hint": "group",
-  "visual_only": true,
   "domains": [
     "Logical"
-  ]
+  ],
+  "render_hint": "group",
+  "visual_only": true
 }

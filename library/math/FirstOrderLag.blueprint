@@ -1,8 +1,7 @@
 {
   "version": "3.0",
-  "display_name": "FirstOrderLag",
-  "grid_step": 16.0,
   "id": "FirstOrderLag",
+  "display_name": "FirstOrderLag",
   "scheduler_source": false,
   "interface": [
     {
@@ -27,8 +26,6 @@
       "type": "Any"
     }
   ],
-  "name": "FirstOrderLag",
-  "nested": [],
   "nodes": [
     {
       "id": "accumulator",
@@ -50,28 +47,6 @@
         "y": 80.0
       },
       "type": "Accumulator"
-    },
-    {
-      "id": "splitter",
-      "ports": {
-        "i": {
-          "direction": "In",
-          "type": 7
-        },
-        "o1": {
-          "direction": "Out",
-          "type": 7
-        },
-        "o2": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 64.0,
-        "y": 80.0
-      },
-      "type": "Splitter"
     },
     {
       "id": "in",
@@ -131,7 +106,7 @@
       },
       "position": {
         "x": 224.0,
-        "y": 80.0
+        "y": 96.0
       },
       "string_params": {
         "exposed_direction": "Out",
@@ -162,6 +137,28 @@
       "type": "BlueprintInput"
     },
     {
+      "id": "splitter",
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": 7
+        },
+        "o1": {
+          "direction": "Out",
+          "type": 7
+        },
+        "o2": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 64.0,
+        "y": 80.0
+      },
+      "type": "Splitter"
+    },
+    {
       "id": "subtract",
       "ports": {
         "A": {
@@ -184,8 +181,6 @@
       "type": "Subtract"
     }
   ],
-  "pan_x": -370.0582580566406,
-  "pan_y": -58.40324783325195,
   "wires": [
     {
       "id": "w_acc_to_split",
@@ -197,7 +192,7 @@
       "routing_points": [
         [
           160.0,
-          128.0
+          112.0
         ],
         [
           160.0,
@@ -219,6 +214,24 @@
     },
     {
       "id": "w_sub_to_mul",
+      "routing_points": [
+        [
+          304.0,
+          336.0
+        ],
+        [
+          304.0,
+          256.0
+        ],
+        [
+          -240.0,
+          256.0
+        ],
+        [
+          -240.0,
+          112.0
+        ]
+      ],
       "source": "/subtract:o",
       "target": "/multiply:A"
     },
@@ -233,7 +246,7 @@
       "target": "/multiply:B"
     }
   ],
-  "zoom": 1.4056568145751953,
+  "nested": [],
   "cpp_class": false,
   "description": "First-order lag filter: state += (target - state) * rate * dt. Composite of Subtract + Multiply + Accumulator.",
   "domains": [
@@ -242,5 +255,10 @@
   "param_defaults": {
     "initial_val": "0.6",
     "rate": "6.0"
-  }
+  },
+  "name": "FirstOrderLag",
+  "pan_x": -423.369873046875,
+  "pan_y": -103.17134094238281,
+  "zoom": 1.2116440534591675,
+  "grid_step": 16.0
 }

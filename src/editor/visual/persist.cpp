@@ -6,7 +6,6 @@
 #include "ui/core/interned_id.h"
 #include <fstream>
 #include <sstream>
-#include <filesystem>
 #include <cerrno>
 #include <cstdlib>
 #include <mutex>
@@ -51,6 +50,8 @@ bp2::TypeRegistry build_bp2_registry_uncached(ui::StringInterner& interner) {
     for (const auto& [classname, def] : parsed.types) {
         std::vector<bp2::PortDescriptor> ports;
         ports.reserve(def.ports.size());
+        std::unordered_map<std::string, bp2::TypeRegistry::Entry::PortMeta> port_meta;
+        port_meta.reserve(def.ports.size());
 
         Domain inferred_domain = Domain::Electrical;
         if (def.domains.has_value() && !def.domains->empty()) {
@@ -63,14 +64,20 @@ bp2::TypeRegistry build_bp2_registry_uncached(ui::StringInterner& interner) {
             pd.domain = to_bp2_domain_from_port_type(port.type, inferred_domain);
             pd.direction = to_bp2_direction(port.direction);
             ports.push_back(pd);
+            port_meta.emplace(name, bp2::TypeRegistry::Entry::PortMeta{port.type, port.source_writer});
         }
 
         bp2::Interface iface(std::move(ports));
         ui::InternedId type_id = interner.intern(classname);
+        std::vector<Domain> domains = def.domains.value_or(std::vector<Domain>{});
         if (def.cpp_class) {
-            out.register_component(type_id, iface, def.description);
+            out.register_component(type_id, iface, def.description,
+                                   {}, {}, def.scheduler_source,
+                                   std::move(domains), std::move(port_meta));
         } else {
-            out.register_blueprint(type_id, iface, def.description, nullptr);
+            out.register_blueprint(type_id, iface, def.description, nullptr,
+                                   {}, {}, def.scheduler_source,
+                                   std::move(domains), std::move(port_meta));
         }
 
         if (auto* entry = const_cast<bp2::TypeRegistry::Entry*>(out.find(type_id))) {
@@ -115,14 +122,6 @@ bool save_blueprint_to_file(const bp2::Blueprint& bp,
                               ui::StringInterner& interner,
                              bp2::PathArena const& arena,
                              const char* path) {
-    namespace fs = std::filesystem;
-    fs::path save_path = fs::weakly_canonical(fs::path(path));
-    for (auto it = save_path.begin(); it != save_path.end(); ++it) {
-        if (*it == "library") {
-            spdlog::error("Refusing to save into library/ directory: {}", path);
-            return false;
-        }
-    }
     const bp2::TypeRegistry& registry = get_cached_bp2_registry(interner);
     std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena, &registry);
     std::ofstream file(path);

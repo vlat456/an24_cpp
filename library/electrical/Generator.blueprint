@@ -27,10 +27,10 @@
   "domains": [
     "Electrical"
   ],
-  "priority": "high",
-  "content_type": "Gauge",
   "param_defaults": {
     "internal_r": "0.005",
     "v_nominal": "28.5"
-  }
+  },
+  "priority": "high",
+  "content_type": "Gauge"
 }

@@ -9,13 +9,13 @@
   "nested": [],
   "cpp_class": false,
   "description": "Visual text label for annotating circuit diagrams. No logic, no ports.",
-  "render_hint": "text",
-  "visual_only": true,
   "domains": [
     "Logical"
   ],
   "param_defaults": {
     "font_size": "large",
     "text": ""
-  }
+  },
+  "render_hint": "text",
+  "visual_only": true
 }

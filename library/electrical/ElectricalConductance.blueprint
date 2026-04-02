@@ -32,7 +32,12 @@
   },
   "solver_role": {
     "kind": "ConductanceBranch",
-    "ports": { "a": "v_in", "b": "v_out" },
-    "params": { "g": "conductance" }
+    "ports": {
+      "a": "v_in",
+      "b": "v_out"
+    },
+    "params": {
+      "g": "conductance"
+    }
   }
 }

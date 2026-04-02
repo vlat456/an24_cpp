@@ -142,7 +142,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             }
         }
         
-        if (node.expandable && ImGui::MenuItem("Open in New Window")) {
+        if (node.expandable && ImGui::MenuItem("Open in editor")) {
             std::string node_id_str(doc->interner().resolve(node.id));
             const auto target = editor::resolve_subwindow_open_target(doc->blueprint(), doc->interner(), node_id_str);
             if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
@@ -166,10 +166,9 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                     ? ws.nodeContextMenu.source_doc_id : (doc ? doc->id() : std::string{});
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("Edit Original")) {
-                // Resolve blueprint path from the nested's inline_def or blueprint_id
+            if (ImGui::MenuItem("Open in editor")) {
                 std::string bp_id_str(doc->interner().resolve(nested->blueprint_id));
-                std::string lib_path = "library/" + bp_id_str + ".json";
+                std::string lib_path = "library/" + bp_id_str + ".blueprint";
                 ws.openDocument(lib_path);
             }
         }

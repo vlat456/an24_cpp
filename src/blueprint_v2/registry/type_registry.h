@@ -29,13 +29,21 @@ public:
     };
 
     struct Entry {
+        struct PortMeta {
+            PortType type = PortType::Any;
+            bool source_writer = false;
+        };
+
         ui::InternedId type_id;
         Interface iface;
         std::string description;
         bool is_blueprint = false;
         Blueprint const* blueprint = nullptr;
+        bool scheduler_source = false;
+        std::vector<Domain> domains;
         std::unordered_map<std::string, std::string> param_defaults;
         std::unordered_map<std::string, ParamDescriptor> param_descriptors;
+        std::unordered_map<std::string, PortMeta> port_meta;
     };
 
     TypeRegistry() = default;
@@ -45,7 +53,10 @@ public:
         Interface iface,
         std::string description = "",
         std::unordered_map<std::string, std::string> param_defaults = {},
-        std::unordered_map<std::string, ParamDescriptor> param_descriptors = {});
+        std::unordered_map<std::string, ParamDescriptor> param_descriptors = {},
+        bool scheduler_source = false,
+        std::vector<Domain> domains = {},
+        std::unordered_map<std::string, Entry::PortMeta> port_meta = {});
 
     void register_blueprint(
         ui::InternedId type_id,
@@ -53,7 +64,10 @@ public:
         std::string description = "",
         Blueprint const* bp = nullptr,
         std::unordered_map<std::string, std::string> param_defaults = {},
-        std::unordered_map<std::string, ParamDescriptor> param_descriptors = {});
+        std::unordered_map<std::string, ParamDescriptor> param_descriptors = {},
+        bool scheduler_source = false,
+        std::vector<Domain> domains = {},
+        std::unordered_map<std::string, Entry::PortMeta> port_meta = {});
 
     Entry const* find(ui::InternedId type_id) const;
     bool has(ui::InternedId type_id) const;

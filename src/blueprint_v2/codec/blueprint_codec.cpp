@@ -66,6 +66,31 @@ static std::string float_to_string(float v) {
     return oss.str();
 }
 
+static std::string port_type_to_string(PortType t) {
+    switch (t) {
+        case PortType::V: return "V";
+        case PortType::I: return "I";
+        case PortType::Bool: return "Bool";
+        case PortType::RPM: return "RPM";
+        case PortType::Temperature: return "Temperature";
+        case PortType::Pressure: return "Pressure";
+        case PortType::Position: return "Position";
+        case PortType::Any: return "Any";
+    }
+    return "Any";
+}
+
+static std::string domain_to_string(Domain d) {
+    switch (d) {
+        case Domain::Electrical: return "Electrical";
+        case Domain::Logical: return "Logical";
+        case Domain::Mechanical: return "Mechanical";
+        case Domain::Hydraulic: return "Hydraulic";
+        case Domain::Thermal: return "Thermal";
+    }
+    return "Electrical";
+}
+
 static void assign_param_by_descriptor(Blueprint::Node& node,
                                        ui::StringInterner& interner,
                                        std::string const& key,
@@ -230,7 +255,8 @@ static nlohmann::json encode_node_ports(const Blueprint::Node& node,
 }
 
 nlohmann::json encode_interface(Interface const& iface,
-                                 ui::StringInterner const& interner) {
+                                 ui::StringInterner const& interner,
+                                 TypeRegistry::Entry const* type_entry) {
     std::vector<PortDescriptor> sorted = iface.ports();
     std::sort(sorted.begin(), sorted.end(), [&](const PortDescriptor& a, const PortDescriptor& b) {
         std::string_view na = interner.resolve(a.name);
@@ -241,9 +267,18 @@ nlohmann::json encode_interface(Interface const& iface,
     auto arr = nlohmann::json::array();
     for (auto const& port : sorted) {
         nlohmann::json p;
-        p["name"] = std::string(interner.resolve(port.name));
+        const std::string name = std::string(interner.resolve(port.name));
+        p["name"] = name;
         p["domain"] = static_cast<int>(port.domain);
         p["direction"] = static_cast<int>(port.direction);
+        if (type_entry) {
+            auto it = type_entry->port_meta.find(name);
+            if (it != type_entry->port_meta.end()) {
+                const auto& meta = it->second;
+                p["type"] = port_type_to_string(meta.type);
+                p["source_writer"] = meta.source_writer;
+            }
+        }
         arr.push_back(p);
     }
     return arr;
@@ -1067,13 +1102,39 @@ std::string BlueprintCodec::encode(Blueprint const& bp,
                                     PathArena const& arena,
                                     TypeRegistry const* registry) {
     nlohmann::json j;
+    const TypeRegistry::Entry* type_entry = nullptr;
+    if (registry) {
+        type_entry = registry->find(bp.id());
+    }
+
     j["version"] = "3.0";
     j["id"] = std::string(interner.resolve(bp.id()));
     j["display_name"] = bp.display_name();
-    j["interface"] = encode_interface(bp.iface(), interner);
+    j["interface"] = encode_interface(bp.iface(), interner, type_entry);
     j["nodes"] = encode_nodes(bp.nodes(), interner, registry);
     j["wires"] = encode_wires(bp.wires(), interner, arena);
     j["nested"] = encode_nested(bp.nested(), interner, arena, registry);
+
+    if (type_entry) {
+        j["cpp_class"] = !type_entry->is_blueprint;
+        j["description"] = type_entry->description;
+        j["scheduler_source"] = type_entry->scheduler_source;
+
+        nlohmann::json domains = nlohmann::json::array();
+        for (Domain d : type_entry->domains) {
+            domains.push_back(domain_to_string(d));
+        }
+        j["domains"] = std::move(domains);
+
+        if (!type_entry->param_defaults.empty()) {
+            nlohmann::json params = nlohmann::json::object();
+            for (const auto& [k, v] : type_entry->param_defaults) {
+                params[k] = v;
+            }
+            j["param_defaults"] = std::move(params);
+        }
+    }
+
     j["pan_x"] = bp.pan_x();
     j["pan_y"] = bp.pan_y();
     j["zoom"] = bp.zoom();

@@ -42,8 +42,8 @@
     "Electrical",
     "Logical"
   ],
-  "content_type": "HoldButton",
   "param_defaults": {
     "idle": "0.0"
-  }
+  },
+  "content_type": "HoldButton"
 }

@@ -41,10 +41,10 @@
   "domains": [
     "Electrical"
   ],
-  "priority": "high",
   "param_defaults": {
     "connect_threshold": "2.0",
     "disconnect_threshold": "10.0",
     "min_voltage_to_close": "20.0"
-  }
+  },
+  "priority": "high"
 }

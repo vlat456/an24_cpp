@@ -42,8 +42,8 @@
     "Electrical",
     "Logical"
   ],
-  "content_type": "Switch",
   "param_defaults": {
     "closed": "false"
-  }
+  },
+  "content_type": "Switch"
 }

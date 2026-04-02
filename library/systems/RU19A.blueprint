@@ -44,13 +44,12 @@
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "RU19A-300 Auxiliary Power Unit (ВСУ) with 5-state startup sequence",
+  "description": "RU19A-300 Auxiliary Power Unit (\u0412\u0421\u0423) with 5-state startup sequence",
   "domains": [
     "Electrical",
     "Mechanical",
     "Thermal"
   ],
-  "priority": "high",
   "param_defaults": {
     "target_rpm": "16000.0",
     "auto_start": "true",
@@ -62,5 +61,6 @@
     "t4_target": "400.0",
     "t4_max": "750.0",
     "ambient_temp": "20.0"
-  }
+  },
+  "priority": "high"
 }

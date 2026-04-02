@@ -34,8 +34,8 @@
   "domains": [
     "Electrical"
   ],
-  "content_type": "Text",
   "param_defaults": {
     "conductance": "0.05"
-  }
+  },
+  "content_type": "Text"
 }

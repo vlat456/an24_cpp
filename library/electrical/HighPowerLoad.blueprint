@@ -34,7 +34,7 @@
   "param_schema": {
     "min_voltage_diff": {
       "type": "float",
-      "min": 0.000001
+      "min": 1e-06
     },
     "power_draw": {
       "type": "float",

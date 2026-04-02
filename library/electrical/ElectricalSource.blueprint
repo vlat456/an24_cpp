@@ -33,7 +33,13 @@
   },
   "solver_role": {
     "kind": "TheveninSource",
-    "ports": { "pos": "v_out", "neg": "v_in" },
-    "params": { "voltage": "voltage", "resistance": "resistance" }
+    "ports": {
+      "pos": "v_out",
+      "neg": "v_in"
+    },
+    "params": {
+      "voltage": "voltage",
+      "resistance": "resistance"
+    }
   }
 }

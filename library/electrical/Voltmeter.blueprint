@@ -20,10 +20,10 @@
   "domains": [
     "Electrical"
   ],
-  "priority": "low",
-  "content_type": "Gauge",
   "param_defaults": {
     "max": "28.0",
     "min": "0.0"
-  }
+  },
+  "priority": "low",
+  "content_type": "Gauge"
 }

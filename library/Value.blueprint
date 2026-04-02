@@ -20,8 +20,8 @@
   "domains": [
     "Logical"
   ],
-  "render_hint": "ref",
   "param_defaults": {
     "value": "0.0"
-  }
+  },
+  "render_hint": "ref"
 }

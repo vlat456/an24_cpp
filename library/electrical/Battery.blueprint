@@ -41,12 +41,12 @@
   "domains": [
     "Electrical"
   ],
-  "priority": "high",
-  "critical": true,
   "param_defaults": {
     "capacity": "1000.0",
     "charge": "1000.0",
     "internal_r": "0.01",
     "v_nominal": "28.0"
-  }
+  },
+  "priority": "high",
+  "critical": true
 }

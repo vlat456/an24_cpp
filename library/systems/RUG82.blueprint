@@ -27,9 +27,9 @@
   "domains": [
     "Electrical"
   ],
-  "priority": "low",
-  "legacy_fixture": true,
   "param_defaults": {
     "v_target": "28.5"
-  }
+  },
+  "priority": "low",
+  "legacy_fixture": true
 }

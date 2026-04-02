@@ -31,9 +31,9 @@
     "Hydraulic",
     "Thermal"
   ],
-  "priority": "high",
   "param_defaults": {
     "exposed_direction": "Out",
     "exposed_type": "V"
-  }
+  },
+  "priority": "high"
 }

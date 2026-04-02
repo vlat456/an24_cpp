@@ -35,9 +35,6 @@
     "Electrical",
     "Mechanical"
   ],
-  "priority": "low",
-  "legacy_fixture": true,
-  "content_type": "Gauge",
   "param_defaults": {
     "rpm_cutoff": "0.45",
     "rpm_threshold": "0.4",
@@ -45,5 +42,8 @@
     "r_norton": "0.08",
     "target_rpm": "16000.0",
     "v_nominal": "28.5"
-  }
+  },
+  "priority": "low",
+  "legacy_fixture": true,
+  "content_type": "Gauge"
 }

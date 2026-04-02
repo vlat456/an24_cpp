@@ -9,14 +9,20 @@ void TypeRegistry::register_component(
     Interface iface,
     std::string description,
     std::unordered_map<std::string, std::string> param_defaults,
-    std::unordered_map<std::string, ParamDescriptor> param_descriptors) {
+    std::unordered_map<std::string, ParamDescriptor> param_descriptors,
+    bool scheduler_source,
+    std::vector<Domain> domains,
+    std::unordered_map<std::string, TypeRegistry::Entry::PortMeta> port_meta) {
     Entry entry;
     entry.type_id = type_id;
     entry.iface = std::move(iface);
     entry.description = std::move(description);
     entry.is_blueprint = false;
+    entry.scheduler_source = scheduler_source;
+    entry.domains = std::move(domains);
     entry.param_defaults = std::move(param_defaults);
     entry.param_descriptors = std::move(param_descriptors);
+    entry.port_meta = std::move(port_meta);
     entries_[type_id] = std::move(entry);
 }
 
@@ -26,15 +32,21 @@ void TypeRegistry::register_blueprint(
     std::string description,
     Blueprint const* bp,
     std::unordered_map<std::string, std::string> param_defaults,
-    std::unordered_map<std::string, ParamDescriptor> param_descriptors) {
+    std::unordered_map<std::string, ParamDescriptor> param_descriptors,
+    bool scheduler_source,
+    std::vector<Domain> domains,
+    std::unordered_map<std::string, TypeRegistry::Entry::PortMeta> port_meta) {
     Entry entry;
     entry.type_id = type_id;
     entry.iface = std::move(iface);
     entry.description = std::move(description);
     entry.is_blueprint = true;
     entry.blueprint = bp;
+    entry.scheduler_source = scheduler_source;
+    entry.domains = std::move(domains);
     entry.param_defaults = std::move(param_defaults);
     entry.param_descriptors = std::move(param_descriptors);
+    entry.port_meta = std::move(port_meta);
     entries_[type_id] = std::move(entry);
 }
 

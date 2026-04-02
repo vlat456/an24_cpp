@@ -20,9 +20,6 @@
   "domains": [
     "Electrical"
   ],
-  "priority": "high",
-  "critical": true,
-  "render_hint": "bus",
   "param_defaults": {
     "port_edge": "bottom"
   },
@@ -31,5 +28,8 @@
       "type": "string",
       "visual_only": true
     }
-  }
+  },
+  "priority": "high",
+  "critical": true,
+  "render_hint": "bus"
 }
