@@ -449,6 +449,71 @@ TEST_F(PropertiesWindowTest, NameChangeUndoRestoresOldName) {
     EXPECT_EQ(node_ptr->name, "OriginalName") << "Undo should restore original name";
 }
 
+TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
+    bp2::Blueprint bp;
+
+    bp2::Blueprint::Node src;
+    src.id = interner.intern("src");
+    src.type = interner.intern("Battery");
+    src.name = "src";
+    src.outputs.emplace_back(interner.intern("v_out"), PortSide::Output, PortType::V);
+
+    bp2::Blueprint::Node bus;
+    bus.id = interner.intern("bus");
+    bus.type = interner.intern("Bus");
+    bus.name = "bus";
+    bus.render_hint = "bus";
+    bus.inputs.emplace_back(interner.intern("v"), PortSide::InOut, PortType::V);
+    bus.outputs.emplace_back(interner.intern("v"), PortSide::InOut, PortType::V);
+
+    bp2::Blueprint::Node load;
+    load.id = interner.intern("load");
+    load.type = interner.intern("Lamp");
+    load.name = "load";
+    load.inputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
+
+    bp = bp.with_node(src);
+    bp = bp.with_node(bus);
+    bp = bp.with_node(load);
+
+    bp2::Blueprint::Wire w0;
+    w0.id = interner.intern("wire_0");
+    w0.source = bp2::Path{};
+    w0.target = bp2::Path{};
+    bp = bp.with_wire(w0);
+
+    bp2::Blueprint::Wire w1;
+    w1.id = interner.intern("wire_1");
+    w1.source = bp2::Path{};
+    w1.target = bp2::Path{};
+    bp = bp.with_wire(w1);
+
+    model.replace_current(std::move(bp));
+
+    std::vector<ui::InternedId> node_order_before;
+    for (const auto& n : model.current().nodes()) node_order_before.push_back(n.id);
+
+    std::vector<ui::InternedId> wire_order_before;
+    for (const auto& w : model.current().wires()) wire_order_before.push_back(w.id);
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bus"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "bus", model, interner, [](const std::string&) {});
+    win.set_pending_name("bus_renamed");
+    win.apply();
+
+    std::vector<ui::InternedId> node_order_after;
+    for (const auto& n : model.current().nodes()) node_order_after.push_back(n.id);
+
+    std::vector<ui::InternedId> wire_order_after;
+    for (const auto& w : model.current().wires()) wire_order_after.push_back(w.id);
+
+    EXPECT_EQ(node_order_after, node_order_before);
+    EXPECT_EQ(wire_order_after, wire_order_before);
+}
+
 TEST_F(PropertiesWindowTest, ParamAndNameChangeSingleUndo) {
     auto n = make_node(interner, "bat1", {{"v", 28.0f}});
     n.name = "OriginalName";

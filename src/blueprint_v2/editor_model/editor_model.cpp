@@ -3,6 +3,69 @@
 
 namespace bp2 {
 
+static Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updated) {
+    Blueprint rebuilt;
+    rebuilt = rebuilt.with_id(bp.id());
+    rebuilt = rebuilt.with_display_name(bp.display_name());
+    rebuilt = rebuilt.with_interface(bp.iface());
+    rebuilt = rebuilt.with_viewport(bp.pan_x(), bp.pan_y(), bp.zoom(), bp.grid_step());
+    rebuilt = rebuilt.with_name(bp.name());
+
+    bool replaced = false;
+    for (const auto& n : bp.nodes()) {
+        if (n.id == updated.id) {
+            rebuilt = rebuilt.with_node(updated);
+            replaced = true;
+        } else {
+            rebuilt = rebuilt.with_node(n);
+        }
+    }
+    if (!replaced) {
+        rebuilt = rebuilt.with_node(std::move(updated));
+    }
+
+    for (const auto& w : bp.wires()) {
+        rebuilt = rebuilt.with_wire(w);
+    }
+    for (const auto& n : bp.nested()) {
+        rebuilt = rebuilt.with_nested(n);
+    }
+
+    return rebuilt;
+}
+
+static Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated) {
+    Blueprint rebuilt;
+    rebuilt = rebuilt.with_id(bp.id());
+    rebuilt = rebuilt.with_display_name(bp.display_name());
+    rebuilt = rebuilt.with_interface(bp.iface());
+    rebuilt = rebuilt.with_viewport(bp.pan_x(), bp.pan_y(), bp.zoom(), bp.grid_step());
+    rebuilt = rebuilt.with_name(bp.name());
+
+    for (const auto& n : bp.nodes()) {
+        rebuilt = rebuilt.with_node(n);
+    }
+
+    bool replaced = false;
+    for (const auto& w : bp.wires()) {
+        if (w.id == updated.id) {
+            rebuilt = rebuilt.with_wire(updated);
+            replaced = true;
+        } else {
+            rebuilt = rebuilt.with_wire(w);
+        }
+    }
+    if (!replaced) {
+        rebuilt = rebuilt.with_wire(std::move(updated));
+    }
+
+    for (const auto& n : bp.nested()) {
+        rebuilt = rebuilt.with_nested(n);
+    }
+
+    return rebuilt;
+}
+
 EditorModel::EditorModel(Blueprint initial)
     : current_(std::move(initial)) {}
 
@@ -61,7 +124,7 @@ bool EditorModel::update_node(ui::InternedId id, std::function<void(Blueprint::N
     Blueprint::Node updated = *existing;
     fn(updated);
     push_checkpoint();
-    current_ = current_.without_node(id).with_node(std::move(updated));
+    current_ = replace_node_preserve_order(current_, std::move(updated));
     invalidate_indices();
     return true;
 }
@@ -72,7 +135,7 @@ bool EditorModel::update_wire(ui::InternedId id, std::function<void(Blueprint::W
     Blueprint::Wire updated = *existing;
     fn(updated);
     push_checkpoint();
-    current_ = current_.without_wire(id).with_wire(std::move(updated));
+    current_ = replace_wire_preserve_order(current_, std::move(updated));
     invalidate_indices();
     return true;
 }

@@ -406,18 +406,8 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
 nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
                              ui::StringInterner const& interner,
                              PathArena const& path_arena) {
-    std::vector<Blueprint::Wire const*> sorted;
-    sorted.reserve(wires.size());
-    for (auto const& wire : wires) sorted.push_back(&wire);
-    std::sort(sorted.begin(), sorted.end(), [&](Blueprint::Wire const* a, Blueprint::Wire const* b) {
-        std::string_view ida = interner.resolve(a->id);
-        std::string_view idb = interner.resolve(b->id);
-        return ida < idb;
-    });
-
     auto arr = nlohmann::json::array();
-    for (auto const* wire_ptr : sorted) {
-        auto const& wire = *wire_ptr;
+    for (auto const& wire : wires) {
         nlohmann::json w;
         w["id"] = std::string(interner.resolve(wire.id));
         w["source"] = path_arena.to_string(wire.source);

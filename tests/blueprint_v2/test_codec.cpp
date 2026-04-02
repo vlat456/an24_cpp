@@ -267,6 +267,40 @@ TEST(BlueprintCodec, RoundTripSimpleBlueprint) {
     EXPECT_EQ(j2["wires"][0]["target"], j1["wires"][0]["target"]);
 }
 
+TEST(BlueprintCodec, EncodePreservesWireInsertionOrder) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("order_test"));
+
+    bp2::Blueprint::Wire w2;
+    w2.id = interner.intern("wire_2");
+    w2.source = arena.make_port(arena.make_node(arena.root(), interner.intern("a")), interner.intern("o"));
+    w2.target = arena.make_port(arena.make_node(arena.root(), interner.intern("b")), interner.intern("i"));
+    bp = bp.with_wire(w2);
+
+    bp2::Blueprint::Wire w10;
+    w10.id = interner.intern("wire_10");
+    w10.source = arena.make_port(arena.make_node(arena.root(), interner.intern("a")), interner.intern("o"));
+    w10.target = arena.make_port(arena.make_node(arena.root(), interner.intern("c")), interner.intern("i"));
+    bp = bp.with_wire(w10);
+
+    bp2::Blueprint::Wire w1;
+    w1.id = interner.intern("wire_1");
+    w1.source = arena.make_port(arena.make_node(arena.root(), interner.intern("a")), interner.intern("o"));
+    w1.target = arena.make_port(arena.make_node(arena.root(), interner.intern("d")), interner.intern("i"));
+    bp = bp.with_wire(w1);
+
+    const std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
+    const auto j = nlohmann::json::parse(encoded);
+
+    ASSERT_EQ(j["wires"].size(), 3u);
+    EXPECT_EQ(j["wires"][0]["id"], "wire_2");
+    EXPECT_EQ(j["wires"][1]["id"], "wire_10");
+    EXPECT_EQ(j["wires"][2]["id"], "wire_1");
+}
+
 TEST(BlueprintCodec, DecodeDoesNotInferMissingNodePortsOrName) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -1801,7 +1835,7 @@ TEST(BlueprintCodec, RoundTripInterface) {
     EXPECT_TRUE(has_gnd);
 }
 
-TEST(BlueprintCodec, EncodeDeterministicNodeAndWireOrdering) {
+TEST(BlueprintCodec, EncodeDeterministicNodeAndPreservedWireOrdering) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
@@ -1845,8 +1879,8 @@ TEST(BlueprintCodec, EncodeDeterministicNodeAndWireOrdering) {
     EXPECT_EQ(j["nodes"][2]["id"], "z_node");
 
     ASSERT_EQ(j["wires"].size(), 2u);
-    EXPECT_EQ(j["wires"][0]["id"], "wire_10");
-    EXPECT_EQ(j["wires"][1]["id"], "wire_20");
+    EXPECT_EQ(j["wires"][0]["id"], "wire_20");
+    EXPECT_EQ(j["wires"][1]["id"], "wire_10");
 }
 
 TEST(BlueprintCodec, EncodeDeterministicParamKeyOrdering) {
