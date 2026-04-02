@@ -4,10 +4,10 @@
 #include <cmath>
 
 template <typename Provider>
-void PI<Provider>::execute(SimulationState& st, float dt) {
-    constexpr float kDtMin = 1e-6f;
-    constexpr float kDtMax = 0.1f;
-    const float safe_dt = std::clamp(dt, kDtMin, kDtMax);
+void PI<Provider>::execute(SimulationState& st, double dt) {
+    constexpr double kDtMin = 1e-6;
+    constexpr double kDtMax = 0.1;
+    const float safe_dt = static_cast<float>(std::clamp(dt, kDtMin, kDtMax));
 
     float sp = st.values[provider.get(PortNames::setpoint)];
     float fb = st.values[provider.get(PortNames::feedback)];
@@ -22,14 +22,14 @@ void PI<Provider>::execute(SimulationState& st, float dt) {
         float i_lo = output_min / Ki;
         float i_hi = output_max / Ki;
         if (i_lo > i_hi) std::swap(i_lo, i_hi);
-        integral = std::clamp(integral, i_lo, i_hi);
+        integral = std::clamp(integral, static_cast<double>(i_lo), static_cast<double>(i_hi));
     }
 
     st.values[provider.get(PortNames::output)] = output;
 }
 
 template <typename Provider>
-void PI<Provider>::commit(SimulationState& st, float /*dt*/) {
+void PI<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

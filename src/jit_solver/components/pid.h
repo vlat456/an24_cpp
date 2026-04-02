@@ -19,13 +19,13 @@ public:
     float filter_alpha = 0.2f;
 
     // State variables (minimal footprint: 3 floats)
-    float integral = 0.0f;
+    double integral = 0.0;
     float last_error = 0.0f;
     float d_filtered = 0.0f;
 
     PID() = default;
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load() {}
 };

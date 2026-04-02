@@ -18,7 +18,7 @@ public:
 
     RUG82() = default;
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load() { next_k_mod = k_mod; }
 };

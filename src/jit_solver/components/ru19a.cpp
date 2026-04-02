@@ -3,7 +3,7 @@
 #include <algorithm>
 
 template <typename Provider>
-void RU19A<Provider>::execute(SimulationState& st, float dt) {
+void RU19A<Provider>::execute(SimulationState& st, double dt) {
     float v_start_input = st.values[provider.get(PortNames::v_start)];
 
     float rpm_percent = current_rpm * inv_target_rpm;
@@ -120,7 +120,7 @@ void RU19A<Provider>::execute(SimulationState& st, float dt) {
 
         next_current_rpm += change;
 
-        next_current_rpm = std::clamp(next_current_rpm, 0.0f, target_rpm);
+        next_current_rpm = std::clamp(next_current_rpm, 0.0, static_cast<double>(target_rpm));
     }
 
     // Thermal dynamics
@@ -149,7 +149,7 @@ void RU19A<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void RU19A<Provider>::commit(SimulationState& st, float /*dt*/) {
+void RU19A<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
     state = next_state;
     timer = next_timer;

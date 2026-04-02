@@ -125,7 +125,7 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     EXPECT_EQ(sig_and_A, sig_v2b_o) << "and_1.A should be wired to v2b.o";
     EXPECT_EQ(sig_and_B, sig_hb_state) << "and_1.B should be wired to hb.state";
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Run simulation steps
     printf("\n=== SIMULATION ===\n");

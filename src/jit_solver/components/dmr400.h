@@ -21,8 +21,8 @@ public:
 
     DMR400() = default;
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load() {
         next_is_closed = is_closed;
         next_reconnect_delay = reconnect_delay;

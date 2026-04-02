@@ -4,7 +4,7 @@
 #include <algorithm>
 
 template <typename Provider>
-void LUT<Provider>::execute(SimulationState& st, float /*dt*/) {
+void LUT<Provider>::execute(SimulationState& st, double /*dt*/) {
     float x = st.values[provider.get(PortNames::input)];
     const float* keys = st.lut_keys.data() + table_offset;
     const float* vals = st.lut_values.data() + table_offset;
@@ -12,7 +12,7 @@ void LUT<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void LUT<Provider>::commit(SimulationState& st, float /*dt*/) {
+void LUT<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

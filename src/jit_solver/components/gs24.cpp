@@ -14,7 +14,7 @@ void GS24<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void GS24<Provider>::execute(SimulationState& st, float dt) {
+void GS24<Provider>::execute(SimulationState& st, double dt) {
     float rpm_percent = current_rpm * inv_target_rpm;
 
     if (mode == GS24Mode::STARTER || mode == GS24Mode::STARTER_WAIT) {
@@ -70,7 +70,7 @@ void GS24<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void GS24<Provider>::commit(SimulationState& st, float /*dt*/) {
+void GS24<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
     mode = next_mode;
     wait_time = next_wait_time;

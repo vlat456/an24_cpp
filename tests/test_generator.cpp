@@ -19,8 +19,8 @@ static Generator<JitProvider> make_generator(float v_nominal = 28.5f, float inte
     comp.v_nominal = v_nominal;
     comp.internal_r = internal_r;
     comp.inv_internal_r = (internal_r > 0.0f) ? 1.0f / internal_r : 0.0f;
-    comp.provider.indices[PortNames::v_out] = 0;
-    comp.provider.indices[PortNames::v_in] = 1;
+    comp.provider.set(PortNames::v_out, 0);
+    comp.provider.set(PortNames::v_in, 1);
     return comp;
 }
 
@@ -45,8 +45,8 @@ TEST(GeneratorTest, DISABLED_StampMatchesBatteryConvention) {
     bat.v_nominal = 28.0f;
     bat.internal_r = 0.01f;
     bat.inv_internal_r = 1.0f / 0.01f;
-    bat.provider.indices[PortNames::v_out] = 0;
-    bat.provider.indices[PortNames::v_in] = 1;
+    bat.provider.set(PortNames::v_out, 0);
+    bat.provider.set(PortNames::v_in, 1);
 
     auto st_gen = make_state();
     auto st_bat = make_state();

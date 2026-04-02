@@ -1,15 +1,16 @@
 #include "electrical_subsolver.h"
-#include <stdexcept>
 #include <algorithm>
+#include <cassert>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 
 namespace {
 
 // Gaussian elimination with partial pivoting for small dense matrices.
-// Solves A*x = b in-place. Throws on singular/near-singular matrix.
-void solve_dense_gaussian(float* A, float* b, int N) {
-    if (N == 0) return;
+// Solves A*x = b in-place. Returns false on singular/near-singular matrix.
+[[nodiscard]] bool solve_dense_gaussian(float* A, float* b, int N) noexcept {
+    if (N == 0) return true;
 
     for (int col = 0; col < N; ++col) {
         // Find pivot row
@@ -25,7 +26,7 @@ void solve_dense_gaussian(float* A, float* b, int N) {
 
         // Check singularity
         if (max_abs < 1e-12f) {
-            throw std::runtime_error("Singular matrix in electrical solve");
+            return false;
         }
 
         // Swap rows if needed
@@ -54,6 +55,7 @@ void solve_dense_gaussian(float* A, float* b, int N) {
             b[row] -= factor * b[col];
         }
     }
+    return true;
 }
 
 /// Look up dense index for a signal node within a sorted island_nodes array.
@@ -73,7 +75,7 @@ void stamp_conductance(
     float g,
     int node_a_idx, int node_b_idx,
     const std::vector<int>& node_to_unknown,
-    const std::vector<bool>& is_fixed,
+    const std::vector<uint8_t>& is_fixed,
     const std::vector<float>& fixed_voltages
 ) {
     bool a_fixed = is_fixed[node_a_idx];
@@ -104,8 +106,8 @@ void solve_electrical(
     const ElectricalBuildPlan& plan,
     SimulationState& st,
     ElectricalRuntimeState& rt,
-    float /*dt*/
-) {
+    double /*dt*/
+) noexcept {
     // Find max component_index across all islands to size branch_currents
     uint32_t max_comp_idx = 0;
     bool has_elements = false;
@@ -143,26 +145,25 @@ void solve_electrical(
             }
         }
 
-        // Check for conflicting fixed constraints on same node
+        // Check for conflicting fixed constraints on same node.
+        // Debug assert on conflict; release: silently use first value (safe for game).
         for (size_t i = 0; i < rt.fixed_nodes.size(); ++i) {
             for (size_t j = i + 1; j < rt.fixed_nodes.size(); ++j) {
                 if (rt.fixed_nodes[i].first == rt.fixed_nodes[j].first) {
-                    if (std::fabs(rt.fixed_nodes[i].second - rt.fixed_nodes[j].second) > 1e-5f) {
-                        throw std::runtime_error(
-                            "Conflicting fixed voltage constraints on node " +
-                            std::to_string(rt.fixed_nodes[i].first) +
-                            ": " + std::to_string(rt.fixed_nodes[i].second) +
-                            " vs " + std::to_string(rt.fixed_nodes[j].second)
-                        );
-                    }
+                    assert(std::fabs(rt.fixed_nodes[i].second - rt.fixed_nodes[j].second) <= 1e-5f
+                           && "Conflicting fixed voltage constraints on same node");
+                    // Release: silently deduplicate — use first value.
+                    // Remove the duplicate so it doesn't affect later processing.
+                    rt.fixed_nodes.erase(rt.fixed_nodes.begin() + static_cast<ptrdiff_t>(j));
+                    --j;
                 }
             }
         }
 
-        // Build sorted, deduplicated node list for this island
-        rt.island_nodes = island.signal_indices;
-        std::sort(rt.island_nodes.begin(), rt.island_nodes.end());
-        rt.island_nodes.erase(std::unique(rt.island_nodes.begin(), rt.island_nodes.end()), rt.island_nodes.end());
+        // Use island's pre-sorted, pre-deduplicated signal indices directly.
+        // signal_indices are built from std::set at build time — already sorted and unique.
+        const auto& island_nodes_ref = island.signal_indices;
+        rt.island_nodes.assign(island_nodes_ref.begin(), island_nodes_ref.end());
 
         // Map each node to fixed/unknown status
         size_t node_count = rt.island_nodes.size();
@@ -207,16 +208,15 @@ void solve_electrical(
                 ? find_node_index(rt.island_nodes, elem.node_b) : -1;
 
             if (node_a_idx == -1 || (elem.node_b != UINT32_MAX && node_b_idx == -1)) {
-                throw std::runtime_error("Element references node not in island");
+                assert(false && "Element references node not in island");
+                continue;  // Release: skip malformed element
             }
 
             if (elem.kind == ElectricalElementKind::ConductanceBranch) {
                 float g = elem.value_a;
                 if (g < 0.0f) {
-                    throw std::runtime_error(
-                        "Negative conductance " + std::to_string(g) +
-                        " on branch component_index " + std::to_string(elem.component_index)
-                    );
+                    assert(false && "Negative conductance");
+                    g = 0.0f;  // Release: clamp to zero (open circuit)
                 }
                 stamp_conductance(A, b, N, g, node_a_idx, node_b_idx,
                                   rt.node_to_unknown, rt.is_fixed, rt.fixed_voltages);
@@ -279,13 +279,8 @@ void solve_electrical(
                 }
             } else {
                 rt.counters.solves_dense++;
-                try {
-                    solve_dense_gaussian(A, b, N);
-                    // After in-place solve, b[] contains the solution vector.
-                }
-                catch (const std::runtime_error&) {
-                    solve_ok = false;
-                }
+                solve_ok = solve_dense_gaussian(A, b, N);
+                // After in-place solve, b[] contains the solution vector.
             }
         } else {
             rt.counters.solves_n0++;
@@ -307,25 +302,20 @@ void solve_electrical(
                 // Singular island fallback: preserve previous state value.
                 // This keeps the simulation stable and avoids aborting editor runtime.
                 uint32_t sig_idx = rt.island_nodes[i];
-                if (sig_idx >= st.values.size()) {
-                    throw std::runtime_error(
-                        "Signal index " + std::to_string(sig_idx) +
-                        " out of range (size " + std::to_string(st.values.size()) + ")"
-                    );
+                assert(sig_idx < st.values.size() && "Signal index out of range");
+                if (sig_idx < st.values.size()) {
+                    rt.island_voltages[i] = st.values[sig_idx];
+                } else {
+                    rt.island_voltages[i] = 0.0f;  // Release: safe default
                 }
-                rt.island_voltages[i] = st.values[sig_idx];
             }
         }
 
         // Write voltages back to SimulationState
         for (size_t i = 0; i < node_count; ++i) {
             uint32_t sig_idx = rt.island_nodes[i];
-            if (sig_idx >= st.values.size()) {
-                throw std::runtime_error(
-                    "Signal index " + std::to_string(sig_idx) +
-                    " out of range (size " + std::to_string(st.values.size()) + ")"
-                );
-            }
+            assert(sig_idx < st.values.size() && "Signal index out of range");
+            if (sig_idx >= st.values.size()) continue;  // Release: skip OOB
             st.values[sig_idx] = rt.island_voltages[i];
         }
 
@@ -341,7 +331,8 @@ void solve_electrical(
             int node_a_idx = find_node_index(rt.island_nodes, elem.node_a);
             int node_b_idx = find_node_index(rt.island_nodes, elem.node_b);
             if (node_a_idx == -1 || node_b_idx == -1) {
-                throw std::runtime_error("Element references node not in island during current computation");
+                assert(false && "Element references node not in island during current computation");
+                continue;  // Release: skip malformed element
             }
             float Va = rt.island_voltages[node_a_idx];
             float Vb = rt.island_voltages[node_b_idx];
@@ -371,60 +362,61 @@ void solve_electrical(
             }
         }
 
-        // KCL residual diagnostics per node: sum of currents entering node.
-        rt.kcl_residuals.resize(node_count);
-        std::fill(rt.kcl_residuals.begin(), rt.kcl_residuals.end(), 0.0f);
-        for (const auto& elem : island.elements) {
-            if (elem.kind == ElectricalElementKind::FixedVoltageNode) {
-                continue;
+        // KCL residual diagnostics — expensive, only when explicitly enabled.
+        if (rt.enable_diagnostics) {
+            rt.kcl_residuals.resize(node_count);
+            std::fill(rt.kcl_residuals.begin(), rt.kcl_residuals.end(), 0.0f);
+            for (const auto& elem : island.elements) {
+                if (elem.kind == ElectricalElementKind::FixedVoltageNode) {
+                    continue;
+                }
+
+                int node_a_idx = find_node_index(rt.island_nodes, elem.node_a);
+                int node_b_idx = find_node_index(rt.island_nodes, elem.node_b);
+                if (node_a_idx == -1 || node_b_idx == -1) {
+                    continue;
+                }
+
+                float Va = rt.island_voltages[node_a_idx];
+                float Vb = rt.island_voltages[node_b_idx];
+                float i_ab = 0.0f;
+                if (elem.kind == ElectricalElementKind::ConductanceBranch) {
+                    float g = elem.value_a;
+                    i_ab = g * (Va - Vb);
+                } else if (elem.kind == ElectricalElementKind::TheveninSource) {
+                    float Vth = elem.value_a;
+                    float Rseries = elem.value_b;
+                    float safe_r = std::max(Rseries, 1e-6f);
+                    float g = 1.0f / safe_r;
+                    float In = Vth * g;
+                    i_ab = g * (Va - Vb) - In;
+                }
+
+                rt.kcl_residuals[node_a_idx] -= i_ab;
+                rt.kcl_residuals[node_b_idx] += i_ab;
             }
 
-            int node_a_idx = find_node_index(rt.island_nodes, elem.node_a);
-            int node_b_idx = find_node_index(rt.island_nodes, elem.node_b);
-            if (node_a_idx == -1 || node_b_idx == -1) {
-                continue;
+            float max_abs_residual = 0.0f;
+            uint32_t worst_signal = UINT32_MAX;
+            float worst_voltage = 0.0f;
+            for (size_t i = 0; i < node_count; ++i) {
+                float ar = std::abs(rt.kcl_residuals[i]);
+                if (ar > max_abs_residual) {
+                    max_abs_residual = ar;
+                    worst_signal = rt.island_nodes[i];
+                    worst_voltage = rt.island_voltages[i];
+                }
             }
 
-            float Va = rt.island_voltages[node_a_idx];
-            float Vb = rt.island_voltages[node_b_idx];
-            float i_ab = 0.0f;
-            if (elem.kind == ElectricalElementKind::ConductanceBranch) {
-                float g = elem.value_a;
-                i_ab = g * (Va - Vb);
-            } else if (elem.kind == ElectricalElementKind::TheveninSource) {
-                float Vth = elem.value_a;
-                float Rseries = elem.value_b;
-                float safe_r = std::max(Rseries, 1e-6f);
-                float g = 1.0f / safe_r;
-                float In = Vth * g;
-                i_ab = g * (Va - Vb) - In;
-            }
-
-            // Positive i_ab means leaving node_a and entering node_b.
-            rt.kcl_residuals[node_a_idx] -= i_ab;
-            rt.kcl_residuals[node_b_idx] += i_ab;
+            rt.island_diagnostics.push_back({
+                static_cast<uint32_t>(island_idx),
+                solve_ok,
+                static_cast<uint32_t>(N),
+                worst_signal,
+                worst_voltage,
+                max_abs_residual,
+                worst_branch_component_index
+            });
         }
-
-        float max_abs_residual = 0.0f;
-        uint32_t worst_signal = UINT32_MAX;
-        float worst_voltage = 0.0f;
-        for (size_t i = 0; i < node_count; ++i) {
-            float ar = std::abs(rt.kcl_residuals[i]);
-            if (ar > max_abs_residual) {
-                max_abs_residual = ar;
-                worst_signal = rt.island_nodes[i];
-                worst_voltage = rt.island_voltages[i];
-            }
-        }
-
-        rt.island_diagnostics.push_back({
-            static_cast<uint32_t>(island_idx),
-            solve_ok,
-            static_cast<uint32_t>(N),
-            worst_signal,
-            worst_voltage,
-            max_abs_residual,
-            worst_branch_component_index
-        });
     }
 }

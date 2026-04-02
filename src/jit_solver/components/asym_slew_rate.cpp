@@ -3,7 +3,7 @@
 #include <cmath>
 
 template <typename Provider>
-void AsymSlewRate<Provider>::execute(SimulationState& st, float dt) {
+void AsymSlewRate<Provider>::execute(SimulationState& st, double dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.values[in_idx];
@@ -41,7 +41,7 @@ void AsymSlewRate<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void AsymSlewRate<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void AsymSlewRate<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
     // Commit staged next state
     current_value = next_current_value;
     first_frame_mask = next_first_frame_mask;

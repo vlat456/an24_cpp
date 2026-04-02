@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
 
     std::string bp_path = argv[1];
     int steps      = 600;
-    float dt       = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     int print_every = 60;
     bool probe_all = false;
     bool dump_map  = false;

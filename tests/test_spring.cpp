@@ -9,7 +9,7 @@
 // =============================================================================
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -46,7 +46,7 @@ TEST(SpringTest, AtRestLength_ZeroForce)
     auto comp = make_spring(1000.0f, 10.0f, 0.1f, true);
     auto st = make_state_spring(0.1f, 0.0f);  // pos_a - pos_b = 0.1 = rest_length
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -57,7 +57,7 @@ TEST(SpringTest, Compression_GeneratesForce)
     auto comp = make_spring(1000.0f, 10.0f, 0.1f, true);
     auto st = make_state_spring(0.05f, 0.0f);  // delta = 0.05 - 0.1 = -0.05 (compressed)
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 50.0f);
 }
@@ -68,7 +68,7 @@ TEST(SpringTest, CompressionOnly_Stretching_NoForce)
     auto comp = make_spring(1000.0f, 10.0f, 0.1f, true);
     auto st = make_state_spring(0.2f, 0.0f);  // delta = 0.2 - 0.1 = 0.1 (stretched)
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);  // No force in compression-only mode
 }
@@ -79,7 +79,7 @@ TEST(SpringTest, NotCompressionOnly_Stretching_GeneratesForce)
     auto comp = make_spring(1000.0f, 10.0f, 0.1f, false);
     auto st = make_state_spring(0.2f, 0.0f);  // delta = 0.2 - 0.1 = 0.1 (stretched)
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 100.0f);  // Force = 1000 * 0.1 = 100N
 }
@@ -90,7 +90,7 @@ TEST(SpringTest, NotCompressionOnly_Compression_GeneratesForce)
     auto comp = make_spring(1000.0f, 10.0f, 0.1f, false);
     auto st = make_state_spring(0.05f, 0.0f);  // delta = -0.05 (compressed)
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 50.0f);
 }
@@ -101,7 +101,7 @@ TEST(SpringTest, DifferentStiffness_ForceScales)
     auto comp = make_spring(5000.0f, 10.0f, 0.1f, true);
     auto st = make_state_spring(0.08f, 0.0f);  // delta = 0.08 - 0.1 = -0.02
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 100.0f);
 }
@@ -113,7 +113,7 @@ TEST(SpringTest, DifferentRestLength_Comparison)
     auto comp = make_spring(1000.0f, 10.0f, 0.2f, true);
     auto st = make_state_spring(0.15f, 0.0f);
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 50.0f);
 }
@@ -125,7 +125,7 @@ TEST(SpringTest, ZeroRestLength_Compression)
     auto comp = make_spring(1000.0f, 10.0f, 0.0f, true);
     auto st = make_state_spring(0.0f, 0.05f);
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 50.0f);  // 1000 * abs(-0.05) = 50N
 }
@@ -136,7 +136,7 @@ TEST(SpringTest, LargeCompression_LargeForce)
     auto comp = make_spring(10000.0f, 10.0f, 0.1f, true);
     auto st = make_state_spring(0.0f, 0.0f);  // delta = 0 - 0.1 = -0.1
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1000.0f);
 }
@@ -148,7 +148,7 @@ TEST(SpringTest, NegativePositions_Compression)
     auto comp = make_spring(1000.0f, 10.0f, 0.1f, true);
     auto st = make_state_spring(-0.05f, 0.0f);
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 150.0f);
 }
@@ -160,7 +160,7 @@ TEST(SpringTest, RealWorld_RUG82_Governor)
     auto comp = make_spring(50000.0f, 100.0f, 0.05f, true);
     auto st = make_state_spring(0.04f, 0.0f);  // delta = 0.04 - 0.05 = -0.01
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 500.0f);  // 50000 * 0.01 = 500N
 }
@@ -172,7 +172,7 @@ TEST(SpringTest, RealWorld_SuspensionSpring)
     auto comp = make_spring(50000.0f, 500.0f, 0.3f, false);
     auto st = make_state_spring(0.25f, 0.0f);  // delta = 0.25 - 0.3 = -0.05 (compression)
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 2500.0f);  // 50000 * 0.05 = 2500N
 }
@@ -183,7 +183,7 @@ TEST(SpringTest, RealWorld_ValveSpring)
     auto comp = make_spring(2000.0f, 5.0f, 0.02f, true);
     auto st = make_state_spring(0.015f, 0.0f);  // delta = 0.015 - 0.02 = -0.005
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 10.0f);  // 2000 * 0.005 = 10N
 }
@@ -227,17 +227,17 @@ TEST(SpringTest, VariableInput_ForceChanges)
     auto st = make_state_spring(0.1f, 0.0f);
 
     // At rest
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 
     // Compress
     st.values[0] = 0.05f;
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 50.0f);
 
     // Compress more
     st.values[0] = 0.0f;
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 100.0f);
 }
 
@@ -267,7 +267,7 @@ TEST(SpringTest, VeryStiff_SmallDeflection)
     auto comp = make_spring(100000.0f, 10.0f, 0.1f, true);
     auto st = make_state_spring(0.099f, 0.0f);  // delta = 0.099 - 0.1 = -0.001
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 100.0f, 0.001f);  // 100000 * 0.001 = 100N (with tolerance)
 }
@@ -278,7 +278,7 @@ TEST(SpringTest, ZeroStiffness_NoForce)
     auto comp = make_spring(0.0f, 10.0f, 0.1f, true);
     auto st = make_state_spring(0.05f, 0.0f);
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -289,7 +289,7 @@ TEST(SpringTest, CompressionOnly_PosDeltaX_NoForce)
     auto comp = make_spring(1000.0f, 10.0f, 0.1f, true);
     auto st = make_state_spring(0.15f, 0.0f);  // delta_x = 0.15 - 0.0 - 0.1 = 0.05 > 0
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     // delta_x > 0 means stretching, which should produce zero force in compression-only mode
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
@@ -304,7 +304,7 @@ TEST(SpringTest, Regression_DampingAffectsForce)
     // Damping now adds viscous force proportional to velocity.
     // On the first frame (cold start), velocity is zero so damping has no effect.
     // On the second frame with changed position, damping should add force.
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Spring with zero damping
     auto comp_lo = make_spring(1000.0f, /*c=*/0.0f, 0.1f, false);
@@ -335,7 +335,7 @@ TEST(SpringTest, Regression_FirstFrameDampingIsZero)
 {
     // On the first frame, the cold start initializes prev_delta_x = delta_x,
     // so velocity = 0 and damping force = 0. Only spring force matters.
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     auto comp_nodamp = make_spring(1000.0f, /*c=*/0.0f, 0.1f, true);
     auto comp_damp   = make_spring(1000.0f, /*c=*/500.0f, 0.1f, true);
@@ -406,7 +406,7 @@ TEST(SpringTest, Damping_CorrectForceValue)
     //   total = -60 + (-60) = -120
     //   |total| = 120, compression_only=false → output = 120
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     auto comp = make_spring(1000.0f, /*c=*/100.0f, 0.1f, false);
 
     // Frame 1: cold start
@@ -434,7 +434,7 @@ TEST(SpringTest, Damping_OpposesDampingForce)
     //   total = -40 + 60 = 20
     //   |total| = 20 < 40 (spring-only would be 40)
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     auto comp = make_spring(1000.0f, /*c=*/100.0f, 0.1f, false);
 
     auto st = make_state_spring(0.05f, 0.0f);
@@ -452,7 +452,7 @@ TEST(SpringTest, Damping_OpposesDampingForce)
 TEST(SpringTest, Damping_ZeroDamping_PureHooke)
 {
     // With c=0, behavior should be identical to pure Hooke's law
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     auto comp = make_spring(1000.0f, /*c=*/0.0f, 0.1f, false);
 
     auto st = make_state_spring(0.05f, 0.0f);

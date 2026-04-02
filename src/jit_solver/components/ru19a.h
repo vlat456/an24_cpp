@@ -13,18 +13,18 @@ public:
     Provider provider;
     APUState state = APUState::OFF;
     APUState next_state = APUState::OFF;
-    float timer = 0.0f;
-    float next_timer = 0.0f;
+    double timer = 0.0;
+    double next_timer = 0.0;
     float target_rpm = 16000.0f;
-    float current_rpm = 0.0f;
-    float next_current_rpm = 0.0f;
+    double current_rpm = 0.0;
+    double next_current_rpm = 0.0;
     float spinup_inertia = 1.0f;
     float spindown_inertia = 0.02f;
     float crank_time = 2.0f;
     float ignition_time = 3.0f;
     float start_timeout = 30.0f;
-    float t4 = 0.0f;
-    float next_t4 = 0.0f;
+    double t4 = 0.0;
+    double next_t4 = 0.0;
     float t4_target = 400.0f;
     float t4_max = 750.0f;
     float ambient_temp = 20.0f;
@@ -41,7 +41,7 @@ public:
     void stop()  { stop_requested = true; }
     bool is_starter_active() const { return state == APUState::CRANKING || state == APUState::IGNITION; }
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load();
 };

@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void Accumulator<Provider>::execute(SimulationState& st, float dt) {
+void Accumulator<Provider>::execute(SimulationState& st, double dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -27,7 +27,7 @@ void Accumulator<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Accumulator<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void Accumulator<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
     // Commit staged next state
     state = next_state;
     first_frame_mask = next_first_frame_mask;

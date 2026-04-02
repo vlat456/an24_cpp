@@ -12,12 +12,12 @@ public:
 
     Provider provider;
     float initial_rpm = 1.0f;
-    float rpm = 1.0f;
-    float next_rpm = 1.0f;
+    double rpm = 1.0;
+    double next_rpm = 1.0;
 
     InertiaNode() = default;
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load();
 };

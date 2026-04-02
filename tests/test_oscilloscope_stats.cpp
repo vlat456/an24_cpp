@@ -6,7 +6,7 @@
 
 TEST(OscilloscopeStats, SineWaveDetectsTu) {
     std::deque<float> samples;
-    constexpr float dt = 1.0f / 60.0f;
+    constexpr double dt = 1.0 / 60.0;
     constexpr float freq_hz = 2.0f;
     for (int i = 0; i < 180; ++i) {
         const float t = static_cast<float>(i) * dt;
@@ -21,7 +21,7 @@ TEST(OscilloscopeStats, SineWaveDetectsTu) {
 
 TEST(OscilloscopeStats, FlatTopWaveDetectsTu) {
     std::deque<float> samples;
-    constexpr float dt = 1.0f / 60.0f;
+    constexpr double dt = 1.0 / 60.0;
     constexpr float freq_hz = 2.0f;
     for (int i = 0; i < 180; ++i) {
         const float t = static_cast<float>(i) * dt;

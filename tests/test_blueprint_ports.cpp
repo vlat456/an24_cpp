@@ -4,7 +4,7 @@
 #include "jit_solver/components/port_registry.h"
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -21,7 +21,7 @@ TEST(BlueprintInput, PassThroughLikeBus) {
     input.provider.set(PortNames::v, 0);
 
     // Should not crash, should not modify state
-    ASSERT_NO_THROW(step_component(input, st, 0.016f));
+    ASSERT_NO_THROW(step_component(input, st, 0.016));
 
     // State should remain unchanged (no stamping in push model)
     EXPECT_EQ(st.values[0], 0.0f);

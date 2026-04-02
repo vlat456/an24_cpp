@@ -97,7 +97,7 @@ public:
     /// (e.g. bake-in, addComponent, property edits).
     void rebuildAllWindows();
 
-    void updateSimulationStep(float dt);
+    void updateSimulationStep(double dt);
 
     /// Update node_content (gauges, switches, etc.) from simulation values.
     void updateNodeContentFromSimulation();

@@ -7,8 +7,8 @@
 struct SimulationState;
 
 struct ComponentEntry {
-    using ExecuteFn = void (*)(void* self, SimulationState& st, float dt);
-    using CommitFn = void (*)(void* self, SimulationState& st, float dt);
+    using ExecuteFn = void (*)(void* self, SimulationState& st, double dt);
+    using CommitFn = void (*)(void* self, SimulationState& st, double dt);
 
     void* self = nullptr;
     ExecuteFn execute = nullptr;
@@ -27,8 +27,8 @@ public:
         add_component(consumers_, component);
     }
 
-    void step(SimulationState& st, float dt) {
-        assert(dt > 0.0f);
+    void step(SimulationState& st, double dt) {
+        assert(dt > 0.0);
 
         // Execute all sources
         for (auto& e : sources_) {
@@ -64,7 +64,7 @@ private:
     static ComponentEntry make_entry(T* component) {
         return ComponentEntry{
             component,
-            [](void* self, SimulationState& st, float dt) {
+            [](void* self, SimulationState& st, double dt) {
                 if constexpr (requires(T& c) { c.execute(st, dt); }) {
                     static_cast<T*>(self)->execute(st, dt);
                 } else {
@@ -73,7 +73,7 @@ private:
                     (void)dt;
                 }
             },
-            [](void* self, SimulationState& st, float dt) {
+            [](void* self, SimulationState& st, double dt) {
                 if constexpr (requires(T& c) { c.commit(st, dt); }) {
                     static_cast<T*>(self)->commit(st, dt);
                 } else {

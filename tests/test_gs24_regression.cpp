@@ -7,7 +7,7 @@
 namespace {
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -30,8 +30,8 @@ GS24<JitProvider> make_gs24() {
     gs.r_norton = 0.08f;
     gs.pre_load();
 
-    gs.provider.indices[PortNames::v_out] = 0;
-    gs.provider.indices[PortNames::k_mod] = 1;
+    gs.provider.set(PortNames::v_out, 0);
+    gs.provider.set(PortNames::k_mod, 1);
     return gs;
 }
 
@@ -68,7 +68,7 @@ TEST(GS24Regression, DISABLED_SolveElectricalDoesNotMutateModeOrRpm) {
 TEST(GS24Regression, DISABLED_FinalizeTransitionsStarterToGenerator) {
     auto gs = make_gs24();
     auto st = make_state();
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
 
     // STARTER acceleration is 300 rpm/s. Reaching cutoff (0.45 * 15000 = 6750)
     // requires ~22.5s, then STARTER_WAIT requires 1.0s before GENERATOR.
@@ -97,7 +97,7 @@ TEST(GS24Regression, DISABLED_DeterministicRegardlessOfElectricalIterationCount)
         auto st = make_state();
         st.across[1] = 1.0f;
 
-        const float dt = 1.0f / 60.0f;
+        const double dt = 1.0 / 60.0;
         for (int step = 0; step < 300; ++step) {
             st.through.assign(st.through.size(), 0.0f);
             st.conductance.assign(st.conductance.size(), 0.0f);
@@ -118,15 +118,15 @@ TEST(GS24Regression, DISABLED_DeterministicRegardlessOfElectricalIterationCount)
 
 // DISABLED: Uses legacy iterative-style SimulationState (across/through/conductance) not available in push
 TEST(GS24Regression, DISABLED_FixedVsVariableDt_BaselineEquivalentAfterSameSimTime) {
-    auto run_for_time = [](const std::vector<float>& dts, float total_time) {
+    auto run_for_time = [](const std::vector<double>& dts, double total_time) {
         auto gs = make_gs24();
         auto st = make_state();
 
-        float t = 0.0f;
-        size_t i = 0;
-        while (t < total_time) {
-            const float dt_nominal = dts[i % dts.size()];
-            const float dt = std::min(dt_nominal, total_time - t);
+         double t = 0.0;
+         size_t i = 0;
+         while (t < total_time) {
+             const double dt_nominal = dts[i % dts.size()];
+             const double dt = std::min(dt_nominal, total_time - t);
 
             st.through.assign(st.through.size(), 0.0f);
             st.conductance.assign(st.conductance.size(), 0.0f);
@@ -140,8 +140,8 @@ TEST(GS24Regression, DISABLED_FixedVsVariableDt_BaselineEquivalentAfterSameSimTi
         return std::pair{gs.mode, gs.current_rpm};
     };
 
-    const float total_time = 24.0f;
-    auto [mode_fixed, rpm_fixed] = run_for_time({1.0f / 60.0f}, total_time);
+    const double total_time = 24.0;
+    auto [mode_fixed, rpm_fixed] = run_for_time({1.0 / 60.0}, total_time);
     auto [mode_var, rpm_var] = run_for_time({1.0f / 144.0f, 1.0f / 50.0f, 1.0f / 200.0f, 1.0f / 75.0f}, total_time);
 
     EXPECT_EQ(mode_fixed, mode_var)

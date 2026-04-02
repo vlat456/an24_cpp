@@ -13,6 +13,10 @@ struct JIT_Solver {};
 template <typename SolverTag>
 class Simulator {
 public:
+    /// E-008: Maximum dt per step to prevent physics explosions.
+    /// Frame hitches beyond this are clamped, not accumulated.
+    static constexpr double MAX_DT = 0.1;
+
     Simulator() = default;
     ~Simulator() { stop(); }
 
@@ -23,12 +27,12 @@ public:
 
     void start_from_json(const std::string& json_str);
     void stop();
-    void step(float dt);
+    void step(double dt);
 
     bool is_running() const { return running_; }
     bool is_built() const { return build_result_.has_value(); }
 
-    float get_time() const { return time_; }
+    double get_time() const { return time_; }
     uint64_t get_step_count() const { return step_count_; }
 
     size_t get_signal_count() const { return state_.values.size(); }
@@ -54,7 +58,7 @@ private:
     ElectricalRuntimeState electrical_rt_;
 
     bool running_ = false;
-    float time_ = 0.0f;
+    double time_ = 0.0;
     uint64_t step_count_ = 0;
 };
 

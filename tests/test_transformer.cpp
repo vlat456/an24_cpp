@@ -17,8 +17,8 @@
 static Transformer<JitProvider> make_transformer(float ratio = 1.0f) {
     Transformer<JitProvider> comp;
     comp.ratio = ratio;
-    comp.provider.indices[PortNames::primary] = 0;
-    comp.provider.indices[PortNames::secondary] = 1;
+    comp.provider.set(PortNames::primary, 0);
+    comp.provider.set(PortNames::secondary, 1);
     return comp;
 }
 

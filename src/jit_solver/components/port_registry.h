@@ -3375,8 +3375,40 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
     return result;
 }
 
-// Component variant for dynamic component storage (Editor JIT mode)
-// Enables type-safe storage of any component type without virtual calls
+// ===========================================================================
+// ComponentVariant — type-safe storage for JIT-mode (Editor) components
+// ===========================================================================
+//
+// E-005 ARCHITECTURE NOTE:
+//
+// This variant currently holds 68+ types. This is intentional for now:
+//
+// WHY variant (not virtual/type-erasure):
+//   - Components are templates over Provider, shared between JIT and AOT paths.
+//     The AOT path uses compile-time constexpr Provider — virtual calls would
+//     break this. The variant preserves the template-based Provider pattern.
+//   - All per-frame dispatch is already devirtualized:
+//     * PushScheduler uses type-erased function pointers (void* + fn ptrs)
+//     * SolverOwnedRefs uses pre-built typed pointer lists (E-002)
+//     * No std::visit in the hot path — only at build time
+//   - The variant is ONLY used as a storage container in
+//     BuildResult::devices (map of device name -> component)
+//
+// COMPILE-TIME COST:
+//   Each translation unit including this header pays the cost of the 68-type
+//   variant definition. Component .cpp files include port_registry.h for
+//   metadata functions (get_component_ports, etc.), not for ComponentVariant.
+//   Future work: split metadata functions into a separate header to reduce
+//   unnecessary variant instantiation in component .cpp files.
+//
+// FUTURE DIRECTION:
+//   The component count will shrink over time as complex wrapper components
+//   (Battery, Generator, GS24, etc.) are decomposed into primitive electrical
+//   elements + logical graphs. This naturally reduces the variant size.
+//   If count grows instead, consider domain-split variants
+//   (ElectricalVariant, LogicalVariant, etc.) to reduce each visit site.
+//
+// ===========================================================================
 using ComponentVariant = std::variant<
     AGK47<JitProvider>,
     AND<JitProvider>,

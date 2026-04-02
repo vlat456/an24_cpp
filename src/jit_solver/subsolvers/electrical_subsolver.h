@@ -13,5 +13,5 @@ void solve_electrical(
     const ElectricalBuildPlan& plan,
     SimulationState& st,
     ElectricalRuntimeState& rt,
-    float dt
-);
+    double dt
+) noexcept;

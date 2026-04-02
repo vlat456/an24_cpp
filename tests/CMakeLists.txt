@@ -111,6 +111,22 @@ target_link_libraries(electrical_subsolver_tests PRIVATE
 )
 gtest_discover_tests(electrical_subsolver_tests)
 
+# Architecture regression tests (E-001, E-002, E-003, E-004)
+add_executable(architecture_regression_tests
+    test_architecture_regression.cpp
+)
+target_include_directories(architecture_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(architecture_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(architecture_regression_tests)
+
 # Migrated tests - now using push-state API (SimulationState.values)
 add_executable(pid_tests
     test_pid.cpp

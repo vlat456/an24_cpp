@@ -7,7 +7,7 @@ void Comparator<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void Comparator<Provider>::execute(SimulationState& st, float /*dt*/) {
+void Comparator<Provider>::execute(SimulationState& st, double /*dt*/) {
     float Va = st.values[provider.get(PortNames::Va)];
     float Vb = st.values[provider.get(PortNames::Vb)];
 
@@ -21,7 +21,7 @@ void Comparator<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Comparator<Provider>::commit(SimulationState& st, float /*dt*/) {
+void Comparator<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

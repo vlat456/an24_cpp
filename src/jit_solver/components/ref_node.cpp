@@ -3,7 +3,7 @@
 #include "../state.h"
 
 template <typename Provider>
-void RefNode<Provider>::execute(SimulationState& st, float /*dt*/) {
+void RefNode<Provider>::execute(SimulationState& st, double /*dt*/) {
     // RefNode IS correctly scheduled as a source in the push scheduler.
     // It writes its fixed reference value to the signal array each frame
     // so downstream logical consumers see the correct reference voltage.
@@ -13,7 +13,7 @@ void RefNode<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void RefNode<Provider>::commit(SimulationState& st, float /*dt*/) {
+void RefNode<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

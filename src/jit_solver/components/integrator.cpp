@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void Integrator<Provider>::execute(SimulationState& st, float dt) {
+void Integrator<Provider>::execute(SimulationState& st, double dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t reset_idx = provider.get(PortNames::reset);
     uint32_t out_idx = provider.get(PortNames::out);
@@ -32,7 +32,7 @@ void Integrator<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Integrator<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void Integrator<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
     // Commit staged next state
     accumulator = next_accumulator;
     first_frame_mask = next_first_frame_mask;

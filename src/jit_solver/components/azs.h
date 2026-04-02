@@ -18,7 +18,7 @@ public:
     bool closed = false;
     bool tripped = false;
     float last_control = 0.0f;
-    float temp = 0.0f;
+    double temp = 0.0;
     float current = 0.0f;
     float i_nominal = 20.0f;
     float g_open = 1e-6f;
@@ -28,8 +28,8 @@ public:
 
     AZS() = default;
 
-    void commit_control(SimulationState& st, float dt);
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void commit_control(SimulationState& st, double dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load();
 };

@@ -3,7 +3,7 @@
 #include <cmath>
 
 template <typename Provider>
-void Switch<Provider>::commit_control(SimulationState& st, float dt) {
+void Switch<Provider>::commit_control(SimulationState& st, double dt) {
     (void)dt;
     float current_control = st.values[provider.get(PortNames::control)];
 
@@ -17,7 +17,7 @@ void Switch<Provider>::commit_control(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Switch<Provider>::execute(SimulationState& st, float /*dt*/) {
+void Switch<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model: when closed, propagate v_in to v_out; when open, set v_out=0
     // Control logic is handled in commit_control
     if (closed) {
@@ -29,7 +29,7 @@ void Switch<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Switch<Provider>::commit(SimulationState& st, float /*dt*/) {
+void Switch<Provider>::commit(SimulationState& st, double /*dt*/) {
     commit_control(st, 0.0f);
 }
 

@@ -4,10 +4,10 @@
 #include <cmath>
 
 template <typename Provider>
-void PD<Provider>::execute(SimulationState& st, float dt) {
-    constexpr float kDtMin = 1e-6f;
-    constexpr float kDtMax = 0.1f;
-    const float safe_dt = std::clamp(dt, kDtMin, kDtMax);
+void PD<Provider>::execute(SimulationState& st, double dt) {
+    constexpr double kDtMin = 1e-6;
+    constexpr double kDtMax = 0.1;
+    const float safe_dt = static_cast<float>(std::clamp(dt, kDtMin, kDtMax));
 
     float sp = st.values[provider.get(PortNames::setpoint)];
     float fb = st.values[provider.get(PortNames::feedback)];
@@ -24,7 +24,7 @@ void PD<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void PD<Provider>::commit(SimulationState& st, float /*dt*/) {
+void PD<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

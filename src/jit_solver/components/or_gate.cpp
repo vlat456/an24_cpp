@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void OR<Provider>::execute(SimulationState& st, float /*dt*/) {
+void OR<Provider>::execute(SimulationState& st, double /*dt*/) {
     float A = st.values[provider.get(PortNames::A)];
     float B = st.values[provider.get(PortNames::B)];
     bool a = (A > 0.5f);
@@ -12,7 +12,7 @@ void OR<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void OR<Provider>::commit(SimulationState& st, float /*dt*/) {
+void OR<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

@@ -3,7 +3,7 @@
 #include "../state.h"
 
 template <typename Provider>
-void CurrentSense<Provider>::execute(SimulationState& st, float /*dt*/) {
+void CurrentSense<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Read solved branch current from the electrical subsolver.
     // All upstream sources (Battery, Generator, ControlledVoltageSource) are now
     // solver-owned, so branch current is always computed by the solver.
@@ -16,7 +16,7 @@ void CurrentSense<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void CurrentSense<Provider>::commit(SimulationState& st, float /*dt*/) {
+void CurrentSense<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

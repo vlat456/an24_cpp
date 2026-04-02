@@ -4,7 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void Transformer<Provider>::execute(SimulationState& st, float /*dt*/) {
+void Transformer<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model: transformer with voltage ratio
     float v_primary = st.values[provider.get(PortNames::primary)];
     // Secondary voltage = primary voltage * ratio
@@ -13,7 +13,7 @@ void Transformer<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Transformer<Provider>::commit(SimulationState& st, float /*dt*/) {
+void Transformer<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

@@ -4,7 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void Inverter<Provider>::execute(SimulationState& st, float /*dt*/) {
+void Inverter<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model: DC to AC conversion
     // Input: dc_in, Output: ac_out
     float v_dc = st.values[provider.get(PortNames::dc_in)];
@@ -14,7 +14,7 @@ void Inverter<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Inverter<Provider>::commit(SimulationState& st, float /*dt*/) {
+void Inverter<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void TimeDelay<Provider>::execute(SimulationState& st, float dt) {
+void TimeDelay<Provider>::execute(SimulationState& st, double dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -43,7 +43,7 @@ void TimeDelay<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void TimeDelay<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void TimeDelay<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
     // Commit staged next state
     current_out = next_current_out;
     last_in = next_last_in;

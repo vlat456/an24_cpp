@@ -16,7 +16,7 @@ public:
 
     Voltmeter() = default;
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load() {}
 };

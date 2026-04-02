@@ -270,6 +270,20 @@ electrical_subsolver_tests/fast:
 .PHONY : electrical_subsolver_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/architecture_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/architecture_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/architecture_regression_tests.dir/rule
+
+# Convenience name for target.
+architecture_regression_tests: tests/CMakeFiles/architecture_regression_tests.dir/rule
+.PHONY : architecture_regression_tests
+
+# fast build rule for target.
+architecture_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/build
+.PHONY : architecture_regression_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/pid_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pid_tests.dir/rule
 .PHONY : tests/CMakeFiles/pid_tests.dir/rule
@@ -2761,6 +2775,30 @@ test_aot_composite.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/test_aot_composite.cpp.s
 .PHONY : test_aot_composite.cpp.s
 
+test_architecture_regression.o: test_architecture_regression.cpp.o
+.PHONY : test_architecture_regression.o
+
+# target to build an object file
+test_architecture_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/test_architecture_regression.cpp.o
+.PHONY : test_architecture_regression.cpp.o
+
+test_architecture_regression.i: test_architecture_regression.cpp.i
+.PHONY : test_architecture_regression.i
+
+# target to preprocess a source file
+test_architecture_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/test_architecture_regression.cpp.i
+.PHONY : test_architecture_regression.cpp.i
+
+test_architecture_regression.s: test_architecture_regression.cpp.s
+.PHONY : test_architecture_regression.s
+
+# target to generate assembly for a file
+test_architecture_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/test_architecture_regression.cpp.s
+.PHONY : test_architecture_regression.cpp.s
+
 test_arithmetic.o: test_arithmetic.cpp.o
 .PHONY : test_arithmetic.o
 
@@ -4625,6 +4663,7 @@ help:
 	@echo "... accumulator_tests"
 	@echo "... and_gate_debug_tests"
 	@echo "... aot_composite_tests"
+	@echo "... architecture_regression_tests"
 	@echo "... arithmetic_tests"
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
@@ -4858,6 +4897,9 @@ help:
 	@echo "... test_aot_composite.o"
 	@echo "... test_aot_composite.i"
 	@echo "... test_aot_composite.s"
+	@echo "... test_architecture_regression.o"
+	@echo "... test_architecture_regression.i"
+	@echo "... test_architecture_regression.s"
 	@echo "... test_arithmetic.o"
 	@echo "... test_arithmetic.i"
 	@echo "... test_arithmetic.s"

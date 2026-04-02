@@ -83,7 +83,7 @@ static SimulationState run_simulation(
     }
 
     // Push model: run simulation steps using the scheduler
-    constexpr float dt = 1.0f / 60.0f;
+    constexpr double dt = 1.0 / 60.0;
     for (int step = 0; step < steps; ++step) {
         result.scheduler.step(state, dt);
     }

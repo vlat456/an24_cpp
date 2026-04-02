@@ -4,7 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void IndicatorLight<Provider>::execute(SimulationState& st, float /*dt*/) {
+void IndicatorLight<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Observer-style: brightness derived from v_in, but NO pass-through write.
     // Electrical propagation (including v_out) is handled by the electrical solver.
     // The push executor only computes brightness from the already-solved voltage.
@@ -17,7 +17,7 @@ void IndicatorLight<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void IndicatorLight<Provider>::commit(SimulationState& st, float /*dt*/) {
+void IndicatorLight<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

@@ -11,7 +11,7 @@
 // =============================================================================
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -56,7 +56,7 @@ TEST(Battery, ChargeDecreasesUnderLoad) {
     st.electrical_rt->branch_currents = {0.0f, -10.0f};  // component_index 1 = -10A (discharge)
 
     float initial_charge = static_cast<float>(comp.charge);
-    float dt = 1.0f / 60.0f;  // 1 frame
+    double dt = 1.0 / 60.0;  // 1 frame
 
     step_component(comp, st, dt);
 
@@ -79,7 +79,7 @@ TEST(Battery, ChargeClampedAtZero) {
     st.electrical_rt = new ElectricalRuntimeState();
     st.electrical_rt->branch_currents = {0.0f, -10.0f};  // -10A = discharge
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Run multiple steps - charge should stay at 0
     for (int i = 0; i < 100; ++i) {
@@ -100,7 +100,7 @@ TEST(Battery, ChargeClampedAtCapacity) {
     st.electrical_rt = new ElectricalRuntimeState();
     st.electrical_rt->branch_currents = {0.0f, 10.0f};  // positive = charging (current into positive terminal)
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Run multiple steps - charge should be clamped at capacity
     for (int i = 0; i < 100; ++i) {
@@ -121,7 +121,7 @@ TEST(Battery, NoDischargeWithoutCurrent) {
     st.electrical_rt = nullptr;  // no electrical runtime
 
     double initial_charge = comp.charge;
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     step_component(comp, st, dt);
 
@@ -139,7 +139,7 @@ TEST(Battery, NoDischargeWhenCharging) {
     st.electrical_rt->branch_currents = {0.0f, 10.0f};  // positive = charging (current flows a→b internally)
 
     double initial_charge = comp.charge;
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     step_component(comp, st, dt);
 
@@ -160,7 +160,7 @@ TEST(Battery, NoDischargeWithInvalidHandle) {
     st.electrical_rt->branch_currents = {0.0f, 10.0f};
 
     double initial_charge = comp.charge;
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     step_component(comp, st, dt);
 
@@ -200,7 +200,7 @@ TEST(Battery, EndToEndDischargeWithSolver) {
     sim.start_from_json(json);
 
     // Run 60 steps (1 second at 60Hz)
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     for (int i = 0; i < 60; ++i) {
         sim.step(dt);
     }

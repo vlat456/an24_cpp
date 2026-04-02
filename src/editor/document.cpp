@@ -363,7 +363,7 @@ void Document::rebuildAllWindows() {
 // Simulation readout / node content
 // ============================================================================
 
-void Document::updateSimulationStep(float dt) {
+void Document::updateSimulationStep(double dt) {
     if (!simulation_running_) return;
 
     // Send control=1.0V for all currently held HoldButtons

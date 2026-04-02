@@ -167,7 +167,7 @@ TEST(ExternalRefIntegration, ClosedCircuitFirstOrderLagSignalsNonZero) {
     ASSERT_NO_THROW(sim.start_from_json(sim_json));
 
     // Run enough steps for signals to propagate through the composite
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
         sim.step(dt);
     }
@@ -246,7 +246,7 @@ TEST(ExternalRefIntegration, WireIsEnergizedMappedKey) {
     Simulator<JIT_Solver> sim;
     ASSERT_NO_THROW(sim.start_from_json(sim_json));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
         sim.step(dt);
     }
@@ -309,7 +309,7 @@ TEST(CompositePortMapping, RootLevelOutputResolves) {
     Simulator<JIT_Solver> sim;
     ASSERT_NO_THROW(sim.start_from_json(sim_json));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
         sim.step(dt);
     }
@@ -353,7 +353,7 @@ TEST(CompositePortMapping, RootLevelWireEnergizedWithMapping) {
     Simulator<JIT_Solver> sim;
     ASSERT_NO_THROW(sim.start_from_json(sim_json));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
         sim.step(dt);
     }
@@ -390,7 +390,7 @@ TEST(ExternalRefIntegration, RootExpandableRawVsMappedKey) {
     Simulator<JIT_Solver> sim;
     ASSERT_NO_THROW(sim.start_from_json(sim_json));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
         sim.step(dt);
     }
@@ -424,7 +424,7 @@ TEST(ExternalRefIntegration, RootExpandableResolvedKeyMatchesParserRewriteContra
     Simulator<JIT_Solver> sim;
     ASSERT_NO_THROW(sim.start_from_json(sim_json));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
         sim.step(dt);
     }

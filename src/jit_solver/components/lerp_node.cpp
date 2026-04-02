@@ -4,7 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void LerpNode<Provider>::execute(SimulationState& st, float dt) {
+void LerpNode<Provider>::execute(SimulationState& st, double dt) {
     float v_input = st.values[provider.get(PortNames::input)];
     (void)dt;
 
@@ -26,7 +26,7 @@ void LerpNode<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void LerpNode<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void LerpNode<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
     // Commit staged next state
     current_value = next_current_value;
     first_frame_mask = next_first_frame_mask;

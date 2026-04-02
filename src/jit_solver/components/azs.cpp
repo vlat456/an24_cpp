@@ -11,7 +11,7 @@ void AZS<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void AZS<Provider>::commit_control(SimulationState& st, float dt) {
+void AZS<Provider>::commit_control(SimulationState& st, double dt) {
     (void)dt;
     float current_control = st.values[provider.get(PortNames::control)];
     if (std::abs(current_control - last_control) > 0.1f) {
@@ -33,7 +33,7 @@ void AZS<Provider>::commit_control(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void AZS<Provider>::execute(SimulationState& st, float dt) {
+void AZS<Provider>::execute(SimulationState& st, double dt) {
     // Electrical behavior is solver-owned via dynamic conductance branch.
     // Estimate branch current from solved electrical runtime for thermal model.
     if (st.electrical_rt != nullptr && is_valid(electrical_handle)) {
@@ -47,12 +47,12 @@ void AZS<Provider>::execute(SimulationState& st, float dt) {
     float I = current;
     temp += (I * I * r_heat - temp * k_cool) * dt;
     // Floor at zero
-    temp = std::max(temp, 0.0f);
+    temp = std::max(temp, 0.0);
 }
 
 template <typename Provider>
-void AZS<Provider>::commit(SimulationState& st, float /*dt*/) {
-    commit_control(st, 0.0f);
+void AZS<Provider>::commit(SimulationState& st, double /*dt*/) {
+     commit_control(st, 0.0);
 }
 
 template class AZS<JitProvider>;

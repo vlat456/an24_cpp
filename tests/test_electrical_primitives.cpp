@@ -132,7 +132,7 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
     sim_a.start_from_json(json_a);
     sim_b.start_from_json(json_b);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     sim_a.step(dt);
     sim_b.step(dt);
 
@@ -181,7 +181,7 @@ TEST(ElectricalPrimitives, PrimitiveOnlyCircuitSolvesCorrectly) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     sim.step(dt);
 
     // Ground = 0V
@@ -221,7 +221,7 @@ TEST(ElectricalPrimitives, PrimitiveOnlyCircuitStableOverTime) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Expected: V = 24 * (2.0 / (2.0 + 1.0)) = 16V
     float expected_v = 24.0f * (2.0f / (2.0f + 1.0f));
@@ -346,7 +346,7 @@ TEST(ElectricalPrimitives, MixedWrapperAndPrimitiveInSameIsland) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     sim.step(dt);
 
     float v_out = sim.get_port_value("bat", "v_out");
@@ -395,7 +395,7 @@ TEST(ElectricalPrimitives, SourceAndBatteryEquivalent) {
     sim_bat.start_from_json(json_battery);
     sim_src.start_from_json(json_source);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     sim_bat.step(dt);
     sim_src.step(dt);
 
@@ -443,7 +443,7 @@ TEST(ElectricalPrimitives, TwoConductancesInSeries) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     sim.step(dt);
 
     // Source output should be 28V (ideal source, R_series = 0)
@@ -818,7 +818,7 @@ TEST(ElectricalPrimitives, MetadataPropagatedThroughLibraryPipeline) {
     JIT_Simulator sim;
     ASSERT_NO_THROW(sim.start_from_json(json));
 
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
 
     // Check solved voltages make physical sense
     // V = Vsrc * Rload / (Rload + Rint) = 24.0 * 2.0 / (2.0 + 0.1) = 22.857

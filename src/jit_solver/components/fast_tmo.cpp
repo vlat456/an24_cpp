@@ -8,7 +8,7 @@ void FastTMO<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void FastTMO<Provider>::execute(SimulationState& st, float dt) {
+void FastTMO<Provider>::execute(SimulationState& st, double dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.values[in_idx];
@@ -22,7 +22,7 @@ void FastTMO<Provider>::execute(SimulationState& st, float dt) {
 
     // Branchless TMO Logic
     float diff = input - committed_value;
-    float factor = std::min(dt * inv_tau, 1.0f);
+    float factor = std::min(static_cast<float>(dt) * inv_tau, 1.0f);
     // f32.select equivalent
     float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
 
@@ -38,7 +38,7 @@ void FastTMO<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void FastTMO<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void FastTMO<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
     // Commit staged next state
     current_value = next_current_value;
     first_frame_mask = next_first_frame_mask;

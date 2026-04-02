@@ -30,7 +30,7 @@ static SimulationState make_state(float input_val)
 
 /// Simulate one complete frame: execute + commit (two-phase semantics)
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -46,7 +46,7 @@ TEST(AsymSlewRateTest, ColdStart_FirstFrame)
     auto comp = make_asym_slew_rate();
     auto st = make_state(10.0f);
 
-    step(comp, st, 1.0f / 60.0f);
+    step(comp, st, 1.0 / 60.0);
 
     // Cold-start: output = cold-start-adjusted committed value = 10.0
     EXPECT_FLOAT_EQ(st.values[1], 10.0f);
@@ -138,17 +138,17 @@ TEST(AsymSlewRateTest, RapidRiseSlowFall_RealisticBehavior)
     auto comp = make_asym_slew_rate(1000.0f, 2.0f);
 
     auto st = make_state(0.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 0
+    step(comp, st, 1.0 / 60.0);  // cold start at 0
 
     // Turn on
     st.values[0] = 10.0f;
-    step(comp, st, 1.0f / 60.0f);  // output = 0 (committed), stages ~10
-    step(comp, st, 1.0f / 60.0f);  // output = ~10 (committed)
+    step(comp, st, 1.0 / 60.0);  // output = 0 (committed), stages ~10
+    step(comp, st, 1.0 / 60.0);  // output = ~10 (committed)
     EXPECT_NEAR(st.values[1], 10.0f, 0.5f);  // Should reach almost instantly after delay
 
     // Turn off
     st.values[0] = 0.0f;
-    step(comp, st, 1.0f / 60.0f);  // output = committed (~10), stages fall step
+    step(comp, st, 1.0 / 60.0);  // output = committed (~10), stages fall step
     float after_fall = st.values[1];
 
     // One-frame delay: output still shows ~10
@@ -162,12 +162,12 @@ TEST(AsymSlewRateTest, SlowRiseRapidFall_RealisticBehavior)
     auto comp = make_asym_slew_rate(2.0f, 1000.0f);
 
     auto st = make_state(0.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 0
+    step(comp, st, 1.0 / 60.0);  // cold start at 0
 
     // Turn on (slow rise)
     st.values[0] = 10.0f;
-    step(comp, st, 1.0f / 60.0f);  // output = 0 (committed), stages small step
-    step(comp, st, 1.0f / 60.0f);  // output = small step (~0.033)
+    step(comp, st, 1.0 / 60.0);  // output = 0 (committed), stages small step
+    step(comp, st, 1.0 / 60.0);  // output = small step (~0.033)
     EXPECT_LT(st.values[1], 1.0f);  // Barely moved after one-frame delay
 
     // Turn off (fast fall) - fresh component starting at 10
@@ -187,7 +187,7 @@ TEST(AsymSlewRateTest, HandlesZeroDt_Pause)
     auto comp = make_asym_slew_rate();
 
     auto st = make_state(5.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 5
+    step(comp, st, 1.0 / 60.0);  // cold start at 5
 
     float out_before_pause = st.values[1];
 
@@ -205,7 +205,7 @@ TEST(AsymSlewRateTest, Deadzone_PreventsMicroAdjustments)
     auto comp = make_asym_slew_rate(1.0f, 0.5f, 0.5f);  // Large deadzone
 
     auto st = make_state(5.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 5
+    step(comp, st, 1.0 / 60.0);  // cold start at 5
 
     float initial_out = st.values[1];
 
@@ -213,7 +213,7 @@ TEST(AsymSlewRateTest, Deadzone_PreventsMicroAdjustments)
     st.values[0] = 5.3f;  // diff = 0.3 < deadzone (0.5)
 
     for (int i = 0; i < 10; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Output should not have changed
@@ -225,13 +225,13 @@ TEST(AsymSlewRateTest, Deadzone_AllowsLargeChanges)
     auto comp = make_asym_slew_rate(10.0f, 5.0f, 0.5f);
 
     auto st = make_state(5.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 5
+    step(comp, st, 1.0 / 60.0);  // cold start at 5
 
     // Change input by MORE than deadzone
     st.values[0] = 10.0f;  // diff = 5.0 > deadzone (0.5)
 
     for (int i = 0; i < 12; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Output should approach new input (rate_up=10 → ~0.167/frame × 11 effective = ~1.83)
@@ -243,13 +243,13 @@ TEST(AsymSlewRateTest, ZeroRates_NoChange)
     auto comp = make_asym_slew_rate(0.0f, 0.0f);
 
     auto st = make_state(5.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 5
+    step(comp, st, 1.0 / 60.0);  // cold start at 5
 
     float initial_out = st.values[1];
 
     st.values[0] = 10.0f;
     for (int i = 0; i < 10; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // With zero rates, output should not change
@@ -261,13 +261,13 @@ TEST(AsymSlewRateTest, ApproachesTargetOverTime_Rise)
     auto comp = make_asym_slew_rate(6.0f, 3.0f);  // Different rates
 
     auto st = make_state(0.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 0
+    step(comp, st, 1.0 / 60.0);  // cold start at 0
 
     st.values[0] = 10.0f;
 
     // Need extra frames for one-frame delay
     for (int i = 0; i < 122; ++i) {  // ~2 seconds at 60Hz
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Should reach target (using rate_up = 6)
@@ -279,13 +279,13 @@ TEST(AsymSlewRateTest, ApproachesTargetOverTime_Fall)
     auto comp = make_asym_slew_rate(6.0f, 3.0f);
 
     auto st = make_state(10.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 10
+    step(comp, st, 1.0 / 60.0);  // cold start at 10
 
     st.values[0] = 0.0f;
 
     // Need extra frames for one-frame delay
     for (int i = 0; i < 242; ++i) {  // ~4 seconds at 60Hz (slower rate)
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Should reach target (using rate_down = 3)
@@ -297,7 +297,7 @@ TEST(AsymSlewRateTest, VariableDt_AdaptsStepSize)
     auto comp = make_asym_slew_rate(10.0f, 5.0f);
 
     auto st = make_state(0.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 0
+    step(comp, st, 1.0 / 60.0);  // cold start at 0
 
     st.values[0] = 10.0f;
 
@@ -324,11 +324,11 @@ TEST(AsymSlewRateTest, NegativeInput_Rise)
     auto comp = make_asym_slew_rate(10.0f, 5.0f);
 
     auto st = make_state(0.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 0
+    step(comp, st, 1.0 / 60.0);  // cold start at 0
 
     st.values[0] = -10.0f;
-    step(comp, st, 1.0f / 60.0f);  // stages negative step
-    step(comp, st, 1.0f / 60.0f);  // outputs first negative step
+    step(comp, st, 1.0 / 60.0);  // stages negative step
+    step(comp, st, 1.0 / 60.0);  // outputs first negative step
 
     // Should move towards -10.0
     EXPECT_LT(st.values[1], 0.0f);
@@ -340,11 +340,11 @@ TEST(AsymSlewRateTest, NegativeInput_Fall)
     auto comp = make_asym_slew_rate(10.0f, 5.0f);
 
     auto st = make_state(-10.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at -10
+    step(comp, st, 1.0 / 60.0);  // cold start at -10
 
     st.values[0] = 0.0f;
-    step(comp, st, 1.0f / 60.0f);  // stages positive step
-    step(comp, st, 1.0f / 60.0f);  // outputs first positive step
+    step(comp, st, 1.0 / 60.0);  // stages positive step
+    step(comp, st, 1.0 / 60.0);  // outputs first positive step
 
     // Should move towards 0 (rate_down = 5, slower)
     EXPECT_LT(st.values[1], -8.0f);  // Barely moved (rate_down = 5)
@@ -355,13 +355,13 @@ TEST(AsymSlewRateTest, ConstantInput_OutputStaysConstant)
     auto comp = make_asym_slew_rate(10.0f, 5.0f);
 
     auto st = make_state(5.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 5
+    step(comp, st, 1.0 / 60.0);  // cold start at 5
 
     float initial_out = st.values[1];
 
     // Keep input constant
     for (int i = 0; i < 10; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Output should remain constant (in deadzone)
@@ -374,19 +374,19 @@ TEST(AsymSlewRateTest, OscillatingInput_FollowsAsymmetricRates)
     auto comp = make_asym_slew_rate(60.0f, 5.0f);
 
     auto st = make_state(0.0f);
-    step(comp, st, 1.0f / 60.0f);  // cold start at 0
+    step(comp, st, 1.0 / 60.0);  // cold start at 0
 
     // Rise to 10 (rate_up=60 → 1.0/frame, reaches 10 in ~10 frames + 1 delay)
     st.values[0] = 10.0f;
     for (int i = 0; i < 60; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
     EXPECT_NEAR(st.values[1], 10.0f, 0.2f);
 
     // Fall to 0 (slower: rate_down=5 → 5.0 units/sec × 1.0s = 5.0 traveled)
     st.values[0] = 0.0f;
     for (int i = 0; i < 60; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
     // Should only be halfway down (rate_down=5: 5 units/sec × 1s = 5 units of 10)
     EXPECT_NEAR(st.values[1], 5.0f, 0.5f);

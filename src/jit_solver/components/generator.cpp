@@ -11,13 +11,13 @@ void Generator<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void Generator<Provider>::execute(SimulationState& /*st*/, float /*dt*/) {
+void Generator<Provider>::execute(SimulationState& /*st*/, double /*dt*/) {
     // No-op: Generator is solver-owned. Electrical propagation runs via the
     // conductance matrix in the electrical subsolver, not via push scheduler.
 }
 
 template <typename Provider>
-void Generator<Provider>::commit(SimulationState& st, float /*dt*/) {
+void Generator<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

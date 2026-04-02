@@ -7,7 +7,7 @@
 TEST(PIZN, DetectsSustainedOscillationOnSine) {
     std::vector<float> y;
     y.reserve(600);
-    constexpr float dt = 1.0f / 60.0f;
+    constexpr double dt = 1.0 / 60.0;
     constexpr float f = 1.5f;
     for (int i = 0; i < 600; ++i) {
         float t = static_cast<float>(i) * dt;
@@ -19,7 +19,7 @@ TEST(PIZN, DetectsSustainedOscillationOnSine) {
 TEST(PIZN, EstimatesTuOnSine) {
     std::vector<float> y;
     y.reserve(600);
-    constexpr float dt = 1.0f / 60.0f;
+    constexpr double dt = 1.0 / 60.0;
     constexpr float f = 2.0f;
     for (int i = 0; i < 600; ++i) {
         float t = static_cast<float>(i) * dt;

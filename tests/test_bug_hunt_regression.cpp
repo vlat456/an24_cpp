@@ -86,7 +86,7 @@ static Transformer<JitProvider> make_transformer_test(SimulationState& st,
 // The push-visible behavior is that v_secondary = v_primary * ratio (for ideal transformer).
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }

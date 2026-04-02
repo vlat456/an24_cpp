@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void InertiaNode<Provider>::execute(SimulationState& st, float dt) {
+void InertiaNode<Provider>::execute(SimulationState& st, double dt) {
     const float torque_cmd = st.values[provider.get(PortNames::torque_in)];
     const float mass_param = st.values[provider.get(PortNames::mass)];
     const float inv_inertia_param = st.values[provider.get(PortNames::inv_inertia)];
@@ -16,7 +16,7 @@ void InertiaNode<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void InertiaNode<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void InertiaNode<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
     rpm = next_rpm;
 }
 

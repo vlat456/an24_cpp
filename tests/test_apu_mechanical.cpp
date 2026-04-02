@@ -15,7 +15,7 @@
 // =============================================================================
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -36,11 +36,11 @@ static RU19A<JitProvider> make_apu() {
     apu.auto_start = false;  // manual control for tests
 
     // Port indices
-    apu.provider.indices[PortNames::v_start] = 0;
-    apu.provider.indices[PortNames::v_bus] = 1;
-    apu.provider.indices[PortNames::rpm_out] = 2;
-    apu.provider.indices[PortNames::t4_out] = 3;
-    apu.provider.indices[PortNames::k_mod] = 4;
+    apu.provider.set(PortNames::v_start, 0);
+    apu.provider.set(PortNames::v_bus, 1);
+    apu.provider.set(PortNames::rpm_out, 2);
+    apu.provider.set(PortNames::t4_out, 3);
+    apu.provider.set(PortNames::k_mod, 4);
     return apu;
 }
 
@@ -146,7 +146,7 @@ TEST(APUMechanicalTest, DISABLED_Cranking_TransitionsToIgnition_AfterCrankTime) 
     auto st = make_state();
     st.across[1] = 24.0f;  // bus voltage for voltage_factor
 
-    float dt = 1.0f / 60.0f;
+    float dt = 1.0 / 60.0;
 
     // Run for less than crank_time (2s)
     for (int i = 0; i < 100; ++i) {  // 100 * 1/60 = 1.67s
@@ -174,7 +174,7 @@ TEST(APUMechanicalTest, DISABLED_Ignition_TransitionsToRunning_AfterIgnitionTime
     apu.timer = 0.0f;
     auto st = make_state();
 
-    float dt = 1.0f / 60.0f;
+    float dt = 1.0 / 60.0;
 
     // Run for less than ignition_time (3s)
     for (int i = 0; i < 150; ++i) {  // 150 * 1/60 = 2.5s
@@ -202,7 +202,7 @@ TEST(APUMechanicalTest, DISABLED_Cranking_RPMIncreases) {
     auto st = make_state();
     st.across[1] = 24.0f;  // bus voltage
 
-    float dt = 1.0f / 60.0f;
+    float dt = 1.0 / 60.0;
     float initial_rpm = apu.current_rpm;
 
     for (int i = 0; i < 60; ++i) {  // 1 second
@@ -229,7 +229,7 @@ TEST(APUMechanicalTest, DISABLED_Cranking_RPMScalesWithVoltage) {
     auto st_low = make_state();
     st_low.across[1] = 14.0f;  // low battery
 
-    float dt = 1.0f / 60.0f;
+    float dt = 1.0 / 60.0;
     for (int i = 0; i < 60; ++i) {
         apu_high.solve_mechanical(st_high, dt);
         apu_low.solve_mechanical(st_low, dt);
@@ -250,7 +250,7 @@ TEST(APUMechanicalTest, DISABLED_Stopping_RPMDecreases) {
     apu.current_rpm = 8000.0f;
     auto st = make_state();
 
-    float dt = 1.0f / 60.0f;
+    float dt = 1.0 / 60.0;
     float initial_rpm = apu.current_rpm;
 
     for (int i = 0; i < 60; ++i) {
@@ -268,7 +268,7 @@ TEST(APUMechanicalTest, DISABLED_Stopping_TransitionsToOFF_WhenRPMZero) {
     apu.current_rpm = 10.0f;  // Very low RPM
     auto st = make_state();
 
-    float dt = 1.0f / 60.0f;
+    float dt = 1.0 / 60.0;
 
     // Exponential decay with spindown_inertia=0.02 and factor=2.0 has
     // a time constant of ~25s. From 10 RPM to 0.1 RPM threshold takes
@@ -322,7 +322,7 @@ TEST(APUMechanicalTest, DISABLED_RPM_NeverNegative) {
     apu.current_rpm = 0.0f;
     auto st = make_state();
 
-    float dt = 1.0f / 60.0f;
+    float dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
         apu.solve_mechanical(st, dt);
     }
@@ -337,7 +337,7 @@ TEST(APUMechanicalTest, DISABLED_RPM_NeverExceedsTarget) {
     apu.current_rpm = 15900.0f;  // near target
     auto st = make_state();
 
-    float dt = 1.0f / 60.0f;
+    float dt = 1.0 / 60.0;
     for (int i = 0; i < 600; ++i) {
         apu.solve_mechanical(st, dt);
     }
@@ -443,7 +443,7 @@ TEST(APUMechanicalTest, DISABLED_FullStartupSequence) {
     st.across[1] = 24.0f;  // v_bus
     st.across[4] = 1.0f;   // k_mod
 
-    float dt = 1.0f / 60.0f;
+    float dt = 1.0 / 60.0;
 
     // Start
     apu.start();

@@ -497,6 +497,19 @@ electrical_subsolver_tests/fast:
 .PHONY : electrical_subsolver_tests/fast
 
 #=============================================================================
+# Target rules for targets named architecture_regression_tests
+
+# Build rule for target.
+architecture_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 architecture_regression_tests
+.PHONY : architecture_regression_tests
+
+# fast build rule for target.
+architecture_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/build
+.PHONY : architecture_regression_tests/fast
+
+#=============================================================================
 # Target rules for targets named pid_tests
 
 # Build rule for target.
@@ -1659,6 +1672,7 @@ help:
 	@echo "... an24_editor"
 	@echo "... and_gate_debug_tests"
 	@echo "... aot_composite_tests"
+	@echo "... architecture_regression_tests"
 	@echo "... arithmetic_tests"
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"

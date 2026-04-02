@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void ElectricHeater<Provider>::execute(SimulationState& st, float /*dt*/) {
+void ElectricHeater<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model: read power input
     // In push model, we don't have conductance stamps - just track the power
     // The electrical effect is implicit in the network
@@ -18,7 +18,7 @@ void ElectricHeater<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void ElectricHeater<Provider>::commit(SimulationState& st, float /*dt*/) {
+void ElectricHeater<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

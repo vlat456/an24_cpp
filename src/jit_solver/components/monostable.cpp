@@ -3,7 +3,7 @@
 #include <algorithm>
 
 template <typename Provider>
-void Monostable<Provider>::execute(SimulationState& st, float dt) {
+void Monostable<Provider>::execute(SimulationState& st, double dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -16,7 +16,7 @@ void Monostable<Provider>::execute(SimulationState& st, float dt) {
     bool trigger = (raw_in > 0.5f && last_in <= 0.5f);
 
     // Compute next_timer: if triggered, reset to duration; otherwise tick down
-    float new_timer = trigger ? duration : std::max(0.0f, timer - dt);
+    float new_timer = trigger ? duration : std::max(0.0f, timer - static_cast<float>(dt));
 
     // Stage next state
     next_timer = new_timer;
@@ -27,7 +27,7 @@ void Monostable<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Monostable<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void Monostable<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
     // Commit staged next state
     timer = next_timer;
     last_in = next_last_in;

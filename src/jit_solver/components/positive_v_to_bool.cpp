@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void Positive_V_to_Bool<Provider>::execute(SimulationState& st, float /*dt*/) {
+void Positive_V_to_Bool<Provider>::execute(SimulationState& st, double /*dt*/) {
     float vin = st.values[provider.get(PortNames::Vin)];
     // Convert positive voltage to TRUE (v > 0)
     bool result = vin > 0.0f;
@@ -10,7 +10,7 @@ void Positive_V_to_Bool<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Positive_V_to_Bool<Provider>::commit(SimulationState& st, float /*dt*/) {
+void Positive_V_to_Bool<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

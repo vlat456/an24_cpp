@@ -3,7 +3,7 @@
 #include <cmath>
 
 template <typename Provider>
-void Spring<Provider>::execute(SimulationState& st, float dt) {
+void Spring<Provider>::execute(SimulationState& st, double dt) {
     float pA = st.values[provider.get(PortNames::pos_a)];
     float pB = st.values[provider.get(PortNames::pos_b)];
 
@@ -20,7 +20,7 @@ void Spring<Provider>::execute(SimulationState& st, float dt) {
     // 4. Viscous damping force: F_damp = c * velocity
     //    velocity ≈ (delta_x - prev_delta_x) / dt (finite difference)
     //    One division per mechanical step (20 Hz) — acceptable
-    float inv_dt = 1.0f / std::max(dt, 1e-6f);
+    float inv_dt = 1.0f / static_cast<float>(std::max(dt, 1e-6));
     float velocity = (delta_x - prev_delta_x) * inv_dt;
     float damping_force = c * velocity;
 
@@ -44,7 +44,7 @@ void Spring<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Spring<Provider>::commit(SimulationState& st, float /*dt*/) {
+void Spring<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

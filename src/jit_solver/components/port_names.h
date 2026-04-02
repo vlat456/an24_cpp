@@ -78,5 +78,6 @@ enum class PortNames : uint32_t {
     v_out,
     v_pos,
     v_ref,
-    v_start
+    v_start,
+    _COUNT  // Sentinel: must always be last. Used to size flat arrays indexed by PortNames.
 };

@@ -383,11 +383,11 @@ std::string CodeGen::generate_header(
     oss << "    void pre_load();\n\n";
 
     oss << "    /// Main solve step with jump table dispatch (ECS-like)\n";
-    oss << "    void solve_step(void* state, uint32_t step, float dt);\n\n";
+    oss << "    void solve_step(void* state, uint32_t step, double dt);\n\n";
 
     // Generate CYCLE_LENGTH step methods
     for (int step = 0; step < 60; ++step) {
-        oss << "    AOT_INLINE void step_" << step << "(void* state, float dt);\n";
+        oss << "    AOT_INLINE void step_" << step << "(void* state, double dt);\n";
     }
     oss << "\n";
 
@@ -551,8 +551,8 @@ std::string CodeGen::generate_source(
     oss << "}\n\n";
 
     // Jump table dispatch - computed goto (GCC/Clang) or switch fallback (MSVC)
-    oss << "void " << class_name << "::solve_step(void* state, uint32_t step, float dt) {\n";
-    oss << "    if (dt <= 0.0f) return;\n";
+    oss << "void " << class_name << "::solve_step(void* state, uint32_t step, double dt) {\n";
+    oss << "    if (dt <= 0.0) return;\n";
     oss << "\n";
     oss << "#ifndef _MSC_VER\n";
     oss << "    // Computed goto dispatch table (static const for one-time init)\n";
@@ -582,7 +582,7 @@ std::string CodeGen::generate_source(
     // Push model: single-pass per frame, sources/consumers already encoded in
     // component execute() behavior and device ordering generated from blueprint.
     for (int step = 0; step < 60; ++step) {
-        oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, float dt) {\n";
+        oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, double dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
         // Electrical solve: compute node voltages and branch currents before component execute
         if (!electrical_plan.islands.empty()) {
@@ -1013,10 +1013,10 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
         size_t pn_idx = 0;
         for (const auto& port_name : all_port_names) {
             pn << "    " << port_name;
-            if (pn_idx < all_port_names.size() - 1) pn << ",\n";
-            else pn << "\n";
+            pn << ",\n";
             pn_idx++;
         }
+        pn << "    _COUNT  // Sentinel: must always be last. Used to size flat arrays indexed by PortNames.\n";
         pn << "};\n";
 
         std::ofstream pn_out(port_names_path);

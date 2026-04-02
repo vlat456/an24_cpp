@@ -3,7 +3,7 @@
 #include <algorithm>
 
 template <typename Provider>
-void Clamp<Provider>::execute(SimulationState& st, float /*dt*/) {
+void Clamp<Provider>::execute(SimulationState& st, double /*dt*/) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -14,7 +14,7 @@ void Clamp<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Clamp<Provider>::commit(SimulationState& st, float /*dt*/) {
+void Clamp<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

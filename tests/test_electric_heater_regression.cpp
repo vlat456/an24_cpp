@@ -27,8 +27,8 @@ static ElectricHeater<JitProvider> make_heater(float max_p = 500.0f, float eff =
     ElectricHeater<JitProvider> comp;
     comp.max_power = max_p;
     comp.efficiency = eff;
-    comp.provider.indices[PortNames::power] = 0;
-    comp.provider.indices[PortNames::heat_out] = 1;
+    comp.provider.set(PortNames::power, 0);
+    comp.provider.set(PortNames::heat_out, 1);
     return comp;
 }
 

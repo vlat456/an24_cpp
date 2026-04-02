@@ -292,21 +292,21 @@ TEST(PushRuntime, DynamicEnableDisableStable) {
     sim.start_from_json(json);
 
     sim.apply_overrides({{"sw.control", 0.0f}});
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
 
     sim.apply_overrides({{"sw.control", 1.0f}});
     // Frame N: execute uses previous closed state, commit toggles at end of frame.
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
     // Frame N+1: new state is visible.
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
 
     sim.apply_overrides({{"sw.control", 0.0f}});
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
 }
 
@@ -328,7 +328,7 @@ TEST(PushRuntime, InitialValuesSeedState) {
     sim.start_from_json(json);
 
     EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 11.5f, 1e-5f);
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_TRUE(std::isfinite(sim.get_port_value("bat", "v_out")));
 }
 
@@ -374,7 +374,7 @@ TEST(PushRuntime, GS24StartupSequenceProducesOutput) {
     sim.start_from_json(json);
 
     for (int i = 0; i < 90; ++i) {
-        sim.step(1.0f / 60.0f);
+        sim.step(1.0 / 60.0);
     }
 
     const float v_out = sim.get_port_value("gs", "v_out");
@@ -399,7 +399,7 @@ TEST(PushRuntime, RU19ASmokeNoNaNOverLongRun) {
     sim.start_from_json(json);
 
     for (int i = 0; i < 240; ++i) {
-        sim.step(1.0f / 60.0f);
+        sim.step(1.0 / 60.0);
     }
 
     EXPECT_TRUE(std::isfinite(sim.get_port_value("ru", "rpm_out")));
@@ -423,7 +423,7 @@ TEST(PushRuntime, LerpNodeExecuteProducesOutput) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
 
     // With factor=1.0 and deadzone=0.0, LerpNode should converge immediately
     // to the input value. A no-op execute() would leave output at 0.0.
@@ -452,7 +452,7 @@ TEST(PushRuntime, DynamicFeedbackLoopStableAndBounded) {
     sim.start_from_json(json);
 
     for (int i = 0; i < 180; ++i) {
-        sim.step(1.0f / 60.0f);
+        sim.step(1.0 / 60.0);
         const float v = sim.get_port_value("sw", "v_out");
         EXPECT_TRUE(std::isfinite(v));
         EXPECT_GE(v, -0.1f);
@@ -479,16 +479,16 @@ TEST(PushRuntime, CommitHookRunsAfterExecute) {
     sim.start_from_json(json);
 
     // Initially switch is open, v_out should be 0
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
 
     // Apply control to close the switch
     sim.apply_overrides({{"sw.control", 1.0f}});
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     // First frame after edge: old state still used during execute.
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
     // Next frame: committed state is visible.
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
 }
 
@@ -510,27 +510,27 @@ TEST(PushRuntime, StatefulComponentOneFrameDelaySemantic) {
     sim.start_from_json(json);
 
     // Initial: switch open, output = 0
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
 
     // Toggle control (edge detect requires change)
     sim.apply_overrides({{"sw.control", 1.0f}});
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
 
     // Frame N: execute still sees previous open state.
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
     // Frame N+1: committed state visible.
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
 
     // Toggle back
     sim.apply_overrides({{"sw.control", 0.0f}});
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
 
     // Frame M: still previous closed state.
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
     // Frame M+1: committed open state visible.
-    sim.step(1.0f / 60.0f);
+    sim.step(1.0 / 60.0);
     EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
 }
 
@@ -550,7 +550,7 @@ TEST(PushRuntime, IntegratorComputesCorrectAccumulation) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Frame 0: output = committed accumulator (initial_val=0); integration is staged
     sim.step(dt);
@@ -588,7 +588,7 @@ TEST(PushRuntime, SampleHoldBasicOperation) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Initial: no trigger (default 0), output should be 0
     sim.step(dt);
@@ -615,7 +615,7 @@ TEST(PushRuntime, SlewRateConvergesToInput) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Step several frames and verify monotonic convergence
     std::vector<float> outputs;
@@ -672,7 +672,7 @@ TEST(PushRuntime, ComponentApiCommitHookCoverageSmoke) {
     EXPECT_NO_THROW(sim.start_from_json(json));
 
     // Run multiple steps to verify commit path executes safely each frame
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     for (int i = 0; i < 5; ++i) {
         EXPECT_NO_THROW(sim.step(dt));
     }
@@ -703,7 +703,7 @@ TEST(PushRuntime, TimeDelayCommitSemantics) {
 
     JIT_Simulator sim;
     sim.start_from_json(json);
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Run several steps - should be stable without NaN or crashes
     for (int i = 0; i < 10; ++i) {
@@ -730,7 +730,7 @@ TEST(PushRuntime, MonostableCommitSemantics) {
 
     JIT_Simulator sim;
     sim.start_from_json(json);
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Initial: output should be 0
     sim.step(dt);
@@ -761,7 +761,7 @@ TEST(PushRuntime, SlewRateCommitSemantics) {
 
     JIT_Simulator sim;
     sim.start_from_json(json);
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Run several steps - should be stable and converge toward input
     std::vector<float> outputs;
@@ -795,7 +795,7 @@ TEST(PushRuntime, AsymSlewRateCommitSemantics) {
 
     JIT_Simulator sim;
     sim.start_from_json(json);
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     std::vector<float> outputs;
     for (int i = 0; i < 20; ++i) {
@@ -825,7 +825,7 @@ TEST(PushRuntime, IntegratorCommitOneFrameDelay) {
 
     JIT_Simulator sim;
     sim.start_from_json(json);
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Frame N: output = committed accumulator from frame N-1
     // Frame 0: out = initial_val = 0.0
@@ -864,7 +864,7 @@ TEST(PushRuntime, SampleHoldCommitSemantics) {
 
     JIT_Simulator sim;
     sim.start_from_json(json);
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Without trigger, output should be 0 (initial stored_value)
     for (int i = 0; i < 5; ++i) {
@@ -890,7 +890,7 @@ TEST(PushRuntime, LerpNodeCommitSemantics) {
 
     JIT_Simulator sim;
     sim.start_from_json(json);
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Frame 0: cold start, output = input via committed state
     sim.step(dt);
@@ -989,7 +989,7 @@ TEST(PushRuntime, StrictParamUsesCanonicalKey) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Run several steps to let PID respond
     for (int i = 0; i < 10; ++i) {
@@ -1149,8 +1149,8 @@ TEST(PushRuntime, GS24ExtendedParamsAreAcceptedAndAffectOutput) {
     high.start_from_json(json_high_threshold);
 
     for (int i = 0; i < 90; ++i) {
-        low.step(1.0f / 60.0f);
-        high.step(1.0f / 60.0f);
+        low.step(1.0 / 60.0);
+        high.step(1.0 / 60.0);
     }
 
     const float low_v = low.get_port_value("gs", "v_out");
@@ -1308,7 +1308,7 @@ TEST(PushRuntime, RU19AStartStopRequestsDoNotMutateCurrentFrameOutputs) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Initial OFF state
     sim.step(dt);
@@ -1383,7 +1383,7 @@ TEST(PushRuntime, ClosedLoopNoRunawayAfterManySteps) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Step for many frames - voltages should remain bounded
     for (int i = 0; i < 500; ++i) {
@@ -1428,7 +1428,7 @@ TEST(PushRuntime, IndicatorLightDoesNotOverwriteSolvedNode) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Step once
     sim.step(dt);
@@ -1467,7 +1467,7 @@ TEST(PushRuntime, IndicatorLightBrightnessStillFunctional) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     sim.step(dt);
 
     // At 14V input with 28V rated, brightness should be 50%
@@ -1495,7 +1495,7 @@ TEST(PushRuntime, ClosedCircuitBlueprint_NoRunawayVoltage) {
     EXPECT_NO_THROW(sim.start_from_json(json))
         << "Failed to start simulation from loaded blueprint";
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Run 600 steps (10 seconds at 60Hz)
     for (int i = 0; i < 600; ++i) {
@@ -1550,7 +1550,7 @@ TEST(PushRuntime, ClosedCircuitBlueprint_RN180RegulatedGeneratorProducesCurrent)
         << "Failed to start simulation from loaded blueprint";
 
     // Run 200 steps (~3.3 seconds) to let PI regulator settle
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 200; ++i) {
         sim.step(dt);
     }
@@ -1610,7 +1610,7 @@ TEST(PushRuntime, ClosedCircuitLike_BatteryChargeDecreases_CorrectedTopology) {
     JIT_Simulator sim;
     ASSERT_NO_THROW(sim.start_from_json(json));
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Initial charge from blueprint values
     double initial_charge = sim.get_battery_charge("battery_1");
@@ -1671,7 +1671,7 @@ TEST(PushRuntime, BatteryLiveOutputsExposeChargeAndSoc) {
     JIT_Simulator sim;
     ASSERT_NO_THROW(sim.start_from_json(json));
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     sim.step(dt);
 
     float charge_out = sim.get_port_value("battery_1", "charge_out");
@@ -1711,7 +1711,7 @@ TEST(PushRuntime, BatteryCommitRunsExactlyOncePerStepForSolverOwned) {
     JIT_Simulator sim;
     sim.start_from_json(json);
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Initial charge
     double charge_0 = sim.get_battery_charge("bat");
@@ -1766,7 +1766,7 @@ TEST(PushRuntime, SimulationStateElectricalRtPointerClearedOutsideStep) {
     // After start_from_json but before any step, electrical_rt should be nullptr
     // (verified via internal state check by calling step and checking after)
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
     // Before step: pointer should be nullptr (start_from_json clears it)
     // We can't directly check sim's internal state. Instead, run a step and
@@ -1868,7 +1868,7 @@ TEST(PushRuntime, RelayElectricalSolverPath_ClosedProducesSag) {
     JIT_Simulator sim_open;
     ASSERT_NO_THROW(sim_open.start_from_json(json_open));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
 
     // Open relay: output stays near 0V.
     for (int i = 0; i < 5; ++i) sim_open.step(dt);
@@ -1920,7 +1920,7 @@ TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
     JIT_Simulator sim;
     ASSERT_NO_THROW(sim.start_from_json(json));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 10; ++i) {
         sim.step(dt);
     }
@@ -1956,7 +1956,7 @@ TEST(PushRuntime, ClosedCircuit_EditorIdBasedLookup_NonZeroVoltage) {
     ASSERT_NO_THROW(sim.start_from_json(json))
         << "Failed to start simulation from id-keyed JSON";
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 20; ++i) {
         sim.step(dt);
     }
@@ -2004,7 +2004,7 @@ TEST(PushRuntime, AZS_ElectricalSolverPath_ClosedProducesSag) {
     ASSERT_NO_THROW(sim.start_from_json(kJson));
 
     // Let solver-owned dynamic conductance settle through commit/update cycle.
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 5; ++i) sim.step(dt);
 
     float v_hot = sim.get_wire_voltage("src.v_out");
@@ -2034,7 +2034,7 @@ TEST(PushRuntime, HoldButton_ElectricalSolverPath_PressProducesSag) {
     JIT_Simulator sim;
     ASSERT_NO_THROW(sim.start_from_json(kJson));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     sim.step(dt); // first frame: button state updates after solve
     float v_step1 = sim.get_wire_voltage("src.v_out");
 
@@ -2070,7 +2070,7 @@ TEST(PushRuntime, AZS_OpenState_ParasiticConductance_StaysFinite) {
     JIT_Simulator sim;
     ASSERT_NO_THROW(sim.start_from_json(kJson));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 5; ++i) sim.step(dt);
 
     float v_src = sim.get_wire_voltage("src.v_out");

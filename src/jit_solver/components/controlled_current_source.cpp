@@ -11,7 +11,7 @@ void ControlledCurrentSource<Provider>::pre_load() {
 
 /// Execute method for scheduler integration
 template <typename Provider>
-void ControlledCurrentSource<Provider>::execute(SimulationState& st, float /*dt*/) {
+void ControlledCurrentSource<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model implementation:
     // Reads cmd control input, computes source current with gain/limits,
     // emulates current source effect via voltage offset (V = I * r_shunt).
@@ -31,7 +31,7 @@ void ControlledCurrentSource<Provider>::execute(SimulationState& st, float /*dt*
 }
 
 template <typename Provider>
-void ControlledCurrentSource<Provider>::commit(SimulationState& st, float /*dt*/) {
+void ControlledCurrentSource<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

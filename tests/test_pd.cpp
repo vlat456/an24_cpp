@@ -11,7 +11,7 @@
 // =============================================================================
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -150,7 +150,7 @@ TEST(PDTest, DerivativeFilterReducesNoise)
     // Kd=1, alpha=0.2 — filtered amplitude must be < raw d amplitude
     auto pd = make_pd(/*Kp=*/0.0f, /*Kd=*/1.0f, -1e9f, 1e9f, /*alpha=*/0.2f);
 
-    const float dt = 0.01f;
+    const double dt = 0.01;
     float max_filtered = 0.0f;
     float max_raw      = 0.0f;
 

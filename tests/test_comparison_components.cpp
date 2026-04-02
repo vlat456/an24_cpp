@@ -9,7 +9,7 @@
 // =============================================================================
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -36,7 +36,7 @@ TEST(MinTest, APicksSmaller)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 10.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
@@ -49,7 +49,7 @@ TEST(MinTest, BPicksSmaller)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(10.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
@@ -62,7 +62,7 @@ TEST(MinTest, EqualValues_ReturnsEither)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(7.0f, 7.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 7.0f);
 }
@@ -75,7 +75,7 @@ TEST(MinTest, NegativeValues)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(-10.0f, -5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], -10.0f);
 }
@@ -88,7 +88,7 @@ TEST(MinTest, MixedSign)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(-5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], -5.0f);
 }
@@ -105,7 +105,7 @@ TEST(MaxTest, APicksLarger)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(10.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 10.0f);
 }
@@ -118,7 +118,7 @@ TEST(MaxTest, BPicksLarger)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 10.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 10.0f);
 }
@@ -131,7 +131,7 @@ TEST(MaxTest, EqualValues_ReturnsEither)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(7.0f, 7.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 7.0f);
 }
@@ -144,7 +144,7 @@ TEST(MaxTest, NegativeValues)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(-10.0f, -5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], -5.0f);
 }
@@ -157,7 +157,7 @@ TEST(MaxTest, MixedSign)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(-5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
@@ -174,7 +174,7 @@ TEST(GreaterTest, AGreaterThanB_ReturnsOne)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(10.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
@@ -187,7 +187,7 @@ TEST(GreaterTest, ALessThanB_ReturnsZero)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 10.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -200,7 +200,7 @@ TEST(GreaterTest, Equal_ReturnsZero)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -217,7 +217,7 @@ TEST(LesserTest, ALessThanB_ReturnsOne)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 10.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
@@ -230,7 +230,7 @@ TEST(LesserTest, AGreaterThanB_ReturnsZero)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(10.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -243,7 +243,7 @@ TEST(LesserTest, Equal_ReturnsZero)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -260,7 +260,7 @@ TEST(GreaterEqTest, AGreaterThanB_ReturnsOne)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(10.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
@@ -273,7 +273,7 @@ TEST(GreaterEqTest, Equal_ReturnsOne)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
@@ -286,7 +286,7 @@ TEST(GreaterEqTest, ALessThanB_ReturnsZero)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 10.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -303,7 +303,7 @@ TEST(LesserEqTest, ALessThanB_ReturnsOne)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 10.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
@@ -316,7 +316,7 @@ TEST(LesserEqTest, Equal_ReturnsOne)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
@@ -329,7 +329,7 @@ TEST(LesserEqTest, AGreaterThanB_ReturnsZero)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(10.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -348,7 +348,7 @@ TEST(ComparisonComponents, PowerSupplySelection_OR)
 
     // Bus 1: 24V, Bus 2: 26V -> should pick Bus 2
     auto st = make_state_2in(24.0f, 26.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 26.0f);
 }
@@ -364,7 +364,7 @@ TEST(ComparisonComponents, SafetyMonitoring_LowLimit)
 
     // Oil pressure 1.5 < 2.0 -> should trigger (1.0)
     auto st = make_state_2in(1.5f, 2.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
@@ -380,7 +380,7 @@ TEST(ComparisonComponents, SafetyMonitoring_HighLimit)
 
     // Temperature 120 > 100 -> should trigger (1.0)
     auto st = make_state_2in(120.0f, 100.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
@@ -395,7 +395,7 @@ TEST(ComparisonComponents, Hysteresis_LesserEq)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(75.0f, 75.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // Turn off condition met
 }
@@ -410,7 +410,7 @@ TEST(ComparisonComponents, Hysteresis_GreaterEq)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(80.0f, 80.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // Turn on condition met
 }
@@ -425,7 +425,7 @@ TEST(ComparisonComponents, Min_ProtectsAgainstLowVoltage)
 
     // Never go below 20V (minimum safe voltage)
     auto st = make_state_2in(18.0f, 20.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 18.0f);  // Actually picks the smaller (unsafe)
 }
@@ -440,7 +440,7 @@ TEST(ComparisonComponents, Min_LimitsMaximum)
 
     // Limit voltage to maximum 30V
     auto st = make_state_2in(35.0f, 30.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 30.0f);  // Limited to max
 }
@@ -457,7 +457,7 @@ TEST(ComparisonComponents, Regression_Greater_EqualValues)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);  // 5 > 5 is false
 }
 
@@ -469,7 +469,7 @@ TEST(ComparisonComponents, Regression_Lesser_EqualValues)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);  // 5 < 5 is false
 }
 
@@ -481,7 +481,7 @@ TEST(ComparisonComponents, Regression_GreaterEq_EqualValues)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // 5 >= 5 is true
 }
 
@@ -493,7 +493,7 @@ TEST(ComparisonComponents, Regression_LesserEq_EqualValues)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(5.0f, 5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // 5 <= 5 is true
 }
 
@@ -505,7 +505,7 @@ TEST(ComparisonComponents, Regression_NegativeValues)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(-3.0f, -5.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // -3 > -5 is true
 }
 
@@ -517,7 +517,7 @@ TEST(ComparisonComponents, Regression_Min_EqualValues)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(7.0f, 7.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 7.0f);
 }
 
@@ -529,6 +529,6 @@ TEST(ComparisonComponents, Regression_Max_EqualValues)
     comp.provider.set(PortNames::o, 2);
 
     auto st = make_state_2in(7.0f, 7.0f);
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
     EXPECT_FLOAT_EQ(st.values[2], 7.0f);
 }

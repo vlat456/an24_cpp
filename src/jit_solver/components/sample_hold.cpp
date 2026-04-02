@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void SampleHold<Provider>::execute(SimulationState& st, float /*dt*/) {
+void SampleHold<Provider>::execute(SimulationState& st, double /*dt*/) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t trig_idx = provider.get(PortNames::trigger);
     uint32_t out_idx = provider.get(PortNames::out);
@@ -27,7 +27,7 @@ void SampleHold<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void SampleHold<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void SampleHold<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
     // Commit staged next state
     stored_value = next_stored_value;
     last_trig = next_last_trig;

@@ -28,7 +28,7 @@ static SimulationState make_state(float input_val)
 
 /// Simulate one complete frame: execute + commit (two-phase semantics)
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -44,7 +44,7 @@ TEST(AccumulatorTest, ColdStart_StartsAtInitialValue)
     auto comp = make_accumulator(5.0f);
     auto st = make_state(0.0f);
 
-    step(comp, st, 1.0f / 60.0f);
+    step(comp, st, 1.0 / 60.0);
 
     // Cold start: output = committed state (cold-start-adjusted to initial_val = 5.0)
     EXPECT_FLOAT_EQ(st.values[1], 5.0f);
@@ -58,7 +58,7 @@ TEST(AccumulatorTest, ColdStart_ZeroInitial)
     auto comp = make_accumulator(0.0f);
     auto st = make_state(10.0f);
 
-    step(comp, st, 1.0f / 60.0f);
+    step(comp, st, 1.0 / 60.0);
 
     // Cold start: output = 0.0 (committed state at initial_val)
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
@@ -69,11 +69,11 @@ TEST(AccumulatorTest, Accumulation_PositiveInput)
     auto comp = make_accumulator(0.0f);
     auto st = make_state(10.0f);
 
-    step(comp, st, 1.0f / 60.0f);  // cold start, output = 0.0
+    step(comp, st, 1.0 / 60.0);  // cold start, output = 0.0
 
     // Accumulate for 1 second at 10 units/sec (60 frames)
     for (int i = 0; i < 60; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Should be approximately 10.0 (10 * 1.0)
@@ -85,11 +85,11 @@ TEST(AccumulatorTest, Accumulation_NegativeInput)
     auto comp = make_accumulator(100.0f);
     auto st = make_state(-5.0f);
 
-    step(comp, st, 1.0f / 60.0f);  // cold start, output = 100.0
+    step(comp, st, 1.0 / 60.0);  // cold start, output = 100.0
 
     // Accumulate for 2 seconds at -5 units/sec (120 frames)
     for (int i = 0; i < 120; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Should be approximately 90.0 (100 + (-5 * 2.0))
@@ -101,11 +101,11 @@ TEST(AccumulatorTest, ZeroInput_NoAccumulation)
     auto comp = make_accumulator(5.0f);
     auto st = make_state(0.0f);
 
-    step(comp, st, 1.0f / 60.0f);  // cold start
+    step(comp, st, 1.0 / 60.0);  // cold start
 
     // Accumulate zero
     for (int i = 0; i < 60; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Should stay at initial value
@@ -117,7 +117,7 @@ TEST(AccumulatorTest, ZeroDt_NoAccumulation)
     auto comp = make_accumulator(5.0f);
     auto st = make_state(10.0f);
 
-    step(comp, st, 1.0f / 60.0f);  // cold start
+    step(comp, st, 1.0 / 60.0);  // cold start
 
     // Set input to 0 to stop accumulation, then flush pipeline
     st.values[0] = 0.0f;
@@ -139,7 +139,7 @@ TEST(AccumulatorTest, LargeDt)
     auto comp = make_accumulator(0.0f);
     auto st = make_state(1.0f);
 
-    step(comp, st, 1.0f / 60.0f);  // cold start, output = 0
+    step(comp, st, 1.0 / 60.0);  // cold start, output = 0
 
     // Very large dt
     step(comp, st, 10.0f);
@@ -147,7 +147,7 @@ TEST(AccumulatorTest, LargeDt)
     // After commit, state ≈ 1/60 + 1.0 * 10.0 = 10.0167
 
     // Next frame shows committed value
-    step(comp, st, 1.0f / 60.0f);
+    step(comp, st, 1.0 / 60.0);
     EXPECT_NEAR(st.values[1], 10.0f, 0.5f);
 }
 
@@ -158,11 +158,11 @@ TEST(AccumulatorTest, NoGainParameter)
     auto comp = make_accumulator(0.0f);
     auto st = make_state(10.0f);
 
-    step(comp, st, 1.0f / 60.0f);  // cold start
+    step(comp, st, 1.0 / 60.0);  // cold start
 
     // 60 frames at 10 units/sec = 10 accumulated
     for (int i = 0; i < 60; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     EXPECT_NEAR(st.values[1], 10.0f, 0.2f);
@@ -173,11 +173,11 @@ TEST(AccumulatorTest, NegativeCrossingZero)
     auto comp = make_accumulator(50.0f);
     auto st = make_state(-10.0f);
 
-    step(comp, st, 1.0f / 60.0f);  // cold start, output = 50
+    step(comp, st, 1.0 / 60.0);  // cold start, output = 50
 
     // Accumulate for 6 seconds (360 frames)
     for (int i = 0; i < 360; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Should cross zero and go negative (50 + (-10)*6 = -10)
@@ -190,18 +190,18 @@ TEST(AccumulatorTest, AlternatingInput)
     auto comp = make_accumulator(0.0f);
     auto st = make_state(10.0f);
 
-    step(comp, st, 1.0f / 60.0f);  // cold start
+    step(comp, st, 1.0 / 60.0);  // cold start
 
     // Positive for 1 second (60 frames)
     for (int i = 0; i < 60; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
     EXPECT_NEAR(st.values[1], 10.0f, 0.5f);
 
     // Negative for 1 second
     st.values[0] = -10.0f;
     for (int i = 0; i < 60; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
     EXPECT_NEAR(st.values[1], 0.0f, 0.5f);
 }
@@ -211,11 +211,11 @@ TEST(AccumulatorTest, Precision_MaintainedOverTime)
     auto comp = make_accumulator(0.0f);
     auto st = make_state(1.0f);
 
-    step(comp, st, 1.0f / 60.0f);
+    step(comp, st, 1.0 / 60.0);
 
     // Accumulate for 60 seconds (3600 frames)
     for (int i = 0; i < 3600; ++i) {
-        step(comp, st, 1.0f / 60.0f);
+        step(comp, st, 1.0 / 60.0);
     }
 
     // Should be 60.0 (1.0 * 60)

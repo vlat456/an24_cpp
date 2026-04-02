@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void Relay<Provider>::commit_control(SimulationState& st, float dt) {
+void Relay<Provider>::commit_control(SimulationState& st, double dt) {
     (void)dt;
     float control = st.values[provider.get(PortNames::control)];
 
@@ -16,14 +16,14 @@ void Relay<Provider>::commit_control(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Relay<Provider>::execute(SimulationState& st, float /*dt*/) {
+void Relay<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Electrical behavior is solver-owned via dynamic conductance branch.
     // Relay execute only updates non-electrical control/state outputs.
     (void)st;
 }
 
 template <typename Provider>
-void Relay<Provider>::commit(SimulationState& st, float /*dt*/) {
+void Relay<Provider>::commit(SimulationState& st, double /*dt*/) {
     commit_control(st, 0.0f);
 }
 

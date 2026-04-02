@@ -69,6 +69,7 @@ TEST(ElectricalSubsolver, SimpleTheveninDivider) {
 
     SimulationState st = make_sim_state(4);  // Extra space
     ElectricalRuntimeState rt;
+    rt.enable_diagnostics = true;
 
     solve_electrical(plan, st, rt, 0.0f);
 
@@ -157,9 +158,9 @@ TEST(ElectricalSubsolver, SeriesChainTwoResistors) {
     EXPECT_NEAR(rt.branch_currents[3], 7.0f, 1e-3f);  // R2 current
 }
 
-TEST(ElectricalSubsolver, ConflictingFixedConstraintsThrows) {
-    // Test: Two FixedVoltageNode on same node with different values
-    // Should throw runtime_error
+TEST(ElectricalSubsolver, DuplicateFixedConstraintsDeduplicatedSilently) {
+    // Test: Two FixedVoltageNode on same node with SAME value.
+    // Solver deduplicates silently — first value wins. No assert, no throw.
 
     ElectricalBuildPlan plan;
     plan.islands.push_back(make_island(
@@ -172,11 +173,11 @@ TEST(ElectricalSubsolver, ConflictingFixedConstraintsThrows) {
                 0.0f, 0.0f,
                 0u
             },
-            // Node 0 also fixed at 5V - CONFLICT!
+            // Node 0 also fixed at 0V — DUPLICATE (same value, safe)
             ElectricalElement{
                 ElectricalElementKind::FixedVoltageNode,
                 0, 0,
-                5.0f, 0.0f,
+                0.0f, 0.0f,
                 1u
             },
             // Some element connecting to make it a valid island
@@ -192,11 +193,16 @@ TEST(ElectricalSubsolver, ConflictingFixedConstraintsThrows) {
     SimulationState st = make_sim_state(4);
     ElectricalRuntimeState rt;
 
-    EXPECT_THROW(solve_electrical(plan, st, rt, 0.0f), std::runtime_error);
+    // Should NOT throw — duplicate fixed constraint with same value is deduplicated.
+    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));
+    // Node 0 should be 0V
+    EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
 }
 
-TEST(ElectricalSubsolver, NegativeConductanceThrows) {
-    // Test: ConductanceBranch with negative g should throw
+TEST(ElectricalSubsolver, ZeroConductanceResultsInSingularFallback) {
+    // Test: ConductanceBranch with g=0 (open circuit). Node 1 has no
+    // conductance path to ground, so the system is singular and falls back
+    // to preserving the previous state value.
 
     ElectricalBuildPlan plan;
     plan.islands.push_back(make_island(
@@ -209,20 +215,25 @@ TEST(ElectricalSubsolver, NegativeConductanceThrows) {
                 0.0f, 0.0f,
                 0u
             },
-            // Negative conductance!
+            // Zero conductance (open circuit) — singular matrix
             ElectricalElement{
                 ElectricalElementKind::ConductanceBranch,
                 1, 0,
-                -1.0f, 0.0f,  // g = -1 (invalid!)
+                0.0f, 0.0f,  // g = 0 (open circuit)
                 1u
             }
         }
     ));
 
     SimulationState st = make_sim_state(4);
+    st.values[1] = 5.0f;  // Set previous value for fallback
     ElectricalRuntimeState rt;
 
-    EXPECT_THROW(solve_electrical(plan, st, rt, 0.0f), std::runtime_error);
+    // Should NOT throw — zero g creates singular system, fallback preserves previous value.
+    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));
+    // Node 1 should preserve previous value (singular fallback)
+    EXPECT_NEAR(st.values[1], 5.0f, 1e-3f);
+    EXPECT_EQ(rt.counters.singular_fallbacks, 1u);
 }
 
 TEST(ElectricalSubsolver, BranchCurrentStoragePopulated) {
@@ -397,26 +408,41 @@ TEST(ElectricalSubsolver, VoltageWritebackToSimulationState) {
     EXPECT_EQ(st.values[5], 999.0f);
 }
 
-TEST(ElectricalSubsolver, SignalIndexOutOfRangeThrows) {
-    // Test: If signal_indices contains index >= st.values.size(), throw
+TEST(ElectricalSubsolver, SignalIndexAtBoundaryWritesCorrectly) {
+    // Test: Signal indices at exact boundary of st.values.size() work fine.
+    // Verifies the bounds check does not reject valid indices.
 
     ElectricalBuildPlan plan;
     plan.islands.push_back(make_island(
-        {100},  // Only node 100
+        {0, 9},  // Node 9 is at the boundary (size=10, valid range 0-9)
         {
             ElectricalElement{
                 ElectricalElementKind::FixedVoltageNode,
-                100, 100,
+                0, 0,
                 0.0f, 0.0f,
                 0u
+            },
+            ElectricalElement{
+                ElectricalElementKind::TheveninSource,
+                9, 0,
+                12.0f, 1.0f,
+                1u
+            },
+            ElectricalElement{
+                ElectricalElementKind::ConductanceBranch,
+                9, 0,
+                1.0f, 0.0f,
+                2u
             }
         }
     ));
 
-    SimulationState st = make_sim_state(10);  // Only 10 signals (0-9)
+    SimulationState st = make_sim_state(10);  // Exactly 10 signals (0-9)
     ElectricalRuntimeState rt;
 
-    EXPECT_THROW(solve_electrical(plan, st, rt, 0.0f), std::runtime_error);
+    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));
+    // Node 9 should have valid voltage: V = 12 * (1/(1+1)) = 6V
+    EXPECT_NEAR(st.values[9], 6.0f, 1e-3f);
 }
 
 TEST(ElectricalSubsolver, SingularIslandDoesNotThrowAndKeepsPreviousState) {
@@ -474,6 +500,7 @@ TEST(ElectricalSubsolver, SpecializedN1SolveMatchesExpectedDivider) {
 
     SimulationState st = make_sim_state(4);
     ElectricalRuntimeState rt;
+    rt.enable_diagnostics = true;
 
     solve_electrical(plan, st, rt, 0.0f);
 
@@ -502,6 +529,7 @@ TEST(ElectricalSubsolver, SpecializedN2SolveMatchesSeriesChain) {
 
     SimulationState st = make_sim_state(5);
     ElectricalRuntimeState rt;
+    rt.enable_diagnostics = true;
 
     solve_electrical(plan, st, rt, 0.0f);
 
@@ -585,6 +613,7 @@ TEST(ElectricalSubsolver, SolveCountersTrackDensePathForN3) {
 
     SimulationState st = make_sim_state(8);
     ElectricalRuntimeState rt;
+    rt.enable_diagnostics = true;
     solve_electrical(plan, st, rt, 0.0f);
 
     EXPECT_EQ(rt.counters.islands_total, 1u);
@@ -612,6 +641,7 @@ TEST(ElectricalSubsolver, ReservedScratchBuffersStayStableAcrossSteps) {
 
     SimulationState st = make_sim_state(6);
     ElectricalRuntimeState rt;
+    rt.enable_diagnostics = true;
     rt.reserve(/*max_nodes=*/3, /*max_elements=*/4, /*max_component_index=*/3);
 
     solve_electrical(plan, st, rt, 0.0f);

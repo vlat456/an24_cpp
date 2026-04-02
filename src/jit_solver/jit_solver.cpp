@@ -1982,5 +1982,36 @@ BuildResult build_systems_dev(
         }
     }
 
+    // == E-002: Populate solver-owned typed pointer lists ==
+    // Pre-build typed pointers at build time to eliminate per-frame std::visit
+    // over all 68+ variant types in update_dynamic_sources / commit_solver_owned_devices.
+    for (auto& [name, variant] : result.devices) {
+        (void)name;
+        std::visit([&](auto& comp) {
+            using T = std::decay_t<decltype(comp)>;
+            if constexpr (std::is_same_v<T, ControlledVoltageSource<JitProvider>>) {
+                result.solver_owned.controlled_voltage_sources.push_back(&comp);
+            } else if constexpr (std::is_same_v<T, VariableConductance<JitProvider>>) {
+                result.solver_owned.variable_conductances.push_back(&comp);
+            } else if constexpr (std::is_same_v<T, AZS<JitProvider>>) {
+                result.solver_owned.azs_switches.push_back(&comp);
+            } else if constexpr (std::is_same_v<T, HoldButton<JitProvider>>) {
+                result.solver_owned.hold_buttons.push_back(&comp);
+            } else if constexpr (std::is_same_v<T, Relay<JitProvider>>) {
+                result.solver_owned.relays.push_back(&comp);
+            } else if constexpr (std::is_same_v<T, Battery<JitProvider>>) {
+                result.solver_owned.batteries.push_back(&comp);
+            } else if constexpr (std::is_same_v<T, Generator<JitProvider>>) {
+                result.solver_owned.generators.push_back(&comp);
+            } else if constexpr (std::is_same_v<T, Resistor<JitProvider>>) {
+                result.solver_owned.resistors.push_back(&comp);
+            } else if constexpr (std::is_same_v<T, ElectricalConductance<JitProvider>>) {
+                result.solver_owned.electrical_conductances.push_back(&comp);
+            } else if constexpr (std::is_same_v<T, ElectricalSource<JitProvider>>) {
+                result.solver_owned.electrical_sources.push_back(&comp);
+            }
+        }, variant);
+    }
+
     return result;
 }

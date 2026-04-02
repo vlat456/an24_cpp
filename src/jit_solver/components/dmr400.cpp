@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void DMR400<Provider>::execute(SimulationState& st, float dt) {
+void DMR400<Provider>::execute(SimulationState& st, double dt) {
     float v_gen = st.values[provider.get(PortNames::v_gen_ref)];
     float v_bus = st.values[provider.get(PortNames::v_in)];
 
@@ -29,7 +29,7 @@ void DMR400<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void DMR400<Provider>::commit(SimulationState& st, float /*dt*/) {
+void DMR400<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
     is_closed = next_is_closed;
     reconnect_delay = next_reconnect_delay;

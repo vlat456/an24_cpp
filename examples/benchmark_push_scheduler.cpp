@@ -29,7 +29,7 @@ int main() {
     constexpr int chain_len = 8000;
     constexpr int warmup_steps = 100;
     constexpr int measured_steps = 1000;
-    constexpr float dt = 1.0f / 60.0f;
+    constexpr double dt = 1.0 / 60.0;
 
     std::vector<DeviceInstance> devices;
     devices.reserve(chain_len + 2);

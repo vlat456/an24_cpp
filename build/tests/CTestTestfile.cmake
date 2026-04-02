@@ -11,6 +11,7 @@ include("/Users/vladimir/an24_cpp/build/tests/push_runtime_regression_tests[1]_i
 include("/Users/vladimir/an24_cpp/build/tests/electrical_island_build_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/electrical_handle_build_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/electrical_subsolver_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/architecture_regression_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/pid_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/pd_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/subtract_tests[1]_include.cmake")

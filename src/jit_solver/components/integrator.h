@@ -16,16 +16,16 @@ public:
     float initial_val = 0.0f;
 
     // Committed state fields
-    float accumulator = 0.0f;
+    double accumulator = 0.0;
     float first_frame_mask = 1.0f;
 
     // Staged next-state fields
-    float next_accumulator = 0.0f;
+    double next_accumulator = 0.0;
     float next_first_frame_mask = 1.0f;
 
     Integrator() = default;
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load() {}
 };

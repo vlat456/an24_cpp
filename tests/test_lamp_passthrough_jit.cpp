@@ -46,7 +46,7 @@ TEST(JITIntegration, DISABLED_LampPassThrough_Blueprint_VoltageFlow) {
     Simulator<JIT_Solver> sim;
     sim.start_from_json(std::string(json));
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 100; ++i) {
         sim.step(dt);
     }

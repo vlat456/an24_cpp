@@ -14,12 +14,12 @@ void ControlledVoltageSource<Provider>::pre_load() {
 /// The dynamic source voltage is patched into the electrical plan before
 /// solve_electrical() runs each frame (see update_dynamic_sources in simulator.cpp).
 template <typename Provider>
-void ControlledVoltageSource<Provider>::execute(SimulationState& /*st*/, float /*dt*/) {
+void ControlledVoltageSource<Provider>::execute(SimulationState& /*st*/, double /*dt*/) {
     // Intentionally empty. Solver handles v_pos/v_neg via TheveninSource.
 }
 
 template <typename Provider>
-void ControlledVoltageSource<Provider>::commit(SimulationState& st, float /*dt*/) {
+void ControlledVoltageSource<Provider>::commit(SimulationState& st, double /*dt*/) {
     // Commit runs after solve_electrical() in the solver-owned commit pass.
     // Export solved source branch current for topology-agnostic derating logic.
     float i_out = 0.0f;

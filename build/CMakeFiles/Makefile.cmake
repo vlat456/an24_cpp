@@ -162,6 +162,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/electrical_island_build_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/electrical_handle_build_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/electrical_subsolver_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/architecture_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/pid_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/pd_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/subtract_tests.dir/DependInfo.cmake"

@@ -26,9 +26,9 @@ public:
         inv_internal_r = 1.0f / safe_r;
     }
 
-    void execute(SimulationState& /*st*/, float /*dt*/) {}
+    void execute(SimulationState& /*st*/, double /*dt*/) {}
 
-    void commit(SimulationState& st, float dt) {
+    void commit(SimulationState& st, double dt) {
         float discharge_current = 0.0f;
         if (st.electrical_rt != nullptr) {
             float i = get_branch_current(*st.electrical_rt, electrical_handle);

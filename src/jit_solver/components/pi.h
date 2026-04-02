@@ -17,11 +17,11 @@ public:
     float output_max = 1000.0f;
 
     // State variables (minimal footprint: 1 float, no derivative)
-    float integral = 0.0f;
+    double integral = 0.0;
 
     PI() = default;
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load() {}
 };

@@ -11,7 +11,7 @@
 // =============================================================================
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -75,7 +75,7 @@ TEST(PIDTest, IntegralAccumulatesOverOneSecond_60Hz)
 
     SimulationState st = make_state(5.0f, 0.0f);
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     const int   N  = 60;
     for (int i = 0; i < N; ++i) {
         step_component(pid, st, dt);
@@ -108,7 +108,7 @@ TEST(PIDTest, DerivativeFilterReducesNoise)
     // Kd=1, alpha=0.2 — filtered amplitude must be < raw d amplitude
     auto pid = make_pid(0.0f, 0.0f, /*Kd=*/1.0f, -1e9f, 1e9f, /*alpha=*/0.2f);
 
-    const float dt = 0.01f;
+    const double dt = 0.01;
     float max_filtered = 0.0f;
     float max_raw      = 0.0f;
 
@@ -549,7 +549,7 @@ TEST(PITest, IntegralAccumulates)
     auto pi = make_pi(0.0f, 1.0f);
     auto st = make_state(5.0f, 0.0f);
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int i = 0; i < 60; ++i) {
         step_component(pi, st, dt);
     }

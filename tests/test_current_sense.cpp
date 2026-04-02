@@ -9,7 +9,7 @@
 // =============================================================================
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -47,7 +47,7 @@ TEST(CurrentSense, ReportsSolvedCurrent) {
     st.electrical_rt = new ElectricalRuntimeState();
     st.electrical_rt->branch_currents = {0.0f, 0.0f, 7.5f};  // index 2 = 7.5A
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 7.5f);
     delete st.electrical_rt;
@@ -62,7 +62,7 @@ TEST(CurrentSense, NoHandleOutputsZero) {
     st.electrical_rt = new ElectricalRuntimeState();
     st.electrical_rt->branch_currents = {0.0f, 0.0f, 7.5f};
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
     delete st.electrical_rt;
@@ -76,7 +76,7 @@ TEST(CurrentSense, NoElectricalRtOutputsZero) {
     auto st = make_state();
     st.electrical_rt = nullptr;  // no electrical runtime
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -90,7 +90,7 @@ TEST(CurrentSense, OutOfRangeComponentIndexOutputsZero) {
     st.electrical_rt = new ElectricalRuntimeState();
     st.electrical_rt->branch_currents = {0.0f, 0.0f};  // only 3 elements
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
     delete st.electrical_rt;
@@ -105,7 +105,7 @@ TEST(CurrentSense, ReadsZeroCurrentWhenNoDischarge) {
     st.electrical_rt = new ElectricalRuntimeState();
     st.electrical_rt->branch_currents = {0.0f, 0.0f};  // 0A discharge
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
     delete st.electrical_rt;
@@ -121,7 +121,7 @@ TEST(CurrentSense, ReadsNegativeCurrentForCharging) {
     st.electrical_rt = new ElectricalRuntimeState();
     st.electrical_rt->branch_currents = {0.0f, -5.0f};  // -5A (charging)
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[2], -5.0f);
     delete st.electrical_rt;

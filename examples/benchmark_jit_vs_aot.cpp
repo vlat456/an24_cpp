@@ -37,7 +37,7 @@ BenchmarkResult benchmark_jit(const std::string& json_file, uint64_t iterations)
     // Run simulation
     auto sim_start = std::chrono::high_resolution_clock::now();
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (uint64_t step = 0; step < iterations; ++step) {
         (void)step;
         sim.step(dt);

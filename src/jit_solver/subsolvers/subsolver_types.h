@@ -51,6 +51,10 @@ inline bool is_valid(const ElectricalPrimitiveHandle& h) {
 // All vectors retain capacity across frames — resize() keeps existing memory.
 // Use reserve() at init time to pre-allocate to max island size.
 struct ElectricalRuntimeState {
+    /// Enable to collect per-island KCL residual diagnostics each frame.
+    /// Disabled by default in production — significant per-frame cost.
+    bool enable_diagnostics = false;
+
     struct SolveCounters {
         uint32_t islands_total = 0;
         uint32_t solves_n0 = 0;
@@ -77,7 +81,7 @@ struct ElectricalRuntimeState {
     std::vector<uint32_t> island_nodes;
     std::vector<std::pair<uint32_t, float>> fixed_nodes;
     std::vector<float> fixed_voltages;
-    std::vector<bool> is_fixed;
+    std::vector<uint8_t> is_fixed;  // uint8_t, NOT bool — std::vector<bool> is bit-packed and slow
     std::vector<int> node_to_unknown;
     std::vector<float> island_voltages;
     std::vector<float> kcl_residuals;

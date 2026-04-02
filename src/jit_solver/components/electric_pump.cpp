@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void ElectricPump<Provider>::execute(SimulationState& st, float /*dt*/) {
+void ElectricPump<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model: electrical side - read inputs but don't stamp conductance
     // Just track the power consumption for informational purposes
     float v_in = st.values[provider.get(PortNames::v_in)];
@@ -18,7 +18,7 @@ void ElectricPump<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void ElectricPump<Provider>::commit(SimulationState& st, float /*dt*/) {
+void ElectricPump<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

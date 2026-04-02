@@ -7,11 +7,11 @@
 /// update_dynamic_sources() which patches the conductance in the electrical plan
 /// before each solve (one-frame-delay semantic).
 template <typename Provider>
-void VariableConductance<Provider>::execute(SimulationState& /*st*/, float /*dt*/) {
+void VariableConductance<Provider>::execute(SimulationState& /*st*/, double /*dt*/) {
 }
 
 template <typename Provider>
-void VariableConductance<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+void VariableConductance<Provider>::commit(SimulationState& /*st*/, double /*dt*/) {
 }
 
 template class VariableConductance<JitProvider>;

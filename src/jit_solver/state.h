@@ -13,12 +13,19 @@ struct SignalType {
 
 /// Simulation state for push propagation.
 /// Single values[] array stores all signal values.
+///
+/// NOTE (E-006): alignas(64) was previously applied to vector members here.
+/// This is misleading: alignas on a std::vector aligns the *control block*
+/// (3 pointers on the stack/struct), NOT the heap-allocated data buffer.
+/// values.data() gets whatever alignment std::allocator provides (typically
+/// 16 bytes on most platforms). If SIMD work is added in the future, use a
+/// custom aligned allocator (e.g., std::vector<float, AlignedAllocator<64>>).
 struct SimulationState {
-    alignas(64) std::vector<float> values;
+    std::vector<float> values;
     std::vector<SignalType> signal_types;
 
-    alignas(64) std::vector<float> lut_keys;
-    alignas(64) std::vector<float> lut_values;
+    std::vector<float> lut_keys;
+    std::vector<float> lut_values;
 
     // Number of non-fixed signals allocated so far.
     // Allocation is append-only so returned indices remain stable.

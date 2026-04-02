@@ -15,101 +15,67 @@
 namespace {
 
 /// Pre-solve pass: update dynamic Thevenin source voltages before solve_electrical().
-/// ControlledVoltageSource reads cmd from the signal array (previous frame value —
-/// one-frame-delay semantic) and patches its electrical plan element's value_a.
-/// This must run BEFORE solve_electrical() each frame.
+/// Uses pre-built typed pointer lists (SolverOwnedRefs) to avoid per-frame
+/// std::visit scan over all 68+ ComponentVariant types.
 void update_dynamic_sources(BuildResult& br, SimulationState& st) {
-    for (auto& [_name, variant] : br.devices) {
-        (void)_name;
-        std::visit([&](auto& comp) {
-            using CompType = std::decay_t<decltype(comp)>;
-            if constexpr (std::is_same_v<CompType, ControlledVoltageSource<JitProvider>>) {
-                if (!is_valid(comp.electrical_handle)) {
-                    return;
-                }
-                // Read cmd from previous frame's signal array (one-frame delay)
-                float cmd = st.values[comp.provider.get(PortNames::cmd)];
-                float v_source = std::clamp(cmd * comp.gain + comp.offset, comp.min_v, comp.max_v);
+    for (auto* comp : br.solver_owned.controlled_voltage_sources) {
+        if (!is_valid(comp->electrical_handle)) continue;
+        float cmd = st.values[comp->provider.get(PortNames::cmd)];
+        float v_source = std::clamp(cmd * comp->gain + comp->offset, comp->min_v, comp->max_v);
+        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
+        auto& elem = island.elements[comp->electrical_handle.element_index];
+        elem.value_a = v_source;
+    }
 
-                // Patch the Thevenin voltage in the electrical plan
-                auto& island = br.electrical_plan.islands[comp.electrical_handle.island_index];
-                auto& elem = island.elements[comp.electrical_handle.element_index];
-                elem.value_a = v_source;
-            }
-            else if constexpr (std::is_same_v<CompType, VariableConductance<JitProvider>>) {
-                if (!is_valid(comp.electrical_handle)) {
-                    return;
-                }
-                // Read cmd from previous frame's signal array (one-frame delay)
-                float cmd = st.values[comp.provider.get(PortNames::cmd)];
-                float t = std::clamp(cmd, 0.0f, 1.0f);
-                float g = comp.g_min + (comp.g_max - comp.g_min) * t;
+    for (auto* comp : br.solver_owned.variable_conductances) {
+        if (!is_valid(comp->electrical_handle)) continue;
+        float cmd = st.values[comp->provider.get(PortNames::cmd)];
+        float t = std::clamp(cmd, 0.0f, 1.0f);
+        float g = comp->g_min + (comp->g_max - comp->g_min) * t;
+        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
+        auto& elem = island.elements[comp->electrical_handle.element_index];
+        elem.value_a = g;
+    }
 
-                // Patch the conductance in the electrical plan
-                auto& island = br.electrical_plan.islands[comp.electrical_handle.island_index];
-                auto& elem = island.elements[comp.electrical_handle.element_index];
-                elem.value_a = g;
-            }
-            else if constexpr (std::is_same_v<CompType, AZS<JitProvider>>) {
-                if (!is_valid(comp.electrical_handle)) {
-                    return;
-                }
-                float g = comp.closed ? comp.g_closed : comp.g_open;
-                auto& island = br.electrical_plan.islands[comp.electrical_handle.island_index];
-                auto& elem = island.elements[comp.electrical_handle.element_index];
-                elem.value_a = g;
-            }
-            else if constexpr (std::is_same_v<CompType, HoldButton<JitProvider>>) {
-                if (!is_valid(comp.electrical_handle)) {
-                    return;
-                }
-                float g = comp.is_pressed ? comp.g_closed : comp.g_open;
-                auto& island = br.electrical_plan.islands[comp.electrical_handle.island_index];
-                auto& elem = island.elements[comp.electrical_handle.element_index];
-                elem.value_a = g;
-            }
-            else if constexpr (std::is_same_v<CompType, Relay<JitProvider>>) {
-                if (!is_valid(comp.electrical_handle)) {
-                    return;
-                }
-                float g = comp.closed ? comp.g_closed : comp.g_open;
-                auto& island = br.electrical_plan.islands[comp.electrical_handle.island_index];
-                auto& elem = island.elements[comp.electrical_handle.element_index];
-                elem.value_a = g;
-            }
-        }, variant);
+    for (auto* comp : br.solver_owned.azs_switches) {
+        if (!is_valid(comp->electrical_handle)) continue;
+        float g = comp->closed ? comp->g_closed : comp->g_open;
+        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
+        auto& elem = island.elements[comp->electrical_handle.element_index];
+        elem.value_a = g;
+    }
+
+    for (auto* comp : br.solver_owned.hold_buttons) {
+        if (!is_valid(comp->electrical_handle)) continue;
+        float g = comp->is_pressed ? comp->g_closed : comp->g_open;
+        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
+        auto& elem = island.elements[comp->electrical_handle.element_index];
+        elem.value_a = g;
+    }
+
+    for (auto* comp : br.solver_owned.relays) {
+        if (!is_valid(comp->electrical_handle)) continue;
+        float g = comp->closed ? comp->g_closed : comp->g_open;
+        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
+        auto& elem = island.elements[comp->electrical_handle.element_index];
+        elem.value_a = g;
     }
 }
 
 /// Commit pass for solver-owned components that need per-frame state integration.
-/// These components are NOT scheduled in the push scheduler for electrical
-/// propagation - they are solved via the conductance matrix. However, some have
-/// commit hooks for state (e.g., Battery discharge).
-/// This pass ensures their commit() is called each frame.
-///
-/// NOTE: Only Battery currently has non-trivial commit. All others have
-/// no-op commits and could be skipped, but we call them uniformly for safety.
-void commit_solver_owned_devices(BuildResult& br, SimulationState& st, float dt) {
-    for (auto& [_name, variant] : br.devices) {
-        (void)_name;
-        std::visit([&st, dt](auto& comp) {
-            using CompType = std::decay_t<decltype(comp)>;
-            // Battery has commit that discharges based on solved branch current.
-            // Generator, Resistor, CVS, and primitives have trivial no-op commits.
-            if constexpr (std::is_same_v<CompType, Battery<JitProvider>> ||
-                          std::is_same_v<CompType, Generator<JitProvider>> ||
-                          std::is_same_v<CompType, Resistor<JitProvider>> ||
-                          std::is_same_v<CompType, ElectricalConductance<JitProvider>> ||
-                          std::is_same_v<CompType, ElectricalSource<JitProvider>> ||
-                          std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
-                          std::is_same_v<CompType, VariableConductance<JitProvider>> ||
-                          std::is_same_v<CompType, AZS<JitProvider>> ||
-                          std::is_same_v<CompType, HoldButton<JitProvider>> ||
-                          std::is_same_v<CompType, Relay<JitProvider>>) {
-                comp.commit(st, dt);
-            }
-        }, variant);
-    }
+/// Uses pre-built typed pointer lists (SolverOwnedRefs) to avoid per-frame
+/// std::visit scan over all 68+ ComponentVariant types.
+void commit_solver_owned_devices(BuildResult& br, SimulationState& st, double dt) {
+    for (auto* comp : br.solver_owned.batteries) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.generators) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.resistors) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.electrical_conductances) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.electrical_sources) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.controlled_voltage_sources) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.variable_conductances) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.azs_switches) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.hold_buttons) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.relays) { comp->commit(st, dt); }
 }
 
 } // anonymous namespace
@@ -123,7 +89,7 @@ Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     , time_(other.time_)
     , step_count_(other.step_count_) {
     other.running_ = false;
-    other.time_ = 0.0f;
+    other.time_ = 0.0;
     other.step_count_ = 0;
 }
 
@@ -139,7 +105,7 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
         step_count_ = other.step_count_;
 
         other.running_ = false;
-        other.time_ = 0.0f;
+        other.time_ = 0.0;
         other.step_count_ = 0;
     }
     return *this;
@@ -209,7 +175,7 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
     // runs inside step(), not between steps. Pointer must not be stale.
     state_.electrical_rt = nullptr;
 
-    time_ = 0.0f;
+    time_ = 0.0;
     step_count_ = 0;
     running_ = true;
 }
@@ -218,7 +184,7 @@ template <typename SolverTag>
 void Simulator<SolverTag>::stop() {
     build_result_.reset();
     state_ = SimulationState();
-    time_ = 0.0f;
+    time_ = 0.0;
     step_count_ = 0;
     running_ = false;
     // Clear pointer on stop: electrical_rt is owned by this class and must not
@@ -226,13 +192,48 @@ void Simulator<SolverTag>::stop() {
 }
 
 template <typename SolverTag>
-void Simulator<SolverTag>::step(float dt) {
+void Simulator<SolverTag>::step(double dt) {
     if (!running_ || !build_result_.has_value()) {
         return;
     }
-    if (dt <= 0.0f) {
+    if (dt <= 0.0) {
         return;
     }
+
+    // E-008: Clamp dt to prevent physics explosions on frame hitches.
+    // At variable refresh rates, dt can spike to very large values (alt-tab,
+    // loading screen, frame stutter). Components using Euler integration
+    // (value += rate * dt) would produce non-physical discontinuities:
+    // a 1-second hitch at 1000ms dt could discharge a battery by 60x normal,
+    // slam integrators to limits, or cause flickering gauges.
+    // 100ms cap = ~6 frames at 60Hz, which is the most we allow to accumulate
+    // in a single step. Standard practice in game physics.
+    static constexpr double MAX_DT = 0.1;
+    dt = std::min(dt, MAX_DT);
+
+    // ===========================================================================
+    // Simulation pipeline (E-009: single-solve architecture)
+    // ===========================================================================
+    //
+    // The pipeline uses ONE electrical solve per frame with one-frame-delayed
+    // actuator states. This is intentional for a game at 60Hz+:
+    //
+    //   1. update_dynamic_sources — stamp actuator states (AZS/Relay/CVS)
+    //      from PREVIOUS frame's commit into the electrical build plan
+    //   2. solve_electrical — single Gaussian solve for all islands
+    //   3. scheduler.step — execute all logical/mechanical/etc. components
+    //   4. commit_solver_owned_devices — battery discharge, state transitions
+    //
+    // The previous 9-phase pipeline ran two electrical solves per frame to
+    // handle within-frame actuator feedback. At 60Hz+, one-frame delay
+    // (16ms) for AZS/relay state changes is invisible to players, and
+    // halving the electrical solver cost is a clear win for a game.
+    //
+    // One-frame delay semantics: actuator state changes (e.g., AZS toggle,
+    // relay close) take effect in the NEXT frame's solve_electrical, not
+    // the current one. This is consistent with the push-model design where
+    // commit() stages transitions for next frame's execute().
+    // ===========================================================================
 
     // Set pointer before solver runs so components can access electrical_rt.
     // RAII guard ensures cleanup on ALL exit paths (including exceptions).

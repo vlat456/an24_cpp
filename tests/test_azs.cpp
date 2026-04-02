@@ -6,7 +6,7 @@
 
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -94,7 +94,7 @@ TEST_F(AZSTestFixture, OpenCircuitWhenOff) {
     st.values[IDX_V_IN] = 28.0f;
     st.values[IDX_V_OUT] = 99.0f; // leftover from previous step
 
-    step_component(azs, st, 1.0f / 60.0f);
+    step_component(azs, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 99.0f);
 }
@@ -105,7 +105,7 @@ TEST_F(AZSTestFixture, PassesVoltageWhenClosed) {
     st.values[IDX_V_IN] = 28.0f;
     st.values[IDX_V_OUT] = 0.0f;
 
-    step_component(azs, st, 1.0f / 60.0f);
+    step_component(azs, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 0.0f);
 }
@@ -116,7 +116,7 @@ TEST_F(AZSTestFixture, ZeroVoltageWhenOpen) {
     st.values[IDX_V_IN] = 28.0f;
     st.values[IDX_V_OUT] = 28.0f; // leftover from previous step
 
-    step_component(azs, st, 1.0f / 60.0f);
+    step_component(azs, st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 28.0f);
 }
@@ -193,7 +193,7 @@ TEST_F(AZSTestFixture, HeatsUpWithCurrent) {
     // Solver-owned mode: branch current comes from electrical runtime.
     set_branch_current(28.0f);
 
-    float dt = 1.0f; // thermal domain accumulated dt
+    double dt = 1.0; // thermal domain accumulated dt
     step_component(azs, st, dt);
 
     // Temperature should increase: T += I² * r_heat * dt (minus cooling which is 0 at T=0)
@@ -206,7 +206,7 @@ TEST_F(AZSTestFixture, CoolsDownWhenNoCurrent) {
     azs.temp = 0.8f;
     azs.current = 0.0f;
 
-    float dt = 1.0f;
+    double dt = 1.0;
     step_component(azs, st, dt);
 
     EXPECT_LT(azs.temp, 0.8f);

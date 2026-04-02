@@ -9,7 +9,7 @@
 // =============================================================================
 
 template <typename Comp>
-void step_component(Comp& comp, SimulationState& st, float dt) {
+void step_component(Comp& comp, SimulationState& st, double dt) {
     comp.execute(st, dt);
     comp.commit(st, dt);
 }
@@ -17,9 +17,9 @@ void step_component(Comp& comp, SimulationState& st, float dt) {
 template <typename Comp>
 static Comp make_component() {
     Comp comp;
-    comp.provider.indices[PortNames::A] = 0;
-    comp.provider.indices[PortNames::B] = 1;
-    comp.provider.indices[PortNames::o] = 2;
+    comp.provider.set(PortNames::A, 0);
+    comp.provider.set(PortNames::B, 1);
+    comp.provider.set(PortNames::o, 2);
     return comp;
 }
 
@@ -40,7 +40,7 @@ TEST(MultiplyTest, BasicMultiplication) {
     st.values[0] = 5.0f;  // A
     st.values[1] = 3.0f;  // B
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 15.0f, 0.01f);  // o = 5 * 3
 }
@@ -52,7 +52,7 @@ TEST(MultiplyTest, MultiplyByZero) {
     st.values[0] = 100.0f;
     st.values[1] = 0.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 0.0f, 0.01f);
 }
@@ -64,7 +64,7 @@ TEST(MultiplyTest, NegativeNumbers) {
     st.values[0] = -5.0f;
     st.values[1] = 3.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], -15.0f, 0.01f);
 }
@@ -76,7 +76,7 @@ TEST(MultiplyTest, BothNegative) {
     st.values[0] = -4.0f;
     st.values[1] = -3.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 12.0f, 0.01f);
 }
@@ -88,7 +88,7 @@ TEST(MultiplyTest, LargeNumbers) {
     st.values[0] = 1000.0f;
     st.values[1] = 1000.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 1000000.0f, 1.0f);
 }
@@ -104,7 +104,7 @@ TEST(DivideTest, BasicDivision) {
     st.values[0] = 15.0f;  // A
     st.values[1] = 3.0f;   // B
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 5.0f, 0.01f);  // o = 15 / 3
 }
@@ -116,7 +116,7 @@ TEST(DivideTest, DivideByZero) {
     st.values[0] = 10.0f;
     st.values[1] = 0.0f;   // Division by zero
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 0.0f, 0.01f);  // Should return 0
 }
@@ -128,7 +128,7 @@ TEST(DivideTest, NegativeDivision) {
     st.values[0] = -15.0f;
     st.values[1] = 3.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], -5.0f, 0.01f);
 }
@@ -140,7 +140,7 @@ TEST(DivideTest, DivideByNegative) {
     st.values[0] = 15.0f;
     st.values[1] = -3.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], -5.0f, 0.01f);
 }
@@ -152,7 +152,7 @@ TEST(DivideTest, FractionalResult) {
     st.values[0] = 10.0f;
     st.values[1] = 4.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 2.5f, 0.01f);
 }
@@ -168,7 +168,7 @@ TEST(AddTest, BasicAddition) {
     st.values[0] = 5.0f;  // A
     st.values[1] = 3.0f;  // B
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 8.0f, 0.01f);  // o = 5 + 3
 }
@@ -180,7 +180,7 @@ TEST(AddTest, AddWithZero) {
     st.values[0] = 10.0f;
     st.values[1] = 0.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 10.0f, 0.01f);
 }
@@ -192,7 +192,7 @@ TEST(AddTest, AddNegativeNumbers) {
     st.values[0] = 10.0f;
     st.values[1] = -3.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 7.0f, 0.01f);
 }
@@ -204,7 +204,7 @@ TEST(AddTest, AddBothNegative) {
     st.values[0] = -5.0f;
     st.values[1] = -3.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], -8.0f, 0.01f);
 }
@@ -216,7 +216,7 @@ TEST(AddTest, LargeNumbers) {
     st.values[0] = 100000.0f;
     st.values[1] = 200000.0f;
 
-    step_component(comp, st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0 / 60.0);
 
     EXPECT_NEAR(st.values[2], 300000.0f, 1.0f);
 }
@@ -232,14 +232,14 @@ TEST(ArithmeticTest, MultiplyThenAdd) {
     auto st = make_state(6);  // Need more slots
 
     // Multiply: A=5, B=3, o=2
-    mul.provider.indices[PortNames::A] = 0;
-    mul.provider.indices[PortNames::B] = 1;
-    mul.provider.indices[PortNames::o] = 2;
+    mul.provider.set(PortNames::A, 0);
+    mul.provider.set(PortNames::B, 1);
+    mul.provider.set(PortNames::o, 2);
 
     // Add: A=2 (from mul), B=3, o=4
-    add.provider.indices[PortNames::A] = 2;
-    add.provider.indices[PortNames::B] = 3;
-    add.provider.indices[PortNames::o] = 4;
+    add.provider.set(PortNames::A, 2);
+    add.provider.set(PortNames::B, 3);
+    add.provider.set(PortNames::o, 4);
 
     st.values[0] = 5.0f;
     st.values[1] = 3.0f;

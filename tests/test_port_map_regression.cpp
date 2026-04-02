@@ -96,7 +96,7 @@ TEST(PortMapRegression, AND_Gate_Reads_Correct_Signals) {
     ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
     state.values[bat_it->second] = 28.0f;
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     for (int i = 0; i < 20; ++i)
         result.scheduler.step(state, dt);
 
@@ -168,7 +168,7 @@ TEST(PortMapRegression, NOT_Gate_Reads_Correct_Input) {
     ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
     state.values[bat_it->second] = 28.0f;
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     for (int i = 0; i < 20; ++i)
         result.scheduler.step(state, dt);
 
@@ -223,7 +223,7 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
     ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
     state.values[bat_it->second] = 28.0f;
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     for (int i = 0; i < 20; ++i)
         result.scheduler.step(state, dt);
 
@@ -306,7 +306,7 @@ TEST(PortMapRegression, DISABLED_Subtract_GSC_Topology_SignalIndices) {
         state.values[cmd_it->second] = 28.0f;
     }
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
     for (int i = 0; i < 60; ++i)
         result.scheduler.step(state, dt);
 

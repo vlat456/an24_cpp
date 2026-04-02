@@ -13,15 +13,15 @@ public:
     Provider provider;
     GS24Mode mode = GS24Mode::STARTER;
     GS24Mode next_mode = GS24Mode::STARTER;
-    float wait_time = 0.0f;
-    float next_wait_time = 0.0f;
+    double wait_time = 0.0;
+    double next_wait_time = 0.0;
     float r_internal = 0.025f;
     float rpm_cutoff = 0.45f;
     float v_nominal = 28.5f;
     float r_norton = 0.08f;
     float target_rpm = 16000.0f;
-    float current_rpm = 0.0f;
-    float next_current_rpm = 0.0f;
+    double current_rpm = 0.0;
+    double next_current_rpm = 0.0;
     float rpm_threshold = 0.4f;
 
     // Precomputed inverses (set in pre_load)
@@ -31,7 +31,7 @@ public:
 
     GS24() = default;
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load();
 };

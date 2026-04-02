@@ -3,16 +3,16 @@
 #include <algorithm>
 
 template <typename Provider>
-void RUG82<Provider>::execute(SimulationState& st, float dt) {
+void RUG82<Provider>::execute(SimulationState& st, double dt) {
     st.values[provider.get(PortNames::k_mod)] = k_mod;
 
     float v_gen = st.values[provider.get(PortNames::v_gen)];
     float error = v_target - v_gen;
-    next_k_mod = std::clamp(k_mod + kp * error * dt, 0.0f, 1.0f);
+    next_k_mod = std::clamp(static_cast<float>(k_mod + kp * error * dt), 0.0f, 1.0f);
 }
 
 template <typename Provider>
-void RUG82<Provider>::commit(SimulationState& st, float /*dt*/) {
+void RUG82<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
     k_mod = next_k_mod;
 }

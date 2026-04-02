@@ -3,7 +3,7 @@
 #include "../state.h"
 
 template <typename Provider>
-void VoltageSense<Provider>::execute(SimulationState& st, float /*dt*/) {
+void VoltageSense<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Pure observer behavior: out = (v_in - v_ref) * gain + offset
     float v = st.values[provider.get(PortNames::v_in)];
     float vref = st.values[provider.get(PortNames::v_ref)];
@@ -11,7 +11,7 @@ void VoltageSense<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void VoltageSense<Provider>::commit(SimulationState& st, float /*dt*/) {
+void VoltageSense<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 

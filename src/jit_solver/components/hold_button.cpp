@@ -3,7 +3,7 @@
 #include <cmath>
 
 template <typename Provider>
-void HoldButton<Provider>::commit_control(SimulationState& st, float dt) {
+void HoldButton<Provider>::commit_control(SimulationState& st, double dt) {
     (void)dt;
     float current_control = st.values[provider.get(PortNames::control)];
     bool active = std::abs(current_control - idle) > 0.1f;
@@ -14,14 +14,14 @@ void HoldButton<Provider>::commit_control(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void HoldButton<Provider>::execute(SimulationState& st, float /*dt*/) {
+void HoldButton<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Electrical behavior is solver-owned via dynamic conductance branch.
     // HoldButton execute only updates non-electrical control/state outputs.
     (void)st;
 }
 
 template <typename Provider>
-void HoldButton<Provider>::commit(SimulationState& st, float /*dt*/) {
+void HoldButton<Provider>::commit(SimulationState& st, double /*dt*/) {
     commit_control(st, 0.0f);
 }
 

@@ -16,11 +16,11 @@ public:
     Provider provider;
     float precharge_pressure = 50.0f;  // Gas precharge pressure (psi)
     float volume = 10.0f;              // Total accumulator volume (liters)
-    float gas_volume = 10.0f;          // Current gas volume (liters, state)
+    double gas_volume = 10.0;          // Current gas volume (liters, state)
 
     GidroAccumulator() = default;
 
-    void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st, float dt);
+    void execute(SimulationState& st, double dt);
+    void commit(SimulationState& st, double dt);
     void pre_load();
 };
