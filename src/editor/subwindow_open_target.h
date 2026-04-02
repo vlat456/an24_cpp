@@ -8,7 +8,8 @@ namespace editor {
 
 enum class SubWindowOpenTargetKind {
     Missing,
-    Nested,
+    EmbeddedNested,
+    ReferencedNested,
     ExternalReference,
 };
 
@@ -25,8 +26,10 @@ inline SubWindowOpenTarget resolve_subwindow_open_target(const bp2::Blueprint& b
         return {};
     }
 
-    if (bp.find_nested(lookup_id)) {
-        return {SubWindowOpenTargetKind::Nested, {}};
+    if (const auto* nested = bp.find_nested(lookup_id)) {
+        return {nested->embedded ? SubWindowOpenTargetKind::EmbeddedNested
+                                 : SubWindowOpenTargetKind::ReferencedNested,
+                {}};
     }
 
     const bp2::Blueprint::Node* node = bp.find_node(lookup_id);

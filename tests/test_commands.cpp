@@ -2413,3 +2413,210 @@ TEST_F(CommandTest, ExtractToBlueprint_ProxyNodeHasIfacePopulated) {
             << "output port missing from proxy iface: " << interner.resolve(ep.name);
     }
 }
+
+// =============================================================================
+// Bug 1 Regression: Manual bridge node addition inside extracted group
+// =============================================================================
+
+// Regression: When a user manually adds a BlueprintInput/BlueprintOutput inside
+// an extracted sub-blueprint group, the collapsed parent node and nested iface
+// must be updated to include the new port.  Before the fix, the bridge node was
+// added to the group but the collapsed node had no matching port and the nested
+// iface was not updated, making the new bridge invisible at the parent level.
+TEST_F(CommandTest, ManualBridgeAddition_SyncsCollapsedNodeAndNested) {
+    bp2::PathArena local_arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, local_arena);
+
+    // Extract nodes "a" and "b" into a sub-blueprint
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "SubCircuit",
+        "",
+        interner,
+        local_arena,
+        &err);
+    ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+
+    const auto& nested_pre = updated->nested()[0];
+    const ui::InternedId nested_id = nested_pre.id;
+    const std::string nested_id_str(interner.resolve(nested_id));
+
+    // Record the initial port counts
+    const auto* collapsed_pre = updated->find_node(nested_id);
+    ASSERT_NE(collapsed_pre, nullptr);
+    const size_t initial_inputs  = collapsed_pre->inputs.size();
+    const size_t initial_outputs = collapsed_pre->outputs.size();
+    const size_t initial_iface_ports = nested_pre.iface.ports().size();
+
+    // Simulate what addComponent+sync does: add a BlueprintInput bridge node
+    // inside the group, then update the collapsed node and nested iface.
+    const std::string iface_name = "new_signal";
+    const std::string bridge_id_str = nested_id_str + ":" + iface_name;
+    const PortType new_port_type = PortType::Bool;
+
+    bp2::Blueprint::Node bridge;
+    bridge.id = interner.intern(bridge_id_str);
+    bridge.type = interner.intern("BlueprintInput");
+    bridge.name = iface_name;
+    bridge.group_id = nested_id_str;
+    bridge.x = 0.0f;
+    bridge.y = 0.0f;
+    bridge.inputs.emplace_back(interner.intern("ext"), PortSide::Input, new_port_type);
+    bridge.outputs.emplace_back(interner.intern("port"), PortSide::Output, new_port_type);
+    bp2::Blueprint bp = updated->with_node(std::move(bridge));
+
+    // Sync collapsed node: add input port
+    {
+        bp2::Blueprint::Node cn = *bp.find_node(nested_id);
+        const ui::InternedId iface_iid = interner.intern(iface_name);
+        cn.inputs.emplace_back(iface_iid, PortSide::Input, new_port_type);
+
+        // Also update collapsed node iface
+        std::vector<bp2::PortDescriptor> ports = cn.iface.ports();
+        ports.push_back({iface_iid, Domain::Logical, bp2::Direction::Input});
+        cn.iface = bp2::Interface(std::move(ports));
+        bp = bp2::replace_node_preserve_order(bp, std::move(cn));
+    }
+
+    // Sync nested iface: add port descriptor
+    {
+        const auto* nested_ptr = bp.find_nested(nested_id);
+        ASSERT_NE(nested_ptr, nullptr);
+        bp2::Blueprint::Nested n = *nested_ptr;
+        std::vector<bp2::PortDescriptor> ports = n.iface.ports();
+        const ui::InternedId iface_iid = interner.intern(iface_name);
+        ports.push_back({iface_iid, Domain::Logical, bp2::Direction::Input});
+        n.iface = bp2::Interface(std::move(ports));
+        bp = bp2::replace_nested_preserve_order(bp, std::move(n));
+    }
+
+    // Verify: bridge node exists in the group
+    const auto* bridge_node = bp.find_node(interner.intern(bridge_id_str));
+    ASSERT_NE(bridge_node, nullptr) << "bridge node not found";
+    EXPECT_EQ(bridge_node->group_id, nested_id_str);
+    EXPECT_EQ(bridge_node->name, iface_name);
+
+    // Verify: collapsed node has the new input port
+    const auto* collapsed_post = bp.find_node(nested_id);
+    ASSERT_NE(collapsed_post, nullptr);
+    EXPECT_EQ(collapsed_post->inputs.size(), initial_inputs + 1)
+        << "collapsed node should have one additional input port";
+
+    // The last input port should match the new bridge
+    bool found_port = false;
+    for (const auto& p : collapsed_post->inputs) {
+        if (interner.resolve(p.name) == iface_name) {
+            EXPECT_EQ(p.type, new_port_type);
+            found_port = true;
+        }
+    }
+    EXPECT_TRUE(found_port) << "new input port '" << iface_name << "' not found on collapsed node";
+
+    // Verify: collapsed node iface has the new port
+    EXPECT_TRUE(collapsed_post->iface.has(interner.intern(iface_name)))
+        << "collapsed node iface missing new port";
+
+    // Verify: nested iface has the new port descriptor
+    const auto* nested_post = bp.find_nested(nested_id);
+    ASSERT_NE(nested_post, nullptr);
+    EXPECT_EQ(nested_post->iface.ports().size(), initial_iface_ports + 1)
+        << "nested iface should have one additional port";
+    EXPECT_TRUE(nested_post->iface.has(interner.intern(iface_name)))
+        << "nested iface missing new port descriptor";
+
+    // Verify: output count unchanged
+    EXPECT_EQ(collapsed_post->outputs.size(), initial_outputs);
+}
+
+// Regression: same as above but for BlueprintOutput (adds output port)
+TEST_F(CommandTest, ManualBridgeAddition_OutputSyncsCollapsedNodeAndNested) {
+    bp2::PathArena local_arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, local_arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "SubCircuit2",
+        "",
+        interner,
+        local_arena,
+        &err);
+    ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+
+    const auto& nested_pre = updated->nested()[0];
+    const ui::InternedId nested_id = nested_pre.id;
+    const std::string nested_id_str(interner.resolve(nested_id));
+
+    const auto* collapsed_pre = updated->find_node(nested_id);
+    ASSERT_NE(collapsed_pre, nullptr);
+    const size_t initial_inputs  = collapsed_pre->inputs.size();
+    const size_t initial_outputs = collapsed_pre->outputs.size();
+    const size_t initial_iface_ports = nested_pre.iface.ports().size();
+
+    // Add BlueprintOutput bridge
+    const std::string iface_name = "temp_out";
+    const std::string bridge_id_str = nested_id_str + ":" + iface_name;
+    const PortType new_port_type = PortType::Temperature;
+
+    bp2::Blueprint::Node bridge;
+    bridge.id = interner.intern(bridge_id_str);
+    bridge.type = interner.intern("BlueprintOutput");
+    bridge.name = iface_name;
+    bridge.group_id = nested_id_str;
+    bridge.x = 0.0f;
+    bridge.y = 0.0f;
+    bridge.inputs.emplace_back(interner.intern("port"), PortSide::Input, new_port_type);
+    bridge.outputs.emplace_back(interner.intern("ext"), PortSide::Output, new_port_type);
+    bp2::Blueprint bp = updated->with_node(std::move(bridge));
+
+    // Sync collapsed node: add output port
+    {
+        bp2::Blueprint::Node cn = *bp.find_node(nested_id);
+        const ui::InternedId iface_iid = interner.intern(iface_name);
+        cn.outputs.emplace_back(iface_iid, PortSide::Output, new_port_type);
+
+        std::vector<bp2::PortDescriptor> ports = cn.iface.ports();
+        ports.push_back({iface_iid, Domain::Thermal, bp2::Direction::Output});
+        cn.iface = bp2::Interface(std::move(ports));
+        bp = bp2::replace_node_preserve_order(bp, std::move(cn));
+    }
+
+    // Sync nested iface
+    {
+        const auto* nested_ptr = bp.find_nested(nested_id);
+        ASSERT_NE(nested_ptr, nullptr);
+        bp2::Blueprint::Nested n = *nested_ptr;
+        std::vector<bp2::PortDescriptor> ports = n.iface.ports();
+        const ui::InternedId iface_iid = interner.intern(iface_name);
+        ports.push_back({iface_iid, Domain::Thermal, bp2::Direction::Output});
+        n.iface = bp2::Interface(std::move(ports));
+        bp = bp2::replace_nested_preserve_order(bp, std::move(n));
+    }
+
+    // Verify: collapsed node has the new output port
+    const auto* collapsed_post = bp.find_node(nested_id);
+    ASSERT_NE(collapsed_post, nullptr);
+    EXPECT_EQ(collapsed_post->outputs.size(), initial_outputs + 1);
+
+    bool found_port = false;
+    for (const auto& p : collapsed_post->outputs) {
+        if (interner.resolve(p.name) == iface_name) {
+            EXPECT_EQ(p.type, new_port_type);
+            found_port = true;
+        }
+    }
+    EXPECT_TRUE(found_port) << "new output port 'temp_out' not found on collapsed node";
+
+    // Verify: nested iface has the new port
+    const auto* nested_post = bp.find_nested(nested_id);
+    ASSERT_NE(nested_post, nullptr);
+    EXPECT_TRUE(nested_post->iface.has(interner.intern(iface_name)));
+
+    // Verify: input count unchanged
+    EXPECT_EQ(collapsed_post->inputs.size(), initial_inputs);
+}

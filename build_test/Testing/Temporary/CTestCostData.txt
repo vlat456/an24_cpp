@@ -1274,8 +1274,3 @@ PersistValidation.SaveUsesTypedParamNormalizationWhenRegistryAvailable 1 0.04634
 PersistValidation.ValidateBlueprintIntegrityPassesForValidBlueprint 1 0.0449555
 PersistValidation.WireDomainMismatchIsToleratedWithoutThrow 1 0.0452436
 ---
-SceneMutations.Regression_GSCLoadHasPortsAndWiresVisible
-TypeRegistry.LoadRecursive_SubdirSetsCategory
-TypeRegistry.LoadRecursive_DeepNesting
-BlueprintExtension.RegistryIgnoresJsonFiles
-V3Migration.GSCIsV3AndDecodes

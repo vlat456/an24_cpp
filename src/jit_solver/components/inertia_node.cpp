@@ -2,20 +2,28 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void InertiaNode<Provider>::execute(SimulationState& st, float /*dt*/) {
-    // Push model: pass-through for mechanical connection
-    float v_input = st.values[provider.get(PortNames::input)];
-    st.values[provider.get(PortNames::output)] = v_input;
+void InertiaNode<Provider>::execute(SimulationState& st, float dt) {
+    const float torque_cmd = st.values[provider.get(PortNames::torque_in)];
+    const float mass_param = st.values[provider.get(PortNames::mass)];
+    const float inv_inertia_param = st.values[provider.get(PortNames::inv_inertia)];
+    const float damping_param = st.values[provider.get(PortNames::damping)];
+
+    const float net_torque = torque_cmd * mass_param - damping_param * rpm;
+    const float accel = net_torque * inv_inertia_param;
+    next_rpm = rpm + accel * dt;
+
+    st.values[provider.get(PortNames::rpm_out)] = rpm;
 }
 
 template <typename Provider>
-void InertiaNode<Provider>::commit(SimulationState& st, float /*dt*/) {
-    (void)st;
+void InertiaNode<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
+    rpm = next_rpm;
 }
 
 template <typename Provider>
 void InertiaNode<Provider>::pre_load() {
-    inv_mass = 1.0f / std::max(mass, 1e-6f);
+    rpm = initial_rpm;
+    next_rpm = initial_rpm;
 }
 
 template class InertiaNode<JitProvider>;

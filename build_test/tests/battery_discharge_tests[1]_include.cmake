@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_test/tests/battery_discharge_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_test/tests/battery_discharge_tests[1]_tests.cmake")
+else()
+  add_test(battery_discharge_tests_NOT_BUILT battery_discharge_tests_NOT_BUILT)
+endif()

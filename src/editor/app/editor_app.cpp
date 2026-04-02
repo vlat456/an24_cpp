@@ -3,6 +3,7 @@
 #include "editor/gl_setup.h"
 #include "editor/imgui_theme.h"
 #include "editor/pi_zn_tuner.h"
+#include "editor/visual/dialogs/file_dialogs.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
@@ -18,6 +19,30 @@
 
 #include <cstdio>
 #include <filesystem>
+#include <cstring>
+
+namespace {
+
+void save_active_document_with_existing_flow(WindowSystem& ws, Document* doc) {
+    if (!doc) return;
+
+    // Keep behavior aligned with File -> Save menu.
+    if (doc->blueprint().name().empty()) {
+        ws.setName.show = true;
+        ws.setName.doc_id = doc->id();
+        ws.setName.save_after = true;
+        std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
+    } else if (doc->filepath().empty()) {
+        if (auto path = dialogs::saveBlueprint()) {
+            doc->save(*path);
+            ws.settings.addRecentFile(*path);
+        }
+    } else {
+        doc->save(doc->filepath());
+    }
+}
+
+} // namespace
 
 static std::string getConfigPath() {
 #ifdef _WIN32
@@ -209,6 +234,16 @@ void EditorApp::update() {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
     
+    // Save: Cmd+S (macOS) / Ctrl+S — always available, even when
+    // properties panel is open or a text field has keyboard focus.
+    if (Document* doc = ws_.activeDocument()) {
+        if (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_S)) {
+            save_active_document_with_existing_flow(ws_, doc);
+        }
+    }
+
+    // Canvas-oriented shortcuts: blocked when a text field captures
+    // the keyboard or the properties panel is open.
     if (!io.WantCaptureKeyboard && !ws_.propertiesWindow().is_open()) {
         if (Document* doc = ws_.activeDocument()) {
             if (ImGui::IsKeyPressed(ImGuiKey_Space)) {

@@ -11,9 +11,9 @@ public:
     static constexpr Domain domain = Domain::Mechanical;
 
     Provider provider;
-    float mass = 1.0f;
-    float inv_mass = 1.0f;
-    float damping = 0.5f;
+    float initial_rpm = 1.0f;
+    float rpm = 1.0f;
+    float next_rpm = 1.0f;
 
     InertiaNode() = default;
 

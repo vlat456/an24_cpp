@@ -6,6 +6,8 @@
 #include "visual/persist.h"
 #include "visual/node/node_factory.h"
 #include "visual/node/visual_node.h"
+#include "visual/node/ref_node_widget.h"
+#include "editor/layout_constants.h"
 #include "visual/wire/wire.h"
 #include "visual/wire/routing_point.h"
 #include "visual/node/bus_node_widget.h"
@@ -294,4 +296,29 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
     // A known top-level wire in GSC.blueprint should be rendered as a widget.
     // Note: wire_200 is the actual ID in the blueprint (wire_20 was stale).
     EXPECT_NE(scene.find("wire_200"), nullptr);
+}
+
+TEST(SceneMutations, RefNodePortCenterSnapsToLayoutGrid) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto ref = make_bp2_node(interner, "ref1", "RefNode");
+    ref.render_hint = "ref";
+    ref.outputs.push_back(EditorPort(interner.intern("v"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(ref));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    auto* p = ref_widget->port("v");
+    ASSERT_NE(p, nullptr);
+
+    constexpr float g = editor_constants::PORT_LAYOUT_GRID;
+    const float center_x = p->localPos().x + visual::PortConstants::RADIUS;
+    EXPECT_NEAR(std::round(center_x / g) * g, center_x, 1e-4f);
 }

@@ -1830,6 +1830,62 @@ TEST(PushRuntime, RelayCustomHoldThresholdIsRespected) {
         << "control=-2.5 reaches -hold_threshold=-2.0, relay must open";
 }
 
+TEST(PushRuntime, RelayElectricalSolverPath_ClosedProducesSag) {
+    const char* json_open = R"({
+        "devices": [
+            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.1"}},
+            {"name": "relay", "classname": "Relay", "params": {"closed": "false", "hold_threshold": "0.5", "g_open": "1e-6", "g_closed": "1000.0"}},
+            {"name": "load", "classname": "Resistor", "params": {"conductance": "2.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
+            {"name": "cmd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "cmd.v", "to": "relay.control"},
+            {"from": "bat.v_out", "to": "relay.v_in"},
+            {"from": "relay.v_out", "to": "load.v_in"},
+            {"from": "load.v_out", "to": "gnd.v"},
+            {"from": "bat.v_in", "to": "gnd.v"}
+        ]
+    })";
+
+    const char* json_closed = R"({
+        "devices": [
+            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.1"}},
+            {"name": "relay", "classname": "Relay", "params": {"closed": "false", "hold_threshold": "0.5", "g_open": "1e-6", "g_closed": "1000.0"}},
+            {"name": "load", "classname": "Resistor", "params": {"conductance": "2.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
+            {"name": "cmd", "classname": "RefNode", "params": {"value": "1.0"}}
+        ],
+        "connections": [
+            {"from": "cmd.v", "to": "relay.control"},
+            {"from": "bat.v_out", "to": "relay.v_in"},
+            {"from": "relay.v_out", "to": "load.v_in"},
+            {"from": "load.v_out", "to": "gnd.v"},
+            {"from": "bat.v_in", "to": "gnd.v"}
+        ]
+    })";
+
+    JIT_Simulator sim_open;
+    ASSERT_NO_THROW(sim_open.start_from_json(json_open));
+
+    const float dt = 1.0f / 60.0f;
+
+    // Open relay: output stays near 0V.
+    for (int i = 0; i < 5; ++i) sim_open.step(dt);
+    float v_open = sim_open.get_port_value("relay", "v_out");
+    EXPECT_LT(v_open, 1.0f);
+
+    JIT_Simulator sim_closed;
+    ASSERT_NO_THROW(sim_closed.start_from_json(json_closed));
+    for (int i = 0; i < 5; ++i) sim_closed.step(dt);
+
+    float v_closed = sim_closed.get_port_value("relay", "v_out");
+    EXPECT_GT(v_closed, 5.0f)
+        << "Closed relay should conduct through electrical solver path";
+    EXPECT_LT(v_closed, 28.0f)
+        << "With finite source/load conductance, output should show sag";
+}
+
 TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
     const char* json = R"({
         "devices": [
@@ -1933,7 +1989,7 @@ TEST(PushRuntime, AZS_ElectricalSolverPath_ClosedProducesSag) {
   "devices": [
     {"name":"gnd","classname":"RefNode","params":{"value":"0.0"}},
     {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
-    {"name":"azs","classname":"AZS","params":{"closed":"true","i_nominal":"20.0","g_open":"0.0","g_closed":"1000.0"}},
+    {"name":"azs","classname":"AZS","params":{"closed":"true","i_nominal":"20.0","g_open":"1e-6","g_closed":"1000.0"}},
     {"name":"load","classname":"VariableConductance","params":{"g_min":"17.5","g_max":"17.5"}}
   ],
   "connections": [
@@ -1963,7 +2019,7 @@ TEST(PushRuntime, HoldButton_ElectricalSolverPath_PressProducesSag) {
     {"name":"gnd","classname":"RefNode","params":{"value":"0.0"}},
     {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
     {"name":"ctrl","classname":"Value","params":{"value":"1.0"}},
-    {"name":"btn","classname":"HoldButton","params":{"idle":"0.0","g_open":"0.0","g_closed":"1000.0"}},
+    {"name":"btn","classname":"HoldButton","params":{"idle":"0.0","g_open":"1e-6","g_closed":"1000.0"}},
     {"name":"load","classname":"VariableConductance","params":{"g_min":"17.5","g_max":"17.5"}}
   ],
   "connections": [
@@ -1989,4 +2045,45 @@ TEST(PushRuntime, HoldButton_ElectricalSolverPath_PressProducesSag) {
     ASSERT_TRUE(std::isfinite(v_pressed));
     EXPECT_LT(v_pressed, v_step1 - 0.5f)
         << "Pressed HoldButton should close solver-owned branch and increase sag";
+}
+
+// Regression: g_open must never be 0 — it creates a singular row in the
+// conductance matrix when the switch is open. The default 1e-6 parasitic
+// conductance keeps the matrix non-singular. This test verifies that an
+// open AZS with proper g_open produces finite (near-source) voltage.
+TEST(PushRuntime, AZS_OpenState_ParasiticConductance_StaysFinite) {
+    const char* kJson = R"({
+  "devices": [
+    {"name":"gnd","classname":"RefNode","params":{"value":"0.0"}},
+    {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
+    {"name":"azs","classname":"AZS","params":{"closed":"false","i_nominal":"20.0","g_open":"1e-6","g_closed":"1000.0"}},
+    {"name":"load","classname":"VariableConductance","params":{"g_min":"17.5","g_max":"17.5"}}
+  ],
+  "connections": [
+    {"from":"src.v_out","to":"azs.v_in"},
+    {"from":"azs.v_out","to":"load.v_in"},
+    {"from":"load.v_out","to":"gnd.v"},
+    {"from":"src.v_in","to":"gnd.v"}
+  ]
+})";
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(kJson));
+
+    const float dt = 1.0f / 60.0f;
+    for (int i = 0; i < 5; ++i) sim.step(dt);
+
+    float v_src = sim.get_wire_voltage("src.v_out");
+    float v_load = sim.get_wire_voltage("azs.v_out");
+
+    ASSERT_TRUE(std::isfinite(v_src))
+        << "Source voltage must be finite with parasitic g_open";
+    ASSERT_TRUE(std::isfinite(v_load))
+        << "Load-side voltage must be finite with parasitic g_open";
+    // AZS open: nearly all voltage drops across the open switch.
+    // Source side should be near 28.5V, load side near 0V.
+    EXPECT_GT(v_src, 28.0f)
+        << "Open AZS should barely load the source";
+    EXPECT_LT(v_load, 1.0f)
+        << "Open AZS should pass negligible current to load";
 }

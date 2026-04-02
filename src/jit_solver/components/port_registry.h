@@ -139,7 +139,7 @@ constexpr size_t Gyroscope_PORT_COUNT = 1;
 constexpr size_t HighPowerLoad_PORT_COUNT = 2;
 constexpr size_t HoldButton_PORT_COUNT = 4;
 constexpr size_t IndicatorLight_PORT_COUNT = 3;
-constexpr size_t InertiaNode_PORT_COUNT = 2;
+constexpr size_t InertiaNode_PORT_COUNT = 5;
 constexpr size_t Integrator_PORT_COUNT = 3;
 constexpr size_t Inverter_PORT_COUNT = 2;
 constexpr size_t LUT_PORT_COUNT = 2;
@@ -342,8 +342,11 @@ constexpr const char* IndicatorLight_PORTS[] = {
     "v_out"
 };
 constexpr const char* InertiaNode_PORTS[] = {
-    "input",
-    "output"
+    "damping",
+    "inv_inertia",
+    "mass",
+    "rpm_out",
+    "torque_in"
 };
 constexpr const char* Integrator_PORTS[] = {
     "in",
@@ -1082,13 +1085,22 @@ constexpr bool IndicatorLight_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection InertiaNode_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
-    RegistryPortDirection::Out
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
 };
 constexpr uint8_t InertiaNode_PORT_DOMAINS[] = {
-    1,
-    16
+    4,
+    4,
+    4,
+    4,
+    4
 };
 constexpr bool InertiaNode_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
     false,
     false
 };
@@ -1784,6 +1796,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"cmd", PortNames::cmd},
         {"control", PortNames::control},
         {"ctrl", PortNames::ctrl},
+        {"damping", PortNames::damping},
         {"dc_in", PortNames::dc_in},
         {"ext", PortNames::ext},
         {"feedback", PortNames::feedback},
@@ -1798,9 +1811,11 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"i_out", PortNames::i_out},
         {"in", PortNames::in},
         {"input", PortNames::input},
+        {"inv_inertia", PortNames::inv_inertia},
         {"k_mod", PortNames::k_mod},
         {"lamp", PortNames::lamp},
         {"level_out", PortNames::level_out},
+        {"mass", PortNames::mass},
         {"o", PortNames::o},
         {"o1", PortNames::o1},
         {"o2", PortNames::o2},
@@ -1823,6 +1838,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"temp", PortNames::temp},
         {"temp_in", PortNames::temp_in},
         {"temp_out", PortNames::temp_out},
+        {"torque_in", PortNames::torque_in},
         {"trigger", PortNames::trigger},
         {"tripped", PortNames::tripped},
         {"v", PortNames::v},
@@ -1878,7 +1894,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"HighPowerLoad", {"v_in", "v_out"}},
         {"HoldButton", {"control", "state", "v_in", "v_out"}},
         {"IndicatorLight", {"brightness", "v_in", "v_out"}},
-        {"InertiaNode", {"input", "output"}},
+        {"InertiaNode", {"damping", "inv_inertia", "mass", "rpm_out", "torque_in"}},
         {"Integrator", {"in", "out", "reset"}},
         {"Inverter", {"ac_out", "dc_in"}},
         {"LUT", {"input", "output"}},

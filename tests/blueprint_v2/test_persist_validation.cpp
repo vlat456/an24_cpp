@@ -3,9 +3,11 @@
 #include "editor/visual/persist.h"
 #include "json_parser/json_parser.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/registry/type_registry.h"
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 
 TEST(PersistValidation, RejectsInvalidWireEndpointOnLoad) {
     namespace fs = std::filesystem;
@@ -220,4 +222,89 @@ TEST(PersistValidation, ValidatePersistStillRejectsNonProxyUnknownType) {
     bool ok = validate_blueprint_for_persist(bp, interner, arena, parser_registry, &err);
     EXPECT_FALSE(ok);
     EXPECT_NE(err.find("unknown node type"), std::string::npos);
+}
+
+// ===========================================================================
+// Regression: closed_circuit.blueprint must load through bp2 codec without
+// wire domain mismatch errors, especially after InertiaNode port type changes.
+// ===========================================================================
+
+TEST(PersistValidation, ClosedCircuitBlueprintLoadsViaBp2Codec) {
+    // Try multiple paths to find closed_circuit.blueprint
+    const char* candidates[] = {
+        "../../closed_circuit.blueprint",
+        "../closed_circuit.blueprint",
+        "closed_circuit.blueprint",
+    };
+    std::string bp_path;
+    for (const char* c : candidates) {
+        if (std::filesystem::exists(c)) {
+            bp_path = c;
+            break;
+        }
+    }
+    if (bp_path.empty()) {
+        GTEST_SKIP() << "closed_circuit.blueprint not found; skipping regression test";
+    }
+
+    // Read file content
+    std::ifstream file(bp_path);
+    ASSERT_TRUE(file.is_open()) << "Could not open: " << bp_path;
+    std::stringstream buf;
+    buf << file.rdbuf();
+    std::string content = buf.str();
+
+    // Use a fresh interner and build a full registry from library/ to avoid
+    // stale static cache entries from earlier tests.
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    TypeRegistry parsed = load_type_registry("library/");
+    bp2::TypeRegistry reg;
+    for (const auto& [classname, def] : parsed.types) {
+        std::vector<bp2::PortDescriptor> ports;
+        for (const auto& [pname, port] : def.ports) {
+            bp2::PortDescriptor pd;
+            pd.name = interner.intern(pname);
+            // Replicate the domain inference from port type
+            switch (port.type) {
+                case PortType::V: case PortType::I: case PortType::Any:
+                    pd.domain = Domain::Electrical; break;
+                case PortType::Bool:
+                    pd.domain = Domain::Logical; break;
+                case PortType::RPM: case PortType::Position:
+                    pd.domain = Domain::Mechanical; break;
+                case PortType::Pressure:
+                    pd.domain = Domain::Hydraulic; break;
+                case PortType::Temperature:
+                    pd.domain = Domain::Thermal; break;
+                default:
+                    pd.domain = Domain::Electrical; break;
+            }
+            switch (port.direction) {
+                case PortDirection::In:  pd.direction = bp2::Direction::Input; break;
+                case PortDirection::Out: pd.direction = bp2::Direction::Output; break;
+                case PortDirection::InOut: pd.direction = bp2::Direction::InOut; break;
+            }
+            ports.push_back(pd);
+        }
+        reg.register_component(interner.intern(classname),
+                               bp2::Interface(std::move(ports)), "");
+    }
+
+    bp2::DecodeError err;
+    auto bp = bp2::BlueprintCodec::decode(content, interner, arena, reg, &err);
+    ASSERT_TRUE(bp.has_value())
+        << "Failed to load closed_circuit.blueprint via bp2 codec: " << err.message;
+
+    // Verify InertiaNode is present
+    bool found_inertia = false;
+    for (const auto& node : bp->nodes()) {
+        if (interner.resolve(node.type) == "InertiaNode") {
+            found_inertia = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_inertia)
+        << "InertiaNode not found in loaded blueprint";
 }

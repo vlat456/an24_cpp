@@ -6,6 +6,7 @@
 #include "ui/core/interned_id.h"
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <unordered_set>
 
@@ -24,13 +25,16 @@ public:
     const std::vector<std::unique_ptr<BlueprintWindow>>& windows() const { return windows_; }
     std::vector<std::unique_ptr<BlueprintWindow>>& windows() { return windows_; }
 
-    BlueprintWindow* open(const std::string& group_id, const std::string& title) {
+    std::pair<BlueprintWindow*, bool> open(const std::string& group_id, const std::string& title) {
         for (auto& w : windows_) {
-            if (w->group_id == group_id) { w->open = true; return w.get(); }
+            if (w->group_id == group_id) {
+                w->open = true;
+                return {w.get(), false};
+            }
         }
         windows_.push_back(std::make_unique<BlueprintWindow>(
             model_, interner_, arena_, group_id, title));
-        return windows_.back().get();
+        return {windows_.back().get(), true};
     }
 
     void close(const std::string& group_id) {

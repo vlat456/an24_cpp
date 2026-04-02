@@ -86,8 +86,8 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
                 "name": "inertia1",
                 "classname": "InertiaNode",
                 "ports": {
-                    "input": {"direction": "In", "type": "RPM"},
-                    "output": {"direction": "Out", "type": "RPM"}
+                    "torque_in": {"direction": "In", "type": "Any"},
+                    "rpm_out": {"direction": "Out", "type": "Any"}
                 }
             }
         ],

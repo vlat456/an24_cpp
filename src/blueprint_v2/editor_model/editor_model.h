@@ -115,4 +115,12 @@ private:
     mutable Indices indices_;
 };
 
+// === Order-preserving blueprint replacement helpers ===
+// Rebuild a blueprint replacing (or appending) a single node/wire/nested
+// while preserving the insertion order of all other elements.
+
+Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updated);
+Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated);
+Blueprint replace_nested_preserve_order(const Blueprint& bp, Blueprint::Nested updated);
+
 } // namespace bp2

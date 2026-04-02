@@ -79,7 +79,17 @@ void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::Stri
 
 void RefNodeWidget::positionPort() {
     if (!port_) return;
-    port_->setLocalPos(Pt(size().x / 2.0f - PortConstants::RADIUS,
+
+    const float grid = editor_constants::PORT_LAYOUT_GRID;
+    const float center_x = size().x * 0.5f;
+    float snapped_center_x = std::round(center_x / grid) * grid;
+
+    // Keep the snapped center inside the node body.
+    snapped_center_x = std::clamp(snapped_center_x,
+                                  PortConstants::RADIUS,
+                                  size().x - PortConstants::RADIUS);
+
+    port_->setLocalPos(Pt(snapped_center_x - PortConstants::RADIUS,
                           -PortConstants::RADIUS));
 }
 

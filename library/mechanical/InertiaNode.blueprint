@@ -5,17 +5,38 @@
   "scheduler_source": false,
   "interface": [
     {
-      "name": "input",
-      "domain": 1,
+      "name": "torque_in",
+      "domain": 4,
       "direction": 0,
-      "type": "I",
+      "type": "Any",
       "source_writer": false
     },
     {
-      "name": "output",
-      "domain": 16,
+      "name": "mass",
+      "domain": 4,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "inv_inertia",
+      "domain": 4,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "damping",
+      "domain": 4,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "rpm_out",
+      "domain": 4,
       "direction": 1,
-      "type": "Temperature",
+      "type": "Any",
       "source_writer": false
     }
   ],
@@ -28,7 +49,11 @@
     "Mechanical"
   ],
   "param_defaults": {
-    "damping": "0.5",
-    "mass": "1.0"
+    "initial_rpm": "1.0"
+  },
+  "param_schema": {
+    "initial_rpm": {
+      "type": "float"
+    }
   }
 }

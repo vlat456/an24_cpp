@@ -1104,6 +1104,204 @@
         "x": 2034.0,
         "y": -336.0
       }
+    },
+    {
+      "blueprint": "RPMIntertial",
+      "definition": {
+        "display_name": "RPMIntertial",
+        "grid_step": 16.0,
+        "id": "RPMIntertial",
+        "interface": [
+          {
+            "direction": 0,
+            "domain": 1,
+            "name": "Torque"
+          },
+          {
+            "direction": 1,
+            "domain": 1,
+            "name": "out"
+          }
+        ],
+        "name": "RPMIntertial",
+        "nested": [],
+        "nodes": [
+          {
+            "id": "bp_in_2",
+            "name": "Torque",
+            "ports": {
+              "ext": {
+                "direction": "In",
+                "type": 7
+              },
+              "port": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 128.0,
+              "y": 32.0
+            },
+            "string_params": {
+              "exposed_direction": "In",
+              "exposed_type": "Any"
+            },
+            "type": "BlueprintInput"
+          },
+          {
+            "id": "bp_out_1",
+            "name": "out",
+            "ports": {
+              "ext": {
+                "direction": "Out",
+                "type": 0
+              },
+              "port": {
+                "direction": "In",
+                "type": 0
+              }
+            },
+            "position": {
+              "x": 932.0,
+              "y": 32.0
+            },
+            "string_params": {
+              "exposed_direction": "Out",
+              "exposed_type": "V"
+            },
+            "type": "BlueprintOutput"
+          },
+          {
+            "id": "divide_rotor_accel",
+            "name": "RotorAccel",
+            "params": {
+              "initial_rpm": 1.0
+            },
+            "ports": {
+              "damping": {
+                "direction": "In",
+                "type": 7
+              },
+              "inv_inertia": {
+                "direction": "In",
+                "type": 7
+              },
+              "mass": {
+                "direction": "In",
+                "type": 7
+              },
+              "rpm_out": {
+                "direction": "Out",
+                "type": 7
+              },
+              "torque_in": {
+                "direction": "In",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 464.0,
+              "y": 528.0
+            },
+            "type": "InertiaNode"
+          },
+          {
+            "id": "value_rotor_damping",
+            "name": "RotorDamping",
+            "params": {
+              "value": 0.15000000596046448
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 256.0,
+              "y": 512.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "value_rotor_inv_inertia",
+            "name": "RotorInvInertia",
+            "params": {
+              "value": 25.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 240.0,
+              "y": 592.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "value_rotor_mass",
+            "name": "RotorMass",
+            "params": {
+              "value": 25.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 336.0,
+              "y": 608.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          }
+        ],
+        "pan_x": 0.0,
+        "pan_y": 0.0,
+        "version": "3.0",
+        "wires": [
+          {
+            "id": "bp_bridge_in_wire_1",
+            "source": "/bp_in_2:port",
+            "target": "/divide_rotor_accel:torque_in"
+          },
+          {
+            "id": "wire_rotor_8",
+            "source": "/value_rotor_inv_inertia:o",
+            "target": "/divide_rotor_accel:inv_inertia"
+          },
+          {
+            "id": "wire_rotor_10",
+            "source": "/value_rotor_mass:o",
+            "target": "/divide_rotor_accel:mass"
+          },
+          {
+            "id": "wire_rotor_11",
+            "source": "/value_rotor_damping:o",
+            "target": "/divide_rotor_accel:damping"
+          },
+          {
+            "id": "bp_bridge_out_wire_1",
+            "source": "/divide_rotor_accel:rpm_out",
+            "target": "/bp_out_1:port"
+          }
+        ],
+        "zoom": 1.0
+      },
+      "embedded": true,
+      "id": "extract_inst_4",
+      "position": {
+        "x": 562.0,
+        "y": 448.0
+      }
     }
   ],
   "nodes": [
@@ -1119,6 +1317,8 @@
       "id": "azs_1",
       "name": "azs_1",
       "params": {
+        "g_closed": 1000.0,
+        "g_open": 9.999999974752427e-07,
         "i_nominal": 20.0
       },
       "ports": {
@@ -1157,6 +1357,39 @@
       "type": "AZS"
     },
     {
+      "id": "battery_1",
+      "name": "battery_1",
+      "params": {
+        "capacity": 1000.0,
+        "charge": 1000.0,
+        "internal_r": 0.009999999776482582,
+        "v_nominal": 28.0
+      },
+      "ports": {
+        "charge_out": {
+          "direction": "Out",
+          "type": 7
+        },
+        "soc_out": {
+          "direction": "Out",
+          "type": 7
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 688.0,
+        "y": -752.0
+      },
+      "type": "Battery"
+    },
+    {
       "id": "bus_1",
       "name": "GND",
       "ports": {
@@ -1166,8 +1399,8 @@
         }
       },
       "position": {
-        "x": 880.0,
-        "y": -64.0
+        "x": 480.0,
+        "y": 160.0
       },
       "render_hint": "bus",
       "string_params": {
@@ -1186,7 +1419,7 @@
       },
       "position": {
         "x": 688.0,
-        "y": -240.0
+        "y": -608.0
       },
       "render_hint": "bus",
       "string_params": {
@@ -1213,8 +1446,8 @@
         }
       },
       "position": {
-        "x": 1744.0,
-        "y": -144.0
+        "x": 1760.0,
+        "y": -320.0
       },
       "type": "Clamp"
     },
@@ -1265,6 +1498,33 @@
         "y": -576.0
       },
       "type": "Clamp"
+    },
+    {
+      "id": "comparator_1",
+      "name": "comparator_1",
+      "params": {
+        "Voff": 2.0,
+        "Von": 5.0
+      },
+      "ports": {
+        "Va": {
+          "direction": "In",
+          "type": 0
+        },
+        "Vb": {
+          "direction": "In",
+          "type": 0
+        },
+        "o": {
+          "direction": "Out",
+          "type": 2
+        }
+      },
+      "position": {
+        "x": 944.0,
+        "y": -720.0
+      },
+      "type": "Comparator"
     },
     {
       "id": "controlledvoltagesource_2",
@@ -1359,6 +1619,41 @@
       "type": "Divide"
     },
     {
+      "group_id": "extract_inst_4",
+      "id": "divide_rotor_accel",
+      "name": "RotorAccel",
+      "params": {
+        "initial_rpm": 1.0
+      },
+      "ports": {
+        "damping": {
+          "direction": "In",
+          "type": 7
+        },
+        "inv_inertia": {
+          "direction": "In",
+          "type": 7
+        },
+        "mass": {
+          "direction": "In",
+          "type": 7
+        },
+        "rpm_out": {
+          "direction": "Out",
+          "type": 7
+        },
+        "torque_in": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 464.0,
+        "y": 528.0
+      },
+      "type": "InertiaNode"
+    },
+    {
       "blueprint_path": "RN-180-Exciter",
       "expandable": true,
       "height": 64.0,
@@ -1376,7 +1671,7 @@
       },
       "position": {
         "x": 0.0,
-        "y": 16.0
+        "y": 0.0
       },
       "type": "RN-180-Exciter",
       "width": 160.0
@@ -1450,7 +1745,7 @@
         }
       },
       "position": {
-        "x": 384.0,
+        "x": 272.0,
         "y": -464.0
       },
       "type": "LoadVoltageDrp",
@@ -1471,7 +1766,7 @@
         }
       },
       "position": {
-        "x": 1920.0,
+        "x": 1904.0,
         "y": -320.0
       },
       "string_params": {
@@ -1625,6 +1920,77 @@
       "type": "BlueprintOutput"
     },
     {
+      "blueprint_path": "RPMIntertial",
+      "expandable": true,
+      "height": 64.0,
+      "id": "extract_inst_4",
+      "name": "RPMIntertial",
+      "ports": {
+        "Torque": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 64.0,
+        "y": 192.0
+      },
+      "type": "RPMIntertial",
+      "width": 160.0
+    },
+    {
+      "group_id": "extract_inst_4",
+      "id": "extract_inst_4:Torque",
+      "name": "Torque",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 7
+        },
+        "port": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 256.0,
+        "y": 672.0
+      },
+      "string_params": {
+        "exposed_direction": "In",
+        "exposed_type": "Any"
+      },
+      "type": "BlueprintInput"
+    },
+    {
+      "group_id": "extract_inst_4",
+      "id": "extract_inst_4:out",
+      "name": "out",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 0
+        },
+        "port": {
+          "direction": "In",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 640.0,
+        "y": 528.0
+      },
+      "string_params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    },
+    {
       "blueprint_path": "math/FirstOrderLag",
       "expandable": true,
       "height": 64.0,
@@ -1650,7 +2016,7 @@
       },
       "position": {
         "x": 208.0,
-        "y": 16.0
+        "y": 0.0
       },
       "type": "FirstOrderLag",
       "width": 160.0
@@ -1926,6 +2292,29 @@
       "type": "Multiply"
     },
     {
+      "id": "normalize_1",
+      "name": "normalize_1",
+      "params": {
+        "max": 100.0,
+        "min": 0.0
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 272.0,
+        "y": 112.0
+      },
+      "type": "Normalize"
+    },
+    {
       "group_id": "extract_inst_1",
       "id": "pi_1",
       "name": "RN180",
@@ -1956,31 +2345,6 @@
       "type": "PI"
     },
     {
-      "id": "refnode_1",
-      "layout_overrides": [
-        {
-          "port_name": "o",
-          "side": "bottom"
-        }
-      ],
-      "name": "RPM",
-      "params": {
-        "value": 1.0
-      },
-      "ports": {
-        "o": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 416.0,
-        "y": -48.0
-      },
-      "render_hint": "ref",
-      "type": "Value"
-    },
-    {
       "id": "refnode_4",
       "name": "refnode_4",
       "params": {
@@ -1993,11 +2357,46 @@
         }
       },
       "position": {
-        "x": 880.0,
-        "y": 160.0
+        "x": 480.0,
+        "y": 288.0
       },
       "render_hint": "ref",
       "type": "RefNode"
+    },
+    {
+      "id": "relay_1",
+      "name": "relay_1",
+      "params": {
+        "g_closed": 1000.0,
+        "g_open": 9.999999974752427e-07,
+        "hold_threshold": 0.5
+      },
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": 2
+        },
+        "state": {
+          "direction": "Out",
+          "type": 2
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 1104.0,
+        "y": -720.0
+      },
+      "string_params": {
+        "closed": "false"
+      },
+      "type": "Relay"
     },
     {
       "id": "resistor_1",
@@ -2020,6 +2419,59 @@
         "y": -144.0
       },
       "type": "Resistor"
+    },
+    {
+      "id": "resistor_2",
+      "name": "resistor_2",
+      "params": {
+        "conductance": 0.10000000149011612
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 1280.0,
+        "y": -704.0
+      },
+      "type": "Resistor"
+    },
+    {
+      "content_label": "",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 6,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "slider_1",
+      "name": "slider_1",
+      "params": {
+        "max": 1.0,
+        "min": 0.0
+      },
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -112.0,
+        "y": 192.0
+      },
+      "type": "Slider"
     },
     {
       "group_id": "extract_inst_2",
@@ -2179,7 +2631,7 @@
         }
       },
       "position": {
-        "x": 864.0,
+        "x": 848.0,
         "y": -320.0
       },
       "render_hint": "ref",
@@ -2198,8 +2650,8 @@
         }
       },
       "position": {
-        "x": 112.0,
-        "y": 112.0
+        "x": 144.0,
+        "y": 80.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -2218,7 +2670,7 @@
         }
       },
       "position": {
-        "x": 784.0,
+        "x": 816.0,
         "y": -336.0
       },
       "render_hint": "ref",
@@ -2239,7 +2691,7 @@
         }
       },
       "position": {
-        "x": 1248.0,
+        "x": 1232.0,
         "y": -368.0
       },
       "render_hint": "ref",
@@ -2260,8 +2712,8 @@
         }
       },
       "position": {
-        "x": 1584.0,
-        "y": -208.0
+        "x": 1568.0,
+        "y": -224.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -2327,6 +2779,66 @@
       "type": "Value"
     },
     {
+      "group_id": "extract_inst_4",
+      "id": "value_rotor_damping",
+      "name": "RotorDamping",
+      "params": {
+        "value": 0.15000000596046448
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 256.0,
+        "y": 512.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_4",
+      "id": "value_rotor_inv_inertia",
+      "name": "RotorInvInertia",
+      "params": {
+        "value": 25.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 240.0,
+        "y": 592.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_4",
+      "id": "value_rotor_mass",
+      "name": "RotorMass",
+      "params": {
+        "value": 25.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 336.0,
+        "y": 608.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
       "id": "variableconductance_1",
       "name": "variableconductance_1",
       "params": {
@@ -2348,7 +2860,7 @@
         }
       },
       "position": {
-        "x": 608.0,
+        "x": 464.0,
         "y": -400.0
       },
       "type": "VariableConductance"
@@ -2404,13 +2916,13 @@
       },
       "position": {
         "x": 880.0,
-        "y": -432.0
+        "y": -464.0
       },
       "type": "Voltmeter"
     }
   ],
-  "pan_x": -40.64520263671875,
-  "pan_y": -499.98345947265625,
+  "pan_x": -208.8220977783203,
+  "pan_y": -465.4028625488281,
   "version": "3.0",
   "wires": [
     {
@@ -2422,11 +2934,11 @@
       "id": "extract_wire_10",
       "routing_points": [
         [
-          560.0,
+          448.0,
           -432.0
         ],
         [
-          560.0,
+          448.0,
           -368.0
         ]
       ],
@@ -2495,6 +3007,16 @@
     },
     {
       "id": "extract_wire_6",
+      "routing_points": [
+        [
+          1104.0,
+          -192.0
+        ],
+        [
+          1104.0,
+          -256.0
+        ]
+      ],
       "source": "/extract_inst_2:v_ref:port",
       "target": "/voltagesense_1:v_ref"
     },
@@ -2511,11 +3033,11 @@
           -160.0
         ],
         [
-          -16.0,
+          -32.0,
           -160.0
         ],
         [
-          -16.0,
+          -32.0,
           -384.0
         ]
       ],
@@ -2523,15 +3045,23 @@
       "target": "/azs_1:v_in"
     },
     {
-      "id": "wire_30",
+      "id": "extract_wire_9",
       "routing_points": [
         [
-          896.0,
-          48.0
+          496.0,
+          208.0
+        ],
+        [
+          256.0,
+          208.0
+        ],
+        [
+          256.0,
+          -416.0
         ]
       ],
-      "source": "/controlledvoltagesource_2:v_neg",
-      "target": "/bus_1:v"
+      "source": "/bus_1:v",
+      "target": "/extract_inst_2:v_ref"
     },
     {
       "id": "wire_100",
@@ -2586,7 +3116,7 @@
     {
       "id": "wire_23",
       "source": "/firstorderlag_1:out",
-      "target": "/multiply_1:B"
+      "target": "/multiply_1:A"
     },
     {
       "id": "wire_29",
@@ -2594,68 +3124,68 @@
       "target": "/bus_1:v"
     },
     {
-      "id": "extract_wire_9",
+      "id": "wire_63",
       "routing_points": [
         [
-          928.0,
-          128.0
+          672.0,
+          -368.0
         ],
         [
-          288.0,
-          128.0
+          672.0,
+          -32.0
         ],
         [
-          288.0,
-          -416.0
+          912.0,
+          -32.0
+        ],
+        [
+          912.0,
+          272.0
+        ],
+        [
+          528.0,
+          272.0
         ]
       ],
-      "source": "/bus_1:v",
-      "target": "/extract_inst_2:v_ref"
+      "source": "/variableconductance_1:v_out",
+      "target": "/bus_1:v"
     },
     {
       "id": "extract_wire_3",
       "routing_points": [
         [
           736.0,
-          -128.0
+          -144.0
         ],
         [
           -32.0,
-          -128.0
+          -144.0
         ],
         [
           -32.0,
-          48.0
+          32.0
         ]
       ],
       "source": "/bus_2:v",
       "target": "/extract_inst_1:feedback"
     },
     {
-      "id": "wire_63",
+      "id": "wire_36",
       "routing_points": [
         [
-          864.0,
-          -368.0
+          1120.0,
+          -96.0
         ],
         [
-          864.0,
-          -176.0
+          1120.0,
+          256.0
         ],
         [
-          1152.0,
-          -176.0
-        ],
-        [
-          1152.0,
-          16.0
-        ],
-        [
-          944.0,
-          16.0
+          544.0,
+          256.0
         ]
       ],
-      "source": "/variableconductance_1:v_out",
+      "source": "/currentsense_1:v_out",
       "target": "/bus_1:v"
     },
     {
@@ -2681,27 +3211,14 @@
     },
     {
       "id": "wire_50",
-      "source": "/value_2:o",
-      "target": "/firstorderlag_1:rate"
-    },
-    {
-      "id": "wire_51",
       "routing_points": [
         [
-          432.0,
-          -64.0
-        ],
-        [
-          384.0,
-          -64.0
-        ],
-        [
-          384.0,
-          32.0
+          176.0,
+          48.0
         ]
       ],
-      "source": "/refnode_1:o",
-      "target": "/multiply_1:A"
+      "source": "/value_2:o",
+      "target": "/firstorderlag_1:rate"
     },
     {
       "id": "wire_32",
@@ -2715,22 +3232,22 @@
       "target": "/bus_2:v"
     },
     {
-      "id": "wire_36",
+      "id": "wire_30",
       "routing_points": [
         [
-          1120.0,
-          -96.0
+          896.0,
+          48.0
         ],
         [
-          1120.0,
-          0.0
+          896.0,
+          240.0
         ],
         [
-          960.0,
-          0.0
+          560.0,
+          240.0
         ]
       ],
-      "source": "/currentsense_1:v_out",
+      "source": "/controlledvoltagesource_2:v_neg",
       "target": "/bus_1:v"
     },
     {
@@ -2749,15 +3266,7 @@
       "routing_points": [
         [
           784.0,
-          -160.0
-        ],
-        [
-          848.0,
-          -160.0
-        ],
-        [
-          848.0,
-          -400.0
+          -432.0
         ]
       ],
       "source": "/bus_2:v",
@@ -2791,6 +3300,12 @@
     },
     {
       "id": "wire_77",
+      "routing_points": [
+        [
+          1264.0,
+          -384.0
+        ]
+      ],
       "source": "/value_4:o",
       "target": "/multiply_3:B"
     },
@@ -2811,11 +3326,23 @@
     },
     {
       "id": "wire_83",
+      "routing_points": [
+        [
+          1600.0,
+          -272.0
+        ]
+      ],
       "source": "/value_5:o",
       "target": "/multiply_4:B"
     },
     {
       "id": "wire_84",
+      "routing_points": [
+        [
+          1760.0,
+          -288.0
+        ]
+      ],
       "source": "/multiply_4:o",
       "target": "/clamp_1:in"
     },
@@ -2824,7 +3351,7 @@
       "routing_points": [
         [
           1456.0,
-          -272.0
+          -256.0
         ],
         [
           1456.0,
@@ -2937,7 +3464,105 @@
       "id": "wire_99",
       "source": "/subtract_2:o",
       "target": "/clamp_3:in"
+    },
+    {
+      "id": "wire_rotor_8",
+      "source": "/value_rotor_inv_inertia:o",
+      "target": "/divide_rotor_accel:inv_inertia"
+    },
+    {
+      "id": "wire_rotor_10",
+      "source": "/value_rotor_mass:o",
+      "target": "/divide_rotor_accel:mass"
+    },
+    {
+      "id": "wire_rotor_11",
+      "source": "/value_rotor_damping:o",
+      "target": "/divide_rotor_accel:damping"
+    },
+    {
+      "id": "wire_114",
+      "routing_points": [
+        [
+          800.0,
+          -480.0
+        ],
+        [
+          1072.0,
+          -480.0
+        ],
+        [
+          1072.0,
+          -672.0
+        ]
+      ],
+      "source": "/bus_2:v",
+      "target": "/relay_1:v_in"
+    },
+    {
+      "id": "wire_115",
+      "source": "/relay_1:v_out",
+      "target": "/resistor_2:v_in"
+    },
+    {
+      "id": "wire_116",
+      "source": "/resistor_2:v_out",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_117",
+      "source": "/comparator_1:o",
+      "target": "/relay_1:control"
+    },
+    {
+      "id": "wire_118",
+      "routing_points": [
+        [
+          816.0,
+          -528.0
+        ],
+        [
+          896.0,
+          -528.0
+        ],
+        [
+          896.0,
+          -672.0
+        ]
+      ],
+      "source": "/bus_2:v",
+      "target": "/comparator_1:Vb"
+    },
+    {
+      "id": "wire_119",
+      "source": "/battery_1:v_out",
+      "target": "/comparator_1:Va"
+    },
+    {
+      "id": "wire_122",
+      "source": "/extract_inst_4:out",
+      "target": "/normalize_1:in"
+    },
+    {
+      "id": "wire_123",
+      "source": "/normalize_1:out",
+      "target": "/multiply_1:B"
+    },
+    {
+      "id": "wire_126",
+      "source": "/divide_rotor_accel:rpm_out",
+      "target": "/extract_inst_4:out:port"
+    },
+    {
+      "id": "wire_128",
+      "source": "/extract_inst_4:Torque:port",
+      "target": "/divide_rotor_accel:torque_in"
+    },
+    {
+      "id": "wire_129",
+      "source": "/slider_1:out",
+      "target": "/extract_inst_4:Torque"
     }
   ],
-  "zoom": 1.0176496505737305
+  "zoom": 0.7412035465240479
 }

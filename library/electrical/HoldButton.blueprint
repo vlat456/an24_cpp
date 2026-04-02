@@ -43,7 +43,20 @@
     "Logical"
   ],
   "param_defaults": {
-    "idle": "0.0"
+    "idle": "0.0",
+    "g_open": "1e-6",
+    "g_closed": "1000.0"
+  },
+  "param_schema": {
+    "idle": {
+      "type": "float"
+    },
+    "g_open": {
+      "type": "float"
+    },
+    "g_closed": {
+      "type": "float"
+    }
   },
   "content_type": "HoldButton"
 }

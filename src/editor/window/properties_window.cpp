@@ -70,70 +70,6 @@ static bool parse_table_entries(const std::string& str,
     return !keys.empty();
 }
 
-static bp2::Blueprint replace_node_preserve_order(const bp2::Blueprint& bp,
-                                                  bp2::Blueprint::Node updated) {
-    bp2::Blueprint rebuilt;
-    rebuilt = rebuilt.with_id(bp.id());
-    rebuilt = rebuilt.with_display_name(bp.display_name());
-    rebuilt = rebuilt.with_interface(bp.iface());
-    rebuilt = rebuilt.with_viewport(bp.pan_x(), bp.pan_y(), bp.zoom(), bp.grid_step());
-    rebuilt = rebuilt.with_name(bp.name());
-
-    bool replaced = false;
-    for (const auto& n : bp.nodes()) {
-        if (n.id == updated.id) {
-            rebuilt = rebuilt.with_node(updated);
-            replaced = true;
-        } else {
-            rebuilt = rebuilt.with_node(n);
-        }
-    }
-    if (!replaced) {
-        rebuilt = rebuilt.with_node(std::move(updated));
-    }
-
-    for (const auto& w : bp.wires()) {
-        rebuilt = rebuilt.with_wire(w);
-    }
-    for (const auto& n : bp.nested()) {
-        rebuilt = rebuilt.with_nested(n);
-    }
-
-    return rebuilt;
-}
-
-static bp2::Blueprint replace_nested_preserve_order(const bp2::Blueprint& bp,
-                                                    bp2::Blueprint::Nested updated) {
-    bp2::Blueprint rebuilt;
-    rebuilt = rebuilt.with_id(bp.id());
-    rebuilt = rebuilt.with_display_name(bp.display_name());
-    rebuilt = rebuilt.with_interface(bp.iface());
-    rebuilt = rebuilt.with_viewport(bp.pan_x(), bp.pan_y(), bp.zoom(), bp.grid_step());
-    rebuilt = rebuilt.with_name(bp.name());
-
-    for (const auto& n : bp.nodes()) {
-        rebuilt = rebuilt.with_node(n);
-    }
-    for (const auto& w : bp.wires()) {
-        rebuilt = rebuilt.with_wire(w);
-    }
-
-    bool replaced = false;
-    for (const auto& n : bp.nested()) {
-        if (n.id == updated.id) {
-            rebuilt = rebuilt.with_nested(updated);
-            replaced = true;
-        } else {
-            rebuilt = rebuilt.with_nested(n);
-        }
-    }
-    if (!replaced) {
-        rebuilt = rebuilt.with_nested(std::move(updated));
-    }
-
-    return rebuilt;
-}
-
 // Serialize back to "k1:v1; k2:v2; ..." (locale-independent)
 static std::string serialize_table_entries(const std::vector<float>& keys,
                                            const std::vector<float>& values) {
@@ -257,6 +193,11 @@ void PropertiesWindow::render() {
         for (const auto& [k, _] : pending_string_params_) string_keys.push_back(k);
         std::sort(string_keys.begin(), string_keys.end());
 
+        // Determine if this is a bridge node so we can skip exposed_type/
+        // exposed_direction — those are edited via the dedicated PortType
+        // dropdown rendered by render_bridge_port_type_section() below.
+        const bool is_bridge = target && is_bridge_node_type(*interner_, target->type);
+
         for (const auto& key : string_keys) {
             if (key == "table") {
                 render_table_param(key);
@@ -266,6 +207,8 @@ void PropertiesWindow::render() {
                 render_font_size_param(key);
             } else if (key == "port_edge") {
                 render_port_edge_param(key);
+            } else if (is_bridge && (key == "exposed_type" || key == "exposed_direction")) {
+                // Skip — handled by render_bridge_port_type_section()
             } else {
                 render_generic_string_param(key);
             }
@@ -658,7 +601,7 @@ void PropertiesWindow::apply() {
         }
 
         // Single atomic checkpoint + replace
-        bp2::Blueprint next_bp = replace_node_preserve_order(model_->current(), std::move(updated));
+        bp2::Blueprint next_bp = bp2::replace_node_preserve_order(model_->current(), std::move(updated));
 
         // If editing an extracted bridge node (<nested_id>:<iface_name>), propagate
         // type/domain to the parent collapsed node port and nested iface descriptor
@@ -682,7 +625,7 @@ void PropertiesWindow::apply() {
                         for (auto& p : n.outputs) {
                             if (p.name == iface_iid) p.type = *pending_bridge_port_type_;
                         }
-                        next_bp = replace_node_preserve_order(next_bp, std::move(n));
+                        next_bp = bp2::replace_node_preserve_order(next_bp, std::move(n));
                     }
 
                     // Update nested iface domain for the corresponding boundary port
@@ -694,7 +637,7 @@ void PropertiesWindow::apply() {
                             if (pd.name == iface_iid) pd.domain = d;
                         }
                         n.iface = bp2::Interface(std::move(ports));
-                        next_bp = replace_nested_preserve_order(next_bp, std::move(n));
+                        next_bp = bp2::replace_nested_preserve_order(next_bp, std::move(n));
                     }
                 }
             }

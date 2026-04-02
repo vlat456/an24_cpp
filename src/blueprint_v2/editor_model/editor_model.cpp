@@ -3,18 +3,27 @@
 
 namespace bp2 {
 
-static Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updated) {
+namespace {
+
+Blueprint clone_metadata(const Blueprint& bp) {
     Blueprint rebuilt;
     rebuilt = rebuilt.with_id(bp.id());
     rebuilt = rebuilt.with_display_name(bp.display_name());
     rebuilt = rebuilt.with_interface(bp.iface());
     rebuilt = rebuilt.with_viewport(bp.pan_x(), bp.pan_y(), bp.zoom(), bp.grid_step());
     rebuilt = rebuilt.with_name(bp.name());
+    return rebuilt;
+}
+
+} // namespace
+
+Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updated) {
+    Blueprint rebuilt = clone_metadata(bp);
 
     bool replaced = false;
     for (const auto& n : bp.nodes()) {
         if (n.id == updated.id) {
-            rebuilt = rebuilt.with_node(updated);
+            rebuilt = rebuilt.with_node(std::move(updated));
             replaced = true;
         } else {
             rebuilt = rebuilt.with_node(n);
@@ -34,13 +43,8 @@ static Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Nod
     return rebuilt;
 }
 
-static Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated) {
-    Blueprint rebuilt;
-    rebuilt = rebuilt.with_id(bp.id());
-    rebuilt = rebuilt.with_display_name(bp.display_name());
-    rebuilt = rebuilt.with_interface(bp.iface());
-    rebuilt = rebuilt.with_viewport(bp.pan_x(), bp.pan_y(), bp.zoom(), bp.grid_step());
-    rebuilt = rebuilt.with_name(bp.name());
+Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated) {
+    Blueprint rebuilt = clone_metadata(bp);
 
     for (const auto& n : bp.nodes()) {
         rebuilt = rebuilt.with_node(n);
@@ -49,7 +53,7 @@ static Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wir
     bool replaced = false;
     for (const auto& w : bp.wires()) {
         if (w.id == updated.id) {
-            rebuilt = rebuilt.with_wire(updated);
+            rebuilt = rebuilt.with_wire(std::move(updated));
             replaced = true;
         } else {
             rebuilt = rebuilt.with_wire(w);
@@ -61,6 +65,32 @@ static Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wir
 
     for (const auto& n : bp.nested()) {
         rebuilt = rebuilt.with_nested(n);
+    }
+
+    return rebuilt;
+}
+
+Blueprint replace_nested_preserve_order(const Blueprint& bp, Blueprint::Nested updated) {
+    Blueprint rebuilt = clone_metadata(bp);
+
+    for (const auto& n : bp.nodes()) {
+        rebuilt = rebuilt.with_node(n);
+    }
+    for (const auto& w : bp.wires()) {
+        rebuilt = rebuilt.with_wire(w);
+    }
+
+    bool replaced = false;
+    for (const auto& n : bp.nested()) {
+        if (n.id == updated.id) {
+            rebuilt = rebuilt.with_nested(std::move(updated));
+            replaced = true;
+        } else {
+            rebuilt = rebuilt.with_nested(n);
+        }
+    }
+    if (!replaced) {
+        rebuilt = rebuilt.with_nested(std::move(updated));
     }
 
     return rebuilt;

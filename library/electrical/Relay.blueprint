@@ -44,13 +44,21 @@
   ],
   "param_defaults": {
     "closed": "false",
-    "hold_threshold": "0.5"
+    "hold_threshold": "0.5",
+    "g_open": "1e-6",
+    "g_closed": "1000.0"
   },
   "param_schema": {
     "closed": {
       "type": "bool"
     },
     "hold_threshold": {
+      "type": "float"
+    },
+    "g_open": {
+      "type": "float"
+    },
+    "g_closed": {
       "type": "float"
     }
   }

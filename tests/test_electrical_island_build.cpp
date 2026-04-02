@@ -385,6 +385,34 @@ TEST(ElectricalIslandBuild, UnsupportedComponentsIgnored) {
     EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), ElectricalElementKind::FixedVoltageNode) != kinds.end());
 }
 
+TEST(ElectricalIslandBuild, RelayCreatesDynamicConductanceBranch) {
+    std::vector<DeviceInstance> devices = {
+        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("relay", "Relay", {{"g_open", "1e-6"}, {"g_closed", "1000.0"}}),
+        make_device("refnode", "RefNode", {{"value", "0.0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"battery.v_out", "relay.v_in"},
+        {"relay.v_out", "refnode.v"},
+        {"battery.v_in", "refnode.v"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    ASSERT_FALSE(result.electrical_plan.islands.empty());
+    const auto& island = result.electrical_plan.islands[0];
+
+    bool found_relay_branch = false;
+    for (const auto& elem : island.elements) {
+        if (elem.kind == ElectricalElementKind::ConductanceBranch) {
+            found_relay_branch = true;
+            EXPECT_NEAR(elem.value_a, 1e-6f, 1e-10f);
+        }
+    }
+    EXPECT_TRUE(found_relay_branch);
+}
+
 TEST(ElectricalIslandBuild, BatteryWithExtraParamsDoesNotThrow) {
     // Regression: extraction block must tolerate params it doesn't need
     // (capacity, charge are consumed by component creation but not by extraction)

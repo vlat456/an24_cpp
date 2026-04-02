@@ -1,6 +1,7 @@
 #include "document.h"
 #include "commands/commands.h"
 #include "commands/extract_blueprint.h"
+#include "common/port_type_utils.h"
 #include "visual/scene_mutations.h"
 #include "visual/persist.h"
 #include "visual/snap.h"
@@ -34,6 +35,9 @@ std::string Document::title() const {
     } else {
         base = display_name_;
     }
+    if (model_.is_dirty()) {
+        base += "*";
+    }
     if (window_manager_.root().read_only) {
         base += " [Read Only]";
     }
@@ -45,6 +49,16 @@ std::string Document::title() const {
 // ============================================================================
 
 using json = nlohmann::json;
+
+namespace {
+
+bool has_default_pan_zoom(const bp2::Blueprint& bp) {
+    return std::abs(bp.pan_x()) < 1e-6f
+        && std::abs(bp.pan_y()) < 1e-6f
+        && std::abs(bp.zoom() - 1.0f) < 1e-6f;
+}
+
+} // namespace
 
 static const char* sim_port_type_str(PortType t) {
     switch (t) {
@@ -434,6 +448,19 @@ void Document::updateNodeContentFromSimulation() {
                 auto it = n.params.find(max_key);
                 if (it != n.params.end()) content.max = it->second;
             }
+
+            // Keep UI thumb synced with runtime slider output while simulation runs.
+            // Without this, content.value falls back to immutable blueprint default each
+            // frame and appears non-interactive during simulation.
+            float out_val = simulation_.get_port_value(nid, "out");
+            if (std::isfinite(out_val)) {
+                content.value = out_val;
+            } else {
+                float control_val = simulation_.get_port_value(nid, "control");
+                if (std::isfinite(control_val)) {
+                    content.value = control_val;
+                }
+            }
         }
 
         // Push updated content to visual widgets in all windows
@@ -568,11 +595,7 @@ void Document::openExternalRefWindow(const std::string& instance_id,
     win->external_arena = std::move(ext_arena);
     win->parent_instance_id = instance_id;
     win->set_read_only(true);
-    const bool has_default_viewport =
-        std::abs(win->external_blueprint->pan_x()) < 1e-6f
-        && std::abs(win->external_blueprint->pan_y()) < 1e-6f
-        && std::abs(win->external_blueprint->zoom() - 1.0f) < 1e-6f;
-    win->pending_auto_fit = has_default_viewport;
+    win->pending_auto_fit = has_default_pan_zoom(*win->external_blueprint);
 
     // Rebuild scene from the external blueprint (root scope = empty group_id)
     visual::mutations::rebuild(win->scene, *win->external_blueprint,
@@ -630,6 +653,74 @@ void Document::holdButtonRelease(const std::string& node_id) {
 // ============================================================================
 // Component addition
 // ============================================================================
+
+/// Parse a PortType from an exposed_type string param value (e.g. "V", "Bool").
+static PortType parse_exposed_port_type(const std::string& s) {
+    if (s == "V") return PortType::V;
+    if (s == "I") return PortType::I;
+    if (s == "Bool") return PortType::Bool;
+    if (s == "RPM") return PortType::RPM;
+    if (s == "Temperature") return PortType::Temperature;
+    if (s == "Pressure") return PortType::Pressure;
+    if (s == "Position") return PortType::Position;
+    return PortType::V; // default
+}
+
+/// Synchronise the collapsed parent node and nested iface after a bridge node
+/// (BlueprintInput / BlueprintOutput) is manually added inside an extracted
+/// group.  Adds the corresponding port on the collapsed node and a matching
+/// PortDescriptor on the nested iface so that the new bridge is visible at
+/// the parent level.
+static void sync_bridge_to_collapsed_and_nested(
+    bp2::EditorModel& model,
+    ui::StringInterner& interner,
+    const std::string& group_id,
+    const std::string& iface_name,
+    bool is_input_bridge,
+    PortType port_type) {
+
+    const ui::InternedId group_iid = interner.intern(group_id);
+    const ui::InternedId iface_iid = interner.intern(iface_name);
+
+    bp2::Blueprint bp = model.current();
+
+    // --- Update collapsed node ---
+    const auto* collapsed = bp.find_node(group_iid);
+    if (!collapsed) {
+        spdlog::warn("[editor] sync_bridge: collapsed node '{}' not found", group_id);
+        return;
+    }
+
+    bp2::Blueprint::Node cn = *collapsed;
+    if (is_input_bridge) {
+        cn.inputs.emplace_back(iface_iid, PortSide::Input, port_type);
+    } else {
+        cn.outputs.emplace_back(iface_iid, PortSide::Output, port_type);
+    }
+    // Also update collapsed node iface
+    {
+        std::vector<bp2::PortDescriptor> ports = cn.iface.ports();
+        const Domain d = editor::common::domain_for_port_type(port_type);
+        ports.push_back({iface_iid, d,
+                         is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output});
+        cn.iface = bp2::Interface(std::move(ports));
+    }
+    bp = bp2::replace_node_preserve_order(bp, std::move(cn));
+
+    // --- Update nested iface ---
+    const auto* nested = bp.find_nested(group_iid);
+    if (nested) {
+        bp2::Blueprint::Nested n = *nested;
+        std::vector<bp2::PortDescriptor> ports = n.iface.ports();
+        const Domain d = editor::common::domain_for_port_type(port_type);
+        ports.push_back({iface_iid, d,
+                         is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output});
+        n.iface = bp2::Interface(std::move(ports));
+        bp = bp2::replace_nested_preserve_order(bp, std::move(n));
+    }
+
+    model.replace_current(std::move(bp));
+}
 
 void Document::addComponent(const std::string& classname, Pt world_pos,
                               const std::string& group_id,
@@ -693,6 +784,29 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         }
     }
 
+    // Bridge node special handling: when adding BlueprintInput/BlueprintOutput
+    // inside an extracted group, override the bridge ID to the canonical
+    // pattern {group_id}:{name} and refine port types from exposed_type.
+    const bool is_bridge = (classname == "BlueprintInput" || classname == "BlueprintOutput");
+    const bool bridge_in_group = is_bridge && !group_id.empty()
+        && model_.current().find_node(interner_.intern(group_id)) != nullptr;
+
+    if (bridge_in_group) {
+        // Canonical bridge node ID: {group_id}:{name}
+        std::string canonical_id = group_id + ":" + node.name;
+        node.id = interner_.intern(canonical_id);
+        unique_id = canonical_id;
+
+        // Refine port types from exposed_type string param
+        PortType pt = PortType::V;
+        auto et_it = node.string_params.find("exposed_type");
+        if (et_it != node.string_params.end()) {
+            pt = parse_exposed_port_type(et_it->second);
+        }
+        for (auto& p : node.inputs) p.type = pt;
+        for (auto& p : node.outputs) p.type = pt;
+    }
+
     // Set node content from type definition
     {
         NodeContent nc = create_node_content_from_def(def);
@@ -707,6 +821,17 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     // Execute via command system (undoable)
+    // Capture bridge sync info before the node is moved into the command.
+    const std::string bridge_iface_name = bridge_in_group ? node.name : "";
+    const bool bridge_is_input = (classname == "BlueprintInput");
+    PortType bridge_port_type = PortType::V;
+    if (bridge_in_group) {
+        auto et_it = node.string_params.find("exposed_type");
+        if (et_it != node.string_params.end()) {
+            bridge_port_type = parse_exposed_port_type(et_it->second);
+        }
+    }
+
     const bp2::Blueprint before_add = model_.current();
 #ifndef NDEBUG
     std::string before_integrity_err;
@@ -718,6 +843,15 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         model_.push_checkpoint();
         checkpoint_pushed = true;
         execute(model_, interner_, cmd_add_node(std::move(node)));
+
+        // Synchronize collapsed node ports and nested iface when a bridge
+        // node is manually added inside an extracted group.
+        if (bridge_in_group) {
+            sync_bridge_to_collapsed_and_nested(
+                model_, interner_, group_id,
+                bridge_iface_name, bridge_is_input, bridge_port_type);
+        }
+
 #ifndef NDEBUG
         {
             std::string err;
@@ -797,19 +931,28 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
     auto lookup_id = interner_.lookup(sub_blueprint_id);
     const bp2::Blueprint::Nested* nested = lookup_id.empty() ? nullptr : model_.current().find_nested(lookup_id);
 
-    if (target.kind == editor::SubWindowOpenTargetKind::Nested && nested) {
+    if ((target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested
+         || target.kind == editor::SubWindowOpenTargetKind::ReferencedNested)
+        && nested) {
         std::string type_name = std::string(interner_.resolve(nested->blueprint_id));
-        auto* win = window_manager_.open(sub_blueprint_id,
-                                         type_name + " [" + sub_blueprint_id + "]");
+        auto [win, created] = window_manager_.open(sub_blueprint_id,
+                                                   type_name + " [" + sub_blueprint_id + "]");
+        if (!created) {
+            spdlog::info("[editor] Reactivated sub-window for '{}'", sub_blueprint_id);
+            return;
+        }
+
         if (win) {
             // Non-embedded (reference) sub-blueprints are read-only
             win->set_read_only(!nested->embedded);
 
-            const bool has_default_viewport =
-                std::abs(nested->inline_def->pan_x()) < 1e-6f
-                && std::abs(nested->inline_def->pan_y()) < 1e-6f
-                && std::abs(nested->inline_def->zoom() - 1.0f) < 1e-6f;
-            win->pending_auto_fit = has_default_viewport;
+            if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && nested->inline_def) {
+                win->pending_auto_fit = has_default_pan_zoom(*nested->inline_def);
+            } else {
+                // Referenced nested or embedded with missing inline_def:
+                // no saved viewport, auto-fit on first open.
+                win->pending_auto_fit = true;
+            }
         }
 
         spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);

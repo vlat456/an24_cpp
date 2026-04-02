@@ -4,6 +4,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/registry/type_registry.h"
 #include "blueprint_v2/validation/invariant_checker.h"
+#include "editor/subwindow_open_target.h"
 #include <random>
 
 TEST(EditorModel, EmptyByDefault) {
@@ -586,4 +587,243 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
 
         validate_now();
     }
+}
+
+// =============================================================================
+// replace_*_preserve_order free functions
+// =============================================================================
+
+TEST(ReplacePreserveOrder, NodeReplacementKeepsInsertionOrder) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    bp2::Blueprint::Node n1;
+    n1.id = interner.intern("a");
+    n1.type = interner.intern("Battery");
+    n1.x = 10.0f;
+
+    bp2::Blueprint::Node n2;
+    n2.id = interner.intern("b");
+    n2.type = interner.intern("Resistor");
+
+    bp2::Blueprint::Node n3;
+    n3.id = interner.intern("c");
+    n3.type = interner.intern("Lamp");
+
+    bp = bp.with_node(n1).with_node(n2).with_node(n3);
+
+    // Update n2's position
+    bp2::Blueprint::Node updated = n2;
+    updated.x = 99.0f;
+
+    bp2::Blueprint result = bp2::replace_node_preserve_order(bp, std::move(updated));
+
+    ASSERT_EQ(result.nodes().size(), 3u);
+    EXPECT_EQ(result.nodes()[0].id, interner.intern("a"));
+    EXPECT_EQ(result.nodes()[1].id, interner.intern("b"));
+    EXPECT_EQ(result.nodes()[2].id, interner.intern("c"));
+    EXPECT_FLOAT_EQ(result.nodes()[1].x, 99.0f);
+}
+
+TEST(ReplacePreserveOrder, NodeAppendsIfNotFound) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    bp2::Blueprint::Node n1;
+    n1.id = interner.intern("a");
+    n1.type = interner.intern("Battery");
+    bp = bp.with_node(n1);
+
+    bp2::Blueprint::Node new_node;
+    new_node.id = interner.intern("z");
+    new_node.type = interner.intern("Resistor");
+
+    bp2::Blueprint result = bp2::replace_node_preserve_order(bp, std::move(new_node));
+
+    ASSERT_EQ(result.nodes().size(), 2u);
+    EXPECT_EQ(result.nodes()[0].id, interner.intern("a"));
+    EXPECT_EQ(result.nodes()[1].id, interner.intern("z"));
+}
+
+TEST(ReplacePreserveOrder, WireReplacementKeepsInsertionOrder) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::Blueprint bp;
+
+    auto make_wire = [&](const char* id) {
+        bp2::Blueprint::Wire w;
+        w.id = interner.intern(id);
+        w.source = arena.make_port(
+            arena.make_node(arena.root(), interner.intern("n1")),
+            interner.intern("out"));
+        w.target = arena.make_port(
+            arena.make_node(arena.root(), interner.intern("n2")),
+            interner.intern("in"));
+        return w;
+    };
+
+    bp = bp.with_wire(make_wire("w1")).with_wire(make_wire("w2")).with_wire(make_wire("w3"));
+
+    bp2::Blueprint::Wire updated = make_wire("w2");
+    updated.domain = Domain::Mechanical;
+
+    bp2::Blueprint result = bp2::replace_wire_preserve_order(bp, std::move(updated));
+
+    ASSERT_EQ(result.wires().size(), 3u);
+    EXPECT_EQ(result.wires()[0].id, interner.intern("w1"));
+    EXPECT_EQ(result.wires()[1].id, interner.intern("w2"));
+    EXPECT_EQ(result.wires()[2].id, interner.intern("w3"));
+    EXPECT_EQ(result.wires()[1].domain, Domain::Mechanical);
+}
+
+TEST(ReplacePreserveOrder, NestedReplacementKeepsInsertionOrder) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    bp2::Blueprint::Nested a;
+    a.id = interner.intern("sub_a");
+    a.blueprint_id = interner.intern("bp_a");
+
+    bp2::Blueprint::Nested b;
+    b.id = interner.intern("sub_b");
+    b.blueprint_id = interner.intern("bp_b");
+
+    bp2::Blueprint::Nested c;
+    c.id = interner.intern("sub_c");
+    c.blueprint_id = interner.intern("bp_c");
+
+    bp = bp.with_nested(std::move(a)).with_nested(std::move(b)).with_nested(std::move(c));
+
+    bp2::Blueprint::Nested updated;
+    updated.id = interner.intern("sub_b");
+    updated.blueprint_id = interner.intern("bp_b_v2");
+
+    bp2::Blueprint result = bp2::replace_nested_preserve_order(bp, std::move(updated));
+
+    ASSERT_EQ(result.nested().size(), 3u);
+    EXPECT_EQ(result.nested()[0].id, interner.intern("sub_a"));
+    EXPECT_EQ(result.nested()[1].id, interner.intern("sub_b"));
+    EXPECT_EQ(result.nested()[2].id, interner.intern("sub_c"));
+    EXPECT_EQ(result.nested()[1].blueprint_id, interner.intern("bp_b_v2"));
+}
+
+TEST(ReplacePreserveOrder, ReplacementPreservesViewportAndMetadata) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("test_bp"));
+    bp = bp.with_display_name("Test Blueprint");
+    bp = bp.with_name("test");
+    bp = bp.with_viewport(100.0f, 200.0f, 2.0f, 32.0f);
+    bp = bp.with_interface(bp2::Interface({
+        {interner.intern("ext_in"), Domain::Electrical, bp2::Direction::Input},
+    }));
+
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("n1");
+    n.type = interner.intern("Battery");
+    bp = bp.with_node(n);
+
+    bp2::Blueprint result = bp2::replace_node_preserve_order(bp, std::move(n));
+
+    EXPECT_EQ(result.id(), interner.intern("test_bp"));
+    EXPECT_EQ(result.display_name(), "Test Blueprint");
+    EXPECT_EQ(result.name(), "test");
+    EXPECT_FLOAT_EQ(result.pan_x(), 100.0f);
+    EXPECT_FLOAT_EQ(result.pan_y(), 200.0f);
+    EXPECT_FLOAT_EQ(result.zoom(), 2.0f);
+    EXPECT_FLOAT_EQ(result.grid_step(), 32.0f);
+    ASSERT_EQ(result.iface().ports().size(), 1u);
+    EXPECT_EQ(result.iface().ports()[0].name, interner.intern("ext_in"));
+}
+
+TEST(ReplacePreserveOrder, WireReplacementPreservesViewportAndMetadata) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("test_bp2"));
+    bp = bp.with_display_name("Test Blueprint 2");
+    bp = bp.with_name("test2");
+    bp = bp.with_viewport(50.0f, 75.0f, 1.5f, 24.0f);
+    bp = bp.with_interface(bp2::Interface({
+        {interner.intern("ext_out"), Domain::Mechanical, bp2::Direction::Output},
+    }));
+
+    bp2::Blueprint::Wire w;
+    w.id = interner.intern("w1");
+    w.source = arena.make_port(arena.make_node(arena.root(), interner.intern("n1")), interner.intern("out"));
+    w.target = arena.make_port(arena.make_node(arena.root(), interner.intern("n2")), interner.intern("in"));
+    bp = bp.with_wire(w);
+
+    bp2::Blueprint result = bp2::replace_wire_preserve_order(bp, std::move(w));
+
+    EXPECT_EQ(result.id(), interner.intern("test_bp2"));
+    EXPECT_EQ(result.display_name(), "Test Blueprint 2");
+    EXPECT_EQ(result.name(), "test2");
+    EXPECT_FLOAT_EQ(result.pan_x(), 50.0f);
+    EXPECT_FLOAT_EQ(result.pan_y(), 75.0f);
+    EXPECT_FLOAT_EQ(result.zoom(), 1.5f);
+    EXPECT_FLOAT_EQ(result.grid_step(), 24.0f);
+    ASSERT_EQ(result.iface().ports().size(), 1u);
+    EXPECT_EQ(result.iface().ports()[0].name, interner.intern("ext_out"));
+}
+
+TEST(ReplacePreserveOrder, NestedReplacementPreservesViewportAndMetadata) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("test_bp3"));
+    bp = bp.with_display_name("Test Blueprint 3");
+    bp = bp.with_name("test3");
+    bp = bp.with_viewport(10.0f, 20.0f, 3.0f, 48.0f);
+    bp = bp.with_interface(bp2::Interface({
+        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    }));
+
+    bp2::Blueprint::Nested n;
+    n.id = interner.intern("sub1");
+    n.blueprint_id = interner.intern("bp_sub");
+    bp = bp.with_nested(std::move(n));
+
+    bp2::Blueprint::Nested updated;
+    updated.id = interner.intern("sub1");
+    updated.blueprint_id = interner.intern("bp_sub_v2");
+    bp2::Blueprint result = bp2::replace_nested_preserve_order(bp, std::move(updated));
+
+    EXPECT_EQ(result.id(), interner.intern("test_bp3"));
+    EXPECT_EQ(result.display_name(), "Test Blueprint 3");
+    EXPECT_EQ(result.name(), "test3");
+    EXPECT_FLOAT_EQ(result.pan_x(), 10.0f);
+    EXPECT_FLOAT_EQ(result.pan_y(), 20.0f);
+    EXPECT_FLOAT_EQ(result.zoom(), 3.0f);
+    EXPECT_FLOAT_EQ(result.grid_step(), 48.0f);
+    // Interface should also be preserved
+    ASSERT_EQ(result.iface().ports().size(), 1u);
+    EXPECT_EQ(result.iface().ports()[0].name, interner.intern("in"));
+}
+
+// Regression: non-embedded nested has null inline_def.
+// resolve_subwindow_open_target returns Nested for BOTH embedded and
+// non-embedded entries. Callers must null-check inline_def.
+TEST(SubWindowOpenTargetRegression, NonEmbeddedNestedHasNullInlineDef) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    bp2::Blueprint::Nested nested;
+    nested.id = interner.intern("sub1");
+    nested.blueprint_id = interner.intern("math/FirstOrderLag");
+    nested.embedded = false;
+    // inline_def is nullptr by default for non-embedded
+    EXPECT_EQ(nested.inline_def, nullptr);
+
+    bp = bp.with_nested(std::move(nested));
+
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, "sub1");
+    EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ReferencedNested);
+
+    // After resolution, caller must check inline_def before dereferencing.
+    const auto* found = bp.find_nested(interner.intern("sub1"));
+    ASSERT_NE(found, nullptr);
+    EXPECT_FALSE(found->embedded);
+    EXPECT_EQ(found->inline_def, nullptr);  // This is the crash scenario
 }

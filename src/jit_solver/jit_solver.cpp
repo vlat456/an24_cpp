@@ -109,6 +109,7 @@ bool is_solver_owned_electrical_propagator(std::string_view classname) {
            classname == "ControlledVoltageSource" ||
            classname == "AZS" ||
            classname == "HoldButton" ||
+           classname == "Relay" ||
            classname == "VariableConductance";
 }
 
@@ -454,11 +455,13 @@ BuildResult build_systems_dev(
             
             comp.closed = param_reader.consume_bool_optional("closed", false);
             comp.hold_threshold = param_reader.consume_float_optional("hold_threshold", 0.5f);
+            comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
+            comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
             setup_ports(comp);
             param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<Relay<JitProvider>>(result.devices[dev.name]));
+            // Solver-owned electrical path; commit() runs in solver-owned commit pass.
         }
         else if (dev.classname == "HoldButton") {
             HoldButton<JitProvider> comp;
@@ -1111,8 +1114,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "InertiaNode") {
             InertiaNode<JitProvider> comp;
             
-            comp.mass = param_reader.consume_float_optional("mass", 1.0f);
-            comp.damping = param_reader.consume_float_optional("damping", 0.5f);
+            comp.initial_rpm = param_reader.consume_float_optional("initial_rpm", 1.0f);
             comp.pre_load();
             setup_ports(comp);
             param_reader.validate_all_consumed();
@@ -1809,6 +1811,21 @@ BuildResult build_systems_dev(
                 dev.name
             });
         }
+        else if (dev.classname == "Relay") {
+            // ConductanceBranch with dynamic conductance switched by Relay.closed.
+            float g_open_val = read_param_float(dev, "g_open", 1e-6f);
+            uint32_t node_a = resolve_port(dev, "v_in");
+            uint32_t node_b = resolve_port(dev, "v_out");
+            raw_elements.push_back({
+                ElectricalElementKind::ConductanceBranch,
+                node_a,
+                node_b,
+                g_open_val,
+                0.0f,
+                element_idx++,
+                dev.name
+            });
+        }
         // Unsupported components are silently ignored for electrical_plan
     }
 
@@ -1957,7 +1974,8 @@ BuildResult build_systems_dev(
                               std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
                               std::is_same_v<CompType, VariableConductance<JitProvider>> ||
                               std::is_same_v<CompType, AZS<JitProvider>> ||
-                              std::is_same_v<CompType, HoldButton<JitProvider>>) {
+                              std::is_same_v<CompType, HoldButton<JitProvider>> ||
+                              std::is_same_v<CompType, Relay<JitProvider>>) {
                     comp.electrical_handle = handle;
                 }
             }, it->second);

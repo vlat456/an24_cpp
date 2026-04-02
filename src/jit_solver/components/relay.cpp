@@ -17,12 +17,9 @@ void Relay<Provider>::commit_control(SimulationState& st, float dt) {
 
 template <typename Provider>
 void Relay<Provider>::execute(SimulationState& st, float /*dt*/) {
-    if (closed) {
-        float v_in = st.values[provider.get(PortNames::v_in)];
-        st.values[provider.get(PortNames::v_out)] = v_in;
-    } else {
-        st.values[provider.get(PortNames::v_out)] = 0.0f;
-    }
+    // Electrical behavior is solver-owned via dynamic conductance branch.
+    // Relay execute only updates non-electrical control/state outputs.
+    (void)st;
 }
 
 template <typename Provider>

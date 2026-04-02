@@ -704,3 +704,72 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_NoChangesDoesNotPushUndo) {
 
     EXPECT_FALSE(model.can_undo()) << "No changes should not push to undo stack";
 }
+
+// =============================================================================
+// Phase 6: Bridge Node Duplicate Control Regression (Bug 2)
+// =============================================================================
+
+// Regression: BlueprintInput/BlueprintOutput nodes carry exposed_type and
+// exposed_direction as string_params (from param_defaults).  The properties
+// dialog must NOT render these as generic text-input controls because they are
+// already covered by the dedicated PortType dropdown
+// (render_bridge_port_type_section).  This test verifies that the data layer
+// correctly carries these keys in pending_string_params_ so the rendering
+// skip logic has something to filter.  The actual skip is in the #ifndef
+// EDITOR_TESTING render() path (see properties_window.cpp line ~210).
+TEST_F(PropertiesWindowTest, BridgeNode_ExposedParamsInStringParams) {
+    auto n = make_bridge_node(interner, "inst:my_input", true, PortType::V);
+    n.string_params["exposed_type"]      = "V";
+    n.string_params["exposed_direction"] = "In";
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst:my_input"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "inst:my_input", model, interner, [](const std::string&) {});
+
+    // The keys must be present in pending_string_params — they exist as data
+    const auto& sp = win.pending_string_params();
+    EXPECT_NE(sp.find("exposed_type"), sp.end())
+        << "exposed_type must be present in pending string params";
+    EXPECT_NE(sp.find("exposed_direction"), sp.end())
+        << "exposed_direction must be present in pending string params";
+    EXPECT_EQ(sp.at("exposed_type"), "V");
+    EXPECT_EQ(sp.at("exposed_direction"), "In");
+
+    // The bridge port type dropdown should be initialized from the node ports
+    EXPECT_TRUE(win.pending_bridge_port_type().has_value());
+    EXPECT_EQ(*win.pending_bridge_port_type(), PortType::V);
+}
+
+// Regression: changing bridge port type via the dropdown must NOT produce a
+// second (duplicate) undo entry from the string params path.  Verify that
+// apply() with only a bridge port type change (no string param edits) still
+// round-trips cleanly.
+TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
+    auto n = make_bridge_node(interner, "inst:my_output", false, PortType::V);
+    n.string_params["exposed_type"]      = "V";
+    n.string_params["exposed_direction"] = "Out";
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst:my_output"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "inst:my_output", model, interner, [](const std::string&) {});
+
+    // Change port type from V to Bool via the dropdown mechanism
+    win.set_pending_bridge_port_type(PortType::Bool);
+    win.apply();
+
+    // Verify the port type was updated on the node
+    node_ptr = model.current().find_node(interner.intern("inst:my_output"));
+    ASSERT_NE(node_ptr, nullptr);
+    ASSERT_FALSE(node_ptr->inputs.empty());
+    EXPECT_EQ(node_ptr->inputs.front().type, PortType::Bool);
+
+    // String params should still carry the original exposed_type (not auto-updated
+    // from the dropdown — that's a separate serialization concern)
+    EXPECT_EQ(node_ptr->string_params.at("exposed_type"), "V");
+}
