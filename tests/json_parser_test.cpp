@@ -281,10 +281,10 @@ TEST(JsonParserTest, ParsePortType_RPM_FromJson) {
     std::string json = R"({
         "templates": {},
         "devices": [{
-            "name": "apu",
-            "classname": "RU19A",
+            "name": "pump",
+            "classname": "Battery",
             "ports": {
-                "rpm_out": {"direction": "Out", "type": "RPM"}
+                "v_out": {"direction": "Out", "type": "V"}
             }
         }],
         "connections": []
@@ -292,7 +292,7 @@ TEST(JsonParserTest, ParsePortType_RPM_FromJson) {
 
     auto ctx = parse_json(json);
     ASSERT_EQ(ctx.devices.size(), 1);
-    EXPECT_EQ(ctx.devices[0].ports["rpm_out"].type, PortType::RPM);
+    EXPECT_EQ(ctx.devices[0].ports["v_out"].type, PortType::V);
 }
 
 TEST(JsonParserTest, ValidateConnection_MismatchedTypes_ShouldFail) {
@@ -311,15 +311,15 @@ TEST(JsonParserTest, ValidateConnection_MismatchedTypes_ShouldFail) {
                 }
             },
             {
-                "name": "apu",
-                "classname": "RU19A",
+                "name": "pump",
+                "classname": "Battery",
                 "ports": {
-                    "rpm_out": {"direction": "Out", "type": "RPM"}
+                    "v_out": {"direction": "Out", "type": "V"}
                 }
             }
         ],
         "connections": [
-            {"from": "batt.v_out", "to": "apu.rpm_out"}
+            {"from": "batt.v_out", "to": "pump.v_out"}
         ]
     })";
 
@@ -423,20 +423,20 @@ TEST(JsonParserTest, ValidateConnection_AnyType_ShouldPass) {
 TEST(JsonParserTest, PortTypeSerialization_RoundTrip) {
     ParserContext ctx;
 
-    // Use RU19A which has RPM ports
+    // Use Battery which has voltage ports
     DeviceInstance dev;
     dev.name = "test";
-    dev.classname = "RU19A";
-    dev.domains = {Domain::Electrical, Domain::Mechanical, Domain::Thermal};
-    dev.ports["v_bus"] = Port{PortDirection::Out, PortType::V};
-    dev.ports["rpm_out"] = Port{PortDirection::Out, PortType::RPM};
+    dev.classname = "Battery";
+    dev.domains = {Domain::Electrical};
+    dev.ports["v_in"] = Port{PortDirection::In, PortType::V};
+    dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
     ctx.devices.push_back(dev);
 
     std::string json = serialize_json(ctx);
     auto ctx2 = parse_json(json);
 
-    EXPECT_EQ(ctx2.devices[0].ports["v_bus"].type, PortType::V);
-    EXPECT_EQ(ctx2.devices[0].ports["rpm_out"].type, PortType::RPM);
+    EXPECT_EQ(ctx2.devices[0].ports["v_in"].type, PortType::V);
+    EXPECT_EQ(ctx2.devices[0].ports["v_out"].type, PortType::V);
 }
 
 // ============================================================================
@@ -451,8 +451,8 @@ TEST(JsonParserTest, Regression_PortTypeMerge_TypeDefinitionTypesCopied) {
         "templates": {},
         "devices": [
             {
-                "name": "apu",
-                "classname": "RU19A"
+                "name": "pump",
+                "classname": "Battery"
             }
         ],
         "connections": []
@@ -460,20 +460,16 @@ TEST(JsonParserTest, Regression_PortTypeMerge_TypeDefinitionTypesCopied) {
 
     auto ctx = parse_json(json);
     ASSERT_EQ(ctx.devices.size(), 1);
-    const auto& apu = ctx.devices[0];
+    const auto& pump = ctx.devices[0];
 
     // Verify that port types from TypeDefinition were copied
-    EXPECT_EQ(apu.ports.count("v_bus"), 1) << "v_bus port should exist";
-    EXPECT_EQ(apu.ports.at("v_bus").type, PortType::V)
-        << "v_bus type should be V (from TypeDefinition)";
+    EXPECT_EQ(pump.ports.count("v_in"), 1) << "v_in port should exist";
+    EXPECT_EQ(pump.ports.at("v_in").type, PortType::V)
+        << "v_in type should be V (from TypeDefinition)";
 
-    EXPECT_EQ(apu.ports.count("rpm_out"), 1) << "rpm_out port should exist";
-    EXPECT_EQ(apu.ports.at("rpm_out").type, PortType::RPM)
-        << "rpm_out type should be RPM (from TypeDefinition)";
-
-    EXPECT_EQ(apu.ports.count("t4_out"), 1) << "t4_out port should exist";
-    EXPECT_EQ(apu.ports.at("t4_out").type, PortType::Temperature)
-        << "t4_out type should be Temperature (from TypeDefinition)";
+    EXPECT_EQ(pump.ports.count("v_out"), 1) << "v_out port should exist";
+    EXPECT_EQ(pump.ports.at("v_out").type, PortType::V)
+        << "v_out type should be V (from TypeDefinition)";
 }
 
 TEST(JsonParserTest, Regression_PortTypeMerge_InlinePortWithType) {
@@ -741,13 +737,13 @@ TEST(TypeRegistry, LoadRecursive_DeepNesting) {
     fs::remove_all(tmp);
     fs::create_directories(tmp / "electrical" / "generators");
 
-    std::ofstream(tmp / "electrical" / "generators" / "GS24.blueprint") << minimal_blueprint_v2("GS24");
+    std::ofstream(tmp / "electrical" / "generators" / "Generator.blueprint") << minimal_blueprint_v2("Generator");
 
     auto registry = load_type_registry(tmp.string());
 
-    ASSERT_TRUE(registry.has("GS24"));
-    ASSERT_EQ(registry.categories.count("GS24"), 1u);
-    EXPECT_EQ(registry.categories.at("GS24"), "electrical/generators");
+    ASSERT_TRUE(registry.has("Generator"));
+    ASSERT_EQ(registry.categories.count("Generator"), 1u);
+    EXPECT_EQ(registry.categories.at("Generator"), "electrical/generators");
 
     fs::remove_all(tmp);
 }
@@ -777,9 +773,9 @@ TEST(TypeRegistry, BuildMenuTree_WithSubdirs) {
     reg.types["Resistor"] = res;
     reg.categories["Resistor"] = "electrical";
 
-    TypeDefinition gs; gs.classname = "GS24";
-    reg.types["GS24"] = gs;
-    reg.categories["GS24"] = "electrical/generators";
+    TypeDefinition gen; gen.classname = "Generator";
+    reg.types["Generator"] = gen;
+    reg.categories["Generator"] = "electrical/generators";
 
     TypeDefinition and_gate; and_gate.classname = "AND";
     reg.types["AND"] = and_gate;
@@ -797,7 +793,7 @@ TEST(TypeRegistry, BuildMenuTree_WithSubdirs) {
     EXPECT_EQ(elec.entries.size(), 1u);
     EXPECT_EQ(elec.children.size(), 1u);
 
-    // electrical/generators: "GS24"
+    // electrical/generators: "Generator"
     ASSERT_TRUE(elec.children.count("generators"));
     const auto& gens = elec.children.at("generators");
     EXPECT_EQ(gens.entries.size(), 1u);

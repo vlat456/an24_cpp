@@ -177,7 +177,6 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/v_to_bool_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pi_p_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/inspector_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/lamp_passthrough_jit_test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/properties_window_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/codegen_accumulator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/aot_composite_tests.dir

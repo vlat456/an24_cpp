@@ -53,20 +53,15 @@
 #include "components/slider.h"
 #include "components/splitter.h"
 #include "components/merger.h"
-#include "components/agk47.h"
-#include "components/dmr400.h"
 #include "components/electric_heater.h"
 #include "components/electric_pump.h"
 #include "components/fuel_tank.h"
 #include "components/gidro_accumulator.h"
-#include "components/gs24.h"
 #include "components/gyroscope.h"
 #include "components/high_power_load.h"
 #include "components/inertia_node.h"
 #include "components/inverter.h"
 #include "components/radiator.h"
-#include "components/ru19a.h"
-#include "components/rug82.h"
 #include "components/solenoid_valve.h"
 #include "components/spring.h"
 #include "components/temp_sensor.h"
@@ -1004,29 +999,6 @@ BuildResult build_systems_dev(
             result.scheduler.add_consumer(&std::get<Merger<JitProvider>>(result.devices[dev.name]));
         }
         // Phase 2 Slice 6: Additional non-controlled components
-        else if (dev.classname == "AGK47") {
-            AGK47<JitProvider> comp;
-            
-            comp.conductance = param_reader.consume_float_optional("conductance", 0.001f);
-            setup_ports(comp);
-            param_reader.validate_all_consumed();
-            
-            result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<AGK47<JitProvider>>(result.devices[dev.name]));
-        }
-        else if (dev.classname == "DMR400") {
-            DMR400<JitProvider> comp;
-            
-            comp.connect_threshold = param_reader.consume_float_optional("connect_threshold", 2.0f);
-            comp.disconnect_threshold = param_reader.consume_float_optional("disconnect_threshold", 10.0f);
-            comp.min_voltage_to_close = param_reader.consume_float_optional("min_voltage_to_close", 20.0f);
-            comp.pre_load();
-            setup_ports(comp);
-            param_reader.validate_all_consumed();
-            
-            result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<DMR400<JitProvider>>(result.devices[dev.name]));
-        }
         else if (dev.classname == "ElectricHeater") {
             ElectricHeater<JitProvider> comp;
             
@@ -1073,22 +1045,6 @@ BuildResult build_systems_dev(
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<GidroAccumulator<JitProvider>>(result.devices[dev.name]));
-        }
-        else if (dev.classname == "GS24") {
-            GS24<JitProvider> comp;
-            
-            comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.5f);
-            comp.target_rpm = param_reader.consume_float_optional("target_rpm", 16000.0f);
-            comp.r_internal = param_reader.consume_float_optional("r_internal", 0.025f);
-            comp.r_norton = param_reader.consume_float_optional("r_norton", 0.08f);
-            comp.rpm_cutoff = param_reader.consume_float_optional("rpm_cutoff", 0.45f);
-            comp.rpm_threshold = param_reader.consume_float_optional("rpm_threshold", 0.4f);
-            comp.pre_load();
-            setup_ports(comp);
-            param_reader.validate_all_consumed();
-            
-            result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<GS24<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "Gyroscope") {
             Gyroscope<JitProvider> comp;
@@ -1142,37 +1098,6 @@ BuildResult build_systems_dev(
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Radiator<JitProvider>>(result.devices[dev.name]));
-        }
-        else if (dev.classname == "RU19A") {
-            RU19A<JitProvider> comp;
-            
-            comp.target_rpm = param_reader.consume_float_optional("target_rpm", 16000.0f);
-            comp.auto_start = param_reader.consume_bool_optional("auto_start", true);
-            comp.spinup_inertia = param_reader.consume_float_optional("spinup_inertia", 1.0f);
-            comp.spindown_inertia = param_reader.consume_float_optional("spindown_inertia", 0.02f);
-            comp.crank_time = param_reader.consume_float_optional("crank_time", 2.0f);
-            comp.ignition_time = param_reader.consume_float_optional("ignition_time", 3.0f);
-            comp.start_timeout = param_reader.consume_float_optional("start_timeout", 30.0f);
-            comp.t4_target = param_reader.consume_float_optional("t4_target", 400.0f);
-            comp.t4_max = param_reader.consume_float_optional("t4_max", 750.0f);
-            comp.ambient_temp = param_reader.consume_float_optional("ambient_temp", 20.0f);
-            comp.pre_load();
-            setup_ports(comp);
-            param_reader.validate_all_consumed();
-            
-            result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<RU19A<JitProvider>>(result.devices[dev.name]));
-        }
-        else if (dev.classname == "RUG82") {
-            RUG82<JitProvider> comp;
-            
-            comp.v_target = param_reader.consume_float_optional("v_target", 28.5f);
-            comp.kp = param_reader.consume_float_optional("kp", 2.0f);
-            setup_ports(comp);
-            param_reader.validate_all_consumed();
-            
-            result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<RUG82<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "SolenoidValve") {
             SolenoidValve<JitProvider> comp;
@@ -1310,8 +1235,6 @@ BuildResult build_systems_dev(
     // Active source components (these conflict with each other):
     // - Battery: v_out
     // - Generator: v_out
-    // - GS24: v_out
-    // - RU19A: v_bus (and v_start for starting circuit)
     // - ControlledVoltageSource: v_pos
     // - ControlledCurrentSource: v_pos
     // 

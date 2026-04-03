@@ -116,14 +116,14 @@ void test_provider_value_access() {
     
     // Simulate a provider mapping
     JitProvider bat_provider;
-    bat_provider.set(PortNames::v_bus, sig_v_bus);
+    bat_provider.set(PortNames::v_in, sig_v_bus);
     bat_provider.set(PortNames::v_out, sig_rpm);
     
     // Use provider index to access st.values
-    float v_bus = st.values[bat_provider.get(PortNames::v_bus)];
+    float v_bus = st.values[bat_provider.get(PortNames::v_in)];
     float rpm = st.values[bat_provider.get(PortNames::v_out)];
     
-    std::cout << "  v_bus via provider[" << bat_provider.get(PortNames::v_bus) << "] = " << v_bus << "V\n";
+    std::cout << "  v_bus via provider[" << bat_provider.get(PortNames::v_in) << "] = " << v_bus << "V\n";
     std::cout << "  rpm via provider[" << bat_provider.get(PortNames::v_out) << "] = " << rpm << "\n";
     
     assert(v_bus == 24.0f);

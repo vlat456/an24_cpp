@@ -218,7 +218,6 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/v_to_bool_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/pi_p_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/inspector_tests.dir/DependInfo.cmake"
-  "tests/CMakeFiles/lamp_passthrough_jit_test.dir/DependInfo.cmake"
   "tests/CMakeFiles/properties_window_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/codegen_accumulator_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/aot_composite_tests.dir/DependInfo.cmake"

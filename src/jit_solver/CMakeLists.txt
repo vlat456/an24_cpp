@@ -62,20 +62,15 @@ add_library(jit_solver
     components/splitter.cpp
     components/merger.cpp
     # Phase 2 Slice 6: Migrated non-controlled components
-    components/agk47.cpp
-    components/dmr400.cpp
     components/electric_heater.cpp
     components/electric_pump.cpp
     components/fuel_tank.cpp
     components/gidro_accumulator.cpp
-    components/gs24.cpp
     components/gyroscope.cpp
     components/high_power_load.cpp
     components/inertia_node.cpp
     components/inverter.cpp
     components/radiator.cpp
-    components/ru19a.cpp
-    components/rug82.cpp
     components/solenoid_valve.cpp
     components/spring.cpp
     components/temp_sensor.cpp

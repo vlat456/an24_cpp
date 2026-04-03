@@ -23,7 +23,6 @@
 
 // Component type enumeration
 enum class ComponentType {
-    AGK47,
     AND,
     AZS,
     Accumulator,
@@ -40,7 +39,6 @@ enum class ComponentType {
     ControlledCurrentSource,
     ControlledVoltageSource,
     CurrentSense,
-    DMR400,
     Divide,
     ElectricHeater,
     ElectricPump,
@@ -48,7 +46,6 @@ enum class ComponentType {
     ElectricalSource,
     FastTMO,
     FuelTank,
-    GS24,
     Generator,
     GidroAccumulator,
     Greater,
@@ -79,8 +76,6 @@ enum class ComponentType {
     PI,
     PID,
     Positive_V_to_Bool,
-    RU19A,
-    RUG82,
     Radiator,
     RefNode,
     Relay,
@@ -105,7 +100,6 @@ enum class ComponentType {
 };
 
 // Port count for each component
-constexpr size_t AGK47_PORT_COUNT = 1;
 constexpr size_t AND_PORT_COUNT = 3;
 constexpr size_t AZS_PORT_COUNT = 6;
 constexpr size_t Accumulator_PORT_COUNT = 2;
@@ -122,7 +116,6 @@ constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t ControlledCurrentSource_PORT_COUNT = 3;
 constexpr size_t ControlledVoltageSource_PORT_COUNT = 4;
 constexpr size_t CurrentSense_PORT_COUNT = 3;
-constexpr size_t DMR400_PORT_COUNT = 4;
 constexpr size_t Divide_PORT_COUNT = 3;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
 constexpr size_t ElectricPump_PORT_COUNT = 3;
@@ -130,7 +123,6 @@ constexpr size_t ElectricalConductance_PORT_COUNT = 2;
 constexpr size_t ElectricalSource_PORT_COUNT = 2;
 constexpr size_t FastTMO_PORT_COUNT = 2;
 constexpr size_t FuelTank_PORT_COUNT = 2;
-constexpr size_t GS24_PORT_COUNT = 3;
 constexpr size_t Generator_PORT_COUNT = 2;
 constexpr size_t GidroAccumulator_PORT_COUNT = 2;
 constexpr size_t Greater_PORT_COUNT = 3;
@@ -161,8 +153,6 @@ constexpr size_t PD_PORT_COUNT = 3;
 constexpr size_t PI_PORT_COUNT = 3;
 constexpr size_t PID_PORT_COUNT = 3;
 constexpr size_t Positive_V_to_Bool_PORT_COUNT = 2;
-constexpr size_t RU19A_PORT_COUNT = 5;
-constexpr size_t RUG82_PORT_COUNT = 2;
 constexpr size_t Radiator_PORT_COUNT = 2;
 constexpr size_t RefNode_PORT_COUNT = 1;
 constexpr size_t Relay_PORT_COUNT = 4;
@@ -185,9 +175,6 @@ constexpr size_t Voltmeter_PORT_COUNT = 1;
 constexpr size_t XOR_PORT_COUNT = 3;
 
 // Port names for each component (in field declaration order)
-constexpr const char* AGK47_PORTS[] = {
-    "input"
-};
 constexpr const char* AND_PORTS[] = {
     "A",
     "B",
@@ -264,12 +251,6 @@ constexpr const char* CurrentSense_PORTS[] = {
     "v_in",
     "v_out"
 };
-constexpr const char* DMR400_PORTS[] = {
-    "lamp",
-    "v_gen_ref",
-    "v_in",
-    "v_out"
-};
 constexpr const char* Divide_PORTS[] = {
     "A",
     "B",
@@ -299,11 +280,6 @@ constexpr const char* FastTMO_PORTS[] = {
 constexpr const char* FuelTank_PORTS[] = {
     "flow_out",
     "level_out"
-};
-constexpr const char* GS24_PORTS[] = {
-    "k_mod",
-    "v_in",
-    "v_out"
 };
 constexpr const char* Generator_PORTS[] = {
     "v_in",
@@ -444,17 +420,6 @@ constexpr const char* Positive_V_to_Bool_PORTS[] = {
     "Vin",
     "o"
 };
-constexpr const char* RU19A_PORTS[] = {
-    "k_mod",
-    "rpm_out",
-    "t4_out",
-    "v_bus",
-    "v_start"
-};
-constexpr const char* RUG82_PORTS[] = {
-    "k_mod",
-    "v_gen"
-};
 constexpr const char* Radiator_PORTS[] = {
     "heat_in",
     "heat_out"
@@ -546,17 +511,6 @@ constexpr const char* XOR_PORTS[] = {
 };
 
 enum class RegistryPortDirection : uint8_t { In = 0, Out = 1, InOut = 2 };
-
-constexpr RegistryPortDirection AGK47_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In
-};
-constexpr uint8_t AGK47_PORT_DOMAINS[] = {
-    1
-};
-constexpr bool AGK47_PORT_SOURCE_WRITER[] = {
-    false
-};
-constexpr bool AGK47_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection AND_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
@@ -753,8 +707,8 @@ constexpr RegistryPortDirection Comparator_PORT_DIRECTIONS[] = {
     RegistryPortDirection::Out
 };
 constexpr uint8_t Comparator_PORT_DOMAINS[] = {
-    1,
-    1,
+    3,
+    3,
     2
 };
 constexpr bool Comparator_PORT_SOURCE_WRITER[] = {
@@ -817,26 +771,6 @@ constexpr bool CurrentSense_PORT_SOURCE_WRITER[] = {
     false
 };
 constexpr bool CurrentSense_SCHEDULER_SOURCE = false;
-
-constexpr RegistryPortDirection DMR400_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
-};
-constexpr uint8_t DMR400_PORT_DOMAINS[] = {
-    1,
-    1,
-    1,
-    1
-};
-constexpr bool DMR400_PORT_SOURCE_WRITER[] = {
-    false,
-    false,
-    false,
-    false
-};
-constexpr bool DMR400_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection Divide_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
@@ -941,23 +875,6 @@ constexpr bool FuelTank_PORT_SOURCE_WRITER[] = {
     false
 };
 constexpr bool FuelTank_SCHEDULER_SOURCE = false;
-
-constexpr RegistryPortDirection GS24_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
-};
-constexpr uint8_t GS24_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
-};
-constexpr bool GS24_PORT_SOURCE_WRITER[] = {
-    false,
-    false,
-    true
-};
-constexpr bool GS24_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection Generator_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
@@ -1436,43 +1353,6 @@ constexpr bool Positive_V_to_Bool_PORT_SOURCE_WRITER[] = {
 };
 constexpr bool Positive_V_to_Bool_SCHEDULER_SOURCE = false;
 
-constexpr RegistryPortDirection RU19A_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::InOut
-};
-constexpr uint8_t RU19A_PORT_DOMAINS[] = {
-    1,
-    4,
-    16,
-    1,
-    1
-};
-constexpr bool RU19A_PORT_SOURCE_WRITER[] = {
-    false,
-    false,
-    false,
-    true,
-    true
-};
-constexpr bool RU19A_SCHEDULER_SOURCE = false;
-
-constexpr RegistryPortDirection RUG82_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
-};
-constexpr uint8_t RUG82_PORT_DOMAINS[] = {
-    1,
-    1
-};
-constexpr bool RUG82_PORT_SOURCE_WRITER[] = {
-    false,
-    false
-};
-constexpr bool RUG82_SCHEDULER_SOURCE = false;
-
 constexpr RegistryPortDirection Radiator_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::Out
@@ -1812,8 +1692,6 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"in", PortNames::in},
         {"input", PortNames::input},
         {"inv_inertia", PortNames::inv_inertia},
-        {"k_mod", PortNames::k_mod},
-        {"lamp", PortNames::lamp},
         {"level_out", PortNames::level_out},
         {"mass", PortNames::mass},
         {"o", PortNames::o},
@@ -1834,7 +1712,6 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"setpoint", PortNames::setpoint},
         {"soc_out", PortNames::soc_out},
         {"state", PortNames::state},
-        {"t4_out", PortNames::t4_out},
         {"temp", PortNames::temp},
         {"temp_in", PortNames::temp_in},
         {"temp_out", PortNames::temp_out},
@@ -1842,15 +1719,11 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"trigger", PortNames::trigger},
         {"tripped", PortNames::tripped},
         {"v", PortNames::v},
-        {"v_bus", PortNames::v_bus},
-        {"v_gen", PortNames::v_gen},
-        {"v_gen_ref", PortNames::v_gen_ref},
         {"v_in", PortNames::v_in},
         {"v_neg", PortNames::v_neg},
         {"v_out", PortNames::v_out},
         {"v_pos", PortNames::v_pos},
         {"v_ref", PortNames::v_ref},
-        {"v_start", PortNames::v_start},
     };
     auto it = map.find(name);
     if (it != map.end()) return it->second;
@@ -1860,7 +1733,6 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
 // Get port names for a component type
 inline std::vector<std::string> get_component_ports(const std::string& classname) {
     static const std::unordered_map<std::string, std::vector<std::string>> registry = {
-        {"AGK47", {"input"}},
         {"AND", {"A", "B", "o"}},
         {"AZS", {"control", "state", "temp", "tripped", "v_in", "v_out"}},
         {"Accumulator", {"in", "out"}},
@@ -1877,7 +1749,6 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"ControlledCurrentSource", {"cmd", "v_neg", "v_pos"}},
         {"ControlledVoltageSource", {"cmd", "i_out", "v_neg", "v_pos"}},
         {"CurrentSense", {"i_out", "v_in", "v_out"}},
-        {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
         {"Divide", {"A", "B", "o"}},
         {"ElectricHeater", {"heat_out", "power"}},
         {"ElectricPump", {"p_in", "p_out", "v_in"}},
@@ -1885,7 +1756,6 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"ElectricalSource", {"v_in", "v_out"}},
         {"FastTMO", {"in", "out"}},
         {"FuelTank", {"flow_out", "level_out"}},
-        {"GS24", {"k_mod", "v_in", "v_out"}},
         {"Generator", {"v_in", "v_out"}},
         {"GidroAccumulator", {"p_in", "p_out"}},
         {"Greater", {"A", "B", "o"}},
@@ -1916,8 +1786,6 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"PI", {"feedback", "output", "setpoint"}},
         {"PID", {"feedback", "output", "setpoint"}},
         {"Positive_V_to_Bool", {"Vin", "o"}},
-        {"RU19A", {"k_mod", "rpm_out", "t4_out", "v_bus", "v_start"}},
-        {"RUG82", {"k_mod", "v_gen"}},
         {"Radiator", {"heat_in", "heat_out"}},
         {"RefNode", {"v"}},
         {"Relay", {"control", "state", "v_in", "v_out"}},
@@ -1949,7 +1817,6 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
 
 inline bool has_component_metadata(const std::string& classname) {
     static const std::unordered_set<std::string> known = {
-        "AGK47",
         "AND",
         "AZS",
         "Accumulator",
@@ -1966,7 +1833,6 @@ inline bool has_component_metadata(const std::string& classname) {
         "ControlledCurrentSource",
         "ControlledVoltageSource",
         "CurrentSense",
-        "DMR400",
         "Divide",
         "ElectricHeater",
         "ElectricPump",
@@ -1974,7 +1840,6 @@ inline bool has_component_metadata(const std::string& classname) {
         "ElectricalSource",
         "FastTMO",
         "FuelTank",
-        "GS24",
         "Generator",
         "GidroAccumulator",
         "Greater",
@@ -2005,8 +1870,6 @@ inline bool has_component_metadata(const std::string& classname) {
         "PI",
         "PID",
         "Positive_V_to_Bool",
-        "RU19A",
-        "RUG82",
         "Radiator",
         "RefNode",
         "Relay",
@@ -2033,7 +1896,6 @@ inline bool has_component_metadata(const std::string& classname) {
 
 inline bool is_scheduler_source_component(const std::string& classname) {
     static const std::unordered_map<std::string, bool> registry = {
-        {"AGK47", false},
         {"AND", false},
         {"AZS", false},
         {"Accumulator", false},
@@ -2050,7 +1912,6 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"ControlledCurrentSource", false},
         {"ControlledVoltageSource", false},
         {"CurrentSense", false},
-        {"DMR400", false},
         {"Divide", false},
         {"ElectricHeater", false},
         {"ElectricPump", false},
@@ -2058,7 +1919,6 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"ElectricalSource", false},
         {"FastTMO", false},
         {"FuelTank", false},
-        {"GS24", false},
         {"Generator", true},
         {"GidroAccumulator", false},
         {"Greater", false},
@@ -2089,8 +1949,6 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"PI", false},
         {"PID", false},
         {"Positive_V_to_Bool", false},
-        {"RU19A", false},
-        {"RUG82", false},
         {"Radiator", false},
         {"RefNode", true},
         {"Relay", false},
@@ -2119,14 +1977,6 @@ inline bool is_scheduler_source_component(const std::string& classname) {
 
 inline std::vector<std::string> get_output_ports(const std::string& classname) {
     std::vector<std::string> result;
-    if (classname == "AGK47") {
-        for (size_t i = 0; i < AGK47_PORT_COUNT; ++i) {
-            if (AGK47_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AGK47_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
-                result.push_back(AGK47_PORTS[i]);
-            }
-        }
-        return result;
-    }
     if (classname == "AND") {
         for (size_t i = 0; i < AND_PORT_COUNT; ++i) {
             if (AND_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AND_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
@@ -2255,14 +2105,6 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
         }
         return result;
     }
-    if (classname == "DMR400") {
-        for (size_t i = 0; i < DMR400_PORT_COUNT; ++i) {
-            if (DMR400_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || DMR400_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
-                result.push_back(DMR400_PORTS[i]);
-            }
-        }
-        return result;
-    }
     if (classname == "Divide") {
         for (size_t i = 0; i < Divide_PORT_COUNT; ++i) {
             if (Divide_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Divide_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
@@ -2315,14 +2157,6 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
         for (size_t i = 0; i < FuelTank_PORT_COUNT; ++i) {
             if (FuelTank_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || FuelTank_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
                 result.push_back(FuelTank_PORTS[i]);
-            }
-        }
-        return result;
-    }
-    if (classname == "GS24") {
-        for (size_t i = 0; i < GS24_PORT_COUNT; ++i) {
-            if (GS24_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || GS24_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
-                result.push_back(GS24_PORTS[i]);
             }
         }
         return result;
@@ -2567,22 +2401,6 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
         }
         return result;
     }
-    if (classname == "RU19A") {
-        for (size_t i = 0; i < RU19A_PORT_COUNT; ++i) {
-            if (RU19A_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || RU19A_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
-                result.push_back(RU19A_PORTS[i]);
-            }
-        }
-        return result;
-    }
-    if (classname == "RUG82") {
-        for (size_t i = 0; i < RUG82_PORT_COUNT; ++i) {
-            if (RUG82_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || RUG82_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
-                result.push_back(RUG82_PORTS[i]);
-            }
-        }
-        return result;
-    }
     if (classname == "Radiator") {
         for (size_t i = 0; i < Radiator_PORT_COUNT; ++i) {
             if (Radiator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Radiator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
@@ -2748,14 +2566,6 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
 
 inline std::vector<std::string> get_source_writer_ports(const std::string& classname, uint8_t domain_mask) {
     std::vector<std::string> result;
-    if (classname == "AGK47") {
-        for (size_t i = 0; i < AGK47_PORT_COUNT; ++i) {
-            if (AGK47_PORT_SOURCE_WRITER[i] && ((AGK47_PORT_DOMAINS[i] & domain_mask) != 0)) {
-                result.push_back(AGK47_PORTS[i]);
-            }
-        }
-        return result;
-    }
     if (classname == "AND") {
         for (size_t i = 0; i < AND_PORT_COUNT; ++i) {
             if (AND_PORT_SOURCE_WRITER[i] && ((AND_PORT_DOMAINS[i] & domain_mask) != 0)) {
@@ -2884,14 +2694,6 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         }
         return result;
     }
-    if (classname == "DMR400") {
-        for (size_t i = 0; i < DMR400_PORT_COUNT; ++i) {
-            if (DMR400_PORT_SOURCE_WRITER[i] && ((DMR400_PORT_DOMAINS[i] & domain_mask) != 0)) {
-                result.push_back(DMR400_PORTS[i]);
-            }
-        }
-        return result;
-    }
     if (classname == "Divide") {
         for (size_t i = 0; i < Divide_PORT_COUNT; ++i) {
             if (Divide_PORT_SOURCE_WRITER[i] && ((Divide_PORT_DOMAINS[i] & domain_mask) != 0)) {
@@ -2944,14 +2746,6 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         for (size_t i = 0; i < FuelTank_PORT_COUNT; ++i) {
             if (FuelTank_PORT_SOURCE_WRITER[i] && ((FuelTank_PORT_DOMAINS[i] & domain_mask) != 0)) {
                 result.push_back(FuelTank_PORTS[i]);
-            }
-        }
-        return result;
-    }
-    if (classname == "GS24") {
-        for (size_t i = 0; i < GS24_PORT_COUNT; ++i) {
-            if (GS24_PORT_SOURCE_WRITER[i] && ((GS24_PORT_DOMAINS[i] & domain_mask) != 0)) {
-                result.push_back(GS24_PORTS[i]);
             }
         }
         return result;
@@ -3196,22 +2990,6 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         }
         return result;
     }
-    if (classname == "RU19A") {
-        for (size_t i = 0; i < RU19A_PORT_COUNT; ++i) {
-            if (RU19A_PORT_SOURCE_WRITER[i] && ((RU19A_PORT_DOMAINS[i] & domain_mask) != 0)) {
-                result.push_back(RU19A_PORTS[i]);
-            }
-        }
-        return result;
-    }
-    if (classname == "RUG82") {
-        for (size_t i = 0; i < RUG82_PORT_COUNT; ++i) {
-            if (RUG82_PORT_SOURCE_WRITER[i] && ((RUG82_PORT_DOMAINS[i] & domain_mask) != 0)) {
-                result.push_back(RUG82_PORTS[i]);
-            }
-        }
-        return result;
-    }
     if (classname == "Radiator") {
         for (size_t i = 0; i < Radiator_PORT_COUNT; ++i) {
             if (Radiator_PORT_SOURCE_WRITER[i] && ((Radiator_PORT_DOMAINS[i] & domain_mask) != 0)) {
@@ -3375,42 +3153,9 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
     return result;
 }
 
-// ===========================================================================
-// ComponentVariant — type-safe storage for JIT-mode (Editor) components
-// ===========================================================================
-//
-// E-005 ARCHITECTURE NOTE:
-//
-// This variant currently holds 68+ types. This is intentional for now:
-//
-// WHY variant (not virtual/type-erasure):
-//   - Components are templates over Provider, shared between JIT and AOT paths.
-//     The AOT path uses compile-time constexpr Provider — virtual calls would
-//     break this. The variant preserves the template-based Provider pattern.
-//   - All per-frame dispatch is already devirtualized:
-//     * PushScheduler uses type-erased function pointers (void* + fn ptrs)
-//     * SolverOwnedRefs uses pre-built typed pointer lists (E-002)
-//     * No std::visit in the hot path — only at build time
-//   - The variant is ONLY used as a storage container in
-//     BuildResult::devices (map of device name -> component)
-//
-// COMPILE-TIME COST:
-//   Each translation unit including this header pays the cost of the 68-type
-//   variant definition. Component .cpp files include port_registry.h for
-//   metadata functions (get_component_ports, etc.), not for ComponentVariant.
-//   Future work: split metadata functions into a separate header to reduce
-//   unnecessary variant instantiation in component .cpp files.
-//
-// FUTURE DIRECTION:
-//   The component count will shrink over time as complex wrapper components
-//   (Battery, Generator, GS24, etc.) are decomposed into primitive electrical
-//   elements + logical graphs. This naturally reduces the variant size.
-//   If count grows instead, consider domain-split variants
-//   (ElectricalVariant, LogicalVariant, etc.) to reduce each visit site.
-//
-// ===========================================================================
+// Component variant for dynamic component storage (Editor JIT mode)
+// Enables type-safe storage of any component type without virtual calls
 using ComponentVariant = std::variant<
-    AGK47<JitProvider>,
     AND<JitProvider>,
     AZS<JitProvider>,
     Accumulator<JitProvider>,
@@ -3427,7 +3172,6 @@ using ComponentVariant = std::variant<
     ControlledCurrentSource<JitProvider>,
     ControlledVoltageSource<JitProvider>,
     CurrentSense<JitProvider>,
-    DMR400<JitProvider>,
     Divide<JitProvider>,
     ElectricHeater<JitProvider>,
     ElectricPump<JitProvider>,
@@ -3435,7 +3179,6 @@ using ComponentVariant = std::variant<
     ElectricalSource<JitProvider>,
     FastTMO<JitProvider>,
     FuelTank<JitProvider>,
-    GS24<JitProvider>,
     Generator<JitProvider>,
     GidroAccumulator<JitProvider>,
     Greater<JitProvider>,
@@ -3466,8 +3209,6 @@ using ComponentVariant = std::variant<
     PI<JitProvider>,
     PID<JitProvider>,
     Positive_V_to_Bool<JitProvider>,
-    RU19A<JitProvider>,
-    RUG82<JitProvider>,
     Radiator<JitProvider>,
     RefNode<JitProvider>,
     Relay<JitProvider>,

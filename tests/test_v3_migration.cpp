@@ -83,14 +83,7 @@ TEST(V3Migration, LibraryLoaderParsesConvertedLibraryAsV3Only) {
     TypeRegistry registry = load_type_registry("library");
 
     EXPECT_TRUE(registry.has("Battery"));
-    EXPECT_TRUE(registry.has("RUG82"));
-    EXPECT_TRUE(registry.has("RUG_82_1"));
-
-    auto const* rug = registry.get("RUG_82_1");
-    ASSERT_NE(rug, nullptr);
-    EXPECT_FALSE(rug->cpp_class);
-    EXPECT_FALSE(rug->devices.empty());
-    EXPECT_FALSE(rug->connections.empty());
+    EXPECT_TRUE(registry.has("Generator"));
 }
 
 TEST(V3Migration, CodecRejectsLegacyVersion2Json) {

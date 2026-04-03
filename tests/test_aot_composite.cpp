@@ -16,7 +16,7 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
     TypeRegistry registry;
 
     TypeDefinition lamp;
-    lamp.classname = "lamp_pass_through";
+    lamp.classname = "voltage_indicator";
     lamp.cpp_class = false;
     DeviceInstance d_vin;
     d_vin.name = "vin";
@@ -32,7 +32,7 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
     d_vout.execution = make_execution(true, false, true, false, false, false, true, true, true);
     lamp.devices = {d_vin, d_lamp, d_vout};
     lamp.connections = {{"vin.port", "lamp.v_in", {}}, {"lamp.v_out", "vout.port", {}}};
-    registry.types["lamp_pass_through"] = lamp;
+    registry.types["voltage_indicator"] = lamp;
 
     // Generate code
     auto result = CodeGen::generate_composite_systems(lamp, registry);
@@ -42,7 +42,7 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
     EXPECT_FALSE(result.source.empty());
 
     // Header should contain class name
-    EXPECT_NE(result.header.find("lamp_pass_through_Systems"), std::string::npos);
+    EXPECT_NE(result.header.find("voltage_indicator_Systems"), std::string::npos);
 
     // Should contain device fields (primitive devices as AotProvider fields)
     EXPECT_NE(result.header.find("BlueprintInput"), std::string::npos);
@@ -59,14 +59,14 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
 
     // Inner composite
     TypeDefinition inner;
-    inner.classname = "simple_battery";
+    inner.classname = "battery_wrapper";
     inner.cpp_class = false;
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "Battery";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
     inner.devices = {d_bat};
-    registry.types["simple_battery"] = inner;
+    registry.types["battery_wrapper"] = inner;
 
     // Outer composite references inner
     TypeDefinition outer;
@@ -74,7 +74,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     outer.cpp_class = false;
     SubBlueprintRef ref;
     ref.id = "sb_1";
-    ref.type_name = "simple_battery";
+    ref.type_name = "battery_wrapper";
     outer.sub_blueprints.push_back(ref);
     DeviceInstance d_bus;
     d_bus.name = "bus";
@@ -261,9 +261,9 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     light.execution = make_execution(true, false, false, false, false, false, false, false, false);
     registry.types["IndicatorLight"] = light;
 
-    // Composite: lamp_pass_through (vin→lamp→vout)
+    // Composite: voltage_indicator (vin→lamp→vout)
     TypeDefinition lamp;
-    lamp.classname = "lamp_pass_through";
+    lamp.classname = "voltage_indicator";
     lamp.cpp_class = false;
 
     DeviceInstance d_vin;
@@ -283,7 +283,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     // Expose external ports matching BlueprintInput/Output naming
     lamp.ports["vin"]  = Port{PortDirection::In, PortType::V, std::nullopt};
     lamp.ports["vout"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    registry.types["lamp_pass_through"] = lamp;
+    registry.types["voltage_indicator"] = lamp;
 
     // ---- AOT path: generate_composite_systems ----
 

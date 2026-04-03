@@ -1054,20 +1054,6 @@ inspector_tests/fast:
 .PHONY : inspector_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
-.PHONY : tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
-
-# Convenience name for target.
-lamp_passthrough_jit_test: tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
-.PHONY : lamp_passthrough_jit_test
-
-# fast build rule for target.
-lamp_passthrough_jit_test/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/build
-.PHONY : lamp_passthrough_jit_test/fast
-
-# Convenience name for target.
 tests/CMakeFiles/properties_window_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/properties_window_tests.dir/rule
 .PHONY : tests/CMakeFiles/properties_window_tests.dir/rule
@@ -3471,30 +3457,6 @@ test_jit_aot_bridge_equivalence.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.s
 .PHONY : test_jit_aot_bridge_equivalence.cpp.s
 
-test_lamp_passthrough_jit.o: test_lamp_passthrough_jit.cpp.o
-.PHONY : test_lamp_passthrough_jit.o
-
-# target to build an object file
-test_lamp_passthrough_jit.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.o
-.PHONY : test_lamp_passthrough_jit.cpp.o
-
-test_lamp_passthrough_jit.i: test_lamp_passthrough_jit.cpp.i
-.PHONY : test_lamp_passthrough_jit.i
-
-# target to preprocess a source file
-test_lamp_passthrough_jit.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.i
-.PHONY : test_lamp_passthrough_jit.cpp.i
-
-test_lamp_passthrough_jit.s: test_lamp_passthrough_jit.cpp.s
-.PHONY : test_lamp_passthrough_jit.s
-
-# target to generate assembly for a file
-test_lamp_passthrough_jit.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.s
-.PHONY : test_lamp_passthrough_jit.cpp.s
-
 test_logic_gates.o: test_logic_gates.cpp.o
 .PHONY : test_logic_gates.o
 
@@ -4705,7 +4667,6 @@ help:
 	@echo "... inverter_regression_tests"
 	@echo "... jit_aot_bridge_equivalence_tests"
 	@echo "... json_parser_tests"
-	@echo "... lamp_passthrough_jit_test"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
@@ -4984,9 +4945,6 @@ help:
 	@echo "... test_jit_aot_bridge_equivalence.o"
 	@echo "... test_jit_aot_bridge_equivalence.i"
 	@echo "... test_jit_aot_bridge_equivalence.s"
-	@echo "... test_lamp_passthrough_jit.o"
-	@echo "... test_lamp_passthrough_jit.i"
-	@echo "... test_lamp_passthrough_jit.s"
 	@echo "... test_logic_gates.o"
 	@echo "... test_logic_gates.i"
 	@echo "... test_logic_gates.s"

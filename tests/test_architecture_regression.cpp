@@ -252,8 +252,8 @@ TEST(E003_JitProviderFlatArray, PortNamesCountSentinel) {
     // PortNames::_COUNT must exist and be the last entry.
     // This is required for the flat array to be correctly sized.
     uint32_t count = static_cast<uint32_t>(PortNames::_COUNT);
-    EXPECT_GT(count, 60u)
-        << "PortNames::_COUNT should be > 60 (we have ~65 ports)";
+    EXPECT_GT(count, 50u)
+        << "PortNames::_COUNT should be > 50 (we have ~59 ports)";
     EXPECT_LT(count, 200u)
         << "PortNames::_COUNT sanity check — shouldn't be unreasonably large";
 }

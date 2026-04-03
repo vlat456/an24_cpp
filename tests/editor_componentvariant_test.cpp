@@ -149,10 +149,10 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
 /// Test that all 29 component types can be created
 TEST(EditorComponentVariant, AllComponentTypes) {
     const char* component_types[] = {
-        "AGK47", "Battery", "Bus", "Comparator", "DMR400",
-        "ElectricHeater", "ElectricPump", "GS24", "Generator", "Gyroscope",
+        "Battery", "Bus", "Comparator",
+        "ElectricHeater", "ElectricPump", "Generator", "Gyroscope",
         "HighPowerLoad", "HoldButton", "IndicatorLight", "InertiaNode", "Inverter",
-        "LerpNode", "Load", "RU19A", "RUG82", "Radiator",
+        "LerpNode", "Load", "Radiator",
         "RefNode", "Relay", "Resistor", "SolenoidValve", "Splitter",
         "Switch", "TempSensor", "Transformer", "Voltmeter"
     };

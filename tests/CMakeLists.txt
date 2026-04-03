@@ -1091,24 +1091,6 @@ target_link_libraries(inspector_tests PRIVATE
 )
 gtest_discover_tests(inspector_tests)
 
-# JIT integration test: Battery -> IndicatorLight voltage flow
-add_executable(lamp_passthrough_jit_test
-    test_lamp_passthrough_jit.cpp
-)
-target_include_directories(lamp_passthrough_jit_test PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/jit_solver
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(lamp_passthrough_jit_test PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-    spdlog::spdlog
-)
-gtest_discover_tests(lamp_passthrough_jit_test)
-
 # Editor hierarchical blueprint tests (TDD - collapsed node rendering, navigation, persistence)
 
 # VisualPort tests (TDD - OOP port refactor)

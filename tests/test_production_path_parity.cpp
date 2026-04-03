@@ -39,7 +39,7 @@ TypeRegistry build_registry_for_lamp() {
     registry.types["IndicatorLight"] = light;
 
     TypeDefinition lamp;
-    lamp.classname = "lamp_pass_through";
+    lamp.classname = "voltage_indicator";
     lamp.cpp_class = false;
     DeviceInstance d_vin;
     d_vin.name = "vin";
@@ -57,7 +57,7 @@ TypeRegistry build_registry_for_lamp() {
     };
     lamp.ports["vin"] = Port{PortDirection::In, PortType::V, std::nullopt};
     lamp.ports["vout"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    registry.types["lamp_pass_through"] = lamp;
+    registry.types["voltage_indicator"] = lamp;
 
     return registry;
 }
@@ -66,7 +66,7 @@ TypeRegistry build_registry_for_lamp() {
 
 TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
     TypeRegistry registry = build_registry_for_lamp();
-    const TypeDefinition& lamp = registry.types.at("lamp_pass_through");
+    const TypeDefinition& lamp = registry.types.at("voltage_indicator");
 
     auto aot_result = CodeGen::generate_composite_systems(lamp, registry);
     ASSERT_FALSE(aot_result.header.empty());

@@ -1225,19 +1225,6 @@ inspector_tests/fast:
 .PHONY : inspector_tests/fast
 
 #=============================================================================
-# Target rules for targets named lamp_passthrough_jit_test
-
-# Build rule for target.
-lamp_passthrough_jit_test: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 lamp_passthrough_jit_test
-.PHONY : lamp_passthrough_jit_test
-
-# fast build rule for target.
-lamp_passthrough_jit_test/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/build
-.PHONY : lamp_passthrough_jit_test/fast
-
-#=============================================================================
 # Target rules for targets named properties_window_tests
 
 # Build rule for target.
@@ -1725,7 +1712,6 @@ help:
 	@echo "... jit_solver"
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
-	@echo "... lamp_passthrough_jit_test"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"

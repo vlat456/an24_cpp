@@ -232,3 +232,66 @@ It is the one that:
 - stays stable in bad editor-authored schematics
 - behaves predictably with modest solver precision
 - is easy to reason about and test
+
+## Design philosophy
+
+### Minimize C++ components
+
+The simulator core should know as few `cpp_class: true` component types as possible. The goal is a small set of general-purpose **primitives** (Battery, Resistor, Switch, Comparator, PID, LUT, etc.) that can be composed into arbitrarily complex subsystems via **blueprint composites** (`cpp_class: false`).
+
+A system like `12SAM28` (lead-acid battery with internal resistance, SOC tracking, and temperature compensation) should be a pure composite built from Battery, Resistor, LUT, Multiply, etc. — not a dedicated C++ class.
+
+Why:
+
+- fewer C++ types = less code to maintain, test, and compile
+- composites are editable in the visual editor without recompiling
+- the simulator core stays generic and does not accumulate domain-specific knowledge
+- new subsystems can be authored by non-programmers
+
+Rule of thumb: if the behavior can be expressed as a network of existing primitives with wires, it should be a composite.
+
+### Prefer ports and values over params
+
+Params (`param_defaults`, `param_schema`) should only be used where truly necessary:
+
+- LUT table data (arrays that don't map to a single signal)
+- physical constants that never change at runtime (e.g., number of poles in a generator)
+- configuration that affects topology (e.g., which mode a component operates in)
+
+Everything else should be a **port**. Ports are signals — they flow through wires, they're visible in the editor, they can be driven by other components, and they participate in the scheduler's topological sort.
+
+Bad (param for a tunable threshold):
+
+```json
+{
+    "param_defaults": { "threshold": "5.0" }
+}
+```
+
+Good (port for a tunable threshold, with a default via initial_value on the wire or a Value component):
+
+```json
+{
+    "interface": [
+        { "name": "threshold", "direction": 0, "type": "Any" }
+    ]
+}
+```
+
+Why:
+
+- params are invisible to the scheduler — changing them doesn't propagate
+- params can't be driven by other components at runtime
+- ports make data flow explicit and debuggable in the editor
+- a blueprint author can always hardwire a port to a constant Value node if it should be fixed
+
+### Avoid Divide at all costs
+
+Division is expensive and dangerous (divide-by-zero). Prefer:
+
+- precomputed reciprocals (`inv_r = 1.0f / r` at init time, then multiply by `inv_r`)
+- reciprocal ports (expose `inv_inertia` instead of `inertia`)
+- math hacks (e.g., `x * (1.0f / constant)` instead of `x / constant`)
+- the `Multiply` primitive with a reciprocal input, instead of `Divide`
+
+The `Divide` component exists but should be a last resort. Blueprint authors should be guided toward `Multiply` + reciprocal patterns.

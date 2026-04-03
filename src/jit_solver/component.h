@@ -4,14 +4,13 @@
 // PORTS Macro - Generate component port fields from registry
 // ============================================================================
 // Usage:
-//   struct RU19A {
-//       PORTS(RU19A, v_bus, v_start, k_mod, rpm_out, t4_out)
+//   struct Battery {
+//       PORTS(Battery, v_in, v_out, charge, soc)
 //       // Expands to:
-//       // uint32_t v_bus_idx = 0;
-//       // uint32_t v_start_idx = 0;
-//       // uint32_t k_mod_idx = 0;
-//       // uint32_t rpm_out_idx = 0;
-//       // uint32_t t4_out_idx = 0;
+//       // uint32_t v_in_idx = 0;
+//       // uint32_t v_out_idx = 0;
+//       // uint32_t charge_idx = 0;
+//       // uint32_t soc_idx = 0;
 //   };
 //
 // The macro generates uint32_t fields with _idx suffix for each port.

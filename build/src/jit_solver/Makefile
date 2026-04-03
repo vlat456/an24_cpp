@@ -233,30 +233,6 @@ components/add.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/add.cpp.s
 .PHONY : components/add.cpp.s
 
-components/agk47.o: components/agk47.cpp.o
-.PHONY : components/agk47.o
-
-# target to build an object file
-components/agk47.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/agk47.cpp.o
-.PHONY : components/agk47.cpp.o
-
-components/agk47.i: components/agk47.cpp.i
-.PHONY : components/agk47.i
-
-# target to preprocess a source file
-components/agk47.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/agk47.cpp.i
-.PHONY : components/agk47.cpp.i
-
-components/agk47.s: components/agk47.cpp.s
-.PHONY : components/agk47.s
-
-# target to generate assembly for a file
-components/agk47.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/agk47.cpp.s
-.PHONY : components/agk47.cpp.s
-
 components/and_gate.o: components/and_gate.cpp.o
 .PHONY : components/and_gate.o
 
@@ -617,30 +593,6 @@ components/divide.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/divide.cpp.s
 .PHONY : components/divide.cpp.s
 
-components/dmr400.o: components/dmr400.cpp.o
-.PHONY : components/dmr400.o
-
-# target to build an object file
-components/dmr400.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/dmr400.cpp.o
-.PHONY : components/dmr400.cpp.o
-
-components/dmr400.i: components/dmr400.cpp.i
-.PHONY : components/dmr400.i
-
-# target to preprocess a source file
-components/dmr400.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/dmr400.cpp.i
-.PHONY : components/dmr400.cpp.i
-
-components/dmr400.s: components/dmr400.cpp.s
-.PHONY : components/dmr400.s
-
-# target to generate assembly for a file
-components/dmr400.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/dmr400.cpp.s
-.PHONY : components/dmr400.cpp.s
-
 components/electric_heater.o: components/electric_heater.cpp.o
 .PHONY : components/electric_heater.o
 
@@ -880,30 +832,6 @@ components/greater_eq.s: components/greater_eq.cpp.s
 components/greater_eq.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/greater_eq.cpp.s
 .PHONY : components/greater_eq.cpp.s
-
-components/gs24.o: components/gs24.cpp.o
-.PHONY : components/gs24.o
-
-# target to build an object file
-components/gs24.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/gs24.cpp.o
-.PHONY : components/gs24.cpp.o
-
-components/gs24.i: components/gs24.cpp.i
-.PHONY : components/gs24.i
-
-# target to preprocess a source file
-components/gs24.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/gs24.cpp.i
-.PHONY : components/gs24.cpp.i
-
-components/gs24.s: components/gs24.cpp.s
-.PHONY : components/gs24.s
-
-# target to generate assembly for a file
-components/gs24.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/gs24.cpp.s
-.PHONY : components/gs24.cpp.s
 
 components/gyroscope.o: components/gyroscope.cpp.o
 .PHONY : components/gyroscope.o
@@ -1625,54 +1553,6 @@ components/resistor.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/resistor.cpp.s
 .PHONY : components/resistor.cpp.s
 
-components/ru19a.o: components/ru19a.cpp.o
-.PHONY : components/ru19a.o
-
-# target to build an object file
-components/ru19a.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/ru19a.cpp.o
-.PHONY : components/ru19a.cpp.o
-
-components/ru19a.i: components/ru19a.cpp.i
-.PHONY : components/ru19a.i
-
-# target to preprocess a source file
-components/ru19a.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/ru19a.cpp.i
-.PHONY : components/ru19a.cpp.i
-
-components/ru19a.s: components/ru19a.cpp.s
-.PHONY : components/ru19a.s
-
-# target to generate assembly for a file
-components/ru19a.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/ru19a.cpp.s
-.PHONY : components/ru19a.cpp.s
-
-components/rug82.o: components/rug82.cpp.o
-.PHONY : components/rug82.o
-
-# target to build an object file
-components/rug82.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/rug82.cpp.o
-.PHONY : components/rug82.cpp.o
-
-components/rug82.i: components/rug82.cpp.i
-.PHONY : components/rug82.i
-
-# target to preprocess a source file
-components/rug82.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/rug82.cpp.i
-.PHONY : components/rug82.cpp.i
-
-components/rug82.s: components/rug82.cpp.s
-.PHONY : components/rug82.s
-
-# target to generate assembly for a file
-components/rug82.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/rug82.cpp.s
-.PHONY : components/rug82.cpp.s
-
 components/sample_hold.o: components/sample_hold.cpp.o
 .PHONY : components/sample_hold.o
 
@@ -2173,9 +2053,6 @@ help:
 	@echo "... components/add.o"
 	@echo "... components/add.i"
 	@echo "... components/add.s"
-	@echo "... components/agk47.o"
-	@echo "... components/agk47.i"
-	@echo "... components/agk47.s"
 	@echo "... components/and_gate.o"
 	@echo "... components/and_gate.i"
 	@echo "... components/and_gate.s"
@@ -2221,9 +2098,6 @@ help:
 	@echo "... components/divide.o"
 	@echo "... components/divide.i"
 	@echo "... components/divide.s"
-	@echo "... components/dmr400.o"
-	@echo "... components/dmr400.i"
-	@echo "... components/dmr400.s"
 	@echo "... components/electric_heater.o"
 	@echo "... components/electric_heater.i"
 	@echo "... components/electric_heater.s"
@@ -2254,9 +2128,6 @@ help:
 	@echo "... components/greater_eq.o"
 	@echo "... components/greater_eq.i"
 	@echo "... components/greater_eq.s"
-	@echo "... components/gs24.o"
-	@echo "... components/gs24.i"
-	@echo "... components/gs24.s"
 	@echo "... components/gyroscope.o"
 	@echo "... components/gyroscope.i"
 	@echo "... components/gyroscope.s"
@@ -2347,12 +2218,6 @@ help:
 	@echo "... components/resistor.o"
 	@echo "... components/resistor.i"
 	@echo "... components/resistor.s"
-	@echo "... components/ru19a.o"
-	@echo "... components/ru19a.i"
-	@echo "... components/ru19a.s"
-	@echo "... components/rug82.o"
-	@echo "... components/rug82.i"
-	@echo "... components/rug82.s"
 	@echo "... components/sample_hold.o"
 	@echo "... components/sample_hold.i"
 	@echo "... components/sample_hold.s"

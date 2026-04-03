@@ -184,43 +184,9 @@ TEST(PushBuildValidation, ControlledVoltageSourcesShareVPos_Throws) {
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
 }
 
-TEST(PushBuildValidation, GS24AndBatteryOnSameWire_Throws) {
-    std::vector<DeviceInstance> devices = {
-        make_device("gs", "GS24"),
-        make_device("bat", "Battery", {{"v_nominal", "28.0"}}),
-        make_device("gnd", "RefNode", {{"value", "0"}})
-    };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"gs.v_out", "bat.v_out"},
-        {"gs.v_in", "gnd.v"}
-    };
 
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
-}
 
-TEST(PushBuildValidation, RU19AStartBusPortsActAsWriters) {
-    // Both RU19A writer ports (v_bus and v_start) must participate in
-    // one-source-per-wire conflict detection.
-    std::vector<DeviceInstance> devices = {
-        make_device("ru", "RU19A"),
-        make_device("bat1", "Battery", {{"v_nominal", "28.0"}}),
-        make_device("bat2", "Battery", {{"v_nominal", "28.0"}}),
-        make_device("gnd", "RefNode", {{"value", "0"}})
-    };
-
-    std::vector<std::pair<std::string, std::string>> connections_v_bus = {
-        {"ru.v_bus", "bat1.v_out"},
-        {"ru.v_start", "gnd.v"}
-    };
-    EXPECT_THROW(build_systems_dev(devices, connections_v_bus), std::runtime_error);
-
-    std::vector<std::pair<std::string, std::string>> connections_v_start = {
-        {"ru.v_start", "bat2.v_out"},
-        {"ru.v_bus", "gnd.v"}
-    };
-    EXPECT_THROW(build_systems_dev(devices, connections_v_start), std::runtime_error);
-}
 
 TEST(PushBuildValidation, MultipleLoadsOK) {
     // Multiple loads on same wire - should succeed (loads are not sources)
@@ -622,47 +588,7 @@ TEST(PushBuildValidation, ParamSchemaVisualOnlyFlag) {
     EXPECT_FALSE(def.param_schema.at("v_nominal").visual_only);
 }
 
-// ============================================================================
-// Regression: RU19A observation ports (rpm_out, t4_out) must be classified
-// as outputs for topological ordering. A downstream consumer reading rpm_out
-// must be ordered after RU19A so it sees the value written in the same step.
-// ============================================================================
 
-TEST(PushBuildValidation, RU19AObservationPortsAreOutputsForTopo) {
-    // Build: RU19A writes rpm_out -> Greater reads it as input A.
-    // If rpm_out were misclassified as an input, Greater would not have a
-    // topological dependency on RU19A, potentially executing first and
-    // reading a stale zero.
-    std::vector<DeviceInstance> devices = {
-        make_device("greater", "Greater"),  // declared BEFORE ru to stress topo sort
-        make_device("ru", "RU19A"),
-        make_device("ref_threshold", "RefNode", {{"value", "50"}}),
-        make_device("gnd_bus", "RefNode", {{"value", "0"}}),
-        make_device("gnd_start", "RefNode", {{"value", "0"}})
-    };
-
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"ru.rpm_out", "greater.A"},
-        {"ref_threshold.v", "greater.B"},
-        {"ru.v_bus", "gnd_bus.v"},
-        {"ru.v_start", "gnd_start.v"}
-    };
-
-    auto result = build_systems_dev(devices, connections);
-
-    SimulationState st;
-    for (uint32_t i = 0; i < result.signal_count; ++i) {
-        st.allocate_signal(0.0f, {Domain::Electrical, true});
-    }
-
-    // The initial rpm_out should be 0 (APU is OFF), so Greater(0 > 50) = 0.
-    result.scheduler.step(st, 1.0f / 60.0f);
-    const uint32_t greater_out = result.port_to_signal.at("greater.o");
-    EXPECT_FLOAT_EQ(st.values[greater_out], 0.0f);
-
-    // The value must be finite (not NaN from uninitialized read).
-    EXPECT_TRUE(std::isfinite(st.values[greater_out]));
-}
 
 TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
     std::vector<DeviceInstance> devices = {
@@ -689,29 +615,9 @@ TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
     EXPECT_NO_THROW(result.scheduler.step(st, 1.0f / 60.0f));
 }
 
-TEST(PushBuildValidation, SourceWriterMetadata_IsDomainScoped) {
-    // RU19A exposes source_writer on v_bus/v_start in Electrical domain.
-    // rpm_out is Mechanical output and must not appear in Electrical source writers.
-    auto electrical_writers = get_source_writer_ports("RU19A", static_cast<uint8_t>(Domain::Electrical));
-    auto mechanical_writers = get_source_writer_ports("RU19A", static_cast<uint8_t>(Domain::Mechanical));
 
-    EXPECT_EQ(electrical_writers.size(), 2u);
-    EXPECT_TRUE(std::find(electrical_writers.begin(), electrical_writers.end(), "v_bus") != electrical_writers.end());
-    EXPECT_TRUE(std::find(electrical_writers.begin(), electrical_writers.end(), "v_start") != electrical_writers.end());
-    EXPECT_TRUE(std::find(electrical_writers.begin(), electrical_writers.end(), "rpm_out") == electrical_writers.end());
 
-    EXPECT_TRUE(mechanical_writers.empty());
-}
 
-TEST(PushBuildValidation, OutputPorts_MetadataDrivenIncludesInOut) {
-    auto ru_outputs = get_output_ports("RU19A");
-    auto cvs_outputs = get_output_ports("ControlledVoltageSource");
-
-    EXPECT_TRUE(std::find(ru_outputs.begin(), ru_outputs.end(), "v_start") != ru_outputs.end());
-    EXPECT_TRUE(std::find(ru_outputs.begin(), ru_outputs.end(), "rpm_out") != ru_outputs.end());
-    EXPECT_TRUE(std::find(cvs_outputs.begin(), cvs_outputs.end(), "v_pos") != cvs_outputs.end());
-    EXPECT_TRUE(std::find(cvs_outputs.begin(), cvs_outputs.end(), "v_neg") != cvs_outputs.end());
-}
 
 // Regression: merge_device_instance must propagate domain and source_writer
 // from the type definition when both instance and definition have the same port.

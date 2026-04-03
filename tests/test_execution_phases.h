@@ -62,14 +62,6 @@ inline ExecutionPhases fuel_tank() {
     return p;
 }
 
-// ---- RUG82: electrical_passive + finalize ----
-inline ExecutionPhases rug82() {
-    ExecutionPhases p;
-    p.electrical_passive = true;
-    p.finalize = true;
-    return p;
-}
-
 // ---- VoltageSense: electrical_observer + logical ----
 inline ExecutionPhases voltage_sense() {
     ExecutionPhases p;
@@ -109,7 +101,6 @@ inline ExecutionPhases for_class(const std::string& classname) {
     if (classname == "Switch")               return switch_exec();
     if (classname == "GidroAccumulator")     return gidro_accumulator();
     if (classname == "FuelTank")             return fuel_tank();
-    if (classname == "RUG82")                return rug82();
     if (classname == "VoltageSense")         return voltage_sense();
     if (classname == "CurrentSense")         return current_sense();
     if (classname == "ControlledVoltageSource") return actuator();

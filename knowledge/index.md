@@ -12,7 +12,7 @@
 | Component library | `knowledge/07_library.md` | Blueprint JSON format |
 | Testing | `knowledge/08_testing.md` | Test patterns, helpers |
 | Quick reference | `knowledge/10_quick_reference.md` | Build commands, paths, tuning |
-| Component authoring | `knowledge/component_authoring.md` | Rules for stable components |
+| Component authoring | `knowledge/component_authoring.md` | Rules for stable components, design philosophy (ports-over-params, minimize C++, avoid Divide) |
 | How to create electrical | `knowledge/how_to_create_electrical_components.md` | Electrical components, solver roles |
 | Known issues | `knowledge/errors_TODO.md` | Bugs, architectural debts |
 

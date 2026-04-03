@@ -48,12 +48,11 @@ ExecutionPhases make_execution_for_class(const std::string& classname) {
         phases.control_commit = true;
     }
 
-    if (classname == "DMR400" || classname == "RU19A" || classname == "GS24" || classname == "RUG82" ||
-        classname == "GidroAccumulator" || classname == "FuelTank" || classname == "LerpNode") {
+    if (classname == "LerpNode" || classname == "GidroAccumulator" || classname == "FuelTank") {
         phases.finalize = true;
     }
 
-    if (classname == "InertiaNode" || classname == "Spring" || classname == "RU19A" || classname == "GS24" ||
+    if (classname == "InertiaNode" || classname == "Spring" ||
         classname == "ElectricPump" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
         phases.mechanical = true;
     }
@@ -63,7 +62,7 @@ ExecutionPhases make_execution_for_class(const std::string& classname) {
         phases.hydraulic = true;
     }
 
-    if (classname == "TempSensor" || classname == "ElectricHeater" || classname == "Radiator" || classname == "RU19A" ||
+    if (classname == "TempSensor" || classname == "ElectricHeater" || classname == "Radiator" ||
         classname == "FuelTank" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
         phases.thermal = true;
     }
@@ -161,8 +160,7 @@ BuildResult build_single_component(const std::string& classname,
 TEST(FactoryValidationTest, Factory_CreatesAllKnownComponents) {
     std::vector<std::string> component_types = {
         "Battery", "Switch", "HoldButton", "Relay", "Resistor",
-        "RefNode", "Bus", "Generator", "GS24", "RUG82", "RU19A",
-        "DMR400", "Gyroscope", "AGK47", "Transformer", "Inverter",
+        "RefNode", "Bus", "Generator", "Gyroscope", "Transformer", "Inverter",
         "LerpNode", "IndicatorLight", "HighPowerLoad", "ElectricPump",
         "SolenoidValve", "InertiaNode", "TempSensor", "ElectricHeater",
         "Radiator", "Comparator", "Load", "AZS",
@@ -223,12 +221,7 @@ TEST(FactoryValidationTest, PortRegistryConstants_AreCorrect) {
     EXPECT_EQ(Relay_PORT_COUNT, get_component_ports("Relay").size());
     EXPECT_EQ(RefNode_PORT_COUNT, get_component_ports("RefNode").size());
     EXPECT_EQ(Bus_PORT_COUNT, get_component_ports("Bus").size());
-    EXPECT_EQ(GS24_PORT_COUNT, get_component_ports("GS24").size());
-    EXPECT_EQ(RUG82_PORT_COUNT, get_component_ports("RUG82").size());
-    EXPECT_EQ(RU19A_PORT_COUNT, get_component_ports("RU19A").size());
-    EXPECT_EQ(DMR400_PORT_COUNT, get_component_ports("DMR400").size());
     EXPECT_EQ(Gyroscope_PORT_COUNT, get_component_ports("Gyroscope").size());
-    EXPECT_EQ(AGK47_PORT_COUNT, get_component_ports("AGK47").size());
     EXPECT_EQ(Transformer_PORT_COUNT, get_component_ports("Transformer").size());
     EXPECT_EQ(Inverter_PORT_COUNT, get_component_ports("Inverter").size());
     EXPECT_EQ(LerpNode_PORT_COUNT, get_component_ports("LerpNode").size());
@@ -255,8 +248,7 @@ TEST(FactoryValidationTest, AllRegistryPortsAreRecognized) {
     // Collect all component types from the registry
     std::vector<std::string> types = {
         "Battery", "Switch", "HoldButton", "Relay", "Resistor",
-        "RefNode", "Bus", "Generator", "GS24", "RUG82", "RU19A",
-        "DMR400", "Gyroscope", "AGK47", "Transformer", "Inverter",
+        "RefNode", "Bus", "Generator", "Gyroscope", "Transformer", "Inverter",
         "LerpNode", "IndicatorLight", "HighPowerLoad", "ElectricPump",
         "SolenoidValve", "InertiaNode", "TempSensor", "ElectricHeater",
         "Radiator", "Comparator", "Load", "AZS",

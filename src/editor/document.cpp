@@ -422,10 +422,6 @@ void Document::updateNodeContentFromSimulation() {
         } else if (type_name == "IndicatorLight") {
             float brightness = simulation_.get_port_value(nid, "brightness");
             content.label = (brightness > 0.1f) ? "ON" : "OFF";
-        } else if (type_name == "DMR400") {
-            float v_gen = simulation_.get_port_value(nid, "v_gen_ref");
-            float v_bus = simulation_.get_port_value(nid, "v_in");
-            content.state = (v_gen > v_bus + 2.0f);
         } else if (type_name == "Switch") {
             float state_voltage = simulation_.get_port_value(nid, "state");
             content.state = (state_voltage > 0.5f);
