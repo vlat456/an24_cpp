@@ -580,3 +580,35 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
     EXPECT_NEAR(r.toggle_probe_world_pos.y, probe_pos.y, 1.5f);
     EXPECT_EQ(input.selected_wire(), nullptr);
 }
+
+TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto node = make_node(I, "n1", "Battery", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    const size_t undo_before = model.undo_depth();
+    EXPECT_FALSE(model.is_dirty());
+
+    const ui::Pt click_pos = widget->worldPos() + ui::Pt(10.0f, 10.0f);
+    input.on_mouse_down(click_pos, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, click_pos, canvas_min);
+
+    EXPECT_EQ(input.state(), InputState::Idle);
+    EXPECT_EQ(input.selected_nodes().size(), 1u);
+    EXPECT_EQ(model.undo_depth(), undo_before);
+    EXPECT_FALSE(model.is_dirty());
+}
