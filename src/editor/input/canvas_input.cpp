@@ -255,8 +255,6 @@ void CanvasInput::enter_drag_node(visual::Widget* widget, bool add_to_selection,
         drag_initial_positions_.push_back(sel->worldPos());
     }
 
-    // Checkpoint BEFORE any drag mutations happen
-    model_.push_checkpoint();
 }
 
 void CanvasInput::enter_drag_routing_point(visual::Wire* wire, visual::RoutingPoint* rp, size_t rp_idx) {
@@ -279,8 +277,6 @@ void CanvasInput::enter_drag_routing_point(visual::Wire* wire, visual::RoutingPo
         rp_initial_points_.clear();
     }
 
-    // Checkpoint BEFORE any drag mutations happen
-    model_.push_checkpoint();
 }
 
 void CanvasInput::enter_resize_node(visual::Widget* widget, ResizeCorner corner) {
@@ -293,8 +289,6 @@ void CanvasInput::enter_resize_node(visual::Widget* widget, ResizeCorner corner)
     resize_original_size_ = widget->size();
     drag_anchor_ = Pt(0, 0);  // accumulated delta
 
-    // Checkpoint BEFORE any resize mutations happen
-    model_.push_checkpoint();
 }
 
 void CanvasInput::enter_create_wire(visual::Port* port, Pt port_pos) {
@@ -337,14 +331,8 @@ void CanvasInput::leave_state() {
 }
 
 void CanvasInput::cancel_gesture() {
-    // If a drag/resize gesture is in-flight, restore pre-gesture blueprint
-    // state. CreatingWire / ReconnectingWire / MarqueeSelect don't take
-    // checkpoints so they just need their transient state cleared.
-    if (state_ == InputState::DraggingNode ||
-        state_ == InputState::DraggingRoutingPoint ||
-        state_ == InputState::ResizingNode) {
-        model_.undo();
-    }
+    // Drag/resize/reconnect gestures mutate only transient visual state until
+    // mouse-up commit, so cancellation only needs to clear transient FSM state.
     leave_state();
 }
 
@@ -709,10 +697,7 @@ void CanvasInput::commit_drag_node() {
             break;
         }
     }
-    if (!any_moved) {
-        model_.discard_last_checkpoint();
-        return;
-    }
+    if (!any_moved) return;
     for (auto* widget : nodes) {
         ui::InternedId node_iid = interner_.intern(widget->id());
         if (!node_iid.empty()) {
@@ -725,7 +710,6 @@ void CanvasInput::commit_drag_node() {
 void CanvasInput::commit_drag_routing_point() {
     const bp2::Blueprint::Wire* bp2_wire = model_.current().find_wire(rp_wire_id_);
     if (!bp2_wire) {
-        model_.discard_last_checkpoint();
         return;
     }
     Pt final_pos = rp_point_ ? rp_point_->worldPos() : Pt(0, 0);
@@ -754,7 +738,7 @@ void CanvasInput::commit_drag_routing_point() {
     }
 
     if (!changed || rp_wire_id_.empty()) {
-        model_.discard_last_checkpoint();
+        return;
     } else {
         execute(model_, interner_, cmd_set_routing_points(rp_wire_id_, std::move(new_points)));
         debug_validate_command_boundary(model_, interner_, arena_);
@@ -764,14 +748,13 @@ void CanvasInput::commit_drag_routing_point() {
 void CanvasInput::commit_resize_node() {
     auto* resize_widget = resolve_node(resize_widget_id_);
     if (!resize_widget) {
-        model_.discard_last_checkpoint();
         return;
     }
     Pt new_pos = resize_widget->worldPos();
     Pt new_size = resize_widget->size();
     ui::InternedId node_iid = resize_widget_id_;
     if ((new_pos == resize_original_pos_ && new_size == resize_original_size_) || node_iid.empty()) {
-        model_.discard_last_checkpoint();
+        return;
     } else {
         execute(model_, interner_, cmd_resize_node(node_iid, new_pos.x, new_pos.y, new_size.x, new_size.y));
         debug_validate_command_boundary(model_, interner_, arena_);
