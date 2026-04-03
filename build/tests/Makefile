@@ -424,20 +424,6 @@ current_sense_tests/fast:
 .PHONY : current_sense_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/battery_discharge_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/battery_discharge_tests.dir/rule
-.PHONY : tests/CMakeFiles/battery_discharge_tests.dir/rule
-
-# Convenience name for target.
-battery_discharge_tests: tests/CMakeFiles/battery_discharge_tests.dir/rule
-.PHONY : battery_discharge_tests
-
-# fast build rule for target.
-battery_discharge_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/build
-.PHONY : battery_discharge_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/bug_hunt_regression_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
 .PHONY : tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
@@ -1192,6 +1178,20 @@ accumulator_tests: tests/CMakeFiles/accumulator_tests.dir/rule
 accumulator_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/build
 .PHONY : accumulator_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/sam28_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/sam28_tests.dir/rule
+.PHONY : tests/CMakeFiles/sam28_tests.dir/rule
+
+# Convenience name for target.
+sam28_tests: tests/CMakeFiles/sam28_tests.dir/rule
+.PHONY : sam28_tests
+
+# fast build rule for target.
+sam28_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/build
+.PHONY : sam28_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/clamp_normalize_tests.dir/rule:
@@ -2689,6 +2689,30 @@ provider_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/provider_test.cpp.s
 .PHONY : provider_test.cpp.s
 
+test_12sam28.o: test_12sam28.cpp.o
+.PHONY : test_12sam28.o
+
+# target to build an object file
+test_12sam28.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/test_12sam28.cpp.o
+.PHONY : test_12sam28.cpp.o
+
+test_12sam28.i: test_12sam28.cpp.i
+.PHONY : test_12sam28.i
+
+# target to preprocess a source file
+test_12sam28.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/test_12sam28.cpp.i
+.PHONY : test_12sam28.cpp.i
+
+test_12sam28.s: test_12sam28.cpp.s
+.PHONY : test_12sam28.s
+
+# target to generate assembly for a file
+test_12sam28.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/test_12sam28.cpp.s
+.PHONY : test_12sam28.cpp.s
+
 test_accumulator.o: test_accumulator.cpp.o
 .PHONY : test_accumulator.o
 
@@ -2880,30 +2904,6 @@ test_azs.s: test_azs.cpp.s
 test_azs.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/test_azs.cpp.s
 .PHONY : test_azs.cpp.s
-
-test_battery_discharge.o: test_battery_discharge.cpp.o
-.PHONY : test_battery_discharge.o
-
-# target to build an object file
-test_battery_discharge.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/test_battery_discharge.cpp.o
-.PHONY : test_battery_discharge.cpp.o
-
-test_battery_discharge.i: test_battery_discharge.cpp.i
-.PHONY : test_battery_discharge.i
-
-# target to preprocess a source file
-test_battery_discharge.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/test_battery_discharge.cpp.i
-.PHONY : test_battery_discharge.cpp.i
-
-test_battery_discharge.s: test_battery_discharge.cpp.s
-.PHONY : test_battery_discharge.s
-
-# target to generate assembly for a file
-test_battery_discharge.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/test_battery_discharge.cpp.s
-.PHONY : test_battery_discharge.cpp.s
 
 test_blueprint_integration.o: test_blueprint_integration.cpp.o
 .PHONY : test_blueprint_integration.o
@@ -4630,7 +4630,6 @@ help:
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
-	@echo "... battery_discharge_tests"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
@@ -4691,6 +4690,7 @@ help:
 	@echo "... push_scheduler_tests"
 	@echo "... push_state_tests"
 	@echo "... radiator_regression_tests"
+	@echo "... sam28_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
 	@echo "... signal_key_resolver_tests"
@@ -4849,6 +4849,9 @@ help:
 	@echo "... provider_test.o"
 	@echo "... provider_test.i"
 	@echo "... provider_test.s"
+	@echo "... test_12sam28.o"
+	@echo "... test_12sam28.i"
+	@echo "... test_12sam28.s"
 	@echo "... test_accumulator.o"
 	@echo "... test_accumulator.i"
 	@echo "... test_accumulator.s"
@@ -4873,9 +4876,6 @@ help:
 	@echo "... test_azs.o"
 	@echo "... test_azs.i"
 	@echo "... test_azs.s"
-	@echo "... test_battery_discharge.o"
-	@echo "... test_battery_discharge.i"
-	@echo "... test_battery_discharge.s"
 	@echo "... test_blueprint_integration.o"
 	@echo "... test_blueprint_integration.i"
 	@echo "... test_blueprint_integration.s"

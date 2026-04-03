@@ -530,7 +530,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/accumulator.cpp.o: /Users/vl
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -1130,7 +1129,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/add.cpp.o: /Users/vladimir/a
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -1730,7 +1728,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/and_gate.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -2330,7 +2327,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/any_v_to_bool.cpp.o: /Users/
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -2930,7 +2926,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/asym_slew_rate.cpp.o: /Users
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -3530,7 +3525,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/asym_tmo.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -4130,607 +4124,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/azs.cpp.o: /Users/vladimir/a
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/clamp.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/comparator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/component_enums.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/controlled_current_source.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/controlled_voltage_source.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/current_sense.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/divide.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/electric_heater.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/electric_pump.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_conductance.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/fast_tmo.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/fuel_tank.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/generator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/gidro_accumulator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/greater.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/greater_eq.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/gyroscope.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/high_power_load.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/hold_button.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/indicator_light.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/inertia_node.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/integrator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/inverter.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/lerp_node.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/lesser.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/lesser_eq.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/load.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/lut.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/max.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/merger.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/min.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/monostable.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/multiply.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/nand_gate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/normalize.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/not_gate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/or_gate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/p.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/pd.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/pi.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/pid.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/port_names.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/port_registry.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/positive_v_to_bool.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/radiator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/ref_node.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/relay.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/resistor.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/sample_hold.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/slew_rate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/slider.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/solenoid_valve.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/splitter.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/spring.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/subtract.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/switch.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/temp_sensor.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/time_delay.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/transformer.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/value.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/variable_conductance.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/voltage_sense.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/voltmeter.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/xor_gate.h
-
-src/jit_solver/CMakeFiles/jit_solver.dir/components/battery.cpp.o: /Users/vladimir/an24_cpp/src/jit_solver/components/battery.cpp \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/Availability.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternal.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternalLegacy.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_locale.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_mb_cur_max.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_printf.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_static_assert.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdlib.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_string.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_strings.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_time.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_intmax_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_locale_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_nl_item.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint16_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint32_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint64_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint8_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uintmax_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_wctrans_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_wctype_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wchar.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wctype.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_xlocale.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/alloca.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_endian.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_limits.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_mcontext.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_types.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/endian.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/limits.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/signal.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/types.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/assert.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ctype.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/errno.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/_OSByteOrder.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/arm/_OSByteOrder.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/limits.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/locale.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/mach/arm/_structs.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/mach/machine/_structs.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/_endian.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/_mcontext.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/_types.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/endian.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/limits.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/signal.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/types.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc_type.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_ptrcheck.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/nl_types.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/pthread_impl.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/qos.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/sched.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/runetype.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sched.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stddef.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdint.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdio.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdlib.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/string.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/__endian.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_endian.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_posix_availability.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_attr_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_cond_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_condattr_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_key_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_mutex_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_mutexattr_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_once_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_rwlock_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_rwlockattr_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_types.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_symbol_aliasing.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_blkcnt_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_blksize_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_caddr_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_clock_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ct_rune_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_dev_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_errno_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_clr.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_copy.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_def.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_isset.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_set.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_setsize.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_zero.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fsblkcnt_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fsfilcnt_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_gid_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_id_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_in_addr_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_in_port_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ino64_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ino_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int16_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int32_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int64_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int8_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_intptr_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_key_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_mach_port_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_mbstate_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_mode_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_nlink_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_null.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_off_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_pid_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_rsize_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_rune_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_seek_set.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_sigaltstack.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_sigset_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_size_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ssize_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_suseconds_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_time_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_timespec.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_timeval.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_char.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_int.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_int16_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_int32_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_int64_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_int8_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_short.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ucontext.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uid_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uintptr_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_useconds_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_va_list.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_wchar_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_wint_t.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/appleapiopts.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/errno.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/qos.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/resource.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/signal.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/stdio.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/syslimits.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/types.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/wait.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/time.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/wchar.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/wctype.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/___wctype.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_ctype.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_stdio.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_stdlib.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_string.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_time.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_wchar.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_wctype.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/adjacent_find.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/all_of.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/any_of.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/binary_search.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/clamp.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/comp.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/comp_ref_type.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/copy.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/copy_backward.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/copy_if.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/copy_n.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/count.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/count_if.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/equal.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/equal_range.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/fill.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/fill_n.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_end.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_first_of.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_if.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_if_not.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/for_each.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/for_each_n.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/generate.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/generate_n.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/half_positive.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/includes.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/inplace_merge.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_heap.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_heap_until.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_partitioned.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_permutation.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_sorted.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_sorted_until.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/iter_swap.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/lexicographical_compare.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/lower_bound.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/make_heap.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/max.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/max_element.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/merge.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/min.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/min_element.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/minmax.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/minmax_element.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/mismatch.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/move.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/move_backward.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/next_permutation.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/none_of.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/nth_element.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partial_sort.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partial_sort_copy.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partition.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partition_copy.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partition_point.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/pop_heap.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/prev_permutation.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/push_heap.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/remove.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/remove_copy.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/remove_copy_if.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/remove_if.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/replace.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/replace_copy.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/replace_copy_if.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/replace_if.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/reverse.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/reverse_copy.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/rotate.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/rotate_copy.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/sample.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/search.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/search_n.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/set_difference.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/set_intersection.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/set_symmetric_difference.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/set_union.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shift_left.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shift_right.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shuffle.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/sift_down.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/sort.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/sort_heap.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/stable_partition.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/stable_sort.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/swap_ranges.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/transform.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/unique.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/unique_copy.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/unwrap_iter.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/upper_bound.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__availability \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__bit_reference \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__bits \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__bsd_locale_defaults.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__config \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__config_site \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__debug \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__errc \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__function_like.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binary_function.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binary_negate.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/bind.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/bind_front.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binder1st.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binder2nd.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/default_searcher.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/function.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/hash.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/identity.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/invoke.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/is_transparent.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/mem_fn.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/mem_fun_ref.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/not_fn.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/operations.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/perfect_forward.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/pointer_to_binary_function.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/pointer_to_unary_function.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/ranges_operations.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/reference_wrapper.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/unary_function.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/unary_negate.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/unwrap_ref.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/weak_result_type.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional_base \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__hash_table \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/access.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/advance.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/back_insert_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/common_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/concepts.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/counted_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/data.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/default_sentinel.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/distance.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/empty.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/erase_if_container.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/front_insert_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/incrementable_traits.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/insert_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/istream_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/istreambuf_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iter_move.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iter_swap.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator_traits.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/move_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/next.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/ostream_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/ostreambuf_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/prev.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/projected.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/readable_traits.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/reverse_access.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/reverse_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/size.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/wrap_iter.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__locale \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__mbstate_t.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/addressof.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/allocation_guard.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/allocator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/allocator_arg_t.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/allocator_traits.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/compressed_pair.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/construct_at.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/pointer_safety.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/pointer_traits.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/raw_storage_iterator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/shared_ptr.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/temporary_buffer.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uninitialized_algorithms.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uses_allocator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__mutex_base \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__node_handle \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__nullptr \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__random/uniform_int_distribution.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/access.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/enable_borrowed_range.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/enable_view.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__split_buffer \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__string \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__thread/poll_with_backoff.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__threading_support \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__tree \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__tuple \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__undef_macros \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/__decay_copy.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/as_const.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/cmp.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/declval.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/exchange.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/forward.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/in_place.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/integer_sequence.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/move.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/pair.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/piecewise_construct.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/rel_ops.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/swap.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/to_underlying.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__variant/monostate.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/algorithm \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/any \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/array \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/atomic \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/bitset \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cassert \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cctype \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cerrno \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/chrono \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/climits \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/clocale \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cmath \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/compare \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/concepts \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cstddef \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdint \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdio \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdlib \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cstring \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/ctime \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/ctype.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cwchar \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cwctype \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/deque \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/errno.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/exception \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/filesystem \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/forward_list \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/functional \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/initializer_list \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/iomanip \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/ios \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/iosfwd \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/istream \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/iterator \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/limits \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/limits.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/locale \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/locale.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/map \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/math.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/memory \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/mutex \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/new \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/numeric \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/optional \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/ostream \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/ratio \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/set \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/stack \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/stddef.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/stdexcept \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/stdint.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/stdio.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/stdlib.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/streambuf \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/string \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/string.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/string_view \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/system_error \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/tuple \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/type_traits \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/typeinfo \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_set \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/utility \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/valarray \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/variant \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/vector \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/version \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/wchar.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/wctype.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg___gnuc_va_list.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg___va_copy.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg_header_macro.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg_va_arg.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg_va_copy.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg_va_list.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_header_macro.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_max_align_t.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_null.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_nullptr_t.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_offsetof.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_ptrdiff_t.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_rsize_t.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_size_t.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_wchar_t.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/limits.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/ptrcheck.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
-  _deps/json-src/include/nlohmann/adl_serializer.hpp \
-  _deps/json-src/include/nlohmann/byte_container_with_subtype.hpp \
-  _deps/json-src/include/nlohmann/detail/abi_macros.hpp \
-  _deps/json-src/include/nlohmann/detail/conversions/from_json.hpp \
-  _deps/json-src/include/nlohmann/detail/conversions/to_chars.hpp \
-  _deps/json-src/include/nlohmann/detail/conversions/to_json.hpp \
-  _deps/json-src/include/nlohmann/detail/exceptions.hpp \
-  _deps/json-src/include/nlohmann/detail/hash.hpp \
-  _deps/json-src/include/nlohmann/detail/input/binary_reader.hpp \
-  _deps/json-src/include/nlohmann/detail/input/input_adapters.hpp \
-  _deps/json-src/include/nlohmann/detail/input/json_sax.hpp \
-  _deps/json-src/include/nlohmann/detail/input/lexer.hpp \
-  _deps/json-src/include/nlohmann/detail/input/parser.hpp \
-  _deps/json-src/include/nlohmann/detail/input/position_t.hpp \
-  _deps/json-src/include/nlohmann/detail/iterators/internal_iterator.hpp \
-  _deps/json-src/include/nlohmann/detail/iterators/iter_impl.hpp \
-  _deps/json-src/include/nlohmann/detail/iterators/iteration_proxy.hpp \
-  _deps/json-src/include/nlohmann/detail/iterators/iterator_traits.hpp \
-  _deps/json-src/include/nlohmann/detail/iterators/json_reverse_iterator.hpp \
-  _deps/json-src/include/nlohmann/detail/iterators/primitive_iterator.hpp \
-  _deps/json-src/include/nlohmann/detail/json_custom_base_class.hpp \
-  _deps/json-src/include/nlohmann/detail/json_pointer.hpp \
-  _deps/json-src/include/nlohmann/detail/json_ref.hpp \
-  _deps/json-src/include/nlohmann/detail/macro_scope.hpp \
-  _deps/json-src/include/nlohmann/detail/macro_unscope.hpp \
-  _deps/json-src/include/nlohmann/detail/meta/call_std/begin.hpp \
-  _deps/json-src/include/nlohmann/detail/meta/call_std/end.hpp \
-  _deps/json-src/include/nlohmann/detail/meta/cpp_future.hpp \
-  _deps/json-src/include/nlohmann/detail/meta/detected.hpp \
-  _deps/json-src/include/nlohmann/detail/meta/identity_tag.hpp \
-  _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp \
-  _deps/json-src/include/nlohmann/detail/meta/std_fs.hpp \
-  _deps/json-src/include/nlohmann/detail/meta/type_traits.hpp \
-  _deps/json-src/include/nlohmann/detail/meta/void_t.hpp \
-  _deps/json-src/include/nlohmann/detail/output/binary_writer.hpp \
-  _deps/json-src/include/nlohmann/detail/output/output_adapters.hpp \
-  _deps/json-src/include/nlohmann/detail/output/serializer.hpp \
-  _deps/json-src/include/nlohmann/detail/string_concat.hpp \
-  _deps/json-src/include/nlohmann/detail/string_escape.hpp \
-  _deps/json-src/include/nlohmann/detail/value_t.hpp \
-  _deps/json-src/include/nlohmann/json.hpp \
-  _deps/json-src/include/nlohmann/json_fwd.hpp \
-  _deps/json-src/include/nlohmann/ordered_map.hpp \
-  _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
-  _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
-  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/state.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/subsolvers/subsolver_types.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/add.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/and_gate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/any_v_to_bool.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -5330,7 +4723,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/blueprint_input.cpp.o: /User
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -5930,7 +5322,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/blueprint_output.cpp.o: /Use
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -6530,7 +5921,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/bus.cpp.o: /Users/vladimir/a
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -7130,7 +6520,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/clamp.cpp.o: /Users/vladimir
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -7730,7 +7119,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/comparator.cpp.o: /Users/vla
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -8330,7 +7718,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/controlled_current_source.cp
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -8930,7 +8317,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/controlled_voltage_source.cp
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -9530,7 +8916,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/current_sense.cpp.o: /Users/
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -10130,7 +9515,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/divide.cpp.o: /Users/vladimi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -10730,7 +10114,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/electric_heater.cpp.o: /User
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -11330,7 +10713,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/electric_pump.cpp.o: /Users/
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -11930,7 +11312,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.o
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -12530,7 +11911,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o: /Us
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -13130,7 +12510,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/fast_tmo.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -13730,7 +13109,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/fuel_tank.cpp.o: /Users/vlad
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -14330,7 +13708,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/generator.cpp.o: /Users/vlad
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -14930,7 +14307,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/gidro_accumulator.cpp.o: /Us
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -15530,7 +14906,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/greater.cpp.o: /Users/vladim
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -16130,7 +15505,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/greater_eq.cpp.o: /Users/vla
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -16730,7 +16104,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/gyroscope.cpp.o: /Users/vlad
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -17330,7 +16703,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/high_power_load.cpp.o: /User
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -17930,7 +17302,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/hold_button.cpp.o: /Users/vl
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -18530,7 +17901,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/indicator_light.cpp.o: /User
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -19130,7 +18500,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/inertia_node.cpp.o: /Users/v
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -19730,7 +19099,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/integrator.cpp.o: /Users/vla
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -20330,7 +19698,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/inverter.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -20930,7 +20297,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/lerp_node.cpp.o: /Users/vlad
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -21530,7 +20896,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/lesser.cpp.o: /Users/vladimi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -22130,7 +21495,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/lesser_eq.cpp.o: /Users/vlad
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -22730,7 +22094,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/load.cpp.o: /Users/vladimir/
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -23332,7 +22695,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/lut.cpp.o: /Users/vladimir/a
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -23932,7 +23294,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/max.cpp.o: /Users/vladimir/a
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -24532,7 +23893,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/merger.cpp.o: /Users/vladimi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -25132,7 +24492,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/min.cpp.o: /Users/vladimir/a
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -25732,7 +25091,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/monostable.cpp.o: /Users/vla
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -26332,7 +25690,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/multiply.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -26932,7 +26289,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/nand_gate.cpp.o: /Users/vlad
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -27532,7 +26888,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/normalize.cpp.o: /Users/vlad
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -28132,7 +27487,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/not_gate.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -28732,7 +28086,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/or_gate.cpp.o: /Users/vladim
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -29332,7 +28685,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/p.cpp.o: /Users/vladimir/an2
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -29932,7 +29284,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/pd.cpp.o: /Users/vladimir/an
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -30532,7 +29883,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/pi.cpp.o: /Users/vladimir/an
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -31132,7 +30482,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/pid.cpp.o: /Users/vladimir/a
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -31732,7 +31081,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/positive_v_to_bool.cpp.o: /U
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -32332,7 +31680,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/radiator.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -32932,7 +32279,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/ref_node.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -33532,7 +32878,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/relay.cpp.o: /Users/vladimir
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -34132,7 +33477,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/resistor.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -34732,7 +34076,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/sample_hold.cpp.o: /Users/vl
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -35332,7 +34675,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/slew_rate.cpp.o: /Users/vlad
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -35932,7 +35274,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/slider.cpp.o: /Users/vladimi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -36532,7 +35873,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/solenoid_valve.cpp.o: /Users
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -37132,7 +36472,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/splitter.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -37732,7 +37071,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/spring.cpp.o: /Users/vladimi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -38332,7 +37670,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/subtract.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -38932,7 +38269,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/switch.cpp.o: /Users/vladimi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -39532,7 +38868,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/temp_sensor.cpp.o: /Users/vl
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -40132,7 +39467,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/time_delay.cpp.o: /Users/vla
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -40732,7 +40066,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/transformer.cpp.o: /Users/vl
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -41332,7 +40665,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/value.cpp.o: /Users/vladimir
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -41932,7 +41264,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/variable_conductance.cpp.o: 
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -42532,7 +41863,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/voltage_sense.cpp.o: /Users/
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -43132,7 +42462,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/voltmeter.cpp.o: /Users/vlad
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -43732,7 +43061,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/xor_gate.cpp.o: /Users/vladi
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -44354,7 +43682,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: /Users/vladimir/an24_
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -44960,7 +44287,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
@@ -46171,8 +45497,6 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.cpp:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/battery.cpp:
-
 /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.cpp:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.cpp:
@@ -46250,8 +45574,6 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/battery.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h:
 

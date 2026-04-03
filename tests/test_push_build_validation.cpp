@@ -33,9 +33,9 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
 // ============================================================================
 
 TEST(PushBuildValidation, SingleSourcePerWireOK) {
-    // Single Battery driving a Load - should succeed
+    // Single ElectricalSource driving a Load - should succeed
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("load", "Load", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
@@ -53,10 +53,10 @@ TEST(PushBuildValidation, SingleSourcePerWireOK) {
 }
 
 TEST(PushBuildValidation, MultipleSourcesSameWireErrors) {
-    // Two Batteries driving the same wire - should throw
+    // Two ElectricalSources driving the same wire - should throw
     std::vector<DeviceInstance> devices = {
-        make_device("battery1", "Battery", {{"v_nominal", "28.0"}}),
-        make_device("battery2", "Battery", {{"v_nominal", "27.0"}}),
+        make_device("battery1", "ElectricalSource", {{"voltage", "28.0"}}),
+        make_device("battery2", "ElectricalSource", {{"voltage", "27.0"}}),
         make_device("load", "Load", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
@@ -93,9 +93,9 @@ TEST(PushBuildValidation, MultipleSourceLikeComponentsConflict) {
 }
 
 TEST(PushBuildValidation, BatteryAndGeneratorOnSameWire) {
-    // Battery + Generator on same wire - should throw
+    // ElectricalSource + Generator on same wire - should throw
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("generator", "Generator", {{"v_nominal", "28.5"}}),
         make_device("load", "Load", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
@@ -111,10 +111,10 @@ TEST(PushBuildValidation, BatteryAndGeneratorOnSameWire) {
 }
 
 TEST(PushBuildValidation, BatteryAndRefNodeOnSameWire) {
-    // Battery + RefNode on same wire - RefNode defines reference, NOT an active source
+    // ElectricalSource + RefNode on same wire - RefNode defines reference, NOT an active source
     // So this should be OK (RefNode just provides 0V reference)
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("ref", "RefNode", {{"value", "5.0"}}),  // 5V reference
         make_device("load", "Load", {{"conductance", "0.1"}})
     };
@@ -132,9 +132,9 @@ TEST(PushBuildValidation, BatteryAndRefNodeOnSameWire) {
 }
 
 TEST(PushBuildValidation, ControlledCurrentSourceConflict) {
-    // ControlledCurrentSource writing to same wire as Battery - should throw
+    // ControlledCurrentSource writing to same wire as ElectricalSource - should throw
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("ccs", "ControlledCurrentSource", {{"gain", "1.0"}}),
         make_device("load", "Load", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
@@ -201,7 +201,7 @@ TEST(PushBuildValidation, ControlledVoltageSourcesShareVPos_Throws) {
 TEST(PushBuildValidation, MultipleLoadsOK) {
     // Multiple loads on same wire - should succeed (loads are not sources)
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("load1", "Load", {{"conductance", "0.1"}}),
         make_device("load2", "Load", {{"conductance", "0.2"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
@@ -222,10 +222,10 @@ TEST(PushBuildValidation, MultipleLoadsOK) {
 TEST(PushBuildValidation, SeparateWiresOK) {
     // Two separate circuits - should succeed
     std::vector<DeviceInstance> devices = {
-        make_device("battery1", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery1", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("load1", "Load", {{"conductance", "0.1"}}),
         make_device("gnd1", "RefNode", {{"value", "0"}}),
-        make_device("battery2", "Battery", {{"v_nominal", "12.0"}}),
+        make_device("battery2", "ElectricalSource", {{"voltage", "12.0"}}),
         make_device("load2", "Load", {{"conductance", "0.1"}}),
         make_device("gnd2", "RefNode", {{"value", "0"}})
     };
@@ -244,10 +244,10 @@ TEST(PushBuildValidation, SeparateWiresOK) {
 }
 
 TEST(PushBuildValidation, TwoBatteriesDirectConnection) {
-    // Two batteries directly connected with no load - should throw
+    // Two ElectricalSources directly connected with no load - should throw
     std::vector<DeviceInstance> devices = {
-        make_device("battery1", "Battery", {{"v_nominal", "28.0"}}),
-        make_device("battery2", "Battery", {{"v_nominal", "27.0"}}),
+        make_device("battery1", "ElectricalSource", {{"voltage", "28.0"}}),
+        make_device("battery2", "ElectricalSource", {{"voltage", "27.0"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
@@ -261,9 +261,9 @@ TEST(PushBuildValidation, TwoBatteriesDirectConnection) {
 }
 
 TEST(PushBuildValidation, SingleBatteryOK) {
-    // Just one battery - should succeed
+    // Just one ElectricalSource - should succeed
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
@@ -343,7 +343,7 @@ TEST(PushBuildValidation, TopologicalOrder_CycleFallsBackNoThrow) {
 TEST(PushBuildValidation, ParseInitialValuesFromJson) {
     const std::string json = R"({
         "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "24.0"}},
+            {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "24.0"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
         ],
         "connections": [
@@ -363,7 +363,7 @@ TEST(PushBuildValidation, ParseInitialValuesFromJson) {
 TEST(PushBuildValidation, SimulatorAppliesInitialValuesBeforeStep) {
     const std::string json = R"({
         "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "24.0"}},
+            {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "24.0"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
         ],
         "connections": [
@@ -425,7 +425,7 @@ TEST(PushBuildValidation, MaxSelectsHigherInput) {
 
 TEST(PushBuildValidation, MaxAvoidsSourceConflict) {
     std::vector<DeviceInstance> devices = {
-        make_device("bat", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("bat", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("gen", "Generator", {{"v_nominal", "28.5"}}),
         make_device("sel", "Max"),
         make_device("gnd", "RefNode", {{"value", "0.0"}})
@@ -473,8 +473,8 @@ TEST(PushBuildValidation, UnknownClassnameThrows) {
 
 TEST(PushBuildValidation, WhitelistParamsRejected) {
     std::vector<DeviceInstance> devices = {
-        make_device("bat", "Battery", {
-            {"v_nominal", "28.0"},
+        make_device("bat", "ElectricalSource", {
+            {"voltage", "28.0"},
             {"inv_internal_r", "40.0"}
         }),
         make_device("gnd", "RefNode", {{"value", "0.0"}})
@@ -546,7 +546,7 @@ TEST(PushBuildValidation, BusWithVisualOnlyParam_PortEdge_DoesNotThrow) {
     // This is a regression test for the bug where string_params like
     // port_edge leaked into the simulation and caused build failure.
     std::vector<DeviceInstance> devices = {
-        make_device("bat", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("bat", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("bus_1", "Bus"),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
@@ -602,7 +602,7 @@ TEST(PushBuildValidation, ParamSchemaVisualOnlyFlag) {
 
 TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("load", "Load", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
@@ -614,7 +614,7 @@ TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
 
     auto result = build_systems_dev(devices, connections);
 
-    EXPECT_TRUE(is_scheduler_source_component("Battery"));
+    EXPECT_FALSE(is_scheduler_source_component("ElectricalSource"));
     EXPECT_TRUE(is_scheduler_source_component("RefNode"));
     EXPECT_FALSE(is_scheduler_source_component("Load"));
 

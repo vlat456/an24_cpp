@@ -1190,7 +1190,7 @@ std::optional<Blueprint> BlueprintCodec::decode(
             "version", "id", "display_name", "name", "interface", "nodes",
             "wires", "nested", "pan_x", "pan_y", "zoom", "grid_step",
             "cpp_class", "description", "domains", "scheduler_source",
-            "param_defaults", "param_schema", "solver_role"
+            "param_defaults", "param_schema", "solver_role", "priority", "critical"
         };
         for (auto it = j.begin(); it != j.end(); ++it) {
             if (allowed_top_level.find(it.key()) == allowed_top_level.end()) {

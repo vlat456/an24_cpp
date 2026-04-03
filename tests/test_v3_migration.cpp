@@ -82,7 +82,7 @@ static std::string read_file(std::string const& path) {
 TEST(V3Migration, LibraryLoaderParsesConvertedLibraryAsV3Only) {
     TypeRegistry registry = load_type_registry("library");
 
-    EXPECT_TRUE(registry.has("Battery"));
+    EXPECT_TRUE(registry.has("ElectricalSource"));
     EXPECT_TRUE(registry.has("Generator"));
 }
 

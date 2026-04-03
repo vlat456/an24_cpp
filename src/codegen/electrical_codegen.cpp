@@ -39,7 +39,6 @@ struct ClassnameElectricalRule {
 };
 
 constexpr ClassnameElectricalRule k_classname_rules[] = {
-    {"Battery",               ElectricalElementKindCodegen::TheveninSource,   "v_out", "v_in",  "v_nominal",   28.0f, "internal_r", 0.01f},
     {"Generator",             ElectricalElementKindCodegen::TheveninSource,   "v_out", "v_in",  "v_nominal",   28.5f, "internal_r", 0.005f},
     {"RefNode",               ElectricalElementKindCodegen::FixedVoltageNode, "v",     nullptr, "value",        0.0f,  nullptr,      0.0f},
     {"Resistor",              ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "conductance",  0.1f,  nullptr,      0.0f},
@@ -359,7 +358,7 @@ ElectricalPlanCodegen extract_electrical_plan(
             continue;
         }
         const auto& re = raw_elements[raw_it->second];
-        if (re.device_classname == "Battery" || re.device_classname == "Generator" ||
+        if (re.device_classname == "Generator" ||
             re.device_classname == "IndicatorLight" || re.device_classname == "CurrentSense" ||
             re.device_classname == "ControlledVoltageSource" || re.device_classname == "VariableConductance" ||
             re.device_classname == "AZS" || re.device_classname == "HoldButton") {

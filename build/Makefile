@@ -640,19 +640,6 @@ current_sense_tests/fast:
 .PHONY : current_sense_tests/fast
 
 #=============================================================================
-# Target rules for targets named battery_discharge_tests
-
-# Build rule for target.
-battery_discharge_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 battery_discharge_tests
-.PHONY : battery_discharge_tests
-
-# fast build rule for target.
-battery_discharge_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/build
-.PHONY : battery_discharge_tests/fast
-
-#=============================================================================
 # Target rules for targets named bug_hunt_regression_tests
 
 # Build rule for target.
@@ -1355,6 +1342,19 @@ accumulator_tests/fast:
 .PHONY : accumulator_tests/fast
 
 #=============================================================================
+# Target rules for targets named sam28_tests
+
+# Build rule for target.
+sam28_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sam28_tests
+.PHONY : sam28_tests
+
+# fast build rule for target.
+sam28_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/build
+.PHONY : sam28_tests/fast
+
+#=============================================================================
 # Target rules for targets named clamp_normalize_tests
 
 # Build rule for target.
@@ -1664,7 +1664,6 @@ help:
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
-	@echo "... battery_discharge_tests"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... benchmark_push_scheduler"
 	@echo "... blueprint_integration_tests"
@@ -1737,6 +1736,7 @@ help:
 	@echo "... push_scheduler_tests"
 	@echo "... push_state_tests"
 	@echo "... radiator_regression_tests"
+	@echo "... sam28_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
 	@echo "... signal_key_resolver_tests"

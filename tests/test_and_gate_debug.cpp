@@ -32,9 +32,8 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     const char* json = R"({
         "devices": [
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
-            {"name": "bat", "classname": "Battery", "params": {
-                "v_nominal": "28.0", "internal_r": "0.01",
-                "capacity": "1000.0", "charge": "1000.0"
+            {"name": "bat", "classname": "ElectricalSource", "params": {
+                "voltage": "28.0", "resistance": "0.01"
             }},
             {"name": "bus", "classname": "Bus"},
             {"name": "v2b", "classname": "Positive_V_to_Bool"},

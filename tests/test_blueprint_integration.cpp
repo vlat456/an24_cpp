@@ -89,7 +89,7 @@ TEST(BlueprintPorts, DISABLED_BasicBatteryCircuit) {
 
     std::vector<DeviceInstance> devices = {
         make_device("gnd", "RefNode", {{"value", "0.0"}}),
-        make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
+        make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
         make_device("res", "Resistor", {{"conductance", "0.1"}})
     };
 
@@ -130,7 +130,7 @@ TEST(BlueprintPorts, DISABLED_InputPassThroughToOutput) {
     std::vector<DeviceInstance> devices = {
         make_device("gnd", "RefNode", {{"value", "0.0"}}),
         make_device("vin", "BlueprintInput"),
-        make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
+        make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
         make_device("vout", "BlueprintOutput")
     };
 

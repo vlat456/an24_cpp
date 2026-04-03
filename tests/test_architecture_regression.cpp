@@ -123,80 +123,79 @@ TEST(E001_Noexcept, DuplicateFixedConstraintsSameValueNoThrow) {
 // =============================================================================
 
 TEST(E002_SolverOwnedRefs, PopulatedAfterBuild) {
-    // Build a circuit with Battery + AZS + Relay + RefNode (ground).
-    // Verify SolverOwnedRefs has typed pointers for each.
+     // Build a circuit with ElectricalSource + AZS + Relay + RefNode (ground).
+     // Verify SolverOwnedRefs has typed pointers for each.
 
-    std::vector<DeviceInstance> devices = {
-        make_device("ref_gnd", "RefNode", {{"value", "0"}}),
-        make_device("bat1", "Battery", {{"v_nominal", "28"}, {"internal_r", "0.01"}, {"capacity", "25"}}),
-        make_device("azs1", "AZS"),
-        make_device("relay1", "Relay"),
-    };
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"bat1.v_out", "azs1.v_in"},
-        {"azs1.v_out", "relay1.v_in"},
-        {"relay1.v_out", "ref_gnd.v"},
-        {"bat1.v_in", "ref_gnd.v"},
-    };
+     std::vector<DeviceInstance> devices = {
+         make_device("ref_gnd", "RefNode", {{"value", "0"}}),
+         make_device("bat1", "ElectricalSource", {{"voltage", "28"}, {"resistance", "0.01"}}),
+         make_device("azs1", "AZS"),
+         make_device("relay1", "Relay"),
+     };
+     std::vector<std::pair<std::string, std::string>> connections = {
+         {"bat1.v_out", "azs1.v_in"},
+         {"azs1.v_out", "relay1.v_in"},
+         {"relay1.v_out", "ref_gnd.v"},
+         {"bat1.v_in", "ref_gnd.v"},
+     };
 
-    auto br = build_systems_dev(devices, connections);
+     auto br = build_systems_dev(devices, connections);
 
-    // Battery pointer list should be populated
-    EXPECT_EQ(br.solver_owned.batteries.size(), 1u);
-    EXPECT_NE(br.solver_owned.batteries[0], nullptr);
+     // ElectricalSource pointer list should be populated
+     EXPECT_EQ(br.solver_owned.electrical_sources.size(), 1u);
+     EXPECT_NE(br.solver_owned.electrical_sources[0], nullptr);
 
-    // AZS pointer list should be populated
-    EXPECT_EQ(br.solver_owned.azs_switches.size(), 1u);
-    EXPECT_NE(br.solver_owned.azs_switches[0], nullptr);
+     // AZS pointer list should be populated
+     EXPECT_EQ(br.solver_owned.azs_switches.size(), 1u);
+     EXPECT_NE(br.solver_owned.azs_switches[0], nullptr);
 
-    // Relay pointer list should be populated
-    EXPECT_EQ(br.solver_owned.relays.size(), 1u);
-    EXPECT_NE(br.solver_owned.relays[0], nullptr);
+     // Relay pointer list should be populated
+     EXPECT_EQ(br.solver_owned.relays.size(), 1u);
+     EXPECT_NE(br.solver_owned.relays[0], nullptr);
 }
 
 TEST(E002_SolverOwnedRefs, PointersMatchDeviceMap) {
-    // Verify that SolverOwnedRefs pointers point to the actual devices
-    // stored in BuildResult::devices (not copies).
+     // Verify that SolverOwnedRefs pointers point to the actual devices
+     // stored in BuildResult::devices (not copies).
 
-    std::vector<DeviceInstance> devices = {
-        make_device("ref_gnd", "RefNode", {{"value", "0"}}),
-        make_device("bat1", "Battery", {{"v_nominal", "28"}, {"internal_r", "0.01"}, {"capacity", "25"}}),
-    };
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"bat1.v_out", "ref_gnd.v"},
-        {"bat1.v_in", "ref_gnd.v"},
-    };
+     std::vector<DeviceInstance> devices = {
+         make_device("ref_gnd", "RefNode", {{"value", "0"}}),
+         make_device("bat1", "ElectricalSource", {{"voltage", "28"}, {"resistance", "0.01"}}),
+     };
+     std::vector<std::pair<std::string, std::string>> connections = {
+         {"bat1.v_out", "ref_gnd.v"},
+         {"bat1.v_in", "ref_gnd.v"},
+     };
 
-    auto br = build_systems_dev(devices, connections);
+     auto br = build_systems_dev(devices, connections);
 
-    ASSERT_EQ(br.solver_owned.batteries.size(), 1u);
+     ASSERT_EQ(br.solver_owned.electrical_sources.size(), 1u);
 
-    // The pointer in solver_owned should point into the devices map
-    auto it = br.devices.find("bat1");
-    ASSERT_NE(it, br.devices.end());
+     // The pointer in solver_owned should point into the devices map
+     auto it = br.devices.find("bat1");
+     ASSERT_NE(it, br.devices.end());
 
-    Battery<JitProvider>* from_map = std::get_if<Battery<JitProvider>>(&it->second);
-    ASSERT_NE(from_map, nullptr);
-    EXPECT_EQ(br.solver_owned.batteries[0], from_map);
+     ElectricalSource<JitProvider>* from_map = std::get_if<ElectricalSource<JitProvider>>(&it->second);
+     ASSERT_NE(from_map, nullptr);
+     EXPECT_EQ(br.solver_owned.electrical_sources[0], from_map);
 }
 
 TEST(E002_SolverOwnedRefs, EmptyCircuitHasEmptyRefs) {
-    // An empty circuit should have no solver-owned refs.
-    std::vector<DeviceInstance> devices;
-    std::vector<std::pair<std::string, std::string>> connections;
+     // An empty circuit should have no solver-owned refs.
+     std::vector<DeviceInstance> devices;
+     std::vector<std::pair<std::string, std::string>> connections;
 
-    auto br = build_systems_dev(devices, connections);
+     auto br = build_systems_dev(devices, connections);
 
-    EXPECT_TRUE(br.solver_owned.batteries.empty());
-    EXPECT_TRUE(br.solver_owned.generators.empty());
-    EXPECT_TRUE(br.solver_owned.controlled_voltage_sources.empty());
-    EXPECT_TRUE(br.solver_owned.variable_conductances.empty());
-    EXPECT_TRUE(br.solver_owned.azs_switches.empty());
-    EXPECT_TRUE(br.solver_owned.hold_buttons.empty());
-    EXPECT_TRUE(br.solver_owned.relays.empty());
-    EXPECT_TRUE(br.solver_owned.resistors.empty());
-    EXPECT_TRUE(br.solver_owned.electrical_conductances.empty());
-    EXPECT_TRUE(br.solver_owned.electrical_sources.empty());
+     EXPECT_TRUE(br.solver_owned.generators.empty());
+     EXPECT_TRUE(br.solver_owned.controlled_voltage_sources.empty());
+     EXPECT_TRUE(br.solver_owned.variable_conductances.empty());
+     EXPECT_TRUE(br.solver_owned.azs_switches.empty());
+     EXPECT_TRUE(br.solver_owned.hold_buttons.empty());
+     EXPECT_TRUE(br.solver_owned.relays.empty());
+     EXPECT_TRUE(br.solver_owned.resistors.empty());
+     EXPECT_TRUE(br.solver_owned.electrical_conductances.empty());
+     EXPECT_TRUE(br.solver_owned.electrical_sources.empty());
 }
 
 // =============================================================================
@@ -338,46 +337,42 @@ TEST(E004_DoubleTime, SimulatorTimeStartsAtZero) {
 // =============================================================================
 
 TEST(ArchitectureRegression, FullSimulatorSmokeWithAllFixes) {
-    // Build a simple circuit and step it many times.
-    // Verifies all four fixes work together without crashes.
-    const char* json = R"({
-        "devices": [
-            {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
-            {"name": "bat1", "classname": "Battery", "params": {
-                "v_nominal": "28", "internal_r": "0.01", "capacity": "25"
-            }},
-            {"name": "azs1", "classname": "AZS", "params": {}}
-        ],
-        "connections": [
-            {"from": "bat1.v_out", "to": "azs1.v_in"},
-            {"from": "azs1.v_out", "to": "ref_gnd.v"},
-            {"from": "bat1.v_in", "to": "ref_gnd.v"}
-        ]
-    })";
+     // Build a simple circuit and step it many times.
+     // Verifies all four fixes work together without crashes.
+     const char* json = R"({
+         "devices": [
+             {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
+             {"name": "bat1", "classname": "ElectricalSource", "params": {
+                 "voltage": "28", "resistance": "0.01"
+             }},
+             {"name": "azs1", "classname": "AZS", "params": {}}
+         ],
+         "connections": [
+             {"from": "bat1.v_out", "to": "azs1.v_in"},
+             {"from": "azs1.v_out", "to": "ref_gnd.v"},
+             {"from": "bat1.v_in", "to": "ref_gnd.v"}
+         ]
+     })";
 
-    JIT_Simulator sim;
-    EXPECT_NO_THROW(sim.start_from_json(json));
-    EXPECT_TRUE(sim.is_running());
+     JIT_Simulator sim;
+     EXPECT_NO_THROW(sim.start_from_json(json));
+     EXPECT_TRUE(sim.is_running());
 
-    // Step 600 frames (10 seconds at 60 Hz)
-    const double dt = 1.0 / 60.0;
-    for (int i = 0; i < 600; ++i) {
-        sim.step(dt);
-    }
+     // Step 600 frames (10 seconds at 60 Hz)
+     const double dt = 1.0 / 60.0;
+     for (int i = 0; i < 600; ++i) {
+         sim.step(dt);
+     }
 
-    // E-004: time should be precise (double accumulation)
-    EXPECT_NEAR(sim.get_time(), 10.0, 0.01);
+     // E-004: time should be precise (double accumulation)
+     EXPECT_NEAR(sim.get_time(), 10.0, 0.01);
 
-    // Step count
-    EXPECT_EQ(sim.get_step_count(), 600u);
+     // Step count
+     EXPECT_EQ(sim.get_step_count(), 600u);
 
-    // Battery should still have charge > 0
-    double charge = sim.get_battery_charge("bat1");
-    EXPECT_GT(charge, 0.0);
-
-    sim.stop();
-    EXPECT_FALSE(sim.is_running());
-    EXPECT_DOUBLE_EQ(sim.get_time(), 0.0);
+     sim.stop();
+     EXPECT_FALSE(sim.is_running());
+     EXPECT_DOUBLE_EQ(sim.get_time(), 0.0);
 }
 
 // =============================================================================
@@ -403,14 +398,14 @@ TEST(E005_ComponentVariant, HasManyAlternatives) {
         << "ComponentVariant should have 60+ alternatives (currently " << count << ")";
 }
 
-TEST(E005_ComponentVariant, ContainsBatteryAndAZS) {
-    // Spot-check that key component types are in the variant.
-    // Uses std::get_if at compile time to verify type presence.
-    ComponentVariant v = Battery<JitProvider>{};
-    EXPECT_NE(std::get_if<Battery<JitProvider>>(&v), nullptr);
+TEST(E005_ComponentVariant, ContainsElectricalSourceAndAZS) {
+     // Spot-check that key component types are in the variant.
+     // Uses std::get_if at compile time to verify type presence.
+     ComponentVariant v = ElectricalSource<JitProvider>{};
+     EXPECT_NE(std::get_if<ElectricalSource<JitProvider>>(&v), nullptr);
 
-    ComponentVariant v2 = AZS<JitProvider>{};
-    EXPECT_NE(std::get_if<AZS<JitProvider>>(&v2), nullptr);
+     ComponentVariant v2 = AZS<JitProvider>{};
+     EXPECT_NE(std::get_if<AZS<JitProvider>>(&v2), nullptr);
 }
 
 // =============================================================================
@@ -460,19 +455,19 @@ TEST(E008_DtClamp, MaxDtConstantExists) {
 }
 
 TEST(E008_DtClamp, LargeDtIsClamped) {
-    // Step with dt=1.0s — time should only advance by MAX_DT (0.1s), not 1.0s.
-    const char* json = R"({
-        "devices": [
-            {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
-            {"name": "bat1", "classname": "Battery", "params": {
-                "v_nominal": "28", "internal_r": "0.01", "capacity": "25"
-            }}
-        ],
-        "connections": [
-            {"from": "bat1.v_out", "to": "ref_gnd.v"},
-            {"from": "bat1.v_in", "to": "ref_gnd.v"}
-        ]
-    })";
+     // Step with dt=1.0s — time should only advance by MAX_DT (0.1s), not 1.0s.
+     const char* json = R"({
+         "devices": [
+             {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
+             {"name": "bat1", "classname": "ElectricalSource", "params": {
+                 "voltage": "28", "resistance": "0.01"
+             }}
+         ],
+         "connections": [
+             {"from": "bat1.v_out", "to": "ref_gnd.v"},
+             {"from": "bat1.v_in", "to": "ref_gnd.v"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -488,19 +483,19 @@ TEST(E008_DtClamp, LargeDtIsClamped) {
 }
 
 TEST(E008_DtClamp, NormalDtIsNotClamped) {
-    // Step with dt=1/60 — should not be clamped.
-    const char* json = R"({
-        "devices": [
-            {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
-            {"name": "bat1", "classname": "Battery", "params": {
-                "v_nominal": "28", "internal_r": "0.01", "capacity": "25"
-            }}
-        ],
-        "connections": [
-            {"from": "bat1.v_out", "to": "ref_gnd.v"},
-            {"from": "bat1.v_in", "to": "ref_gnd.v"}
-        ]
-    })";
+     // Step with dt=1/60 — should not be clamped.
+     const char* json = R"({
+         "devices": [
+             {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
+             {"name": "bat1", "classname": "ElectricalSource", "params": {
+                 "voltage": "28", "resistance": "0.01"
+             }}
+         ],
+         "connections": [
+             {"from": "bat1.v_out", "to": "ref_gnd.v"},
+             {"from": "bat1.v_in", "to": "ref_gnd.v"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -515,19 +510,19 @@ TEST(E008_DtClamp, NormalDtIsNotClamped) {
 }
 
 TEST(E008_DtClamp, ExactlyMaxDtIsNotClamped) {
-    // Step with dt exactly equal to MAX_DT — should not be modified.
-    const char* json = R"({
-        "devices": [
-            {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
-            {"name": "bat1", "classname": "Battery", "params": {
-                "v_nominal": "28", "internal_r": "0.01", "capacity": "25"
-            }}
-        ],
-        "connections": [
-            {"from": "bat1.v_out", "to": "ref_gnd.v"},
-            {"from": "bat1.v_in", "to": "ref_gnd.v"}
-        ]
-    })";
+     // Step with dt exactly equal to MAX_DT — should not be modified.
+     const char* json = R"({
+         "devices": [
+             {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
+             {"name": "bat1", "classname": "ElectricalSource", "params": {
+                 "voltage": "28", "resistance": "0.01"
+             }}
+         ],
+         "connections": [
+             {"from": "bat1.v_out", "to": "ref_gnd.v"},
+             {"from": "bat1.v_in", "to": "ref_gnd.v"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -578,30 +573,30 @@ TEST(E008_DtClamp, NegativeDtIsIgnored) {
 // =============================================================================
 
 TEST(E009_SingleSolve, PipelineProducesConsistentElectricalResults) {
-    // Verify single-solve pipeline: battery voltage appears on the bus after
-    // steady-state stepping. AZS starts closed via params, so voltage flows
-    // through to a load node (not ground — checking a mid-circuit node).
-    //
-    // Circuit: bat1.v_out -> azs1.v_in, azs1.v_out -> load1.v_in,
-    //          load1.v_out -> ref_gnd.v, bat1.v_in -> ref_gnd.v
-    // With AZS closed, the load node (azs1.v_out / load1.v_in) should see
-    // battery voltage minus small resistive drops.
-    const char* json = R"({
-        "devices": [
-            {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
-            {"name": "bat1", "classname": "Battery", "params": {
-                "v_nominal": "28", "internal_r": "0.01", "capacity": "25"
-            }},
-            {"name": "azs1", "classname": "AZS", "params": {"closed": "1"}},
-            {"name": "load1", "classname": "Resistor", "params": {"conductance": "0.1"}}
-        ],
-        "connections": [
-            {"from": "bat1.v_out", "to": "azs1.v_in"},
-            {"from": "azs1.v_out", "to": "load1.v_in"},
-            {"from": "load1.v_out", "to": "ref_gnd.v"},
-            {"from": "bat1.v_in", "to": "ref_gnd.v"}
-        ]
-    })";
+     // Verify single-solve pipeline: source voltage appears on the bus after
+     // steady-state stepping. AZS starts closed via params, so voltage flows
+     // through to a load node (not ground — checking a mid-circuit node).
+     //
+     // Circuit: bat1.v_out -> azs1.v_in, azs1.v_out -> load1.v_in,
+     //          load1.v_out -> ref_gnd.v, bat1.v_in -> ref_gnd.v
+     // With AZS closed, the load node (azs1.v_out / load1.v_in) should see
+     // source voltage minus small resistive drops.
+     const char* json = R"({
+         "devices": [
+             {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
+             {"name": "bat1", "classname": "ElectricalSource", "params": {
+                 "voltage": "28", "resistance": "0.01"
+             }},
+             {"name": "azs1", "classname": "AZS", "params": {"closed": "1"}},
+             {"name": "load1", "classname": "Resistor", "params": {"conductance": "0.1"}}
+         ],
+         "connections": [
+             {"from": "bat1.v_out", "to": "azs1.v_in"},
+             {"from": "azs1.v_out", "to": "load1.v_in"},
+             {"from": "load1.v_out", "to": "ref_gnd.v"},
+             {"from": "bat1.v_in", "to": "ref_gnd.v"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -625,30 +620,30 @@ TEST(E009_SingleSolve, PipelineProducesConsistentElectricalResults) {
 }
 
 TEST(E009_SingleSolve, StepCountAndTimeConsistent) {
-    // Verify that each step() call increments step_count and time consistently.
-    // This validates the pipeline runs exactly once per step (not 2x for 9-phase).
-    JIT_Simulator sim;
-    const char* json = R"({
-        "devices": [
-            {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
-            {"name": "bat1", "classname": "Battery", "params": {
-                "v_nominal": "28", "internal_r": "0.01", "capacity": "25"
-            }}
-        ],
-        "connections": [
-            {"from": "bat1.v_out", "to": "ref_gnd.v"},
-            {"from": "bat1.v_in", "to": "ref_gnd.v"}
-        ]
-    })";
-    sim.start_from_json(json);
-    ASSERT_TRUE(sim.is_running());
+     // Verify that each step() call increments step_count and time consistently.
+     // This validates the pipeline runs exactly once per step (not 2x for 9-phase).
+     JIT_Simulator sim;
+     const char* json = R"({
+         "devices": [
+             {"name": "ref_gnd", "classname": "RefNode", "params": {"value": "0"}},
+             {"name": "bat1", "classname": "ElectricalSource", "params": {
+                 "voltage": "28", "resistance": "0.01"
+             }}
+         ],
+         "connections": [
+             {"from": "bat1.v_out", "to": "ref_gnd.v"},
+             {"from": "bat1.v_in", "to": "ref_gnd.v"}
+         ]
+     })";
+     sim.start_from_json(json);
+     ASSERT_TRUE(sim.is_running());
 
-    const double dt = 1.0 / 60.0;
-    for (int i = 0; i < 100; ++i) {
-        sim.step(dt);
-    }
+     const double dt = 1.0 / 60.0;
+     for (int i = 0; i < 100; ++i) {
+         sim.step(dt);
+     }
 
-    EXPECT_EQ(sim.get_step_count(), 100u);
-    EXPECT_NEAR(sim.get_time(), 100.0 * dt, 1e-4)
-        << "Time should equal step_count * dt (single-solve, one pass per step)";
+     EXPECT_EQ(sim.get_step_count(), 100u);
+     EXPECT_NEAR(sim.get_time(), 100.0 * dt, 1e-4)
+         << "Time should equal step_count * dt (single-solve, one pass per step)";
 }

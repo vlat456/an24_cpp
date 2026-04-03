@@ -16,7 +16,7 @@
       "domain": 1,
       "direction": 1,
       "type": "V",
-      "source_writer": false
+      "source_writer": true
     }
   ],
   "nodes": [],

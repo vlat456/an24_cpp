@@ -37,7 +37,7 @@ TEST(BlueprintLoading, MissingBlueprintReturnsError) {
 }
 
 TEST(BlueprintLoading, DirectBlueprintLoadWorks) {
-    // 12SAM28 is a blueprint type in library/electrical/ (cpp_class=false)
+    // 12SAM28 is a blueprint type in library/systems/ (cpp_class=false)
     TypeRegistry reg = load_type_registry("library/");
     ASSERT_TRUE(reg.has("12SAM28"));
     const auto* def = reg.get("12SAM28");
@@ -138,7 +138,7 @@ TEST(ExtractExposedPorts, EmptyBlueprint) {
     // Blueprint with no BlueprintInput/BlueprintOutput
     nlohmann::json bp;
     bp["devices"] = nlohmann::json::array({
-        {{"name", "bat"}, {"classname", "Battery"}, {"params", {{"v_nominal", "28.0"}}}}
+        {{"name", "bat"}, {"classname", "ElectricalSource"}, {"params", {{"voltage", "28.0"}}}}
     });
     bp["connections"] = nlohmann::json::array();
 
@@ -284,7 +284,7 @@ TEST(BlueprintExtension, RegistryLoadsOnlyBlueprintFiles) {
     // Registry must find at least some components
     EXPECT_GT(reg.types.size(), 10u) << "Registry should load many .blueprint files";
     // Battery is a well-known component
-    EXPECT_TRUE(reg.has("Battery"));
+    EXPECT_TRUE(reg.has("ElectricalSource"));
     // 12SAM28 (composite) must also load from .blueprint
     EXPECT_TRUE(reg.has("12SAM28"));
 }
@@ -454,4 +454,89 @@ TEST(BlueprintExtension, CodegenUsesBluprintExtension) {
     // Verify classname doesn't contain .json
     EXPECT_EQ(def->classname.find(".json"), std::string::npos)
         << "Classname should not contain .json: " << def->classname;
+}
+
+// =============================================================================
+// Structural convention: all nodes must have name, Value nodes must have render_hint
+// =============================================================================
+
+/// Helper: find a .blueprint file by classname, searching library/ subdirectories
+static std::string find_blueprint_file(const std::string& classname) {
+    namespace fs = std::filesystem;
+    std::vector<std::string> search_paths = {
+        "library/", "../library/", "../../library/"
+    };
+    for (const auto& base : search_paths) {
+        if (!fs::exists(base)) continue;
+        for (const auto& entry : fs::recursive_directory_iterator(base)) {
+            if (entry.is_regular_file() &&
+                entry.path().extension() == ".blueprint" &&
+                entry.path().stem() == classname) {
+                return entry.path().string();
+            }
+        }
+    }
+    return {};
+}
+
+/// Helper: load a blueprint JSON file and return parsed nodes array
+static nlohmann::json load_blueprint_nodes(const std::string& classname) {
+    std::string path = find_blueprint_file(classname);
+    if (path.empty()) return {};
+    std::ifstream f(path);
+    if (!f.is_open()) return {};
+    auto j = nlohmann::json::parse(f);
+    if (!j.contains("nodes") || !j["nodes"].is_array()) return {};
+    return j["nodes"];
+}
+
+TEST(BlueprintConvention, AllNodesHaveName_12SAM28) {
+    // Every node in 12SAM28.blueprint must have a non-empty "name" field.
+    // Missing names cause subtle UI bugs (empty labels, broken inspector lookups).
+    auto nodes = load_blueprint_nodes("12SAM28");
+    ASSERT_FALSE(nodes.empty()) << "12SAM28.blueprint not found or has no nodes";
+
+    for (const auto& node : nodes) {
+        std::string id = node.value("id", "<missing_id>");
+        ASSERT_TRUE(node.contains("name"))
+            << "Node '" << id << "' is missing a 'name' field";
+        std::string name = node["name"].get<std::string>();
+        EXPECT_FALSE(name.empty())
+            << "Node '" << id << "' has an empty 'name' field";
+    }
+}
+
+TEST(BlueprintConvention, ValueNodesHaveRenderHint_12SAM28) {
+    // All Value nodes must have render_hint="ref" so the editor renders them
+    // as inline reference badges instead of full node boxes.
+    auto nodes = load_blueprint_nodes("12SAM28");
+    ASSERT_FALSE(nodes.empty()) << "12SAM28.blueprint not found or has no nodes";
+
+    int value_count = 0;
+    for (const auto& node : nodes) {
+        std::string type = node.value("type", "");
+        if (type == "Value") {
+            value_count++;
+            std::string id = node.value("id", "<missing_id>");
+            ASSERT_TRUE(node.contains("render_hint"))
+                << "Value node '" << id << "' is missing render_hint field";
+            EXPECT_EQ(node["render_hint"].get<std::string>(), "ref")
+                << "Value node '" << id << "' render_hint should be \"ref\"";
+        }
+    }
+    EXPECT_GT(value_count, 0) << "12SAM28 should contain at least one Value node";
+}
+
+TEST(BlueprintConvention, NodeNameMatchesId_12SAM28) {
+    // Convention: name field should match id field.  Mismatches indicate
+    // copy-paste errors or incomplete tooling updates.
+    auto nodes = load_blueprint_nodes("12SAM28");
+    ASSERT_FALSE(nodes.empty()) << "12SAM28.blueprint not found or has no nodes";
+
+    for (const auto& node : nodes) {
+        std::string id = node.value("id", "<missing_id>");
+        std::string name = node.value("name", "<missing_name>");
+        EXPECT_EQ(name, id)
+            << "Node name '" << name << "' doesn't match id '" << id << "'";
+    }
 }

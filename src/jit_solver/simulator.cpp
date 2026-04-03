@@ -1,5 +1,4 @@
 #include "simulator.h"
-#include "components/battery.h"
 #include "components/controlled_voltage_source.h"
 #include "components/electrical_conductance.h"
 #include "components/electrical_source.h"
@@ -73,7 +72,6 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st) {
 /// Uses pre-built typed pointer lists (SolverOwnedRefs) to avoid per-frame
 /// std::visit scan over all 68+ ComponentVariant types.
 void commit_solver_owned_devices(BuildResult& br, SimulationState& st, double dt) {
-    for (auto* comp : br.solver_owned.batteries) { comp->commit(st, dt); }
     for (auto* comp : br.solver_owned.generators) { comp->commit(st, dt); }
     for (auto* comp : br.solver_owned.resistors) { comp->commit(st, dt); }
     for (auto* comp : br.solver_owned.electrical_conductances) { comp->commit(st, dt); }
@@ -289,7 +287,26 @@ float Simulator<SolverTag>::get_wire_voltage(const std::string& port_name) const
 
 template <typename SolverTag>
 float Simulator<SolverTag>::get_port_value(const std::string& node_id, const std::string& port_name) const {
-    return get_wire_voltage(node_id + "." + port_name);
+    if (!build_result_.has_value()) {
+        return 0.0f;
+    }
+
+    // Try flat device first: "node_id.port_name"
+    const std::string flat_key = node_id + "." + port_name;
+    auto it = build_result_->port_to_signal.find(flat_key);
+    if (it != build_result_->port_to_signal.end() && it->second < state_.values.size()) {
+        return state_.values[it->second];
+    }
+
+    // Fallback for expanded blueprints: BlueprintInput/BlueprintOutput bridge nodes
+    // are stored as "node_id:port_name.ext" in port_to_signal after expansion.
+    const std::string composite_key = node_id + ":" + port_name + ".ext";
+    it = build_result_->port_to_signal.find(composite_key);
+    if (it != build_result_->port_to_signal.end() && it->second < state_.values.size()) {
+        return state_.values[it->second];
+    }
+
+    return 0.0f;
 }
 
 template <typename SolverTag>
@@ -319,25 +336,6 @@ bool Simulator<SolverTag>::get_boolean_output(const std::string& port_name) cons
 template <typename SolverTag>
 bool Simulator<SolverTag>::get_component_state_as_bool(const std::string& node_id, const std::string& port_name) const {
     return get_boolean_output(node_id + "." + port_name);
-}
-
-template <typename SolverTag>
-double Simulator<SolverTag>::get_battery_charge(const std::string& device_name) const {
-    if (!running_ || !build_result_.has_value()) {
-        return 0.0;
-    }
-
-    auto it = build_result_->devices.find(device_name);
-    if (it == build_result_->devices.end()) {
-        return 0.0;
-    }
-
-    const Battery<JitProvider>* batt = std::get_if<Battery<JitProvider>>(&it->second);
-    if (batt == nullptr) {
-        return 0.0;
-    }
-
-    return batt->charge;
 }
 
 template class Simulator<JIT_Solver>;

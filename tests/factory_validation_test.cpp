@@ -155,7 +155,7 @@ BuildResult build_single_component(const std::string& classname,
 // ---------------------------------------------------------------------------
 TEST(FactoryValidationTest, Factory_CreatesAllKnownComponents) {
     std::vector<std::string> component_types = {
-        "Battery", "Switch", "HoldButton", "Relay", "Resistor",
+        "ElectricalSource", "Switch", "HoldButton", "Relay", "Resistor",
         "RefNode", "Bus", "Generator", "Gyroscope", "Transformer", "Inverter",
         "LerpNode", "IndicatorLight", "HighPowerLoad", "ElectricPump",
         "SolenoidValve", "InertiaNode", "TempSensor", "ElectricHeater",
@@ -212,7 +212,6 @@ TEST(FactoryValidationTest, DISABLED_UnknownComponentType_Throws) {
 // Test that port registry constants match get_component_ports() size
 // ---------------------------------------------------------------------------
 TEST(FactoryValidationTest, PortRegistryConstants_AreCorrect) {
-    EXPECT_EQ(Battery_PORT_COUNT, get_component_ports("Battery").size());
     EXPECT_EQ(Switch_PORT_COUNT, get_component_ports("Switch").size());
     EXPECT_EQ(Relay_PORT_COUNT, get_component_ports("Relay").size());
     EXPECT_EQ(RefNode_PORT_COUNT, get_component_ports("RefNode").size());
@@ -243,7 +242,7 @@ TEST(FactoryValidationTest, PortRegistryConstants_AreCorrect) {
 TEST(FactoryValidationTest, AllRegistryPortsAreRecognized) {
     // Collect all component types from the registry
     std::vector<std::string> types = {
-        "Battery", "Switch", "HoldButton", "Relay", "Resistor",
+        "ElectricalSource", "Switch", "HoldButton", "Relay", "Resistor",
         "RefNode", "Bus", "Generator", "Gyroscope", "Transformer", "Inverter",
         "LerpNode", "IndicatorLight", "HighPowerLoad", "ElectricPump",
         "SolenoidValve", "InertiaNode", "TempSensor", "ElectricHeater",
@@ -283,9 +282,9 @@ TEST(FactoryValidationTest, AllRegistryPortsAreRecognized) {
 TEST(FactoryValidationTest, DISABLED_UnknownPortName_Throws) {
     DeviceInstance dev;
     dev.name = "test_battery";
-    dev.classname = "Battery";
-    dev.execution = make_execution_for_class("Battery");
-    // "bogus_port" does not exist in Battery's port set
+    dev.classname = "ElectricalSource";
+    dev.execution = make_execution_for_class("ElectricalSource");
+    // "bogus_port" does not exist in ElectricalSource's port set
     dev.ports["v_in"] = Port{PortDirection::In, PortType::V};
     dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
     dev.ports["bogus_port"] = Port{PortDirection::Out, PortType::Any};
@@ -306,8 +305,8 @@ TEST(FactoryValidationTest, DISABLED_UnknownPortName_Throws) {
 TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
     DeviceInstance bat;
     bat.name = "bat";
-    bat.classname = "Battery";
-    bat.execution = make_execution_for_class("Battery");
+    bat.classname = "ElectricalSource";
+    bat.execution = make_execution_for_class("ElectricalSource");
     bat.ports["v_in"] = Port{PortDirection::In, PortType::V};
     bat.ports["v_out"] = Port{PortDirection::Out, PortType::V};
 

@@ -152,17 +152,23 @@ Use this pattern for future electrical meters/probes.
 
 ---
 
-## Battery Pattern (Reference)
+## Battery Pattern (Reference — Composite Approach)
 
-Current battery behavior:
+The `12SAM28` battery is now a **pure composite blueprint** (`library/systems/12SAM28.blueprint`), not a C++ class. It demonstrates how to build complex electrical subsystems from primitives:
 
-- solver-owned Thevenin electrical propagation
-- commit integrates discharge from solved branch current
-- live telemetry outputs:
-  - `charge_out`
-  - `soc_out`
+- **ControlledVoltageSource**: Thevenin source (solver-owned, reads `cmd` from signal array)
+- **CurrentSense**: measures branch current (solver-owned, writes `i_out` to signal array)
+- **Multiply + Accumulator**: coulomb counting (integrates current to get charge in Ah)
+- **Normalize + LUT**: SOC → OCV feedback loop
+- **Splitter**: fans out signals for multiple consumers (one-to-one wiring constraint)
 
-If adding similar stateful sources, keep state integration in `commit(st, dt)`.
+Key design points:
+
+1. **One-frame delay in feedback**: CVS reads `cmd` in `update_dynamic_sources` (phase 1), but LUT writes new `cmd` in `scheduler.step` (phase 3). Tests need 2 warmup steps.
+2. **Port naming**: After expansion as device `sb`, ports are `sb:v_out.ext` (not `sb.v_out`). `get_port_value("sb", "v_out")` handles this automatically.
+3. **Accumulator initial value**: Set via `initial_val` param (28 Ah). First-frame cold-start logic snaps to this value.
+
+If adding similar stateful sources, prefer composites over new C++ classes. Use `commit()` for state integration in primitive components.
 
 ---
 

@@ -132,7 +132,6 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/logical_solver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_ports_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/current_sense_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/battery_discharge_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bug_hunt_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/slew_rate_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/lut_tests.dir
@@ -187,6 +186,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/asym_slew_rate_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/integrator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/accumulator_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/sam28_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/clamp_normalize_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/comparison_components_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/spring_tests.dir

@@ -30,7 +30,6 @@ enum class ComponentType {
     Any_V_to_Bool,
     AsymSlewRate,
     AsymTMO,
-    Battery,
     BlueprintInput,
     BlueprintOutput,
     Bus,
@@ -107,7 +106,6 @@ constexpr size_t Add_PORT_COUNT = 3;
 constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t AsymSlewRate_PORT_COUNT = 2;
 constexpr size_t AsymTMO_PORT_COUNT = 2;
-constexpr size_t Battery_PORT_COUNT = 4;
 constexpr size_t BlueprintInput_PORT_COUNT = 2;
 constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
@@ -115,7 +113,7 @@ constexpr size_t Clamp_PORT_COUNT = 4;
 constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t ControlledCurrentSource_PORT_COUNT = 3;
 constexpr size_t ControlledVoltageSource_PORT_COUNT = 8;
-constexpr size_t CurrentSense_PORT_COUNT = 4;
+constexpr size_t CurrentSense_PORT_COUNT = 3;
 constexpr size_t Divide_PORT_COUNT = 3;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
 constexpr size_t ElectricPump_PORT_COUNT = 3;
@@ -156,7 +154,7 @@ constexpr size_t Positive_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t Radiator_PORT_COUNT = 2;
 constexpr size_t RefNode_PORT_COUNT = 1;
 constexpr size_t Relay_PORT_COUNT = 5;
-constexpr size_t Resistor_PORT_COUNT = 3;
+constexpr size_t Resistor_PORT_COUNT = 2;
 constexpr size_t SampleHold_PORT_COUNT = 3;
 constexpr size_t SlewRate_PORT_COUNT = 2;
 constexpr size_t Slider_PORT_COUNT = 2;
@@ -209,12 +207,6 @@ constexpr const char* AsymTMO_PORTS[] = {
     "in",
     "out"
 };
-constexpr const char* Battery_PORTS[] = {
-    "charge_out",
-    "soc_out",
-    "v_in",
-    "v_out"
-};
 constexpr const char* BlueprintInput_PORTS[] = {
     "ext",
     "port"
@@ -253,7 +245,6 @@ constexpr const char* ControlledVoltageSource_PORTS[] = {
     "v_pos"
 };
 constexpr const char* CurrentSense_PORTS[] = {
-    "conductance",
     "i_out",
     "v_in",
     "v_out"
@@ -449,7 +440,6 @@ constexpr const char* Relay_PORTS[] = {
     "v_out"
 };
 constexpr const char* Resistor_PORTS[] = {
-    "conductance",
     "v_in",
     "v_out"
 };
@@ -648,26 +638,6 @@ constexpr bool AsymTMO_PORT_SOURCE_WRITER[] = {
 };
 constexpr bool AsymTMO_SCHEDULER_SOURCE = false;
 
-constexpr RegistryPortDirection Battery_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
-};
-constexpr uint8_t Battery_PORT_DOMAINS[] = {
-    1,
-    1,
-    1,
-    1
-};
-constexpr bool Battery_PORT_SOURCE_WRITER[] = {
-    false,
-    false,
-    false,
-    true
-};
-constexpr bool Battery_SCHEDULER_SOURCE = true;
-
 constexpr RegistryPortDirection BlueprintInput_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::Out
@@ -794,19 +764,16 @@ constexpr bool ControlledVoltageSource_PORT_SOURCE_WRITER[] = {
 constexpr bool ControlledVoltageSource_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection CurrentSense_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
     RegistryPortDirection::Out,
     RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t CurrentSense_PORT_DOMAINS[] = {
-    2,
     1,
     1,
     1
 };
 constexpr bool CurrentSense_PORT_SOURCE_WRITER[] = {
-    false,
     false,
     false,
     false
@@ -885,7 +852,7 @@ constexpr uint8_t ElectricalSource_PORT_DOMAINS[] = {
 };
 constexpr bool ElectricalSource_PORT_SOURCE_WRITER[] = {
     false,
-    false
+    true
 };
 constexpr bool ElectricalSource_SCHEDULER_SOURCE = false;
 
@@ -1465,16 +1432,13 @@ constexpr bool Relay_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection Resistor_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
-    RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t Resistor_PORT_DOMAINS[] = {
-    2,
     1,
     1
 };
 constexpr bool Resistor_PORT_SOURCE_WRITER[] = {
-    false,
     false,
     false
 };
@@ -1754,9 +1718,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"Vin", PortNames::Vin},
         {"ac_out", PortNames::ac_out},
         {"brightness", PortNames::brightness},
-        {"charge_out", PortNames::charge_out},
         {"cmd", PortNames::cmd},
-        {"conductance", PortNames::conductance},
         {"control", PortNames::control},
         {"ctrl", PortNames::ctrl},
         {"damping", PortNames::damping},
@@ -1804,7 +1766,6 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"rpm_out", PortNames::rpm_out},
         {"secondary", PortNames::secondary},
         {"setpoint", PortNames::setpoint},
-        {"soc_out", PortNames::soc_out},
         {"state", PortNames::state},
         {"temp", PortNames::temp},
         {"temp_in", PortNames::temp_in},
@@ -1834,7 +1795,6 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Any_V_to_Bool", {"Vin", "o"}},
         {"AsymSlewRate", {"in", "out"}},
         {"AsymTMO", {"in", "out"}},
-        {"Battery", {"charge_out", "soc_out", "v_in", "v_out"}},
         {"BlueprintInput", {"ext", "port"}},
         {"BlueprintOutput", {"ext", "port"}},
         {"Bus", {"v"}},
@@ -1842,7 +1802,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Comparator", {"Va", "Vb", "o"}},
         {"ControlledCurrentSource", {"cmd", "v_neg", "v_pos"}},
         {"ControlledVoltageSource", {"cmd", "gain", "i_out", "max_v", "min_v", "offset", "v_neg", "v_pos"}},
-        {"CurrentSense", {"conductance", "i_out", "v_in", "v_out"}},
+        {"CurrentSense", {"i_out", "v_in", "v_out"}},
         {"Divide", {"A", "B", "o"}},
         {"ElectricHeater", {"heat_out", "power"}},
         {"ElectricPump", {"p_in", "p_out", "v_in"}},
@@ -1883,7 +1843,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Radiator", {"heat_in", "heat_out"}},
         {"RefNode", {"v"}},
         {"Relay", {"control", "hold_threshold", "state", "v_in", "v_out"}},
-        {"Resistor", {"conductance", "v_in", "v_out"}},
+        {"Resistor", {"v_in", "v_out"}},
         {"SampleHold", {"in", "out", "trigger"}},
         {"SlewRate", {"in", "out"}},
         {"Slider", {"control", "out"}},
@@ -1918,7 +1878,6 @@ inline bool has_component_metadata(const std::string& classname) {
         "Any_V_to_Bool",
         "AsymSlewRate",
         "AsymTMO",
-        "Battery",
         "BlueprintInput",
         "BlueprintOutput",
         "Bus",
@@ -1997,7 +1956,6 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"Any_V_to_Bool", false},
         {"AsymSlewRate", false},
         {"AsymTMO", false},
-        {"Battery", true},
         {"BlueprintInput", false},
         {"BlueprintOutput", false},
         {"Bus", false},
@@ -2123,14 +2081,6 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
         for (size_t i = 0; i < AsymTMO_PORT_COUNT; ++i) {
             if (AsymTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AsymTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
                 result.push_back(AsymTMO_PORTS[i]);
-            }
-        }
-        return result;
-    }
-    if (classname == "Battery") {
-        for (size_t i = 0; i < Battery_PORT_COUNT; ++i) {
-            if (Battery_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Battery_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
-                result.push_back(Battery_PORTS[i]);
             }
         }
         return result;
@@ -2716,14 +2666,6 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         }
         return result;
     }
-    if (classname == "Battery") {
-        for (size_t i = 0; i < Battery_PORT_COUNT; ++i) {
-            if (Battery_PORT_SOURCE_WRITER[i] && ((Battery_PORT_DOMAINS[i] & domain_mask) != 0)) {
-                result.push_back(Battery_PORTS[i]);
-            }
-        }
-        return result;
-    }
     if (classname == "BlueprintInput") {
         for (size_t i = 0; i < BlueprintInput_PORT_COUNT; ++i) {
             if (BlueprintInput_PORT_SOURCE_WRITER[i] && ((BlueprintInput_PORT_DOMAINS[i] & domain_mask) != 0)) {
@@ -3257,7 +3199,6 @@ using ComponentVariant = std::variant<
     Any_V_to_Bool<JitProvider>,
     AsymSlewRate<JitProvider>,
     AsymTMO<JitProvider>,
-    Battery<JitProvider>,
     BlueprintInput<JitProvider>,
     BlueprintOutput<JitProvider>,
     Bus<JitProvider>,

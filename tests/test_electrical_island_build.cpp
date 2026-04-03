@@ -48,7 +48,7 @@ TEST(ElectricalIslandBuild, ClosedCircuitOneIsland) {
     //          indicator.v_in -> indicator.v_out -> refnode.v
     // Also battery.v_in -> refnode.v (ground reference)
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
         make_device("resistor", "Resistor", {{"conductance", "0.1"}}),
         make_device("indicator", "IndicatorLight", {{"conductance", "1.0"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
@@ -98,8 +98,8 @@ TEST(ElectricalIslandBuild, ClosedCircuitOneIsland) {
 TEST(ElectricalIslandBuild, TwoDisconnectedNetsTwoIslands) {
     // Two independent circuits, each forming its own island
     std::vector<DeviceInstance> devices = {
-        // Circuit 1: Battery1->Resistor1->RefNode1
-        make_device("battery1", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
+        // Circuit 1: ElectricalSource1->Resistor1->RefNode1
+        make_device("battery1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
         make_device("resistor1", "Resistor", {{"conductance", "0.1"}}),
         make_device("gnd1", "RefNode", {{"value", "0.0"}}),
         // Circuit 2: Generator->Resistor2->RefNode2
@@ -142,7 +142,7 @@ TEST(ElectricalIslandBuild, MissingRequiredPortThrows) {
     // NOTE: ports map is intentionally empty - this should cause resolve_port to fail
 
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
         bad_refnode
     };
 
@@ -159,7 +159,7 @@ TEST(ElectricalIslandBuild, RefNodeCreatesFixedVoltageNode) {
     // Simple: Battery->RefNode
     // RefNode should create a FixedVoltageNode element
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
@@ -187,9 +187,9 @@ TEST(ElectricalIslandBuild, RefNodeCreatesFixedVoltageNode) {
 
 TEST(ElectricalIslandBuild, BatteryCreatesTheveninSource) {
     // Simple: Battery->RefNode
-    // Battery should create a TheveninSource element
+    // ElectricalSource should create a TheveninSource element
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.05"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.05"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
@@ -248,10 +248,10 @@ TEST(ElectricalIslandBuild, GeneratorCreatesTheveninSource) {
 }
 
 TEST(ElectricalIslandBuild, ResistorCreatesConductanceBranch) {
-    // Simple: Battery->Resistor->RefNode
+    // Simple: ElectricalSource->Resistor->RefNode
     // Resistor should create a ConductanceBranch element
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("resistor", "Resistor", {{"conductance", "0.5"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
@@ -280,10 +280,10 @@ TEST(ElectricalIslandBuild, ResistorCreatesConductanceBranch) {
 }
 
 TEST(ElectricalIslandBuild, IndicatorLightCreatesConductanceBranch) {
-    // Simple: Battery->IndicatorLight->RefNode
+    // Simple: ElectricalSource->IndicatorLight->RefNode
     // IndicatorLight should create a ConductanceBranch element
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("light", "IndicatorLight", {{"conductance", "2.0"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
@@ -315,9 +315,9 @@ TEST(ElectricalIslandBuild, IslandsOrderedBySmallestSignalIndex) {
     // Two circuits where we can verify ordering
     // Create devices in "wrong" order to stress sorting
     std::vector<DeviceInstance> devices = {
-        make_device("bat2", "Battery", {{"v_nominal", "12.0"}}),
+        make_device("bat2", "ElectricalSource", {{"voltage", "12.0"}}),
         make_device("gnd2", "RefNode", {{"value", "0.0"}}),
-        make_device("bat1", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("bat1", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("gnd1", "RefNode", {{"value", "0.0"}})
     };
 
@@ -338,7 +338,7 @@ TEST(ElectricalIslandBuild, IslandsOrderedBySmallestSignalIndex) {
     const auto& island0 = result.electrical_plan.islands[0];
     const auto& island1 = result.electrical_plan.islands[1];
 
-    // Both islands should have 2 elements each (Battery + RefNode)
+    // Both islands should have 2 elements each (ElectricalSource + RefNode)
     ASSERT_EQ(island0.elements.size(), 2u);
     ASSERT_EQ(island1.elements.size(), 2u);
 
@@ -356,7 +356,7 @@ TEST(ElectricalIslandBuild, UnsupportedComponentsIgnored) {
     // Components like Switch, Relay are not yet supported for electrical plan
     // They should be silently ignored (no element created)
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("sw", "Switch"),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
@@ -372,7 +372,7 @@ TEST(ElectricalIslandBuild, UnsupportedComponentsIgnored) {
     ASSERT_FALSE(result.electrical_plan.islands.empty());
     const auto& island = result.electrical_plan.islands[0];
 
-    // Should have Battery (TheveninSource) and RefNode (FixedVoltageNode)
+    // Should have ElectricalSource (TheveninSource) and RefNode (FixedVoltageNode)
     // Switch should NOT create an element (unsupported)
     ASSERT_EQ(island.elements.size(), 2u);
 
@@ -387,7 +387,7 @@ TEST(ElectricalIslandBuild, UnsupportedComponentsIgnored) {
 
 TEST(ElectricalIslandBuild, RelayCreatesDynamicConductanceBranch) {
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("relay", "Relay", {{"g_open", "1e-6"}, {"g_closed", "1000.0"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
@@ -415,11 +415,9 @@ TEST(ElectricalIslandBuild, RelayCreatesDynamicConductanceBranch) {
 
 TEST(ElectricalIslandBuild, BatteryWithExtraParamsDoesNotThrow) {
     // Regression: extraction block must tolerate params it doesn't need
-    // (capacity, charge are consumed by component creation but not by extraction)
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {
-            {"v_nominal", "28.0"}, {"internal_r", "0.01"},
-            {"capacity", "500.0"}, {"charge", "250.0"}
+        make_device("battery", "ElectricalSource", {
+            {"voltage", "28.0"}, {"resistance", "0.01"}
         }),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
@@ -437,7 +435,7 @@ TEST(ElectricalIslandBuild, IndicatorLightWithExtraParamsDoesNotThrow) {
     // Regression: extraction block must tolerate params it doesn't need
     // (max_brightness, rated_voltage, color are consumed by component creation but not by extraction)
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("light", "IndicatorLight", {
             {"conductance", "2.0"}, {"max_brightness", "80.0"},
             {"rated_voltage", "24.0"}, {"color", "red"}

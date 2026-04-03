@@ -27,7 +27,7 @@ TEST(PersistValidation, RejectsInvalidWireEndpointOnLoad) {
   "nodes": [
     {
       "id": "bat1",
-      "type": "Battery",
+      "type": "ElectricalSource",
       "ports": {
         "v_in": {"direction": "In", "type": 0},
         "v_out": {"direction": "Out", "type": 0}
@@ -121,7 +121,7 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
 
     bp2::Blueprint::Node n;
     n.id = interner.intern("bat1");
-    n.type = interner.intern("Battery");
+    n.type = interner.intern("ElectricalSource");
     n.x = 0.0f;
     n.y = 0.0f;
     bp = bp.with_node(std::move(n));
@@ -141,7 +141,7 @@ TEST(PersistValidation, WireDomainMismatchIsToleratedWithoutThrow) {
 
     bp2::Blueprint::Node a;
     a.id = interner.intern("a");
-    a.type = interner.intern("Battery");
+    a.type = interner.intern("ElectricalSource");
     bp = bp.with_node(std::move(a));
 
     bp2::Blueprint::Node b;
@@ -182,7 +182,7 @@ TEST(PersistValidation, ValidatePersistAcceptsEmbeddedProxyNode) {
     // A regular known node to ensure the basic path works.
     bp2::Blueprint::Node bat;
     bat.id = interner.intern("bat1");
-    bat.type = interner.intern("Battery");
+    bat.type = interner.intern("ElectricalSource");
     bp = bp.with_node(std::move(bat));
 
     // An embedded blueprint proxy node with a user-given type name.

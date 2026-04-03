@@ -1,3 +1,277 @@
-Start testing: Apr 01 22:55 CEST
+Start testing: Apr 03 18:15 CEST
 ----------------------------------------------------------
-End testing: Apr 01 22:55 CEST
+55/644 Testing: BlueprintTest.DefaultIsEmpty
+55/644 Test: BlueprintTest.DefaultIsEmpty
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=BlueprintTest.DefaultIsEmpty" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintTest.DefaultIsEmpty" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintTest.DefaultIsEmpty
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintTest
+[ RUN      ] BlueprintTest.DefaultIsEmpty
+[       OK ] BlueprintTest.DefaultIsEmpty (0 ms)
+[----------] 1 test from BlueprintTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintTest.DefaultIsEmpty" end time: Apr 03 18:15 CEST
+"BlueprintTest.DefaultIsEmpty" time elapsed: 00:00:00
+----------------------------------------------------------
+
+56/644 Testing: BlueprintTest.AddNode
+56/644 Test: BlueprintTest.AddNode
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=BlueprintTest.AddNode" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintTest.AddNode" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintTest.AddNode
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintTest
+[ RUN      ] BlueprintTest.AddNode
+[       OK ] BlueprintTest.AddNode (0 ms)
+[----------] 1 test from BlueprintTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintTest.AddNode" end time: Apr 03 18:15 CEST
+"BlueprintTest.AddNode" time elapsed: 00:00:00
+----------------------------------------------------------
+
+57/644 Testing: BlueprintTest.AddWire
+57/644 Test: BlueprintTest.AddWire
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=BlueprintTest.AddWire" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintTest.AddWire" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintTest.AddWire
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintTest
+[ RUN      ] BlueprintTest.AddWire
+[       OK ] BlueprintTest.AddWire (0 ms)
+[----------] 1 test from BlueprintTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintTest.AddWire" end time: Apr 03 18:15 CEST
+"BlueprintTest.AddWire" time elapsed: 00:00:00
+----------------------------------------------------------
+
+58/644 Testing: BlueprintTest.FindNode
+58/644 Test: BlueprintTest.FindNode
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=BlueprintTest.FindNode" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintTest.FindNode" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintTest.FindNode
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintTest
+[ RUN      ] BlueprintTest.FindNode
+[       OK ] BlueprintTest.FindNode (0 ms)
+[----------] 1 test from BlueprintTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintTest.FindNode" end time: Apr 03 18:15 CEST
+"BlueprintTest.FindNode" time elapsed: 00:00:00
+----------------------------------------------------------
+
+159/644 Testing: BlueprintInput.PassThroughLikeBus
+159/644 Test: BlueprintInput.PassThroughLikeBus
+Command: "/Users/vladimir/an24_cpp/tests/blueprint_ports_tests" "--gtest_filter=BlueprintInput.PassThroughLikeBus" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintInput.PassThroughLikeBus" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintInput.PassThroughLikeBus
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintInput
+[ RUN      ] BlueprintInput.PassThroughLikeBus
+[       OK ] BlueprintInput.PassThroughLikeBus (0 ms)
+[----------] 1 test from BlueprintInput (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintInput.PassThroughLikeBus" end time: Apr 03 18:15 CEST
+"BlueprintInput.PassThroughLikeBus" time elapsed: 00:00:00
+----------------------------------------------------------
+
+160/644 Testing: BlueprintInput.ExposedPortParameters
+160/644 Test: BlueprintInput.ExposedPortParameters
+Command: "/Users/vladimir/an24_cpp/tests/blueprint_ports_tests" "--gtest_filter=BlueprintInput.ExposedPortParameters" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintInput.ExposedPortParameters" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintInput.ExposedPortParameters
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintInput
+[ RUN      ] BlueprintInput.ExposedPortParameters
+[       OK ] BlueprintInput.ExposedPortParameters (0 ms)
+[----------] 1 test from BlueprintInput (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintInput.ExposedPortParameters" end time: Apr 03 18:15 CEST
+"BlueprintInput.ExposedPortParameters" time elapsed: 00:00:00
+----------------------------------------------------------
+
+161/644 Testing: BlueprintOutput.PassThroughLikeBus
+161/644 Test: BlueprintOutput.PassThroughLikeBus
+Command: "/Users/vladimir/an24_cpp/tests/blueprint_ports_tests" "--gtest_filter=BlueprintOutput.PassThroughLikeBus" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintOutput.PassThroughLikeBus" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintOutput.PassThroughLikeBus
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintOutput
+[ RUN      ] BlueprintOutput.PassThroughLikeBus
+[       OK ] BlueprintOutput.PassThroughLikeBus (0 ms)
+[----------] 1 test from BlueprintOutput (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintOutput.PassThroughLikeBus" end time: Apr 03 18:15 CEST
+"BlueprintOutput.PassThroughLikeBus" time elapsed: 00:00:00
+----------------------------------------------------------
+
+162/644 Testing: BlueprintOutput.ExposedPortParameters
+162/644 Test: BlueprintOutput.ExposedPortParameters
+Command: "/Users/vladimir/an24_cpp/tests/blueprint_ports_tests" "--gtest_filter=BlueprintOutput.ExposedPortParameters" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintOutput.ExposedPortParameters" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintOutput.ExposedPortParameters
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintOutput
+[ RUN      ] BlueprintOutput.ExposedPortParameters
+[       OK ] BlueprintOutput.ExposedPortParameters (0 ms)
+[----------] 1 test from BlueprintOutput (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintOutput.ExposedPortParameters" end time: Apr 03 18:15 CEST
+"BlueprintOutput.ExposedPortParameters" time elapsed: 00:00:00
+----------------------------------------------------------
+
+163/644 Testing: BlueprintPorts.BasicBatteryCircuit
+163/644 Test: BlueprintPorts.BasicBatteryCircuit
+Command: "/Users/vladimir/an24_cpp/tests/blueprint_integration_tests" "--gtest_filter=BlueprintPorts.BasicBatteryCircuit" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintPorts.BasicBatteryCircuit" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintPorts.BasicBatteryCircuit
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintPorts
+[ RUN      ] BlueprintPorts.BasicBatteryCircuit
+[2026-04-03 18:15:45.553] [info] [build] signal map: 2 roots -> 3 signals, 1 fixed
+[2026-04-03 18:15:45.554] [warning] [build] created 3 components (elec=3, logic=0, mech=0, hyd=0, therm=0)
+[       OK ] BlueprintPorts.BasicBatteryCircuit (1 ms)
+[----------] 1 test from BlueprintPorts (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintPorts.BasicBatteryCircuit" end time: Apr 03 18:15 CEST
+"BlueprintPorts.BasicBatteryCircuit" time elapsed: 00:00:00
+----------------------------------------------------------
+
+164/644 Testing: BlueprintPorts.InputPassThroughToOutput
+164/644 Test: BlueprintPorts.InputPassThroughToOutput
+Command: "/Users/vladimir/an24_cpp/tests/blueprint_integration_tests" "--gtest_filter=BlueprintPorts.InputPassThroughToOutput" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintPorts.InputPassThroughToOutput" start time: Apr 03 18:15 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintPorts.InputPassThroughToOutput
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintPorts
+[ RUN      ] BlueprintPorts.InputPassThroughToOutput
+[2026-04-03 18:15:45.557] [info] [build] signal map: 2 roots -> 3 signals, 1 fixed
+[2026-04-03 18:15:45.558] [warning] [build] created 4 components (elec=4, logic=0, mech=0, hyd=0, therm=0)
+[       OK ] BlueprintPorts.InputPassThroughToOutput (0 ms)
+[----------] 1 test from BlueprintPorts (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintPorts.InputPassThroughToOutput" end time: Apr 03 18:15 CEST
+"BlueprintPorts.InputPassThroughToOutput" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Apr 03 18:15 CEST

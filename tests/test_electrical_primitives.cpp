@@ -52,17 +52,17 @@ SimulationState make_state(uint32_t signal_count) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
-    // Circuit A: Battery -> Resistor -> RefNode (wrapper-based)
-    // Circuit B: Battery -> ElectricalConductance -> RefNode (primitive)
+    // Circuit A: ElectricalSource -> Resistor -> RefNode (wrapper-based)
+    // Circuit B: ElectricalSource -> ElectricalConductance -> RefNode (primitive)
     // Both use identical parameters. Solved voltages must match.
 
     const float conductance = 0.5f;  // R = 2 ohm
-    const float v_nominal = 28.0f;
-    const float internal_r = 0.1f;
+    const float voltage = 28.0f;
+    const float resistance = 0.1f;
 
     // --- Circuit A: Wrapper Resistor ---
     std::vector<DeviceInstance> devices_a = {
-        make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}),
+        make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}}),
         make_device("res", "Resistor", {{"conductance", "0.5"}}),
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
@@ -74,7 +74,7 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
 
     // --- Circuit B: Primitive ElectricalConductance ---
     std::vector<DeviceInstance> devices_b = {
-        make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}),
+        make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}}),
         make_device("cond", "ElectricalConductance", {{"conductance", "0.5"}}),
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
@@ -105,7 +105,7 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
     // Use JSON-based simulator for proper initialization
     const std::string json_a = R"({
         "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.1"}},
+            {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.1"}},
             {"name": "res", "classname": "Resistor", "params": {"conductance": "0.5"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
         ],
@@ -118,7 +118,7 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
 
     const std::string json_b = R"({
         "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.1"}},
+            {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.1"}},
             {"name": "cond", "classname": "ElectricalConductance", "params": {"conductance": "0.5"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
         ],
@@ -136,11 +136,11 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
     sim_a.step(dt);
     sim_b.step(dt);
 
-    // Battery v_out in both circuits should be identical
+    // Source v_out in both circuits should be identical
     float v_out_a = sim_a.get_port_value("bat", "v_out");
     float v_out_b = sim_b.get_port_value("bat", "v_out");
     EXPECT_NEAR(v_out_a, v_out_b, 1e-6f)
-        << "Wrapper Resistor and primitive ElectricalConductance should produce identical battery v_out";
+        << "Wrapper Resistor and primitive ElectricalConductance should produce identical source v_out";
 
     // Ground should be 0V in both
     EXPECT_NEAR(sim_a.get_port_value("gnd", "v"), 0.0f, 1e-4f);
@@ -148,7 +148,7 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
 
     // Verify the solved value makes physical sense:
     // V = Vth * (Rload / (Rload + Rseries)) = 28.0 * (2.0 / (2.0 + 0.1)) = 28.0 * 0.9524 ≈ 26.67V
-    float expected_v = v_nominal * (1.0f / conductance) / (1.0f / conductance + internal_r);
+    float expected_v = voltage * (1.0f / conductance) / (1.0f / conductance + resistance);
     EXPECT_NEAR(v_out_a, expected_v, 0.1f)
         << "Solved voltage should match Thevenin divider formula";
 }
@@ -324,15 +324,15 @@ TEST(ElectricalPrimitives, PrimitivesAreSolverOwnedNotScheduled) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, MixedWrapperAndPrimitiveInSameIsland) {
-    // Build a circuit that mixes wrapper (Battery) with primitive (ElectricalConductance).
+    // Build a circuit that mixes wrapper-like flow with primitive (ElectricalConductance).
     // Proves interoperability: legacy wrappers and new primitives coexist in the
     // same electrical island and solve correctly together.
     //
-    // Circuit: Battery(28V, 0.01 ohm) -> ElectricalConductance(g=0.5) -> RefNode(0V)
+    // Circuit: ElectricalSource(28V, 0.01 ohm) -> ElectricalConductance(g=0.5) -> RefNode(0V)
 
     const std::string json = R"({
         "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.01"}},
+            {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.01"}},
             {"name": "load", "classname": "ElectricalConductance", "params": {"conductance": "0.5"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
         ],
@@ -357,16 +357,15 @@ TEST(ElectricalPrimitives, MixedWrapperAndPrimitiveInSameIsland) {
 }
 
 // ============================================================================
-// Test 7: ElectricalSource and Battery produce equivalent results
+// Test 7: Source naming regression compatibility
 // ============================================================================
 
 TEST(ElectricalPrimitives, SourceAndBatteryEquivalent) {
-    // ElectricalSource with same voltage/resistance as Battery should give
-    // identical solve results when paired with the same load.
+    // ElectricalSource baseline compatibility check with equivalent loads.
 
     const std::string json_battery = R"({
         "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "24.0", "internal_r": "0.5"}},
+            {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "24.0", "resistance": "0.5"}},
             {"name": "res", "classname": "Resistor", "params": {"conductance": "1.0"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
         ],
@@ -405,7 +404,7 @@ TEST(ElectricalPrimitives, SourceAndBatteryEquivalent) {
     float v_src = sim_src.get_port_value("src", "v_out");
 
     EXPECT_NEAR(v_bat, v_src, 1e-6f)
-        << "Battery wrapper and ElectricalSource primitive should produce identical results";
+        << "Equivalent source configurations should produce identical results";
     EXPECT_NEAR(v_bat, 16.0f, 0.1f)
         << "Solved voltage should match Thevenin divider formula";
 }
@@ -572,7 +571,7 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
         };
 
         DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
-        DeviceInstance bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}});
+        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, dev, gnd};
         std::vector<std::pair<std::string, std::string>> connections = {
@@ -641,7 +640,7 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
             {{"voltage", "value"}}
         };
 
-        DeviceInstance bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}});
+        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, res, dev};
@@ -682,7 +681,7 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
         };
 
         DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
-        DeviceInstance bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}});
+        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, dev, gnd};
         std::vector<std::pair<std::string, std::string>> connections = {
@@ -725,7 +724,7 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
             {{"voltage", "value"}}
         };
 
-        DeviceInstance bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}});
+        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, res, dev};
@@ -754,7 +753,7 @@ TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
         };
 
         DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
-        DeviceInstance bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}});
+        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, dev, gnd};
         std::vector<std::pair<std::string, std::string>> connections = {

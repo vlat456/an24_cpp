@@ -30,20 +30,20 @@ TEST(PortMacroTest, ComponentFieldsAreZeroInitialized) {
 // Test compile-time validation
 TEST(PortMacroTest, CompileTimePortCountValidation) {
     // This should compile - we're using the constant from registry
-    constexpr size_t battery_ports = Battery_PORT_COUNT;
-    EXPECT_EQ(battery_ports, 4);
+    constexpr size_t es_ports = ElectricalSource_PORT_COUNT;
+    EXPECT_EQ(es_ports, 2);
 }
 
 // Test that all components in registry have valid port counts
 TEST(PortMacroTest, AllComponentsHavePortCounts) {
-    EXPECT_GT(Battery_PORT_COUNT, 0);
+    EXPECT_GT(ElectricalSource_PORT_COUNT, 0);
     EXPECT_GT(Switch_PORT_COUNT, 0);
 }
 
 // Test port name lookup
 TEST(PortMacroTest, GetPortNamesReturnsCorrectData) {
-    auto battery_ports = get_component_ports("Battery");
-    EXPECT_EQ(battery_ports.size(), Battery_PORT_COUNT);
+    auto es_ports = get_component_ports("ElectricalSource");
+    EXPECT_EQ(es_ports.size(), ElectricalSource_PORT_COUNT);
 }
 
 // ============================================================================

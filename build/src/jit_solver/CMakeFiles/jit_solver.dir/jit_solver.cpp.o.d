@@ -409,7 +409,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Users/vladimir/an24_cpp/src/jit_solver/components/port_names.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/component_enums.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/switch.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/../state.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/../../json_parser/json_parser.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/map \
@@ -527,7 +527,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/macro_unscope.hpp \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   /Users/vladimir/an24_cpp/src/jit_solver/components/../subsolvers/subsolver_types.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/switch.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/relay.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/hold_button.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/resistor.h \

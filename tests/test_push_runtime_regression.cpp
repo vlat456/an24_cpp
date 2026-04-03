@@ -280,17 +280,17 @@ TEST(PushRuntime, CycleUsesOneFrameDelay) {
 }
 
 TEST(PushRuntime, DynamicEnableDisableStable) {
-    const std::string json = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0"}},
-            {"name": "sw", "classname": "Switch", "params": {"closed": "false"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "gnd.v", "to": "bat.v_in"},
-            {"from": "bat.v_out", "to": "sw.v_in"}
-        ]
-    })";
+     const std::string json = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0"}},
+             {"name": "sw", "classname": "Switch", "params": {"closed": "false"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+         ],
+         "connections": [
+             {"from": "gnd.v", "to": "bat.v_in"},
+             {"from": "bat.v_out", "to": "sw.v_in"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -315,18 +315,18 @@ TEST(PushRuntime, DynamicEnableDisableStable) {
 }
 
 TEST(PushRuntime, InitialValuesSeedState) {
-    const std::string json = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "24.0"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "gnd.v", "to": "bat.v_in"}
-        ],
-        "initial_values": {
-            "bat.v_out": 11.5
-        }
-    })";
+     const std::string json = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "24.0"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+         ],
+         "connections": [
+             {"from": "gnd.v", "to": "bat.v_in"}
+         ],
+         "initial_values": {
+             "bat.v_out": 11.5
+         }
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -337,11 +337,11 @@ TEST(PushRuntime, InitialValuesSeedState) {
 }
 
 TEST(PushRuntime, SourceConflictErrorMessageReadable) {
-    std::vector<DeviceInstance> devices = {
-        make_device("b1", "Battery", {{"v_nominal", "28.0"}}),
-        make_device("b2", "Battery", {{"v_nominal", "27.0"}}),
-        make_device("gnd", "RefNode", {{"value", "0.0"}})
-    };
+     std::vector<DeviceInstance> devices = {
+         make_device("b1", "ElectricalSource", {{"voltage", "28.0"}}),
+         make_device("b2", "ElectricalSource", {{"voltage", "27.0"}}),
+         make_device("gnd", "RefNode", {{"value", "0.0"}})
+     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
         {"b1.v_out", "b2.v_out"},
@@ -385,22 +385,22 @@ TEST(PushRuntime, LerpNodeExecuteProducesOutput) {
 }
 
 TEST(PushRuntime, DynamicFeedbackLoopStableAndBounded) {
-    const std::string json = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0"}},
-            {"name": "sw", "classname": "Switch", "params": {"closed": "false"}},
-            {"name": "cmp", "classname": "Comparator"},
-            {"name": "ref_hi", "classname": "RefNode", "params": {"value": "14.0"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "gnd.v", "to": "bat.v_in"},
-            {"from": "bat.v_out", "to": "sw.v_in"},
-            {"from": "sw.v_out", "to": "cmp.Vb"},
-            {"from": "ref_hi.v", "to": "cmp.Va"},
-            {"from": "cmp.o", "to": "sw.control"}
-        ]
-    })";
+     const std::string json = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0"}},
+             {"name": "sw", "classname": "Switch", "params": {"closed": "false"}},
+             {"name": "cmp", "classname": "Comparator"},
+             {"name": "ref_hi", "classname": "RefNode", "params": {"value": "14.0"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+         ],
+         "connections": [
+             {"from": "gnd.v", "to": "bat.v_in"},
+             {"from": "bat.v_out", "to": "sw.v_in"},
+             {"from": "sw.v_out", "to": "cmp.Vb"},
+             {"from": "ref_hi.v", "to": "cmp.Va"},
+             {"from": "cmp.o", "to": "sw.control"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -415,19 +415,19 @@ TEST(PushRuntime, DynamicFeedbackLoopStableAndBounded) {
 }
 
 TEST(PushRuntime, CommitHookRunsAfterExecute) {
-    // Verify commit hook runs after execute: switch state change becomes
-    // visible on the next frame.
-    const std::string json = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0"}},
-            {"name": "sw", "classname": "Switch", "params": {"closed": "false"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "gnd.v", "to": "bat.v_in"},
-            {"from": "bat.v_out", "to": "sw.v_in"}
-        ]
-    })";
+     // Verify commit hook runs after execute: switch state change becomes
+     // visible on the next frame.
+     const std::string json = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0"}},
+             {"name": "sw", "classname": "Switch", "params": {"closed": "false"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+         ],
+         "connections": [
+             {"from": "gnd.v", "to": "bat.v_in"},
+             {"from": "bat.v_out", "to": "sw.v_in"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -447,18 +447,18 @@ TEST(PushRuntime, CommitHookRunsAfterExecute) {
 }
 
 TEST(PushRuntime, StatefulComponentOneFrameDelaySemantic) {
-    // Stateful changes are committed at end-of-frame and visible next frame.
-    const std::string json = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0"}},
-            {"name": "sw", "classname": "Switch", "params": {"closed": "false"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "gnd.v", "to": "bat.v_in"},
-            {"from": "bat.v_out", "to": "sw.v_in"}
-        ]
-    })";
+     // Stateful changes are committed at end-of-frame and visible next frame.
+     const std::string json = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0"}},
+             {"name": "sw", "classname": "Switch", "params": {"closed": "false"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+         ],
+         "connections": [
+             {"from": "gnd.v", "to": "bat.v_in"},
+             {"from": "bat.v_out", "to": "sw.v_in"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -596,37 +596,37 @@ TEST(PushRuntime, SlewRateConvergesToInput) {
 }
 
 TEST(PushRuntime, ComponentApiCommitHookCoverageSmoke) {
-    // Smoke test: instantiate representative components across domains and verify
-    // the scheduler commit path executes safely without errors.
-    const std::string json = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0"}},
-            {"name": "sw", "classname": "Switch", "params": {"closed": "true"}},
-            {"name": "add", "classname": "Add"},
-            {"name": "pid", "classname": "PID", "params": {"Kp": "1.0", "Ki": "0.1", "Kd": "0.0", "output_min": "-10.0", "output_max": "10.0", "filter_alpha": "0.1"}},
-            {"name": "slew", "classname": "SlewRate", "params": {"max_rate": "5.0", "deadzone": "0.01"}},
-            {"name": "integ", "classname": "Integrator", "params": {"initial_val": "0.0"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
-            {"name": "gen", "classname": "Generator", "params": {"v_nominal": "12.0"}},
-            {"name": "relay", "classname": "Relay"},
-            {"name": "v_gain", "classname": "Value", "params": {"value": "1.0"}},
-            {"name": "v_ht", "classname": "Value", "params": {"value": "0.5"}}
-        ],
-        "connections": [
-            {"from": "gnd.v", "to": "bat.v_in"},
-            {"from": "bat.v_out", "to": "sw.v_in"},
-            {"from": "sw.v_out", "to": "add.A"},
-            {"from": "gnd.v", "to": "add.B"},
-            {"from": "add.o", "to": "pid.setpoint"},
-            {"from": "gnd.v", "to": "pid.feedback"},
-            {"from": "pid.output", "to": "slew.in"},
-            {"from": "slew.out", "to": "integ.in"},
-            {"from": "v_gain.o", "to": "integ.gain"},
-            {"from": "gnd.v", "to": "gen.v_in"},
-            {"from": "gen.v_out", "to": "relay.v_in"},
-            {"from": "v_ht.o", "to": "relay.hold_threshold"}
-        ]
-    })";
+     // Smoke test: instantiate representative components across domains and verify
+     // the scheduler commit path executes safely without errors.
+     const std::string json = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0"}},
+             {"name": "sw", "classname": "Switch", "params": {"closed": "true"}},
+             {"name": "add", "classname": "Add"},
+             {"name": "pid", "classname": "PID", "params": {"Kp": "1.0", "Ki": "0.1", "Kd": "0.0", "output_min": "-10.0", "output_max": "10.0", "filter_alpha": "0.1"}},
+             {"name": "slew", "classname": "SlewRate", "params": {"max_rate": "5.0", "deadzone": "0.01"}},
+             {"name": "integ", "classname": "Integrator", "params": {"initial_val": "0.0"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
+             {"name": "gen", "classname": "Generator", "params": {"v_nominal": "12.0"}},
+             {"name": "relay", "classname": "Relay"},
+             {"name": "v_gain", "classname": "Value", "params": {"value": "1.0"}},
+             {"name": "v_ht", "classname": "Value", "params": {"value": "0.5"}}
+         ],
+         "connections": [
+             {"from": "gnd.v", "to": "bat.v_in"},
+             {"from": "bat.v_out", "to": "sw.v_in"},
+             {"from": "sw.v_out", "to": "add.A"},
+             {"from": "gnd.v", "to": "add.B"},
+             {"from": "add.o", "to": "pid.setpoint"},
+             {"from": "gnd.v", "to": "pid.feedback"},
+             {"from": "pid.output", "to": "slew.in"},
+             {"from": "slew.out", "to": "integ.in"},
+             {"from": "v_gain.o", "to": "integ.gain"},
+             {"from": "gnd.v", "to": "gen.v_in"},
+             {"from": "gen.v_out", "to": "relay.v_in"},
+             {"from": "v_ht.o", "to": "relay.hold_threshold"}
+         ]
+     })";
 
     JIT_Simulator sim;
     EXPECT_NO_THROW(sim.start_from_json(json));
@@ -1009,65 +1009,31 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
         }
     }
     
-    // Test 2: Battery with typo inv_internal_r -> should be caught as unknown
-    // (but inv_internal_r is whitelisted as internal computed, so use another typo)
-    {
-        DeviceInstance dev;
-        dev.name = "bat_typo";
-        dev.classname = "Battery";
-        dev.execution = {};
-        dev.params = {
-            {"v_nominal", "28.0"},
-            {"internal_r", "0.01"},
-            {"capacitor", "1000.0"}  // Typo: should be "capacity"
-        };
-        
-        auto ports = get_component_ports("Battery");
-        for (const auto& port_name : ports) {
-            dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
-        }
-        
-        std::vector<DeviceInstance> test_devs = {dev};
-        std::vector<std::pair<std::string, std::string>> connections;
-        
-        try {
-            (void)build_systems_dev(test_devs, connections);
-            FAIL() << "Expected runtime_error for Battery with unknown param 'capacitor'";
-        }
-        catch (const std::runtime_error& e) {
-            const std::string msg = e.what();
-            EXPECT_NE(msg.find("bat_typo"), std::string::npos)
-                << "Error message should contain component name";
-            EXPECT_NE(msg.find("capacitor"), std::string::npos)
-                << "Error message should contain unknown key 'capacitor'";
-        }
-    }
-    
-    // Test 3: Valid params should NOT throw
-    {
-        DeviceInstance dev;
-        dev.name = "pid_ok";
-        dev.classname = "PID";
-        dev.execution = {};
-        dev.params = {
-            {"Kp", "2.0"},
-            {"Ki", "0.5"},
-            {"Kd", "0.1"},
-            {"output_min", "-100.0"},
-            {"output_max", "100.0"},
-            {"filter_alpha", "0.3"}
-        };
-        
-        auto ports = get_component_ports("PID");
-        for (const auto& port_name : ports) {
-            dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
-        }
-        
-        std::vector<DeviceInstance> test_devs = {dev};
-        std::vector<std::pair<std::string, std::string>> connections;
-        
-        EXPECT_NO_THROW((void)build_systems_dev(test_devs, connections));
-    }
+     // Test 3: Valid params should NOT throw
+     {
+         DeviceInstance dev;
+         dev.name = "pid_ok";
+         dev.classname = "PID";
+         dev.execution = {};
+         dev.params = {
+             {"Kp", "2.0"},
+             {"Ki", "0.5"},
+             {"Kd", "0.1"},
+             {"output_min", "-100.0"},
+             {"output_max", "100.0"},
+             {"filter_alpha", "0.3"}
+         };
+         
+         auto ports = get_component_ports("PID");
+         for (const auto& port_name : ports) {
+             dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+         }
+         
+         std::vector<DeviceInstance> test_devs = {dev};
+         std::vector<std::pair<std::string, std::string>> connections;
+         
+         EXPECT_NO_THROW((void)build_systems_dev(test_devs, connections));
+     }
 }
 
 
@@ -1075,53 +1041,53 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
 // == Batch 5: Solver Ownership Integration Tests ==
 
 TEST(PushRuntime, SolverOwnedComponentsNotScheduledForElectricalPropagation) {
-    // Verify that Battery, Generator, Resistor are NOT scheduled
-    // in the push scheduler for electrical propagation.
-    // These components are now owned by the electrical solver instead.
-    // RefNode IS scheduled as a source: it writes its constant reference value
-    // into the signal array each frame so downstream logical consumers see it.
-    std::vector<DeviceInstance> devices = {
-        make_device("bat", "Battery", {{"v_nominal", "28.0"}}),
-        make_device("gen", "Generator", {{"v_nominal", "28.0"}}),
-        make_device("gnd", "RefNode", {{"value", "0.0"}}),
-        make_device("res", "Resistor", {{"conductance", "0.1"}}),
-        make_device("sw", "Switch", {{"closed", "true"}})  // consumer to verify scheduling works
-    };
+     // Verify that ElectricalSource, Generator, Resistor are NOT scheduled
+     // in the push scheduler for electrical propagation.
+     // These components are now owned by the electrical solver instead.
+     // RefNode IS scheduled as a source: it writes its constant reference value
+     // into the signal array each frame so downstream logical consumers see it.
+     std::vector<DeviceInstance> devices = {
+         make_device("bat", "ElectricalSource", {{"voltage", "28.0"}}),
+         make_device("gen", "Generator", {{"v_nominal", "28.0"}}),
+         make_device("gnd", "RefNode", {{"value", "0.0"}}),
+         make_device("res", "Resistor", {{"conductance", "0.1"}}),
+         make_device("sw", "Switch", {{"closed", "true"}})  // consumer to verify scheduling works
+     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"gnd.v", "bat.v_in"},
-        {"bat.v_out", "res.v_in"},
-        {"res.v_out", "sw.v_in"},
-        {"gnd.v", "gen.v_in"}
-    };
+     std::vector<std::pair<std::string, std::string>> connections = {
+         {"gnd.v", "bat.v_in"},
+         {"bat.v_out", "res.v_in"},
+         {"res.v_out", "sw.v_in"},
+         {"gnd.v", "gen.v_in"}
+     };
 
-    auto result = build_systems_dev(devices, connections);
+     auto result = build_systems_dev(devices, connections);
 
-    // RefNode is scheduled as a source (it must write its constant value).
-    // Battery, Generator, Resistor are solver-owned and NOT scheduled.
-    EXPECT_EQ(result.scheduler.source_count(), 1u)
-        << "Only RefNode should be scheduled as a source";
-    EXPECT_EQ(result.scheduler.consumer_count(), 1u)
-        << "Only Switch should be scheduled as consumer (others are solver-owned)";
+     // RefNode is scheduled as a source (it must write its constant value).
+     // ElectricalSource, Generator, Resistor are solver-owned and NOT scheduled.
+     EXPECT_EQ(result.scheduler.source_count(), 1u)
+         << "Only RefNode should be scheduled as a source";
+     EXPECT_EQ(result.scheduler.consumer_count(), 1u)
+         << "Only Switch should be scheduled as consumer (others are solver-owned)";
 }
 
 TEST(PushRuntime, ClosedLoopNoRunawayAfterManySteps) {
-    // Closed loop: Battery -> Resistor -> IndicatorLight -> RefNode (return)
-    // After solver ownership changes, voltages should remain bounded.
-    const std::string json = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.01"}},
-            {"name": "res", "classname": "Resistor", "params": {"conductance": "0.5"}},
-            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0", "max_brightness": "100.0"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "gnd.v", "to": "bat.v_in"},
-            {"from": "bat.v_out", "to": "res.v_in"},
-            {"from": "res.v_out", "to": "ind.v_in"},
-            {"from": "ind.v_out", "to": "gnd.v"}
-        ]
-    })";
+     // Closed loop: ElectricalSource -> Resistor -> IndicatorLight -> RefNode (return)
+     // After solver ownership changes, voltages should remain bounded.
+     const std::string json = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.01"}},
+             {"name": "res", "classname": "Resistor", "params": {"conductance": "0.5"}},
+             {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0", "max_brightness": "100.0"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+         ],
+         "connections": [
+             {"from": "gnd.v", "to": "bat.v_in"},
+             {"from": "bat.v_out", "to": "res.v_in"},
+             {"from": "res.v_out", "to": "ind.v_in"},
+             {"from": "ind.v_out", "to": "gnd.v"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -1138,13 +1104,13 @@ TEST(PushRuntime, ClosedLoopNoRunawayAfterManySteps) {
         float gnd_v = sim.get_port_value("gnd", "v");
 
         // All voltages should be finite and bounded
-        EXPECT_TRUE(std::isfinite(bat_vout)) << "Battery v_out should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(bat_vout)) << "Source v_out should be finite at frame " << i;
         EXPECT_TRUE(std::isfinite(res_vout)) << "Resistor v_out should be finite at frame " << i;
         EXPECT_TRUE(std::isfinite(ind_vout)) << "Indicator v_out should be finite at frame " << i;
         EXPECT_TRUE(std::isfinite(gnd_v)) << "Ground v should be finite at frame " << i;
 
         // No runaway to +28V unbounded
-        EXPECT_LT(bat_vout, 35.0f) << "Battery v_out should not runaway at frame " << i;
+        EXPECT_LT(bat_vout, 35.0f) << "Source v_out should not runaway at frame " << i;
         EXPECT_LT(res_vout, 35.0f) << "Resistor v_out should not runaway at frame " << i;
 
         // Ground should stay at reference (0V)
@@ -1323,185 +1289,20 @@ TEST(PushRuntime, ClosedCircuitBlueprint_RN180RegulatedGeneratorProducesCurrent)
         << "CurrentSense should report non-zero loop current";
 }
 
-TEST(PushRuntime, ClosedCircuitLike_BatteryChargeDecreases_CorrectedTopology) {
-    // This test verifies battery discharge works with a controlled topology.
-    // Uses values matching the blueprint (v_nominal=28.0, internal_r=0.01,
-    // capacity=1000, charge=1000) with a simplified inline topology:
-    // Battery -> Resistor -> RefNode(ground).
-    // This is a controlled topology test providing stronger discharge signal
-    // than the real fixture (which has lower conductance and may discharge slowly).
-    //
-    // With conductance=1.0 (1 ohm load), discharge per step is:
-    //   I = 28V / 1.01 ohm ≈ 27.7A
-    //   discharge_per_step ≈ 27.7 * (1/60) / 3600 ≈ 0.000128
-    // After 1200 steps: total discharge ≈ 0.154 Ah, clearly measurable.
-    const std::string json = R"({
-        "devices": [
-            {"name": "battery_1", "classname": "Battery", "params": {
-                "v_nominal": "28.0", "internal_r": "0.01", "capacity": "1000.0", "charge": "1000.0"
-            }},
-            {"name": "resistor_1", "classname": "Resistor", "params": {"conductance": "1.0"}},
-            {"name": "refnode_1", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "refnode_1.v", "to": "battery_1.v_in"},
-            {"from": "battery_1.v_out", "to": "resistor_1.v_in"},
-            {"from": "resistor_1.v_out", "to": "refnode_1.v"}
-        ]
-    })";
-
-    JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
-
-    double dt = 1.0 / 60.0;
-
-    // Initial charge from blueprint values
-    double initial_charge = sim.get_battery_charge("battery_1");
-    ASSERT_EQ(initial_charge, 1000.0) << "Initial charge should be 1000.0";
-
-    // Sample charge periodically to verify monotonic decrease
-    const int total_steps = 1200;
-    const int sample_interval = 200;
-    std::vector<double> charge_samples;
-
-    for (int i = 0; i < total_steps; ++i) {
-        sim.step(dt);
-        if (i % sample_interval == 0) {
-            double ch = sim.get_battery_charge("battery_1");
-            ASSERT_TRUE(std::isfinite(ch)) << "Charge should be finite at step " << i;
-            charge_samples.push_back(ch);
-        }
-    }
-
-    double final_charge = sim.get_battery_charge("battery_1");
-    ASSERT_TRUE(std::isfinite(final_charge));
-
-    // Verify monotonic decrease over samples
-    for (size_t j = 1; j < charge_samples.size(); ++j) {
-        EXPECT_LT(charge_samples[j], charge_samples[j-1])
-            << "Charge should decrease monotonically: sample " << j-1
-            << " (" << charge_samples[j-1] << ") > sample " << j
-            << " (" << charge_samples[j] << ")";
-    }
-
-    // Total decrease should be > epsilon
-    double total_decrease = initial_charge - final_charge;
-    EXPECT_GT(total_decrease, 0.001)
-        << "Total discharge should be measurable (> 0.001 Ah): got " << total_decrease;
-
-    // Voltage assertions as secondary check
-    float final_vout = sim.get_port_value("battery_1", "v_out");
-    EXPECT_TRUE(std::isfinite(final_vout));
-    EXPECT_LT(final_vout, 29.0f) << "Battery voltage should be bounded under load";
-}
-
-TEST(PushRuntime, BatteryLiveOutputsExposeChargeAndSoc) {
-    const std::string json = R"({
-        "devices": [
-            {"name": "battery_1", "classname": "Battery", "params": {
-                "v_nominal": "28.0", "internal_r": "0.01", "capacity": "1.0", "charge": "1.0"
-            }},
-            {"name": "resistor_1", "classname": "Resistor", "params": {"conductance": "1.0"}},
-            {"name": "refnode_1", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "refnode_1.v", "to": "battery_1.v_in"},
-            {"from": "battery_1.v_out", "to": "resistor_1.v_in"},
-            {"from": "resistor_1.v_out", "to": "refnode_1.v"}
-        ]
-    })";
-
-    JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
-
-    double dt = 1.0 / 60.0;
-    sim.step(dt);
-
-    float charge_out = sim.get_port_value("battery_1", "charge_out");
-    float soc_out = sim.get_port_value("battery_1", "soc_out");
-
-    ASSERT_TRUE(std::isfinite(charge_out));
-    ASSERT_TRUE(std::isfinite(soc_out));
-
-    // Under load, charge and SoC should both decrease from 1.0.
-    EXPECT_LT(charge_out, 1.0f);
-    EXPECT_LT(soc_out, 1.0f);
-    EXPECT_GT(soc_out, 0.0f);
-
-    // SoC should track charge/capacity (capacity=1.0, so they should match).
-    EXPECT_NEAR(soc_out, charge_out, 1e-5f);
-}
-
-TEST(PushRuntime, BatteryCommitRunsExactlyOncePerStepForSolverOwned) {
-    // Verify that Battery commit is called exactly once per step.
-    // Build simple circuit: Battery -> Resistor -> RefNode (ground return)
-    // Use the commit_solver_owned_devices helper that runs in step().
-    const std::string json = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {
-                "v_nominal": "28.0", "internal_r": "0.01", "capacity": "1000.0", "charge": "1000.0"
-            }},
-            {"name": "res", "classname": "Resistor", "params": {"conductance": "1.0"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "gnd.v", "to": "bat.v_in"},
-            {"from": "bat.v_out", "to": "res.v_in"},
-            {"from": "res.v_out", "to": "gnd.v"}
-        ]
-    })";
-
-    JIT_Simulator sim;
-    sim.start_from_json(json);
-
-    double dt = 1.0 / 60.0;
-
-    // Initial charge
-    double charge_0 = sim.get_battery_charge("bat");
-    EXPECT_EQ(charge_0, 1000.0);
-
-    // Step 1: delta after first step
-    sim.step(dt);
-    double charge_1 = sim.get_battery_charge("bat");
-    double delta_1 = charge_0 - charge_1;
-    EXPECT_GT(delta_1, 0.0) << "Charge should decrease after 1 step (commit ran)";
-
-    // Step 2: delta after second step
-    sim.step(dt);
-    double charge_2 = sim.get_battery_charge("bat");
-    double delta_2 = charge_1 - charge_2;
-    EXPECT_GT(delta_2, 0.0) << "Charge should continue decreasing after 2 steps";
-
-    // Ratio check: delta_2 should be approximately equal to delta_1
-    // (linear discharge, constant load, small dt) - allows for numerical tolerance
-    double ratio = delta_2 / delta_1;
-    EXPECT_NEAR(ratio, 1.0, 0.15)
-        << "Discharge rate should be consistent per step (delta_2/delta_1 = " << ratio
-        << ", expected ~1.0). If ratio is ~2.0, commit is being called twice. "
-        << "If ratio is ~0.0, commit is not being called.";
-
-    // Also verify cumulative: after N steps, total delta should be ~N * d1
-    double total_delta = charge_0 - charge_2;
-    double expected_total = delta_1 * 2.0;
-    EXPECT_NEAR(total_delta, expected_total, expected_total * 0.20)
-        << "Cumulative discharge should be ~2x single step (" << total_delta
-        << " vs " << expected_total << ")";
-}
-
 TEST(PushRuntime, SimulationStateElectricalRtPointerClearedOutsideStep) {
-    // Verify electrical_rt pointer is nullptr outside of active step window.
-    // This is a regression test for Batch 7 pointer lifecycle hardening.
-    const std::string json = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0"}},
-            {"name": "sw", "classname": "Switch", "params": {"closed": "true"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
-        ],
-        "connections": [
-            {"from": "gnd.v", "to": "bat.v_in"},
-            {"from": "bat.v_out", "to": "sw.v_in"}
-        ]
-    })";
+     // Verify electrical_rt pointer is nullptr outside of active step window.
+     // This is a regression test for Batch 7 pointer lifecycle hardening.
+     const std::string json = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0"}},
+             {"name": "sw", "classname": "Switch", "params": {"closed": "true"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+         ],
+         "connections": [
+             {"from": "gnd.v", "to": "bat.v_in"},
+             {"from": "bat.v_out", "to": "sw.v_in"}
+         ]
+     })";
 
     JIT_Simulator sim;
     sim.start_from_json(json);
@@ -1527,8 +1328,8 @@ TEST(PushRuntime, SimulationStateElectricalRtPointerClearedOutsideStep) {
 
     // Verify circuit still produces correct steady-state voltage
     // (would diverge if electrical_rt pointer issue caused stale solves)
-    EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 28.0f, 0.5f)
-        << "Battery should maintain nominal voltage";
+     EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 28.0f, 0.5f)
+         << "Source should maintain nominal voltage";
 }
 
 // =============================================================================
@@ -1575,43 +1376,43 @@ TEST(PushRuntime, RelayCustomHoldThresholdIsRespected) {
 }
 
 TEST(PushRuntime, RelayElectricalSolverPath_ClosedProducesSag) {
-    const char* json_open = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.1"}},
-            {"name": "relay", "classname": "Relay", "params": {"closed": "false", "g_open": "1e-6", "g_closed": "1000.0"}},
-            {"name": "load", "classname": "Resistor", "params": {"conductance": "2.0"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
-            {"name": "cmd", "classname": "RefNode", "params": {"value": "0.0"}},
-            {"name": "ht", "classname": "Value", "params": {"value": "0.5"}}
-        ],
-        "connections": [
-            {"from": "cmd.v", "to": "relay.control"},
-            {"from": "ht.o", "to": "relay.hold_threshold"},
-            {"from": "bat.v_out", "to": "relay.v_in"},
-            {"from": "relay.v_out", "to": "load.v_in"},
-            {"from": "load.v_out", "to": "gnd.v"},
-            {"from": "bat.v_in", "to": "gnd.v"}
-        ]
-    })";
+     const char* json_open = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.1"}},
+             {"name": "relay", "classname": "Relay", "params": {"closed": "false", "g_open": "1e-6", "g_closed": "1000.0"}},
+             {"name": "load", "classname": "Resistor", "params": {"conductance": "2.0"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
+             {"name": "cmd", "classname": "RefNode", "params": {"value": "0.0"}},
+             {"name": "ht", "classname": "Value", "params": {"value": "0.5"}}
+         ],
+         "connections": [
+             {"from": "cmd.v", "to": "relay.control"},
+             {"from": "ht.o", "to": "relay.hold_threshold"},
+             {"from": "bat.v_out", "to": "relay.v_in"},
+             {"from": "relay.v_out", "to": "load.v_in"},
+             {"from": "load.v_out", "to": "gnd.v"},
+             {"from": "bat.v_in", "to": "gnd.v"}
+         ]
+     })";
 
-    const char* json_closed = R"({
-        "devices": [
-            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.1"}},
-            {"name": "relay", "classname": "Relay", "params": {"closed": "false", "g_open": "1e-6", "g_closed": "1000.0"}},
-            {"name": "load", "classname": "Resistor", "params": {"conductance": "2.0"}},
-            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
-            {"name": "cmd", "classname": "RefNode", "params": {"value": "1.0"}},
-            {"name": "ht", "classname": "Value", "params": {"value": "0.5"}}
-        ],
-        "connections": [
-            {"from": "cmd.v", "to": "relay.control"},
-            {"from": "ht.o", "to": "relay.hold_threshold"},
-            {"from": "bat.v_out", "to": "relay.v_in"},
-            {"from": "relay.v_out", "to": "load.v_in"},
-            {"from": "load.v_out", "to": "gnd.v"},
-            {"from": "bat.v_in", "to": "gnd.v"}
-        ]
-    })";
+     const char* json_closed = R"({
+         "devices": [
+             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.1"}},
+             {"name": "relay", "classname": "Relay", "params": {"closed": "false", "g_open": "1e-6", "g_closed": "1000.0"}},
+             {"name": "load", "classname": "Resistor", "params": {"conductance": "2.0"}},
+             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
+             {"name": "cmd", "classname": "RefNode", "params": {"value": "1.0"}},
+             {"name": "ht", "classname": "Value", "params": {"value": "0.5"}}
+         ],
+         "connections": [
+             {"from": "cmd.v", "to": "relay.control"},
+             {"from": "ht.o", "to": "relay.hold_threshold"},
+             {"from": "bat.v_out", "to": "relay.v_in"},
+             {"from": "relay.v_out", "to": "load.v_in"},
+             {"from": "load.v_out", "to": "gnd.v"},
+             {"from": "bat.v_in", "to": "gnd.v"}
+         ]
+     })";
 
     JIT_Simulator sim_open;
     ASSERT_NO_THROW(sim_open.start_from_json(json_open));

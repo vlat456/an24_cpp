@@ -34,8 +34,8 @@ static auto make_colon_circuit() {
 
     DeviceInstance bat;
     bat.name = "bp_1:bat";
-    bat.classname = "Battery";
-    bat.params = {{"v_nominal", "28"}, {"internal_r", "0.01"}, {"capacity", "100"}, {"charge", "100"}};
+    bat.classname = "ElectricalSource";
+    bat.params = {{"voltage", "28"}, {"resistance", "0.01"}};
     bat.ports["v_out"] = {PortDirection::Out};
     bat.ports["v_in"] = {PortDirection::In};
     bat.domains = {Domain::Electrical};

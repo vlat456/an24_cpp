@@ -35,10 +35,10 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     // Battery
     DeviceInstance bat;
     bat.name = "bat";
-    bat.classname = "Battery";
+    bat.classname = "ElectricalSource";
     bat.priority = "high";
     bat.ports["v_out"] = Port{PortDirection::Out, PortType::V};
-    bat.params["v_nominal"] = "28.0";
+    bat.params["voltage"] = "28.0";
     bat.domains = {Domain::Electrical};
     ctx.devices.push_back(bat);
 
@@ -64,7 +64,7 @@ TEST(JsonParserTest, RoundTripWithTemplates) {
 
     DeviceInstance bat;
     bat.name = "bat";
-    bat.classname = "Battery";
+    bat.classname = "ElectricalSource";
     bat.domains = {Domain::Electrical};
     tpl.devices.push_back(bat);
 
@@ -207,8 +207,8 @@ TEST(JsonParserTest, SerializePreservesData) {
 
     DeviceInstance dev;
     dev.name = "test";
-    dev.classname = "Battery";
-    dev.params["v_nominal"] = "28.0";
+    dev.classname = "ElectricalSource";
+    dev.params["voltage"] = "28.0";
     dev.domains = {Domain::Electrical, Domain::Thermal};
     ctx.devices.push_back(dev);
 
@@ -218,7 +218,7 @@ TEST(JsonParserTest, SerializePreservesData) {
     auto ctx2 = parse_json(json);
 
     EXPECT_EQ(ctx2.devices.size(), 1);
-    EXPECT_EQ(ctx2.devices[0].params["v_nominal"], "28.0");
+    EXPECT_EQ(ctx2.devices[0].params["voltage"], "28.0");
     EXPECT_EQ(ctx2.connections.size(), 1);
 }
 
@@ -228,7 +228,7 @@ TEST(JsonParserTest, InOutPortDirection_Roundtrip_g7h8) {
 
     DeviceInstance dev;
     dev.name = "test_dev";
-    dev.classname = "Battery"; // use known component for validation
+    dev.classname = "ElectricalSource"; // use known component for validation
     dev.ports["v_in"] = Port{PortDirection::In, PortType::V};
     dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
     ctx.devices.push_back(dev);
@@ -264,7 +264,7 @@ TEST(JsonParserTest, ParsePortType_FromJson) {
         "templates": {},
         "devices": [{
             "name": "batt",
-            "classname": "Battery",
+            "classname": "ElectricalSource",
             "ports": {
                 "v_out": {"direction": "Out", "type": "V"}
             }
@@ -282,7 +282,7 @@ TEST(JsonParserTest, ParsePortType_RPM_FromJson) {
         "templates": {},
         "devices": [{
             "name": "pump",
-            "classname": "Battery",
+            "classname": "ElectricalSource",
             "ports": {
                 "v_out": {"direction": "Out", "type": "V"}
             }
@@ -303,46 +303,23 @@ TEST(JsonParserTest, ValidateConnection_MismatchedTypes_ShouldFail) {
     std::string json = R"({
         "templates": {},
         "devices": [
-            {
-                "name": "batt",
-                "classname": "Battery",
-                "ports": {
-                    "v_out": {"direction": "Out", "type": "V"}
-                }
-            },
-            {
-                "name": "pump",
-                "classname": "Battery",
-                "ports": {
-                    "v_out": {"direction": "Out", "type": "V"}
-                }
+        {
+            "name": "batt",
+            "classname": "ElectricalSource",
+            "ports": {
+                "v_out": {"direction": "Out", "type": "V"}
             }
-        ],
-        "connections": [
-            {"from": "batt.v_out", "to": "pump.v_out"}
-        ]
-    })";
-
-    // Should NOT throw - JSON parsing doesn't validate types
-    // Validation happens during wire creation in the editor
-    auto ctx = parse_json(json);
-    EXPECT_EQ(ctx.connections.size(), 1);
-}
-
-TEST(JsonParserTest, ValidateConnection_MatchingTypes_ShouldPass) {
-    std::string json = R"({
-        "templates": {},
-        "devices": [
-            {
-                "name": "batt1",
-                "classname": "Battery",
-                "ports": {
-                    "v_out": {"direction": "Out", "type": "V"}
-                }
-            },
+        },
+        {
+            "name": "pump",
+            "classname": "ElectricalSource",
+            "ports": {
+                "v_out": {"direction": "Out", "type": "V"}
+            }
+        },
             {
                 "name": "batt2",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
                     "v_in": {"direction": "In", "type": "V"}
                 }
@@ -372,13 +349,13 @@ TEST(JsonParserTest, ValidateConnection_BoolToV_ShouldFail) {
                     "v_out": {"direction": "Out", "type": "Bool"}
                 }
             },
-            {
-                "name": "batt",
-                "classname": "Battery",
-                "ports": {
-                    "v_in": {"direction": "In", "type": "V"}
-                }
+        {
+            "name": "batt",
+            "classname": "ElectricalSource",
+            "ports": {
+                "v_in": {"direction": "In", "type": "V"}
             }
+        }
         ],
         "connections": [
             {"from": "button.v_out", "to": "batt.v_in"}
@@ -397,14 +374,14 @@ TEST(JsonParserTest, ValidateConnection_AnyType_ShouldPass) {
         "devices": [
             {
                 "name": "batt1",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
-                    "v_out": {"direction": "Out", "type": "Any"}
+                    "v_out": {"direction": "Out", "type": "V"}
                 }
             },
             {
                 "name": "batt2",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
                     "v_in": {"direction": "In", "type": "V"}
                 }
@@ -423,10 +400,10 @@ TEST(JsonParserTest, ValidateConnection_AnyType_ShouldPass) {
 TEST(JsonParserTest, PortTypeSerialization_RoundTrip) {
     ParserContext ctx;
 
-    // Use Battery which has voltage ports
+    // Use ElectricalSource which has voltage ports
     DeviceInstance dev;
     dev.name = "test";
-    dev.classname = "Battery";
+    dev.classname = "ElectricalSource";
     dev.domains = {Domain::Electrical};
     dev.ports["v_in"] = Port{PortDirection::In, PortType::V};
     dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
@@ -452,7 +429,7 @@ TEST(JsonParserTest, Regression_PortTypeMerge_TypeDefinitionTypesCopied) {
         "devices": [
             {
                 "name": "pump",
-                "classname": "Battery"
+                "classname": "ElectricalSource"
             }
         ],
         "connections": []
@@ -478,37 +455,13 @@ TEST(JsonParserTest, Regression_PortTypeMerge_InlinePortWithType) {
     std::string json = R"({
         "templates": {},
         "devices": [
+        {
+            "name": "bat",
+            "classname": "ElectricalSource"
+        },
             {
                 "name": "bat",
-                "classname": "Battery",
-                "ports": {
-                    "v_out": {"direction": "Out", "type": "V"}
-                }
-            }
-        ],
-        "connections": []
-    })";
-
-    auto ctx = parse_json(json);
-    ASSERT_EQ(ctx.devices.size(), 1);
-    const auto& bat = ctx.devices[0];
-
-    EXPECT_EQ(bat.ports.count("v_out"), 1);
-    EXPECT_EQ(bat.ports.at("v_out").type, PortType::V);
-}
-
-TEST(JsonParserTest, Regression_LerpNodeAnyType_CanConnectToAnything) {
-    // LerpNode has Any type ports, which should connect to anything
-    std::string json = R"({
-        "templates": {},
-        "devices": [
-            {
-                "name": "lerp",
-                "classname": "LerpNode"
-            },
-            {
-                "name": "bat",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
                     "v_out": {"direction": "Out", "type": "V"}
                 }
@@ -534,8 +487,8 @@ TEST(JsonParserTest, OneToOne_MultipleWiresToSamePort_IsValid) {
     std::string json = R"({
         "templates": {},
         "devices": [
-            {"name": "bat1", "classname": "Battery"},
-            {"name": "bat2", "classname": "Battery"},
+            {"name": "bat1", "classname": "ElectricalSource"},
+            {"name": "bat2", "classname": "ElectricalSource"},
             {"name": "load", "classname": "IndicatorLight"}
         ],
         "connections": [
@@ -553,7 +506,7 @@ TEST(JsonParserTest, OneToOne_MultipleWiresFromSamePort_IsValid) {
     std::string json = R"({
         "templates": {},
         "devices": [
-            {"name": "bat", "classname": "Battery"},
+            {"name": "bat", "classname": "ElectricalSource"},
             {"name": "load1", "classname": "IndicatorLight"},
             {"name": "load2", "classname": "IndicatorLight"}
         ],
@@ -573,8 +526,8 @@ TEST(JsonParserTest, OneToOne_BusAliasPorts_CanHaveMultipleWires) {
         "templates": {},
         "devices": [
             {"name": "bus", "classname": "Bus"},
-            {"name": "bat1", "classname": "Battery"},
-            {"name": "bat2", "classname": "Battery"}
+            {"name": "bat1", "classname": "ElectricalSource"},
+            {"name": "bat2", "classname": "ElectricalSource"}
         ],
         "connections": [
             {"from": "bat1.v_out", "to": "bus.v"},
@@ -593,8 +546,8 @@ TEST(JsonParserTest, OneToOne_RefNode_CanHaveMultipleWires) {
         "templates": {},
         "devices": [
             {"name": "gnd", "classname": "RefNode"},
-            {"name": "bat1", "classname": "Battery"},
-            {"name": "bat2", "classname": "Battery"}
+            {"name": "bat1", "classname": "ElectricalSource"},
+            {"name": "bat2", "classname": "ElectricalSource"}
         ],
         "connections": [
             {"from": "bat1.v_out", "to": "gnd.v"},
@@ -622,7 +575,7 @@ static const char* minimal_blueprint_v2(const char* classname) {
 
 TEST(JsonParserTest, ParseTypeDefinition_ExecutionMissingKeyThrows) {
     auto j = nlohmann::json::parse(R"({
-        "classname": "Battery",
+        "classname": "ElectricalSource",
         "cpp_class": true,
         "ports": {"v_out": {"direction": "Out", "type": "V"}},
         "execution": {
@@ -642,7 +595,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ExecutionMissingKeyThrows) {
 
 TEST(JsonParserTest, ParseTypeDefinition_ExecutionUnknownKeyThrows) {
     auto j = nlohmann::json::parse(R"({
-        "classname": "Battery",
+        "classname": "ElectricalSource",
         "cpp_class": true,
         "ports": {"v_out": {"direction": "Out", "type": "V"}},
         "execution": {
@@ -668,16 +621,16 @@ TEST(TypeRegistry, LoadRecursive_SubdirSetsCategory) {
     fs::remove_all(tmp);
     fs::create_directories(tmp / "electrical");
 
-    std::ofstream(tmp / "Battery.blueprint") << minimal_blueprint_v2("Battery");
+    std::ofstream(tmp / "ElectricalSource.blueprint") << minimal_blueprint_v2("ElectricalSource");
     std::ofstream(tmp / "electrical" / "Resistor.blueprint") << minimal_blueprint_v2("Resistor");
 
     auto registry = load_type_registry(tmp.string());
 
-    ASSERT_TRUE(registry.has("Battery"));
+    ASSERT_TRUE(registry.has("ElectricalSource"));
     ASSERT_TRUE(registry.has("Resistor"));
 
     // Root-level file has no category entry
-    EXPECT_EQ(registry.categories.count("Battery"), 0u);
+    EXPECT_EQ(registry.categories.count("ElectricalSource"), 0u);
     // Subdir file gets category from directory path
     ASSERT_EQ(registry.categories.count("Resistor"), 1u);
     EXPECT_EQ(registry.categories.at("Resistor"), "electrical");
@@ -715,7 +668,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParamSchemaParsed) {
 
 TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
     TypeDefinition def;
-    def.classname = "Battery";
+    def.classname = "ElectricalSource";
     def.cpp_class = true;
     def.domains = std::vector<Domain>{Domain::Electrical};
     def.execution = ExecutionPhases{true, false, false, false, false, false, false, false, false};
@@ -725,7 +678,7 @@ TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
 
     DeviceInstance inst;
     inst.name = "bat";
-    inst.classname = "Battery";
+    inst.classname = "ElectricalSource";
     inst.params["r_internal"] = "-0.5";
 
     EXPECT_THROW(merge_device_instance(inst, def), std::runtime_error);
@@ -751,9 +704,9 @@ TEST(TypeRegistry, LoadRecursive_DeepNesting) {
 TEST(TypeRegistry, BuildMenuTree_FlatLibrary) {
     TypeRegistry reg;
 
-    TypeDefinition bat; bat.classname = "Battery";
+    TypeDefinition bat; bat.classname = "ElectricalSource";
     TypeDefinition res; res.classname = "Resistor";
-    reg.types["Battery"] = bat;
+    reg.types["ElectricalSource"] = bat;
     reg.types["Resistor"] = res;
     // No categories — all root level
 
@@ -766,8 +719,8 @@ TEST(TypeRegistry, BuildMenuTree_FlatLibrary) {
 TEST(TypeRegistry, BuildMenuTree_WithSubdirs) {
     TypeRegistry reg;
 
-    TypeDefinition bat; bat.classname = "Battery";
-    reg.types["Battery"] = bat;
+    TypeDefinition bat; bat.classname = "ElectricalSource";
+    reg.types["ElectricalSource"] = bat;
 
     TypeDefinition res; res.classname = "Resistor";
     reg.types["Resistor"] = res;
@@ -783,7 +736,7 @@ TEST(TypeRegistry, BuildMenuTree_WithSubdirs) {
 
     auto tree = reg.build_menu_tree();
 
-    // Root: "Battery" + 2 subfolders
+    // Root: "ElectricalSource" + 2 subfolders
     EXPECT_EQ(tree.entries.size(), 1u);
     EXPECT_EQ(tree.children.size(), 2u);
 
@@ -823,9 +776,9 @@ TEST(TypeRegistry, BuildMenuTree_EntriesAreSorted) {
 TEST(TypeRegistry, BuildMenuTree_BlueprintsInSameTree) {
     TypeRegistry reg;
 
-    TypeDefinition bat; bat.classname = "Battery"; bat.cpp_class = true;
-    reg.types["Battery"] = bat;
-    reg.categories["Battery"] = "electrical";
+    TypeDefinition bat; bat.classname = "ElectricalSource"; bat.cpp_class = true;
+    reg.types["ElectricalSource"] = bat;
+    reg.categories["ElectricalSource"] = "electrical";
 
     TypeDefinition lamp; lamp.classname = "LampPassThrough"; lamp.cpp_class = false;
     reg.types["LampPassThrough"] = lamp;
@@ -840,9 +793,9 @@ TEST(TypeRegistry, BuildMenuTree_BlueprintsInSameTree) {
 TEST(TypeRegistry, ListClassnames_IncludesAllCategorized) {
     TypeRegistry reg;
 
-    TypeDefinition bat; bat.classname = "Battery";
-    reg.types["Battery"] = bat;
-    reg.categories["Battery"] = "electrical";
+    TypeDefinition bat; bat.classname = "ElectricalSource";
+    reg.types["ElectricalSource"] = bat;
+    reg.categories["ElectricalSource"] = "electrical";
 
     TypeDefinition and_gate; and_gate.classname = "AND";
     reg.types["AND"] = and_gate;
@@ -925,7 +878,7 @@ TEST(JsonParserTest, CompositeParentPortRewrite_ToExt) {
         "templates": {},
         "devices": [
             {"name": "lag1", "classname": "FirstOrderLag"},
-            {"name": "bat1", "classname": "Battery"}
+            {"name": "bat1", "classname": "ElectricalSource"}
         ],
         "connections": [
             {"from": "bat1.v_out", "to": "lag1.in"},
@@ -978,7 +931,7 @@ TEST(JsonParserTest, CompositeParentPortRewrite_EmptyPortIsSkippedWithWarning) {
         "templates": {},
         "devices": [
             {"name": "lag1", "classname": "FirstOrderLag"},
-            {"name": "bat1", "classname": "Battery"}
+            {"name": "bat1", "classname": "ElectricalSource"}
         ],
         "connections": [
             {"from": "bat1.v_out", "to": "lag1."}

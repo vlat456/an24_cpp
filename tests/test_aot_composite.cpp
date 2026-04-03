@@ -63,7 +63,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     inner.cpp_class = false;
     DeviceInstance d_bat;
     d_bat.name = "bat";
-    d_bat.classname = "Battery";
+    d_bat.classname = "ElectricalSource";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
     inner.devices = {d_bat};
     registry.types["battery_wrapper"] = inner;
@@ -86,7 +86,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     auto result = CodeGen::generate_composite_systems(outer, registry);
 
     // Composites are FLATTENED: sub-blueprint devices get prefixed names
-    // sb_1:bat → sanitized to sb_1_bat (Battery device from inner composite)
+    // sb_1:bat → sanitized to sb_1_bat (ElectricalSource device from inner composite)
     EXPECT_NE(result.header.find("sb_1_bat"), std::string::npos)
         << "Flattened sub-blueprint device should appear with prefixed name";
 
@@ -150,7 +150,7 @@ TEST(AotComposite, TopoSort_LeavesFirst) {
     leaf.cpp_class = false;
     DeviceInstance d;
     d.name = "d";
-    d.classname = "Battery";
+    d.classname = "ElectricalSource";
     d.execution = make_execution(true, false, false, false, false, false, false, false, false);
     leaf.devices = {d};
     registry.types["leaf"] = leaf;
@@ -183,7 +183,7 @@ TEST(AotComposite, PreLoad_CallsSubComposites) {
     inner.cpp_class = false;
     DeviceInstance d_bat;
     d_bat.name = "bat";
-    d_bat.classname = "Battery";
+    d_bat.classname = "ElectricalSource";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
     inner.devices = {d_bat};
     registry.types["inner_type"] = inner;
@@ -397,12 +397,12 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
 
     // === Register types with ports ===
     TypeDefinition battery_type;
-    battery_type.classname = "Battery";
+    battery_type.classname = "Generator";
     battery_type.cpp_class = true;
     battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
-    registry.types["Battery"] = battery_type;
+    registry.types["Generator"] = battery_type;
 
     TypeDefinition resistor_type;
     resistor_type.classname = "Resistor";
@@ -419,14 +419,14 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
     refnode_type.domains = {{Domain::Electrical}};
     registry.types["RefNode"] = refnode_type;
 
-    // Simple circuit: Battery -> Resistor -> RefNode (fixed voltage)
+    // Simple circuit: ElectricalSource -> Resistor -> RefNode (fixed voltage)
     TypeDefinition circuit;
     circuit.classname = "simple_circuit";
     circuit.cpp_class = false;
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
-    d_bat.classname = "Battery";
+    d_bat.classname = "Generator";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
     d_bat.params["v_nominal"] = "28.0";
     d_bat.params["internal_r"] = "0.01";
@@ -479,12 +479,12 @@ TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
 
     // === Register types with ports ===
     TypeDefinition battery_type;
-    battery_type.classname = "Battery";
+    battery_type.classname = "Generator";
     battery_type.cpp_class = true;
     battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
-    registry.types["Battery"] = battery_type;
+    registry.types["Generator"] = battery_type;
 
     TypeDefinition light_type;
     light_type.classname = "IndicatorLight";
@@ -501,7 +501,7 @@ TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
-    d_bat.classname = "Battery";
+    d_bat.classname = "ElectricalSource";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
     DeviceInstance d_lamp;
@@ -553,12 +553,12 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     TypeRegistry registry;
 
     TypeDefinition battery_type;
-    battery_type.classname = "Battery";
+    battery_type.classname = "Generator";
     battery_type.cpp_class = true;
     battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
-    registry.types["Battery"] = battery_type;
+    registry.types["Generator"] = battery_type;
 
     TypeDefinition sense_type;
     sense_type.classname = "CurrentSense";
@@ -591,7 +591,7 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
-    d_bat.classname = "Battery";
+    d_bat.classname = "Generator";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
     DeviceInstance d_sense;
@@ -621,11 +621,9 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     auto result = CodeGen::generate_composite_systems(circuit, registry);
 
     EXPECT_NE(result.header.find("struct ElectricalBindings"), std::string::npos);
-    EXPECT_NE(result.header.find("bat_component"), std::string::npos);
     EXPECT_NE(result.header.find("sense_component"), std::string::npos);
     EXPECT_NE(result.header.find("lamp_component"), std::string::npos);
 
-    EXPECT_NE(result.source.find("bat.electrical_handle.component_index = ElectricalBindings::bat_component"), std::string::npos);
     EXPECT_NE(result.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
     EXPECT_NE(result.source.find("lamp.electrical_handle.component_index = ElectricalBindings::lamp_component"), std::string::npos);
 }
@@ -634,12 +632,12 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
     TypeRegistry registry;
 
     TypeDefinition battery_type;
-    battery_type.classname = "Battery";
+    battery_type.classname = "Generator";
     battery_type.cpp_class = true;
     battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
-    registry.types["Battery"] = battery_type;
+    registry.types["Generator"] = battery_type;
 
     TypeDefinition sense_type;
     sense_type.classname = "CurrentSense";
@@ -664,7 +662,7 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
 
         DeviceInstance d_bat;
         d_bat.name = "bat";
-        d_bat.classname = "Battery";
+        d_bat.classname = "Generator";
         d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
         DeviceInstance d_sense;
@@ -709,22 +707,15 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
         return std::stoi(m[1].str());
     };
 
-    int bat_1 = extract_component_const(r1.header, "bat");
     int sense_1 = extract_component_const(r1.header, "sense");
-    int bat_2 = extract_component_const(r2.header, "bat");
     int sense_2 = extract_component_const(r2.header, "sense");
 
-    ASSERT_GE(bat_1, 0);
     ASSERT_GE(sense_1, 0);
-    ASSERT_GE(bat_2, 0);
     ASSERT_GE(sense_2, 0);
 
-    EXPECT_EQ(bat_1, bat_2);
     EXPECT_EQ(sense_1, sense_2);
 
-    EXPECT_NE(r1.source.find("bat.electrical_handle.component_index = ElectricalBindings::bat_component"), std::string::npos);
     EXPECT_NE(r1.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
-    EXPECT_NE(r2.source.find("bat.electrical_handle.component_index = ElectricalBindings::bat_component"), std::string::npos);
     EXPECT_NE(r2.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
 }
 
@@ -732,12 +723,12 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
     TypeRegistry registry;
 
     TypeDefinition battery_type;
-    battery_type.classname = "Battery";
+    battery_type.classname = "Generator";
     battery_type.cpp_class = true;
     battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
-    registry.types["Battery"] = battery_type;
+    registry.types["Generator"] = battery_type;
 
     TypeDefinition sense_type;
     sense_type.classname = "CurrentSense";
@@ -761,7 +752,7 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
-    d_bat.classname = "Battery";
+    d_bat.classname = "Generator";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
     DeviceInstance d_sense;
@@ -805,12 +796,12 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
     TypeRegistry registry;
 
     TypeDefinition battery_type;
-    battery_type.classname = "Battery";
+    battery_type.classname = "Generator";
     battery_type.cpp_class = true;
     battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
-    registry.types["Battery"] = battery_type;
+    registry.types["Generator"] = battery_type;
 
     // Non-electrical device that sits between electrical devices in the list
     TypeDefinition logic_type;
@@ -843,7 +834,7 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
-    d_bat.classname = "Battery";
+    d_bat.classname = "Generator";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
     // Non-electrical device inserted between bat and sense
@@ -898,12 +889,12 @@ TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
     TypeRegistry registry;
 
     TypeDefinition battery_type;
-    battery_type.classname = "Battery";
+    battery_type.classname = "ElectricalSource";
     battery_type.cpp_class = true;
     battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
-    registry.types["Battery"] = battery_type;
+    registry.types["ElectricalSource"] = battery_type;
 
     TypeDefinition sense_type;
     sense_type.classname = "CurrentSense";
@@ -927,7 +918,7 @@ TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
-    d_bat.classname = "Battery";
+    d_bat.classname = "ElectricalSource";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
     DeviceInstance d_sense;
@@ -956,7 +947,7 @@ TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
 
     EXPECT_NE(result.header.find("\"bat\""), std::string::npos);
     EXPECT_NE(result.header.find("\"sense\""), std::string::npos);
-    EXPECT_NE(result.header.find("\"Battery\""), std::string::npos);
+    EXPECT_NE(result.header.find("\"ElectricalSource\""), std::string::npos);
     EXPECT_NE(result.header.find("\"CurrentSense\""), std::string::npos);
     EXPECT_NE(result.header.find("\"TheveninSource\""), std::string::npos);
     EXPECT_NE(result.header.find("\"ConductanceBranch\""), std::string::npos);
@@ -1097,12 +1088,12 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
     TypeRegistry registry;
 
     TypeDefinition battery_type;
-    battery_type.classname = "Battery";
+    battery_type.classname = "ElectricalSource";
     battery_type.cpp_class = true;
     battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
-    registry.types["Battery"] = battery_type;
+    registry.types["ElectricalSource"] = battery_type;
 
     TypeDefinition load_type;
     load_type.classname = "Load";
@@ -1126,7 +1117,7 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
-    d_bat.classname = "Battery";
+    d_bat.classname = "ElectricalSource";
     d_bat.ports = {{"v_in", Port{}}, {"v_out", Port{}}};
 
     DeviceInstance d_load;

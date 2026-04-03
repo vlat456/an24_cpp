@@ -1,6 +1,5 @@
 #include "jit_solver.h"
 
-#include "components/battery.h"
 #include "components/switch.h"
 #include "components/relay.h"
 #include "components/hold_button.h"
@@ -96,8 +95,7 @@ bool is_scheduler_source_component_class(std::string_view classname) {
 /// RefNode remains scheduled as a source (it writes constant reference values).
 /// Guard: prevents accidental reintroduction of push scheduling for these classes.
 bool is_solver_owned_electrical_propagator(std::string_view classname) {
-    return classname == "Battery" ||
-           classname == "Generator" ||
+    return classname == "Generator" ||
            classname == "Resistor" ||
            classname == "ElectricalConductance" ||
            classname == "ElectricalSource" ||
@@ -373,24 +371,7 @@ BuildResult build_systems_dev(
         };
 
         // Handle each component type
-        if (dev.classname == "Battery") {
-            Battery<JitProvider> comp;
-            
-            // Load parameters
-            comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.0f);
-            comp.internal_r = param_reader.consume_float_optional("internal_r", 0.01f);
-            // capacity and charge are stored but not used in current battery model
-            comp.capacity = param_reader.consume_float_optional("capacity", 1000.0f);
-            comp.charge = param_reader.consume_float_optional("charge", 1000.0f);
-            comp.pre_load();
-            setup_ports(comp);
-            param_reader.validate_all_consumed();
-            
-            result.devices[dev.name] = comp;
-            // NOTE: Battery is NOT scheduled for push electrical propagation.
-            // Electrical propagation is now handled by the electrical solver (Batch 4/5).
-        }
-        else if (dev.classname == "Generator") {
+        if (dev.classname == "Generator") {
             Generator<JitProvider> comp;
             
             comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.5f);
@@ -1214,7 +1195,7 @@ BuildResult build_systems_dev(
     // Phase 3.1: One-source-per-wire validation
     // Check that each electrical signal has at most one active voltage source writing to it.
     // Active source components (these conflict with each other):
-    // - Battery: v_out
+    // - ElectricalSource: v_out
     // - Generator: v_out
     // - ControlledVoltageSource: v_pos
     // - ControlledCurrentSource: v_pos
@@ -1525,23 +1506,7 @@ BuildResult build_systems_dev(
         // == Path 2: Classname-based fallback for wrapper components ==
         // These remain intentionally transitional until wrappers are decomposed
         // into primitives with solver_role metadata.
-        if (dev.classname == "Battery") {
-            // TheveninSource: value_a = source voltage, value_b = series resistance
-            float v_nominal = read_param_float(dev, "v_nominal", 28.0f);
-            float internal_r = read_param_float(dev, "internal_r", 0.01f);
-            uint32_t node_pos = resolve_port(dev, "v_out");
-            uint32_t node_neg = resolve_port(dev, "v_in");
-            raw_elements.push_back({
-                ElectricalElementKind::TheveninSource,
-                node_pos,
-                node_neg,
-                v_nominal,
-                internal_r,
-                element_idx++,
-                dev.name
-            });
-        }
-        else if (dev.classname == "Generator") {
+        if (dev.classname == "Generator") {
             // TheveninSource: value_a = source voltage, value_b = series resistance
             float v_nominal = read_param_float(dev, "v_nominal", 28.5f);
             float internal_r = read_param_float(dev, "internal_r", 0.005f);
@@ -1869,8 +1834,7 @@ BuildResult build_systems_dev(
             // Assign handle to the appropriate component variant
             std::visit([&](auto& comp) {
                 using CompType = std::decay_t<decltype(comp)>;
-                if constexpr (std::is_same_v<CompType, Battery<JitProvider>> ||
-                              std::is_same_v<CompType, Generator<JitProvider>> ||
+                if constexpr (std::is_same_v<CompType, Generator<JitProvider>> ||
                               std::is_same_v<CompType, IndicatorLight<JitProvider>> ||
                               std::is_same_v<CompType, CurrentSense<JitProvider>> ||
                               std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
@@ -1901,8 +1865,6 @@ BuildResult build_systems_dev(
                 result.solver_owned.hold_buttons.push_back(&comp);
             } else if constexpr (std::is_same_v<T, Relay<JitProvider>>) {
                 result.solver_owned.relays.push_back(&comp);
-            } else if constexpr (std::is_same_v<T, Battery<JitProvider>>) {
-                result.solver_owned.batteries.push_back(&comp);
             } else if constexpr (std::is_same_v<T, Generator<JitProvider>>) {
                 result.solver_owned.generators.push_back(&comp);
             } else if constexpr (std::is_same_v<T, Resistor<JitProvider>>) {

@@ -4,7 +4,6 @@ add_library(jit_solver
     simulator.cpp
     subsolvers/electrical_subsolver.cpp
     # Phase 2 Slice 1: Migrated push-style components
-    components/battery.cpp
     components/switch.cpp
     components/relay.cpp
     components/hold_button.cpp

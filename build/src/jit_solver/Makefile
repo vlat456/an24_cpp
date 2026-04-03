@@ -353,30 +353,6 @@ components/azs.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/azs.cpp.s
 .PHONY : components/azs.cpp.s
 
-components/battery.o: components/battery.cpp.o
-.PHONY : components/battery.o
-
-# target to build an object file
-components/battery.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/battery.cpp.o
-.PHONY : components/battery.cpp.o
-
-components/battery.i: components/battery.cpp.i
-.PHONY : components/battery.i
-
-# target to preprocess a source file
-components/battery.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/battery.cpp.i
-.PHONY : components/battery.cpp.i
-
-components/battery.s: components/battery.cpp.s
-.PHONY : components/battery.s
-
-# target to generate assembly for a file
-components/battery.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/battery.cpp.s
-.PHONY : components/battery.cpp.s
-
 components/blueprint_input.o: components/blueprint_input.cpp.o
 .PHONY : components/blueprint_input.o
 
@@ -2068,9 +2044,6 @@ help:
 	@echo "... components/azs.o"
 	@echo "... components/azs.i"
 	@echo "... components/azs.s"
-	@echo "... components/battery.o"
-	@echo "... components/battery.i"
-	@echo "... components/battery.s"
 	@echo "... components/blueprint_input.o"
 	@echo "... components/blueprint_input.i"
 	@echo "... components/blueprint_input.s"

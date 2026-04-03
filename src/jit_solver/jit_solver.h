@@ -13,7 +13,6 @@
 #include "../json_parser/json_parser.h"
 
 // Component forward declarations for SolverOwnedRefs typed pointers
-#include "components/battery.h"
 #include "components/controlled_voltage_source.h"
 #include "components/variable_conductance.h"
 #include "components/azs.h"
@@ -48,7 +47,6 @@ struct SolverOwnedRefs {
     std::vector<Relay<JitProvider>*> relays;
 
     // Commit-phase components (commit() called after solve_electrical each frame)
-    std::vector<Battery<JitProvider>*> batteries;
     std::vector<Generator<JitProvider>*> generators;
     std::vector<Resistor<JitProvider>*> resistors;
     std::vector<ElectricalConductance<JitProvider>*> electrical_conductances;

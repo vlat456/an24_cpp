@@ -285,22 +285,6 @@ target_link_libraries(current_sense_tests PRIVATE
 )
 gtest_discover_tests(current_sense_tests)
 
-# Battery discharge tests - Batch 6
-add_executable(battery_discharge_tests
-    test_battery_discharge.cpp
-)
-target_include_directories(battery_discharge_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(battery_discharge_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(battery_discharge_tests)
-
 # Bug-hunt regression tests — AotProvider sentinel, transformer physics
 add_executable(bug_hunt_regression_tests
     test_bug_hunt_regression.cpp
@@ -1296,6 +1280,22 @@ target_link_libraries(accumulator_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(accumulator_tests)
+
+# 12SAM28 composite battery tests
+add_executable(sam28_tests
+    test_12sam28.cpp
+)
+target_include_directories(sam28_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(sam28_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(sam28_tests)
 
 # Clamp and Normalize component tests
 add_executable(clamp_normalize_tests

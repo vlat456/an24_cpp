@@ -4,7 +4,6 @@
 #include "component_enums.h"
 
 // Already split components
-#include "battery.h"
 #include "switch.h"
 #include "relay.h"
 

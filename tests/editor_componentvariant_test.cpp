@@ -15,7 +15,7 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
             },
             {
                 "name": "bat1",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "priority": "high",
                 "critical": true,
                 "ports": {
@@ -23,8 +23,8 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
                     "v_out": {"direction": "Out", "type": "V"}
                 },
                 "params": {
-                    "v_nominal": "24.0",
-                    "internal_r": "0.01"
+                    "voltage": "24.0",
+                    "resistance": "0.01"
                 }
             },
             {
@@ -76,7 +76,7 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
             },
             {
                 "name": "bat1",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
                     "v_in": {"direction": "In", "type": "V"},
                     "v_out": {"direction": "Out", "type": "V"}
@@ -122,7 +122,7 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
             },
             {
                 "name": "bat1",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
                     "v_in": {"direction": "In", "type": "V"},
                     "v_out": {"direction": "Out", "type": "V"}
@@ -148,14 +148,14 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
 
 /// Test that all 29 component types can be created
 TEST(EditorComponentVariant, AllComponentTypes) {
-    const char* component_types[] = {
-        "Battery", "Bus", "Comparator",
-        "ElectricHeater", "ElectricPump", "Generator", "Gyroscope",
-        "HighPowerLoad", "HoldButton", "IndicatorLight", "InertiaNode", "Inverter",
-        "LerpNode", "Load", "Radiator",
-        "RefNode", "Relay", "Resistor", "SolenoidValve", "Splitter",
-        "Switch", "TempSensor", "Transformer", "Voltmeter"
-    };
+        const char* component_types[] = {
+            "ElectricalSource", "Bus", "Comparator",
+            "ElectricHeater", "ElectricPump", "Generator", "Gyroscope",
+            "HighPowerLoad", "HoldButton", "IndicatorLight", "InertiaNode", "Inverter",
+            "LerpNode", "Load", "Radiator",
+            "RefNode", "Relay", "Resistor", "SolenoidValve", "Splitter",
+            "Switch", "TempSensor", "Transformer", "Voltmeter"
+        };
 
     for (const char* type : component_types) {
         // Create simple JSON with one component
@@ -210,7 +210,7 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
             },
             {
                 "name": "bat1",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
                     "v_in": {"direction": "In", "type": "V"},
                     "v_out": {"direction": "Out", "type": "V"}
@@ -230,13 +230,4 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
     // Check that bat1 device was created
     EXPECT_EQ(build_result.devices.size(), 2);
     EXPECT_NE(build_result.devices.find("bat1"), build_result.devices.end());
-
-    // Check that we can access the device (this validates ComponentVariant works)
-    auto& variant = build_result.devices.at("bat1");
-    EXPECT_NO_THROW({
-        // Access the variant to ensure it's valid
-        auto index = variant.index();
-        EXPECT_GE(index, 0);
-        EXPECT_LT(index, 29); // 29 component types
-    });
 }

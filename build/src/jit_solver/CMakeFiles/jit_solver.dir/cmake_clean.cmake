@@ -13,8 +13,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/jit_solver.dir/components/asym_tmo.cpp.o.d"
   "CMakeFiles/jit_solver.dir/components/azs.cpp.o"
   "CMakeFiles/jit_solver.dir/components/azs.cpp.o.d"
-  "CMakeFiles/jit_solver.dir/components/battery.cpp.o"
-  "CMakeFiles/jit_solver.dir/components/battery.cpp.o.d"
   "CMakeFiles/jit_solver.dir/components/blueprint_input.cpp.o"
   "CMakeFiles/jit_solver.dir/components/blueprint_input.cpp.o.d"
   "CMakeFiles/jit_solver.dir/components/blueprint_output.cpp.o"

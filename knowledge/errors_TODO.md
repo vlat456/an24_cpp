@@ -334,7 +334,30 @@ too early to see the converged value.
 
 ---
 
-### ~~E-009 — The 9-Phase Pipeline May Be Over-Engineered~~ ✓ RESOLVED (already collapsed)
+### ~~E-010 — Composite Port Lookup Failure in `get_port_value()`~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:**
+
+When a blueprint composite (e.g., `12SAM28`) is instantiated as device `sb`, the parser expands internal devices with colon prefix (`sb:src`, `sb:csense`, etc.) and BlueprintInput/Output bridge nodes become `sb:v_out` with ports `.ext` and `.port`. The `port_to_signal` map stores these as `sb:v_out.ext` (parent-facing) and `sb:v_out.port` (internal-facing), unified by union-find.
+
+However, `get_port_value("sb", "v_out")` looked up `sb.v_out` (dot-separated) which doesn't exist in the map — the actual key is `sb:v_out.ext` (colon-separated). This caused all composite port lookups to return 0.
+
+**Root cause:** Naming convention mismatch. Flat (non-composite) devices use `device.port` format, but expanded composites use `device:port.ext` format after parser rewrite.
+
+**Fix:** Added fallback logic in `get_port_value()`: if the flat key `node_id.port_name` is not found in `port_to_signal`, try `node_id:port_name.ext` (composite bridge format). This is purely a query-side fix — no changes to the build pipeline or signal allocation.
+
+**One-frame delay interaction:** Even with correct port lookup, composite feedback loops (LUT→CVS cmd) exhibit one-frame delay because CVS reads `cmd` in `update_dynamic_sources` (phase 1) but LUT writes `cmd` in `scheduler.step` (phase 3). Tests must account for 2-step warmup before measuring steady-state values.
+
+**Files changed:**
+
+- `src/jit_solver/simulator.cpp` — `get_port_value()` fallback to `node:port.ext`
+- `tests/test_12sam28.cpp` — 2-step warmup before measurements
+
+**Regression tests:** `SAM28Composite.InitialOutputsAreSane`, `SAM28Composite.DischargeDecreasesChargeAndSoc`, `SAM28Composite.SocToOcvFeedbackCausesVoltageDrop`
+
+---
 
 **Status:** CLOSED — the 9-phase pipeline described in the architectural review was ALREADY collapsed to a single-solve pipeline in the current codebase. No code change needed.
 
@@ -901,5 +924,6 @@ alignas(64) std::vector<float> through;
 | E-006 | Misleading alignas(64) on vectors          | ~~Low~~    | Low    | **FIXED**           |
 | E-008 | Variable dt without clamping               | ~~Low-Med~~| Low    | **FIXED**           |
 | E-009 | 9-phase pipeline over-engineering          | ~~Low~~    | Low    | **RESOLVED** (N/A)  |
+| E-010 | Composite port lookup failure              | ~~High~~   | Low    | **FIXED**           |
 | DT    | float dt → double dt conversion           | ~~Medium~~ | Medium | **COMPLETED**      |
 | 22    | Extract functional blueprints to C++      | Medium     | Medium | **OPEN**           |

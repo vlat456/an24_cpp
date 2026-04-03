@@ -36,11 +36,11 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
 // Validates ElectricalPrimitiveHandle assignment in build_systems_dev
 // ============================================================================
 
-TEST(ElectricalHandleBuild, BatteryGetsValidHandle) {
-    // Simple: Battery->RefNode
-    // Battery should get a valid handle to its TheveninSource element
+TEST(ElectricalHandleBuild, ElectricalSourceCreatesTheveninElement) {
+    // Simple: ElectricalSource->RefNode
+    // ElectricalSource should create a TheveninSource element in the electrical plan
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
@@ -53,12 +53,16 @@ TEST(ElectricalHandleBuild, BatteryGetsValidHandle) {
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
 
-    auto it = result.devices.find("battery");
-    ASSERT_NE(it, result.devices.end());
-
-    const Battery<JitProvider>* batt = std::get_if<Battery<JitProvider>>(&it->second);
-    ASSERT_NE(batt, nullptr);
-    EXPECT_TRUE(is_valid(batt->electrical_handle));
+    // Verify electrical plan contains a TheveninSource element
+    ASSERT_EQ(result.electrical_plan.islands.size(), 1u);
+    bool found_thevenin = false;
+    for (const auto& elem : result.electrical_plan.islands[0].elements) {
+        if (elem.kind == ElectricalElementKind::TheveninSource) {
+            found_thevenin = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_thevenin);
 }
 
 TEST(ElectricalHandleBuild, GeneratorGetsValidHandle) {
@@ -87,10 +91,10 @@ TEST(ElectricalHandleBuild, GeneratorGetsValidHandle) {
 }
 
 TEST(ElectricalHandleBuild, IndicatorLightGetsValidHandle) {
-    // Simple: Battery->IndicatorLight->RefNode
+    // Simple: ElectricalSource->IndicatorLight->RefNode
     // IndicatorLight should get a valid handle to its ConductanceBranch element
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("light", "IndicatorLight", {{"conductance", "2.0"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
@@ -114,36 +118,34 @@ TEST(ElectricalHandleBuild, IndicatorLightGetsValidHandle) {
 }
 
 TEST(ElectricalHandleBuild, HandlePointsToCorrectElementKind) {
-    // Battery->RefNode: battery handle should point to TheveninSource
+    // Generator->RefNode: generator handle should point to TheveninSource
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
+        make_device("gen", "Generator", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"gen.v_out", "refnode.v"},
+        {"gen.v_in", "refnode.v"}
     };
 
     auto result = build_systems_dev(devices, connections);
 
     const auto& island = result.electrical_plan.islands[0];
-    auto it = result.devices.find("battery");
-    const Battery<JitProvider>* batt = std::get_if<Battery<JitProvider>>(&it->second);
+    auto it = result.devices.find("gen");
+    const Generator<JitProvider>* gen = std::get_if<Generator<JitProvider>>(&it->second);
+    ASSERT_LT(gen->electrical_handle.island_index, result.electrical_plan.islands.size());
+    ASSERT_LT(gen->electrical_handle.element_index, island.elements.size());
 
-    ASSERT_TRUE(is_valid(batt->electrical_handle));
-    ASSERT_LT(batt->electrical_handle.island_index, result.electrical_plan.islands.size());
-    ASSERT_LT(batt->electrical_handle.element_index, island.elements.size());
-
-    const auto& elem = result.electrical_plan.islands[batt->electrical_handle.island_index]
-                              .elements[batt->electrical_handle.element_index];
+    const auto& elem = result.electrical_plan.islands[gen->electrical_handle.island_index]
+                              .elements[gen->electrical_handle.element_index];
     EXPECT_EQ(elem.kind, ElectricalElementKind::TheveninSource);
 }
 
 TEST(ElectricalHandleBuild, IndicatorHandlePointsToConductanceBranch) {
-    // Battery->IndicatorLight->RefNode: light handle should point to ConductanceBranch
+    // ElectricalSource->IndicatorLight->RefNode: light handle should point to ConductanceBranch
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("light", "IndicatorLight", {{"conductance", "2.0"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
@@ -172,27 +174,27 @@ TEST(ElectricalHandleBuild, IndicatorHandlePointsToConductanceBranch) {
 TEST(ElectricalHandleBuild, DeterministicHandles) {
     // Build same device list twice and verify handles are identical
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
+        make_device("gen", "Generator", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}),
         make_device("light", "IndicatorLight", {{"conductance", "1.5"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "light.v_in"},
+        {"gen.v_out", "light.v_in"},
         {"light.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"gen.v_in", "refnode.v"}
     };
 
     auto result1 = build_systems_dev(devices, connections);
     auto result2 = build_systems_dev(devices, connections);
 
-    // Battery handles should match
-    const Battery<JitProvider>* batt1 = std::get_if<Battery<JitProvider>>(&result1.devices.at("battery"));
-    const Battery<JitProvider>* batt2 = std::get_if<Battery<JitProvider>>(&result2.devices.at("battery"));
-    ASSERT_NE(batt1, nullptr);
-    ASSERT_NE(batt2, nullptr);
-    EXPECT_EQ(batt1->electrical_handle.island_index, batt2->electrical_handle.island_index);
-    EXPECT_EQ(batt1->electrical_handle.element_index, batt2->electrical_handle.element_index);
+    // Generator handles should match
+    const Generator<JitProvider>* gen1 = std::get_if<Generator<JitProvider>>(&result1.devices.at("gen"));
+    const Generator<JitProvider>* gen2 = std::get_if<Generator<JitProvider>>(&result2.devices.at("gen"));
+    ASSERT_NE(gen1, nullptr);
+    ASSERT_NE(gen2, nullptr);
+    EXPECT_EQ(gen1->electrical_handle.island_index, gen2->electrical_handle.island_index);
+    EXPECT_EQ(gen1->electrical_handle.element_index, gen2->electrical_handle.element_index);
 
     // Light handles should match
     const IndicatorLight<JitProvider>* light1 = std::get_if<IndicatorLight<JitProvider>>(&result1.devices.at("light"));
@@ -206,7 +208,7 @@ TEST(ElectricalHandleBuild, DeterministicHandles) {
 TEST(ElectricalHandleBuild, CurrentSenseGetsValidHandle) {
     // CurrentSense should get a valid handle pointing to ConductanceBranch element
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("cs", "CurrentSense"),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
@@ -230,7 +232,7 @@ TEST(ElectricalHandleBuild, CurrentSenseGetsValidHandle) {
 TEST(ElectricalHandleBuild, CurrentSenseHandlePointsToConductanceBranch) {
     // CurrentSense handle should point to ConductanceBranch element
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("cs", "CurrentSense", {{"conductance", "500.0"}}),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
@@ -260,34 +262,34 @@ TEST(ElectricalHandleBuild, CurrentSenseHandlePointsToConductanceBranch) {
 TEST(ElectricalHandleBuild, MultipleIslandsIndependentHandles) {
     // Two independent circuits - handles should be independent
     std::vector<DeviceInstance> devices = {
-        make_device("bat1", "Battery", {{"v_nominal", "12.0"}}),
+        make_device("gen1", "Generator", {{"v_nominal", "12.0"}}),
         make_device("gnd1", "RefNode", {{"value", "0.0"}}),
-        make_device("bat2", "Battery", {{"v_nominal", "24.0"}}),
+        make_device("gen2", "Generator", {{"v_nominal", "24.0"}}),
         make_device("gnd2", "RefNode", {{"value", "0.0"}})
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"bat1.v_out", "gnd1.v"},
-        {"bat1.v_in", "gnd1.v"},
-        {"bat2.v_out", "gnd2.v"},
-        {"bat2.v_in", "gnd2.v"}
+        {"gen1.v_out", "gnd1.v"},
+        {"gen1.v_in", "gnd1.v"},
+        {"gen2.v_out", "gnd2.v"},
+        {"gen2.v_in", "gnd2.v"}
     };
 
     auto result = build_systems_dev(devices, connections);
 
     ASSERT_EQ(result.electrical_plan.islands.size(), 2u);
 
-    const Battery<JitProvider>* bat1 = std::get_if<Battery<JitProvider>>(&result.devices.at("bat1"));
-    const Battery<JitProvider>* bat2 = std::get_if<Battery<JitProvider>>(&result.devices.at("bat2"));
-    ASSERT_NE(bat1, nullptr);
-    ASSERT_NE(bat2, nullptr);
+    const Generator<JitProvider>* gen1 = std::get_if<Generator<JitProvider>>(&result.devices.at("gen1"));
+    const Generator<JitProvider>* gen2 = std::get_if<Generator<JitProvider>>(&result.devices.at("gen2"));
+    ASSERT_NE(gen1, nullptr);
+    ASSERT_NE(gen2, nullptr);
 
     // Both should have valid handles
-    EXPECT_TRUE(is_valid(bat1->electrical_handle));
-    EXPECT_TRUE(is_valid(bat2->electrical_handle));
+    EXPECT_TRUE(is_valid(gen1->electrical_handle));
+    EXPECT_TRUE(is_valid(gen2->electrical_handle));
 
     // They should be in different islands
-    EXPECT_NE(bat1->electrical_handle.island_index, bat2->electrical_handle.island_index);
+    EXPECT_NE(gen1->electrical_handle.island_index, gen2->electrical_handle.island_index);
 }
 
 TEST(ElectricalHandleBuild, GeneratorHandlePointsToTheveninSource) {
@@ -317,27 +319,23 @@ TEST(ElectricalHandleBuild, GeneratorHandlePointsToTheveninSource) {
     EXPECT_EQ(elem.kind, ElectricalElementKind::TheveninSource);
 }
 
-TEST(ElectricalHandleBuild, BatteryWithExtraParamsGetsValidHandle) {
-    // Regression: handle assignment must work when Battery has capacity/charge params
+TEST(ElectricalHandleBuild, GeneratorWithParamsGetsValidHandle) {
+    // Generator with parameters
     std::vector<DeviceInstance> devices = {
-        make_device("battery", "Battery", {
-            {"v_nominal", "28.0"}, {"internal_r", "0.01"},
-            {"capacity", "500.0"}, {"charge", "250.0"}
+        make_device("gen", "Generator", {
+            {"v_nominal", "28.0"}, {"internal_r", "0.01"}
         }),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"gen.v_out", "refnode.v"},
+        {"gen.v_in", "refnode.v"}
     };
 
     auto result = build_systems_dev(devices, connections);
 
-    const Battery<JitProvider>* batt = std::get_if<Battery<JitProvider>>(&result.devices.at("battery"));
-    ASSERT_NE(batt, nullptr);
-    EXPECT_TRUE(is_valid(batt->electrical_handle));
-    EXPECT_FLOAT_EQ(batt->v_nominal, 28.0f);
-    EXPECT_FLOAT_EQ(batt->capacity, 500.0f);
-    EXPECT_FLOAT_EQ(batt->charge, 250.0f);
+    const Generator<JitProvider>* gen = std::get_if<Generator<JitProvider>>(&result.devices.at("gen"));
+    ASSERT_NE(gen, nullptr);
+    EXPECT_TRUE(is_valid(gen->electrical_handle));
 }
