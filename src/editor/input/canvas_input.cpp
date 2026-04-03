@@ -24,21 +24,11 @@
 #include <cstdio>
 #include <unordered_set>
 
-// side_from_relative_position() lives in editor_math (snap.h)
+// side_from_relative_position() and editor_math::path_to_node_port() live in editor_math (snap.h)
 
 // ============================================================================
 // File-local helpers
 // ============================================================================
-
-/// Extract (node_id, port_name) from a bp2 wire endpoint Path.
-static std::pair<ui::InternedId, ui::InternedId>
-path_to_node_port(const bp2::Path& path, const bp2::PathArena& arena) {
-    if (path.kind() != bp2::PathKind::Port) return {};
-    ui::InternedId port_name = path.segment();
-    bp2::Path parent = arena.parent(path);
-    if (parent.kind() != bp2::PathKind::Node) return {};
-    return {parent.segment(), port_name};
-}
 
 static bool is_bus_node(const bp2::EditorModel& model, ui::InternedId node_id) {
     const bp2::Blueprint::Node* node = model.current().find_node(node_id);
@@ -547,8 +537,8 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
         ui::InternedId node_iid = interner_.intern(widget->id());
         if (!node_iid.empty()) {
             for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
-                auto [src_node, src_port] = path_to_node_port(w.source, arena_);
-                auto [tgt_node, tgt_port] = path_to_node_port(w.target, arena_);
+                auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
+                auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
                 if (src_node == node_iid || tgt_node == node_iid) {
                     connected_wire_ids.insert(w.id);
                 }
@@ -725,46 +715,55 @@ void CanvasInput::commit_drag_node() {
         }
     }
 
-    // Re-orient single-port ref/value nodes after move commit.
-    for (ui::InternedId moved_id : moved_node_ids) {
-        orient_ref_node_port(moved_id);
+    // Collect moved and adjacent nodes that need re-orienting.
+    std::unordered_set<ui::InternedId> nodes_to_orient;
+    for (ui::InternedId id : moved_node_ids) {
+        nodes_to_orient.insert(id);
+    }
 
-        for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
-            auto [src_node, _src_port] = path_to_node_port(w.source, arena_);
-            auto [tgt_node, _tgt_port] = path_to_node_port(w.target, arena_);
-            if (src_node == moved_id) orient_ref_node_port(tgt_node);
-            if (tgt_node == moved_id) orient_ref_node_port(src_node);
+    // Single wire scan: build ref→connected map and collect adjacent nodes.
+    std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
+    for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
+        auto [src_node, _sp] = editor_math::path_to_node_port(w.source, arena_);
+        auto [tgt_node, _tp] = editor_math::path_to_node_port(w.target, arena_);
+        if (src_node.empty() || tgt_node.empty()) continue;
+
+        const bp2::Blueprint::Node* src_n = model_.current().find_node(src_node);
+        const bp2::Blueprint::Node* tgt_n = model_.current().find_node(tgt_node);
+        if (!src_n || !tgt_n) continue;
+
+        if (src_n->render_hint == "ref" && ref_to_connected.count(src_node) == 0) {
+            ref_to_connected.emplace(src_node, tgt_node);
+        }
+        if (tgt_n->render_hint == "ref" && ref_to_connected.count(tgt_node) == 0) {
+            ref_to_connected.emplace(tgt_node, src_node);
+        }
+
+        // If either endpoint was moved, the other endpoint may need re-orienting too.
+        if (nodes_to_orient.count(src_node)) nodes_to_orient.insert(tgt_node);
+        if (nodes_to_orient.count(tgt_node)) nodes_to_orient.insert(src_node);
+    }
+
+    // Orient all collected ref nodes in a single pass.
+    for (const auto& [ref_id, connected_id] : ref_to_connected) {
+        (void)orient_ref_node_port_impl(ref_id, connected_id);
+    }
+    // Also orient any moved ref nodes that have no outgoing wire (keep current orientation).
+    for (ui::InternedId id : moved_node_ids) {
+        const bp2::Blueprint::Node* n = model_.current().find_node(id);
+        if (n && n->render_hint == "ref" && ref_to_connected.count(id) == 0) {
+            orient_ref_node_port_by_wire_scan(id);
         }
     }
 
     debug_validate_command_boundary(model_, interner_, arena_);
 }
 
-void CanvasInput::orient_ref_node_port(ui::InternedId ref_node_id) {
-    if (ref_node_id.empty()) return;
-
-    const bp2::Blueprint::Node* ref_node = model_.current().find_node(ref_node_id);
-    if (!ref_node || ref_node->group_id != group_id_ || ref_node->render_hint != "ref") return;
-
-    ui::InternedId connected_node_id;
-    for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
-        auto [src_node, _src_port] = path_to_node_port(w.source, arena_);
-        auto [tgt_node, _tgt_port] = path_to_node_port(w.target, arena_);
-
-        if (src_node == ref_node_id) {
-            connected_node_id = tgt_node;
-            break;
-        }
-        if (tgt_node == ref_node_id) {
-            connected_node_id = src_node;
-            break;
-        }
-    }
-    if (connected_node_id.empty()) return;
-
-    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(resolve_node(ref_node_id));
-    auto* other_widget = resolve_node(connected_node_id);
-    if (!ref_widget || !other_widget) return;
+/// Orient a single ref node toward its connected node using a pre-built map.
+bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedId connected_id) {
+    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(resolve_node(ref_id));
+    auto* other_widget = resolve_node(connected_id);
+    if (!ref_widget || !other_widget) return false;
 
     const Pt ref_pos = ref_widget->worldPos();
     const Pt ref_size = ref_widget->size();
@@ -776,6 +775,25 @@ void CanvasInput::orient_ref_node_port(ui::InternedId ref_node_id) {
                           other_pos.y + other_size.y * 0.5f);
 
     ref_widget->setPortLayoutSide(editor_math::side_from_relative_position(ref_center, other_center));
+    return true;
+}
+
+/// Orient a ref node by scanning wires to find its first connection.
+/// Used as fallback when the ref node has no pre-built map entry.
+void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) {
+    if (ref_node_id.empty()) return;
+    const bp2::Blueprint::Node* ref_node = model_.current().find_node(ref_node_id);
+    if (!ref_node || ref_node->group_id != group_id_ || ref_node->render_hint != "ref") return;
+
+    ui::InternedId connected_node_id;
+    for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
+        auto [src_node, _sp] = editor_math::path_to_node_port(w.source, arena_);
+        auto [tgt_node, _tp] = editor_math::path_to_node_port(w.target, arena_);
+        if (src_node == ref_node_id) { connected_node_id = tgt_node; break; }
+        if (tgt_node == ref_node_id) { connected_node_id = src_node; break; }
+    }
+    if (connected_node_id.empty()) return;
+    orient_ref_node_port_impl(ref_node_id, connected_node_id);
 }
 
 void CanvasInput::commit_drag_routing_point() {
@@ -994,8 +1012,8 @@ InputResult CanvasInput::on_key(Key key) {
                     std::vector<ui::InternedId> connected_wires;
                     connected_wires.reserve(model_.current().wires().size());
                     for (const auto& w : model_.current().wires()) {
-                        auto [src_node, _src_port] = path_to_node_port(w.source, arena_);
-                        auto [tgt_node, _tgt_port] = path_to_node_port(w.target, arena_);
+                        auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, arena_);
+                        auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, arena_);
                         if (src_node == nid || tgt_node == nid) {
                             connected_wires.push_back(w.id);
                         }
@@ -1149,8 +1167,8 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
     if (reconnect_wire_idx_ >= wires.size()) return result;
 
     const bp2::Blueprint::Wire& wire = wires[reconnect_wire_idx_];
-    auto [wire_src_node, wire_src_port] = path_to_node_port(wire.source, arena_);
-    auto [wire_tgt_node, wire_tgt_port] = path_to_node_port(wire.target, arena_);
+    auto [wire_src_node, wire_src_port] = editor_math::path_to_node_port(wire.source, arena_);
+    auto [wire_tgt_node, wire_tgt_port] = editor_math::path_to_node_port(wire.target, arena_);
 
     if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
         std::string_view port_node_sv = ph->port->rootAncestorId();
@@ -1323,7 +1341,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
                 PortType fixed_type = PortType::Any;
                 if (detach_start) {
                     fixed_side = PortSide::Input;
-                    auto [tgt_node, tgt_port] = path_to_node_port(w.target, arena_);
+                    auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
                     fixed_type = resolve_port_type_from_model(model_, tgt_node, tgt_port);
                     if (!w.routing_points.empty()) {
                         anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
@@ -1339,7 +1357,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
                     }
                 } else {
                     fixed_side = PortSide::Output;
-                    auto [src_node, src_port] = path_to_node_port(w.source, arena_);
+                    auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
                     fixed_type = resolve_port_type_from_model(model_, src_node, src_port);
                     if (!w.routing_points.empty()) {
                         anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);
@@ -1357,8 +1375,8 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
                 return WirePortMatch{wi, detach_start, anchor_pos, fixed_side, fixed_type};
             };
 
-            auto [src_node, _src_port] = path_to_node_port(w.source, arena_);
-            auto [tgt_node, _tgt_port] = path_to_node_port(w.target, arena_);
+            auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, arena_);
+            auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, arena_);
             if (src_node == port_node_iid) return build_result(true);
             if (tgt_node == port_node_iid) return build_result(false);
         }
@@ -1373,7 +1391,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
         PortType fixed_type = PortType::Any;
         if (detach_start) {
             fixed_side = PortSide::Input;  // fixed end is target
-            auto [tgt_node, tgt_port] = path_to_node_port(w.target, arena_);
+            auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
             fixed_type = resolve_port_type_from_model(model_, tgt_node, tgt_port);
             if (!w.routing_points.empty()) {
                 anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
@@ -1390,7 +1408,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
             }
         } else {
             fixed_side = PortSide::Output;  // fixed end is source
-            auto [src_node, src_port] = path_to_node_port(w.source, arena_);
+            auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
             fixed_type = resolve_port_type_from_model(model_, src_node, src_port);
             if (!w.routing_points.empty()) {
                 anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);
@@ -1413,8 +1431,8 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
     const auto& wires = model_.current().wires();
     for (size_t wi = 0; wi < wires.size(); ++wi) {
         const bp2::Blueprint::Wire& w = wires[wi];
-        auto [src_node, src_port] = path_to_node_port(w.source, arena_);
-        auto [tgt_node, tgt_port] = path_to_node_port(w.target, arena_);
+        auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
+        auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
 
         if (src_node == port_node_iid && src_port == port_name_iid) {
             return build_result(wi, true);   // detach start

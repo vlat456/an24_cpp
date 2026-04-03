@@ -544,6 +544,91 @@ Multi-port nodes (standard component nodes) now center port groups on their resp
 
 ---
 
+### ~~29. InOut Port Direction on Non-Bus Nodes~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Rule:** `direction: "InOut"` ports are **only allowed on Bus nodes**. Non-Bus components must not use InOut direction.
+
+**Problem:** In `library/systems/12SAM28.blueprint`, the CVS `src`'s `v_neg` port was declared as `"direction": "InOut"`. This violated the rule and caused editor port placement issues (InOut ports appear on both sides of the node visually).
+
+**Fix (12SAM28):** Changed `v_neg` from `"direction": "InOut"` to `"direction": "In"`. The `v_neg` port is the target of wire `w_vin_src` (receives voltage from `v_in:port`), so `In` is the correct direction.
+
+**Fix (library blueprint):** Also found that `library/electrical/ControlledVoltageSource.blueprint` had `v_neg` declared as `direction: 1` (Out), which placed it on the RIGHT side of newly inserted CVS nodes — wrong for a ground/reference terminal. Changed to `direction: 0` (In) so `v_neg` appears on the LEFT side where it belongs.
+
+**Note:** The solver ignores port direction for CVS (uses `source_writer` metadata instead), so this is purely a visual/layout fix.
+
+**Files changed:**
+
+- `library/systems/12SAM28.blueprint` — `v_neg` direction: `InOut` → `In`
+- `library/electrical/ControlledVoltageSource.blueprint` — `v_neg` direction: `Out` → `In`
+- `src/jit_solver/components/port_registry.h` — regenerated via `update_port_registry`
+
+---
+
+### ~~26. path_to_node_port() Duplicated Across 5 Files~~ ✓ FIXED
+
+**Status:** CLOSED
+
+`path_to_node_port()` was copy-pasted in `canvas_input.cpp` and `scene_mutations.cpp`. Extracted to shared location.
+
+**Files changed:**
+
+- `src/editor/visual/snap.h` — added `editor_math::path_to_node_port()` inline function
+- `src/editor/input/canvas_input.cpp` — uses `editor_math::path_to_node_port()`
+- `src/editor/visual/scene_mutations.cpp` — uses `editor_math::path_to_node_port()`
+
+---
+
+### ~~27. O(n×m) Wire Scan in commit_drag_node()~~ ✓ FIXED
+
+**Status:** CLOSED
+
+Old `commit_drag_node()` scanned all blueprint wires once per moved node (O(nodes × wires)). Refactored to single-pass wire scan.
+
+**Before:** O(moved_nodes × wires) — nested loops
+**After:** O(wires + ref_nodes) — single wire scan builds map, then O(1) orient per ref node
+
+**Changes:**
+
+- `commit_drag_node()` — single wire scan, builds `ref_to_connected` map + `nodes_to_orient` set
+- `orient_ref_node_port()` split into:
+  - `orient_ref_node_port_impl(ref_id, connected_id)` — uses pre-built map (O(1))
+  - `orient_ref_node_port_by_wire_scan(ref_id)` — fallback for disconnected refs
+
+**Files changed:**
+
+- `src/editor/input/canvas_input.h` — updated declarations
+- `src/editor/input/canvas_input.cpp` — refactored commit + orientation logic
+
+---
+
+### ~~28. SAM28 LUT string_params Not Parsed in load_type_registry()~~ ✓ FIXED
+
+**Status:** CLOSED
+
+`load_type_registry()` in `json_parser.cpp` was reading `"params"` but ignoring `"string_params"` from v3 composite blueprints. LUT components inside 12SAM28 lost their lookup table data, outputting ~1V instead of ~25V.
+
+**Root cause:** The v3 format stores string-valued parameters (like LUT `table`, Bus `port_edge`) in a separate `"string_params"` key. The registry loader only merged `"params"`.
+
+**Fix:** Added `string_params` merge loop in `load_type_registry()`:
+```cpp
+if (n.contains("string_params") && n["string_params"].is_object()) {
+    for (auto& [k, v] : n["string_params"].items()) {
+        if (v.is_string()) dev.params[k] = v.get<std::string>();
+    }
+}
+```
+
+**Files changed:**
+
+- `src/json_parser/json_parser.cpp` — `load_type_registry()` now merges `string_params`
+- `tests/json_parser_test.cpp` — regression test `TypeRegistry.V3CompositeStringParamsMergedIntoDeviceParams`
+
+**Tests:** All 1462 pass (was 1452 before fix)
+
+---
+
 ### ~~15. Full Test Suite Migration to Push Runtime~~ ✓ COMPLETED (with explicit deprecations)
 
 **Status:** Full OFF-mode suite builds and runs.
@@ -998,3 +1083,7 @@ alignas(64) std::vector<float> through;
 | 23    | Ref/Value node auto-facing ports + free placement | ~~Medium~~ | Medium | **FIXED**  |
 | 24    | Bezier wire rendering (2-point)            | ~~Low~~    | Low    | **FIXED**           |
 | 25    | Port group edge centering                  | ~~Low~~    | Low    | **FIXED**           |
+| 26    | path_to_node_port() duplicated            | ~~Low~~    | Low    | **FIXED**           |
+| 27    | O(n×m) wire scan in commit_drag_node     | ~~Low~~    | Low    | **FIXED**           |
+| 28    | SAM28 LUT string_params not parsed        | ~~High~~   | Low    | **FIXED**           |
+| 29    | InOut direction on non-Bus CVS port        | ~~Medium~~ | Low    | **FIXED**           |

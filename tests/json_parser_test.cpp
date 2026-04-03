@@ -949,3 +949,63 @@ TEST(JsonParserTest, CompositeParentPortRewrite_EmptyPortIsSkippedWithWarning) {
         }
     });
 }
+
+// ============================================================================
+// Regression: load_type_registry must merge string_params into device params
+// ============================================================================
+
+TEST(TypeRegistry, V3CompositeStringParamsMergedIntoDeviceParams) {
+    // Regression test: v3 composite blueprints store string-valued parameters
+    // (e.g. LUT table) in "string_params" separate from "params".
+    // load_type_registry() must merge them so the simulation sees the full
+    // parameter set.  Without this fix, LUT components lose their table and
+    // fall back to default "0:0; 100:100", producing wrong output voltages
+    // (e.g. 12SAM28 battery outputting ~1V instead of ~25V).
+    namespace fs = std::filesystem;
+    auto tmp = fs::temp_directory_path() / "test_string_params_merge";
+    fs::remove_all(tmp);
+    fs::create_directories(tmp);
+
+    // Write a minimal v3 composite blueprint with a LUT node that has
+    // its table in string_params (matching real 12SAM28 format).
+    std::ofstream(tmp / "TestComposite.blueprint") << R"({
+        "version": "3.0",
+        "id": "TestComposite",
+        "display_name": "TestComposite",
+        "cpp_class": false,
+        "scheduler_source": false,
+        "domains": ["Electrical"],
+        "interface": [
+            {"name": "out", "direction": 1, "domain": 1, "type": "V", "source_writer": false}
+        ],
+        "nodes": [
+            {
+                "id": "lut1",
+                "type": "LUT",
+                "params": {"input_min": "0.0", "input_max": "1.0"},
+                "string_params": {"table": "0.0:21.0; 0.5:24.0; 1.0:25.2"},
+                "position": {"x": 0.0, "y": 0.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto registry = load_type_registry(tmp.string());
+    ASSERT_TRUE(registry.has("TestComposite"));
+
+    const auto& def = registry.types.at("TestComposite");
+    ASSERT_EQ(def.devices.size(), 1u);
+    const auto& lut = def.devices[0];
+
+    // The table must be present in params, merged from string_params.
+    auto it = lut.params.find("table");
+    ASSERT_NE(it, lut.params.end()) << "string_params['table'] must be merged into params";
+    EXPECT_EQ(it->second, "0.0:21.0; 0.5:24.0; 1.0:25.2");
+
+    // Regular params must still be present too.
+    auto it2 = lut.params.find("input_min");
+    ASSERT_NE(it2, lut.params.end());
+    EXPECT_EQ(it2->second, "0.0");
+
+    fs::remove_all(tmp);
+}

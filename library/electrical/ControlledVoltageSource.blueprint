@@ -14,7 +14,7 @@
     {
       "name": "v_neg",
       "domain": 1,
-      "direction": 1,
+      "direction": 0,
       "type": "V",
       "source_writer": false
     },

@@ -5,7 +5,9 @@
 #include "editor/visual/scene.h"
 #include "editor/visual/scene_mutations.h"
 #include "editor/visual/scene_hittest.h"
+#include "editor/visual/snap.h"
 #include "editor/visual/node/bus_node_widget.h"
+#include "editor/visual/node/ref_node_widget.h"
 #include "editor/visual/node/visual_node.h"
 #include "editor/visual/port/visual_port.h"
 #include "editor/visual/wire/wire.h"
@@ -611,4 +613,153 @@ TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
     EXPECT_EQ(input.selected_nodes().size(), 1u);
     EXPECT_EQ(model.undo_depth(), undo_before);
     EXPECT_FALSE(model.is_dirty());
+}
+
+// ============================================================================
+// Regression: path_to_node_port() utility (extracted to snap.h)
+// ============================================================================
+
+TEST(PathToNodePort, ValidPortPath_ReturnsNodeAndPortIds) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    ui::InternedId node_id = I.intern("battery1");
+    ui::InternedId port_name = I.intern("v_out");
+
+    bp2::Path node_path = arena.make_node(arena.root(), node_id);
+    bp2::Path port_path = arena.make_port(node_path, port_name);
+
+    auto [result_node, result_port] = editor_math::path_to_node_port(port_path, arena);
+    EXPECT_EQ(result_node, node_id);
+    EXPECT_EQ(result_port, port_name);
+}
+
+TEST(PathToNodePort, NonPortPath_ReturnsEmpty) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    // A Node path (not a Port path) should return empty.
+    bp2::Path node_path = arena.make_node(arena.root(), I.intern("some_node"));
+
+    auto [result_node, result_port] = editor_math::path_to_node_port(node_path, arena);
+    EXPECT_TRUE(result_node.empty());
+    EXPECT_TRUE(result_port.empty());
+}
+
+TEST(PathToNodePort, RootPath_ReturnsEmpty) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto [result_node, result_port] = editor_math::path_to_node_port(arena.root(), arena);
+    EXPECT_TRUE(result_node.empty());
+    EXPECT_TRUE(result_port.empty());
+}
+
+// ============================================================================
+// Regression: side_from_relative_position() (used by ref node orientation)
+// ============================================================================
+
+TEST(SideFromRelativePosition, NodeToTheRight_ReturnsRight) {
+    ui::Pt from(100, 100);
+    ui::Pt to(300, 100);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Right);
+}
+
+TEST(SideFromRelativePosition, NodeToTheLeft_ReturnsLeft) {
+    ui::Pt from(300, 100);
+    ui::Pt to(100, 100);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Left);
+}
+
+TEST(SideFromRelativePosition, NodeBelow_ReturnsBottom) {
+    ui::Pt from(100, 100);
+    ui::Pt to(100, 300);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Bottom);
+}
+
+TEST(SideFromRelativePosition, NodeAbove_ReturnsTop) {
+    ui::Pt from(100, 300);
+    ui::Pt to(100, 100);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Top);
+}
+
+TEST(SideFromRelativePosition, DiagonalTiesGoHorizontal) {
+    // Equal |dx| and |dy| → horizontal wins → Right
+    ui::Pt from(100, 100);
+    ui::Pt to(200, 200);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Right);
+}
+
+// ============================================================================
+// Regression: Ref node orientation after drag via commit_drag_node()
+// ============================================================================
+
+TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
+    // When a ref node is dragged from the right side of its connected node
+    // to below it, the port layout side should change accordingly.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    // Create a normal node at (200, 200)
+    auto bat = make_node(I, "bat", "Battery", 200.0f, 200.0f);
+    bat.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    bat.iface = bp2::Interface({
+        {I.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    // Create a ref node to the right of the battery at (400, 200)
+    auto ref = make_node(I, "gnd", "RefNode", 400.0f, 200.0f, "ref");
+    ref.inputs.push_back(EditorPort(I.intern("v"), PortSide::Input, PortType::V));
+    ref.iface = bp2::Interface({
+        {I.intern("v"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    auto w0 = make_wire(I, arena, "wire_0", "bat", "v_out", "gnd", "v");
+    w0.domain = Domain::Electrical;
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bat));
+    bp = bp.with_node(std::move(ref));
+    bp = bp.with_wire(std::move(w0));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    // Verify initial orientation: ref is to the right of bat → port should face Left
+    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("gnd"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    Viewport vp;
+    vp.grid_step = 16.0f;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    // Select and start dragging the ref node
+    ui::Pt ref_pos = ref_widget->worldPos();
+    ui::Pt click_pos = ref_pos + ui::Pt(10.0f, 10.0f);
+    input.on_mouse_down(click_pos, MouseButton::Left, canvas_min);
+    EXPECT_EQ(input.state(), InputState::DraggingNode);
+
+    // Drag it below the battery: from (400, 200) to (200, 500)
+    // world_delta = (-200, 300) but we need to apply as screen delta
+    ui::Pt drag_delta(-200.0f, 300.0f);
+    input.on_mouse_drag(MouseButton::Left, drag_delta, canvas_min);
+
+    // Release — this calls commit_drag_node which re-orients ref nodes
+    input.on_mouse_up(MouseButton::Left, click_pos + drag_delta, canvas_min);
+
+    // Rebuild scene to reflect committed data
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    // After rebuild, the ref node should have its port oriented toward the battery
+    // The ref node is now below the battery → port should face Top
+    ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("gnd"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    // Verify the data layer position was updated
+    const bp2::Blueprint::Node* ref_data = model.current().find_node(I.intern("gnd"));
+    ASSERT_NE(ref_data, nullptr);
+    // The node should have moved — not still at (400, 200)
+    EXPECT_NE(ref_data->x, 400.0f);
 }

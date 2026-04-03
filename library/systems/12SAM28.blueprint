@@ -518,7 +518,7 @@
           "type": 7
         },
         "v_neg": {
-          "direction": "InOut",
+          "direction": "In",
           "type": 0
         },
         "v_pos": {

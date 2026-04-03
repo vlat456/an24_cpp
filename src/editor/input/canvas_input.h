@@ -205,7 +205,10 @@ private:
     void handle_drag_node(Pt world_delta);
 
     /// Re-orient a ref/value single-port node toward its connected neighbor.
-    void orient_ref_node_port(ui::InternedId ref_node_id);
+    void orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id);
+
+    /// Orient a ref node toward a specific connected node (pre-built map lookup).
+    bool orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedId connected_id);
 
     /// Handle ResizingNode state: corner-aware resize with min-size enforcement.
     void handle_resize_node(Pt world_delta);

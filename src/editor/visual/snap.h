@@ -1,11 +1,29 @@
 #pragma once
 
 #include "ui/math/pt.h"
+#include "ui/core/interned_id.h"
 #include "data/port.h"
 #include "editor/layout_constants.h"
+#include "blueprint_v2/path/path.h"
 #include <cmath>
 
 namespace editor_math {
+
+/// Extract (node_id, port_name) InternedId pair from a bp2 wire endpoint Path.
+/// A port path has kind=Port with segment=port_name; its parent has segment=node_id.
+/// Returns {empty, empty} if the path is malformed.
+inline std::pair<ui::InternedId, ui::InternedId>
+path_to_node_port(const bp2::Path& path, const bp2::PathArena& arena) {
+    if (path.kind() != bp2::PathKind::Port) {
+        return {};
+    }
+    ui::InternedId port_name = path.segment();
+    bp2::Path parent = arena.parent(path);
+    if (parent.kind() != bp2::PathKind::Node) {
+        return {};
+    }
+    return {parent.segment(), port_name};
+}
 
 using ui::Pt;
 

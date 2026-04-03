@@ -24,29 +24,14 @@
 
 namespace visual::mutations {
 
-/// Extract (node_id, port_name) InternedId pair from a bp2 wire endpoint Path.
-/// A port path has kind=Port with segment=port_name; its parent has segment=node_id.
-/// Returns {empty, empty} if the path is malformed.
-static std::pair<ui::InternedId, ui::InternedId>
-path_to_node_port(const bp2::Path& path, const bp2::PathArena& arena) {
-    if (path.kind() != bp2::PathKind::Port) {
-        return {};
-    }
-    ui::InternedId port_name = path.segment();
-    bp2::Path parent = arena.parent(path);
-    if (parent.kind() != bp2::PathKind::Node) {
-        return {};
-    }
-    ui::InternedId node_id = parent.segment();
-    return {node_id, port_name};
-}
+// side_from_relative_position() and path_to_node_port() live in editor_math (snap.h)
 
 /// Build a bus-wire reference from a bp2::Blueprint::Wire.
 /// Returns std::nullopt if the source/target paths are malformed.
 static std::optional<BusWireRef> to_bus_wire_ref(const bp2::Blueprint::Wire& w,
                                                  const bp2::PathArena& arena) {
-    auto [src_node, src_port] = path_to_node_port(w.source, arena);
-    auto [tgt_node, tgt_port] = path_to_node_port(w.target, arena);
+    auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena);
+    auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena);
     if (src_node.empty() || src_port.empty() || tgt_node.empty() || tgt_port.empty()) {
         return std::nullopt;
     }
@@ -76,8 +61,8 @@ static visual::Wire* create_wire_widget(Scene& scene,
                                         const bp2::Blueprint::Wire& w,
                                         const bp2::PathArena& arena,
                                         const ui::StringInterner& interner) {
-    auto [src_node_id, src_port] = path_to_node_port(w.source, arena);
-    auto [tgt_node_id, tgt_port] = path_to_node_port(w.target, arena);
+    auto [src_node_id, src_port] = editor_math::path_to_node_port(w.source, arena);
+    auto [tgt_node_id, tgt_port] = editor_math::path_to_node_port(w.target, arena);
     if (src_node_id.empty() || src_port.empty() || tgt_node_id.empty() || tgt_port.empty()) {
         return nullptr;
     }
@@ -106,7 +91,9 @@ static visual::Wire* create_wire_widget(Scene& scene,
     return wire_ptr;
 }
 
-// side_from_relative_position() lives in editor_math (snap.h)
+// ============================================================================
+// Ref/Value node port orientation
+// ============================================================================
 
 static void orient_ref_node_ports(Scene& scene,
                                   const bp2::Blueprint& bp,
@@ -116,8 +103,8 @@ static void orient_ref_node_ports(Scene& scene,
     std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
 
     for (const bp2::Blueprint::Wire& w : bp.wires()) {
-        auto [src_node_id, _src_port] = path_to_node_port(w.source, arena);
-        auto [tgt_node_id, _tgt_port] = path_to_node_port(w.target, arena);
+        auto [src_node_id, _src_port] = editor_math::path_to_node_port(w.source, arena);
+        auto [tgt_node_id, _tgt_port] = editor_math::path_to_node_port(w.target, arena);
         if (src_node_id.empty() || tgt_node_id.empty()) continue;
 
         const bp2::Blueprint::Node* src_node = bp.find_node(src_node_id);
@@ -186,8 +173,8 @@ void rebuild(Scene& scene,
 
     // 2) Create wire widgets for wires whose both endpoints are in this group
     for (const bp2::Blueprint::Wire& w : bp.wires()) {
-        auto [src_node_id, src_port] = path_to_node_port(w.source, arena);
-        auto [tgt_node_id, tgt_port] = path_to_node_port(w.target, arena);
+        auto [src_node_id, src_port] = editor_math::path_to_node_port(w.source, arena);
+        auto [tgt_node_id, tgt_port] = editor_math::path_to_node_port(w.target, arena);
         if (src_node_id.empty() || tgt_node_id.empty()) continue;
 
         const bp2::Blueprint::Node* sn = bp.find_node(src_node_id);

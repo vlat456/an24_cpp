@@ -1196,6 +1196,15 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                                 else if (v.is_number()) dev.params[k] = locale_safe::format_float(static_cast<float>(v.get<double>()));
                             }
                         }
+                        // Merge string_params into params (e.g. LUT table, Bus port_edge).
+                        // The editor stores string-valued configuration in a separate
+                        // "string_params" object; the simulation engine expects them
+                        // merged into the flat params map.
+                        if (n.contains("string_params") && n["string_params"].is_object()) {
+                            for (auto& [k, v] : n["string_params"].items()) {
+                                if (v.is_string()) dev.params[k] = v.get<std::string>();
+                            }
+                        }
                         if (n.contains("position") && n["position"].is_object()) {
                             float px = n["position"].value("x", 0.0f);
                             float py = n["position"].value("y", 0.0f);
