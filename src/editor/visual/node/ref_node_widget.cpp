@@ -4,7 +4,6 @@
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/handle_renderer.h"
 #include "editor/layout_constants.h"
-#include "visual/snap.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
@@ -33,7 +32,6 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringI
 {
     // For Value nodes, display the numeric value instead of the name
     if (type_name_ == "Value" && !data.params.empty()) {
-        // Value nodes have a single "value" param — use the first numeric param
         name_ = format_value(data.params.begin()->second);
     }
     if (data.has_color) {
@@ -48,23 +46,12 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringI
     setLocalPos(Pt(data.x, data.y));
     buildLayout(data, interner);
 
-    // Compute preferred size, then allow explicit override
-    Pt preferred = preferredSize(nullptr);
-    float w = preferred.x;
-    float h = preferred.y;
-
-    bool has_explicit = data.width.has_value() && data.height.has_value();
-    if (has_explicit) {
-        if (*data.width >= editor_constants::PORT_LAYOUT_GRID) w = *data.width;
-        if (*data.height >= editor_constants::PORT_LAYOUT_GRID) h = *data.height;
-    }
-
-    // Snap to layout grid
-    Pt snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));
-    w = snapped.x;
-    h = snapped.y;
-
-    setSize(Pt(w, h));
+    // Size based on text width + horizontal padding
+    float text_w = name_.empty() ? 0.0f : name_.length() * PortConstants::LABEL_FONT_SIZE * 0.8f;
+    constexpr float h_pad = 16.0f;
+    constexpr float v_pad = 4.0f;
+    Pt node_size(text_w + h_pad, PortConstants::LABEL_FONT_SIZE + v_pad);
+    setSize(node_size);
     positionPort();
 }
 
@@ -145,8 +132,12 @@ Port* RefNodeWidget::portByName(std::string_view port_name,
     return nullptr;
 }
 
-Pt RefNodeWidget::preferredSize(IDrawList* /*dl*/) const {
-    return Pt(48.0f, 32.0f);
+Pt RefNodeWidget::preferredSize(IDrawList* dl) const {
+    if (!dl) return Pt(56.0f, 20.0f);
+    float w = dl->calc_text_size(name_.c_str(), PortConstants::LABEL_FONT_SIZE).x;
+    constexpr float h_pad = 16.0f;
+    constexpr float v_pad = 4.0f;
+    return Pt(w + h_pad, PortConstants::LABEL_FONT_SIZE + v_pad);
 }
 
 void RefNodeWidget::layout(float w, float h) {
@@ -173,17 +164,17 @@ void RefNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     uint32_t fill = custom_fill_.value_or(render_theme::COLOR_BUS_FILL);
     dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
 
-    // Name text (centered vertically, left-aligned with small padding)
-    Pt center = Pt((screen_min.x + screen_max.x) / 2.0f,
-                   (screen_min.y + screen_max.y) / 2.0f);
-    Pt text_pos(screen_min.x + 2.0f * zoom, center.y - 5.0f * zoom);
-    dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * zoom);
-
     // Border
     uint32_t border_color = render_theme::COLOR_BUS_BORDER;
     dl->add_rect_with_rounding_corners(screen_min, screen_max, border_color, rounding,
                                        editor_constants::DRAW_CORNERS_ALL, 1.0f);
 
+    // Value text, vertically centered
+    float font_size = PortConstants::LABEL_FONT_SIZE * zoom;
+    float text_h = dl->calc_text_size(name_.c_str(), font_size).y;
+    float text_y = screen_min.y + (sz.y * zoom - text_h) / 2.0f;
+    float text_x = screen_min.x + 2.0f * zoom;
+    dl->add_text(Pt(text_x, text_y), name_.c_str(), render_theme::COLOR_TEXT, font_size);
 }
 
 void RefNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
@@ -197,7 +188,6 @@ void RefNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
 
     // Selection border drawn after children so it appears on top
     handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);
-    handle_renderer::draw_resize_handles(*dl, ctx, *this);
 }
 
 } // namespace visual

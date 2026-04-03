@@ -12,7 +12,7 @@ Label::Label(std::string_view text, float font_size, uint32_t color,
 
 float Label::estimateWidth() const {
     if (text_.empty()) return 0;
-    return text_.length() * font_size_ * 0.6f;
+    return text_.length() * font_size_ * 0.8f;
 }
 
 Pt Label::preferredSize(IDrawList* dl) const {
