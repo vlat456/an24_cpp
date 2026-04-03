@@ -97,19 +97,29 @@
           {
             "id": "pi_1",
             "name": "RN180",
-            "params": {
-              "Ki": 1.0,
-              "Kp": 0.10000000149011612,
-              "output_max": 1.0,
-              "output_min": 0.0
-            },
             "ports": {
+              "Ki": {
+                "direction": "In",
+                "type": 7
+              },
+              "Kp": {
+                "direction": "In",
+                "type": 7
+              },
               "feedback": {
                 "direction": "In",
                 "type": 7
               },
               "output": {
                 "direction": "Out",
+                "type": 7
+              },
+              "output_max": {
+                "direction": "In",
+                "type": 7
+              },
+              "output_min": {
+                "direction": "In",
                 "type": 7
               },
               "setpoint": {
@@ -122,6 +132,82 @@
               "y": 0.0
             },
             "type": "PI"
+          },
+          {
+            "id": "val_pi_1_Ki",
+            "name": "pi_1_Ki",
+            "params": {
+              "value": 1.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 160.0,
+              "y": 120.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_pi_1_Kp",
+            "name": "pi_1_Kp",
+            "params": {
+              "value": 0.10000000149011612
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 160.0,
+              "y": 160.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_pi_1_output_max",
+            "name": "pi_1_output_max",
+            "params": {
+              "value": 1.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 160.0,
+              "y": 200.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_pi_1_output_min",
+            "name": "pi_1_output_min",
+            "params": {
+              "value": 0.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 160.0,
+              "y": 240.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
           },
           {
             "id": "value_1",
@@ -172,6 +258,26 @@
             "id": "wire_48",
             "source": "/pi_1:output",
             "target": "/lut_1:input"
+          },
+          {
+            "id": "wire_val_pi_1_Ki",
+            "source": "/val_pi_1_Ki:o",
+            "target": "/pi_1:Ki"
+          },
+          {
+            "id": "wire_val_pi_1_Kp",
+            "source": "/val_pi_1_Kp:o",
+            "target": "/pi_1:Kp"
+          },
+          {
+            "id": "wire_val_pi_1_output_max",
+            "source": "/val_pi_1_output_max:o",
+            "target": "/pi_1:output_max"
+          },
+          {
+            "id": "wire_val_pi_1_output_min",
+            "source": "/val_pi_1_output_min:o",
+            "target": "/pi_1:output_min"
           }
         ],
         "zoom": 1.0
@@ -281,12 +387,16 @@
           {
             "id": "clamp_1",
             "name": "LoadCmdClamp",
-            "params": {
-              "max": 1.0,
-              "min": 0.0
-            },
             "ports": {
               "in": {
+                "direction": "In",
+                "type": 7
+              },
+              "max": {
+                "direction": "In",
+                "type": 7
+              },
+              "min": {
                 "direction": "In",
                 "type": 7
               },
@@ -328,10 +438,13 @@
             "id": "integrator_1",
             "name": "LoadCurrent",
             "params": {
-              "gain": 1.0,
               "initial_val": 0.0
             },
             "ports": {
+              "gain": {
+                "direction": "In",
+                "type": 7
+              },
               "in": {
                 "direction": "In",
                 "type": 7
@@ -444,6 +557,101 @@
             "type": "Subtract"
           },
           {
+            "id": "val_clamp_1_max",
+            "name": "clamp_1_max",
+            "params": {
+              "value": 1.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 352.0,
+              "y": 232.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_clamp_1_min",
+            "name": "clamp_1_min",
+            "params": {
+              "value": 0.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 352.0,
+              "y": 192.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_integrator_1_gain",
+            "name": "integrator_1_gain",
+            "params": {
+              "value": 1.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 192.0,
+              "y": 272.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_voltagesense_1_gain",
+            "name": "voltagesense_1_gain",
+            "params": {
+              "value": 1.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 272.0,
+              "y": 192.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_voltagesense_1_offset",
+            "name": "voltagesense_1_offset",
+            "params": {
+              "value": 0.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 272.0,
+              "y": 232.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
             "id": "value_3",
             "name": "LoadR",
             "params": {
@@ -505,11 +713,15 @@
           {
             "id": "voltagesense_1",
             "name": "LoadVoltageDrop",
-            "params": {
-              "gain": 1.0,
-              "offset": 0.0
-            },
             "ports": {
+              "gain": {
+                "direction": "In",
+                "type": 7
+              },
+              "offset": {
+                "direction": "In",
+                "type": 7
+              },
               "out": {
                 "direction": "Out",
                 "type": 7
@@ -608,6 +820,31 @@
             "id": "wire_84",
             "source": "/multiply_4:o",
             "target": "/clamp_1:in"
+          },
+          {
+            "id": "wire_val_clamp_1_min",
+            "source": "/val_clamp_1_min:o",
+            "target": "/clamp_1:min"
+          },
+          {
+            "id": "wire_val_clamp_1_max",
+            "source": "/val_clamp_1_max:o",
+            "target": "/clamp_1:max"
+          },
+          {
+            "id": "wire_val_integrator_1_gain",
+            "source": "/val_integrator_1_gain:o",
+            "target": "/integrator_1:gain"
+          },
+          {
+            "id": "wire_val_voltagesense_1_gain",
+            "source": "/val_voltagesense_1_gain:o",
+            "target": "/voltagesense_1:gain"
+          },
+          {
+            "id": "wire_val_voltagesense_1_offset",
+            "source": "/val_voltagesense_1_offset:o",
+            "target": "/voltagesense_1:offset"
           }
         ],
         "zoom": 1.0
@@ -745,12 +982,16 @@
           {
             "id": "clamp_2",
             "name": "DerateClamp",
-            "params": {
-              "max": 1.0,
-              "min": 0.0
-            },
             "ports": {
               "in": {
+                "direction": "In",
+                "type": 7
+              },
+              "max": {
+                "direction": "In",
+                "type": 7
+              },
+              "min": {
                 "direction": "In",
                 "type": 7
               },
@@ -768,12 +1009,16 @@
           {
             "id": "clamp_3",
             "name": "ThetaClamp",
-            "params": {
-              "max": 1.0,
-              "min": 0.0
-            },
             "ports": {
               "in": {
+                "direction": "In",
+                "type": 7
+              },
+              "max": {
+                "direction": "In",
+                "type": 7
+              },
+              "min": {
                 "direction": "In",
                 "type": 7
               },
@@ -792,10 +1037,13 @@
             "id": "integrator_2",
             "name": "OverloadTheta",
             "params": {
-              "gain": 1.0,
               "initial_val": 0.0
             },
             "ports": {
+              "gain": {
+                "direction": "In",
+                "type": 7
+              },
               "in": {
                 "direction": "In",
                 "type": 7
@@ -954,6 +1202,101 @@
             "type": "Subtract"
           },
           {
+            "id": "val_clamp_2_max",
+            "name": "clamp_2_max",
+            "params": {
+              "value": 1.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 880.0,
+              "y": 152.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_clamp_2_min",
+            "name": "clamp_2_min",
+            "params": {
+              "value": 0.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 880.0,
+              "y": 112.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_clamp_3_max",
+            "name": "clamp_3_max",
+            "params": {
+              "value": 1.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 880.0,
+              "y": 88.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_clamp_3_min",
+            "name": "clamp_3_min",
+            "params": {
+              "value": 0.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 880.0,
+              "y": 48.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "val_integrator_2_gain",
+            "name": "integrator_2_gain",
+            "params": {
+              "value": 1.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 720.0,
+              "y": 48.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
             "id": "value_6",
             "name": "InvIcontSq",
             "params": {
@@ -1094,6 +1437,31 @@
             "id": "wire_99",
             "source": "/subtract_2:o",
             "target": "/clamp_3:in"
+          },
+          {
+            "id": "wire_val_clamp_2_min",
+            "source": "/val_clamp_2_min:o",
+            "target": "/clamp_2:min"
+          },
+          {
+            "id": "wire_val_clamp_2_max",
+            "source": "/val_clamp_2_max:o",
+            "target": "/clamp_2:max"
+          },
+          {
+            "id": "wire_val_clamp_3_min",
+            "source": "/val_clamp_3_min:o",
+            "target": "/clamp_3:min"
+          },
+          {
+            "id": "wire_val_clamp_3_max",
+            "source": "/val_clamp_3_max:o",
+            "target": "/clamp_3:max"
+          },
+          {
+            "id": "wire_val_integrator_2_gain",
+            "source": "/val_integrator_2_gain:o",
+            "target": "/integrator_2:gain"
           }
         ],
         "zoom": 1.0
@@ -1357,39 +1725,7 @@
       "type": "AZS"
     },
     {
-      "id": "battery_1",
-      "name": "battery_1",
-      "params": {
-        "capacity": 1000.0,
-        "charge": 1000.0,
-        "internal_r": 0.009999999776482582,
-        "v_nominal": 28.0
-      },
-      "ports": {
-        "charge_out": {
-          "direction": "Out",
-          "type": 7
-        },
-        "soc_out": {
-          "direction": "Out",
-          "type": 7
-        },
-        "v_in": {
-          "direction": "In",
-          "type": 0
-        },
-        "v_out": {
-          "direction": "Out",
-          "type": 0
-        }
-      },
-      "position": {
-        "x": 608.0,
-        "y": -864.0
-      },
-      "type": "Battery"
-    },
-    {
+      "height": 32.0,
       "id": "bus_1",
       "name": "GND",
       "ports": {
@@ -1406,7 +1742,8 @@
       "string_params": {
         "port_edge": "bottom"
       },
-      "type": "Bus"
+      "type": "Bus",
+      "width": 128.0
     },
     {
       "id": "bus_2",
@@ -1431,12 +1768,16 @@
       "group_id": "extract_inst_2",
       "id": "clamp_1",
       "name": "LoadCmdClamp",
-      "params": {
-        "max": 1.0,
-        "min": 0.0
-      },
       "ports": {
         "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "max": {
+          "direction": "In",
+          "type": 7
+        },
+        "min": {
           "direction": "In",
           "type": 7
         },
@@ -1455,12 +1796,16 @@
       "group_id": "extract_inst_3",
       "id": "clamp_2",
       "name": "DerateClamp",
-      "params": {
-        "max": 1.0,
-        "min": 0.0
-      },
       "ports": {
         "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "max": {
+          "direction": "In",
+          "type": 7
+        },
+        "min": {
           "direction": "In",
           "type": 7
         },
@@ -1479,12 +1824,16 @@
       "group_id": "extract_inst_3",
       "id": "clamp_3",
       "name": "ThetaClamp",
-      "params": {
-        "max": 1.0,
-        "min": 0.0
-      },
       "ports": {
         "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "max": {
+          "direction": "In",
+          "type": 7
+        },
+        "min": {
           "direction": "In",
           "type": 7
         },
@@ -1530,10 +1879,6 @@
       "id": "controlledvoltagesource_2",
       "name": "controlledvoltagesource_2",
       "params": {
-        "gain": 1.0,
-        "max_v": 30.0,
-        "min_v": 0.0,
-        "offset": 0.0,
         "r_internal": 0.10000000149011612
       },
       "ports": {
@@ -1541,9 +1886,25 @@
           "direction": "In",
           "type": 7
         },
+        "gain": {
+          "direction": "In",
+          "type": 7
+        },
         "i_out": {
           "direction": "Out",
           "type": 1
+        },
+        "max_v": {
+          "direction": "In",
+          "type": 7
+        },
+        "min_v": {
+          "direction": "In",
+          "type": 7
+        },
+        "offset": {
+          "direction": "In",
+          "type": 7
         },
         "v_neg": {
           "direction": "Out",
@@ -2026,10 +2387,13 @@
       "id": "integrator_1",
       "name": "LoadCurrent",
       "params": {
-        "gain": 1.0,
         "initial_val": 0.0
       },
       "ports": {
+        "gain": {
+          "direction": "In",
+          "type": 7
+        },
         "in": {
           "direction": "In",
           "type": 7
@@ -2054,10 +2418,13 @@
       "id": "integrator_2",
       "name": "OverloadTheta",
       "params": {
-        "gain": 1.0,
         "initial_val": 0.0
       },
       "ports": {
+        "gain": {
+          "direction": "In",
+          "type": 7
+        },
         "in": {
           "direction": "In",
           "type": 7
@@ -2119,7 +2486,7 @@
       },
       "position": {
         "x": 416.0,
-        "y": 0.0
+        "y": -64.0
       },
       "type": "Multiply"
     },
@@ -2294,12 +2661,16 @@
     {
       "id": "normalize_1",
       "name": "normalize_1",
-      "params": {
-        "max": 100.0,
-        "min": 0.0
-      },
       "ports": {
         "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "max": {
+          "direction": "In",
+          "type": 7
+        },
+        "min": {
           "direction": "In",
           "type": 7
         },
@@ -2318,19 +2689,29 @@
       "group_id": "extract_inst_1",
       "id": "pi_1",
       "name": "RN180",
-      "params": {
-        "Ki": 1.0,
-        "Kp": 0.10000000149011612,
-        "output_max": 1.0,
-        "output_min": 0.0
-      },
       "ports": {
+        "Ki": {
+          "direction": "In",
+          "type": 7
+        },
+        "Kp": {
+          "direction": "In",
+          "type": 7
+        },
         "feedback": {
           "direction": "In",
           "type": 7
         },
         "output": {
           "direction": "Out",
+          "type": 7
+        },
+        "output_max": {
+          "direction": "In",
+          "type": 7
+        },
+        "output_min": {
+          "direction": "In",
           "type": 7
         },
         "setpoint": {
@@ -2343,25 +2724,6 @@
         "y": -400.0
       },
       "type": "PI"
-    },
-    {
-      "id": "refnode_1",
-      "name": "refnode_1",
-      "params": {
-        "value": 0.0
-      },
-      "ports": {
-        "v": {
-          "direction": "Out",
-          "type": 0
-        }
-      },
-      "position": {
-        "x": 528.0,
-        "y": -688.0
-      },
-      "render_hint": "ref",
-      "type": "RefNode"
     },
     {
       "id": "refnode_4",
@@ -2387,13 +2749,16 @@
       "name": "relay_1",
       "params": {
         "g_closed": 1000.0,
-        "g_open": 9.999999974752427e-07,
-        "hold_threshold": 0.5
+        "g_open": 9.999999974752427e-07
       },
       "ports": {
         "control": {
           "direction": "In",
           "type": 2
+        },
+        "hold_threshold": {
+          "direction": "In",
+          "type": 7
         },
         "state": {
           "direction": "Out",
@@ -2637,6 +3002,459 @@
       "type": "Subtract"
     },
     {
+      "group_id": "extract_inst_2",
+      "id": "val_clamp_1_top_max",
+      "name": "clamp_1_top_max",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1680.0,
+        "y": -232.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "val_clamp_1_top_min",
+      "name": "clamp_1_top_min",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1680.0,
+        "y": -272.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_3",
+      "id": "val_clamp_2_top_max",
+      "name": "clamp_2_top_max",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 2080.0,
+        "y": -344.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_3",
+      "id": "val_clamp_2_top_min",
+      "name": "clamp_2_top_min",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 2080.0,
+        "y": -384.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_3",
+      "id": "val_clamp_3_top_max",
+      "name": "clamp_3_top_max",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1664.0,
+        "y": -488.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_3",
+      "id": "val_clamp_3_top_min",
+      "name": "clamp_3_top_min",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1664.0,
+        "y": -528.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_controlledvoltagesource_2_gain",
+      "name": "controlledvoltagesource_2_gain",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 352.0,
+        "y": 144.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_controlledvoltagesource_2_max_v",
+      "name": "controlledvoltagesource_2_max_v",
+      "params": {
+        "value": 30.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 400.0,
+        "y": 32.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_controlledvoltagesource_2_min_v",
+      "name": "controlledvoltagesource_2_min_v",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 368.0,
+        "y": 80.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "height": 32.0,
+      "id": "val_controlledvoltagesource_2_offset",
+      "name": "controlledvoltagesource_2_offset",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 432.0,
+        "y": 96.0
+      },
+      "render_hint": "ref",
+      "type": "Value",
+      "width": 32.0
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "val_integrator_1_top_gain",
+      "name": "integrator_1_top_gain",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1344.0,
+        "y": -384.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_3",
+      "id": "val_integrator_2_top_gain",
+      "name": "integrator_2_top_gain",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1920.0,
+        "y": -384.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_normalize_1_max",
+      "name": "normalize_1_max",
+      "params": {
+        "value": 100.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 176.0,
+        "y": 328.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_normalize_1_min",
+      "name": "normalize_1_min",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 176.0,
+        "y": 288.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "val_pi_1_top_Ki",
+      "name": "pi_1_top_Ki",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -352.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "val_pi_1_top_Kp",
+      "name": "pi_1_top_Kp",
+      "params": {
+        "value": 0.10000000149011612
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -312.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "val_pi_1_top_output_max",
+      "name": "pi_1_top_output_max",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -272.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "val_pi_1_top_output_min",
+      "name": "pi_1_top_output_min",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -232.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_relay_1_hold_threshold",
+      "name": "relay_1_hold_threshold",
+      "params": {
+        "value": 0.5
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1008.0,
+        "y": -688.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_variableconductance_1_g_max",
+      "name": "variableconductance_1_g_max",
+      "params": {
+        "value": 10.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 400.0,
+        "y": -200.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_variableconductance_1_g_min",
+      "name": "variableconductance_1_g_min",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 400.0,
+        "y": -240.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "val_voltagesense_1_top_gain",
+      "name": "voltagesense_1_top_gain",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1104.0,
+        "y": -256.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "val_voltagesense_1_top_offset",
+      "name": "voltagesense_1_top_offset",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1104.0,
+        "y": -216.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
       "group_id": "extract_inst_1",
       "id": "value_1",
       "name": "IdealVoltage",
@@ -2810,8 +3628,8 @@
         }
       },
       "position": {
-        "x": 304.0,
-        "y": 96.0
+        "x": 240.0,
+        "y": 128.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -2879,12 +3697,16 @@
     {
       "id": "variableconductance_1",
       "name": "variableconductance_1",
-      "params": {
-        "g_max": 10.0,
-        "g_min": 0.0
-      },
       "ports": {
         "cmd": {
+          "direction": "In",
+          "type": 7
+        },
+        "g_max": {
+          "direction": "In",
+          "type": 7
+        },
+        "g_min": {
           "direction": "In",
           "type": 7
         },
@@ -2907,11 +3729,15 @@
       "group_id": "extract_inst_2",
       "id": "voltagesense_1",
       "name": "LoadVoltageDrop",
-      "params": {
-        "gain": 1.0,
-        "offset": 0.0
-      },
       "ports": {
+        "gain": {
+          "direction": "In",
+          "type": 7
+        },
+        "offset": {
+          "direction": "In",
+          "type": 7
+        },
         "out": {
           "direction": "Out",
           "type": 7
@@ -2959,8 +3785,8 @@
       "type": "Voltmeter"
     }
   ],
-  "pan_x": 538.9976196289063,
-  "pan_y": -904.8924560546875,
+  "pan_x": -277.64691162109375,
+  "pan_y": -1264.703369140625,
   "version": "3.0",
   "wires": [
     {
@@ -3535,7 +4361,7 @@
         ],
         [
           1072.0,
-          -672.0
+          -656.0
         ]
       ],
       "source": "/bus_2:v",
@@ -3582,20 +4408,130 @@
       "target": "/extract_inst_4:Torque"
     },
     {
-      "id": "wire_130",
-      "source": "/refnode_1:v",
-      "target": "/battery_1:v_in"
-    },
-    {
-      "id": "wire_138",
-      "source": "/value_9:o",
-      "target": "/multiply_1:B"
-    },
-    {
       "id": "wire_139",
       "source": "/comparator_2:o",
       "target": "/relay_1:control"
+    },
+    {
+      "id": "wire_val_controlledvoltagesource_2_gain",
+      "source": "/val_controlledvoltagesource_2_gain:o",
+      "target": "/controlledvoltagesource_2:gain"
+    },
+    {
+      "id": "wire_val_controlledvoltagesource_2_offset",
+      "source": "/val_controlledvoltagesource_2_offset:o",
+      "target": "/controlledvoltagesource_2:offset"
+    },
+    {
+      "id": "wire_val_controlledvoltagesource_2_min_v",
+      "source": "/val_controlledvoltagesource_2_min_v:o",
+      "target": "/controlledvoltagesource_2:min_v"
+    },
+    {
+      "id": "wire_val_controlledvoltagesource_2_max_v",
+      "source": "/val_controlledvoltagesource_2_max_v:o",
+      "target": "/controlledvoltagesource_2:max_v"
+    },
+    {
+      "id": "wire_val_clamp_1_top_min",
+      "source": "/val_clamp_1_top_min:o",
+      "target": "/clamp_1:min"
+    },
+    {
+      "id": "wire_val_clamp_1_top_max",
+      "source": "/val_clamp_1_top_max:o",
+      "target": "/clamp_1:max"
+    },
+    {
+      "id": "wire_val_clamp_2_top_min",
+      "source": "/val_clamp_2_top_min:o",
+      "target": "/clamp_2:min"
+    },
+    {
+      "id": "wire_val_clamp_2_top_max",
+      "source": "/val_clamp_2_top_max:o",
+      "target": "/clamp_2:max"
+    },
+    {
+      "id": "wire_val_clamp_3_top_min",
+      "source": "/val_clamp_3_top_min:o",
+      "target": "/clamp_3:min"
+    },
+    {
+      "id": "wire_val_clamp_3_top_max",
+      "source": "/val_clamp_3_top_max:o",
+      "target": "/clamp_3:max"
+    },
+    {
+      "id": "wire_val_integrator_1_top_gain",
+      "source": "/val_integrator_1_top_gain:o",
+      "target": "/integrator_1:gain"
+    },
+    {
+      "id": "wire_val_integrator_2_top_gain",
+      "source": "/val_integrator_2_top_gain:o",
+      "target": "/integrator_2:gain"
+    },
+    {
+      "id": "wire_val_normalize_1_min",
+      "source": "/val_normalize_1_min:o",
+      "target": "/normalize_1:min"
+    },
+    {
+      "id": "wire_val_normalize_1_max",
+      "source": "/val_normalize_1_max:o",
+      "target": "/normalize_1:max"
+    },
+    {
+      "id": "wire_val_pi_1_top_Ki",
+      "source": "/val_pi_1_top_Ki:o",
+      "target": "/pi_1:Ki"
+    },
+    {
+      "id": "wire_val_pi_1_top_Kp",
+      "source": "/val_pi_1_top_Kp:o",
+      "target": "/pi_1:Kp"
+    },
+    {
+      "id": "wire_val_pi_1_top_output_max",
+      "source": "/val_pi_1_top_output_max:o",
+      "target": "/pi_1:output_max"
+    },
+    {
+      "id": "wire_val_pi_1_top_output_min",
+      "source": "/val_pi_1_top_output_min:o",
+      "target": "/pi_1:output_min"
+    },
+    {
+      "id": "wire_val_relay_1_hold_threshold",
+      "source": "/val_relay_1_hold_threshold:o",
+      "target": "/relay_1:hold_threshold"
+    },
+    {
+      "id": "wire_val_variableconductance_1_g_min",
+      "source": "/val_variableconductance_1_g_min:o",
+      "target": "/variableconductance_1:g_min"
+    },
+    {
+      "id": "wire_val_variableconductance_1_g_max",
+      "source": "/val_variableconductance_1_g_max:o",
+      "target": "/variableconductance_1:g_max"
+    },
+    {
+      "id": "wire_val_voltagesense_1_top_gain",
+      "source": "/val_voltagesense_1_top_gain:o",
+      "target": "/voltagesense_1:gain"
+    },
+    {
+      "id": "wire_val_voltagesense_1_top_offset",
+      "source": "/val_voltagesense_1_top_offset:o",
+      "target": "/voltagesense_1:offset"
+    },
+    {
+      "id": "wire_140",
+      "source": "/normalize_1:out",
+      "target": "/multiply_1:B"
     }
   ],
-  "zoom": 0.9193041920661926
+  "zoom": 0.3377574682235718
 }

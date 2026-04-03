@@ -11,10 +11,6 @@ public:
     static constexpr Domain domain = Domain::Logical;
 
     Provider provider;
-    float Kp = 1.0f;
-    float Ki = 0.0f;
-    float output_min = -1000.0f;
-    float output_max = 1000.0f;
 
     // State variables (minimal footprint: 1 float, no derivative)
     double integral = 0.0;

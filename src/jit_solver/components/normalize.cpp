@@ -4,24 +4,16 @@
 #include <cmath>
 
 template <typename Provider>
-void Normalize<Provider>::pre_load() {
-    // Предрасчитываем инверсный диапазон, чтобы избежать деления в solve
-    float range = max - min;
-    inv_range = (std::abs(range) > 1e-6f) ? (1.0f / range) : 0.0f;
-}
-
-template <typename Provider>
 void Normalize<Provider>::execute(SimulationState& st, double /*dt*/) {
-    uint32_t in_idx = provider.get(PortNames::in);
-    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.values[provider.get(PortNames::in)];
+    float lo = st.values[provider.get(PortNames::min)];
+    float hi = st.values[provider.get(PortNames::max)];
 
-    float input = st.values[in_idx];
+    float range = hi - lo;
+    float inv_range = (std::abs(range) > 1e-6f) ? (1.0f / range) : 0.0f;
 
-    // Линейное преобразование: (x - min) * (1 / range)
-    float normalized = (input - min) * inv_range;
-
-    // Всегда ограничиваем результат в 0..1 для безопасности последующей логики
-    st.values[out_idx] = std::clamp(normalized, 0.0f, 1.0f);
+    float normalized = (input - lo) * inv_range;
+    st.values[provider.get(PortNames::out)] = std::clamp(normalized, 0.0f, 1.0f);
 }
 
 template <typename Provider>

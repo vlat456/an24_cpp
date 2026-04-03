@@ -4,10 +4,11 @@
 
 template <typename Provider>
 void VoltageSense<Provider>::execute(SimulationState& st, double /*dt*/) {
-    // Pure observer behavior: out = (v_in - v_ref) * gain + offset
     float v = st.values[provider.get(PortNames::v_in)];
     float vref = st.values[provider.get(PortNames::v_ref)];
-    st.values[provider.get(PortNames::out)] = (v - vref) * gain + offset;
+    float g = st.values[provider.get(PortNames::gain)];
+    float ofs = st.values[provider.get(PortNames::offset)];
+    st.values[provider.get(PortNames::out)] = (v - vref) * g + ofs;
 }
 
 template <typename Provider>

@@ -520,24 +520,39 @@ TEST(PDTest, OutputClamped)
 // PI component tests
 // =============================================================================
 
-static PI<JitProvider> make_pi(float Kp = 1.0f, float Ki = 0.0f,
-                                float out_min = -1000.0f, float out_max = 1000.0f)
+static PI<JitProvider> make_pi()
 {
     PI<JitProvider> comp;
-    comp.Kp = Kp;
-    comp.Ki = Ki;
-    comp.output_min = out_min;
-    comp.output_max = out_max;
-    comp.provider.set(PortNames::setpoint, 0);
-    comp.provider.set(PortNames::feedback, 1);
-    comp.provider.set(PortNames::output,   2);
+    comp.provider.set(PortNames::setpoint,   0);
+    comp.provider.set(PortNames::feedback,   1);
+    comp.provider.set(PortNames::output,     2);
+    comp.provider.set(PortNames::Kp,         3);
+    comp.provider.set(PortNames::Ki,         4);
+    comp.provider.set(PortNames::output_min, 5);
+    comp.provider.set(PortNames::output_max, 6);
     return comp;
+}
+
+static SimulationState make_pi_state(float sp, float fb,
+                                     float Kp = 1.0f, float Ki = 0.0f,
+                                     float out_min = -1000.0f, float out_max = 1000.0f)
+{
+    SimulationState st;
+    st.values.resize(7, 0.0f);
+    st.values[0] = sp;
+    st.values[1] = fb;
+    st.values[2] = 0.0f;
+    st.values[3] = Kp;
+    st.values[4] = Ki;
+    st.values[5] = out_min;
+    st.values[6] = out_max;
+    return st;
 }
 
 TEST(PITest, ProportionalTerm)
 {
-    auto pi = make_pi(3.0f, 0.0f);
-    auto st = make_state(10.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(10.0f, 0.0f, /*Kp=*/3.0f, /*Ki=*/0.0f);
 
     step_component(pi, st, 0.016f);
 
@@ -546,8 +561,8 @@ TEST(PITest, ProportionalTerm)
 
 TEST(PITest, IntegralAccumulates)
 {
-    auto pi = make_pi(0.0f, 1.0f);
-    auto st = make_state(5.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(5.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 60; ++i) {
@@ -560,11 +575,11 @@ TEST(PITest, IntegralAccumulates)
 
 TEST(PITest, IntegralTimeInvariance)
 {
-    auto pi60  = make_pi(0.0f, 1.0f);
-    auto pi144 = make_pi(0.0f, 1.0f);
+    auto pi60  = make_pi();
+    auto pi144 = make_pi();
 
-    SimulationState st60  = make_state(5.0f, 0.0f);
-    SimulationState st144 = make_state(5.0f, 0.0f);
+    SimulationState st60  = make_pi_state(5.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
+    SimulationState st144 = make_pi_state(5.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     for (int i = 0; i < 60;  ++i) step_component(pi60, st60,  1.0f / 60.0f);
     for (int i = 0; i < 144; ++i) step_component(pi144, st144, 1.0f / 144.0f);
@@ -574,8 +589,8 @@ TEST(PITest, IntegralTimeInvariance)
 
 TEST(PITest, AntiWindup)
 {
-    auto pi = make_pi(0.0f, 100.0f, -5.0f, 5.0f);
-    auto st = make_state(100.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(100.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/100.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
 
     for (int i = 0; i < 1000; ++i) {
         step_component(pi, st, 0.016f);
@@ -588,8 +603,8 @@ TEST(PITest, AntiWindup)
 TEST(PITest, NoDerivative)
 {
     // Step change in error should not cause derivative spike
-    auto pi = make_pi(0.0f, 1.0f);
-    auto st = make_state(0.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(0.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     // Sudden step: error jumps from 0 to 100
     st.values[0] = 100.0f;

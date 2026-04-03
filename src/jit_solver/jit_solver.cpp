@@ -449,7 +449,6 @@ BuildResult build_systems_dev(
             Relay<JitProvider> comp;
             
             comp.closed = param_reader.consume_bool_optional("closed", false);
-            comp.hold_threshold = param_reader.consume_float_optional("hold_threshold", 0.5f);
             comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
             comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
             setup_ports(comp);
@@ -696,8 +695,6 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Clamp") {
             Clamp<JitProvider> comp;
             
-            comp.min = param_reader.consume_float_optional("min", 0.0f);
-            comp.max = param_reader.consume_float_optional("max", 1.0f);
             setup_ports(comp);
             param_reader.validate_all_consumed();
             
@@ -723,10 +720,6 @@ BuildResult build_systems_dev(
         else if (dev.classname == "PI") {
             PI<JitProvider> comp;
             
-            comp.Kp = param_reader.consume_float_required("Kp");
-            comp.Ki = param_reader.consume_float_required("Ki");
-            comp.output_min = param_reader.consume_float_required("output_min");
-            comp.output_max = param_reader.consume_float_required("output_max");
             setup_ports(comp);
             param_reader.validate_all_consumed();
             
@@ -774,7 +767,6 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Integrator") {
             Integrator<JitProvider> comp;
             
-            comp.gain = param_reader.consume_float_required("gain");
             comp.initial_val = param_reader.consume_float_required("initial_val");
             comp.accumulator = comp.initial_val;
             comp.next_accumulator = comp.initial_val;
@@ -883,9 +875,6 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Normalize") {
             Normalize<JitProvider> comp;
             
-            comp.min = param_reader.consume_float_optional("min", 0.0f);
-            comp.max = param_reader.consume_float_optional("max", 100.0f);
-            comp.pre_load();
             setup_ports(comp);
             param_reader.validate_all_consumed();
             
@@ -1146,8 +1135,6 @@ BuildResult build_systems_dev(
         else if (dev.classname == "VoltageSense") {
             VoltageSense<JitProvider> comp;
             
-            comp.gain = param_reader.consume_float_optional("gain", 1.0f);
-            comp.offset = param_reader.consume_float_optional("offset", 0.0f);
             setup_ports(comp);
             param_reader.validate_all_consumed();
             
@@ -1158,10 +1145,6 @@ BuildResult build_systems_dev(
         else if (dev.classname == "ControlledVoltageSource") {
             ControlledVoltageSource<JitProvider> comp;
             
-            comp.gain = param_reader.consume_float_optional("gain", 1.0f);
-            comp.offset = param_reader.consume_float_optional("offset", 0.0f);
-            comp.min_v = param_reader.consume_float_optional("min_v", 0.0f);
-            comp.max_v = param_reader.consume_float_optional("max_v", 30.0f);
             comp.r_internal = param_reader.consume_float_optional("r_internal", 0.1f);
             comp.pre_load();
             setup_ports(comp);
@@ -1188,13 +1171,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "VariableConductance") {
             VariableConductance<JitProvider> comp;
             
-            comp.g_min = param_reader.consume_float_optional("g_min", 0.001f);
-            comp.g_max = param_reader.consume_float_optional("g_max", 10.0f);
             setup_ports(comp);
             param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<VariableConductance<JitProvider>>(result.devices[dev.name]));
+            // Solver-owned electrical path; no push scheduling.
         }
         else {
             throw std::runtime_error("Unknown component class '" + std::string(dev.classname) +
@@ -1668,14 +1649,11 @@ BuildResult build_systems_dev(
             });
         }
         else if (dev.classname == "ControlledVoltageSource") {
-            // TheveninSource with dynamic voltage: initial value_a = clamp(0 * gain + offset, min_v, max_v)
-            // Updated each frame before solve_electrical() from cmd signal (one-frame delay).
-            float gain_val = read_param_float(dev, "gain", 1.0f);
-            float offset_val = read_param_float(dev, "offset", 0.0f);
-            float min_v_val = read_param_float(dev, "min_v", 0.0f);
-            float max_v_val = read_param_float(dev, "max_v", 30.0f);
+            // TheveninSource with dynamic voltage. gain/offset/min_v/max_v are now ports,
+            // so initial voltage uses hardcoded defaults (0V). update_dynamic_sources()
+            // reads actual port values and corrects this before the first solve.
             float r_internal_val = read_param_float(dev, "r_internal", 0.1f);
-            float initial_voltage = std::clamp(0.0f * gain_val + offset_val, min_v_val, max_v_val);
+            float initial_voltage = 0.0f;  // corrected per-frame by update_dynamic_sources
             uint32_t node_pos = resolve_port(dev, "v_pos");
             uint32_t node_neg = resolve_port(dev, "v_neg");
             raw_elements.push_back({
@@ -1689,16 +1667,17 @@ BuildResult build_systems_dev(
             });
         }
         else if (dev.classname == "VariableConductance") {
-            // ConductanceBranch with dynamic conductance: initial value_a = g_min.
-            // Updated each frame before solve_electrical() from cmd signal (one-frame delay).
-            float g_min_val = read_param_float(dev, "g_min", 0.001f);
+            // ConductanceBranch with dynamic conductance. g_min/g_max are now ports,
+            // so initial conductance uses a safe minimum. update_dynamic_sources()
+            // reads actual port values and corrects this before the first solve.
+            float initial_g = 0.001f;  // corrected per-frame by update_dynamic_sources
             uint32_t node_a = resolve_port(dev, "v_in");
             uint32_t node_b = resolve_port(dev, "v_out");
             raw_elements.push_back({
                 ElectricalElementKind::ConductanceBranch,
                 node_a,
                 node_b,
-                g_min_val,
+                initial_g,
                 0.0f,
                 element_idx++,
                 dev.name

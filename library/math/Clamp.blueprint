@@ -17,18 +17,28 @@
       "direction": 1,
       "type": "Any",
       "source_writer": false
+    },
+    {
+      "name": "min",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "max",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "Clamps input value between min and max parameters",
+  "description": "Clamps input value between min and max ports",
   "domains": [
     "Logical"
-  ],
-  "param_defaults": {
-    "max": "1.0",
-    "min": "0.0"
-  }
+  ]
 }

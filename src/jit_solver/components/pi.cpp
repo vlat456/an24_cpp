@@ -11,16 +11,20 @@ void PI<Provider>::execute(SimulationState& st, double dt) {
 
     float sp = st.values[provider.get(PortNames::setpoint)];
     float fb = st.values[provider.get(PortNames::feedback)];
+    float kp = st.values[provider.get(PortNames::Kp)];
+    float ki = st.values[provider.get(PortNames::Ki)];
+    float o_min = st.values[provider.get(PortNames::output_min)];
+    float o_max = st.values[provider.get(PortNames::output_max)];
     float error = sp - fb;
 
     integral += error * safe_dt;
 
-    float output = Kp * error + Ki * integral;
-    output = std::clamp(output, output_min, output_max);
+    float output = kp * error + ki * integral;
+    output = std::clamp(output, o_min, o_max);
 
-    if (std::abs(Ki) > 1e-9f) {
-        float i_lo = output_min / Ki;
-        float i_hi = output_max / Ki;
+    if (std::abs(ki) > 1e-9f) {
+        float i_lo = o_min / ki;
+        float i_hi = o_max / ki;
         if (i_lo > i_hi) std::swap(i_lo, i_hi);
         integral = std::clamp(integral, static_cast<double>(i_lo), static_cast<double>(i_hi));
     }

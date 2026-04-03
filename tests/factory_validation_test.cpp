@@ -84,10 +84,7 @@ BuildResult build_single_component(const std::string& classname,
         merged_params.try_emplace("output_min", "-1e9");
         merged_params.try_emplace("output_max", "1e9");
     } else if (classname == "PI") {
-        merged_params.try_emplace("Kp", "1.0");
-        merged_params.try_emplace("Ki", "1.0");
-        merged_params.try_emplace("output_min", "-1e9");
-        merged_params.try_emplace("output_max", "1e9");
+        // Kp, Ki, output_min, output_max are now ports (not params)
     } else if (classname == "PD") {
         merged_params.try_emplace("Kp", "1.0");
         merged_params.try_emplace("Kd", "0.0");
@@ -109,7 +106,6 @@ BuildResult build_single_component(const std::string& classname,
         merged_params.try_emplace("rate_down", "1.0");
         merged_params.try_emplace("deadzone", "1e-6");
     } else if (classname == "Integrator") {
-        merged_params.try_emplace("gain", "1.0");
         merged_params.try_emplace("initial_val", "0.0");
     } else if (classname == "SampleHold") {
         // SampleHold has no configurable params - threshold is hardcoded in component

@@ -226,10 +226,12 @@ TEST(PushRuntime, SinglePassSettlesLinearChain) {
     std::vector<DeviceInstance> devices = {
         make_device("mul", "Multiply"),
         make_device("add", "Add"),
-        make_device("clamp", "Clamp", {{"min", "0.0"}, {"max", "20.0"}}),
+        make_device("clamp", "Clamp"),
         make_device("ra", "RefNode", {{"value", "2.0"}}),
         make_device("rb", "RefNode", {{"value", "4.0"}}),
-        make_device("rc", "RefNode", {{"value", "3.0"}})
+        make_device("rc", "RefNode", {{"value", "3.0"}}),
+        make_device("clamp_min", "Value", {{"value", "0.0"}}),
+        make_device("clamp_max", "Value", {{"value", "20.0"}})
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
@@ -237,7 +239,9 @@ TEST(PushRuntime, SinglePassSettlesLinearChain) {
         {"rb.v", "add.B"},
         {"add.o", "mul.A"},
         {"rc.v", "mul.B"},
-        {"mul.o", "clamp.in"}
+        {"mul.o", "clamp.in"},
+        {"clamp_min.o", "clamp.min"},
+        {"clamp_max.o", "clamp.max"}
     };
 
     auto result = build_systems_dev(devices, connections);
@@ -490,10 +494,12 @@ TEST(PushRuntime, IntegratorComputesCorrectAccumulation) {
     const std::string json = R"({
         "devices": [
             {"name": "src", "classname": "RefNode", "params": {"value": "10.0"}},
-            {"name": "integ", "classname": "Integrator", "params": {"gain": "1.0", "initial_val": "0.0"}}
+            {"name": "integ", "classname": "Integrator", "params": {"initial_val": "0.0"}},
+            {"name": "v_gain", "classname": "Value", "params": {"value": "1.0"}}
         ],
         "connections": [
-            {"from": "src.v", "to": "integ.in"}
+            {"from": "src.v", "to": "integ.in"},
+            {"from": "v_gain.o", "to": "integ.gain"}
         ]
     })";
 
@@ -599,10 +605,12 @@ TEST(PushRuntime, ComponentApiCommitHookCoverageSmoke) {
             {"name": "add", "classname": "Add"},
             {"name": "pid", "classname": "PID", "params": {"Kp": "1.0", "Ki": "0.1", "Kd": "0.0", "output_min": "-10.0", "output_max": "10.0", "filter_alpha": "0.1"}},
             {"name": "slew", "classname": "SlewRate", "params": {"max_rate": "5.0", "deadzone": "0.01"}},
-            {"name": "integ", "classname": "Integrator", "params": {"gain": "1.0", "initial_val": "0.0"}},
+            {"name": "integ", "classname": "Integrator", "params": {"initial_val": "0.0"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
             {"name": "gen", "classname": "Generator", "params": {"v_nominal": "12.0"}},
-            {"name": "relay", "classname": "Relay", "params": {"hold_threshold": "0.5"}}
+            {"name": "relay", "classname": "Relay"},
+            {"name": "v_gain", "classname": "Value", "params": {"value": "1.0"}},
+            {"name": "v_ht", "classname": "Value", "params": {"value": "0.5"}}
         ],
         "connections": [
             {"from": "gnd.v", "to": "bat.v_in"},
@@ -613,8 +621,10 @@ TEST(PushRuntime, ComponentApiCommitHookCoverageSmoke) {
             {"from": "gnd.v", "to": "pid.feedback"},
             {"from": "pid.output", "to": "slew.in"},
             {"from": "slew.out", "to": "integ.in"},
+            {"from": "v_gain.o", "to": "integ.gain"},
             {"from": "gnd.v", "to": "gen.v_in"},
-            {"from": "gen.v_out", "to": "relay.v_in"}
+            {"from": "gen.v_out", "to": "relay.v_in"},
+            {"from": "v_ht.o", "to": "relay.hold_threshold"}
         ]
     })";
 
@@ -766,10 +776,12 @@ TEST(PushRuntime, IntegratorCommitOneFrameDelay) {
     const std::string json = R"({
         "devices": [
             {"name": "src", "classname": "RefNode", "params": {"value": "5.0"}},
-            {"name": "integ", "classname": "Integrator", "params": {"gain": "1.0", "initial_val": "0.0"}}
+            {"name": "integ", "classname": "Integrator", "params": {"initial_val": "0.0"}},
+            {"name": "v_gain", "classname": "Value", "params": {"value": "1.0"}}
         ],
         "connections": [
-            {"from": "src.v", "to": "integ.in"}
+            {"from": "src.v", "to": "integ.in"},
+            {"from": "v_gain.o", "to": "integ.gain"}
         ]
     })";
 
@@ -1522,19 +1534,20 @@ TEST(PushRuntime, SimulationStateElectricalRtPointerClearedOutsideStep) {
 // =============================================================================
 // Regression: Relay must respect configurable hold_threshold.
 // Previously commit_control() used a hardcoded local threshold=0.5f
-// instead of the configurable class member hold_threshold.
+// instead of reading from the hold_threshold port.
 // =============================================================================
 TEST(PushRuntime, RelayCustomHoldThresholdIsRespected) {
     Relay<JitProvider> relay;
-    relay.hold_threshold = 2.0f;
     relay.provider.set(PortNames::control, 0);
     relay.provider.set(PortNames::state, 1);
     relay.provider.set(PortNames::v_in, 2);
     relay.provider.set(PortNames::v_out, 3);
+    relay.provider.set(PortNames::hold_threshold, 4);
 
     SimulationState st;
-    st.values.resize(4, 0.0f);
-    st.signal_types.resize(4, {Domain::Electrical, false});
+    st.values.resize(5, 0.0f);
+    st.signal_types.resize(5, {Domain::Electrical, false});
+    st.values[4] = 2.0f;  // hold_threshold = 2.0 via port
 
     // 1.0 < 2.0 threshold → should NOT close
     st.values[0] = 1.0f;
@@ -1565,13 +1578,15 @@ TEST(PushRuntime, RelayElectricalSolverPath_ClosedProducesSag) {
     const char* json_open = R"({
         "devices": [
             {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.1"}},
-            {"name": "relay", "classname": "Relay", "params": {"closed": "false", "hold_threshold": "0.5", "g_open": "1e-6", "g_closed": "1000.0"}},
+            {"name": "relay", "classname": "Relay", "params": {"closed": "false", "g_open": "1e-6", "g_closed": "1000.0"}},
             {"name": "load", "classname": "Resistor", "params": {"conductance": "2.0"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
-            {"name": "cmd", "classname": "RefNode", "params": {"value": "0.0"}}
+            {"name": "cmd", "classname": "RefNode", "params": {"value": "0.0"}},
+            {"name": "ht", "classname": "Value", "params": {"value": "0.5"}}
         ],
         "connections": [
             {"from": "cmd.v", "to": "relay.control"},
+            {"from": "ht.o", "to": "relay.hold_threshold"},
             {"from": "bat.v_out", "to": "relay.v_in"},
             {"from": "relay.v_out", "to": "load.v_in"},
             {"from": "load.v_out", "to": "gnd.v"},
@@ -1582,13 +1597,15 @@ TEST(PushRuntime, RelayElectricalSolverPath_ClosedProducesSag) {
     const char* json_closed = R"({
         "devices": [
             {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.1"}},
-            {"name": "relay", "classname": "Relay", "params": {"closed": "false", "hold_threshold": "0.5", "g_open": "1e-6", "g_closed": "1000.0"}},
+            {"name": "relay", "classname": "Relay", "params": {"closed": "false", "g_open": "1e-6", "g_closed": "1000.0"}},
             {"name": "load", "classname": "Resistor", "params": {"conductance": "2.0"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
-            {"name": "cmd", "classname": "RefNode", "params": {"value": "1.0"}}
+            {"name": "cmd", "classname": "RefNode", "params": {"value": "1.0"}},
+            {"name": "ht", "classname": "Value", "params": {"value": "0.5"}}
         ],
         "connections": [
             {"from": "cmd.v", "to": "relay.control"},
+            {"from": "ht.o", "to": "relay.hold_threshold"},
             {"from": "bat.v_out", "to": "relay.v_in"},
             {"from": "relay.v_out", "to": "load.v_in"},
             {"from": "load.v_out", "to": "gnd.v"},
@@ -1628,8 +1645,12 @@ TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
             {"name": "mul1", "classname": "Multiply"},
             {"name": "mul2", "classname": "Multiply"},
             {"name": "cvs", "classname": "ControlledVoltageSource", "params": {
-                "gain": "1.0", "offset": "0.0", "min_v": "0.0", "max_v": "30.0", "r_internal": "0.01"
+                "r_internal": "0.01"
             }},
+            {"name": "v_cvs_gain", "classname": "Value", "params": {"value": "1.0"}},
+            {"name": "v_cvs_offset", "classname": "Value", "params": {"value": "0.0"}},
+            {"name": "v_cvs_min_v", "classname": "Value", "params": {"value": "0.0"}},
+            {"name": "v_cvs_max_v", "classname": "Value", "params": {"value": "30.0"}},
             {"name": "cs", "classname": "CurrentSense", "params": {"conductance": "10.0"}},
             {"name": "filt", "classname": "FastTMO", "params": {"deadzone": "0.001", "tau": "0.2"}}
         ],
@@ -1641,6 +1662,10 @@ TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
             {"from": "gain.v", "to": "mul2.A"},
             {"from": "mul1.o", "to": "mul2.B"},
             {"from": "mul2.o", "to": "cvs.cmd"},
+            {"from": "v_cvs_gain.o", "to": "cvs.gain"},
+            {"from": "v_cvs_offset.o", "to": "cvs.offset"},
+            {"from": "v_cvs_min_v.o", "to": "cvs.min_v"},
+            {"from": "v_cvs_max_v.o", "to": "cvs.max_v"},
             {"from": "gnd.v", "to": "cvs.v_neg"},
             {"from": "cvs.v_pos", "to": "cs.v_in"},
             {"from": "cs.v_out", "to": "gnd.v"},
@@ -1721,13 +1746,19 @@ TEST(PushRuntime, AZS_ElectricalSolverPath_ClosedProducesSag) {
     {"name":"gnd","classname":"RefNode","params":{"value":"0.0"}},
     {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
     {"name":"azs","classname":"AZS","params":{"closed":"true","i_nominal":"20.0","g_open":"1e-6","g_closed":"1000.0"}},
-    {"name":"load","classname":"VariableConductance","params":{"g_min":"17.5","g_max":"17.5"}}
+    {"name":"load","classname":"VariableConductance"},
+    {"name":"v_gmin","classname":"Value","params":{"value":"17.5"}},
+    {"name":"v_gmax","classname":"Value","params":{"value":"17.5"}},
+    {"name":"v_cmd","classname":"Value","params":{"value":"1.0"}}
   ],
   "connections": [
     {"from":"src.v_out","to":"azs.v_in"},
     {"from":"azs.v_out","to":"load.v_in"},
     {"from":"load.v_out","to":"gnd.v"},
-    {"from":"src.v_in","to":"gnd.v"}
+    {"from":"src.v_in","to":"gnd.v"},
+    {"from":"v_gmin.o","to":"load.g_min"},
+    {"from":"v_gmax.o","to":"load.g_max"},
+    {"from":"v_cmd.o","to":"load.cmd"}
   ]
 })";
 
@@ -1751,14 +1782,20 @@ TEST(PushRuntime, HoldButton_ElectricalSolverPath_PressProducesSag) {
     {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
     {"name":"ctrl","classname":"Value","params":{"value":"1.0"}},
     {"name":"btn","classname":"HoldButton","params":{"idle":"0.0","g_open":"1e-6","g_closed":"1000.0"}},
-    {"name":"load","classname":"VariableConductance","params":{"g_min":"17.5","g_max":"17.5"}}
+    {"name":"load","classname":"VariableConductance"},
+    {"name":"v_gmin","classname":"Value","params":{"value":"17.5"}},
+    {"name":"v_gmax","classname":"Value","params":{"value":"17.5"}},
+    {"name":"v_cmd","classname":"Value","params":{"value":"1.0"}}
   ],
   "connections": [
     {"from":"src.v_out","to":"btn.v_in"},
     {"from":"btn.v_out","to":"load.v_in"},
     {"from":"load.v_out","to":"gnd.v"},
     {"from":"src.v_in","to":"gnd.v"},
-    {"from":"ctrl.o","to":"btn.control"}
+    {"from":"ctrl.o","to":"btn.control"},
+    {"from":"v_gmin.o","to":"load.g_min"},
+    {"from":"v_gmax.o","to":"load.g_max"},
+    {"from":"v_cmd.o","to":"load.cmd"}
   ]
 })";
 
@@ -1788,13 +1825,19 @@ TEST(PushRuntime, AZS_OpenState_ParasiticConductance_StaysFinite) {
     {"name":"gnd","classname":"RefNode","params":{"value":"0.0"}},
     {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
     {"name":"azs","classname":"AZS","params":{"closed":"false","i_nominal":"20.0","g_open":"1e-6","g_closed":"1000.0"}},
-    {"name":"load","classname":"VariableConductance","params":{"g_min":"17.5","g_max":"17.5"}}
+    {"name":"load","classname":"VariableConductance"},
+    {"name":"v_gmin","classname":"Value","params":{"value":"17.5"}},
+    {"name":"v_gmax","classname":"Value","params":{"value":"17.5"}},
+    {"name":"v_cmd","classname":"Value","params":{"value":"1.0"}}
   ],
   "connections": [
     {"from":"src.v_out","to":"azs.v_in"},
     {"from":"azs.v_out","to":"load.v_in"},
     {"from":"load.v_out","to":"gnd.v"},
-    {"from":"src.v_in","to":"gnd.v"}
+    {"from":"src.v_in","to":"gnd.v"},
+    {"from":"v_gmin.o","to":"load.g_min"},
+    {"from":"v_gmax.o","to":"load.g_max"},
+    {"from":"v_cmd.o","to":"load.cmd"}
   ]
 })";
 

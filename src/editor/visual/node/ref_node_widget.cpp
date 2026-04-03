@@ -9,6 +9,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 
 namespace visual {
 
@@ -16,12 +17,25 @@ namespace visual {
 // Construction
 // ============================================================================
 
+/// Format a float for display: no trailing zeros, up to 6 significant digits.
+static std::string format_value(float v) {
+    // Use %g for compact representation (no trailing zeros)
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), "%.6g", static_cast<double>(v));
+    return std::string(buf);
+}
+
 RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
     : node_iid_(data.id)
     , interner_(&interner)
     , name_(data.name)
     , type_name_(std::string(interner.resolve(data.type)))
 {
+    // For Value nodes, display the numeric value instead of the name
+    if (type_name_ == "Value" && !data.params.empty()) {
+        // Value nodes have a single "value" param — use the first numeric param
+        name_ = format_value(data.params.begin()->second);
+    }
     if (data.has_color) {
         NodeColor c;
         c.r = data.color_r;

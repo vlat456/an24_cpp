@@ -20,8 +20,6 @@ public:
 
     Provider provider;
     ElectricalPrimitiveHandle electrical_handle;
-    float g_min = 0.001f;
-    float g_max = 10.0f;
 
     VariableConductance() = default;
 

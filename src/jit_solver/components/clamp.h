@@ -11,8 +11,6 @@ public:
     static constexpr Domain domain = Domain::Logical;
 
     Provider provider;
-    float min = 0.0f;
-    float max = 1.0f;
 
     Clamp() = default;
 

@@ -12,13 +12,9 @@ public:
 
     Provider provider;
 
-    float min = 0.0f;
-    float max = 100.0f;
-    float inv_range = 0.01f;  // precomputed in pre_load()
-
     Normalize() = default;
 
     void execute(SimulationState& st, double dt);
     void commit(SimulationState& st, double dt);
-    void pre_load();
+    void pre_load() {}
 };

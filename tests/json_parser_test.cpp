@@ -155,9 +155,9 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     EXPECT_EQ(dev.domains.size(), 2);
     EXPECT_EQ(dev.domains[0], Domain::Electrical);
 
-    // Relay blueprint defines 4 ports: v_in, v_out, control, state
+    // Relay blueprint defines 5 ports: v_in, v_out, control, state, hold_threshold
     // merge_device_instance() enriches with library-defined ports
-    EXPECT_EQ(dev.ports.size(), 4);
+    EXPECT_EQ(dev.ports.size(), 5);
     auto it_in = dev.ports.find("v_in");
     ASSERT_NE(it_in, dev.ports.end());
     EXPECT_EQ(it_in->second.direction, PortDirection::In);

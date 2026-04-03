@@ -75,15 +75,17 @@ TEST(PushBuildValidation, MultipleSourceLikeComponentsConflict) {
     // Generator + ControlledVoltageSource on same wire - should throw
     std::vector<DeviceInstance> devices = {
         make_device("gen", "Generator", {{"v_nominal", "28.5"}}),
-        make_device("cvs", "ControlledVoltageSource", {{"gain", "1.0"}}),
+        make_device("cvs", "ControlledVoltageSource"),
         make_device("load", "Load", {{"conductance", "0.1"}}),
-        make_device("gnd", "RefNode", {{"value", "0"}})
+        make_device("gnd", "RefNode", {{"value", "0"}}),
+        make_device("cvs_gain", "Value", {{"value", "1.0"}})
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"gen.v_out", "cvs.v_pos"},  // Both writing to same wire
         {"gen.v_out", "load.input"},
-        {"cvs.v_neg", "gnd.v"}
+        {"cvs.v_neg", "gnd.v"},
+        {"cvs_gain.o", "cvs.gain"}
     };
     
     // Should throw - two different source types writing to same signal
@@ -151,14 +153,18 @@ TEST(PushBuildValidation, ControlledVoltageSourcesShareOnlyVNeg_NoConflict) {
     // v_neg is treated as an output for dependency ordering, but NOT as an
     // active source-writer for one-source-per-wire conflict detection.
     std::vector<DeviceInstance> devices = {
-        make_device("cvs1", "ControlledVoltageSource", {{"gain", "1.0"}}),
-        make_device("cvs2", "ControlledVoltageSource", {{"gain", "1.0"}}),
-        make_device("gnd", "RefNode", {{"value", "0"}})
+        make_device("cvs1", "ControlledVoltageSource"),
+        make_device("cvs2", "ControlledVoltageSource"),
+        make_device("gnd", "RefNode", {{"value", "0"}}),
+        make_device("cvs1_gain", "Value", {{"value", "1.0"}}),
+        make_device("cvs2_gain", "Value", {{"value", "1.0"}})
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
         {"cvs1.v_neg", "gnd.v"},
-        {"cvs2.v_neg", "gnd.v"}
+        {"cvs2.v_neg", "gnd.v"},
+        {"cvs1_gain.o", "cvs1.gain"},
+        {"cvs2_gain.o", "cvs2.gain"}
     };
 
     EXPECT_NO_THROW({
@@ -170,15 +176,19 @@ TEST(PushBuildValidation, ControlledVoltageSourcesShareOnlyVNeg_NoConflict) {
 TEST(PushBuildValidation, ControlledVoltageSourcesShareVPos_Throws) {
     // v_pos is an active writer; two CVS devices on same v_pos wire must fail.
     std::vector<DeviceInstance> devices = {
-        make_device("cvs1", "ControlledVoltageSource", {{"gain", "1.0"}}),
-        make_device("cvs2", "ControlledVoltageSource", {{"gain", "1.0"}}),
-        make_device("gnd", "RefNode", {{"value", "0"}})
+        make_device("cvs1", "ControlledVoltageSource"),
+        make_device("cvs2", "ControlledVoltageSource"),
+        make_device("gnd", "RefNode", {{"value", "0"}}),
+        make_device("cvs1_gain", "Value", {{"value", "1.0"}}),
+        make_device("cvs2_gain", "Value", {{"value", "1.0"}})
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
         {"cvs1.v_pos", "cvs2.v_pos"},
         {"cvs1.v_neg", "gnd.v"},
-        {"cvs2.v_neg", "gnd.v"}
+        {"cvs2.v_neg", "gnd.v"},
+        {"cvs1_gain.o", "cvs1.gain"},
+        {"cvs2_gain.o", "cvs2.gain"}
     };
 
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);

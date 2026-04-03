@@ -14,7 +14,6 @@ public:
     Provider provider;
     ElectricalPrimitiveHandle electrical_handle;
     bool closed = false;
-    float hold_threshold = 0.5f;
     float g_open = 1e-6f;
     float g_closed = 1000.0f;
 

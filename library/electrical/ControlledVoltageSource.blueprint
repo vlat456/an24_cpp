@@ -31,6 +31,34 @@
       "direction": 1,
       "type": "I",
       "source_writer": false
+    },
+    {
+      "name": "gain",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "offset",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "min_v",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "max_v",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],
@@ -42,10 +70,6 @@
     "Electrical"
   ],
   "param_defaults": {
-    "gain": "1.0",
-    "offset": "0.0",
-    "min_v": "0.0",
-    "max_v": "30.0",
     "r_internal": "0.1"
   }
 }

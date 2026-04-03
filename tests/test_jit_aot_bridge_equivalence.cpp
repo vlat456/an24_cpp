@@ -41,7 +41,20 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     src.ports["cmd"] = Port{PortDirection::In, PortType::Any, std::nullopt};
     src.ports["v_neg"] = Port{PortDirection::In, PortType::V, std::nullopt};
     src.ports["v_pos"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    src.ports["i_out"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
+    src.ports["gain"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    src.ports["offset"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    src.ports["min_v"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    src.ports["max_v"] = Port{PortDirection::In, PortType::Any, std::nullopt};
     registry.types["ControlledVoltageSource"] = src;
+
+    TypeDefinition val;
+    val.classname = "Value";
+    val.cpp_class = true;
+    val.domains = {Domain::Logical};
+    val.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    val.ports["o"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
+    registry.types["Value"] = val;
 
     TypeDefinition meter;
     meter.classname = "Voltmeter";
@@ -76,13 +89,38 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     DeviceInstance d_src;
     d_src.name = "src";
     d_src.classname = "ControlledVoltageSource";
-    d_src.params["gain"] = "28.0";
-    d_src.params["offset"] = "0.0";
-    d_src.params["min_v"] = "0.0";
-    d_src.params["max_v"] = "40.0";
     d_src.params["r_internal"] = "0.1";
     d_src = merge_device_instance(d_src, src);
     devices.push_back(d_src);
+
+    // Value nodes for CVS port-based params
+    DeviceInstance d_gain;
+    d_gain.name = "src_gain";
+    d_gain.classname = "Value";
+    d_gain.params["value"] = "28.0";
+    d_gain = merge_device_instance(d_gain, val);
+    devices.push_back(d_gain);
+
+    DeviceInstance d_offset;
+    d_offset.name = "src_offset";
+    d_offset.classname = "Value";
+    d_offset.params["value"] = "0.0";
+    d_offset = merge_device_instance(d_offset, val);
+    devices.push_back(d_offset);
+
+    DeviceInstance d_min_v;
+    d_min_v.name = "src_min_v";
+    d_min_v.classname = "Value";
+    d_min_v.params["value"] = "0.0";
+    d_min_v = merge_device_instance(d_min_v, val);
+    devices.push_back(d_min_v);
+
+    DeviceInstance d_max_v;
+    d_max_v.name = "src_max_v";
+    d_max_v.classname = "Value";
+    d_max_v.params["value"] = "40.0";
+    d_max_v = merge_device_instance(d_max_v, val);
+    devices.push_back(d_max_v);
 
     DeviceInstance d_meter;
     d_meter.name = "meter";
@@ -95,6 +133,10 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
         {"cmd_logic.o", "src.cmd"},
         {"gnd.v", "src.v_neg"},
         {"src.v_pos", "meter.v_in"},
+        {"src_gain.o", "src.gain"},
+        {"src_offset.o", "src.offset"},
+        {"src_min_v.o", "src.min_v"},
+        {"src_max_v.o", "src.max_v"},
     };
 
     // AOT side here is a structural codegen smoke test, not numeric parity:

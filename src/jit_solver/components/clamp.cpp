@@ -4,13 +4,11 @@
 
 template <typename Provider>
 void Clamp<Provider>::execute(SimulationState& st, double /*dt*/) {
-    uint32_t in_idx = provider.get(PortNames::in);
-    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.values[provider.get(PortNames::in)];
+    float lo = st.values[provider.get(PortNames::min)];
+    float hi = st.values[provider.get(PortNames::max)];
 
-    float input = st.values[in_idx];
-
-    // std::clamp compiles to f32.min/f32.max in WASM
-    st.values[out_idx] = std::clamp(input, min, max);
+    st.values[provider.get(PortNames::out)] = std::clamp(input, lo, hi);
 }
 
 template <typename Provider>

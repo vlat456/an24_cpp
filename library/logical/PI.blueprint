@@ -24,6 +24,34 @@
       "direction": 0,
       "type": "Any",
       "source_writer": false
+    },
+    {
+      "name": "Kp",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "Ki",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "output_min",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "output_max",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],
@@ -34,11 +62,5 @@
   "domains": [
     "Electrical",
     "Logical"
-  ],
-  "param_defaults": {
-    "Ki": "0.0",
-    "Kp": "1.0",
-    "output_max": "1000.0",
-    "output_min": "-1000.0"
-  }
+  ]
 }

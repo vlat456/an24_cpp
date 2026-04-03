@@ -7,6 +7,7 @@
 #include "components/hold_button.h"
 #include "components/relay.h"
 #include "components/variable_conductance.h"
+#include "components/port_registry.h"
 #include "../json_parser/json_parser.h"
 #include "../parse_number.h"
 #include <algorithm>
@@ -21,7 +22,11 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st) {
     for (auto* comp : br.solver_owned.controlled_voltage_sources) {
         if (!is_valid(comp->electrical_handle)) continue;
         float cmd = st.values[comp->provider.get(PortNames::cmd)];
-        float v_source = std::clamp(cmd * comp->gain + comp->offset, comp->min_v, comp->max_v);
+        float gain = st.values[comp->provider.get(PortNames::gain)];
+        float offset = st.values[comp->provider.get(PortNames::offset)];
+        float min_v = st.values[comp->provider.get(PortNames::min_v)];
+        float max_v = st.values[comp->provider.get(PortNames::max_v)];
+        float v_source = std::clamp(cmd * gain + offset, min_v, max_v);
         auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
         auto& elem = island.elements[comp->electrical_handle.element_index];
         elem.value_a = v_source;
@@ -30,8 +35,10 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st) {
     for (auto* comp : br.solver_owned.variable_conductances) {
         if (!is_valid(comp->electrical_handle)) continue;
         float cmd = st.values[comp->provider.get(PortNames::cmd)];
+        float g_min = st.values[comp->provider.get(PortNames::g_min)];
+        float g_max = st.values[comp->provider.get(PortNames::g_max)];
         float t = std::clamp(cmd, 0.0f, 1.0f);
-        float g = comp->g_min + (comp->g_max - comp->g_min) * t;
+        float g = g_min + (g_max - g_min) * t;
         auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
         auto& elem = island.elements[comp->electrical_handle.element_index];
         elem.value_a = g;

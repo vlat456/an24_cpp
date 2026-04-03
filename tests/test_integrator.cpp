@@ -8,24 +8,25 @@
 // Test Helpers
 // =============================================================================
 
-static Integrator<JitProvider> make_integrator(float gain = 1.0f, float initial_val = 0.0f)
+static Integrator<JitProvider> make_integrator(float initial_val = 0.0f)
 {
     Integrator<JitProvider> comp;
-    comp.gain = gain;
     comp.initial_val = initial_val;
     comp.provider.set(PortNames::in, 0);
     comp.provider.set(PortNames::reset, 1);
     comp.provider.set(PortNames::out, 2);
+    comp.provider.set(PortNames::gain, 3);
     return comp;
 }
 
-static SimulationState make_state(float input_val, float reset_val)
+static SimulationState make_state(float input_val, float reset_val, float gain = 1.0f)
 {
     SimulationState st;
-    st.values.resize(3, 0.0f);
+    st.values.resize(4, 0.0f);
     st.values[0] = input_val;
     st.values[1] = reset_val;
     st.values[2] = 0.0f;
+    st.values[3] = gain;
     return st;
 }
 
@@ -44,7 +45,7 @@ void step_component(Comp& comp, SimulationState& st, double dt) {
 
 TEST(IntegratorTest, ColdStart_StartsAtInitialValue)
 {
-    auto comp = make_integrator(1.0f, 5.0f);
+    auto comp = make_integrator(5.0f);
     auto st = make_state(0.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);
@@ -58,7 +59,7 @@ TEST(IntegratorTest, ColdStart_StartsAtInitialValue)
 
 TEST(IntegratorTest, Integration_AccumulatesPositiveInput)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // cold start, output = 0.0
@@ -74,7 +75,7 @@ TEST(IntegratorTest, Integration_AccumulatesPositiveInput)
 
 TEST(IntegratorTest, Integration_AccumulatesNegativeInput)
 {
-    auto comp = make_integrator(1.0f, 100.0f);
+    auto comp = make_integrator(100.0f);
     auto st = make_state(-5.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // cold start, output = 100.0
@@ -90,7 +91,7 @@ TEST(IntegratorTest, Integration_AccumulatesNegativeInput)
 
 TEST(IntegratorTest, Reset_ZerosAccumulator)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);
@@ -116,7 +117,7 @@ TEST(IntegratorTest, Reset_ZerosAccumulator)
 
 TEST(IntegratorTest, ResetWhileHigh_StaysZero)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 1.0f);
 
     step(comp, st, 1.0 / 60.0);
@@ -131,7 +132,7 @@ TEST(IntegratorTest, ResetWhileHigh_StaysZero)
 
 TEST(IntegratorTest, ResetReleased_ResumesIntegration)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 1.0f);
 
     step(comp, st, 1.0 / 60.0);
@@ -155,8 +156,8 @@ TEST(IntegratorTest, ResetReleased_ResumesIntegration)
 
 TEST(IntegratorTest, Gain_ScalesIntegration)
 {
-    auto comp = make_integrator(2.0f, 0.0f);  // gain = 2
-    auto st = make_state(10.0f, 0.0f);
+    auto comp = make_integrator(0.0f);  // initial_val = 0
+    auto st = make_state(10.0f, 0.0f, 2.0f);  // gain = 2
 
     step(comp, st, 1.0 / 60.0);  // cold start
 
@@ -171,8 +172,8 @@ TEST(IntegratorTest, Gain_ScalesIntegration)
 
 TEST(IntegratorTest, NegativeGain_InvertsIntegration)
 {
-    auto comp = make_integrator(-1.0f, 100.0f);
-    auto st = make_state(10.0f, 0.0f);
+    auto comp = make_integrator(100.0f);  // initial_val = 100
+    auto st = make_state(10.0f, 0.0f, -1.0f);  // gain = -1
 
     step(comp, st, 1.0 / 60.0);  // cold start, output = 100.0
 
@@ -187,8 +188,8 @@ TEST(IntegratorTest, NegativeGain_InvertsIntegration)
 
 TEST(IntegratorTest, ZeroGain_NoAccumulation)
 {
-    auto comp = make_integrator(0.0f, 5.0f);  // gain = 0
-    auto st = make_state(10.0f, 0.0f);
+    auto comp = make_integrator(5.0f);  // initial_val = 5
+    auto st = make_state(10.0f, 0.0f, 0.0f);  // gain = 0
 
     step(comp, st, 1.0 / 60.0);  // cold start, output = 5.0
 
@@ -203,7 +204,7 @@ TEST(IntegratorTest, ZeroGain_NoAccumulation)
 
 TEST(IntegratorTest, VariableDt_AdaptsIntegration)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // Cold start frame, output = 0
@@ -220,7 +221,7 @@ TEST(IntegratorTest, VariableDt_AdaptsIntegration)
 
 TEST(IntegratorTest, ZeroDt_NoAccumulation)
 {
-    auto comp = make_integrator(1.0f, 5.0f);
+    auto comp = make_integrator(5.0f);
     auto st = make_state(10.0f, 0.0f);
 
     // Run initial steps to let the integrator accumulate
@@ -245,7 +246,7 @@ TEST(IntegratorTest, ZeroDt_NoAccumulation)
 
 TEST(IntegratorTest, ZeroInput_NoAccumulation)
 {
-    auto comp = make_integrator(1.0f, 5.0f);
+    auto comp = make_integrator(5.0f);
     auto st = make_state(0.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);
@@ -261,8 +262,8 @@ TEST(IntegratorTest, ZeroInput_NoAccumulation)
 
 TEST(IntegratorTest, Precision_MaintainedOverTime)
 {
-    auto comp = make_integrator(0.001f, 0.0f);  // Small gain
-    auto st = make_state(1000.0f, 0.0f);
+    auto comp = make_integrator(0.0f);  // initial_val = 0
+    auto st = make_state(1000.0f, 0.0f, 0.001f);  // gain = 0.001
 
     step(comp, st, 1.0 / 60.0);
 
@@ -277,7 +278,7 @@ TEST(IntegratorTest, Precision_MaintainedOverTime)
 
 TEST(IntegratorTest, FuelConsumption_RealisticUseCase)
 {
-    auto comp = make_integrator(1.0f, 100.0f);  // Start with 100L
+    auto comp = make_integrator(100.0f);  // Start with 100L
     auto st = make_state(-0.5f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // cold start, output = 100.0
@@ -302,7 +303,7 @@ TEST(IntegratorTest, FuelConsumption_RealisticUseCase)
 
 TEST(IntegratorTest, BatteryCharge_RealisticUseCase)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // cold start
@@ -318,7 +319,7 @@ TEST(IntegratorTest, BatteryCharge_RealisticUseCase)
 
 TEST(IntegratorTest, WearAccumulation_RealisticUseCase)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(0.8f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // cold start
@@ -334,7 +335,7 @@ TEST(IntegratorTest, WearAccumulation_RealisticUseCase)
 
 TEST(IntegratorTest, BooleanThreshold_Reset)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);
@@ -364,7 +365,7 @@ TEST(IntegratorTest, BooleanThreshold_Reset)
 
 TEST(IntegratorTest, LargeDt_Clip)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(1.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // cold start, output = 0
@@ -381,7 +382,7 @@ TEST(IntegratorTest, LargeDt_Clip)
 
 TEST(IntegratorTest, MultipleResets)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);
@@ -422,7 +423,7 @@ TEST(IntegratorTest, MultipleResets)
 
 TEST(IntegratorTest, NegativeInputCrossesZero)
 {
-    auto comp = make_integrator(1.0f, 50.0f);
+    auto comp = make_integrator(50.0f);
     auto st = make_state(-10.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // cold start, output = 50
@@ -439,7 +440,7 @@ TEST(IntegratorTest, NegativeInputCrossesZero)
 
 TEST(IntegratorTest, AlternatingInput_CorrectIntegration)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // cold start
@@ -467,7 +468,7 @@ TEST(IntegratorTest, AlternatingInput_CorrectIntegration)
 
 TEST(IntegratorTest, ResetDoesNotAffectFirstFrameMask)
 {
-    auto comp = make_integrator(1.0f, 5.0f);
+    auto comp = make_integrator(5.0f);
     auto st = make_state(10.0f, 1.0f);  // Reset active from start
 
     step(comp, st, 1.0 / 60.0);
@@ -484,7 +485,7 @@ TEST(IntegratorTest, ResetDoesNotAffectFirstFrameMask)
 
 TEST(IntegratorTest, IntegrationContinuesAfterReset)
 {
-    auto comp = make_integrator(1.0f, 0.0f);
+    auto comp = make_integrator(0.0f);
     auto st = make_state(10.0f, 0.0f);
 
     step(comp, st, 1.0 / 60.0);  // cold start

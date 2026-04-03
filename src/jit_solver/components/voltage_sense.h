@@ -14,8 +14,6 @@ public:
     static constexpr Domain domain = Domain::Electrical | Domain::Logical;
 
     Provider provider;
-    float gain   = 1.0f;
-    float offset = 0.0f;
 
     VoltageSense() = default;
 

@@ -256,15 +256,22 @@ TEST(PortMapRegression, DISABLED_Subtract_GSC_Topology_SignalIndices) {
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
             {"name": "target", "classname": "RefNode", "params": {"value": "28.5"}},
             {"name": "cvs", "classname": "ControlledVoltageSource", "params": {
-                "gain": "1.0", "offset": "0.0", "min_v": "0.0", "max_v": "35.0",
                 "r_internal": "0.05"
             }},
+            {"name": "v_cvs_gain", "classname": "Value", "params": {"value": "1.0"}},
+            {"name": "v_cvs_offset", "classname": "Value", "params": {"value": "0.0"}},
+            {"name": "v_cvs_min_v", "classname": "Value", "params": {"value": "0.0"}},
+            {"name": "v_cvs_max_v", "classname": "Value", "params": {"value": "35.0"}},
             {"name": "splitter", "classname": "Splitter"},
             {"name": "sub", "classname": "Subtract"},
             {"name": "resistor", "classname": "Resistor", "params": {"conductance": "0.1"}}
         ],
         "connections": [
             {"from": "gnd.v", "to": "cvs.v_neg"},
+            {"from": "v_cvs_gain.o", "to": "cvs.gain"},
+            {"from": "v_cvs_offset.o", "to": "cvs.offset"},
+            {"from": "v_cvs_min_v.o", "to": "cvs.min_v"},
+            {"from": "v_cvs_max_v.o", "to": "cvs.max_v"},
             {"from": "cvs.v_pos", "to": "splitter.i"},
             {"from": "splitter.o2", "to": "sub.B"},
             {"from": "target.v", "to": "sub.A"},

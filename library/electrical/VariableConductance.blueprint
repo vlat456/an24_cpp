@@ -24,6 +24,20 @@
       "direction": 0,
       "type": "Signal",
       "source_writer": false
+    },
+    {
+      "name": "g_min",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "g_max",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],
@@ -33,9 +47,5 @@
   "description": "Control-to-electrical domain bridge (variable resistor/load). Converts a control/scalar command [0..1] into a conductance between v_in and v_out stamped during solve_electrical(). g = lerp(g_min, g_max, cmd). Models command-controlled winding resistance, field current effect, or variable load.",
   "domains": [
     "Electrical"
-  ],
-  "param_defaults": {
-    "g_min": "0.001",
-    "g_max": "10.0"
-  }
+  ]
 }

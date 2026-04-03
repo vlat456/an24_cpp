@@ -111,11 +111,11 @@ constexpr size_t Battery_PORT_COUNT = 4;
 constexpr size_t BlueprintInput_PORT_COUNT = 2;
 constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
-constexpr size_t Clamp_PORT_COUNT = 2;
+constexpr size_t Clamp_PORT_COUNT = 4;
 constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t ControlledCurrentSource_PORT_COUNT = 3;
-constexpr size_t ControlledVoltageSource_PORT_COUNT = 4;
-constexpr size_t CurrentSense_PORT_COUNT = 3;
+constexpr size_t ControlledVoltageSource_PORT_COUNT = 8;
+constexpr size_t CurrentSense_PORT_COUNT = 4;
 constexpr size_t Divide_PORT_COUNT = 3;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
 constexpr size_t ElectricPump_PORT_COUNT = 3;
@@ -132,7 +132,7 @@ constexpr size_t HighPowerLoad_PORT_COUNT = 2;
 constexpr size_t HoldButton_PORT_COUNT = 4;
 constexpr size_t IndicatorLight_PORT_COUNT = 3;
 constexpr size_t InertiaNode_PORT_COUNT = 5;
-constexpr size_t Integrator_PORT_COUNT = 3;
+constexpr size_t Integrator_PORT_COUNT = 4;
 constexpr size_t Inverter_PORT_COUNT = 2;
 constexpr size_t LUT_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
@@ -146,17 +146,17 @@ constexpr size_t Monostable_PORT_COUNT = 2;
 constexpr size_t Multiply_PORT_COUNT = 3;
 constexpr size_t NAND_PORT_COUNT = 3;
 constexpr size_t NOT_PORT_COUNT = 2;
-constexpr size_t Normalize_PORT_COUNT = 2;
+constexpr size_t Normalize_PORT_COUNT = 4;
 constexpr size_t OR_PORT_COUNT = 3;
 constexpr size_t P_PORT_COUNT = 3;
 constexpr size_t PD_PORT_COUNT = 3;
-constexpr size_t PI_PORT_COUNT = 3;
+constexpr size_t PI_PORT_COUNT = 7;
 constexpr size_t PID_PORT_COUNT = 3;
 constexpr size_t Positive_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t Radiator_PORT_COUNT = 2;
 constexpr size_t RefNode_PORT_COUNT = 1;
-constexpr size_t Relay_PORT_COUNT = 4;
-constexpr size_t Resistor_PORT_COUNT = 2;
+constexpr size_t Relay_PORT_COUNT = 5;
+constexpr size_t Resistor_PORT_COUNT = 3;
 constexpr size_t SampleHold_PORT_COUNT = 3;
 constexpr size_t SlewRate_PORT_COUNT = 2;
 constexpr size_t Slider_PORT_COUNT = 2;
@@ -169,8 +169,8 @@ constexpr size_t TempSensor_PORT_COUNT = 2;
 constexpr size_t TimeDelay_PORT_COUNT = 2;
 constexpr size_t Transformer_PORT_COUNT = 2;
 constexpr size_t Value_PORT_COUNT = 1;
-constexpr size_t VariableConductance_PORT_COUNT = 3;
-constexpr size_t VoltageSense_PORT_COUNT = 3;
+constexpr size_t VariableConductance_PORT_COUNT = 5;
+constexpr size_t VoltageSense_PORT_COUNT = 5;
 constexpr size_t Voltmeter_PORT_COUNT = 1;
 constexpr size_t XOR_PORT_COUNT = 3;
 
@@ -228,6 +228,8 @@ constexpr const char* Bus_PORTS[] = {
 };
 constexpr const char* Clamp_PORTS[] = {
     "in",
+    "max",
+    "min",
     "out"
 };
 constexpr const char* Comparator_PORTS[] = {
@@ -242,11 +244,16 @@ constexpr const char* ControlledCurrentSource_PORTS[] = {
 };
 constexpr const char* ControlledVoltageSource_PORTS[] = {
     "cmd",
+    "gain",
     "i_out",
+    "max_v",
+    "min_v",
+    "offset",
     "v_neg",
     "v_pos"
 };
 constexpr const char* CurrentSense_PORTS[] = {
+    "conductance",
     "i_out",
     "v_in",
     "v_out"
@@ -325,6 +332,7 @@ constexpr const char* InertiaNode_PORTS[] = {
     "torque_in"
 };
 constexpr const char* Integrator_PORTS[] = {
+    "gain",
     "in",
     "out",
     "reset"
@@ -389,6 +397,8 @@ constexpr const char* NOT_PORTS[] = {
 };
 constexpr const char* Normalize_PORTS[] = {
     "in",
+    "max",
+    "min",
     "out"
 };
 constexpr const char* OR_PORTS[] = {
@@ -407,8 +417,12 @@ constexpr const char* PD_PORTS[] = {
     "setpoint"
 };
 constexpr const char* PI_PORTS[] = {
+    "Ki",
+    "Kp",
     "feedback",
     "output",
+    "output_max",
+    "output_min",
     "setpoint"
 };
 constexpr const char* PID_PORTS[] = {
@@ -429,11 +443,13 @@ constexpr const char* RefNode_PORTS[] = {
 };
 constexpr const char* Relay_PORTS[] = {
     "control",
+    "hold_threshold",
     "state",
     "v_in",
     "v_out"
 };
 constexpr const char* Resistor_PORTS[] = {
+    "conductance",
     "v_in",
     "v_out"
 };
@@ -493,10 +509,14 @@ constexpr const char* Value_PORTS[] = {
 };
 constexpr const char* VariableConductance_PORTS[] = {
     "cmd",
+    "g_max",
+    "g_min",
     "v_in",
     "v_out"
 };
 constexpr const char* VoltageSense_PORTS[] = {
+    "gain",
+    "offset",
     "out",
     "v_in",
     "v_ref"
@@ -689,13 +709,19 @@ constexpr bool Bus_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection Clamp_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t Clamp_PORT_DOMAINS[] = {
     1,
+    2,
+    2,
     1
 };
 constexpr bool Clamp_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
     false,
     false
 };
@@ -737,17 +763,29 @@ constexpr bool ControlledCurrentSource_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection ControlledVoltageSource_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out,
     RegistryPortDirection::Out
 };
 constexpr uint8_t ControlledVoltageSource_PORT_DOMAINS[] = {
     2,
+    2,
     1,
+    2,
+    2,
+    2,
     1,
     1
 };
 constexpr bool ControlledVoltageSource_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
     false,
     false,
     false,
@@ -756,16 +794,19 @@ constexpr bool ControlledVoltageSource_PORT_SOURCE_WRITER[] = {
 constexpr bool ControlledVoltageSource_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection CurrentSense_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
     RegistryPortDirection::Out,
     RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t CurrentSense_PORT_DOMAINS[] = {
+    2,
     1,
     1,
     1
 };
 constexpr bool CurrentSense_PORT_SOURCE_WRITER[] = {
+    false,
     false,
     false,
     false
@@ -1025,15 +1066,18 @@ constexpr bool InertiaNode_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection Integrator_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out,
     RegistryPortDirection::In
 };
 constexpr uint8_t Integrator_PORT_DOMAINS[] = {
+    2,
     1,
     1,
     2
 };
 constexpr bool Integrator_PORT_SOURCE_WRITER[] = {
+    false,
     false,
     false,
     false
@@ -1242,13 +1286,19 @@ constexpr bool NOT_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection Normalize_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t Normalize_PORT_DOMAINS[] = {
     1,
+    2,
+    2,
     1
 };
 constexpr bool Normalize_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
     false,
     false
 };
@@ -1307,15 +1357,27 @@ constexpr bool PD_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection PI_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::In
 };
 constexpr uint8_t PI_PORT_DOMAINS[] = {
+    2,
+    2,
     1,
     1,
+    2,
+    2,
     1
 };
 constexpr bool PI_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
     false,
     false,
     false
@@ -1380,11 +1442,13 @@ constexpr bool RefNode_SCHEDULER_SOURCE = true;
 
 constexpr RegistryPortDirection Relay_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out,
     RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t Relay_PORT_DOMAINS[] = {
+    2,
     2,
     2,
     1,
@@ -1394,19 +1458,23 @@ constexpr bool Relay_PORT_SOURCE_WRITER[] = {
     false,
     false,
     false,
+    false,
     false
 };
 constexpr bool Relay_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection Resistor_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t Resistor_PORT_DOMAINS[] = {
+    2,
     1,
     1
 };
 constexpr bool Resistor_PORT_SOURCE_WRITER[] = {
+    false,
     false,
     false
 };
@@ -1601,9 +1669,13 @@ constexpr bool Value_SCHEDULER_SOURCE = true;
 constexpr RegistryPortDirection VariableConductance_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t VariableConductance_PORT_DOMAINS[] = {
+    2,
+    2,
     2,
     1,
     1
@@ -1611,21 +1683,29 @@ constexpr uint8_t VariableConductance_PORT_DOMAINS[] = {
 constexpr bool VariableConductance_PORT_SOURCE_WRITER[] = {
     false,
     false,
+    false,
+    false,
     false
 };
 constexpr bool VariableConductance_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection VoltageSense_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out,
     RegistryPortDirection::In,
     RegistryPortDirection::In
 };
 constexpr uint8_t VoltageSense_PORT_DOMAINS[] = {
     2,
+    2,
+    2,
     1,
     1
 };
 constexpr bool VoltageSense_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
     false,
     false,
     false
@@ -1667,6 +1747,8 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
     static const std::unordered_map<std::string, PortNames> map = {
         {"A", PortNames::A},
         {"B", PortNames::B},
+        {"Ki", PortNames::Ki},
+        {"Kp", PortNames::Kp},
         {"Va", PortNames::Va},
         {"Vb", PortNames::Vb},
         {"Vin", PortNames::Vin},
@@ -1674,6 +1756,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"brightness", PortNames::brightness},
         {"charge_out", PortNames::charge_out},
         {"cmd", PortNames::cmd},
+        {"conductance", PortNames::conductance},
         {"control", PortNames::control},
         {"ctrl", PortNames::ctrl},
         {"damping", PortNames::damping},
@@ -1683,8 +1766,12 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"flow_in", PortNames::flow_in},
         {"flow_out", PortNames::flow_out},
         {"force_out", PortNames::force_out},
+        {"g_max", PortNames::g_max},
+        {"g_min", PortNames::g_min},
+        {"gain", PortNames::gain},
         {"heat_in", PortNames::heat_in},
         {"heat_out", PortNames::heat_out},
+        {"hold_threshold", PortNames::hold_threshold},
         {"i", PortNames::i},
         {"i1", PortNames::i1},
         {"i2", PortNames::i2},
@@ -1694,11 +1781,18 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"inv_inertia", PortNames::inv_inertia},
         {"level_out", PortNames::level_out},
         {"mass", PortNames::mass},
+        {"max", PortNames::max},
+        {"max_v", PortNames::max_v},
+        {"min", PortNames::min},
+        {"min_v", PortNames::min_v},
         {"o", PortNames::o},
         {"o1", PortNames::o1},
         {"o2", PortNames::o2},
+        {"offset", PortNames::offset},
         {"out", PortNames::out},
         {"output", PortNames::output},
+        {"output_max", PortNames::output_max},
+        {"output_min", PortNames::output_min},
         {"p_in", PortNames::p_in},
         {"p_out", PortNames::p_out},
         {"port", PortNames::port},
@@ -1744,11 +1838,11 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"BlueprintInput", {"ext", "port"}},
         {"BlueprintOutput", {"ext", "port"}},
         {"Bus", {"v"}},
-        {"Clamp", {"in", "out"}},
+        {"Clamp", {"in", "max", "min", "out"}},
         {"Comparator", {"Va", "Vb", "o"}},
         {"ControlledCurrentSource", {"cmd", "v_neg", "v_pos"}},
-        {"ControlledVoltageSource", {"cmd", "i_out", "v_neg", "v_pos"}},
-        {"CurrentSense", {"i_out", "v_in", "v_out"}},
+        {"ControlledVoltageSource", {"cmd", "gain", "i_out", "max_v", "min_v", "offset", "v_neg", "v_pos"}},
+        {"CurrentSense", {"conductance", "i_out", "v_in", "v_out"}},
         {"Divide", {"A", "B", "o"}},
         {"ElectricHeater", {"heat_out", "power"}},
         {"ElectricPump", {"p_in", "p_out", "v_in"}},
@@ -1765,7 +1859,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"HoldButton", {"control", "state", "v_in", "v_out"}},
         {"IndicatorLight", {"brightness", "v_in", "v_out"}},
         {"InertiaNode", {"damping", "inv_inertia", "mass", "rpm_out", "torque_in"}},
-        {"Integrator", {"in", "out", "reset"}},
+        {"Integrator", {"gain", "in", "out", "reset"}},
         {"Inverter", {"ac_out", "dc_in"}},
         {"LUT", {"input", "output"}},
         {"LerpNode", {"input", "output"}},
@@ -1779,17 +1873,17 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Multiply", {"A", "B", "o"}},
         {"NAND", {"A", "B", "o"}},
         {"NOT", {"A", "o"}},
-        {"Normalize", {"in", "out"}},
+        {"Normalize", {"in", "max", "min", "out"}},
         {"OR", {"A", "B", "o"}},
         {"P", {"feedback", "output", "setpoint"}},
         {"PD", {"feedback", "output", "setpoint"}},
-        {"PI", {"feedback", "output", "setpoint"}},
+        {"PI", {"Ki", "Kp", "feedback", "output", "output_max", "output_min", "setpoint"}},
         {"PID", {"feedback", "output", "setpoint"}},
         {"Positive_V_to_Bool", {"Vin", "o"}},
         {"Radiator", {"heat_in", "heat_out"}},
         {"RefNode", {"v"}},
-        {"Relay", {"control", "state", "v_in", "v_out"}},
-        {"Resistor", {"v_in", "v_out"}},
+        {"Relay", {"control", "hold_threshold", "state", "v_in", "v_out"}},
+        {"Resistor", {"conductance", "v_in", "v_out"}},
         {"SampleHold", {"in", "out", "trigger"}},
         {"SlewRate", {"in", "out"}},
         {"Slider", {"control", "out"}},
@@ -1802,8 +1896,8 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"TimeDelay", {"in", "out"}},
         {"Transformer", {"primary", "secondary"}},
         {"Value", {"o"}},
-        {"VariableConductance", {"cmd", "v_in", "v_out"}},
-        {"VoltageSense", {"out", "v_in", "v_ref"}},
+        {"VariableConductance", {"cmd", "g_max", "g_min", "v_in", "v_out"}},
+        {"VoltageSense", {"gain", "offset", "out", "v_in", "v_ref"}},
         {"Voltmeter", {"v_in"}},
         {"XOR", {"A", "B", "o"}},
     };

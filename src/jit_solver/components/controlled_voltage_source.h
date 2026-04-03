@@ -20,10 +20,6 @@ public:
 
     Provider provider;
     ElectricalPrimitiveHandle electrical_handle;
-    float gain       = 1.0f;
-    float offset     = 0.0f;
-    float min_v      = 0.0f;
-    float max_v      = 30.0f;
     float r_internal = 0.1f;
     float inv_r      = 10.0f;  // precomputed
 

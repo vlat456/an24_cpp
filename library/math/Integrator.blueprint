@@ -24,18 +24,24 @@
       "direction": 0,
       "type": "Bool",
       "source_writer": false
+    },
+    {
+      "name": "gain",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "Mathematical integrator with reset: out = integral(in * dt)",
+  "description": "Mathematical integrator with reset: out = integral(in * gain * dt)",
   "domains": [
     "Logical"
   ],
   "param_defaults": {
-    "gain": "1.0",
     "initial_val": "0.0"
   }
 }

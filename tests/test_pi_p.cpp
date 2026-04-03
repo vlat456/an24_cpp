@@ -18,17 +18,16 @@ void step_component(Comp& comp, SimulationState& st, double dt) {
 
 // ─── Helper functions ───────────────────────────────────────────────────────────
 
-static PI<JitProvider> make_pi(float Kp = 1.0f, float Ki = 0.0f,
-                               float out_min = -1000.0f, float out_max = 1000.0f)
+static PI<JitProvider> make_pi()
 {
     PI<JitProvider> pi;
-    pi.Kp = Kp;
-    pi.Ki = Ki;
-    pi.output_min = out_min;
-    pi.output_max = out_max;
-    pi.provider.set(PortNames::setpoint, 0);
-    pi.provider.set(PortNames::feedback, 1);
-    pi.provider.set(PortNames::output,   2);
+    pi.provider.set(PortNames::setpoint,   0);
+    pi.provider.set(PortNames::feedback,   1);
+    pi.provider.set(PortNames::output,     2);
+    pi.provider.set(PortNames::Kp,         3);
+    pi.provider.set(PortNames::Ki,         4);
+    pi.provider.set(PortNames::output_min, 5);
+    pi.provider.set(PortNames::output_max, 6);
     return pi;
 }
 
@@ -55,12 +54,28 @@ static SimulationState make_state(float sp, float fb)
     return st;
 }
 
+static SimulationState make_pi_state(float sp, float fb,
+                                     float Kp = 1.0f, float Ki = 0.0f,
+                                     float out_min = -1000.0f, float out_max = 1000.0f)
+{
+    SimulationState st;
+    st.values.resize(7, 0.0f);
+    st.values[0] = sp;
+    st.values[1] = fb;
+    st.values[2] = 0.0f;
+    st.values[3] = Kp;
+    st.values[4] = Ki;
+    st.values[5] = out_min;
+    st.values[6] = out_max;
+    return st;
+}
+
 // ─── PI Tests: Proportional-only (Ki=0) ───────────────────────────────────────────
 
 TEST(PITest, ProportionalOnly_Basic)
 {
-    auto pi = make_pi(/*Kp=*/2.0f, /*Ki=*/0.0f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/2.0f, /*Ki=*/0.0f);
 
     step_component(pi, st, 0.016f);
 
@@ -70,8 +85,8 @@ TEST(PITest, ProportionalOnly_Basic)
 
 TEST(PITest, ProportionalOnly_NegativeError)
 {
-    auto pi = make_pi(/*Kp=*/1.0f, /*Ki=*/0.0f);
-    auto st = make_state(/*sp=*/-5.0f, /*fb=*/5.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/-5.0f, /*fb=*/5.0f, /*Kp=*/1.0f, /*Ki=*/0.0f);
 
     step_component(pi, st, 0.016f);
 
@@ -81,8 +96,8 @@ TEST(PITest, ProportionalOnly_NegativeError)
 
 TEST(PITest, ProportionalOnly_ZeroError)
 {
-    auto pi = make_pi(/*Kp=*/5.0f, /*Ki=*/0.0f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/10.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/10.0f, /*Kp=*/5.0f, /*Ki=*/0.0f);
 
     step_component(pi, st, 0.016f);
 
@@ -94,8 +109,8 @@ TEST(PITest, ProportionalOnly_ZeroError)
 
 TEST(PITest, IntegralOnly_Accumulates)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     step_component(pi, st, 0.1f);
     EXPECT_FLOAT_EQ(pi.integral, 1.0f);  // 10 * 0.1
@@ -106,8 +121,8 @@ TEST(PITest, IntegralOnly_Accumulates)
 
 TEST(PITest, IntegralOnly_DecreasesWhenErrorChangesSign)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     // Accumulate positive integral
     for (int i = 0; i < 10; ++i) {
@@ -131,8 +146,8 @@ TEST(PITest, IntegralOnly_DecreasesWhenErrorChangesSign)
 
 TEST(PITest, ProportionalAndIntegral_StepResponse)
 {
-    auto pi = make_pi(/*Kp=*/1.0f, /*Ki=*/0.5f, -1e9f, 1e9f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/1.0f, /*Ki=*/0.5f, -1e9f, 1e9f);
 
     step_component(pi, st, 0.01f);
 
@@ -144,8 +159,8 @@ TEST(PITest, ProportionalAndIntegral_StepResponse)
 
 TEST(PITest, ProportionalAndIntegral_SteadyStateZeroError)
 {
-    auto pi = make_pi(/*Kp=*/2.0f, /*Ki=*/1.0f, -1e9f, 1e9f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/10.0f);  // Zero error
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/10.0f, /*Kp=*/2.0f, /*Ki=*/1.0f, -1e9f, 1e9f);  // Zero error
 
     step_component(pi, st, 0.01f);
 
@@ -157,8 +172,8 @@ TEST(PITest, ProportionalAndIntegral_SteadyStateZeroError)
 
 TEST(PITest, NegativeGains_InvertControl)
 {
-    auto pi = make_pi(/*Kp=*/-2.0f, /*Ki=*/-0.5f, -1e9f, 1e9f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/-2.0f, /*Ki=*/-0.5f, -1e9f, 1e9f);
 
     step_component(pi, st, 0.01f);
 
@@ -173,11 +188,11 @@ TEST(PITest, NegativeGains_InvertControl)
 TEST(PITest, IntegralTimeInvariance)
 {
     // Same conditions at 60 Hz and 144 Hz should yield comparable integral
-    auto pi60  = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto pi144 = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
+    auto pi60  = make_pi();
+    auto pi144 = make_pi();
 
-    auto st60  = make_state(5.0f, 0.0f);
-    auto st144 = make_state(5.0f, 0.0f);
+    auto st60  = make_pi_state(5.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
+    auto st144 = make_pi_state(5.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     for (int i = 0; i < 60;  ++i) step_component(pi60, st60,  1.0f / 60.0f);
     for (int i = 0; i < 144; ++i) step_component(pi144, st144, 1.0f / 144.0f);
@@ -191,8 +206,8 @@ TEST(PITest, IntegralTimeInvariance)
 TEST(PITest, AntiWindupCapsOutput)
 {
     // Large error, large Ki, tight output cap
-    auto pi = make_pi(/*Kp=*/1.0f, /*Ki=*/10.0f, /*out_min=*/-10.0f, /*out_max=*/10.0f);
-    auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/100.0f, /*fb=*/0.0f, /*Kp=*/1.0f, /*Ki=*/10.0f, /*out_min=*/-10.0f, /*out_max=*/10.0f);
 
     for (int i = 0; i < 200; ++i) {
         step_component(pi, st, 0.016f);
@@ -205,8 +220,8 @@ TEST(PITest, AntiWindupCapsOutput)
 TEST(PITest, AntiWindupIntegralClamped)
 {
     // Integral contribution alone must not push output beyond [min, max]
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/100.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
-    auto st = make_state(10.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(10.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/100.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
 
     for (int i = 0; i < 1000; ++i) {
         step_component(pi, st, 0.016f);
@@ -220,8 +235,8 @@ TEST(PITest, AntiWindupIntegralClamped)
 
 TEST(PITest, ZeroGains_ZeroOutput)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/0.0f);
-    auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/100.0f, /*fb=*/0.0f, /*Kp=*/0.0f, /*Ki=*/0.0f);
 
     step_component(pi, st, 0.016f);
 
@@ -230,8 +245,8 @@ TEST(PITest, ZeroGains_ZeroOutput)
 
 TEST(PITest, ExtremeDt_ClampedToMax)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto st = make_state(10.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(10.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     // Run with extremely large dt
     step_component(pi, st, 10.0f);
@@ -242,8 +257,8 @@ TEST(PITest, ExtremeDt_ClampedToMax)
 
 TEST(PITest, TinyDt_ClampedToMin)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto st = make_state(10.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(10.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     step_component(pi, st, 1e-9f);
 
@@ -253,8 +268,8 @@ TEST(PITest, TinyDt_ClampedToMin)
 
 TEST(PITest, OutputSaturation_PositiveClamp)
 {
-    auto pi = make_pi(/*Kp=*/10.0f, /*Ki=*/0.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
-    auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/100.0f, /*fb=*/0.0f, /*Kp=*/10.0f, /*Ki=*/0.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
 
     step_component(pi, st, 0.016f);
 
@@ -264,8 +279,8 @@ TEST(PITest, OutputSaturation_PositiveClamp)
 
 TEST(PITest, OutputSaturation_NegativeClamp)
 {
-    auto pi = make_pi(/*Kp=*/10.0f, /*Ki=*/0.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
-    auto st = make_state(/*sp=*/0.0f, /*fb=*/100.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/0.0f, /*fb=*/100.0f, /*Kp=*/10.0f, /*Ki=*/0.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
 
     step_component(pi, st, 0.016f);
 
@@ -275,11 +290,11 @@ TEST(PITest, OutputSaturation_NegativeClamp)
 
 TEST(PITest, MultipleInstances_IndependentState)
 {
-    auto pi1 = make_pi(/*Kp=*/2.0f, /*Ki=*/0.1f);
-    auto pi2 = make_pi(/*Kp=*/2.0f, /*Ki=*/0.1f);
+    auto pi1 = make_pi();
+    auto pi2 = make_pi();
 
-    auto st1 = make_state(10.0f, 0.0f);
-    auto st2 = make_state(5.0f, 0.0f);
+    auto st1 = make_pi_state(10.0f, 0.0f, /*Kp=*/2.0f, /*Ki=*/0.1f);
+    auto st2 = make_pi_state(5.0f, 0.0f, /*Kp=*/2.0f, /*Ki=*/0.1f);
 
     for (int i = 0; i < 10; ++i) {
         step_component(pi1, st1, 0.016f);
@@ -293,7 +308,7 @@ TEST(PITest, MultipleInstances_IndependentState)
 TEST(PITest, ComparedToPID_NoDerivative)
 {
     // PI should behave like PID with Kd=0
-    auto pi = make_pi(/*Kp=*/1.0f, /*Ki=*/0.5f, -1e9f, 1e9f);
+    auto pi = make_pi();
 
     PID<JitProvider> pid;
     pid.Kp = 1.0f;
@@ -306,7 +321,7 @@ TEST(PITest, ComparedToPID_NoDerivative)
     pid.provider.set(PortNames::feedback, 1);
     pid.provider.set(PortNames::output, 2);
 
-    auto st_pi  = make_state(10.0f, 0.0f);
+    auto st_pi  = make_pi_state(10.0f, 0.0f, /*Kp=*/1.0f, /*Ki=*/0.5f, -1e9f, 1e9f);
     auto st_pid = make_state(10.0f, 0.0f);
 
     step_component(pi, st_pi, 0.01f);
@@ -485,17 +500,10 @@ TEST(PTest, ComparedToPI_KiZero)
     // P should behave like PI with Ki=0
     auto p = make_p(/*Kp=*/2.0f, -1e9f, 1e9f);
 
-    PI<JitProvider> pi;
-    pi.Kp = 2.0f;
-    pi.Ki = 0.0f;
-    pi.output_min = -1e9f;
-    pi.output_max = 1e9f;
-    pi.provider.set(PortNames::setpoint, 0);
-    pi.provider.set(PortNames::feedback, 1);
-    pi.provider.set(PortNames::output, 2);
+    auto pi = make_pi();
 
     auto st_p  = make_state(10.0f, 0.0f);
-    auto st_pi = make_state(10.0f, 0.0f);
+    auto st_pi = make_pi_state(10.0f, 0.0f, /*Kp=*/2.0f, /*Ki=*/0.0f, -1e9f, 1e9f);
 
     step_component(p, st_p, 0.01f);
     step_component(pi, st_pi, 0.01f);

@@ -5,10 +5,11 @@ template <typename Provider>
 void Relay<Provider>::commit_control(SimulationState& st, double dt) {
     (void)dt;
     float control = st.values[provider.get(PortNames::control)];
+    float ht = st.values[provider.get(PortNames::hold_threshold)];
 
-    if (control > hold_threshold) {
+    if (control > ht) {
         closed = true;
-    } else if (control < -hold_threshold) {
+    } else if (control < -ht) {
         closed = false;
     }
 

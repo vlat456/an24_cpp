@@ -24,6 +24,20 @@
       "direction": 1,
       "type": "Signal",
       "source_writer": false
+    },
+    {
+      "name": "gain",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "offset",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],
@@ -34,9 +48,5 @@
   "domains": [
     "Electrical",
     "Logical"
-  ],
-  "param_defaults": {
-    "gain": "1.0",
-    "offset": "0.0"
-  }
+  ]
 }

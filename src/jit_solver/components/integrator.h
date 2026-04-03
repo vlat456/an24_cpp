@@ -12,7 +12,6 @@ public:
 
     Provider provider;
 
-    float gain = 1.0f;
     float initial_val = 0.0f;
 
     // Committed state fields

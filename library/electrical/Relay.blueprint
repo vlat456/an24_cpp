@@ -31,6 +31,13 @@
       "direction": 1,
       "type": "V",
       "source_writer": false
+    },
+    {
+      "name": "hold_threshold",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],
@@ -44,16 +51,12 @@
   ],
   "param_defaults": {
     "closed": "false",
-    "hold_threshold": "0.5",
     "g_open": "1e-6",
     "g_closed": "1000.0"
   },
   "param_schema": {
     "closed": {
       "type": "bool"
-    },
-    "hold_threshold": {
-      "type": "float"
     },
     "g_open": {
       "type": "float"

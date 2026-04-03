@@ -7,17 +7,21 @@ TEST(ProductionPathPushRuntime, SinglePassSettlesLinearChain) {
         "devices": [
             {"name": "mul", "classname": "Multiply"},
             {"name": "add", "classname": "Add"},
-            {"name": "clamp", "classname": "Clamp", "params": {"min": "0.0", "max": "20.0"}},
+            {"name": "clamp", "classname": "Clamp"},
             {"name": "ra", "classname": "RefNode", "params": {"value": "2.0"}},
             {"name": "rb", "classname": "RefNode", "params": {"value": "4.0"}},
-            {"name": "rc", "classname": "RefNode", "params": {"value": "3.0"}}
+            {"name": "rc", "classname": "RefNode", "params": {"value": "3.0"}},
+            {"name": "v_min", "classname": "Value", "params": {"value": "0.0"}},
+            {"name": "v_max", "classname": "Value", "params": {"value": "20.0"}}
         ],
         "connections": [
             {"from": "ra.v", "to": "add.A"},
             {"from": "rb.v", "to": "add.B"},
             {"from": "add.o", "to": "mul.A"},
             {"from": "rc.v", "to": "mul.B"},
-            {"from": "mul.o", "to": "clamp.in"}
+            {"from": "mul.o", "to": "clamp.in"},
+            {"from": "v_min.o", "to": "clamp.min"},
+            {"from": "v_max.o", "to": "clamp.max"}
         ]
     })";
 

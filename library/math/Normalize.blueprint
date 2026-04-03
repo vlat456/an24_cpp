@@ -17,6 +17,20 @@
       "direction": 1,
       "type": "Any",
       "source_writer": false
+    },
+    {
+      "name": "min",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "max",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],
@@ -26,9 +40,5 @@
   "description": "Maps [min..max] range to [0..1]. Result is clamped.",
   "domains": [
     "Logical"
-  ],
-  "param_defaults": {
-    "max": "100.0",
-    "min": "0.0"
-  }
+  ]
 }

@@ -9,6 +9,7 @@ void Integrator<Provider>::execute(SimulationState& st, double dt) {
 
     float val_in = st.values[in_idx];
     float reset_in = st.values[reset_idx];
+    float g = st.values[provider.get(PortNames::gain)];
 
     // === Two-Phase State Semantics ===
 
@@ -18,7 +19,7 @@ void Integrator<Provider>::execute(SimulationState& st, double dt) {
     float committed_mask = 0.0f; // first_frame_mask consumed
 
     // Integration: accumulate with gain scaling
-    float integrated = committed_acc + val_in * gain * dt;
+    float integrated = committed_acc + val_in * g * dt;
 
     // Reset: if reset signal > 0.5, zero out (branchless)
     float new_accumulator = (reset_in > 0.5f) ? 0.0f : integrated;
