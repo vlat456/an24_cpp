@@ -94,17 +94,44 @@ void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::Stri
 void RefNodeWidget::positionPort() {
     if (!port_) return;
 
-    const float grid = editor_constants::PORT_LAYOUT_GRID;
     const float center_x = size().x * 0.5f;
-    float snapped_center_x = std::round(center_x / grid) * grid;
+    const float center_y = size().y * 0.5f;
+    const float clamped_center_x = std::clamp(center_x,
+                                              PortConstants::RADIUS,
+                                              size().x - PortConstants::RADIUS);
+    const float clamped_center_y = std::clamp(center_y,
+                                              PortConstants::RADIUS,
+                                              size().y - PortConstants::RADIUS);
 
-    // Keep the snapped center inside the node body.
-    snapped_center_x = std::clamp(snapped_center_x,
-                                  PortConstants::RADIUS,
-                                  size().x - PortConstants::RADIUS);
+    Pt local_pos;
+    switch (port_layout_side_) {
+        case PortLayoutSide::Left:
+            local_pos = Pt(-PortConstants::RADIUS,
+                           clamped_center_y - PortConstants::RADIUS);
+            break;
+        case PortLayoutSide::Right:
+            local_pos = Pt(size().x - PortConstants::RADIUS,
+                           clamped_center_y - PortConstants::RADIUS);
+            break;
+        case PortLayoutSide::Bottom:
+            local_pos = Pt(clamped_center_x - PortConstants::RADIUS,
+                           size().y - PortConstants::RADIUS);
+            break;
+        case PortLayoutSide::Top:
+        default:
+            local_pos = Pt(clamped_center_x - PortConstants::RADIUS,
+                           -PortConstants::RADIUS);
+            break;
+    }
 
-    port_->setLocalPos(Pt(snapped_center_x - PortConstants::RADIUS,
-                          -PortConstants::RADIUS));
+    port_->setLayoutSide(port_layout_side_);
+    port_->setLocalPos(local_pos);
+}
+
+void RefNodeWidget::setPortLayoutSide(PortLayoutSide side) {
+    if (port_layout_side_ == side) return;
+    port_layout_side_ = side;
+    positionPort();
 }
 
 Port* RefNodeWidget::port(std::string_view name) const {

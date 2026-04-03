@@ -204,6 +204,9 @@ private:
     /// Handle DraggingNode state: move selected nodes + invalidate connected wires.
     void handle_drag_node(Pt world_delta);
 
+    /// Re-orient a ref/value single-port node toward its connected neighbor.
+    void orient_ref_node_port(ui::InternedId ref_node_id);
+
     /// Handle ResizingNode state: corner-aware resize with min-size enforcement.
     void handle_resize_node(Pt world_delta);
 

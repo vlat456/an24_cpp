@@ -9,6 +9,7 @@
 #include "scene.h"
 #include "node/node_factory.h"
 #include "node/bus_node_widget.h"
+#include "node/ref_node_widget.h"
 #include "node/visual_node.h"
 #include "wire/wire.h"
 #include "wire/routing_point.h"
@@ -18,6 +19,7 @@
 #include <algorithm>
 #include <cassert>
 #include <optional>
+#include <unordered_map>
 
 namespace visual::mutations {
 
@@ -103,6 +105,61 @@ static visual::Wire* create_wire_widget(Scene& scene,
     return wire_ptr;
 }
 
+static PortLayoutSide side_from_relative_position(Pt from_center, Pt to_center) {
+    const float dx = to_center.x - from_center.x;
+    const float dy = to_center.y - from_center.y;
+    if (std::abs(dx) >= std::abs(dy)) {
+        return (dx >= 0.0f) ? PortLayoutSide::Right : PortLayoutSide::Left;
+    }
+    return (dy >= 0.0f) ? PortLayoutSide::Bottom : PortLayoutSide::Top;
+}
+
+static void orient_ref_node_ports(Scene& scene,
+                                  const bp2::Blueprint& bp,
+                                  const bp2::PathArena& arena,
+                                  const ui::StringInterner& interner,
+                                  std::string_view group_id) {
+    std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
+
+    for (const bp2::Blueprint::Wire& w : bp.wires()) {
+        auto [src_node_id, _src_port] = path_to_node_port(w.source, arena);
+        auto [tgt_node_id, _tgt_port] = path_to_node_port(w.target, arena);
+        if (src_node_id.empty() || tgt_node_id.empty()) continue;
+
+        const bp2::Blueprint::Node* src_node = bp.find_node(src_node_id);
+        const bp2::Blueprint::Node* tgt_node = bp.find_node(tgt_node_id);
+        if (!src_node || !tgt_node) continue;
+        if (src_node->group_id != group_id || tgt_node->group_id != group_id) continue;
+
+        if (src_node->render_hint == "ref" && ref_to_connected.count(src_node_id) == 0) {
+            ref_to_connected.emplace(src_node_id, tgt_node_id);
+        }
+        if (tgt_node->render_hint == "ref" && ref_to_connected.count(tgt_node_id) == 0) {
+            ref_to_connected.emplace(tgt_node_id, src_node_id);
+        }
+    }
+
+    for (const auto& [ref_id, other_id] : ref_to_connected) {
+        Widget* ref_widget = scene.find(interner.resolve(ref_id));
+        Widget* other_widget = scene.find(interner.resolve(other_id));
+        if (!ref_widget || !other_widget) continue;
+
+        auto* ref_node = dynamic_cast<RefNodeWidget*>(ref_widget);
+        if (!ref_node) continue;
+
+        const Pt ref_pos = ref_widget->worldPos();
+        const Pt ref_size = ref_widget->size();
+        const Pt other_pos = other_widget->worldPos();
+        const Pt other_size = other_widget->size();
+
+        const Pt ref_center(ref_pos.x + ref_size.x * 0.5f, ref_pos.y + ref_size.y * 0.5f);
+        const Pt other_center(other_pos.x + other_size.x * 0.5f,
+                              other_pos.y + other_size.y * 0.5f);
+
+        ref_node->setPortLayoutSide(side_from_relative_position(ref_center, other_center));
+    }
+}
+
 // ============================================================================
 // Public API
 // ============================================================================
@@ -129,6 +186,9 @@ void rebuild(Scene& scene,
         std::unique_ptr<Widget> widget = NodeFactory::create(n, interner, bus_wires);
         scene.add(std::move(widget));
     }
+
+    // Orient single-port ref/value nodes toward their connected node.
+    orient_ref_node_ports(scene, bp, arena, interner, group_id);
 
     // 2) Create wire widgets for wires whose both endpoints are in this group
     for (const bp2::Blueprint::Wire& w : bp.wires()) {

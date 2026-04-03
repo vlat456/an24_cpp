@@ -8,6 +8,7 @@
 #include "visual/port/visual_port.h"
 #include "visual/node/group_node_widget.h"
 #include "visual/node/visual_node.h"
+#include "visual/node/ref_node_widget.h"
 #include "visual/widgets/content_widgets.h"
 #include "visual/snap.h"
 #include "viewport/viewport.h"
@@ -22,6 +23,15 @@
 #include <cassert>
 #include <cstdio>
 #include <unordered_set>
+
+static PortLayoutSide side_from_relative_position(Pt from_center, Pt to_center) {
+    const float dx = to_center.x - from_center.x;
+    const float dy = to_center.y - from_center.y;
+    if (std::abs(dx) >= std::abs(dy)) {
+        return (dx >= 0.0f) ? PortLayoutSide::Right : PortLayoutSide::Left;
+    }
+    return (dy >= 0.0f) ? PortLayoutSide::Bottom : PortLayoutSide::Top;
+}
 
 // ============================================================================
 // File-local helpers
@@ -691,10 +701,11 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
 void CanvasInput::commit_drag_node() {
     auto nodes = selected_nodes();
     bool any_moved = false;
+    std::vector<ui::InternedId> moved_node_ids;
     for (size_t i = 0; i < nodes.size() && i < drag_initial_positions_.size(); ++i) {
         if (nodes[i]->worldPos() != drag_initial_positions_[i]) {
             any_moved = true;
-            break;
+            moved_node_ids.push_back(interner_.intern(nodes[i]->id()));
         }
     }
     if (!any_moved) return;
@@ -704,7 +715,58 @@ void CanvasInput::commit_drag_node() {
             execute(model_, interner_, cmd_move_node(node_iid, widget->worldPos().x, widget->worldPos().y));
         }
     }
+
+    // Re-orient single-port ref/value nodes after move commit.
+    for (ui::InternedId moved_id : moved_node_ids) {
+        orient_ref_node_port(moved_id);
+
+        for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
+            auto [src_node, _src_port] = path_to_node_port(w.source, arena_);
+            auto [tgt_node, _tgt_port] = path_to_node_port(w.target, arena_);
+            if (src_node == moved_id) orient_ref_node_port(tgt_node);
+            if (tgt_node == moved_id) orient_ref_node_port(src_node);
+        }
+    }
+
     debug_validate_command_boundary(model_, interner_, arena_);
+}
+
+void CanvasInput::orient_ref_node_port(ui::InternedId ref_node_id) {
+    if (ref_node_id.empty()) return;
+
+    const bp2::Blueprint::Node* ref_node = model_.current().find_node(ref_node_id);
+    if (!ref_node || ref_node->group_id != group_id_ || ref_node->render_hint != "ref") return;
+
+    ui::InternedId connected_node_id;
+    for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
+        auto [src_node, _src_port] = path_to_node_port(w.source, arena_);
+        auto [tgt_node, _tgt_port] = path_to_node_port(w.target, arena_);
+
+        if (src_node == ref_node_id) {
+            connected_node_id = tgt_node;
+            break;
+        }
+        if (tgt_node == ref_node_id) {
+            connected_node_id = src_node;
+            break;
+        }
+    }
+    if (connected_node_id.empty()) return;
+
+    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(resolve_node(ref_node_id));
+    auto* other_widget = resolve_node(connected_node_id);
+    if (!ref_widget || !other_widget) return;
+
+    const Pt ref_pos = ref_widget->worldPos();
+    const Pt ref_size = ref_widget->size();
+    const Pt other_pos = other_widget->worldPos();
+    const Pt other_size = other_widget->size();
+
+    const Pt ref_center(ref_pos.x + ref_size.x * 0.5f, ref_pos.y + ref_size.y * 0.5f);
+    const Pt other_center(other_pos.x + other_size.x * 0.5f,
+                          other_pos.y + other_size.y * 0.5f);
+
+    ref_widget->setPortLayoutSide(side_from_relative_position(ref_center, other_center));
 }
 
 void CanvasInput::commit_drag_routing_point() {
