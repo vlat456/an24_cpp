@@ -16,6 +16,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
+#include "visual/snap.h"
 #include <algorithm>
 #include <cassert>
 #include <optional>
@@ -105,14 +106,7 @@ static visual::Wire* create_wire_widget(Scene& scene,
     return wire_ptr;
 }
 
-static PortLayoutSide side_from_relative_position(Pt from_center, Pt to_center) {
-    const float dx = to_center.x - from_center.x;
-    const float dy = to_center.y - from_center.y;
-    if (std::abs(dx) >= std::abs(dy)) {
-        return (dx >= 0.0f) ? PortLayoutSide::Right : PortLayoutSide::Left;
-    }
-    return (dy >= 0.0f) ? PortLayoutSide::Bottom : PortLayoutSide::Top;
-}
+// side_from_relative_position() lives in editor_math (snap.h)
 
 static void orient_ref_node_ports(Scene& scene,
                                   const bp2::Blueprint& bp,
@@ -156,7 +150,7 @@ static void orient_ref_node_ports(Scene& scene,
         const Pt other_center(other_pos.x + other_size.x * 0.5f,
                               other_pos.y + other_size.y * 0.5f);
 
-        ref_node->setPortLayoutSide(side_from_relative_position(ref_center, other_center));
+        ref_node->setPortLayoutSide(editor_math::side_from_relative_position(ref_center, other_center));
     }
 }
 

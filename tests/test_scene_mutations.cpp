@@ -8,6 +8,7 @@
 #include "visual/node/visual_node.h"
 #include "visual/node/ref_node_widget.h"
 #include "editor/layout_constants.h"
+#include "visual/snap.h"
 #include "visual/wire/wire.h"
 #include "visual/wire/routing_point.h"
 #include "visual/node/bus_node_widget.h"
@@ -298,7 +299,7 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
     EXPECT_NE(scene.find("wire_200"), nullptr);
 }
 
-TEST(SceneMutations, RefNodePortCenterSnapsToLayoutGrid) {
+TEST(SceneMutations, RefNodePortCenteredOnNodeWidth) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
@@ -318,7 +319,197 @@ TEST(SceneMutations, RefNodePortCenterSnapsToLayoutGrid) {
     auto* p = ref_widget->port("v");
     ASSERT_NE(p, nullptr);
 
-    constexpr float g = editor_constants::PORT_LAYOUT_GRID;
+    // Default port_layout_side_ is Top: port center should be at half the node width.
     const float center_x = p->localPos().x + visual::PortConstants::RADIUS;
-    EXPECT_NEAR(std::round(center_x / g) * g, center_x, 1e-4f);
+    const float expected_center_x = ref_widget->size().x * 0.5f;
+    EXPECT_NEAR(center_x, expected_center_x, 1e-4f);
+}
+
+// ============================================================================
+// Ref node auto-orientation
+// ============================================================================
+
+TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Right) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    // ref at (0,0), battery at (200,0) → ref should face right
+    auto ref = make_bp2_node(interner, "ref1", "RefNode");
+    ref.render_hint = "ref";
+    ref.x = 0; ref.y = 0;
+    ref.outputs.push_back(EditorPort(interner.intern("v"), PortSide::Output, PortType::V));
+
+    auto bat = make_bp2_node(interner, "bat1", "Battery");
+    bat.x = 200; bat.y = 0;
+    bat.inputs.push_back(EditorPort(interner.intern("v_in"), PortSide::Input, PortType::V));
+
+    auto wire = make_bp2_wire(interner, arena, "w1", "ref1", "v", "bat1", "v_in");
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(ref));
+    bp = bp.with_node(std::move(bat));
+    bp = bp.with_wire(std::move(wire));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    auto* p = ref_widget->port("v");
+    ASSERT_NE(p, nullptr);
+    // Port should be on Right edge → port center x near node width
+    float port_center_x = p->localPos().x + visual::PortConstants::RADIUS;
+    EXPECT_NEAR(port_center_x, ref_widget->size().x, 1e-4f);
+}
+
+TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Left) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    // ref at (200,0), battery at (0,0) → ref should face left
+    auto ref = make_bp2_node(interner, "ref1", "RefNode");
+    ref.render_hint = "ref";
+    ref.x = 200; ref.y = 0;
+    ref.outputs.push_back(EditorPort(interner.intern("v"), PortSide::Output, PortType::V));
+
+    auto bat = make_bp2_node(interner, "bat1", "Battery");
+    bat.x = 0; bat.y = 0;
+    bat.inputs.push_back(EditorPort(interner.intern("v_in"), PortSide::Input, PortType::V));
+
+    auto wire = make_bp2_wire(interner, arena, "w1", "ref1", "v", "bat1", "v_in");
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(ref));
+    bp = bp.with_node(std::move(bat));
+    bp = bp.with_wire(std::move(wire));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    auto* p = ref_widget->port("v");
+    ASSERT_NE(p, nullptr);
+    // Port should be on Left edge → port center x near 0
+    float port_center_x = p->localPos().x + visual::PortConstants::RADIUS;
+    EXPECT_NEAR(port_center_x, 0.0f, 1e-4f);
+}
+
+TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Bottom) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    // ref at (0,0), battery at (0,200) → ref should face bottom
+    auto ref = make_bp2_node(interner, "ref1", "RefNode");
+    ref.render_hint = "ref";
+    ref.x = 0; ref.y = 0;
+    ref.outputs.push_back(EditorPort(interner.intern("v"), PortSide::Output, PortType::V));
+
+    auto bat = make_bp2_node(interner, "bat1", "Battery");
+    bat.x = 0; bat.y = 200;
+    bat.inputs.push_back(EditorPort(interner.intern("v_in"), PortSide::Input, PortType::V));
+
+    auto wire = make_bp2_wire(interner, arena, "w1", "ref1", "v", "bat1", "v_in");
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(ref));
+    bp = bp.with_node(std::move(bat));
+    bp = bp.with_wire(std::move(wire));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    auto* p = ref_widget->port("v");
+    ASSERT_NE(p, nullptr);
+    // Port should be on Bottom edge → port center y near node height
+    float port_center_y = p->localPos().y + visual::PortConstants::RADIUS;
+    EXPECT_NEAR(port_center_y, ref_widget->size().y, 1e-4f);
+}
+
+TEST(SceneMutations, RefNodeWithoutWireKeepsDefaultTopOrientation) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto ref = make_bp2_node(interner, "ref1", "RefNode");
+    ref.render_hint = "ref";
+    ref.outputs.push_back(EditorPort(interner.intern("v"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(ref));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    auto* p = ref_widget->port("v");
+    ASSERT_NE(p, nullptr);
+    // No wire → stays Top (default). Port center y should be at -RADIUS (top edge).
+    float port_center_y = p->localPos().y + visual::PortConstants::RADIUS;
+    EXPECT_NEAR(port_center_y, 0.0f, 1e-4f);
+}
+
+// ============================================================================
+// snap_to_half_grid
+// ============================================================================
+
+TEST(SnapMath, SnapToHalfGrid) {
+    float grid = 16.0f;
+    // Exact half-grid points remain unchanged
+    auto r1 = editor_math::snap_to_half_grid(ui::Pt(8.0f, 8.0f), grid);
+    EXPECT_NEAR(r1.x, 8.0f, 1e-4f);
+    EXPECT_NEAR(r1.y, 8.0f, 1e-4f);
+
+    // Snaps to nearest half-grid (0, 8, 16, 24, ...)
+    auto r2 = editor_math::snap_to_half_grid(ui::Pt(3.0f, 11.0f), grid);
+    EXPECT_NEAR(r2.x, 0.0f, 1e-4f);   // 3 rounds to 0
+    EXPECT_NEAR(r2.y, 8.0f, 1e-4f);   // 11 rounds to 8
+
+    auto r3 = editor_math::snap_to_half_grid(ui::Pt(5.0f, 13.0f), grid);
+    EXPECT_NEAR(r3.x, 8.0f, 1e-4f);   // 5 rounds to 8
+    EXPECT_NEAR(r3.y, 16.0f, 1e-4f);  // 13 rounds to 16
+
+    // Full grid points are also half-grid points
+    auto r4 = editor_math::snap_to_half_grid(ui::Pt(16.0f, 32.0f), grid);
+    EXPECT_NEAR(r4.x, 16.0f, 1e-4f);
+    EXPECT_NEAR(r4.y, 32.0f, 1e-4f);
+
+    // Guard: zero grid step returns input unchanged
+    auto r5 = editor_math::snap_to_half_grid(ui::Pt(7.3f, 2.1f), 0.0f);
+    EXPECT_NEAR(r5.x, 7.3f, 1e-4f);
+    EXPECT_NEAR(r5.y, 2.1f, 1e-4f);
+}
+
+// ============================================================================
+// side_from_relative_position
+// ============================================================================
+
+TEST(SnapMath, SideFromRelativePosition) {
+    using editor_math::side_from_relative_position;
+    using ui::Pt;
+
+    Pt origin(100, 100);
+
+    // Clearly to the right
+    EXPECT_EQ(side_from_relative_position(origin, Pt(200, 100)), PortLayoutSide::Right);
+    // Clearly to the left
+    EXPECT_EQ(side_from_relative_position(origin, Pt(0, 100)), PortLayoutSide::Left);
+    // Clearly below
+    EXPECT_EQ(side_from_relative_position(origin, Pt(100, 200)), PortLayoutSide::Bottom);
+    // Clearly above
+    EXPECT_EQ(side_from_relative_position(origin, Pt(100, 0)), PortLayoutSide::Top);
+
+    // Diagonal 45° — dx==dy → horizontal wins (right)
+    EXPECT_EQ(side_from_relative_position(origin, Pt(200, 200)), PortLayoutSide::Right);
+    // Diagonal 45° — dx==-dy → horizontal wins (left)
+    EXPECT_EQ(side_from_relative_position(origin, Pt(0, 200)), PortLayoutSide::Left);
+
+    // Same position — dx==dy==0 → horizontal wins (right by >=0 check)
+    EXPECT_EQ(side_from_relative_position(origin, origin), PortLayoutSide::Right);
 }

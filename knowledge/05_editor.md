@@ -340,6 +340,80 @@ void Document::openExternalRefWindow(const std::string& instance_id,
 | Viewport | `src/editor/viewport/viewport.h` |
 | CanvasInput | `src/editor/input/canvas_input.h` |
 | NodeWidget | `src/editor/visual/node/visual_node.h` |
+| RefNodeWidget | `src/editor/visual/node/ref_node_widget.h` |
 | Port | `src/editor/visual/port/visual_port.h` |
 | RenderContext | `src/editor/visual/render_context.h` |
 | EditorApp | `src/editor/app/editor_app.h` |
+
+## Ref/Value Nodes (render_hint: "ref")
+
+Ref/Value nodes are special lightweight nodes that display a single value (numeric constant) inline without a full component header.
+
+### Behavior
+
+- **Non-resizable** — inherits `Widget::isResizable() == false`, no resize handles drawn
+- **Dynamic size** — width = text content width + 16px horizontal padding; height = font height + 4px vertical padding
+- **No grid snapping on size** — size is computed from content, not snapped to `PORT_LAYOUT_GRID`
+- **Auto-facing port** — the single port automatically faces toward the connected node:
+  - Connected node to the right → port on right edge
+  - Connected node to the left → port on left edge
+  - Connected node below → port on bottom edge
+  - Connected node above → port on top edge
+- **Half-grid dragging** — when only Ref/Value nodes are selected, drag snaps to half-grid (between grid lines) instead of full grid intersections
+- **Vertical centering** — value text is rendered directly with proper vertical centering in the node body
+
+### Port Auto-Orientation Triggers
+
+1. **At scene rebuild** — `orient_ref_node_ports()` in `scene_mutations.cpp` runs after all node widgets are created
+2. **At mouse-release drag commit** — `orient_ref_node_port()` in `canvas_input.cpp` re-orients moved nodes and their connected ref/value nodes
+
+### Files
+
+| File | Role |
+|------|------|
+| `ref_node_widget.h` | `setPortLayoutSide()`, `port_layout_side_` member |
+| `ref_node_widget.cpp` | Dynamic size from text, direct text rendering with vertical centering |
+| `scene_mutations.cpp` | `orient_ref_node_ports()` — rebuild-time orientation |
+| `canvas_input.cpp` | `orient_ref_node_port()` — drag-commit orientation |
+| `snap.h` | `snap_to_half_grid()` — snaps to half-grid (grid/2 increments) |
+
+## Wire Rendering
+
+### Simple Wires (2-point, no routing points)
+
+Simple wires are rendered as a single cubic Bezier curve for a cleaner visual appearance:
+- Control points are horizontal handles: `c1 = start + (handle, 0)`, `c2 = end - (handle, 0)`
+- `handle = clamp(|dx| * 0.45, 20, 140)` — adapts curve tightness to wire length
+- Arrowhead follows Bezier tangent at end (`end - c2`)
+
+### Routed Wires (with intermediate routing points)
+
+Rendered as polyline segments (unchanged), with crossing arc gaps preserved.
+
+### Hit Testing
+
+Hit testing and crossing detection use the underlying polyline geometry, not the Bezier samples. This means for 2-point Bezier wires, click detection uses the straight-line approximation.
+
+## Grid Snapping
+
+| Action | Default | Shift held |
+|--------|---------|------------|
+| Node drag (standard) | Grid intersections | Grid intersections |
+| Node drag (ref/value only) | Half-grid (between lines) | Grid intersections |
+| Routing point drag | Free (no snap) | Grid intersections |
+| Resize drag | Grid snap | Grid snap |
+
+## Port Layout
+
+### Multi-Port Nodes
+
+Port groups (all ports on one edge) are **centered on the respective node edge**:
+- Left/right side columns have Spacer children above and below port rows
+- Per-port spacing preserved (each port still gets `ROW_HEIGHT` vertical space)
+- Top/bottom port strips use mathematically centered positions without layout-grid snapping on X
+
+### Single-Port Nodes (Ref/Value)
+
+Port is placed at the **exact geometric center** of the selected edge:
+- No snapping to `PORT_LAYOUT_GRID` on center position
+- Only clamped to keep port circle within node body bounds

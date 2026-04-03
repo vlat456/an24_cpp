@@ -212,8 +212,8 @@
         }
       },
       "position": {
-        "x": 176.0,
-        "y": 208.0
+        "x": 256.0,
+        "y": 232.0
       },
       "render_hint": "ref",
       "type": "Value",
@@ -233,8 +233,8 @@
         }
       },
       "position": {
-        "x": 208.0,
-        "y": 80.0
+        "x": 256.0,
+        "y": 248.0
       },
       "render_hint": "ref",
       "type": "Value",
@@ -295,8 +295,8 @@
         }
       },
       "position": {
-        "x": 208.0,
-        "y": 288.0
+        "x": 256.0,
+        "y": 280.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -314,8 +314,8 @@
         }
       },
       "position": {
-        "x": 240.0,
-        "y": 224.0
+        "x": 256.0,
+        "y": 264.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -364,7 +364,7 @@
         "x": -304.0,
         "y": 48.0
       },
-      "params": {
+      "string_params": {
         "table": "0.0:21.0; 0.5:24.0; 1.0:25.2"
       },
       "type": "LUT"
@@ -581,8 +581,8 @@
       "type": "BlueprintOutput"
     }
   ],
-  "pan_x": -97.23382568359375,
-  "pan_y": -72.0474624633789,
+  "pan_x": 25.1693115234375,
+  "pan_y": 56.92296600341797,
   "scheduler_source": false,
   "version": "3.0",
   "wires": [
@@ -702,5 +702,5 @@
       "target": "/src:max_v"
     }
   ],
-  "zoom": 1.4851149320602417
+  "zoom": 2.5094454288482666
 }

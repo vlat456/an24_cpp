@@ -154,6 +154,15 @@ All nodes must have a non-empty `name` field. For Value nodes, use `render_hint:
 }
 ```
 
+## Editor Grid Snapping
+
+| Action | Default | Shift held |
+|--------|---------|------------|
+| Standard node drag | Grid intersections | Grid intersections |
+| Ref/Value node drag | Half-grid (between lines) | Grid intersections |
+| Routing point drag | Free (no snap) | Grid intersections |
+| Resize drag | Grid snap | Grid snap |
+
 ## Test Pattern
 
 ```cpp

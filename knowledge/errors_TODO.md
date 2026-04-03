@@ -476,6 +476,74 @@ Two blueprints in `closed_circuit.blueprint` contain reusable electrical enginee
 
 ---
 
+### ~~23. Ref/Value Node Auto-Facing Ports + Free Placement~~ ✓ COMPLETED
+
+**Status:** CLOSED
+
+Ref/Value nodes (nodes with `render_hint == "ref"`) now have:
+- Single port automatically faces toward the connected node (right/left/top/bottom edge)
+- Dynamic size based on text content (no fixed dimensions, no grid snapping on size)
+- Non-resizable (no resize handles, `isResizable() == false`)
+- Value text rendered directly with proper vertical centering
+- Half-grid snapping during drag (when only ref/value nodes are selected)
+- Port edge placement is mathematically centered (no layout-grid rounding)
+
+**Files changed:**
+
+- `src/editor/visual/node/ref_node_widget.h` — `setPortLayoutSide()`, `port_layout_side_` member, removed `isResizable()`
+- `src/editor/visual/node/ref_node_widget.cpp` — dynamic size from text, direct text rendering, no grid snapping, all 4 edge placements
+- `src/editor/visual/scene_mutations.cpp` — `orient_ref_node_ports()` after scene rebuild
+- `src/editor/input/canvas_input.h` — declared `orient_ref_node_port()`
+- `src/editor/input/canvas_input.cpp` — `orient_ref_node_port()` + called from `commit_drag_node()`
+- `src/editor/visual/snap.h` — added `snap_to_half_grid()`
+- `src/editor/visual/primitives/primitives.cpp` — Label estimate width 0.6→0.8
+
+**Regression tests needed:**
+- Ref/value node port orientation after scene rebuild
+- Ref/value node port re-orientation after node drag
+- Ref/value node port re-orientation for adjacent nodes when one is dragged
+- Half-grid snapping during ref/value node drag
+- Full-grid snapping when Shift is held during ref/value node drag
+- Node size equals text width + 16px padding (no fixed 48×32)
+- Text is vertically centered in node body
+- Non-resizable (no resize handles drawn, `isResizable() == false`)
+
+---
+
+### ~~24. Bezier Wire Rendering (2-point)~~ ✓ COMPLETED
+
+**Status:** CLOSED
+
+Simple 2-point wires (no routing points) render as cubic Bezier curves:
+- Control points: `c1 = start + (handle, 0)`, `c2 = end - (handle, 0)`
+- `handle = clamp(|dx| * 0.45, 20, 140)` — adapts to wire length
+- Arrowhead follows Bezier tangent
+- Routed wires (with routing points) remain polyline (unchanged)
+
+**Files changed:**
+
+- `src/editor/visual/wire/wire.cpp` — `render_simple_bezier_wire()`, `eval_cubic_bezier()`, `draw_arrowhead_from_direction()`
+
+**Note:** Hit testing and crossing detection still use straight-line polyline geometry.
+
+---
+
+### ~~25. Port Group Edge Centering~~ ✓ COMPLETED
+
+**Status:** CLOSED
+
+Multi-port nodes (standard component nodes) now center port groups on their respective edges:
+- Left/right columns: Spacer children above and below port rows for vertical centering
+- Top/bottom strips: no layout-grid X snapping (mathematically centered)
+- Per-port vertical spacing preserved
+
+**Files changed:**
+
+- `src/editor/visual/node/visual_node.cpp` — body row layout with centered left/right port columns
+- `src/editor/visual/container/port_row.h` — removed grid snapping from horizontal strip port X positions
+
+---
+
 ### ~~15. Full Test Suite Migration to Push Runtime~~ ✓ COMPLETED (with explicit deprecations)
 
 **Status:** Full OFF-mode suite builds and runs.
@@ -925,5 +993,8 @@ alignas(64) std::vector<float> through;
 | E-008 | Variable dt without clamping               | ~~Low-Med~~| Low    | **FIXED**           |
 | E-009 | 9-phase pipeline over-engineering          | ~~Low~~    | Low    | **RESOLVED** (N/A)  |
 | E-010 | Composite port lookup failure              | ~~High~~   | Low    | **FIXED**           |
-| DT    | float dt → double dt conversion           | ~~Medium~~ | Medium | **COMPLETED**      |
-| 22    | Extract functional blueprints to C++      | Medium     | Medium | **OPEN**           |
+| DT    | float dt → double dt conversion           | ~~Medium~~ | Medium | **COMPLETED**       |
+| 22    | Extract functional blueprints to C++      | Medium     | Medium | **OPEN**            |
+| 23    | Ref/Value node auto-facing ports + free placement | ~~Medium~~ | Medium | **FIXED**  |
+| 24    | Bezier wire rendering (2-point)            | ~~Low~~    | Low    | **FIXED**           |
+| 25    | Port group edge centering                  | ~~Low~~    | Low    | **FIXED**           |

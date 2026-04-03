@@ -24,14 +24,7 @@
 #include <cstdio>
 #include <unordered_set>
 
-static PortLayoutSide side_from_relative_position(Pt from_center, Pt to_center) {
-    const float dx = to_center.x - from_center.x;
-    const float dy = to_center.y - from_center.y;
-    if (std::abs(dx) >= std::abs(dy)) {
-        return (dx >= 0.0f) ? PortLayoutSide::Right : PortLayoutSide::Left;
-    }
-    return (dy >= 0.0f) ? PortLayoutSide::Bottom : PortLayoutSide::Top;
-}
+// side_from_relative_position() lives in editor_math (snap.h)
 
 // ============================================================================
 // File-local helpers
@@ -519,7 +512,23 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
 
 void CanvasInput::handle_drag_node(Pt world_delta) {
     drag_anchor_ = drag_anchor_ + world_delta;
-    Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
+
+    // Ref/Value nodes snap to half-grid (between grid lines).
+    // Other nodes snap to the grid.
+    bool all_ref_nodes = true;
+    for (auto* w : selected_nodes()) {
+        ui::InternedId nid = interner_.intern(w->id());
+        if (nid.empty()) continue;
+        const bp2::Blueprint::Node* n = model_.current().find_node(nid);
+        if (!n || n->render_hint != "ref") {
+            all_ref_nodes = false;
+            break;
+        }
+    }
+    Pt snapped = all_ref_nodes
+        ? editor_math::snap_to_half_grid(drag_anchor_, viewport_.grid_step)
+        : editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
+
     auto nodes = selected_nodes();
 
     // Collect wire IDs connected to any moved node (for grid update).
@@ -766,7 +775,7 @@ void CanvasInput::orient_ref_node_port(ui::InternedId ref_node_id) {
     const Pt other_center(other_pos.x + other_size.x * 0.5f,
                           other_pos.y + other_size.y * 0.5f);
 
-    ref_widget->setPortLayoutSide(side_from_relative_position(ref_center, other_center));
+    ref_widget->setPortLayoutSide(editor_math::side_from_relative_position(ref_center, other_center));
 }
 
 void CanvasInput::commit_drag_routing_point() {
