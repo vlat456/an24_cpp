@@ -1,0 +1,706 @@
+{
+  "cpp_class": false,
+  "description": "12SAM28",
+  "display_name": "12SAM28",
+  "domains": [
+    "Electrical",
+    "Logical"
+  ],
+  "grid_step": 16.0,
+  "id": "12SAM28",
+  "interface": [
+    {
+      "direction": 1,
+      "domain": 1,
+      "name": "charge_out",
+      "source_writer": false,
+      "type": "Any"
+    },
+    {
+      "direction": 1,
+      "domain": 1,
+      "name": "soc_out",
+      "source_writer": false,
+      "type": "Any"
+    },
+    {
+      "direction": 0,
+      "domain": 1,
+      "name": "v_in",
+      "source_writer": false,
+      "type": "V"
+    },
+    {
+      "direction": 1,
+      "domain": 1,
+      "name": "v_out",
+      "source_writer": false,
+      "type": "V"
+    }
+  ],
+  "name": "12SAM28",
+  "nested": [],
+  "nodes": [
+    {
+      "id": "accum",
+      "name": "accum",
+      "params": {
+        "initial_val": 28.0
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 80.0,
+        "y": 288.0
+      },
+      "type": "Accumulator"
+    },
+    {
+      "id": "charge_out",
+      "name": "charge_out",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 7
+        },
+        "port": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": -144.0
+      },
+      "string_params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    },
+    {
+      "id": "clamp_charge",
+      "name": "clamp_charge",
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "max": {
+          "direction": "In",
+          "type": 7
+        },
+        "min": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -176.0,
+        "y": -64.0
+      },
+      "type": "Clamp"
+    },
+    {
+      "id": "csense",
+      "name": "csense",
+      "params": {
+        "conductance": 1000.0
+      },
+      "ports": {
+        "i_out": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 304.0,
+        "y": -80.0
+      },
+      "type": "CurrentSense"
+    },
+    {
+      "id": "k_charge_max",
+      "name": "k_charge_max",
+      "params": {
+        "value": 28.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -208.0,
+        "y": -128.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "k_charge_max_2",
+      "name": "k_charge_max_2",
+      "params": {
+        "value": 28.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -160.0,
+        "y": 128.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "height": 128.0,
+      "id": "k_neg_inv3600",
+      "name": "k_neg_inv3600",
+      "params": {
+        "value": -0.00027777778450399637
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -336.0,
+        "y": 368.0
+      },
+      "render_hint": "ref",
+      "type": "Value",
+      "width": 160.0
+    },
+    {
+      "height": 64.0,
+      "id": "k_one",
+      "name": "k_one",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 176.0,
+        "y": 208.0
+      },
+      "render_hint": "ref",
+      "type": "Value",
+      "width": 48.0
+    },
+    {
+      "height": 64.0,
+      "id": "k_vmax",
+      "name": "k_vmax",
+      "params": {
+        "value": 30.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 208.0,
+        "y": 80.0
+      },
+      "render_hint": "ref",
+      "type": "Value",
+      "width": 64.0
+    },
+    {
+      "height": 96.0,
+      "id": "k_zero",
+      "name": "k_zero",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -304.0,
+        "y": -96.0
+      },
+      "render_hint": "ref",
+      "type": "Value",
+      "width": 48.0
+    },
+    {
+      "height": 112.0,
+      "id": "k_zero_2",
+      "name": "k_zero_2",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "render_hint": "ref",
+      "type": "Value",
+      "width": 80.0
+    },
+    {
+      "id": "k_zero_3",
+      "name": "k_zero_3",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 208.0,
+        "y": 288.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "k_zero_4",
+      "name": "k_zero_4",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 240.0,
+        "y": 224.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "norm_soc",
+      "name": "norm_soc",
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "max": {
+          "direction": "In",
+          "type": 7
+        },
+        "min": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -272.0,
+        "y": 240.0
+      },
+      "type": "Normalize"
+    },
+    {
+      "id": "ocv",
+      "name": "ocv",
+      "ports": {
+        "input": {
+          "direction": "In",
+          "type": 7
+        },
+        "output": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -304.0,
+        "y": 48.0
+      },
+      "string_params": {
+        "table": "0.0:21.0; 0.5:24.0; 1.0:25.2"
+      },
+      "type": "LUT"
+    },
+    {
+      "height": 144.0,
+      "id": "rate",
+      "name": "rate",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -160.0,
+        "y": 272.0
+      },
+      "type": "Multiply",
+      "width": 112.0
+    },
+    {
+      "id": "soc_out",
+      "name": "soc_out",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 7
+        },
+        "port": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 192.0
+      },
+      "string_params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    },
+    {
+      "id": "split_accum_1",
+      "name": "split_accum_1",
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": 7
+        },
+        "o1": {
+          "direction": "Out",
+          "type": 7
+        },
+        "o2": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 160.0,
+        "y": -112.0
+      },
+      "type": "Splitter"
+    },
+    {
+      "id": "split_accum_2",
+      "name": "split_accum_2",
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": 7
+        },
+        "o1": {
+          "direction": "Out",
+          "type": 7
+        },
+        "o2": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -304.0,
+        "y": 128.0
+      },
+      "type": "Splitter"
+    },
+    {
+      "id": "split_soc",
+      "name": "split_soc",
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": 7
+        },
+        "o1": {
+          "direction": "Out",
+          "type": 7
+        },
+        "o2": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -128.0,
+        "y": 160.0
+      },
+      "type": "Splitter"
+    },
+    {
+      "id": "src",
+      "name": "src",
+      "params": {
+        "r_internal": 0.05000000074505806
+      },
+      "ports": {
+        "cmd": {
+          "direction": "In",
+          "type": 7
+        },
+        "gain": {
+          "direction": "In",
+          "type": 7
+        },
+        "i_out": {
+          "direction": "Out",
+          "type": 1
+        },
+        "max_v": {
+          "direction": "In",
+          "type": 7
+        },
+        "min_v": {
+          "direction": "In",
+          "type": 7
+        },
+        "offset": {
+          "direction": "In",
+          "type": 7
+        },
+        "v_neg": {
+          "direction": "InOut",
+          "type": 0
+        },
+        "v_pos": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 320.0,
+        "y": 192.0
+      },
+      "type": "ControlledVoltageSource"
+    },
+    {
+      "height": 96.0,
+      "id": "v_in",
+      "name": "v_in",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 7
+        },
+        "port": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 560.0,
+        "y": 80.0
+      },
+      "string_params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintInput",
+      "width": 80.0
+    },
+    {
+      "id": "v_out",
+      "name": "v_out",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 7
+        },
+        "port": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 480.0,
+        "y": -64.0
+      },
+      "string_params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    }
+  ],
+  "pan_x": -97.23382568359375,
+  "pan_y": -72.0474624633789,
+  "scheduler_source": false,
+  "version": "3.0",
+  "wires": [
+    {
+      "id": "w_vin_src",
+      "source": "/v_in:port",
+      "target": "/src:v_neg"
+    },
+    {
+      "id": "w_src_csense",
+      "source": "/src:v_pos",
+      "target": "/csense:v_in"
+    },
+    {
+      "id": "w_csense_vout",
+      "source": "/csense:v_out",
+      "target": "/v_out:port"
+    },
+    {
+      "id": "w_i_rate_a",
+      "source": "/csense:i_out",
+      "target": "/rate:A"
+    },
+    {
+      "id": "w_k_rate_b",
+      "source": "/k_neg_inv3600:o",
+      "target": "/rate:B"
+    },
+    {
+      "id": "w_rate_accum",
+      "source": "/rate:o",
+      "target": "/accum:in"
+    },
+    {
+      "id": "w_accum_split_1",
+      "source": "/accum:out",
+      "target": "/split_accum_1:i"
+    },
+    {
+      "id": "w_split1_clamp",
+      "source": "/split_accum_1:o1",
+      "target": "/clamp_charge:in"
+    },
+    {
+      "id": "w_split1_split2",
+      "source": "/split_accum_1:o2",
+      "target": "/split_accum_2:i"
+    },
+    {
+      "id": "w_zero_clamp_min",
+      "source": "/k_zero:o",
+      "target": "/clamp_charge:min"
+    },
+    {
+      "id": "w_max_clamp_max",
+      "source": "/k_charge_max:o",
+      "target": "/clamp_charge:max"
+    },
+    {
+      "id": "w_clamp_charge_out",
+      "source": "/clamp_charge:out",
+      "target": "/charge_out:port"
+    },
+    {
+      "id": "w_split2_norm_in",
+      "source": "/split_accum_2:o1",
+      "target": "/norm_soc:in"
+    },
+    {
+      "id": "w_zero_norm_min",
+      "source": "/k_zero_2:o",
+      "target": "/norm_soc:min"
+    },
+    {
+      "id": "w_max_norm_max",
+      "source": "/k_charge_max_2:o",
+      "target": "/norm_soc:max"
+    },
+    {
+      "id": "w_norm_split_soc",
+      "source": "/norm_soc:out",
+      "target": "/split_soc:i"
+    },
+    {
+      "id": "w_split_soc_out",
+      "source": "/split_soc:o1",
+      "target": "/soc_out:port"
+    },
+    {
+      "id": "w_split_soc_lut",
+      "source": "/split_soc:o2",
+      "target": "/ocv:input"
+    },
+    {
+      "id": "w_lut_src_cmd",
+      "source": "/ocv:output",
+      "target": "/src:cmd"
+    },
+    {
+      "id": "w_one_src_gain",
+      "source": "/k_one:o",
+      "target": "/src:gain"
+    },
+    {
+      "id": "w_zero_src_offset",
+      "source": "/k_zero_3:o",
+      "target": "/src:offset"
+    },
+    {
+      "id": "w_zero_src_min",
+      "source": "/k_zero_4:o",
+      "target": "/src:min_v"
+    },
+    {
+      "id": "w_vmax_src_max",
+      "source": "/k_vmax:o",
+      "target": "/src:max_v"
+    }
+  ],
+  "zoom": 1.4851149320602417
+}

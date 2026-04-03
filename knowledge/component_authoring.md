@@ -222,6 +222,17 @@ If a component does any of these, inspect carefully:
 - Choose moderate defaults
 - Test disconnected and shorted topologies
 
+## Blueprint authoring conventions
+
+### Node naming and visual hints
+
+All nodes in a blueprint's `nodes[]` array must have a non-empty `name` field to avoid editor bugs. Use readable, stable names (can mirror the `id` field if appropriate).
+
+For **Value nodes** in authored system blueprints:
+- Add `render_hint: "ref"` to enable consistent visual rendering
+- This ensures constant values display inline like in the `closed_circuit.blueprint` reference design
+- Example: a node with `"value": 28.0` and `"render_hint": "ref"` will render visually identical to other constants in the system
+
 ## Bottom line
 
 The best component is not the most physically detailed one.
@@ -239,7 +250,7 @@ It is the one that:
 
 The simulator core should know as few `cpp_class: true` component types as possible. The goal is a small set of general-purpose **primitives** (Battery, Resistor, Switch, Comparator, PID, LUT, etc.) that can be composed into arbitrarily complex subsystems via **blueprint composites** (`cpp_class: false`).
 
-A system like `12SAM28` (lead-acid battery with internal resistance, SOC tracking, and temperature compensation) should be a pure composite built from Battery, Resistor, LUT, Multiply, etc. — not a dedicated C++ class.
+A system like `12SAM28` (lead-acid battery with internal resistance, SOC tracking, and temperature compensation) should be a pure composite built from ControlledVoltageSource, CurrentSense, Accumulator, LUT, Multiply, Splitter, Clamp, Normalize, and Value — not a dedicated C++ class.
 
 Why:
 
@@ -249,6 +260,64 @@ Why:
 - new subsystems can be authored by non-programmers
 
 Rule of thumb: if the behavior can be expressed as a network of existing primitives with wires, it should be a composite.
+
+### Blueprint composite design patterns
+
+#### Port naming after expansion
+
+When a composite blueprint (e.g., `12SAM28`) is instantiated as device `sb`:
+
+- Internal devices get prefixed: `src` → `sb:src`
+- BlueprintInput/Output bridge nodes become: `v_out` → `sb:v_out`
+- Bridge ports: `sb:v_out.ext` (parent-facing) and `sb:v_out.port` (internal-facing)
+- These are unified by union-find into a single signal
+- Parent connections are rewritten: `sb.v_out` → `sb:v_out.ext`
+
+**Querying composite ports:** Use `get_port_value("sb", "v_out")` — this automatically tries both `sb.v_out` (flat) and `sb:v_out.ext` (composite) formats.
+
+#### Fanout with Splitter
+
+Blueprint wiring is one-to-one: each port can have exactly one wire. To fan out a signal, use a `Splitter` component:
+
+```
+accum.out → split.i
+split.o1 → clamp.in    (branch 1)
+split.o2 → normalize.in (branch 2)
+```
+
+Do NOT connect two wires to the same output port — the parser will warn and behavior is undefined.
+
+#### One-frame delay in feedback loops
+
+Composites with feedback loops (e.g., LUT → CVS cmd → electrical solve → CurrentSense → Accumulator → Normalize → LUT) exhibit one-frame delay because:
+
+1. `update_dynamic_sources` (phase 1) reads CVS cmd from signal array
+2. `solve_electrical` (phase 2) uses the stamped CVS voltage
+3. `scheduler.step` (phase 3) runs all logical components, including LUT which writes new cmd
+
+So the CVS sees cmd from the **previous** frame's LUT output. On frame 1, cmd starts at 0 (LUT hasn't run yet). On frame 2, cmd reflects the LUT output from frame 1.
+
+**Testing implication:** Tests for composites with feedback loops should use 2+ warmup steps before measuring steady-state values. Example from `test_12sam28.cpp`:
+
+```cpp
+sim.step(1.0 / 60.0);  // Frame 1: LUT writes cmd, CVS sees 0
+sim.step(1.0 / 60.0);  // Frame 2: CVS sees LUT output from frame 1
+// Now measure steady-state values
+```
+
+#### 12SAM28 reference design
+
+The `12SAM28.blueprint` (`library/systems/12SAM28.blueprint`) is the reference composite for a battery with:
+
+- **ControlledVoltageSource** (`src`): Thevenin source with r_internal=0.05Ω
+- **CurrentSense** (`csense`): measures discharge current
+- **Multiply** (`rate`): current × (-1/3600) → Ah/s discharge rate
+- **Accumulator** (`accum`): integrates rate, initial=28 Ah
+- **Splitter chain**: fans out charge to clamp + normalize paths
+- **Clamp** (`clamp_charge`): clamps charge to [0, 28]
+- **Normalize** (`norm_soc`): charge/28 → SOC [0,1]
+- **LUT** (`ocv`): SOC → OCV (0→21V, 0.5→24V, 1.0→25.2V)
+- **Feedback**: LUT output → CVS cmd (one-frame delay)
 
 ### Prefer ports and values over params
 

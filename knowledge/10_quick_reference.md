@@ -139,6 +139,21 @@ for (int step = 0; step < total_steps; ++step) {
 }
 ```
 
+### Blueprint Nodes (BP2/Library)
+
+All nodes must have a non-empty `name` field. For Value nodes, use `render_hint: "ref"` to display numeric constants inline (like `12SAM28.blueprint`):
+
+```json
+{
+  "id": "k_max",
+  "name": "k_max",
+  "type": "Value",
+  "params": {"value": 28.0},
+  "render_hint": "ref",
+  "ports": {"o": {"direction": "Out", "type": 7}}
+}
+```
+
 ## Test Pattern
 
 ```cpp
