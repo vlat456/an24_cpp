@@ -4,119 +4,182 @@
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│ Document (owns Blueprint + Simulator + WindowManager)                 │
+│ WindowSystem (manages all documents + global panels)                 │
 ├───────────────────────────────────────────────────────────────────────┤
-│ WindowManager → [BlueprintWindow, BlueprintWindow, ...]               │
-│                       ↓                                               │
-│               Scene (widget tree)                                     │
-│               ├── NodeWidget (component nodes)                        │
-│               │   ├── Port widgets                                    │
-│               │   ├── Content widgets (gauges, switches)              │
-│               │   └── Layout containers                               │
-│               ├── Wire paths                                          │
-│               └── Group containers                                    │
+│ Document (one per tab/file)                                          │
+│ ├── EditorModel (bp2::EditorModel) — blueprint data                  │
+│ ├── StringInterner + PathArena — string interning                    │
+│ ├── Simulator<JIT_Solver> — runtime simulation                      │
+│ └── WindowManager                                                     │
+│     └── BlueprintWindow[] — MDI windows                              │
+│         ├── Scene (widget tree)                                      │
+│         │   ├── NodeWidget (component nodes)                          │
+│         │   │   ├── Ports                                             │
+│         │   │   └── Content widgets (gauges, switches)               │
+│         │   └── Wire paths                                           │
+│         ├── Viewport (pan/zoom/grid)                                 │
+│         └── CanvasInput (mouse/keyboard FSM)                         │
 ├───────────────────────────────────────────────────────────────────────┤
-│ CanvasInput (mouse/keyboard handling)                                 │
-│ Viewport (pan/zoom transform)                                         │
-├───────────────────────────────────────────────────────────────────────┤
-│ RenderContext + IDrawList (ImGui drawing abstraction)                 │
+│ Global Panels: Inspector, PropertiesWindow, Oscilloscope           │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Classes
 
+### WindowSystem
+Top-level controller managing documents and global UI:
+```cpp
+class WindowSystem {
+    std::vector<std::unique_ptr<Document>> documents_;
+    Document* active_document_ = nullptr;
+    Inspector inspector_;
+    PropertiesWindow properties_window_;
+    TypeRegistry type_registry_;
+    OscilloscopeModel oscilloscope_;
+
+public:
+    Document& createDocument();
+    Document* openDocument(const std::string& path);
+    void setActiveDocument(Document* doc);
+    Inspector& inspector();
+    PropertiesWindow& propertiesWindow();
+    TypeRegistry& typeRegistry();
+};
+```
+
 ### Document
-Single open document - owns all state:
+Single open document - owns blueprint, simulation, and windows:
 ```cpp
 class Document {
+    std::string id_;
     std::string filepath_;
-    bp2::Blueprint blueprint_;
-    std::unique_ptr<Simulator<DevSolver>> simulator_;
+
+    ui::StringInterner interner_;
+    bp2::PathArena arena_{interner_};
+    bp2::EditorModel model_;
     WindowManager window_manager_;
-    bool dirty_ = false;
-    
+    Simulator<JIT_Solver> simulation_;
+
+    std::unordered_map<std::string, float> signal_overrides_;
+    std::unordered_set<std::string> held_buttons_;
+
 public:
-    void step();  // Advance simulation
-    void save();
-    void save_as(std::string path);
+    bp2::Blueprint const& blueprint() const { return model_.current(); }
+    bp2::EditorModel& model() { return model_; }
+    Simulator<JIT_Solver>& simulation() { return simulation_; }
+
+    void startSimulation();
+    void stopSimulation();
+    void rebuildSimulation();
+    void updateSimulationStep(double dt);
+
+    void triggerSwitch(const std::string& node_id);
+    void setSliderValue(const std::string& node_id, float value);
+    void holdButtonPress(const std::string& node_id);
+    void holdButtonRelease(const std::string& node_id);
+
+    void addComponent(const std::string& classname, Pt world_pos,
+                      const std::string& group_id, TypeRegistry& registry);
+    void addBlueprint(const std::string& blueprint_name, Pt world_pos,
+                      const std::string& group_id, TypeRegistry& registry);
 };
 ```
 
 ### WindowManager
-MDI window management:
+MDI window management - each sub-window or nested blueprint is a separate window:
 ```cpp
 class WindowManager {
+    bp2::EditorModel& model_;
+    ui::StringInterner& interner_;
+    bp2::PathArena& arena_;
     std::vector<std::unique_ptr<BlueprintWindow>> windows_;
-    BlueprintWindow* active_ = nullptr;
-    
+
 public:
-    BlueprintWindow* create_window();
-    void close_window(BlueprintWindow* w);
-    BlueprintWindow* active() const;
+    BlueprintWindow& root();                    // Main canvas
+    std::pair<BlueprintWindow*, bool> open(const std::string& group_id, const std::string& title);
+    void close(const std::string& group_id);
+    BlueprintWindow* find(const std::string& group_id);
+    BlueprintWindow* find_external(const std::string& parent_instance_id);
 };
 ```
 
 ### BlueprintWindow
-Single canvas view:
+Single canvas view with scene, viewport, and input:
 ```cpp
 class BlueprintWindow {
-    Scene scene_;
+    bp2::EditorModel& model_;
+    ui::StringInterner& interner_;
+    bp2::PathArena& arena_;
+    std::string group_id_;          // Empty = root window
+    std::string title_;
+
+    visual::Scene scene_;
     Viewport viewport_;
     CanvasInput input_;
-    
+
 public:
     void render();
-    void handle_input();
+    void rebuild();                  // Rebuild scene from blueprint
 };
 ```
 
 ### Scene
 Widget tree with Z-order rendering:
 ```cpp
-class Scene {
-    std::vector<std::unique_ptr<Widget>> widgets_;
-    
+class Scene : public ui::Scene {
 public:
-    void add_widget(std::unique_ptr<Widget> w);
-    void remove_widget(Widget* w);
-    Widget* hit_test(Pt screen_pos);
-    void render(RenderContext& ctx);
+    // Insert widget sorted by RenderLayer
+    ui::Widget* add(std::unique_ptr<ui::Widget> w) override;
+
+    // Type-safe find
+    Widget* find(std::string_view id) const;
+
+    // Render with domain-specific context
+    void render(IDrawList* dl, const RenderContext& ctx);
 };
 ```
 
 ### Viewport
-Pan/zoom transform:
+Pan/zoom transform with grid snapping:
 ```cpp
-class Viewport {
-    float pan_x_ = 0, pan_y_ = 0;
-    float zoom_ = 1.0f;
-    float grid_step_ = 16.0f;
-    
-public:
-    Pt screen_to_world(Pt screen) const;
-    Pt world_to_screen(Pt world) const;
-    void pan(float dx, float dy);
-    void zoom_at(float factor, Pt center);
+struct Viewport {
+    Pt pan;            // World coordinates at screen origin
+    float zoom;        // 1.0 = 100%
+    float grid_step;   // Grid snapping (default 16.0f)
+
+    Pt screen_to_world(Pt screen, Pt canvas_min) const;
+    Pt world_to_screen(Pt world, Pt canvas_min) const;
+    void pan_by(Pt screen_delta);
+    void zoom_at(float delta, Pt screen_pos, Pt canvas_min);
+    void fit_content(Pt content_min, Pt content_max, float window_w, float window_h);
 };
 ```
 
 ## Widget Hierarchy
 
+### visual::Widget
+Base visual widget with Z-ordering:
 ```cpp
-// Base in ui/core/widget.h
-class Widget {
-public:
-    virtual void render(RenderContext& ctx) = 0;
-    virtual bool hit_test(Pt pos) = 0;
-    virtual Rect bounds() const = 0;
-};
-
-// Visual extension in editor/visual/widget.h
-class visual::Widget : public ui::Widget {
+class Widget : public ui::Widget {
     RenderLayer layer_;
     Scene* scene_;
+
 public:
-    RenderLayer layer() const;
+    virtual RenderLayer renderLayer() const { return RenderLayer::Normal; }
+    virtual Port* portByName(std::string_view port_name, std::string_view wire_id = {}) const;
+    virtual void updateFromContent(const NodeContent& content);
+    virtual void setCustomColor(std::optional<uint32_t> c);
+    virtual std::optional<uint32_t> customColor() const;
+
+    void render(IDrawList* dl, const RenderContext& ctx) const;
+    void renderTree(IDrawList* dl, const RenderContext& ctx) const;
+};
+
+enum class RenderLayer : uint8_t {
+    Group  = 0,   // Behind everything (group containers)
+    Text   = 1,   // Behind nodes (text annotations)
+    Normal = 2,   // Component nodes
+    Wire   = 3    // Wires (topmost)
 };
 ```
 
@@ -124,14 +187,32 @@ public:
 Component node rendering:
 ```cpp
 class NodeWidget : public visual::Widget {
-    bp2::Blueprint::Node const* node_;
-    std::vector<std::unique_ptr<Port>> ports_;
-    Container* content_;
-    
+    ui::InternedId node_iid_;
+    std::string name_;
+    std::string type_name_;
+
+    Column* layout_ = nullptr;
+    Widget* content_widget_ = nullptr;
+    std::vector<Port*> ports_;
+    LayoutContext layout_ctx_;
+
 public:
-    void layout();
-    void render(RenderContext& ctx) override;
-    Port* hit_test_port(Pt pos);
+    explicit NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+
+    std::string_view id() const override;
+    std::string_view nodeId() const;
+    const std::string& name() const;
+    const std::string& typeName() const;
+
+    void updateContent(const NodeContent& content);
+    Port* port(std::string_view name) const;
+    Port* portByName(std::string_view port_name, std::string_view wire_id = {}) const override;
+
+    void layout(float w, float h) override;
+    void render(IDrawList* dl, const RenderContext& ctx) const override;
+    void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
+
+    Bounds contentBounds() const;
 };
 ```
 
@@ -139,110 +220,126 @@ public:
 Connection point widget:
 ```cpp
 class Port : public visual::Widget {
-    ui::InternedId node_id_;
+    ui::InternedId node_iid_;
     ui::InternedId port_name_;
     Domain domain_;
     PortDirection direction_;
-    
+    PortType type_;
+
 public:
-    Pt connection_point() const;
+    Pt connectionPoint() const;
     Domain domain() const;
+    PortDirection direction() const;
+    PortType type() const;
 };
 ```
-
-## Render Layers
-
-```cpp
-enum class RenderLayer : uint8_t {
-    Group  = 0,   // Behind everything
-    Text   = 1,   // Behind nodes
-    Normal = 2,   // Component nodes
-    Wire   = 3,   // Topmost
-};
-```
-
-Widgets are sorted by layer before rendering.
 
 ## Input Handling
 
 ### CanvasInput
+Unified input handler with FSM state machine:
 ```cpp
 class CanvasInput {
-    BlueprintWindow* window_;
-    
+    visual::Scene& scene_;
+    Viewport& viewport_;
+    bp2::EditorModel& model_;
+    ui::StringInterner& interner_;
+
+    InputState state_ = InputState::Idle;
+    std::vector<ui::InternedId> selected_node_ids_;
+    ui::InternedId selected_wire_id_;
+    ui::InternedId hovered_wire_id_;
+
+    // Drag state
+    Pt drag_anchor_;
+    std::vector<Pt> drag_offsets_;
+
+    // Wire creation
+    visual::Port* wire_start_port_ = nullptr;
+
 public:
-    void on_mouse_down(Pt pos, int button);
-    void on_mouse_up(Pt pos, int button);
-    void on_mouse_move(Pt pos);
-    void on_scroll(float delta, Pt pos);
-    void on_key(int key, bool pressed);
+    bool read_only = false;  // Suppress editing gestures
+
+    InputResult on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas_min, Modifiers mods = {});
+    InputResult on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_min);
+    InputResult on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canvas_min);
+    InputResult on_scroll(float delta, Pt screen_pos, Pt canvas_min);
+    InputResult on_double_click(Pt screen_pos, Pt canvas_min);
+    InputResult on_key(Key key);
+
+    const std::vector<ui::InternedId>& selected_node_ids() const;
+    std::vector<visual::Widget*> selected_nodes() const;
+    visual::Wire* selected_wire() const;
+    visual::Wire* hovered_wire() const;
+
+    void clear_selection();
+    void add_node_selection(visual::Widget* w);
+    void snapshot_and_execute(Command cmd);
+    void cancel_gesture();
 };
 ```
 
-### Hit Testing
-```cpp
-Widget* Scene::hit_test(Pt pos) {
-    // Reverse Z-order (top first)
-    for (auto it = widgets_.rbegin(); it != widgets_.rend(); ++it) {
-        if ((*it)->hit_test(pos)) return it->get();
-    }
-    return nullptr;
-}
-```
+### InputState FSM
+States: Idle, Panning, DraggingNode, DraggingRoutingPoint, CreatingWire, ReconnectingWire, ResizingNode, MarqueeSelect, DraggingSlider
 
-## Wire Routing
-
-### Router
-Automatic wire pathfinding:
+### RenderContext
+Bundles all render frame state:
 ```cpp
-class Router {
-    Grid grid_;  // Obstacle map
-    
-public:
-    std::vector<Pt> route(Pt start, Pt end);
-    void add_obstacle(Rect bounds);
-    void remove_obstacle(Rect bounds);
+struct RenderContext : public ui::RenderContext {
+    const std::vector<Widget*>* selected_nodes = nullptr;
+    const Wire* selected_wire = nullptr;
+    const Wire* hovered_wire = nullptr;
+    const RoutingPoint* hovered_routing_point = nullptr;
+    const std::unordered_set<std::string_view, StringViewHash>* energized_wires = nullptr;  // nullptr when sim off
+
+    bool isNodeSelected(const Widget* w) const;
 };
 ```
 
-### Algorithm
-A* pathfinding with:
-- Manhattan distance heuristic
-- Grid-based movement
-- Obstacle avoidance
-- Wire crossing penalties
+## Signal Overrides (Interactive Control)
 
-## String Interning
-
-O(1) string comparison via 4-byte IDs:
-
+Documents maintain override maps for interactive simulation control:
 ```cpp
-class StringInterner {
-    std::unordered_map<std::string, ui::InternedId> string_to_id_;
-    std::vector<std::string> id_to_string_;
-    
-public:
-    ui::InternedId intern(std::string_view s);
-    std::string_view resolve(ui::InternedId id) const;
-};
+// Switch toggle - click toggles state
+void Document::triggerSwitch(const std::string& node_id);
 
-class InternedId {
-    uint32_t value_;
-public:
-    bool operator==(InternedId o) const { return value_ == o.value_; }
-    // Trivially copyable, can be used in switch statements
-};
+// Slider drag - sets value directly
+void Document::setSliderValue(const std::string& node_id, float value);
+
+// Hold button - press and release
+void Document::holdButtonPress(const std::string& node_id);
+void Document::holdButtonRelease(const std::string& node_id);
+```
+
+These map to `signal_overrides_` in the simulation layer.
+
+## Sub-Windows and External References
+
+### Nested Blueprints
+Each nested blueprint gets its own window:
+```cpp
+void Document::openSubWindow(const std::string& sub_blueprint_id);
+```
+
+### External Reference Windows
+Parent-bound read-only windows for composite nodes:
+```cpp
+void Document::openExternalRefWindow(const std::string& instance_id,
+                                     const std::string& blueprint_file_path);
 ```
 
 ## Key Files
 
 | Purpose | File |
 |---------|------|
+| WindowSystem | `src/editor/window_system.h` |
 | Document | `src/editor/document.h` |
-| WindowManager | `src/editor/window_system.h` |
+| WindowManager | `src/editor/window/window_manager.h` |
+| BlueprintWindow | `src/editor/window/blueprint_window.h` |
 | Scene | `src/editor/visual/scene.h` |
 | Viewport | `src/editor/viewport/viewport.h` |
+| CanvasInput | `src/editor/input/canvas_input.h` |
 | NodeWidget | `src/editor/visual/node/visual_node.h` |
 | Port | `src/editor/visual/port/visual_port.h` |
-| Router | `src/editor/visual/wire/` and `src/editor/visual/scene_hittest.h` |
-| StringInterner | `src/ui/core/interned_id.h` |
+| RenderContext | `src/editor/visual/render_context.h` |
+| EditorApp | `src/editor/app/editor_app.h` |

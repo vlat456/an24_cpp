@@ -387,6 +387,72 @@ Mechanical conversion of all `float dt` parameters and accumulator state variabl
 
 ---
 
+### 22. Extract Functional Blueprint Models to C++ Components
+
+**Status:** OPEN
+
+**Analysis (2026-04-02):**
+
+Two blueprints in `closed_circuit.blueprint` contain reusable electrical engineering patterns that should be extracted to C++ components for optimization and reuse:
+
+#### 22a. InductiveLoadModel
+
+**Source:** `LoadVoltageDrp` blueprint (embedded definition lines 187-614)
+
+**Purpose:** Models current through wires with R-L (resistance-inductance) characteristics:
+- Computes: dI/dt = (V_ref - V_in - I*R) / L
+- Integrates to get load current
+- Used for voltage drop compensation in generator starter circuits
+
+**Parameters:**
+- `wire_r`: wire resistance (Ω) — 0.056Ω in example
+- `inv_l`: inverse inductance (1/H) — 125 in example (= 1/0.008H)
+
+**Ports:**
+- Inputs: `v_in`, `v_ref`
+- Output: `load_current`
+
+**Proposed C++ component:** `InductiveLoadModel` in `src/jit_solver/components/inductive_load_model.h`
+
+#### 22b. ThermalDeratingModel
+
+**Source:** `DerateCtrl` blueprint (embedded definition lines 623-1107)
+
+**Purpose:** Models I² heating and computes thermal derating factor:
+- Integrates I² over time with thermal time constant
+- Computes derated command based on overload capacity
+
+**Parameters:**
+- `i_cont_max`: continuous current max (A)
+- `derate_time_constant`: thermal time constant (s)
+
+**Ports:**
+- Inputs: `current`, `command` (un-derated)
+- Output: `derated_command` [0-1]
+
+**Proposed C++ component:** `ThermalDeratingModel` in `src/jit_solver/components/thermal_derating_model.h`
+
+**Why extract to C++:**
+1. Both use Integrator internally — consolidating to single component eliminates redundant state
+2. Common electrical engineering patterns — likely reusable in other aircraft systems
+3. Fewer blueprint nodes to process at load time
+4. Enables AOT optimization of the model computation
+
+**Files to create:**
+- `src/jit_solver/components/inductive_load_model.h`
+- `src/jit_solver/components/inductive_load_model.cpp`
+- `src/jit_solver/components/thermal_derating_model.h`
+- `src/jit_solver/components/thermal_derating_model.cpp`
+- `library/models/InductiveLoadModel.blueprint` (for blueprint registry)
+- `library/models/ThermalDeratingModel.blueprint` (for blueprint registry)
+
+**Acceptance criteria:**
+- New components pass existing component test patterns
+- `closed_circuit.blueprint` updated to use new components (or remain as-is for validation)
+- Full test suite passes
+
+---
+
 ### ~~15. Full Test Suite Migration to Push Runtime~~ ✓ COMPLETED (with explicit deprecations)
 
 **Status:** Full OFF-mode suite builds and runs.
@@ -835,4 +901,5 @@ alignas(64) std::vector<float> through;
 | E-006 | Misleading alignas(64) on vectors          | ~~Low~~    | Low    | **FIXED**           |
 | E-008 | Variable dt without clamping               | ~~Low-Med~~| Low    | **FIXED**           |
 | E-009 | 9-phase pipeline over-engineering          | ~~Low~~    | Low    | **RESOLVED** (N/A)  |
-| DT    | float dt → double dt conversion           | ~~Medium~~ | Medium | **COMPLETED**       |
+| DT    | float dt → double dt conversion           | ~~Medium~~ | Medium | **COMPLETED**      |
+| 22    | Extract functional blueprints to C++      | Medium     | Medium | **OPEN**           |

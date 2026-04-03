@@ -1,165 +1,123 @@
 # Simulation Engine
 
-This document reflects the current runtime after electrical subsolver migration.
+The simulation system uses a **hybrid model** combining push scheduling with electrical subsolver.
 
-## Runtime Model (Current)
+## Architecture
 
-The simulator is now **hybrid**:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Simulator<T>                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ BuildResult                                              │   │
+│  │ ├── signal_count, fixed_signals, port_to_signal         │   │
+│  │ ├── devices (ComponentVariant map)                      │   │
+│  │ ├── scheduler (PushScheduler)                            │   │
+│  │ ├── electrical_plan (islands)                           │   │
+│  │ └── solver_owned (typed pointer lists)                  │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ↓                                   │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ SimulationState                                         │   │
+│  │ ├── values[] (all signals)                              │   │
+│  │ ├── signal_types[] (domain, is_fixed)                   │   │
+│  │ ├── lut_keys[], lut_values[]                            │   │
+│  │ └── electrical_rt (valid during step)                   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-- push scheduler for logical/control/general component execution
-- local electrical island subsolver for closed electrical networks
+## Step Pipeline
 
-This replaced the previous pass-through-only electrical behavior that caused runaway loops.
+`Simulator::step(dt)` sequence:
 
----
+1. **Clamp dt** — `dt = std::min(dt, MAX_DT)` (MAX_DT=0.1s) prevents physics explosions
+2. Set `state.electrical_rt = &electrical_rt_` (RAII guard)
+3. **Pre-solve** — `update_dynamic_sources()` stamps actuator states from previous frame
+4. **Solve electrical** — `solve_electrical(electrical_plan, state, electrical_rt_, dt)`
+5. **Push scheduler** — `scheduler.step(state, dt)` runs all logical/mechanical/etc components
+6. **Commit pass** — `commit_solver_owned_devices()` handles battery discharge, state transitions
+7. Clear `state.electrical_rt`
+8. Advance `time_ += dt`, `step_count_++`
 
-## SimulationState
+## Key Classes
 
-`SimulationState` currently stores a single signal array:
+### Simulator
+```cpp
+template <typename SolverTag>
+class Simulator {
+    static constexpr double MAX_DT = 0.1;
 
+    std::optional<BuildResult> build_result_;
+    SimulationState state_;
+    ElectricalRuntimeState electrical_rt_;
+    bool running_ = false;
+    double time_ = 0.0;
+    uint64_t step_count_ = 0;
+
+public:
+    void start_from_json(const std::string& json_str);
+    void step(double dt);
+    void apply_overrides(const std::unordered_map<std::string, float>& overrides);
+
+    float get_wire_voltage(const std::string& port_name) const;
+    bool get_boolean_output(const std::string& port_name) const;
+    double get_battery_charge(const std::string& device_name) const;
+};
+```
+
+### BuildResult
+```cpp
+struct BuildResult {
+    uint32_t signal_count;
+    std::vector<uint32_t> fixed_signals;
+    PortToSignal port_to_signal;
+
+    std::unordered_map<std::string, ComponentVariant> devices;
+    PushScheduler scheduler;
+    ElectricalBuildPlan electrical_plan;
+    SolverOwnedRefs solver_owned;
+    std::vector<float> lut_keys;
+    std::vector<float> lut_values;
+};
+```
+
+### SimulationState
 ```cpp
 struct SimulationState {
     std::vector<float> values;
     std::vector<SignalType> signal_types;
     std::vector<float> lut_keys;
     std::vector<float> lut_values;
-    uint32_t dynamic_signals_count;
-
-    // Valid only during Simulator::step(), null outside.
-    ElectricalRuntimeState* electrical_rt;
+    uint32_t dynamic_signals_count = 0;
+    ElectricalRuntimeState* electrical_rt = nullptr;  // Valid only during step()
 };
 ```
 
-Notes:
+### ComponentVariant
+Type-safe polymorphic storage using `std::variant`:
+```cpp
+using ComponentVariant = std::variant<
+    Battery<JitProvider>,
+    Switch<JitProvider>,
+    AND<JitProvider>,
+    OR<JitProvider>,
+    Comparator<JitProvider>,
+    // ... all components (~70 types)
+>;
+```
 
-- `values[]` contains node values used by both push and solver-owned flows.
-- `electrical_rt` is set before solve/scheduler run and cleared after step.
-- Components must treat `electrical_rt == nullptr` as valid (no access outside active frame).
+## Domain Scheduling
 
----
+| Domain | Frequency | Execution |
+|--------|-----------|-----------|
+| Electrical | 60 Hz | Local island subsolver |
+| Logical | 60 Hz | Push scheduler |
+| Mechanical | 20 Hz | Push scheduler |
+| Hydraulic | 5 Hz | Push scheduler |
+| Thermal | 1 Hz | Push scheduler |
 
-## Step Pipeline
+## See Also
 
-Current `Simulator::step(dt)` sequence:
-
-1. **Clamp dt** (`dt = std::min(dt, MAX_DT)` where `MAX_DT = 0.1`) to prevent physics explosions
-2. Set `state.electrical_rt = &electrical_rt_` (RAII guard ensures cleanup)
-3. **Pre-solve**: `update_dynamic_sources()` — stamp actuator states from previous frame
-4. **Solve electrical**: `solve_electrical(electrical_plan, state, electrical_rt_, dt)`
-5. **Push scheduler**: `scheduler.step(state, dt)` — execute all logical/mechanical/etc. components
-6. **Commit pass**: `commit_solver_owned_devices()` — battery discharge, state transitions
-7. Clear `state.electrical_rt` via RAII guard
-8. Advance `time_ += dt`, `step_count_++`
-
-Key consequence:
-
-- electrical node voltages are solved before push consumers read them
-- solver-owned electrical propagators do not write pass-through voltages in push phase
-- one-frame delay for actuator state changes (AZS toggle, relay close) is intentional
-
----
-
-## Electrical Build Plan
-
-Build stage (`build_systems_dev`) constructs:
-
-- `port_to_signal` map (union-find connected signals)
-- `electrical_plan` with connected electrical islands
-
-Each island stores:
-
-- `signal_indices` (nodes)
-- `elements` of kinds:
-  - `FixedVoltageNode`
-  - `TheveninSource`
-  - `ConductanceBranch`
-
-Extraction path is dual-mode:
-
-1. metadata-driven (`solver_role`) when present
-2. classname fallback for wrappers and direct test-created `DeviceInstance`
-
----
-
-## Electrical Solver Behavior
-
-The electrical solver runs per island:
-
-- builds dense nodal system for unknown node voltages
-- stamps conductance branches
-- converts Thevenin source to Norton equivalent for stamping
-- applies fixed-node constraints
-- solves with dense Gaussian elimination + pivoting
-- writes solved node voltages back to `SimulationState::values`
-- writes branch currents to `ElectricalRuntimeState::branch_currents`
-
-### Singular island handling
-
-In editor/runtime, singular islands are expected during interactive edits.
-
-Current behavior:
-
-- does **not throw/abort** on singular solve
-- preserves previous node values for that island
-- zeros branch currents for that island
-
-This prevents editor crashes while keeping valid islands solved normally.
-
----
-
-## Ownership Rules (Electrical)
-
-Solver-owned electrical propagators are not push-scheduled for electrical write behavior:
-
-- `Battery`
-- `Generator`
-- `Resistor`
-- `ElectricalSource`
-- `ElectricalConductance`
-
-`RefNode` remains scheduled as source for broader graph behavior, but electrical node clamping is solver-owned.
-
-Observer-like components continue push execution for derived outputs:
-
-- `IndicatorLight` computes `brightness` from solved voltage
-- `CurrentSense` outputs solved branch current from handle
-
----
-
-## Battery/Current Semantics
-
-### Battery
-
-- electrical propagation is solver-owned (execute no-op)
-- `commit(st, dt)` uses solved branch current and updates `charge`
-- sign convention: discharge uses negative Thevenin branch current (`max(0, -i)`)
-- `charge` and `capacity` use `double` for stable accumulation
-- live telemetry outputs are written each commit when mapped:
-  - `charge_out`
-  - `soc_out`
-
-### CurrentSense
-
-- no fake `dv * g` formula
-- reads solver branch current via electrical handle
-- outputs `0` if handle/runtime state is invalid
-
----
-
-## Testing Guidance
-
-Use these suites for solver/runtime regressions:
-
-- `electrical_subsolver_tests`
-- `electrical_island_build_tests`
-- `electrical_handle_build_tests`
-- `electrical_primitives_tests`
-- `current_sense_tests`
-- `battery_discharge_tests`
-- `push_runtime_regression_tests`
-
-Important runtime regressions:
-
-- `ClosedCircuitBlueprint_NoRunawayVoltage`
-- `ClosedCircuitBlueprint_BatteryChargeDecreases_RealFixture`
-- `BatteryLiveOutputsExposeChargeAndSoc`
+- `03_components.md` — Component API (execute/commit)
+- `knowledge_aot.md` — AOT codegen system
+- `knowledge_jit.md` — JIT solver internals
