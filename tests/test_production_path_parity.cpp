@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "json_parser/json_parser.h"
-#include "jit_solver/jit_solver.h"
-#include "codegen/codegen.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/aot/codegen.h"
 #include "test_helpers.h"
 #include <set>
 

@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/gs24_regression_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_off/tests/gs24_regression_tests[1]_tests.cmake")
-else()
-  add_test(gs24_regression_tests_NOT_BUILT gs24_regression_tests_NOT_BUILT)
-endif()

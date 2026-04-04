@@ -2,8 +2,8 @@
 
 #include "editor/external_ref_mapping.h"
 #include "editor/signal_key_resolver.h"
-#include "jit_solver/simulator.h"
-#include "jit_solver/jit_solver.h"
+#include "core/solvers/jit/simulator.h"
+#include "core/solvers/jit/jit_solver.h"
 
 #include <fstream>
 #include <nlohmann/json.hpp>

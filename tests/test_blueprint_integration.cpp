@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "jit_solver/jit_solver.h"
-#include "jit_solver/state.h"
-#include "jit_solver/components/all.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/state.h"
+#include "core/solvers/jit/components/all.h"
 #include "json_parser/json_parser.h"
 #include "parse_number.h"
 #include "test_execution_phases.h"

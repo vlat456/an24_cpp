@@ -437,53 +437,53 @@ __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
 .PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
 
-__/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
-.PHONY : __/src/codegen/codegen.o
+__/src/core/solvers/aot/codegen.o: __/src/core/solvers/aot/codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen.o
 
 # target to build an object file
-__/src/codegen/codegen.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o
-.PHONY : __/src/codegen/codegen.cpp.o
+__/src/core/solvers/aot/codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen.cpp.o
 
-__/src/codegen/codegen.i: __/src/codegen/codegen.cpp.i
-.PHONY : __/src/codegen/codegen.i
+__/src/core/solvers/aot/codegen.i: __/src/core/solvers/aot/codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen.i
 
 # target to preprocess a source file
-__/src/codegen/codegen.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.i
-.PHONY : __/src/codegen/codegen.cpp.i
+__/src/core/solvers/aot/codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen.cpp.i
 
-__/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
-.PHONY : __/src/codegen/codegen.s
+__/src/core/solvers/aot/codegen.s: __/src/core/solvers/aot/codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen.s
 
 # target to generate assembly for a file
-__/src/codegen/codegen.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.s
-.PHONY : __/src/codegen/codegen.cpp.s
+__/src/core/solvers/aot/codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen.cpp.s
 
-__/src/codegen/electrical_codegen.o: __/src/codegen/electrical_codegen.cpp.o
-.PHONY : __/src/codegen/electrical_codegen.o
+__/src/core/solvers/aot/electrical_codegen.o: __/src/core/solvers/aot/electrical_codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/electrical_codegen.o
 
 # target to build an object file
-__/src/codegen/electrical_codegen.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o
-.PHONY : __/src/codegen/electrical_codegen.cpp.o
+__/src/core/solvers/aot/electrical_codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/electrical_codegen.cpp.o
 
-__/src/codegen/electrical_codegen.i: __/src/codegen/electrical_codegen.cpp.i
-.PHONY : __/src/codegen/electrical_codegen.i
+__/src/core/solvers/aot/electrical_codegen.i: __/src/core/solvers/aot/electrical_codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/electrical_codegen.i
 
 # target to preprocess a source file
-__/src/codegen/electrical_codegen.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.i
-.PHONY : __/src/codegen/electrical_codegen.cpp.i
+__/src/core/solvers/aot/electrical_codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/electrical_codegen.cpp.i
 
-__/src/codegen/electrical_codegen.s: __/src/codegen/electrical_codegen.cpp.s
-.PHONY : __/src/codegen/electrical_codegen.s
+__/src/core/solvers/aot/electrical_codegen.s: __/src/core/solvers/aot/electrical_codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/electrical_codegen.s
 
 # target to generate assembly for a file
-__/src/codegen/electrical_codegen.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.s
-.PHONY : __/src/codegen/electrical_codegen.cpp.s
+__/src/core/solvers/aot/electrical_codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/electrical_codegen.cpp.s
 
 __/src/editor/app/editor_app.o: __/src/editor/app/editor_app.cpp.o
 .PHONY : __/src/editor/app/editor_app.o
@@ -1726,12 +1726,12 @@ help:
 	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.o"
 	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.i"
 	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.s"
-	@echo "... __/src/codegen/codegen.o"
-	@echo "... __/src/codegen/codegen.i"
-	@echo "... __/src/codegen/codegen.s"
-	@echo "... __/src/codegen/electrical_codegen.o"
-	@echo "... __/src/codegen/electrical_codegen.i"
-	@echo "... __/src/codegen/electrical_codegen.s"
+	@echo "... __/src/core/solvers/aot/codegen.o"
+	@echo "... __/src/core/solvers/aot/codegen.i"
+	@echo "... __/src/core/solvers/aot/codegen.s"
+	@echo "... __/src/core/solvers/aot/electrical_codegen.o"
+	@echo "... __/src/core/solvers/aot/electrical_codegen.i"
+	@echo "... __/src/core/solvers/aot/electrical_codegen.s"
 	@echo "... __/src/editor/app/editor_app.o"
 	@echo "... __/src/editor/app/editor_app.i"
 	@echo "... __/src/editor/app/editor_app.s"

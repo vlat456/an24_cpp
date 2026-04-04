@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/inspector_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_off/tests/inspector_tests[1]_tests.cmake")
-else()
-  add_test(inspector_tests_NOT_BUILT inspector_tests_NOT_BUILT)
-endif()

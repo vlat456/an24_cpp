@@ -65,30 +65,42 @@ using ComponentVariant = std::variant<
 
 ```
 src/
-├── jit_solver/           # Runtime solver + components
-│   ├── components/       # All component implementations
-│   ├── state.h           # SimulationState (SoA arrays)
-│   ├── jit_solver.h      # Build system, ComponentVariant
-│   └── scheduling.h      # Domain-based scheduling
-├── blueprint_v2/         # Modern blueprint data model
-│   ├── blueprint/        # Core Blueprint class
-│   ├── registry/         # TypeRegistry
-│   ├── flattener/        # Blueprint flattening
-│   ├── interface/        # Port descriptors
-│   └── validation/       # Invariant checking
-├── editor/               # Visual blueprint editor
-│   ├── data/             # Legacy data structures
-│   ├── visual/           # Widgets, rendering
-│   ├── commands/         # Command pattern
-│   └── router/           # Wire routing
-├── codegen/              # AOT code generation
-├── json_parser/          # JSON config parsing
-└── ui/                   # Generic UI framework
+├── core/                    # Core simulation engine
+│   ├── solvers/
+│   │   ├── jit/             # Runtime solver + components
+│   │   │   ├── jit_solver.h # Build system, ComponentVariant
+│   │   │   ├── jit_solver.cpp (1958 LOC - needs splitting)
+│   │   │   ├── scheduler.h  # PushScheduler
+│   │   │   ├── simulator.h # Simulator class
+│   │   │   ├── state.h      # SimulationState (SoA arrays)
+│   │   │   ├── component.h  # Base component interface
+│   │   │   ├── components/  # All component implementations (~70)
+│   │   │   └── subsolvers/  # Electrical subsolver
+│   │   ├── aot/             # AOT code generation
+│   │   │   ├── codegen.h
+│   │   │   ├── codegen.cpp
+│   │   │   └── electrical_codegen.cpp
+│   │   └── shared/          # Shared types (reserved for future)
+│   │       └──              # (empty - state.h, subsolver_types.h could move here)
+│   └── simulator.cpp
+├── blueprint_v2/            # Modern blueprint data model
+│   ├── blueprint/           # Core Blueprint class
+│   ├── registry/            # TypeRegistry
+│   ├── flattener/           # Blueprint flattening
+│   ├── interface/           # Port descriptors
+│   └── validation/          # Invariant checking
+├── editor/                  # Visual blueprint editor
+│   ├── data/                # Legacy data structures
+│   ├── visual/              # Widgets, rendering
+│   ├── commands/            # Command pattern
+│   └── router/              # Wire routing
+├── json_parser/             # JSON config parsing
+└── ui/                      # Generic UI framework
 
-library/                  # Component definitions (JSON)
-tests/                    # Google Test suites
-examples/                 # Demo programs
-generated/                # AOT-generated C++ code
+library/                     # Component definitions (JSON)
+tests/                       # Google Test suites
+examples/                    # Demo programs
+generated/                   # AOT-generated C++ code
 ```
 
 ## Simulation Loop (Current)
@@ -106,16 +118,19 @@ The electrical subsolver handles closed electrical networks while the push sched
 
 | Purpose | File |
 |---------|------|
-| Simulation State | `src/jit_solver/state.h` |
-| Component Base | `src/jit_solver/component.h` |
-| Provider Pattern | `src/jit_solver/components/provider.h` |
-| All Components | `src/jit_solver/components/all.h` |
+| Simulation State | `src/core/solvers/jit/state.h` |
+| Component Base | `src/core/solvers/jit/component.h` |
+| Provider Pattern | `src/core/solvers/jit/components/provider.h` |
+| All Components | `src/core/solvers/jit/components/all.h` |
+| JIT Solver Build | `src/core/solvers/jit/jit_solver.h` |
+| Push Scheduler | `src/core/solvers/jit/scheduler.h` |
+| Simulator | `src/core/simulator.h` |
 | Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
 | Type Registry | `src/blueprint_v2/registry/type_registry.h` |
-| Code Generator | `src/codegen/codegen.h` |
+| Code Generator | `src/core/solvers/aot/codegen.h` |
 | JSON Parser | `src/json_parser/json_parser.h` |
 
 ## Related Knowledge Notes
 
-
 - `knowledge/component_authoring.md` - rules for writing stable components
+- `knowledge/10_quick_reference.md` - updated with new file paths

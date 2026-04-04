@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/ui_math_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_off/tests/ui_math_tests[1]_tests.cmake")
-else()
-  add_test(ui_math_tests_NOT_BUILT ui_math_tests_NOT_BUILT)
-endif()

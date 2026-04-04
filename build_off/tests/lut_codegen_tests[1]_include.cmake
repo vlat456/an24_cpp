@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/lut_codegen_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_off/tests/lut_codegen_tests[1]_tests.cmake")
-else()
-  add_test(lut_codegen_tests_NOT_BUILT lut_codegen_tests_NOT_BUILT)
-endif()

@@ -2,9 +2,9 @@
 /// Also includes closed-loop regression for FirstOrderLag blueprint using Splitter
 
 #include <gtest/gtest.h>
-#include "jit_solver/components/all.h"
-#include "jit_solver/components/all.cpp"
-#include "jit_solver/components/port_registry.h"
+#include "core/solvers/jit/components/all.h"
+#include "core/solvers/jit/components/all.cpp"
+#include "core/solvers/jit/components/port_registry.h"
 
 // =============================================================================
 // Test Helpers

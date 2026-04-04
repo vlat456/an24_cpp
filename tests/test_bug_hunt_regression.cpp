@@ -9,10 +9,10 @@
 
 #include <gtest/gtest.h>
 #include <cmath>
-#include "jit_solver/components/provider.h"
-#include "jit_solver/components/port_registry.h"
-#include "jit_solver/components/all.h"
-#include "jit_solver/state.h"
+#include "core/solvers/jit/components/provider.h"
+#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/jit/components/all.h"
+#include "core/solvers/jit/state.h"
 
 // =============================================================================
 // BUG-AotDefault: AotProvider::get() must return UINT32_MAX for unmapped ports

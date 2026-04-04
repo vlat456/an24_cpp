@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/azs_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_off/tests/azs_tests[1]_tests.cmake")
-else()
-  add_test(azs_tests_NOT_BUILT azs_tests_NOT_BUILT)
-endif()

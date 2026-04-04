@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "jit_solver/jit_solver.h"
-#include "jit_solver/subsolvers/subsolver_types.h"
-#include "jit_solver/components/port_registry.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/subsolvers/subsolver_types.h"
+#include "core/solvers/jit/components/port_registry.h"
 #include "json_parser/json_parser.h"
 #include <algorithm>
 

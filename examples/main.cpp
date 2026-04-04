@@ -1,5 +1,5 @@
-#include "jit_solver/jit_solver.h"
-#include "jit_solver/state.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/state.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <iomanip>

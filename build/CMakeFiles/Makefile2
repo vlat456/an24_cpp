@@ -312,25 +312,25 @@ examples/clean: examples/CMakeFiles/benchmark_push_scheduler.dir/clean
 # Directory level rules for directory src
 
 # Recursive "all" directory target.
-src/all: src/jit_solver/all
+src/all: src/core/solvers/jit/all
 src/all: src/json_parser/all
 src/all: src/blueprint_v2/all
 .PHONY : src/all
 
 # Recursive "codegen" directory target.
-src/codegen: src/jit_solver/codegen
+src/codegen: src/core/solvers/jit/codegen
 src/codegen: src/json_parser/codegen
 src/codegen: src/blueprint_v2/codegen
 .PHONY : src/codegen
 
 # Recursive "preinstall" directory target.
-src/preinstall: src/jit_solver/preinstall
+src/preinstall: src/core/solvers/jit/preinstall
 src/preinstall: src/json_parser/preinstall
 src/preinstall: src/blueprint_v2/preinstall
 .PHONY : src/preinstall
 
 # Recursive "clean" directory target.
-src/clean: src/jit_solver/clean
+src/clean: src/core/solvers/jit/clean
 src/clean: src/json_parser/clean
 src/clean: src/blueprint_v2/clean
 .PHONY : src/clean
@@ -355,23 +355,23 @@ src/blueprint_v2/clean: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/clean
 .PHONY : src/blueprint_v2/clean
 
 #=============================================================================
-# Directory level rules for directory src/jit_solver
+# Directory level rules for directory src/core/solvers/jit
 
 # Recursive "all" directory target.
-src/jit_solver/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
-.PHONY : src/jit_solver/all
+src/core/solvers/jit/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
+.PHONY : src/core/solvers/jit/all
 
 # Recursive "codegen" directory target.
-src/jit_solver/codegen: src/jit_solver/CMakeFiles/jit_solver.dir/codegen
-.PHONY : src/jit_solver/codegen
+src/core/solvers/jit/codegen: src/core/solvers/jit/CMakeFiles/jit_solver.dir/codegen
+.PHONY : src/core/solvers/jit/codegen
 
 # Recursive "preinstall" directory target.
-src/jit_solver/preinstall:
-.PHONY : src/jit_solver/preinstall
+src/core/solvers/jit/preinstall:
+.PHONY : src/core/solvers/jit/preinstall
 
 # Recursive "clean" directory target.
-src/jit_solver/clean: src/jit_solver/CMakeFiles/jit_solver.dir/clean
-.PHONY : src/jit_solver/clean
+src/core/solvers/jit/clean: src/core/solvers/jit/CMakeFiles/jit_solver.dir/clean
+.PHONY : src/core/solvers/jit/clean
 
 #=============================================================================
 # Directory level rules for directory src/json_parser
@@ -904,37 +904,37 @@ _deps/nfde-build/src/CMakeFiles/nfd.dir/clean:
 .PHONY : _deps/nfde-build/src/CMakeFiles/nfd.dir/clean
 
 #=============================================================================
-# Target rules for target src/jit_solver/CMakeFiles/jit_solver.dir
+# Target rules for target src/core/solvers/jit/CMakeFiles/jit_solver.dir
 
 # All Build rule for target.
-src/jit_solver/CMakeFiles/jit_solver.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
-src/jit_solver/CMakeFiles/jit_solver.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-	$(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/depend
-	$(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/build
+src/core/solvers/jit/CMakeFiles/jit_solver.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
+src/core/solvers/jit/CMakeFiles/jit_solver.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
+	$(MAKE) $(MAKESILENT) -f src/core/solvers/jit/CMakeFiles/jit_solver.dir/build.make src/core/solvers/jit/CMakeFiles/jit_solver.dir/depend
+	$(MAKE) $(MAKESILENT) -f src/core/solvers/jit/CMakeFiles/jit_solver.dir/build.make src/core/solvers/jit/CMakeFiles/jit_solver.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63 "Built target jit_solver"
-.PHONY : src/jit_solver/CMakeFiles/jit_solver.dir/all
+.PHONY : src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 
 # Build rule for subdir invocation for target.
-src/jit_solver/CMakeFiles/jit_solver.dir/rule: cmake_check_build_system
+src/core/solvers/jit/CMakeFiles/jit_solver.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 20
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/jit_solver/CMakeFiles/jit_solver.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
-.PHONY : src/jit_solver/CMakeFiles/jit_solver.dir/rule
+.PHONY : src/core/solvers/jit/CMakeFiles/jit_solver.dir/rule
 
 # Convenience name for target.
-jit_solver: src/jit_solver/CMakeFiles/jit_solver.dir/rule
+jit_solver: src/core/solvers/jit/CMakeFiles/jit_solver.dir/rule
 .PHONY : jit_solver
 
 # codegen rule for target.
-src/jit_solver/CMakeFiles/jit_solver.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/codegen
+src/core/solvers/jit/CMakeFiles/jit_solver.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f src/core/solvers/jit/CMakeFiles/jit_solver.dir/build.make src/core/solvers/jit/CMakeFiles/jit_solver.dir/codegen
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63 "Finished codegen for target jit_solver"
-.PHONY : src/jit_solver/CMakeFiles/jit_solver.dir/codegen
+.PHONY : src/core/solvers/jit/CMakeFiles/jit_solver.dir/codegen
 
 # clean rule for target.
-src/jit_solver/CMakeFiles/jit_solver.dir/clean:
-	$(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/clean
-.PHONY : src/jit_solver/CMakeFiles/jit_solver.dir/clean
+src/core/solvers/jit/CMakeFiles/jit_solver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f src/core/solvers/jit/CMakeFiles/jit_solver.dir/build.make src/core/solvers/jit/CMakeFiles/jit_solver.dir/clean
+.PHONY : src/core/solvers/jit/CMakeFiles/jit_solver.dir/clean
 
 #=============================================================================
 # Target rules for target src/json_parser/CMakeFiles/json_parser.dir
@@ -1006,7 +1006,7 @@ src/blueprint_v2/CMakeFiles/blueprint_v2.dir/clean:
 
 # All Build rule for target.
 examples/CMakeFiles/hello_world.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
-examples/CMakeFiles/hello_world.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+examples/CMakeFiles/hello_world.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 examples/CMakeFiles/hello_world.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/hello_world.dir/build.make examples/CMakeFiles/hello_world.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/hello_world.dir/build.make examples/CMakeFiles/hello_world.dir/build
@@ -1072,11 +1072,11 @@ examples/CMakeFiles/an24_codegen.dir/clean:
 # Target rules for target examples/CMakeFiles/codegen_test.dir
 
 # All Build rule for target.
-examples/CMakeFiles/codegen_test.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
-examples/CMakeFiles/codegen_test.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
-examples/CMakeFiles/codegen_test.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 examples/CMakeFiles/codegen_test.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 examples/CMakeFiles/codegen_test.dir/all: examples/CMakeFiles/an24_codegen.dir/all
+examples/CMakeFiles/codegen_test.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
+examples/CMakeFiles/codegen_test.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
+examples/CMakeFiles/codegen_test.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target codegen_test"
@@ -1108,11 +1108,11 @@ examples/CMakeFiles/codegen_test.dir/clean:
 # Target rules for target examples/CMakeFiles/an24_editor.dir
 
 # All Build rule for target.
+examples/CMakeFiles/an24_editor.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 examples/CMakeFiles/an24_editor.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 examples/CMakeFiles/an24_editor.dir/all: _deps/nfde-build/src/CMakeFiles/nfd.dir/all
-examples/CMakeFiles/an24_editor.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+examples/CMakeFiles/an24_editor.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 examples/CMakeFiles/an24_editor.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-examples/CMakeFiles/an24_editor.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=2,3,4,5,6,7,8,9,10,11,12,13 "Built target an24_editor"
@@ -1144,10 +1144,10 @@ examples/CMakeFiles/an24_editor.dir/clean:
 # Target rules for target examples/CMakeFiles/sim_debug.dir
 
 # All Build rule for target.
-examples/CMakeFiles/sim_debug.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
-examples/CMakeFiles/sim_debug.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
-examples/CMakeFiles/sim_debug.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 examples/CMakeFiles/sim_debug.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
+examples/CMakeFiles/sim_debug.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
+examples/CMakeFiles/sim_debug.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
+examples/CMakeFiles/sim_debug.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target sim_debug"
@@ -1180,7 +1180,7 @@ examples/CMakeFiles/sim_debug.dir/clean:
 
 # All Build rule for target.
 examples/CMakeFiles/benchmark_jit_vs_aot.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
-examples/CMakeFiles/benchmark_jit_vs_aot.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+examples/CMakeFiles/benchmark_jit_vs_aot.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 examples/CMakeFiles/benchmark_jit_vs_aot.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/build
@@ -1214,7 +1214,7 @@ examples/CMakeFiles/benchmark_jit_vs_aot.dir/clean:
 
 # All Build rule for target.
 examples/CMakeFiles/benchmark_push_scheduler.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
-examples/CMakeFiles/benchmark_push_scheduler.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+examples/CMakeFiles/benchmark_push_scheduler.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 examples/CMakeFiles/benchmark_push_scheduler.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/build
@@ -1247,9 +1247,9 @@ examples/CMakeFiles/benchmark_push_scheduler.dir/clean:
 # Target rules for target tools/CMakeFiles/update_port_registry.dir
 
 # All Build rule for target.
+tools/CMakeFiles/update_port_registry.dir/all: examples/CMakeFiles/an24_codegen.dir/all
 tools/CMakeFiles/update_port_registry.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tools/CMakeFiles/update_port_registry.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tools/CMakeFiles/update_port_registry.dir/all: examples/CMakeFiles/an24_codegen.dir/all
 	$(MAKE) $(MAKESILENT) -f tools/CMakeFiles/update_port_registry.dir/build.make tools/CMakeFiles/update_port_registry.dir/depend
 	$(MAKE) $(MAKESILENT) -f tools/CMakeFiles/update_port_registry.dir/build.make tools/CMakeFiles/update_port_registry.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target update_port_registry"
@@ -1316,7 +1316,7 @@ tools/CMakeFiles/regenerate_port_registry.dir/clean:
 tests/CMakeFiles/push_state_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/push_state_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/push_state_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/push_state_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/push_state_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/push_state_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_state_tests.dir/build.make tests/CMakeFiles/push_state_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_state_tests.dir/build.make tests/CMakeFiles/push_state_tests.dir/build
@@ -1352,7 +1352,7 @@ tests/CMakeFiles/push_state_tests.dir/clean:
 tests/CMakeFiles/push_scheduler_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/push_scheduler_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/push_scheduler_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/push_scheduler_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/push_scheduler_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/push_scheduler_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_scheduler_tests.dir/build.make tests/CMakeFiles/push_scheduler_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_scheduler_tests.dir/build.make tests/CMakeFiles/push_scheduler_tests.dir/build
@@ -1388,7 +1388,7 @@ tests/CMakeFiles/push_scheduler_tests.dir/clean:
 tests/CMakeFiles/push_build_validation_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/push_build_validation_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/push_build_validation_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/push_build_validation_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/push_build_validation_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/push_build_validation_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_build_validation_tests.dir/build.make tests/CMakeFiles/push_build_validation_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_build_validation_tests.dir/build.make tests/CMakeFiles/push_build_validation_tests.dir/build
@@ -1424,7 +1424,7 @@ tests/CMakeFiles/push_build_validation_tests.dir/clean:
 tests/CMakeFiles/push_runtime_regression_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/push_runtime_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/push_runtime_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/push_runtime_regression_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/push_runtime_regression_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/push_runtime_regression_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_runtime_regression_tests.dir/build.make tests/CMakeFiles/push_runtime_regression_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_runtime_regression_tests.dir/build.make tests/CMakeFiles/push_runtime_regression_tests.dir/build
@@ -1460,7 +1460,7 @@ tests/CMakeFiles/push_runtime_regression_tests.dir/clean:
 tests/CMakeFiles/electrical_island_build_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/electrical_island_build_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/electrical_island_build_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/electrical_island_build_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/electrical_island_build_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/electrical_island_build_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/build
@@ -1496,7 +1496,7 @@ tests/CMakeFiles/electrical_island_build_tests.dir/clean:
 tests/CMakeFiles/electrical_handle_build_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/electrical_handle_build_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/electrical_handle_build_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/electrical_handle_build_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/electrical_handle_build_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/electrical_handle_build_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/build
@@ -1532,7 +1532,7 @@ tests/CMakeFiles/electrical_handle_build_tests.dir/clean:
 tests/CMakeFiles/electrical_subsolver_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/electrical_subsolver_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/electrical_subsolver_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/electrical_subsolver_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/electrical_subsolver_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/electrical_subsolver_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/build
@@ -1568,7 +1568,7 @@ tests/CMakeFiles/electrical_subsolver_tests.dir/clean:
 tests/CMakeFiles/architecture_regression_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/architecture_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/architecture_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/architecture_regression_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/architecture_regression_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/architecture_regression_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/build
@@ -1604,7 +1604,7 @@ tests/CMakeFiles/architecture_regression_tests.dir/clean:
 tests/CMakeFiles/pid_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/pid_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/pid_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/pid_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/pid_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/pid_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/build
@@ -1640,7 +1640,7 @@ tests/CMakeFiles/pid_tests.dir/clean:
 tests/CMakeFiles/pd_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/pd_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/pd_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/pd_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/pd_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/pd_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pd_tests.dir/build.make tests/CMakeFiles/pd_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pd_tests.dir/build.make tests/CMakeFiles/pd_tests.dir/build
@@ -1676,7 +1676,7 @@ tests/CMakeFiles/pd_tests.dir/clean:
 tests/CMakeFiles/subtract_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/subtract_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/subtract_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/subtract_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/subtract_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/subtract_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/build
@@ -1712,7 +1712,7 @@ tests/CMakeFiles/subtract_tests.dir/clean:
 tests/CMakeFiles/logic_gates_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/logic_gates_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/logic_gates_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/logic_gates_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/logic_gates_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/logic_gates_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/build
@@ -1748,7 +1748,7 @@ tests/CMakeFiles/logic_gates_tests.dir/clean:
 tests/CMakeFiles/arithmetic_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/arithmetic_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/arithmetic_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/arithmetic_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/arithmetic_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/arithmetic_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/build
@@ -1784,7 +1784,7 @@ tests/CMakeFiles/arithmetic_tests.dir/clean:
 tests/CMakeFiles/splitter_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/splitter_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/splitter_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/splitter_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/splitter_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/splitter_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/build
@@ -1820,7 +1820,7 @@ tests/CMakeFiles/splitter_tests.dir/clean:
 tests/CMakeFiles/azs_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/azs_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/azs_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/azs_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/azs_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/azs_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/build
@@ -1853,12 +1853,12 @@ tests/CMakeFiles/azs_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/logical_solver_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/logical_solver_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/logical_solver_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/logical_solver_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/logical_solver_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/logical_solver_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/logical_solver_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/logical_solver_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/logical_solver_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target logical_solver_tests"
@@ -1893,7 +1893,7 @@ tests/CMakeFiles/logical_solver_tests.dir/clean:
 tests/CMakeFiles/blueprint_ports_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/blueprint_ports_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/blueprint_ports_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/blueprint_ports_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/blueprint_ports_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/blueprint_ports_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/build
@@ -1929,7 +1929,7 @@ tests/CMakeFiles/blueprint_ports_tests.dir/clean:
 tests/CMakeFiles/current_sense_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/current_sense_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/current_sense_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/current_sense_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/current_sense_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/current_sense_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/build
@@ -1965,7 +1965,7 @@ tests/CMakeFiles/current_sense_tests.dir/clean:
 tests/CMakeFiles/bug_hunt_regression_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bug_hunt_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bug_hunt_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/bug_hunt_regression_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/bug_hunt_regression_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/bug_hunt_regression_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/build
@@ -2001,7 +2001,7 @@ tests/CMakeFiles/bug_hunt_regression_tests.dir/clean:
 tests/CMakeFiles/slew_rate_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/slew_rate_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/slew_rate_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/slew_rate_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/slew_rate_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/slew_rate_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/build
@@ -2037,7 +2037,7 @@ tests/CMakeFiles/slew_rate_tests.dir/clean:
 tests/CMakeFiles/lut_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/lut_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/lut_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/lut_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/lut_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/lut_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/build
@@ -2073,7 +2073,7 @@ tests/CMakeFiles/lut_tests.dir/clean:
 tests/CMakeFiles/time_delay_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/time_delay_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/time_delay_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/time_delay_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/time_delay_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/time_delay_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/build
@@ -2109,7 +2109,7 @@ tests/CMakeFiles/time_delay_tests.dir/clean:
 tests/CMakeFiles/monostable_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/monostable_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/monostable_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/monostable_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/monostable_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/monostable_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/build
@@ -2145,7 +2145,7 @@ tests/CMakeFiles/monostable_tests.dir/clean:
 tests/CMakeFiles/sample_hold_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/sample_hold_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/sample_hold_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/sample_hold_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/sample_hold_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/sample_hold_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/build
@@ -2710,11 +2710,11 @@ tests/CMakeFiles/visual_content_widgets_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/scene_mutations_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/scene_mutations_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/scene_mutations_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/scene_mutations_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/scene_mutations_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/scene_mutations_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/scene_mutations_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=79,80,81 "Built target scene_mutations_tests"
@@ -2746,11 +2746,11 @@ tests/CMakeFiles/scene_mutations_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/canvas_input_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/canvas_input_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/canvas_input_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/canvas_input_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/canvas_input_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/canvas_input_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/canvas_input_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=28,29,30,31 "Built target canvas_input_tests"
@@ -2886,7 +2886,7 @@ tests/CMakeFiles/port_registry_tests.dir/clean:
 tests/CMakeFiles/port_macro_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/port_macro_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/port_macro_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/port_macro_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/port_macro_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/port_macro_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_macro_tests.dir/build.make tests/CMakeFiles/port_macro_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_macro_tests.dir/build.make tests/CMakeFiles/port_macro_tests.dir/build
@@ -2922,7 +2922,7 @@ tests/CMakeFiles/port_macro_tests.dir/clean:
 tests/CMakeFiles/editor_componentvariant_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/editor_componentvariant_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/editor_componentvariant_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/editor_componentvariant_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/editor_componentvariant_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/editor_componentvariant_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_componentvariant_tests.dir/build.make tests/CMakeFiles/editor_componentvariant_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_componentvariant_tests.dir/build.make tests/CMakeFiles/editor_componentvariant_tests.dir/build
@@ -3094,7 +3094,7 @@ tests/CMakeFiles/json_parser_tests.dir/clean:
 tests/CMakeFiles/factory_validation_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/factory_validation_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/factory_validation_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/factory_validation_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/factory_validation_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/factory_validation_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
@@ -3130,7 +3130,7 @@ tests/CMakeFiles/factory_validation_tests.dir/clean:
 tests/CMakeFiles/blueprint_integration_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/blueprint_integration_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/blueprint_integration_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/blueprint_integration_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/blueprint_integration_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/blueprint_integration_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_integration_tests.dir/build.make tests/CMakeFiles/blueprint_integration_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_integration_tests.dir/build.make tests/CMakeFiles/blueprint_integration_tests.dir/build
@@ -3166,7 +3166,7 @@ tests/CMakeFiles/blueprint_integration_tests.dir/clean:
 tests/CMakeFiles/blueprint_loading_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/blueprint_loading_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/blueprint_loading_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/blueprint_loading_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/blueprint_loading_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/blueprint_loading_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_loading_tests.dir/build.make tests/CMakeFiles/blueprint_loading_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_loading_tests.dir/build.make tests/CMakeFiles/blueprint_loading_tests.dir/build
@@ -3202,7 +3202,7 @@ tests/CMakeFiles/blueprint_loading_tests.dir/clean:
 tests/CMakeFiles/provider_pattern_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/provider_pattern_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/provider_pattern_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/provider_pattern_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/provider_pattern_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/provider_pattern_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/build
@@ -3238,7 +3238,7 @@ tests/CMakeFiles/provider_pattern_tests.dir/clean:
 tests/CMakeFiles/asym_tmo_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/asym_tmo_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/asym_tmo_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/asym_tmo_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/asym_tmo_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/asym_tmo_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/build
@@ -3274,7 +3274,7 @@ tests/CMakeFiles/asym_tmo_tests.dir/clean:
 tests/CMakeFiles/lut_codegen_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/lut_codegen_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/lut_codegen_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/lut_codegen_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/lut_codegen_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/lut_codegen_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/build
@@ -3310,7 +3310,7 @@ tests/CMakeFiles/lut_codegen_tests.dir/clean:
 tests/CMakeFiles/port_map_regression_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/port_map_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/port_map_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/port_map_regression_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/port_map_regression_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/port_map_regression_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/build
@@ -3346,7 +3346,7 @@ tests/CMakeFiles/port_map_regression_tests.dir/clean:
 tests/CMakeFiles/and_gate_debug_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/and_gate_debug_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/and_gate_debug_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/and_gate_debug_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/and_gate_debug_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/and_gate_debug_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/and_gate_debug_tests.dir/build.make tests/CMakeFiles/and_gate_debug_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/and_gate_debug_tests.dir/build.make tests/CMakeFiles/and_gate_debug_tests.dir/build
@@ -3379,12 +3379,12 @@ tests/CMakeFiles/and_gate_debug_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/codegen_sanitize_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/codegen_sanitize_tests.dir/all: examples/CMakeFiles/an24_codegen.dir/all
 tests/CMakeFiles/codegen_sanitize_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/codegen_sanitize_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/codegen_sanitize_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/codegen_sanitize_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/codegen_sanitize_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/codegen_sanitize_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/codegen_sanitize_tests.dir/all: examples/CMakeFiles/an24_codegen.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=33 "Built target codegen_sanitize_tests"
@@ -3419,7 +3419,7 @@ tests/CMakeFiles/codegen_sanitize_tests.dir/clean:
 tests/CMakeFiles/v_to_bool_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/v_to_bool_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/v_to_bool_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/v_to_bool_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/v_to_bool_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/v_to_bool_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/build
@@ -3455,7 +3455,7 @@ tests/CMakeFiles/v_to_bool_tests.dir/clean:
 tests/CMakeFiles/pi_p_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/pi_p_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/pi_p_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/pi_p_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/pi_p_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/pi_p_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_p_tests.dir/build.make tests/CMakeFiles/pi_p_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_p_tests.dir/build.make tests/CMakeFiles/pi_p_tests.dir/build
@@ -3488,11 +3488,11 @@ tests/CMakeFiles/pi_p_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/inspector_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/inspector_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/inspector_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/inspector_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/inspector_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/inspector_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/inspector_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=44 "Built target inspector_tests"
@@ -3524,11 +3524,11 @@ tests/CMakeFiles/inspector_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/properties_window_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/properties_window_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/properties_window_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/properties_window_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/properties_window_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/properties_window_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/properties_window_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target properties_window_tests"
@@ -3563,7 +3563,7 @@ tests/CMakeFiles/properties_window_tests.dir/clean:
 tests/CMakeFiles/codegen_accumulator_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/codegen_accumulator_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/codegen_accumulator_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/codegen_accumulator_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/codegen_accumulator_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/codegen_accumulator_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/build
@@ -3599,7 +3599,7 @@ tests/CMakeFiles/codegen_accumulator_tests.dir/clean:
 tests/CMakeFiles/aot_composite_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/aot_composite_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/aot_composite_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/aot_composite_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/aot_composite_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/aot_composite_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/build
@@ -3635,7 +3635,7 @@ tests/CMakeFiles/aot_composite_tests.dir/clean:
 tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build
@@ -3671,7 +3671,7 @@ tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/clean:
 tests/CMakeFiles/production_path_parity_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/production_path_parity_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/production_path_parity_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/production_path_parity_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/production_path_parity_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/production_path_parity_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/build
@@ -3707,7 +3707,7 @@ tests/CMakeFiles/production_path_parity_tests.dir/clean:
 tests/CMakeFiles/production_path_port_map_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/production_path_port_map_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/production_path_port_map_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/production_path_port_map_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/production_path_port_map_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/production_path_port_map_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/build
@@ -3743,7 +3743,7 @@ tests/CMakeFiles/production_path_port_map_tests.dir/clean:
 tests/CMakeFiles/production_path_push_runtime_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/production_path_push_runtime_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/production_path_push_runtime_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/production_path_push_runtime_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/production_path_push_runtime_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/production_path_push_runtime_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/build
@@ -3779,7 +3779,7 @@ tests/CMakeFiles/production_path_push_runtime_tests.dir/clean:
 tests/CMakeFiles/asym_slew_rate_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/asym_slew_rate_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/asym_slew_rate_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/asym_slew_rate_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/asym_slew_rate_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/asym_slew_rate_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/build
@@ -3815,7 +3815,7 @@ tests/CMakeFiles/asym_slew_rate_tests.dir/clean:
 tests/CMakeFiles/integrator_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/integrator_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/integrator_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/integrator_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/integrator_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/integrator_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/build
@@ -3851,7 +3851,7 @@ tests/CMakeFiles/integrator_tests.dir/clean:
 tests/CMakeFiles/accumulator_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/accumulator_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/accumulator_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/accumulator_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/accumulator_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/accumulator_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/build
@@ -3887,7 +3887,7 @@ tests/CMakeFiles/accumulator_tests.dir/clean:
 tests/CMakeFiles/sam28_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/sam28_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/sam28_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/sam28_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/sam28_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/sam28_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/build
@@ -3923,7 +3923,7 @@ tests/CMakeFiles/sam28_tests.dir/clean:
 tests/CMakeFiles/clamp_normalize_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/clamp_normalize_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/clamp_normalize_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/clamp_normalize_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/clamp_normalize_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/clamp_normalize_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/build
@@ -3959,7 +3959,7 @@ tests/CMakeFiles/clamp_normalize_tests.dir/clean:
 tests/CMakeFiles/comparison_components_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/comparison_components_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/comparison_components_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/comparison_components_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/comparison_components_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/comparison_components_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/build
@@ -3995,7 +3995,7 @@ tests/CMakeFiles/comparison_components_tests.dir/clean:
 tests/CMakeFiles/spring_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/spring_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/spring_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/spring_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/spring_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/spring_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/build
@@ -4028,11 +4028,11 @@ tests/CMakeFiles/spring_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/v3_migration_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/v3_migration_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/v3_migration_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/v3_migration_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/v3_migration_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/v3_migration_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/v3_migration_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=93 "Built target v3_migration_tests"
@@ -4064,12 +4064,12 @@ tests/CMakeFiles/v3_migration_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/command_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/command_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/command_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/command_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/command_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/command_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/command_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/command_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/command_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=34 "Built target command_tests"
@@ -4104,7 +4104,7 @@ tests/CMakeFiles/command_tests.dir/clean:
 tests/CMakeFiles/unmapped_port_regression_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/unmapped_port_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/unmapped_port_regression_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/unmapped_port_regression_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/unmapped_port_regression_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/unmapped_port_regression_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/build
@@ -4137,11 +4137,11 @@ tests/CMakeFiles/unmapped_port_regression_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/bp2_path_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/bp2_path_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/bp2_path_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bp2_path_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bp2_path_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/bp2_path_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/bp2_path_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_path_tests"
@@ -4173,11 +4173,11 @@ tests/CMakeFiles/bp2_path_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/bp2_interface_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/bp2_interface_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/bp2_interface_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bp2_interface_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bp2_interface_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/bp2_interface_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/bp2_interface_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=25 "Built target bp2_interface_tests"
@@ -4209,11 +4209,11 @@ tests/CMakeFiles/bp2_interface_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/bp2_blueprint_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/bp2_blueprint_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/bp2_blueprint_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bp2_blueprint_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bp2_blueprint_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/bp2_blueprint_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/bp2_blueprint_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=23 "Built target bp2_blueprint_tests"
@@ -4245,11 +4245,11 @@ tests/CMakeFiles/bp2_blueprint_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/bp2_registry_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/bp2_registry_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/bp2_registry_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bp2_registry_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bp2_registry_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/bp2_registry_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/bp2_registry_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_registry_tests"
@@ -4281,11 +4281,11 @@ tests/CMakeFiles/bp2_registry_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/bp2_codec_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/bp2_codec_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/bp2_codec_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bp2_codec_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bp2_codec_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/bp2_codec_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/bp2_codec_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_codec_tests"
@@ -4317,11 +4317,11 @@ tests/CMakeFiles/bp2_codec_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/bp2_flattener_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/bp2_flattener_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/bp2_flattener_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bp2_flattener_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bp2_flattener_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/bp2_flattener_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/bp2_flattener_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_flattener_tests"
@@ -4353,11 +4353,11 @@ tests/CMakeFiles/bp2_flattener_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/bp2_editor_model_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/bp2_editor_model_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/bp2_editor_model_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bp2_editor_model_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bp2_editor_model_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/bp2_editor_model_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/bp2_editor_model_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=24 "Built target bp2_editor_model_tests"
@@ -4389,11 +4389,11 @@ tests/CMakeFiles/bp2_editor_model_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/bp2_bake_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/bp2_bake_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/bp2_bake_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bp2_bake_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bp2_bake_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/bp2_bake_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/bp2_bake_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_bake_tests"
@@ -4425,11 +4425,11 @@ tests/CMakeFiles/bp2_bake_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/bp2_validation_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/bp2_validation_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/bp2_validation_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/bp2_validation_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/bp2_validation_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/bp2_validation_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/bp2_validation_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=26 "Built target bp2_validation_tests"
@@ -4464,7 +4464,7 @@ tests/CMakeFiles/bp2_validation_tests.dir/clean:
 tests/CMakeFiles/electrical_primitives_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/electrical_primitives_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/electrical_primitives_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/electrical_primitives_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/electrical_primitives_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/electrical_primitives_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/build
@@ -4497,12 +4497,12 @@ tests/CMakeFiles/electrical_primitives_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/electrical_parity_fixtures_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/electrical_parity_fixtures_tests.dir/all: examples/CMakeFiles/an24_codegen.dir/all
 tests/CMakeFiles/electrical_parity_fixtures_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/electrical_parity_fixtures_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/electrical_parity_fixtures_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/electrical_parity_fixtures_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/electrical_parity_fixtures_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/electrical_parity_fixtures_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/electrical_parity_fixtures_tests.dir/all: examples/CMakeFiles/an24_codegen.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=39 "Built target electrical_parity_fixtures_tests"
@@ -4534,12 +4534,12 @@ tests/CMakeFiles/electrical_parity_fixtures_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/external_ref_signal_mapping_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=40 "Built target external_ref_signal_mapping_tests"
@@ -4571,12 +4571,12 @@ tests/CMakeFiles/external_ref_signal_mapping_tests.dir/clean:
 # Target rules for target tests/CMakeFiles/signal_key_resolver_tests.dir
 
 # All Build rule for target.
+tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 tests/CMakeFiles/signal_key_resolver_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/signal_key_resolver_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/signal_key_resolver_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
-tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=82 "Built target signal_key_resolver_tests"
@@ -4611,7 +4611,7 @@ tests/CMakeFiles/signal_key_resolver_tests.dir/clean:
 tests/CMakeFiles/knob_switch_tests.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 tests/CMakeFiles/knob_switch_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 tests/CMakeFiles/knob_switch_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
-tests/CMakeFiles/knob_switch_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+tests/CMakeFiles/knob_switch_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/knob_switch_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/build

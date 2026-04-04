@@ -1487,77 +1487,77 @@ knob_switch_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/build
 .PHONY : knob_switch_tests/fast
 
-__/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
-.PHONY : __/src/codegen/codegen.o
+__/src/core/solvers/aot/codegen.o: __/src/core/solvers/aot/codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen.o
 
 # target to build an object file
-__/src/codegen/codegen.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.o
-.PHONY : __/src/codegen/codegen.cpp.o
+__/src/core/solvers/aot/codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen.cpp.o
 
-__/src/codegen/codegen.i: __/src/codegen/codegen.cpp.i
-.PHONY : __/src/codegen/codegen.i
+__/src/core/solvers/aot/codegen.i: __/src/core/solvers/aot/codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen.i
 
 # target to preprocess a source file
-__/src/codegen/codegen.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.i
-.PHONY : __/src/codegen/codegen.cpp.i
+__/src/core/solvers/aot/codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen.cpp.i
 
-__/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
-.PHONY : __/src/codegen/codegen.s
+__/src/core/solvers/aot/codegen.s: __/src/core/solvers/aot/codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen.s
 
 # target to generate assembly for a file
-__/src/codegen/codegen.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.s
-.PHONY : __/src/codegen/codegen.cpp.s
+__/src/core/solvers/aot/codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen.cpp.s
 
-__/src/codegen/electrical_codegen.o: __/src/codegen/electrical_codegen.cpp.o
-.PHONY : __/src/codegen/electrical_codegen.o
+__/src/core/solvers/aot/electrical_codegen.o: __/src/core/solvers/aot/electrical_codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/electrical_codegen.o
 
 # target to build an object file
-__/src/codegen/electrical_codegen.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-.PHONY : __/src/codegen/electrical_codegen.cpp.o
+__/src/core/solvers/aot/electrical_codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/electrical_codegen.cpp.o
 
-__/src/codegen/electrical_codegen.i: __/src/codegen/electrical_codegen.cpp.i
-.PHONY : __/src/codegen/electrical_codegen.i
+__/src/core/solvers/aot/electrical_codegen.i: __/src/core/solvers/aot/electrical_codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/electrical_codegen.i
 
 # target to preprocess a source file
-__/src/codegen/electrical_codegen.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-.PHONY : __/src/codegen/electrical_codegen.cpp.i
+__/src/core/solvers/aot/electrical_codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/electrical_codegen.cpp.i
 
-__/src/codegen/electrical_codegen.s: __/src/codegen/electrical_codegen.cpp.s
-.PHONY : __/src/codegen/electrical_codegen.s
+__/src/core/solvers/aot/electrical_codegen.s: __/src/core/solvers/aot/electrical_codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/electrical_codegen.s
 
 # target to generate assembly for a file
-__/src/codegen/electrical_codegen.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-.PHONY : __/src/codegen/electrical_codegen.cpp.s
+__/src/core/solvers/aot/electrical_codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/electrical_codegen.cpp.s
 
 __/src/editor/commands/commands.o: __/src/editor/commands/commands.cpp.o
 .PHONY : __/src/editor/commands/commands.o
@@ -4684,12 +4684,12 @@ help:
 	@echo "... visual_scene_v2_tests"
 	@echo "... visual_widget_tests"
 	@echo "... visual_wire_tests"
-	@echo "... __/src/codegen/codegen.o"
-	@echo "... __/src/codegen/codegen.i"
-	@echo "... __/src/codegen/codegen.s"
-	@echo "... __/src/codegen/electrical_codegen.o"
-	@echo "... __/src/codegen/electrical_codegen.i"
-	@echo "... __/src/codegen/electrical_codegen.s"
+	@echo "... __/src/core/solvers/aot/codegen.o"
+	@echo "... __/src/core/solvers/aot/codegen.i"
+	@echo "... __/src/core/solvers/aot/codegen.s"
+	@echo "... __/src/core/solvers/aot/electrical_codegen.o"
+	@echo "... __/src/core/solvers/aot/electrical_codegen.i"
+	@echo "... __/src/core/solvers/aot/electrical_codegen.s"
 	@echo "... __/src/editor/commands/commands.o"
 	@echo "... __/src/editor/commands/commands.i"
 	@echo "... __/src/editor/commands/commands.s"

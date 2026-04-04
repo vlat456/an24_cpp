@@ -19,7 +19,7 @@
 ///   sim_debug GSC.blueprint -json
 ///   sim_debug GSC.blueprint -P -every 120 -n 600
 
-#include "jit_solver/simulator.h"
+#include "core/solvers/jit/simulator.h"
 #include "json_parser/json_parser.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/registry/type_registry.h"

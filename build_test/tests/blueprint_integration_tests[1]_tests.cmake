@@ -1,5 +1,0 @@
-add_test([=[BlueprintPorts.BasicBatteryCircuit]=]  /Users/vladimir/an24_cpp/build_test/tests/blueprint_integration_tests [==[--gtest_filter=BlueprintPorts.DISABLED_BasicBatteryCircuit]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[BlueprintPorts.BasicBatteryCircuit]=]  PROPERTIES DISABLED YES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_blueprint_integration.cpp:86 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_test/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-add_test([=[BlueprintPorts.InputPassThroughToOutput]=]  /Users/vladimir/an24_cpp/build_test/tests/blueprint_integration_tests [==[--gtest_filter=BlueprintPorts.InputPassThroughToOutput]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[BlueprintPorts.InputPassThroughToOutput]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_blueprint_integration.cpp:123 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_test/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-set(  blueprint_integration_tests_TESTS BlueprintPorts.BasicBatteryCircuit BlueprintPorts.InputPassThroughToOutput)

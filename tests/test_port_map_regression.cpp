@@ -4,9 +4,9 @@
 
 #include <gtest/gtest.h>
 #include "json_parser/json_parser.h"
-#include "jit_solver/jit_solver.h"
-#include "jit_solver/components/all.h"
-#include "jit_solver/components/port_registry.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/components/all.h"
+#include "core/solvers/jit/components/port_registry.h"
 
 // =============================================================================
 // Regression: string_to_port_name covers every port in every component

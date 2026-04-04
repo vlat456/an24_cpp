@@ -10,7 +10,6 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -540,177 +539,169 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   _deps/spdlog-src/include/spdlog/version.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/state.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/subsolvers/subsolver_types.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/add.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/and_gate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/any_v_to_bool.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/clamp.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/comparator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/component_enums.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/controlled_current_source.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/controlled_voltage_source.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/current_sense.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/divide.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/electric_heater.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/electric_pump.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_conductance.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/fast_tmo.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/fuel_tank.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/generator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/gidro_accumulator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/greater.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/greater_eq.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/gyroscope.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/high_power_load.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/hold_button.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/indicator_light.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/inertia_node.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/integrator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/inverter.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/lerp_node.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/lesser.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/lesser_eq.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/load.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/lut.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/max.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/merger.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/min.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/monostable.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/multiply.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/nand_gate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/normalize.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/not_gate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/or_gate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/p.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/pd.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/pi.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/pid.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/port_names.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/port_registry.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/positive_v_to_bool.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/radiator.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/ref_node.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/relay.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/resistor.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/sample_hold.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/slew_rate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/slider.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/solenoid_valve.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/splitter.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/spring.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/subtract.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/switch.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/temp_sensor.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/time_delay.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/transformer.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/value.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/variable_conductance.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/voltage_sense.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/voltmeter.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/xor_gate.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/scheduler.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/state.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/subsolvers/subsolver_types.h
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/state.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/subsolvers/subsolver_types.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/accumulator.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/add.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/all.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/and_gate.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/any_v_to_bool.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/asym_slew_rate.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/asym_tmo.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/azs.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_input.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_output.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/bus.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/clamp.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/comparator.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/component_enums.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/controlled_current_source.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/controlled_voltage_source.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/current_sense.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/divide.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/electric_heater.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/electric_pump.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/electrical_conductance.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/electrical_source.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/fast_tmo.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/fuel_tank.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/generator.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/gidro_accumulator.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/greater.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/greater_eq.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/gyroscope.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/high_power_load.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/hold_button.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/indicator_light.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/inertia_node.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/integrator.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/inverter.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/knob_switch.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/lerp_node.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/lesser.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/lesser_eq.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/load.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/lut.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/max.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/merger.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/min.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/monostable.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/multiply.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/nand_gate.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/normalize.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/not_gate.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/or_gate.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/p.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/pd.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/pi.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/pid.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/port_names.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/port_registry.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/positive_v_to_bool.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/provider.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/radiator.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/ref_node.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/relay.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/resistor.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/sample_hold.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/slew_rate.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/slider.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/solenoid_valve.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/splitter.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/spring.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/subtract.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/switch.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/temp_sensor.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/time_delay.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/transformer.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/value.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/variable_conductance.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/voltage_sense.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/voltmeter.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/xor_gate.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/jit_solver.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/scheduler.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/state.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/jit/subsolvers/subsolver_types.h
 
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/voltmeter.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/scheduler.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/voltage_sense.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/voltmeter.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/variable_conductance.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/transformer.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/value.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/temp_sensor.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/temp_sensor.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/switch.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/subtract.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/subtract.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/spring.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/spring.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/splitter.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/splitter.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/slider.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/slider.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/radiator.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/slew_rate.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/provider.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/sample_hold.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/positive_v_to_bool.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/resistor.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/pid.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/ref_node.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/pi.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/port_registry.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/pd.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/pd.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/p.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/p.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/or_gate.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/normalize.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/not_gate.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/nand_gate.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/normalize.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/max.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/nand_gate.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/lut.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/min.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/lesser_eq.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/merger.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/knob_switch.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/max.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/inverter.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/lesser.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/indicator_light.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/lerp_node.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/hold_button.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/high_power_load.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/gidro_accumulator.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/greater_eq.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/generator.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/greater.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/fuel_tank.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/fast_tmo.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/electric_pump.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/electrical_source.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/current_sense.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/electrical_conductance.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/controlled_current_source.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/current_sense.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/comparator.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/controlled_voltage_source.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/controlled_current_source.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/bus.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/azs.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/asym_slew_rate.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/and_gate.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/all.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/and_gate.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/all.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/add.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/state.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/state.h:
 
 _deps/spdlog-src/include/spdlog/version.h:
 
@@ -723,8 +714,6 @@ _deps/spdlog-src/include/spdlog/details/null_mutex.h:
 _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/gyroscope.h:
 
 _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp:
 
@@ -754,15 +743,13 @@ _deps/json-src/include/nlohmann/detail/macro_unscope.hpp:
 
 _deps/json-src/include/nlohmann/detail/json_ref.hpp:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/xor_gate.h:
-
 _deps/json-src/include/nlohmann/detail/iterators/primitive_iterator.hpp:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/port_names.h:
 
 _deps/json-src/include/nlohmann/detail/iterators/json_reverse_iterator.hpp:
 
 _deps/json-src/include/nlohmann/detail/iterators/iter_impl.hpp:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/accumulator.h:
 
 _deps/json-src/include/nlohmann/detail/input/parser.hpp:
 
@@ -772,8 +759,6 @@ _deps/spdlog-src/include/spdlog/details/circular_q.h:
 
 _deps/json-src/include/nlohmann/detail/input/json_sax.hpp:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/ref_node.h:
-
 _deps/spdlog-src/include/spdlog/details/log_msg.h:
 
 _deps/json-src/include/nlohmann/detail/hash.hpp:
@@ -782,19 +767,27 @@ _deps/json-src/include/nlohmann/detail/conversions/to_json.hpp:
 
 _deps/json-src/include/nlohmann/detail/abi_macros.hpp:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/monostable.h:
+
 _deps/json-src/include/nlohmann/adl_serializer.hpp:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/divide.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_input.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_rsize_t.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/voltage_sense.h:
+
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_ptrdiff_t.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_nullptr_t.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/indicator_light.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/value.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_null.h:
 
@@ -809,6 +802,8 @@ _deps/json-src/include/nlohmann/adl_serializer.hpp:
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg___va_copy.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg___gnuc_va_list.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/add.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/wctype.h:
 
@@ -834,11 +829,13 @@ _deps/json-src/include/nlohmann/ordered_map.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/string_view:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/multiply.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/multiply.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/string:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/stdexcept:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/lerp_node.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/stddef.h:
 
@@ -856,8 +853,6 @@ _deps/json-src/include/nlohmann/ordered_map.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/mutex:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/integrator.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/math.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/map:
@@ -870,13 +865,15 @@ _deps/json-src/include/nlohmann/ordered_map.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/limits:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/any_v_to_bool.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/iterator:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/istream:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/load.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/iostream:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/radiator.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/iosfwd:
 
@@ -886,25 +883,19 @@ _deps/json-src/include/nlohmann/ordered_map.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/functional:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/gidro_accumulator.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/forward_list:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/inertia_node.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/filesystem:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/exception:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/electric_heater.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/errno.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/ctime:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdio:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/cwchar:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/cstdint:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cmath:
 
@@ -915,6 +906,8 @@ _deps/json-src/include/nlohmann/ordered_map.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/types.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/atomic:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/any_v_to_bool.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternal.h:
 
@@ -954,8 +947,6 @@ _deps/json-src/include/nlohmann/ordered_map.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__tree:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/lut.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__split_buffer:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types.h:
@@ -973,8 +964,6 @@ _deps/json-src/include/nlohmann/detail/input/binary_reader.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__threading_support:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__nullptr:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/fuel_tank.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__node_handle:
 
@@ -996,6 +985,8 @@ _deps/json-src/include/nlohmann/detail/input/binary_reader.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__locale:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/gyroscope.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/move.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partial_sort.h:
@@ -1003,6 +994,8 @@ _deps/json-src/include/nlohmann/detail/input/binary_reader.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/size.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/reverse_access.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/subsolvers/subsolver_types.h:
 
 _deps/json-src/include/nlohmann/detail/value_t.hpp:
 
@@ -1012,13 +1005,13 @@ _deps/json-src/include/nlohmann/detail/value_t.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/ostream_iterator.h:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator_traits.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator.h:
 
 _deps/json-src/include/nlohmann/detail/meta/std_fs.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iter_move.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/time_delay.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cstddef:
 
@@ -1067,6 +1060,8 @@ _deps/json-src/include/nlohmann/detail/meta/std_fs.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/mem_fn.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/invoke.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/pid.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/hash.h:
 
@@ -1119,8 +1114,6 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/bind_front.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/transform.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/divide.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int64_t.h:
 
@@ -1248,11 +1241,11 @@ _deps/json-src/include/nlohmann/detail/iterators/internal_iterator.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_partitioned.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/positive_v_to_bool.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_ctype.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_heap_until.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_heap.h:
 
@@ -1268,6 +1261,8 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/core.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/set_symmetric_difference.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/jit_solver.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/half_positive.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/generate_n.h:
@@ -1277,6 +1272,10 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/core.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_nl_item.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/for_each_n.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/for_each.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/clamp.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/wchar.h:
 
@@ -1324,7 +1323,11 @@ _deps/json-src/include/nlohmann/detail/meta/detected.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/comp_ref_type.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/high_power_load.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/wait.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/electric_pump.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/initializer_list:
 
@@ -1334,13 +1337,9 @@ _deps/json-src/include/nlohmann/detail/meta/detected.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_wctype.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/scheduler.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fsfilcnt_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_wchar.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/monostable.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/pointer_traits.h:
 
@@ -1348,17 +1347,15 @@ _deps/json-src/include/nlohmann/detail/meta/detected.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__config:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/inertia_node.h:
+
 _deps/json-src/include/nlohmann/detail/macro_scope.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/system_error:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_isset.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/hold_button.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_string.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/inverter.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cerrno:
 
@@ -1366,17 +1363,15 @@ _deps/json-src/include/nlohmann/detail/macro_scope.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_key_t.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/transformer.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/___wctype.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__config_site:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/time_delay.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/ctype.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/set_union.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/component_enums.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale.h:
 
@@ -1390,7 +1385,7 @@ _deps/json-src/include/nlohmann/detail/macro_scope.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_useconds_t.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/clamp.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/azs.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/default_sentinel.h:
 
@@ -1410,17 +1405,17 @@ _deps/json-src/include/nlohmann/detail/input/input_adapters.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/mach/arm/_structs.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/port_names.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uintptr_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_rune_t.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/not_gate.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ucontext.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/unary_negate.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/switch.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binder1st.h:
 
@@ -1450,17 +1445,15 @@ _deps/json-src/include/nlohmann/detail/input/input_adapters.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/operations.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_size_t.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/integrator.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/subsolvers/subsolver_types.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_size_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_va_list.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/ostreambuf_iterator.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/pop_heap.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/fast_tmo.h:
 
 _deps/json-src/include/nlohmann/detail/meta/identity_tag.hpp:
 
@@ -1474,11 +1467,13 @@ _deps/json-src/include/nlohmann/detail/meta/identity_tag.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_pid_t.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/relay.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/__decay_copy.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/lesser_eq.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__errc:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/comparator.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_in_addr_t.h:
 
@@ -1522,11 +1517,15 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_in_port_t.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/greater_eq.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/next.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/move_backward.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_id_t.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/pi.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/replace_if.h:
 
@@ -1536,13 +1535,9 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_int.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/bus.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_if.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_zero.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/sample_hold.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_null.h:
 
@@ -1561,6 +1556,14 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_clr.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_errno_t.h:
+
+_deps/spdlog-src/include/spdlog/fmt/fmt.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/limits.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/limits.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ct_rune_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/enable_borrowed_range.h:
 
@@ -1604,9 +1607,9 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/compare:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/reverse_iterator.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/component_enums.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/slew_rate.h:
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/reverse_iterator.h:
 
 /Users/vladimir/an24_cpp/src/json_parser/json_parser.h:
 
@@ -1614,13 +1617,15 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partition_copy.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/generator.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stddef.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/max_element.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/variable_conductance.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_time.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/xor_gate.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/max.h:
 
@@ -1628,7 +1633,7 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wchar.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/electrical_conductance.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/lesser.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/inplace_merge.h:
 
@@ -1644,23 +1649,19 @@ _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_ptrcheck.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/merger.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/all_of.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/nl_types.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/load.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint32_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/limits.h:
-
-_deps/spdlog-src/include/spdlog/fmt/fmt.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/limits.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__function_like.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_output.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/erase_if_container.h:
 
@@ -1690,8 +1691,6 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partition_point.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/electric_heater.h:
-
 _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/limits.h:
@@ -1702,19 +1701,17 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/projected.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/port_registry.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_clock_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/equal.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/for_each.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint8_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/replace.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/provider.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_permutation.h:
 
@@ -1724,23 +1721,11 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/vector:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/concepts:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int32_t.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_setsize.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternalLegacy.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/advance.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_seek_set.h:
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/greater.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/relay.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_seek_set.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_t.h:
 
@@ -1752,13 +1737,21 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/sort.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/min.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_wint_t.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/asym_tmo.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_mutexattr_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_mb_cur_max.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/cwchar:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/cstdint:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h:
 
@@ -1778,7 +1771,9 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_xlocale.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ct_rune_t.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/signal.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wctype.h:
 
 _deps/json-src/include/nlohmann/detail/iterators/iterator_traits.hpp:
 
@@ -1788,15 +1783,25 @@ _deps/json-src/include/nlohmann/detail/iterators/iterator_traits.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/time.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/resistor.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__mutex_base:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint64_t.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binary_function.h:
+/Library/Developer/CommandLineTools/usr/include/c++/v1/vector:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/controlled_voltage_source.h:
+/Library/Developer/CommandLineTools/usr/include/c++/v1/concepts:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int32_t.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_setsize.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternalLegacy.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/or_gate.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binary_function.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/allocator.h:
 
@@ -1816,10 +1821,6 @@ _deps/json-src/include/nlohmann/detail/input/position_t.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_int16_t.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_limits.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_intmax_t.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc_type.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/appleapiopts.h:
@@ -1832,6 +1833,8 @@ _deps/json-src/include/nlohmann/detail/input/position_t.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/unary_function.h:
 
+/Users/vladimir/an24_cpp/src/core/solvers/jit/components/solenoid_valve.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/wctype.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/limits.h:
@@ -1840,13 +1843,9 @@ _deps/json-src/include/nlohmann/detail/input/position_t.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/types.h:
 
-_deps/json-src/include/nlohmann/detail/conversions/to_chars.hpp:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_limits.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_wchar_t.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_intmax_t.h:
 
 _deps/json-src/include/nlohmann/detail/json_pointer.hpp:
 
@@ -1856,12 +1855,10 @@ _deps/json-src/include/nlohmann/detail/json_pointer.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/assert.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/signal.h:
+_deps/json-src/include/nlohmann/detail/conversions/to_chars.hpp:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wctype.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator_traits.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_wchar_t.h:
 
-/Users/vladimir/an24_cpp/src/jit_solver/components/solenoid_valve.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h:

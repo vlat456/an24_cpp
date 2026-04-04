@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_on/tests/logic_gates_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_on/tests/logic_gates_tests[1]_tests.cmake")
-else()
-  add_test(logic_gates_tests_NOT_BUILT logic_gates_tests_NOT_BUILT)
-endif()

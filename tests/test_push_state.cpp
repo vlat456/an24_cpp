@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "jit_solver/state.h"
+#include "core/solvers/jit/state.h"
 
 template <typename T>
 concept HasThrough = requires(T t) { t.through; };

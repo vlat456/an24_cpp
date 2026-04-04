@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "jit_solver/components/port_registry.h"
-#include "jit_solver/component.h"
+#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/jit/component.h"
 #include <type_traits>
 
 

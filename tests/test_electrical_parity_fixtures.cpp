@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include "jit_solver/simulator.h"
-#include "codegen/codegen.h"
-#include "jit_solver/jit_solver.h"
-#include "jit_solver/subsolvers/electrical_subsolver.h"
+#include "core/solvers/jit/simulator.h"
+#include "core/solvers/aot/codegen.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/subsolvers/electrical_subsolver.h"
 #include <cmath>
 
 namespace {

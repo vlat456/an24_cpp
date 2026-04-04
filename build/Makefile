@@ -259,7 +259,7 @@ jit_solver: cmake_check_build_system
 
 # fast build rule for target.
 jit_solver/fast:
-	$(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/build
+	$(MAKE) $(MAKESILENT) -f src/core/solvers/jit/CMakeFiles/jit_solver.dir/build.make src/core/solvers/jit/CMakeFiles/jit_solver.dir/build
 .PHONY : jit_solver/fast
 
 #=============================================================================

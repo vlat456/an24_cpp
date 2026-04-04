@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_test/tests/signal_key_resolver_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_test/tests/signal_key_resolver_tests[1]_tests.cmake")
-else()
-  add_test(signal_key_resolver_tests_NOT_BUILT signal_key_resolver_tests_NOT_BUILT)
-endif()

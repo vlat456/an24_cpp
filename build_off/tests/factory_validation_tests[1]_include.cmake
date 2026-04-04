@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/factory_validation_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_off/tests/factory_validation_tests[1]_tests.cmake")
-else()
-  add_test(factory_validation_tests_NOT_BUILT factory_validation_tests_NOT_BUILT)
-endif()

@@ -1,6 +1,6 @@
-#include "jit_solver/jit_solver.h"
-#include "jit_solver/components/port_registry.h"
-#include "jit_solver/state.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/jit/state.h"
 
 #include <chrono>
 #include <iostream>

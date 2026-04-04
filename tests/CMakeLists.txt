@@ -1,14 +1,14 @@
 # JIT Solver tests - Disabled (uses old Systems API, needs update to ComponentVariant)
-# add_executable(jit_solver_tests
-#     jit_solver_test.cpp
+# add_executable(core_tests
+#     core_test.cpp
 # )
-# target_include_directories(jit_solver_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
-# target_link_libraries(jit_solver_tests PRIVATE
-#     jit_solver
+# target_include_directories(core_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+# target_link_libraries(core_tests PRIVATE
+#     core
 #     GTest::gtest_main
 # )
 # include(GoogleTest)
-# gtest_discover_tests(jit_solver_tests)
+# gtest_discover_tests(core_tests)
 
 include(GoogleTest)
 
@@ -258,7 +258,7 @@ add_executable(blueprint_ports_tests
 )
 target_include_directories(blueprint_ports_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/jit_solver
+    ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
@@ -824,7 +824,7 @@ gtest_discover_tests(editor_viewport_tests)
 #     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 # )
 # target_link_libraries(editor_event_tests PRIVATE
-#     jit_solver
+#     core
 #     json_parser
 #     GTest::gtest_main
 # )
@@ -893,7 +893,7 @@ add_executable(blueprint_integration_tests
 )
 target_include_directories(blueprint_integration_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/jit_solver
+    ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
@@ -910,7 +910,7 @@ add_executable(blueprint_loading_tests
 )
 target_include_directories(blueprint_loading_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/jit_solver
+    ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
@@ -956,8 +956,8 @@ gtest_discover_tests(asym_tmo_tests)
 # LUT codegen tests (AOT code generation for LUT arena)
 add_executable(lut_codegen_tests
     test_lut_codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(lut_codegen_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1111,8 +1111,8 @@ gtest_discover_tests(properties_window_tests)
 # Codegen accumulator regression tests — verify AOT emits accumulator-based domain scheduling
 add_executable(codegen_accumulator_tests
     test_codegen_accumulator.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(codegen_accumulator_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1130,8 +1130,8 @@ gtest_discover_tests(codegen_accumulator_tests)
 # AOT Composite codegen tests (Phase 7: hierarchical AOT codegen)
 add_executable(aot_composite_tests
     test_aot_composite.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
     ${CMAKE_SOURCE_DIR}/src/json_parser/json_parser.cpp
 )
 target_include_directories(aot_composite_tests PRIVATE
@@ -1151,8 +1151,8 @@ gtest_discover_tests(aot_composite_tests
 # Minimal bridge-based JIT vs AOT equivalence regression
 add_executable(jit_aot_bridge_equivalence_tests
     test_jit_aot_bridge_equivalence.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(jit_aot_bridge_equivalence_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1171,8 +1171,8 @@ gtest_discover_tests(jit_aot_bridge_equivalence_tests
 
 add_executable(production_path_parity_tests
     test_production_path_parity.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(production_path_parity_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src

@@ -20,18 +20,20 @@ cd build && ctest
 
 | What | Where |
 |------|-------|
-| Simulation State | `src/jit_solver/state.h` |
-| Component Base | `src/jit_solver/component.h` |
-| Provider Pattern | `src/jit_solver/components/provider.h` |
-| All Components | `src/jit_solver/components/all.h` |
-| JIT Solver | `src/jit_solver/jit_solver.h` |
+| Simulation State | `src/core/solvers/jit/state.h` |
+| Component Base | `src/core/solvers/jit/component.h` |
+| Provider Pattern | `src/core/solvers/jit/components/provider.h` |
+| All Components | `src/core/solvers/jit/components/all.h` |
+| JIT Solver | `src/core/solvers/jit/jit_solver.h` |
+| Push Scheduler | `src/core/solvers/jit/scheduler.h` |
+| Simulator | `src/core/simulator.h` |
 | Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
 | Type Registry | `src/blueprint_v2/registry/type_registry.h` |
 | Flattener | `src/blueprint_v2/flattener/flattener.h` |
-| Code Generator | `src/codegen/codegen.h` |
+| Code Generator | `src/core/solvers/aot/codegen.h` |
 | Document | `src/editor/document.h` |
 | Scene | `src/editor/visual/scene.h` |
-| Port Registry | `src/jit_solver/components/port_registry.h` |
+| Port Registry | `src/core/solvers/jit/components/port_registry.h` |
 | Component Library | `library/**/*.blueprint` |
 | Tests | `tests/*.cpp` |
 | Generated Code | `generated/*.cpp, *.h` |
@@ -40,7 +42,7 @@ cd build && ctest
 
 | File/Path | Notes |
 |------|------|
-| `src/jit_solver/components/port_registry.h` | Auto-generated from library blueprints (`update_port_registry`) |
+| `src/core/solvers/jit/components/port_registry.h` | Auto-generated from library blueprints (`update_port_registry`) |
 | `generated/*.cpp, generated/*.h` | AOT-generated outputs |
 | `build*/`, `Testing/Temporary/*`, `.cache/clangd/*` | Build/cache artifacts, never hand-edit/commit |
 
@@ -57,7 +59,7 @@ cd build && ctest
 
 ## AOT Code Generation
 
-The code generator (`src/codegen/codegen.cpp`) produces optimized C++ from blueprints:
+The code generator (`src/core/solvers/aot/codegen.cpp`) produces optimized C++ from blueprints:
 - `port_registry.h` — auto-generated from library, do not edit
 - `generated/` — AOT output directory
 
@@ -216,7 +218,7 @@ Rules of thumb:
 
 Single source of truth for solver and JIT/editor warning knobs:
 
-- `src/jit_solver/jit_solver.h` (runtime configuration)
+- `src/core/solvers/jit/jit_solver.h` (runtime configuration)
 
 Namespaces in that file:
 

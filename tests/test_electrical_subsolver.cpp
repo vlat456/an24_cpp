@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "jit_solver/subsolvers/electrical_subsolver.h"
-#include "jit_solver/state.h"
+#include "core/solvers/jit/subsolvers/electrical_subsolver.h"
+#include "core/solvers/jit/state.h"
 #include <algorithm>
 #include <cmath>
 

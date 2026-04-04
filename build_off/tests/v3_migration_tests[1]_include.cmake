@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/v3_migration_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_off/tests/v3_migration_tests[1]_tests.cmake")
-else()
-  add_test(v3_migration_tests_NOT_BUILT v3_migration_tests_NOT_BUILT)
-endif()

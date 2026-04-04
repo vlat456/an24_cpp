@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "json_parser/json_parser.h"
-#include "jit_solver/jit_solver.h"
+#include "core/solvers/jit/jit_solver.h"
 
 
 /// Test that Editor can build a simple circuit with ComponentVariant

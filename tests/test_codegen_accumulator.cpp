@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "codegen/codegen.h"
+#include "core/solvers/aot/codegen.h"
 
 // ==...== Domain schedule constants (formerly in legacy solver constants) ==...==
 // These are embedded as string literals in generated AOT code and must remain consistent.
