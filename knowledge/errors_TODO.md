@@ -1421,6 +1421,28 @@ Removing direction entirely would touch ~50 source files, ~30 test files, and ev
 | 37    | Bridge node naming convention fragility | ~~High~~ | Medium | **FIXED** |
 | 38    | KnobSwitch tick marks not updating in inspector | ~~High~~   | Low    | **FIXED** |
 | 39    | KnobSwitch InOut terminals duplicated on both sides | ~~High~~   | Low    | **FIXED** |
-| 40    | Node editing allowed during simulation | ~~High~~   | Medium | **FIXED** |
-| 41    | KnobSwitch initial_position serialized as float | ~~High~~   | Low    | **FIXED** |
+| 40    | Node editing allowed during simulation | ~~High~~   | Medium | **FIXED**           |
+| 41    | KnobSwitch initial_position serialized as float | ~~High~~   | Low    | **FIXED**          |
+| 42    | Wire "energized" visualization uses voltage, not current | ~~Medium~~ | —      | **WONTFIX (by design)** |
+
+---
+
+## ~~42. Wire "Energized" Visualization Uses Voltage Instead of Current~~ ⚠️ WONTFIX (by design)
+
+**Status:** CLOSED — won't fix
+
+**Rationale for closing:**
+
+Wire visualization is **domain-agnostic** — wires carry all signal types (voltage, RPM, torque, bool, temperature, etc.). Making visualization "current-based" would tie it specifically to the electrical domain, breaking the generic design:
+
+- `wire_is_energized(abs(voltage) > threshold)` is correct for electrical signals (0V at GND = no potential = not energized)
+- RPM/torque/bool wires cannot be represented as "current" anyway
+- "Energized = voltage present" is a domain-specific concept that doesn't generalize
+
+**The user's confusion** is a UX issue: users interpret yellow = "current flowing", but the system shows yellow = "voltage potential present". This is a documentation/design issue, not a bug.
+
+**Options for future UX improvement** (not bug fixes):
+1. Add a UI toggle: "Show: Voltage / Current Flow" (per-viewport setting)
+2. Document the current behavior explicitly in the editor UI
+3. Add "current-based" as a separate visual layer on top of voltage-based (not a replacement)
 | 16    | Runtime API simplification (commit_control removal) | ~~Medium~~ | Low | **COMPLETED** |

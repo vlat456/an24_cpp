@@ -76,7 +76,7 @@ cmake --build build --target update_port_registry
 | Hydraulic | 8 | 5 Hz | Domain metadata for scheduling/validation |
 | Thermal | 16 | 1 Hz | Domain metadata for scheduling/validation |
 
-**Runtime API:** `execute(st, dt)` + optional `commit(st)` + optional `pre_load()`.
+**Runtime API:** `execute(st, dt)` + optional `commit(st, dt)` + optional `pre_load()`.
 
 ## Port Directions
 
