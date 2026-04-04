@@ -54,6 +54,9 @@ public:
     /// Returns zero-size Bounds if no content widget exists.
     Bounds contentBounds() const;
 
+    /// Content widget (if any). nullptr for nodes without interactive content.
+    Widget* contentWidget() const { return content_widget_; }
+
     /// Custom fill color (nullopt = use theme default)
     void setCustomColor(std::optional<uint32_t> c) override { custom_fill_ = c; }
     std::optional<uint32_t> customColor() const override { return custom_fill_; }
@@ -84,9 +87,6 @@ private:
     void buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
 
     void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);
-
-    /// True when buildFourSidedLayout was used (content is inside a flex Row).
-    bool four_sided_layout_ = false;
 };
 
 } // namespace visual

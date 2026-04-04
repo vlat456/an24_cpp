@@ -356,4 +356,56 @@ void VoltmeterWidget::updateFromContent(const NodeContent& content) {
     max_val_ = content.max;
 }
 
+// ============================================================================
+// IndicatorWidget
+// ============================================================================
+
+IndicatorWidget::IndicatorWidget(float brightness)
+    : brightness_(brightness)
+{
+    setFlexible(false);
+    setSize(Pt(SIZE, SIZE));
+}
+
+Pt IndicatorWidget::preferredSize(IDrawList*) const {
+    return Pt(SIZE, SIZE);
+}
+
+void IndicatorWidget::layout(float w, float h) {
+    Widget::layout(w, h);
+}
+
+void IndicatorWidget::render(IDrawList* dl, const RenderContext& ctx) const {
+    Pt origin = ctx.world_to_screen(worldPos());
+    float zoom = ctx.zoom;
+
+    // Circle radius: larger when brighter (0.3 to 0.45 of SIZE)
+    float brightness = std::clamp(brightness_, 0.0f, 1.0f);
+    float r_base = 0.3f + 0.15f * brightness;
+    float r = SIZE * r_base * zoom;
+
+    float cx = origin.x + size().x * zoom * 0.5f;
+    float cy = origin.y + size().y * zoom * 0.5f;
+
+    uint32_t fill_color;
+    if (brightness <= 0.0f) {
+        fill_color = COLOR_OFF;
+    } else {
+        // Interpolate from gray to green based on brightness
+        uint8_t g = static_cast<uint8_t>(48 + 207 * brightness);
+        uint8_t r_col = static_cast<uint8_t>(48 * (1.0f - brightness));
+        uint8_t b_col = static_cast<uint8_t>(48 * (1.0f - brightness));
+        // Alpha: more transparent when dimmer
+        uint8_t alpha = static_cast<uint8_t>(80 + 175 * brightness);
+        fill_color = (alpha << 24) | (b_col << 16) | (g << 8) | r_col;
+    }
+
+    dl->add_circle_filled(Pt(cx, cy), r, fill_color, 16);
+    dl->add_circle(Pt(cx, cy), r, 0xFF404040, 16);
+}
+
+void IndicatorWidget::updateFromContent(const NodeContent& content) {
+    brightness_ = std::clamp(content.value, 0.0f, 1.0f);
+}
+
 } // namespace visual

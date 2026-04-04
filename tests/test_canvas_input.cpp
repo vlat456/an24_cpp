@@ -763,3 +763,86 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
     // The node should have moved — not still at (400, 200)
     EXPECT_NE(ref_data->x, 400.0f);
 }
+
+// ============================================================================
+// VerticalToggle layout: content bounds wide enough for click detection
+// ============================================================================
+
+TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
+    // Regression: VerticalToggle content_widget was inside a flex column,
+    // but preferredSize() didn't account for the content widget's width,
+    // resulting in a 6.2px wide clickable area.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    // Create an AZS-like node with VerticalToggle content and left/right ports
+    auto azs = make_node(I, "azs_1", "AZS", 0.0f, 0.0f);
+    azs.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.content_state = false;
+    azs.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    azs.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    // The content widget should exist and be toggleable
+    auto* cw = widget->contentWidget();
+    ASSERT_NE(cw, nullptr);
+    EXPECT_TRUE(cw->isToggleable());
+
+    // Content bounds must be at least as wide as the VerticalToggle's
+    // preferred width (16px). Previously it was ~6.2px.
+    Bounds cb = widget->contentBounds();
+    EXPECT_GE(cb.w, visual::VerticalToggleWidget::WIDTH)
+        << "Content bounds width (" << cb.w << ") must be >= "
+        << visual::VerticalToggleWidget::WIDTH << "px (VerticalToggle WIDTH)";
+}
+
+TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
+    // Verify that clicking in the center of the content area triggers a toggle
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    azs.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.content_state = false;
+    azs.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    azs.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    CanvasInput input(scene, vp, model, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    // Click at the center of the content area
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    // Convert world to screen (zoom=1, pan=0 → screen == world)
+    Pt canvas_min(0, 0);
+    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+
+    EXPECT_FALSE(result.toggle_switch_node_id.empty())
+        << "Clicking center of VerticalToggle content area should trigger toggle";
+    if (!result.toggle_switch_node_id.empty()) {
+        EXPECT_EQ(result.toggle_switch_node_id, "azs_1");
+    }
+}

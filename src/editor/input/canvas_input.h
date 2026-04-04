@@ -224,7 +224,8 @@ private:
     /// Commit resized node dimensions to the data layer via CmdResizeNode.
     void commit_resize_node();
 
-    /// Check if a click on a node widget hit a Switch/VerticalToggle content area.
+    /// Check if a click on a node widget hit a toggleable content area.
+    /// Uses the content widget's isToggleable() method — no hardcoded type checks.
     /// Returns the node ID if toggled, empty string otherwise.
     std::string check_content_toggle(visual::Widget& widget, Pt world_pos);
 

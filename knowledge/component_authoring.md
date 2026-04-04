@@ -364,3 +364,27 @@ Division is expensive and dangerous (divide-by-zero). Prefer:
 - the `Multiply` primitive with a reciprocal input, instead of `Divide`
 
 The `Divide` component exists but should be a last resort. Blueprint authors should be guided toward `Multiply` + reciprocal patterns.
+
+### Never pollute global things with concrete component details
+
+The editor's global data structures (NodeContent, NodeContentType, etc.) are shared across ALL component types. **Never add component-specific fields** to these globals.
+
+Instead:
+- Reuse existing generic fields (`value`, `state`, `min`, `max`, etc.)
+- Create new generic content types if needed (e.g., `Indicator` for circle-based display)
+- Handle component-specific visualization in the component's update logic, not in global structs
+
+Bad (polluting NodeContent):
+```cpp
+struct NodeContent {
+    ...
+    float indicator_brightness = 0.0f;  // BAD: only used by IndicatorLight
+    bool azs_tripped = false;           // BAD: only used by AZS
+};
+```
+
+Good (using generic fields):
+```cpp
+// IndicatorLight uses content.value (0-1 normalized brightness)
+// AZS uses content.state + content.tripped (already generic)
+```

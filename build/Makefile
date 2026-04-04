@@ -913,6 +913,19 @@ visual_primitives_tests/fast:
 .PHONY : visual_primitives_tests/fast
 
 #=============================================================================
+# Target rules for targets named visual_content_widgets_tests
+
+# Build rule for target.
+visual_content_widgets_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_content_widgets_tests
+.PHONY : visual_content_widgets_tests
+
+# fast build rule for target.
+visual_content_widgets_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/build
+.PHONY : visual_content_widgets_tests/fast
+
+#=============================================================================
 # Target rules for targets named scene_mutations_tests
 
 # Build rule for target.
@@ -1420,32 +1433,6 @@ command_tests/fast:
 .PHONY : command_tests/fast
 
 #=============================================================================
-# Target rules for targets named radiator_regression_tests
-
-# Build rule for target.
-radiator_regression_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 radiator_regression_tests
-.PHONY : radiator_regression_tests
-
-# fast build rule for target.
-radiator_regression_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/build
-.PHONY : radiator_regression_tests/fast
-
-#=============================================================================
-# Target rules for targets named inverter_regression_tests
-
-# Build rule for target.
-inverter_regression_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 inverter_regression_tests
-.PHONY : inverter_regression_tests
-
-# fast build rule for target.
-inverter_regression_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/build
-.PHONY : inverter_regression_tests/fast
-
-#=============================================================================
 # Target rules for targets named unmapped_port_regression_tests
 
 # Build rule for target.
@@ -1457,19 +1444,6 @@ unmapped_port_regression_tests: cmake_check_build_system
 unmapped_port_regression_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/build
 .PHONY : unmapped_port_regression_tests/fast
-
-#=============================================================================
-# Target rules for targets named electric_pump_regression_tests
-
-# Build rule for target.
-electric_pump_regression_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 electric_pump_regression_tests
-.PHONY : electric_pump_regression_tests
-
-# fast build rule for target.
-electric_pump_regression_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/build
-.PHONY : electric_pump_regression_tests/fast
 
 #=============================================================================
 # Target rules for targets named bp2_path_tests
@@ -1691,7 +1665,6 @@ help:
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_settings_tests"
 	@echo "... editor_viewport_tests"
-	@echo "... electric_pump_regression_tests"
 	@echo "... electrical_handle_build_tests"
 	@echo "... electrical_island_build_tests"
 	@echo "... electrical_parity_fixtures_tests"
@@ -1706,7 +1679,6 @@ help:
 	@echo "... hello_world"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
-	@echo "... inverter_regression_tests"
 	@echo "... jit_aot_bridge_equivalence_tests"
 	@echo "... jit_solver"
 	@echo "... json_parser"
@@ -1735,7 +1707,6 @@ help:
 	@echo "... push_runtime_regression_tests"
 	@echo "... push_scheduler_tests"
 	@echo "... push_state_tests"
-	@echo "... radiator_regression_tests"
 	@echo "... sam28_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
@@ -1761,6 +1732,7 @@ help:
 	@echo "... v3_migration_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"
+	@echo "... visual_content_widgets_tests"
 	@echo "... visual_grid_tests"
 	@echo "... visual_primitives_tests"
 	@echo "... visual_scene_v2_tests"

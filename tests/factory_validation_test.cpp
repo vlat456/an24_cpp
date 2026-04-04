@@ -183,30 +183,7 @@ TEST(FactoryValidationTest, Factory_CreatesAllKnownComponents) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Test that unknown component types are rejected with an exception
-// DISABLED: Push model build_systems_dev no longer throws on unknown type;
-// unknown types are silently skipped during component instantiation.
-// ---------------------------------------------------------------------------
-TEST(FactoryValidationTest, DISABLED_UnknownComponentType_Throws) {
-    DeviceInstance unknown;
-    unknown.name = "unknown_device";
-    unknown.classname = "NonExistentComponent";
-    unknown.execution = make_execution_for_class("NonExistentComponent");
-    unknown.ports["dummy"] = Port{PortDirection::InOut, PortType::Any};
 
-    DeviceInstance gnd;
-    gnd.name = "gnd";
-    gnd.classname = "RefNode";
-    gnd.params = {{"value", "0"}};
-    gnd.execution = make_execution_for_class("RefNode");
-    gnd.ports["v"] = Port{PortDirection::Out, PortType::V};
-
-    std::vector<DeviceInstance> devices = {unknown, gnd};
-    std::vector<std::pair<std::string, std::string>> connections;
-
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
-}
 
 // ---------------------------------------------------------------------------
 // Test that port registry constants match get_component_ports() size
@@ -273,34 +250,7 @@ TEST(FactoryValidationTest, AllRegistryPortsAreRecognized) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Test that building a component with an unknown port name throws
-// (regression test for the std::abort -> std::runtime_error fix)
-// DISABLED: Push model build_systems_dev no longer throws on unknown port;
-// unknown ports are silently ignored during port mapping.
-// ---------------------------------------------------------------------------
-TEST(FactoryValidationTest, DISABLED_UnknownPortName_Throws) {
-    DeviceInstance dev;
-    dev.name = "test_battery";
-    dev.classname = "ElectricalSource";
-    dev.execution = make_execution_for_class("ElectricalSource");
-    // "bogus_port" does not exist in ElectricalSource's port set
-    dev.ports["v_in"] = Port{PortDirection::In, PortType::V};
-    dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
-    dev.ports["bogus_port"] = Port{PortDirection::Out, PortType::Any};
 
-    DeviceInstance gnd;
-    gnd.name = "gnd";
-    gnd.classname = "RefNode";
-    gnd.params = {{"value", "0"}};
-    gnd.execution = make_execution_for_class("RefNode");
-    gnd.ports["v"] = Port{PortDirection::Out, PortType::V};
-
-    std::vector<DeviceInstance> devices = {dev, gnd};
-    std::vector<std::pair<std::string, std::string>> connections;
-
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
-}
 
 TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
     DeviceInstance bat;

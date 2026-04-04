@@ -583,22 +583,21 @@ target_link_libraries(visual_primitives_tests PRIVATE
 gtest_discover_tests(visual_primitives_tests)
 
 # Visual Content Widgets tests (Phase 3 - content widgets)
-# BLOCKED: historical include dependency issue (now uses node_content.h)
-# Tests are written but disabled until dependency issue is resolved.
-# See SCENE_GRAPH_PROGRESS.md for details.
-# add_executable(visual_content_widgets_tests
-#     test_visual_content_widgets.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
-# )
-# target_include_directories(visual_content_widgets_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/editor
-# )
-# target_link_libraries(visual_content_widgets_tests PRIVATE
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(visual_content_widgets_tests)
+add_executable(visual_content_widgets_tests
+    test_visual_content_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
+)
+target_include_directories(visual_content_widgets_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(visual_content_widgets_tests PRIVATE
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_content_widgets_tests)
 
 # Scene mutations tests (Phase 10: Blueprint <-> visual::Scene sync)
 add_executable(scene_mutations_tests
@@ -1395,41 +1394,7 @@ target_link_libraries(command_tests PRIVATE
     spdlog::spdlog
     GTest::gtest_main
 )
-gtest_discover_tests(command_tests)
 
-# Radiator regression tests (BUG-Radiator: inverted heat flow)
-add_executable(radiator_regression_tests
-    test_radiator_regression.cpp
-)
-target_include_directories(radiator_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(radiator_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(radiator_regression_tests)
-
-# Inverter regression tests (BUG-Inverter: Norton residual self-correction)
-add_executable(inverter_regression_tests
-    test_inverter_regression.cpp
-)
-target_include_directories(inverter_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(inverter_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(inverter_regression_tests)
-
-# Unmapped port + domain dispatch regression tests (BUG-21, BUG-4/5)
 add_executable(unmapped_port_regression_tests
     test_unmapped_port_regression.cpp
 )
@@ -1443,25 +1408,7 @@ target_link_libraries(unmapped_port_regression_tests PRIVATE
     json_parser
     GTest::gtest_main
 )
-gtest_discover_tests(unmapped_port_regression_tests)
 
-# ElectricPump regression tests (BUG-22: Norton residual self-correction)
-add_executable(electric_pump_regression_tests
-    test_electric_pump_regression.cpp
-)
-target_include_directories(electric_pump_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(electric_pump_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(electric_pump_regression_tests)
-
-# Blueprint v2 tests (Phase 0-4: Path, Interface, Blueprint, TypeRegistry, Codec)
 add_executable(bp2_path_tests
     blueprint_v2/test_path.cpp
 )

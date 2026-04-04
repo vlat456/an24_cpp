@@ -444,7 +444,7 @@ void Document::updateNodeContentFromSimulation() {
             }
         } else if (type_name == "IndicatorLight") {
             float brightness = simulation_.get_port_value(nid, "brightness");
-            content.label = (brightness > 0.1f) ? "ON" : "OFF";
+            content.value = std::clamp(brightness, 0.0f, 1.0f);
         } else if (type_name == "Switch") {
             float state_voltage = simulation_.get_port_value(nid, "state");
             content.state = (state_voltage > 0.5f);

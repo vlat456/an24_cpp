@@ -2383,6 +2383,42 @@
       "width": 160.0
     },
     {
+      "content_label": "",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 7,
+      "content_unit": "",
+      "content_value": 0.0,
+      "height": 80.0,
+      "id": "indicatorlight_1",
+      "name": "indicatorlight_1",
+      "params": {
+        "conductance": 0.009999999776482582
+      },
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 896.0,
+        "y": -576.0
+      },
+      "type": "IndicatorLight",
+      "width": 80.0
+    },
+    {
       "group_id": "extract_inst_2",
       "id": "integrator_1",
       "name": "LoadCurrent",
@@ -2802,7 +2838,7 @@
       },
       "position": {
         "x": 832.0,
-        "y": -144.0
+        "y": -160.0
       },
       "type": "Resistor"
     },
@@ -2854,7 +2890,7 @@
         }
       },
       "position": {
-        "x": -144.0,
+        "x": -176.0,
         "y": 240.0
       },
       "type": "Slider"
@@ -3787,8 +3823,8 @@
       "type": "Voltmeter"
     }
   ],
-  "pan_x": -447.2244567871094,
-  "pan_y": -702.1881713867188,
+  "pan_x": -191.00881958007813,
+  "pan_y": -633.5184326171875,
   "version": "3.0",
   "wires": [
     {
@@ -4424,11 +4460,6 @@
       "target": "/extract_inst_4:Torque"
     },
     {
-      "id": "wire_139",
-      "source": "/comparator_2:o",
-      "target": "/relay_1:control"
-    },
-    {
       "id": "wire_val_controlledvoltagesource_2_gain",
       "source": "/val_controlledvoltagesource_2_gain:o",
       "target": "/controlledvoltagesource_2:gain"
@@ -4557,7 +4588,17 @@
       ],
       "source": "/normalize_1:out",
       "target": "/multiply_1:B"
+    },
+    {
+      "id": "wire_142",
+      "source": "/indicatorlight_1:v_out",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_143",
+      "source": "/bus_2:v",
+      "target": "/indicatorlight_1:v_in"
     }
   ],
-  "zoom": 0.5470489859580994
+  "zoom": 0.6346286535263062
 }

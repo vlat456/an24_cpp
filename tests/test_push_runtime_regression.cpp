@@ -1072,15 +1072,15 @@ TEST(PushRuntime, SolverOwnedComponentsNotScheduledForElectricalPropagation) {
 }
 
 TEST(PushRuntime, ClosedLoopNoRunawayAfterManySteps) {
-     // Closed loop: ElectricalSource -> Resistor -> IndicatorLight -> RefNode (return)
-     // After solver ownership changes, voltages should remain bounded.
-     const std::string json = R"({
-         "devices": [
-             {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.01"}},
-             {"name": "res", "classname": "Resistor", "params": {"conductance": "0.5"}},
-             {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0", "max_brightness": "100.0"}},
-             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
-         ],
+      // Closed loop: ElectricalSource -> Resistor -> IndicatorLight -> RefNode (return)
+      // After solver ownership changes, voltages should remain bounded.
+      const std::string json = R"({
+          "devices": [
+              {"name": "bat", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.01"}},
+              {"name": "res", "classname": "Resistor", "params": {"conductance": "0.5"}},
+              {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0"}},
+              {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+          ],
          "connections": [
              {"from": "gnd.v", "to": "bat.v_in"},
              {"from": "bat.v_out", "to": "res.v_in"},
@@ -1125,7 +1125,7 @@ TEST(PushRuntime, IndicatorLightDoesNotOverwriteSolvedNode) {
     const std::string json = R"({
         "devices": [
             {"name": "src", "classname": "RefNode", "params": {"value": "10.0"}},
-            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0", "max_brightness": "100.0"}},
+            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
         ],
         "connections": [
@@ -1155,7 +1155,7 @@ TEST(PushRuntime, IndicatorLightDoesNotOverwriteSolvedNode) {
     // Brightness should still compute correctly
     float brightness = sim.get_port_value("ind", "brightness");
     EXPECT_GT(brightness, 0.0f) << "IndicatorLight brightness should be > 0";
-    EXPECT_LE(brightness, 100.0f) << "IndicatorLight brightness should be <= max";
+    EXPECT_LE(brightness, 1.0f) << "IndicatorLight brightness should be <= 1";
 }
 
 TEST(PushRuntime, IndicatorLightBrightnessStillFunctional) {
@@ -1164,7 +1164,7 @@ TEST(PushRuntime, IndicatorLightBrightnessStillFunctional) {
     const std::string json = R"({
         "devices": [
             {"name": "src", "classname": "RefNode", "params": {"value": "14.0"}},
-            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0", "max_brightness": "100.0"}},
+            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
         ],
         "connections": [
@@ -1179,10 +1179,126 @@ TEST(PushRuntime, IndicatorLightBrightnessStillFunctional) {
     double dt = 1.0 / 60.0;
     sim.step(dt);
 
-    // At 14V input with 28V rated, brightness should be 50%
+    // At 14V input with 28V rated, brightness should be 0.5 (normalized)
     float brightness = sim.get_port_value("ind", "brightness");
-    EXPECT_NEAR(brightness, 50.0f, 1e-3f)
-        << "IndicatorLight brightness should be 50% (14V/28V * 100)";
+    EXPECT_NEAR(brightness, 0.5f, 1e-3f)
+        << "IndicatorLight brightness should be 0.5 (14V/28V normalized)";
+}
+
+TEST(PushRuntime, IndicatorLightRejectsMaxBrightnessParam) {
+    // Regression: max_brightness parameter was removed from IndicatorLight.
+    // Passing it must trigger "Unknown/unconsumed parameter" error, proving
+    // that stale blueprints are caught before silent misbehaviour.
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "RefNode", "params": {"value": "28.0"}},
+            {"name": "ind", "classname": "IndicatorLight", "params": {"max_brightness": "100.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "src.v", "to": "ind.v_in"},
+            {"from": "gnd.v", "to": "ind.v_out"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    EXPECT_THROW(sim.start_from_json(json), std::runtime_error)
+        << "max_brightness should be rejected as an unknown parameter";
+}
+
+TEST(PushRuntime, IndicatorLightBlueprintNormalizedBrightness) {
+    // Regression: Loads an IndicatorLight via accepted params (conductance,
+    // rated_voltage) and verifies brightness output is normalized 0-1.
+    // Tests multiple voltage levels to confirm the full range.
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.01"}},
+            {"name": "ind", "classname": "IndicatorLight", "params": {"conductance": "1.0", "rated_voltage": "28.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "gnd.v", "to": "src.v_in"},
+            {"from": "src.v_out", "to": "ind.v_in"},
+            {"from": "ind.v_out", "to": "gnd.v"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(json))
+        << "IndicatorLight with conductance + rated_voltage must build without error";
+
+    double dt = 1.0 / 60.0;
+
+    // Run a few steps
+    for (int i = 0; i < 10; ++i) {
+        sim.step(dt);
+    }
+
+    float brightness = sim.get_port_value("ind", "brightness");
+    // With 28V source driving IndicatorLight rated at 28V through a 0.01Ω
+    // internal resistance, brightness should be close to 1.0 (full voltage
+    // across the indicator after voltage divider).
+    EXPECT_GT(brightness, 0.0f)
+        << "Brightness must be > 0 when voltage is applied";
+    EXPECT_LE(brightness, 1.0f)
+        << "Brightness must be normalized to [0, 1]";
+    EXPECT_NEAR(brightness, 1.0f, 0.05f)
+        << "At rated voltage, brightness should be close to 1.0";
+}
+
+TEST(PushRuntime, IndicatorLightNoBrightnessWithoutGround) {
+    // Regression: IndicatorLight must NOT light up when v_out is floating
+    // (not connected to ground). The old code computed brightness from v_in
+    // alone; the fix computes from voltage drop (v_in - v_out). When both
+    // ports see the same voltage (floating = solver equates them), drop is 0.
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "RefNode", "params": {"value": "28.0"}},
+            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0"}}
+        ],
+        "connections": [
+            {"from": "src.v", "to": "ind.v_in"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    sim.start_from_json(json);
+
+    double dt = 1.0 / 60.0;
+    sim.step(dt);
+
+    // With v_out disconnected (no return path), brightness should be 0
+    // because there is no voltage drop across the indicator.
+    float brightness = sim.get_port_value("ind", "brightness");
+    EXPECT_NEAR(brightness, 0.0f, 0.05f)
+        << "IndicatorLight without ground connection should have no brightness";
+}
+
+TEST(PushRuntime, IndicatorLightBrightnessFromVoltageDrop) {
+    // Verify brightness is computed from voltage DROP (v_in - v_out), not v_in alone.
+    // With v_in=28V and v_out=14V, brightness should be (28-14)/28 = 0.5.
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "RefNode", "params": {"value": "28.0"}},
+            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0"}},
+            {"name": "mid", "classname": "RefNode", "params": {"value": "14.0"}}
+        ],
+        "connections": [
+            {"from": "src.v", "to": "ind.v_in"},
+            {"from": "mid.v", "to": "ind.v_out"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    sim.start_from_json(json);
+
+    double dt = 1.0 / 60.0;
+    sim.step(dt);
+
+    // Drop = 28 - 14 = 14V across 28V rated → brightness = 0.5
+    float brightness = sim.get_port_value("ind", "brightness");
+    EXPECT_NEAR(brightness, 0.5f, 1e-3f)
+        << "IndicatorLight brightness should reflect voltage drop, not absolute v_in";
 }
 
 // == Batch 7: Real Blueprint Regression Tests ==
@@ -1334,7 +1450,7 @@ TEST(PushRuntime, SimulationStateElectricalRtPointerClearedOutsideStep) {
 
 // =============================================================================
 // Regression: Relay must respect configurable hold_threshold.
-// Previously commit_control() used a hardcoded local threshold=0.5f
+// Previously commit() used a hardcoded local threshold=0.5f
 // instead of reading from the hold_threshold port.
 // =============================================================================
 TEST(PushRuntime, RelayCustomHoldThresholdIsRespected) {
@@ -1352,25 +1468,25 @@ TEST(PushRuntime, RelayCustomHoldThresholdIsRespected) {
 
     // 1.0 < 2.0 threshold → should NOT close
     st.values[0] = 1.0f;
-    relay.commit_control(st, 0.0f);
+    relay.commit(st, 0.0);
     EXPECT_FALSE(relay.closed)
         << "control=1.0 is below hold_threshold=2.0, relay must stay open";
 
     // 2.5 > 2.0 threshold → should close
     st.values[0] = 2.5f;
-    relay.commit_control(st, 0.0f);
+    relay.commit(st, 0.0);
     EXPECT_TRUE(relay.closed)
         << "control=2.5 exceeds hold_threshold=2.0, relay must close";
 
     // -1.0 > -2.0 → should remain closed (hysteresis)
     st.values[0] = -1.0f;
-    relay.commit_control(st, 0.0f);
+    relay.commit(st, 0.0);
     EXPECT_TRUE(relay.closed)
         << "control=-1.0 does not reach -hold_threshold=-2.0, relay must stay closed";
 
     // -2.5 < -2.0 → should open
     st.values[0] = -2.5f;
-    relay.commit_control(st, 0.0f);
+    relay.commit(st, 0.0);
     EXPECT_FALSE(relay.closed)
         << "control=-2.5 reaches -hold_threshold=-2.0, relay must open";
 }

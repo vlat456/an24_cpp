@@ -615,7 +615,6 @@ std::string CodeGen::generate_source(
         }
         // Commit pass: update internal state for all components.
         // Mirrors JIT Simulator::step() which calls scheduler commit + commit_solver_owned_devices.
-        // Switch/Relay/HoldButton/AZS delegate to commit_control().
         for (const auto& dev : devices) {
             oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";
         }

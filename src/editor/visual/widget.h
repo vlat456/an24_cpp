@@ -44,6 +44,10 @@ public:
     
     virtual void updateFromContent(const NodeContent& content) {}
 
+    /// Whether clicking this widget should toggle its state (Switch, VerticalToggle).
+    /// Override in toggleable content widget subclasses.
+    virtual bool isToggleable() const { return false; }
+
     virtual void onLocalPosChanged() override;
 
     /// Custom fill color (nullopt = use theme default).

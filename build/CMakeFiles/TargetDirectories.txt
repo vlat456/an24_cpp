@@ -153,6 +153,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_wire_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_container_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_primitives_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_content_widgets_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/scene_mutations_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/canvas_input_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/oscilloscope_stats_tests.dir
@@ -192,10 +193,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/spring_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/v3_migration_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/command_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/radiator_regression_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/inverter_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/unmapped_port_regression_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/electric_pump_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_path_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_interface_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_blueprint_tests.dir

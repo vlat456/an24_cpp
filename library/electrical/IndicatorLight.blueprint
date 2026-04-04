@@ -35,9 +35,7 @@
     "Electrical"
   ],
   "param_defaults": {
-    "color": "white",
-    "conductance": "1.0",
-    "max_brightness": "100.0"
+    "conductance": "0.002"
   },
-  "content_type": "Text"
+  "content_type": "Indicator"
 }

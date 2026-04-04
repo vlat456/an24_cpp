@@ -328,7 +328,7 @@ comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
 comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
 ```
 
-**Usage Pattern in commit_control():**
+**Usage Pattern in commit():**
 ```cpp
 float control = st.values[provider.get(PortNames::control)];
 
@@ -340,8 +340,8 @@ if (control > hold_threshold) {  // hold_threshold used
 
 st.values[provider.get(PortNames::state)] = closed ? 1.0f : 0.0f;
 ```
-- `hold_threshold` is **directly accessed** in commit_control()
-- `closed` is state variable (modified by commit_control)
+- `hold_threshold` is **directly accessed** in commit()
+- `closed` is state variable (modified by commit)
 - `g_open` and `g_closed` used by solver for conductance switching
 
 **Port Names Used:**
@@ -363,7 +363,7 @@ st.values[provider.get(PortNames::state)] = closed ? 1.0f : 0.0f;
 | **Normalize** | `min`, `max` | optional + pre_load | In execute() | Yes (`inv_range`) | `in`, `out` |
 | **Integrator** | `gain`, `initial_val` | required | In execute() | No | `in`, `reset`, `out` |
 | **PI** | `Kp`, `Ki`, `output_min`, `output_max` | required | In execute() | No | `setpoint`, `feedback`, `output` |
-| **Relay** | `closed`, `hold_threshold`, `g_open`, `g_closed` | optional | In commit_control() | No | `control`, `state` |
+| **Relay** | `closed`, `hold_threshold`, `g_open`, `g_closed` | optional | In commit() | No | `control`, `state` |
 
 ---
 

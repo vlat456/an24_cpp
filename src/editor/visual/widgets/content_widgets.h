@@ -67,6 +67,7 @@ public:
     void layout(float w, float h) override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void updateFromContent(const NodeContent& content) override;
+    bool isToggleable() const override { return true; }
 
     static constexpr float HEIGHT = 20.0f;
     static constexpr float MIN_WIDTH = 40.0f;
@@ -90,6 +91,7 @@ public:
     Pt preferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void updateFromContent(const NodeContent& content) override;
+    bool isToggleable() const override { return true; }
 
     static constexpr float WIDTH = 16.0f;
     static constexpr float HEIGHT = 50.0f;
@@ -165,6 +167,27 @@ private:
     static constexpr uint32_t COLOR_TEXT         = 0xFFDCD5D4;
     static constexpr float VALUE_FONT_SIZE = 14.0f;
     static constexpr float UNIT_FONT_SIZE = 10.0f;
+};
+
+class IndicatorWidget : public Widget {
+public:
+    IndicatorWidget(float brightness = 0.0f);
+
+    void setBrightness(float b) { brightness_ = b; }
+    float getBrightness() const { return brightness_; }
+
+    Pt preferredSize(IDrawList* dl) const override;
+    void layout(float w, float h) override;
+    void render(IDrawList* dl, const RenderContext& ctx) const override;
+    void updateFromContent(const NodeContent& content) override;
+
+    static constexpr float SIZE = 24.0f;
+    static constexpr float MIN_SIZE = 16.0f;
+
+private:
+    float brightness_;
+    static constexpr uint32_t COLOR_OFF = 0xFF505050;
+    static constexpr uint32_t COLOR_ON  = 0xFF30D040;
 };
 
 } // namespace visual

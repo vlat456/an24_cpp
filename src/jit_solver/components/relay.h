@@ -19,7 +19,6 @@ public:
 
     Relay() = default;
 
-    void commit_control(SimulationState& st, double dt);
     void execute(SimulationState& st, double dt);
     void commit(SimulationState& st, double dt);
     void pre_load() {}

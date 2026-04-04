@@ -166,6 +166,12 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
             content_widget_ = container->emplaceChild<SliderWidget>(
                 data.content_value, data.content_min,
                 data.content_max);
+        } else if (content_type == NodeContentType::Indicator) {
+            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
+            auto* container = layout_->emplaceChild<Container>(
+                Edges{margin, 2.0f, margin, 2.0f});
+            container->setFlexGrow(1.0f);
+            content_widget_ = container->emplaceChild<IndicatorWidget>(data.content_value);
         } else if (content_type != NodeContentType::None) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
@@ -227,7 +233,6 @@ void NodeWidget::buildPortInColumn(Widget* col, std::string_view name,
 
 void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     using namespace editor_constants;
-    four_sided_layout_ = true;
 
     auto overrides = resolve_bp2_layout_overrides(data.layout_overrides);
     ResolvedLayout layout = resolve_port_layout(data.inputs, data.outputs,
@@ -272,6 +277,9 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui
         content_widget_ = inner->emplaceChild<SliderWidget>(
             data.content_value, data.content_min,
             data.content_max);
+    } else if (content_type == NodeContentType::Indicator) {
+        auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
+        content_widget_ = inner->emplaceChild<IndicatorWidget>(data.content_value);
     } else if (content_type != NodeContentType::None) {
         if (!data.content_label.empty()) {
             content_widget_ = center->emplaceChild<Label>(
@@ -346,15 +354,26 @@ Pt NodeWidget::preferredSize(IDrawList* dl) const {
     if (!layout_) return Pt(0, 0);
     Pt ps = layout_->preferredSize(dl);
     
-    // In four-sided layout the body is a Row: [left_col | center(flex) | right_col].
-    // The center column is flexible, so the Row's preferred width only sums the
-    // port columns.  Add the content widget's minimum width so the node is never
-    // too narrow.
-    if (four_sided_layout_ && content_widget_) {
-        Pt cps = content_widget_->preferredSize(dl);
-        if (cps.x > 0) {
-            constexpr float center_margin = 8.0f; // Edges{4,0,4,0}
-            ps.x = std::max(ps.x, ps.x + cps.x + center_margin);
+    // When content lives inside a flex container within a Row
+    // (both VerticalToggle layout and four-sided layout), the flex child
+    // contributes 0 to the Row's preferred width, making the node too narrow.
+    // Add the content widget's minimum width so the node is never too narrow.
+    if (content_widget_ && content_widget_->parent()) {
+        // Walk up from content_widget_ to find the nearest flex ancestor.
+        // Accumulate horizontal margins along the way.
+        float h_margins = 0.0f;
+        bool found_flex = false;
+        for (auto* w = content_widget_->parent(); w && w != layout_; w = w->parent()) {
+            if (w->isFlexible()) {
+                found_flex = true;
+                break;
+            }
+        }
+        if (found_flex) {
+            Pt cps = content_widget_->preferredSize(dl);
+            if (cps.x > 0) {
+                ps.x += cps.x;
+            }
         }
     }
     

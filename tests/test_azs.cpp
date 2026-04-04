@@ -131,7 +131,7 @@ TEST_F(AZSTestFixture, TogglesOnControlEdge) {
     azs.last_control = 0.0f;
     st.values[IDX_CONTROL] = 1.0f; // rising edge
 
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     EXPECT_TRUE(azs.closed);
 }
@@ -142,7 +142,7 @@ TEST_F(AZSTestFixture, TogglesOffOnSecondEdge) {
     azs.last_control = 0.0f;
     st.values[IDX_CONTROL] = 1.0f;
 
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     EXPECT_FALSE(azs.closed);
 }
@@ -153,7 +153,7 @@ TEST_F(AZSTestFixture, NoToggleWithoutEdge) {
     azs.last_control = 1.0f;
     st.values[IDX_CONTROL] = 1.0f;
 
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     EXPECT_TRUE(azs.closed); // unchanged
 }
@@ -167,7 +167,7 @@ TEST_F(AZSTestFixture, OutputsStateOn) {
     st.values[IDX_CONTROL] = 0.0f; // no toggle
     azs.last_control = 0.0f;
 
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[IDX_STATE], 1.0f);
 }
@@ -177,7 +177,7 @@ TEST_F(AZSTestFixture, OutputsStateOff) {
     st.values[IDX_CONTROL] = 0.0f;
     azs.last_control = 0.0f;
 
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[IDX_STATE], 0.0f);
 }
@@ -231,7 +231,7 @@ TEST_F(AZSTestFixture, OutputsTempPort) {
     st.values[IDX_CONTROL] = 0.0f;
     azs.last_control = 0.0f;
 
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     EXPECT_FLOAT_EQ(st.values[IDX_TEMP], 0.42f);
 }
@@ -241,13 +241,13 @@ TEST_F(AZSTestFixture, OutputsTempPort) {
 // =============================================================================
 
 TEST_F(AZSTestFixture, TripsWhenOverheated) {
-    // When temp > 1.0 in commit_control, AZS should open (branchless)
+    // When temp > 1.0 in commit, AZS should open (branchless)
     azs.closed = true;
     azs.temp = 1.1f; // above threshold
     st.values[IDX_CONTROL] = 0.0f;
     azs.last_control = 0.0f;
 
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     EXPECT_FALSE(azs.closed);
     EXPECT_FLOAT_EQ(st.values[IDX_STATE], 0.0f);
@@ -260,7 +260,7 @@ TEST_F(AZSTestFixture, DoesNotTripBelowThreshold) {
     st.values[IDX_CONTROL] = 0.0f;
     azs.last_control = 0.0f;
 
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     EXPECT_TRUE(azs.closed);
     EXPECT_FLOAT_EQ(st.values[IDX_TRIPPED], 0.0f);
@@ -275,13 +275,13 @@ TEST_F(AZSTestFixture, TrippedStaysOpenUntilManualReset) {
     st.values[IDX_CONTROL] = 0.0f;
 
     // Trip
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
     EXPECT_FALSE(azs.closed);
     EXPECT_FLOAT_EQ(st.values[IDX_TRIPPED], 1.0f);
 
     // Cool down — tripped stays true
     azs.temp = 0.3f;
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
     EXPECT_FALSE(azs.closed);
     EXPECT_FLOAT_EQ(st.values[IDX_TRIPPED], 1.0f);
 }
@@ -294,7 +294,7 @@ TEST_F(AZSTestFixture, CanReenableAfterCooldown) {
     st.values[IDX_CONTROL] = 0.0f;
 
     // Trip
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
     EXPECT_FALSE(azs.closed);
 
     // Cool down
@@ -302,7 +302,7 @@ TEST_F(AZSTestFixture, CanReenableAfterCooldown) {
 
     // Manual toggle: rising edge on control
     st.values[IDX_CONTROL] = 1.0f;
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     EXPECT_TRUE(azs.closed);
     EXPECT_FLOAT_EQ(st.values[IDX_TRIPPED], 0.0f);
@@ -316,12 +316,12 @@ TEST_F(AZSTestFixture, RetripsIfStillHot) {
     st.values[IDX_CONTROL] = 0.0f;
 
     // Trip
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
     EXPECT_FALSE(azs.closed);
 
     // User tries to re-enable immediately (temp still hot)
     st.values[IDX_CONTROL] = 1.0f;
-    azs.commit_control(st, 1.0f / 60.0f);
+    azs.commit(st, 1.0 / 60.0);
 
     // Toggle fires → closed = true, but then trip fires → closed = false
     // Net result: still open

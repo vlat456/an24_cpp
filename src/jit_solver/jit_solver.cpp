@@ -573,10 +573,8 @@ BuildResult build_systems_dev(
         else if (dev.classname == "IndicatorLight") {
             IndicatorLight<JitProvider> comp;
             
-            comp.max_brightness = param_reader.consume_float_optional("max_brightness", 100.0f);
             comp.conductance = param_reader.consume_float_optional("conductance", 1.0f);
             comp.rated_voltage = param_reader.consume_float_optional("rated_voltage", 28.0f);
-            comp.color = param_reader.consume_string_optional("color", "white");
             comp.pre_load();
             setup_ports(comp);
             param_reader.validate_all_consumed();

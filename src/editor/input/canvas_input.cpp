@@ -334,23 +334,19 @@ void CanvasInput::cancel_gesture() {
 // ============================================================================
 
 std::string CanvasInput::check_content_toggle(visual::Widget& widget, Pt world_pos) {
-    std::string node_id(widget.id());
-    ui::InternedId node_iid = interner_.lookup(node_id);
-    const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr
-                                                        : model_.current().find_node(node_iid);
-    if (!node) return {};
-    if (node->content_type != bp2::NodeContentType::Switch &&
-        node->content_type != bp2::NodeContentType::VerticalToggle) return {};
+    // Only toggle if the node has a toggleable content widget and the click
+    // landed inside its bounds. This is generic — any content widget that
+    // overrides isToggleable() will be detected, without hardcoding types.
+    auto* nw = dynamic_cast<visual::NodeWidget*>(&widget);
+    if (!nw) return {};
+    auto* cw = nw->contentWidget();
+    if (!cw || !cw->isToggleable()) return {};
 
-    // Only toggle if click is inside the content widget bounds;
-    // clicks on header / ports / footer should select/drag instead.
-    if (auto* nw = dynamic_cast<visual::NodeWidget*>(&widget)) {
-        Bounds cb = nw->contentBounds();
-        Pt wpos = nw->worldPos();
-        float lx = world_pos.x - wpos.x;
-        float ly = world_pos.y - wpos.y;
-        if (cb.contains(lx, ly)) return node_id;
-    }
+    Bounds cb = nw->contentBounds();
+    Pt wpos = nw->worldPos();
+    float lx = world_pos.x - wpos.x;
+    float ly = world_pos.y - wpos.y;
+    if (cb.contains(lx, ly)) return std::string(widget.id());
     return {};
 }
 

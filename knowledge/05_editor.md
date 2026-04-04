@@ -471,3 +471,74 @@ for (size_t i = 0; i < w.routing_points.size(); ++i) {
 2. **Library path lookup** — blueprints live in subdirectories (e.g., `library/systems/`). Use `registry.categories[blueprint_name]` to get the correct path.
 
 3. **Viewport default check** — only auto-fit if viewport is at default (near-zero pan, zoom=1). Otherwise apply saved viewport directly to window.
+
+## Content Types and Widget Pipeline
+
+### How Content Widgets Work
+
+Content widgets are visual representations of component state (gauges, switches, indicators) that live inside `NodeWidget` layouts. The pipeline has three stages:
+
+1. **Type definition** (`library/*.blueprint`) — specifies `content_type` string (e.g., `"Indicator"`, `"Gauge"`, `"Switch"`)
+2. **Widget creation** (`visual_node.cpp::buildStandardLayout()`) — maps `NodeContentType` enum to widget class
+3. **Runtime updates** (`document.cpp::updateNodeContentFromSimulation()`) — pushes simulation values to widget via `updateFromContent()`
+
+### Adding a New Content Type
+
+**Step 1: Add the enum value** in both mirror enums:
+- `src/editor/data/node_content.h` → `enum class NodeContentType`
+- `src/blueprint_v2/blueprint/blueprint.h` → `enum class bp2::NodeContentType`
+
+Both enums must have identical values (they're cast via `static_cast`).
+
+**Step 2: Create the widget class** in `content_widgets.h/cpp`:
+- Extend `Widget`
+- Implement `preferredSize()`, `render()`, `updateFromContent()`, optionally `layout()`
+- Set `setFlexible(false)` if widget has fixed size
+- Colors are `uint32_t` in ImGui AABBGGRR format (alpha, blue, green, red bytes)
+
+**Step 3: Register in `create_node_content_from_def()`** (`node_content.h`):
+```cpp
+} else if (ct == "MyType") {
+    content.type = NodeContentType::MyType;
+    content.value = 0.0f;
+}
+```
+
+**Step 4: Add to BOTH layout paths** in `visual_node.cpp`:
+- `buildStandardLayout()` — standard layout (no port overrides)
+- `buildFourSidedLayout()` — four-sided layout (with port overrides)
+
+⚠️ **Critical pitfall**: If you add the widget to only one layout path, nodes using the other path will get a Spacer/Label instead of your widget. Most nodes use the standard path.
+
+**Step 5: Wire up simulation readout** in `document.cpp::updateNodeContentFromSimulation()`:
+```cpp
+} else if (type_name == "MyComponent") {
+    content.value = simulation_.get_port_value(nid, "my_port");
+}
+```
+
+**Step 6: Set content_type in blueprint** (`library/category/MyComponent.blueprint`):
+```json
+"content_type": "MyType"
+```
+
+### Color Format
+
+ImGui uses AABBGGRR (packed uint32_t):
+```cpp
+uint32_t color = (alpha << 24) | (blue << 16) | (green << 8) | red;
+// Example: opaque green = 0xFF00FF00 (alpha=FF, blue=00, green=FF, red=00)
+```
+
+The `NodeColor::to_uint32()` helper converts (r,g,b,a) floats to this format.
+
+### Existing Content Types
+
+| ContentType | Widget Class | Blueprint `content_type` | Interactive? |
+|-------------|-------------|-------------------------|-------------|
+| Gauge | VoltmeterWidget | `"Gauge"` | No (display only) |
+| Switch | SwitchWidget | `"Switch"` / `"HoldButton"` | Yes (click) |
+| VerticalToggle | VerticalToggleWidget | `"VerticalToggle"` | Yes (click) |
+| Slider | SliderWidget | `"Slider"` | Yes (drag) |
+| Indicator | IndicatorWidget | `"Indicator"` | No (display only) |
+| Text | Label | `"Text"` | No |

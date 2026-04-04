@@ -345,8 +345,7 @@
         "y": 160.0
       },
       "params": {
-        "conductance": 1.0,
-        "max_brightness": 100.0
+        "conductance": 1.0
       },
       "content_type": 5,
       "content_label": "ON",

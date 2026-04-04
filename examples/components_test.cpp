@@ -250,7 +250,7 @@ static void test_indicator_light() {
 
     DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
     DeviceInstance bus{"dc_bus", "RefNode", {{"value", "28.0"}}, {{"v", "bus"}}};
-    DeviceInstance light{"light", "IndicatorLight", {{"max_brightness", "100.0"}}, {{"v_in", "p"}, {"v_out", "g"}, {"brightness", "b"}}};
+    DeviceInstance light{"light", "IndicatorLight", {{"conductance", "1.0"}}, {{"v_in", "p"}, {"v_out", "g"}, {"brightness", "b"}}};
 
     std::vector<DeviceInstance> devices = {gnd, bus, light};
     std::vector<std::pair<std::string, std::string>> conn = {
@@ -314,8 +314,8 @@ static void test_full_dc_bus() {
     DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
     DeviceInstance dc_bus{"dc_bus", "Bus", {}, {{"v", "bus"}}};
     DeviceInstance battery{"battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance light1{"light1", "IndicatorLight", {{"max_brightness", "100.0"}}, {{"v_in", "p"}, {"v_out", "g"}, {"brightness", "b"}}};
-    DeviceInstance light2{"light2", "IndicatorLight", {{"max_brightness", "100.0"}}, {{"v_in", "p"}, {"v_out", "g"}, {"brightness", "b"}}};
+    DeviceInstance light1{"light1", "IndicatorLight", {{"conductance", "0.35"}}, {{"v_in", "p"}, {"v_out", "g"}, {"brightness", "b"}}};
+    DeviceInstance light2{"light2", "IndicatorLight", {{"conductance", "0.35"}}, {{"v_in", "p"}, {"v_out", "g"}, {"brightness", "b"}}};
 
     std::vector<DeviceInstance> devices = {gnd, dc_bus, battery, light1, light2};
 

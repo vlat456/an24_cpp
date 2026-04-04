@@ -14,7 +14,8 @@ enum class NodeContentType {
     VerticalToggle,  ///< Вертикальный тумблер (слайдер)
     Value,           ///< Отображаемое значение
     Text,            ///< Текст
-    Slider           ///< Интерактивный слайдер с min/max
+    Slider,          ///< Интерактивный слайдер с min/max
+    Indicator        ///< Индикатор (лампочка) - круг с яркостью
 };
 
 /// Содержимое узла (пока placeholder)
@@ -127,6 +128,9 @@ inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
         content.min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
         auto max_it = def->params.find("max");
         content.max = (max_it != def->params.end()) ? std::stof(max_it->second) : 1.0f;
+    } else if (ct == "Indicator") {
+        content.type = NodeContentType::Indicator;
+        content.value = 0.0f;  // normalized brightness (0-1)
     }
     return content;
 }

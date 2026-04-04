@@ -11,28 +11,6 @@ void AZS<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void AZS<Provider>::commit_control(SimulationState& st, double dt) {
-    (void)dt;
-    float current_control = st.values[provider.get(PortNames::control)];
-    if (std::abs(current_control - last_control) > 0.1f) {
-        if (!closed) tripped = false;
-        closed = !closed;
-    }
-    last_control = current_control;
-
-    // Thermal trip
-    if (closed && temp > 1.0f) {
-        closed = false;
-        tripped = true;
-    }
-
-    // Output state signals
-    st.values[provider.get(PortNames::state)] = closed ? 1.0f : 0.0f;
-    st.values[provider.get(PortNames::temp)] = temp;
-    st.values[provider.get(PortNames::tripped)] = tripped ? 1.0f : 0.0f;
-}
-
-template <typename Provider>
 void AZS<Provider>::execute(SimulationState& st, double dt) {
     // Electrical behavior is solver-owned via dynamic conductance branch.
     // Estimate branch current from solved electrical runtime for thermal model.
@@ -52,7 +30,23 @@ void AZS<Provider>::execute(SimulationState& st, double dt) {
 
 template <typename Provider>
 void AZS<Provider>::commit(SimulationState& st, double /*dt*/) {
-     commit_control(st, 0.0);
+    float current_control = st.values[provider.get(PortNames::control)];
+    if (std::abs(current_control - last_control) > 0.1f) {
+        if (!closed) tripped = false;
+        closed = !closed;
+    }
+    last_control = current_control;
+
+    // Thermal trip
+    if (closed && temp > 1.0f) {
+        closed = false;
+        tripped = true;
+    }
+
+    // Output state signals
+    st.values[provider.get(PortNames::state)] = closed ? 1.0f : 0.0f;
+    st.values[provider.get(PortNames::temp)] = temp;
+    st.values[provider.get(PortNames::tripped)] = tripped ? 1.0f : 0.0f;
 }
 
 template class AZS<JitProvider>;

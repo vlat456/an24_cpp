@@ -718,6 +718,20 @@ visual_primitives_tests/fast:
 .PHONY : visual_primitives_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/visual_content_widgets_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/visual_content_widgets_tests.dir/rule
+.PHONY : tests/CMakeFiles/visual_content_widgets_tests.dir/rule
+
+# Convenience name for target.
+visual_content_widgets_tests: tests/CMakeFiles/visual_content_widgets_tests.dir/rule
+.PHONY : visual_content_widgets_tests
+
+# fast build rule for target.
+visual_content_widgets_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/build
+.PHONY : visual_content_widgets_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/scene_mutations_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/scene_mutations_tests.dir/rule
 .PHONY : tests/CMakeFiles/scene_mutations_tests.dir/rule
@@ -1264,34 +1278,6 @@ command_tests/fast:
 .PHONY : command_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/radiator_regression_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/radiator_regression_tests.dir/rule
-.PHONY : tests/CMakeFiles/radiator_regression_tests.dir/rule
-
-# Convenience name for target.
-radiator_regression_tests: tests/CMakeFiles/radiator_regression_tests.dir/rule
-.PHONY : radiator_regression_tests
-
-# fast build rule for target.
-radiator_regression_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/build
-.PHONY : radiator_regression_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/inverter_regression_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/inverter_regression_tests.dir/rule
-.PHONY : tests/CMakeFiles/inverter_regression_tests.dir/rule
-
-# Convenience name for target.
-inverter_regression_tests: tests/CMakeFiles/inverter_regression_tests.dir/rule
-.PHONY : inverter_regression_tests
-
-# fast build rule for target.
-inverter_regression_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/build
-.PHONY : inverter_regression_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/unmapped_port_regression_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/unmapped_port_regression_tests.dir/rule
 .PHONY : tests/CMakeFiles/unmapped_port_regression_tests.dir/rule
@@ -1304,20 +1290,6 @@ unmapped_port_regression_tests: tests/CMakeFiles/unmapped_port_regression_tests.
 unmapped_port_regression_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/build
 .PHONY : unmapped_port_regression_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/electric_pump_regression_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electric_pump_regression_tests.dir/rule
-.PHONY : tests/CMakeFiles/electric_pump_regression_tests.dir/rule
-
-# Convenience name for target.
-electric_pump_regression_tests: tests/CMakeFiles/electric_pump_regression_tests.dir/rule
-.PHONY : electric_pump_regression_tests
-
-# fast build rule for target.
-electric_pump_regression_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/build
-.PHONY : electric_pump_regression_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/bp2_path_tests.dir/rule:
@@ -2109,6 +2081,7 @@ __/src/editor/visual/widget.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widget.cpp.o
 .PHONY : __/src/editor/visual/widget.cpp.o
@@ -2124,6 +2097,7 @@ __/src/editor/visual/widget.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widget.cpp.i
 .PHONY : __/src/editor/visual/widget.cpp.i
@@ -2139,6 +2113,7 @@ __/src/editor/visual/widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widget.cpp.s
 .PHONY : __/src/editor/visual/widget.cpp.s
@@ -2148,6 +2123,7 @@ __/src/editor/visual/widgets/content_widgets.o: __/src/editor/visual/widgets/con
 
 # target to build an object file
 __/src/editor/visual/widgets/content_widgets.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.o
@@ -2157,6 +2133,7 @@ __/src/editor/visual/widgets/content_widgets.i: __/src/editor/visual/widgets/con
 
 # target to preprocess a source file
 __/src/editor/visual/widgets/content_widgets.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.i
@@ -2166,6 +2143,7 @@ __/src/editor/visual/widgets/content_widgets.s: __/src/editor/visual/widgets/con
 
 # target to generate assembly for a file
 __/src/editor/visual/widgets/content_widgets.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.s
@@ -3193,30 +3171,6 @@ test_editor_settings.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/test_editor_settings.cpp.s
 .PHONY : test_editor_settings.cpp.s
 
-test_electric_pump_regression.o: test_electric_pump_regression.cpp.o
-.PHONY : test_electric_pump_regression.o
-
-# target to build an object file
-test_electric_pump_regression.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/test_electric_pump_regression.cpp.o
-.PHONY : test_electric_pump_regression.cpp.o
-
-test_electric_pump_regression.i: test_electric_pump_regression.cpp.i
-.PHONY : test_electric_pump_regression.i
-
-# target to preprocess a source file
-test_electric_pump_regression.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/test_electric_pump_regression.cpp.i
-.PHONY : test_electric_pump_regression.cpp.i
-
-test_electric_pump_regression.s: test_electric_pump_regression.cpp.s
-.PHONY : test_electric_pump_regression.s
-
-# target to generate assembly for a file
-test_electric_pump_regression.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/test_electric_pump_regression.cpp.s
-.PHONY : test_electric_pump_regression.cpp.s
-
 test_electrical_handles_build.o: test_electrical_handles_build.cpp.o
 .PHONY : test_electrical_handles_build.o
 
@@ -3408,30 +3362,6 @@ test_integrator.s: test_integrator.cpp.s
 test_integrator.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/test_integrator.cpp.s
 .PHONY : test_integrator.cpp.s
-
-test_inverter_regression.o: test_inverter_regression.cpp.o
-.PHONY : test_inverter_regression.o
-
-# target to build an object file
-test_inverter_regression.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/test_inverter_regression.cpp.o
-.PHONY : test_inverter_regression.cpp.o
-
-test_inverter_regression.i: test_inverter_regression.cpp.i
-.PHONY : test_inverter_regression.i
-
-# target to preprocess a source file
-test_inverter_regression.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/test_inverter_regression.cpp.i
-.PHONY : test_inverter_regression.cpp.i
-
-test_inverter_regression.s: test_inverter_regression.cpp.s
-.PHONY : test_inverter_regression.s
-
-# target to generate assembly for a file
-test_inverter_regression.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/test_inverter_regression.cpp.s
-.PHONY : test_inverter_regression.cpp.s
 
 test_jit_aot_bridge_equivalence.o: test_jit_aot_bridge_equivalence.cpp.o
 .PHONY : test_jit_aot_bridge_equivalence.o
@@ -3936,30 +3866,6 @@ test_push_state.s: test_push_state.cpp.s
 test_push_state.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_state_tests.dir/build.make tests/CMakeFiles/push_state_tests.dir/test_push_state.cpp.s
 .PHONY : test_push_state.cpp.s
-
-test_radiator_regression.o: test_radiator_regression.cpp.o
-.PHONY : test_radiator_regression.o
-
-# target to build an object file
-test_radiator_regression.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/test_radiator_regression.cpp.o
-.PHONY : test_radiator_regression.cpp.o
-
-test_radiator_regression.i: test_radiator_regression.cpp.i
-.PHONY : test_radiator_regression.i
-
-# target to preprocess a source file
-test_radiator_regression.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/test_radiator_regression.cpp.i
-.PHONY : test_radiator_regression.cpp.i
-
-test_radiator_regression.s: test_radiator_regression.cpp.s
-.PHONY : test_radiator_regression.s
-
-# target to generate assembly for a file
-test_radiator_regression.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/test_radiator_regression.cpp.s
-.PHONY : test_radiator_regression.cpp.s
 
 test_sample_hold.o: test_sample_hold.cpp.o
 .PHONY : test_sample_hold.o
@@ -4489,6 +4395,30 @@ test_visual_container.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/test_visual_container.cpp.s
 .PHONY : test_visual_container.cpp.s
 
+test_visual_content_widgets.o: test_visual_content_widgets.cpp.o
+.PHONY : test_visual_content_widgets.o
+
+# target to build an object file
+test_visual_content_widgets.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/test_visual_content_widgets.cpp.o
+.PHONY : test_visual_content_widgets.cpp.o
+
+test_visual_content_widgets.i: test_visual_content_widgets.cpp.i
+.PHONY : test_visual_content_widgets.i
+
+# target to preprocess a source file
+test_visual_content_widgets.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/test_visual_content_widgets.cpp.i
+.PHONY : test_visual_content_widgets.cpp.i
+
+test_visual_content_widgets.s: test_visual_content_widgets.cpp.s
+.PHONY : test_visual_content_widgets.s
+
+# target to generate assembly for a file
+test_visual_content_widgets.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/test_visual_content_widgets.cpp.s
+.PHONY : test_visual_content_widgets.cpp.s
+
 test_visual_grid.o: test_visual_grid.cpp.o
 .PHONY : test_visual_grid.o
 
@@ -4653,7 +4583,6 @@ help:
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_settings_tests"
 	@echo "... editor_viewport_tests"
-	@echo "... electric_pump_regression_tests"
 	@echo "... electrical_handle_build_tests"
 	@echo "... electrical_island_build_tests"
 	@echo "... electrical_parity_fixtures_tests"
@@ -4663,7 +4592,6 @@ help:
 	@echo "... factory_validation_tests"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
-	@echo "... inverter_regression_tests"
 	@echo "... jit_aot_bridge_equivalence_tests"
 	@echo "... json_parser_tests"
 	@echo "... logic_gates_tests"
@@ -4689,7 +4617,6 @@ help:
 	@echo "... push_runtime_regression_tests"
 	@echo "... push_scheduler_tests"
 	@echo "... push_state_tests"
-	@echo "... radiator_regression_tests"
 	@echo "... sam28_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
@@ -4712,6 +4639,7 @@ help:
 	@echo "... v3_migration_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"
+	@echo "... visual_content_widgets_tests"
 	@echo "... visual_grid_tests"
 	@echo "... visual_primitives_tests"
 	@echo "... visual_scene_v2_tests"
@@ -4912,9 +4840,6 @@ help:
 	@echo "... test_editor_settings.o"
 	@echo "... test_editor_settings.i"
 	@echo "... test_editor_settings.s"
-	@echo "... test_electric_pump_regression.o"
-	@echo "... test_electric_pump_regression.i"
-	@echo "... test_electric_pump_regression.s"
 	@echo "... test_electrical_handles_build.o"
 	@echo "... test_electrical_handles_build.i"
 	@echo "... test_electrical_handles_build.s"
@@ -4939,9 +4864,6 @@ help:
 	@echo "... test_integrator.o"
 	@echo "... test_integrator.i"
 	@echo "... test_integrator.s"
-	@echo "... test_inverter_regression.o"
-	@echo "... test_inverter_regression.i"
-	@echo "... test_inverter_regression.s"
 	@echo "... test_jit_aot_bridge_equivalence.o"
 	@echo "... test_jit_aot_bridge_equivalence.i"
 	@echo "... test_jit_aot_bridge_equivalence.s"
@@ -5005,9 +4927,6 @@ help:
 	@echo "... test_push_state.o"
 	@echo "... test_push_state.i"
 	@echo "... test_push_state.s"
-	@echo "... test_radiator_regression.o"
-	@echo "... test_radiator_regression.i"
-	@echo "... test_radiator_regression.s"
 	@echo "... test_sample_hold.o"
 	@echo "... test_sample_hold.i"
 	@echo "... test_sample_hold.s"
@@ -5074,6 +4993,9 @@ help:
 	@echo "... test_visual_container.o"
 	@echo "... test_visual_container.i"
 	@echo "... test_visual_container.s"
+	@echo "... test_visual_content_widgets.o"
+	@echo "... test_visual_content_widgets.i"
+	@echo "... test_visual_content_widgets.s"
 	@echo "... test_visual_grid.o"
 	@echo "... test_visual_grid.i"
 	@echo "... test_visual_grid.s"

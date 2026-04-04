@@ -393,7 +393,7 @@ Mechanical conversion of all `float dt` parameters and accumulator state variabl
 
 1. **Core infrastructure:** `scheduler.h` (ExecuteFn/CommitFn typedefs), `simulator.h/.cpp` (step, MAX_DT), `electrical_subsolver.h/.cpp` (solve_electrical), `document.h/.cpp` (updateSimulationStep)
 2. **Codegen:** `codegen.cpp` — all emitted `float dt` strings changed to `double dt` for AOT path
-3. **All ~78 component headers:** execute/commit/commit_control signatures changed to `double dt`
+3. **All ~78 component headers:** execute/commit signatures changed to `double dt`
 4. **All ~24 component .cpp files:** method definitions changed to `double dt`
 5. **Accumulator variables promoted to double:** `accumulator.h` (state, next_state), `integrator.h` (accumulator, next_accumulator), `pid.h` (integral), `pi.h` (integral), `fuel_tank.h` (level, next_level), `azs.h` (temp), `ru19a.h` (timer, next_timer, current_rpm, next_current_rpm, t4, next_t4), `gs24.h` (wait_time, next_wait_time, current_rpm, next_current_rpm), `inertia_node.h` (rpm, next_rpm), `gidro_accumulator.h` (gas_volume), `battery.h` (capacity, charge)
 6. **Type mismatch fixes:** Fixed `std::max`/`std::min`/`std::clamp` calls where promoted `double` accumulators or `double dt` were mixed with `float` literals (azs.cpp, fuel_tank.cpp, gidro_accumulator.cpp, ru19a.cpp, spring.cpp, pd.cpp, pid.cpp, pi.cpp, fast_tmo.cpp, asym_tmo.cpp, monostable.cpp, rug82.cpp)
@@ -629,7 +629,7 @@ if (n.contains("string_params") && n["string_params"].is_object()) {
 
 ---
 
-### ~~30. Double-click Right-Click-Inserted Composite → Empty Window~~ ✓ FIXED
+### ~~30. Double-click right-click-inserted composite → Empty Window~~ ✓ FIXED
 
 **Status:** CLOSED
 
@@ -670,6 +670,34 @@ if (has_default_pan_zoom(*nested->inline_def)) {
 **Files changed:** `src/editor/document.cpp` — `addBlueprint()` function (complete rewrite), added `#include <filesystem>`, viewport fix in `openSubWindow()`
 
 **Tests:** All 1462 pass
+
+---
+
+### ~~31. IndicatorWidget Not Rendered in Standard Layout~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** IndicatorLight component circle was never drawn in the editor. The component's simulation output (normalized brightness 0-1) was correct, but no visual circle appeared.
+
+**Root cause:** In `visual_node.cpp::buildStandardLayout()`, the `NodeContentType::Indicator` case was **missing** from the content type switch. All other content types (Gauge, Switch, VerticalToggle, Slider) had explicit cases that created the correct widget class. The Indicator type fell through to the catch-all `else if (content_type != NodeContentType::None)` which created a Label or Spacer instead of an IndicatorWidget.
+
+The `NodeContentType::Indicator` case WAS present in `buildFourSidedLayout()` (the override-based path), but IndicatorLight nodes have no layout overrides, so they always take the standard path where the case was missing.
+
+**Fix:** Added `NodeContentType::Indicator` case to `buildStandardLayout()` following the same pattern as other content types (Container with margins → IndicatorWidget).
+
+**Lesson:** When adding a new content type, it must be registered in **both** layout paths:
+1. `buildStandardLayout()` — standard layout (no port overrides) — the common path
+2. `buildFourSidedLayout()` — four-sided layout (with port overrides)
+
+Missing either one causes silent fallback to a Spacer with no visual output.
+
+**Files changed:**
+- `src/editor/visual/node/visual_node.cpp` — added Indicator case to `buildStandardLayout()`
+- `tests/test_visual_content_widgets.cpp` — 9 new rendering tests verifying draw calls
+- `knowledge/05_editor.md` — documented content type widget pipeline
+- `knowledge/errors_TODO.md` — this entry
+
+**Regression tests:** `IndicatorWidgetTest.RenderEmitsFilledCircleAndOutline`, `RenderCircleCenteredInWidget`, `RenderRadiusGrowsWithBrightness`, `RenderColorOffIsGray`, `RenderColorOnHasGreenChannel`, `RenderAtZoom2ScalesRadius`, `RenderBorderAlwaysPresent`, `LayoutAcceptsParentSize`, `RenderInContainerEmitsDrawCalls`
 
 ---
 
@@ -769,34 +797,41 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ---
 
-### 16. Runtime API Simplification (ONGOING)
+### ~~16. Runtime API Simplification~~ ✓ COMPLETED
 
-**Status:** OPEN (Phase 1 - commit hook introduced)
+**Status:** CLOSED
 
 **Decision:** Simplify component runtime API to minimum surface area.
 
-**Keep:**
+**Final API (all 72 components):**
 
-- `execute(st, dt)` — main per-frame computation for stateless components
-- `commit(st)` — optional end-of-frame hook for stateful components (state machine transitions)
+- `execute(SimulationState& st, double dt)` — main per-frame computation
+- `commit(SimulationState& st, double dt)` — optional end-of-frame hook for stateful components (state machine transitions)
 - `pre_load()` — initialization
 
-**Domain taxonomy (`solve_electrical`, `solve_mechanical`, `solve_hydraulic`, `solve_thermal`, `solve_logical`) is legacy** and will be removed from public API. Components may keep these as private helpers temporarily during migration.
+**Removed from public API:**
 
-**State transitions:** `finalize_step` and `commit_control` are unified into `commit()`. Incremental migration:
-
-- Components with `commit_control` → call it from `commit()`
-- Components with `finalize_step` → call it from `commit()`
-- No behavioral change in this slice (existing methods stay)
+- `commit_control()` — inlined into `commit()` for AZS, Switch, HoldButton, Relay
+- `finalize_step()` — removed in earlier pass (no components had it)
+- `solve_electrical/mechanical/hydraulic/thermal/logical()` — removed in earlier pass (no components had them)
 
 **One-frame delay semantics:** Stateful components (Switch, Relay, HoldButton, AZS) apply staged transitions in `commit()`, meaning state changes take effect in the NEXT frame's `execute()`. This is the intentional push-model behavior.
 
-**Files touched:** `src/jit_solver/scheduler.h`, 7 stateful component headers/implementations.
+**Files changed (final pass):**
 
-**Planned quality pass:**
+- `src/jit_solver/components/azs.h` — removed `commit_control()` declaration
+- `src/jit_solver/components/azs.cpp` — inlined `commit_control()` body into `commit()`
+- `src/jit_solver/components/switch.h` — removed `commit_control()` declaration
+- `src/jit_solver/components/switch.cpp` — inlined `commit_control()` body into `commit()`
+- `src/jit_solver/components/hold_button.h` — removed `commit_control()` declaration
+- `src/jit_solver/components/hold_button.cpp` — inlined `commit_control()` body into `commit()`
+- `src/jit_solver/components/relay.h` — removed `commit_control()` declaration
+- `src/jit_solver/components/relay.cpp` — inlined `commit_control()` body into `commit()`
+- `src/codegen/codegen.cpp` — removed `commit_control` comment
+- `tests/test_azs.cpp` — replaced all `commit_control()` calls with `commit()`
+- `tests/test_push_runtime_regression.cpp` — replaced `commit_control()` calls with `commit()`
 
-- After current execute/commit migration checkpoint commit, run `@escalate` for a dedicated **10/10 code-quality plan** based on latest strict review findings.
-- Deliverable should include: prioritized tasks, risk ranking, and verification gates.
+**Tests:** All 1422 pass
 
 ---
 
@@ -1098,6 +1133,51 @@ alignas(64) std::vector<float> through;
 
 ---
 
+### ~~34. AZS VerticalToggle Content Click Area Too Narrow~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** Clicking on AZS (VerticalToggle) switches in the editor required pixel-perfect precision. The clickable content area was only ~6.2px wide despite the node being 128px wide and the toggle widget rendering at 16px.
+
+**Root cause:** In `buildVerticalToggleLayout()`, the center column containing the toggle widget uses `setFlexGrow(1.0f)`. During `linearPreferredSize()`, flex children contribute 0 to the parent's preferred size. So the Row's preferred width = left_col + right_col (port label columns) only. After grid snapping to 128px, the center column got the remainder: `128 - 121.8 = 6.2px`.
+
+The fix for this already existed in `NodeWidget::preferredSize()` (lines 362-368) — it added content widget preferred size to the node's preferred width. But it was guarded by `four_sided_layout_ == true`, which VerticalToggle nodes never set.
+
+**Fix:** Replaced the `four_sided_layout_` flag with a generic check: if the content widget has a flex ancestor (i.e., it's inside a flex-grow column), include its preferred size in the node's preferred width. This works for any content type, not just four-sided layouts.
+
+- Removed `four_sided_layout_` member and its assignment
+- Added generic parent-chain walk in `preferredSize()` to detect flex ancestor
+
+**Files changed:**
+
+- `src/editor/visual/node/visual_node.cpp` — generalized `preferredSize()` fix
+- `src/editor/visual/node/visual_node.h` — removed `four_sided_layout_` member, added `contentWidget()` accessor
+- `tests/test_canvas_input.cpp` — regression test `VerticalToggleContentBoundsWideEnough`
+
+**Regression tests:** `VerticalToggleContentBoundsWideEnough`, `ClickOnVerticalToggleContentReturnsToggle`
+
+---
+
+### ~~35. Content Click Detection Hardcoded to Specific Types~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** `check_content_toggle()` in `canvas_input.cpp` used hardcoded type checks (`dynamic_cast` or widget type comparisons) to determine if a content widget was clickable/toggleable. Adding a new toggleable widget type required modifying the click detection code.
+
+**Fix:** Added a virtual `isToggleable()` method to the `visual::Widget` base class (returns `false` by default). Override to `true` in `SwitchWidget` and `VerticalToggleWidget`. Refactored `check_content_toggle()` to use `isToggleable()` — no type-specific logic needed.
+
+**Files changed:**
+
+- `src/editor/visual/widget.h` — added `virtual bool isToggleable() const { return false; }`
+- `src/editor/visual/widgets/content_widgets.h` — `isToggleable()` overrides in SwitchWidget, VerticalToggleWidget
+- `src/editor/input/canvas_input.cpp` — refactored `check_content_toggle()` to use `isToggleable()`
+- `src/editor/input/canvas_input.h` — updated comment
+- `tests/test_visual_content_widgets.cpp` — 8 new `isToggleable()` tests
+
+**Regression tests:** `SwitchWidgetTest.IsToggleable`, `VerticalToggleWidgetTest.IsToggleable`, `GaugeWidgetTest.IsNotToggleable`, `SliderWidgetTest.IsNotToggleable`, `IndicatorWidgetTest.IsNotToggleable`, `LabelWidgetTest.IsNotToggleable`, `ContainerWidgetTest.IsNotToggleable`, `SpacerWidgetTest.IsNotToggleable`
+
+---
+
 ## Summary Table
 
 | #     | Issue                                      | Priority   | Effort | Status              |
@@ -1132,3 +1212,9 @@ alignas(64) std::vector<float> through;
 | 28    | SAM28 LUT string_params not parsed        | ~~High~~   | Low    | **FIXED**           |
 | 29    | InOut direction on non-Bus CVS port        | ~~Medium~~ | Low    | **FIXED**           |
 | 30    | Double-click right-click-inserted composite shows empty window | ~~High~~ | Medium | **FIXED**   |
+| 31    | IndicatorWidget not rendered in standard layout | ~~High~~ | Low | **FIXED** |
+| 32    | IndicatorLight brightness without ground | ~~High~~ | Low | **FIXED** |
+| 33    | IndicatorWidget circle not centered in node | ~~Medium~~ | Low | **FIXED** |
+| 34    | AZS VerticalToggle content click area too narrow | ~~High~~ | Low | **FIXED** |
+| 35    | Content click detection hardcoded to specific types | ~~Medium~~ | Low | **FIXED** |
+| 16    | Runtime API simplification (commit_control removal) | ~~Medium~~ | Low | **COMPLETED** |

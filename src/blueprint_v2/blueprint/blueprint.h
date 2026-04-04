@@ -24,7 +24,8 @@ enum class NodeContentType {
     VerticalToggle,
     Value,
     Text,
-    Slider
+    Slider,
+    Indicator
 };
 
 class Blueprint {

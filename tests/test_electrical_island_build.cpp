@@ -433,12 +433,11 @@ TEST(ElectricalIslandBuild, BatteryWithExtraParamsDoesNotThrow) {
 
 TEST(ElectricalIslandBuild, IndicatorLightWithExtraParamsDoesNotThrow) {
     // Regression: extraction block must tolerate params it doesn't need
-    // (max_brightness, rated_voltage, color are consumed by component creation but not by extraction)
+    // (rated_voltage is consumed by component creation, conductance is consumed by extraction)
     std::vector<DeviceInstance> devices = {
         make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("light", "IndicatorLight", {
-            {"conductance", "2.0"}, {"max_brightness", "80.0"},
-            {"rated_voltage", "24.0"}, {"color", "red"}
+            {"conductance", "2.0"}, {"rated_voltage", "24.0"}
         }),
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
