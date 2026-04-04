@@ -1178,6 +1178,96 @@ The fix for this already existed in `NodeWidget::preferredSize()` (lines 362-368
 
 ---
 
+### ~~36. GroundPower Component — Tooltip Shows 0V~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** GroundPower (APR-2 ground power unit at 28.5V) was created as a composite blueprint. The simulation output was correct (downstream IndicatorLight showed 28.5V and brightness=1.0), but hovering over the `groundpower_1.v_out` port tooltip showed 0V.
+
+**Root cause (two-part):**
+
+1. **Simulation export** (`build_simulation_json()` in `document.cpp`): The embedded proxy's bridge nodes were generated with underscore convention (`groundpower_1_v_out`) by `addBlueprint()`, but the simulation JSON export assumed colon convention (`groundpower_1:v_out`). Parent-facing wires were not being rewritten to point to the actual bridge node ID.
+
+2. **Signal key resolver** (`signal_key_resolver.cpp`): `resolve_runtime_signal_key()` for embedded composites assumed the bridge node ID was always `proxy_id:port_name.ext` (colon convention). When bridge nodes used underscore convention, the lookup returned empty string, so the tooltip could not find the runtime signal.
+
+**Fix (two-part):**
+
+1. **`document.cpp::build_simulation_json()`** — Added two-pass bridge node discovery: first pass scans by `group_id` + `name` (catches underscore-style nodes), second pass overrides with exact colon-style ID if present. Parent-facing wire endpoints now use the actual bridge node ID rather than assuming colon convention.
+
+2. **`signal_key_resolver.cpp`** — Added `find_embedded_bridge_node()` function that tries colon convention first, then falls back to scanning nodes by `group_id` + `name` + type (`BlueprintInput`/`BlueprintOutput`). This handles both naming conventions.
+
+3. **`tests/CMakeLists.txt`** — Added `blueprint_v2` library linkage to `signal_key_resolver_tests` and `external_ref_signal_mapping_tests` targets (needed because `signal_key_resolver.cpp` now uses `bp2::Blueprint::find_nested()` and `bp2::Blueprint::find_node()`).
+
+**Files changed:**
+
+- `src/editor/document.cpp` — `build_simulation_json()` two-pass bridge discovery
+- `src/editor/signal_key_resolver.cpp` — `find_embedded_bridge_node()` with dual-convention support
+- `tests/CMakeLists.txt` — `blueprint_v2` linkage for test targets
+
+**Root architectural issue:** The codebase had two competing bridge-node naming conventions (colon `proxy:port` vs underscore `proxy_port`) created by different code paths. Fixed in issue #37 — colon convention is now canonical.
+
+**Tests:** All 1422 pass
+
+---
+
+### ~~37. Bridge Node Naming Convention — Architectural Fragility~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Severity:** High (recurring bug source — caused E-010, #36, and simulation export bugs)
+
+**Problem:**
+
+The codebase had **two competing naming conventions** for bridge nodes (`BlueprintInput`/`BlueprintOutput`) when composites are flattened or materialized:
+
+1. **Colon convention:** `proxy_id:port_name` — used by JSON parser expansion, `addComponent()` bridge insertion, runtime composite port lookups
+2. **Underscore convention:** `proxy_id_port_name` — used by `addBlueprint()` node materialization
+
+This caused at least 3 bugs and every new code path that touched composite boundaries needed fallback logic.
+
+**Fix — unified on colon convention as canonical:**
+
+1. **`document.cpp::addBlueprint()`** — Bridge nodes now use colon convention (`unique_id:original_name`). Internal (non-bridge) nodes continue to use underscore (`unique_id_original_name`). This aligns `addBlueprint()` with `addComponent()`, `json_parser.cpp`, and `simulator.cpp`.
+
+2. **`document.cpp::build_simulation_json()`** — Removed two-pass bridge discovery workaround. Single-pass scan now works because all bridge nodes consistently use colon convention.
+
+3. **`signal_key_resolver.cpp::find_embedded_bridge_node()`** — Removed structural fallback scan that searched by `group_id` + `name` + type. Now does direct ID lookup using colon convention only.
+
+4. **`simulator.cpp::get_port_value()`** — Clarified comment from "Fallback" to "Composite" since the `node:port.ext` lookup is the standard composite path, not a fallback.
+
+**Post-fix convention table:**
+
+| Location | Convention | Fallback? |
+|---|---|---|
+| `json_parser.cpp` (composite expansion) | Colon | No |
+| `document.cpp::addBlueprint()` (bridge nodes) | Colon | No |
+| `document.cpp::addBlueprint()` (internal nodes) | Underscore | No |
+| `document.cpp::addComponent()` (bridge creation) | Colon | No |
+| `document.cpp::build_simulation_json()` | Colon only | No |
+| `signal_key_resolver.cpp` | Colon only | No |
+| `simulator.cpp::get_port_value()` | Colon only | No |
+| `jit_solver.cpp::build_systems_dev()` | Agnostic (uses exact incoming names) | No |
+| `blueprint_v2/flattener/` | Neutral (preserves existing IDs) | No |
+
+**Files changed:**
+
+- `src/editor/document.cpp` — `addBlueprint()` bridge node naming fix, `build_simulation_json()` simplification
+- `src/editor/signal_key_resolver.cpp` — `find_embedded_bridge_node()` simplification
+- `src/jit_solver/simulator.cpp` — `get_port_value()` comment clarification
+- `knowledge/05_editor.md` — updated documentation
+
+**Regression tests (5 new):**
+
+- `SignalKeyResolver.EmbeddedBridgeNode_ColonConvention_Found`
+- `SignalKeyResolver.EmbeddedBridgeNode_UnderscoreConvention_NotFound`
+- `SignalKeyResolver.CompositePortKey_UsesColonConvention`
+- `SignalKeyResolver.MultipleBridgeNodes_ResolveIndependently`
+- `SignalKeyResolver.BridgeNode_ProxyIdWithUnderscores_ColonStillWorks`
+
+**Tests:** All 1427 pass
+
+---
+
 ## Summary Table
 
 | #     | Issue                                      | Priority   | Effort | Status              |
@@ -1217,4 +1307,6 @@ The fix for this already existed in `NodeWidget::preferredSize()` (lines 362-368
 | 33    | IndicatorWidget circle not centered in node | ~~Medium~~ | Low | **FIXED** |
 | 34    | AZS VerticalToggle content click area too narrow | ~~High~~ | Low | **FIXED** |
 | 35    | Content click detection hardcoded to specific types | ~~Medium~~ | Low | **FIXED** |
+| 36    | GroundPower tooltip shows 0V (bridge naming) | ~~High~~ | Low | **FIXED** |
+| 37    | Bridge node naming convention fragility | ~~High~~ | Medium | **FIXED** |
 | 16    | Runtime API simplification (commit_control removal) | ~~Medium~~ | Low | **COMPLETED** |

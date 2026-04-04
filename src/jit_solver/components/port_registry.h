@@ -738,7 +738,7 @@ constexpr RegistryPortDirection ControlledVoltageSource_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::In,
     RegistryPortDirection::In,
-    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t ControlledVoltageSource_PORT_DOMAINS[] = {

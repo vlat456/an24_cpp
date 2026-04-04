@@ -20,6 +20,7 @@
 #include <cmath>
 #include <iostream>
 #include <filesystem>
+#include <map>
 
 int Document::next_id_ = 1;
 
@@ -92,6 +93,9 @@ std::string Document::build_simulation_json() const {
 
     json devices = json::array();
     std::set<std::string> emitted_ids;
+    // Track skipped embedded proxy nodes so we can rewrite parent-facing
+    // connections to point at their bridge nodes (instance:port.ext).
+    std::set<std::string> skipped_embedded_proxies;
 
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
         // Embedded blueprint proxy nodes are visual-only collapsed
@@ -111,6 +115,7 @@ std::string Document::build_simulation_json() const {
                     }
                 }
                 if (has_materialized_children) {
+                    skipped_embedded_proxies.insert(parent_id);
                     continue;
                 }
             }
@@ -186,9 +191,31 @@ std::string Document::build_simulation_json() const {
     }
     out["devices"] = std::move(devices);
 
-    // No special rewriting needed for expandable/composite nodes – they are
-    // emitted as normal devices and parse_json_impl() expands them, rewriting
-    // connections to point at the bridge nodes automatically.
+    // Build a lookup map for bridge nodes of skipped embedded proxies.
+    // Bridge nodes are BlueprintInput/BlueprintOutput nodes whose ID follows
+    // the canonical colon convention: "proxy_id:port_name".
+    // Key: "proxy_id.port_name" -> bridge node device id
+    std::map<std::string, std::string> proxy_port_to_bridge;
+    if (!skipped_embedded_proxies.empty()) {
+        for (const bp2::Blueprint::Node& n : bp.nodes()) {
+            std::string nid = std::string(interner_.resolve(n.id));
+            // Match colon-convention IDs: "proxy_id:port_name"
+            for (const auto& proxy_id : skipped_embedded_proxies) {
+                if (nid.size() > proxy_id.size() + 1
+                    && nid.compare(0, proxy_id.size(), proxy_id) == 0
+                    && nid[proxy_id.size()] == ':') {
+                    std::string port_name = nid.substr(proxy_id.size() + 1);
+                    std::string key = proxy_id + "." + port_name;
+                    proxy_port_to_bridge[key] = nid;
+                }
+            }
+        }
+    }
+
+    // Rewrite connections that reference skipped embedded proxy nodes.
+    // When an embedded proxy "groundpower_1" is skipped, parent-facing wires
+    // like "groundpower_1.v_in" must be redirected to the bridge node's
+    // external port: "groundpower_1:v_in.ext" (colon convention is canonical).
 
     json connections = json::array();
     std::set<std::string> emitted_conn_keys;
@@ -203,6 +230,29 @@ std::string Document::build_simulation_json() const {
         std::string src_port_s = std::string(interner_.resolve(src_port));
         std::string tgt_node_s = std::string(interner_.resolve(tgt_node));
         std::string tgt_port_s = std::string(interner_.resolve(tgt_port));
+
+        // Rewrite endpoints referencing skipped embedded proxy nodes
+        // Look up bridge node by (proxy_id, port_name)
+        if (skipped_embedded_proxies.count(src_node_s)) {
+            auto it = proxy_port_to_bridge.find(src_node_s + "." + src_port_s);
+            if (it != proxy_port_to_bridge.end()) {
+                src_node_s = it->second;
+                src_port_s = "ext";
+            } else {
+                spdlog::warn("[sim_export] No bridge node found for skipped proxy port '{}.{}'",
+                            src_node_s, src_port_s);
+            }
+        }
+        if (skipped_embedded_proxies.count(tgt_node_s)) {
+            auto it = proxy_port_to_bridge.find(tgt_node_s + "." + tgt_port_s);
+            if (it != proxy_port_to_bridge.end()) {
+                tgt_node_s = it->second;
+                tgt_port_s = "ext";
+            } else {
+                spdlog::warn("[sim_export] No bridge node found for skipped proxy port '{}.{}'",
+                            tgt_node_s, tgt_port_s);
+            }
+        }
 
         const std::string key = src_node_s + "." + src_port_s + "→" + tgt_node_s + "." + tgt_port_s;
         if (!emitted_conn_keys.insert(key).second) {
@@ -1024,11 +1074,26 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         std::vector<bp2::Blueprint::Node> root_internal_nodes;
         std::vector<bp2::Blueprint::Wire> root_internal_wires;
 
+        // Build old→new ID remap table.
+        // Bridge nodes (BlueprintInput/BlueprintOutput) use COLON convention:
+        //   unique_id:original_name  (e.g. "GroundPower_1:v_in")
+        // All other internal nodes use UNDERSCORE convention:
+        //   unique_id_original_name  (e.g. "GroundPower_1_src")
+        // This matches the convention used by extractToBlueprint and addComponent.
+        const auto bp_input_iid = interner_.intern("BlueprintInput");
+        const auto bp_output_iid = interner_.intern("BlueprintOutput");
+        std::unordered_map<ui::InternedId, ui::InternedId> id_remap;
+
         for (bp2::Blueprint::Node n : inline_bp.nodes()) {
             std::string original_name(interner_.resolve(n.id));
-            std::string ns_id = unique_id + "_" + original_name;
+            const bool is_bridge = (n.type == bp_input_iid || n.type == bp_output_iid);
+            std::string ns_id = is_bridge
+                ? (unique_id + ":" + original_name)
+                : (unique_id + "_" + original_name);
+            ui::InternedId old_id = n.id;
             n.id = interner_.intern(ns_id);
             n.group_id = unique_id;
+            id_remap[old_id] = n.id;
 
             bp2::Blueprint::Node n_remapped = n;
             remapped_bp = remapped_bp.with_node(std::move(n_remapped));
@@ -1041,15 +1106,18 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
             ui::InternedId tgt_node_id = arena_.parent(w.target).segment();
             ui::InternedId tgt_port_id = w.target.segment();
 
-            std::string ns_src = unique_id + "_" + std::string(interner_.resolve(src_node_id));
-            std::string ns_tgt = unique_id + "_" + std::string(interner_.resolve(tgt_node_id));
+            // Use the remap table to get the correct namespaced ID
+            auto src_it = id_remap.find(src_node_id);
+            auto tgt_it = id_remap.find(tgt_node_id);
+            ui::InternedId ns_src = (src_it != id_remap.end()) ? src_it->second : interner_.intern(unique_id + "_" + std::string(interner_.resolve(src_node_id)));
+            ui::InternedId ns_tgt = (tgt_it != id_remap.end()) ? tgt_it->second : interner_.intern(unique_id + "_" + std::string(interner_.resolve(tgt_node_id)));
 
             bp2::Blueprint::Wire w_remapped;
             w_remapped.id = interner_.intern("wire_" + unique_id + "_" + std::string(interner_.resolve(w.id)));
             w_remapped.source = arena_.make_port(
-                arena_.make_node(arena_.root(), interner_.intern(ns_src)), src_port_id);
+                arena_.make_node(arena_.root(), ns_src), src_port_id);
             w_remapped.target = arena_.make_port(
-                arena_.make_node(arena_.root(), interner_.intern(ns_tgt)), tgt_port_id);
+                arena_.make_node(arena_.root(), ns_tgt), tgt_port_id);
             w_remapped.domain = w.domain;
             w_remapped.routing_points = std::move(w.routing_points);
 

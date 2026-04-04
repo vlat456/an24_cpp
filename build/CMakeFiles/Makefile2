@@ -4536,6 +4536,7 @@ tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: _deps/googletest-bui
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
+tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target external_ref_signal_mapping_tests"
@@ -4543,7 +4544,7 @@ tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/json_parser/CMak
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 21
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 24
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule
@@ -4572,6 +4573,7 @@ tests/CMakeFiles/signal_key_resolver_tests.dir/all: _deps/googletest-build/googl
 tests/CMakeFiles/signal_key_resolver_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
 tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
+tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=82 "Built target signal_key_resolver_tests"
@@ -4579,7 +4581,7 @@ tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/json_parser/CMakeFiles/j
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/signal_key_resolver_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 25
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/signal_key_resolver_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/signal_key_resolver_tests.dir/rule

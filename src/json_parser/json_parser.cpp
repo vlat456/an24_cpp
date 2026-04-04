@@ -553,7 +553,7 @@ static ParserContext parse_json_impl(const std::string& json_text,
         expanded_blueprint_names.insert(expanded_instance_names.begin(), expanded_instance_names.end());
         // Find all expanded blueprints by looking for BlueprintInput/BlueprintOutput devices
         // These have names like "lamp_bp:vin" and "lamp_bp:vout"
-        // The blueprint name is everything before the LAST colon
+        // The blueprint name is everything before the first colon
         for (const auto& dev : ctx.devices) {
             if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
                 // Extract blueprint name (everything before the colon)

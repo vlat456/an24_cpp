@@ -275,6 +275,12 @@ BuildResult build_systems_dev(
     for (const auto& dev : devices) {
         if (dev.visual_only) continue;
         if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
+            // Invariant: nested bridge node names must use colon convention ("proxy:port").
+            // Root-level bridge nodes (editing a blueprint definition directly) have bare
+            // names like "v_in" — those are fine. Only nested bridge nodes (containing a
+            // dot in their port key, indicating they were prefixed) must have a colon.
+            // A bridge node is nested if it has a colon or if its name contains one.
+            // Root-level bridge names never contain colons.
             std::string ext_key  = dev.name + ".ext";
             std::string port_key = dev.name + ".port";
             auto it_ext  = port_to_idx.find(ext_key);

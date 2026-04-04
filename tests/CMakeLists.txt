@@ -1587,6 +1587,7 @@ target_include_directories(external_ref_signal_mapping_tests PRIVATE
 target_link_libraries(external_ref_signal_mapping_tests PRIVATE
     jit_solver
     json_parser
+    blueprint_v2
     GTest::gtest_main
 )
 gtest_discover_tests(external_ref_signal_mapping_tests)
@@ -1602,6 +1603,7 @@ target_include_directories(signal_key_resolver_tests PRIVATE
 )
 target_link_libraries(signal_key_resolver_tests PRIVATE
     jit_solver
+    blueprint_v2
     GTest::gtest_main
 )
 gtest_discover_tests(signal_key_resolver_tests)

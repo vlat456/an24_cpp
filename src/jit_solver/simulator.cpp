@@ -298,7 +298,7 @@ float Simulator<SolverTag>::get_port_value(const std::string& node_id, const std
         return state_.values[it->second];
     }
 
-    // Fallback for expanded blueprints: BlueprintInput/BlueprintOutput bridge nodes
+    // Composite blueprints: BlueprintInput/BlueprintOutput bridge nodes
     // are stored as "node_id:port_name.ext" in port_to_signal after expansion.
     const std::string composite_key = node_id + ":" + port_name + ".ext";
     it = build_result_->port_to_signal.find(composite_key);

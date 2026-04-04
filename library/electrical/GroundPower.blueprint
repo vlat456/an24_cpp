@@ -1,0 +1,254 @@
+{
+  "cpp_class": false,
+  "description": "Ground power socket (APR-2). Fixed 28.5V aerodrome power source. Connect external Switch for on/off control.",
+  "display_name": "Ground Power",
+  "domains": [
+    "Electrical"
+  ],
+  "id": "GroundPower",
+  "interface": [
+    {
+      "direction": 0,
+      "domain": 1,
+      "name": "v_in",
+      "source_writer": false,
+      "type": "V"
+    },
+    {
+      "direction": 1,
+      "domain": 1,
+      "name": "v_out",
+      "source_writer": false,
+      "type": "V"
+    }
+  ],
+  "nested": [],
+  "nodes": [
+    {
+      "id": "v_in",
+      "name": "v_in",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 7
+        },
+        "port": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 160.0
+      },
+      "string_params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintInput"
+    },
+    {
+      "id": "k_voltage",
+      "name": "k_voltage",
+      "params": {
+        "value": 28.5
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "k_one",
+      "name": "k_one",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 32.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "k_zero",
+      "name": "k_zero",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 64.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "k_zero_2",
+      "name": "k_zero_2",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 80.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "k_max",
+      "name": "k_max",
+      "params": {
+        "value": 30.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 96.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "src",
+      "name": "src",
+      "params": {
+        "r_internal": 0.01
+      },
+      "ports": {
+        "cmd": {
+          "direction": "In",
+          "type": 7
+        },
+        "gain": {
+          "direction": "In",
+          "type": 7
+        },
+        "i_out": {
+          "direction": "Out",
+          "type": 1
+        },
+        "max_v": {
+          "direction": "In",
+          "type": 7
+        },
+        "min_v": {
+          "direction": "In",
+          "type": 7
+        },
+        "offset": {
+          "direction": "In",
+          "type": 7
+        },
+        "v_neg": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_pos": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 160.0,
+        "y": 32.0
+      },
+      "type": "ControlledVoltageSource"
+    },
+    {
+      "id": "v_out",
+      "name": "v_out",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 7
+        },
+        "port": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 352.0,
+        "y": 32.0
+      },
+      "string_params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    }
+  ],
+  "scheduler_source": false,
+  "version": "3.0",
+  "wires": [
+    {
+      "id": "w_voltage_cmd",
+      "source": "/k_voltage:o",
+      "target": "/src:cmd"
+    },
+    {
+      "id": "w_one_gain",
+      "source": "/k_one:o",
+      "target": "/src:gain"
+    },
+    {
+      "id": "w_zero_offset",
+      "source": "/k_zero:o",
+      "target": "/src:offset"
+    },
+    {
+      "id": "w_zero_min",
+      "source": "/k_zero_2:o",
+      "target": "/src:min_v"
+    },
+    {
+      "id": "w_max_max",
+      "source": "/k_max:o",
+      "target": "/src:max_v"
+    },
+    {
+      "id": "w_vin_neg",
+      "source": "/v_in:port",
+      "target": "/src:v_neg"
+    },
+    {
+      "id": "w_src_vout",
+      "source": "/src:v_pos",
+      "target": "/v_out:port"
+    }
+  ]
+}
