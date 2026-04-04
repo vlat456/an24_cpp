@@ -551,7 +551,9 @@ void Document::updateNodeContentFromSimulation() {
                     content.value = control_val;
                 }
             }
-        } else if (type_name == "KnobSwitch") {
+        } else if (type_name == "KnobSwitch"
+                   || type_name == "RotarySwitch1ToN"
+                   || type_name == "RotarySwitchNTo1") {
             // Read position output from simulation
             float pos_val = simulation_.get_port_value(nid, "position");
             if (std::isfinite(pos_val)) {

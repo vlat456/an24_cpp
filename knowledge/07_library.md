@@ -16,6 +16,8 @@ library/
 │   ├── Switch.blueprint
 │   ├── Relay.blueprint
 │   ├── KnobSwitch.blueprint
+│   ├── RotarySwitch1ToN.blueprint
+│   ├── RotarySwitchNTo1.blueprint
 │   ├── Slider.blueprint
 │   └── ...
 ├── logical/              # Logic gates
@@ -213,7 +215,9 @@ Visual annotation:
 | HoldButton | Momentary hold button |
 | Positive_V_to_Bool | Voltage threshold to boolean |
 | Any_V_to_Bool | Any voltage to boolean |
-| KnobSwitch | Multi-position rotary switch |
+| KnobSwitch | Passive rotary selector (wiper + throws) |
+| RotarySwitch1ToN | KnobSwitch alias (1-to-N intent) |
+| RotarySwitchNTo1 | KnobSwitch alias (N-to-1 intent) |
 | Slider | Linear slide control |
 
 ### Logical Components

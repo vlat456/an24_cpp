@@ -6,10 +6,10 @@
 #include <cmath>
 
 // =============================================================================
-// KnobSwitch — Multi-position rotary selector switch tests
+// KnobSwitch — Multi-position passive rotary selector tests
 //
 // KnobSwitch is a multi-position (2-5) rotary selector:
-//   - N-1 conductance branches (common-to-t1, common-to-t2, ...)
+//   - N conductance branches (wiper-to-throw1, wiper-to-throw2, ...)
 //   - Selected position has g_closed, all others have g_open
 //   - Position controlled via 'control' input (0-based integer as float)
 //   - 'position' output reflects current selection

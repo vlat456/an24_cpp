@@ -519,7 +519,7 @@ TEST(SnapMath, SideFromRelativePosition) {
 // =============================================================================
 
 TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
-    // When a node has InOut ports (e.g. KnobSwitch t1..t5), they appear in
+    // When a node has InOut ports (e.g. KnobSwitch throw1..throw5), they appear in
     // BOTH inputs[] and outputs[] arrays.  buildStandardLayout() must filter
     // them from the outputs list so they only render on the left side.
     ui::StringInterner I;
@@ -527,12 +527,12 @@ TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
 
     auto knob = make_bp2_node(I, "knob_1", "KnobSwitch");
     // InOut ports: appear in both inputs and outputs
-    knob.inputs.push_back(EditorPort(I.intern("t1"), PortSide::InOut, PortType::V));
-    knob.inputs.push_back(EditorPort(I.intern("t2"), PortSide::InOut, PortType::V));
-    knob.inputs.push_back(EditorPort(I.intern("t3"), PortSide::InOut, PortType::V));
-    knob.outputs.push_back(EditorPort(I.intern("t1"), PortSide::InOut, PortType::V));
-    knob.outputs.push_back(EditorPort(I.intern("t2"), PortSide::InOut, PortType::V));
-    knob.outputs.push_back(EditorPort(I.intern("t3"), PortSide::InOut, PortType::V));
+    knob.inputs.push_back(EditorPort(I.intern("throw1"), PortSide::InOut, PortType::V));
+    knob.inputs.push_back(EditorPort(I.intern("throw2"), PortSide::InOut, PortType::V));
+    knob.inputs.push_back(EditorPort(I.intern("throw3"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("throw1"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("throw2"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("throw3"), PortSide::InOut, PortType::V));
     knob.content_type = bp2::NodeContentType::Knob;
 
     bp2::Blueprint bp;
@@ -545,16 +545,16 @@ TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
     ASSERT_NE(widget, nullptr);
 
     // Count port widgets — each InOut port should appear exactly once, not twice.
-    int t1_count = 0, t2_count = 0, t3_count = 0;
+    int throw1_count = 0, throw2_count = 0, throw3_count = 0;
     for (auto* p : widget->ports()) {
         std::string_view pname = p->name();
-        if (pname == "t1") t1_count++;
-        else if (pname == "t2") t2_count++;
-        else if (pname == "t3") t3_count++;
+        if (pname == "throw1") throw1_count++;
+        else if (pname == "throw2") throw2_count++;
+        else if (pname == "throw3") throw3_count++;
     }
-    EXPECT_EQ(t1_count, 1) << "InOut port t1 should appear exactly once";
-    EXPECT_EQ(t2_count, 1) << "InOut port t2 should appear exactly once";
-    EXPECT_EQ(t3_count, 1) << "InOut port t3 should appear exactly once";
+    EXPECT_EQ(throw1_count, 1) << "InOut port throw1 should appear exactly once";
+    EXPECT_EQ(throw2_count, 1) << "InOut port throw2 should appear exactly once";
+    EXPECT_EQ(throw3_count, 1) << "InOut port throw3 should appear exactly once";
 }
 
 TEST(SceneMutations, InOutPortsMixedWithRegularPorts) {
@@ -592,4 +592,47 @@ TEST(SceneMutations, InOutPortsMixedWithRegularPorts) {
     EXPECT_EQ(bus_count, 1) << "InOut port 'bus' should appear exactly once";
     EXPECT_EQ(v_in_count, 1) << "Regular input 'v_in' should appear once";
     EXPECT_EQ(v_out_count, 1) << "Regular output 'v_out' should appear once";
+}
+
+TEST(SceneMutations, KnobSwitchUsesWiperThrowNamesAndNoDuplication) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_bp2_node(I, "knob_1", "KnobSwitch");
+    knob.inputs.push_back(EditorPort(I.intern("wiper"), PortSide::InOut, PortType::V));
+    knob.inputs.push_back(EditorPort(I.intern("throw1"), PortSide::InOut, PortType::V));
+    knob.inputs.push_back(EditorPort(I.intern("throw2"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("wiper"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("throw1"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("throw2"), PortSide::InOut, PortType::V));
+    knob.content_type = bp2::NodeContentType::Knob;
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    int wiper_count = 0;
+    int throw1_count = 0;
+    int throw2_count = 0;
+    int legacy_common_count = 0;
+    int legacy_t1_count = 0;
+    for (auto* p : widget->ports()) {
+        std::string_view pname = p->name();
+        if (pname == "wiper") wiper_count++;
+        else if (pname == "throw1") throw1_count++;
+        else if (pname == "throw2") throw2_count++;
+        else if (pname == "common") legacy_common_count++;
+        else if (pname == "t1") legacy_t1_count++;
+    }
+
+    EXPECT_EQ(wiper_count, 1);
+    EXPECT_EQ(throw1_count, 1);
+    EXPECT_EQ(throw2_count, 1);
+    EXPECT_EQ(legacy_common_count, 0);
+    EXPECT_EQ(legacy_t1_count, 0);
 }

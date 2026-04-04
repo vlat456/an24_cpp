@@ -1424,6 +1424,8 @@ Removing direction entirely would touch ~50 source files, ~30 test files, and ev
 | 40    | Node editing allowed during simulation | ~~High~~   | Medium | **FIXED**           |
 | 41    | KnobSwitch initial_position serialized as float | ~~High~~   | Low    | **FIXED**          |
 | 42    | Wire "energized" visualization uses voltage, not current | ~~Medium~~ | —      | **WONTFIX (by design)** |
+| 43    | closed_circuit KnobSwitch kept legacy terminal names after strict rename | ~~High~~ | Low | **FIXED** |
+| 44    | KnobSwitch family classname checks duplicated across builder paths | ~~Low~~ | Low | **FIXED** |
 
 ---
 
@@ -1445,4 +1447,38 @@ Wire visualization is **domain-agnostic** — wires carry all signal types (volt
 1. Add a UI toggle: "Show: Voltage / Current Flow" (per-viewport setting)
 2. Document the current behavior explicitly in the editor UI
 3. Add "current-based" as a separate visual layer on top of voltage-based (not a replacement)
+
+---
+
+## ~~43. closed_circuit KnobSwitch Still Used Legacy Terminal Names~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** After strict KnobSwitch terminal rename (`common`/`t*` -> `wiper`/`throw*`), `closed_circuit.blueprint` still had legacy endpoints for `knobswitch_1`. This made those wires silently non-connected (warning-only), resulting in a broken demo topology.
+
+**Root cause:** Blueprint migration gap: library/schema/runtime were updated, but one real project blueprint kept old endpoint names.
+
+**Fix:** Updated `closed_circuit.blueprint` KnobSwitch wiring to use strict port names (`wiper`, `throw1`).
+
+**Regression tests:**
+- `PushBuildValidation.KnobSwitchPortNamesAreWiperAndThrowsOnly`
+- `PushBuildValidation.KnobSwitchLegacyPortNamesAreNotConnected`
+
+**Notes:** Builder behavior for unknown ports remains warning + ignored connection (no throw). Tests now assert strict ports connect and legacy names do not.
+
+---
+
+## ~~44. KnobSwitch Family Classname Checks Were Duplicated~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** `KnobSwitch` / `RotarySwitch1ToN` / `RotarySwitchNTo1` classname checks were repeated in multiple `jit_solver.cpp` paths (`solver-owned` classification, component construction, electrical element extraction), increasing drift risk when adding family members.
+
+**Fix:** Added `is_knob_switch_family(std::string_view)` helper in `jit_solver.cpp` and switched repeated checks to this helper.
+
+**Additional hardening:** Builder now instantiates distinct variant alternatives for aliases (`RotarySwitch1ToN<JitProvider>`, `RotarySwitchNTo1<JitProvider>`) instead of always storing `KnobSwitch<JitProvider>`. This removes dead variant alternatives and validates alias type identity.
+
+**Regression tests:**
+- `PushBuildValidation.RotarySwitchAliasesInstantiateDistinctVariantTypes`
+- Existing alias build/scheduler tests remain green
 | 16    | Runtime API simplification (commit_control removal) | ~~Medium~~ | Low | **COMPLETED** |

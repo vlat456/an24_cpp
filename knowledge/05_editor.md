@@ -546,3 +546,9 @@ The `NodeColor::to_uint32()` helper converts (r,g,b,a) floats to this format.
 | Slider | SliderWidget | `"Slider"` | Yes (drag) |
 | Indicator | IndicatorWidget | `"Indicator"` | No (display only) |
 | Text | Label | `"Text"` | No |
+
+## KnobSwitch Port Semantics
+
+- `KnobSwitch` terminals `wiper`, `throw1..throwN` are modeled as passive electrical contacts.
+- Circuit usage is bidirectional at those terminals: `wiper -> throwN` and `throwN -> wiper` are both valid.
+- `InOut` on these ports exists to represent passive contacts; it is not directed signal-flow meaning.

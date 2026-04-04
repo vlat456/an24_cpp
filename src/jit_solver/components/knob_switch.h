@@ -5,15 +5,19 @@
 #include "../state.h"
 #include "../subsolvers/subsolver_types.h"
 
-/// KnobSwitch - Multi-position rotary selector switch (2-5 positions).
-/// Electrically: N-1 ConductanceBranch elements between common terminal and t1..tN.
-/// The selected position has g_closed, all others have g_open.
+/// KnobSwitch - Multi-position passive rotary selector (2-5 positions).
+/// Electrically: N ConductanceBranch elements between wiper and throw1..throwN.
+/// The selected throw has g_closed, all others have g_open.
 /// Position is controlled via the 'control' input signal (0-based integer as float).
 /// The 'position' output reflects the current selected position.
 ///
+/// Passive-contact semantics: this component is electrically bidirectional at terminals.
+/// Both wiper->throwN and throwN->wiper usage are valid depending on circuit topology.
+/// Port direction here is not dataflow semantics.
+///
 /// Ports:
-///   - common  (InOut, Electrical) - shared terminal
-///   - t1..tN  (InOut, Electrical) - selectable terminals (N = positions)
+///   - wiper   (InOut, Electrical) - wiper terminal
+///   - throw1..throwN (InOut, Electrical) - throw terminals (N = positions)
 ///   - control (In, Logical)       - sets position (0-based, clamped to [0, positions-1])
 ///   - position (Out, Logical)     - current position output
 ///
@@ -30,7 +34,7 @@ public:
 
     Provider provider;
 
-    /// One electrical handle per branch (common-to-t1, common-to-t2, etc.)
+    /// One electrical handle per branch (wiper-to-throw1, wiper-to-throw2, etc.)
     ElectricalPrimitiveHandle electrical_handles[MAX_POSITIONS];
     int num_handles = 0;  ///< actual number of valid handles (= positions)
 
@@ -46,3 +50,9 @@ public:
     void commit(SimulationState& st, double dt);
     void pre_load();
 };
+
+template <typename Provider = JitProvider>
+class RotarySwitch1ToN : public KnobSwitch<Provider> {};
+
+template <typename Provider = JitProvider>
+class RotarySwitchNTo1 : public KnobSwitch<Provider> {};

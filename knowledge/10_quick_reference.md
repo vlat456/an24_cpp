@@ -86,6 +86,9 @@ cmake --build build --target update_port_registry
 | Output | 1 | Data flows out |
 | Bidirectional | 2 | Either direction |
 
+Note: for passive-contact electrical parts (for example `KnobSwitch` terminals `wiper`, `throw1..throwN`),
+`Bidirectional` models passive connectivity and should not be interpreted as directed dataflow.
+
 ## Port Types
 
 | Type | Symbol | Domain |
@@ -102,7 +105,7 @@ cmake --build build --target update_port_registry
 
 | Category | Components |
 |----------|------------|
-| Electrical | Battery, Generator, Switch, Relay, AZS, Resistor, Load, Voltmeter, CurrentSense, VoltageSense, IndicatorLight, ElectricalSource, ElectricalConductance, ControlledVoltageSource, ControlledCurrentSource, Inverter, ElectricPump, ElectricHeater, SolenoidValve, Radiator, FuelTank, GidroAccumulator, Transformer, VariableConductance, GroundPower, Gyroscope, HighPowerLoad, HoldButton, Positive_V_to_Bool, Any_V_to_Bool, KnobSwitch, Slider |
+| Electrical | Battery, Generator, Switch, Relay, AZS, Resistor, Load, Voltmeter, CurrentSense, VoltageSense, IndicatorLight, ElectricalSource, ElectricalConductance, ControlledVoltageSource, ControlledCurrentSource, Inverter, ElectricPump, ElectricHeater, SolenoidValve, Radiator, FuelTank, GidroAccumulator, Transformer, VariableConductance, GroundPower, Gyroscope, HighPowerLoad, HoldButton, Positive_V_to_Bool, Any_V_to_Bool, KnobSwitch, RotarySwitch1ToN, RotarySwitchNTo1, Slider |
 | Logical | AND, OR, NOT, XOR, NAND, Comparator, Greater, Lesser, GreaterEq, LesserEq, PID, PI, PD, P, LUT |
 | Math | Add, Subtract, Multiply, Divide, Clamp, Normalize, Min, Max, SlewRate, AsymSlewRate, FastTMO, AsymTMO, Integrator, Accumulator, SampleHold, TimeDelay, Monostable, LerpNode, FirstOrderLag |
 | Thermal | TempSensor |

@@ -86,6 +86,12 @@ std::string metadata_classname_for(std::string_view classname) {
     return std::string(classname);
 }
 
+bool is_knob_switch_family(std::string_view classname) {
+    return classname == "KnobSwitch" ||
+           classname == "RotarySwitch1ToN" ||
+           classname == "RotarySwitchNTo1";
+}
+
 bool is_scheduler_source_component_class(std::string_view classname) {
     return is_scheduler_source_component(metadata_classname_for(classname));
 }
@@ -103,6 +109,7 @@ bool is_solver_owned_electrical_propagator(std::string_view classname) {
            classname == "AZS" ||
            classname == "HoldButton" ||
            classname == "Relay" ||
+           is_knob_switch_family(classname) ||
            classname == "VariableConductance";
 }
 
@@ -376,6 +383,23 @@ BuildResult build_systems_dev(
             }
         };
 
+        auto build_knob_switch = [&](auto type_tag) {
+            using CompType = decltype(type_tag);
+            (void)type_tag;
+
+            CompType comp;
+            comp.positions = static_cast<int>(param_reader.consume_float_optional("positions", 2.0f));
+            comp.positions = std::clamp(comp.positions, 2, KnobSwitch<JitProvider>::MAX_POSITIONS);
+            comp.selected = static_cast<int>(param_reader.consume_float_optional("initial_position", 0.0f));
+            comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
+            comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
+            comp.pre_load();
+            setup_ports(comp);
+            param_reader.validate_all_consumed();
+
+            result.devices[dev.name] = comp;
+        };
+
         // Handle each component type
         if (dev.classname == "Generator") {
             Generator<JitProvider> comp;
@@ -444,19 +468,16 @@ BuildResult build_systems_dev(
             result.devices[dev.name] = comp;
             // Solver-owned electrical path; commit() runs in solver-owned commit pass.
         }
-        else if (dev.classname == "KnobSwitch") {
-            KnobSwitch<JitProvider> comp;
-            
-            comp.positions = static_cast<int>(param_reader.consume_float_optional("positions", 2.0f));
-            comp.positions = std::clamp(comp.positions, 2, KnobSwitch<JitProvider>::MAX_POSITIONS);
-            comp.selected = static_cast<int>(param_reader.consume_float_optional("initial_position", 0.0f));
-            comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
-            comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
-            comp.pre_load();
-            setup_ports(comp);
-            param_reader.validate_all_consumed();
-            
-            result.devices[dev.name] = comp;
+        else if (is_knob_switch_family(dev.classname)) {
+            if (dev.classname == "KnobSwitch") {
+                build_knob_switch(KnobSwitch<JitProvider>{});
+            }
+            else if (dev.classname == "RotarySwitch1ToN") {
+                build_knob_switch(RotarySwitch1ToN<JitProvider>{});
+            }
+            else {
+                build_knob_switch(RotarySwitchNTo1<JitProvider>{});
+            }
             // Solver-owned electrical path; commit() runs in solver-owned commit pass.
         }
         else if (dev.classname == "HoldButton") {
@@ -1712,8 +1733,8 @@ BuildResult build_systems_dev(
                 dev.name
             });
         }
-        else if (dev.classname == "KnobSwitch") {
-            // N ConductanceBranch elements: common-to-t1, common-to-t2, ..., common-to-tN.
+        else if (is_knob_switch_family(dev.classname)) {
+            // N ConductanceBranch elements: wiper-to-throw1, ..., wiper-to-throwN.
             // Only the selected position has g_closed; all others have g_open.
             int positions = static_cast<int>(read_param_float(dev, "positions", 2.0f));
             positions = std::clamp(positions, 2, KnobSwitch<JitProvider>::MAX_POSITIONS);
@@ -1721,14 +1742,14 @@ BuildResult build_systems_dev(
             initial_pos = std::clamp(initial_pos, 0, positions - 1);
             float g_open_val = read_param_float(dev, "g_open", 1e-6f);
             float g_closed_val = read_param_float(dev, "g_closed", 1000.0f);
-            uint32_t node_common = resolve_port(dev, "common");
-            const char* terminal_names[] = {"t1", "t2", "t3", "t4", "t5"};
+            uint32_t node_wiper = resolve_port(dev, "wiper");
+            const char* terminal_names[] = {"throw1", "throw2", "throw3", "throw4", "throw5"};
             for (int i = 0; i < positions; ++i) {
                 uint32_t node_t = resolve_port(dev, terminal_names[i]);
                 float initial_g = (i == initial_pos) ? g_closed_val : g_open_val;
                 raw_elements.push_back({
                     ElectricalElementKind::ConductanceBranch,
-                    node_common,
+                    node_wiper,
                     node_t,
                     initial_g,
                     0.0f,
@@ -1878,8 +1899,10 @@ BuildResult build_systems_dev(
             // Assign handle to the appropriate component variant
             std::visit([&](auto& comp) {
                 using CompType = std::decay_t<decltype(comp)>;
-                if constexpr (std::is_same_v<CompType, KnobSwitch<JitProvider>>) {
-                    // KnobSwitch has multiple handles (one per terminal branch).
+                if constexpr (std::is_same_v<CompType, KnobSwitch<JitProvider>> ||
+                              std::is_same_v<CompType, RotarySwitch1ToN<JitProvider>> ||
+                              std::is_same_v<CompType, RotarySwitchNTo1<JitProvider>>) {
+                    // KnobSwitch (and aliases) has multiple handles (one per terminal branch).
                     // Assign sequentially to electrical_handles[] array.
                     if (comp.num_handles < KnobSwitch<JitProvider>::MAX_POSITIONS) {
                         comp.electrical_handles[comp.num_handles++] = handle;
@@ -1915,7 +1938,9 @@ BuildResult build_systems_dev(
                 result.solver_owned.hold_buttons.push_back(&comp);
             } else if constexpr (std::is_same_v<T, Relay<JitProvider>>) {
                 result.solver_owned.relays.push_back(&comp);
-            } else if constexpr (std::is_same_v<T, KnobSwitch<JitProvider>>) {
+            } else if constexpr (std::is_same_v<T, KnobSwitch<JitProvider>> ||
+                               std::is_same_v<T, RotarySwitch1ToN<JitProvider>> ||
+                               std::is_same_v<T, RotarySwitchNTo1<JitProvider>>) {
                 result.solver_owned.knob_switches.push_back(&comp);
             } else if constexpr (std::is_same_v<T, Generator<JitProvider>>) {
                 result.solver_owned.generators.push_back(&comp);

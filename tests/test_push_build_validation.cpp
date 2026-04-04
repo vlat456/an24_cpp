@@ -260,6 +260,158 @@ TEST(PushBuildValidation, TwoBatteriesDirectConnection) {
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
 }
 
+TEST(PushBuildValidation, RotarySwitchAliasesBuildAsKnobSwitch) {
+    std::vector<DeviceInstance> devices = {
+        make_device("rs_1", "RotarySwitch1ToN", {{"positions", "3"}}),
+        make_device("rs_2", "RotarySwitchNTo1", {{"positions", "3"}}),
+        make_device("src", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
+        make_device("res", "Resistor", {{"conductance", "0.1"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"src.v_in", "gnd.v"},
+        {"src.v_out", "rs_1.throw1"},
+        {"rs_1.wiper", "rs_2.wiper"},
+        {"rs_2.throw1", "res.v_in"},
+        {"res.v_out", "gnd.v"}
+    };
+
+    EXPECT_NO_THROW({
+        auto result = build_systems_dev(devices, connections);
+        EXPECT_GT(result.signal_count, 0u);
+    });
+}
+
+TEST(PushBuildValidation, KnobSwitchPortNamesAreWiperAndThrowsOnly) {
+    std::vector<DeviceInstance> devices = {
+        make_device("knob", "KnobSwitch", {{"positions", "2"}}),
+        make_device("src", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
+        make_device("res", "Resistor", {{"conductance", "0.1"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    // New port names build and connect correctly
+    std::vector<std::pair<std::string, std::string>> new_connections = {
+        {"src.v_in", "gnd.v"},
+        {"src.v_out", "knob.throw1"},
+        {"knob.wiper", "res.v_in"},
+        {"res.v_out", "gnd.v"}
+    };
+
+    auto result = build_systems_dev(devices, new_connections);
+    EXPECT_GT(result.signal_count, 0u);
+
+    // Verify new port names exist
+    EXPECT_EQ(result.port_to_signal.count("knob.wiper"), 1u);
+    EXPECT_EQ(result.port_to_signal.count("knob.throw1"), 1u);
+
+    // Verify new names are actually connected (unified with src/res ports)
+    EXPECT_EQ(result.port_to_signal["knob.throw1"],
+              result.port_to_signal["src.v_out"]);
+    EXPECT_EQ(result.port_to_signal["knob.wiper"],
+              result.port_to_signal["res.v_in"]);
+
+    // Legacy port names (common, t1..t5) do NOT exist as device ports
+    EXPECT_EQ(result.port_to_signal.count("knob.common"), 0u);
+    EXPECT_EQ(result.port_to_signal.count("knob.t1"), 0u);
+}
+
+TEST(PushBuildValidation, KnobSwitchLegacyPortNamesAreNotConnected) {
+    // Verify that legacy port names in connections silently fail to connect.
+    // Legacy names ("common", "t1") are not in the port registry and don't
+    // create port entries; connections referencing them are ignored with a warning.
+    std::vector<DeviceInstance> devices = {
+        make_device("knob", "KnobSwitch", {{"positions", "2"}}),
+        make_device("src", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
+        make_device("res", "Resistor", {{"conductance", "0.1"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> legacy_connections = {
+        {"src.v_in", "gnd.v"},
+        {"src.v_out", "knob.t1"},         // legacy name — no such port
+        {"knob.common", "res.v_in"},      // legacy name — no such port
+        {"res.v_out", "gnd.v"}
+    };
+
+    // Build succeeds (broken connections are warned, not fatal)
+    auto legacy_result = build_systems_dev(devices, legacy_connections);
+
+    // The new ports exist (from device port metadata) but are NOT connected to src/res
+    EXPECT_EQ(legacy_result.port_to_signal.count("knob.wiper"), 1u);
+    EXPECT_EQ(legacy_result.port_to_signal.count("knob.throw1"), 1u);
+    EXPECT_NE(legacy_result.port_to_signal["knob.throw1"],
+              legacy_result.port_to_signal["src.v_out"])
+        << "Legacy connection 'knob.t1' should NOT unify with 'src.v_out'";
+    EXPECT_NE(legacy_result.port_to_signal["knob.wiper"],
+              legacy_result.port_to_signal["res.v_in"])
+        << "Legacy connection 'knob.common' should NOT unify with 'res.v_in'";
+}
+
+TEST(PushBuildValidation, KnobSwitchIsNotInPushScheduler) {
+    // Regression: KnobSwitch is solver-owned and must NOT be added to the push
+    // scheduler as a consumer. Previously it was missing from
+    // is_solver_owned_electrical_propagator(), causing double commit() calls.
+    std::vector<DeviceInstance> devices = {
+        make_device("knob", "KnobSwitch", {{"positions", "2"}}),
+        make_device("src", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"src.v_in", "gnd.v"},
+        {"src.v_out", "knob.throw1"},
+        {"knob.wiper", "gnd.v"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    // KnobSwitch should NOT be a scheduler consumer
+    // RefNode is a source, ElectricalSource/Resistor are solver-owned — so zero consumers expected
+    EXPECT_EQ(result.scheduler.consumer_count(), 0u)
+        << "KnobSwitch should not appear in the push scheduler consumer list";
+}
+
+TEST(PushBuildValidation, RotarySwitchAliasesAreNotInPushScheduler) {
+    // Same guardrail check for RotarySwitch aliases
+    std::vector<DeviceInstance> devices = {
+        make_device("rs", "RotarySwitch1ToN", {{"positions", "3"}}),
+        make_device("src", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"src.v_in", "gnd.v"},
+        {"src.v_out", "rs.throw1"},
+        {"rs.wiper", "gnd.v"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    EXPECT_EQ(result.scheduler.consumer_count(), 0u)
+        << "RotarySwitch1ToN should not appear in the push scheduler consumer list";
+}
+
+TEST(PushBuildValidation, RotarySwitchAliasesInstantiateDistinctVariantTypes) {
+    std::vector<DeviceInstance> devices = {
+        make_device("rs_a", "RotarySwitch1ToN", {{"positions", "3"}}),
+        make_device("rs_b", "RotarySwitchNTo1", {{"positions", "3"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"rs_a.wiper", "rs_b.wiper"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    auto it_a = result.devices.find("rs_a");
+    auto it_b = result.devices.find("rs_b");
+    ASSERT_NE(it_a, result.devices.end());
+    ASSERT_NE(it_b, result.devices.end());
+
+    EXPECT_TRUE(std::holds_alternative<RotarySwitch1ToN<JitProvider>>(it_a->second));
+    EXPECT_TRUE(std::holds_alternative<RotarySwitchNTo1<JitProvider>>(it_b->second));
+}
+
 TEST(PushBuildValidation, SingleBatteryOK) {
     // Just one ElectricalSource - should succeed
     std::vector<DeviceInstance> devices = {

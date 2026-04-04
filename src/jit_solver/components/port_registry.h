@@ -80,6 +80,8 @@ enum class ComponentType {
     RefNode,
     Relay,
     Resistor,
+    RotarySwitch1ToN,
+    RotarySwitchNTo1,
     SampleHold,
     SlewRate,
     Slider,
@@ -157,6 +159,8 @@ constexpr size_t Radiator_PORT_COUNT = 2;
 constexpr size_t RefNode_PORT_COUNT = 1;
 constexpr size_t Relay_PORT_COUNT = 5;
 constexpr size_t Resistor_PORT_COUNT = 2;
+constexpr size_t RotarySwitch1ToN_PORT_COUNT = 8;
+constexpr size_t RotarySwitchNTo1_PORT_COUNT = 8;
 constexpr size_t SampleHold_PORT_COUNT = 3;
 constexpr size_t SlewRate_PORT_COUNT = 2;
 constexpr size_t Slider_PORT_COUNT = 2;
@@ -335,14 +339,14 @@ constexpr const char* Inverter_PORTS[] = {
     "dc_in"
 };
 constexpr const char* KnobSwitch_PORTS[] = {
-    "common",
     "control",
     "position",
-    "t1",
-    "t2",
-    "t3",
-    "t4",
-    "t5"
+    "throw1",
+    "throw2",
+    "throw3",
+    "throw4",
+    "throw5",
+    "wiper"
 };
 constexpr const char* LUT_PORTS[] = {
     "input",
@@ -454,6 +458,26 @@ constexpr const char* Relay_PORTS[] = {
 constexpr const char* Resistor_PORTS[] = {
     "v_in",
     "v_out"
+};
+constexpr const char* RotarySwitch1ToN_PORTS[] = {
+    "control",
+    "position",
+    "throw1",
+    "throw2",
+    "throw3",
+    "throw4",
+    "throw5",
+    "wiper"
+};
+constexpr const char* RotarySwitchNTo1_PORTS[] = {
+    "control",
+    "position",
+    "throw1",
+    "throw2",
+    "throw3",
+    "throw4",
+    "throw5",
+    "wiper"
 };
 constexpr const char* SampleHold_PORTS[] = {
     "in",
@@ -1078,9 +1102,9 @@ constexpr bool Inverter_PORT_SOURCE_WRITER[] = {
 constexpr bool Inverter_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection KnobSwitch_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::InOut,
     RegistryPortDirection::In,
     RegistryPortDirection::Out,
+    RegistryPortDirection::InOut,
     RegistryPortDirection::InOut,
     RegistryPortDirection::InOut,
     RegistryPortDirection::InOut,
@@ -1088,9 +1112,9 @@ constexpr RegistryPortDirection KnobSwitch_PORT_DIRECTIONS[] = {
     RegistryPortDirection::InOut
 };
 constexpr uint8_t KnobSwitch_PORT_DOMAINS[] = {
+    2,
+    2,
     1,
-    2,
-    2,
     1,
     1,
     1,
@@ -1488,6 +1512,70 @@ constexpr bool Resistor_PORT_SOURCE_WRITER[] = {
 };
 constexpr bool Resistor_SCHEDULER_SOURCE = false;
 
+constexpr RegistryPortDirection RotarySwitch1ToN_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut
+};
+constexpr uint8_t RotarySwitch1ToN_PORT_DOMAINS[] = {
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+};
+constexpr bool RotarySwitch1ToN_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool RotarySwitch1ToN_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection RotarySwitchNTo1_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut
+};
+constexpr uint8_t RotarySwitchNTo1_PORT_DOMAINS[] = {
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+};
+constexpr bool RotarySwitchNTo1_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool RotarySwitchNTo1_SCHEDULER_SOURCE = false;
+
 constexpr RegistryPortDirection SampleHold_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::Out,
@@ -1763,7 +1851,6 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"ac_out", PortNames::ac_out},
         {"brightness", PortNames::brightness},
         {"cmd", PortNames::cmd},
-        {"common", PortNames::common},
         {"control", PortNames::control},
         {"ctrl", PortNames::ctrl},
         {"damping", PortNames::damping},
@@ -1813,14 +1900,14 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"secondary", PortNames::secondary},
         {"setpoint", PortNames::setpoint},
         {"state", PortNames::state},
-        {"t1", PortNames::t1},
-        {"t2", PortNames::t2},
-        {"t3", PortNames::t3},
-        {"t4", PortNames::t4},
-        {"t5", PortNames::t5},
         {"temp", PortNames::temp},
         {"temp_in", PortNames::temp_in},
         {"temp_out", PortNames::temp_out},
+        {"throw1", PortNames::throw1},
+        {"throw2", PortNames::throw2},
+        {"throw3", PortNames::throw3},
+        {"throw4", PortNames::throw4},
+        {"throw5", PortNames::throw5},
         {"torque_in", PortNames::torque_in},
         {"trigger", PortNames::trigger},
         {"tripped", PortNames::tripped},
@@ -1830,6 +1917,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"v_out", PortNames::v_out},
         {"v_pos", PortNames::v_pos},
         {"v_ref", PortNames::v_ref},
+        {"wiper", PortNames::wiper},
     };
     auto it = map.find(name);
     if (it != map.end()) return it->second;
@@ -1872,7 +1960,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"InertiaNode", {"damping", "inv_inertia", "mass", "rpm_out", "torque_in"}},
         {"Integrator", {"gain", "in", "out", "reset"}},
         {"Inverter", {"ac_out", "dc_in"}},
-        {"KnobSwitch", {"common", "control", "position", "t1", "t2", "t3", "t4", "t5"}},
+        {"KnobSwitch", {"control", "position", "throw1", "throw2", "throw3", "throw4", "throw5", "wiper"}},
         {"LUT", {"input", "output"}},
         {"LerpNode", {"input", "output"}},
         {"Lesser", {"A", "B", "o"}},
@@ -1896,6 +1984,8 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"RefNode", {"v"}},
         {"Relay", {"control", "hold_threshold", "state", "v_in", "v_out"}},
         {"Resistor", {"v_in", "v_out"}},
+        {"RotarySwitch1ToN", {"control", "position", "throw1", "throw2", "throw3", "throw4", "throw5", "wiper"}},
+        {"RotarySwitchNTo1", {"control", "position", "throw1", "throw2", "throw3", "throw4", "throw5", "wiper"}},
         {"SampleHold", {"in", "out", "trigger"}},
         {"SlewRate", {"in", "out"}},
         {"Slider", {"control", "out"}},
@@ -1980,6 +2070,8 @@ inline bool has_component_metadata(const std::string& classname) {
         "RefNode",
         "Relay",
         "Resistor",
+        "RotarySwitch1ToN",
+        "RotarySwitchNTo1",
         "SampleHold",
         "SlewRate",
         "Slider",
@@ -2059,6 +2151,8 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"RefNode", true},
         {"Relay", false},
         {"Resistor", false},
+        {"RotarySwitch1ToN", false},
+        {"RotarySwitchNTo1", false},
         {"SampleHold", false},
         {"SlewRate", false},
         {"Slider", false},
@@ -2535,6 +2629,22 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
         for (size_t i = 0; i < Resistor_PORT_COUNT; ++i) {
             if (Resistor_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Resistor_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
                 result.push_back(Resistor_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "RotarySwitch1ToN") {
+        for (size_t i = 0; i < RotarySwitch1ToN_PORT_COUNT; ++i) {
+            if (RotarySwitch1ToN_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || RotarySwitch1ToN_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(RotarySwitch1ToN_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "RotarySwitchNTo1") {
+        for (size_t i = 0; i < RotarySwitchNTo1_PORT_COUNT; ++i) {
+            if (RotarySwitchNTo1_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || RotarySwitchNTo1_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(RotarySwitchNTo1_PORTS[i]);
             }
         }
         return result;
@@ -3128,6 +3238,22 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         }
         return result;
     }
+    if (classname == "RotarySwitch1ToN") {
+        for (size_t i = 0; i < RotarySwitch1ToN_PORT_COUNT; ++i) {
+            if (RotarySwitch1ToN_PORT_SOURCE_WRITER[i] && ((RotarySwitch1ToN_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(RotarySwitch1ToN_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "RotarySwitchNTo1") {
+        for (size_t i = 0; i < RotarySwitchNTo1_PORT_COUNT; ++i) {
+            if (RotarySwitchNTo1_PORT_SOURCE_WRITER[i] && ((RotarySwitchNTo1_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(RotarySwitchNTo1_PORTS[i]);
+            }
+        }
+        return result;
+    }
     if (classname == "SampleHold") {
         for (size_t i = 0; i < SampleHold_PORT_COUNT; ++i) {
             if (SampleHold_PORT_SOURCE_WRITER[i] && ((SampleHold_PORT_DOMAINS[i] & domain_mask) != 0)) {
@@ -3319,6 +3445,8 @@ using ComponentVariant = std::variant<
     RefNode<JitProvider>,
     Relay<JitProvider>,
     Resistor<JitProvider>,
+    RotarySwitch1ToN<JitProvider>,
+    RotarySwitchNTo1<JitProvider>,
     SampleHold<JitProvider>,
     SlewRate<JitProvider>,
     Slider<JitProvider>,

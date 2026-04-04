@@ -3118,7 +3118,7 @@
         "positions": 5.0
       },
       "ports": {
-        "common": {
+        "wiper": {
           "direction": "InOut",
           "type": 0
         },
@@ -3130,23 +3130,23 @@
           "direction": "Out",
           "type": 7
         },
-        "t1": {
+        "throw1": {
           "direction": "InOut",
           "type": 0
         },
-        "t2": {
+        "throw2": {
           "direction": "InOut",
           "type": 0
         },
-        "t3": {
+        "throw3": {
           "direction": "InOut",
           "type": 0
         },
-        "t4": {
+        "throw4": {
           "direction": "InOut",
           "type": 0
         },
-        "t5": {
+        "throw5": {
           "direction": "InOut",
           "type": 0
         }
@@ -5319,7 +5319,7 @@
     {
       "id": "wire_147",
       "source": "/bus_1:v",
-      "target": "/knobswitch_1:common"
+      "target": "/knobswitch_1:wiper"
     },
     {
       "id": "wire_149",
@@ -5334,12 +5334,12 @@
     {
       "id": "wire_151",
       "source": "/indicatorlight_2:v_out",
-      "target": "/knobswitch_1:t2"
+      "target": "/knobswitch_1:throw2"
     },
     {
       "id": "wire_152",
       "source": "/indicatorlight_3:v_out",
-      "target": "/knobswitch_1:t1"
+      "target": "/knobswitch_1:throw1"
     },
     {
       "id": "wire_153",
@@ -5349,7 +5349,7 @@
     {
       "id": "wire_154",
       "source": "/indicatorlight_4:v_out",
-      "target": "/knobswitch_1:t3"
+      "target": "/knobswitch_1:throw3"
     },
     {
       "id": "wire_155",

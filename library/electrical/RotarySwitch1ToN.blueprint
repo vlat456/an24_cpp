@@ -1,0 +1,94 @@
+{
+  "version": "3.0",
+  "id": "RotarySwitch1ToN",
+  "display_name": "Rotary Switch (1 to N)",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "wiper",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "throw1",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "throw2",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "throw3",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "throw4",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "throw5",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "control",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "position",
+      "domain": 2,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "User-facing alias for passive rotary selector. Optimized for 1-to-N mental model. Internally identical to KnobSwitch.",
+  "domains": [
+    "Electrical",
+    "Logical"
+  ],
+  "param_defaults": {
+    "positions": "2",
+    "initial_position": "0",
+    "g_open": "1e-6",
+    "g_closed": "1000.0"
+  },
+  "param_schema": {
+    "positions": {
+      "type": "int"
+    },
+    "initial_position": {
+      "type": "int"
+    },
+    "g_open": {
+      "type": "float"
+    },
+    "g_closed": {
+      "type": "float"
+    }
+  },
+  "content_type": "Knob"
+}

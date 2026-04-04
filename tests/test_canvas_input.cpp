@@ -989,8 +989,8 @@ TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
     knob.content_type = bp2::NodeContentType::Knob;
     knob.content_max = 5.0f;
-    knob.inputs.push_back(EditorPort(I.intern("t1"), PortSide::InOut, PortType::V));
-    knob.outputs.push_back(EditorPort(I.intern("t1"), PortSide::InOut, PortType::V));
+    knob.inputs.push_back(EditorPort(I.intern("throw1"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("throw1"), PortSide::InOut, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(knob));

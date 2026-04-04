@@ -95,6 +95,12 @@ These components expose interactive widgets (knobs, sliders, toggles) in the vis
 - `Switch`: Binary toggle switch
 - `IndicatorLight`: Visual output indicator
 
+### KnobSwitch semantics
+
+- `KnobSwitch` is a passive rotary contact with one wiper (`wiper`) and multiple throws (`throw1..throwN`).
+- Electrically, `wiper -> throwN` and `throwN -> wiper` are both valid; this is the same topology.
+- `InOut` on `wiper`/`throw*` is used to model passive contacts, not directed dataflow.
+
 ---
 
 ## Primitive-First Direction

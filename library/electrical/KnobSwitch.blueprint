@@ -5,42 +5,42 @@
   "scheduler_source": false,
   "interface": [
     {
-      "name": "common",
+      "name": "wiper",
       "domain": 1,
       "direction": 2,
       "type": "V",
       "source_writer": false
     },
     {
-      "name": "t1",
+      "name": "throw1",
       "domain": 1,
       "direction": 2,
       "type": "V",
       "source_writer": false
     },
     {
-      "name": "t2",
+      "name": "throw2",
       "domain": 1,
       "direction": 2,
       "type": "V",
       "source_writer": false
     },
     {
-      "name": "t3",
+      "name": "throw3",
       "domain": 1,
       "direction": 2,
       "type": "V",
       "source_writer": false
     },
     {
-      "name": "t4",
+      "name": "throw4",
       "domain": 1,
       "direction": 2,
       "type": "V",
       "source_writer": false
     },
     {
-      "name": "t5",
+      "name": "throw5",
       "domain": 1,
       "direction": 2,
       "type": "V",
@@ -65,7 +65,7 @@
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "Multi-position rotary selector switch (2-5 positions). Connects selected terminal (t1..tN) to common via dynamic conductance. Position controlled by 'control' input (0-based). Set 'positions' param to 2-5.",
+  "description": "Multi-position passive rotary selector (2-5 positions). Connects wiper to selected throw (throw1..throwN) via dynamic conductance. Electrical terminals are passive/bidirectional: both wiper->throwN and throwN->wiper usage are valid. Position controlled by 'control' input (0-based). Set 'positions' param to 2-5.",
   "domains": [
     "Electrical",
     "Logical"
