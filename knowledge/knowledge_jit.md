@@ -126,11 +126,42 @@ void Simulator::apply_overrides(const std::unordered_map<std::string, float>& ov
 }
 ```
 
+## Build Phases (Modular Files)
+
+The build process is split into modular files, each ≤500 LOC:
+
+| File | LOC | Purpose |
+|------|-----|---------|
+| `jit_solver.cpp` | 34 | Main orchestrator - calls 4 build phases |
+| `jit_solver_internal.h` | 70 | Internal API in `jit_solver_impl` namespace |
+| `build_utils.cpp` | 120 | Helper functions + ParamReader |
+| `build_signals.cpp` | 140 | Union-find + signal allocation |
+| `build_components.cpp` | 973 | Component factory (68+ types) |
+| `build_electrical.cpp` | 517 | Electrical islands + handle assignment |
+
+Pipeline:
+1. **Utils** — metadata helpers, ParamReader
+2. **Signals** — union-find, port unions
+3. **Components** — factory, scheduler, refs
+4. **Electrical** — islands, handle assignment
+
+## Namespace Pattern
+
+Internal implementation uses `jit_solver_impl` named namespace instead of anonymous namespace. This is required because:
+- Functions declared in `jit_solver_internal.h` are defined in separate `.cpp` files
+- Anonymous namespace gives internal linkage → linker errors when declarations and definitions are split across TUs
+- Named namespace with header declarations + cpp definitions works correctly
+
 ## Files
 
-- `src/jit_solver/jit_solver.h` — BuildResult, SolverOwnedRefs
-- `src/jit_solver/jit_solver.cpp` — Device creation functions
-- `src/jit_solver/scheduler.h` — PushScheduler
-- `src/jit_solver/simulator.h` — Simulator<T> template
-- `src/jit_solver/state.h` — SimulationState
-- `src/jit_solver/components/provider.h` — JitProvider/AotProvider
+- `src/core/solvers/jit/jit_solver.cpp` — Main orchestrator
+- `src/core/solvers/jit/jit_solver_internal.h` — Internal API
+- `src/core/solvers/jit/build_utils.cpp` — Helpers + ParamReader
+- `src/core/solvers/jit/build_signals.cpp` — Signal allocation
+- `src/core/solvers/jit/build_components.cpp` — Component factory
+- `src/core/solvers/jit/build_electrical.cpp` — Electrical islands
+- `src/core/solvers/jit/jit_solver.h` — BuildResult, SolverOwnedRefs
+- `src/core/solvers/jit/scheduler.h` — PushScheduler
+- `src/core/solvers/jit/simulator.h` — Simulator<T> template
+- `src/core/solvers/jit/state.h` — SimulationState
+- `src/core/solvers/jit/components/provider.h` — JitProvider/AotProvider
