@@ -1716,7 +1716,7 @@
         }
       },
       "position": {
-        "x": 64.0,
+        "x": 272.0,
         "y": -320.0
       },
       "string_params": {
@@ -1736,11 +1736,11 @@
       },
       "position": {
         "x": 480.0,
-        "y": 160.0
+        "y": 352.0
       },
       "render_hint": "bus",
       "string_params": {
-        "port_edge": "bottom"
+        "port_edge": "top"
       },
       "type": "Bus",
       "width": 128.0
@@ -1870,8 +1870,8 @@
         }
       },
       "position": {
-        "x": 880.0,
-        "y": -752.0
+        "x": 912.0,
+        "y": -720.0
       },
       "type": "Comparator"
     },
@@ -2031,7 +2031,7 @@
         }
       },
       "position": {
-        "x": 0.0,
+        "x": -16.0,
         "y": 0.0
       },
       "type": "RN-180-Exciter",
@@ -2107,7 +2107,7 @@
       },
       "position": {
         "x": 272.0,
-        "y": -384.0
+        "y": -400.0
       },
       "type": "LoadVoltageDrp",
       "width": 160.0
@@ -2297,7 +2297,7 @@
         }
       },
       "position": {
-        "x": 64.0,
+        "x": 32.0,
         "y": 240.0
       },
       "type": "RPMIntertial",
@@ -2468,6 +2468,7 @@
       "type": "LUT"
     },
     {
+      "height": 64.0,
       "id": "multiply_1",
       "name": "multiply_1",
       "ports": {
@@ -2485,10 +2486,11 @@
         }
       },
       "position": {
-        "x": 416.0,
-        "y": -64.0
+        "x": 400.0,
+        "y": 112.0
       },
-      "type": "Multiply"
+      "type": "Multiply",
+      "width": 48.0
     },
     {
       "group_id": "extract_inst_2",
@@ -2680,7 +2682,7 @@
         }
       },
       "position": {
-        "x": 256.0,
+        "x": 272.0,
         "y": 240.0
       },
       "type": "Normalize"
@@ -2727,7 +2729,7 @@
     },
     {
       "id": "refnode_4",
-      "name": "refnode_4",
+      "name": "GND_REF",
       "params": {
         "value": 0.0
       },
@@ -2739,7 +2741,7 @@
       },
       "position": {
         "x": 480.0,
-        "y": 288.0
+        "y": 168.0
       },
       "render_hint": "ref",
       "type": "RefNode"
@@ -2821,7 +2823,7 @@
         }
       },
       "position": {
-        "x": 1280.0,
+        "x": 1344.0,
         "y": -704.0
       },
       "type": "Resistor"
@@ -2852,7 +2854,7 @@
         }
       },
       "position": {
-        "x": -64.0,
+        "x": -144.0,
         "y": 240.0
       },
       "type": "Slider"
@@ -3134,8 +3136,8 @@
         }
       },
       "position": {
-        "x": 352.0,
-        "y": 144.0
+        "x": 472.0,
+        "y": 40.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3153,8 +3155,8 @@
         }
       },
       "position": {
-        "x": 400.0,
-        "y": 32.0
+        "x": 472.0,
+        "y": 56.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3172,8 +3174,8 @@
         }
       },
       "position": {
-        "x": 368.0,
-        "y": 80.0
+        "x": 472.0,
+        "y": 72.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3192,8 +3194,8 @@
         }
       },
       "position": {
-        "x": 432.0,
-        "y": 96.0
+        "x": 472.0,
+        "y": 88.0
       },
       "render_hint": "ref",
       "type": "Value",
@@ -3252,8 +3254,8 @@
         }
       },
       "position": {
-        "x": 176.0,
-        "y": 328.0
+        "x": 208.0,
+        "y": 280.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3271,8 +3273,8 @@
         }
       },
       "position": {
-        "x": 176.0,
-        "y": 288.0
+        "x": 208.0,
+        "y": 296.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3370,8 +3372,8 @@
         }
       },
       "position": {
-        "x": 1008.0,
-        "y": -688.0
+        "x": 1048.0,
+        "y": -680.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3389,8 +3391,8 @@
         }
       },
       "position": {
-        "x": 336.0,
-        "y": -272.0
+        "x": 432.0,
+        "y": -280.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3408,8 +3410,8 @@
         }
       },
       "position": {
-        "x": 352.0,
-        "y": -224.0
+        "x": 432.0,
+        "y": -264.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3487,8 +3489,8 @@
         }
       },
       "position": {
-        "x": 144.0,
-        "y": 80.0
+        "x": 168.0,
+        "y": 40.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3549,7 +3551,7 @@
         }
       },
       "position": {
-        "x": 1568.0,
+        "x": 1560.0,
         "y": -224.0
       },
       "render_hint": "ref",
@@ -3628,8 +3630,8 @@
         }
       },
       "position": {
-        "x": 240.0,
-        "y": 128.0
+        "x": 408.0,
+        "y": 80.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3721,7 +3723,7 @@
       },
       "position": {
         "x": 480.0,
-        "y": -288.0
+        "y": -320.0
       },
       "type": "VariableConductance"
     },
@@ -3779,14 +3781,14 @@
         }
       },
       "position": {
-        "x": 880.0,
+        "x": 816.0,
         "y": -464.0
       },
       "type": "Voltmeter"
     }
   ],
-  "pan_x": 272.8108825683594,
-  "pan_y": -596.0269775390625,
+  "pan_x": -447.2244567871094,
+  "pan_y": -702.1881713867188,
   "version": "3.0",
   "wires": [
     {
@@ -3799,11 +3801,11 @@
       "routing_points": [
         [
           448.0,
-          -352.0
+          -368.0
         ],
         [
           448.0,
-          -256.0
+          -288.0
         ]
       ],
       "source": "/extract_inst_2:out",
@@ -3853,7 +3855,7 @@
         ],
         [
           240.0,
-          -352.0
+          -368.0
         ]
       ],
       "source": "/bus_2:v",
@@ -3921,11 +3923,7 @@
         ],
         [
           -64.0,
-          -336.0
-        ],
-        [
-          256.0,
-          -336.0
+          -352.0
         ]
       ],
       "source": "/bus_1:v",
@@ -3978,11 +3976,31 @@
     },
     {
       "id": "wire_107",
+      "routing_points": [
+        [
+          464.0,
+          144.0
+        ],
+        [
+          464.0,
+          32.0
+        ]
+      ],
       "source": "/multiply_1:o",
       "target": "/controlledvoltagesource_2:cmd"
     },
     {
       "id": "wire_23",
+      "routing_points": [
+        [
+          384.0,
+          32.0
+        ],
+        [
+          384.0,
+          144.0
+        ]
+      ],
       "source": "/firstorderlag_1:out",
       "target": "/multiply_1:A"
     },
@@ -3992,30 +4010,22 @@
       "target": "/bus_1:v"
     },
     {
-      "id": "wire_63",
+      "id": "wire_30",
       "routing_points": [
         [
-          672.0,
-          -256.0
+          896.0,
+          48.0
         ],
         [
-          672.0,
-          -32.0
-        ],
-        [
-          912.0,
-          -32.0
-        ],
-        [
-          912.0,
-          272.0
+          896.0,
+          256.0
         ],
         [
           528.0,
-          272.0
+          256.0
         ]
       ],
-      "source": "/variableconductance_1:v_out",
+      "source": "/controlledvoltagesource_2:v_neg",
       "target": "/bus_1:v"
     },
     {
@@ -4038,22 +4048,30 @@
       "target": "/extract_inst_1:feedback"
     },
     {
-      "id": "wire_36",
+      "id": "wire_63",
       "routing_points": [
         [
-          1120.0,
-          -96.0
+          672.0,
+          -288.0
         ],
         [
-          1120.0,
-          256.0
+          672.0,
+          -32.0
+        ],
+        [
+          912.0,
+          -32.0
+        ],
+        [
+          912.0,
+          272.0
         ],
         [
           544.0,
-          256.0
+          272.0
         ]
       ],
-      "source": "/currentsense_1:v_out",
+      "source": "/variableconductance_1:v_out",
       "target": "/bus_1:v"
     },
     {
@@ -4079,12 +4097,6 @@
     },
     {
       "id": "wire_50",
-      "routing_points": [
-        [
-          176.0,
-          48.0
-        ]
-      ],
       "source": "/value_2:o",
       "target": "/firstorderlag_1:rate"
     },
@@ -4100,22 +4112,22 @@
       "target": "/bus_2:v"
     },
     {
-      "id": "wire_30",
+      "id": "wire_36",
       "routing_points": [
         [
-          896.0,
-          48.0
+          1120.0,
+          -96.0
         ],
         [
-          896.0,
-          240.0
+          1120.0,
+          288.0
         ],
         [
           560.0,
-          240.0
+          288.0
         ]
       ],
-      "source": "/controlledvoltagesource_2:v_neg",
+      "source": "/currentsense_1:v_out",
       "target": "/bus_1:v"
     },
     {
@@ -4376,12 +4388,16 @@
       "id": "wire_116",
       "routing_points": [
         [
-          1376.0,
-          224.0
+          1504.0,
+          -672.0
+        ],
+        [
+          1504.0,
+          304.0
         ],
         [
           576.0,
-          224.0
+          304.0
         ]
       ],
       "source": "/resistor_2:v_out",
@@ -4529,9 +4545,19 @@
     },
     {
       "id": "wire_140",
+      "routing_points": [
+        [
+          384.0,
+          272.0
+        ],
+        [
+          384.0,
+          160.0
+        ]
+      ],
       "source": "/normalize_1:out",
       "target": "/multiply_1:B"
     }
   ],
-  "zoom": 1.3086960315704346
+  "zoom": 0.5470489859580994
 }

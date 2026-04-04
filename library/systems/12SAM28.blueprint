@@ -58,8 +58,8 @@
         }
       },
       "position": {
-        "x": 80.0,
-        "y": 288.0
+        "x": -80.0,
+        "y": 272.0
       },
       "type": "Accumulator"
     },
@@ -77,8 +77,8 @@
         }
       },
       "position": {
-        "x": 0.0,
-        "y": -144.0
+        "x": 672.0,
+        "y": 320.0
       },
       "string_params": {
         "exposed_direction": "Out",
@@ -87,6 +87,7 @@
       "type": "BlueprintOutput"
     },
     {
+      "height": 96.0,
       "id": "clamp_charge",
       "name": "clamp_charge",
       "ports": {
@@ -108,10 +109,11 @@
         }
       },
       "position": {
-        "x": -176.0,
-        "y": -64.0
+        "x": 176.0,
+        "y": 272.0
       },
-      "type": "Clamp"
+      "type": "Clamp",
+      "width": 80.0
     },
     {
       "id": "csense",
@@ -134,8 +136,8 @@
         }
       },
       "position": {
-        "x": 304.0,
-        "y": -80.0
+        "x": 496.0,
+        "y": 208.0
       },
       "type": "CurrentSense"
     },
@@ -152,8 +154,8 @@
         }
       },
       "position": {
-        "x": -208.0,
-        "y": -128.0
+        "x": 120.0,
+        "y": 312.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -171,8 +173,8 @@
         }
       },
       "position": {
-        "x": -160.0,
-        "y": 128.0
+        "x": -112.0,
+        "y": 216.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -191,8 +193,8 @@
         }
       },
       "position": {
-        "x": -336.0,
-        "y": 368.0
+        "x": -280.0,
+        "y": 312.0
       },
       "render_hint": "ref",
       "type": "Value",
@@ -212,7 +214,7 @@
         }
       },
       "position": {
-        "x": 256.0,
+        "x": 272.0,
         "y": 232.0
       },
       "render_hint": "ref",
@@ -233,7 +235,7 @@
         }
       },
       "position": {
-        "x": 256.0,
+        "x": 272.0,
         "y": 248.0
       },
       "render_hint": "ref",
@@ -254,8 +256,8 @@
         }
       },
       "position": {
-        "x": -304.0,
-        "y": -96.0
+        "x": 120.0,
+        "y": 328.0
       },
       "render_hint": "ref",
       "type": "Value",
@@ -275,8 +277,8 @@
         }
       },
       "position": {
-        "x": 0.0,
-        "y": 0.0
+        "x": -112.0,
+        "y": 232.0
       },
       "render_hint": "ref",
       "type": "Value",
@@ -295,7 +297,7 @@
         }
       },
       "position": {
-        "x": 256.0,
+        "x": 272.0,
         "y": 280.0
       },
       "render_hint": "ref",
@@ -314,13 +316,14 @@
         }
       },
       "position": {
-        "x": 256.0,
+        "x": 272.0,
         "y": 264.0
       },
       "render_hint": "ref",
       "type": "Value"
     },
     {
+      "height": 80.0,
       "id": "norm_soc",
       "name": "norm_soc",
       "ports": {
@@ -342,12 +345,14 @@
         }
       },
       "position": {
-        "x": -272.0,
-        "y": 240.0
+        "x": -64.0,
+        "y": 176.0
       },
-      "type": "Normalize"
+      "type": "Normalize",
+      "width": 80.0
     },
     {
+      "height": 64.0,
       "id": "ocv",
       "name": "ocv",
       "ports": {
@@ -361,16 +366,17 @@
         }
       },
       "position": {
-        "x": -304.0,
-        "y": 48.0
+        "x": 176.0,
+        "y": 192.0
       },
       "string_params": {
         "table": "0.0:21.0; 0.5:24.0; 1.0:25.2"
       },
-      "type": "LUT"
+      "type": "LUT",
+      "width": 80.0
     },
     {
-      "height": 144.0,
+      "height": 64.0,
       "id": "rate",
       "name": "rate",
       "ports": {
@@ -392,7 +398,7 @@
         "y": 272.0
       },
       "type": "Multiply",
-      "width": 112.0
+      "width": 64.0
     },
     {
       "id": "soc_out",
@@ -408,8 +414,8 @@
         }
       },
       "position": {
-        "x": 0.0,
-        "y": 192.0
+        "x": 672.0,
+        "y": 144.0
       },
       "string_params": {
         "exposed_direction": "Out",
@@ -418,6 +424,7 @@
       "type": "BlueprintOutput"
     },
     {
+      "height": 80.0,
       "id": "split_accum_1",
       "name": "split_accum_1",
       "ports": {
@@ -435,10 +442,11 @@
         }
       },
       "position": {
-        "x": 160.0,
-        "y": -112.0
+        "x": 16.0,
+        "y": 272.0
       },
-      "type": "Splitter"
+      "type": "Splitter",
+      "width": 80.0
     },
     {
       "id": "split_accum_2",
@@ -458,8 +466,8 @@
         }
       },
       "position": {
-        "x": -304.0,
-        "y": 128.0
+        "x": -256.0,
+        "y": 176.0
       },
       "type": "Splitter"
     },
@@ -481,8 +489,8 @@
         }
       },
       "position": {
-        "x": -128.0,
-        "y": 160.0
+        "x": 48.0,
+        "y": 176.0
       },
       "type": "Splitter"
     },
@@ -527,13 +535,27 @@
         }
       },
       "position": {
-        "x": 320.0,
+        "x": 336.0,
         "y": 192.0
       },
       "type": "ControlledVoltageSource"
     },
     {
-      "height": 96.0,
+      "id": "text_1",
+      "name": "text_1",
+      "position": {
+        "x": 480.0,
+        "y": 176.0
+      },
+      "render_hint": "text",
+      "string_params": {
+        "font_size": "large",
+        "text": "Does it need here? We have i_out"
+      },
+      "type": "Text"
+    },
+    {
+      "height": 64.0,
       "id": "v_in",
       "name": "v_in",
       "ports": {
@@ -547,8 +569,8 @@
         }
       },
       "position": {
-        "x": 560.0,
-        "y": 80.0
+        "x": -272.0,
+        "y": 400.0
       },
       "string_params": {
         "exposed_direction": "In",
@@ -571,8 +593,8 @@
         }
       },
       "position": {
-        "x": 480.0,
-        "y": -64.0
+        "x": 672.0,
+        "y": 224.0
       },
       "string_params": {
         "exposed_direction": "Out",
@@ -581,13 +603,23 @@
       "type": "BlueprintOutput"
     }
   ],
-  "pan_x": 25.1693115234375,
-  "pan_y": 56.92296600341797,
+  "pan_x": -373.51409912109375,
+  "pan_y": -7.783411979675293,
   "scheduler_source": false,
   "version": "3.0",
   "wires": [
     {
       "id": "w_vin_src",
+      "routing_points": [
+        [
+          304.0,
+          432.0
+        ],
+        [
+          304.0,
+          304.0
+        ]
+      ],
       "source": "/v_in:port",
       "target": "/src:v_neg"
     },
@@ -603,6 +635,24 @@
     },
     {
       "id": "w_i_rate_a",
+      "routing_points": [
+        [
+          640.0,
+          240.0
+        ],
+        [
+          640.0,
+          144.0
+        ],
+        [
+          -304.0,
+          144.0
+        ],
+        [
+          -304.0,
+          304.0
+        ]
+      ],
       "source": "/csense:i_out",
       "target": "/rate:A"
     },
@@ -623,11 +673,35 @@
     },
     {
       "id": "w_split1_clamp",
+      "routing_points": [
+        [
+          144.0,
+          304.0
+        ]
+      ],
       "source": "/split_accum_1:o1",
       "target": "/clamp_charge:in"
     },
     {
       "id": "w_split1_split2",
+      "routing_points": [
+        [
+          112.0,
+          320.0
+        ],
+        [
+          112.0,
+          384.0
+        ],
+        [
+          -288.0,
+          384.0
+        ],
+        [
+          -288.0,
+          208.0
+        ]
+      ],
       "source": "/split_accum_1:o2",
       "target": "/split_accum_2:i"
     },
@@ -643,6 +717,16 @@
     },
     {
       "id": "w_clamp_charge_out",
+      "routing_points": [
+        [
+          288.0,
+          304.0
+        ],
+        [
+          288.0,
+          352.0
+        ]
+      ],
       "source": "/clamp_charge:out",
       "target": "/charge_out:port"
     },
@@ -668,6 +752,16 @@
     },
     {
       "id": "w_split_soc_out",
+      "routing_points": [
+        [
+          160.0,
+          208.0
+        ],
+        [
+          160.0,
+          176.0
+        ]
+      ],
       "source": "/split_soc:o1",
       "target": "/soc_out:port"
     },
@@ -702,5 +796,5 @@
       "target": "/src:max_v"
     }
   ],
-  "zoom": 2.5094454288482666
+  "zoom": 1.0286219120025635
 }

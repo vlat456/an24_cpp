@@ -629,6 +629,53 @@ if (n.contains("string_params") && n["string_params"].is_object()) {
 
 ---
 
+### ~~30. Double-click Right-Click-Inserted Composite → Empty Window~~ ✓ FIXED
+
+**Status:** CLOSED
+
+Right-click-inserting a composite blueprint (e.g., 12SAM28 into `closed_circuit.blueprint`) created a sub-window that opened empty on double-click. The node was inserted and simulated correctly, but the sub-window had no content.
+
+**Root cause (two-part):**
+
+1. `addBlueprint()` created internal nodes only inside `nested.inline_def` (the nested blueprint's own node list) but did NOT add them to the root blueprint. The `rebuild()` function for sub-windows iterates `bp.nodes()` (root blueprint's node list) filtered by `group_id`. Since internal nodes were only in `nested.inline_def`, not in the root `nodes()` list, they were never rendered in the sub-window.
+
+2. Even after promoting nodes to the root, wires were still missing because they weren't added to the root blueprint, and node positions/wire routing points weren't preserved because `addBlueprint` was manually constructing the inline blueprint from `TypeDefinition` data (which lacks positions/routing_points).
+
+**Fix:** Refactored `addBlueprint()` to use `load_blueprint_from_file_validated()` — the same JSON parsing code used for loading saved documents. This gives us all metadata for free:
+- Node positions from `"position": {"x":..., "y":...}` in the `.blueprint` file
+- Wire routing points from `"routing_points"` in the `.blueprint` file  
+- Viewport settings (`pan_x`, `pan_y`, `zoom`, `grid_step`) for sub-window auto-fit
+
+After loading, all internal node IDs and wire endpoints are namespace-remapped to `unique_id + "_" + original_name` (e.g., `"12SAM28_1_battery"`) to avoid collisions when inserting the same blueprint multiple times. Remapped nodes and wires are added to the root blueprint via `cmd_add_node()` / `cmd_add_wire()`. The loaded blueprint (with remapped IDs) becomes `inline_def`.
+
+```cpp
+// Load full blueprint with positions, wires, viewport from .blueprint file
+auto loaded_opt = load_blueprint_from_file_validated(blueprint_file.c_str(), ...);
+bp2::Blueprint loaded = std::move(*loaded_opt);
+
+// Namespace-remap all internal node IDs
+for (bp2::Blueprint::Node n : loaded.nodes()) {
+    n.id = interner_.intern(unique_id + "_" + original_name);
+    n.group_id = unique_id;
+    remapped_bp = remapped_bp.with_node(std::move(n));
+    execute(model_, interner_, cmd_add_node(n));  // root blueprint
+}
+
+// Same for wires — remap source/target paths, preserve routing_points
+execute(model_, interner_, cmd_add_wire(w_remapped));  // root blueprint
+
+// Use loaded blueprint (with remapped IDs) as inline_def
+nested.inline_def = std::make_unique<bp2::Blueprint>(std::move(remapped_bp));
+// Viewport from loaded blueprint → sub-window respects saved pan/zoom
+remapped_bp.with_viewport(loaded.pan_x(), loaded.pan_y(), ...);
+```
+
+**Files changed:** `src/editor/document.cpp` — `addBlueprint()` function (complete rewrite), added `#include <filesystem>`
+
+**Tests:** All 1462 pass
+
+---
+
 ### ~~15. Full Test Suite Migration to Push Runtime~~ ✓ COMPLETED (with explicit deprecations)
 
 **Status:** Full OFF-mode suite builds and runs.
@@ -1087,3 +1134,4 @@ alignas(64) std::vector<float> through;
 | 27    | O(n×m) wire scan in commit_drag_node     | ~~Low~~    | Low    | **FIXED**           |
 | 28    | SAM28 LUT string_params not parsed        | ~~High~~   | Low    | **FIXED**           |
 | 29    | InOut direction on non-Bus CVS port        | ~~Medium~~ | Low    | **FIXED**           |
+| 30    | Double-click right-click-inserted composite shows empty window | ~~High~~ | Medium | **FIXED**   |

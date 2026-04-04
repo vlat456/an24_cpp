@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <filesystem>
 
 int Document::next_id_ = 1;
 
@@ -974,100 +975,123 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         collapsed.content_tripped = nc.tripped;
     }
 
+    std::string library_path = "library/";
+    {
+        std::filesystem::path lp(library_path);
+        if (!std::filesystem::exists(lp) && lp.is_relative()) {
+            std::vector<std::filesystem::path> try_paths = {
+                lp, "../" / lp, "../../" / lp, "../../../" / lp,
+            };
+            for (const auto& p : try_paths) {
+                if (std::filesystem::exists(p)) {
+                    library_path = p.string();
+                    break;
+                }
+            }
+        }
+    }
+
+    std::string category = registry.categories.count(blueprint_name)
+        ? registry.categories.at(blueprint_name) : "";
+    std::filesystem::path blueprint_file = std::filesystem::path(library_path);
+    if (!category.empty()) {
+        blueprint_file /= category;
+    }
+    blueprint_file /= (blueprint_name + ".blueprint");
+
+    auto loaded_opt = load_blueprint_from_file_validated(
+        blueprint_file.string().c_str(), interner_, arena_, registry);
+
     bp2::Blueprint inline_bp;
-    inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
-    inline_bp = inline_bp.with_display_name(def->classname);
-    inline_bp = inline_bp.with_interface(collapsed.iface);
+    if (loaded_opt) {
+        bp2::Blueprint loaded = std::move(*loaded_opt);
+        inline_bp = loaded.with_interface(collapsed.iface);
+        inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
+        inline_bp = inline_bp.with_display_name(def->classname);
 
-    for (const auto& dev : def->devices) {
-        bp2::Blueprint::Node n;
-        n.id = interner_.intern(dev.name);
-        n.type = interner_.intern(dev.classname);
-        n.name = dev.name;
+        bp2::Blueprint remapped_bp;
+        remapped_bp = remapped_bp.with_id(inline_bp.id());
+        remapped_bp = remapped_bp.with_display_name(inline_bp.display_name());
+        remapped_bp = remapped_bp.with_interface(collapsed.iface);
+        remapped_bp = remapped_bp.with_viewport(
+            inline_bp.pan_x(), inline_bp.pan_y(), inline_bp.zoom(), inline_bp.grid_step());
 
-        if (const auto* sub_def = registry.get(dev.classname)) {
-            n.render_hint = sub_def->render_hint;
-            n.expandable = !sub_def->cpp_class && !sub_def->devices.empty();
+        std::vector<bp2::Blueprint::Node> root_internal_nodes;
+        std::vector<bp2::Blueprint::Wire> root_internal_wires;
+
+        for (bp2::Blueprint::Node n : inline_bp.nodes()) {
+            std::string original_name(interner_.resolve(n.id));
+            std::string ns_id = unique_id + "_" + original_name;
+            n.id = interner_.intern(ns_id);
+            n.group_id = unique_id;
+
+            bp2::Blueprint::Node n_remapped = n;
+            remapped_bp = remapped_bp.with_node(std::move(n_remapped));
+            root_internal_nodes.push_back(std::move(n));
         }
 
-        std::vector<bp2::PortDescriptor> node_iface;
-        node_iface.reserve(dev.ports.size());
+        for (bp2::Blueprint::Wire w : inline_bp.wires()) {
+            ui::InternedId src_node_id = arena_.parent(w.source).segment();
+            ui::InternedId src_port_id = w.source.segment();
+            ui::InternedId tgt_node_id = arena_.parent(w.target).segment();
+            ui::InternedId tgt_port_id = w.target.segment();
 
-        for (const auto& [port_name, port_def] : dev.ports) {
-            const ui::InternedId pid = interner_.intern(port_name);
-            if (port_def.direction == PortDirection::In) {
-                n.inputs.emplace_back(pid, PortSide::Input, port_def.type);
-                node_iface.push_back({pid, port_def.domain, bp2::Direction::Input});
-            } else if (port_def.direction == PortDirection::Out) {
-                n.outputs.emplace_back(pid, PortSide::Output, port_def.type);
-                node_iface.push_back({pid, port_def.domain, bp2::Direction::Output});
-            } else {
-                n.inputs.emplace_back(pid, PortSide::InOut, port_def.type);
-                n.outputs.emplace_back(pid, PortSide::InOut, port_def.type);
-                node_iface.push_back({pid, port_def.domain, bp2::Direction::InOut});
+            std::string ns_src = unique_id + "_" + std::string(interner_.resolve(src_node_id));
+            std::string ns_tgt = unique_id + "_" + std::string(interner_.resolve(tgt_node_id));
+
+            bp2::Blueprint::Wire w_remapped;
+            w_remapped.id = interner_.intern("wire_" + unique_id + "_" + std::string(interner_.resolve(w.id)));
+            w_remapped.source = arena_.make_port(
+                arena_.make_node(arena_.root(), interner_.intern(ns_src)), src_port_id);
+            w_remapped.target = arena_.make_port(
+                arena_.make_node(arena_.root(), interner_.intern(ns_tgt)), tgt_port_id);
+            w_remapped.domain = w.domain;
+            w_remapped.routing_points = std::move(w.routing_points);
+
+            remapped_bp = remapped_bp.with_wire(std::move(w_remapped));
+            root_internal_wires.push_back(std::move(w_remapped));
+        }
+
+        inline_bp = std::move(remapped_bp);
+
+        const bp2::Blueprint before_add = model_.current();
+        bool checkpoint_pushed = false;
+        try {
+            model_.push_checkpoint();
+            checkpoint_pushed = true;
+            for (auto& n : root_internal_nodes) {
+                execute(model_, interner_, cmd_add_node(std::move(n)));
             }
-        }
-        n.iface = bp2::Interface(std::move(node_iface));
-
-        for (const auto& [k, v] : dev.params) {
-            float parsed = 0.0f;
-            if (locale_safe::parse_float(v, parsed)) {
-                n.params[interner_.intern(k)] = parsed;
-            } else {
-                n.string_params[k] = v;
+            for (auto& w : root_internal_wires) {
+                execute(model_, interner_, cmd_add_wire(std::move(w)));
             }
+
+            bp2::Blueprint::Nested nested;
+            nested.id = collapsed.id;
+            nested.blueprint_id = interner_.intern(blueprint_name);
+            nested.embedded = true;
+            nested.inline_def = std::make_unique<bp2::Blueprint>(std::move(inline_bp));
+            nested.iface = collapsed.iface;
+            nested.x = collapsed.x;
+            nested.y = collapsed.y;
+
+            execute(model_, interner_, cmd_add_nested(std::move(nested)));
+            execute(model_, interner_, cmd_add_node(std::move(collapsed)));
+
+            rebuildAllWindows();
+            spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) group={}",
+                         blueprint_name, unique_id, snapped_pos.x, snapped_pos.y,
+                         group_id.empty() ? "root" : group_id);
+        } catch (const std::exception& e) {
+            model_.replace_current(before_add);
+            if (checkpoint_pushed) {
+                model_.discard_last_checkpoint();
+            }
+            spdlog::error("[editor] addBlueprint('{}') failed safely: {}", blueprint_name, e.what());
         }
-
-        inline_bp = inline_bp.with_node(std::move(n));
-    }
-
-    size_t wire_idx = 0;
-    for (const auto& conn : def->connections) {
-        std::string src_node;
-        std::string src_port;
-        std::string tgt_node;
-        std::string tgt_port;
-        if (!split_endpoint(conn.from, src_node, src_port)
-            || !split_endpoint(conn.to, tgt_node, tgt_port)) {
-            continue;
-        }
-
-        bp2::Blueprint::Wire w;
-        w.id = interner_.intern("wire_" + std::to_string(wire_idx++));
-        w.source = arena_.make_port(arena_.make_node(arena_.root(), interner_.intern(src_node)),
-                                    interner_.intern(src_port));
-        w.target = arena_.make_port(arena_.make_node(arena_.root(), interner_.intern(tgt_node)),
-                                    interner_.intern(tgt_port));
-        inline_bp = inline_bp.with_wire(std::move(w));
-    }
-
-    bp2::Blueprint::Nested nested;
-    nested.id = collapsed.id;
-    nested.blueprint_id = interner_.intern(blueprint_name);
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>(std::move(inline_bp));
-    nested.iface = collapsed.iface;
-    nested.x = collapsed.x;
-    nested.y = collapsed.y;
-
-    const bp2::Blueprint before_add = model_.current();
-    bool checkpoint_pushed = false;
-    try {
-        model_.push_checkpoint();
-        checkpoint_pushed = true;
-        execute(model_, interner_, cmd_add_nested(std::move(nested)));
-        execute(model_, interner_, cmd_add_node(std::move(collapsed)));
-
-        rebuildAllWindows();
-        spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) group={}",
-                     blueprint_name, unique_id, snapped_pos.x, snapped_pos.y,
-                     group_id.empty() ? "root" : group_id);
-    } catch (const std::exception& e) {
-        model_.replace_current(before_add);
-        if (checkpoint_pushed) {
-            model_.discard_last_checkpoint();
-        }
-        spdlog::error("[editor] addBlueprint('{}') failed safely: {}", blueprint_name, e.what());
+    } else {
+        spdlog::error("[editor] addBlueprint('{}'): could not load '{}'",
+                      blueprint_name, blueprint_file.string());
     }
 }
 
