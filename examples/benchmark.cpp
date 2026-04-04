@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     const uint32_t warmup_steps = 100;
     const uint32_t bench_steps = 10000;
     const float omega = SOR::OMEGA;
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
 
     std::cout << "=== Warmup (" << warmup_steps << " steps) ===\n";
     for (uint32_t step = 0; step < warmup_steps; ++step) {

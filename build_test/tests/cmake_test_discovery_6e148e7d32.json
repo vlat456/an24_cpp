@@ -1,0 +1,120 @@
+{
+  "tests": 18,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "BlueprintLoading",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "UnknownClassnameThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 17
+        },
+        {
+          "name": "MissingBlueprintReturnsError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 28
+        },
+        {
+          "name": "DirectBlueprintLoadWorks",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 39
+        },
+        {
+          "name": "Integration_NestedBlueprintRunsSimulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 106
+        },
+        {
+          "name": "ExpandBlueprintFromTypeRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 276
+        }
+      ]
+    },
+    {
+      "name": "ExtractExposedPorts",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "SimpleBatteryBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 161
+        },
+        {
+          "name": "MultipleBlueprints",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 203
+        },
+        {
+          "name": "EmptyBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 233
+        },
+        {
+          "name": "DefaultValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 248
+        }
+      ]
+    },
+    {
+      "name": "BlueprintCycleDetection",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "DirectSelfReference_Throws",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 323
+        },
+        {
+          "name": "IndirectCycle_Throws",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 357
+        },
+        {
+          "name": "ValidNesting_NoCycle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 396
+        }
+      ]
+    },
+    {
+      "name": "BlueprintExtension",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "RegistryLoadsOnlyBlueprintFiles",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 425
+        },
+        {
+          "name": "RegistryIgnoresJsonFiles",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 436
+        },
+        {
+          "name": "NoJsonFilesInLibrary",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 492
+        },
+        {
+          "name": "AllLibraryFilesAreBlueprintExtension",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 520
+        },
+        {
+          "name": "MainSaveFileIsBlueprintExtension",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 554
+        },
+        {
+          "name": "CodegenUsesBluprintExtension",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 579
+        }
+      ]
+    }
+  ]
+}

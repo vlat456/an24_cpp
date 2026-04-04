@@ -1,35 +1,41 @@
 {
-  "exposes": {
-    "i1": {
-      "alias": "o",
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "Merger",
+  "display_name": "Merger",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "i1",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "i2": {
-      "alias": "o",
-      "direction": "In",
-      "type": "Any"
+    {
+      "name": "i2",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "o": {
-      "direction": "Out",
-      "type": "Any"
+    {
+      "name": "o",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "2-to-1 signal merger. Two real input ports merged into 1 output via alias. All ports are type 'Any' for universal compatibility across all domains. Inverse of Splitter.",
-    "domains": [
-      "Electrical",
-      "Mechanical",
-      "Hydraulic",
-      "Thermal"
-    ],
-    "name": "Merger",
-    "priority": "high",
-    "size": [
-      3.0,
-      3.0
-    ]
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "2-to-1 signal merger. Two real input ports merged into 1 output via alias. All ports are type 'Any' for universal compatibility across all domains. Inverse of Splitter.",
+  "domains": [
+    "Electrical",
+    "Mechanical",
+    "Hydraulic",
+    "Thermal"
+  ],
+  "priority": "high"
 }

@@ -1,179 +1,148 @@
-#include "jit_solver/components/provider_components.h"
+#include "jit_solver/components/provider.h"
 #include "jit_solver/components/port_registry.h"
 #include "jit_solver/state.h"
 #include <iostream>
 #include <cassert>
 
 
-void test_aot_provider() {
-    std::cout << "=== Testing AotProvider (constexpr) ===\n";
+void test_aot_provider_constexpr_lookup() {
+    std::cout << "=== Testing AotProvider constexpr port lookup ===\n";
 
-    // AOT component with constexpr port indices
-    using MyBattery = Battery_Provider<
-        AotProvider<
-            Binding<PortNames::v_in, 0>,
-            Binding<PortNames::v_out, 1>
-        >
+    using MyProvider = AotProvider<
+        Binding<PortNames::v_in, 0>,
+        Binding<PortNames::v_out, 1>
     >;
 
-    MyBattery bat;
-    bat.v_nominal = 24.0f;
-    bat.internal_r = 0.1f;
-    bat.pre_load();
-
-    SimulationState st;
-    st.across.resize(2);
-    st.through.resize(2);
-
-    st.across[0] = 0.0f;  // v_in (gnd)
-    st.across[1] = 20.0f; // v_out (bus)
-
-    bat.solve_electrical(st, 0.001f);
-
-    std::cout << "Battery AOT test:\n";
-    std::cout << "  v_gnd = " << st.across[0] << "V\n";
-    std::cout << "  v_bus = " << st.across[1] << "V\n";
-    std::cout << "  i = " << st.through[1] << "A\n";
-    std::cout << "  Expected: I ≈ (24 + 0 - 20) / 0.1 = 40A\n";
-
-    assert(st.through[1] > 39.0f && st.through[1] < 41.0f);
-    std::cout << "✅ AotProvider test passed!\n\n";
+    // Compile-time constexpr lookup
+    constexpr uint32_t idx_v_in = MyProvider::get(PortNames::v_in);
+    constexpr uint32_t idx_v_out = MyProvider::get(PortNames::v_out);
+    constexpr uint32_t idx_unmapped = MyProvider::get(PortNames::Vin);  // Not bound -> returns UINT32_MAX
+    
+    static_assert(idx_v_in == 0);
+    static_assert(idx_v_out == 1);
+    static_assert(idx_unmapped == UINT32_MAX);
+    
+    std::cout << "  AotProvider::get(v_in) = " << idx_v_in << " (expected 0)\n";
+    std::cout << "  AotProvider::get(v_out) = " << idx_v_out << " (expected 1)\n";
+    std::cout << "  AotProvider::get(Vin) = " << idx_unmapped << " (expected UINT32_MAX/unmapped)\n";
+    std::cout << "✅ AotProvider constexpr lookup test passed!\n\n";
 }
 
-void test_jit_provider() {
-    std::cout << "=== Testing JitProvider (runtime) ===\n";
+void test_jit_provider_runtime_setup() {
+    std::cout << "=== Testing JitProvider runtime port mapping ===\n";
 
-    // JIT component with runtime port indices
-    using MyBattery = Battery_Provider<JitProvider>;
-
-    MyBattery bat;
-    bat.v_nominal = 24.0f;
-    bat.internal_r = 0.1f;
-    bat.pre_load();
-
+    JitProvider provider;
+    
     // Simulate JSON parsing - set port indices at runtime
-    bat.provider.set(PortNames::v_in, 0);
-    bat.provider.set(PortNames::v_out, 1);
-
-    SimulationState st;
-    st.across.resize(2);
-    st.through.resize(2);
-
-    st.across[0] = 0.0f;  // v_in (gnd)
-    st.across[1] = 20.0f; // v_out (bus)
-
-    bat.solve_electrical(st, 0.001f);
-
-    std::cout << "Battery JIT test:\n";
-    std::cout << "  v_gnd = " << st.across[0] << "V\n";
-    std::cout << "  v_bus = " << st.across[1] << "V\n";
-    std::cout << "  i = " << st.through[1] << "A\n";
-    std::cout << "  Expected: I ≈ (24 + 0 - 20) / 0.1 = 40A\n";
-
-    assert(st.through[1] > 39.0f && st.through[1] < 41.0f);
-    std::cout << "✅ JitProvider test passed!\n\n";
+    provider.set(PortNames::v_in, 0);
+    provider.set(PortNames::v_out, 1);
+    
+    // Verify port lookups work using get()
+    uint32_t idx_v_in = provider.get(PortNames::v_in);
+    uint32_t idx_v_out = provider.get(PortNames::v_out);
+    
+    std::cout << "  JitProvider::get(v_in) = " << idx_v_in << " (expected 0)\n";
+    std::cout << "  JitProvider::get(v_out) = " << idx_v_out << " (expected 1)\n";
+    
+    assert(idx_v_in == 0);
+    assert(idx_v_out == 1);
+    
+    // Test has() method - use to verify unmapped port returns false
+    assert(provider.has(PortNames::v_in) == true);
+    assert(provider.has(PortNames::v_out) == true);
+    assert(provider.has(PortNames::Vin) == false);  // Vin not mapped
+    
+    std::cout << "  provider.has(v_in) = true\n";
+    std::cout << "  provider.has(v_out) = true\n";
+    std::cout << "  provider.has(Vin) = false (not mapped)\n";
+    std::cout << "✅ JitProvider runtime setup test passed!\n\n";
 }
 
-void test_resistor_aot() {
-    std::cout << "=== Testing Resistor AotProvider ===\n";
-
-    using MyResistor = Resistor_Provider<
-        AotProvider<
-            Binding<PortNames::v_in, 0>,
-            Binding<PortNames::v_out, 1>
-        >
-    >;
-
-    MyResistor r;
-    r.conductance = 0.5f; // 2 Ohm
+void test_signal_allocation() {
+    std::cout << "=== Testing signal allocation API ===\n";
 
     SimulationState st;
-    st.across.resize(2);
-    st.through.resize(2);
-
-    st.across[0] = 10.0f; // v_in
-    st.across[1] = 5.0f;  // v_out
-
-    r.solve_electrical(st, 0.001f);
-
-    std::cout << "Resistor AOT test:\n";
-    std::cout << "  v_in = " << st.across[0] << "V\n";
-    std::cout << "  v_out = " << st.across[1] << "V\n";
-    std::cout << "  i = " << st.through[1] << "A\n";
-    std::cout << "  Expected: I = (10 - 5) * 0.5 = 2.5A\n";
-
-    assert(st.through[1] > 2.4f && st.through[1] < 2.6f);
-    std::cout << "✅ Resistor AotProvider test passed!\n\n";
+    
+    // Allocation behavior:
+    // - All signals append at end (index = values.size() at allocation time)
+    // - dynamic_signals_count tracks how many non-fixed allocations were made
+    // - Returned indices are stable and never shift after allocation
+    uint32_t sig1 = st.allocate_signal(0.0f, {Domain::Electrical, true});
+    uint32_t sig2 = st.allocate_signal(24.0f, {Domain::Electrical, false});
+    uint32_t sig3 = st.allocate_signal(0.0f, {Domain::Logical, false});
+    
+    std::cout << "  Allocated signal (electrical fixed): index=" << sig1 << "\n";
+    std::cout << "  Allocated signal (electrical dynamic): index=" << sig2 << "\n";
+    std::cout << "  Allocated signal (logical dynamic): index=" << sig3 << "\n";
+    
+    // Verify values array has grown to 3 (1 fixed + 2 dynamic)
+    assert(st.values.size() == 3);
+    assert(st.signal_types.size() == 3);
+    
+    // Allocation trace:
+    // - sig1 (fixed): idx=0, values=[0.0f]
+    // - sig2 (dynamic): idx=1, values=[0.0f,24.0f]
+    // - sig3 (dynamic): idx=2, values=[0.0f,24.0f,0.0f]
+    
+    // Verify values are stored at the returned indices
+    assert(st.values[sig1] == 0.0f);
+    assert(st.values[sig2] == 24.0f);
+    assert(st.values[sig3] == 0.0f);
+    
+    // Verify signal types at the returned indices
+    assert(st.signal_types[sig2].domain == Domain::Electrical);
+    assert(st.signal_types[sig2].is_fixed == false);
+    assert(st.signal_types[sig3].domain == Domain::Logical);
+    assert(st.signal_types[sig3].is_fixed == false);
+    
+    // Verify dynamic_signals_count reflects number of dynamic allocations
+    assert(st.dynamic_signals_count == 2);
+    
+    std::cout << "  values array size: " << st.values.size() << "\n";
+    std::cout << "  signal_types array size: " << st.signal_types.size() << "\n";
+    std::cout << "  dynamic_signals_count: " << st.dynamic_signals_count << "\n";
+    std::cout << "✅ Signal allocation test passed!\n\n";
 }
 
-void test_comparator_aot() {
-    std::cout << "=== Testing Comparator AotProvider ===\n";
-
-    using MyComparator = Comparator_Provider<
-        AotProvider<
-            Binding<PortNames::Va, 0>,
-            Binding<PortNames::Vb, 1>,
-            Binding<PortNames::o, 2>
-        >
-    >;
-
-    MyComparator comp;
-    comp.Von = 0.1f;
-    comp.Voff = -0.1f;
+void test_provider_value_access() {
+    std::cout << "=== Testing provider-based value access pattern ===\n";
 
     SimulationState st;
-    st.across.resize(3);
-
-    // Test case 1: Va > Vb
-    st.across[0] = 5.0f; // Va
-    st.across[1] = 0.0f; // Vb
-    st.across[2] = 0.0f; // output
-
-    comp.solve_logical(st, 0.001f);
-
-    std::cout << "Comparator AOT test:\n";
-    std::cout << "  Test 1: Va=5V, Vb=0V\n";
-    std::cout << "  Output = " << st.across[2] << "V (expected 1.0V)\n";
-    assert(st.across[2] == 1.0f);
-
-    // Test case 2: Va < Vb — output must turn OFF (diff = -5.0 < Voff = -0.1)
-    st.across[0] = 0.0f; // Va
-    st.across[1] = 5.0f; // Vb
-    comp.solve_logical(st, 0.001f);
-
-    std::cout << "  Test 2: Va=0V, Vb=5V (after turn-on)\n";
-    std::cout << "  Output = " << st.across[2] << "V (expected 0.0V — diff below Voff)\n";
-    assert(st.across[2] == 0.0f);
-
-    // Test case 3: Hysteresis band — Va=4.95, Vb=0 (diff=4.95, in band [Voff=-0.1, Von=0.1])
-    // First re-arm: set output ON
-    st.across[0] = 5.0f; st.across[1] = 0.0f;
-    comp.solve_logical(st, 0.001f);
-    assert(st.across[2] == 1.0f);  // ON
-
-    // Now drop into hysteresis keep band: diff=0.05, which is > Voff(-0.1) but < Von(0.1)
-    st.across[0] = 0.05f; st.across[1] = 0.0f;
-    comp.solve_logical(st, 0.001f);
-
-    std::cout << "  Test 3: Va=0.05V, Vb=0V (hysteresis keep band)\n";
-    std::cout << "  Output = " << st.across[2] << "V (expected 1.0V — in keep band)\n";
-    assert(st.across[2] == 1.0f);
-
-    std::cout << "✅ Comparator AotProvider test passed!\n\n";
+    
+    // Allocate signals
+    uint32_t sig_v_bus = st.allocate_signal(24.0f, {Domain::Electrical, false});
+    uint32_t sig_v_gnd = st.allocate_signal(0.0f, {Domain::Electrical, false});
+    uint32_t sig_rpm = st.allocate_signal(0.0f, {Domain::Electrical, false});
+    
+    // Simulate a provider mapping
+    JitProvider bat_provider;
+    bat_provider.set(PortNames::v_in, sig_v_bus);
+    bat_provider.set(PortNames::v_out, sig_rpm);
+    
+    // Use provider index to access st.values
+    float v_bus = st.values[bat_provider.get(PortNames::v_in)];
+    float rpm = st.values[bat_provider.get(PortNames::v_out)];
+    
+    std::cout << "  v_bus via provider[" << bat_provider.get(PortNames::v_in) << "] = " << v_bus << "V\n";
+    std::cout << "  rpm via provider[" << bat_provider.get(PortNames::v_out) << "] = " << rpm << "\n";
+    
+    assert(v_bus == 24.0f);
+    assert(rpm == 0.0f);
+    std::cout << "✅ Provider-based value access test passed!\n\n";
 }
 
 int main() {
     std::cout << "╔════════════════════════════════════════════════════════╗\n";
-    std::cout << "║  Provider Pattern Test - Zero Overhead Abstraction     ║\n";
+    std::cout << "║  Provider Pattern Smoke Test - Compile/Link Check      ║\n";
     std::cout << "╚════════════════════════════════════════════════════════╝\n\n";
 
-    test_aot_provider();
-    test_jit_provider();
-    test_resistor_aot();
-    test_comparator_aot();
+    test_aot_provider_constexpr_lookup();
+    test_jit_provider_runtime_setup();
+    test_signal_allocation();
+    test_provider_value_access();
 
     std::cout << "╔════════════════════════════════════════════════════════╗\n";
-    std::cout << "║  🎉 All tests passed! Provider pattern works!         ║\n";
+    std::cout << "║  🎉 All smoke tests passed! Provider pattern works!    ║\n";
     std::cout << "╚════════════════════════════════════════════════════════╝\n";
 
     return 0;

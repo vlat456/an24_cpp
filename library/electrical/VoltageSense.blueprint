@@ -1,0 +1,52 @@
+{
+  "version": "3.0",
+  "id": "VoltageSense",
+  "display_name": "VoltageSense",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "v_ref",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "out",
+      "domain": 2,
+      "direction": 1,
+      "type": "Signal",
+      "source_writer": false
+    },
+    {
+      "name": "gain",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "offset",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Electrical-to-control domain bridge. Samples (v_in - v_ref) after the electrical solve and outputs it as a control/scalar signal. Does not stamp conductance - purely observes the electrical network.",
+  "domains": [
+    "Electrical",
+    "Logical"
+  ]
+}

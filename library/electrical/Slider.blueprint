@@ -1,0 +1,35 @@
+{
+  "version": "3.0",
+  "id": "Slider",
+  "display_name": "Slider",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "control",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Interactive slider control with configurable min/max range. Drag the handle to set the output value.",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "min": "0.0",
+    "max": "1.0"
+  },
+  "content_type": "Slider"
+}

@@ -1,0 +1,27 @@
+{
+  "version": "3.0",
+  "id": "Value",
+  "display_name": "Value",
+  "scheduler_source": true,
+  "interface": [
+    {
+      "name": "o",
+      "domain": 2,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Generic constant value source for math/logical/control graphs. Use RefNode for electrical reference nodes (ground), use Value for scalar constants (gains, offsets, setpoints).",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "value": "0.0"
+  },
+  "render_hint": "ref"
+}

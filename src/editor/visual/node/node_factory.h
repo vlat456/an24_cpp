@@ -4,31 +4,31 @@
 #include "visual/node/text_node_widget.h"
 #include "visual/node/group_node_widget.h"
 #include "visual/node/bus_node_widget.h"
-#include "data/node.h"
-#include "data/wire.h"
+#include "blueprint_v2/blueprint/blueprint.h"
+#include "data/port.h"
 #include "ui/core/interned_id.h"
 #include <memory>
 #include <vector>
 
 namespace visual {
 
-/// Factory for creating the correct Widget subclass based on Node::render_hint.
+/// Factory for creating the correct Widget subclass based on node render hint.
 struct NodeFactory {
     /// Create a widget for the given node data.
     /// @param node      The node data (render_hint selects the widget type)
     /// @param interner  String interner for resolving InternedId to strings
     /// @param wires     All wires in the blueprint (used by BusNodeWidget)
     /// @return Owning pointer to the created widget
-    static std::unique_ptr<Widget> create(const ::Node& node,
-                                           const ui::StringInterner& interner,
-                                           const std::vector<::Wire>& wires = {}) {
+    static std::unique_ptr<Widget> create(const bp2::Blueprint::Node& node,
+                                            const ui::StringInterner& interner,
+                                            const std::vector<BusWireRef>& wires = {}) {
         if (node.render_hint == "bus") {
             PortEdge edge = PortEdge::Bottom;
-            auto it = node.params.find("port_edge");
-            if (it != node.params.end()) {
-                if (it->second == "top") edge = PortEdge::Top;
-                else if (it->second == "left") edge = PortEdge::Left;
-                else if (it->second == "right") edge = PortEdge::Right;
+            auto it = node.string_params.find("port_edge");
+            if (it != node.string_params.end()) {
+                if (it->second == "top")         edge = PortEdge::Top;
+                else if (it->second == "left")   edge = PortEdge::Left;
+                else if (it->second == "right")  edge = PortEdge::Right;
             }
             return std::make_unique<BusNodeWidget>(node, interner, edge, wires);
         }

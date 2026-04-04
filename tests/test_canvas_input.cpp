@@ -1,0 +1,848 @@
+#include <gtest/gtest.h>
+
+#include "editor/input/canvas_input.h"
+#include "editor/viewport/viewport.h"
+#include "editor/visual/scene.h"
+#include "editor/visual/scene_mutations.h"
+#include "editor/visual/scene_hittest.h"
+#include "editor/visual/snap.h"
+#include "editor/visual/node/bus_node_widget.h"
+#include "editor/visual/node/ref_node_widget.h"
+#include "editor/visual/node/visual_node.h"
+#include "editor/visual/port/visual_port.h"
+#include "editor/visual/wire/wire.h"
+#include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/path/path.h"
+
+namespace {
+
+static bp2::Blueprint::Node make_node(ui::StringInterner& I,
+                                      const char* id,
+                                      const char* type,
+                                      float x,
+                                      float y,
+                                      const char* render_hint = "") {
+    bp2::Blueprint::Node n;
+    n.id = I.intern(id);
+    n.type = I.intern(type);
+    n.x = x;
+    n.y = y;
+    n.render_hint = render_hint;
+    return n;
+}
+
+static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
+                                      bp2::PathArena& arena,
+                                      const char* wire_id,
+                                      const char* src_node,
+                                      const char* src_port,
+                                      const char* dst_node,
+                                      const char* dst_port) {
+    bp2::Blueprint::Wire w;
+    w.id = I.intern(wire_id);
+    w.source = arena.make_port(arena.make_node(arena.root(), I.intern(src_node)), I.intern(src_port));
+    w.target = arena.make_port(arena.make_node(arena.root(), I.intern(dst_node)), I.intern(dst_port));
+    return w;
+}
+
+static ui::Pt port_center(visual::Port* p) {
+    return p->worldPos() + ui::Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+}
+
+static std::pair<ui::InternedId, ui::InternedId> endpoint_node_port(const bp2::Path& path,
+                                                                     const bp2::PathArena& arena) {
+    if (path.kind() != bp2::PathKind::Port) return {};
+    ui::InternedId port = path.segment();
+    bp2::Path parent = arena.parent(path);
+    if (parent.kind() != bp2::PathKind::Node) return {};
+    return {parent.segment(), port};
+}
+
+} // namespace
+
+TEST(CanvasInputBus, AliasReconnectUsesSelectedWireNotFirst) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bus = make_node(I, "bus", "Bus", 200.0f, 120.0f, "bus");
+    auto bat1 = make_node(I, "bat1", "Battery", 40.0f, 40.0f);
+    bat1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto bat2 = make_node(I, "bat2", "Battery", 40.0f, 180.0f);
+    bat2.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto l1 = make_node(I, "l1", "Lamp", 420.0f, 80.0f);
+    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    auto l2 = make_node(I, "l2", "Lamp", 420.0f, 180.0f);
+    l2.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bus));
+    bp = bp.with_node(std::move(bat1));
+    bp = bp.with_node(std::move(bat2));
+    bp = bp.with_node(std::move(l1));
+    bp = bp.with_node(std::move(l2));
+    bp = bp.with_wire(make_wire(I, arena, "wire_0", "bat1", "v_out", "bus", "v"));
+    bp = bp.with_wire(make_wire(I, arena, "wire_1", "bus", "v", "l1", "v_in"));
+    bp = bp.with_wire(make_wire(I, arena, "wire_2", "bus", "v", "l2", "v_in"));
+
+    bp2::EditorModel model(bp);
+    model.next_wire_id_ = 1;
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* bus_widget = dynamic_cast<visual::BusNodeWidget*>(scene.find("bus"));
+    ASSERT_NE(bus_widget, nullptr);
+    auto* w2_alias = bus_widget->port("wire_2");
+    ASSERT_NE(w2_alias, nullptr);
+
+    auto* bat2_widget = dynamic_cast<visual::Widget*>(scene.find("bat2"));
+    ASSERT_NE(bat2_widget, nullptr);
+    auto* bat2_out = bat2_widget->portByName("v_out");
+    ASSERT_NE(bat2_out, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+
+    const ui::Pt canvas_min(0.0f, 0.0f);
+    input.on_mouse_down(port_center(w2_alias), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(bat2_out), canvas_min);
+
+    const auto* w1 = model.current().find_wire(I.intern("wire_1"));
+    const auto* w2 = model.current().find_wire(I.intern("wire_2"));
+    ASSERT_NE(w1, nullptr);
+    ASSERT_NE(w2, nullptr);
+
+    auto [w1_src_n, w1_src_p] = endpoint_node_port(w1->source, arena);
+    auto [w2_src_n, w2_src_p] = endpoint_node_port(w2->source, arena);
+    auto [w2_tgt_n, w2_tgt_p] = endpoint_node_port(w2->target, arena);
+
+    EXPECT_EQ(w1_src_n, I.intern("bus"));
+    EXPECT_EQ(w1_src_p, I.intern("v"));
+
+    EXPECT_EQ(w2_src_n, I.intern("bat2"));
+    EXPECT_EQ(w2_src_p, I.intern("v_out"));
+    EXPECT_EQ(w2_tgt_n, I.intern("l2"));
+    EXPECT_EQ(w2_tgt_p, I.intern("v_in"));
+}
+
+TEST(CanvasInputBus, AliasToAliasReconnectSwapsWireOrder) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bus = make_node(I, "bus", "Bus", 200.0f, 120.0f, "bus");
+    auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto l1 = make_node(I, "l1", "Lamp", 420.0f, 80.0f);
+    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    auto l2 = make_node(I, "l2", "Lamp", 420.0f, 180.0f);
+    l2.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bus));
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(l1));
+    bp = bp.with_node(std::move(l2));
+    bp = bp.with_wire(make_wire(I, arena, "wire_0", "src", "v_out", "bus", "v"));
+    bp = bp.with_wire(make_wire(I, arena, "wire_1", "bus", "v", "l1", "v_in"));
+    bp = bp.with_wire(make_wire(I, arena, "wire_2", "bus", "v", "l2", "v_in"));
+
+    bp2::EditorModel model(bp);
+    model.next_wire_id_ = 1;
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* bus_widget = dynamic_cast<visual::BusNodeWidget*>(scene.find("bus"));
+    ASSERT_NE(bus_widget, nullptr);
+    auto* w2_alias = bus_widget->port("wire_2");
+    auto* w1_alias = bus_widget->port("wire_1");
+    ASSERT_NE(w2_alias, nullptr);
+    ASSERT_NE(w1_alias, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+
+    const ui::Pt canvas_min(0.0f, 0.0f);
+    input.on_mouse_down(port_center(w2_alias), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(w1_alias), canvas_min);
+
+    const auto& ws = model.current().wires();
+    ASSERT_EQ(ws.size(), 3u);
+
+    EXPECT_EQ(ws[1].id, I.intern("wire_2"));
+    EXPECT_EQ(ws[2].id, I.intern("wire_1"));
+}
+
+TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bus = make_node(I, "bus", "Bus", 200.0f, 120.0f, "bus");
+    auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto l1 = make_node(I, "l1", "Lamp", 420.0f, 120.0f);
+    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bus));
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(l1));
+    bp = bp.with_wire(make_wire(I, arena, "wire_0", "src", "v_out", "bus", "v"));
+
+    bp2::EditorModel model(bp);
+    model.next_wire_id_ = 1;
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* bus_widget = dynamic_cast<visual::BusNodeWidget*>(scene.find("bus"));
+    ASSERT_NE(bus_widget, nullptr);
+    auto* base_v = bus_widget->port("v");
+    ASSERT_NE(base_v, nullptr);
+
+    auto* src_widget = dynamic_cast<visual::Widget*>(scene.find("src"));
+    ASSERT_NE(src_widget, nullptr);
+    auto* src_out = src_widget->portByName("v_out");
+    ASSERT_NE(src_out, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+
+    const ui::Pt canvas_min(0.0f, 0.0f);
+    const size_t before = model.current().wires().size();
+
+    input.on_mouse_down(port_center(base_v), MouseButton::Left, canvas_min);
+    EXPECT_EQ(input.state(), InputState::CreatingWire);
+
+    input.on_mouse_up(MouseButton::Left, port_center(src_out), canvas_min);
+
+    const size_t after = model.current().wires().size();
+    EXPECT_EQ(after, before + 1);
+
+    bool found_connection_v_to_vout = false;
+    for (const auto& w : model.current().wires()) {
+        auto [src_n, src_p] = endpoint_node_port(w.source, arena);
+        auto [tgt_n, tgt_p] = endpoint_node_port(w.target, arena);
+        const bool forward = (src_n == I.intern("bus") && src_p == I.intern("v")
+                           && tgt_n == I.intern("src") && tgt_p == I.intern("v_out"));
+        const bool reverse = (src_n == I.intern("src") && src_p == I.intern("v_out")
+                           && tgt_n == I.intern("bus") && tgt_p == I.intern("v"));
+        if (forward || reverse) {
+            found_connection_v_to_vout = true;
+            break;
+        }
+    }
+
+    EXPECT_TRUE(found_connection_v_to_vout);
+}
+
+TEST(CanvasInputValidation, RejectsIncompatiblePortTypesOnWireCreate) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::I));
+    src.iface = bp2::Interface({
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    auto sink = make_node(I, "sink", "TypeSink", 260.0f, 120.0f);
+    sink.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::V));
+    sink.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(sink));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
+    auto* sink_w = dynamic_cast<visual::Widget*>(scene.find("sink"));
+    ASSERT_NE(src_w, nullptr);
+    ASSERT_NE(sink_w, nullptr);
+    auto* src_out = src_w->portByName("out");
+    auto* sink_in = sink_w->portByName("in");
+    ASSERT_NE(src_out, nullptr);
+    ASSERT_NE(sink_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+    input.on_mouse_down(port_center(src_out), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(sink_in), canvas_min);
+
+    EXPECT_EQ(model.current().wires().size(), 0u);
+}
+
+TEST(CanvasInputValidation, RejectsCrossDomainWireCreate) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::RPM));
+    src.iface = bp2::Interface({
+        {I.intern("out"), Domain::Mechanical, bp2::Direction::Output},
+    });
+
+    auto sink = make_node(I, "sink", "TypeSink", 260.0f, 120.0f);
+    sink.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::V));
+    sink.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(sink));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
+    auto* sink_w = dynamic_cast<visual::Widget*>(scene.find("sink"));
+    ASSERT_NE(src_w, nullptr);
+    ASSERT_NE(sink_w, nullptr);
+    auto* src_out = src_w->portByName("out");
+    auto* sink_in = sink_w->portByName("in");
+    ASSERT_NE(src_out, nullptr);
+    ASSERT_NE(sink_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+    input.on_mouse_down(port_center(src_out), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(sink_in), canvas_min);
+
+    EXPECT_EQ(model.current().wires().size(), 0u);
+}
+
+TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto s1 = make_node(I, "s1", "Battery", 40.0f, 60.0f);
+    s1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto s2 = make_node(I, "s2", "Battery", 40.0f, 220.0f);
+    s2.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto l1 = make_node(I, "l1", "Lamp", 420.0f, 60.0f);
+    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    auto l2 = make_node(I, "l2", "Lamp", 420.0f, 220.0f);
+    l2.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(s1));
+    bp = bp.with_node(std::move(s2));
+    bp = bp.with_node(std::move(l1));
+    bp = bp.with_node(std::move(l2));
+    bp = bp.with_wire(make_wire(I, arena, "wire_0", "s1", "v_out", "l1", "v_in"));
+    bp = bp.with_wire(make_wire(I, arena, "wire_1", "s2", "v_out", "l2", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* l2_widget = dynamic_cast<visual::Widget*>(scene.find("l2"));
+    ASSERT_NE(l2_widget, nullptr);
+    auto* l2_in = l2_widget->portByName("v_in");
+    ASSERT_NE(l2_in, nullptr);
+
+    auto* l1_widget = dynamic_cast<visual::Widget*>(scene.find("l1"));
+    ASSERT_NE(l1_widget, nullptr);
+    auto* l1_in = l1_widget->portByName("v_in");
+    ASSERT_NE(l1_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    // Reconnect wire_1 target from l2:v_in to l1:v_in
+    input.on_mouse_down(port_center(l2_in), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(l1_in), canvas_min);
+
+    const auto* w0 = model.current().find_wire(I.intern("wire_0"));
+    const auto* w1 = model.current().find_wire(I.intern("wire_1"));
+    ASSERT_NE(w0, nullptr);
+    ASSERT_NE(w1, nullptr);
+
+    auto [w1_src_n, w1_src_p] = endpoint_node_port(w1->source, arena);
+    auto [w1_tgt_n, w1_tgt_p] = endpoint_node_port(w1->target, arena);
+    auto [w0_tgt_n, w0_tgt_p] = endpoint_node_port(w0->target, arena);
+
+    EXPECT_EQ(w1_src_n, I.intern("s2"));
+    EXPECT_EQ(w1_src_p, I.intern("v_out"));
+    EXPECT_EQ(w1_tgt_n, I.intern("l1"));
+    EXPECT_EQ(w1_tgt_p, I.intern("v_in"));
+
+    // wire_0 remains unchanged
+    EXPECT_EQ(w0_tgt_n, I.intern("l1"));
+    EXPECT_EQ(w0_tgt_p, I.intern("v_in"));
+}
+
+TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto s1 = make_node(I, "s1", "Battery", 40.0f, 60.0f);
+    s1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto l1 = make_node(I, "l1", "Lamp", 420.0f, 60.0f);
+    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(s1));
+    bp = bp.with_node(std::move(l1));
+    bp = bp.with_wire(make_wire(I, arena, "wire_0", "s1", "v_out", "l1", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* l1_widget = dynamic_cast<visual::Widget*>(scene.find("l1"));
+    ASSERT_NE(l1_widget, nullptr);
+    auto* l1_in = l1_widget->portByName("v_in");
+    ASSERT_NE(l1_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    ASSERT_EQ(model.current().wires().size(), 1u);
+    input.on_mouse_down(port_center(l1_in), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, ui::Pt(900.0f, 900.0f), canvas_min);
+
+    EXPECT_TRUE(model.current().wires().empty());
+}
+
+TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibility) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::V));
+    src.iface = bp2::Interface({
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    auto sink_ok = make_node(I, "sink_ok", "TypeSink", 420.0f, 120.0f);
+    sink_ok.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::V));
+    sink_ok.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    auto sink_bad = make_node(I, "sink_bad", "TypeSink", 420.0f, 220.0f);
+    sink_bad.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::I));
+    sink_bad.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(sink_ok));
+    bp = bp.with_node(std::move(sink_bad));
+    auto w = make_wire(I, arena, "wire_0", "src", "out", "sink_ok", "in");
+    w.domain = Domain::Electrical;
+    w.routing_points.push_back({200.0f, 120.0f});
+    bp = bp.with_wire(std::move(w));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* sink_ok_w = dynamic_cast<visual::Widget*>(scene.find("sink_ok"));
+    auto* sink_bad_w = dynamic_cast<visual::Widget*>(scene.find("sink_bad"));
+    ASSERT_NE(sink_ok_w, nullptr);
+    ASSERT_NE(sink_bad_w, nullptr);
+    auto* sink_ok_in = sink_ok_w->portByName("in");
+    auto* sink_bad_in = sink_bad_w->portByName("in");
+    ASSERT_NE(sink_ok_in, nullptr);
+    ASSERT_NE(sink_bad_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    // Try reconnecting target to incompatible type (V -> I). Must be rejected.
+    input.on_mouse_down(port_center(sink_ok_in), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(sink_bad_in), canvas_min);
+
+    const auto* wire_after = model.current().find_wire(I.intern("wire_0"));
+    if (wire_after) {
+        auto [tgt_n, _tgt_p] = endpoint_node_port(wire_after->target, arena);
+        EXPECT_NE(tgt_n, I.intern("sink_bad"));
+    } else {
+        // Current reconnection semantics remove the wire when drop is invalid.
+        EXPECT_TRUE(model.current().wires().empty());
+    }
+}
+
+TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+
+    auto split = make_node(I, "split", "Splitter", 220.0f, 120.0f);
+    split.inputs.push_back(EditorPort(I.intern("i"), PortSide::Input, PortType::Any));
+    split.outputs.push_back(EditorPort(I.intern("o1"), PortSide::Output, PortType::Any));
+
+    auto load = make_node(I, "load", "Lamp", 420.0f, 120.0f);
+    load.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(split));
+    bp = bp.with_node(std::move(load));
+    bp = bp.with_wire(make_wire(I, arena, "wire_0", "src", "v_out", "split", "i"));
+    bp = bp.with_wire(make_wire(I, arena, "wire_1", "split", "o1", "load", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+
+    ASSERT_TRUE(input.select_node_by_id("split"));
+    input.on_key(Key::Delete);
+
+    EXPECT_EQ(model.current().find_node(I.intern("split")), nullptr);
+    EXPECT_TRUE(model.current().wires().empty());
+
+    bp2::Blueprint::Node split2;
+    split2.id = I.intern("split");
+    split2.type = I.intern("Splitter");
+    split2.x = 220.0f;
+    split2.y = 120.0f;
+    split2.inputs.push_back(EditorPort(I.intern("i"), PortSide::Input, PortType::Any));
+    split2.outputs.push_back(EditorPort(I.intern("o1"), PortSide::Output, PortType::Any));
+    EXPECT_TRUE(model.add_node(std::move(split2)));
+
+    for (const auto& w : model.current().wires()) {
+        auto [src_n, _src_p] = endpoint_node_port(w.source, arena);
+        auto [tgt_n, _tgt_p] = endpoint_node_port(w.target, arena);
+        EXPECT_NE(src_n, I.intern("split"));
+        EXPECT_NE(tgt_n, I.intern("split"));
+    }
+}
+
+TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto load = make_node(I, "load", "Lamp", 420.0f, 120.0f);
+    load.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(load));
+    bp = bp.with_wire(make_wire(I, arena, "wire_probe", "src", "v_out", "load", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* wire = dynamic_cast<visual::Wire*>(scene.find("wire_probe"));
+    ASSERT_NE(wire, nullptr);
+    ASSERT_GE(wire->polyline().size(), 2u);
+    ui::Pt probe_pos = wire->polyline()[0];
+    bool found_wire_hit = false;
+    const auto& poly = wire->polyline();
+    for (size_t i = 0; i + 1 < poly.size(); ++i) {
+        const ui::Pt a = poly[i];
+        const ui::Pt b = poly[i + 1];
+        for (int step = 1; step <= 3; ++step) {
+            const float t = static_cast<float>(step) / 4.0f;
+            ui::Pt p(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+            auto hr = visual::hit_test(scene, p);
+            if (std::holds_alternative<visual::HitWire>(hr)) {
+                probe_pos = p;
+                found_wire_hit = true;
+                break;
+            }
+        }
+        if (found_wire_hit) break;
+    }
+    ASSERT_TRUE(found_wire_hit);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    Modifiers mods;
+    mods.shift = true;
+    InputResult r = input.on_mouse_down(probe_pos, MouseButton::Left, canvas_min, mods);
+
+    EXPECT_EQ(r.toggle_probe_wire_id, "wire_probe");
+    EXPECT_TRUE(r.has_toggle_probe_world_pos);
+    EXPECT_NEAR(r.toggle_probe_world_pos.x, probe_pos.x, 1.5f);
+    EXPECT_NEAR(r.toggle_probe_world_pos.y, probe_pos.y, 1.5f);
+    EXPECT_EQ(input.selected_wire(), nullptr);
+}
+
+TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto node = make_node(I, "n1", "Battery", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    const size_t undo_before = model.undo_depth();
+    EXPECT_FALSE(model.is_dirty());
+
+    const ui::Pt click_pos = widget->worldPos() + ui::Pt(10.0f, 10.0f);
+    input.on_mouse_down(click_pos, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, click_pos, canvas_min);
+
+    EXPECT_EQ(input.state(), InputState::Idle);
+    EXPECT_EQ(input.selected_nodes().size(), 1u);
+    EXPECT_EQ(model.undo_depth(), undo_before);
+    EXPECT_FALSE(model.is_dirty());
+}
+
+// ============================================================================
+// Regression: path_to_node_port() utility (extracted to snap.h)
+// ============================================================================
+
+TEST(PathToNodePort, ValidPortPath_ReturnsNodeAndPortIds) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    ui::InternedId node_id = I.intern("battery1");
+    ui::InternedId port_name = I.intern("v_out");
+
+    bp2::Path node_path = arena.make_node(arena.root(), node_id);
+    bp2::Path port_path = arena.make_port(node_path, port_name);
+
+    auto [result_node, result_port] = editor_math::path_to_node_port(port_path, arena);
+    EXPECT_EQ(result_node, node_id);
+    EXPECT_EQ(result_port, port_name);
+}
+
+TEST(PathToNodePort, NonPortPath_ReturnsEmpty) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    // A Node path (not a Port path) should return empty.
+    bp2::Path node_path = arena.make_node(arena.root(), I.intern("some_node"));
+
+    auto [result_node, result_port] = editor_math::path_to_node_port(node_path, arena);
+    EXPECT_TRUE(result_node.empty());
+    EXPECT_TRUE(result_port.empty());
+}
+
+TEST(PathToNodePort, RootPath_ReturnsEmpty) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto [result_node, result_port] = editor_math::path_to_node_port(arena.root(), arena);
+    EXPECT_TRUE(result_node.empty());
+    EXPECT_TRUE(result_port.empty());
+}
+
+// ============================================================================
+// Regression: side_from_relative_position() (used by ref node orientation)
+// ============================================================================
+
+TEST(SideFromRelativePosition, NodeToTheRight_ReturnsRight) {
+    ui::Pt from(100, 100);
+    ui::Pt to(300, 100);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Right);
+}
+
+TEST(SideFromRelativePosition, NodeToTheLeft_ReturnsLeft) {
+    ui::Pt from(300, 100);
+    ui::Pt to(100, 100);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Left);
+}
+
+TEST(SideFromRelativePosition, NodeBelow_ReturnsBottom) {
+    ui::Pt from(100, 100);
+    ui::Pt to(100, 300);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Bottom);
+}
+
+TEST(SideFromRelativePosition, NodeAbove_ReturnsTop) {
+    ui::Pt from(100, 300);
+    ui::Pt to(100, 100);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Top);
+}
+
+TEST(SideFromRelativePosition, DiagonalTiesGoHorizontal) {
+    // Equal |dx| and |dy| → horizontal wins → Right
+    ui::Pt from(100, 100);
+    ui::Pt to(200, 200);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Right);
+}
+
+// ============================================================================
+// Regression: Ref node orientation after drag via commit_drag_node()
+// ============================================================================
+
+TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
+    // When a ref node is dragged from the right side of its connected node
+    // to below it, the port layout side should change accordingly.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    // Create a normal node at (200, 200)
+    auto bat = make_node(I, "bat", "Battery", 200.0f, 200.0f);
+    bat.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    bat.iface = bp2::Interface({
+        {I.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    // Create a ref node to the right of the battery at (400, 200)
+    auto ref = make_node(I, "gnd", "RefNode", 400.0f, 200.0f, "ref");
+    ref.inputs.push_back(EditorPort(I.intern("v"), PortSide::Input, PortType::V));
+    ref.iface = bp2::Interface({
+        {I.intern("v"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    auto w0 = make_wire(I, arena, "wire_0", "bat", "v_out", "gnd", "v");
+    w0.domain = Domain::Electrical;
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bat));
+    bp = bp.with_node(std::move(ref));
+    bp = bp.with_wire(std::move(w0));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    // Verify initial orientation: ref is to the right of bat → port should face Left
+    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("gnd"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    Viewport vp;
+    vp.grid_step = 16.0f;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    // Select and start dragging the ref node
+    ui::Pt ref_pos = ref_widget->worldPos();
+    ui::Pt click_pos = ref_pos + ui::Pt(10.0f, 10.0f);
+    input.on_mouse_down(click_pos, MouseButton::Left, canvas_min);
+    EXPECT_EQ(input.state(), InputState::DraggingNode);
+
+    // Drag it below the battery: from (400, 200) to (200, 500)
+    // world_delta = (-200, 300) but we need to apply as screen delta
+    ui::Pt drag_delta(-200.0f, 300.0f);
+    input.on_mouse_drag(MouseButton::Left, drag_delta, canvas_min);
+
+    // Release — this calls commit_drag_node which re-orients ref nodes
+    input.on_mouse_up(MouseButton::Left, click_pos + drag_delta, canvas_min);
+
+    // Rebuild scene to reflect committed data
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    // After rebuild, the ref node should have its port oriented toward the battery
+    // The ref node is now below the battery → port should face Top
+    ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("gnd"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    // Verify the data layer position was updated
+    const bp2::Blueprint::Node* ref_data = model.current().find_node(I.intern("gnd"));
+    ASSERT_NE(ref_data, nullptr);
+    // The node should have moved — not still at (400, 200)
+    EXPECT_NE(ref_data->x, 400.0f);
+}
+
+// ============================================================================
+// VerticalToggle layout: content bounds wide enough for click detection
+// ============================================================================
+
+TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
+    // Regression: VerticalToggle content_widget was inside a flex column,
+    // but preferredSize() didn't account for the content widget's width,
+    // resulting in a 6.2px wide clickable area.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    // Create an AZS-like node with VerticalToggle content and left/right ports
+    auto azs = make_node(I, "azs_1", "AZS", 0.0f, 0.0f);
+    azs.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.content_state = false;
+    azs.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    azs.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    // The content widget should exist and be toggleable
+    auto* cw = widget->contentWidget();
+    ASSERT_NE(cw, nullptr);
+    EXPECT_TRUE(cw->isToggleable());
+
+    // Content bounds must be at least as wide as the VerticalToggle's
+    // preferred width (16px). Previously it was ~6.2px.
+    Bounds cb = widget->contentBounds();
+    EXPECT_GE(cb.w, visual::VerticalToggleWidget::WIDTH)
+        << "Content bounds width (" << cb.w << ") must be >= "
+        << visual::VerticalToggleWidget::WIDTH << "px (VerticalToggle WIDTH)";
+}
+
+TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
+    // Verify that clicking in the center of the content area triggers a toggle
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    azs.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.content_state = false;
+    azs.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    azs.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    CanvasInput input(scene, vp, model, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    // Click at the center of the content area
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    // Convert world to screen (zoom=1, pan=0 → screen == world)
+    Pt canvas_min(0, 0);
+    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+
+    EXPECT_FALSE(result.toggle_switch_node_id.empty())
+        << "Clicking center of VerticalToggle content area should trigger toggle";
+    if (!result.toggle_switch_node_id.empty()) {
+        EXPECT_EQ(result.toggle_switch_node_id, "azs_1");
+    }
+}

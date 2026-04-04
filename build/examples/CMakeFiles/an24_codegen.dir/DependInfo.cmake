@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/vladimir/an24_cpp/src/codegen/codegen.cpp" "examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o" "gcc" "examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/codegen/electrical_codegen.cpp" "examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o" "gcc" "examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

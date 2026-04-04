@@ -108,6 +108,46 @@ TEST(ContainerTest, EmptyContainer) {
     EXPECT_EQ(ps.y, 0);
 }
 
+// ============================================================
+// REGRESSION: Fix 3 — Container margins exceeding available space
+// ============================================================
+// Before this fix, Container::layout() would compute negative dimensions
+// (available - margins) when margins exceeded the available space, passing
+// them to the child's layout(). This caused undefined layout behavior.
+// The fix clamps child dimensions to zero via std::max(0.0f, ...).
+
+TEST(ContainerTest, REGRESSION_MarginsExceedAvailableSpace) {
+    // Margins: 60 left + 60 right = 120, but available width is only 80
+    visual::Container container(Edges{60, 60, 60, 60});
+    container.emplaceChild<visual::LeafWidget>(Pt(50, 30));
+    
+    container.layout(80, 80);
+    
+    // Child should receive clamped-to-zero dimensions, NOT negative values
+    Pt child_size = container.children()[0]->size();
+    EXPECT_GE(child_size.x, 0.0f) << "Child width must never be negative";
+    EXPECT_GE(child_size.y, 0.0f) << "Child height must never be negative";
+    EXPECT_FLOAT_EQ(child_size.x, 0.0f);
+    EXPECT_FLOAT_EQ(child_size.y, 0.0f);
+    
+    // Child position should still be at margin offsets
+    EXPECT_FLOAT_EQ(container.children()[0]->localPos().x, 60.0f);
+    EXPECT_FLOAT_EQ(container.children()[0]->localPos().y, 60.0f);
+}
+
+TEST(ContainerTest, REGRESSION_MarginsExactlyEqualSpace) {
+    // Edge case: margins consume exactly all available space
+    // Edges constructor: left, top, right, bottom
+    visual::Container container(Edges{50, 25, 50, 25});
+    container.emplaceChild<visual::LeafWidget>(Pt(50, 30));
+    
+    container.layout(100, 50);
+    
+    Pt child_size = container.children()[0]->size();
+    EXPECT_FLOAT_EQ(child_size.x, 0.0f);
+    EXPECT_FLOAT_EQ(child_size.y, 0.0f);
+}
+
 TEST(LinearLayoutTest, WorldPosThroughRow) {
     visual::Row row;
     row.setLocalPos(Pt(100, 200));

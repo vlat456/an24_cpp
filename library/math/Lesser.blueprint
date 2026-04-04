@@ -1,25 +1,37 @@
 {
-  "exposes": {
-    "A": {
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "Lesser",
+  "display_name": "Lesser",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "A",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "B": {
-      "direction": "In",
-      "type": "Any"
+    {
+      "name": "B",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "o": {
-      "direction": "Out",
-      "type": "Bool"
+    {
+      "name": "o",
+      "domain": 2,
+      "direction": 1,
+      "type": "Bool",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Returns 1.0 if A < B, else 0.0",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Lesser"
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Returns 1.0 if A < B, else 0.0",
+  "domains": [
+    "Logical"
+  ]
 }

@@ -1,12 +1,35 @@
 #include <gtest/gtest.h>
 #include "json_parser/json_parser.h"
 #include "jit_solver/simulator.h"
-#include "editor/data/blueprint.h"
-#include "editor/data/node.h"
-#include "editor/visual/persist.h"
 
 /// TDD: Logical Solver and Comparator Component
 /// These tests are written FIRST (TDD approach) and will FAIL until implementation is complete
+
+// =============================================================================
+// Helper: build minimal simulator JSON for a single Comparator node
+// =============================================================================
+
+static std::string comparator_sim_json() {
+    return R"({
+  "templates": {},
+  "devices": [
+    {
+      "name": "comp1",
+      "template_name": "",
+      "classname": "Comparator",
+      "priority": "med",
+      "bucket": null,
+      "critical": false,
+      "ports": {
+        "Va": { "direction": "In", "type": "V" },
+        "Vb": { "direction": "In", "type": "V" },
+        "o":  { "direction": "Out", "type": "Bool" }
+      }
+    }
+  ],
+  "connections": []
+})";
+}
 
 // =============================================================================
 // Tests for Logical Domain
@@ -69,9 +92,9 @@ TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
     EXPECT_EQ(comp->ports.at("Vb").direction, PortDirection::In);
     EXPECT_EQ(comp->ports.at("o").direction, PortDirection::Out);
 
-    // Check port types (Va, Vb should be Voltage; o should be Bool)
-    EXPECT_EQ(comp->ports.at("Va").type, PortType::V);
-    EXPECT_EQ(comp->ports.at("Vb").type, PortType::V);
+    // Check port types (Va, Vb accept any signal type; o should be Bool)
+    EXPECT_EQ(comp->ports.at("Va").type, PortType::Any);
+    EXPECT_EQ(comp->ports.at("Vb").type, PortType::Any);
     EXPECT_EQ(comp->ports.at("o").type, PortType::Bool);
 
     // Check parameters
@@ -102,36 +125,14 @@ TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
 // =============================================================================
 
 TEST(LogicalSolverTest, LogicalSolver_HasLogicalVector) {
-    // Systems should have a logical component vector
-    // This test will compile but we can't fully test it without
-    // actually creating a blueprint with a Comparator component
-    // For now, just verify the code compiles with Logical domain
+    // Logical-capable blueprint should build and run through Simulator.
+    // This validates logical-path plumbing without legacy Systems API.
+    Simulator<JIT_Solver> simulator;
+    simulator.start_from_json(comparator_sim_json());
+    simulator.step(0.016f);
+    simulator.stop();
 
-    Systems systems;
-    (void)systems;  // Suppress unused warning
-
-    SUCCEED() << "Systems class compiles with Logical domain support";
-}
-
-TEST(LogicalSolverTest, Component_HasSolveLogicalMethod) {
-    // Component base class should have solve_logical method
-    // This is a compile-time test - if solve_logical doesn't exist,
-    // this won't compile
-    class MockComponent : public Component {
-    public:
-        std::string_view type_name() const override { return "Mock"; }
-
-        // Override solve_logical (should compile)
-        void solve_logical(SimulationState& state, float dt) override {
-            (void)state;
-            (void)dt;
-        }
-    };
-
-    MockComponent mock;
-    (void)mock;  // Suppress unused warning
-
-    SUCCEED() << "Component::solve_logical method exists";
+    SUCCEED() << "Simulator logical path compiles and executes";
 }
 
 // =============================================================================
@@ -141,24 +142,8 @@ TEST(LogicalSolverTest, Component_HasSolveLogicalMethod) {
 TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
     // Test basic hysteresis: output turns ON above Von, OFF below Voff
     // Using default params: Von=5.0, Voff=2.0
-    Blueprint bp;
-
-    auto& I = bp.interner();
-
-    // Create comparator node
-    Node comp;
-    comp.id = I.intern("comp1");
-    comp.name = "Comparator";
-    comp.type_name = "Comparator";
-    comp.at(0, 0);
-    comp.input(I.intern("Va"));
-    comp.input(I.intern("Vb"));
-    comp.output(I.intern("o"));
-    bp.add_node(std::move(comp));
-
-    // Create simulator and start
     Simulator<JIT_Solver> simulator;
-    simulator.start(bp);
+    simulator.start_from_json(comparator_sim_json());
 
     // Test 1: Initial state (all zeros) -> output FALSE (diff=0, not > Von)
     simulator.step(0.016f);  // 60Hz = 16.67ms
@@ -200,21 +185,8 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
 
 TEST(LogicalSolverTest, Comparator_Hysteresis_WithVbOffset) {
     // Test hysteresis with non-zero Vb
-    Blueprint bp;
-    auto& I = bp.interner();
-
-    Node comp;
-    comp.id = I.intern("comp1");
-    comp.name = "Comparator";
-    comp.type_name = "Comparator";
-    comp.at(0, 0);
-    comp.input(I.intern("Va"));
-    comp.input(I.intern("Vb"));
-    comp.output(I.intern("o"));
-    bp.add_node(std::move(comp));
-
     Simulator<JIT_Solver> simulator;
-    simulator.start(bp);
+    simulator.start_from_json(comparator_sim_json());
 
     // Using default params: Von=5, Voff=2
     // Set Vb=10, Va=15 -> (15-10) = 5, at Von threshold -> TRUE

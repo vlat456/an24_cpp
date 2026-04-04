@@ -1,17 +1,21 @@
 {
-  "meta": {
-    "description": "Visual text label for annotating circuit diagrams. No logic, no ports.",
-    "name": "Text",
-    "render_hint": "text",
-    "size": [
-      10.0,
-      4.0
-    ],
-    "visual_only": true
+  "version": "3.0",
+  "id": "Text",
+  "display_name": "Text",
+  "scheduler_source": false,
+  "interface": [],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": false,
+  "description": "Visual text label for annotating circuit diagrams. No logic, no ports.",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "font_size": "large",
+    "text": ""
   },
-  "params": {
-    "font_size": { "default": "large", "type": "string" },
-    "text":      { "default": "",      "type": "string" }
-  },
-  "version": 2
+  "render_hint": "text",
+  "visual_only": true
 }

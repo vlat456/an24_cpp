@@ -1,31 +1,33 @@
 {
-  "exposes": {
-    "in": {
-      "direction": "In",
-      "type": "Bool"
+  "version": "3.0",
+  "id": "Monostable",
+  "display_name": "Monostable",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "in",
+      "domain": 2,
+      "direction": 0,
+      "type": "Bool",
+      "source_writer": false
     },
-    "out": {
-      "direction": "Out",
-      "type": "Bool"
+    {
+      "name": "out",
+      "domain": 2,
+      "direction": 1,
+      "type": "Bool",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Pulse timer: outputs 1.0 for duration after rising edge",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Monostable",
-    "size": [
-      2.0,
-      1.0
-    ]
-  },
-  "params": {
-    "duration": {
-      "default": "30.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Pulse timer: outputs 1.0 for duration after rising edge",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "duration": "30.0"
+  }
 }

@@ -1,29 +1,37 @@
 {
-  "exposes": {
-    "A": {
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "Subtract",
+  "display_name": "Subtract",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "A",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "B": {
-      "direction": "In",
-      "type": "Any"
+    {
+      "name": "B",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "o": {
-      "direction": "Out",
-      "type": "Any"
+    {
+      "name": "o",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Subtractor: o = A - B (output can be negative)",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Subtract",
-    "size": [
-      2.0,
-      2.0
-    ]
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Subtractor: o = A - B (output can be negative)",
+  "domains": [
+    "Logical"
+  ]
 }

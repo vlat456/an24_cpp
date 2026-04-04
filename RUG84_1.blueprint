@@ -1,0 +1,145 @@
+{
+  "version": "3.0",
+  "id": "RUG82",
+  "display_name": "RUG82",
+  "interface": [
+    {
+      "name": "Comp",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any"
+    },
+    {
+      "name": "v",
+      "domain": 1,
+      "direction": 0,
+      "type": "V"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "blueprintinput_1",
+      "type": "BlueprintInput",
+      "name": "v",
+      "position": {
+        "x": 96.0,
+        "y": 160.0
+      },
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
+    },
+    {
+      "id": "blueprintoutput_1",
+      "type": "BlueprintOutput",
+      "name": "Comp",
+      "position": {
+        "x": 816.0,
+        "y": 160.0
+      },
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "In",
+          "type": "Any"
+        }
+      }
+    },
+    {
+      "id": "fasttmo_1",
+      "type": "FastTMO",
+      "position": {
+        "x": 496.0,
+        "y": 160.0
+      },
+      "params": {
+        "deadzone": 0.001,
+        "tau": 0.05
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "out": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
+    },
+    {
+      "id": "lut_1",
+      "type": "LUT",
+      "position": {
+        "x": 304.0,
+        "y": 160.0
+      },
+      "ports": {
+        "input": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "output": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
+    },
+    {
+      "id": "lut_2",
+      "type": "LUT",
+      "name": "LUT_CarbonPile",
+      "position": {
+        "x": 640.0,
+        "y": 160.0
+      },
+      "ports": {
+        "input": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "output": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
+    }
+  ],
+  "wires": [
+    {
+      "id": "wire_0",
+      "source": "/lut_1:output",
+      "target": "/fasttmo_1:in"
+    },
+    {
+      "id": "wire_1",
+      "source": "/fasttmo_1:out",
+      "target": "/lut_2:input"
+    },
+    {
+      "id": "wire_3",
+      "source": "/blueprintinput_1:port",
+      "target": "/lut_1:input"
+    },
+    {
+      "id": "wire_4",
+      "source": "/lut_2:output",
+      "target": "/blueprintoutput_1:port"
+    }
+  ],
+  "nested": [],
+  "pan_x": 0.0,
+  "pan_y": 0.0,
+  "zoom": 1.0,
+  "grid_step": 16.0
+}

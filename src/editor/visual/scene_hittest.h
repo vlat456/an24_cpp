@@ -10,12 +10,19 @@
 /// Returns a std::variant<> so the caller can pattern-match on the result.
 
 #include "ui/math/pt.h"
-#include "input/input_types.h"  // ResizeCorner
+#include "editor/input/input_types.h"
+#include "visual/port/visual_port.h"
 #include <variant>
 #include <cstddef>
 #include <cmath>
 
 namespace visual {
+
+namespace hit_constants {
+    constexpr float PORT_RADIUS = PortConstants::HIT_RADIUS;
+    constexpr float ROUTING_POINT_RADIUS = 10.0f;
+    constexpr float WIRE_TOLERANCE = 5.0f;
+}
 
 using ui::Pt;
 
@@ -25,47 +32,14 @@ class Wire;
 class RoutingPoint;
 class Port;
 
-// ============================================================
-// Hit result types
-// ============================================================
-
 struct HitEmpty {};
-
-struct HitNode {
-    Widget* widget = nullptr;
-};
-
-struct HitPort {
-    Port* port = nullptr;
-};
-
-struct HitWire {
-    Wire* wire = nullptr;
-    size_t segment = 0;  ///< Polyline segment index (for routing point insertion)
-};
-
-struct HitRoutingPoint {
-    RoutingPoint* point = nullptr;
-    Wire* wire = nullptr;
-    size_t index = 0;    ///< Index within Wire::children()
-};
-
-struct HitResizeHandle {
-    Widget* widget = nullptr;
-    ResizeCorner corner = ResizeCorner::BottomRight;
-};
+struct HitNode { Widget* widget = nullptr; };
+struct HitPort { Port* port = nullptr; };
+struct HitWire { Wire* wire = nullptr; size_t segment = 0; };
+struct HitRoutingPoint { RoutingPoint* point = nullptr; Wire* wire = nullptr; size_t index = 0; };
+struct HitResizeHandle { Widget* widget = nullptr; ResizeCorner corner = ResizeCorner::BottomRight; };
 
 using HitResult = std::variant<HitEmpty, HitNode, HitPort, HitWire, HitRoutingPoint, HitResizeHandle>;
-
-// ============================================================
-// Hit testing constants
-// ============================================================
-
-namespace hit_constants {
-    constexpr float PORT_RADIUS           = 10.0f;
-    constexpr float ROUTING_POINT_RADIUS  = 10.0f;
-    constexpr float WIRE_TOLERANCE        = 5.0f;
-}
 
 // ============================================================
 // Hit testing functions

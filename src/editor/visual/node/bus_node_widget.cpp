@@ -7,7 +7,8 @@
 #include "visual/wire/wire.h"
 #include "visual/snap.h"
 #include "editor/layout_constants.h"
-#include "data/node.h"
+#include "data/node_content.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -18,31 +19,44 @@ namespace visual {
 // Construction
 // ============================================================================
 
-BusNodeWidget::BusNodeWidget(const ::Node& data,
+BusNodeWidget::BusNodeWidget(const bp2::Blueprint::Node& data,
                              const ui::StringInterner& interner,
                              PortEdge port_edge,
-                             const std::vector<::Wire>& wires)
+                             const std::vector<BusWireRef>& wires)
     : node_iid_(data.id)
     , interner_(&interner)
     , name_(data.name)
-    , type_name_(data.type_name)
+    , type_name_(std::string(interner.resolve(data.type)))
     , port_edge_(port_edge)
 {
-    if (data.color.has_value()) {
-        custom_fill_ = data.color->to_uint32();
+    if (data.has_color) {
+        NodeColor c;
+        c.r = data.color_r;
+        c.g = data.color_g;
+        c.b = data.color_b;
+        c.a = data.color_a;
+        custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(data.pos);
+    setLocalPos(Pt(data.x, data.y));
 
     // Collect wires connected to this node
     for (const auto& w : wires) {
-        if (w.start.node_id == node_iid_ || w.end.node_id == node_iid_) {
+        if (w.start_node_id == node_iid_ || w.end_node_id == node_iid_) {
             wires_.push_back(w);
         }
     }
 
-    // Initial size from data (will be recalculated in rebuildPorts)
-    Pt snapped = editor_math::snap_size_to_layout_grid(data.size);
+    // Carry the explicit-size flag from the data layer so rebuildPorts()
+    // keeps the user's custom size instead of auto-calculating it.
+    size_explicitly_set_ = data.width.has_value() && data.height.has_value();
+
+    // Initial size from data (will be recalculated in rebuildPorts if not explicit)
+    Pt default_size(120.0f, 80.0f);
+    if (size_explicitly_set_) {
+        default_size = Pt(*data.width, *data.height);
+    }
+    Pt snapped = editor_math::snap_size_to_layout_grid(default_size);
     setSize(snapped);
 
     rebuildPorts();
@@ -86,9 +100,20 @@ void BusNodeWidget::rebuildPorts() {
     auto* base = emplaceChild<Port>("v", PortSide::InOut, PortType::V);
     ports_.push_back(base);
 
-    // Recalculate size based on port count
+    // Recalculate size based on port count — but respect user's explicit size.
+    // Only auto-size when the user hasn't manually resized, or when the
+    // current size is too small to fit all ports.
     if (!wires_.empty()) {
-        setSize(calculateBusSize(ports_.size()));
+        Pt auto_sz = calculateBusSize(ports_.size());
+        if (!size_explicitly_set_) {
+            setSize(auto_sz);
+        } else {
+            // Grow to fit ports if user's size is too small, but never shrink
+            Pt cur = size();
+            float w = std::max(cur.x, auto_sz.x);
+            float h = std::max(cur.y, auto_sz.y);
+            setSize(Pt(w, h));
+        }
     }
 
     // Position all ports
@@ -106,7 +131,7 @@ void BusNodeWidget::rebuildPorts() {
 }
 
 Pt BusNodeWidget::calculateBusSize(size_t port_count) const {
-    constexpr float g = editor_constants::PORT_LAYOUT_GRID;
+    constexpr float g = PortConstants::LAYOUT_GRID;
     Pt sz;
     switch (port_edge_) {
         case PortEdge::Bottom:
@@ -125,22 +150,22 @@ Pt BusNodeWidget::calculateBusSize(size_t port_count) const {
 
 Pt BusNodeWidget::calculatePortLocalPos(size_t index) const {
     if (ports_.empty() && index == 0) {
-        return Pt(size().x / 2.0f - editor_constants::PORT_RADIUS,
-                  size().y / 2.0f - editor_constants::PORT_RADIUS);
+        return Pt(size().x / 2.0f - PortConstants::RADIUS,
+                  size().y / 2.0f - PortConstants::RADIUS);
     }
 
-    float step = editor_constants::PORT_LAYOUT_GRID;
-    float offset = step * (index + 1) - editor_constants::PORT_RADIUS;
+    float step = PortConstants::LAYOUT_GRID;
+    float offset = step * (index + 1) - PortConstants::RADIUS;
 
     switch (port_edge_) {
         case PortEdge::Bottom:
-            return Pt(offset, size().y - editor_constants::PORT_RADIUS);
+            return Pt(offset, size().y - PortConstants::RADIUS);
         case PortEdge::Top:
-            return Pt(offset, -editor_constants::PORT_RADIUS);
+            return Pt(offset, -PortConstants::RADIUS);
         case PortEdge::Right:
-            return Pt(size().x - editor_constants::PORT_RADIUS, offset);
+            return Pt(size().x - PortConstants::RADIUS, offset);
         case PortEdge::Left:
-            return Pt(-editor_constants::PORT_RADIUS, offset);
+            return Pt(-PortConstants::RADIUS, offset);
     }
     return Pt(0, 0);
 }
@@ -177,17 +202,17 @@ Port* BusNodeWidget::portByName(std::string_view port_name,
     return nullptr;
 }
 
-void BusNodeWidget::connectWire(const ::Wire& wire) {
-    if (wire.start.node_id == node_iid_ || wire.end.node_id == node_iid_) {
+void BusNodeWidget::connectWire(const BusWireRef& wire) {
+    if (wire.start_node_id == node_iid_ || wire.end_node_id == node_iid_) {
         wires_.push_back(wire);
         rebuildPorts();
     }
 }
 
-void BusNodeWidget::disconnectWire(const ::Wire& wire) {
+void BusNodeWidget::disconnectWire(const BusWireRef& wire) {
     wires_.erase(
         std::remove_if(wires_.begin(), wires_.end(),
-            [&](const ::Wire& w) { return w.id == wire.id; }),
+            [&](const BusWireRef& w) { return w.id == wire.id; }),
         wires_.end());
     rebuildPorts();
 }
@@ -217,6 +242,7 @@ Pt BusNodeWidget::preferredSize(IDrawList* /*dl*/) const {
 }
 
 void BusNodeWidget::layout(float w, float h) {
+    size_explicitly_set_ = true;
     setSize(Pt(w, h));
     for (size_t i = 0; i < ports_.size(); i++) {
         ports_[i]->setLocalPos(calculatePortLocalPos(i));
@@ -266,6 +292,7 @@ void BusNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
 
     // Selection border drawn after children so it appears on top
     handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);
+    handle_renderer::draw_resize_handles(*dl, ctx, *this);
 }
 
 } // namespace visual

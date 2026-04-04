@@ -401,13 +401,16 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/optional \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/unordered_set \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/vector \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__bit_reference \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__split_buffer \
   /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/port_names.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/component_enums.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/switch.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/../state.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/../component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/../../json_parser/json_parser.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/map \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__tree \
@@ -523,12 +526,82 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/any \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/macro_unscope.hpp \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
-  /Users/vladimir/an24_cpp/src/jit_solver/scheduling.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/../subsolvers/subsolver_types.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/relay.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/hold_button.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/resistor.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/load.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/ref_node.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/bus.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_input.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/blueprint_output.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/generator.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/transformer.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/inverter.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/lerp_node.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/pid.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/pd.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/pi.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/p.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/splitter.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/merger.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/current_sense.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/indicator_light.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/high_power_load.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/voltmeter.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/voltage_sense.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/controlled_voltage_source.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/controlled_current_source.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/variable_conductance.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/gyroscope.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/electric_pump.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/solenoid_valve.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/gidro_accumulator.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/fuel_tank.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/inertia_node.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/spring.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/temp_sensor.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/electric_heater.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/radiator.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/azs.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/comparator.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/subtract.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/multiply.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/divide.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/add.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/and_gate.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/or_gate.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/xor_gate.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/not_gate.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/nand_gate.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/any_v_to_bool.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/positive_v_to_bool.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/lut.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/fast_tmo.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/asym_tmo.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/slew_rate.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/asym_slew_rate.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/time_delay.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/monostable.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/sample_hold.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/integrator.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/clamp.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/normalize.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/min.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/max.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/greater.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/lesser.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/greater_eq.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/lesser_eq.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/slider.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_conductance.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/value.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/scheduler.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/subsolvers/subsolver_types.h \
   /Users/vladimir/an24_cpp/src/jit_solver/../json_parser/json_parser.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/state.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/../parse_number.h \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/charconv \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/queue \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/spdlog.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/common.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/tweakme.h \
@@ -546,4 +619,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/log_msg_buffer.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/circular_q.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/version.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/synchronous_factory.h
+  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/synchronous_factory.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/../parse_number.h \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/charconv

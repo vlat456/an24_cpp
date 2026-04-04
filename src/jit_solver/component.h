@@ -1,57 +1,16 @@
 #pragma once
 
-#include <string>
-#include <memory>
-
-// Include shared types from json_parser
-#include "../json_parser/json_parser.h"
-
-/// Forward declaration
-class SimulationState;
-
-/// Component interface - base class for all devices
-class Component {
-public:
-    virtual ~Component() = default;
-
-    /// Component type name (for debugging)
-    [[nodiscard]] virtual std::string_view type_name() const = 0;
-
-    /// Solve electrical domain (every step, dt = frame delta)
-    virtual void solve_electrical(SimulationState& state, float dt) {}
-
-    /// Solve hydraulic domain (every 12th step, dt = 12 * frame delta)
-    virtual void solve_hydraulic(SimulationState& state, float dt) {}
-
-    /// Solve mechanical domain (every 3rd step, dt = 3 * frame delta)
-    virtual void solve_mechanical(SimulationState& state, float dt) {}
-
-    /// Solve thermal domain (every 60th step, dt = 60 * frame delta)
-    virtual void solve_thermal(SimulationState& state, float dt) {}
-
-    /// Solve logical domain (every step, dt = frame delta)
-    virtual void solve_logical(SimulationState& state, float dt) {}
-
-    /// Post-step update (once per frame, after SOR iteration)
-    virtual void post_step(SimulationState& state, float dt) {}
-
-    /// Pre-load initialization
-    virtual void pre_load() {}
-};
-
 // ============================================================================
 // PORTS Macro - Generate component port fields from registry
 // ============================================================================
 // Usage:
-//   class RU19A : public Component {
-//   public:
-//       PORTS(RU19A, v_bus, v_start, k_mod, rpm_out, t4_out)
+//   struct Battery {
+//       PORTS(Battery, v_in, v_out, charge, soc)
 //       // Expands to:
-//       // uint32_t v_bus_idx = 0;
-//       // uint32_t v_start_idx = 0;
-//       // uint32_t k_mod_idx = 0;
-//       // uint32_t rpm_out_idx = 0;
-//       // uint32_t t4_out_idx = 0;
+//       // uint32_t v_in_idx = 0;
+//       // uint32_t v_out_idx = 0;
+//       // uint32_t charge_idx = 0;
+//       // uint32_t soc_idx = 0;
 //   };
 //
 // The macro generates uint32_t fields with _idx suffix for each port.

@@ -1,0 +1,387 @@
+{
+  "tests": 75,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "CommandTest",
+      "tests": 75,
+      "testsuite": [
+        {
+          "name": "BlueprintDefaults",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 459
+        },
+        {
+          "name": "UndoStackBasic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 467
+        },
+        {
+          "name": "SetGridStepMutates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 476
+        },
+        {
+          "name": "MoveNodeMutates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 486
+        },
+        {
+          "name": "AddRemoveNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 502
+        },
+        {
+          "name": "RemoveNodeAlsoRemovesConnectedWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 514
+        },
+        {
+          "name": "UndoRedoRoundTrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 545
+        },
+        {
+          "name": "SetNameMutates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 565
+        },
+        {
+          "name": "SetNameUndoRedo",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 578
+        },
+        {
+          "name": "SetNameMissingNodeDoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 596
+        },
+        {
+          "name": "MultipleCommandsUndoAsGroup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 605
+        },
+        {
+          "name": "TransactionGuardSingleCommand",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 633
+        },
+        {
+          "name": "TransactionGuardMultipleCommands",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 649
+        },
+        {
+          "name": "TransactionGuardEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 667
+        },
+        {
+          "name": "TransactionGuardDiscard",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 676
+        },
+        {
+          "name": "TransactionGuardManualCommit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 690
+        },
+        {
+          "name": "DirtyFlagInitiallyClean",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 708
+        },
+        {
+          "name": "DirtyFlagAfterCheckpoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 712
+        },
+        {
+          "name": "DirtyFlagAfterMarkSaved",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 717
+        },
+        {
+          "name": "DirtyFlagAfterUndoPastSavePoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 723
+        },
+        {
+          "name": "DirtyFlagRedoRestoresSavePoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 733
+        },
+        {
+          "name": "RedoStackPreservedByUndo",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 749
+        },
+        {
+          "name": "NewSnapshotClearsRedo",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 776
+        },
+        {
+          "name": "ChecksumDeterministic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 793
+        },
+        {
+          "name": "ChecksumChangesOnMutation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 801
+        },
+        {
+          "name": "UndoRoundTripChecksumMoveNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 810
+        },
+        {
+          "name": "UndoRoundTripChecksumSetParam",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 824
+        },
+        {
+          "name": "UndoRoundTripChecksumAddRemoveNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 839
+        },
+        {
+          "name": "UndoRoundTripChecksumSetGridStep",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 850
+        },
+        {
+          "name": "UndoRoundTripChecksumMixedCommands",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 861
+        },
+        {
+          "name": "UndoRoundTripChecksumAddRemoveWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 879
+        },
+        {
+          "name": "MaxStackDepthEviction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 899
+        },
+        {
+          "name": "UndoRedoWithEmptyBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 912
+        },
+        {
+          "name": "TransactionGuardDiscardMultipleCommands",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 926
+        },
+        {
+          "name": "UndoStackClearSimulatesDocumentLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 953
+        },
+        {
+          "name": "SetPortLayout_Mutates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 975
+        },
+        {
+          "name": "SetPortLayout_UndoRestoresOriginal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 998
+        },
+        {
+          "name": "SetPortLayout_ClearOverrides",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1015
+        },
+        {
+          "name": "REGRESSION_SetParamMutatesNodeParam",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1032
+        },
+        {
+          "name": "ExtractToBlueprint_BasicAtomic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1055
+        },
+        {
+          "name": "ExtractToBlueprint_UsesCanonicalBridgeNodeIds",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1087
+        },
+        {
+          "name": "ExtractToBlueprint_UndoRedoRoundTrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1118
+        },
+        {
+          "name": "ExtractToBlueprint_AllowsSubgroupExtraction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1148
+        },
+        {
+          "name": "ExtractToBlueprint_RejectsSelectionOutsideActiveGroup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1179
+        },
+        {
+          "name": "ExtractToBlueprint_AllowsEmbeddedNestedInstanceSelection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1197
+        },
+        {
+          "name": "ExtractToBlueprint_InlinesSelectedEmbeddedNestedDeterministically",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1224
+        },
+        {
+          "name": "ExtractToBlueprint_RejectsEmbeddedNestedMissingInlineDef",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1262
+        },
+        {
+          "name": "ExtractToBlueprint_RejectsEmbeddedNestedWithNonEmbeddedDescendant",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1293
+        },
+        {
+          "name": "ExtractToBlueprint_AllowsNonEmbeddedDescendantWhenGuardEnabled",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1312
+        },
+        {
+          "name": "ExtractToBlueprint_GuardModeRemapsNonEmbeddedDescendantIfEmbeddedSourceExists",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1331
+        },
+        {
+          "name": "ExtractToBlueprint_RejectsNonEmbeddedNestedInstanceSelection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1363
+        },
+        {
+          "name": "ExtractToBlueprint_RejectsBlueprintBridgeNodeSelection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1381
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewBasic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1399
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewReportsIfaceCollision",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1425
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewAllowsEmbeddedNestedSelection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1444
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewRejectsNonEmbeddedNestedSelection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1462
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewRejectsBlueprintBridgeNodeSelection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1480
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewRejectsEmbeddedNestedWithNonEmbeddedDescendant",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1498
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewAllowsNonEmbeddedDescendantWhenGuardEnabled",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1517
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewGuardModeAllowsRemappableNonEmbeddedDescendant",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1536
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewAllowApplyDenyMismatchFailsAtApply",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1555
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewShowsRemapAndPassthroughCounts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1586
+        },
+        {
+          "name": "ExtractToBlueprint_GuardModeRemapTieBreakUsesLowestProviderNodeId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1625
+        },
+        {
+          "name": "ExtractToBlueprint_BridgeAutoLayoutTracksInternalY",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1658
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewRejectsEmptyName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1685
+        },
+        {
+          "name": "ExtractToBlueprint_PreviewRejectsDuplicateName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1703
+        },
+        {
+          "name": "ExtractToBlueprint_RejectsSmallSelection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1727
+        },
+        {
+          "name": "ExtractToBlueprint_DeterministicIfaceNaming",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1745
+        },
+        {
+          "name": "ExtractToBlueprint_InlineBlueprintStructure",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1776
+        },
+        {
+          "name": "ExtractToBlueprint_PreservesBoundaryPortTypesOnBridgeNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1837
+        },
+        {
+          "name": "ExtractToBlueprint_SubgroupBridgeWiring",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1877
+        },
+        {
+          "name": "ExtractToBlueprint_RejectsInputOutputIfaceNameCollision",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1950
+        },
+        {
+          "name": "ExtractToBlueprint_DedupeNameNoCollisionWithSuffixedPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 1971
+        },
+        {
+          "name": "ExtractToBlueprint_ZeroExternalConnections",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 2066
+        },
+        {
+          "name": "ExtractToBlueprint_InlineBridgeYUsesLocalCoordinates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_commands.cpp",
+          "line": 2122
+        }
+      ]
+    }
+  ]
+}

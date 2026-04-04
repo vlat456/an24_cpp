@@ -1,33 +1,36 @@
 {
-  "exposes": {
-    "v_in": {
-      "direction": "In",
-      "type": "V"
+  "version": "3.0",
+  "id": "Generator",
+  "display_name": "Generator",
+  "scheduler_source": true,
+  "interface": [
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
     },
-    "v_out": {
-      "direction": "Out",
-      "type": "V"
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": true
     }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Voltage generator source with internal resistance. Similar to Battery but typically driven by mechanical power (engine/APU).",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "internal_r": "0.005",
+    "v_nominal": "28.5"
   },
-  "meta": {
-    "content_type": "Gauge",
-    "cpp_class": true,
-    "description": "Voltage generator source with internal resistance. Similar to Battery but typically driven by mechanical power (engine/APU).",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Generator",
-    "priority": "high"
-  },
-  "params": {
-    "internal_r": {
-      "default": "0.005",
-      "type": "float"
-    },
-    "v_nominal": {
-      "default": "28.5",
-      "type": "float"
-    }
-  },
-  "version": 2
+  "priority": "high",
+  "content_type": "Gauge"
 }

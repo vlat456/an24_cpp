@@ -1,0 +1,43 @@
+{
+  "version": "3.0",
+  "id": "ElectricalConductance",
+  "display_name": "Electrical Conductance",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Primitive electrical conductance element. Maps directly to ConductanceBranch solver role without wrapper logic.",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "conductance": "0.1"
+  },
+  "solver_role": {
+    "kind": "ConductanceBranch",
+    "ports": {
+      "a": "v_in",
+      "b": "v_out"
+    },
+    "params": {
+      "g": "conductance"
+    }
+  }
+}

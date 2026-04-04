@@ -1,35 +1,44 @@
 {
-  "exposes": {
-    "in": {
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "Clamp",
+  "display_name": "Clamp",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "in",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "out": {
-      "direction": "Out",
-      "type": "Any"
-    }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Clamps input value between min and max parameters",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Clamp",
-    "size": [
-      2.0,
-      1.0
-    ]
-  },
-  "params": {
-    "max": {
-      "default": "1.0",
-      "type": "float"
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     },
-    "min": {
-      "default": "0.0",
-      "type": "float"
+    {
+      "name": "min",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "max",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Clamps input value between min and max ports",
+  "domains": [
+    "Logical"
+  ]
 }

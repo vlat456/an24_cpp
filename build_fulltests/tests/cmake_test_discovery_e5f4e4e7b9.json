@@ -1,0 +1,57 @@
+{
+  "tests": 9,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "GridTest",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "EmptyGrid",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_grid.cpp",
+          "line": 24
+        },
+        {
+          "name": "InsertWidget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_grid.cpp",
+          "line": 30
+        },
+        {
+          "name": "RemoveWidget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_grid.cpp",
+          "line": 40
+        },
+        {
+          "name": "UpdateWidget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_grid.cpp",
+          "line": 50
+        },
+        {
+          "name": "QueryWithMargin",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_grid.cpp",
+          "line": 65
+        },
+        {
+          "name": "QueryOutsideMargin",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_grid.cpp",
+          "line": 75
+        },
+        {
+          "name": "MultipleWidgets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_grid.cpp",
+          "line": 87
+        },
+        {
+          "name": "ClearGrid",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_grid.cpp",
+          "line": 102
+        },
+        {
+          "name": "QueryAsType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_grid.cpp",
+          "line": 113
+        }
+      ]
+    }
+  ]
+}

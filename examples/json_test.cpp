@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
     // Run simulation with SOR
     std::cout << "\n=== Running Simulation (5000 cycles) ===\n";
     const float omega = SOR::OMEGA;
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (int step = 0; step < 5000; ++step) {
         state.clear_through();
         result.systems.solve_step(state, step, dt);

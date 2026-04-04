@@ -1,6 +1,8 @@
 #include "context_menus.h"
 #include "editor/input/input_types.h"
+#include "editor/subwindow_open_target.h"
 #include <imgui.h>
+#include <cstring>
 
 
 void ContextMenus::renderAddComponent(WindowSystem& ws) {
@@ -25,7 +27,9 @@ void ContextMenus::renderAddComponent(WindowSystem& ws) {
             }
         }
         for (const auto& classname : tree.entries) {
-            if (ImGui::MenuItem(classname.c_str())) {
+            auto lbl_it = tree.labels.find(classname);
+            const std::string& label = (lbl_it != tree.labels.end()) ? lbl_it->second : classname;
+            if (ImGui::MenuItem(label.c_str())) {
                 Document* doc = ws.findDocumentById(ws.contextMenu.source_doc_id);
                 if (!doc) doc = ws.activeDocument();
                 if (doc) {
@@ -50,9 +54,18 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     
     Document* doc = ws.findDocumentById(ws.nodeContextMenu.source_doc_id);
     if (!doc) doc = ws.activeDocument();
-    Node* node_ptr = doc ? doc->blueprint().find_node(ws.nodeContextMenu.node_id.c_str()) : nullptr;
+
+    // Resolve the node
+    const bp2::Blueprint::Node* node_ptr = nullptr;
+    if (doc) {
+        ui::InternedId node_iid = doc->interner().lookup(ws.nodeContextMenu.node_id);
+        if (!node_iid.empty()) {
+            node_ptr = doc->blueprint().find_node(node_iid);
+        }
+    }
+
     if (doc && node_ptr) {
-        Node& node = *node_ptr;
+        const bp2::Blueprint::Node& node = *node_ptr;
         ImGui::Text("Node: %s", node.name.c_str());
         ImGui::Separator();
         
@@ -69,22 +82,83 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             if (ImGui::MenuItem("Set Color...")) {
                 ws.openColorPickerForNode(ws.nodeContextMenu.node_id, ws.nodeContextMenu.group_id, *doc);
             }
+            const CanvasInput* source_input = &doc->input();
+            if (!ws.nodeContextMenu.group_id.empty()) {
+                if (BlueprintWindow* win = doc->windowManager().find(ws.nodeContextMenu.group_id)) {
+                    source_input = &win->input;
+                }
+            }
+            const auto& selected = source_input->selected_node_ids();
+            const bool can_extract = selected.size() >= 2;
+            if (ImGui::MenuItem("Extract to Blueprint...", nullptr, false, can_extract)) {
+                ws.pendingExtract.show_dialog = true;
+                ws.pendingExtract.doc_id = doc->id();
+                ws.pendingExtract.group_id = ws.nodeContextMenu.group_id;
+                ws.pendingExtract.selected_node_ids = selected;
+                ws.pendingExtract.has_preview = false;
+                ws.pendingExtract.preview = {};
+                ws.pendingExtract.preview_error.clear();
+                ws.pendingExtract.preview_name.clear();
+                ws.pendingExtract.allow_nonembedded_descendant_refs = false;
+                ws.pendingExtract.preview_allow_nonembedded_descendant_refs = false;
+
+                std::string suggested = "extracted_blueprint_1";
+                int idx = 1;
+                while (idx < 100000) {
+                    std::string candidate = "extracted_blueprint_" + std::to_string(idx);
+                    bool used = false;
+                    ui::InternedId cid = doc->interner().lookup(candidate);
+                    if (!cid.empty()) {
+                        for (const auto& nn : doc->blueprint().nested()) {
+                            if (nn.blueprint_id == cid) {
+                                used = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!used) {
+                        for (const auto& node_it : doc->blueprint().nodes()) {
+                            if (node_it.name == candidate) {
+                                used = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!used) {
+                        suggested = std::move(candidate);
+                        break;
+                    }
+                    ++idx;
+                }
+                std::memset(ws.pendingExtract.name_buf, 0, sizeof(ws.pendingExtract.name_buf));
+                std::strncpy(ws.pendingExtract.name_buf, suggested.c_str(), sizeof(ws.pendingExtract.name_buf) - 1);
+
+                // Preview is computed lazily by ExtractToBlueprintDialog
+                // on first render frame (avoids duplicate computation).
+            }
             if (ImGui::MenuItem("Delete")) {
                 auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);
                 ws.handleInputAction(action, *doc);
             }
         }
         
-        if (node.expandable && ImGui::MenuItem("Open in New Window")) {
-            std::string node_id_str(doc->blueprint().interner().resolve(node.id));
-            doc->openSubWindow(node_id_str);
+        if (node.expandable && ImGui::MenuItem("Open in editor")) {
+            std::string node_id_str(doc->interner().resolve(node.id));
+            const auto target = editor::resolve_subwindow_open_target(doc->blueprint(), doc->interner(), node_id_str);
+            if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
+                ws.openDocument(target.path);
+            } else {
+                doc->openSubWindow(node_id_str);
+            }
         }
         
-        std::string node_id_str_for_sbi(doc->blueprint().interner().resolve(node.id));
+        // Check for a nested (sub-blueprint) reference that can be baked in
         const std::string& sbi_id = !ws.nodeContextMenu.group_id.empty()
-            ? ws.nodeContextMenu.group_id : node_id_str_for_sbi;
-        auto* sb = doc->blueprint().find_sub_blueprint_instance(sbi_id);
-        if (sb && !sb->baked_in) {
+            ? ws.nodeContextMenu.group_id : ws.nodeContextMenu.node_id;
+        ui::InternedId sbi_iid = doc->interner().lookup(sbi_id);
+        const bp2::Blueprint::Nested* nested = sbi_iid.empty()
+            ? nullptr : doc->blueprint().find_nested(sbi_iid);
+        if (nested && !nested->embedded) {
             if (ImGui::MenuItem("Bake In (Embed)")) {
                 ws.pendingBakeIn.show_confirmation = true;
                 ws.pendingBakeIn.sub_blueprint_id = sbi_id;
@@ -92,8 +166,9 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                     ? ws.nodeContextMenu.source_doc_id : (doc ? doc->id() : std::string{});
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("Edit Original")) {
-                std::string lib_path = "library/" + sb->blueprint_path + ".json";
+            if (ImGui::MenuItem("Open in editor")) {
+                std::string bp_id_str(doc->interner().resolve(nested->blueprint_id));
+                std::string lib_path = "library/" + bp_id_str + ".blueprint";
                 ws.openDocument(lib_path);
             }
         }
@@ -101,4 +176,3 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     
     ImGui::EndPopup();
 }
-

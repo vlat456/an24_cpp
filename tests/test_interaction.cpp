@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "editor/interaction.h"
-#include "editor/data/blueprint.h"
-#include "editor/data/node.h"
+
+#include "editor/data/node_content.h"
 
 /// TDD Step 4: Interaction state
 

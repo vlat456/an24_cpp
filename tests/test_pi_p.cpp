@@ -6,19 +6,28 @@
 #include <cmath>
 
 
+// =============================================================================
+// Test Helpers
+// =============================================================================
+
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, double dt) {
+    comp.execute(st, dt);
+    comp.commit(st, dt);
+}
+
 // ─── Helper functions ───────────────────────────────────────────────────────────
 
-static PI<JitProvider> make_pi(float Kp = 1.0f, float Ki = 0.0f,
-                               float out_min = -1000.0f, float out_max = 1000.0f)
+static PI<JitProvider> make_pi()
 {
     PI<JitProvider> pi;
-    pi.Kp = Kp;
-    pi.Ki = Ki;
-    pi.output_min = out_min;
-    pi.output_max = out_max;
-    pi.provider.set(PortNames::setpoint, 0);
-    pi.provider.set(PortNames::feedback, 1);
-    pi.provider.set(PortNames::output,   2);
+    pi.provider.set(PortNames::setpoint,   0);
+    pi.provider.set(PortNames::feedback,   1);
+    pi.provider.set(PortNames::output,     2);
+    pi.provider.set(PortNames::Kp,         3);
+    pi.provider.set(PortNames::Ki,         4);
+    pi.provider.set(PortNames::output_min, 5);
+    pi.provider.set(PortNames::output_max, 6);
     return pi;
 }
 
@@ -38,12 +47,26 @@ static P<JitProvider> make_p(float Kp = 1.0f,
 static SimulationState make_state(float sp, float fb)
 {
     SimulationState st;
-    st.across.resize(3, 0.0f);
-    st.through.resize(3, 0.0f);
-    st.conductance.resize(3, 0.0f);
-    st.across[0] = sp;
-    st.across[1] = fb;
-    st.across[2] = 0.0f;
+    st.values.resize(3, 0.0f);
+    st.values[0] = sp;
+    st.values[1] = fb;
+    st.values[2] = 0.0f;
+    return st;
+}
+
+static SimulationState make_pi_state(float sp, float fb,
+                                     float Kp = 1.0f, float Ki = 0.0f,
+                                     float out_min = -1000.0f, float out_max = 1000.0f)
+{
+    SimulationState st;
+    st.values.resize(7, 0.0f);
+    st.values[0] = sp;
+    st.values[1] = fb;
+    st.values[2] = 0.0f;
+    st.values[3] = Kp;
+    st.values[4] = Ki;
+    st.values[5] = out_min;
+    st.values[6] = out_max;
     return st;
 }
 
@@ -51,68 +74,68 @@ static SimulationState make_state(float sp, float fb)
 
 TEST(PITest, ProportionalOnly_Basic)
 {
-    auto pi = make_pi(/*Kp=*/2.0f, /*Ki=*/0.0f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/2.0f, /*Ki=*/0.0f);
 
-    pi.post_step(st, 0.016f);
+    step_component(pi, st, 0.016f);
 
     // output = Kp * (sp - fb) = 2 * 10 = 20
-    EXPECT_FLOAT_EQ(st.across[2], 20.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 20.0f);
 }
 
 TEST(PITest, ProportionalOnly_NegativeError)
 {
-    auto pi = make_pi(/*Kp=*/1.0f, /*Ki=*/0.0f);
-    auto st = make_state(/*sp=*/-5.0f, /*fb=*/5.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/-5.0f, /*fb=*/5.0f, /*Kp=*/1.0f, /*Ki=*/0.0f);
 
-    pi.post_step(st, 0.016f);
+    step_component(pi, st, 0.016f);
 
     // output = 1 * (-5 - 5) = -10
-    EXPECT_FLOAT_EQ(st.across[2], -10.0f);
+    EXPECT_FLOAT_EQ(st.values[2], -10.0f);
 }
 
 TEST(PITest, ProportionalOnly_ZeroError)
 {
-    auto pi = make_pi(/*Kp=*/5.0f, /*Ki=*/0.0f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/10.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/10.0f, /*Kp=*/5.0f, /*Ki=*/0.0f);
 
-    pi.post_step(st, 0.016f);
+    step_component(pi, st, 0.016f);
 
     // output = 5 * (10 - 10) = 0
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 // ─── PI Tests: Integral-only (Kp=0) ───────────────────────────────────────────────
 
 TEST(PITest, IntegralOnly_Accumulates)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
-    pi.post_step(st, 0.1f);
+    step_component(pi, st, 0.1f);
     EXPECT_FLOAT_EQ(pi.integral, 1.0f);  // 10 * 0.1
 
-    pi.post_step(st, 0.1f);
+    step_component(pi, st, 0.1f);
     EXPECT_FLOAT_EQ(pi.integral, 2.0f);  // 10 * 0.1 + 10 * 0.1
 }
 
 TEST(PITest, IntegralOnly_DecreasesWhenErrorChangesSign)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     // Accumulate positive integral
     for (int i = 0; i < 10; ++i) {
-        pi.post_step(st, 0.01f);
+        step_component(pi, st, 0.01f);
     }
     float integral_after_positive = pi.integral;
     EXPECT_GT(integral_after_positive, 0.0f);
 
     // Reverse error
-    st.across[0] = 0.0f;   // setpoint = 0
-    st.across[1] = 10.0f;  // feedback = 10, error = -10
+    st.values[0] = 0.0f;   // setpoint = 0
+    st.values[1] = 10.0f;  // feedback = 10, error = -10
     for (int i = 0; i < 5; ++i) {
-        pi.post_step(st, 0.01f);
+        step_component(pi, st, 0.01f);
     }
 
     // Integral should have decreased
@@ -123,41 +146,41 @@ TEST(PITest, IntegralOnly_DecreasesWhenErrorChangesSign)
 
 TEST(PITest, ProportionalAndIntegral_StepResponse)
 {
-    auto pi = make_pi(/*Kp=*/1.0f, /*Ki=*/0.5f, -1e9f, 1e9f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/1.0f, /*Ki=*/0.5f, -1e9f, 1e9f);
 
-    pi.post_step(st, 0.01f);
+    step_component(pi, st, 0.01f);
 
     // P term = 1 * 10 = 10
     // I term = 0.5 * (10 * 0.01) = 0.05
     // Total = 10.05
-    EXPECT_NEAR(st.across[2], 10.05f, 0.01f);
+    EXPECT_NEAR(st.values[2], 10.05f, 0.01f);
 }
 
 TEST(PITest, ProportionalAndIntegral_SteadyStateZeroError)
 {
-    auto pi = make_pi(/*Kp=*/2.0f, /*Ki=*/1.0f, -1e9f, 1e9f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/10.0f);  // Zero error
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/10.0f, /*Kp=*/2.0f, /*Ki=*/1.0f, -1e9f, 1e9f);  // Zero error
 
-    pi.post_step(st, 0.01f);
+    step_component(pi, st, 0.01f);
 
     // P = 2 * 0 = 0
     // I = 1 * (0 * 0.01) = 0
     // Output = 0 (integral doesn't change when error is zero)
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(PITest, NegativeGains_InvertControl)
 {
-    auto pi = make_pi(/*Kp=*/-2.0f, /*Ki=*/-0.5f, -1e9f, 1e9f);
-    auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/10.0f, /*fb=*/0.0f, /*Kp=*/-2.0f, /*Ki=*/-0.5f, -1e9f, 1e9f);
 
-    pi.post_step(st, 0.01f);
+    step_component(pi, st, 0.01f);
 
     // P term = -2 * 10 = -20
     // I term = -0.5 * (10 * 0.01) = -0.05
     // Total = -20.05
-    EXPECT_NEAR(st.across[2], -20.05f, 0.01f);
+    EXPECT_NEAR(st.values[2], -20.05f, 0.01f);
 }
 
 // ─── PI Tests: Time Invariance ────────────────────────────────────────────────────
@@ -165,17 +188,17 @@ TEST(PITest, NegativeGains_InvertControl)
 TEST(PITest, IntegralTimeInvariance)
 {
     // Same conditions at 60 Hz and 144 Hz should yield comparable integral
-    auto pi60  = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto pi144 = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
+    auto pi60  = make_pi();
+    auto pi144 = make_pi();
 
-    auto st60  = make_state(5.0f, 0.0f);
-    auto st144 = make_state(5.0f, 0.0f);
+    auto st60  = make_pi_state(5.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
+    auto st144 = make_pi_state(5.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
-    for (int i = 0; i < 60;  ++i) pi60 .post_step(st60,  1.0f / 60.0f);
-    for (int i = 0; i < 144; ++i) pi144.post_step(st144, 1.0f / 144.0f);
+    for (int i = 0; i < 60;  ++i) step_component(pi60, st60,  1.0f / 60.0f);
+    for (int i = 0; i < 144; ++i) step_component(pi144, st144, 1.0f / 144.0f);
 
     // After 1 second, integrals should match
-    EXPECT_NEAR(st60.across[2], st144.across[2], 1e-3f);
+    EXPECT_NEAR(st60.values[2], st144.values[2], 1e-3f);
 }
 
 // ─── PI Tests: Anti-Windup ────────────────────────────────────────────────────────
@@ -183,50 +206,50 @@ TEST(PITest, IntegralTimeInvariance)
 TEST(PITest, AntiWindupCapsOutput)
 {
     // Large error, large Ki, tight output cap
-    auto pi = make_pi(/*Kp=*/1.0f, /*Ki=*/10.0f, /*out_min=*/-10.0f, /*out_max=*/10.0f);
-    auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/100.0f, /*fb=*/0.0f, /*Kp=*/1.0f, /*Ki=*/10.0f, /*out_min=*/-10.0f, /*out_max=*/10.0f);
 
     for (int i = 0; i < 200; ++i) {
-        pi.post_step(st, 0.016f);
+        step_component(pi, st, 0.016f);
     }
 
-    EXPECT_LE(st.across[2], 10.0f);
-    EXPECT_GE(st.across[2], -10.0f);
+    EXPECT_LE(st.values[2], 10.0f);
+    EXPECT_GE(st.values[2], -10.0f);
 }
 
 TEST(PITest, AntiWindupIntegralClamped)
 {
     // Integral contribution alone must not push output beyond [min, max]
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/100.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
-    auto st = make_state(10.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(10.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/100.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
 
     for (int i = 0; i < 1000; ++i) {
-        pi.post_step(st, 0.016f);
+        step_component(pi, st, 0.016f);
     }
 
-    EXPECT_LE(st.across[2], 5.0f);
-    EXPECT_GE(st.across[2], -5.0f);
+    EXPECT_LE(st.values[2], 5.0f);
+    EXPECT_GE(st.values[2], -5.0f);
 }
 
 // ─── PI Tests: Edge Cases ────────────────────────────────────────────────────────
 
 TEST(PITest, ZeroGains_ZeroOutput)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/0.0f);
-    auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/100.0f, /*fb=*/0.0f, /*Kp=*/0.0f, /*Ki=*/0.0f);
 
-    pi.post_step(st, 0.016f);
+    step_component(pi, st, 0.016f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(PITest, ExtremeDt_ClampedToMax)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto st = make_state(10.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(10.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
     // Run with extremely large dt
-    pi.post_step(st, 10.0f);
+    step_component(pi, st, 10.0f);
 
     // integral should grow as if dt was 0.1s (clamped), not 10s
     EXPECT_FLOAT_EQ(pi.integral, 10.0f * 0.1f);
@@ -234,10 +257,10 @@ TEST(PITest, ExtremeDt_ClampedToMax)
 
 TEST(PITest, TinyDt_ClampedToMin)
 {
-    auto pi = make_pi(/*Kp=*/0.0f, /*Ki=*/1.0f);
-    auto st = make_state(10.0f, 0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(10.0f, 0.0f, /*Kp=*/0.0f, /*Ki=*/1.0f);
 
-    pi.post_step(st, 1e-9f);
+    step_component(pi, st, 1e-9f);
 
     // integral should grow as if dt was 1e-6
     EXPECT_FLOAT_EQ(pi.integral, 10.0f * 1e-6f);
@@ -245,37 +268,37 @@ TEST(PITest, TinyDt_ClampedToMin)
 
 TEST(PITest, OutputSaturation_PositiveClamp)
 {
-    auto pi = make_pi(/*Kp=*/10.0f, /*Ki=*/0.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
-    auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/100.0f, /*fb=*/0.0f, /*Kp=*/10.0f, /*Ki=*/0.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
 
-    pi.post_step(st, 0.016f);
+    step_component(pi, st, 0.016f);
 
     // P-only: output = 10 * 100 = 1000, should clamp to 5
-    EXPECT_FLOAT_EQ(st.across[2], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
 
 TEST(PITest, OutputSaturation_NegativeClamp)
 {
-    auto pi = make_pi(/*Kp=*/10.0f, /*Ki=*/0.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
-    auto st = make_state(/*sp=*/0.0f, /*fb=*/100.0f);
+    auto pi = make_pi();
+    auto st = make_pi_state(/*sp=*/0.0f, /*fb=*/100.0f, /*Kp=*/10.0f, /*Ki=*/0.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
 
-    pi.post_step(st, 0.016f);
+    step_component(pi, st, 0.016f);
 
     // P-only: output = 10 * (-100) = -1000, should clamp to -5
-    EXPECT_FLOAT_EQ(st.across[2], -5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], -5.0f);
 }
 
 TEST(PITest, MultipleInstances_IndependentState)
 {
-    auto pi1 = make_pi(/*Kp=*/2.0f, /*Ki=*/0.1f);
-    auto pi2 = make_pi(/*Kp=*/2.0f, /*Ki=*/0.1f);
+    auto pi1 = make_pi();
+    auto pi2 = make_pi();
 
-    auto st1 = make_state(10.0f, 0.0f);
-    auto st2 = make_state(5.0f, 0.0f);
+    auto st1 = make_pi_state(10.0f, 0.0f, /*Kp=*/2.0f, /*Ki=*/0.1f);
+    auto st2 = make_pi_state(5.0f, 0.0f, /*Kp=*/2.0f, /*Ki=*/0.1f);
 
     for (int i = 0; i < 10; ++i) {
-        pi1.post_step(st1, 0.016f);
-        pi2.post_step(st2, 0.016f);
+        step_component(pi1, st1, 0.016f);
+        step_component(pi2, st2, 0.016f);
     }
 
     // States should be different (different errors)
@@ -285,7 +308,7 @@ TEST(PITest, MultipleInstances_IndependentState)
 TEST(PITest, ComparedToPID_NoDerivative)
 {
     // PI should behave like PID with Kd=0
-    auto pi = make_pi(/*Kp=*/1.0f, /*Ki=*/0.5f, -1e9f, 1e9f);
+    auto pi = make_pi();
 
     PID<JitProvider> pid;
     pid.Kp = 1.0f;
@@ -298,26 +321,14 @@ TEST(PITest, ComparedToPID_NoDerivative)
     pid.provider.set(PortNames::feedback, 1);
     pid.provider.set(PortNames::output, 2);
 
-    auto st_pi  = make_state(10.0f, 0.0f);
+    auto st_pi  = make_pi_state(10.0f, 0.0f, /*Kp=*/1.0f, /*Ki=*/0.5f, -1e9f, 1e9f);
     auto st_pid = make_state(10.0f, 0.0f);
 
-    pi.post_step(st_pi, 0.01f);
-    pid.post_step(st_pid, 0.01f);
+    step_component(pi, st_pi, 0.01f);
+    step_component(pid, st_pid, 0.01f);
 
     // Should produce identical output
-    EXPECT_FLOAT_EQ(st_pi.across[2], st_pid.across[2]);
-}
-
-TEST(PITest, SolveElectricalStampsConductance)
-{
-    auto pi = make_pi();
-    auto st = make_state(0.0f, 0.0f);
-
-    pi.solve_electrical(st, 0.016f);
-
-    // Output node gets a small conductance to ground
-    EXPECT_GT(st.conductance[2], 0.0f);
-    EXPECT_LT(st.conductance[2], 1e-4f);
+    EXPECT_FLOAT_EQ(st_pi.values[2], st_pid.values[2]);
 }
 
 // ─── P Tests: Basic Proportional Control ───────────────────────────────────────────
@@ -327,10 +338,10 @@ TEST(PTest, ProportionalOnly_Basic)
     auto p = make_p(/*Kp=*/2.0f);
     auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
 
-    p.post_step(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     // output = Kp * (sp - fb) = 2 * 10 = 20
-    EXPECT_FLOAT_EQ(st.across[2], 20.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 20.0f);
 }
 
 TEST(PTest, ProportionalOnly_NegativeError)
@@ -338,10 +349,10 @@ TEST(PTest, ProportionalOnly_NegativeError)
     auto p = make_p(/*Kp=*/1.0f);
     auto st = make_state(/*sp=*/-5.0f, /*fb=*/5.0f);
 
-    p.post_step(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     // output = 1 * (-5 - 5) = -10
-    EXPECT_FLOAT_EQ(st.across[2], -10.0f);
+    EXPECT_FLOAT_EQ(st.values[2], -10.0f);
 }
 
 TEST(PTest, ProportionalOnly_ZeroError)
@@ -349,10 +360,10 @@ TEST(PTest, ProportionalOnly_ZeroError)
     auto p = make_p(/*Kp=*/5.0f);
     auto st = make_state(/*sp=*/10.0f, /*fb=*/10.0f);
 
-    p.post_step(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     // output = 5 * (10 - 10) = 0
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(PTest, HighGain)
@@ -360,10 +371,10 @@ TEST(PTest, HighGain)
     auto p = make_p(/*Kp=*/100.0f);
     auto st = make_state(/*sp=*/1.0f, /*fb=*/0.0f);
 
-    p.post_step(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     // output = 100 * 1 = 100
-    EXPECT_FLOAT_EQ(st.across[2], 100.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 100.0f);
 }
 
 // ─── P Tests: Edge Cases ──────────────────────────────────────────────────────────
@@ -373,9 +384,9 @@ TEST(PTest, ZeroGain_ZeroOutput)
     auto p = make_p(/*Kp=*/0.0f);
     auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
 
-    p.post_step(st, 0.016f);
+    step_component(p, st, 0.016f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(PTest, NegativeGain_InvertsControl)
@@ -383,10 +394,10 @@ TEST(PTest, NegativeGain_InvertsControl)
     auto p = make_p(/*Kp=*/-2.0f);
     auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
 
-    p.post_step(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     // output = -2 * 10 = -20
-    EXPECT_FLOAT_EQ(st.across[2], -20.0f);
+    EXPECT_FLOAT_EQ(st.values[2], -20.0f);
 }
 
 TEST(PTest, OutputSaturation_PositiveClamp)
@@ -394,10 +405,10 @@ TEST(PTest, OutputSaturation_PositiveClamp)
     auto p = make_p(/*Kp=*/10.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
     auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
 
-    p.post_step(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     // output = 10 * 100 = 1000, should clamp to 5
-    EXPECT_FLOAT_EQ(st.across[2], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
 
 TEST(PTest, OutputSaturation_NegativeClamp)
@@ -405,10 +416,10 @@ TEST(PTest, OutputSaturation_NegativeClamp)
     auto p = make_p(/*Kp=*/10.0f, /*out_min=*/-5.0f, /*out_max=*/5.0f);
     auto st = make_state(/*sp=*/0.0f, /*fb=*/100.0f);
 
-    p.post_step(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     // output = 10 * (-100) = -1000, should clamp to -5
-    EXPECT_FLOAT_EQ(st.across[2], -5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], -5.0f);
 }
 
 TEST(PTest, OutputSaturation_AsymmetricLimits)
@@ -418,11 +429,11 @@ TEST(PTest, OutputSaturation_AsymmetricLimits)
     auto st_neg = make_state(/*sp=*/0.0f, /*fb=*/10.0f);   // negative error
     auto st_pos = make_state(/*sp=*/10.0f, /*fb=*/0.0f);   // positive error
 
-    p.post_step(st_neg, 0.016f);
-    EXPECT_FLOAT_EQ(st_neg.across[2], 0.0f);  // Clamped to min
+    step_component(p, st_neg, 0.016f);
+    EXPECT_FLOAT_EQ(st_neg.values[2], 0.0f);  // Clamped to min
 
-    p.post_step(st_pos, 0.016f);
-    EXPECT_FLOAT_EQ(st_pos.across[2], 100.0f); // Clamped to max
+    step_component(p, st_pos, 0.016f);
+    EXPECT_FLOAT_EQ(st_pos.values[2], 100.0f); // Clamped to max
 }
 
 // ─── P Tests: Time Independence ───────────────────────────────────────────────────
@@ -435,11 +446,11 @@ TEST(PTest, DtDoesNotAffectOutput)
     auto st1 = make_state(10.0f, 0.0f);
     auto st2 = make_state(10.0f, 0.0f);
 
-    p.post_step(st1, 0.001f);  // 1kHz
-    p.post_step(st2, 0.1f);    // 10Hz
+    step_component(p, st1, 0.001f);  // 1kHz
+    step_component(p, st2, 0.1f);    // 10Hz
 
     // Same output regardless of dt
-    EXPECT_FLOAT_EQ(st1.across[2], st2.across[2]);
+    EXPECT_FLOAT_EQ(st1.values[2], st2.values[2]);
 }
 
 // ─── P Tests: Memoryless Property ────────────────────────────────────────────────
@@ -451,12 +462,12 @@ TEST(PTest, Memoryless_NoStateAccumulation)
     auto st = make_state(10.0f, 0.0f);
 
     // First step
-    p.post_step(st, 0.01f);
-    float output1 = st.across[2];
+    step_component(p, st, 0.01f);
+    float output1 = st.values[2];
 
     // Same error again
-    p.post_step(st, 0.01f);
-    float output2 = st.across[2];
+    step_component(p, st, 0.01f);
+    float output2 = st.values[2];
 
     // Output should be identical (no memory)
     EXPECT_FLOAT_EQ(output1, output2);
@@ -468,18 +479,18 @@ TEST(PTest, Memoryless_ErrorChangeImmediate)
     auto st = make_state(10.0f, 0.0f);
 
     // Error = 10
-    p.post_step(st, 0.01f);
-    EXPECT_FLOAT_EQ(st.across[2], 10.0f);
+    step_component(p, st, 0.01f);
+    EXPECT_FLOAT_EQ(st.values[2], 10.0f);
 
     // Error changes to 5 (feedback catches up)
-    st.across[1] = 5.0f;
-    p.post_step(st, 0.01f);
-    EXPECT_FLOAT_EQ(st.across[2], 5.0f);
+    st.values[1] = 5.0f;
+    step_component(p, st, 0.01f);
+    EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 
     // Error changes to -5 (overshoot)
-    st.across[1] = 15.0f;
-    p.post_step(st, 0.01f);
-    EXPECT_FLOAT_EQ(st.across[2], -5.0f);
+    st.values[1] = 15.0f;
+    step_component(p, st, 0.01f);
+    EXPECT_FLOAT_EQ(st.values[2], -5.0f);
 }
 
 // ─── P Tests: Comparison with Other Controllers ───────────────────────────────────
@@ -489,23 +500,16 @@ TEST(PTest, ComparedToPI_KiZero)
     // P should behave like PI with Ki=0
     auto p = make_p(/*Kp=*/2.0f, -1e9f, 1e9f);
 
-    PI<JitProvider> pi;
-    pi.Kp = 2.0f;
-    pi.Ki = 0.0f;
-    pi.output_min = -1e9f;
-    pi.output_max = 1e9f;
-    pi.provider.set(PortNames::setpoint, 0);
-    pi.provider.set(PortNames::feedback, 1);
-    pi.provider.set(PortNames::output, 2);
+    auto pi = make_pi();
 
     auto st_p  = make_state(10.0f, 0.0f);
-    auto st_pi = make_state(10.0f, 0.0f);
+    auto st_pi = make_pi_state(10.0f, 0.0f, /*Kp=*/2.0f, /*Ki=*/0.0f, -1e9f, 1e9f);
 
-    p.post_step(st_p, 0.01f);
-    pi.post_step(st_pi, 0.01f);
+    step_component(p, st_p, 0.01f);
+    step_component(pi, st_pi, 0.01f);
 
     // Should produce identical output
-    EXPECT_FLOAT_EQ(st_p.across[2], st_pi.across[2]);
+    EXPECT_FLOAT_EQ(st_p.values[2], st_pi.values[2]);
 }
 
 TEST(PTest, ComparedToPID_KiKdZero)
@@ -527,23 +531,9 @@ TEST(PTest, ComparedToPID_KiKdZero)
     auto st_p   = make_state(10.0f, 0.0f);
     auto st_pid = make_state(10.0f, 0.0f);
 
-    p.post_step(st_p, 0.01f);
-    pid.post_step(st_pid, 0.01f);
+    step_component(p, st_p, 0.01f);
+    step_component(pid, st_pid, 0.01f);
 
     // Should produce identical output
-    EXPECT_FLOAT_EQ(st_p.across[2], st_pid.across[2]);
-}
-
-// ─── P Tests: Electrical ─────────────────────────────────────────────────────────
-
-TEST(PTest, SolveElectricalStampsConductance)
-{
-    auto p = make_p();
-    auto st = make_state(0.0f, 0.0f);
-
-    p.solve_electrical(st, 0.016f);
-
-    // Output node gets a small conductance to ground
-    EXPECT_GT(st.conductance[2], 0.0f);
-    EXPECT_LT(st.conductance[2], 1e-4f);
+    EXPECT_FLOAT_EQ(st_p.values[2], st_pid.values[2]);
 }

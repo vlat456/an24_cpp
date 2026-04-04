@@ -1,29 +1,37 @@
 {
-  "exposes": {
-    "in": {
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "SampleHold",
+  "display_name": "SampleHold",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "in",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "out": {
-      "direction": "Out",
-      "type": "Any"
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     },
-    "trigger": {
-      "direction": "In",
-      "type": "Bool"
+    {
+      "name": "trigger",
+      "domain": 2,
+      "direction": 0,
+      "type": "Bool",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Samples 'in' when 'trigger' rises and holds it",
-    "domains": [
-      "Logical"
-    ],
-    "name": "SampleHold",
-    "size": [
-      2.0,
-      1.0
-    ]
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Samples 'in' when 'trigger' rises and holds it",
+  "domains": [
+    "Logical"
+  ]
 }

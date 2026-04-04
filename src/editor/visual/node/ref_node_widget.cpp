@@ -4,9 +4,11 @@
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/handle_renderer.h"
 #include "editor/layout_constants.h"
-#include "data/node.h"
+#include "data/node_content.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 
 namespace visual {
 
@@ -14,29 +16,42 @@ namespace visual {
 // Construction
 // ============================================================================
 
-RefNodeWidget::RefNodeWidget(const ::Node& data, const ui::StringInterner& interner)
+/// Format a float for display: no trailing zeros, up to 6 significant digits.
+static std::string format_value(float v) {
+    // Use %g for compact representation (no trailing zeros)
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), "%.6g", static_cast<double>(v));
+    return std::string(buf);
+}
+
+RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
     : node_iid_(data.id)
     , interner_(&interner)
     , name_(data.name)
-    , type_name_(data.type_name)
+    , type_name_(std::string(interner.resolve(data.type)))
 {
-    if (data.color.has_value()) {
-        custom_fill_ = data.color->to_uint32();
+    // For Value nodes, display the numeric value instead of the name
+    if (type_name_ == "Value" && !data.params.empty()) {
+        name_ = format_value(data.params.begin()->second);
+    }
+    if (data.has_color) {
+        NodeColor c;
+        c.r = data.color_r;
+        c.g = data.color_g;
+        c.b = data.color_b;
+        c.a = data.color_a;
+        custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(data.pos);
+    setLocalPos(Pt(data.x, data.y));
     buildLayout(data, interner);
 
-    // Snap size to grid
-    auto snap = [](float v) {
-        constexpr float g = editor_constants::PORT_LAYOUT_GRID;
-        return std::ceil(v / g) * g;
-    };
-
-    float w = snap(std::max(data.size.x, 48.0f));
-    float h = snap(std::max(data.size.y, 32.0f));
-    setSize(Pt(w, h));
-
+    // Size based on text width + horizontal padding
+    float text_w = name_.empty() ? 0.0f : name_.length() * PortConstants::LABEL_FONT_SIZE * 0.8f;
+    constexpr float h_pad = 16.0f;
+    constexpr float v_pad = 4.0f;
+    Pt node_size(text_w + h_pad, PortConstants::LABEL_FONT_SIZE + v_pad);
+    setSize(node_size);
     positionPort();
 }
 
@@ -44,7 +59,7 @@ RefNodeWidget::RefNodeWidget(const ::Node& data, const ui::StringInterner& inter
 // Layout
 // ============================================================================
 
-void RefNodeWidget::buildLayout(const ::Node& data, const ui::StringInterner& interner) {
+void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     // Determine the single port from node data.
     // Port stores a string_view, so the name must point to stable storage
     // (the interner) — never to a local std::string.
@@ -65,9 +80,45 @@ void RefNodeWidget::buildLayout(const ::Node& data, const ui::StringInterner& in
 
 void RefNodeWidget::positionPort() {
     if (!port_) return;
-    // Port centered horizontally, circle center on top edge (y=0)
-    port_->setLocalPos(Pt(size().x / 2.0f - editor_constants::PORT_RADIUS,
-                          -editor_constants::PORT_RADIUS));
+
+    const float center_x = size().x * 0.5f;
+    const float center_y = size().y * 0.5f;
+    const float clamped_center_x = std::clamp(center_x,
+                                              PortConstants::RADIUS,
+                                              size().x - PortConstants::RADIUS);
+    const float clamped_center_y = std::clamp(center_y,
+                                              PortConstants::RADIUS,
+                                              size().y - PortConstants::RADIUS);
+
+    Pt local_pos;
+    switch (port_layout_side_) {
+        case PortLayoutSide::Left:
+            local_pos = Pt(-PortConstants::RADIUS,
+                           clamped_center_y - PortConstants::RADIUS);
+            break;
+        case PortLayoutSide::Right:
+            local_pos = Pt(size().x - PortConstants::RADIUS,
+                           clamped_center_y - PortConstants::RADIUS);
+            break;
+        case PortLayoutSide::Bottom:
+            local_pos = Pt(clamped_center_x - PortConstants::RADIUS,
+                           size().y - PortConstants::RADIUS);
+            break;
+        case PortLayoutSide::Top:
+        default:
+            local_pos = Pt(clamped_center_x - PortConstants::RADIUS,
+                           -PortConstants::RADIUS);
+            break;
+    }
+
+    port_->setLayoutSide(port_layout_side_);
+    port_->setLocalPos(local_pos);
+}
+
+void RefNodeWidget::setPortLayoutSide(PortLayoutSide side) {
+    if (port_layout_side_ == side) return;
+    port_layout_side_ = side;
+    positionPort();
 }
 
 Port* RefNodeWidget::port(std::string_view name) const {
@@ -81,8 +132,12 @@ Port* RefNodeWidget::portByName(std::string_view port_name,
     return nullptr;
 }
 
-Pt RefNodeWidget::preferredSize(IDrawList* /*dl*/) const {
-    return Pt(48.0f, 32.0f);
+Pt RefNodeWidget::preferredSize(IDrawList* dl) const {
+    if (!dl) return Pt(56.0f, 20.0f);
+    float w = dl->calc_text_size(name_.c_str(), PortConstants::LABEL_FONT_SIZE).x;
+    constexpr float h_pad = 16.0f;
+    constexpr float v_pad = 4.0f;
+    return Pt(w + h_pad, PortConstants::LABEL_FONT_SIZE + v_pad);
 }
 
 void RefNodeWidget::layout(float w, float h) {
@@ -109,17 +164,17 @@ void RefNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     uint32_t fill = custom_fill_.value_or(render_theme::COLOR_BUS_FILL);
     dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
 
-    // Name text (centered vertically, left-aligned with small padding)
-    Pt center = Pt((screen_min.x + screen_max.x) / 2.0f,
-                   (screen_min.y + screen_max.y) / 2.0f);
-    Pt text_pos(screen_min.x + 2.0f * zoom, center.y - 5.0f * zoom);
-    dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * zoom);
-
     // Border
     uint32_t border_color = render_theme::COLOR_BUS_BORDER;
     dl->add_rect_with_rounding_corners(screen_min, screen_max, border_color, rounding,
                                        editor_constants::DRAW_CORNERS_ALL, 1.0f);
 
+    // Value text, vertically centered
+    float font_size = PortConstants::LABEL_FONT_SIZE * zoom;
+    float text_h = dl->calc_text_size(name_.c_str(), font_size).y;
+    float text_y = screen_min.y + (sz.y * zoom - text_h) / 2.0f;
+    float text_x = screen_min.x + 2.0f * zoom;
+    dl->add_text(Pt(text_x, text_y), name_.c_str(), render_theme::COLOR_TEXT, font_size);
 }
 
 void RefNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {

@@ -1,17 +1,25 @@
 #include "document.h"
 #include "commands/commands.h"
+#include "commands/extract_blueprint.h"
+#include "common/port_type_utils.h"
 #include "visual/scene_mutations.h"
 #include "visual/persist.h"
 #include "visual/snap.h"
 #include "visual/node/visual_node.h"
 #include "debug.h"
-#include "data/wire.h"
-#include "data/node.h"
+#include "data/node_content.h"
 #include "json_parser/json_parser.h"
+#include "parse_number.h"
+#include "subwindow_open_target.h"
+#include "signal_key_resolver.h"
+#include <nlohmann/json.hpp>
+#include "blueprint_v2/path/path.h"
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <filesystem>
 
 int Document::next_id_ = 1;
 
@@ -20,31 +28,246 @@ Document::Document() {
 }
 
 std::string Document::title() const {
-    return display_name_;
+    std::string base;
+    if (!model_.current().name().empty()) {
+        base = model_.current().name();
+    } else if (!model_.current().display_name().empty()) {
+        base = model_.current().display_name();
+    } else {
+        base = display_name_;
+    }
+    if (model_.is_dirty()) {
+        base += "*";
+    }
+    if (window_manager_.root().read_only) {
+        base += " [Read Only]";
+    }
+    return base;
 }
 
-bool Document::save(const std::string& path) {
-    // Sync viewport state into blueprint before saving
-    auto& vp = viewport();
-    blueprint_.pan = vp.pan;
-    blueprint_.zoom = vp.zoom;
-    blueprint_.grid_step = vp.grid_step;
+// ============================================================================
+// Private helpers
+// ============================================================================
 
-    if (!save_blueprint_to_file(blueprint_, path.c_str())) return false;
+using json = nlohmann::json;
+
+namespace {
+
+bool has_default_pan_zoom(const bp2::Blueprint& bp) {
+    return std::abs(bp.pan_x()) < 1e-6f
+        && std::abs(bp.pan_y()) < 1e-6f
+        && std::abs(bp.zoom() - 1.0f) < 1e-6f;
+}
+
+bool split_endpoint(const std::string& endpoint, std::string& node, std::string& port) {
+    const size_t dot = endpoint.rfind('.');
+    if (dot == std::string::npos || dot == 0 || dot + 1 >= endpoint.size()) {
+        return false;
+    }
+    node = endpoint.substr(0, dot);
+    port = endpoint.substr(dot + 1);
+    return true;
+}
+
+} // namespace
+
+static const char* sim_port_type_str(PortType t) {
+    switch (t) {
+        case PortType::V: return "V";
+        case PortType::I: return "I";
+        case PortType::Bool: return "Bool";
+        case PortType::RPM: return "RPM";
+        case PortType::Temperature: return "Temperature";
+        case PortType::Pressure: return "Pressure";
+        case PortType::Position: return "Position";
+        case PortType::Any:
+        default: return "Any";
+    }
+}
+
+std::string Document::build_simulation_json() const {
+    const bp2::Blueprint& bp = model_.current();
+    json out = json::object();
+    out["templates"] = json::object();
+
+    json devices = json::array();
+    std::set<std::string> emitted_ids;
+
+    for (const bp2::Blueprint::Node& n : bp.nodes()) {
+        // Embedded blueprint proxy nodes are visual-only collapsed
+        // representations.  Their internal component nodes already exist in
+        // the blueprint (under the nested group) and will be emitted as
+        // regular devices — skip the proxy to avoid an "Unknown component
+        // classname" error in the json parser.
+        if (n.expandable) {
+            const auto* nested = bp.find_nested(n.id);
+            if (nested && nested->embedded) {
+                bool has_materialized_children = false;
+                const std::string parent_id = std::string(interner_.resolve(n.id));
+                for (const auto& child : bp.nodes()) {
+                    if (child.group_id == parent_id) {
+                        has_materialized_children = true;
+                        break;
+                    }
+                }
+                if (has_materialized_children) {
+                    continue;
+                }
+            }
+        }
+
+        // Non-embedded expandable (composite) nodes — emit them as regular
+        // devices so that parse_json_impl() can expand them via TypeRegistry.
+        if (n.expandable) {
+            // Expandable nodes only carry exposed interface ports.  Emit a
+            // minimal device entry – parse_json_impl will replace it with the
+            // expanded sub-graph.
+        }
+
+        std::string nid = std::string(interner_.resolve(n.id));
+        if (!emitted_ids.insert(nid).second) {
+            spdlog::warn("[dedup] Duplicate node '{}' on sim export", nid);
+            continue;
+        }
+
+        json device = json::object();
+        device["name"] = nid;
+        device["template_name"] = "";
+        device["classname"] = std::string(interner_.resolve(n.type));
+        if (!n.render_hint.empty()) {
+            device["render_hint"] = n.render_hint;
+        }
+        device["priority"] = "med";
+        device["bucket"] = nullptr;
+        device["critical"] = false;
+
+        json ports = json::object();
+        for (const auto& p : n.inputs) {
+            ports[std::string(interner_.resolve(p.name))] = {
+                {"direction", "In"},
+                {"type", sim_port_type_str(p.type)}
+            };
+        }
+        for (const auto& p : n.outputs) {
+            ports[std::string(interner_.resolve(p.name))] = {
+                {"direction", "Out"},
+                {"type", sim_port_type_str(p.type)}
+            };
+        }
+        device["ports"] = std::move(ports);
+
+        // Look up param schema to filter visual_only params from simulation
+        const TypeDefinition* type_def = nullptr;
+        std::string classname = std::string(interner_.resolve(n.type));
+        if (type_registry_) {
+            type_def = type_registry_->get(classname);
+        }
+        auto is_visual_only = [&](const std::string& key) -> bool {
+            if (!type_def) return false;
+            auto it = type_def->param_schema.find(key);
+            return it != type_def->param_schema.end() && it->second.visual_only;
+        };
+
+        json params = json::object();
+        for (const auto& [k, v] : n.params) {
+            std::string key = std::string(interner_.resolve(k));
+            if (is_visual_only(key)) continue;
+            params[key] = std::to_string(v);
+        }
+        for (const auto& [k, v] : n.string_params) {
+            if (is_visual_only(k)) continue;
+            params[k] = v;
+        }
+        if (!params.empty()) {
+            device["params"] = std::move(params);
+        }
+
+        devices.push_back(std::move(device));
+    }
+    out["devices"] = std::move(devices);
+
+    // No special rewriting needed for expandable/composite nodes – they are
+    // emitted as normal devices and parse_json_impl() expands them, rewriting
+    // connections to point at the bridge nodes automatically.
+
+    json connections = json::array();
+    std::set<std::string> emitted_conn_keys;
+
+    for (const bp2::Blueprint::Wire& w : bp.wires()) {
+        auto [src_node, src_port] = bp2_path_to_node_port(w.source);
+        auto [tgt_node, tgt_port] = bp2_path_to_node_port(w.target);
+        if (src_node.empty() || src_port.empty() || tgt_node.empty() || tgt_port.empty())
+            continue;
+
+        std::string src_node_s = std::string(interner_.resolve(src_node));
+        std::string src_port_s = std::string(interner_.resolve(src_port));
+        std::string tgt_node_s = std::string(interner_.resolve(tgt_node));
+        std::string tgt_port_s = std::string(interner_.resolve(tgt_port));
+
+        const std::string key = src_node_s + "." + src_port_s + "→" + tgt_node_s + "." + tgt_port_s;
+        if (!emitted_conn_keys.insert(key).second) {
+            spdlog::warn("[dedup] Duplicate connection on sim export: {}", key);
+            continue;
+        }
+
+        json conn = json::object();
+        conn["from"] = src_node_s + "." + src_port_s;
+        conn["to"] = tgt_node_s + "." + tgt_port_s;
+        connections.push_back(std::move(conn));
+    }
+    out["connections"] = std::move(connections);
+
+    return out.dump(2);
+}
+
+/// Extract (node_id, port_name) from a bp2::Path (Node→Port path).
+std::pair<ui::InternedId, ui::InternedId>
+Document::bp2_path_to_node_port(const bp2::Path& path) const {
+    if (path.kind() != bp2::PathKind::Port) return {};
+    ui::InternedId port_name = path.segment();
+    bp2::Path parent = arena_.parent(path);
+    if (parent.kind() != bp2::PathKind::Node) return {};
+    ui::InternedId node_id = parent.segment();
+    return {node_id, port_name};
+}
+
+// ============================================================================
+// File I/O
+// ============================================================================
+
+bool Document::save(const std::string& path) {
+    // Sync viewport state into the bp2 blueprint before saving
+    const auto& vp = viewport();
+    auto updated = model_.current().with_viewport(vp.pan.x, vp.pan.y, vp.zoom, vp.grid_step);
+    model_.replace_current(std::move(updated));
+
+    TypeRegistry parser_registry = load_type_registry("library/");
+    std::string validation_error;
+    if (!validate_blueprint_for_persist(model_.current(), interner_, arena_, parser_registry, &validation_error)) {
+        spdlog::error("[persist] Refusing to save invalid blueprint '{}': {}", path, validation_error);
+        return false;
+    }
+
+    if (!save_blueprint_to_file(model_.current(), interner_, arena_, path.c_str()))
+        return false;
 
     filepath_ = path;
     auto pos = path.find_last_of("/\\");
     display_name_ = (pos != std::string::npos) ? path.substr(pos + 1) : path;
-    undo_stack_.mark_saved();
+    model_.mark_saved();
     return true;
 }
 
 bool Document::load(const std::string& path) {
-    auto bp = load_blueprint_from_file(path.c_str());
+    TypeRegistry parser_registry = load_type_registry("library/");
+    auto bp = load_blueprint_from_file_validated(path.c_str(), interner_, arena_, parser_registry);
     if (!bp.has_value()) return false;
 
     // Close any sub-windows from previous blueprint
-    window_manager_.closeAll();
+    window_manager_.close_all();
+
+    // Cancel any in-flight gesture in the root window before replacing the blueprint
+    root().input.cancel_gesture();
 
     // Stop simulation if running
     if (simulation_running_) {
@@ -52,25 +275,29 @@ bool Document::load(const std::string& path) {
         simulation_running_ = false;
     }
 
-    blueprint_ = std::move(*bp);
-    blueprint_.rebuild_node_index();
-    blueprint_.rebuild_wire_index();
-    blueprint_.rebuild_wire_id_index();
-    blueprint_.rebuild_bus_wire_index();
-    blueprint_.rebuild_port_occupancy_index();
+    // Replace model with loaded blueprint and reset history
+    model_.replace_current(std::move(*bp));
 
     // Clear undo/redo history from previous document and mark as clean
-    undo_stack_.clear();
-    undo_stack_.mark_saved();
+    // (push a clean checkpoint by discarding any pending undo state)
+    // EditorModel: history is reset by constructing a fresh model state.
+    // We achieve this by loading a fresh model:
+    {
+        bp2::EditorModel fresh(model_.current());
+        model_ = std::move(fresh);
+        sync_next_wire_id();
+        model_.mark_saved();
+    }
 
     auto& vp = viewport();
-    vp.pan = blueprint_.pan;
-    vp.zoom = blueprint_.zoom;
-    vp.grid_step = blueprint_.grid_step;
+    vp.pan.x     = model_.current().pan_x();
+    vp.pan.y     = model_.current().pan_y();
+    vp.zoom      = model_.current().zoom();
+    vp.grid_step = model_.current().grid_step();
     vp.clamp_zoom();
 
     // Rebuild visual widgets from new blueprint data
-    visual::mutations::rebuild(scene(), blueprint_, root().group_id);
+    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().group_id);
 
     filepath_ = path;
     auto pos = path.find_last_of("/\\");
@@ -78,10 +305,38 @@ bool Document::load(const std::string& path) {
     return true;
 }
 
+void Document::sync_next_wire_id() {
+    int max_seen = -1;
+    for (const auto& w : model_.current().wires()) {
+        std::string_view wid = interner_.resolve(w.id);
+        if (wid.size() <= 5 || wid.substr(0, 5) != "wire_") {
+            continue;
+        }
+        int n = 0;
+        bool ok = true;
+        for (size_t i = 5; i < wid.size(); ++i) {
+            char c = wid[i];
+            if (c < '0' || c > '9') {
+                ok = false;
+                break;
+            }
+            n = n * 10 + (c - '0');
+        }
+        if (ok && n > max_seen) {
+            max_seen = n;
+        }
+    }
+    model_.next_wire_id_ = max_seen + 1;
+}
+
+// ============================================================================
+// Simulation
+// ============================================================================
+
 void Document::startSimulation() {
     if (!simulation_running_) {
         try {
-            simulation_.start(blueprint_);
+            simulation_.start_from_json(build_simulation_json());
             simulation_running_ = true;
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to start simulation: {}", e.what());
@@ -92,7 +347,6 @@ void Document::startSimulation() {
 
 void Document::stopSimulation() {
     simulation_.stop();
-    // Reset visual content will be done by caller with TypeRegistry
     simulation_running_ = false;
 }
 
@@ -100,7 +354,7 @@ void Document::rebuildSimulation() {
     if (simulation_running_) {
         simulation_.stop();
         try {
-            simulation_.start(blueprint_);
+            simulation_.start_from_json(build_simulation_json());
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to rebuild simulation: {}", e.what());
             simulation_running_ = false;
@@ -108,7 +362,31 @@ void Document::rebuildSimulation() {
     }
 }
 
-void Document::updateSimulationStep(float dt) {
+void Document::rebuildAllWindows() {
+    // Cancel any in-flight gestures in ALL windows BEFORE rebuilding.
+    for (auto& win : window_manager_.windows()) {
+        win->input.cancel_gesture();
+    }
+    for (auto& win : window_manager_.windows()) {
+        win->viewport.grid_step = model_.current().grid_step();
+        if (win->is_external_ref() && win->external_blueprint
+            && win->external_interner && win->external_arena) {
+            // External-ref windows rebuild from their own external blueprint
+            visual::mutations::rebuild(win->scene, *win->external_blueprint,
+                                       *win->external_interner, *win->external_arena, "");
+        } else {
+            visual::mutations::rebuild(win->scene, model_.current(),
+                                       interner_, arena_, win->group_id);
+        }
+    }
+    rebuildSimulation();
+}
+
+// ============================================================================
+// Simulation readout / node content
+// ============================================================================
+
+void Document::updateSimulationStep(double dt) {
     if (!simulation_running_) return;
 
     // Send control=1.0V for all currently held HoldButtons
@@ -130,66 +408,97 @@ void Document::updateSimulationStep(float dt) {
 void Document::updateNodeContentFromSimulation() {
     if (!simulation_running_) return;
 
-    auto& I = blueprint_.interner();
-    auto R = [&](ui::InternedId id) -> std::string { return std::string(I.resolve(id)); };
+    // For each node in the bp2 blueprint, read simulation values and push to
+    // visual widgets. We do NOT mutate the immutable bp2::Blueprint — all
+    // simulation readout lives in the visual layer.
+    for (const bp2::Blueprint::Node& n : model_.current().nodes()) {
+        if (n.content_type == bp2::NodeContentType::None) continue;
 
-    for (auto& node : blueprint_.nodes) {
-        std::string nid = R(node.id);
-        // Update Voltmeter gauge voltage
-        if (node.type_name == "Voltmeter") {
-            float voltage = simulation_.get_port_value(nid, "v_in");
-            node.node_content.value = voltage;
-        }
-        // Update IndicatorLight text based on brightness
-        else if (node.type_name == "IndicatorLight") {
+        const std::string nid = std::string(interner_.resolve(n.id));
+        const std::string type_name = std::string(interner_.resolve(n.type));
+
+        // Build a mutable NodeContent snapshot from the bp2 node fields
+        NodeContent content;
+        content.type    = static_cast<NodeContentType>(n.content_type);
+        content.label   = n.content_label;
+        content.value   = n.content_value;
+        content.min     = n.content_min;
+        content.max     = n.content_max;
+        content.unit    = n.content_unit;
+        content.state   = n.content_state;
+        content.tripped = n.content_tripped;
+
+        // Update content values from simulation
+        if (type_name == "Voltmeter") {
+            content.value = simulation_.get_port_value(nid, "v_in");
+            // Sync gauge range from params
+            auto min_key = interner_.lookup("min");
+            auto max_key = interner_.lookup("max");
+            if (!min_key.empty()) {
+                auto it = n.params.find(min_key);
+                if (it != n.params.end()) content.min = it->second;
+            }
+            if (!max_key.empty()) {
+                auto it = n.params.find(max_key);
+                if (it != n.params.end()) content.max = it->second;
+            }
+        } else if (type_name == "IndicatorLight") {
             float brightness = simulation_.get_port_value(nid, "brightness");
-            node.node_content.label = (brightness > 0.1f) ? "ON" : "OFF";
-        }
-        // Update DMR400 state
-        else if (node.type_name == "DMR400") {
-            float v_gen = simulation_.get_port_value(nid, "v_gen");
-            float v_bus = simulation_.get_port_value(nid, "v_bus");
-            bool connected = v_gen > v_bus + 2.0f;
-            node.node_content.state = connected;
-        }
-        // Update Switch toggle state from state port (1.0V = closed, 0.0V = open)
-        else if (node.type_name == "Switch") {
+            content.value = std::clamp(brightness, 0.0f, 1.0f);
+        } else if (type_name == "Switch") {
             float state_voltage = simulation_.get_port_value(nid, "state");
-            node.node_content.state = (state_voltage > 0.5f);
-        }
-        // Update HoldButton state from state port (1.0V = pressed, 0.0V = released/idle)
-        else if (node.type_name == "HoldButton") {
+            content.state = (state_voltage > 0.5f);
+        } else if (type_name == "HoldButton") {
             float state_voltage = simulation_.get_port_value(nid, "state");
-            node.node_content.state = (state_voltage > 0.5f);
-        }
-        // Update AZS (circuit breaker) state + tripped indicator
-        else if (node.type_name == "AZS") {
+            content.state = (state_voltage > 0.5f);
+        } else if (type_name == "AZS") {
             float state_voltage = simulation_.get_port_value(nid, "state");
-            node.node_content.state = (state_voltage > 0.5f);
+            content.state = (state_voltage > 0.5f);
             float tripped_voltage = simulation_.get_port_value(nid, "tripped");
-            node.node_content.tripped = (tripped_voltage > 0.5f);
-        }
-    }
+            content.tripped = (tripped_voltage > 0.5f);
+        } else if (type_name == "Slider") {
+            auto min_key = interner_.lookup("min");
+            auto max_key = interner_.lookup("max");
+            if (!min_key.empty()) {
+                auto it = n.params.find(min_key);
+                if (it != n.params.end()) content.min = it->second;
+            }
+            if (!max_key.empty()) {
+                auto it = n.params.find(max_key);
+                if (it != n.params.end()) content.max = it->second;
+            }
 
-    // Push updated content to visual widgets in all windows
-    for (const auto& win : window_manager_.windows()) {
-        for (const auto& node : blueprint_.nodes) {
-            if (node.node_content.type == NodeContentType::None) continue;
-            if (node.group_id != win->group_id) continue;
-            auto* widget = win->scene.find(I.resolve(node.id));
+            // Keep UI thumb synced with runtime slider output while simulation runs.
+            // Without this, content.value falls back to immutable blueprint default each
+            // frame and appears non-interactive during simulation.
+            float out_val = simulation_.get_port_value(nid, "out");
+            if (std::isfinite(out_val)) {
+                content.value = out_val;
+            } else {
+                float control_val = simulation_.get_port_value(nid, "control");
+                if (std::isfinite(control_val)) {
+                    content.value = control_val;
+                }
+            }
+        }
+
+        // Push updated content to visual widgets in all windows
+        for (const auto& win : window_manager_.windows()) {
+            if (n.group_id != win->group_id) continue;
+            std::string_view node_sv = interner_.resolve(n.id);
+            auto* widget = win->scene.find(node_sv);
             if (!widget) continue;
             auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
-            if (nw) nw->updateContent(node.node_content);
+            if (nw) nw->updateContent(content);
         }
     }
 }
 
-void Document::resetNodeContent(const TypeRegistry& registry) {
-    for (auto& node : blueprint_.nodes) {
-        const auto* def = registry.get(node.type_name);
-        if (!def) continue;
-        node.node_content = create_node_content_from_def(def);
-    }
+void Document::resetNodeContent(const TypeRegistry& /*registry*/) {
+    // In the bp2 world, node content is stored directly on bp2::Blueprint::Node
+    // fields (content_type, content_value, etc.). Resetting is done by rebuilding
+    // all windows, which re-creates widgets from the current blueprint state.
+    rebuildAllWindows();
 }
 
 void Document::buildEnergizedWireSet(
@@ -198,35 +507,157 @@ void Document::buildEnergizedWireSet(
     out.clear();
     if (!simulation_running_) return;
 
-    const auto& I = blueprint_.interner();
+    const bp2::Blueprint& bp = model_.current();
 
-    for (const auto& w : blueprint_.wires) {
-        // Filter wires to the active group
-        // A wire belongs to a group if both endpoints are in that group
+    for (const bp2::Blueprint::Wire& w : bp.wires()) {
+        // Filter wires to the active group by checking source node's group
         if (!group_id.empty()) {
-            const auto* start_node = blueprint_.find_node(w.start.node_id);
-            if (!start_node || start_node->group_id != group_id) continue;
+            auto [src_node_id, src_port] = bp2_path_to_node_port(w.source);
+            if (!src_node_id.empty()) {
+                const bp2::Blueprint::Node* sn = bp.find_node(src_node_id);
+                if (!sn || sn->group_id != group_id) continue;
+            }
         }
 
-        // Check either endpoint's port for voltage
-        std::string_view node_sv = I.resolve(w.start.node_id);
-        std::string_view port_sv = I.resolve(w.start.port_name);
-        std::string port_key;
-        port_key.reserve(node_sv.size() + 1 + port_sv.size());
-        port_key.append(node_sv);
-        port_key.push_back('.');
-        port_key.append(port_sv);
+        // Check source endpoint's port for voltage
+        auto [src_node_id, src_port_id] = bp2_path_to_node_port(w.source);
+        if (src_node_id.empty() || src_port_id.empty()) continue;
+
+        const bp2::Blueprint::Node* node = bp.find_node(src_node_id);
+        editor::SignalEndpoint endpoint{node, src_node_id, src_port_id};
+        editor::SignalKeyContext context = editor::root_signal_context();
+        std::string port_key = editor::resolve_runtime_signal_key(bp, interner_, endpoint, context);
+
+        // Skip if resolver failed to produce a key (e.g., empty endpoint IDs)
+        if (port_key.empty()) continue;
+
         if (simulation_.wire_is_energized(port_key)) {
-            out.insert(I.resolve(w.id));
+            out.insert(interner_.resolve(w.id));
         }
     }
 }
 
+void Document::buildEnergizedWireSetExternal(
+    std::unordered_set<std::string_view, visual::StringViewHash>& out,
+    const bp2::Blueprint& external_bp,
+    ui::StringInterner& external_interner,
+    bp2::PathArena& external_arena,
+    const std::string& parent_instance_id) const {
+    out.clear();
+    if (!simulation_running_) return;
+
+    for (const bp2::Blueprint::Wire& w : external_bp.wires()) {
+        // Decode source endpoint using the external blueprint's arena
+        if (w.source.kind() != bp2::PathKind::Port) continue;
+        ui::InternedId src_port_iid = w.source.segment();
+        bp2::Path src_parent = external_arena.parent(w.source);
+        if (src_parent.kind() != bp2::PathKind::Node) continue;
+        ui::InternedId src_node_iid = src_parent.segment();
+
+        const bp2::Blueprint::Node* node = external_bp.find_node(src_node_iid);
+        editor::SignalEndpoint endpoint{node, src_node_iid, src_port_iid};
+        editor::SignalKeyContext context = editor::external_ref_signal_context(parent_instance_id);
+        std::string parent_key = editor::resolve_runtime_signal_key(external_bp, external_interner, endpoint, context);
+
+        // Skip if resolver failed to produce a key (e.g., empty endpoint IDs)
+        if (parent_key.empty()) continue;
+
+        if (simulation_.wire_is_energized(parent_key)) {
+            out.insert(external_interner.resolve(w.id));
+        }
+    }
+}
+
+// ============================================================================
+// External reference windows
+// ============================================================================
+
+void Document::openExternalRefWindow(const std::string& instance_id,
+                                      const std::string& blueprint_file_path) {
+    // Check if already open
+    if (auto* existing = window_manager_.find_external(instance_id)) {
+        existing->open = true;
+        spdlog::info("[editor] Reactivated external-ref window for '{}'", instance_id);
+        return;
+    }
+
+    // Load the external blueprint with its own interner/arena
+    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
+    TypeRegistry parser_registry = load_type_registry("library/");
+    auto bp = load_blueprint_from_file_validated(
+        blueprint_file_path.c_str(), *ext_interner, *ext_arena, parser_registry);
+    if (!bp.has_value()) {
+        spdlog::error("[editor] Failed to load external blueprint '{}' for instance '{}'",
+                      blueprint_file_path, instance_id);
+        return;
+    }
+
+    // Derive title from the node name or instance id
+    std::string title = instance_id;
+    auto lookup_id = interner_.lookup(instance_id);
+    if (!lookup_id.empty()) {
+        const bp2::Blueprint::Node* node = model_.current().find_node(lookup_id);
+        if (node && !node->name.empty()) {
+            title = node->name + " [" + instance_id + "]";
+        }
+    }
+
+    auto* win = window_manager_.open_external_stub(instance_id, title);
+    if (!win) {
+        spdlog::error("[editor] Failed to create external-ref window for '{}'", instance_id);
+        return;
+    }
+
+    win->external_blueprint = std::move(*bp);
+    win->external_interner = std::move(ext_interner);
+    win->external_arena = std::move(ext_arena);
+    win->parent_instance_id = instance_id;
+    win->set_read_only(true);
+    win->pending_auto_fit = has_default_pan_zoom(*win->external_blueprint);
+
+    // Rebuild scene from the external blueprint (root scope = empty group_id)
+    visual::mutations::rebuild(win->scene, *win->external_blueprint,
+                               *win->external_interner, *win->external_arena, "");
+
+    spdlog::info("[editor] Opened external-ref window for '{}' from '{}'",
+                 instance_id, blueprint_file_path);
+}
+
+// ============================================================================
+// Signal overrides
+// ============================================================================
+
 void Document::triggerSwitch(const std::string& node_id) {
     float current = simulation_.get_port_value(node_id, "control");
     float next = (current < 0.5f) ? 1.0f : 0.0f;
-    std::string control_port = node_id + ".control";
-    signal_overrides_[control_port] = next;
+    signal_overrides_[node_id + ".control"] = next;
+}
+
+void Document::setSliderValue(const std::string& node_id, float value) {
+    // Push slider value to simulation via signal override
+    signal_overrides_[node_id + ".control"] = value;
+
+    // Push to visual widgets in all windows
+    auto node_iid = interner_.lookup(node_id);
+    if (node_iid.empty()) return;
+
+    const bp2::Blueprint::Node* n = model_.current().find_node(node_iid);
+    if (!n) return;
+
+    NodeContent content;
+    content.type  = static_cast<NodeContentType>(n->content_type);
+    content.value = value;
+    content.min   = n->content_min;
+    content.max   = n->content_max;
+
+    for (const auto& win : window_manager_.windows()) {
+        if (n->group_id != win->group_id) continue;
+        auto* widget = win->scene.find(interner_.resolve(node_iid));
+        if (!widget) continue;
+        auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
+        if (nw) nw->updateContent(content);
+    }
 }
 
 void Document::holdButtonPress(const std::string& node_id) {
@@ -235,15 +666,84 @@ void Document::holdButtonPress(const std::string& node_id) {
 
 void Document::holdButtonRelease(const std::string& node_id) {
     held_buttons_.erase(node_id);
-    std::string control_port = node_id + ".control";
-    signal_overrides_[control_port] = 2.0f;
+    signal_overrides_[node_id + ".control"] = 2.0f;
+}
+
+// ============================================================================
+// Component addition
+// ============================================================================
+
+/// Parse a PortType from an exposed_type string param value (e.g. "V", "Bool").
+static PortType parse_exposed_port_type(const std::string& s) {
+    if (s == "V") return PortType::V;
+    if (s == "I") return PortType::I;
+    if (s == "Bool") return PortType::Bool;
+    if (s == "RPM") return PortType::RPM;
+    if (s == "Temperature") return PortType::Temperature;
+    if (s == "Pressure") return PortType::Pressure;
+    if (s == "Position") return PortType::Position;
+    return PortType::V; // default
+}
+
+/// Synchronise the collapsed parent node and nested iface after a bridge node
+/// (BlueprintInput / BlueprintOutput) is manually added inside an extracted
+/// group.  Adds the corresponding port on the collapsed node and a matching
+/// PortDescriptor on the nested iface so that the new bridge is visible at
+/// the parent level.
+static void sync_bridge_to_collapsed_and_nested(
+    bp2::EditorModel& model,
+    ui::StringInterner& interner,
+    const std::string& group_id,
+    const std::string& iface_name,
+    bool is_input_bridge,
+    PortType port_type) {
+
+    const ui::InternedId group_iid = interner.intern(group_id);
+    const ui::InternedId iface_iid = interner.intern(iface_name);
+
+    bp2::Blueprint bp = model.current();
+
+    // --- Update collapsed node ---
+    const auto* collapsed = bp.find_node(group_iid);
+    if (!collapsed) {
+        spdlog::warn("[editor] sync_bridge: collapsed node '{}' not found", group_id);
+        return;
+    }
+
+    bp2::Blueprint::Node cn = *collapsed;
+    if (is_input_bridge) {
+        cn.inputs.emplace_back(iface_iid, PortSide::Input, port_type);
+    } else {
+        cn.outputs.emplace_back(iface_iid, PortSide::Output, port_type);
+    }
+    // Also update collapsed node iface
+    {
+        std::vector<bp2::PortDescriptor> ports = cn.iface.ports();
+        const Domain d = editor::common::domain_for_port_type(port_type);
+        ports.push_back({iface_iid, d,
+                         is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output});
+        cn.iface = bp2::Interface(std::move(ports));
+    }
+    bp = bp2::replace_node_preserve_order(bp, std::move(cn));
+
+    // --- Update nested iface ---
+    const auto* nested = bp.find_nested(group_iid);
+    if (nested) {
+        bp2::Blueprint::Nested n = *nested;
+        std::vector<bp2::PortDescriptor> ports = n.iface.ports();
+        const Domain d = editor::common::domain_for_port_type(port_type);
+        ports.push_back({iface_iid, d,
+                         is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output});
+        n.iface = bp2::Interface(std::move(ports));
+        bp = bp2::replace_nested_preserve_order(bp, std::move(n));
+    }
+
+    model.replace_current(std::move(bp));
 }
 
 void Document::addComponent(const std::string& classname, Pt world_pos,
                               const std::string& group_id,
                               TypeRegistry& registry) {
-
-     // Check if component exists in registry
     if (!registry.has(classname)) {
         spdlog::error("[editor] Unknown component classname '{}'", classname);
         return;
@@ -262,35 +762,25 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     // Generate unique ID
-    int counter = 1;
-    std::string base_id = classname;
-    std::transform(base_id.begin(), base_id.end(), base_id.begin(), ::tolower);
-
-    std::string unique_id;
-    do {
-        unique_id = base_id + "_" + std::to_string(counter++);
-    } while (blueprint_.find_node(unique_id.c_str()) != nullptr);
+    std::string unique_id = model_.generate_unique_node_id(classname, interner_);
 
     // Snap position to grid
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint_.grid_step);
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, model_.current().grid_step());
 
-    // Create node
-    Node node;
-    node.id = blueprint_.interner().intern(unique_id);
+    // Build bp2::Blueprint::Node
+    bp2::Blueprint::Node node;
+    node.id   = interner_.intern(unique_id);
+    node.type = interner_.intern(classname);
     node.name = unique_id;
-    node.type_name = classname;
-    node.pos = snapped_pos;
-    node.group_id = group_id;
-
-    node.render_hint = def->render_hint;
-    node.expandable = !def->cpp_class && !def->devices.empty();
-
-    node.size = get_default_node_size(classname, &registry);
+    node.x    = snapped_pos.x;
+    node.y    = snapped_pos.y;
+    node.group_id     = group_id;
+    node.render_hint  = def->render_hint;
+    node.expandable   = !def->cpp_class && !def->devices.empty();
 
     // Add ports
-    auto& I = blueprint_.interner();
     for (const auto& [port_name, port_def] : def->ports) {
-        auto pid = I.intern(port_name);
+        auto pid = interner_.intern(port_name);
         if (port_def.direction == PortDirection::In) {
             node.inputs.emplace_back(pid, PortSide::Input, port_def.type);
         } else if (port_def.direction == PortDirection::Out) {
@@ -301,160 +791,404 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         }
     }
 
-    node.params = def->params;
-    node.node_content = create_node_content_from_def(def);
+    // Convert params (string→string → InternedId→float where parseable).
+    // Use strict locale-safe parsing: values like LUT table strings
+    // ("0:0; 100:100") must stay in string_params.
+    for (const auto& [k, v] : def->params) {
+        float parsed = 0.0f;
+        if (locale_safe::parse_float(v, parsed)) {
+            node.params[interner_.intern(k)] = parsed;
+        } else {
+            node.string_params[k] = v;
+        }
+    }
+
+    // Bridge node special handling: when adding BlueprintInput/BlueprintOutput
+    // inside an extracted group, override the bridge ID to the canonical
+    // pattern {group_id}:{name} and refine port types from exposed_type.
+    const bool is_bridge = (classname == "BlueprintInput" || classname == "BlueprintOutput");
+    const bool bridge_in_group = is_bridge && !group_id.empty()
+        && model_.current().find_node(interner_.intern(group_id)) != nullptr;
+
+    if (bridge_in_group) {
+        // Canonical bridge node ID: {group_id}:{name}
+        std::string canonical_id = group_id + ":" + node.name;
+        node.id = interner_.intern(canonical_id);
+        unique_id = canonical_id;
+
+        // Refine port types from exposed_type string param
+        PortType pt = PortType::V;
+        auto et_it = node.string_params.find("exposed_type");
+        if (et_it != node.string_params.end()) {
+            pt = parse_exposed_port_type(et_it->second);
+        }
+        for (auto& p : node.inputs) p.type = pt;
+        for (auto& p : node.outputs) p.type = pt;
+    }
+
+    // Set node content from type definition
+    {
+        NodeContent nc = create_node_content_from_def(def);
+        node.content_type   = static_cast<bp2::NodeContentType>(nc.type);
+        node.content_label  = nc.label;
+        node.content_value  = nc.value;
+        node.content_min    = nc.min;
+        node.content_max    = nc.max;
+        node.content_unit   = nc.unit;
+        node.content_state  = nc.state;
+        node.content_tripped = nc.tripped;
+    }
 
     // Execute via command system (undoable)
-    undo_stack_.snapshot(blueprint_);
-    execute(blueprint_, cmd_add_node(std::move(node)));
-
-    // Rebuild scene from blueprint state
-    for (auto& win : window_manager_.windows()) {
-        visual::mutations::rebuild(win->scene, blueprint_, win->group_id);
+    // Capture bridge sync info before the node is moved into the command.
+    const std::string bridge_iface_name = bridge_in_group ? node.name : "";
+    const bool bridge_is_input = (classname == "BlueprintInput");
+    PortType bridge_port_type = PortType::V;
+    if (bridge_in_group) {
+        auto et_it = node.string_params.find("exposed_type");
+        if (et_it != node.string_params.end()) {
+            bridge_port_type = parse_exposed_port_type(et_it->second);
+        }
     }
-    rebuildSimulation();
 
-    spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) group={}",
-           classname, unique_id, snapped_pos.x, snapped_pos.y,
-           group_id.empty() ? "root" : group_id);
+    const bp2::Blueprint before_add = model_.current();
+#ifndef NDEBUG
+    std::string before_integrity_err;
+    const bool before_integrity_ok =
+        validate_blueprint_integrity(before_add, interner_, arena_, &before_integrity_err);
+#endif
+    bool checkpoint_pushed = false;
+    try {
+        model_.push_checkpoint();
+        checkpoint_pushed = true;
+        execute(model_, interner_, cmd_add_node(std::move(node)));
+
+        // Synchronize collapsed node ports and nested iface when a bridge
+        // node is manually added inside an extracted group.
+        if (bridge_in_group) {
+            sync_bridge_to_collapsed_and_nested(
+                model_, interner_, group_id,
+                bridge_iface_name, bridge_is_input, bridge_port_type);
+        }
+
+#ifndef NDEBUG
+        {
+            std::string err;
+            if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+#ifndef NDEBUG
+                if (!before_integrity_ok) {
+                    spdlog::warn(
+                        "[editor] addComponent('{}') on pre-invalid blueprint: before='{}', after='{}'",
+                        classname,
+                        before_integrity_err,
+                        err);
+                } else
+#endif
+                {
+                // Do not crash editor on integrity failure: rollback and report.
+                model_.replace_current(before_add);
+                if (checkpoint_pushed) {
+                    model_.discard_last_checkpoint();
+                }
+                spdlog::error("[editor] addComponent('{}') rolled back due to integrity failure: {}", classname, err);
+                return;
+                }
+            }
+        }
+#endif
+
+        // Rebuild scene from blueprint state
+        rebuildAllWindows();
+
+        spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) group={}",
+               classname, unique_id, snapped_pos.x, snapped_pos.y,
+               group_id.empty() ? "root" : group_id);
+    } catch (const std::exception& e) {
+        model_.replace_current(before_add);
+        if (checkpoint_pushed) {
+            model_.discard_last_checkpoint();
+        }
+        spdlog::error("[editor] addComponent('{}') failed safely: {}", classname, e.what());
+        return;
+    }
 }
 
 void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
-                              const std::string& group_id,
-                              TypeRegistry& registry) {
-
-    const auto* bp_def = registry.get(blueprint_name);
-    if (!bp_def || bp_def->cpp_class) {
-        spdlog::error("[editor] '{}' is not a blueprint type in TypeRegistry", blueprint_name);
+                            const std::string& group_id,
+                            TypeRegistry& registry) {
+    if (!registry.has(blueprint_name)) {
+        spdlog::error("[editor] Unknown blueprint '{}'", blueprint_name);
         return;
     }
 
-    int counter = 1;
-    std::string base_id = blueprint_name;
-    std::transform(base_id.begin(), base_id.end(), base_id.begin(), ::tolower);
-
-    std::string unique_id;
-    do {
-        unique_id = base_id + "_" + std::to_string(counter++);
-    } while (blueprint_.find_node(unique_id.c_str()) != nullptr);
-
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint_.grid_step);
-
-    std::string category;
-    auto cat_it = registry.categories.find(blueprint_name);
-    if (cat_it != registry.categories.end())
-        category = cat_it->second;
-
-    Blueprint sub_bp = expand_type_definition(*bp_def, registry);
-    bool has_layout = std::any_of(sub_bp.nodes.begin(), sub_bp.nodes.end(),
-                                  [](const Node& n) { return n.pos.x != 0 || n.pos.y != 0; });
-
-    auto& I = blueprint_.interner();
-    auto& sub_I = sub_bp.interner();
-
-    // == Single snapshot before all mutations (single undo entry) ==
-    undo_stack_.snapshot(blueprint_);
-
-    // 1. Add internal nodes
-    std::vector<std::string> internal_node_ids;
-    for (auto& node : sub_bp.nodes) {
-        std::string prefixed_id = unique_id + ":" + std::string(sub_I.resolve(node.id));
-        node.id = I.intern(prefixed_id);
-        node.name = prefixed_id;
-        if (!has_layout) node.pos = snapped_pos;
-        internal_node_ids.push_back(prefixed_id);
-        execute(blueprint_, cmd_add_node(std::move(node)));
+    const auto* def = registry.get(blueprint_name);
+    if (!def || def->cpp_class || def->devices.empty()) {
+        spdlog::error("[editor] '{}' is not a composite blueprint", blueprint_name);
+        return;
     }
 
-    // 2. Add internal wires
-    size_t internal_wire_count = sub_bp.wires.size();
-    for (auto& wire : sub_bp.wires) {
-        wire.start.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.start.node_id)));
-        wire.end.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.end.node_id)));
-        wire.id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.id)));
-        execute(blueprint_, cmd_add_wire(std::move(wire)));
-    }
+    const std::string unique_id = model_.generate_unique_node_id(blueprint_name, interner_);
+    const Pt snapped_pos = editor_math::snap_to_grid(world_pos, model_.current().grid_step());
 
-    // 3. Create collapsed Blueprint node
-    Node collapsed_node;
-    collapsed_node.id = I.intern(unique_id);
-    collapsed_node.name = unique_id;
-    collapsed_node.type_name = blueprint_name;
-    collapsed_node.expandable = true;
-    collapsed_node.collapsed = true;
-    collapsed_node.pos = snapped_pos;
-    collapsed_node.group_id = group_id;
-    collapsed_node.blueprint_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
+    bp2::Blueprint::Node collapsed;
+    collapsed.id = interner_.intern(unique_id);
+    collapsed.type = interner_.intern(blueprint_name);
+    collapsed.name = unique_id;
+    collapsed.group_id = group_id;
+    collapsed.x = snapped_pos.x;
+    collapsed.y = snapped_pos.y;
+    collapsed.width = 160.0f;
+    collapsed.height = 64.0f;
+    collapsed.expandable = true;
+    collapsed.collapsed = true;
+    collapsed.blueprint_path = blueprint_name;
+    collapsed.render_hint = def->render_hint;
 
-    size_t num_ports = std::max(bp_def->ports.size(), size_t(1));
-    float height = 80.0f + (num_ports - 1) * 16.0f;
-    collapsed_node.size = Pt(120.0f, height);
+    std::vector<bp2::PortDescriptor> iface_ports;
+    iface_ports.reserve(def->ports.size());
 
-    for (const auto& [port_name, port] : bp_def->ports) {
-        auto pid = I.intern(port_name);
-        if (port.direction == PortDirection::In) {
-            collapsed_node.inputs.emplace_back(pid, PortSide::Input, port.type);
+    for (const auto& [port_name, port_def] : def->ports) {
+        const ui::InternedId pid = interner_.intern(port_name);
+        if (port_def.direction == PortDirection::In) {
+            collapsed.inputs.emplace_back(pid, PortSide::Input, port_def.type);
+            iface_ports.push_back({pid, port_def.domain, bp2::Direction::Input});
+        } else if (port_def.direction == PortDirection::Out) {
+            collapsed.outputs.emplace_back(pid, PortSide::Output, port_def.type);
+            iface_ports.push_back({pid, port_def.domain, bp2::Direction::Output});
         } else {
-            collapsed_node.outputs.emplace_back(pid, PortSide::Output, port.type);
+            collapsed.inputs.emplace_back(pid, PortSide::InOut, port_def.type);
+            collapsed.outputs.emplace_back(pid, PortSide::InOut, port_def.type);
+            iface_ports.push_back({pid, port_def.domain, bp2::Direction::InOut});
+        }
+    }
+    collapsed.iface = bp2::Interface(std::move(iface_ports));
+
+    {
+        NodeContent nc = create_node_content_from_def(def);
+        collapsed.content_type = static_cast<bp2::NodeContentType>(nc.type);
+        collapsed.content_label = nc.label;
+        collapsed.content_value = nc.value;
+        collapsed.content_min = nc.min;
+        collapsed.content_max = nc.max;
+        collapsed.content_unit = nc.unit;
+        collapsed.content_state = nc.state;
+        collapsed.content_tripped = nc.tripped;
+    }
+
+    std::string library_path = "library/";
+    {
+        std::filesystem::path lp(library_path);
+        if (!std::filesystem::exists(lp) && lp.is_relative()) {
+            std::vector<std::filesystem::path> try_paths = {
+                lp, "../" / lp, "../../" / lp, "../../../" / lp,
+            };
+            for (const auto& p : try_paths) {
+                if (std::filesystem::exists(p)) {
+                    library_path = p.string();
+                    break;
+                }
+            }
         }
     }
 
-    execute(blueprint_, cmd_add_node(std::move(collapsed_node)));
+    std::string category = registry.categories.count(blueprint_name)
+        ? registry.categories.at(blueprint_name) : "";
+    std::filesystem::path blueprint_file = std::filesystem::path(library_path);
+    if (!category.empty()) {
+        blueprint_file /= category;
+    }
+    blueprint_file /= (blueprint_name + ".blueprint");
 
-    // 4. Register sub-blueprint instance (tracks internal nodes for undo)
-    SubBlueprintInstance sbi;
-    sbi.id = unique_id;
-    sbi.blueprint_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
-    sbi.type_name = blueprint_name;
-    sbi.pos = snapped_pos;
-    sbi.size = Pt(120.0f, height);
-    sbi.baked_in = false;
-    sbi.internal_node_ids = internal_node_ids;
-    execute(blueprint_, cmd_add_sub_blueprint(std::move(sbi)));
+    auto loaded_opt = load_blueprint_from_file_validated(
+        blueprint_file.string().c_str(), interner_, arena_, registry);
 
-    blueprint_.recompute_group_ids();
+    bp2::Blueprint inline_bp;
+    if (loaded_opt) {
+        spdlog::debug("[editor] addBlueprint('{}'): loaded {} nodes, {} wires from '{}'",
+                      blueprint_name,
+                      loaded_opt->nodes().size(),
+                      loaded_opt->wires().size(),
+                      blueprint_file.string());
+        bp2::Blueprint loaded = std::move(*loaded_opt);
+        inline_bp = loaded.with_interface(collapsed.iface);
+        inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
+        inline_bp = inline_bp.with_display_name(def->classname);
 
-    if (!has_layout) {
-        blueprint_.auto_layout_group(unique_id);
+        bp2::Blueprint remapped_bp;
+        remapped_bp = remapped_bp.with_id(inline_bp.id());
+        remapped_bp = remapped_bp.with_display_name(inline_bp.display_name());
+        remapped_bp = remapped_bp.with_interface(collapsed.iface);
+        remapped_bp = remapped_bp.with_viewport(
+            inline_bp.pan_x(), inline_bp.pan_y(), inline_bp.zoom(), inline_bp.grid_step());
+
+        std::vector<bp2::Blueprint::Node> root_internal_nodes;
+        std::vector<bp2::Blueprint::Wire> root_internal_wires;
+
+        for (bp2::Blueprint::Node n : inline_bp.nodes()) {
+            std::string original_name(interner_.resolve(n.id));
+            std::string ns_id = unique_id + "_" + original_name;
+            n.id = interner_.intern(ns_id);
+            n.group_id = unique_id;
+
+            bp2::Blueprint::Node n_remapped = n;
+            remapped_bp = remapped_bp.with_node(std::move(n_remapped));
+            root_internal_nodes.push_back(std::move(n));
+        }
+
+        for (bp2::Blueprint::Wire w : inline_bp.wires()) {
+            ui::InternedId src_node_id = arena_.parent(w.source).segment();
+            ui::InternedId src_port_id = w.source.segment();
+            ui::InternedId tgt_node_id = arena_.parent(w.target).segment();
+            ui::InternedId tgt_port_id = w.target.segment();
+
+            std::string ns_src = unique_id + "_" + std::string(interner_.resolve(src_node_id));
+            std::string ns_tgt = unique_id + "_" + std::string(interner_.resolve(tgt_node_id));
+
+            bp2::Blueprint::Wire w_remapped;
+            w_remapped.id = interner_.intern("wire_" + unique_id + "_" + std::string(interner_.resolve(w.id)));
+            w_remapped.source = arena_.make_port(
+                arena_.make_node(arena_.root(), interner_.intern(ns_src)), src_port_id);
+            w_remapped.target = arena_.make_port(
+                arena_.make_node(arena_.root(), interner_.intern(ns_tgt)), tgt_port_id);
+            w_remapped.domain = w.domain;
+            w_remapped.routing_points = std::move(w.routing_points);
+
+            // Copy the wire for root_internal_wires before moving into remapped_bp.
+            // Both consumers need a valid wire; moving twice would corrupt the second.
+            bp2::Blueprint::Wire w_for_doc = w_remapped;
+            remapped_bp = remapped_bp.with_wire(std::move(w_remapped));
+            root_internal_wires.push_back(std::move(w_for_doc));
+        }
+
+        inline_bp = std::move(remapped_bp);
+
+        const bp2::Blueprint before_add = model_.current();
+        bool checkpoint_pushed = false;
+        try {
+            model_.push_checkpoint();
+            checkpoint_pushed = true;
+            for (auto& n : root_internal_nodes) {
+                execute(model_, interner_, cmd_add_node(std::move(n)));
+            }
+            for (auto& w : root_internal_wires) {
+                execute(model_, interner_, cmd_add_wire(std::move(w)));
+            }
+
+            bp2::Blueprint::Nested nested;
+            nested.id = collapsed.id;
+            nested.blueprint_id = interner_.intern(blueprint_name);
+            nested.embedded = true;
+            nested.inline_def = std::make_unique<bp2::Blueprint>(std::move(inline_bp));
+            nested.iface = collapsed.iface;
+            nested.x = collapsed.x;
+            nested.y = collapsed.y;
+
+            execute(model_, interner_, cmd_add_nested(std::move(nested)));
+            execute(model_, interner_, cmd_add_node(std::move(collapsed)));
+
+            rebuildAllWindows();
+            spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) group={}",
+                         blueprint_name, unique_id, snapped_pos.x, snapped_pos.y,
+                         group_id.empty() ? "root" : group_id);
+        } catch (const std::exception& e) {
+            model_.replace_current(before_add);
+            if (checkpoint_pushed) {
+                model_.discard_last_checkpoint();
+            }
+            spdlog::error("[editor] addBlueprint('{}') failed safely: {}", blueprint_name, e.what());
+        }
+    } else {
+        spdlog::error("[editor] addBlueprint('{}'): could not load '{}'",
+                      blueprint_name, blueprint_file.string());
+    }
+}
+
+bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
+                                  const std::string& blueprint_name,
+                                  const std::string& group_id,
+                                  std::string* error_out,
+                                  bool allow_nonembedded_descendant_refs) {
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        model_.current(), selected_node_ids, blueprint_name, group_id,
+        interner_, arena_, error_out, allow_nonembedded_descendant_refs);
+    if (!updated) {
+        return false;
     }
 
-    // Rebuild visual + simulation
-    visual::mutations::rebuild(scene(), blueprint_, root().group_id);
-    rebuildSimulation();
+    model_.push_checkpoint();
+    model_.replace_current(std::move(*updated));
 
-    spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal wires",
-                 blueprint_name, unique_id, internal_node_ids.size(), internal_wire_count);
+    rebuildAllWindows();
+    return true;
 }
+
+// ============================================================================
+// Sub-windows
+// ============================================================================
 
 void Document::openSubWindow(const std::string& sub_blueprint_id) {
-    const SubBlueprintInstance* group = nullptr;
-    for (const auto& g : blueprint_.sub_blueprint_instances) {
-        if (g.id == sub_blueprint_id) {
-            group = &g;
-            break;
-        }
-    }
+    const auto target = editor::resolve_subwindow_open_target(model_.current(), interner_, sub_blueprint_id);
+    auto lookup_id = interner_.lookup(sub_blueprint_id);
+    const bp2::Blueprint::Nested* nested = lookup_id.empty() ? nullptr : model_.current().find_nested(lookup_id);
 
-    if (!group) {
-        spdlog::error("[editor] Cannot open sub-window: sub-blueprint '{}' not found", sub_blueprint_id);
+    if ((target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested
+         || target.kind == editor::SubWindowOpenTargetKind::ReferencedNested)
+        && nested) {
+        std::string type_name = std::string(interner_.resolve(nested->blueprint_id));
+        auto [win, created] = window_manager_.open(sub_blueprint_id,
+                                                   type_name + " [" + sub_blueprint_id + "]");
+        if (!created) {
+            spdlog::info("[editor] Reactivated sub-window for '{}'", sub_blueprint_id);
+            return;
+        }
+
+        if (win) {
+            // Non-embedded (reference) sub-blueprints are read-only
+            win->set_read_only(!nested->embedded);
+
+            if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && nested->inline_def) {
+                if (has_default_pan_zoom(*nested->inline_def)) {
+                    win->pending_auto_fit = true;
+                } else {
+                    // Apply saved viewport from the nested blueprint definition
+                    win->viewport.pan.x     = nested->inline_def->pan_x();
+                    win->viewport.pan.y     = nested->inline_def->pan_y();
+                    win->viewport.zoom      = nested->inline_def->zoom();
+                    win->viewport.grid_step = nested->inline_def->grid_step();
+                    win->viewport.clamp_zoom();
+                }
+            } else {
+                // Referenced nested or embedded with missing inline_def:
+                // no saved viewport, auto-fit on first open.
+                win->pending_auto_fit = true;
+            }
+        }
+
+        spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);
         return;
     }
 
-    auto* win = window_manager_.open(sub_blueprint_id, group->type_name + " [" + sub_blueprint_id + "]");
-    if (win) {
-        win->set_read_only(!group->baked_in);
+    if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
+        // Open as a parent-bound external reference window instead of
+        // dispatching to openDocument (which would create a disconnected tab).
+        openExternalRefWindow(sub_blueprint_id, target.path);
+        return;
     }
 
-    spdlog::info("[editor] Opened sub-window for '{}' ({} internal nodes)",
-                 sub_blueprint_id, group->internal_node_ids.size());
+    spdlog::error("[editor] Cannot open sub-window: nested '{}' not found", sub_blueprint_id);
 }
 
-Document::InputResultAction Document::applyInputResult(const InputResult& r, const std::string& group_id) {
+// ============================================================================
+// Input result dispatch
+// ============================================================================
+
+Document::InputResultAction Document::applyInputResult(const InputResult& r,
+                                                        const std::string& group_id) {
     InputResultAction action;
 
     if (r.rebuild_simulation) {
         rebuildSimulation();
-        window_manager_.removeOrphanedWindows();
+        window_manager_.remove_orphaned_windows();
     }
     if (r.show_context_menu) {
         action.show_context_menu = true;
@@ -472,39 +1206,96 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r, con
     if (!r.toggle_switch_node_id.empty()) {
         triggerSwitch(r.toggle_switch_node_id);
     }
+    if (!r.slider_node_id.empty()) {
+        setSliderValue(r.slider_node_id, r.slider_value);
+    }
+    if (!r.toggle_probe_wire_id.empty()) {
+        action.toggle_probe_wire_id = r.toggle_probe_wire_id;
+        action.toggle_probe_group_id = group_id;
+        action.has_toggle_probe_world_pos = r.has_toggle_probe_world_pos;
+        action.toggle_probe_world_pos = r.toggle_probe_world_pos;
+    }
 
     return action;
 }
 
+// ============================================================================
+// Undo / Redo
+// ============================================================================
+
 bool Document::performUndo() {
-    if (!undo_stack_.can_undo()) return false;
-    
-    undo_stack_.undo(blueprint_);
-    
-    // Sub-blueprint groups may have been removed by undo — close orphaned
-    // sub-windows BEFORE rebuilding, so we don't rebuild into stale groups.
-    window_manager_.removeOrphanedWindows();
-    
+    if (!model_.can_undo()) return false;
+
+    // Cancel any in-flight gestures in ALL windows BEFORE rebuilding.
     for (auto& win : window_manager_.windows()) {
-        win->viewport.grid_step = blueprint_.grid_step;
-        visual::mutations::rebuild(win->scene, blueprint_, win->group_id);
+        win->input.cancel_gesture();
+    }
+
+    const bp2::Blueprint before_undo = model_.current();
+    model_.undo();
+#ifndef NDEBUG
+    {
+        std::string err;
+        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+            model_.replace_current(before_undo);
+            spdlog::error("[editor] undo rejected by integrity check: {}", err);
+            return false;
+        }
+    }
+#endif
+
+    // Sub-blueprint groups may have been removed — close orphaned sub-windows.
+    window_manager_.remove_orphaned_windows();
+
+    for (auto& win : window_manager_.windows()) {
+        win->viewport.grid_step = model_.current().grid_step();
+        if (win->is_external_ref() && win->external_blueprint
+            && win->external_interner && win->external_arena) {
+            visual::mutations::rebuild(win->scene, *win->external_blueprint,
+                                       *win->external_interner, *win->external_arena, "");
+        } else {
+            visual::mutations::rebuild(win->scene, model_.current(),
+                                       interner_, arena_, win->group_id);
+        }
     }
     rebuildSimulation();
     return true;
 }
 
 bool Document::performRedo() {
-    if (!undo_stack_.can_redo()) return false;
-    
-    undo_stack_.redo(blueprint_);
-    
-    // Sub-blueprint groups may have been removed by redo — close orphaned
-    // sub-windows BEFORE rebuilding, so we don't rebuild into stale groups.
-    window_manager_.removeOrphanedWindows();
-    
+    if (!model_.can_redo()) return false;
+
+    // Cancel any in-flight gestures in ALL windows BEFORE rebuilding.
     for (auto& win : window_manager_.windows()) {
-        win->viewport.grid_step = blueprint_.grid_step;
-        visual::mutations::rebuild(win->scene, blueprint_, win->group_id);
+        win->input.cancel_gesture();
+    }
+
+    const bp2::Blueprint before_redo = model_.current();
+    model_.redo();
+#ifndef NDEBUG
+    {
+        std::string err;
+        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+            model_.replace_current(before_redo);
+            spdlog::error("[editor] redo rejected by integrity check: {}", err);
+            return false;
+        }
+    }
+#endif
+
+    // Sub-blueprint groups may have been removed — close orphaned sub-windows.
+    window_manager_.remove_orphaned_windows();
+
+    for (auto& win : window_manager_.windows()) {
+        win->viewport.grid_step = model_.current().grid_step();
+        if (win->is_external_ref() && win->external_blueprint
+            && win->external_interner && win->external_arena) {
+            visual::mutations::rebuild(win->scene, *win->external_blueprint,
+                                       *win->external_interner, *win->external_arena, "");
+        } else {
+            visual::mutations::rebuild(win->scene, model_.current(),
+                                       interner_, arena_, win->group_id);
+        }
     }
     rebuildSimulation();
     return true;

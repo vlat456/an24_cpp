@@ -1,0 +1,22 @@
+{
+  "tests": 2,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PIZN",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "DetectsSustainedOscillationOnSine",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_zn_tuner.cpp",
+          "line": 7
+        },
+        {
+          "name": "EstimatesTuOnSine",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_zn_tuner.cpp",
+          "line": 19
+        }
+      ]
+    }
+  ]
+}

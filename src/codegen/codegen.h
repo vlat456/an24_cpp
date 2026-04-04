@@ -11,6 +11,66 @@ struct CompositeCodegenResult {
     std::string class_name;
 };
 
+// == Electrical plan for AOT codegen ==
+// Mirrors the runtime ElectricalBuildPlan but with static arrays for hot path.
+// Used to emit constexpr electrical island data in generated code.
+
+enum class ElectricalElementKindCodegen : uint8_t {
+    FixedVoltageNode = 0,
+    TheveninSource = 1,
+    ConductanceBranch = 2
+};
+
+struct ElectricalElementCodegen {
+    ElectricalElementKindCodegen kind;
+    uint32_t node_a;
+    uint32_t node_b;
+    float value_a;
+    float value_b;
+    uint32_t component_index;
+};
+
+struct ElectricalIslandPlanCodegen {
+    std::vector<uint32_t> signal_indices;
+    std::vector<ElectricalElementCodegen> elements;
+};
+
+struct ElectricalPlanCodegen {
+    struct ComponentDebug {
+        uint32_t component_index;
+        uint32_t island_index;
+        uint32_t element_index;
+        std::string device_name;
+        std::string device_classname;
+        std::string role;
+        uint32_t node_a;
+        uint32_t node_b;
+    };
+
+    std::vector<ElectricalIslandPlanCodegen> islands;
+    struct DeviceBinding {
+        std::string device_field_name;
+        uint32_t island_index;
+        uint32_t element_index;
+        uint32_t component_index;
+    };
+    std::vector<DeviceBinding> device_bindings;
+    std::vector<ComponentDebug> component_debug;
+};
+
+struct ElectricalExtractOptions {
+    bool strict_port_resolution = false;
+    bool warn_on_missing_ports = true;
+};
+
+/// Extract electrical island plan from devices and port_to_signal mapping.
+/// Mirrors the island extraction logic in build_systems_dev().
+ElectricalPlanCodegen extract_electrical_plan(
+    const std::vector<DeviceInstance>& devices,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal,
+    const ElectricalExtractOptions& options = {}
+);
+
 /// Code generator - produces C++ source files from device configuration
 class CodeGen {
 public:
@@ -21,7 +81,8 @@ public:
         const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
-        const std::string& class_name = "Systems"
+        const std::string& class_name = "Systems",
+        const ElectricalPlanCodegen& electrical_plan = {}
     );
 
     /// Generate C++ source file with implementations
@@ -31,7 +92,8 @@ public:
         const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
-        const std::string& class_name = "Systems"
+        const std::string& class_name = "Systems",
+        const ElectricalPlanCodegen& electrical_plan = {}
     );
 
     /// Write generated files to directory
@@ -41,7 +103,8 @@ public:
         const std::vector<DeviceInstance>& devices,
         const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
-        uint32_t signal_count
+        uint32_t signal_count,
+        const ElectricalPlanCodegen& electrical_plan = {}
     );
 
     /// Generate port registry header from TypeRegistry
@@ -61,4 +124,3 @@ public:
     static std::map<std::string, CompositeCodegenResult> generate_all_composites(
         const TypeRegistry& registry);
 };
-

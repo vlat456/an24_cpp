@@ -46,7 +46,7 @@ enum class PortType {
     Temperature,  // Temperature (degrees Celsius)
     Pressure,     // Pressure (Pascal, bar, etc.)
     Position,     // Position/Displacement (mechanical position)
-    Any,          // Wildcard - can connect to any type (for adapters)
+    Any,          // Wildcard - can connect to any type
 };
 
 /// Port direction
@@ -60,7 +60,17 @@ enum class PortDirection {
 struct Port {
     PortDirection direction = PortDirection::Out;
     PortType type = PortType::Any;  // Port type for validation
+    Domain domain = Domain::Electrical;  // Port domain mask
+    bool source_writer = false;  // Active domain writer for source-conflict checks
     std::optional<std::string> alias;  // If set, this port is an alias to another port (e.g., "out1" -> "in")
+
+    Port() = default;
+    Port(PortDirection direction_)
+        : direction(direction_), type(PortType::Any), domain(Domain::Electrical), source_writer(false), alias(std::nullopt) {}
+    Port(PortDirection direction_, PortType type_, std::optional<std::string> alias_ = std::nullopt)
+        : direction(direction_), type(type_), domain(Domain::Electrical), source_writer(false), alias(std::move(alias_)) {}
+    Port(PortDirection direction_, PortType type_, Domain domain_, bool source_writer_, std::optional<std::string> alias_ = std::nullopt)
+        : direction(direction_), type(type_), domain(domain_), source_writer(source_writer_), alias(std::move(alias_)) {}
 };
 
 /// Connection between two ports: "device.port" -> "device.port"
@@ -80,6 +90,42 @@ struct SubBlueprintRef {
     std::map<std::string, std::string> params_override;
 };
 
+/// Solver role metadata — describes how a component participates in a domain subsolver.
+/// Primitives declare this in their blueprint; wrappers rely on classname fallback.
+struct SolverRole {
+    std::string kind;  // "ConductanceBranch", "TheveninSource", "FixedVoltageNode"
+    std::unordered_map<std::string, std::string> port_map;   // role key -> port name (e.g. "a" -> "v_in")
+    std::unordered_map<std::string, std::string> param_map;  // role key -> param name (e.g. "g" -> "conductance")
+};
+
+/// Explicit execution-phase participation metadata loaded from component JSON.
+struct ExecutionPhases {
+    bool electrical_passive = false;
+    bool electrical_observer = false;
+    bool logical = false;
+    bool control_commit = false;
+    bool electrical_actuator = false;
+    bool finalize = false;
+    bool mechanical = false;
+    bool hydraulic = false;
+    bool thermal = false;
+};
+
+enum class ParamSchemaType {
+    Float,
+    Int,
+    Bool,
+    String,
+};
+
+struct ParamSchemaEntry {
+    ParamSchemaType type = ParamSchemaType::String;
+    std::optional<double> min;
+    std::optional<double> max;
+    bool required = false;
+    bool visual_only = false;   ///< True = editor-only param, excluded from simulation JSON
+};
+
 /// Type definition (ports, params, domains for a component class or blueprint)
 struct TypeDefinition {
     std::string classname;                    // C++ class name or blueprint classname (e.g., "Battery", "SimpleBattery")
@@ -87,6 +133,7 @@ struct TypeDefinition {
     bool cpp_class = true;                    // true = C++ component, false = blueprint
     std::unordered_map<std::string, Port> ports;  // Port definitions
     std::unordered_map<std::string, std::string> params;  // Default parameter values
+    std::unordered_map<std::string, ParamSchemaEntry> param_schema;  // Explicit typed parameter schema
     std::optional<std::vector<Domain>> domains;    // Domains
     std::string priority = "med";     // Priority
     bool critical = false;            // Critical flag
@@ -94,6 +141,9 @@ struct TypeDefinition {
     std::string render_hint;  // Visual hint for editor rendering ("bus", "ref", or empty)
     bool visual_only = false;  // True = no simulation behavior (e.g. Group)
     std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
+    std::optional<ExecutionPhases> execution;      // Explicit execution-phase metadata
+    bool scheduler_source = false;                 // Explicit scheduler source classification
+    std::optional<SolverRole> solver_role;          // Subsolver role metadata (primitives only)
     // For blueprints only: internal devices and connections
     std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
     std::vector<Connection> connections;  // Internal connections (for blueprints)
@@ -104,6 +154,7 @@ struct TypeDefinition {
 /// Tree structure mirroring library/ subdirectory hierarchy for menu building.
 struct MenuTree {
     std::vector<std::string> entries;                        // Classnames at this level (sorted)
+    std::unordered_map<std::string, std::string> labels;     // classname -> display label
     std::map<std::string, MenuTree> children;                // Subfolder name -> subtree (sorted by key)
 };
 
@@ -152,6 +203,7 @@ struct DeviceInstance {
     std::string name;
     std::string template_name;  // template used to instantiate this device
     std::string classname;      // component class name (e.g., "Battery")
+    std::string display_name;   // user-visible name (from FlatNode::display_name, empty = same as name)
     std::string priority = "med";  // high, med, low
     std::optional<size_t> bucket;  // computation bucket
     bool critical = false;
@@ -161,6 +213,9 @@ struct DeviceInstance {
     bool visual_only = false;      // True = no simulation behavior (e.g. Group)
     std::optional<std::pair<float,float>> pos;   // Editor layout position (optional)
     std::optional<std::pair<float,float>> size;  // Editor layout size (optional)
+    std::optional<ExecutionPhases> execution;    // Copied from type definition
+    bool scheduler_source = false;               // Copied from type definition
+    std::optional<SolverRole> solver_role;        // Copied from type definition
 
     // Default constructor
     DeviceInstance() = default;
@@ -178,7 +233,7 @@ struct DeviceInstance {
             if (port_name.find('v') != std::string::npos) type = PortType::V;
             else if (port_name.find('i') != std::string::npos) type = PortType::I;
             else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{direction, type, std::nullopt};
+            ports[port_name] = Port{direction, type, Domain::Electrical, false, std::nullopt};
         }
     }
 
@@ -196,7 +251,7 @@ struct DeviceInstance {
             if (port_name.find('v') != std::string::npos) type = PortType::V;
             else if (port_name.find('i') != std::string::npos) type = PortType::I;
             else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{dir, type, std::nullopt};
+            ports[port_name] = Port{dir, type, Domain::Electrical, false, std::nullopt};
         }
     }
 
@@ -233,6 +288,7 @@ struct ParserContext {
     std::unordered_map<std::string, SystemTemplate> templates;
     std::vector<DeviceInstance> devices;
     std::vector<Connection> connections;
+    std::unordered_map<std::string, float> initial_values;
 
     /// Find device by name
     const DeviceInstance* find_device(const std::string& name) const {

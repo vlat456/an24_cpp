@@ -172,6 +172,342 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+tests/CMakeFiles/push_state_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/push_state_tests.dir/rule
+.PHONY : tests/CMakeFiles/push_state_tests.dir/rule
+
+# Convenience name for target.
+push_state_tests: tests/CMakeFiles/push_state_tests.dir/rule
+.PHONY : push_state_tests
+
+# fast build rule for target.
+push_state_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_state_tests.dir/build.make tests/CMakeFiles/push_state_tests.dir/build
+.PHONY : push_state_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/push_scheduler_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/push_scheduler_tests.dir/rule
+.PHONY : tests/CMakeFiles/push_scheduler_tests.dir/rule
+
+# Convenience name for target.
+push_scheduler_tests: tests/CMakeFiles/push_scheduler_tests.dir/rule
+.PHONY : push_scheduler_tests
+
+# fast build rule for target.
+push_scheduler_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_scheduler_tests.dir/build.make tests/CMakeFiles/push_scheduler_tests.dir/build
+.PHONY : push_scheduler_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/push_build_validation_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/push_build_validation_tests.dir/rule
+.PHONY : tests/CMakeFiles/push_build_validation_tests.dir/rule
+
+# Convenience name for target.
+push_build_validation_tests: tests/CMakeFiles/push_build_validation_tests.dir/rule
+.PHONY : push_build_validation_tests
+
+# fast build rule for target.
+push_build_validation_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_build_validation_tests.dir/build.make tests/CMakeFiles/push_build_validation_tests.dir/build
+.PHONY : push_build_validation_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/push_runtime_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/push_runtime_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/push_runtime_regression_tests.dir/rule
+
+# Convenience name for target.
+push_runtime_regression_tests: tests/CMakeFiles/push_runtime_regression_tests.dir/rule
+.PHONY : push_runtime_regression_tests
+
+# fast build rule for target.
+push_runtime_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_runtime_regression_tests.dir/build.make tests/CMakeFiles/push_runtime_regression_tests.dir/build
+.PHONY : push_runtime_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/electrical_island_build_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_island_build_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_island_build_tests.dir/rule
+
+# Convenience name for target.
+electrical_island_build_tests: tests/CMakeFiles/electrical_island_build_tests.dir/rule
+.PHONY : electrical_island_build_tests
+
+# fast build rule for target.
+electrical_island_build_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/build
+.PHONY : electrical_island_build_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/electrical_handle_build_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_handle_build_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_handle_build_tests.dir/rule
+
+# Convenience name for target.
+electrical_handle_build_tests: tests/CMakeFiles/electrical_handle_build_tests.dir/rule
+.PHONY : electrical_handle_build_tests
+
+# fast build rule for target.
+electrical_handle_build_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/build
+.PHONY : electrical_handle_build_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/electrical_subsolver_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_subsolver_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_subsolver_tests.dir/rule
+
+# Convenience name for target.
+electrical_subsolver_tests: tests/CMakeFiles/electrical_subsolver_tests.dir/rule
+.PHONY : electrical_subsolver_tests
+
+# fast build rule for target.
+electrical_subsolver_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/build
+.PHONY : electrical_subsolver_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/architecture_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/architecture_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/architecture_regression_tests.dir/rule
+
+# Convenience name for target.
+architecture_regression_tests: tests/CMakeFiles/architecture_regression_tests.dir/rule
+.PHONY : architecture_regression_tests
+
+# fast build rule for target.
+architecture_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/build
+.PHONY : architecture_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/pid_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pid_tests.dir/rule
+.PHONY : tests/CMakeFiles/pid_tests.dir/rule
+
+# Convenience name for target.
+pid_tests: tests/CMakeFiles/pid_tests.dir/rule
+.PHONY : pid_tests
+
+# fast build rule for target.
+pid_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/build
+.PHONY : pid_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/pd_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pd_tests.dir/rule
+.PHONY : tests/CMakeFiles/pd_tests.dir/rule
+
+# Convenience name for target.
+pd_tests: tests/CMakeFiles/pd_tests.dir/rule
+.PHONY : pd_tests
+
+# fast build rule for target.
+pd_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pd_tests.dir/build.make tests/CMakeFiles/pd_tests.dir/build
+.PHONY : pd_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/subtract_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/subtract_tests.dir/rule
+.PHONY : tests/CMakeFiles/subtract_tests.dir/rule
+
+# Convenience name for target.
+subtract_tests: tests/CMakeFiles/subtract_tests.dir/rule
+.PHONY : subtract_tests
+
+# fast build rule for target.
+subtract_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/build
+.PHONY : subtract_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/logic_gates_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/logic_gates_tests.dir/rule
+.PHONY : tests/CMakeFiles/logic_gates_tests.dir/rule
+
+# Convenience name for target.
+logic_gates_tests: tests/CMakeFiles/logic_gates_tests.dir/rule
+.PHONY : logic_gates_tests
+
+# fast build rule for target.
+logic_gates_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/build
+.PHONY : logic_gates_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/arithmetic_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/arithmetic_tests.dir/rule
+.PHONY : tests/CMakeFiles/arithmetic_tests.dir/rule
+
+# Convenience name for target.
+arithmetic_tests: tests/CMakeFiles/arithmetic_tests.dir/rule
+.PHONY : arithmetic_tests
+
+# fast build rule for target.
+arithmetic_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/build
+.PHONY : arithmetic_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/splitter_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/splitter_tests.dir/rule
+.PHONY : tests/CMakeFiles/splitter_tests.dir/rule
+
+# Convenience name for target.
+splitter_tests: tests/CMakeFiles/splitter_tests.dir/rule
+.PHONY : splitter_tests
+
+# fast build rule for target.
+splitter_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/build
+.PHONY : splitter_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/azs_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/azs_tests.dir/rule
+.PHONY : tests/CMakeFiles/azs_tests.dir/rule
+
+# Convenience name for target.
+azs_tests: tests/CMakeFiles/azs_tests.dir/rule
+.PHONY : azs_tests
+
+# fast build rule for target.
+azs_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/build
+.PHONY : azs_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/logical_solver_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/logical_solver_tests.dir/rule
+.PHONY : tests/CMakeFiles/logical_solver_tests.dir/rule
+
+# Convenience name for target.
+logical_solver_tests: tests/CMakeFiles/logical_solver_tests.dir/rule
+.PHONY : logical_solver_tests
+
+# fast build rule for target.
+logical_solver_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/build
+.PHONY : logical_solver_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/blueprint_ports_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/blueprint_ports_tests.dir/rule
+.PHONY : tests/CMakeFiles/blueprint_ports_tests.dir/rule
+
+# Convenience name for target.
+blueprint_ports_tests: tests/CMakeFiles/blueprint_ports_tests.dir/rule
+.PHONY : blueprint_ports_tests
+
+# fast build rule for target.
+blueprint_ports_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/build
+.PHONY : blueprint_ports_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/current_sense_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/current_sense_tests.dir/rule
+.PHONY : tests/CMakeFiles/current_sense_tests.dir/rule
+
+# Convenience name for target.
+current_sense_tests: tests/CMakeFiles/current_sense_tests.dir/rule
+.PHONY : current_sense_tests
+
+# fast build rule for target.
+current_sense_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/build
+.PHONY : current_sense_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/bug_hunt_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
+
+# Convenience name for target.
+bug_hunt_regression_tests: tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
+.PHONY : bug_hunt_regression_tests
+
+# fast build rule for target.
+bug_hunt_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/build
+.PHONY : bug_hunt_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/slew_rate_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/slew_rate_tests.dir/rule
+.PHONY : tests/CMakeFiles/slew_rate_tests.dir/rule
+
+# Convenience name for target.
+slew_rate_tests: tests/CMakeFiles/slew_rate_tests.dir/rule
+.PHONY : slew_rate_tests
+
+# fast build rule for target.
+slew_rate_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/build
+.PHONY : slew_rate_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/lut_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/lut_tests.dir/rule
+.PHONY : tests/CMakeFiles/lut_tests.dir/rule
+
+# Convenience name for target.
+lut_tests: tests/CMakeFiles/lut_tests.dir/rule
+.PHONY : lut_tests
+
+# fast build rule for target.
+lut_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/build
+.PHONY : lut_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/time_delay_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/time_delay_tests.dir/rule
+.PHONY : tests/CMakeFiles/time_delay_tests.dir/rule
+
+# Convenience name for target.
+time_delay_tests: tests/CMakeFiles/time_delay_tests.dir/rule
+.PHONY : time_delay_tests
+
+# fast build rule for target.
+time_delay_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/build
+.PHONY : time_delay_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/monostable_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/monostable_tests.dir/rule
+.PHONY : tests/CMakeFiles/monostable_tests.dir/rule
+
+# Convenience name for target.
+monostable_tests: tests/CMakeFiles/monostable_tests.dir/rule
+.PHONY : monostable_tests
+
+# fast build rule for target.
+monostable_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/build
+.PHONY : monostable_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/sample_hold_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/sample_hold_tests.dir/rule
+.PHONY : tests/CMakeFiles/sample_hold_tests.dir/rule
+
+# Convenience name for target.
+sample_hold_tests: tests/CMakeFiles/sample_hold_tests.dir/rule
+.PHONY : sample_hold_tests
+
+# fast build rule for target.
+sample_hold_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/build
+.PHONY : sample_hold_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/ui_math_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_math_tests.dir/rule
 .PHONY : tests/CMakeFiles/ui_math_tests.dir/rule
@@ -354,20 +690,6 @@ visual_wire_tests/fast:
 .PHONY : visual_wire_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/visual_hittest_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/visual_hittest_tests.dir/rule
-.PHONY : tests/CMakeFiles/visual_hittest_tests.dir/rule
-
-# Convenience name for target.
-visual_hittest_tests: tests/CMakeFiles/visual_hittest_tests.dir/rule
-.PHONY : visual_hittest_tests
-
-# fast build rule for target.
-visual_hittest_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/build
-.PHONY : visual_hittest_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/visual_container_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/visual_container_tests.dir/rule
 .PHONY : tests/CMakeFiles/visual_container_tests.dir/rule
@@ -396,32 +718,18 @@ visual_primitives_tests/fast:
 .PHONY : visual_primitives_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/visual_node_widget_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/visual_node_widget_tests.dir/rule
-.PHONY : tests/CMakeFiles/visual_node_widget_tests.dir/rule
+tests/CMakeFiles/visual_content_widgets_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/visual_content_widgets_tests.dir/rule
+.PHONY : tests/CMakeFiles/visual_content_widgets_tests.dir/rule
 
 # Convenience name for target.
-visual_node_widget_tests: tests/CMakeFiles/visual_node_widget_tests.dir/rule
-.PHONY : visual_node_widget_tests
+visual_content_widgets_tests: tests/CMakeFiles/visual_content_widgets_tests.dir/rule
+.PHONY : visual_content_widgets_tests
 
 # fast build rule for target.
-visual_node_widget_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/build
-.PHONY : visual_node_widget_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/specialized_node_widget_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/specialized_node_widget_tests.dir/rule
-.PHONY : tests/CMakeFiles/specialized_node_widget_tests.dir/rule
-
-# Convenience name for target.
-specialized_node_widget_tests: tests/CMakeFiles/specialized_node_widget_tests.dir/rule
-.PHONY : specialized_node_widget_tests
-
-# fast build rule for target.
-specialized_node_widget_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/build
-.PHONY : specialized_node_widget_tests/fast
+visual_content_widgets_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/build
+.PHONY : visual_content_widgets_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/scene_mutations_tests.dir/rule:
@@ -436,6 +744,48 @@ scene_mutations_tests: tests/CMakeFiles/scene_mutations_tests.dir/rule
 scene_mutations_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/build
 .PHONY : scene_mutations_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/canvas_input_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/canvas_input_tests.dir/rule
+.PHONY : tests/CMakeFiles/canvas_input_tests.dir/rule
+
+# Convenience name for target.
+canvas_input_tests: tests/CMakeFiles/canvas_input_tests.dir/rule
+.PHONY : canvas_input_tests
+
+# fast build rule for target.
+canvas_input_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/build
+.PHONY : canvas_input_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/oscilloscope_stats_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/oscilloscope_stats_tests.dir/rule
+.PHONY : tests/CMakeFiles/oscilloscope_stats_tests.dir/rule
+
+# Convenience name for target.
+oscilloscope_stats_tests: tests/CMakeFiles/oscilloscope_stats_tests.dir/rule
+.PHONY : oscilloscope_stats_tests
+
+# fast build rule for target.
+oscilloscope_stats_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/build
+.PHONY : oscilloscope_stats_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/pi_zn_tuner_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pi_zn_tuner_tests.dir/rule
+.PHONY : tests/CMakeFiles/pi_zn_tuner_tests.dir/rule
+
+# Convenience name for target.
+pi_zn_tuner_tests: tests/CMakeFiles/pi_zn_tuner_tests.dir/rule
+.PHONY : pi_zn_tuner_tests
+
+# fast build rule for target.
+pi_zn_tuner_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/build
+.PHONY : pi_zn_tuner_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/port_registry_tests.dir/rule:
@@ -480,32 +830,32 @@ editor_componentvariant_tests/fast:
 .PHONY : editor_componentvariant_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/editor_data_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_data_tests.dir/rule
-.PHONY : tests/CMakeFiles/editor_data_tests.dir/rule
+tests/CMakeFiles/editor_settings_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_settings_tests.dir/rule
+.PHONY : tests/CMakeFiles/editor_settings_tests.dir/rule
 
 # Convenience name for target.
-editor_data_tests: tests/CMakeFiles/editor_data_tests.dir/rule
-.PHONY : editor_data_tests
+editor_settings_tests: tests/CMakeFiles/editor_settings_tests.dir/rule
+.PHONY : editor_settings_tests
 
 # fast build rule for target.
-editor_data_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/build
-.PHONY : editor_data_tests/fast
+editor_settings_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/build
+.PHONY : editor_settings_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/editor_data_interning_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_data_interning_tests.dir/rule
-.PHONY : tests/CMakeFiles/editor_data_interning_tests.dir/rule
+tests/CMakeFiles/port_layout_resolver_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/port_layout_resolver_tests.dir/rule
+.PHONY : tests/CMakeFiles/port_layout_resolver_tests.dir/rule
 
 # Convenience name for target.
-editor_data_interning_tests: tests/CMakeFiles/editor_data_interning_tests.dir/rule
-.PHONY : editor_data_interning_tests
+port_layout_resolver_tests: tests/CMakeFiles/port_layout_resolver_tests.dir/rule
+.PHONY : port_layout_resolver_tests
 
 # fast build rule for target.
-editor_data_interning_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/build
-.PHONY : editor_data_interning_tests/fast
+port_layout_resolver_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_layout_resolver_tests.dir/build.make tests/CMakeFiles/port_layout_resolver_tests.dir/build
+.PHONY : port_layout_resolver_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/editor_viewport_tests.dir/rule:
@@ -536,34 +886,6 @@ json_parser_tests/fast:
 .PHONY : json_parser_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/editor_simulation_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_simulation_tests.dir/rule
-.PHONY : tests/CMakeFiles/editor_simulation_tests.dir/rule
-
-# Convenience name for target.
-editor_simulation_tests: tests/CMakeFiles/editor_simulation_tests.dir/rule
-.PHONY : editor_simulation_tests
-
-# fast build rule for target.
-editor_simulation_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/build
-.PHONY : editor_simulation_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/azs_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/azs_tests.dir/rule
-.PHONY : tests/CMakeFiles/azs_tests.dir/rule
-
-# Convenience name for target.
-azs_tests: tests/CMakeFiles/azs_tests.dir/rule
-.PHONY : azs_tests
-
-# fast build rule for target.
-azs_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/build
-.PHONY : azs_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/factory_validation_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/factory_validation_tests.dir/rule
 .PHONY : tests/CMakeFiles/factory_validation_tests.dir/rule
@@ -576,34 +898,6 @@ factory_validation_tests: tests/CMakeFiles/factory_validation_tests.dir/rule
 factory_validation_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
 .PHONY : factory_validation_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/logical_solver_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/logical_solver_tests.dir/rule
-.PHONY : tests/CMakeFiles/logical_solver_tests.dir/rule
-
-# Convenience name for target.
-logical_solver_tests: tests/CMakeFiles/logical_solver_tests.dir/rule
-.PHONY : logical_solver_tests
-
-# fast build rule for target.
-logical_solver_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/build
-.PHONY : logical_solver_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/blueprint_ports_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/blueprint_ports_tests.dir/rule
-.PHONY : tests/CMakeFiles/blueprint_ports_tests.dir/rule
-
-# Convenience name for target.
-blueprint_ports_tests: tests/CMakeFiles/blueprint_ports_tests.dir/rule
-.PHONY : blueprint_ports_tests
-
-# fast build rule for target.
-blueprint_ports_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/build
-.PHONY : blueprint_ports_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/blueprint_integration_tests.dir/rule:
@@ -648,48 +942,6 @@ provider_pattern_tests/fast:
 .PHONY : provider_pattern_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/pid_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pid_tests.dir/rule
-.PHONY : tests/CMakeFiles/pid_tests.dir/rule
-
-# Convenience name for target.
-pid_tests: tests/CMakeFiles/pid_tests.dir/rule
-.PHONY : pid_tests
-
-# fast build rule for target.
-pid_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/build
-.PHONY : pid_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/pd_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pd_tests.dir/rule
-.PHONY : tests/CMakeFiles/pd_tests.dir/rule
-
-# Convenience name for target.
-pd_tests: tests/CMakeFiles/pd_tests.dir/rule
-.PHONY : pd_tests
-
-# fast build rule for target.
-pd_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pd_tests.dir/build.make tests/CMakeFiles/pd_tests.dir/build
-.PHONY : pd_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/subtract_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/subtract_tests.dir/rule
-.PHONY : tests/CMakeFiles/subtract_tests.dir/rule
-
-# Convenience name for target.
-subtract_tests: tests/CMakeFiles/subtract_tests.dir/rule
-.PHONY : subtract_tests
-
-# fast build rule for target.
-subtract_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/build
-.PHONY : subtract_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/asym_tmo_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/asym_tmo_tests.dir/rule
 .PHONY : tests/CMakeFiles/asym_tmo_tests.dir/rule
@@ -702,48 +954,6 @@ asym_tmo_tests: tests/CMakeFiles/asym_tmo_tests.dir/rule
 asym_tmo_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/build
 .PHONY : asym_tmo_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/slew_rate_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/slew_rate_tests.dir/rule
-.PHONY : tests/CMakeFiles/slew_rate_tests.dir/rule
-
-# Convenience name for target.
-slew_rate_tests: tests/CMakeFiles/slew_rate_tests.dir/rule
-.PHONY : slew_rate_tests
-
-# fast build rule for target.
-slew_rate_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/build
-.PHONY : slew_rate_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/logic_gates_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/logic_gates_tests.dir/rule
-.PHONY : tests/CMakeFiles/logic_gates_tests.dir/rule
-
-# Convenience name for target.
-logic_gates_tests: tests/CMakeFiles/logic_gates_tests.dir/rule
-.PHONY : logic_gates_tests
-
-# fast build rule for target.
-logic_gates_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/build
-.PHONY : logic_gates_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/lut_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/lut_tests.dir/rule
-.PHONY : tests/CMakeFiles/lut_tests.dir/rule
-
-# Convenience name for target.
-lut_tests: tests/CMakeFiles/lut_tests.dir/rule
-.PHONY : lut_tests
-
-# fast build rule for target.
-lut_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/build
-.PHONY : lut_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/lut_codegen_tests.dir/rule:
@@ -816,20 +1026,6 @@ v_to_bool_tests/fast:
 .PHONY : v_to_bool_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/arithmetic_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/arithmetic_tests.dir/rule
-.PHONY : tests/CMakeFiles/arithmetic_tests.dir/rule
-
-# Convenience name for target.
-arithmetic_tests: tests/CMakeFiles/arithmetic_tests.dir/rule
-.PHONY : arithmetic_tests
-
-# fast build rule for target.
-arithmetic_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/build
-.PHONY : arithmetic_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/pi_p_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pi_p_tests.dir/rule
 .PHONY : tests/CMakeFiles/pi_p_tests.dir/rule
@@ -858,76 +1054,6 @@ inspector_tests/fast:
 .PHONY : inspector_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
-.PHONY : tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
-
-# Convenience name for target.
-lamp_passthrough_jit_test: tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
-.PHONY : lamp_passthrough_jit_test
-
-# fast build rule for target.
-lamp_passthrough_jit_test/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/build
-.PHONY : lamp_passthrough_jit_test/fast
-
-# Convenience name for target.
-tests/CMakeFiles/node_deletion_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/node_deletion_tests.dir/rule
-.PHONY : tests/CMakeFiles/node_deletion_tests.dir/rule
-
-# Convenience name for target.
-node_deletion_tests: tests/CMakeFiles/node_deletion_tests.dir/rule
-.PHONY : node_deletion_tests
-
-# fast build rule for target.
-node_deletion_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/build
-.PHONY : node_deletion_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/multi_window_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/multi_window_tests.dir/rule
-.PHONY : tests/CMakeFiles/multi_window_tests.dir/rule
-
-# Convenience name for target.
-multi_window_tests: tests/CMakeFiles/multi_window_tests.dir/rule
-.PHONY : multi_window_tests
-
-# fast build rule for target.
-multi_window_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/build
-.PHONY : multi_window_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/params_integrity_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/params_integrity_tests.dir/rule
-.PHONY : tests/CMakeFiles/params_integrity_tests.dir/rule
-
-# Convenience name for target.
-params_integrity_tests: tests/CMakeFiles/params_integrity_tests.dir/rule
-.PHONY : params_integrity_tests
-
-# fast build rule for target.
-params_integrity_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/build
-.PHONY : params_integrity_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/expand_typedef_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/expand_typedef_tests.dir/rule
-.PHONY : tests/CMakeFiles/expand_typedef_tests.dir/rule
-
-# Convenience name for target.
-expand_typedef_tests: tests/CMakeFiles/expand_typedef_tests.dir/rule
-.PHONY : expand_typedef_tests
-
-# fast build rule for target.
-expand_typedef_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/build
-.PHONY : expand_typedef_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/properties_window_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/properties_window_tests.dir/rule
 .PHONY : tests/CMakeFiles/properties_window_tests.dir/rule
@@ -940,20 +1066,6 @@ properties_window_tests: tests/CMakeFiles/properties_window_tests.dir/rule
 properties_window_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/build
 .PHONY : properties_window_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/dt_regression_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/dt_regression_tests.dir/rule
-.PHONY : tests/CMakeFiles/dt_regression_tests.dir/rule
-
-# Convenience name for target.
-dt_regression_tests: tests/CMakeFiles/dt_regression_tests.dir/rule
-.PHONY : dt_regression_tests
-
-# fast build rule for target.
-dt_regression_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/build
-.PHONY : dt_regression_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/codegen_accumulator_tests.dir/rule:
@@ -984,18 +1096,60 @@ aot_composite_tests/fast:
 .PHONY : aot_composite_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/bake_in_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bake_in_tests.dir/rule
-.PHONY : tests/CMakeFiles/bake_in_tests.dir/rule
+tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/rule
+.PHONY : tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/rule
 
 # Convenience name for target.
-bake_in_tests: tests/CMakeFiles/bake_in_tests.dir/rule
-.PHONY : bake_in_tests
+jit_aot_bridge_equivalence_tests: tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/rule
+.PHONY : jit_aot_bridge_equivalence_tests
 
 # fast build rule for target.
-bake_in_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/build
-.PHONY : bake_in_tests/fast
+jit_aot_bridge_equivalence_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build
+.PHONY : jit_aot_bridge_equivalence_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/production_path_parity_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/production_path_parity_tests.dir/rule
+.PHONY : tests/CMakeFiles/production_path_parity_tests.dir/rule
+
+# Convenience name for target.
+production_path_parity_tests: tests/CMakeFiles/production_path_parity_tests.dir/rule
+.PHONY : production_path_parity_tests
+
+# fast build rule for target.
+production_path_parity_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/build
+.PHONY : production_path_parity_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/production_path_port_map_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/production_path_port_map_tests.dir/rule
+.PHONY : tests/CMakeFiles/production_path_port_map_tests.dir/rule
+
+# Convenience name for target.
+production_path_port_map_tests: tests/CMakeFiles/production_path_port_map_tests.dir/rule
+.PHONY : production_path_port_map_tests
+
+# fast build rule for target.
+production_path_port_map_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/build
+.PHONY : production_path_port_map_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/production_path_push_runtime_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/production_path_push_runtime_tests.dir/rule
+.PHONY : tests/CMakeFiles/production_path_push_runtime_tests.dir/rule
+
+# Convenience name for target.
+production_path_push_runtime_tests: tests/CMakeFiles/production_path_push_runtime_tests.dir/rule
+.PHONY : production_path_push_runtime_tests
+
+# fast build rule for target.
+production_path_push_runtime_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/build
+.PHONY : production_path_push_runtime_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/asym_slew_rate_tests.dir/rule:
@@ -1012,48 +1166,6 @@ asym_slew_rate_tests/fast:
 .PHONY : asym_slew_rate_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/time_delay_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/time_delay_tests.dir/rule
-.PHONY : tests/CMakeFiles/time_delay_tests.dir/rule
-
-# Convenience name for target.
-time_delay_tests: tests/CMakeFiles/time_delay_tests.dir/rule
-.PHONY : time_delay_tests
-
-# fast build rule for target.
-time_delay_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/build
-.PHONY : time_delay_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/monostable_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/monostable_tests.dir/rule
-.PHONY : tests/CMakeFiles/monostable_tests.dir/rule
-
-# Convenience name for target.
-monostable_tests: tests/CMakeFiles/monostable_tests.dir/rule
-.PHONY : monostable_tests
-
-# fast build rule for target.
-monostable_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/build
-.PHONY : monostable_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/sample_hold_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/sample_hold_tests.dir/rule
-.PHONY : tests/CMakeFiles/sample_hold_tests.dir/rule
-
-# Convenience name for target.
-sample_hold_tests: tests/CMakeFiles/sample_hold_tests.dir/rule
-.PHONY : sample_hold_tests
-
-# fast build rule for target.
-sample_hold_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/build
-.PHONY : sample_hold_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/integrator_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/integrator_tests.dir/rule
 .PHONY : tests/CMakeFiles/integrator_tests.dir/rule
@@ -1066,6 +1178,34 @@ integrator_tests: tests/CMakeFiles/integrator_tests.dir/rule
 integrator_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/build
 .PHONY : integrator_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/accumulator_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/accumulator_tests.dir/rule
+.PHONY : tests/CMakeFiles/accumulator_tests.dir/rule
+
+# Convenience name for target.
+accumulator_tests: tests/CMakeFiles/accumulator_tests.dir/rule
+.PHONY : accumulator_tests
+
+# fast build rule for target.
+accumulator_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/build
+.PHONY : accumulator_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/sam28_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/sam28_tests.dir/rule
+.PHONY : tests/CMakeFiles/sam28_tests.dir/rule
+
+# Convenience name for target.
+sam28_tests: tests/CMakeFiles/sam28_tests.dir/rule
+.PHONY : sam28_tests
+
+# fast build rule for target.
+sam28_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/build
+.PHONY : sam28_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/clamp_normalize_tests.dir/rule:
@@ -1110,74 +1250,18 @@ spring_tests/fast:
 .PHONY : spring_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/sub_blueprint_ref_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/sub_blueprint_ref_tests.dir/rule
-.PHONY : tests/CMakeFiles/sub_blueprint_ref_tests.dir/rule
+tests/CMakeFiles/v3_migration_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/v3_migration_tests.dir/rule
+.PHONY : tests/CMakeFiles/v3_migration_tests.dir/rule
 
 # Convenience name for target.
-sub_blueprint_ref_tests: tests/CMakeFiles/sub_blueprint_ref_tests.dir/rule
-.PHONY : sub_blueprint_ref_tests
+v3_migration_tests: tests/CMakeFiles/v3_migration_tests.dir/rule
+.PHONY : v3_migration_tests
 
 # fast build rule for target.
-sub_blueprint_ref_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/build
-.PHONY : sub_blueprint_ref_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/document_window_system_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/document_window_system_tests.dir/rule
-.PHONY : tests/CMakeFiles/document_window_system_tests.dir/rule
-
-# Convenience name for target.
-document_window_system_tests: tests/CMakeFiles/document_window_system_tests.dir/rule
-.PHONY : document_window_system_tests
-
-# fast build rule for target.
-document_window_system_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/build
-.PHONY : document_window_system_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/flat_blueprint_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/flat_blueprint_tests.dir/rule
-.PHONY : tests/CMakeFiles/flat_blueprint_tests.dir/rule
-
-# Convenience name for target.
-flat_blueprint_tests: tests/CMakeFiles/flat_blueprint_tests.dir/rule
-.PHONY : flat_blueprint_tests
-
-# fast build rule for target.
-flat_blueprint_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/build
-.PHONY : flat_blueprint_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/library_v2_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/library_v2_tests.dir/rule
-.PHONY : tests/CMakeFiles/library_v2_tests.dir/rule
-
-# Convenience name for target.
-library_v2_tests: tests/CMakeFiles/library_v2_tests.dir/rule
-.PHONY : library_v2_tests
-
-# fast build rule for target.
-library_v2_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/build
-.PHONY : library_v2_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/multi_domain_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/multi_domain_tests.dir/rule
-.PHONY : tests/CMakeFiles/multi_domain_tests.dir/rule
-
-# Convenience name for target.
-multi_domain_tests: tests/CMakeFiles/multi_domain_tests.dir/rule
-.PHONY : multi_domain_tests
-
-# fast build rule for target.
-multi_domain_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/build
-.PHONY : multi_domain_tests/fast
+v3_migration_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/build
+.PHONY : v3_migration_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/command_tests.dir/rule:
@@ -1194,178 +1278,200 @@ command_tests/fast:
 .PHONY : command_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/transformer_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/transformer_tests.dir/rule
-.PHONY : tests/CMakeFiles/transformer_tests.dir/rule
+tests/CMakeFiles/unmapped_port_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/unmapped_port_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/unmapped_port_regression_tests.dir/rule
 
 # Convenience name for target.
-transformer_tests: tests/CMakeFiles/transformer_tests.dir/rule
-.PHONY : transformer_tests
+unmapped_port_regression_tests: tests/CMakeFiles/unmapped_port_regression_tests.dir/rule
+.PHONY : unmapped_port_regression_tests
 
 # fast build rule for target.
-transformer_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/build
-.PHONY : transformer_tests/fast
+unmapped_port_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/build
+.PHONY : unmapped_port_regression_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/generator_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/generator_tests.dir/rule
-.PHONY : tests/CMakeFiles/generator_tests.dir/rule
+tests/CMakeFiles/bp2_path_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_path_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_path_tests.dir/rule
 
 # Convenience name for target.
-generator_tests: tests/CMakeFiles/generator_tests.dir/rule
-.PHONY : generator_tests
+bp2_path_tests: tests/CMakeFiles/bp2_path_tests.dir/rule
+.PHONY : bp2_path_tests
 
 # fast build rule for target.
-generator_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/build
-.PHONY : generator_tests/fast
+bp2_path_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/build
+.PHONY : bp2_path_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/apu_mechanical_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/apu_mechanical_tests.dir/rule
-.PHONY : tests/CMakeFiles/apu_mechanical_tests.dir/rule
+tests/CMakeFiles/bp2_interface_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_interface_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_interface_tests.dir/rule
 
 # Convenience name for target.
-apu_mechanical_tests: tests/CMakeFiles/apu_mechanical_tests.dir/rule
-.PHONY : apu_mechanical_tests
+bp2_interface_tests: tests/CMakeFiles/bp2_interface_tests.dir/rule
+.PHONY : bp2_interface_tests
 
 # fast build rule for target.
-apu_mechanical_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/build
-.PHONY : apu_mechanical_tests/fast
+bp2_interface_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/build
+.PHONY : bp2_interface_tests/fast
 
-__/_deps/imgui-src/imgui.o: __/_deps/imgui-src/imgui.cpp.o
-.PHONY : __/_deps/imgui-src/imgui.o
+# Convenience name for target.
+tests/CMakeFiles/bp2_blueprint_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_blueprint_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_blueprint_tests.dir/rule
 
-# target to build an object file
-__/_deps/imgui-src/imgui.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui.cpp.o
-.PHONY : __/_deps/imgui-src/imgui.cpp.o
+# Convenience name for target.
+bp2_blueprint_tests: tests/CMakeFiles/bp2_blueprint_tests.dir/rule
+.PHONY : bp2_blueprint_tests
 
-__/_deps/imgui-src/imgui.i: __/_deps/imgui-src/imgui.cpp.i
-.PHONY : __/_deps/imgui-src/imgui.i
+# fast build rule for target.
+bp2_blueprint_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/build
+.PHONY : bp2_blueprint_tests/fast
 
-# target to preprocess a source file
-__/_deps/imgui-src/imgui.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui.cpp.i
-.PHONY : __/_deps/imgui-src/imgui.cpp.i
+# Convenience name for target.
+tests/CMakeFiles/bp2_registry_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_registry_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_registry_tests.dir/rule
 
-__/_deps/imgui-src/imgui.s: __/_deps/imgui-src/imgui.cpp.s
-.PHONY : __/_deps/imgui-src/imgui.s
+# Convenience name for target.
+bp2_registry_tests: tests/CMakeFiles/bp2_registry_tests.dir/rule
+.PHONY : bp2_registry_tests
 
-# target to generate assembly for a file
-__/_deps/imgui-src/imgui.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui.cpp.s
-.PHONY : __/_deps/imgui-src/imgui.cpp.s
+# fast build rule for target.
+bp2_registry_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/build
+.PHONY : bp2_registry_tests/fast
 
-__/_deps/imgui-src/imgui_draw.o: __/_deps/imgui-src/imgui_draw.cpp.o
-.PHONY : __/_deps/imgui-src/imgui_draw.o
+# Convenience name for target.
+tests/CMakeFiles/bp2_codec_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_codec_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_codec_tests.dir/rule
 
-# target to build an object file
-__/_deps/imgui-src/imgui_draw.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.o
-.PHONY : __/_deps/imgui-src/imgui_draw.cpp.o
+# Convenience name for target.
+bp2_codec_tests: tests/CMakeFiles/bp2_codec_tests.dir/rule
+.PHONY : bp2_codec_tests
 
-__/_deps/imgui-src/imgui_draw.i: __/_deps/imgui-src/imgui_draw.cpp.i
-.PHONY : __/_deps/imgui-src/imgui_draw.i
+# fast build rule for target.
+bp2_codec_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/build
+.PHONY : bp2_codec_tests/fast
 
-# target to preprocess a source file
-__/_deps/imgui-src/imgui_draw.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.i
-.PHONY : __/_deps/imgui-src/imgui_draw.cpp.i
+# Convenience name for target.
+tests/CMakeFiles/bp2_flattener_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_flattener_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_flattener_tests.dir/rule
 
-__/_deps/imgui-src/imgui_draw.s: __/_deps/imgui-src/imgui_draw.cpp.s
-.PHONY : __/_deps/imgui-src/imgui_draw.s
+# Convenience name for target.
+bp2_flattener_tests: tests/CMakeFiles/bp2_flattener_tests.dir/rule
+.PHONY : bp2_flattener_tests
 
-# target to generate assembly for a file
-__/_deps/imgui-src/imgui_draw.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui_draw.cpp.s
-.PHONY : __/_deps/imgui-src/imgui_draw.cpp.s
+# fast build rule for target.
+bp2_flattener_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/build
+.PHONY : bp2_flattener_tests/fast
 
-__/_deps/imgui-src/imgui_tables.o: __/_deps/imgui-src/imgui_tables.cpp.o
-.PHONY : __/_deps/imgui-src/imgui_tables.o
+# Convenience name for target.
+tests/CMakeFiles/bp2_editor_model_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_editor_model_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_editor_model_tests.dir/rule
 
-# target to build an object file
-__/_deps/imgui-src/imgui_tables.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.o
-.PHONY : __/_deps/imgui-src/imgui_tables.cpp.o
+# Convenience name for target.
+bp2_editor_model_tests: tests/CMakeFiles/bp2_editor_model_tests.dir/rule
+.PHONY : bp2_editor_model_tests
 
-__/_deps/imgui-src/imgui_tables.i: __/_deps/imgui-src/imgui_tables.cpp.i
-.PHONY : __/_deps/imgui-src/imgui_tables.i
+# fast build rule for target.
+bp2_editor_model_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/build
+.PHONY : bp2_editor_model_tests/fast
 
-# target to preprocess a source file
-__/_deps/imgui-src/imgui_tables.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.i
-.PHONY : __/_deps/imgui-src/imgui_tables.cpp.i
+# Convenience name for target.
+tests/CMakeFiles/bp2_bake_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_bake_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_bake_tests.dir/rule
 
-__/_deps/imgui-src/imgui_tables.s: __/_deps/imgui-src/imgui_tables.cpp.s
-.PHONY : __/_deps/imgui-src/imgui_tables.s
+# Convenience name for target.
+bp2_bake_tests: tests/CMakeFiles/bp2_bake_tests.dir/rule
+.PHONY : bp2_bake_tests
 
-# target to generate assembly for a file
-__/_deps/imgui-src/imgui_tables.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui_tables.cpp.s
-.PHONY : __/_deps/imgui-src/imgui_tables.cpp.s
+# fast build rule for target.
+bp2_bake_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/build
+.PHONY : bp2_bake_tests/fast
 
-__/_deps/imgui-src/imgui_widgets.o: __/_deps/imgui-src/imgui_widgets.cpp.o
-.PHONY : __/_deps/imgui-src/imgui_widgets.o
+# Convenience name for target.
+tests/CMakeFiles/bp2_validation_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_validation_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_validation_tests.dir/rule
 
-# target to build an object file
-__/_deps/imgui-src/imgui_widgets.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.o
-.PHONY : __/_deps/imgui-src/imgui_widgets.cpp.o
+# Convenience name for target.
+bp2_validation_tests: tests/CMakeFiles/bp2_validation_tests.dir/rule
+.PHONY : bp2_validation_tests
 
-__/_deps/imgui-src/imgui_widgets.i: __/_deps/imgui-src/imgui_widgets.cpp.i
-.PHONY : __/_deps/imgui-src/imgui_widgets.i
+# fast build rule for target.
+bp2_validation_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/build
+.PHONY : bp2_validation_tests/fast
 
-# target to preprocess a source file
-__/_deps/imgui-src/imgui_widgets.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.i
-.PHONY : __/_deps/imgui-src/imgui_widgets.cpp.i
+# Convenience name for target.
+tests/CMakeFiles/electrical_primitives_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_primitives_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_primitives_tests.dir/rule
 
-__/_deps/imgui-src/imgui_widgets.s: __/_deps/imgui-src/imgui_widgets.cpp.s
-.PHONY : __/_deps/imgui-src/imgui_widgets.s
+# Convenience name for target.
+electrical_primitives_tests: tests/CMakeFiles/electrical_primitives_tests.dir/rule
+.PHONY : electrical_primitives_tests
 
-# target to generate assembly for a file
-__/_deps/imgui-src/imgui_widgets.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/_deps/imgui-src/imgui_widgets.cpp.s
-.PHONY : __/_deps/imgui-src/imgui_widgets.cpp.s
+# fast build rule for target.
+electrical_primitives_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/build
+.PHONY : electrical_primitives_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/electrical_parity_fixtures_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_parity_fixtures_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_parity_fixtures_tests.dir/rule
+
+# Convenience name for target.
+electrical_parity_fixtures_tests: tests/CMakeFiles/electrical_parity_fixtures_tests.dir/rule
+.PHONY : electrical_parity_fixtures_tests
+
+# fast build rule for target.
+electrical_parity_fixtures_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build
+.PHONY : electrical_parity_fixtures_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule
+.PHONY : tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule
+
+# Convenience name for target.
+external_ref_signal_mapping_tests: tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule
+.PHONY : external_ref_signal_mapping_tests
+
+# fast build rule for target.
+external_ref_signal_mapping_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build
+.PHONY : external_ref_signal_mapping_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/signal_key_resolver_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/signal_key_resolver_tests.dir/rule
+.PHONY : tests/CMakeFiles/signal_key_resolver_tests.dir/rule
+
+# Convenience name for target.
+signal_key_resolver_tests: tests/CMakeFiles/signal_key_resolver_tests.dir/rule
+.PHONY : signal_key_resolver_tests
+
+# fast build rule for target.
+signal_key_resolver_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/build
+.PHONY : signal_key_resolver_tests/fast
 
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
@@ -1375,7 +1481,8 @@ __/src/codegen/codegen.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.cpp.o
 
 __/src/codegen/codegen.i: __/src/codegen/codegen.cpp.i
@@ -1386,7 +1493,8 @@ __/src/codegen/codegen.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.i
 .PHONY : __/src/codegen/codegen.cpp.i
 
 __/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
@@ -1397,19 +1505,53 @@ __/src/codegen/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
+
+__/src/codegen/electrical_codegen.o: __/src/codegen/electrical_codegen.cpp.o
+.PHONY : __/src/codegen/electrical_codegen.o
+
+# target to build an object file
+__/src/codegen/electrical_codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+.PHONY : __/src/codegen/electrical_codegen.cpp.o
+
+__/src/codegen/electrical_codegen.i: __/src/codegen/electrical_codegen.cpp.i
+.PHONY : __/src/codegen/electrical_codegen.i
+
+# target to preprocess a source file
+__/src/codegen/electrical_codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+.PHONY : __/src/codegen/electrical_codegen.cpp.i
+
+__/src/codegen/electrical_codegen.s: __/src/codegen/electrical_codegen.cpp.s
+.PHONY : __/src/codegen/electrical_codegen.s
+
+# target to generate assembly for a file
+__/src/codegen/electrical_codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+.PHONY : __/src/codegen/electrical_codegen.cpp.s
 
 __/src/editor/commands/commands.o: __/src/editor/commands/commands.cpp.o
 .PHONY : __/src/editor/commands/commands.o
 
 # target to build an object file
 __/src/editor/commands/commands.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/commands/commands.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/commands/commands.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/commands/commands.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/commands/commands.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/commands/commands.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/commands/commands.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/commands.cpp.o
 .PHONY : __/src/editor/commands/commands.cpp.o
 
@@ -1418,11 +1560,8 @@ __/src/editor/commands/commands.i: __/src/editor/commands/commands.cpp.i
 
 # target to preprocess a source file
 __/src/editor/commands/commands.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/commands/commands.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/commands/commands.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/commands/commands.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/commands/commands.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/commands/commands.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/commands/commands.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/commands.cpp.i
 .PHONY : __/src/editor/commands/commands.cpp.i
 
@@ -1431,119 +1570,41 @@ __/src/editor/commands/commands.s: __/src/editor/commands/commands.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/commands/commands.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/commands/commands.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/commands/commands.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/commands/commands.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/commands/commands.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/commands/commands.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/commands/commands.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/commands.cpp.s
 .PHONY : __/src/editor/commands/commands.cpp.s
 
-__/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
-.PHONY : __/src/editor/data/blueprint.o
+__/src/editor/commands/extract_blueprint.o: __/src/editor/commands/extract_blueprint.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint.o
 
 # target to build an object file
-__/src/editor/data/blueprint.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/data/blueprint.cpp.o
-.PHONY : __/src/editor/data/blueprint.cpp.o
+__/src/editor/commands/extract_blueprint.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.o
 
-__/src/editor/data/blueprint.i: __/src/editor/data/blueprint.cpp.i
-.PHONY : __/src/editor/data/blueprint.i
+__/src/editor/commands/extract_blueprint.i: __/src/editor/commands/extract_blueprint.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint.i
 
 # target to preprocess a source file
-__/src/editor/data/blueprint.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/data/blueprint.cpp.i
-.PHONY : __/src/editor/data/blueprint.cpp.i
+__/src/editor/commands/extract_blueprint.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.i
 
-__/src/editor/data/blueprint.s: __/src/editor/data/blueprint.cpp.s
-.PHONY : __/src/editor/data/blueprint.s
+__/src/editor/commands/extract_blueprint.s: __/src/editor/commands/extract_blueprint.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint.s
 
 # target to generate assembly for a file
-__/src/editor/data/blueprint.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/data/blueprint.cpp.s
-.PHONY : __/src/editor/data/blueprint.cpp.s
-
-__/src/editor/document.o: __/src/editor/document.cpp.o
-.PHONY : __/src/editor/document.o
-
-# target to build an object file
-__/src/editor/document.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/document.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/document.cpp.o
-.PHONY : __/src/editor/document.cpp.o
-
-__/src/editor/document.i: __/src/editor/document.cpp.i
-.PHONY : __/src/editor/document.i
-
-# target to preprocess a source file
-__/src/editor/document.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/document.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/document.cpp.i
-.PHONY : __/src/editor/document.cpp.i
-
-__/src/editor/document.s: __/src/editor/document.cpp.s
-.PHONY : __/src/editor/document.s
-
-# target to generate assembly for a file
-__/src/editor/document.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/document.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/document.cpp.s
-.PHONY : __/src/editor/document.cpp.s
+__/src/editor/commands/extract_blueprint.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.s
 
 __/src/editor/editor_settings.o: __/src/editor/editor_settings.cpp.o
 .PHONY : __/src/editor/editor_settings.o
 
 # target to build an object file
 __/src/editor/editor_settings.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/editor_settings.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/__/src/editor/editor_settings.cpp.o
 .PHONY : __/src/editor/editor_settings.cpp.o
 
 __/src/editor/editor_settings.i: __/src/editor/editor_settings.cpp.i
@@ -1551,7 +1612,7 @@ __/src/editor/editor_settings.i: __/src/editor/editor_settings.cpp.i
 
 # target to preprocess a source file
 __/src/editor/editor_settings.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/editor_settings.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/__/src/editor/editor_settings.cpp.i
 .PHONY : __/src/editor/editor_settings.cpp.i
 
 __/src/editor/editor_settings.s: __/src/editor/editor_settings.cpp.s
@@ -1559,7 +1620,7 @@ __/src/editor/editor_settings.s: __/src/editor/editor_settings.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/editor_settings.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/editor_settings.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/__/src/editor/editor_settings.cpp.s
 .PHONY : __/src/editor/editor_settings.cpp.s
 
 __/src/editor/input/canvas_input.o: __/src/editor/input/canvas_input.cpp.o
@@ -1567,10 +1628,7 @@ __/src/editor/input/canvas_input.o: __/src/editor/input/canvas_input.cpp.o
 
 # target to build an object file
 __/src/editor/input/canvas_input.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/input/canvas_input.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/input/canvas_input.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/input/canvas_input.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/input/canvas_input.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input.cpp.o
 .PHONY : __/src/editor/input/canvas_input.cpp.o
 
 __/src/editor/input/canvas_input.i: __/src/editor/input/canvas_input.cpp.i
@@ -1578,10 +1636,7 @@ __/src/editor/input/canvas_input.i: __/src/editor/input/canvas_input.cpp.i
 
 # target to preprocess a source file
 __/src/editor/input/canvas_input.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/input/canvas_input.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/input/canvas_input.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/input/canvas_input.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/input/canvas_input.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input.cpp.i
 .PHONY : __/src/editor/input/canvas_input.cpp.i
 
 __/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
@@ -1589,23 +1644,68 @@ __/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/input/canvas_input.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/input/canvas_input.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/input/canvas_input.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/input/canvas_input.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/input/canvas_input.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
+
+__/src/editor/pi_zn_math.o: __/src/editor/pi_zn_math.cpp.o
+.PHONY : __/src/editor/pi_zn_math.o
+
+# target to build an object file
+__/src/editor/pi_zn_math.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/__/src/editor/pi_zn_math.cpp.o
+.PHONY : __/src/editor/pi_zn_math.cpp.o
+
+__/src/editor/pi_zn_math.i: __/src/editor/pi_zn_math.cpp.i
+.PHONY : __/src/editor/pi_zn_math.i
+
+# target to preprocess a source file
+__/src/editor/pi_zn_math.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/__/src/editor/pi_zn_math.cpp.i
+.PHONY : __/src/editor/pi_zn_math.cpp.i
+
+__/src/editor/pi_zn_math.s: __/src/editor/pi_zn_math.cpp.s
+.PHONY : __/src/editor/pi_zn_math.s
+
+# target to generate assembly for a file
+__/src/editor/pi_zn_math.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/__/src/editor/pi_zn_math.cpp.s
+.PHONY : __/src/editor/pi_zn_math.cpp.s
+
+__/src/editor/signal_key_resolver.o: __/src/editor/signal_key_resolver.cpp.o
+.PHONY : __/src/editor/signal_key_resolver.o
+
+# target to build an object file
+__/src/editor/signal_key_resolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/__/src/editor/signal_key_resolver.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/__/src/editor/signal_key_resolver.cpp.o
+.PHONY : __/src/editor/signal_key_resolver.cpp.o
+
+__/src/editor/signal_key_resolver.i: __/src/editor/signal_key_resolver.cpp.i
+.PHONY : __/src/editor/signal_key_resolver.i
+
+# target to preprocess a source file
+__/src/editor/signal_key_resolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/__/src/editor/signal_key_resolver.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/__/src/editor/signal_key_resolver.cpp.i
+.PHONY : __/src/editor/signal_key_resolver.cpp.i
+
+__/src/editor/signal_key_resolver.s: __/src/editor/signal_key_resolver.cpp.s
+.PHONY : __/src/editor/signal_key_resolver.s
+
+# target to generate assembly for a file
+__/src/editor/signal_key_resolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/__/src/editor/signal_key_resolver.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/__/src/editor/signal_key_resolver.cpp.s
+.PHONY : __/src/editor/signal_key_resolver.cpp.s
 
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
 
 # target to build an object file
 __/src/editor/viewport/viewport.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_viewport_tests.dir/build.make tests/CMakeFiles/editor_viewport_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/viewport/viewport.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/viewport/viewport.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/viewport/viewport.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/viewport/viewport.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.cpp.o
 
 __/src/editor/viewport/viewport.i: __/src/editor/viewport/viewport.cpp.i
@@ -1613,12 +1713,9 @@ __/src/editor/viewport/viewport.i: __/src/editor/viewport/viewport.cpp.i
 
 # target to preprocess a source file
 __/src/editor/viewport/viewport.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_viewport_tests.dir/build.make tests/CMakeFiles/editor_viewport_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/viewport/viewport.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/viewport/viewport.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/viewport/viewport.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/viewport/viewport.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/viewport/viewport.cpp.i
 .PHONY : __/src/editor/viewport/viewport.cpp.i
 
 __/src/editor/viewport/viewport.s: __/src/editor/viewport/viewport.cpp.s
@@ -1626,12 +1723,9 @@ __/src/editor/viewport/viewport.s: __/src/editor/viewport/viewport.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/viewport/viewport.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_viewport_tests.dir/build.make tests/CMakeFiles/editor_viewport_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/viewport/viewport.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/viewport/viewport.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/viewport/viewport.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/viewport/viewport.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/viewport/viewport.cpp.s
 .PHONY : __/src/editor/viewport/viewport.cpp.s
 
 __/src/editor/visual/inspector/inspector_core.o: __/src/editor/visual/inspector/inspector_core.cpp.o
@@ -1640,8 +1734,6 @@ __/src/editor/visual/inspector/inspector_core.o: __/src/editor/visual/inspector/
 # target to build an object file
 __/src/editor/visual/inspector/inspector_core.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.o
 .PHONY : __/src/editor/visual/inspector/inspector_core.cpp.o
 
 __/src/editor/visual/inspector/inspector_core.i: __/src/editor/visual/inspector/inspector_core.cpp.i
@@ -1650,8 +1742,6 @@ __/src/editor/visual/inspector/inspector_core.i: __/src/editor/visual/inspector/
 # target to preprocess a source file
 __/src/editor/visual/inspector/inspector_core.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.i
 .PHONY : __/src/editor/visual/inspector/inspector_core.cpp.i
 
 __/src/editor/visual/inspector/inspector_core.s: __/src/editor/visual/inspector/inspector_core.cpp.s
@@ -1660,8 +1750,6 @@ __/src/editor/visual/inspector/inspector_core.s: __/src/editor/visual/inspector/
 # target to generate assembly for a file
 __/src/editor/visual/inspector/inspector_core.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.s
 .PHONY : __/src/editor/visual/inspector/inspector_core.cpp.s
 
 __/src/editor/visual/node/bus_node_widget.o: __/src/editor/visual/node/bus_node_widget.cpp.o
@@ -1669,12 +1757,8 @@ __/src/editor/visual/node/bus_node_widget.o: __/src/editor/visual/node/bus_node_
 
 # target to build an object file
 __/src/editor/visual/node/bus_node_widget.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
 .PHONY : __/src/editor/visual/node/bus_node_widget.cpp.o
 
 __/src/editor/visual/node/bus_node_widget.i: __/src/editor/visual/node/bus_node_widget.cpp.i
@@ -1682,12 +1766,8 @@ __/src/editor/visual/node/bus_node_widget.i: __/src/editor/visual/node/bus_node_
 
 # target to preprocess a source file
 __/src/editor/visual/node/bus_node_widget.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
 .PHONY : __/src/editor/visual/node/bus_node_widget.cpp.i
 
 __/src/editor/visual/node/bus_node_widget.s: __/src/editor/visual/node/bus_node_widget.cpp.s
@@ -1695,12 +1775,8 @@ __/src/editor/visual/node/bus_node_widget.s: __/src/editor/visual/node/bus_node_
 
 # target to generate assembly for a file
 __/src/editor/visual/node/bus_node_widget.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
 .PHONY : __/src/editor/visual/node/bus_node_widget.cpp.s
 
 __/src/editor/visual/node/group_node_widget.o: __/src/editor/visual/node/group_node_widget.cpp.o
@@ -1708,13 +1784,8 @@ __/src/editor/visual/node/group_node_widget.o: __/src/editor/visual/node/group_n
 
 # target to build an object file
 __/src/editor/visual/node/group_node_widget.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
 .PHONY : __/src/editor/visual/node/group_node_widget.cpp.o
 
 __/src/editor/visual/node/group_node_widget.i: __/src/editor/visual/node/group_node_widget.cpp.i
@@ -1722,13 +1793,8 @@ __/src/editor/visual/node/group_node_widget.i: __/src/editor/visual/node/group_n
 
 # target to preprocess a source file
 __/src/editor/visual/node/group_node_widget.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
 .PHONY : __/src/editor/visual/node/group_node_widget.cpp.i
 
 __/src/editor/visual/node/group_node_widget.s: __/src/editor/visual/node/group_node_widget.cpp.s
@@ -1736,13 +1802,8 @@ __/src/editor/visual/node/group_node_widget.s: __/src/editor/visual/node/group_n
 
 # target to generate assembly for a file
 __/src/editor/visual/node/group_node_widget.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
 .PHONY : __/src/editor/visual/node/group_node_widget.cpp.s
 
 __/src/editor/visual/node/ref_node_widget.o: __/src/editor/visual/node/ref_node_widget.cpp.o
@@ -1750,12 +1811,8 @@ __/src/editor/visual/node/ref_node_widget.o: __/src/editor/visual/node/ref_node_
 
 # target to build an object file
 __/src/editor/visual/node/ref_node_widget.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
 .PHONY : __/src/editor/visual/node/ref_node_widget.cpp.o
 
 __/src/editor/visual/node/ref_node_widget.i: __/src/editor/visual/node/ref_node_widget.cpp.i
@@ -1763,12 +1820,8 @@ __/src/editor/visual/node/ref_node_widget.i: __/src/editor/visual/node/ref_node_
 
 # target to preprocess a source file
 __/src/editor/visual/node/ref_node_widget.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
 .PHONY : __/src/editor/visual/node/ref_node_widget.cpp.i
 
 __/src/editor/visual/node/ref_node_widget.s: __/src/editor/visual/node/ref_node_widget.cpp.s
@@ -1776,12 +1829,8 @@ __/src/editor/visual/node/ref_node_widget.s: __/src/editor/visual/node/ref_node_
 
 # target to generate assembly for a file
 __/src/editor/visual/node/ref_node_widget.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
 .PHONY : __/src/editor/visual/node/ref_node_widget.cpp.s
 
 __/src/editor/visual/node/text_node_widget.o: __/src/editor/visual/node/text_node_widget.cpp.o
@@ -1789,12 +1838,8 @@ __/src/editor/visual/node/text_node_widget.o: __/src/editor/visual/node/text_nod
 
 # target to build an object file
 __/src/editor/visual/node/text_node_widget.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
 .PHONY : __/src/editor/visual/node/text_node_widget.cpp.o
 
 __/src/editor/visual/node/text_node_widget.i: __/src/editor/visual/node/text_node_widget.cpp.i
@@ -1802,12 +1847,8 @@ __/src/editor/visual/node/text_node_widget.i: __/src/editor/visual/node/text_nod
 
 # target to preprocess a source file
 __/src/editor/visual/node/text_node_widget.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
 .PHONY : __/src/editor/visual/node/text_node_widget.cpp.i
 
 __/src/editor/visual/node/text_node_widget.s: __/src/editor/visual/node/text_node_widget.cpp.s
@@ -1815,12 +1856,8 @@ __/src/editor/visual/node/text_node_widget.s: __/src/editor/visual/node/text_nod
 
 # target to generate assembly for a file
 __/src/editor/visual/node/text_node_widget.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
 .PHONY : __/src/editor/visual/node/text_node_widget.cpp.s
 
 __/src/editor/visual/node/visual_node.o: __/src/editor/visual/node/visual_node.cpp.o
@@ -1828,13 +1865,8 @@ __/src/editor/visual/node/visual_node.o: __/src/editor/visual/node/visual_node.c
 
 # target to build an object file
 __/src/editor/visual/node/visual_node.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
 .PHONY : __/src/editor/visual/node/visual_node.cpp.o
 
 __/src/editor/visual/node/visual_node.i: __/src/editor/visual/node/visual_node.cpp.i
@@ -1842,13 +1874,8 @@ __/src/editor/visual/node/visual_node.i: __/src/editor/visual/node/visual_node.c
 
 # target to preprocess a source file
 __/src/editor/visual/node/visual_node.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
 .PHONY : __/src/editor/visual/node/visual_node.cpp.i
 
 __/src/editor/visual/node/visual_node.s: __/src/editor/visual/node/visual_node.cpp.s
@@ -1856,13 +1883,8 @@ __/src/editor/visual/node/visual_node.s: __/src/editor/visual/node/visual_node.c
 
 # target to generate assembly for a file
 __/src/editor/visual/node/visual_node.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
 .PHONY : __/src/editor/visual/node/visual_node.cpp.s
 
 __/src/editor/visual/persist.o: __/src/editor/visual/persist.cpp.o
@@ -1870,18 +1892,11 @@ __/src/editor/visual/persist.o: __/src/editor/visual/persist.cpp.o
 
 # target to build an object file
 __/src/editor/visual/persist.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/visual/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/visual/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/visual/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/visual/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.o
 .PHONY : __/src/editor/visual/persist.cpp.o
 
 __/src/editor/visual/persist.i: __/src/editor/visual/persist.cpp.i
@@ -1889,18 +1904,11 @@ __/src/editor/visual/persist.i: __/src/editor/visual/persist.cpp.i
 
 # target to preprocess a source file
 __/src/editor/visual/persist.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/visual/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/visual/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/visual/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/visual/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.i
 .PHONY : __/src/editor/visual/persist.cpp.i
 
 __/src/editor/visual/persist.s: __/src/editor/visual/persist.cpp.s
@@ -1908,18 +1916,11 @@ __/src/editor/visual/persist.s: __/src/editor/visual/persist.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/visual/persist.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/visual/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/visual/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/visual/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/visual/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.s
 .PHONY : __/src/editor/visual/persist.cpp.s
 
 __/src/editor/visual/port/visual_port.o: __/src/editor/visual/port/visual_port.cpp.o
@@ -1928,14 +1929,8 @@ __/src/editor/visual/port/visual_port.o: __/src/editor/visual/port/visual_port.c
 # target to build an object file
 __/src/editor/visual/port/visual_port.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
 .PHONY : __/src/editor/visual/port/visual_port.cpp.o
 
 __/src/editor/visual/port/visual_port.i: __/src/editor/visual/port/visual_port.cpp.i
@@ -1944,14 +1939,8 @@ __/src/editor/visual/port/visual_port.i: __/src/editor/visual/port/visual_port.c
 # target to preprocess a source file
 __/src/editor/visual/port/visual_port.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
 .PHONY : __/src/editor/visual/port/visual_port.cpp.i
 
 __/src/editor/visual/port/visual_port.s: __/src/editor/visual/port/visual_port.cpp.s
@@ -1960,14 +1949,8 @@ __/src/editor/visual/port/visual_port.s: __/src/editor/visual/port/visual_port.c
 # target to generate assembly for a file
 __/src/editor/visual/port/visual_port.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
 .PHONY : __/src/editor/visual/port/visual_port.cpp.s
 
 __/src/editor/visual/primitives/primitives.o: __/src/editor/visual/primitives/primitives.cpp.o
@@ -1976,13 +1959,8 @@ __/src/editor/visual/primitives/primitives.o: __/src/editor/visual/primitives/pr
 # target to build an object file
 __/src/editor/visual/primitives/primitives.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
 .PHONY : __/src/editor/visual/primitives/primitives.cpp.o
 
 __/src/editor/visual/primitives/primitives.i: __/src/editor/visual/primitives/primitives.cpp.i
@@ -1991,13 +1969,8 @@ __/src/editor/visual/primitives/primitives.i: __/src/editor/visual/primitives/pr
 # target to preprocess a source file
 __/src/editor/visual/primitives/primitives.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
 .PHONY : __/src/editor/visual/primitives/primitives.cpp.i
 
 __/src/editor/visual/primitives/primitives.s: __/src/editor/visual/primitives/primitives.cpp.s
@@ -2006,13 +1979,8 @@ __/src/editor/visual/primitives/primitives.s: __/src/editor/visual/primitives/pr
 # target to generate assembly for a file
 __/src/editor/visual/primitives/primitives.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
 .PHONY : __/src/editor/visual/primitives/primitives.cpp.s
 
 __/src/editor/visual/scene.o: __/src/editor/visual/scene.cpp.o
@@ -2023,14 +1991,8 @@ __/src/editor/visual/scene.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_widget_tests.dir/build.make tests/CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/scene.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/scene.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/scene.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/scene.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/scene.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/scene.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene.cpp.o
 .PHONY : __/src/editor/visual/scene.cpp.o
 
 __/src/editor/visual/scene.i: __/src/editor/visual/scene.cpp.i
@@ -2041,14 +2003,8 @@ __/src/editor/visual/scene.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_widget_tests.dir/build.make tests/CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/scene.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/scene.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/scene.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/scene.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/scene.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/scene.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene.cpp.i
 .PHONY : __/src/editor/visual/scene.cpp.i
 
 __/src/editor/visual/scene.s: __/src/editor/visual/scene.cpp.s
@@ -2059,14 +2015,8 @@ __/src/editor/visual/scene.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_widget_tests.dir/build.make tests/CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/scene.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/scene.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/scene.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/scene.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/scene.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/scene.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene.cpp.s
 .PHONY : __/src/editor/visual/scene.cpp.s
 
 __/src/editor/visual/scene_hittest.o: __/src/editor/visual/scene_hittest.cpp.o
@@ -2074,11 +2024,7 @@ __/src/editor/visual/scene_hittest.o: __/src/editor/visual/scene_hittest.cpp.o
 
 # target to build an object file
 __/src/editor/visual/scene_hittest.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/scene_hittest.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene_hittest.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene_hittest.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene_hittest.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene_hittest.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_hittest.cpp.o
 .PHONY : __/src/editor/visual/scene_hittest.cpp.o
 
 __/src/editor/visual/scene_hittest.i: __/src/editor/visual/scene_hittest.cpp.i
@@ -2086,11 +2032,7 @@ __/src/editor/visual/scene_hittest.i: __/src/editor/visual/scene_hittest.cpp.i
 
 # target to preprocess a source file
 __/src/editor/visual/scene_hittest.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/scene_hittest.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene_hittest.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene_hittest.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene_hittest.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene_hittest.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_hittest.cpp.i
 .PHONY : __/src/editor/visual/scene_hittest.cpp.i
 
 __/src/editor/visual/scene_hittest.s: __/src/editor/visual/scene_hittest.cpp.s
@@ -2098,11 +2040,7 @@ __/src/editor/visual/scene_hittest.s: __/src/editor/visual/scene_hittest.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/visual/scene_hittest.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/scene_hittest.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene_hittest.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene_hittest.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene_hittest.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene_hittest.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_hittest.cpp.s
 .PHONY : __/src/editor/visual/scene_hittest.cpp.s
 
 __/src/editor/visual/scene_mutations.o: __/src/editor/visual/scene_mutations.cpp.o
@@ -2111,10 +2049,7 @@ __/src/editor/visual/scene_mutations.o: __/src/editor/visual/scene_mutations.cpp
 # target to build an object file
 __/src/editor/visual/scene_mutations.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene_mutations.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene_mutations.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene_mutations.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene_mutations.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene_mutations.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_mutations.cpp.o
 .PHONY : __/src/editor/visual/scene_mutations.cpp.o
 
 __/src/editor/visual/scene_mutations.i: __/src/editor/visual/scene_mutations.cpp.i
@@ -2123,10 +2058,7 @@ __/src/editor/visual/scene_mutations.i: __/src/editor/visual/scene_mutations.cpp
 # target to preprocess a source file
 __/src/editor/visual/scene_mutations.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene_mutations.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene_mutations.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene_mutations.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene_mutations.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene_mutations.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_mutations.cpp.i
 .PHONY : __/src/editor/visual/scene_mutations.cpp.i
 
 __/src/editor/visual/scene_mutations.s: __/src/editor/visual/scene_mutations.cpp.s
@@ -2135,10 +2067,7 @@ __/src/editor/visual/scene_mutations.s: __/src/editor/visual/scene_mutations.cpp
 # target to generate assembly for a file
 __/src/editor/visual/scene_mutations.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene_mutations.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene_mutations.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene_mutations.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene_mutations.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene_mutations.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_mutations.cpp.s
 .PHONY : __/src/editor/visual/scene_mutations.cpp.s
 
 __/src/editor/visual/widget.o: __/src/editor/visual/widget.cpp.o
@@ -2150,16 +2079,11 @@ __/src/editor/visual/widget.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_grid_tests.dir/build.make tests/CMakeFiles/visual_grid_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/widget.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widget.cpp.o
 .PHONY : __/src/editor/visual/widget.cpp.o
 
 __/src/editor/visual/widget.i: __/src/editor/visual/widget.cpp.i
@@ -2171,16 +2095,11 @@ __/src/editor/visual/widget.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_grid_tests.dir/build.make tests/CMakeFiles/visual_grid_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/widget.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widget.cpp.i
 .PHONY : __/src/editor/visual/widget.cpp.i
 
 __/src/editor/visual/widget.s: __/src/editor/visual/widget.cpp.s
@@ -2192,16 +2111,11 @@ __/src/editor/visual/widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_grid_tests.dir/build.make tests/CMakeFiles/visual_grid_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/widget.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widget.cpp.s
 .PHONY : __/src/editor/visual/widget.cpp.s
 
 __/src/editor/visual/widgets/content_widgets.o: __/src/editor/visual/widgets/content_widgets.cpp.o
@@ -2209,13 +2123,9 @@ __/src/editor/visual/widgets/content_widgets.o: __/src/editor/visual/widgets/con
 
 # target to build an object file
 __/src/editor/visual/widgets/content_widgets.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.o
 
 __/src/editor/visual/widgets/content_widgets.i: __/src/editor/visual/widgets/content_widgets.cpp.i
@@ -2223,13 +2133,9 @@ __/src/editor/visual/widgets/content_widgets.i: __/src/editor/visual/widgets/con
 
 # target to preprocess a source file
 __/src/editor/visual/widgets/content_widgets.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.i
 
 __/src/editor/visual/widgets/content_widgets.s: __/src/editor/visual/widgets/content_widgets.cpp.s
@@ -2237,13 +2143,9 @@ __/src/editor/visual/widgets/content_widgets.s: __/src/editor/visual/widgets/con
 
 # target to generate assembly for a file
 __/src/editor/visual/widgets/content_widgets.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.s
 
 __/src/editor/visual/wire/wire.o: __/src/editor/visual/wire/wire.cpp.o
@@ -2252,13 +2154,8 @@ __/src/editor/visual/wire/wire.o: __/src/editor/visual/wire/wire.cpp.o
 # target to build an object file
 __/src/editor/visual/wire/wire.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/wire/wire.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/wire/wire.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/wire/wire.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/wire/wire.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/wire/wire.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/wire/wire.cpp.o
 .PHONY : __/src/editor/visual/wire/wire.cpp.o
 
 __/src/editor/visual/wire/wire.i: __/src/editor/visual/wire/wire.cpp.i
@@ -2267,13 +2164,8 @@ __/src/editor/visual/wire/wire.i: __/src/editor/visual/wire/wire.cpp.i
 # target to preprocess a source file
 __/src/editor/visual/wire/wire.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/wire/wire.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/wire/wire.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/wire/wire.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/wire/wire.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/wire/wire.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/wire/wire.cpp.i
 .PHONY : __/src/editor/visual/wire/wire.cpp.i
 
 __/src/editor/visual/wire/wire.s: __/src/editor/visual/wire/wire.cpp.s
@@ -2282,13 +2174,8 @@ __/src/editor/visual/wire/wire.s: __/src/editor/visual/wire/wire.cpp.s
 # target to generate assembly for a file
 __/src/editor/visual/wire/wire.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/wire/wire.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/wire/wire.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/wire/wire.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/wire/wire.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/wire/wire.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/wire/wire.cpp.s
 .PHONY : __/src/editor/visual/wire/wire.cpp.s
 
 __/src/editor/window/properties_window.o: __/src/editor/window/properties_window.cpp.o
@@ -2296,9 +2183,7 @@ __/src/editor/window/properties_window.o: __/src/editor/window/properties_window
 
 # target to build an object file
 __/src/editor/window/properties_window.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/window/properties_window.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/window/properties_window.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/window/properties_window.cpp.o
 .PHONY : __/src/editor/window/properties_window.cpp.o
 
 __/src/editor/window/properties_window.i: __/src/editor/window/properties_window.cpp.i
@@ -2306,9 +2191,7 @@ __/src/editor/window/properties_window.i: __/src/editor/window/properties_window
 
 # target to preprocess a source file
 __/src/editor/window/properties_window.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/window/properties_window.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/window/properties_window.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/window/properties_window.cpp.i
 .PHONY : __/src/editor/window/properties_window.cpp.i
 
 __/src/editor/window/properties_window.s: __/src/editor/window/properties_window.cpp.s
@@ -2316,34 +2199,8 @@ __/src/editor/window/properties_window.s: __/src/editor/window/properties_window
 
 # target to generate assembly for a file
 __/src/editor/window/properties_window.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/window/properties_window.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/window/properties_window.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/window/properties_window.cpp.s
 .PHONY : __/src/editor/window/properties_window.cpp.s
-
-__/src/editor/window_system.o: __/src/editor/window_system.cpp.o
-.PHONY : __/src/editor/window_system.o
-
-# target to build an object file
-__/src/editor/window_system.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/window_system.cpp.o
-.PHONY : __/src/editor/window_system.cpp.o
-
-__/src/editor/window_system.i: __/src/editor/window_system.cpp.i
-.PHONY : __/src/editor/window_system.i
-
-# target to preprocess a source file
-__/src/editor/window_system.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/window_system.cpp.i
-.PHONY : __/src/editor/window_system.cpp.i
-
-__/src/editor/window_system.s: __/src/editor/window_system.cpp.s
-.PHONY : __/src/editor/window_system.s
-
-# target to generate assembly for a file
-__/src/editor/window_system.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/window_system.cpp.s
-.PHONY : __/src/editor/window_system.cpp.s
 
 __/src/json_parser/json_parser.o: __/src/json_parser/json_parser.cpp.o
 .PHONY : __/src/json_parser/json_parser.o
@@ -2351,7 +2208,6 @@ __/src/json_parser/json_parser.o: __/src/json_parser/json_parser.cpp.o
 # target to build an object file
 __/src/json_parser/json_parser.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/json_parser/json_parser.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/json_parser/json_parser.cpp.o
 .PHONY : __/src/json_parser/json_parser.cpp.o
 
 __/src/json_parser/json_parser.i: __/src/json_parser/json_parser.cpp.i
@@ -2360,7 +2216,6 @@ __/src/json_parser/json_parser.i: __/src/json_parser/json_parser.cpp.i
 # target to preprocess a source file
 __/src/json_parser/json_parser.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/json_parser/json_parser.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/json_parser/json_parser.cpp.i
 .PHONY : __/src/json_parser/json_parser.cpp.i
 
 __/src/json_parser/json_parser.s: __/src/json_parser/json_parser.cpp.s
@@ -2369,7 +2224,6 @@ __/src/json_parser/json_parser.s: __/src/json_parser/json_parser.cpp.s
 # target to generate assembly for a file
 __/src/json_parser/json_parser.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/json_parser/json_parser.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/json_parser/json_parser.cpp.s
 .PHONY : __/src/json_parser/json_parser.cpp.s
 
 __/src/ui/core/widget.o: __/src/ui/core/widget.cpp.o
@@ -2404,6 +2258,270 @@ __/src/ui/core/widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/__/src/ui/core/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/__/src/ui/core/widget.cpp.s
 .PHONY : __/src/ui/core/widget.cpp.s
+
+blueprint_v2/test_bake.o: blueprint_v2/test_bake.cpp.o
+.PHONY : blueprint_v2/test_bake.o
+
+# target to build an object file
+blueprint_v2/test_bake.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/blueprint_v2/test_bake.cpp.o
+.PHONY : blueprint_v2/test_bake.cpp.o
+
+blueprint_v2/test_bake.i: blueprint_v2/test_bake.cpp.i
+.PHONY : blueprint_v2/test_bake.i
+
+# target to preprocess a source file
+blueprint_v2/test_bake.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/blueprint_v2/test_bake.cpp.i
+.PHONY : blueprint_v2/test_bake.cpp.i
+
+blueprint_v2/test_bake.s: blueprint_v2/test_bake.cpp.s
+.PHONY : blueprint_v2/test_bake.s
+
+# target to generate assembly for a file
+blueprint_v2/test_bake.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/blueprint_v2/test_bake.cpp.s
+.PHONY : blueprint_v2/test_bake.cpp.s
+
+blueprint_v2/test_blueprint.o: blueprint_v2/test_blueprint.cpp.o
+.PHONY : blueprint_v2/test_blueprint.o
+
+# target to build an object file
+blueprint_v2/test_blueprint.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/blueprint_v2/test_blueprint.cpp.o
+.PHONY : blueprint_v2/test_blueprint.cpp.o
+
+blueprint_v2/test_blueprint.i: blueprint_v2/test_blueprint.cpp.i
+.PHONY : blueprint_v2/test_blueprint.i
+
+# target to preprocess a source file
+blueprint_v2/test_blueprint.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/blueprint_v2/test_blueprint.cpp.i
+.PHONY : blueprint_v2/test_blueprint.cpp.i
+
+blueprint_v2/test_blueprint.s: blueprint_v2/test_blueprint.cpp.s
+.PHONY : blueprint_v2/test_blueprint.s
+
+# target to generate assembly for a file
+blueprint_v2/test_blueprint.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/blueprint_v2/test_blueprint.cpp.s
+.PHONY : blueprint_v2/test_blueprint.cpp.s
+
+blueprint_v2/test_codec.o: blueprint_v2/test_codec.cpp.o
+.PHONY : blueprint_v2/test_codec.o
+
+# target to build an object file
+blueprint_v2/test_codec.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_codec.cpp.o
+.PHONY : blueprint_v2/test_codec.cpp.o
+
+blueprint_v2/test_codec.i: blueprint_v2/test_codec.cpp.i
+.PHONY : blueprint_v2/test_codec.i
+
+# target to preprocess a source file
+blueprint_v2/test_codec.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_codec.cpp.i
+.PHONY : blueprint_v2/test_codec.cpp.i
+
+blueprint_v2/test_codec.s: blueprint_v2/test_codec.cpp.s
+.PHONY : blueprint_v2/test_codec.s
+
+# target to generate assembly for a file
+blueprint_v2/test_codec.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_codec.cpp.s
+.PHONY : blueprint_v2/test_codec.cpp.s
+
+blueprint_v2/test_editor_model.o: blueprint_v2/test_editor_model.cpp.o
+.PHONY : blueprint_v2/test_editor_model.o
+
+# target to build an object file
+blueprint_v2/test_editor_model.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_editor_model.cpp.o
+.PHONY : blueprint_v2/test_editor_model.cpp.o
+
+blueprint_v2/test_editor_model.i: blueprint_v2/test_editor_model.cpp.i
+.PHONY : blueprint_v2/test_editor_model.i
+
+# target to preprocess a source file
+blueprint_v2/test_editor_model.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_editor_model.cpp.i
+.PHONY : blueprint_v2/test_editor_model.cpp.i
+
+blueprint_v2/test_editor_model.s: blueprint_v2/test_editor_model.cpp.s
+.PHONY : blueprint_v2/test_editor_model.s
+
+# target to generate assembly for a file
+blueprint_v2/test_editor_model.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_editor_model.cpp.s
+.PHONY : blueprint_v2/test_editor_model.cpp.s
+
+blueprint_v2/test_flattener.o: blueprint_v2/test_flattener.cpp.o
+.PHONY : blueprint_v2/test_flattener.o
+
+# target to build an object file
+blueprint_v2/test_flattener.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/blueprint_v2/test_flattener.cpp.o
+.PHONY : blueprint_v2/test_flattener.cpp.o
+
+blueprint_v2/test_flattener.i: blueprint_v2/test_flattener.cpp.i
+.PHONY : blueprint_v2/test_flattener.i
+
+# target to preprocess a source file
+blueprint_v2/test_flattener.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/blueprint_v2/test_flattener.cpp.i
+.PHONY : blueprint_v2/test_flattener.cpp.i
+
+blueprint_v2/test_flattener.s: blueprint_v2/test_flattener.cpp.s
+.PHONY : blueprint_v2/test_flattener.s
+
+# target to generate assembly for a file
+blueprint_v2/test_flattener.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/blueprint_v2/test_flattener.cpp.s
+.PHONY : blueprint_v2/test_flattener.cpp.s
+
+blueprint_v2/test_interface.o: blueprint_v2/test_interface.cpp.o
+.PHONY : blueprint_v2/test_interface.o
+
+# target to build an object file
+blueprint_v2/test_interface.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/blueprint_v2/test_interface.cpp.o
+.PHONY : blueprint_v2/test_interface.cpp.o
+
+blueprint_v2/test_interface.i: blueprint_v2/test_interface.cpp.i
+.PHONY : blueprint_v2/test_interface.i
+
+# target to preprocess a source file
+blueprint_v2/test_interface.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/blueprint_v2/test_interface.cpp.i
+.PHONY : blueprint_v2/test_interface.cpp.i
+
+blueprint_v2/test_interface.s: blueprint_v2/test_interface.cpp.s
+.PHONY : blueprint_v2/test_interface.s
+
+# target to generate assembly for a file
+blueprint_v2/test_interface.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/blueprint_v2/test_interface.cpp.s
+.PHONY : blueprint_v2/test_interface.cpp.s
+
+blueprint_v2/test_path.o: blueprint_v2/test_path.cpp.o
+.PHONY : blueprint_v2/test_path.o
+
+# target to build an object file
+blueprint_v2/test_path.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/blueprint_v2/test_path.cpp.o
+.PHONY : blueprint_v2/test_path.cpp.o
+
+blueprint_v2/test_path.i: blueprint_v2/test_path.cpp.i
+.PHONY : blueprint_v2/test_path.i
+
+# target to preprocess a source file
+blueprint_v2/test_path.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/blueprint_v2/test_path.cpp.i
+.PHONY : blueprint_v2/test_path.cpp.i
+
+blueprint_v2/test_path.s: blueprint_v2/test_path.cpp.s
+.PHONY : blueprint_v2/test_path.s
+
+# target to generate assembly for a file
+blueprint_v2/test_path.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/blueprint_v2/test_path.cpp.s
+.PHONY : blueprint_v2/test_path.cpp.s
+
+blueprint_v2/test_persist_validation.o: blueprint_v2/test_persist_validation.cpp.o
+.PHONY : blueprint_v2/test_persist_validation.o
+
+# target to build an object file
+blueprint_v2/test_persist_validation.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_persist_validation.cpp.o
+.PHONY : blueprint_v2/test_persist_validation.cpp.o
+
+blueprint_v2/test_persist_validation.i: blueprint_v2/test_persist_validation.cpp.i
+.PHONY : blueprint_v2/test_persist_validation.i
+
+# target to preprocess a source file
+blueprint_v2/test_persist_validation.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_persist_validation.cpp.i
+.PHONY : blueprint_v2/test_persist_validation.cpp.i
+
+blueprint_v2/test_persist_validation.s: blueprint_v2/test_persist_validation.cpp.s
+.PHONY : blueprint_v2/test_persist_validation.s
+
+# target to generate assembly for a file
+blueprint_v2/test_persist_validation.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_persist_validation.cpp.s
+.PHONY : blueprint_v2/test_persist_validation.cpp.s
+
+blueprint_v2/test_registry.o: blueprint_v2/test_registry.cpp.o
+.PHONY : blueprint_v2/test_registry.o
+
+# target to build an object file
+blueprint_v2/test_registry.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.o
+.PHONY : blueprint_v2/test_registry.cpp.o
+
+blueprint_v2/test_registry.i: blueprint_v2/test_registry.cpp.i
+.PHONY : blueprint_v2/test_registry.i
+
+# target to preprocess a source file
+blueprint_v2/test_registry.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.i
+.PHONY : blueprint_v2/test_registry.cpp.i
+
+blueprint_v2/test_registry.s: blueprint_v2/test_registry.cpp.s
+.PHONY : blueprint_v2/test_registry.s
+
+# target to generate assembly for a file
+blueprint_v2/test_registry.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.s
+.PHONY : blueprint_v2/test_registry.cpp.s
+
+blueprint_v2/test_subwindow_open_target.o: blueprint_v2/test_subwindow_open_target.cpp.o
+.PHONY : blueprint_v2/test_subwindow_open_target.o
+
+# target to build an object file
+blueprint_v2/test_subwindow_open_target.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_subwindow_open_target.cpp.o
+.PHONY : blueprint_v2/test_subwindow_open_target.cpp.o
+
+blueprint_v2/test_subwindow_open_target.i: blueprint_v2/test_subwindow_open_target.cpp.i
+.PHONY : blueprint_v2/test_subwindow_open_target.i
+
+# target to preprocess a source file
+blueprint_v2/test_subwindow_open_target.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_subwindow_open_target.cpp.i
+.PHONY : blueprint_v2/test_subwindow_open_target.cpp.i
+
+blueprint_v2/test_subwindow_open_target.s: blueprint_v2/test_subwindow_open_target.cpp.s
+.PHONY : blueprint_v2/test_subwindow_open_target.s
+
+# target to generate assembly for a file
+blueprint_v2/test_subwindow_open_target.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_subwindow_open_target.cpp.s
+.PHONY : blueprint_v2/test_subwindow_open_target.cpp.s
+
+blueprint_v2/test_validation.o: blueprint_v2/test_validation.cpp.o
+.PHONY : blueprint_v2/test_validation.o
+
+# target to build an object file
+blueprint_v2/test_validation.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_validation.cpp.o
+.PHONY : blueprint_v2/test_validation.cpp.o
+
+blueprint_v2/test_validation.i: blueprint_v2/test_validation.cpp.i
+.PHONY : blueprint_v2/test_validation.i
+
+# target to preprocess a source file
+blueprint_v2/test_validation.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_validation.cpp.i
+.PHONY : blueprint_v2/test_validation.cpp.i
+
+blueprint_v2/test_validation.s: blueprint_v2/test_validation.cpp.s
+.PHONY : blueprint_v2/test_validation.s
+
+# target to generate assembly for a file
+blueprint_v2/test_validation.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_validation.cpp.s
+.PHONY : blueprint_v2/test_validation.cpp.s
 
 editor_componentvariant_test.o: editor_componentvariant_test.cpp.o
 .PHONY : editor_componentvariant_test.o
@@ -2549,6 +2667,54 @@ provider_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/provider_test.cpp.s
 .PHONY : provider_test.cpp.s
 
+test_12sam28.o: test_12sam28.cpp.o
+.PHONY : test_12sam28.o
+
+# target to build an object file
+test_12sam28.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/test_12sam28.cpp.o
+.PHONY : test_12sam28.cpp.o
+
+test_12sam28.i: test_12sam28.cpp.i
+.PHONY : test_12sam28.i
+
+# target to preprocess a source file
+test_12sam28.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/test_12sam28.cpp.i
+.PHONY : test_12sam28.cpp.i
+
+test_12sam28.s: test_12sam28.cpp.s
+.PHONY : test_12sam28.s
+
+# target to generate assembly for a file
+test_12sam28.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/test_12sam28.cpp.s
+.PHONY : test_12sam28.cpp.s
+
+test_accumulator.o: test_accumulator.cpp.o
+.PHONY : test_accumulator.o
+
+# target to build an object file
+test_accumulator.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/test_accumulator.cpp.o
+.PHONY : test_accumulator.cpp.o
+
+test_accumulator.i: test_accumulator.cpp.i
+.PHONY : test_accumulator.i
+
+# target to preprocess a source file
+test_accumulator.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/test_accumulator.cpp.i
+.PHONY : test_accumulator.cpp.i
+
+test_accumulator.s: test_accumulator.cpp.s
+.PHONY : test_accumulator.s
+
+# target to generate assembly for a file
+test_accumulator.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/test_accumulator.cpp.s
+.PHONY : test_accumulator.cpp.s
+
 test_and_gate_debug.o: test_and_gate_debug.cpp.o
 .PHONY : test_and_gate_debug.o
 
@@ -2597,29 +2763,29 @@ test_aot_composite.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/test_aot_composite.cpp.s
 .PHONY : test_aot_composite.cpp.s
 
-test_apu_mechanical.o: test_apu_mechanical.cpp.o
-.PHONY : test_apu_mechanical.o
+test_architecture_regression.o: test_architecture_regression.cpp.o
+.PHONY : test_architecture_regression.o
 
 # target to build an object file
-test_apu_mechanical.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/test_apu_mechanical.cpp.o
-.PHONY : test_apu_mechanical.cpp.o
+test_architecture_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/test_architecture_regression.cpp.o
+.PHONY : test_architecture_regression.cpp.o
 
-test_apu_mechanical.i: test_apu_mechanical.cpp.i
-.PHONY : test_apu_mechanical.i
+test_architecture_regression.i: test_architecture_regression.cpp.i
+.PHONY : test_architecture_regression.i
 
 # target to preprocess a source file
-test_apu_mechanical.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/test_apu_mechanical.cpp.i
-.PHONY : test_apu_mechanical.cpp.i
+test_architecture_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/test_architecture_regression.cpp.i
+.PHONY : test_architecture_regression.cpp.i
 
-test_apu_mechanical.s: test_apu_mechanical.cpp.s
-.PHONY : test_apu_mechanical.s
+test_architecture_regression.s: test_architecture_regression.cpp.s
+.PHONY : test_architecture_regression.s
 
 # target to generate assembly for a file
-test_apu_mechanical.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/test_apu_mechanical.cpp.s
-.PHONY : test_apu_mechanical.cpp.s
+test_architecture_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/architecture_regression_tests.dir/build.make tests/CMakeFiles/architecture_regression_tests.dir/test_architecture_regression.cpp.s
+.PHONY : test_architecture_regression.cpp.s
 
 test_arithmetic.o: test_arithmetic.cpp.o
 .PHONY : test_arithmetic.o
@@ -2717,30 +2883,6 @@ test_azs.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/test_azs.cpp.s
 .PHONY : test_azs.cpp.s
 
-test_bake_in.o: test_bake_in.cpp.o
-.PHONY : test_bake_in.o
-
-# target to build an object file
-test_bake_in.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/test_bake_in.cpp.o
-.PHONY : test_bake_in.cpp.o
-
-test_bake_in.i: test_bake_in.cpp.i
-.PHONY : test_bake_in.i
-
-# target to preprocess a source file
-test_bake_in.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/test_bake_in.cpp.i
-.PHONY : test_bake_in.cpp.i
-
-test_bake_in.s: test_bake_in.cpp.s
-.PHONY : test_bake_in.s
-
-# target to generate assembly for a file
-test_bake_in.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/test_bake_in.cpp.s
-.PHONY : test_bake_in.cpp.s
-
 test_blueprint_integration.o: test_blueprint_integration.cpp.o
 .PHONY : test_blueprint_integration.o
 
@@ -2813,29 +2955,53 @@ test_blueprint_ports.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.s
 .PHONY : test_blueprint_ports.cpp.s
 
-test_blueprint_v2.o: test_blueprint_v2.cpp.o
-.PHONY : test_blueprint_v2.o
+test_bug_hunt_regression.o: test_bug_hunt_regression.cpp.o
+.PHONY : test_bug_hunt_regression.o
 
 # target to build an object file
-test_blueprint_v2.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/test_blueprint_v2.cpp.o
-.PHONY : test_blueprint_v2.cpp.o
+test_bug_hunt_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/test_bug_hunt_regression.cpp.o
+.PHONY : test_bug_hunt_regression.cpp.o
 
-test_blueprint_v2.i: test_blueprint_v2.cpp.i
-.PHONY : test_blueprint_v2.i
+test_bug_hunt_regression.i: test_bug_hunt_regression.cpp.i
+.PHONY : test_bug_hunt_regression.i
 
 # target to preprocess a source file
-test_blueprint_v2.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/test_blueprint_v2.cpp.i
-.PHONY : test_blueprint_v2.cpp.i
+test_bug_hunt_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/test_bug_hunt_regression.cpp.i
+.PHONY : test_bug_hunt_regression.cpp.i
 
-test_blueprint_v2.s: test_blueprint_v2.cpp.s
-.PHONY : test_blueprint_v2.s
+test_bug_hunt_regression.s: test_bug_hunt_regression.cpp.s
+.PHONY : test_bug_hunt_regression.s
 
 # target to generate assembly for a file
-test_blueprint_v2.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/test_blueprint_v2.cpp.s
-.PHONY : test_blueprint_v2.cpp.s
+test_bug_hunt_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/test_bug_hunt_regression.cpp.s
+.PHONY : test_bug_hunt_regression.cpp.s
+
+test_canvas_input.o: test_canvas_input.cpp.o
+.PHONY : test_canvas_input.o
+
+# target to build an object file
+test_canvas_input.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/test_canvas_input.cpp.o
+.PHONY : test_canvas_input.cpp.o
+
+test_canvas_input.i: test_canvas_input.cpp.i
+.PHONY : test_canvas_input.i
+
+# target to preprocess a source file
+test_canvas_input.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/test_canvas_input.cpp.i
+.PHONY : test_canvas_input.cpp.i
+
+test_canvas_input.s: test_canvas_input.cpp.s
+.PHONY : test_canvas_input.s
+
+# target to generate assembly for a file
+test_canvas_input.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/test_canvas_input.cpp.s
+.PHONY : test_canvas_input.cpp.s
 
 test_clamp_normalize.o: test_clamp_normalize.cpp.o
 .PHONY : test_clamp_normalize.o
@@ -2957,149 +3123,197 @@ test_comparison_components.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/test_comparison_components.cpp.s
 .PHONY : test_comparison_components.cpp.s
 
-test_data.o: test_data.cpp.o
-.PHONY : test_data.o
+test_current_sense.o: test_current_sense.cpp.o
+.PHONY : test_current_sense.o
 
 # target to build an object file
-test_data.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/test_data.cpp.o
-.PHONY : test_data.cpp.o
+test_current_sense.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/test_current_sense.cpp.o
+.PHONY : test_current_sense.cpp.o
 
-test_data.i: test_data.cpp.i
-.PHONY : test_data.i
+test_current_sense.i: test_current_sense.cpp.i
+.PHONY : test_current_sense.i
 
 # target to preprocess a source file
-test_data.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/test_data.cpp.i
-.PHONY : test_data.cpp.i
+test_current_sense.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/test_current_sense.cpp.i
+.PHONY : test_current_sense.cpp.i
 
-test_data.s: test_data.cpp.s
-.PHONY : test_data.s
+test_current_sense.s: test_current_sense.cpp.s
+.PHONY : test_current_sense.s
 
 # target to generate assembly for a file
-test_data.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/test_data.cpp.s
-.PHONY : test_data.cpp.s
+test_current_sense.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/test_current_sense.cpp.s
+.PHONY : test_current_sense.cpp.s
 
-test_data_interning.o: test_data_interning.cpp.o
-.PHONY : test_data_interning.o
+test_editor_settings.o: test_editor_settings.cpp.o
+.PHONY : test_editor_settings.o
 
 # target to build an object file
-test_data_interning.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/test_data_interning.cpp.o
-.PHONY : test_data_interning.cpp.o
+test_editor_settings.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/test_editor_settings.cpp.o
+.PHONY : test_editor_settings.cpp.o
 
-test_data_interning.i: test_data_interning.cpp.i
-.PHONY : test_data_interning.i
+test_editor_settings.i: test_editor_settings.cpp.i
+.PHONY : test_editor_settings.i
 
 # target to preprocess a source file
-test_data_interning.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/test_data_interning.cpp.i
-.PHONY : test_data_interning.cpp.i
+test_editor_settings.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/test_editor_settings.cpp.i
+.PHONY : test_editor_settings.cpp.i
 
-test_data_interning.s: test_data_interning.cpp.s
-.PHONY : test_data_interning.s
+test_editor_settings.s: test_editor_settings.cpp.s
+.PHONY : test_editor_settings.s
 
 # target to generate assembly for a file
-test_data_interning.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/test_data_interning.cpp.s
-.PHONY : test_data_interning.cpp.s
+test_editor_settings.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/test_editor_settings.cpp.s
+.PHONY : test_editor_settings.cpp.s
 
-test_document_window_system.o: test_document_window_system.cpp.o
-.PHONY : test_document_window_system.o
+test_electrical_handles_build.o: test_electrical_handles_build.cpp.o
+.PHONY : test_electrical_handles_build.o
 
 # target to build an object file
-test_document_window_system.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/test_document_window_system.cpp.o
-.PHONY : test_document_window_system.cpp.o
+test_electrical_handles_build.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/test_electrical_handles_build.cpp.o
+.PHONY : test_electrical_handles_build.cpp.o
 
-test_document_window_system.i: test_document_window_system.cpp.i
-.PHONY : test_document_window_system.i
+test_electrical_handles_build.i: test_electrical_handles_build.cpp.i
+.PHONY : test_electrical_handles_build.i
 
 # target to preprocess a source file
-test_document_window_system.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/test_document_window_system.cpp.i
-.PHONY : test_document_window_system.cpp.i
+test_electrical_handles_build.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/test_electrical_handles_build.cpp.i
+.PHONY : test_electrical_handles_build.cpp.i
 
-test_document_window_system.s: test_document_window_system.cpp.s
-.PHONY : test_document_window_system.s
+test_electrical_handles_build.s: test_electrical_handles_build.cpp.s
+.PHONY : test_electrical_handles_build.s
 
 # target to generate assembly for a file
-test_document_window_system.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/test_document_window_system.cpp.s
-.PHONY : test_document_window_system.cpp.s
+test_electrical_handles_build.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/test_electrical_handles_build.cpp.s
+.PHONY : test_electrical_handles_build.cpp.s
 
-test_dt_regression.o: test_dt_regression.cpp.o
-.PHONY : test_dt_regression.o
+test_electrical_island_build.o: test_electrical_island_build.cpp.o
+.PHONY : test_electrical_island_build.o
 
 # target to build an object file
-test_dt_regression.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/test_dt_regression.cpp.o
-.PHONY : test_dt_regression.cpp.o
+test_electrical_island_build.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/test_electrical_island_build.cpp.o
+.PHONY : test_electrical_island_build.cpp.o
 
-test_dt_regression.i: test_dt_regression.cpp.i
-.PHONY : test_dt_regression.i
+test_electrical_island_build.i: test_electrical_island_build.cpp.i
+.PHONY : test_electrical_island_build.i
 
 # target to preprocess a source file
-test_dt_regression.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/test_dt_regression.cpp.i
-.PHONY : test_dt_regression.cpp.i
+test_electrical_island_build.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/test_electrical_island_build.cpp.i
+.PHONY : test_electrical_island_build.cpp.i
 
-test_dt_regression.s: test_dt_regression.cpp.s
-.PHONY : test_dt_regression.s
+test_electrical_island_build.s: test_electrical_island_build.cpp.s
+.PHONY : test_electrical_island_build.s
 
 # target to generate assembly for a file
-test_dt_regression.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/test_dt_regression.cpp.s
-.PHONY : test_dt_regression.cpp.s
+test_electrical_island_build.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/test_electrical_island_build.cpp.s
+.PHONY : test_electrical_island_build.cpp.s
 
-test_expand_type_definition.o: test_expand_type_definition.cpp.o
-.PHONY : test_expand_type_definition.o
+test_electrical_parity_fixtures.o: test_electrical_parity_fixtures.cpp.o
+.PHONY : test_electrical_parity_fixtures.o
 
 # target to build an object file
-test_expand_type_definition.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/test_expand_type_definition.cpp.o
-.PHONY : test_expand_type_definition.cpp.o
+test_electrical_parity_fixtures.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/test_electrical_parity_fixtures.cpp.o
+.PHONY : test_electrical_parity_fixtures.cpp.o
 
-test_expand_type_definition.i: test_expand_type_definition.cpp.i
-.PHONY : test_expand_type_definition.i
+test_electrical_parity_fixtures.i: test_electrical_parity_fixtures.cpp.i
+.PHONY : test_electrical_parity_fixtures.i
 
 # target to preprocess a source file
-test_expand_type_definition.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/test_expand_type_definition.cpp.i
-.PHONY : test_expand_type_definition.cpp.i
+test_electrical_parity_fixtures.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/test_electrical_parity_fixtures.cpp.i
+.PHONY : test_electrical_parity_fixtures.cpp.i
 
-test_expand_type_definition.s: test_expand_type_definition.cpp.s
-.PHONY : test_expand_type_definition.s
+test_electrical_parity_fixtures.s: test_electrical_parity_fixtures.cpp.s
+.PHONY : test_electrical_parity_fixtures.s
 
 # target to generate assembly for a file
-test_expand_type_definition.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/test_expand_type_definition.cpp.s
-.PHONY : test_expand_type_definition.cpp.s
+test_electrical_parity_fixtures.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/test_electrical_parity_fixtures.cpp.s
+.PHONY : test_electrical_parity_fixtures.cpp.s
 
-test_generator.o: test_generator.cpp.o
-.PHONY : test_generator.o
+test_electrical_primitives.o: test_electrical_primitives.cpp.o
+.PHONY : test_electrical_primitives.o
 
 # target to build an object file
-test_generator.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/test_generator.cpp.o
-.PHONY : test_generator.cpp.o
+test_electrical_primitives.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/test_electrical_primitives.cpp.o
+.PHONY : test_electrical_primitives.cpp.o
 
-test_generator.i: test_generator.cpp.i
-.PHONY : test_generator.i
+test_electrical_primitives.i: test_electrical_primitives.cpp.i
+.PHONY : test_electrical_primitives.i
 
 # target to preprocess a source file
-test_generator.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/test_generator.cpp.i
-.PHONY : test_generator.cpp.i
+test_electrical_primitives.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/test_electrical_primitives.cpp.i
+.PHONY : test_electrical_primitives.cpp.i
 
-test_generator.s: test_generator.cpp.s
-.PHONY : test_generator.s
+test_electrical_primitives.s: test_electrical_primitives.cpp.s
+.PHONY : test_electrical_primitives.s
 
 # target to generate assembly for a file
-test_generator.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/test_generator.cpp.s
-.PHONY : test_generator.cpp.s
+test_electrical_primitives.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/test_electrical_primitives.cpp.s
+.PHONY : test_electrical_primitives.cpp.s
+
+test_electrical_subsolver.o: test_electrical_subsolver.cpp.o
+.PHONY : test_electrical_subsolver.o
+
+# target to build an object file
+test_electrical_subsolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/test_electrical_subsolver.cpp.o
+.PHONY : test_electrical_subsolver.cpp.o
+
+test_electrical_subsolver.i: test_electrical_subsolver.cpp.i
+.PHONY : test_electrical_subsolver.i
+
+# target to preprocess a source file
+test_electrical_subsolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/test_electrical_subsolver.cpp.i
+.PHONY : test_electrical_subsolver.cpp.i
+
+test_electrical_subsolver.s: test_electrical_subsolver.cpp.s
+.PHONY : test_electrical_subsolver.s
+
+# target to generate assembly for a file
+test_electrical_subsolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/test_electrical_subsolver.cpp.s
+.PHONY : test_electrical_subsolver.cpp.s
+
+test_external_ref_signal_mapping.o: test_external_ref_signal_mapping.cpp.o
+.PHONY : test_external_ref_signal_mapping.o
+
+# target to build an object file
+test_external_ref_signal_mapping.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/test_external_ref_signal_mapping.cpp.o
+.PHONY : test_external_ref_signal_mapping.cpp.o
+
+test_external_ref_signal_mapping.i: test_external_ref_signal_mapping.cpp.i
+.PHONY : test_external_ref_signal_mapping.i
+
+# target to preprocess a source file
+test_external_ref_signal_mapping.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/test_external_ref_signal_mapping.cpp.i
+.PHONY : test_external_ref_signal_mapping.cpp.i
+
+test_external_ref_signal_mapping.s: test_external_ref_signal_mapping.cpp.s
+.PHONY : test_external_ref_signal_mapping.s
+
+# target to generate assembly for a file
+test_external_ref_signal_mapping.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/test_external_ref_signal_mapping.cpp.s
+.PHONY : test_external_ref_signal_mapping.cpp.s
 
 test_inspector.o: test_inspector.cpp.o
 .PHONY : test_inspector.o
@@ -3149,53 +3363,29 @@ test_integrator.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/test_integrator.cpp.s
 .PHONY : test_integrator.cpp.s
 
-test_lamp_passthrough_jit.o: test_lamp_passthrough_jit.cpp.o
-.PHONY : test_lamp_passthrough_jit.o
+test_jit_aot_bridge_equivalence.o: test_jit_aot_bridge_equivalence.cpp.o
+.PHONY : test_jit_aot_bridge_equivalence.o
 
 # target to build an object file
-test_lamp_passthrough_jit.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.o
-.PHONY : test_lamp_passthrough_jit.cpp.o
+test_jit_aot_bridge_equivalence.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.o
+.PHONY : test_jit_aot_bridge_equivalence.cpp.o
 
-test_lamp_passthrough_jit.i: test_lamp_passthrough_jit.cpp.i
-.PHONY : test_lamp_passthrough_jit.i
-
-# target to preprocess a source file
-test_lamp_passthrough_jit.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.i
-.PHONY : test_lamp_passthrough_jit.cpp.i
-
-test_lamp_passthrough_jit.s: test_lamp_passthrough_jit.cpp.s
-.PHONY : test_lamp_passthrough_jit.s
-
-# target to generate assembly for a file
-test_lamp_passthrough_jit.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.s
-.PHONY : test_lamp_passthrough_jit.cpp.s
-
-test_library_v2.o: test_library_v2.cpp.o
-.PHONY : test_library_v2.o
-
-# target to build an object file
-test_library_v2.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/test_library_v2.cpp.o
-.PHONY : test_library_v2.cpp.o
-
-test_library_v2.i: test_library_v2.cpp.i
-.PHONY : test_library_v2.i
+test_jit_aot_bridge_equivalence.i: test_jit_aot_bridge_equivalence.cpp.i
+.PHONY : test_jit_aot_bridge_equivalence.i
 
 # target to preprocess a source file
-test_library_v2.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/test_library_v2.cpp.i
-.PHONY : test_library_v2.cpp.i
+test_jit_aot_bridge_equivalence.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.i
+.PHONY : test_jit_aot_bridge_equivalence.cpp.i
 
-test_library_v2.s: test_library_v2.cpp.s
-.PHONY : test_library_v2.s
+test_jit_aot_bridge_equivalence.s: test_jit_aot_bridge_equivalence.cpp.s
+.PHONY : test_jit_aot_bridge_equivalence.s
 
 # target to generate assembly for a file
-test_library_v2.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/test_library_v2.cpp.s
-.PHONY : test_library_v2.cpp.s
+test_jit_aot_bridge_equivalence.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.s
+.PHONY : test_jit_aot_bridge_equivalence.cpp.s
 
 test_logic_gates.o: test_logic_gates.cpp.o
 .PHONY : test_logic_gates.o
@@ -3317,101 +3507,29 @@ test_monostable.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/test_monostable.cpp.s
 .PHONY : test_monostable.cpp.s
 
-test_multi_domain.o: test_multi_domain.cpp.o
-.PHONY : test_multi_domain.o
+test_oscilloscope_stats.o: test_oscilloscope_stats.cpp.o
+.PHONY : test_oscilloscope_stats.o
 
 # target to build an object file
-test_multi_domain.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/test_multi_domain.cpp.o
-.PHONY : test_multi_domain.cpp.o
+test_oscilloscope_stats.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/test_oscilloscope_stats.cpp.o
+.PHONY : test_oscilloscope_stats.cpp.o
 
-test_multi_domain.i: test_multi_domain.cpp.i
-.PHONY : test_multi_domain.i
-
-# target to preprocess a source file
-test_multi_domain.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/test_multi_domain.cpp.i
-.PHONY : test_multi_domain.cpp.i
-
-test_multi_domain.s: test_multi_domain.cpp.s
-.PHONY : test_multi_domain.s
-
-# target to generate assembly for a file
-test_multi_domain.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/test_multi_domain.cpp.s
-.PHONY : test_multi_domain.cpp.s
-
-test_multi_window.o: test_multi_window.cpp.o
-.PHONY : test_multi_window.o
-
-# target to build an object file
-test_multi_window.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/test_multi_window.cpp.o
-.PHONY : test_multi_window.cpp.o
-
-test_multi_window.i: test_multi_window.cpp.i
-.PHONY : test_multi_window.i
+test_oscilloscope_stats.i: test_oscilloscope_stats.cpp.i
+.PHONY : test_oscilloscope_stats.i
 
 # target to preprocess a source file
-test_multi_window.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/test_multi_window.cpp.i
-.PHONY : test_multi_window.cpp.i
+test_oscilloscope_stats.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/test_oscilloscope_stats.cpp.i
+.PHONY : test_oscilloscope_stats.cpp.i
 
-test_multi_window.s: test_multi_window.cpp.s
-.PHONY : test_multi_window.s
-
-# target to generate assembly for a file
-test_multi_window.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/test_multi_window.cpp.s
-.PHONY : test_multi_window.cpp.s
-
-test_node_deletion.o: test_node_deletion.cpp.o
-.PHONY : test_node_deletion.o
-
-# target to build an object file
-test_node_deletion.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/test_node_deletion.cpp.o
-.PHONY : test_node_deletion.cpp.o
-
-test_node_deletion.i: test_node_deletion.cpp.i
-.PHONY : test_node_deletion.i
-
-# target to preprocess a source file
-test_node_deletion.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/test_node_deletion.cpp.i
-.PHONY : test_node_deletion.cpp.i
-
-test_node_deletion.s: test_node_deletion.cpp.s
-.PHONY : test_node_deletion.s
+test_oscilloscope_stats.s: test_oscilloscope_stats.cpp.s
+.PHONY : test_oscilloscope_stats.s
 
 # target to generate assembly for a file
-test_node_deletion.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/test_node_deletion.cpp.s
-.PHONY : test_node_deletion.cpp.s
-
-test_params_integrity.o: test_params_integrity.cpp.o
-.PHONY : test_params_integrity.o
-
-# target to build an object file
-test_params_integrity.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/test_params_integrity.cpp.o
-.PHONY : test_params_integrity.cpp.o
-
-test_params_integrity.i: test_params_integrity.cpp.i
-.PHONY : test_params_integrity.i
-
-# target to preprocess a source file
-test_params_integrity.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/test_params_integrity.cpp.i
-.PHONY : test_params_integrity.cpp.i
-
-test_params_integrity.s: test_params_integrity.cpp.s
-.PHONY : test_params_integrity.s
-
-# target to generate assembly for a file
-test_params_integrity.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/test_params_integrity.cpp.s
-.PHONY : test_params_integrity.cpp.s
+test_oscilloscope_stats.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/test_oscilloscope_stats.cpp.s
+.PHONY : test_oscilloscope_stats.cpp.s
 
 test_pd.o: test_pd.cpp.o
 .PHONY : test_pd.o
@@ -3461,6 +3579,30 @@ test_pi_p.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_p_tests.dir/build.make tests/CMakeFiles/pi_p_tests.dir/test_pi_p.cpp.s
 .PHONY : test_pi_p.cpp.s
 
+test_pi_zn_tuner.o: test_pi_zn_tuner.cpp.o
+.PHONY : test_pi_zn_tuner.o
+
+# target to build an object file
+test_pi_zn_tuner.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/test_pi_zn_tuner.cpp.o
+.PHONY : test_pi_zn_tuner.cpp.o
+
+test_pi_zn_tuner.i: test_pi_zn_tuner.cpp.i
+.PHONY : test_pi_zn_tuner.i
+
+# target to preprocess a source file
+test_pi_zn_tuner.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/test_pi_zn_tuner.cpp.i
+.PHONY : test_pi_zn_tuner.cpp.i
+
+test_pi_zn_tuner.s: test_pi_zn_tuner.cpp.s
+.PHONY : test_pi_zn_tuner.s
+
+# target to generate assembly for a file
+test_pi_zn_tuner.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/test_pi_zn_tuner.cpp.s
+.PHONY : test_pi_zn_tuner.cpp.s
+
 test_pid.o: test_pid.cpp.o
 .PHONY : test_pid.o
 
@@ -3484,6 +3626,30 @@ test_pid.s: test_pid.cpp.s
 test_pid.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/test_pid.cpp.s
 .PHONY : test_pid.cpp.s
+
+test_port_layout_resolver.o: test_port_layout_resolver.cpp.o
+.PHONY : test_port_layout_resolver.o
+
+# target to build an object file
+test_port_layout_resolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_layout_resolver_tests.dir/build.make tests/CMakeFiles/port_layout_resolver_tests.dir/test_port_layout_resolver.cpp.o
+.PHONY : test_port_layout_resolver.cpp.o
+
+test_port_layout_resolver.i: test_port_layout_resolver.cpp.i
+.PHONY : test_port_layout_resolver.i
+
+# target to preprocess a source file
+test_port_layout_resolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_layout_resolver_tests.dir/build.make tests/CMakeFiles/port_layout_resolver_tests.dir/test_port_layout_resolver.cpp.i
+.PHONY : test_port_layout_resolver.cpp.i
+
+test_port_layout_resolver.s: test_port_layout_resolver.cpp.s
+.PHONY : test_port_layout_resolver.s
+
+# target to generate assembly for a file
+test_port_layout_resolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_layout_resolver_tests.dir/build.make tests/CMakeFiles/port_layout_resolver_tests.dir/test_port_layout_resolver.cpp.s
+.PHONY : test_port_layout_resolver.cpp.s
 
 test_port_map_regression.o: test_port_map_regression.cpp.o
 .PHONY : test_port_map_regression.o
@@ -3509,6 +3675,78 @@ test_port_map_regression.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/test_port_map_regression.cpp.s
 .PHONY : test_port_map_regression.cpp.s
 
+test_production_path_parity.o: test_production_path_parity.cpp.o
+.PHONY : test_production_path_parity.o
+
+# target to build an object file
+test_production_path_parity.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/test_production_path_parity.cpp.o
+.PHONY : test_production_path_parity.cpp.o
+
+test_production_path_parity.i: test_production_path_parity.cpp.i
+.PHONY : test_production_path_parity.i
+
+# target to preprocess a source file
+test_production_path_parity.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/test_production_path_parity.cpp.i
+.PHONY : test_production_path_parity.cpp.i
+
+test_production_path_parity.s: test_production_path_parity.cpp.s
+.PHONY : test_production_path_parity.s
+
+# target to generate assembly for a file
+test_production_path_parity.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/test_production_path_parity.cpp.s
+.PHONY : test_production_path_parity.cpp.s
+
+test_production_path_port_map.o: test_production_path_port_map.cpp.o
+.PHONY : test_production_path_port_map.o
+
+# target to build an object file
+test_production_path_port_map.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/test_production_path_port_map.cpp.o
+.PHONY : test_production_path_port_map.cpp.o
+
+test_production_path_port_map.i: test_production_path_port_map.cpp.i
+.PHONY : test_production_path_port_map.i
+
+# target to preprocess a source file
+test_production_path_port_map.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/test_production_path_port_map.cpp.i
+.PHONY : test_production_path_port_map.cpp.i
+
+test_production_path_port_map.s: test_production_path_port_map.cpp.s
+.PHONY : test_production_path_port_map.s
+
+# target to generate assembly for a file
+test_production_path_port_map.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/test_production_path_port_map.cpp.s
+.PHONY : test_production_path_port_map.cpp.s
+
+test_production_path_push_runtime.o: test_production_path_push_runtime.cpp.o
+.PHONY : test_production_path_push_runtime.o
+
+# target to build an object file
+test_production_path_push_runtime.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/test_production_path_push_runtime.cpp.o
+.PHONY : test_production_path_push_runtime.cpp.o
+
+test_production_path_push_runtime.i: test_production_path_push_runtime.cpp.i
+.PHONY : test_production_path_push_runtime.i
+
+# target to preprocess a source file
+test_production_path_push_runtime.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/test_production_path_push_runtime.cpp.i
+.PHONY : test_production_path_push_runtime.cpp.i
+
+test_production_path_push_runtime.s: test_production_path_push_runtime.cpp.s
+.PHONY : test_production_path_push_runtime.s
+
+# target to generate assembly for a file
+test_production_path_push_runtime.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/test_production_path_push_runtime.cpp.s
+.PHONY : test_production_path_push_runtime.cpp.s
+
 test_properties_window.o: test_properties_window.cpp.o
 .PHONY : test_properties_window.o
 
@@ -3532,6 +3770,102 @@ test_properties_window.s: test_properties_window.cpp.s
 test_properties_window.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/test_properties_window.cpp.s
 .PHONY : test_properties_window.cpp.s
+
+test_push_build_validation.o: test_push_build_validation.cpp.o
+.PHONY : test_push_build_validation.o
+
+# target to build an object file
+test_push_build_validation.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_build_validation_tests.dir/build.make tests/CMakeFiles/push_build_validation_tests.dir/test_push_build_validation.cpp.o
+.PHONY : test_push_build_validation.cpp.o
+
+test_push_build_validation.i: test_push_build_validation.cpp.i
+.PHONY : test_push_build_validation.i
+
+# target to preprocess a source file
+test_push_build_validation.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_build_validation_tests.dir/build.make tests/CMakeFiles/push_build_validation_tests.dir/test_push_build_validation.cpp.i
+.PHONY : test_push_build_validation.cpp.i
+
+test_push_build_validation.s: test_push_build_validation.cpp.s
+.PHONY : test_push_build_validation.s
+
+# target to generate assembly for a file
+test_push_build_validation.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_build_validation_tests.dir/build.make tests/CMakeFiles/push_build_validation_tests.dir/test_push_build_validation.cpp.s
+.PHONY : test_push_build_validation.cpp.s
+
+test_push_runtime_regression.o: test_push_runtime_regression.cpp.o
+.PHONY : test_push_runtime_regression.o
+
+# target to build an object file
+test_push_runtime_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_runtime_regression_tests.dir/build.make tests/CMakeFiles/push_runtime_regression_tests.dir/test_push_runtime_regression.cpp.o
+.PHONY : test_push_runtime_regression.cpp.o
+
+test_push_runtime_regression.i: test_push_runtime_regression.cpp.i
+.PHONY : test_push_runtime_regression.i
+
+# target to preprocess a source file
+test_push_runtime_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_runtime_regression_tests.dir/build.make tests/CMakeFiles/push_runtime_regression_tests.dir/test_push_runtime_regression.cpp.i
+.PHONY : test_push_runtime_regression.cpp.i
+
+test_push_runtime_regression.s: test_push_runtime_regression.cpp.s
+.PHONY : test_push_runtime_regression.s
+
+# target to generate assembly for a file
+test_push_runtime_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_runtime_regression_tests.dir/build.make tests/CMakeFiles/push_runtime_regression_tests.dir/test_push_runtime_regression.cpp.s
+.PHONY : test_push_runtime_regression.cpp.s
+
+test_push_scheduler.o: test_push_scheduler.cpp.o
+.PHONY : test_push_scheduler.o
+
+# target to build an object file
+test_push_scheduler.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_scheduler_tests.dir/build.make tests/CMakeFiles/push_scheduler_tests.dir/test_push_scheduler.cpp.o
+.PHONY : test_push_scheduler.cpp.o
+
+test_push_scheduler.i: test_push_scheduler.cpp.i
+.PHONY : test_push_scheduler.i
+
+# target to preprocess a source file
+test_push_scheduler.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_scheduler_tests.dir/build.make tests/CMakeFiles/push_scheduler_tests.dir/test_push_scheduler.cpp.i
+.PHONY : test_push_scheduler.cpp.i
+
+test_push_scheduler.s: test_push_scheduler.cpp.s
+.PHONY : test_push_scheduler.s
+
+# target to generate assembly for a file
+test_push_scheduler.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_scheduler_tests.dir/build.make tests/CMakeFiles/push_scheduler_tests.dir/test_push_scheduler.cpp.s
+.PHONY : test_push_scheduler.cpp.s
+
+test_push_state.o: test_push_state.cpp.o
+.PHONY : test_push_state.o
+
+# target to build an object file
+test_push_state.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_state_tests.dir/build.make tests/CMakeFiles/push_state_tests.dir/test_push_state.cpp.o
+.PHONY : test_push_state.cpp.o
+
+test_push_state.i: test_push_state.cpp.i
+.PHONY : test_push_state.i
+
+# target to preprocess a source file
+test_push_state.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_state_tests.dir/build.make tests/CMakeFiles/push_state_tests.dir/test_push_state.cpp.i
+.PHONY : test_push_state.cpp.i
+
+test_push_state.s: test_push_state.cpp.s
+.PHONY : test_push_state.s
+
+# target to generate assembly for a file
+test_push_state.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_state_tests.dir/build.make tests/CMakeFiles/push_state_tests.dir/test_push_state.cpp.s
+.PHONY : test_push_state.cpp.s
 
 test_sample_hold.o: test_sample_hold.cpp.o
 .PHONY : test_sample_hold.o
@@ -3581,29 +3915,29 @@ test_scene_mutations.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/test_scene_mutations.cpp.s
 .PHONY : test_scene_mutations.cpp.s
 
-test_simulation.o: test_simulation.cpp.o
-.PHONY : test_simulation.o
+test_signal_key_resolver.o: test_signal_key_resolver.cpp.o
+.PHONY : test_signal_key_resolver.o
 
 # target to build an object file
-test_simulation.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.o
-.PHONY : test_simulation.cpp.o
+test_signal_key_resolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/test_signal_key_resolver.cpp.o
+.PHONY : test_signal_key_resolver.cpp.o
 
-test_simulation.i: test_simulation.cpp.i
-.PHONY : test_simulation.i
+test_signal_key_resolver.i: test_signal_key_resolver.cpp.i
+.PHONY : test_signal_key_resolver.i
 
 # target to preprocess a source file
-test_simulation.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.i
-.PHONY : test_simulation.cpp.i
+test_signal_key_resolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/test_signal_key_resolver.cpp.i
+.PHONY : test_signal_key_resolver.cpp.i
 
-test_simulation.s: test_simulation.cpp.s
-.PHONY : test_simulation.s
+test_signal_key_resolver.s: test_signal_key_resolver.cpp.s
+.PHONY : test_signal_key_resolver.s
 
 # target to generate assembly for a file
-test_simulation.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.s
-.PHONY : test_simulation.cpp.s
+test_signal_key_resolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/test_signal_key_resolver.cpp.s
+.PHONY : test_signal_key_resolver.cpp.s
 
 test_slew_rate.o: test_slew_rate.cpp.o
 .PHONY : test_slew_rate.o
@@ -3629,29 +3963,29 @@ test_slew_rate.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/test_slew_rate.cpp.s
 .PHONY : test_slew_rate.cpp.s
 
-test_specialized_node_widgets.o: test_specialized_node_widgets.cpp.o
-.PHONY : test_specialized_node_widgets.o
+test_splitter.o: test_splitter.cpp.o
+.PHONY : test_splitter.o
 
 # target to build an object file
-test_specialized_node_widgets.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/test_specialized_node_widgets.cpp.o
-.PHONY : test_specialized_node_widgets.cpp.o
+test_splitter.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/test_splitter.cpp.o
+.PHONY : test_splitter.cpp.o
 
-test_specialized_node_widgets.i: test_specialized_node_widgets.cpp.i
-.PHONY : test_specialized_node_widgets.i
+test_splitter.i: test_splitter.cpp.i
+.PHONY : test_splitter.i
 
 # target to preprocess a source file
-test_specialized_node_widgets.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/test_specialized_node_widgets.cpp.i
-.PHONY : test_specialized_node_widgets.cpp.i
+test_splitter.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/test_splitter.cpp.i
+.PHONY : test_splitter.cpp.i
 
-test_specialized_node_widgets.s: test_specialized_node_widgets.cpp.s
-.PHONY : test_specialized_node_widgets.s
+test_splitter.s: test_splitter.cpp.s
+.PHONY : test_splitter.s
 
 # target to generate assembly for a file
-test_specialized_node_widgets.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/test_specialized_node_widgets.cpp.s
-.PHONY : test_specialized_node_widgets.cpp.s
+test_splitter.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/test_splitter.cpp.s
+.PHONY : test_splitter.cpp.s
 
 test_spring.o: test_spring.cpp.o
 .PHONY : test_spring.o
@@ -3676,30 +4010,6 @@ test_spring.s: test_spring.cpp.s
 test_spring.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/test_spring.cpp.s
 .PHONY : test_spring.cpp.s
-
-test_sub_blueprint_ref.o: test_sub_blueprint_ref.cpp.o
-.PHONY : test_sub_blueprint_ref.o
-
-# target to build an object file
-test_sub_blueprint_ref.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/test_sub_blueprint_ref.cpp.o
-.PHONY : test_sub_blueprint_ref.cpp.o
-
-test_sub_blueprint_ref.i: test_sub_blueprint_ref.cpp.i
-.PHONY : test_sub_blueprint_ref.i
-
-# target to preprocess a source file
-test_sub_blueprint_ref.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/test_sub_blueprint_ref.cpp.i
-.PHONY : test_sub_blueprint_ref.cpp.i
-
-test_sub_blueprint_ref.s: test_sub_blueprint_ref.cpp.s
-.PHONY : test_sub_blueprint_ref.s
-
-# target to generate assembly for a file
-test_sub_blueprint_ref.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/test_sub_blueprint_ref.cpp.s
-.PHONY : test_sub_blueprint_ref.cpp.s
 
 test_subtract.o: test_subtract.cpp.o
 .PHONY : test_subtract.o
@@ -3748,30 +4058,6 @@ test_time_delay.s: test_time_delay.cpp.s
 test_time_delay.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/test_time_delay.cpp.s
 .PHONY : test_time_delay.cpp.s
-
-test_transformer.o: test_transformer.cpp.o
-.PHONY : test_transformer.o
-
-# target to build an object file
-test_transformer.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/test_transformer.cpp.o
-.PHONY : test_transformer.cpp.o
-
-test_transformer.i: test_transformer.cpp.i
-.PHONY : test_transformer.i
-
-# target to preprocess a source file
-test_transformer.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/test_transformer.cpp.i
-.PHONY : test_transformer.cpp.i
-
-test_transformer.s: test_transformer.cpp.s
-.PHONY : test_transformer.s
-
-# target to generate assembly for a file
-test_transformer.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/test_transformer.cpp.s
-.PHONY : test_transformer.cpp.s
 
 test_ui_grid.o: test_ui_grid.cpp.o
 .PHONY : test_ui_grid.o
@@ -3989,6 +4275,54 @@ test_ui_widget_purity.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/test_ui_widget_purity.cpp.s
 .PHONY : test_ui_widget_purity.cpp.s
 
+test_unmapped_port_regression.o: test_unmapped_port_regression.cpp.o
+.PHONY : test_unmapped_port_regression.o
+
+# target to build an object file
+test_unmapped_port_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/test_unmapped_port_regression.cpp.o
+.PHONY : test_unmapped_port_regression.cpp.o
+
+test_unmapped_port_regression.i: test_unmapped_port_regression.cpp.i
+.PHONY : test_unmapped_port_regression.i
+
+# target to preprocess a source file
+test_unmapped_port_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/test_unmapped_port_regression.cpp.i
+.PHONY : test_unmapped_port_regression.cpp.i
+
+test_unmapped_port_regression.s: test_unmapped_port_regression.cpp.s
+.PHONY : test_unmapped_port_regression.s
+
+# target to generate assembly for a file
+test_unmapped_port_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/test_unmapped_port_regression.cpp.s
+.PHONY : test_unmapped_port_regression.cpp.s
+
+test_v3_migration.o: test_v3_migration.cpp.o
+.PHONY : test_v3_migration.o
+
+# target to build an object file
+test_v3_migration.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/test_v3_migration.cpp.o
+.PHONY : test_v3_migration.cpp.o
+
+test_v3_migration.i: test_v3_migration.cpp.i
+.PHONY : test_v3_migration.i
+
+# target to preprocess a source file
+test_v3_migration.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/test_v3_migration.cpp.i
+.PHONY : test_v3_migration.cpp.i
+
+test_v3_migration.s: test_v3_migration.cpp.s
+.PHONY : test_v3_migration.s
+
+# target to generate assembly for a file
+test_v3_migration.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/test_v3_migration.cpp.s
+.PHONY : test_v3_migration.cpp.s
+
 test_v_to_bool.o: test_v_to_bool.cpp.o
 .PHONY : test_v_to_bool.o
 
@@ -4061,6 +4395,30 @@ test_visual_container.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/test_visual_container.cpp.s
 .PHONY : test_visual_container.cpp.s
 
+test_visual_content_widgets.o: test_visual_content_widgets.cpp.o
+.PHONY : test_visual_content_widgets.o
+
+# target to build an object file
+test_visual_content_widgets.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/test_visual_content_widgets.cpp.o
+.PHONY : test_visual_content_widgets.cpp.o
+
+test_visual_content_widgets.i: test_visual_content_widgets.cpp.i
+.PHONY : test_visual_content_widgets.i
+
+# target to preprocess a source file
+test_visual_content_widgets.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/test_visual_content_widgets.cpp.i
+.PHONY : test_visual_content_widgets.cpp.i
+
+test_visual_content_widgets.s: test_visual_content_widgets.cpp.s
+.PHONY : test_visual_content_widgets.s
+
+# target to generate assembly for a file
+test_visual_content_widgets.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_content_widgets_tests.dir/build.make tests/CMakeFiles/visual_content_widgets_tests.dir/test_visual_content_widgets.cpp.s
+.PHONY : test_visual_content_widgets.cpp.s
+
 test_visual_grid.o: test_visual_grid.cpp.o
 .PHONY : test_visual_grid.o
 
@@ -4084,54 +4442,6 @@ test_visual_grid.s: test_visual_grid.cpp.s
 test_visual_grid.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_grid_tests.dir/build.make tests/CMakeFiles/visual_grid_tests.dir/test_visual_grid.cpp.s
 .PHONY : test_visual_grid.cpp.s
-
-test_visual_hittest.o: test_visual_hittest.cpp.o
-.PHONY : test_visual_hittest.o
-
-# target to build an object file
-test_visual_hittest.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/test_visual_hittest.cpp.o
-.PHONY : test_visual_hittest.cpp.o
-
-test_visual_hittest.i: test_visual_hittest.cpp.i
-.PHONY : test_visual_hittest.i
-
-# target to preprocess a source file
-test_visual_hittest.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/test_visual_hittest.cpp.i
-.PHONY : test_visual_hittest.cpp.i
-
-test_visual_hittest.s: test_visual_hittest.cpp.s
-.PHONY : test_visual_hittest.s
-
-# target to generate assembly for a file
-test_visual_hittest.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/test_visual_hittest.cpp.s
-.PHONY : test_visual_hittest.cpp.s
-
-test_visual_node_widget.o: test_visual_node_widget.cpp.o
-.PHONY : test_visual_node_widget.o
-
-# target to build an object file
-test_visual_node_widget.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/test_visual_node_widget.cpp.o
-.PHONY : test_visual_node_widget.cpp.o
-
-test_visual_node_widget.i: test_visual_node_widget.cpp.i
-.PHONY : test_visual_node_widget.i
-
-# target to preprocess a source file
-test_visual_node_widget.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/test_visual_node_widget.cpp.i
-.PHONY : test_visual_node_widget.cpp.i
-
-test_visual_node_widget.s: test_visual_node_widget.cpp.s
-.PHONY : test_visual_node_widget.s
-
-# target to generate assembly for a file
-test_visual_node_widget.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/test_visual_node_widget.cpp.s
-.PHONY : test_visual_node_widget.cpp.s
 
 test_visual_primitives.o: test_visual_primitives.cpp.o
 .PHONY : test_visual_primitives.o
@@ -4242,64 +4552,80 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... accumulator_tests"
 	@echo "... and_gate_debug_tests"
 	@echo "... aot_composite_tests"
-	@echo "... apu_mechanical_tests"
+	@echo "... architecture_regression_tests"
 	@echo "... arithmetic_tests"
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
-	@echo "... bake_in_tests"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
+	@echo "... bp2_bake_tests"
+	@echo "... bp2_blueprint_tests"
+	@echo "... bp2_codec_tests"
+	@echo "... bp2_editor_model_tests"
+	@echo "... bp2_flattener_tests"
+	@echo "... bp2_interface_tests"
+	@echo "... bp2_path_tests"
+	@echo "... bp2_registry_tests"
+	@echo "... bp2_validation_tests"
+	@echo "... bug_hunt_regression_tests"
+	@echo "... canvas_input_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
 	@echo "... command_tests"
 	@echo "... comparison_components_tests"
-	@echo "... document_window_system_tests"
-	@echo "... dt_regression_tests"
+	@echo "... current_sense_tests"
 	@echo "... editor_componentvariant_tests"
-	@echo "... editor_data_interning_tests"
-	@echo "... editor_data_tests"
-	@echo "... editor_simulation_tests"
+	@echo "... editor_settings_tests"
 	@echo "... editor_viewport_tests"
-	@echo "... expand_typedef_tests"
+	@echo "... electrical_handle_build_tests"
+	@echo "... electrical_island_build_tests"
+	@echo "... electrical_parity_fixtures_tests"
+	@echo "... electrical_primitives_tests"
+	@echo "... electrical_subsolver_tests"
+	@echo "... external_ref_signal_mapping_tests"
 	@echo "... factory_validation_tests"
-	@echo "... flat_blueprint_tests"
-	@echo "... generator_tests"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
+	@echo "... jit_aot_bridge_equivalence_tests"
 	@echo "... json_parser_tests"
-	@echo "... lamp_passthrough_jit_test"
-	@echo "... library_v2_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
 	@echo "... lut_tests"
 	@echo "... monostable_tests"
-	@echo "... multi_domain_tests"
-	@echo "... multi_window_tests"
-	@echo "... node_deletion_tests"
-	@echo "... params_integrity_tests"
+	@echo "... oscilloscope_stats_tests"
 	@echo "... pd_tests"
 	@echo "... pi_p_tests"
+	@echo "... pi_zn_tuner_tests"
 	@echo "... pid_tests"
+	@echo "... port_layout_resolver_tests"
 	@echo "... port_macro_tests"
 	@echo "... port_map_regression_tests"
 	@echo "... port_registry_tests"
+	@echo "... production_path_parity_tests"
+	@echo "... production_path_port_map_tests"
+	@echo "... production_path_push_runtime_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... push_build_validation_tests"
+	@echo "... push_runtime_regression_tests"
+	@echo "... push_scheduler_tests"
+	@echo "... push_state_tests"
+	@echo "... sam28_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
+	@echo "... signal_key_resolver_tests"
 	@echo "... slew_rate_tests"
-	@echo "... specialized_node_widget_tests"
+	@echo "... splitter_tests"
 	@echo "... spring_tests"
-	@echo "... sub_blueprint_ref_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
-	@echo "... transformer_tests"
 	@echo "... ui_grid_tests"
 	@echo "... ui_interning_tests"
 	@echo "... ui_layout_tests"
@@ -4309,45 +4635,40 @@ help:
 	@echo "... ui_renderer_tests"
 	@echo "... ui_scene_tests"
 	@echo "... ui_widget_purity_tests"
+	@echo "... unmapped_port_regression_tests"
+	@echo "... v3_migration_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"
+	@echo "... visual_content_widgets_tests"
 	@echo "... visual_grid_tests"
-	@echo "... visual_hittest_tests"
-	@echo "... visual_node_widget_tests"
 	@echo "... visual_primitives_tests"
 	@echo "... visual_scene_v2_tests"
 	@echo "... visual_widget_tests"
 	@echo "... visual_wire_tests"
-	@echo "... __/_deps/imgui-src/imgui.o"
-	@echo "... __/_deps/imgui-src/imgui.i"
-	@echo "... __/_deps/imgui-src/imgui.s"
-	@echo "... __/_deps/imgui-src/imgui_draw.o"
-	@echo "... __/_deps/imgui-src/imgui_draw.i"
-	@echo "... __/_deps/imgui-src/imgui_draw.s"
-	@echo "... __/_deps/imgui-src/imgui_tables.o"
-	@echo "... __/_deps/imgui-src/imgui_tables.i"
-	@echo "... __/_deps/imgui-src/imgui_tables.s"
-	@echo "... __/_deps/imgui-src/imgui_widgets.o"
-	@echo "... __/_deps/imgui-src/imgui_widgets.i"
-	@echo "... __/_deps/imgui-src/imgui_widgets.s"
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"
+	@echo "... __/src/codegen/electrical_codegen.o"
+	@echo "... __/src/codegen/electrical_codegen.i"
+	@echo "... __/src/codegen/electrical_codegen.s"
 	@echo "... __/src/editor/commands/commands.o"
 	@echo "... __/src/editor/commands/commands.i"
 	@echo "... __/src/editor/commands/commands.s"
-	@echo "... __/src/editor/data/blueprint.o"
-	@echo "... __/src/editor/data/blueprint.i"
-	@echo "... __/src/editor/data/blueprint.s"
-	@echo "... __/src/editor/document.o"
-	@echo "... __/src/editor/document.i"
-	@echo "... __/src/editor/document.s"
+	@echo "... __/src/editor/commands/extract_blueprint.o"
+	@echo "... __/src/editor/commands/extract_blueprint.i"
+	@echo "... __/src/editor/commands/extract_blueprint.s"
 	@echo "... __/src/editor/editor_settings.o"
 	@echo "... __/src/editor/editor_settings.i"
 	@echo "... __/src/editor/editor_settings.s"
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
+	@echo "... __/src/editor/pi_zn_math.o"
+	@echo "... __/src/editor/pi_zn_math.i"
+	@echo "... __/src/editor/pi_zn_math.s"
+	@echo "... __/src/editor/signal_key_resolver.o"
+	@echo "... __/src/editor/signal_key_resolver.i"
+	@echo "... __/src/editor/signal_key_resolver.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
@@ -4399,15 +4720,45 @@ help:
 	@echo "... __/src/editor/window/properties_window.o"
 	@echo "... __/src/editor/window/properties_window.i"
 	@echo "... __/src/editor/window/properties_window.s"
-	@echo "... __/src/editor/window_system.o"
-	@echo "... __/src/editor/window_system.i"
-	@echo "... __/src/editor/window_system.s"
 	@echo "... __/src/json_parser/json_parser.o"
 	@echo "... __/src/json_parser/json_parser.i"
 	@echo "... __/src/json_parser/json_parser.s"
 	@echo "... __/src/ui/core/widget.o"
 	@echo "... __/src/ui/core/widget.i"
 	@echo "... __/src/ui/core/widget.s"
+	@echo "... blueprint_v2/test_bake.o"
+	@echo "... blueprint_v2/test_bake.i"
+	@echo "... blueprint_v2/test_bake.s"
+	@echo "... blueprint_v2/test_blueprint.o"
+	@echo "... blueprint_v2/test_blueprint.i"
+	@echo "... blueprint_v2/test_blueprint.s"
+	@echo "... blueprint_v2/test_codec.o"
+	@echo "... blueprint_v2/test_codec.i"
+	@echo "... blueprint_v2/test_codec.s"
+	@echo "... blueprint_v2/test_editor_model.o"
+	@echo "... blueprint_v2/test_editor_model.i"
+	@echo "... blueprint_v2/test_editor_model.s"
+	@echo "... blueprint_v2/test_flattener.o"
+	@echo "... blueprint_v2/test_flattener.i"
+	@echo "... blueprint_v2/test_flattener.s"
+	@echo "... blueprint_v2/test_interface.o"
+	@echo "... blueprint_v2/test_interface.i"
+	@echo "... blueprint_v2/test_interface.s"
+	@echo "... blueprint_v2/test_path.o"
+	@echo "... blueprint_v2/test_path.i"
+	@echo "... blueprint_v2/test_path.s"
+	@echo "... blueprint_v2/test_persist_validation.o"
+	@echo "... blueprint_v2/test_persist_validation.i"
+	@echo "... blueprint_v2/test_persist_validation.s"
+	@echo "... blueprint_v2/test_registry.o"
+	@echo "... blueprint_v2/test_registry.i"
+	@echo "... blueprint_v2/test_registry.s"
+	@echo "... blueprint_v2/test_subwindow_open_target.o"
+	@echo "... blueprint_v2/test_subwindow_open_target.i"
+	@echo "... blueprint_v2/test_subwindow_open_target.s"
+	@echo "... blueprint_v2/test_validation.o"
+	@echo "... blueprint_v2/test_validation.i"
+	@echo "... blueprint_v2/test_validation.s"
 	@echo "... editor_componentvariant_test.o"
 	@echo "... editor_componentvariant_test.i"
 	@echo "... editor_componentvariant_test.s"
@@ -4426,15 +4777,21 @@ help:
 	@echo "... provider_test.o"
 	@echo "... provider_test.i"
 	@echo "... provider_test.s"
+	@echo "... test_12sam28.o"
+	@echo "... test_12sam28.i"
+	@echo "... test_12sam28.s"
+	@echo "... test_accumulator.o"
+	@echo "... test_accumulator.i"
+	@echo "... test_accumulator.s"
 	@echo "... test_and_gate_debug.o"
 	@echo "... test_and_gate_debug.i"
 	@echo "... test_and_gate_debug.s"
 	@echo "... test_aot_composite.o"
 	@echo "... test_aot_composite.i"
 	@echo "... test_aot_composite.s"
-	@echo "... test_apu_mechanical.o"
-	@echo "... test_apu_mechanical.i"
-	@echo "... test_apu_mechanical.s"
+	@echo "... test_architecture_regression.o"
+	@echo "... test_architecture_regression.i"
+	@echo "... test_architecture_regression.s"
 	@echo "... test_arithmetic.o"
 	@echo "... test_arithmetic.i"
 	@echo "... test_arithmetic.s"
@@ -4447,9 +4804,6 @@ help:
 	@echo "... test_azs.o"
 	@echo "... test_azs.i"
 	@echo "... test_azs.s"
-	@echo "... test_bake_in.o"
-	@echo "... test_bake_in.i"
-	@echo "... test_bake_in.s"
 	@echo "... test_blueprint_integration.o"
 	@echo "... test_blueprint_integration.i"
 	@echo "... test_blueprint_integration.s"
@@ -4459,9 +4813,12 @@ help:
 	@echo "... test_blueprint_ports.o"
 	@echo "... test_blueprint_ports.i"
 	@echo "... test_blueprint_ports.s"
-	@echo "... test_blueprint_v2.o"
-	@echo "... test_blueprint_v2.i"
-	@echo "... test_blueprint_v2.s"
+	@echo "... test_bug_hunt_regression.o"
+	@echo "... test_bug_hunt_regression.i"
+	@echo "... test_bug_hunt_regression.s"
+	@echo "... test_canvas_input.o"
+	@echo "... test_canvas_input.i"
+	@echo "... test_canvas_input.s"
 	@echo "... test_clamp_normalize.o"
 	@echo "... test_clamp_normalize.i"
 	@echo "... test_clamp_normalize.s"
@@ -4477,36 +4834,39 @@ help:
 	@echo "... test_comparison_components.o"
 	@echo "... test_comparison_components.i"
 	@echo "... test_comparison_components.s"
-	@echo "... test_data.o"
-	@echo "... test_data.i"
-	@echo "... test_data.s"
-	@echo "... test_data_interning.o"
-	@echo "... test_data_interning.i"
-	@echo "... test_data_interning.s"
-	@echo "... test_document_window_system.o"
-	@echo "... test_document_window_system.i"
-	@echo "... test_document_window_system.s"
-	@echo "... test_dt_regression.o"
-	@echo "... test_dt_regression.i"
-	@echo "... test_dt_regression.s"
-	@echo "... test_expand_type_definition.o"
-	@echo "... test_expand_type_definition.i"
-	@echo "... test_expand_type_definition.s"
-	@echo "... test_generator.o"
-	@echo "... test_generator.i"
-	@echo "... test_generator.s"
+	@echo "... test_current_sense.o"
+	@echo "... test_current_sense.i"
+	@echo "... test_current_sense.s"
+	@echo "... test_editor_settings.o"
+	@echo "... test_editor_settings.i"
+	@echo "... test_editor_settings.s"
+	@echo "... test_electrical_handles_build.o"
+	@echo "... test_electrical_handles_build.i"
+	@echo "... test_electrical_handles_build.s"
+	@echo "... test_electrical_island_build.o"
+	@echo "... test_electrical_island_build.i"
+	@echo "... test_electrical_island_build.s"
+	@echo "... test_electrical_parity_fixtures.o"
+	@echo "... test_electrical_parity_fixtures.i"
+	@echo "... test_electrical_parity_fixtures.s"
+	@echo "... test_electrical_primitives.o"
+	@echo "... test_electrical_primitives.i"
+	@echo "... test_electrical_primitives.s"
+	@echo "... test_electrical_subsolver.o"
+	@echo "... test_electrical_subsolver.i"
+	@echo "... test_electrical_subsolver.s"
+	@echo "... test_external_ref_signal_mapping.o"
+	@echo "... test_external_ref_signal_mapping.i"
+	@echo "... test_external_ref_signal_mapping.s"
 	@echo "... test_inspector.o"
 	@echo "... test_inspector.i"
 	@echo "... test_inspector.s"
 	@echo "... test_integrator.o"
 	@echo "... test_integrator.i"
 	@echo "... test_integrator.s"
-	@echo "... test_lamp_passthrough_jit.o"
-	@echo "... test_lamp_passthrough_jit.i"
-	@echo "... test_lamp_passthrough_jit.s"
-	@echo "... test_library_v2.o"
-	@echo "... test_library_v2.i"
-	@echo "... test_library_v2.s"
+	@echo "... test_jit_aot_bridge_equivalence.o"
+	@echo "... test_jit_aot_bridge_equivalence.i"
+	@echo "... test_jit_aot_bridge_equivalence.s"
 	@echo "... test_logic_gates.o"
 	@echo "... test_logic_gates.i"
 	@echo "... test_logic_gates.s"
@@ -4522,63 +4882,75 @@ help:
 	@echo "... test_monostable.o"
 	@echo "... test_monostable.i"
 	@echo "... test_monostable.s"
-	@echo "... test_multi_domain.o"
-	@echo "... test_multi_domain.i"
-	@echo "... test_multi_domain.s"
-	@echo "... test_multi_window.o"
-	@echo "... test_multi_window.i"
-	@echo "... test_multi_window.s"
-	@echo "... test_node_deletion.o"
-	@echo "... test_node_deletion.i"
-	@echo "... test_node_deletion.s"
-	@echo "... test_params_integrity.o"
-	@echo "... test_params_integrity.i"
-	@echo "... test_params_integrity.s"
+	@echo "... test_oscilloscope_stats.o"
+	@echo "... test_oscilloscope_stats.i"
+	@echo "... test_oscilloscope_stats.s"
 	@echo "... test_pd.o"
 	@echo "... test_pd.i"
 	@echo "... test_pd.s"
 	@echo "... test_pi_p.o"
 	@echo "... test_pi_p.i"
 	@echo "... test_pi_p.s"
+	@echo "... test_pi_zn_tuner.o"
+	@echo "... test_pi_zn_tuner.i"
+	@echo "... test_pi_zn_tuner.s"
 	@echo "... test_pid.o"
 	@echo "... test_pid.i"
 	@echo "... test_pid.s"
+	@echo "... test_port_layout_resolver.o"
+	@echo "... test_port_layout_resolver.i"
+	@echo "... test_port_layout_resolver.s"
 	@echo "... test_port_map_regression.o"
 	@echo "... test_port_map_regression.i"
 	@echo "... test_port_map_regression.s"
+	@echo "... test_production_path_parity.o"
+	@echo "... test_production_path_parity.i"
+	@echo "... test_production_path_parity.s"
+	@echo "... test_production_path_port_map.o"
+	@echo "... test_production_path_port_map.i"
+	@echo "... test_production_path_port_map.s"
+	@echo "... test_production_path_push_runtime.o"
+	@echo "... test_production_path_push_runtime.i"
+	@echo "... test_production_path_push_runtime.s"
 	@echo "... test_properties_window.o"
 	@echo "... test_properties_window.i"
 	@echo "... test_properties_window.s"
+	@echo "... test_push_build_validation.o"
+	@echo "... test_push_build_validation.i"
+	@echo "... test_push_build_validation.s"
+	@echo "... test_push_runtime_regression.o"
+	@echo "... test_push_runtime_regression.i"
+	@echo "... test_push_runtime_regression.s"
+	@echo "... test_push_scheduler.o"
+	@echo "... test_push_scheduler.i"
+	@echo "... test_push_scheduler.s"
+	@echo "... test_push_state.o"
+	@echo "... test_push_state.i"
+	@echo "... test_push_state.s"
 	@echo "... test_sample_hold.o"
 	@echo "... test_sample_hold.i"
 	@echo "... test_sample_hold.s"
 	@echo "... test_scene_mutations.o"
 	@echo "... test_scene_mutations.i"
 	@echo "... test_scene_mutations.s"
-	@echo "... test_simulation.o"
-	@echo "... test_simulation.i"
-	@echo "... test_simulation.s"
+	@echo "... test_signal_key_resolver.o"
+	@echo "... test_signal_key_resolver.i"
+	@echo "... test_signal_key_resolver.s"
 	@echo "... test_slew_rate.o"
 	@echo "... test_slew_rate.i"
 	@echo "... test_slew_rate.s"
-	@echo "... test_specialized_node_widgets.o"
-	@echo "... test_specialized_node_widgets.i"
-	@echo "... test_specialized_node_widgets.s"
+	@echo "... test_splitter.o"
+	@echo "... test_splitter.i"
+	@echo "... test_splitter.s"
 	@echo "... test_spring.o"
 	@echo "... test_spring.i"
 	@echo "... test_spring.s"
-	@echo "... test_sub_blueprint_ref.o"
-	@echo "... test_sub_blueprint_ref.i"
-	@echo "... test_sub_blueprint_ref.s"
 	@echo "... test_subtract.o"
 	@echo "... test_subtract.i"
 	@echo "... test_subtract.s"
 	@echo "... test_time_delay.o"
 	@echo "... test_time_delay.i"
 	@echo "... test_time_delay.s"
-	@echo "... test_transformer.o"
-	@echo "... test_transformer.i"
-	@echo "... test_transformer.s"
 	@echo "... test_ui_grid.o"
 	@echo "... test_ui_grid.i"
 	@echo "... test_ui_grid.s"
@@ -4606,6 +4978,12 @@ help:
 	@echo "... test_ui_widget_purity.o"
 	@echo "... test_ui_widget_purity.i"
 	@echo "... test_ui_widget_purity.s"
+	@echo "... test_unmapped_port_regression.o"
+	@echo "... test_unmapped_port_regression.i"
+	@echo "... test_unmapped_port_regression.s"
+	@echo "... test_v3_migration.o"
+	@echo "... test_v3_migration.i"
+	@echo "... test_v3_migration.s"
 	@echo "... test_v_to_bool.o"
 	@echo "... test_v_to_bool.i"
 	@echo "... test_v_to_bool.s"
@@ -4615,15 +4993,12 @@ help:
 	@echo "... test_visual_container.o"
 	@echo "... test_visual_container.i"
 	@echo "... test_visual_container.s"
+	@echo "... test_visual_content_widgets.o"
+	@echo "... test_visual_content_widgets.i"
+	@echo "... test_visual_content_widgets.s"
 	@echo "... test_visual_grid.o"
 	@echo "... test_visual_grid.i"
 	@echo "... test_visual_grid.s"
-	@echo "... test_visual_hittest.o"
-	@echo "... test_visual_hittest.i"
-	@echo "... test_visual_hittest.s"
-	@echo "... test_visual_node_widget.o"
-	@echo "... test_visual_node_widget.i"
-	@echo "... test_visual_node_widget.s"
 	@echo "... test_visual_primitives.o"
 	@echo "... test_visual_primitives.i"
 	@echo "... test_visual_primitives.s"

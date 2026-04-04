@@ -1,0 +1,138 @@
+{
+  "tests": 24,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "SimulationTest",
+      "tests": 18,
+      "testsuite": [
+        {
+          "name": "BuildsFromBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 145
+        },
+        {
+          "name": "Regression_GSCReinternedLegacyExportHasNoEmptyEndpoints",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 154
+        },
+        {
+          "name": "StepCounterIncrements",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 173
+        },
+        {
+          "name": "RunningFlag",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 185
+        },
+        {
+          "name": "ResetClearsState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 200
+        },
+        {
+          "name": "RebuildResetsState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 231
+        },
+        {
+          "name": "BatteryVoltageConverges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 253
+        },
+        {
+          "name": "DISABLED_GroundRemainsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 270
+        },
+        {
+          "name": "GetPortValue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 283
+        },
+        {
+          "name": "GetPortValue_UnknownReturnsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 296
+        },
+        {
+          "name": "DISABLED_WireIsEnergized_ActiveCircuit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 308
+        },
+        {
+          "name": "WireIsEnergized_NoSimulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 321
+        },
+        {
+          "name": "StepWithoutBuild_NoCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 329
+        },
+        {
+          "name": "Merger_CircuitConverges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 484
+        },
+        {
+          "name": "Merger_AllPortsSameSignal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 500
+        },
+        {
+          "name": "DISABLED_Splitter_DefaultPortsDoNotOutputZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 519
+        },
+        {
+          "name": "NaN_Regression_FloatingChainDoesNotExplode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 581
+        },
+        {
+          "name": "TwoRefNodes_CircuitStable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 621
+        }
+      ]
+    },
+    {
+      "name": "SimulatorTest",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "StartsEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 340
+        },
+        {
+          "name": "StartBuildsComponents",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 347
+        },
+        {
+          "name": "StopDestroysComponents",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 358
+        },
+        {
+          "name": "MultipleStartStopCycles",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 371
+        },
+        {
+          "name": "AfterStopGetVoltageReturnsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 393
+        },
+        {
+          "name": "StepDoesNothingIfNotRunning",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_simulation.cpp",
+          "line": 413
+        }
+      ]
+    }
+  ]
+}

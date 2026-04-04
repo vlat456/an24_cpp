@@ -2,6 +2,8 @@
 
 #include "editor/gl_setup.h"
 #include "editor/imgui_theme.h"
+#include "editor/pi_zn_tuner.h"
+#include "editor/visual/dialogs/file_dialogs.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
@@ -17,6 +19,30 @@
 
 #include <cstdio>
 #include <filesystem>
+#include <cstring>
+
+namespace {
+
+void save_active_document_with_existing_flow(WindowSystem& ws, Document* doc) {
+    if (!doc) return;
+
+    // Keep behavior aligned with File -> Save menu.
+    if (doc->blueprint().name().empty()) {
+        ws.setName.show = true;
+        ws.setName.doc_id = doc->id();
+        ws.setName.save_after = true;
+        std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
+    } else if (doc->filepath().empty()) {
+        if (auto path = dialogs::saveBlueprint()) {
+            doc->save(*path);
+            ws.settings.addRecentFile(*path);
+        }
+    } else {
+        doc->save(doc->filepath());
+    }
+}
+
+} // namespace
 
 static std::string getConfigPath() {
 #ifdef _WIN32
@@ -139,8 +165,24 @@ int EditorApp::run() {
     
     // Restore open tabs from previous session
     if (ws_.settings.hasOpenTabs()) {
-        for (const auto& path : ws_.settings.openTabs()) {
-            ws_.openDocument(path);
+        // IMPORTANT: snapshot the list before iterating.
+        // openDocument() calls settings.addOpenTab() which mutates the same
+        // vector returned by openTabs(), invalidating range-for iterators.
+        const auto saved_tabs = ws_.settings.openTabs();  // copy
+        bool had_failures = false;
+        std::string failed_list;
+        for (const auto& path : saved_tabs) {
+            if (!ws_.openDocument(path)) {
+                had_failures = true;
+                if (!failed_list.empty()) failed_list += "\n";
+                failed_list += path;
+                // Remove from persisted tabs so we don't retry on every launch
+                ws_.settings.removeOpenTab(path);
+            }
+        }
+        if (had_failures) {
+            pending_open_error_.show = true;
+            pending_open_error_.message = "Failed to open one or more tabs:\n" + failed_list;
         }
         // Restore active tab focus
         if (!ws_.settings.activeTab().empty()) {
@@ -157,11 +199,15 @@ int EditorApp::run() {
         update();
         render();
         
-        // Save active tab before rendering
+        // Track active tab for session restore
         if (Document* doc = ws_.activeDocument()) {
             if (!doc->filepath().empty()) {
                 ws_.settings.setActiveTab(doc->filepath());
+            } else {
+                ws_.settings.setActiveTab("");
             }
+        } else {
+            ws_.settings.setActiveTab("");
         }
     }
     
@@ -188,7 +234,17 @@ void EditorApp::update() {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
     
-    if (!io.WantCaptureKeyboard && !ws_.propertiesWindow().isOpen()) {
+    // Save: Cmd+S (macOS) / Ctrl+S — always available, even when
+    // properties panel is open or a text field has keyboard focus.
+    if (Document* doc = ws_.activeDocument()) {
+        if (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_S)) {
+            save_active_document_with_existing_flow(ws_, doc);
+        }
+    }
+
+    // Canvas-oriented shortcuts: blocked when a text field captures
+    // the keyboard or the properties panel is open.
+    if (!io.WantCaptureKeyboard && !ws_.propertiesWindow().is_open()) {
         if (Document* doc = ws_.activeDocument()) {
             if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
                 if (doc->isSimulationRunning()) doc->stopSimulation();
@@ -209,6 +265,8 @@ void EditorApp::update() {
     if (Document* doc = ws_.activeDocument()) {
         doc->updateSimulationStep(io.DeltaTime);
         doc->updateNodeContentFromSimulation();
+        ws_.oscilloscope.on_blueprint_changed(*doc);
+        ws_.oscilloscope.sample(*doc, doc->isSimulationRunning(), io.DeltaTime);
     }
 }
 
@@ -218,6 +276,92 @@ void EditorApp::render() {
     auto menu_result = main_menu_.render(ws_);
     if (menu_result.exit_requested) {
         running_ = false;
+    }
+
+    if (ws_.znTune.show_result_popup) {
+        ImGui::OpenPopup("ZN PI Tune Result");
+        ws_.znTune.show_result_popup = false;
+    }
+
+    if (pending_open_error_.show) {
+        ImGui::OpenPopup("Open Tabs Error");
+        pending_open_error_.show = false;
+    }
+    ImGui::SetNextWindowSize(ImVec2(680.0f, 0.0f), ImGuiCond_Appearing);
+    if (ImGui::BeginPopupModal("Open Tabs Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextWrapped("%s", pending_open_error_.message.c_str());
+        if (ImGui::Button("OK")) {
+            ImGui::CloseCurrentPopup();
+            pending_open_error_.message.clear();
+        }
+        ImGui::EndPopup();
+    }
+
+    ImGui::SetNextWindowSize(ImVec2(560.0f, 0.0f), ImGuiCond_Appearing);
+    if (ImGui::BeginPopupModal("ZN PI Tune Result", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ws_.znTune.last_ok) {
+            ImGui::Text("Ku: %.6f", ws_.znTune.Ku);
+            ImGui::Text("Tu: %.6f s", ws_.znTune.Tu);
+            ImGui::Separator();
+            ImGui::Text("PI tuned:");
+            ImGui::Text("Kp: %.6f", ws_.znTune.Kp);
+            ImGui::Text("Ki: %.6f", ws_.znTune.Ki);
+        } else {
+            ImGui::TextWrapped("ZN tune failed: %s", ws_.znTune.error);
+            ImGui::Spacing();
+            ImGui::TextDisabled("Try: increase run time, lower settle time, or start with higher Kp range.");
+        }
+        if (ws_.znTune.last_ok && ws_.znTune.last_was_preview) {
+            ImGui::Separator();
+            if (ImGui::Button("Apply")) {
+                if (Document* doc = ws_.activeDocument()) {
+                    std::string err;
+                    bool ok = apply_pi_params(*doc, ws_.znTune.last_cfg.pi_node,
+                                              ws_.znTune.Kp, ws_.znTune.Ki, &err);
+                    if (!ok) {
+                        std::memset(ws_.znTune.error, 0, sizeof(ws_.znTune.error));
+                        std::strncpy(ws_.znTune.error, err.c_str(), sizeof(ws_.znTune.error) - 1);
+                        ws_.znTune.last_ok = false;
+                    } else {
+                        ws_.znTune.last_was_preview = false;
+                    }
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Apply + Restart Sim")) {
+                if (Document* doc = ws_.activeDocument()) {
+                    std::string err;
+                    bool ok = apply_pi_params(*doc, ws_.znTune.last_cfg.pi_node,
+                                              ws_.znTune.Kp, ws_.znTune.Ki, &err);
+                    if (!ok) {
+                        std::memset(ws_.znTune.error, 0, sizeof(ws_.znTune.error));
+                        std::strncpy(ws_.znTune.error, err.c_str(), sizeof(ws_.znTune.error) - 1);
+                        ws_.znTune.last_ok = false;
+                    } else {
+                        doc->stopSimulation();
+                        doc->startSimulation();
+                        ws_.znTune.last_was_preview = false;
+                    }
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Copy values")) {
+                char buf[256];
+                std::snprintf(buf, sizeof(buf), "Ku=%.6f Tu=%.6f Kp=%.6f Ki=%.6f",
+                              ws_.znTune.Ku, ws_.znTune.Tu, ws_.znTune.Kp, ws_.znTune.Ki);
+                ImGui::SetClipboardText(buf);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("OK")) {
+                ImGui::CloseCurrentPopup();
+            }
+        } else {
+            ImGui::Separator();
+            if (ImGui::Button("OK")) {
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        ImGui::EndPopup();
     }
     
     float menu_height = ImGui::GetFrameHeight();
@@ -229,7 +373,7 @@ void EditorApp::render() {
     if (inspector_panel_.visible()) {
         auto inspector_result = inspector_panel_.render(ws_, menu_height, available_h, available_w);
         if (!inspector_result.selected_node_id.empty() && ws_.activeDocument()) {
-            ws_.activeDocument()->input().selectNodeById(inspector_result.selected_node_id);
+            ws_.activeDocument()->input().select_node_by_id(inspector_result.selected_node_id);
         }
         ws_.showInspector = inspector_panel_.visible();
     }
@@ -242,12 +386,15 @@ void EditorApp::render() {
     }
     
     sub_window_renderer_.renderAll(ws_);
+    oscilloscope_window_.render(ws_);
     
     context_menus_.renderAddComponent(ws_);
     context_menus_.renderNodeContext(ws_);
     
     color_picker_.render(ws_);
     bake_in_dialog_.render(ws_);
+    set_name_dialog_.render(ws_);
+    extract_to_blueprint_dialog_.render(ws_);
     
     ws_.propertiesWindow().render();
     

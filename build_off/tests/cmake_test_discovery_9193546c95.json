@@ -1,0 +1,27 @@
+{
+  "tests": 3,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "V3Migration",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "LibraryLoaderParsesConvertedLibraryAsV3Only",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v3_migration.cpp",
+          "line": 82
+        },
+        {
+          "name": "CodecRejectsLegacyVersion2Json",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v3_migration.cpp",
+          "line": 96
+        },
+        {
+          "name": "GSCIsV3AndDecodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v3_migration.cpp",
+          "line": 114
+        }
+      ]
+    }
+  ]
+}

@@ -23,9 +23,9 @@ class Port;
 /// Z-order layer for rendering. Lower values render first (further back).
 enum class RenderLayer : uint8_t {
     Group  = 0,   ///< Behind everything (group containers)
-    Text   = 1,   ///< Behind wires/nodes (text annotations)
-    Wire   = 2,   ///< Between text and nodes
-    Normal = 3    ///< Default (component nodes, resize handles)
+    Text   = 1,   ///< Behind nodes (text annotations)
+    Normal = 2,   ///< Component nodes, resize handles
+    Wire   = 3    ///< Wires and arrowheads (topmost, on top of everything)
 };
 
 class Widget : public ui::Widget {
@@ -43,6 +43,10 @@ public:
     }
     
     virtual void updateFromContent(const NodeContent& content) {}
+
+    /// Whether clicking this widget should toggle its state (Switch, VerticalToggle).
+    /// Override in toggleable content widget subclasses.
+    virtual bool isToggleable() const { return false; }
 
     virtual void onLocalPosChanged() override;
 
@@ -66,6 +70,15 @@ public:
 
     Widget* parent() const { return static_cast<Widget*>(ui::Widget::parent()); }
     Scene* scene() const { return scene_; }
+
+    /// Walk up the parent chain to the root widget (one with no parent)
+    /// and return its id(). Useful for mapping a port widget back to its
+    /// owning node widget in the scene tree.
+    std::string_view rootAncestorId() const {
+        const Widget* cur = this;
+        while (cur->parent()) cur = cur->parent();
+        return cur->id();
+    }
 
 protected:
     friend class Scene;

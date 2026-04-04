@@ -1,31 +1,34 @@
 {
-  "exposes": {
-    "ac_out": {
-      "direction": "Out",
-      "type": "Temperature"
+  "version": "3.0",
+  "id": "Inverter",
+  "display_name": "Inverter",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "ac_out",
+      "domain": 16,
+      "direction": 1,
+      "type": "Temperature",
+      "source_writer": false
     },
-    "dc_in": {
-      "direction": "In",
-      "type": "I"
+    {
+      "name": "dc_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "I",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "DC to AC inverter with efficiency and frequency output",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Inverter"
-  },
-  "params": {
-    "efficiency": {
-      "default": "0.95",
-      "type": "float"
-    },
-    "frequency": {
-      "default": "400.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "DC to AC inverter with efficiency and frequency output",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "efficiency": "0.95",
+    "frequency": "400.0"
+  }
 }

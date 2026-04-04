@@ -1,47 +1,43 @@
 {
-  "exposes": {
-    "force_out": {
-      "direction": "Out",
-      "type": "Any"
+  "version": "3.0",
+  "id": "Spring",
+  "display_name": "Spring",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "force_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     },
-    "pos_a": {
-      "direction": "In",
-      "type": "Any"
+    {
+      "name": "pos_a",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "pos_b": {
-      "direction": "In",
-      "type": "Any"
+    {
+      "name": "pos_b",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Mechanical spring (Hooke's law, compression_only mode)",
-    "domains": [
-      "Mechanical"
-    ],
-    "name": "Spring",
-    "size": [
-      2.0,
-      1.0
-    ]
-  },
-  "params": {
-    "c": {
-      "default": "10.0",
-      "type": "float"
-    },
-    "compression_only": {
-      "default": "true",
-      "type": "bool"
-    },
-    "k": {
-      "default": "1000.0",
-      "type": "float"
-    },
-    "rest_length": {
-      "default": "0.1",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Mechanical spring (Hooke's law, compression_only mode)",
+  "domains": [
+    "Mechanical"
+  ],
+  "param_defaults": {
+    "c": "10.0",
+    "compression_only": "true",
+    "k": "1000.0",
+    "rest_length": "0.1"
+  }
 }

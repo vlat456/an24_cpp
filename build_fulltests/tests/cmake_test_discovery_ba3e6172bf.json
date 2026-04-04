@@ -1,0 +1,122 @@
+{
+  "tests": 22,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PushBuildValidation",
+      "tests": 22,
+      "testsuite": [
+        {
+          "name": "SingleSourcePerWireOK",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 38
+        },
+        {
+          "name": "MultipleSourcesSameWireErrors",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 58
+        },
+        {
+          "name": "MultipleSourceLikeComponentsConflict",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 77
+        },
+        {
+          "name": "BatteryAndGeneratorOnSameWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 96
+        },
+        {
+          "name": "BatteryAndRefNodeOnSameWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 114
+        },
+        {
+          "name": "ControlledCurrentSourceConflict",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 135
+        },
+        {
+          "name": "MultipleLoadsOK",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 153
+        },
+        {
+          "name": "SeparateWiresOK",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 175
+        },
+        {
+          "name": "TwoBatteriesDirectConnection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 199
+        },
+        {
+          "name": "SingleBatteryOK",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 216
+        },
+        {
+          "name": "TopologicalOrder_LinearChain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 233
+        },
+        {
+          "name": "TopologicalOrder_CycleFallsBackNoThrow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 265
+        },
+        {
+          "name": "ParseInitialValuesFromJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 296
+        },
+        {
+          "name": "SimulatorAppliesInitialValuesBeforeStep",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 316
+        },
+        {
+          "name": "TypeDefinitionWithoutExecutionIsAccepted",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 336
+        },
+        {
+          "name": "MaxSelectorSelectsHigherInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 355
+        },
+        {
+          "name": "MaxSelectorAvoidsSourceConflict",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 379
+        },
+        {
+          "name": "UnknownClassnameThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 408
+        },
+        {
+          "name": "WhitelistParamsRejected",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 421
+        },
+        {
+          "name": "UnknownParamThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 437
+        },
+        {
+          "name": "MissingRequiredParamThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 453
+        },
+        {
+          "name": "MissingDomainsThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 470
+        }
+      ]
+    }
+  ]
+}

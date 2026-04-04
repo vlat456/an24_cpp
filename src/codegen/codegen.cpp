@@ -1,6 +1,7 @@
 #include "codegen.h"
-#include "jit_solver/SOR_constants.h"
+#include "codegen_utils.h"
 #include "../parse_number.h"
+#include <spdlog/spdlog.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -24,17 +25,7 @@ std::string to_upper(const std::string& s) {
 }
 
 std::string sanitize_name(const std::string& s) {
-    std::string result;
-    result.reserve(s.size());
-    for (char c : s) {
-        switch (c) {
-            case '.': result += "_DOT_"; break;
-            case '-': result += "_DASH_"; break;
-            case ':': result += "_"; break;  // Colon is the hierarchical separator, stays as '_'
-            default:  result += c; break;
-        }
-    }
-    return result;
+    return sanitize_codegen_name(s);
 }
 
 // Infer C++ type from parameter value (locale-independent)
@@ -78,38 +69,6 @@ std::string format_value(const std::string& value, const std::string& type) {
     } else {
         return "\"" + value + "\"";
     }
-}
-
-// Get domain from device
-std::string get_device_domain(const DeviceInstance& dev) {
-    // Build domain string from the parsed domains vector (populated from JSON "domains")
-    if (!dev.domains.empty()) {
-        std::string result;
-        for (auto d : dev.domains) {
-            if (!result.empty()) result += "|";
-            switch (d) {
-                case Domain::Electrical: result += "Electrical"; break;
-                case Domain::Logical:    result += "Logical"; break;
-                case Domain::Mechanical: result += "Mechanical"; break;
-                case Domain::Hydraulic:  result += "Hydraulic"; break;
-                case Domain::Thermal:    result += "Thermal"; break;
-                default: break;
-            }
-        }
-        if (!result.empty()) return result;
-    }
-    // Fallback to params["domain"] for backward compat
-    auto it = dev.params.find("domain");
-    if (it != dev.params.end()) {
-        return it->second;
-    }
-    return "Electrical";  // default
-}
-
-// Check if device has specific domain
-bool has_domain(const DeviceInstance& dev, const std::string& domain) {
-    std::string dev_domain = get_device_domain(dev);
-    return dev_domain.find(domain) != std::string::npos;
 }
 
 // Generate AotProvider<Binding<...>, ...> type string for a device
@@ -160,7 +119,8 @@ std::string CodeGen::generate_header(
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,
-    const std::string& class_name
+    const std::string& class_name,
+    const ElectricalPlanCodegen& electrical_plan
 ) {
     // Filter out visual-only devices (no simulation behavior, e.g. Group)
     std::vector<DeviceInstance> devices;
@@ -187,7 +147,6 @@ std::string CodeGen::generate_header(
     oss << "#include <vector>\n";
     oss << "#include <cmath>\n";
     oss << "#include \"jit_solver/state.h\"\n";
-    oss << "#include \"jit_solver/SOR_constants.h\"\n";
     oss << "#include \"jit_solver/components/all.h\"\n";
     oss << "#include \"jit_solver/components/port_registry.h\"\n\n";
     oss << "// Compiler hints for optimization\n";
@@ -218,18 +177,11 @@ std::string CodeGen::generate_header(
     bool first = true;
     for (const auto& dev : devices) {
         if (dev.classname == "RefNode") {
-            std::string port_key = dev.name + ".v_out";
+            std::string port_key = dev.name + ".v";
             if (port_to_signal.count(port_key)) {
                 if (!first) oss << ", ";
                 oss << port_to_signal.at(port_key);
                 first = false;
-            } else {
-                port_key = dev.name + ".v";
-                if (port_to_signal.count(port_key)) {
-                    if (!first) oss << ", ";
-                    oss << port_to_signal.at(port_key);
-                    first = false;
-                }
             }
         }
     }
@@ -242,6 +194,118 @@ std::string CodeGen::generate_header(
     // Device count
     oss << "/// Number of devices in this system\n";
     oss << "constexpr uint32_t DEVICE_COUNT = " << devices.size() << ";\n\n";
+
+    // Electrical plan — static island data for AOT solve_electrical()
+    if (!electrical_plan.islands.empty()) {
+        oss << "// ==============================================================================\n";
+        oss << "// ELECTRICAL ISLAND PLAN (AOT static arrays)\n";
+        oss << "// ==============================================================================\n\n";
+
+        oss << "constexpr uint32_t ELECTRICAL_ISLAND_COUNT = "
+            << electrical_plan.islands.size() << ";\n\n";
+
+        // Emit element kind enum for codegen use in static arrays
+        // (runtime uses ElectricalElementKind which has same values)
+        for (size_t island_idx = 0; island_idx < electrical_plan.islands.size(); ++island_idx) {
+            const auto& island = electrical_plan.islands[island_idx];
+            oss << "// -- Island " << island_idx << " --\n";
+
+            // Signal indices for this island
+            oss << "constexpr uint32_t island_" << island_idx << "_nodes[] = {";
+            for (size_t i = 0; i < island.signal_indices.size(); ++i) {
+                if (i > 0) oss << ", ";
+                oss << island.signal_indices[i];
+            }
+            oss << "};\n";
+
+            // Elements for this island
+            oss << "constexpr uint32_t island_" << island_idx << "_element_count = "
+                << island.elements.size() << ";\n";
+
+            oss << "constexpr ElectricalElement island_" << island_idx << "_elements[] = {\n";
+            for (const auto& elem : island.elements) {
+                const char* kind_str = "ElectricalElementKind::FixedVoltageNode";
+                if (elem.kind == ElectricalElementKindCodegen::TheveninSource) kind_str = "ElectricalElementKind::TheveninSource";
+                else if (elem.kind == ElectricalElementKindCodegen::ConductanceBranch) kind_str = "ElectricalElementKind::ConductanceBranch";
+                oss << "    { " << kind_str << ", " << elem.node_a << ", " << elem.node_b
+                    << ", " << locale_safe::format_float(elem.value_a) << "f, "
+                    << locale_safe::format_float(elem.value_b) << "f, " << elem.component_index << " },\n";
+            }
+            oss << "};\n\n";
+        }
+
+        // ElectricalBuildPlan struct using static arrays
+        oss << "// ElectricalBuildPlan adapter: uses static constexpr arrays\n";
+        oss << "struct AotElectricalPlan {\n";
+        oss << "    std::vector<ElectricalIslandPlan> islands;\n";
+        oss << "    AotElectricalPlan() {\n";
+        for (size_t island_idx = 0; island_idx < electrical_plan.islands.size(); ++island_idx) {
+            const auto& island = electrical_plan.islands[island_idx];
+            oss << "        // Island " << island_idx << "\n";
+            oss << "        ElectricalIslandPlan isl;\n";
+            oss << "        isl.signal_indices.assign(island_" << island_idx << "_nodes, "
+                << "island_" << island_idx << "_nodes + " << island.signal_indices.size() << ");\n";
+            oss << "        isl.elements.assign(island_" << island_idx << "_elements, "
+                << "island_" << island_idx << "_elements + " << island.elements.size() << ");\n";
+            oss << "        islands.push_back(std::move(isl));\n";
+        }
+        oss << "    }\n";
+        oss << "};\n\n";
+
+        oss << "struct ElectricalDebugEntry {\n";
+        oss << "    uint32_t component_index;\n";
+        oss << "    uint32_t island_index;\n";
+        oss << "    uint32_t element_index;\n";
+        oss << "    const char* device_name;\n";
+        oss << "    const char* classname;\n";
+        oss << "    const char* role;\n";
+        oss << "    uint32_t node_a;\n";
+        oss << "    uint32_t node_b;\n";
+        oss << "};\n\n";
+        oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {\n";
+        for (const auto& dbg : electrical_plan.component_debug) {
+            oss << "    { " << dbg.component_index << ", " << dbg.island_index << ", "
+                << dbg.element_index << ", \"" << dbg.device_name
+                << "\", \"" << dbg.device_classname << "\", \"" << dbg.role
+                << "\", " << dbg.node_a << ", " << dbg.node_b << " },\n";
+        }
+        oss << "};\n";
+        oss << "constexpr uint32_t ELECTRICAL_DEBUG_COUNT = "
+            << electrical_plan.component_debug.size() << ";\n\n";
+
+        // Compute max island sizes for scratch buffer pre-allocation
+        uint32_t max_island_nodes = 0;
+        uint32_t max_island_elements = 0;
+        uint32_t max_component_index = 0;
+        for (const auto& island : electrical_plan.islands) {
+            max_island_nodes = std::max(max_island_nodes, (uint32_t)island.signal_indices.size());
+            max_island_elements = std::max(max_island_elements, (uint32_t)island.elements.size());
+            for (const auto& elem : island.elements) {
+                max_component_index = std::max(max_component_index, elem.component_index);
+            }
+        }
+        oss << "/// Pre-allocated scratch buffer sizes for electrical solve\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = " << max_island_nodes << ";\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = " << max_island_elements << ";\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = " << max_component_index << ";\n\n";
+    } else {
+        oss << "constexpr uint32_t ELECTRICAL_ISLAND_COUNT = 0;\n\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = 0;\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = 0;\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = 0;\n\n";
+        oss << "struct ElectricalDebugEntry {\n";
+        oss << "    uint32_t component_index;\n";
+        oss << "    uint32_t island_index;\n";
+        oss << "    uint32_t element_index;\n";
+        oss << "    const char* device_name;\n";
+        oss << "    const char* classname;\n";
+        oss << "    const char* role;\n";
+        oss << "    uint32_t node_a;\n";
+        oss << "    uint32_t node_b;\n";
+        oss << "};\n\n";
+        oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {};\n";
+        oss << "constexpr uint32_t ELECTRICAL_DEBUG_COUNT = 0;\n\n";
+    }
 
     // Global simulation state pointer (set at init, available globally)
     oss << "/// Global simulation state pointer (set once, used by all components)\n";
@@ -280,15 +344,31 @@ std::string CodeGen::generate_header(
     }
     oss << "\n";
 
-    // Domain scheduling accumulators (FPS-independent sub-rate domains)
-    oss << "    // Domain scheduling accumulators — accumulate dt each step,\n";
-    oss << "    // pass accumulated value when sub-rate domain fires, then reset.\n";
-    oss << "    float acc_mechanical_ = 0.0f;\n";
-    oss << "    float acc_hydraulic_  = 0.0f;\n";
-    oss << "    float acc_thermal_    = 0.0f;\n\n";
+    // Global simulation step counter (not modulo cycle index)
+    oss << "    uint32_t step_counter_ = 0;\n\n";
 
-    // Pre-allocated convergence buffer pointer (set at init)
-    oss << "    float* convergence_buffer = nullptr;\n\n";
+    // Electrical plan and runtime state (for AOT solve_electrical)
+    if (!electrical_plan.islands.empty()) {
+        oss << "    ElectricalBuildPlan electrical_plan_;\n";
+        oss << "    ElectricalRuntimeState electrical_rt_;\n";
+        oss << "    static constexpr float ELECTRICAL_DIAG_RESIDUAL_WARN = 1e-4f;\n";
+        oss << "    static constexpr uint32_t ELECTRICAL_COUNTER_LOG_PERIOD = 600;\n";
+        oss << "\n";
+        oss << "    struct ElectricalBindings {\n";
+        for (const auto& binding : electrical_plan.device_bindings) {
+            oss << "        static constexpr uint32_t " << binding.device_field_name
+                << "_island = " << binding.island_index << ";\n";
+            oss << "        static constexpr uint32_t " << binding.device_field_name
+                << "_element = " << binding.element_index << ";\n";
+            oss << "        static constexpr uint32_t " << binding.device_field_name
+                << "_component = " << binding.component_index << ";\n";
+        }
+        oss << "    };\n";
+
+        oss << "\n";
+        oss << "    static void dump_island_debug(uint32_t island_idx);\n";
+    }
+    oss << "\n";
 
     // Constructor / Destructor
     oss << "    " << class_name << "();\n";
@@ -303,17 +383,13 @@ std::string CodeGen::generate_header(
     oss << "    void pre_load();\n\n";
 
     oss << "    /// Main solve step with jump table dispatch (ECS-like)\n";
-    oss << "    void solve_step(void* state, uint32_t step, float dt);\n\n";
+    oss << "    void solve_step(void* state, uint32_t step, double dt);\n\n";
 
     // Generate CYCLE_LENGTH step methods
-    for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
-        oss << "    AOT_INLINE void step_" << step << "(void* state, float dt);\n";
+    for (int step = 0; step < 60; ++step) {
+        oss << "    AOT_INLINE void step_" << step << "(void* state, double dt);\n";
     }
     oss << "\n";
-
-    // Post-step updates
-    oss << "    /// Post-step updates (state tracking, etc.)\n";
-    oss << "    void post_step(void* state, float dt);\n\n";
 
     oss << "    /// Convergence check (sparse sampling)\n";
     oss << "    AOT_INLINE bool check_convergence(void* state, float tolerance) const;\n\n";
@@ -331,7 +407,8 @@ std::string CodeGen::generate_source(
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,
-    const std::string& class_name
+    const std::string& class_name,
+    const ElectricalPlanCodegen& electrical_plan
 ) {
     // Filter out visual-only devices (no simulation behavior, e.g. Group)
     std::vector<DeviceInstance> devices;
@@ -344,6 +421,9 @@ std::string CodeGen::generate_source(
     oss << "#include \"" << header_name << "\"\n";
     // Include template definitions from all.cpp so compiler can instantiate AotProvider versions
     oss << "#include \"jit_solver/components/all.cpp\"\n";
+    // Electrical subsolver for AOT island solve
+    oss << "#include \"jit_solver/subsolvers/electrical_subsolver.h\"\n";
+    oss << "#include <spdlog/spdlog.h>\n";
     oss << "#include <cstring>  // memcpy\n\n";
     // Enable fast-math for generated code only (not spdlog)
     oss << "#ifdef __GNUC__\n";
@@ -359,11 +439,9 @@ std::string CodeGen::generate_source(
     }
     oss << "\n";
 
-    // Constructor - only initialize component parameters (port indices are compile-time constants)
+    // Constructor - initialize component parameters (port indices are compile-time constants)
     oss << class_name << "::" << class_name << "()\n";
     oss << "{\n";
-    oss << "    // Pre-allocate convergence buffer (instance-owned, no sharing)\n";
-    oss << "    convergence_buffer = new (std::align_val_t(64)) float[SIGNAL_COUNT]{};\n\n";
 
     // Port indices are now static constexpr - no runtime initialization needed!
 
@@ -417,12 +495,26 @@ std::string CodeGen::generate_source(
             oss << "    " << sanitize_name(dev.name) << "." << param_name << " = " << format_value(value, type) << ";\n";
         }
     }
+
+    // Initialize electrical plan and pre-allocate scratch buffers
+    if (!electrical_plan.islands.empty()) {
+        oss << "    { AotElectricalPlan aot_plan;\n";
+        oss << "      electrical_plan_.islands = std::move(aot_plan.islands); }\n";
+        oss << "    electrical_rt_.reserve(ELECTRICAL_MAX_ISLAND_NODES, "
+            << "ELECTRICAL_MAX_ISLAND_ELEMENTS, ELECTRICAL_MAX_COMPONENT_INDEX);\n";
+        for (const auto& binding : electrical_plan.device_bindings) {
+            oss << "    " << binding.device_field_name << ".electrical_handle.island_index = "
+                << "ElectricalBindings::" << binding.device_field_name << "_island;\n";
+            oss << "    " << binding.device_field_name << ".electrical_handle.element_index = "
+                << "ElectricalBindings::" << binding.device_field_name << "_element;\n";
+            oss << "    " << binding.device_field_name << ".electrical_handle.component_index = "
+                << "ElectricalBindings::" << binding.device_field_name << "_component;\n";
+        }
+    }
     oss << "}\n\n";
 
-    // Destructor — release instance-owned convergence buffer
-    oss << class_name << "::~" << class_name << "() {\n";
-    oss << "    ::operator delete[](convergence_buffer, std::align_val_t(64));\n";
-    oss << "}\n\n";
+    // Destructor
+    oss << class_name << "::~" << class_name << "() {}\n\n";
 
     // Pre-load: call pre_load() on components that have it, then LUT arena init
     oss << "void " << class_name << "::pre_load() {\n";
@@ -438,7 +530,7 @@ std::string CodeGen::generate_source(
         for (const auto& e : lut_entries) {
             for (float k : e.keys) {
                 if (!first_k) oss << ", ";
-                oss << k << "f";
+                oss << locale_safe::format_float(k) << "f";
                 first_k = false;
             }
         }
@@ -448,7 +540,7 @@ std::string CodeGen::generate_source(
         for (const auto& e : lut_entries) {
             for (float v : e.values) {
                 if (!first_v) oss << ", ";
-                oss << v << "f";
+                oss << locale_safe::format_float(v) << "f";
                 first_v = false;
             }
         }
@@ -459,194 +551,97 @@ std::string CodeGen::generate_source(
     oss << "}\n\n";
 
     // Jump table dispatch - computed goto (GCC/Clang) or switch fallback (MSVC)
-    oss << "void " << class_name << "::solve_step(void* state, uint32_t step, float dt) {\n";
-    oss << "    // Accumulate dt for sub-rate domain scheduling\n";
-    oss << "    acc_mechanical_ += dt;\n";
-    oss << "    acc_hydraulic_  += dt;\n";
-    oss << "    acc_thermal_    += dt;\n\n";
+    oss << "void " << class_name << "::solve_step(void* state, uint32_t step, double dt) {\n";
+    oss << "    if (dt <= 0.0) return;\n";
+    oss << "\n";
     oss << "#ifndef _MSC_VER\n";
     oss << "    // Computed goto dispatch table (static const for one-time init)\n";
-    oss << "    static const void* dispatch_table[" << DomainSchedule::CYCLE_LENGTH << "] = {\n";
-    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
-        oss << "        &&step_" << i << (i < DomainSchedule::CYCLE_LENGTH - 1 ? ",\n" : "\n");
+    oss << "    static const void* dispatch_table[" << 60 << "] = {\n";
+    for (int i = 0; i < 60; ++i) {
+        oss << "        &&step_" << i << (i < 60 - 1 ? ",\n" : "\n");
     }
     oss << "    };\n\n";
-    oss << "    // Direct jump - no bounds check needed (step % " << DomainSchedule::CYCLE_LENGTH << " is always 0-" << DomainSchedule::CYCLE_LENGTH - 1 << ")\n";
-    oss << "    goto *dispatch_table[step % " << DomainSchedule::CYCLE_LENGTH << "];\n\n";
-    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
+    oss << "    // Direct jump - no bounds check needed (step % " << 60 << " is always 0-" << 60 - 1 << ")\n";
+    oss << "    goto *dispatch_table[step % " << 60 << "];\n\n";
+    for (int i = 0; i < 60; ++i) {
         oss << "    step_" << i << ":\n";
         oss << "        step_" << i << "(state, dt);\n";
+        oss << "        ++step_counter_;\n";
         oss << "        return;\n\n";
     }
     oss << "#else\n";
     oss << "    // MSVC fallback: switch-based dispatch\n";
-    oss << "    switch (step % " << DomainSchedule::CYCLE_LENGTH << ") {\n";
-    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
-        oss << "        case " << i << ": step_" << i << "(state, dt); return;\n";
+    oss << "    switch (step % " << 60 << ") {\n";
+    for (int i = 0; i < 60; ++i) {
+        oss << "        case " << i << ": step_" << i << "(state, dt); ++step_counter_; return;\n";
     }
     oss << "    }\n";
     oss << "#endif\n";
     oss << "}\n\n";
 
-    // Generate CYCLE_LENGTH step methods with domain scheduling
-    // Group devices by domain and step
-    std::map<std::pair<int, std::string>, std::vector<std::string>> step_devices;
-
-    for (const auto& dev : devices) {
-        std::string domain = get_device_domain(dev);
-
-        // Electrical: every step (0, 1, 2, ...)
-        if (domain.find("Electrical") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
-                step_devices[{step, "electrical"}].push_back(dev.name);
-            }
-        }
-
-        // Mechanical: step (0, 3, 6, ...)
-        if (domain.find("Mechanical") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; step += DomainSchedule::MECHANICAL_PERIOD) {
-                step_devices[{step, "mechanical"}].push_back(dev.name);
-            }
-        }
-
-        // Hydraulic: every 12th step (0, 12, 24, ...)
-        if (domain.find("Hydraulic") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; step += DomainSchedule::HYDRAULIC_PERIOD) {
-                step_devices[{step, "hydraulic"}].push_back(dev.name);
-            }
-        }
-
-        // Thermal: every THERMAL_PERIOD-th step (only step 0 when period == cycle length)
-        if (domain.find("Thermal") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; step += DomainSchedule::THERMAL_PERIOD) {
-                step_devices[{step, "thermal"}].push_back(dev.name);
-            }
-        }
-
-        // Logical: every step (0, 1, 2, ...) - 60Hz boolean logic
-        if (domain.find("Logical") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
-                step_devices[{step, "logical"}].push_back(dev.name);
-            }
-        }
-    }
-
-    // Generate each step method
-    for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
-        oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, float dt) {\n";
+    // Push model: single-pass per frame, sources/consumers already encoded in
+    // component execute() behavior and device ordering generated from blueprint.
+    for (int step = 0; step < 60; ++step) {
+        oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, double dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-        oss << "    st->clear_through();\n";
-
-        // Electrical (every step) - DATA-ORIENTED: direct index access
-        auto elec_it = step_devices.find({step, "electrical"});
-        if (elec_it != step_devices.end()) {
-            for (const auto& dev_name : elec_it->second) {
-                // Find device
-                auto dev_it = std::find_if(devices.begin(), devices.end(),
-                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
-                if (dev_it == devices.end()) continue;
-
-                // Call component method (compiler will inline with -O3 -ffast-math)
-                // Bus/RefNode are no-ops, others have solve_electrical()
-                if (dev_it->classname == "Bus" || dev_it->classname == "RefNode" || dev_it->classname == "Voltmeter") {
-                    oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
-                } else {
-                    oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
-                }
-            }
+        // Electrical solve: compute node voltages and branch currents before component execute
+        if (!electrical_plan.islands.empty()) {
+            oss << "    st->electrical_rt = &electrical_rt_;\n";
+            oss << "    solve_electrical(electrical_plan_, *st, electrical_rt_, dt);\n";
+            oss << "    if (step_counter_ > 0 && (step_counter_ % ELECTRICAL_COUNTER_LOG_PERIOD) == 0) {\n";
+            oss << "        const auto& c = electrical_rt_.counters;\n";
+            oss << "        spdlog::info(\"[aot-elec] solve counters: islands={} n0={} n1={} n2={} dense={} singular={}\",\n";
+            oss << "            c.islands_total, c.solves_n0, c.solves_n1, c.solves_n2, c.solves_dense, c.singular_fallbacks);\n";
+            oss << "    }\n";
+            oss << "    for (const auto& diag : electrical_rt_.island_diagnostics) {\n";
+            oss << "        if (!diag.solve_ok || diag.max_abs_kcl_residual > ELECTRICAL_DIAG_RESIDUAL_WARN) {\n";
+            oss << "            spdlog::warn(\"[aot-elec] island={} solve_ok={} unknowns={} max_abs_kcl={} worst_signal={} worst_v={} worst_branch_comp={}\",\n";
+            oss << "                diag.island_index, diag.solve_ok, diag.unknown_count, diag.max_abs_kcl_residual,\n";
+            oss << "                diag.worst_node_signal, diag.worst_node_voltage, diag.worst_branch_component_index);\n";
+            oss << "            for (uint32_t i = 0; i < ELECTRICAL_DEBUG_COUNT; ++i) {\n";
+            oss << "                const auto& e = ELECTRICAL_DEBUG_MAP[i];\n";
+            oss << "                if (e.component_index == diag.worst_branch_component_index) {\n";
+            oss << "                    spdlog::warn(\"[aot-elec] branch component={} device={} class={} role={} nodes=({},{})\",\n";
+            oss << "                        e.component_index, e.device_name, e.classname, e.role, e.node_a, e.node_b);\n";
+            oss << "                    break;\n";
+            oss << "                }\n";
+            oss << "            }\n";
+            oss << "            dump_island_debug(diag.island_index);\n";
+            oss << "        }\n";
+            oss << "    }\n";
         }
-
-        // Mechanical (every MECHANICAL_PERIOD-th)
-        if (step % DomainSchedule::MECHANICAL_PERIOD == 0) {
-            auto mech_it = step_devices.find({step, "mechanical"});
-            if (mech_it != step_devices.end()) {
-                for (const auto& dev_name : mech_it->second) {
-                    oss << "    " << sanitize_name(dev_name) << ".solve_mechanical(*st, acc_mechanical_);\n";
-                }
-                oss << "    acc_mechanical_ = 0.0f;\n";
-            }
+        for (const auto& dev : devices) {
+            oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
         }
-
-        // Hydraulic (every HYDRAULIC_PERIOD-th)
-        if (step % DomainSchedule::HYDRAULIC_PERIOD == 0) {
-            auto hyd_it = step_devices.find({step, "hydraulic"});
-            if (hyd_it != step_devices.end()) {
-                for (const auto& dev_name : hyd_it->second) {
-                    oss << "    " << sanitize_name(dev_name) << ".solve_hydraulic(*st, acc_hydraulic_);\n";
-                }
-                oss << "    acc_hydraulic_ = 0.0f;\n";
-            }
+        // Commit pass: update internal state for all components.
+        // Mirrors JIT Simulator::step() which calls scheduler commit + commit_solver_owned_devices.
+        for (const auto& dev : devices) {
+            oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";
         }
-
-        // Thermal (every THERMAL_PERIOD-th)
-        if (step % DomainSchedule::THERMAL_PERIOD == 0) {
-            auto therm_it = step_devices.find({step, "thermal"});
-            if (therm_it != step_devices.end()) {
-                for (const auto& dev_name : therm_it->second) {
-                    oss << "    " << sanitize_name(dev_name) << ".solve_thermal(*st, acc_thermal_);\n";
-                }
-                oss << "    acc_thermal_ = 0.0f;\n";
-            }
+        if (!electrical_plan.islands.empty()) {
+            oss << "    st->electrical_rt = nullptr;\n";
         }
-
-        // SOR solver - single iteration per step (real-time approximation)
-        // precompute sets inv_g=0 for fixed signals, so SOR loop is branchless
-        oss << "    st->precompute_inv_conductance();\n";
-        oss << "    solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), SIGNAL_COUNT, SOR::OMEGA);\n";
-
-        // Post-step: update device state after SOR convergence
-        // Must run before logical so logical components see updated state
-        // (e.g., HoldButton.state is set in post_step, read by AND gate)
-        {
-            static const std::unordered_set<std::string> has_post_step = {
-                "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
-                "PID", "PD", "PI", "P", "AZS"
-            };
-            for (const auto& dev : devices) {
-                if (has_post_step.count(dev.classname)) {
-                    oss << "    " << sanitize_name(dev.name) << ".post_step(*st, dt);\n";
-                }
-            }
-        }
-
-        // Logical: AFTER SOR + post_step so logical gates read converged values
-        // and their outputs are final (SOR does not overwrite them)
-        auto log_it = step_devices.find({step, "logical"});
-        if (log_it != step_devices.end()) {
-            for (const auto& dev_name : log_it->second) {
-                auto dev_it = std::find_if(devices.begin(), devices.end(),
-                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
-                if (dev_it == devices.end()) continue;
-                oss << "    " << sanitize_name(dev_name) << ".solve_logical(*st, dt);\n";
-            }
-        }
-
         oss << "}\n\n";
     }
 
-    // Post-step is now integrated into each step_N() method
-    // (runs after SOR, before logical — correct execution order)
-    // This method is kept empty for backward compatibility with test harnesses
-    oss << "void " << class_name << "::post_step(void* state, float dt) {\n";
-    oss << "    // No-op: post_step is now inlined into step_N() functions\n";
-    oss << "    // for correct execution order (electrical -> SOR -> post_step -> logical)\n";
-    oss << "    (void)state; (void)dt;\n";
-    oss << "}\n\n";
-
-    // Convergence check - optimized with sparse sampling
+    // Push model single-pass has no iterative convergence stage.
     oss << "AOT_INLINE bool " << class_name << "::check_convergence(void* state, float tolerance) const {\n";
-    oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-    oss << "    const float* __restrict across = st->across.data();\n";
-    oss << "    const float* __restrict buf = convergence_buffer;\n";
-    oss << "    const uint32_t count = st->dynamic_signals_count;\n";
-    oss << "\n";
-    oss << "    // Sparse check: every 4th signal - cache friendly\n";
-    oss << "    for (uint32_t i = 0; i < count; i += 4) {\n";
-    oss << "        float delta = std::abs(across[i] - buf[i]);\n";
-    oss << "        if (AOT_UNLIKELY(delta > tolerance)) return false;\n";
-    oss << "    }\n";
+    oss << "    (void)state;\n";
+    oss << "    (void)tolerance;\n";
     oss << "    return true;\n";
     oss << "}\n\n";
+
+    if (!electrical_plan.islands.empty()) {
+        oss << "void " << class_name << "::dump_island_debug(uint32_t island_idx) {\n";
+        oss << "    spdlog::warn(\"[aot-elec] dump island={} entries={}\", island_idx, ELECTRICAL_DEBUG_COUNT);\n";
+        oss << "    for (uint32_t i = 0; i < ELECTRICAL_DEBUG_COUNT; ++i) {\n";
+        oss << "        const auto& e = ELECTRICAL_DEBUG_MAP[i];\n";
+        oss << "        if (e.island_index != island_idx) continue;\n";
+        oss << "        spdlog::warn(\"[aot-elec]   elem={} comp={} device={} class={} role={} nodes=({},{})\",\n";
+        oss << "            e.element_index, e.component_index, e.device_name, e.classname, e.role, e.node_a, e.node_b);\n";
+        oss << "    }\n";
+        oss << "}\n\n";
+    }
 
     return oss.str();
 }
@@ -657,8 +652,15 @@ void CodeGen::write_files(
     const std::vector<DeviceInstance>& devices,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    uint32_t signal_count
+    uint32_t signal_count,
+    const ElectricalPlanCodegen& electrical_plan_arg
 ) {
+    // Extract electrical plan if not provided
+    ElectricalPlanCodegen electrical_plan = electrical_plan_arg;
+    if (electrical_plan.islands.empty() && !devices.empty()) {
+        electrical_plan = extract_electrical_plan(devices, port_to_signal);
+    }
+
     // Generate header name from source file
     std::string base_name = source_file;
     size_t pos = base_name.find_last_of("/\\");
@@ -679,7 +681,7 @@ void CodeGen::write_files(
     std::cerr << "[codegen] Writing optimized ECS-like source to: " << source_path << "\n";
 
     // Generate header
-    std::string header = generate_header(source_file, devices, connections, port_to_signal, signal_count);
+    std::string header = generate_header(source_file, devices, connections, port_to_signal, signal_count, "Systems", electrical_plan);
     std::ofstream hfile(header_path);
     if (!hfile.is_open()) {
         std::cerr << "Failed to open: " << header_path << "\n";
@@ -689,7 +691,7 @@ void CodeGen::write_files(
     hfile.close();
 
     // Generate source
-    std::string source = generate_source(header_name, devices, connections, port_to_signal, signal_count);
+    std::string source = generate_source(header_name, devices, connections, port_to_signal, signal_count, "Systems", electrical_plan);
     std::ofstream sfile(source_path);
     if (!sfile.is_open()) {
         std::cerr << "Failed to open: " << source_path << "\n";
@@ -699,19 +701,30 @@ void CodeGen::write_files(
     sfile.close();
 
     std::cerr << "[codegen] Done! Generated ECS-like code with:\n";
-    std::cerr << "[codegen]   - Jump table dispatch (" << DomainSchedule::CYCLE_LENGTH << " cases)\n";
-    std::cerr << "[codegen]   - Domain scheduling (" << DomainSchedule::CYCLE_LENGTH << " step methods)\n";
+    std::cerr << "[codegen]   - Jump table dispatch (" << 60 << " cases)\n";
+    std::cerr << "[codegen]   - Domain scheduling (" << 60 << " step methods)\n";
     std::cerr << "[codegen]   - __restrict pointers (no aliasing)\n";
     std::cerr << "[codegen]   - AOT_INLINE + AOT_LIKELY/AOT_UNLIKELY\n";
-    std::cerr << "[codegen]   - Sparse convergence check\n";
+    std::cerr << "[codegen]   - Push single-pass step execution\n";
+    if (!electrical_plan.islands.empty()) {
+        std::cerr << "[codegen]   - Electrical plan: " << electrical_plan.islands.size() << " island(s)\n";
+    }
 }
 
 void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::string& output_path) {
     std::cerr << "[codegen] Generating port registry from TypeRegistry (" << registry.types.size() << " types)\n";
 
+    struct PortMeta {
+        std::string name;
+        PortDirection direction = PortDirection::Out;
+        Domain domain = Domain::Electrical;
+        bool source_writer = false;
+    };
+
     struct ComponentPorts {
         std::string classname;
-        std::vector<std::string> ports;
+        std::vector<PortMeta> ports;
+        bool scheduler_source = false;
     };
 
     std::vector<ComponentPorts> all_components;
@@ -721,10 +734,19 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
 
         ComponentPorts comp;
         comp.classname = def.classname;
-        for (const auto& [port_name, _] : def.ports) {
-            comp.ports.push_back(port_name);
+        comp.scheduler_source = def.scheduler_source;
+        for (const auto& [port_name, port] : def.ports) {
+            PortMeta meta;
+            meta.name = port_name;
+            meta.direction = port.direction;
+            meta.domain = port.domain;
+            meta.source_writer = port.source_writer;
+            comp.ports.push_back(std::move(meta));
         }
-        std::sort(comp.ports.begin(), comp.ports.end());
+        std::sort(comp.ports.begin(), comp.ports.end(),
+            [](const PortMeta& a, const PortMeta& b) {
+                return a.name < b.name;
+            });
         all_components.push_back(std::move(comp));
     }
 
@@ -738,7 +760,7 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     std::set<std::string> all_port_names;
     for (const auto& comp : all_components) {
         for (const auto& port : comp.ports) {
-            all_port_names.insert(port);
+            all_port_names.insert(port.name);
         }
     }
 
@@ -756,6 +778,7 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "#include <cstdint>\n";
     oss << "#include <string>\n";
     oss << "#include <unordered_map>\n";
+    oss << "#include <unordered_set>\n";
     oss << "#include <optional>\n";
     oss << "#include <vector>\n";
     oss << "#include <variant>\n";
@@ -765,19 +788,11 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "#include \"provider.h\"\n";
     oss << "#include \"all.h\"\n";
     oss << "\n";
-
-    // Generate enum for all port names (for Provider pattern)
-    oss << "// Port names enum (for constexpr Provider pattern)\n";
-    oss << "// Used by AOT components to get compile-time port indices\n";
-    oss << "enum class PortNames : uint32_t {\n";
-    size_t param_idx = 0;
-    for (const auto& port_name : all_port_names) {
-        oss << "    " << port_name;
-        if (param_idx < all_port_names.size() - 1) oss << ",\n";
-        else oss << "\n";
-        param_idx++;
-    }
-    oss << "};\n";
+    // PortNames enum is in port_names.h (included transitively via provider.h)
+    // Separated to break circular dependency: component.h -> port_registry.h -> all.h -> component.h
+    oss << "// PortNames enum is defined in port_names.h (included transitively via provider.h)\n";
+    oss << "// Separated to break circular dependency: component.h → port_registry.h → all.h → component.h\n";
+    oss << "#include \"port_names.h\"\n";
     oss << "\n";
 
     // Generate enum for component types
@@ -802,13 +817,47 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     for (const auto& comp : all_components) {
         oss << "constexpr const char* " << comp.classname << "_PORTS[] = {\n";
         for (size_t i = 0; i < comp.ports.size(); ++i) {
-            oss << "    \"" << comp.ports[i] << "\"";
+            oss << "    \"" << comp.ports[i].name << "\"";
             if (i < comp.ports.size() - 1) oss << ",\n";
             else oss << "\n";
         }
         oss << "};\n";
     }
     oss << "\n";
+
+    // Generate strict metadata arrays (direction/domain/source_writer/scheduler_source)
+    oss << "enum class RegistryPortDirection : uint8_t { In = 0, Out = 1, InOut = 2 };\n\n";
+    for (const auto& comp : all_components) {
+        oss << "constexpr RegistryPortDirection " << comp.classname << "_PORT_DIRECTIONS[] = {\n";
+        for (size_t i = 0; i < comp.ports.size(); ++i) {
+            const char* dir_name = "Out";
+            if (comp.ports[i].direction == PortDirection::In) dir_name = "In";
+            else if (comp.ports[i].direction == PortDirection::InOut) dir_name = "InOut";
+            oss << "    RegistryPortDirection::" << dir_name;
+            if (i < comp.ports.size() - 1) oss << ",\n";
+            else oss << "\n";
+        }
+        oss << "};\n";
+
+        oss << "constexpr uint8_t " << comp.classname << "_PORT_DOMAINS[] = {\n";
+        for (size_t i = 0; i < comp.ports.size(); ++i) {
+            oss << "    " << static_cast<int>(static_cast<uint8_t>(comp.ports[i].domain));
+            if (i < comp.ports.size() - 1) oss << ",\n";
+            else oss << "\n";
+        }
+        oss << "};\n";
+
+        oss << "constexpr bool " << comp.classname << "_PORT_SOURCE_WRITER[] = {\n";
+        for (size_t i = 0; i < comp.ports.size(); ++i) {
+            oss << "    " << (comp.ports[i].source_writer ? "true" : "false");
+            if (i < comp.ports.size() - 1) oss << ",\n";
+            else oss << "\n";
+        }
+        oss << "};\n";
+
+        oss << "constexpr bool " << comp.classname << "_SCHEDULER_SOURCE = "
+            << (comp.scheduler_source ? "true" : "false") << ";\n\n";
+    }
 
     // Generate helper function to get ports by classname
     oss << "// Get port names for a component type\n";
@@ -833,7 +882,7 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     for (const auto& comp : all_components) {
         oss << "        {\"" << comp.classname << "\", {";
         for (size_t i = 0; i < comp.ports.size(); ++i) {
-            oss << "\"" << comp.ports[i] << "\"";
+            oss << "\"" << comp.ports[i].name << "\"";
             if (i < comp.ports.size() - 1) oss << ", ";
         }
         oss << "}},\n";
@@ -848,6 +897,57 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "}\n";
     oss << "\n";
 
+    oss << "inline bool has_component_metadata(const std::string& classname) {\n";
+    oss << "    static const std::unordered_set<std::string> known = {\n";
+    for (const auto& comp : all_components) {
+        oss << "        \"" << comp.classname << "\",\n";
+    }
+    oss << "    };\n";
+    oss << "    return known.count(classname) > 0;\n";
+    oss << "}\n\n";
+
+    oss << "inline bool is_scheduler_source_component(const std::string& classname) {\n";
+    oss << "    static const std::unordered_map<std::string, bool> registry = {\n";
+    for (const auto& comp : all_components) {
+        oss << "        {\"" << comp.classname << "\", " << (comp.scheduler_source ? "true" : "false") << "},\n";
+    }
+    oss << "    };\n";
+    oss << "    auto it = registry.find(classname);\n";
+    oss << "    if (it == registry.end()) return false;\n";
+    oss << "    return it->second;\n";
+    oss << "}\n\n";
+
+    oss << "inline std::vector<std::string> get_output_ports(const std::string& classname) {\n";
+    oss << "    std::vector<std::string> result;\n";
+    for (const auto& comp : all_components) {
+        oss << "    if (classname == \"" << comp.classname << "\") {\n";
+        oss << "        for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
+        oss << "            if (" << comp.classname << "_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || "
+            << comp.classname << "_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {\n";
+        oss << "                result.push_back(" << comp.classname << "_PORTS[i]);\n";
+        oss << "            }\n";
+        oss << "        }\n";
+        oss << "        return result;\n";
+        oss << "    }\n";
+    }
+    oss << "    return result;\n";
+    oss << "}\n\n";
+
+    oss << "inline std::vector<std::string> get_source_writer_ports(const std::string& classname, uint8_t domain_mask) {\n";
+    oss << "    std::vector<std::string> result;\n";
+    for (const auto& comp : all_components) {
+        oss << "    if (classname == \"" << comp.classname << "\") {\n";
+        oss << "        for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
+        oss << "            if (" << comp.classname << "_PORT_SOURCE_WRITER[i] && ((" << comp.classname << "_PORT_DOMAINS[i] & domain_mask) != 0)) {\n";
+        oss << "                result.push_back(" << comp.classname << "_PORTS[i]);\n";
+        oss << "            }\n";
+        oss << "        }\n";
+        oss << "        return result;\n";
+        oss << "    }\n";
+    }
+    oss << "    return result;\n";
+    oss << "}\n\n";
+
     // Generate ComponentVariant for dynamic component containers (Editor JIT)
     oss << "// Component variant for dynamic component storage (Editor JIT mode)\n";
     oss << "// Enables type-safe storage of any component type without virtual calls\n";
@@ -858,25 +958,6 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
         else oss << "\n";
     }
     oss << ">;\n\n";
-
-    // Generate visitor helper for calling solve methods on variant
-    oss << "// Visitor helper for calling solve_electrical on component variant\n";
-    oss << "template <typename... Visitors>\n";
-    oss << "struct overloaded : Visitors... {\n";
-    oss << "    using Visitors::operator()...;\n";
-    oss << "};\n\n";
-
-    oss << "// Helper visitor to call solve_electrical on any component\n";
-    oss << "inline auto solve_electrical_visitor = [](auto& component, SimulationState& st, float dt) {\n";
-    oss << "    component.solve_electrical(st, dt);\n";
-    oss << "};\n\n";
-
-    oss << "// Helper visitor to call post_step on any component (optional)\n";
-    oss << "inline auto post_step_visitor = [](auto& component, SimulationState& st, float dt) {\n";
-    oss << "    if constexpr (requires { component.post_step(st, dt); }) {\n";
-    oss << "        component.post_step(st, dt);\n";
-    oss << "    }\n";
-    oss << "};\n\n";
 
     // Compile-time guard: ComponentType enum and ComponentVariant must stay in sync
     oss << "// Compile-time guard: ComponentType and ComponentVariant must stay in sync\n";
@@ -897,6 +978,55 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
 
     std::cerr << "[codegen] Generated port registry: " << output_path << "\n";
     std::cerr << "[codegen]   - " << all_components.size() << " components\n";
+
+    // Generate port_names.h alongside port_registry.h
+    // This lightweight header breaks the circular dependency:
+    //   component.h → port_registry.h → all.h → component.h
+    {
+        // Derive port_names.h path from port_registry.h path
+        std::string dir = output_path;
+        auto slash = dir.find_last_of("/\\");
+        if (slash != std::string::npos) {
+            dir = dir.substr(0, slash + 1);
+        } else {
+            dir = "";
+        }
+        std::string port_names_path = dir + "port_names.h";
+
+        std::ostringstream pn;
+        pn << "// Auto-generated by codegen from library/*.blueprint\n";
+        pn << "// DO NOT EDIT - changes will be overwritten\n";
+        pn << "//\n";
+        pn << "// Lightweight header containing only the PortNames enum.\n";
+        pn << "// Split from port_registry.h to avoid circular includes:\n";
+        pn << "//   component.h → port_registry.h → all.h → component.h\n";
+        pn << "// This file has NO dependency on component headers.\n";
+        pn << "\n";
+        pn << "#pragma once\n";
+        pn << "\n";
+        pn << "#include <cstdint>\n";
+        pn << "\n";
+        pn << "// Port names enum (for constexpr Provider pattern)\n";
+        pn << "// Used by AOT components to get compile-time port indices\n";
+        pn << "enum class PortNames : uint32_t {\n";
+        size_t pn_idx = 0;
+        for (const auto& port_name : all_port_names) {
+            pn << "    " << port_name;
+            pn << ",\n";
+            pn_idx++;
+        }
+        pn << "    _COUNT  // Sentinel: must always be last. Used to size flat arrays indexed by PortNames.\n";
+        pn << "};\n";
+
+        std::ofstream pn_out(port_names_path);
+        if (pn_out.is_open()) {
+            pn_out << pn.str();
+            pn_out.close();
+            std::cerr << "[codegen] Generated port names: " << port_names_path << "\n";
+        } else {
+            std::cerr << "[codegen] Warning: could not write " << port_names_path << "\n";
+        }
+    }
 
     // Count total ports
     size_t total_ports = 0;
@@ -955,6 +1085,24 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
         if (uf_rank[ra] == uf_rank[rb]) uf_rank[ra]++;
     };
 
+    // === PARITY GUARD: BlueprintInput/Output Bridge Union ===
+    // INVARIANT: ext↔port union MUST match JIT solver's logic.
+    // [CRITICAL] This code must remain in sync with jit_solver.cpp bridge unification.
+    // - Both paths (JIT in jit_solver.cpp:271-289, AOT here) must unify .ext and .port identically.
+    // - Parser rewrite ensures parent connections use :instance:port.ext format.
+    // - Failure to mirror this will cause JIT/AOT divergence for composite blueprints.
+    for (const auto& dev : expanded.devices) {
+        if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
+            std::string ext_key  = dev.name + ".ext";
+            std::string port_key = dev.name + ".port";
+            auto it_ext  = port_to_idx.find(ext_key);
+            auto it_port = port_to_idx.find(port_key);
+            if (it_ext != port_to_idx.end() && it_port != port_to_idx.end()) {
+                uf_unite(it_ext->second, it_port->second);
+            }
+        }
+    }
+
     // Union connected ports
     for (const auto& conn : expanded.connections) {
         auto it_from = port_to_idx.find(conn.from);
@@ -1002,7 +1150,10 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
     }
     uint32_t signal_count = next_signal;
 
-    // 4. Delegate to existing generate_header/generate_source
+    // 4. Extract electrical island plan (for AOT solve_electrical)
+    ElectricalPlanCodegen electrical_plan = extract_electrical_plan(expanded.devices, port_to_signal);
+
+    // 5. Delegate to existing generate_header/generate_source
     std::string class_name = sanitize_name(td.classname) + "_Systems";
     std::string source_file = td.classname + ".blueprint";
     std::string header_name = "generated_" + sanitize_name(td.classname) + ".h";
@@ -1010,9 +1161,9 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
     CompositeCodegenResult result;
     result.class_name = class_name;
     result.header = generate_header(source_file, expanded.devices, expanded.connections,
-                                    port_to_signal, signal_count, class_name);
+                                    port_to_signal, signal_count, class_name, electrical_plan);
     result.source = generate_source(header_name, expanded.devices, expanded.connections,
-                                    port_to_signal, signal_count, class_name);
+                                    port_to_signal, signal_count, class_name, electrical_plan);
     return result;
 }
 
@@ -1032,4 +1183,3 @@ std::map<std::string, CompositeCodegenResult> CodeGen::generate_all_composites(
 
     return results;
 }
-

@@ -1,39 +1,47 @@
 {
-  "exposes": {
-    "in": {
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "Integrator",
+  "display_name": "Integrator",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "in",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "out": {
-      "direction": "Out",
-      "type": "Any"
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     },
-    "reset": {
-      "direction": "In",
-      "type": "Bool"
+    {
+      "name": "reset",
+      "domain": 2,
+      "direction": 0,
+      "type": "Bool",
+      "source_writer": false
+    },
+    {
+      "name": "gain",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Mathematical integrator with reset: out = integral(in * dt)",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Integrator",
-    "size": [
-      2.0,
-      1.0
-    ]
-  },
-  "params": {
-    "gain": {
-      "default": "1.0",
-      "type": "float"
-    },
-    "initial_val": {
-      "default": "0.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Mathematical integrator with reset: out = integral(in * gain * dt)",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "initial_val": "0.0"
+  }
 }

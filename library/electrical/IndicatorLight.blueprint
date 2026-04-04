@@ -1,40 +1,41 @@
 {
-  "exposes": {
-    "brightness": {
-      "direction": "Out",
-      "type": "I"
+  "version": "3.0",
+  "id": "IndicatorLight",
+  "display_name": "IndicatorLight",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "brightness",
+      "domain": 1,
+      "direction": 1,
+      "type": "I",
+      "source_writer": false
     },
-    "v_in": {
-      "direction": "In",
-      "type": "V"
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
     },
-    "v_out": {
-      "direction": "Out",
-      "type": "V"
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": false
     }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Aircraft indicator light with brightness output",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "conductance": "0.002"
   },
-  "meta": {
-    "content_type": "Text",
-    "cpp_class": true,
-    "description": "Aircraft indicator light with brightness output",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "IndicatorLight"
-  },
-  "params": {
-    "color": {
-      "default": "white",
-      "type": "string"
-    },
-    "conductance": {
-      "default": "1.0",
-      "type": "float"
-    },
-    "max_brightness": {
-      "default": "100.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  "content_type": "Indicator"
 }

@@ -1,0 +1,92 @@
+{
+  "tests": 16,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PortLayoutResolver",
+      "tests": 16,
+      "testsuite": [
+        {
+          "name": "DefaultLayout_NoOverrides",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 7
+        },
+        {
+          "name": "OverrideSide_MoveInputToRight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 26
+        },
+        {
+          "name": "OverrideSide_MoveOutputToTop",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 43
+        },
+        {
+          "name": "OverridePosition_Ordering",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 57
+        },
+        {
+          "name": "MixedOverrideAndAuto",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 74
+        },
+        {
+          "name": "OrphanedOverride_Ignored",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 91
+        },
+        {
+          "name": "PositionCollision_StableSortOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 105
+        },
+        {
+          "name": "PartialOverride_SideOnly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 123
+        },
+        {
+          "name": "AllPortsMovedToOneSide",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 137
+        },
+        {
+          "name": "EmptyOverrides_EqualsDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 161
+        },
+        {
+          "name": "InOutPort_NoDuplicates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 175
+        },
+        {
+          "name": "InOutPort_OverrideMovesToSide",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 198
+        },
+        {
+          "name": "InOutPort_MixedWithRegularPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 220
+        },
+        {
+          "name": "LogicalSide_PreservedFromPortDefinition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 243
+        },
+        {
+          "name": "REGRESSION_StablePartitionPreservesAutoPortOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 269
+        },
+        {
+          "name": "REGRESSION_StablePartitionMixedHintedAndAuto",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_layout_resolver.cpp",
+          "line": 291
+        }
+      ]
+    }
+  ]
+}

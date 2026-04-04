@@ -1,31 +1,44 @@
 {
-  "exposes": {
-    "v_in": {
-      "direction": "In",
-      "type": "V"
+  "version": "3.0",
+  "id": "HighPowerLoad",
+  "display_name": "HighPowerLoad",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
     },
-    "v_out": {
-      "direction": "Out",
-      "type": "V"
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": false
     }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Constant power load (adjusts conductance based on voltage, branchless optimized)",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "min_voltage_diff": "0.01",
+    "power_draw": "500.0"
   },
-  "meta": {
-    "cpp_class": true,
-    "description": "Constant power load (adjusts conductance based on voltage, branchless optimized)",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "HighPowerLoad"
-  },
-  "params": {
+  "param_schema": {
     "min_voltage_diff": {
-      "default": "0.01",
-      "type": "float"
+      "type": "float",
+      "min": 1e-06
     },
     "power_draw": {
-      "default": "500.0",
-      "type": "float"
+      "type": "float",
+      "min": 0.0
     }
-  },
-  "version": 2
+  }
 }

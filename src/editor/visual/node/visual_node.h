@@ -4,18 +4,20 @@
 #include "visual/port/visual_port.h"
 #include "visual/container/linear_layout.h"
 #include "visual/container/container.h"
+#include "visual/container/port_row.h"
 #include "visual/widgets/content_widgets.h"
 #include "visual/primitives/primitives.h"
 #include "visual/node/bounds.h"
+#include "visual/node/layout_context.h"
 #include "ui/core/interned_id.h"
+#include "visual/node/port_layout_resolver.h"
+#include "data/node_content.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
 #include <string_view>
 #include <vector>
 #include <optional>
 #include <cstdint>
-
-struct Node;
-struct NodeContent;
 
 namespace visual {
 
@@ -24,17 +26,18 @@ namespace visual {
 /// Owns its layout tree: header, port rows, content area, type name footer.
 class NodeWidget : public Widget {
 public:
-    explicit NodeWidget(const ::Node& data, const ui::StringInterner& interner);
+    explicit NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
+    bool isResizable() const override { return true; }
 
     std::string_view nodeId() const { return interner_->resolve(node_iid_); }
     const std::string& name() const { return name_; }
     const std::string& typeName() const { return type_name_; }
 
     /// Update content state (gauge value, switch state, etc.)
-    void updateContent(const ::NodeContent& content);
+    void updateContent(const NodeContent& content);
 
     /// Access ports by name
     Port* port(std::string_view name) const;
@@ -51,6 +54,9 @@ public:
     /// Returns zero-size Bounds if no content widget exists.
     Bounds contentBounds() const;
 
+    /// Content widget (if any). nullptr for nodes without interactive content.
+    Widget* contentWidget() const { return content_widget_; }
+
     /// Custom fill color (nullopt = use theme default)
     void setCustomColor(std::optional<uint32_t> c) override { custom_fill_ = c; }
     std::optional<uint32_t> customColor() const override { return custom_fill_; }
@@ -66,14 +72,21 @@ private:
     Widget* content_widget_ = nullptr;
     std::vector<Port*> ports_;
 
+    /// Layout context shared with PortRow children for edge-anchoring.
+    /// Populated before layout() calls propagate to children.
+    LayoutContext layout_ctx_;
+
     std::optional<uint32_t> custom_fill_;
 
-    void buildLayout(const ::Node& data, const ui::StringInterner& interner);
-    void buildStandardLayout(const ::Node& data, const ui::StringInterner& interner);
-    void buildVerticalToggleLayout(const ::Node& data, const ui::StringInterner& interner);
+    void buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    void buildStandardLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    void buildVerticalToggleLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
     void buildPortRow(std::string_view left_name, PortType left_type,
                       std::string_view right_name, PortType right_type);
-    void buildPortInColumn(Widget* col, std::string_view name, PortType type, bool is_left);
+    void buildPortInColumn(Widget* col, std::string_view name, PortType type, PortSide logical_side, PortLayoutSide layout_side);
+    void buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+
+    void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);
 };
 
 } // namespace visual

@@ -1,0 +1,51 @@
+{
+  "version": "3.0",
+  "id": "VariableConductance",
+  "display_name": "VariableConductance",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "cmd",
+      "domain": 2,
+      "direction": 0,
+      "type": "Signal",
+      "source_writer": false
+    },
+    {
+      "name": "g_min",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "g_max",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Control-to-electrical domain bridge (variable resistor/load). Converts a control/scalar command [0..1] into a conductance between v_in and v_out stamped during solve_electrical(). g = lerp(g_min, g_max, cmd). Models command-controlled winding resistance, field current effect, or variable load.",
+  "domains": [
+    "Electrical"
+  ]
+}

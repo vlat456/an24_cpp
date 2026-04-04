@@ -9,8 +9,13 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
     const char* json = R"({
         "devices": [
             {
+                "name": "gnd",
+                "classname": "RefNode",
+                "params": {"value": "0.0"}
+            },
+            {
                 "name": "bat1",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "priority": "high",
                 "critical": true,
                 "ports": {
@@ -18,8 +23,8 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
                     "v_out": {"direction": "Out", "type": "V"}
                 },
                 "params": {
-                    "v_nominal": "24.0",
-                    "internal_r": "0.01"
+                    "voltage": "24.0",
+                    "resistance": "0.01"
                 }
             },
             {
@@ -34,6 +39,7 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
             }
         ],
         "connections": [
+            {"from": "gnd.v", "to": "bat1.v_in"},
             {"from": "bat1.v_out", "to": "load1.input"}
         ]
     })";
@@ -49,7 +55,7 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
     auto build_result = build_systems_dev(ctx.devices, connections);
 
     // Check that devices map was populated
-    EXPECT_EQ(build_result.devices.size(), 2);
+    EXPECT_EQ(build_result.devices.size(), 3);
     EXPECT_NE(build_result.devices.find("bat1"), build_result.devices.end());
     EXPECT_NE(build_result.devices.find("load1"), build_result.devices.end());
 
@@ -64,8 +70,13 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
     const char* json = R"({
         "devices": [
             {
+                "name": "gnd",
+                "classname": "RefNode",
+                "params": {"value": "0.0"}
+            },
+            {
                 "name": "bat1",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
                     "v_in": {"direction": "In", "type": "V"},
                     "v_out": {"direction": "Out", "type": "V"}
@@ -75,8 +86,8 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
                 "name": "inertia1",
                 "classname": "InertiaNode",
                 "ports": {
-                    "input": {"direction": "In", "type": "RPM"},
-                    "output": {"direction": "Out", "type": "RPM"}
+                    "torque_in": {"direction": "In", "type": "Any"},
+                    "rpm_out": {"direction": "Out", "type": "Any"}
                 }
             }
         ],
@@ -89,7 +100,7 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
     auto build_result = build_systems_dev(ctx.devices, connections);
 
     // Should have both components created
-    EXPECT_EQ(build_result.devices.size(), 2);
+    EXPECT_EQ(build_result.devices.size(), 3);
     EXPECT_NE(build_result.devices.find("bat1"), build_result.devices.end());
     EXPECT_NE(build_result.devices.find("inertia1"), build_result.devices.end());
 }
@@ -111,7 +122,7 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
             },
             {
                 "name": "bat1",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
                     "v_in": {"direction": "In", "type": "V"},
                     "v_out": {"direction": "Out", "type": "V"}
@@ -137,19 +148,24 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
 
 /// Test that all 29 component types can be created
 TEST(EditorComponentVariant, AllComponentTypes) {
-    const char* component_types[] = {
-        "AGK47", "Battery", "Bus", "Comparator", "DMR400",
-        "ElectricHeater", "ElectricPump", "GS24", "Generator", "Gyroscope",
-        "HighPowerLoad", "HoldButton", "IndicatorLight", "InertiaNode", "Inverter",
-        "LerpNode", "Load", "RU19A", "RUG82", "Radiator",
-        "RefNode", "Relay", "Resistor", "SolenoidValve", "Splitter",
-        "Switch", "TempSensor", "Transformer", "Voltmeter"
-    };
+        const char* component_types[] = {
+            "ElectricalSource", "Bus", "Comparator",
+            "ElectricHeater", "ElectricPump", "Generator", "Gyroscope",
+            "HighPowerLoad", "HoldButton", "IndicatorLight", "InertiaNode", "Inverter",
+            "LerpNode", "Load", "Radiator",
+            "RefNode", "Relay", "Resistor", "SolenoidValve", "Splitter",
+            "Switch", "TempSensor", "Transformer", "Voltmeter"
+        };
 
     for (const char* type : component_types) {
         // Create simple JSON with one component
         std::string json = R"({
             "devices": [
+                {
+                    "name": "gnd",
+                    "classname": "RefNode",
+                    "params": {"value": "0.0"}
+                },
                 {
                     "name": "comp1",
                     "classname": ")" + std::string(type) + R"("
@@ -158,13 +174,27 @@ TEST(EditorComponentVariant, AllComponentTypes) {
             "connections": []
         })";
 
+        if (std::string(type) == "RefNode") {
+            json = R"({
+                "devices": [
+                    {
+                        "name": "comp1",
+                        "classname": "RefNode",
+                        "params": {"value": "0.0"}
+                    }
+                ],
+                "connections": []
+            })";
+        }
+
         auto ctx = parse_json(json.c_str());
         std::vector<std::pair<std::string, std::string>> connections;
 
         // Should not throw exception
         EXPECT_NO_THROW({
             auto build_result = build_systems_dev(ctx.devices, connections);
-            EXPECT_EQ(build_result.devices.size(), 1);
+            const size_t expected_devices = (std::string(type) == "RefNode") ? 1u : 2u;
+            EXPECT_EQ(build_result.devices.size(), expected_devices);
         }) << "Failed to create component: " << type;
     }
 }
@@ -174,15 +204,22 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
     const char* json = R"({
         "devices": [
             {
+                "name": "gnd",
+                "classname": "RefNode",
+                "params": {"value": "0.0"}
+            },
+            {
                 "name": "bat1",
-                "classname": "Battery",
+                "classname": "ElectricalSource",
                 "ports": {
                     "v_in": {"direction": "In", "type": "V"},
                     "v_out": {"direction": "Out", "type": "V"}
                 }
             }
         ],
-        "connections": []
+        "connections": [
+            {"from": "gnd.v", "to": "bat1.v_in"}
+        ]
     })";
 
     auto ctx = parse_json(json);
@@ -191,15 +228,6 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
     auto build_result = build_systems_dev(ctx.devices, connections);
 
     // Check that bat1 device was created
-    EXPECT_EQ(build_result.devices.size(), 1);
+    EXPECT_EQ(build_result.devices.size(), 2);
     EXPECT_NE(build_result.devices.find("bat1"), build_result.devices.end());
-
-    // Check that we can access the device (this validates ComponentVariant works)
-    auto& variant = build_result.devices.at("bat1");
-    EXPECT_NO_THROW({
-        // Access the variant to ensure it's valid
-        auto index = variant.index();
-        EXPECT_GE(index, 0);
-        EXPECT_LT(index, 29); // 29 component types
-    });
 }

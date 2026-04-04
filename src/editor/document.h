@@ -1,15 +1,17 @@
 #pragma once
 
-#include "data/blueprint.h"
 #include "window/window_manager.h"
 #include "visual/scene.h"
 #include "input/canvas_input.h"
 #include "jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include "visual/render_context.h"
-#include "undo/undo_stack.h"
+#include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/path/path.h"
+#include "ui/core/interned_id.h"
 #include <string>
 #include <string_view>
+#include <vector>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -37,7 +39,9 @@ public:
 
     /// Returns true if this is an untitled, empty document (never saved, no content)
     bool isPristine() const {
-        return filepath_.empty() && blueprint_.nodes.empty() && blueprint_.wires.empty();
+        return filepath_.empty()
+            && model_.current().nodes().empty()
+            && model_.current().wires().empty();
     }
 
     // ── File I/O ──
@@ -47,14 +51,19 @@ public:
 
     // ── Blueprint & window access ──
 
-    Blueprint& blueprint() { return blueprint_; }
-    const Blueprint& blueprint() const { return blueprint_; }
+    bp2::Blueprint const& blueprint() const { return model_.current(); }
 
-    UndoStack& undoStack() { return undo_stack_; }
-    const UndoStack& undoStack() const { return undo_stack_; }
-    
-    bool canUndo() const { return undo_stack_.can_undo(); }
-    bool canRedo() const { return undo_stack_.can_redo(); }
+    bp2::EditorModel& model() { return model_; }
+    const bp2::EditorModel& model() const { return model_; }
+
+    ui::StringInterner& interner() { return interner_; }
+    bp2::PathArena& arena() { return arena_; }
+
+    /// Re-seed next wire id counter from current blueprint wires.
+    void sync_next_wire_id();
+
+    bool canUndo() const { return model_.can_undo(); }
+    bool canRedo() const { return model_.can_redo(); }
     bool performUndo();
     bool performRedo();
 
@@ -63,6 +72,7 @@ public:
 
     /// Root window convenience accessors
     BlueprintWindow& root() { return window_manager_.root(); }
+    const BlueprintWindow& root() const { return window_manager_.root(); }
     visual::Scene& scene() { return root().scene; }
     Viewport& viewport() { return root().viewport; }
     CanvasInput& input() { return root().input; }
@@ -73,22 +83,39 @@ public:
     const Simulator<JIT_Solver>& simulation() const { return simulation_; }
     bool isSimulationRunning() const { return simulation_running_; }
 
+    /// Set the type registry used to filter visual-only params from simulation JSON.
+    /// Must be called before startSimulation(). Pointer must outlive the Document.
+    void setTypeRegistry(const TypeRegistry* reg) { type_registry_ = reg; }
+
     void startSimulation();
     void stopSimulation();
     void rebuildSimulation();
-    void updateSimulationStep(float dt);
+
+    /// Cancel all in-flight gestures, rebuild every window's scene from the
+    /// blueprint, then rebuild the simulation.  Use this after any operation
+    /// that mutates the blueprint outside of the normal undo/redo path
+    /// (e.g. bake-in, addComponent, property edits).
+    void rebuildAllWindows();
+
+    void updateSimulationStep(double dt);
 
     /// Update node_content (gauges, switches, etc.) from simulation values.
-    /// Needs TypeRegistry for reset_node_content logic.
     void updateNodeContentFromSimulation();
     void resetNodeContent(const TypeRegistry& registry);
 
     /// Build a set of wire IDs that are energized (have non-zero voltage).
-    /// Used by the renderer to visually highlight powered wires.
-    /// string_view keys reference the StringInterner's stable deque storage.
     void buildEnergizedWireSet(
         std::unordered_set<std::string_view, visual::StringViewHash>& out,
         const std::string& group_id) const;
+
+    /// Build energized wire set for an external-reference window.
+    /// Iterates external blueprint wires and maps signal keys through parent_instance_id.
+    void buildEnergizedWireSetExternal(
+        std::unordered_set<std::string_view, visual::StringViewHash>& out,
+        const bp2::Blueprint& external_bp,
+        ui::StringInterner& external_interner,
+        bp2::PathArena& external_arena,
+        const std::string& parent_instance_id) const;
 
     // ── Signal overrides (switch/button clicks) ──
 
@@ -96,6 +123,7 @@ public:
     std::unordered_set<std::string>& heldButtons() { return held_buttons_; }
 
     void triggerSwitch(const std::string& node_id);
+    void setSliderValue(const std::string& node_id, float value);
     void holdButtonPress(const std::string& node_id);
     void holdButtonRelease(const std::string& node_id);
 
@@ -108,15 +136,24 @@ public:
                       const std::string& group_id,
                       TypeRegistry& registry);
 
+    bool extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
+                           const std::string& blueprint_name,
+                           const std::string& group_id,
+                           std::string* error_out = nullptr,
+                           bool allow_nonembedded_descendant_refs = false);
+
     // ── Sub-windows ──
 
     void openSubWindow(const std::string& sub_blueprint_id);
 
+    /// Open a parent-bound external reference window for a composite node.
+    /// Loads the external blueprint and creates a read-only sub-window with
+    /// signal keys mapped through the parent instance id.
+    void openExternalRefWindow(const std::string& instance_id,
+                                const std::string& blueprint_file_path);
+
     // ── Input result dispatch ──
 
-    /// Apply input result from any window's CanvasInput.
-    /// Updates context menu state, rebuilds simulation, etc.
-    /// Returns true if context menu / node menu should be shown (caller handles ImGui popup).
     struct InputResultAction {
         bool show_context_menu = false;
         Pt context_menu_pos;
@@ -125,22 +162,42 @@ public:
         bool show_node_context_menu = false;
         std::string context_menu_node_id;
         std::string node_context_menu_group_id;
+
+        std::string toggle_probe_wire_id;
+        std::string toggle_probe_group_id;
+        bool has_toggle_probe_world_pos = false;
+        Pt toggle_probe_world_pos;
     };
     InputResultAction applyInputResult(const InputResult& r, const std::string& group_id = "");
 
 private:
+    // ── Private helpers ──
+
+    /// Build simulator JSON from current bp2 model.
+    std::string build_simulation_json() const;
+
+    /// Extract (node_id, port_name) InternedId pair from a bp2::Path
+    /// (expects PathKind::Port with Node parent). Returns empty pair on error.
+    /// arena_ is mutable because PathArena::parent() may lazily build cache.
+    std::pair<ui::InternedId, ui::InternedId>
+    bp2_path_to_node_port(const bp2::Path& path) const;
+
+    // ── Private data ──
+
     std::string id_;
     std::string filepath_;
     std::string display_name_ = "Untitled";
 
-    Blueprint blueprint_;
-    UndoStack undo_stack_;
-    WindowManager window_manager_{blueprint_, undo_stack_};
+    ui::StringInterner interner_;
+    bp2::PathArena arena_{interner_};
+    bp2::EditorModel model_;
+    WindowManager window_manager_{model_, interner_, arena_};
     Simulator<JIT_Solver> simulation_;
     bool simulation_running_ = false;
 
     std::unordered_map<std::string, float> signal_overrides_;
     std::unordered_set<std::string> held_buttons_;
+    const TypeRegistry* type_registry_ = nullptr;
 
     static int next_id_;
 };

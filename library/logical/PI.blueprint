@@ -1,43 +1,66 @@
 {
-  "exposes": {
-    "feedback": {
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "PI",
+  "display_name": "PI",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "feedback",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "output": {
-      "direction": "Out",
-      "type": "Any"
+    {
+      "name": "output",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     },
-    "setpoint": {
-      "direction": "In",
-      "type": "Any"
+    {
+      "name": "setpoint",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "Kp",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "Ki",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "output_min",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "output_max",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "PI controller with proportional and integral terms (no derivative)",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "PI"
-  },
-  "params": {
-    "Ki": {
-      "default": "0.0",
-      "type": "float"
-    },
-    "Kp": {
-      "default": "1.0",
-      "type": "float"
-    },
-    "output_max": {
-      "default": "1000.0",
-      "type": "float"
-    },
-    "output_min": {
-      "default": "-1000.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "PI controller with proportional and integral terms (no derivative)",
+  "domains": [
+    "Electrical",
+    "Logical"
+  ]
 }

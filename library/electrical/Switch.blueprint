@@ -1,36 +1,49 @@
 {
-  "exposes": {
-    "control": {
-      "direction": "In",
-      "type": "Temperature"
+  "version": "3.0",
+  "id": "Switch",
+  "display_name": "Switch",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "control",
+      "domain": 16,
+      "direction": 0,
+      "type": "Temperature",
+      "source_writer": false
     },
-    "state": {
-      "direction": "Out",
-      "type": "Bool"
+    {
+      "name": "state",
+      "domain": 2,
+      "direction": 1,
+      "type": "Bool",
+      "source_writer": false
     },
-    "v_in": {
-      "direction": "In",
-      "type": "V"
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
     },
-    "v_out": {
-      "direction": "Out",
-      "type": "V"
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": false
     }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Manual switch (toggle button). Toggles state on rising edge of control signal. Used for user-controlled switches in editor.",
+  "domains": [
+    "Electrical",
+    "Logical"
+  ],
+  "param_defaults": {
+    "closed": "false"
   },
-  "meta": {
-    "content_type": "Switch",
-    "cpp_class": true,
-    "description": "Manual switch (toggle button). Toggles state on rising edge of control signal. Used for user-controlled switches in editor.",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Switch"
-  },
-  "params": {
-    "closed": {
-      "default": "false",
-      "type": "bool"
-    }
-  },
-  "version": 2
+  "content_type": "Switch"
 }

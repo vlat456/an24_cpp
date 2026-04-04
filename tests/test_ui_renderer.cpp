@@ -13,6 +13,7 @@ TEST(UIRenderer, IDrawListExists) {
         void add_circle_filled(ui::Pt, float, uint32_t, int) override {}
         void add_text(ui::Pt, const char*, uint32_t, float) override {}
         void add_polyline(const ui::Pt*, size_t, uint32_t, float) override {}
+        void add_triangle_filled(ui::Pt, ui::Pt, ui::Pt, uint32_t) override {}
         ui::Pt calc_text_size(const char*, float) const override { return ui::Pt{}; }
     };
     MockDrawList dl;

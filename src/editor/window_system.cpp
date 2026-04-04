@@ -1,6 +1,5 @@
 #include "window_system.h"
 #include "visual/scene_mutations.h"
-#include "data/blueprint.h"
 #include <spdlog/spdlog.h>
 
 WindowSystem::WindowSystem()
@@ -13,6 +12,7 @@ WindowSystem::WindowSystem()
 Document& WindowSystem::createDocument() {
     auto doc = std::make_unique<Document>();
     Document* doc_ptr = doc.get();
+    doc_ptr->setTypeRegistry(&type_registry_);
 
     documents_.push_back(std::move(doc));
     setActiveDocument(doc_ptr);
@@ -48,6 +48,7 @@ Document* WindowSystem::openDocument(const std::string& path) {
     }
 
     auto doc = std::make_unique<Document>();
+    doc->setTypeRegistry(&type_registry_);
     if (!doc->load(path)) {
         spdlog::error("[WindowSystem] Failed to load document: {}", path);
         return nullptr;
@@ -101,17 +102,24 @@ bool WindowSystem::closeDocument(Document& doc) {
         pendingBakeIn.doc_id.clear();
         pendingBakeIn.show_confirmation = false;
     }
+    if (setName.doc_id == closing_id) {
+        setName.doc_id.clear();
+        setName.show = false;
+    }
+    if (pendingExtract.doc_id == closing_id) {
+        pendingExtract.reset();
+    }
     if (pending_tab_focus_ == &doc) {
         pending_tab_focus_ = nullptr;
     }
 
     // Close properties window if it targets this document's blueprint
-    if (properties_window_.isOpen() && properties_window_.targetNodeId().size() > 0) {
-        // PropertiesWindow stores raw Blueprint*/UndoStack* pointers.
+    if (properties_window_.is_open() && !properties_window_.target_node_id_str().empty()) {
+        // PropertiesWindow stores raw pointers into the document's model/interner.
         // If the node it targets exists in the closing document, those pointers
         // will dangle after destruction — close the window to be safe.
-        Node* target = doc.blueprint().find_node(properties_window_.targetNodeId().c_str());
-        if (target) {
+        ui::InternedId iid = doc.interner().lookup(properties_window_.target_node_id_str());
+        if (!iid.empty() && doc.blueprint().find_node(iid)) {
             properties_window_.close();
         }
     }
@@ -127,7 +135,9 @@ bool WindowSystem::closeDocument(Document& doc) {
         }
     } else {
         // Force inspector update (setActiveDocument skips if pointer unchanged)
-        inspector_.setBlueprint(active_document_->blueprint());
+        inspector_.setBlueprint(active_document_->blueprint(),
+                                active_document_->arena(),
+                                active_document_->interner());
         inspector_.markDirty();
     }
 
@@ -136,7 +146,7 @@ bool WindowSystem::closeDocument(Document& doc) {
 
 bool WindowSystem::closeAllDocuments() {
     // Close properties window (holds raw pointers into document state)
-    if (properties_window_.isOpen()) {
+    if (properties_window_.is_open()) {
         properties_window_.close();
     }
 
@@ -149,6 +159,7 @@ bool WindowSystem::closeAllDocuments() {
     colorPicker.show = false;
     pendingBakeIn.doc_id.clear();
     pendingBakeIn.show_confirmation = false;
+    pendingExtract.reset();
     pending_tab_focus_ = nullptr;
 
     documents_.clear();
@@ -162,7 +173,7 @@ void WindowSystem::setActiveDocument(Document* doc) {
     if (active_document_ != doc) {
         active_document_ = doc;
         if (doc) {
-            inspector_.setBlueprint(doc->blueprint());
+            inspector_.setBlueprint(doc->blueprint(), doc->arena(), doc->interner());
             inspector_.markDirty();
             spdlog::debug("[WindowSystem] Active document: {}", doc->displayName());
         }
@@ -194,20 +205,20 @@ void WindowSystem::removeClosedDocuments() {
 }
 
 void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& doc) {
-    Node* node = doc.blueprint().find_node(node_id.c_str());
+    ui::InternedId iid = doc.interner().lookup(node_id);
+    if (iid.empty()) return;
+    const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
     if (!node) return;
+
     Document* doc_ptr = &doc;
-    properties_window_.open(*node, node_id, doc.blueprint(), doc.undoStack(),
+    properties_window_.open(*node, node_id, doc.model(), doc.interner(),
         [this, doc_ptr](const std::string& nid) {
             // Verify document still exists before using the pointer
             for (const auto& d : documents_) {
                 if (d.get() == doc_ptr) {
-                    // Rebuild visual widgets from updated blueprint data
-                    visual::mutations::rebuild(doc_ptr->scene(),
-                                               doc_ptr->blueprint(),
-                                               doc_ptr->root().group_id);
+                    // Rebuild all windows (cancels gestures, syncs visual + simulation)
+                    doc_ptr->rebuildAllWindows();
                     inspector_.markDirty();
-                    doc_ptr->rebuildSimulation();
                     return;
                 }
             }
@@ -217,7 +228,9 @@ void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& d
 }
 
 void WindowSystem::openColorPickerForNode(const std::string& node_id, const std::string& group_id, Document& doc) {
-    Node* node = doc.blueprint().find_node(node_id.c_str());
+    ui::InternedId iid = doc.interner().lookup(node_id);
+    if (iid.empty()) return;
+    const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
     if (!node) return;
 
     colorPicker.node_id = node_id;
@@ -225,11 +238,11 @@ void WindowSystem::openColorPickerForNode(const std::string& node_id, const std:
     colorPicker.source_doc_id = doc.id();
     colorPicker.show = true;
 
-    if (node->color.has_value()) {
-        colorPicker.rgba[0] = node->color->r;
-        colorPicker.rgba[1] = node->color->g;
-        colorPicker.rgba[2] = node->color->b;
-        colorPicker.rgba[3] = node->color->a;
+    if (node->has_color) {
+        colorPicker.rgba[0] = node->color_r;
+        colorPicker.rgba[1] = node->color_g;
+        colorPicker.rgba[2] = node->color_b;
+        colorPicker.rgba[3] = node->color_a;
     } else {
         colorPicker.rgba[0] = 0.19f;
         colorPicker.rgba[1] = 0.19f;
@@ -250,5 +263,9 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
         nodeContextMenu.node_id = action.context_menu_node_id;
         nodeContextMenu.group_id = action.node_context_menu_group_id;
         nodeContextMenu.source_doc_id = doc.id();
+    }
+    if (!action.toggle_probe_wire_id.empty()) {
+        const ui::Pt* click = action.has_toggle_probe_world_pos ? &action.toggle_probe_world_pos : nullptr;
+        oscilloscope.toggle_probe(doc, action.toggle_probe_group_id, action.toggle_probe_wire_id, click);
     }
 }

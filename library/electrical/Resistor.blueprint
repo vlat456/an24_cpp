@@ -1,27 +1,33 @@
 {
-  "exposes": {
-    "v_in": {
-      "direction": "In",
-      "type": "V"
+  "version": "3.0",
+  "id": "Resistor",
+  "display_name": "Resistor",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
     },
-    "v_out": {
-      "direction": "Out",
-      "type": "V"
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Pure conductance element (resistor). Models resistive load with conductance parameter (Siemens = 1/Ohm).",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Resistor"
-  },
-  "params": {
-    "conductance": {
-      "default": "0.1",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Pure conductance element (resistor). Models resistive load with conductance parameter (Siemens = 1/Ohm).",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "conductance": "0.1"
+  }
 }

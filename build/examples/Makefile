@@ -214,20 +214,6 @@ codegen_test/fast:
 .PHONY : codegen_test/fast
 
 # Convenience name for target.
-examples/CMakeFiles/bench_vsu_aot.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/bench_vsu_aot.dir/rule
-.PHONY : examples/CMakeFiles/bench_vsu_aot.dir/rule
-
-# Convenience name for target.
-bench_vsu_aot: examples/CMakeFiles/bench_vsu_aot.dir/rule
-.PHONY : bench_vsu_aot
-
-# fast build rule for target.
-bench_vsu_aot/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/build
-.PHONY : bench_vsu_aot/fast
-
-# Convenience name for target.
 examples/CMakeFiles/an24_editor.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/an24_editor.dir/rule
 .PHONY : examples/CMakeFiles/an24_editor.dir/rule
@@ -240,6 +226,20 @@ an24_editor: examples/CMakeFiles/an24_editor.dir/rule
 an24_editor/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/build
 .PHONY : an24_editor/fast
+
+# Convenience name for target.
+examples/CMakeFiles/sim_debug.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/sim_debug.dir/rule
+.PHONY : examples/CMakeFiles/sim_debug.dir/rule
+
+# Convenience name for target.
+sim_debug: examples/CMakeFiles/sim_debug.dir/rule
+.PHONY : sim_debug
+
+# fast build rule for target.
+sim_debug/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/build
+.PHONY : sim_debug/fast
 
 # Convenience name for target.
 examples/CMakeFiles/benchmark_jit_vs_aot.dir/rule:
@@ -256,18 +256,18 @@ benchmark_jit_vs_aot/fast:
 .PHONY : benchmark_jit_vs_aot/fast
 
 # Convenience name for target.
-examples/CMakeFiles/convert_library.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/convert_library.dir/rule
-.PHONY : examples/CMakeFiles/convert_library.dir/rule
+examples/CMakeFiles/benchmark_push_scheduler.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/benchmark_push_scheduler.dir/rule
+.PHONY : examples/CMakeFiles/benchmark_push_scheduler.dir/rule
 
 # Convenience name for target.
-convert_library: examples/CMakeFiles/convert_library.dir/rule
-.PHONY : convert_library
+benchmark_push_scheduler: examples/CMakeFiles/benchmark_push_scheduler.dir/rule
+.PHONY : benchmark_push_scheduler
 
 # fast build rule for target.
-convert_library/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/build
-.PHONY : convert_library/fast
+benchmark_push_scheduler/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/build
+.PHONY : benchmark_push_scheduler/fast
 
 __/_deps/imgui-src/backends/imgui_impl_opengl3.o: __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.o
 .PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.o
@@ -413,53 +413,29 @@ __/_deps/imgui-src/imgui_widgets.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_widgets.cpp.s
 .PHONY : __/_deps/imgui-src/imgui_widgets.cpp.s
 
-__/generated/bench_vsu_aot.o: __/generated/bench_vsu_aot.cpp.o
-.PHONY : __/generated/bench_vsu_aot.o
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.o: __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.o
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.o
 
 # target to build an object file
-__/generated/bench_vsu_aot.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.o
-.PHONY : __/generated/bench_vsu_aot.cpp.o
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.o
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.o
 
-__/generated/bench_vsu_aot.i: __/generated/bench_vsu_aot.cpp.i
-.PHONY : __/generated/bench_vsu_aot.i
-
-# target to preprocess a source file
-__/generated/bench_vsu_aot.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.i
-.PHONY : __/generated/bench_vsu_aot.cpp.i
-
-__/generated/bench_vsu_aot.s: __/generated/bench_vsu_aot.cpp.s
-.PHONY : __/generated/bench_vsu_aot.s
-
-# target to generate assembly for a file
-__/generated/bench_vsu_aot.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.s
-.PHONY : __/generated/bench_vsu_aot.cpp.s
-
-__/generated/generated_vsu_test.o: __/generated/generated_vsu_test.cpp.o
-.PHONY : __/generated/generated_vsu_test.o
-
-# target to build an object file
-__/generated/generated_vsu_test.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o
-.PHONY : __/generated/generated_vsu_test.cpp.o
-
-__/generated/generated_vsu_test.i: __/generated/generated_vsu_test.cpp.i
-.PHONY : __/generated/generated_vsu_test.i
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.i: __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.i
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.i
 
 # target to preprocess a source file
-__/generated/generated_vsu_test.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.i
-.PHONY : __/generated/generated_vsu_test.cpp.i
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.i
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.i
 
-__/generated/generated_vsu_test.s: __/generated/generated_vsu_test.cpp.s
-.PHONY : __/generated/generated_vsu_test.s
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.s: __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.s
 
 # target to generate assembly for a file
-__/generated/generated_vsu_test.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.s
-.PHONY : __/generated/generated_vsu_test.cpp.s
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
 
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
@@ -484,6 +460,30 @@ __/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
 __/src/codegen/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
+
+__/src/codegen/electrical_codegen.o: __/src/codegen/electrical_codegen.cpp.o
+.PHONY : __/src/codegen/electrical_codegen.o
+
+# target to build an object file
+__/src/codegen/electrical_codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o
+.PHONY : __/src/codegen/electrical_codegen.cpp.o
+
+__/src/codegen/electrical_codegen.i: __/src/codegen/electrical_codegen.cpp.i
+.PHONY : __/src/codegen/electrical_codegen.i
+
+# target to preprocess a source file
+__/src/codegen/electrical_codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.i
+.PHONY : __/src/codegen/electrical_codegen.cpp.i
+
+__/src/codegen/electrical_codegen.s: __/src/codegen/electrical_codegen.cpp.s
+.PHONY : __/src/codegen/electrical_codegen.s
+
+# target to generate assembly for a file
+__/src/codegen/electrical_codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.s
+.PHONY : __/src/codegen/electrical_codegen.cpp.s
 
 __/src/editor/app/editor_app.o: __/src/editor/app/editor_app.cpp.o
 .PHONY : __/src/editor/app/editor_app.o
@@ -533,29 +533,29 @@ __/src/editor/commands/commands.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/commands.cpp.s
 .PHONY : __/src/editor/commands/commands.cpp.s
 
-__/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
-.PHONY : __/src/editor/data/blueprint.o
+__/src/editor/commands/extract_blueprint.o: __/src/editor/commands/extract_blueprint.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint.o
 
 # target to build an object file
-__/src/editor/data/blueprint.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.o
-.PHONY : __/src/editor/data/blueprint.cpp.o
+__/src/editor/commands/extract_blueprint.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.o
 
-__/src/editor/data/blueprint.i: __/src/editor/data/blueprint.cpp.i
-.PHONY : __/src/editor/data/blueprint.i
+__/src/editor/commands/extract_blueprint.i: __/src/editor/commands/extract_blueprint.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint.i
 
 # target to preprocess a source file
-__/src/editor/data/blueprint.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.i
-.PHONY : __/src/editor/data/blueprint.cpp.i
+__/src/editor/commands/extract_blueprint.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.i
 
-__/src/editor/data/blueprint.s: __/src/editor/data/blueprint.cpp.s
-.PHONY : __/src/editor/data/blueprint.s
+__/src/editor/commands/extract_blueprint.s: __/src/editor/commands/extract_blueprint.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint.s
 
 # target to generate assembly for a file
-__/src/editor/data/blueprint.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.s
-.PHONY : __/src/editor/data/blueprint.cpp.s
+__/src/editor/commands/extract_blueprint.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.s
 
 __/src/editor/document.o: __/src/editor/document.cpp.o
 .PHONY : __/src/editor/document.o
@@ -652,6 +652,102 @@ __/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
 __/src/editor/input/canvas_input.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
+
+__/src/editor/oscilloscope.o: __/src/editor/oscilloscope.cpp.o
+.PHONY : __/src/editor/oscilloscope.o
+
+# target to build an object file
+__/src/editor/oscilloscope.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/oscilloscope.cpp.o
+.PHONY : __/src/editor/oscilloscope.cpp.o
+
+__/src/editor/oscilloscope.i: __/src/editor/oscilloscope.cpp.i
+.PHONY : __/src/editor/oscilloscope.i
+
+# target to preprocess a source file
+__/src/editor/oscilloscope.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/oscilloscope.cpp.i
+.PHONY : __/src/editor/oscilloscope.cpp.i
+
+__/src/editor/oscilloscope.s: __/src/editor/oscilloscope.cpp.s
+.PHONY : __/src/editor/oscilloscope.s
+
+# target to generate assembly for a file
+__/src/editor/oscilloscope.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/oscilloscope.cpp.s
+.PHONY : __/src/editor/oscilloscope.cpp.s
+
+__/src/editor/pi_zn_math.o: __/src/editor/pi_zn_math.cpp.o
+.PHONY : __/src/editor/pi_zn_math.o
+
+# target to build an object file
+__/src/editor/pi_zn_math.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/pi_zn_math.cpp.o
+.PHONY : __/src/editor/pi_zn_math.cpp.o
+
+__/src/editor/pi_zn_math.i: __/src/editor/pi_zn_math.cpp.i
+.PHONY : __/src/editor/pi_zn_math.i
+
+# target to preprocess a source file
+__/src/editor/pi_zn_math.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/pi_zn_math.cpp.i
+.PHONY : __/src/editor/pi_zn_math.cpp.i
+
+__/src/editor/pi_zn_math.s: __/src/editor/pi_zn_math.cpp.s
+.PHONY : __/src/editor/pi_zn_math.s
+
+# target to generate assembly for a file
+__/src/editor/pi_zn_math.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/pi_zn_math.cpp.s
+.PHONY : __/src/editor/pi_zn_math.cpp.s
+
+__/src/editor/pi_zn_tuner.o: __/src/editor/pi_zn_tuner.cpp.o
+.PHONY : __/src/editor/pi_zn_tuner.o
+
+# target to build an object file
+__/src/editor/pi_zn_tuner.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/pi_zn_tuner.cpp.o
+.PHONY : __/src/editor/pi_zn_tuner.cpp.o
+
+__/src/editor/pi_zn_tuner.i: __/src/editor/pi_zn_tuner.cpp.i
+.PHONY : __/src/editor/pi_zn_tuner.i
+
+# target to preprocess a source file
+__/src/editor/pi_zn_tuner.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/pi_zn_tuner.cpp.i
+.PHONY : __/src/editor/pi_zn_tuner.cpp.i
+
+__/src/editor/pi_zn_tuner.s: __/src/editor/pi_zn_tuner.cpp.s
+.PHONY : __/src/editor/pi_zn_tuner.s
+
+# target to generate assembly for a file
+__/src/editor/pi_zn_tuner.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/pi_zn_tuner.cpp.s
+.PHONY : __/src/editor/pi_zn_tuner.cpp.s
+
+__/src/editor/signal_key_resolver.o: __/src/editor/signal_key_resolver.cpp.o
+.PHONY : __/src/editor/signal_key_resolver.o
+
+# target to build an object file
+__/src/editor/signal_key_resolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/signal_key_resolver.cpp.o
+.PHONY : __/src/editor/signal_key_resolver.cpp.o
+
+__/src/editor/signal_key_resolver.i: __/src/editor/signal_key_resolver.cpp.i
+.PHONY : __/src/editor/signal_key_resolver.i
+
+# target to preprocess a source file
+__/src/editor/signal_key_resolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/signal_key_resolver.cpp.i
+.PHONY : __/src/editor/signal_key_resolver.cpp.i
+
+__/src/editor/signal_key_resolver.s: __/src/editor/signal_key_resolver.cpp.s
+.PHONY : __/src/editor/signal_key_resolver.s
+
+# target to generate assembly for a file
+__/src/editor/signal_key_resolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/signal_key_resolver.cpp.s
+.PHONY : __/src/editor/signal_key_resolver.cpp.s
 
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
@@ -964,6 +1060,30 @@ __/src/editor/visual/node/visual_node.s: __/src/editor/visual/node/visual_node.c
 __/src/editor/visual/node/visual_node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/visual_node.cpp.s
 .PHONY : __/src/editor/visual/node/visual_node.cpp.s
+
+__/src/editor/visual/oscilloscope_plot.o: __/src/editor/visual/oscilloscope_plot.cpp.o
+.PHONY : __/src/editor/visual/oscilloscope_plot.o
+
+# target to build an object file
+__/src/editor/visual/oscilloscope_plot.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/oscilloscope_plot.cpp.o
+.PHONY : __/src/editor/visual/oscilloscope_plot.cpp.o
+
+__/src/editor/visual/oscilloscope_plot.i: __/src/editor/visual/oscilloscope_plot.cpp.i
+.PHONY : __/src/editor/visual/oscilloscope_plot.i
+
+# target to preprocess a source file
+__/src/editor/visual/oscilloscope_plot.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/oscilloscope_plot.cpp.i
+.PHONY : __/src/editor/visual/oscilloscope_plot.cpp.i
+
+__/src/editor/visual/oscilloscope_plot.s: __/src/editor/visual/oscilloscope_plot.cpp.s
+.PHONY : __/src/editor/visual/oscilloscope_plot.s
+
+# target to generate assembly for a file
+__/src/editor/visual/oscilloscope_plot.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/oscilloscope_plot.cpp.s
+.PHONY : __/src/editor/visual/oscilloscope_plot.cpp.s
 
 __/src/editor/visual/panels/document_area.o: __/src/editor/visual/panels/document_area.cpp.o
 .PHONY : __/src/editor/visual/panels/document_area.o
@@ -1301,6 +1421,30 @@ __/src/editor/visual/widgets/content_widgets.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.s
 
+__/src/editor/visual/windows/oscilloscope_window.o: __/src/editor/visual/windows/oscilloscope_window.cpp.o
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.o
+
+# target to build an object file
+__/src/editor/visual/windows/oscilloscope_window.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/windows/oscilloscope_window.cpp.o
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.cpp.o
+
+__/src/editor/visual/windows/oscilloscope_window.i: __/src/editor/visual/windows/oscilloscope_window.cpp.i
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.i
+
+# target to preprocess a source file
+__/src/editor/visual/windows/oscilloscope_window.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/windows/oscilloscope_window.cpp.i
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.cpp.i
+
+__/src/editor/visual/windows/oscilloscope_window.s: __/src/editor/visual/windows/oscilloscope_window.cpp.s
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.s
+
+# target to generate assembly for a file
+__/src/editor/visual/windows/oscilloscope_window.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/windows/oscilloscope_window.cpp.s
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.cpp.s
+
 __/src/editor/visual/windows/sub_window_renderer.o: __/src/editor/visual/windows/sub_window_renderer.cpp.o
 .PHONY : __/src/editor/visual/windows/sub_window_renderer.o
 
@@ -1445,6 +1589,30 @@ benchmark_jit_vs_aot.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.s
 .PHONY : benchmark_jit_vs_aot.cpp.s
 
+benchmark_push_scheduler.o: benchmark_push_scheduler.cpp.o
+.PHONY : benchmark_push_scheduler.o
+
+# target to build an object file
+benchmark_push_scheduler.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/benchmark_push_scheduler.cpp.o
+.PHONY : benchmark_push_scheduler.cpp.o
+
+benchmark_push_scheduler.i: benchmark_push_scheduler.cpp.i
+.PHONY : benchmark_push_scheduler.i
+
+# target to preprocess a source file
+benchmark_push_scheduler.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/benchmark_push_scheduler.cpp.i
+.PHONY : benchmark_push_scheduler.cpp.i
+
+benchmark_push_scheduler.s: benchmark_push_scheduler.cpp.s
+.PHONY : benchmark_push_scheduler.s
+
+# target to generate assembly for a file
+benchmark_push_scheduler.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/benchmark_push_scheduler.cpp.s
+.PHONY : benchmark_push_scheduler.cpp.s
+
 codegen_test.o: codegen_test.cpp.o
 .PHONY : codegen_test.o
 
@@ -1468,30 +1636,6 @@ codegen_test.s: codegen_test.cpp.s
 codegen_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.s
 .PHONY : codegen_test.cpp.s
-
-convert_library.o: convert_library.cpp.o
-.PHONY : convert_library.o
-
-# target to build an object file
-convert_library.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/convert_library.cpp.o
-.PHONY : convert_library.cpp.o
-
-convert_library.i: convert_library.cpp.i
-.PHONY : convert_library.i
-
-# target to preprocess a source file
-convert_library.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/convert_library.cpp.i
-.PHONY : convert_library.cpp.i
-
-convert_library.s: convert_library.cpp.s
-.PHONY : convert_library.s
-
-# target to generate assembly for a file
-convert_library.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/convert_library.cpp.s
-.PHONY : convert_library.cpp.s
 
 main.o: main.cpp.o
 .PHONY : main.o
@@ -1517,6 +1661,30 @@ main.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/hello_world.dir/build.make examples/CMakeFiles/hello_world.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+sim_debug.o: sim_debug.cpp.o
+.PHONY : sim_debug.o
+
+# target to build an object file
+sim_debug.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/sim_debug.cpp.o
+.PHONY : sim_debug.cpp.o
+
+sim_debug.i: sim_debug.cpp.i
+.PHONY : sim_debug.i
+
+# target to preprocess a source file
+sim_debug.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/sim_debug.cpp.i
+.PHONY : sim_debug.cpp.i
+
+sim_debug.s: sim_debug.cpp.s
+.PHONY : sim_debug.s
+
+# target to generate assembly for a file
+sim_debug.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/sim_debug.cpp.s
+.PHONY : sim_debug.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1532,11 +1700,11 @@ help:
 	@echo "... test"
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
-	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
+	@echo "... benchmark_push_scheduler"
 	@echo "... codegen_test"
-	@echo "... convert_library"
 	@echo "... hello_world"
+	@echo "... sim_debug"
 	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.o"
 	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.i"
 	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.s"
@@ -1555,24 +1723,24 @@ help:
 	@echo "... __/_deps/imgui-src/imgui_widgets.o"
 	@echo "... __/_deps/imgui-src/imgui_widgets.i"
 	@echo "... __/_deps/imgui-src/imgui_widgets.s"
-	@echo "... __/generated/bench_vsu_aot.o"
-	@echo "... __/generated/bench_vsu_aot.i"
-	@echo "... __/generated/bench_vsu_aot.s"
-	@echo "... __/generated/generated_vsu_test.o"
-	@echo "... __/generated/generated_vsu_test.i"
-	@echo "... __/generated/generated_vsu_test.s"
+	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.o"
+	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.i"
+	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.s"
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"
+	@echo "... __/src/codegen/electrical_codegen.o"
+	@echo "... __/src/codegen/electrical_codegen.i"
+	@echo "... __/src/codegen/electrical_codegen.s"
 	@echo "... __/src/editor/app/editor_app.o"
 	@echo "... __/src/editor/app/editor_app.i"
 	@echo "... __/src/editor/app/editor_app.s"
 	@echo "... __/src/editor/commands/commands.o"
 	@echo "... __/src/editor/commands/commands.i"
 	@echo "... __/src/editor/commands/commands.s"
-	@echo "... __/src/editor/data/blueprint.o"
-	@echo "... __/src/editor/data/blueprint.i"
-	@echo "... __/src/editor/data/blueprint.s"
+	@echo "... __/src/editor/commands/extract_blueprint.o"
+	@echo "... __/src/editor/commands/extract_blueprint.i"
+	@echo "... __/src/editor/commands/extract_blueprint.s"
 	@echo "... __/src/editor/document.o"
 	@echo "... __/src/editor/document.i"
 	@echo "... __/src/editor/document.s"
@@ -1585,6 +1753,18 @@ help:
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
+	@echo "... __/src/editor/oscilloscope.o"
+	@echo "... __/src/editor/oscilloscope.i"
+	@echo "... __/src/editor/oscilloscope.s"
+	@echo "... __/src/editor/pi_zn_math.o"
+	@echo "... __/src/editor/pi_zn_math.i"
+	@echo "... __/src/editor/pi_zn_math.s"
+	@echo "... __/src/editor/pi_zn_tuner.o"
+	@echo "... __/src/editor/pi_zn_tuner.i"
+	@echo "... __/src/editor/pi_zn_tuner.s"
+	@echo "... __/src/editor/signal_key_resolver.o"
+	@echo "... __/src/editor/signal_key_resolver.i"
+	@echo "... __/src/editor/signal_key_resolver.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
@@ -1624,6 +1804,9 @@ help:
 	@echo "... __/src/editor/visual/node/visual_node.o"
 	@echo "... __/src/editor/visual/node/visual_node.i"
 	@echo "... __/src/editor/visual/node/visual_node.s"
+	@echo "... __/src/editor/visual/oscilloscope_plot.o"
+	@echo "... __/src/editor/visual/oscilloscope_plot.i"
+	@echo "... __/src/editor/visual/oscilloscope_plot.s"
 	@echo "... __/src/editor/visual/panels/document_area.o"
 	@echo "... __/src/editor/visual/panels/document_area.i"
 	@echo "... __/src/editor/visual/panels/document_area.s"
@@ -1666,6 +1849,9 @@ help:
 	@echo "... __/src/editor/visual/widgets/content_widgets.o"
 	@echo "... __/src/editor/visual/widgets/content_widgets.i"
 	@echo "... __/src/editor/visual/widgets/content_widgets.s"
+	@echo "... __/src/editor/visual/windows/oscilloscope_window.o"
+	@echo "... __/src/editor/visual/windows/oscilloscope_window.i"
+	@echo "... __/src/editor/visual/windows/oscilloscope_window.s"
 	@echo "... __/src/editor/visual/windows/sub_window_renderer.o"
 	@echo "... __/src/editor/visual/windows/sub_window_renderer.i"
 	@echo "... __/src/editor/visual/windows/sub_window_renderer.s"
@@ -1684,15 +1870,18 @@ help:
 	@echo "... benchmark_jit_vs_aot.o"
 	@echo "... benchmark_jit_vs_aot.i"
 	@echo "... benchmark_jit_vs_aot.s"
+	@echo "... benchmark_push_scheduler.o"
+	@echo "... benchmark_push_scheduler.i"
+	@echo "... benchmark_push_scheduler.s"
 	@echo "... codegen_test.o"
 	@echo "... codegen_test.i"
 	@echo "... codegen_test.s"
-	@echo "... convert_library.o"
-	@echo "... convert_library.i"
-	@echo "... convert_library.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... sim_debug.o"
+	@echo "... sim_debug.i"
+	@echo "... sim_debug.s"
 .PHONY : help
 
 

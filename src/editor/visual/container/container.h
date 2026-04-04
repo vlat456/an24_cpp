@@ -2,6 +2,7 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "ui/layout/edges.h"
+#include <algorithm>
 
 namespace visual {
 
@@ -21,8 +22,8 @@ public:
     void layout(float available_width, float available_height) override {
         setSize(Pt(available_width, available_height));
         if (!children().empty()) {
-            float w = available_width - margins_.left - margins_.right;
-            float h = available_height - margins_.top - margins_.bottom;
+            float w = std::max(0.0f, available_width - margins_.left - margins_.right);
+            float h = std::max(0.0f, available_height - margins_.top - margins_.bottom);
             auto& child = children()[0];
             child->setLocalPos(Pt(margins_.left, margins_.top));
             child->layout(w, h);

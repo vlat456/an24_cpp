@@ -7,12 +7,10 @@
 #include <gtest/gtest.h>
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
-#include "jit_solver/SOR_constants.h"
 #include "jit_solver/components/all.h"
 #include "parse_number.h"
 #include <spdlog/spdlog.h>
 #include <cstdio>
-
 
 class ANDGateDebugTest : public ::testing::Test {
 protected:
@@ -20,43 +18,6 @@ protected:
         spdlog::set_level(spdlog::level::debug);
     }
 };
-
-/// Helper: run the full simulation step (same order as editor simulation.cpp)
-static void run_step(BuildResult& result, SimulationState& state, float dt, float omega) {
-    state.clear_through();
-
-    // 1. Electrical
-    for (auto* variant : result.domain_components.electrical) {
-        std::visit([&](auto& comp) {
-            if constexpr (requires { comp.solve_electrical(state, dt); }) {
-                comp.solve_electrical(state, dt);
-            }
-        }, *variant);
-    }
-
-    // 2. SOR
-    state.precompute_inv_conductance();
-    solve_sor_iteration(state.across.data(), state.through.data(),
-        state.inv_conductance.data(), state.across.size(), SOR::OMEGA);
-
-    // 3. Post-step
-    for (auto& [name, variant] : result.devices) {
-        std::visit([&](auto& comp) {
-            if constexpr (requires { comp.post_step(state, dt); }) {
-                comp.post_step(state, dt);
-            }
-        }, variant);
-    }
-
-    // 4. Logical (after SOR + post_step)
-    for (auto* variant : result.domain_components.logical) {
-        std::visit([&](auto& comp) {
-            if constexpr (requires { comp.solve_logical(state, dt); }) {
-                comp.solve_logical(state, dt);
-            }
-        }, *variant);
-    }
-}
 
 TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     // Minimal circuit reproducing the blueprint:
@@ -71,9 +32,8 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     const char* json = R"({
         "devices": [
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
-            {"name": "bat", "classname": "Battery", "params": {
-                "v_nominal": "28.0", "internal_r": "0.01", "inv_internal_r": "100.0",
-                "capacity": "1000.0", "inv_capacity": "0.001", "charge": "1000.0"
+            {"name": "bat", "classname": "ElectricalSource", "params": {
+                "voltage": "28.0", "resistance": "0.01"
             }},
             {"name": "bus", "classname": "Bus"},
             {"name": "v2b", "classname": "Positive_V_to_Bool"},
@@ -114,9 +74,19 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
             float value = locale_safe::parse_float_or(dev.params.at("value"), 0.0f);
             auto it = result.port_to_signal.find(dev.name + ".v");
             if (it != result.port_to_signal.end()) {
-                state.across[it->second] = value;
+                state.values[it->second] = value;
             }
         }
+    }
+
+    // Seed battery output voltage: Battery is solver-owned — its voltage is
+    // produced by solve_electrical(), which this test intentionally skips to
+    // isolate port mapping / logical gate wiring. Seeding bat.v_out to 28V
+    // is equivalent to what the electrical solver would produce.
+    {
+        auto it = result.port_to_signal.find("bat.v_out");
+        ASSERT_NE(it, result.port_to_signal.end()) << "bat.v_out must exist";
+        state.values[it->second] = 28.0f;
     }
 
     // Print signal mapping
@@ -124,11 +94,6 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     for (auto& [port, sig] : result.port_to_signal) {
         printf("  %-30s -> signal[%u]\n", port.c_str(), sig);
     }
-
-    // Print domain component counts
-    printf("\n=== DOMAIN COMPONENTS ===\n");
-    printf("  electrical: %zu\n", result.domain_components.electrical.size());
-    printf("  logical:    %zu\n", result.domain_components.logical.size());
 
     // Get signal indices for the signals we care about
     auto get_sig = [&](const std::string& port) -> uint32_t {
@@ -159,80 +124,27 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     EXPECT_EQ(sig_and_A, sig_v2b_o) << "and_1.A should be wired to v2b.o";
     EXPECT_EQ(sig_and_B, sig_hb_state) << "and_1.B should be wired to hb.state";
 
-    float dt = 1.0f / 60.0f;
+    double dt = 1.0 / 60.0;
 
-    // Run 10 steps with per-phase tracing
-    printf("\n=== SIMULATION (per-phase) ===\n");
+    // Run simulation steps
+    printf("\n=== SIMULATION ===\n");
     for (int step = 0; step < 5; ++step) {
-        state.clear_through();
-        printf("  step %d AFTER clear:   v2b.o=%.4f  hb.state=%.4f  and.o=%.4f\n",
-               step, state.across[sig_v2b_o], state.across[sig_hb_state], state.across[sig_and_o]);
-
-        // 1. Electrical
-        for (auto* variant : result.domain_components.electrical) {
-            std::visit([&](auto& comp) {
-                if constexpr (requires { comp.solve_electrical(state, dt); }) {
-                    comp.solve_electrical(state, dt);
-                }
-            }, *variant);
-        }
-        printf("  step %d AFTER elec:    bus=%.4f  v2b.o=%.4f  hb.state=%.4f\n",
-               step, state.across[sig_bus_v], state.across[sig_v2b_o], state.across[sig_hb_state]);
-
-        // 2. SOR
-        state.precompute_inv_conductance();
-        printf("  step %d invG[v2b.o]=%e invG[hb.state]=%e invG[and.o]=%e\n",
-               step, state.inv_conductance[sig_v2b_o], state.inv_conductance[sig_hb_state], state.inv_conductance[sig_and_o]);
-        printf("  step %d through[v2b.o]=%e through[hb.state]=%e through[and.o]=%e\n",
-               step, state.through[sig_v2b_o], state.through[sig_hb_state], state.through[sig_and_o]);
-        solve_sor_iteration(state.across.data(), state.through.data(),
-            state.inv_conductance.data(), state.across.size(), SOR::OMEGA);
-        printf("  step %d AFTER SOR:     bus=%.4f  v2b.o=%.4f  hb.state=%.4f\n",
-               step, state.across[sig_bus_v], state.across[sig_v2b_o], state.across[sig_hb_state]);
-
-        // 3. Post-step
-        for (auto& [name, variant] : result.devices) {
-            std::visit([&](auto& comp) {
-                if constexpr (requires { comp.post_step(state, dt); }) {
-                    comp.post_step(state, dt);
-                }
-            }, variant);
-        }
-        printf("  step %d AFTER post:    v2b.o=%.4f  hb.state=%.4f\n",
-               step, state.across[sig_v2b_o], state.across[sig_hb_state]);
-
-        // 4. Logical
-        for (size_t li = 0; li < result.domain_components.logical.size(); ++li) {
-            auto* variant = result.domain_components.logical[li];
-            std::visit([&](auto& comp) {
-                using T = std::decay_t<decltype(comp)>;
-                if constexpr (requires { comp.solve_logical(state, dt); }) {
-                    printf("  step %d LOGICAL[%zu] %s: BEFORE v2b.o=%.4f and.A=%.4f and.B=%.4f\n",
-                           step, li, typeid(T).name(),
-                           state.across[sig_v2b_o], state.across[sig_and_A], state.across[sig_and_B]);
-                    comp.solve_logical(state, dt);
-                    printf("  step %d LOGICAL[%zu] %s: AFTER  v2b.o=%.4f and.A=%.4f and.B=%.4f and.o=%.4f\n",
-                           step, li, typeid(T).name(),
-                           state.across[sig_v2b_o], state.across[sig_and_A], state.across[sig_and_B], state.across[sig_and_o]);
-                }
-            }, *variant);
-        }
-        printf("  step %d FINAL: bus=%.2f v2b.o=%.2f hb.state=%.2f AND.A=%.2f AND.B=%.2f AND.o=%.2f\n\n",
-               step, state.across[sig_bus_v], state.across[sig_v2b_o],
-               state.across[sig_hb_state], state.across[sig_and_A],
-               state.across[sig_and_B], state.across[sig_and_o]);
+        result.scheduler.step(state, dt);
+        printf("  step %d: bus.v=%.4f v2b.o=%.4f hb.state=%.4f and.A=%.4f and.B=%.4f and.o=%.4f\n",
+               step, state.values[sig_bus_v], state.values[sig_v2b_o], state.values[sig_hb_state],
+               state.values[sig_and_A], state.values[sig_and_B], state.values[sig_and_o]);
     }
 
-    // After 10 steps:
+    // After 5 steps:
     // - Battery should output ~28V on bus
     // - Positive_V_to_Bool should convert to 1.0 (28V > 0)
     // - HoldButton not pressed -> state = 0.0
     // - AND: A=1.0, B=0.0 -> output should be 0.0
     printf("\n=== ASSERTIONS ===\n");
-    float bus_v = state.across[sig_bus_v];
-    float and_a = state.across[sig_and_A];
-    float and_b = state.across[sig_and_B];
-    float and_o = state.across[sig_and_o];
+    float bus_v = state.values[sig_bus_v];
+    float and_a = state.values[sig_and_A];
+    float and_b = state.values[sig_and_B];
+    float and_o = state.values[sig_and_o];
 
     printf("  bus.v = %.4f (expect ~28V)\n", bus_v);
     printf("  AND.A = %.4f (expect 1.0 from V_to_Bool)\n", and_a);

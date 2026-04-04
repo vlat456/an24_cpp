@@ -10,7 +10,10 @@ void EditorSettings::loadFrom(const std::string& filepath) {
     open_tabs_.clear();
     active_tab_.clear();
 
-    if (!std::filesystem::exists(filepath)) return;
+    {
+        std::error_code ec;
+        if (!std::filesystem::exists(filepath, ec)) return;
+    }
 
     std::ifstream f(filepath);
     if (!f.is_open()) return;
@@ -19,10 +22,20 @@ void EditorSettings::loadFrom(const std::string& filepath) {
         json j;
         f >> j;
 
+        auto has_embedded_nul = [](const std::string& p) -> bool {
+            return p.find('\0') != std::string::npos;
+        };
+
+        auto path_exists = [](const std::string& p) -> bool {
+            std::error_code ec;
+            return std::filesystem::exists(p, ec);
+        };
+
         if (j.contains("recentFiles") && j["recentFiles"].is_array()) {
             for (const auto& p : j["recentFiles"]) {
+                if (!p.is_string()) continue;
                 std::string path = p.get<std::string>();
-                if (std::filesystem::exists(path)) {
+                if (!has_embedded_nul(path) && path_exists(path)) {
                     recent_files_.push_back(path);
                 }
             }
@@ -30,18 +43,25 @@ void EditorSettings::loadFrom(const std::string& filepath) {
 
         if (j.contains("openTabs") && j["openTabs"].is_array()) {
             for (const auto& p : j["openTabs"]) {
+                if (!p.is_string()) continue;
                 std::string path = p.get<std::string>();
-                if (std::filesystem::exists(path)) {
+                if (!has_embedded_nul(path) && path_exists(path)) {
                     open_tabs_.push_back(path);
                 }
             }
         }
 
         if (j.contains("activeTab") && j["activeTab"].is_string()) {
-            active_tab_ = j["activeTab"].get<std::string>();
+            std::string path = j["activeTab"].get<std::string>();
+            if (!has_embedded_nul(path)) {
+                active_tab_ = std::move(path);
+            }
         }
-    } catch (const json::exception&) {
-        // Invalid or unexpected JSON structure, ignore
+    } catch (const std::exception&) {
+        // Invalid JSON, filesystem errors, or unexpected structure — reset and ignore
+        recent_files_.clear();
+        open_tabs_.clear();
+        active_tab_.clear();
     }
 }
 

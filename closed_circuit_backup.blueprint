@@ -1,0 +1,1890 @@
+{
+  "display_name": "GENERATOR_STARTER",
+  "grid_step": 16.0,
+  "id": "",
+  "interface": [],
+  "name": "GENERATOR_STARTER",
+  "nested": [
+    {
+      "blueprint": "RN-180-Exciter",
+      "definition": {
+        "display_name": "RN-180-Exciter",
+        "grid_step": 16.0,
+        "id": "RN-180-Exciter",
+        "interface": [
+          {
+            "direction": 0,
+            "domain": 1,
+            "name": "feedback"
+          },
+          {
+            "direction": 1,
+            "domain": 1,
+            "name": "output"
+          }
+        ],
+        "name": "RN-180-Exciter",
+        "nested": [],
+        "nodes": [
+          {
+            "id": "bp_in_1",
+            "name": "feedback",
+            "ports": {
+              "ext": {
+                "direction": "In",
+                "type": 0
+              },
+              "port": {
+                "direction": "Out",
+                "type": 0
+              }
+            },
+            "position": {
+              "x": 0.0,
+              "y": 32.0
+            },
+            "string_params": {
+              "exposed_direction": "In",
+              "exposed_type": "V"
+            },
+            "type": "BlueprintInput"
+          },
+          {
+            "id": "bp_out_1",
+            "name": "output",
+            "ports": {
+              "ext": {
+                "direction": "Out",
+                "type": 0
+              },
+              "port": {
+                "direction": "In",
+                "type": 0
+              }
+            },
+            "position": {
+              "x": 660.0,
+              "y": 32.0
+            },
+            "string_params": {
+              "exposed_direction": "Out",
+              "exposed_type": "V"
+            },
+            "type": "BlueprintOutput"
+          },
+          {
+            "id": "lut_1",
+            "name": "RN180_excitation",
+            "ports": {
+              "input": {
+                "direction": "In",
+                "type": 7
+              },
+              "output": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 400.0,
+              "y": 0.0
+            },
+            "string_params": {
+              "table": "0.0:0.6; 1.0:28.5"
+            },
+            "type": "LUT"
+          },
+          {
+            "id": "pi_1",
+            "name": "RN180",
+            "params": {
+              "Ki": 1.0,
+              "Kp": 0.10000000149011612,
+              "output_max": 1.0,
+              "output_min": 0.0
+            },
+            "ports": {
+              "feedback": {
+                "direction": "In",
+                "type": 7
+              },
+              "output": {
+                "direction": "Out",
+                "type": 7
+              },
+              "setpoint": {
+                "direction": "In",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 240.0,
+              "y": 0.0
+            },
+            "type": "PI"
+          },
+          {
+            "id": "value_1",
+            "name": "IdealVoltage",
+            "params": {
+              "value": 28.5
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 160.0,
+              "y": 80.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          }
+        ],
+        "pan_x": 0.0,
+        "pan_y": 0.0,
+        "version": "3.0",
+        "wires": [
+          {
+            "id": "bp_bridge_in_wire_1",
+            "source": "/bp_in_1:port",
+            "target": "/pi_1:feedback"
+          },
+          {
+            "id": "bp_bridge_out_wire_1",
+            "source": "/lut_1:output",
+            "target": "/bp_out_1:port"
+          },
+          {
+            "id": "wire_42",
+            "routing_points": [
+              [
+                880.0,
+                -352.0
+              ]
+            ],
+            "source": "/value_1:o",
+            "target": "/pi_1:setpoint"
+          },
+          {
+            "id": "wire_48",
+            "source": "/pi_1:output",
+            "target": "/lut_1:input"
+          }
+        ],
+        "zoom": 1.0
+      },
+      "embedded": true,
+      "id": "extract_inst_1",
+      "position": {
+        "x": 1034.0,
+        "y": -328.0
+      }
+    },
+    {
+      "blueprint": "LoadVoltageDrp",
+      "definition": {
+        "display_name": "LoadVoltageDrp",
+        "grid_step": 16.0,
+        "id": "LoadVoltageDrp",
+        "interface": [
+          {
+            "direction": 1,
+            "domain": 1,
+            "name": "out"
+          },
+          {
+            "direction": 0,
+            "domain": 1,
+            "name": "v_in"
+          },
+          {
+            "direction": 0,
+            "domain": 1,
+            "name": "v_ref"
+          }
+        ],
+        "name": "LoadVoltageDrp",
+        "nested": [],
+        "nodes": [
+          {
+            "id": "bp_in_1",
+            "name": "v_in",
+            "ports": {
+              "ext": {
+                "direction": "In",
+                "type": 0
+              },
+              "port": {
+                "direction": "Out",
+                "type": 0
+              }
+            },
+            "position": {
+              "x": 0.0,
+              "y": 160.0
+            },
+            "type": "BlueprintInput"
+          },
+          {
+            "id": "bp_in_2",
+            "name": "v_ref",
+            "ports": {
+              "ext": {
+                "direction": "In",
+                "type": 0
+              },
+              "port": {
+                "direction": "Out",
+                "type": 0
+              }
+            },
+            "position": {
+              "x": 0.0,
+              "y": 176.0
+            },
+            "type": "BlueprintInput"
+          },
+          {
+            "id": "bp_out_1",
+            "name": "out",
+            "ports": {
+              "ext": {
+                "direction": "Out",
+                "type": 0
+              },
+              "port": {
+                "direction": "In",
+                "type": 0
+              }
+            },
+            "position": {
+              "x": 756.0,
+              "y": 192.0
+            },
+            "type": "BlueprintOutput"
+          },
+          {
+            "id": "clamp_1",
+            "name": "LoadCmdClamp",
+            "params": {
+              "max": 1.0,
+              "min": 0.0
+            },
+            "ports": {
+              "in": {
+                "direction": "In",
+                "type": 7
+              },
+              "out": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 464.0,
+              "y": 160.0
+            },
+            "type": "Clamp"
+          },
+          {
+            "id": "divide_1",
+            "name": "LoadGFromI",
+            "ports": {
+              "A": {
+                "direction": "In",
+                "type": 7
+              },
+              "B": {
+                "direction": "In",
+                "type": 7
+              },
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 352.0,
+              "y": 304.0
+            },
+            "type": "Divide"
+          },
+          {
+            "id": "integrator_1",
+            "name": "LoadCurrent",
+            "params": {
+              "gain": 1.0,
+              "initial_val": 0.0
+            },
+            "ports": {
+              "in": {
+                "direction": "In",
+                "type": 7
+              },
+              "out": {
+                "direction": "Out",
+                "type": 7
+              },
+              "reset": {
+                "direction": "In",
+                "type": 2
+              }
+            },
+            "position": {
+              "x": 272.0,
+              "y": 208.0
+            },
+            "type": "Integrator"
+          },
+          {
+            "id": "multiply_2",
+            "name": "LoadRi",
+            "ports": {
+              "A": {
+                "direction": "In",
+                "type": 7
+              },
+              "B": {
+                "direction": "In",
+                "type": 7
+              },
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 224.0,
+              "y": 320.0
+            },
+            "type": "Multiply"
+          },
+          {
+            "id": "multiply_3",
+            "name": "LoadDidt",
+            "ports": {
+              "A": {
+                "direction": "In",
+                "type": 7
+              },
+              "B": {
+                "direction": "In",
+                "type": 7
+              },
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 272.0,
+              "y": 112.0
+            },
+            "type": "Multiply"
+          },
+          {
+            "id": "multiply_4",
+            "name": "LoadCmdNorm",
+            "ports": {
+              "A": {
+                "direction": "In",
+                "type": 7
+              },
+              "B": {
+                "direction": "In",
+                "type": 7
+              },
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 496.0,
+              "y": 288.0
+            },
+            "type": "Multiply"
+          },
+          {
+            "id": "subtract_1",
+            "name": "LoadVminusRi",
+            "ports": {
+              "A": {
+                "direction": "In",
+                "type": 7
+              },
+              "B": {
+                "direction": "In",
+                "type": 7
+              },
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 160.0,
+              "y": 112.0
+            },
+            "type": "Subtract"
+          },
+          {
+            "id": "value_3",
+            "name": "LoadR",
+            "params": {
+              "value": 0.0560000017285347
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 160.0,
+              "y": 352.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "height": 32.0,
+            "id": "value_4",
+            "name": "InvL",
+            "params": {
+              "value": 125.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 336.0,
+              "y": 0.0
+            },
+            "render_hint": "ref",
+            "type": "Value",
+            "width": 48.0
+          },
+          {
+            "id": "value_5",
+            "name": "InvGMax",
+            "params": {
+              "value": 0.05000000074505806
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 448.0,
+              "y": 368.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "id": "voltagesense_1",
+            "name": "LoadVoltageDrop",
+            "params": {
+              "gain": 1.0,
+              "offset": 0.0
+            },
+            "ports": {
+              "out": {
+                "direction": "Out",
+                "type": 7
+              },
+              "v_in": {
+                "direction": "In",
+                "type": 0
+              },
+              "v_ref": {
+                "direction": "In",
+                "type": 0
+              }
+            },
+            "position": {
+              "x": 352.0,
+              "y": 128.0
+            },
+            "type": "VoltageSense"
+          }
+        ],
+        "pan_x": 0.0,
+        "pan_y": 0.0,
+        "version": "3.0",
+        "wires": [
+          {
+            "id": "bp_bridge_in_wire_1",
+            "source": "/bp_in_1:port",
+            "target": "/voltagesense_1:v_in"
+          },
+          {
+            "id": "bp_bridge_in_wire_2",
+            "source": "/bp_in_2:port",
+            "target": "/voltagesense_1:v_ref"
+          },
+          {
+            "id": "bp_bridge_out_wire_1",
+            "source": "/clamp_1:out",
+            "target": "/bp_out_1:port"
+          },
+          {
+            "id": "wire_72",
+            "source": "/integrator_1:out",
+            "target": "/multiply_2:A"
+          },
+          {
+            "id": "wire_73",
+            "source": "/value_3:o",
+            "target": "/multiply_2:B"
+          },
+          {
+            "id": "wire_74",
+            "source": "/voltagesense_1:out",
+            "target": "/subtract_1:A"
+          },
+          {
+            "id": "wire_75",
+            "source": "/multiply_2:o",
+            "target": "/subtract_1:B"
+          },
+          {
+            "id": "wire_76",
+            "source": "/subtract_1:o",
+            "target": "/multiply_3:A"
+          },
+          {
+            "id": "wire_77",
+            "source": "/value_4:o",
+            "target": "/multiply_3:B"
+          },
+          {
+            "id": "wire_78",
+            "source": "/multiply_3:o",
+            "target": "/integrator_1:in"
+          },
+          {
+            "id": "wire_80",
+            "source": "/integrator_1:out",
+            "target": "/divide_1:A"
+          },
+          {
+            "id": "wire_81",
+            "source": "/voltagesense_1:out",
+            "target": "/divide_1:B"
+          },
+          {
+            "id": "wire_82",
+            "source": "/divide_1:o",
+            "target": "/multiply_4:A"
+          },
+          {
+            "id": "wire_83",
+            "source": "/value_5:o",
+            "target": "/multiply_4:B"
+          },
+          {
+            "id": "wire_84",
+            "source": "/multiply_4:o",
+            "target": "/clamp_1:in"
+          }
+        ],
+        "zoom": 1.0
+      },
+      "embedded": true,
+      "id": "extract_inst_2",
+      "position": {
+        "x": 1450.0,
+        "y": -264.0
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "content_label": "",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 3,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "azs_1",
+      "name": "azs_1",
+      "params": {
+        "i_nominal": 20.0
+      },
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": 4
+        },
+        "state": {
+          "direction": "Out",
+          "type": 2
+        },
+        "temp": {
+          "direction": "Out",
+          "type": 4
+        },
+        "tripped": {
+          "direction": "Out",
+          "type": 2
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 64.0,
+        "y": -432.0
+      },
+      "string_params": {
+        "closed": "false"
+      },
+      "type": "AZS"
+    },
+    {
+      "id": "bus_1",
+      "name": "bus_1",
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 880.0,
+        "y": -64.0
+      },
+      "render_hint": "bus",
+      "string_params": {
+        "port_edge": "bottom"
+      },
+      "type": "Bus"
+    },
+    {
+      "id": "bus_2",
+      "name": "bus_2",
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 688.0,
+        "y": -240.0
+      },
+      "render_hint": "bus",
+      "string_params": {
+        "port_edge": "bottom"
+      },
+      "type": "Bus"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "clamp_1",
+      "name": "LoadCmdClamp",
+      "params": {
+        "max": 1.0,
+        "min": 0.0
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1760.0,
+        "y": -320.0
+      },
+      "type": "Clamp"
+    },
+    {
+      "id": "controlledvoltagesource_1",
+      "name": "GEN",
+      "params": {
+        "gain": 1.0,
+        "max_v": 30.0,
+        "min_v": 0.0,
+        "offset": 0.0,
+        "r_internal": 0.009999999776482582
+      },
+      "ports": {
+        "cmd": {
+          "direction": "In",
+          "type": 7
+        },
+        "v_neg": {
+          "direction": "Out",
+          "type": 0
+        },
+        "v_pos": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 544.0,
+        "y": -32.0
+      },
+      "type": "ControlledVoltageSource"
+    },
+    {
+      "content_label": "OFF",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 5,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "currentsense_1",
+      "name": "currentsense_1",
+      "params": {
+        "conductance": 10.0
+      },
+      "ports": {
+        "i_out": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 976.0,
+        "y": -144.0
+      },
+      "type": "CurrentSense"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "divide_1",
+      "name": "LoadGFromI",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1488.0,
+        "y": -320.0
+      },
+      "type": "Divide"
+    },
+    {
+      "blueprint_path": "RN-180-Exciter",
+      "expandable": true,
+      "height": 64.0,
+      "id": "extract_inst_1",
+      "name": "RN-180-Exciter",
+      "ports": {
+        "feedback": {
+          "direction": "In",
+          "type": 0
+        },
+        "output": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": -32.0
+      },
+      "type": "RN-180-Exciter",
+      "width": 160.0
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "extract_inst_1:feedback",
+      "name": "feedback",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 0
+        },
+        "port": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 768.0,
+        "y": -400.0
+      },
+      "string_params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintInput"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "extract_inst_1:output",
+      "name": "output",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 7
+        },
+        "port": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1280.0,
+        "y": -400.0
+      },
+      "string_params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    },
+    {
+      "blueprint_path": "LoadVoltageDrp",
+      "expandable": true,
+      "height": 64.0,
+      "id": "extract_inst_2",
+      "name": "LoadVoltageDrp",
+      "ports": {
+        "out": {
+          "direction": "Out",
+          "type": 0
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_ref": {
+          "direction": "In",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 384.0,
+        "y": -464.0
+      },
+      "type": "LoadVoltageDrp",
+      "width": 160.0
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "extract_inst_2:out",
+      "name": "out",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 0
+        },
+        "port": {
+          "direction": "In",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 1920.0,
+        "y": -320.0
+      },
+      "type": "BlueprintOutput"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "extract_inst_2:v_in",
+      "name": "v_in",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 0
+        },
+        "port": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 976.0,
+        "y": -304.0
+      },
+      "type": "BlueprintInput"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "extract_inst_2:v_ref",
+      "name": "v_ref",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 0
+        },
+        "port": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 976.0,
+        "y": -224.0
+      },
+      "type": "BlueprintInput"
+    },
+    {
+      "blueprint_path": "math/FirstOrderLag",
+      "expandable": true,
+      "height": 64.0,
+      "id": "firstorderlag_1",
+      "name": "FieldLag",
+      "params": {
+        "initial_val": 0.6000000238418579,
+        "rate": 6.0
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        },
+        "rate": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 208.0,
+        "y": -32.0
+      },
+      "type": "FirstOrderLag",
+      "width": 160.0
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "integrator_1",
+      "name": "LoadCurrent",
+      "params": {
+        "gain": 1.0,
+        "initial_val": 0.0
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        },
+        "reset": {
+          "direction": "In",
+          "type": 2
+        }
+      },
+      "position": {
+        "x": 1424.0,
+        "y": -432.0
+      },
+      "type": "Integrator"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "lut_1",
+      "name": "RN180_excitation",
+      "ports": {
+        "input": {
+          "direction": "In",
+          "type": 7
+        },
+        "output": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1104.0,
+        "y": -400.0
+      },
+      "string_params": {
+        "table": "0.0:0.6; 1.0:28.5"
+      },
+      "type": "LUT"
+    },
+    {
+      "id": "multiply_1",
+      "name": "multiply_1",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 416.0,
+        "y": -48.0
+      },
+      "type": "Multiply"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "multiply_2",
+      "name": "LoadRi",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 896.0,
+        "y": -416.0
+      },
+      "type": "Multiply"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "multiply_3",
+      "name": "LoadDidt",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1296.0,
+        "y": -432.0
+      },
+      "type": "Multiply"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "multiply_4",
+      "name": "LoadCmdNorm",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1632.0,
+        "y": -320.0
+      },
+      "type": "Multiply"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "pi_1",
+      "name": "RN180",
+      "params": {
+        "Ki": 1.0,
+        "Kp": 0.10000000149011612,
+        "output_max": 1.0,
+        "output_min": 0.0
+      },
+      "ports": {
+        "feedback": {
+          "direction": "In",
+          "type": 7
+        },
+        "output": {
+          "direction": "Out",
+          "type": 7
+        },
+        "setpoint": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 944.0,
+        "y": -400.0
+      },
+      "type": "PI"
+    },
+    {
+      "id": "refnode_1",
+      "layout_overrides": [
+        {
+          "port_name": "o",
+          "side": "bottom"
+        }
+      ],
+      "name": "RPM",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 400.0,
+        "y": -80.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "refnode_4",
+      "name": "refnode_4",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": 32.0
+      },
+      "render_hint": "ref",
+      "type": "RefNode"
+    },
+    {
+      "id": "resistor_1",
+      "name": "resistor_1",
+      "params": {
+        "conductance": 0.10000000149011612
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 848.0,
+        "y": -144.0
+      },
+      "type": "Resistor"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "splitter_1",
+      "name": "splitter_1",
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": 7
+        },
+        "o1": {
+          "direction": "Out",
+          "type": 7
+        },
+        "o2": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1344.0,
+        "y": -304.0
+      },
+      "type": "Splitter"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "splitter_2",
+      "name": "splitter_2",
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": 7
+        },
+        "o1": {
+          "direction": "Out",
+          "type": 7
+        },
+        "o2": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1584.0,
+        "y": -432.0
+      },
+      "type": "Splitter"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "subtract_1",
+      "name": "LoadVminusRi",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1120.0,
+        "y": -432.0
+      },
+      "type": "Subtract"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "value_1",
+      "name": "IdealVoltage",
+      "params": {
+        "value": 28.5
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -320.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "value_2",
+      "name": "FieldRate",
+      "params": {
+        "value": 6.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 144.0,
+        "y": 64.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "value_3",
+      "name": "LoadR",
+      "params": {
+        "value": 0.0560000017285347
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 784.0,
+        "y": -336.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "height": 32.0,
+      "id": "value_4",
+      "name": "InvL",
+      "params": {
+        "value": 125.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1248.0,
+        "y": -368.0
+      },
+      "render_hint": "ref",
+      "type": "Value",
+      "width": 48.0
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "value_5",
+      "name": "InvGMax",
+      "params": {
+        "value": 0.05000000074505806
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1584.0,
+        "y": -208.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "variableconductance_1",
+      "name": "variableconductance_1",
+      "params": {
+        "g_max": 20.0,
+        "g_min": 0.0
+      },
+      "ports": {
+        "cmd": {
+          "direction": "In",
+          "type": 7
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 608.0,
+        "y": -400.0
+      },
+      "type": "VariableConductance"
+    },
+    {
+      "group_id": "extract_inst_2",
+      "id": "voltagesense_1",
+      "name": "LoadVoltageDrop",
+      "params": {
+        "gain": 1.0,
+        "offset": 0.0
+      },
+      "ports": {
+        "out": {
+          "direction": "Out",
+          "type": 7
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_ref": {
+          "direction": "In",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 1184.0,
+        "y": -304.0
+      },
+      "type": "VoltageSense"
+    },
+    {
+      "content_label": "V",
+      "content_max": 28.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 1,
+      "content_unit": "V",
+      "content_value": 0.0,
+      "id": "voltmeter_1",
+      "name": "voltmeter_1",
+      "params": {
+        "max": 28.0,
+        "min": 0.0
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -400.0
+      },
+      "type": "Voltmeter"
+    }
+  ],
+  "pan_x": -70.61538696289063,
+  "pan_y": -524.3167724609375,
+  "version": "3.0",
+  "wires": [
+    {
+      "id": "extract_wire_1",
+      "source": "/extract_inst_1:feedback:port",
+      "target": "/pi_1:feedback"
+    },
+    {
+      "id": "extract_wire_10",
+      "routing_points": [
+        [
+          560.0,
+          -432.0
+        ],
+        [
+          560.0,
+          -368.0
+        ]
+      ],
+      "source": "/extract_inst_2:out",
+      "target": "/variableconductance_1:cmd"
+    },
+    {
+      "id": "extract_wire_2",
+      "source": "/lut_1:output",
+      "target": "/extract_inst_1:output:port"
+    },
+    {
+      "id": "extract_wire_3",
+      "routing_points": [
+        [
+          704.0,
+          -160.0
+        ],
+        [
+          -32.0,
+          -160.0
+        ],
+        [
+          -32.0,
+          0.0
+        ]
+      ],
+      "source": "/bus_2:v",
+      "target": "/extract_inst_1:feedback"
+    },
+    {
+      "id": "extract_wire_4",
+      "source": "/extract_inst_1:output",
+      "target": "/firstorderlag_1:in"
+    },
+    {
+      "id": "extract_wire_5",
+      "source": "/extract_inst_2:v_in:port",
+      "target": "/voltagesense_1:v_in"
+    },
+    {
+      "id": "extract_wire_6",
+      "source": "/extract_inst_2:v_ref:port",
+      "target": "/voltagesense_1:v_ref"
+    },
+    {
+      "id": "extract_wire_7",
+      "source": "/clamp_1:out",
+      "target": "/extract_inst_2:out:port"
+    },
+    {
+      "id": "extract_wire_8",
+      "routing_points": [
+        [
+          800.0,
+          -176.0
+        ],
+        [
+          240.0,
+          -176.0
+        ],
+        [
+          240.0,
+          -432.0
+        ]
+      ],
+      "source": "/bus_2:v",
+      "target": "/extract_inst_2:v_in"
+    },
+    {
+      "id": "extract_wire_9",
+      "routing_points": [
+        [
+          960.0,
+          128.0
+        ],
+        [
+          288.0,
+          128.0
+        ],
+        [
+          288.0,
+          -416.0
+        ]
+      ],
+      "source": "/bus_1:v",
+      "target": "/extract_inst_2:v_ref"
+    },
+    {
+      "id": "wire_23",
+      "source": "/firstorderlag_1:out",
+      "target": "/multiply_1:B"
+    },
+    {
+      "id": "wire_28",
+      "source": "/multiply_1:o",
+      "target": "/controlledvoltagesource_1:cmd"
+    },
+    {
+      "id": "wire_29",
+      "source": "/refnode_4:v",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_30",
+      "routing_points": [
+        [
+          912.0,
+          0.0
+        ]
+      ],
+      "source": "/controlledvoltagesource_1:v_neg",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_32",
+      "routing_points": [
+        [
+          720.0,
+          16.0
+        ]
+      ],
+      "source": "/controlledvoltagesource_1:v_pos",
+      "target": "/bus_2:v"
+    },
+    {
+      "id": "wire_36",
+      "routing_points": [
+        [
+          1120.0,
+          -96.0
+        ],
+        [
+          1120.0,
+          0.0
+        ],
+        [
+          928.0,
+          0.0
+        ]
+      ],
+      "source": "/currentsense_1:v_out",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_41",
+      "source": "/resistor_1:v_out",
+      "target": "/currentsense_1:v_in"
+    },
+    {
+      "id": "wire_42",
+      "routing_points": [
+        [
+          880.0,
+          -352.0
+        ]
+      ],
+      "source": "/value_1:o",
+      "target": "/pi_1:setpoint"
+    },
+    {
+      "id": "wire_48",
+      "source": "/pi_1:output",
+      "target": "/lut_1:input"
+    },
+    {
+      "id": "wire_50",
+      "source": "/value_2:o",
+      "target": "/firstorderlag_1:rate"
+    },
+    {
+      "id": "wire_51",
+      "routing_points": [
+        [
+          416.0,
+          -128.0
+        ],
+        [
+          384.0,
+          -128.0
+        ],
+        [
+          384.0,
+          -16.0
+        ]
+      ],
+      "source": "/refnode_1:o",
+      "target": "/multiply_1:A"
+    },
+    {
+      "id": "wire_52",
+      "routing_points": [
+        [
+          752.0,
+          -160.0
+        ],
+        [
+          832.0,
+          -160.0
+        ],
+        [
+          832.0,
+          -368.0
+        ]
+      ],
+      "source": "/bus_2:v",
+      "target": "/voltmeter_1:v_in"
+    },
+    {
+      "id": "wire_63",
+      "source": "/variableconductance_1:v_out",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_67",
+      "source": "/bus_2:v",
+      "target": "/resistor_1:v_in"
+    },
+    {
+      "id": "wire_68",
+      "routing_points": [
+        [
+          784.0,
+          -96.0
+        ],
+        [
+          -16.0,
+          -96.0
+        ],
+        [
+          -16.0,
+          -384.0
+        ]
+      ],
+      "source": "/bus_2:v",
+      "target": "/azs_1:v_in"
+    },
+    {
+      "id": "wire_69",
+      "source": "/azs_1:v_out",
+      "target": "/variableconductance_1:v_in"
+    },
+    {
+      "id": "wire_73",
+      "routing_points": [
+        [
+          848.0,
+          -368.0
+        ]
+      ],
+      "source": "/value_3:o",
+      "target": "/multiply_2:B"
+    },
+    {
+      "id": "wire_75",
+      "source": "/multiply_2:o",
+      "target": "/subtract_1:B"
+    },
+    {
+      "id": "wire_76",
+      "source": "/subtract_1:o",
+      "target": "/multiply_3:A"
+    },
+    {
+      "id": "wire_77",
+      "source": "/value_4:o",
+      "target": "/multiply_3:B"
+    },
+    {
+      "id": "wire_78",
+      "source": "/multiply_3:o",
+      "target": "/integrator_1:in"
+    },
+    {
+      "id": "wire_81",
+      "source": "/splitter_1:o1",
+      "target": "/divide_1:B"
+    },
+    {
+      "id": "wire_82",
+      "source": "/divide_1:o",
+      "target": "/multiply_4:A"
+    },
+    {
+      "id": "wire_83",
+      "source": "/value_5:o",
+      "target": "/multiply_4:B"
+    },
+    {
+      "id": "wire_84",
+      "source": "/multiply_4:o",
+      "target": "/clamp_1:in"
+    },
+    {
+      "id": "wire_86",
+      "routing_points": [
+        [
+          1456.0,
+          -272.0
+        ],
+        [
+          1456.0,
+          -320.0
+        ],
+        [
+          1072.0,
+          -320.0
+        ],
+        [
+          1072.0,
+          -400.0
+        ]
+      ],
+      "source": "/splitter_1:o2",
+      "target": "/subtract_1:A"
+    },
+    {
+      "id": "wire_87",
+      "source": "/voltagesense_1:out",
+      "target": "/splitter_1:i"
+    },
+    {
+      "id": "wire_88",
+      "routing_points": [
+        [
+          1712.0,
+          -384.0
+        ],
+        [
+          1712.0,
+          -336.0
+        ],
+        [
+          1472.0,
+          -336.0
+        ],
+        [
+          1472.0,
+          -288.0
+        ]
+      ],
+      "source": "/splitter_2:o1",
+      "target": "/divide_1:A"
+    },
+    {
+      "id": "wire_89",
+      "source": "/integrator_1:out",
+      "target": "/splitter_2:i"
+    },
+    {
+      "id": "wire_90",
+      "routing_points": [
+        [
+          1712.0,
+          -400.0
+        ],
+        [
+          1712.0,
+          -464.0
+        ],
+        [
+          848.0,
+          -464.0
+        ],
+        [
+          848.0,
+          -384.0
+        ]
+      ],
+      "source": "/splitter_2:o2",
+      "target": "/multiply_2:A"
+    }
+  ],
+  "zoom": 0.8944634199142456
+}

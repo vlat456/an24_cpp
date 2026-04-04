@@ -19,7 +19,12 @@ DocumentTabs::Result DocumentTabs::render(::WindowSystem& ws) {
     Document* focus_target = ws.pendingTabFocus();
 
     for (const auto& doc : ws.documents()) {
+        // ImGui uses tab labels as IDs. Different documents can share the same
+        // visible title (e.g. multiple untitled docs), so attach a stable
+        // invisible suffix to keep tab IDs unique.
         std::string tab_label = doc->title();
+        tab_label += "###doc_tab_";
+        tab_label += doc->id();
 
         bool tab_open = true;
         ImGuiTabItemFlags flags = ImGuiTabItemFlags_None;

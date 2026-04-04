@@ -24,16 +24,18 @@ target_link_libraries(hello_world PRIVATE jit_solver spdlog::spdlog)
 
 add_library(an24_codegen STATIC
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
 )
 target_include_directories(an24_codegen PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
+target_link_libraries(an24_codegen PUBLIC spdlog::spdlog json_parser)
 
 # Codegen tool for generating port registry and ComponentVariant
 add_executable(codegen_test codegen_test.cpp)
 target_include_directories(codegen_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver spdlog::spdlog)
+target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver blueprint_v2 spdlog::spdlog)
 
 # Disabled for AOT-only refactor - needs template component instantiation
 # add_executable(test_generated
@@ -69,12 +71,13 @@ target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver s
 # target_link_libraries(gs24_aot_test PRIVATE jit_solver spdlog::spdlog)
 
 # AOT benchmark
-add_executable(bench_vsu_aot
-    ${CMAKE_SOURCE_DIR}/generated/bench_vsu_aot.cpp
-    ${CMAKE_SOURCE_DIR}/generated/generated_vsu_test.cpp
-)
-target_include_directories(bench_vsu_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
-target_link_libraries(bench_vsu_aot PRIVATE jit_solver spdlog::spdlog)
+# Disabled until generated_vsu_test.* is regenerated to current phase scheduler API
+# add_executable(bench_vsu_aot
+#     ${CMAKE_SOURCE_DIR}/generated/bench_vsu_aot.cpp
+#     ${CMAKE_SOURCE_DIR}/generated/generated_vsu_test.cpp
+# )
+# target_include_directories(bench_vsu_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+# target_link_libraries(bench_vsu_aot PRIVATE jit_solver spdlog::spdlog)
 
 # AOT benchmark with DMR
 # Disabled for AOT-only refactor
@@ -107,7 +110,11 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/app/editor_app.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/oscilloscope.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/pi_zn_tuner.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/pi_zn_math.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
@@ -117,6 +124,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/canvas_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/oscilloscope_plot.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node_content_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
@@ -134,19 +142,21 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/menu/main_menu.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/dialogs/file_dialogs.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/windows/sub_window_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/windows/oscilloscope_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/context_menus.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/color_picker_dialog.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/imgui_theme.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
     ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
@@ -170,20 +180,21 @@ target_link_libraries(an24_editor PRIVATE
     nfd
     jit_solver
     json_parser
+    blueprint_v2
     nlohmann_json::nlohmann_json
 )
+
+# Headless blueprint simulator with signal probing
+add_executable(sim_debug sim_debug.cpp)
+target_include_directories(sim_debug PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(sim_debug PRIVATE json_parser jit_solver blueprint_v2 spdlog::spdlog nlohmann_json::nlohmann_json)
 
 # Benchmark JIT vs AOT
 add_executable(benchmark_jit_vs_aot benchmark_jit_vs_aot.cpp)
 target_include_directories(benchmark_jit_vs_aot PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver spdlog::spdlog)
 
-# Library v1 → v2 converter (one-shot tool)
-add_executable(convert_library convert_library.cpp)
-target_include_directories(convert_library PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(convert_library PRIVATE json_parser nlohmann_json::nlohmann_json spdlog::spdlog)
-
+# Push scheduler benchmark (single-pass)
+add_executable(benchmark_push_scheduler benchmark_push_scheduler.cpp)
+target_include_directories(benchmark_push_scheduler PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(benchmark_push_scheduler PRIVATE jit_solver spdlog::spdlog)

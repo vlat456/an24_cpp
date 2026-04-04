@@ -1,74 +1,68 @@
 #include <gtest/gtest.h>
 #include "editor/visual/inspector/inspector.h"
-#include "editor/data/blueprint.h"
-#include "editor/data/node.h"
+#include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/path/path.h"
+#include "ui/core/interned_id.h"
 #include "editor/data/port.h"
-#include "editor/data/wire.h"
 
-// Note: Not using "using namespace an24" to avoid ambiguity between Port and editor::Port
-
-// Helper to create a simple test scene
+// Helper to create a simple test scene using bp2::Blueprint
 struct InspectorTestScene {
-    Blueprint bp;
+    ui::StringInterner interner;
+    bp2::PathArena arena;
+    bp2::Blueprint bp;
 
-    InspectorTestScene() = default;
+    InspectorTestScene() : arena(interner) {}
 
-    Node& addNode(const std::string& id, const std::string& type, Pt pos = Pt(0, 0)) {
-        auto& I = bp.interner();
-        Node n;
-        n.id = I.intern(id);
-        n.name = id;
-        n.type_name = type;
-        n.pos = pos;
-        n.size = Pt(120, 80);
+    /// Add a node to the blueprint with optional group_id.
+    bp2::Blueprint::Node& addNode(const std::string& id,
+                                   const std::string& type,
+                                   const std::string& group_id = "") {
+        bp2::Blueprint::Node n;
+        n.id        = interner.intern(id);
+        n.type      = interner.intern(type);
+        n.name      = id;
+        n.group_id  = group_id;
 
-        // Add default ports based on type (manually create Port structs)
         if (type == "Battery") {
-            EditorPort p_in; p_in.name = I.intern("v_in"); p_in.side = PortSide::Input; p_in.type = PortType::V;
-            EditorPort p_out; p_out.name = I.intern("v_out"); p_out.side = PortSide::Output; p_out.type = PortType::V;
-            n.inputs.push_back(p_in);
-            n.outputs.push_back(p_out);
+            n.inputs.push_back(EditorPort(interner.intern("v_in"),  PortSide::Input,  PortType::V));
+            n.outputs.push_back(EditorPort(interner.intern("v_out"), PortSide::Output, PortType::V));
         } else if (type == "Lamp") {
-            EditorPort p_in; p_in.name = I.intern("v_in"); p_in.side = PortSide::Input; p_in.type = PortType::V;
-            EditorPort p_out; p_out.name = I.intern("light"); p_out.side = PortSide::Output; p_out.type = PortType::Bool;
-            n.inputs.push_back(p_in);
-            n.outputs.push_back(p_out);
+            n.inputs.push_back(EditorPort(interner.intern("v_in"),  PortSide::Input,  PortType::V));
+            n.outputs.push_back(EditorPort(interner.intern("light"), PortSide::Output, PortType::Bool));
         } else if (type == "Switch") {
-            EditorPort p_vin; p_vin.name = I.intern("v_in"); p_vin.side = PortSide::Input; p_vin.type = PortType::V;
-            EditorPort p_ctrl; p_ctrl.name = I.intern("control"); p_ctrl.side = PortSide::Input; p_ctrl.type = PortType::Bool;
-            EditorPort p_out; p_out.name = I.intern("v_out"); p_out.side = PortSide::Output; p_out.type = PortType::V;
-            n.inputs.push_back(p_vin);
-            n.inputs.push_back(p_ctrl);
-            n.outputs.push_back(p_out);
-        } else if (type == "Test") {
-            EditorPort p_in; p_in.name = I.intern("in"); p_in.side = PortSide::Input; p_in.type = PortType::V;
-            EditorPort p_out; p_out.name = I.intern("out"); p_out.side = PortSide::Output; p_out.type = PortType::V;
-            n.inputs.push_back(p_in);
-            n.outputs.push_back(p_out);
-        } else if (type == "Zebra" || type == "Apple" || type == "Banana") {
-            // For sort tests - minimal ports
-            EditorPort p_in; p_in.name = I.intern("in"); p_in.side = PortSide::Input; p_in.type = PortType::V;
-            EditorPort p_out; p_out.name = I.intern("out"); p_out.side = PortSide::Output; p_out.type = PortType::V;
-            n.inputs.push_back(p_in);
-            n.outputs.push_back(p_out);
+            n.inputs.push_back(EditorPort(interner.intern("v_in"),    PortSide::Input, PortType::V));
+            n.inputs.push_back(EditorPort(interner.intern("control"), PortSide::Input, PortType::Bool));
+            n.outputs.push_back(EditorPort(interner.intern("v_out"),  PortSide::Output, PortType::V));
+        } else {
+            // Generic: in + out
+            n.inputs.push_back(EditorPort(interner.intern("in"),  PortSide::Input,  PortType::V));
+            n.outputs.push_back(EditorPort(interner.intern("out"), PortSide::Output, PortType::V));
         }
 
-        size_t idx = bp.add_node(std::move(n));
-        return bp.nodes[idx];
+        bp = bp.with_node(n);
+        // Return a reference to the node just added
+        return const_cast<bp2::Blueprint::Node&>(*bp.find_node(n.id));
+    }
+
+    /// Add a minimal node with explicit ports (for group-filtering tests).
+    void addNodeRaw(bp2::Blueprint::Node n) {
+        bp = bp.with_node(std::move(n));
+    }
+
+    /// Build a port Path: root → node(node_id) → port(port_name)
+    bp2::Path makePortPath(const std::string& node_id, const std::string& port_name) {
+        bp2::Path node_path = arena.make_node(arena.root(), interner.intern(node_id));
+        return arena.make_port(node_path, interner.intern(port_name));
     }
 
     void addWire(const std::string& src_node, const std::string& src_port,
                  const std::string& dst_node, const std::string& dst_port) {
-        auto& I = bp.interner();
-        Wire w;
-        w.start = WireEnd(I.intern(src_node), I.intern(src_port), PortSide::Output);
-        w.end = WireEnd(I.intern(dst_node), I.intern(dst_port), PortSide::Input);
-        bp.add_wire(w);
-    }
-
-    void rebuild() {
-        bp.rebuild_wire_index();
-        bp.rebuild_port_occupancy_index();
+        static int wire_counter = 0;
+        bp2::Blueprint::Wire w;
+        w.id     = interner.intern("wire_" + std::to_string(wire_counter++));
+        w.source = makePortPath(src_node, src_port);
+        w.target = makePortPath(dst_node, dst_port);
+        bp = bp.with_wire(w);
     }
 };
 
@@ -79,10 +73,9 @@ struct InspectorTestScene {
 TEST(Inspector, BuildDisplayTree_SingleNode_CreatesEntry) {
     InspectorTestScene ts;
     ts.addNode("battery", "Battery");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
-    inspector.buildDisplayTree();  // Force build
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
+    inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
     ASSERT_EQ(tree.size(), 1u);
@@ -96,20 +89,17 @@ TEST(Inspector, BuildDisplayTree_WithConnection_ShowsConnection) {
     ts.addNode("battery", "Battery");
     ts.addNode("lamp", "Lamp");
     ts.addWire("battery", "v_out", "lamp", "v_in");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
     ASSERT_EQ(tree.size(), 2u);
 
-    // Find battery node
     auto battery_it = std::find_if(tree.begin(), tree.end(),
         [](const DisplayNode& n) { return n.name == "battery"; });
     ASSERT_NE(battery_it, tree.end());
 
-    // Check battery has output port with connection
     auto v_out_it = std::find_if(battery_it->ports.begin(), battery_it->ports.end(),
         [](const DisplayPort& p) { return p.name == "v_out"; });
     ASSERT_NE(v_out_it, battery_it->ports.end());
@@ -120,15 +110,13 @@ TEST(Inspector, BuildDisplayTree_WithConnection_ShowsConnection) {
 TEST(Inspector, BuildDisplayTree_UnconnectedPort_ShowsNotConnected) {
     InspectorTestScene ts;
     ts.addNode("battery", "Battery");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
     ASSERT_EQ(tree.size(), 1u);
 
-    // Find an input port (should be unconnected)
     auto input_it = std::find_if(tree[0].ports.begin(), tree[0].ports.end(),
         [](const DisplayPort& p) { return p.side == PortSide::Input; });
     if (input_it != tree[0].ports.end()) {
@@ -141,9 +129,8 @@ TEST(Inspector, ConnectionCount_SingleWire_CountsBothNodes) {
     ts.addNode("battery", "Battery");
     ts.addNode("lamp", "Lamp");
     ts.addWire("battery", "v_out", "lamp", "v_in");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -159,26 +146,24 @@ TEST(Inspector, ConnectionCount_MultipleWiresFromOneNode) {
     ts.addNode("lamp2", "Lamp");
     ts.addWire("battery", "v_out", "lamp1", "v_in");
     ts.addWire("battery", "v_out", "lamp2", "v_in");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
     auto battery_it = std::find_if(tree.begin(), tree.end(),
         [](const DisplayNode& n) { return n.name == "battery"; });
     ASSERT_NE(battery_it, tree.end());
-    EXPECT_EQ(battery_it->connection_count, 2u);  // 2 wires from battery
+    EXPECT_EQ(battery_it->connection_count, 2u);
 }
 
 TEST(Inspector, SearchFilter_MatchesName) {
     InspectorTestScene ts;
     ts.addNode("battery", "Battery");
     ts.addNode("lamp", "Lamp");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
-    inspector.setSearch("bat");  // Should match "battery"
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
+    inspector.setSearch("bat");
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -190,10 +175,9 @@ TEST(Inspector, SearchFilter_MatchesType) {
     InspectorTestScene ts;
     ts.addNode("main_battery", "Battery");
     ts.addNode("lamp", "Lamp");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
-    inspector.setSearch("lamp");  // Should match Lamp type
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
+    inspector.setSearch("lamp");
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -205,18 +189,16 @@ TEST(Inspector, SearchFilter_MatchesType) {
 TEST(Inspector, MarkDirty_RebuildsOnChange) {
     InspectorTestScene ts;
     ts.addNode("battery", "Battery");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.buildDisplayTree();
     ASSERT_EQ(inspector.displayTree().size(), 1u);
 
-    // Add another node
+    // Add another node and update the blueprint reference
     ts.addNode("lamp", "Lamp");
-    ts.rebuild();
+    inspector.setBlueprint(ts.bp, ts.arena, ts.interner);
     inspector.markDirty();
 
-    // Tree should rebuild with new node
     inspector.buildDisplayTree();
     EXPECT_EQ(inspector.displayTree().size(), 2u);
 }
@@ -226,9 +208,8 @@ TEST(Inspector, SortMode_ByName) {
     ts.addNode("zebra", "Test");
     ts.addNode("apple", "Test");
     ts.addNode("banana", "Test");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.setSortMode(Inspector::SortMode::Name);
     inspector.buildDisplayTree();
 
@@ -244,9 +225,8 @@ TEST(Inspector, SortMode_ByType) {
     ts.addNode("a", "Zebra");
     ts.addNode("b", "Apple");
     ts.addNode("c", "Banana");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.setSortMode(Inspector::SortMode::Type);
     inspector.buildDisplayTree();
 
@@ -262,46 +242,40 @@ TEST(Inspector, SortMode_ByType) {
 // =============================================================================
 
 TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
-    Blueprint bp;
-    auto& I = bp.interner();
-    // Root-level node
-    Node root_node;
-    root_node.id = I.intern("battery1");
-    root_node.name = "battery1";
-    root_node.type_name = "Battery";
-    root_node.group_id = "";
-EditorPort ri; ri.name = I.intern("v_in"); ri.side = PortSide::Input; ri.type = PortType::V;
-EditorPort ro; ro.name = I.intern("v_out"); ro.side = PortSide::Output; ro.type = PortType::V;
-    root_node.inputs.push_back(ri);
-    root_node.outputs.push_back(ro);
-    bp.add_node(std::move(root_node));
+    InspectorTestScene ts;
 
-    // Collapsed blueprint node (visible at root level)
-    Node bp_node;
-    bp_node.id = I.intern("lamp1");
-    bp_node.name = "lamp1";
-    bp_node.type_name = "LampBlueprint";
-    bp_node.expandable = true;
-    bp_node.group_id = "";
-    bp.add_node(std::move(bp_node));
+    {
+        bp2::Blueprint::Node root_node;
+        root_node.id       = ts.interner.intern("battery1");
+        root_node.type     = ts.interner.intern("Battery");
+        root_node.name     = "battery1";
+        root_node.group_id = "";
+        root_node.inputs.push_back(EditorPort(ts.interner.intern("v_in"),  PortSide::Input,  PortType::V));
+        root_node.outputs.push_back(EditorPort(ts.interner.intern("v_out"), PortSide::Output, PortType::V));
+        ts.addNodeRaw(std::move(root_node));
+    }
+    {
+        bp2::Blueprint::Node bp_node;
+        bp_node.id         = ts.interner.intern("lamp1");
+        bp_node.type       = ts.interner.intern("LampBlueprint");
+        bp_node.name       = "lamp1";
+        bp_node.expandable = true;
+        bp_node.group_id   = "";
+        ts.addNodeRaw(std::move(bp_node));
+    }
+    {
+        bp2::Blueprint::Node internal;
+        internal.id       = ts.interner.intern("lamp1:led");
+        internal.type     = ts.interner.intern("LED");
+        internal.name     = "lamp1:led";
+        internal.group_id = "lamp1";
+        internal.inputs.push_back(EditorPort(ts.interner.intern("v_in"), PortSide::Input, PortType::V));
+        ts.addNodeRaw(std::move(internal));
+    }
 
-    // Internal node (hidden from root)
-    Node internal;
-    internal.id = I.intern("lamp1:led");
-    internal.name = "lamp1:led";
-    internal.type_name = "LED";
-    internal.group_id = "lamp1";
-EditorPort ii; ii.name = I.intern("v_in"); ii.side = PortSide::Input; ii.type = PortType::V;
-    internal.inputs.push_back(ii);
-    bp.add_node(std::move(internal));
-
-    bp.rebuild_wire_index();
-    bp.rebuild_port_occupancy_index();
-
-    Inspector inspector(&bp);  // root group
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner, "");
     inspector.buildDisplayTree();
 
-    // Root inspector should show battery1 + lamp1, NOT lamp1:led
     ASSERT_EQ(inspector.displayTree().size(), 2u);
     for (const auto& dn : inspector.displayTree()) {
         EXPECT_NE(dn.name, "lamp1:led") << "Internal node leaked into root inspector";
@@ -309,45 +283,39 @@ EditorPort ii; ii.name = I.intern("v_in"); ii.side = PortSide::Input; ii.type = 
 }
 
 TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
-    Blueprint bp;
-    auto& I = bp.interner();
-    // Root-level node
-    Node root_node;
-    root_node.id = I.intern("battery1");
-    root_node.name = "battery1";
-    root_node.type_name = "Battery";
-    root_node.group_id = "";
-    bp.add_node(std::move(root_node));
+    InspectorTestScene ts;
 
-    // Internal nodes belonging to "lamp1" group
-    Node led;
-    led.id = I.intern("lamp1:led");
-    led.name = "lamp1:led";
-    led.type_name = "LED";
-    led.group_id = "lamp1";
-EditorPort li; li.name = I.intern("v_in"); li.side = PortSide::Input; li.type = PortType::V;
-    led.inputs.push_back(li);
-    bp.add_node(std::move(led));
+    {
+        bp2::Blueprint::Node root_node;
+        root_node.id       = ts.interner.intern("battery1");
+        root_node.type     = ts.interner.intern("Battery");
+        root_node.name     = "battery1";
+        root_node.group_id = "";
+        ts.addNodeRaw(std::move(root_node));
+    }
+    {
+        bp2::Blueprint::Node led;
+        led.id       = ts.interner.intern("lamp1:led");
+        led.type     = ts.interner.intern("LED");
+        led.name     = "lamp1:led";
+        led.group_id = "lamp1";
+        led.inputs.push_back(EditorPort(ts.interner.intern("v_in"), PortSide::Input, PortType::V));
+        ts.addNodeRaw(std::move(led));
+    }
+    {
+        bp2::Blueprint::Node res;
+        res.id       = ts.interner.intern("lamp1:res");
+        res.type     = ts.interner.intern("Resistor");
+        res.name     = "lamp1:res";
+        res.group_id = "lamp1";
+        res.inputs.push_back(EditorPort(ts.interner.intern("v_in"),  PortSide::Input,  PortType::V));
+        res.outputs.push_back(EditorPort(ts.interner.intern("v_out"), PortSide::Output, PortType::V));
+        ts.addNodeRaw(std::move(res));
+    }
 
-    Node res;
-    res.id = I.intern("lamp1:res");
-    res.name = "lamp1:res";
-    res.type_name = "Resistor";
-    res.group_id = "lamp1";
-EditorPort ri2; ri2.name = I.intern("v_in"); ri2.side = PortSide::Input; ri2.type = PortType::V;
-EditorPort ro2; ro2.name = I.intern("v_out"); ro2.side = PortSide::Output; ro2.type = PortType::V;
-    res.inputs.push_back(ri2);
-    res.outputs.push_back(ro2);
-    bp.add_node(std::move(res));
-
-    bp.rebuild_wire_index();
-    bp.rebuild_port_occupancy_index();
-
-    // Sub-blueprint inspector for "lamp1" group
-    Inspector sub_inspector(&bp, "lamp1");
+    Inspector sub_inspector(&ts.bp, &ts.arena, &ts.interner, "lamp1");
     sub_inspector.buildDisplayTree();
 
-    // Should show only lamp1:led and lamp1:res, NOT battery1
     ASSERT_EQ(sub_inspector.displayTree().size(), 2u);
     for (const auto& dn : sub_inspector.displayTree()) {
         EXPECT_NE(dn.name, "battery1") << "Root node leaked into sub-inspector";
@@ -355,67 +323,57 @@ EditorPort ro2; ro2.name = I.intern("v_out"); ro2.side = PortSide::Output; ro2.t
 }
 
 TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
-    Blueprint bp;
-    auto& I = bp.interner();
-    // Root node
-    Node bat;
-    bat.id = I.intern("bat");
-    bat.name = "bat";
-    bat.type_name = "Battery";
-    bat.group_id = "";
-EditorPort bo; bo.name = I.intern("v_out"); bo.side = PortSide::Output; bo.type = PortType::V;
-    bat.outputs.push_back(bo);
-    bp.add_node(std::move(bat));
+    InspectorTestScene ts;
 
-    // Root node lamp (collapsed)
-    Node lamp;
-    lamp.id = I.intern("lamp1");
-    lamp.name = "lamp1";
-    lamp.type_name = "Lamp";
-    lamp.expandable = true;
-    lamp.group_id = "";
-EditorPort lvi; lvi.name = I.intern("v_in"); lvi.side = PortSide::Input; lvi.type = PortType::V;
-    lamp.inputs.push_back(lvi);
-    bp.add_node(std::move(lamp));
-
+    // Root bat
+    {
+        bp2::Blueprint::Node bat;
+        bat.id       = ts.interner.intern("bat");
+        bat.type     = ts.interner.intern("Battery");
+        bat.name     = "bat";
+        bat.group_id = "";
+        bat.outputs.push_back(EditorPort(ts.interner.intern("v_out"), PortSide::Output, PortType::V));
+        ts.addNodeRaw(std::move(bat));
+    }
+    // Root lamp1 (collapsed)
+    {
+        bp2::Blueprint::Node lamp;
+        lamp.id         = ts.interner.intern("lamp1");
+        lamp.type       = ts.interner.intern("Lamp");
+        lamp.name       = "lamp1";
+        lamp.expandable = true;
+        lamp.group_id   = "";
+        lamp.inputs.push_back(EditorPort(ts.interner.intern("v_in"), PortSide::Input, PortType::V));
+        ts.addNodeRaw(std::move(lamp));
+    }
     // Internal nodes
-    Node iled;
-    iled.id = I.intern("lamp1:led");
-    iled.name = "lamp1:led";
-    iled.type_name = "LED";
-    iled.group_id = "lamp1";
-EditorPort iledi; iledi.name = I.intern("v_in"); iledi.side = PortSide::Input; iledi.type = PortType::V;
-EditorPort iledo; iledo.name = I.intern("v_out"); iledo.side = PortSide::Output; iledo.type = PortType::V;
-    iled.inputs.push_back(iledi);
-    iled.outputs.push_back(iledo);
-    bp.add_node(std::move(iled));
+    {
+        bp2::Blueprint::Node iled;
+        iled.id       = ts.interner.intern("lamp1:led");
+        iled.type     = ts.interner.intern("LED");
+        iled.name     = "lamp1:led";
+        iled.group_id = "lamp1";
+        iled.inputs.push_back(EditorPort(ts.interner.intern("v_in"),  PortSide::Input,  PortType::V));
+        iled.outputs.push_back(EditorPort(ts.interner.intern("v_out"), PortSide::Output, PortType::V));
+        ts.addNodeRaw(std::move(iled));
+    }
+    {
+        bp2::Blueprint::Node ires;
+        ires.id       = ts.interner.intern("lamp1:res");
+        ires.type     = ts.interner.intern("Resistor");
+        ires.name     = "lamp1:res";
+        ires.group_id = "lamp1";
+        ires.inputs.push_back(EditorPort(ts.interner.intern("v_in"), PortSide::Input, PortType::V));
+        ts.addNodeRaw(std::move(ires));
+    }
 
-    Node ires;
-    ires.id = I.intern("lamp1:res");
-    ires.name = "lamp1:res";
-    ires.type_name = "Resistor";
-    ires.group_id = "lamp1";
-EditorPort iresi; iresi.name = I.intern("v_in"); iresi.side = PortSide::Input; iresi.type = PortType::V;
-    ires.inputs.push_back(iresi);
-    bp.add_node(std::move(ires));
+    // Root wire: bat:v_out -> lamp1:v_in
+    ts.addWire("bat", "v_out", "lamp1", "v_in");
+    // Internal wire: lamp1:led:v_out -> lamp1:res:v_in
+    ts.addWire("lamp1:led", "v_out", "lamp1:res", "v_in");
 
-    // Root wire: bat -> lamp1
-    Wire rw;
-    rw.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output);
-    rw.end = WireEnd(I.intern("lamp1"), I.intern("v_in"), PortSide::Input);
-    bp.add_wire(rw);
-
-    // Internal wire: lamp1:led -> lamp1:res
-    Wire iw;
-    iw.start = WireEnd(I.intern("lamp1:led"), I.intern("v_out"), PortSide::Output);
-    iw.end = WireEnd(I.intern("lamp1:res"), I.intern("v_in"), PortSide::Input);
-    bp.add_wire(iw);
-
-    bp.rebuild_wire_index();
-    bp.rebuild_port_occupancy_index();
-
-    // Root inspector: bat should have 1 connection (root wire), not 2
-    Inspector root_inspector(&bp);  // root group
+    // Root inspector
+    Inspector root_inspector(&ts.bp, &ts.arena, &ts.interner, "");
     root_inspector.buildDisplayTree();
 
     const auto& root_tree = root_inspector.displayTree();
@@ -424,8 +382,8 @@ EditorPort iresi; iresi.name = I.intern("v_in"); iresi.side = PortSide::Input; i
     ASSERT_NE(bat_it, root_tree.end());
     EXPECT_EQ(bat_it->connection_count, 1u) << "Root wire count contaminated by internal wires";
 
-    // Sub inspector: lamp1:led should have 1 connection (internal wire)
-    Inspector sub_inspector(&bp, "lamp1");
+    // Sub inspector
+    Inspector sub_inspector(&ts.bp, &ts.arena, &ts.interner, "lamp1");
     sub_inspector.buildDisplayTree();
 
     const auto& sub_tree = sub_inspector.displayTree();
@@ -442,9 +400,8 @@ TEST(Inspector, FanOut_OutputShowsMultipleConnections) {
     ts.addNode("lamp2", "Lamp");
     ts.addWire("battery", "v_out", "lamp1", "v_in");
     ts.addWire("battery", "v_out", "lamp2", "v_in");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -452,12 +409,10 @@ TEST(Inspector, FanOut_OutputShowsMultipleConnections) {
         [](const DisplayNode& n) { return n.name == "battery"; });
     ASSERT_NE(battery_it, tree.end());
 
-    // Find v_out port — should show both connections
     auto v_out_it = std::find_if(battery_it->ports.begin(), battery_it->ports.end(),
         [](const DisplayPort& p) { return p.name == "v_out"; });
     ASSERT_NE(v_out_it, battery_it->ports.end());
     EXPECT_NE(v_out_it->connection, "[not connected]");
-    // Should contain both lamp1 and lamp2
     EXPECT_NE(v_out_it->connection.find("lamp1"), std::string::npos)
         << "Missing lamp1 in fan-out: " << v_out_it->connection;
     EXPECT_NE(v_out_it->connection.find("lamp2"), std::string::npos)
@@ -471,9 +426,8 @@ TEST(Inspector, FanOut_OutputShowsMultipleConnections) {
 TEST(Inspector, DisplayNode_HasNodeId) {
     InspectorTestScene ts;
     ts.addNode("bat1", "Battery");
-    ts.rebuild();
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -487,18 +441,15 @@ TEST(Inspector, DisplayNode_HasNodeId) {
 
 TEST(Inspector, ConsumeSelection_EmptyByDefault) {
     InspectorTestScene ts;
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     EXPECT_TRUE(inspector.consumeSelection().empty());
 }
 
 TEST(Inspector, ConsumeSelection_ClearsAfterRead) {
     InspectorTestScene ts;
-    Inspector inspector(&ts.bp);
-    // Simulate a click by directly setting the field (render() would do this via ImGui)
-    // We test consumeSelection logic only
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     auto sel1 = inspector.consumeSelection();
     EXPECT_TRUE(sel1.empty());
-    // Second read is also empty
     auto sel2 = inspector.consumeSelection();
     EXPECT_TRUE(sel2.empty());
 }
@@ -509,21 +460,20 @@ TEST(Inspector, ConsumeSelection_ClearsAfterRead) {
 
 TEST(Inspector, Regression_NameUpdateAfterMarkDirty) {
     InspectorTestScene ts;
-    Node& bat = ts.addNode("bat1", "Battery");
-    ts.rebuild();
+    ts.addNode("bat1", "Battery");
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.buildDisplayTree();
 
-    // Initially the name == id
     ASSERT_EQ(inspector.displayTree().size(), 1u);
     EXPECT_EQ(inspector.displayTree()[0].name, "bat1");
 
-    // Simulate rename (properties window modifies node.name in-place)
-    bat.name = "Main Battery 28V";
+    // Mutate the blueprint: replace the node with a renamed version
+    bp2::Blueprint::Node updated = *ts.bp.find_node(ts.interner.intern("bat1"));
+    updated.name = "Main Battery 28V";
+    ts.bp = ts.bp.without_node(ts.interner.intern("bat1")).with_node(updated);
 
-    // Without markDirty(), the tree is stale
-    // Calling buildDisplayTree after markDirty() should pick up the new name
+    inspector.setBlueprint(ts.bp, ts.arena, ts.interner);
     inspector.markDirty();
     inspector.buildDisplayTree();
 
@@ -534,13 +484,14 @@ TEST(Inspector, Regression_NameUpdateAfterMarkDirty) {
 
 TEST(Inspector, Regression_CyrillicNameInDisplayTree) {
     InspectorTestScene ts;
-    Node& node = ts.addNode("azs_1", "Test");
-    ts.rebuild();
+    ts.addNode("azs_1", "Test");
 
-    // Set a Cyrillic display name
-    node.name = "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8";  // "АЗС Батареи"
+    // Set a Cyrillic display name via bp mutation
+    bp2::Blueprint::Node updated = *ts.bp.find_node(ts.interner.intern("azs_1"));
+    updated.name = "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8";  // "АЗС Батареи"
+    ts.bp = ts.bp.without_node(ts.interner.intern("azs_1")).with_node(updated);
 
-    Inspector inspector(&ts.bp);
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner);
     inspector.buildDisplayTree();
 
     ASSERT_EQ(inspector.displayTree().size(), 1u);

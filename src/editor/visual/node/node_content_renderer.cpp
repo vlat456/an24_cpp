@@ -7,9 +7,9 @@
 
 void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
     float zoom = win.viewport.zoom;
-    const auto& interner = doc.blueprint().interner();
+    const auto& interner = doc.interner();
     
-    for (auto& node : doc.blueprint().nodes) {
+    for (const auto& node : doc.blueprint().nodes()) {
         if (node.group_id != win.group_id) continue;
 
         // Find the corresponding widget in the scene tree
@@ -19,8 +19,8 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
         auto* node_widget = dynamic_cast<visual::NodeWidget*>(widget);
         if (!node_widget) continue;
 
-        NodeContentType ctype = node.node_content.type;
-        if (ctype == NodeContentType::None) continue;
+        bp2::NodeContentType ctype = node.content_type;
+        if (ctype == bp2::NodeContentType::None) continue;
 
         Pt screen_min = win.viewport.world_to_screen(node_widget->worldPos(), cmin);
         Bounds cb = node_widget->contentBounds();
@@ -30,20 +30,19 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
         if (aw <= MIN_CONTENT_WIDTH) continue;
 
         ImGui::SetCursorScreenPos(ImVec2(cx, cy));
-        NodeContent& content = node.node_content;
 
-        switch (content.type) {
-            case NodeContentType::Switch:
-                renderSwitch(node, content, aw, win.read_only, doc);
+        switch (node.content_type) {
+            case bp2::NodeContentType::Switch:
+                renderSwitch(node, aw, win.read_only, doc);
                 break;
-            case NodeContentType::Value:
-                renderValue(content, aw, win.read_only);
+            case bp2::NodeContentType::Value:
+                renderValue(node, aw, win.read_only);
                 break;
-            case NodeContentType::Gauge:
-                renderGauge(content, aw);
+            case bp2::NodeContentType::Gauge:
+                renderGauge(node, aw);
                 break;
-            case NodeContentType::Text:
-                renderText(content);
+            case bp2::NodeContentType::Text:
+                renderText(node);
                 break;
             default:
                 break;
@@ -51,14 +50,14 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
     }
 }
 
-void NodeContentRenderer::renderSwitch(const Node& node, NodeContent& content, 
+void NodeContentRenderer::renderSwitch(const bp2::Blueprint::Node& node,
                                         float width, bool readOnly, Document& doc) {
     if (readOnly) return;
     
-    if (isHoldButton(node)) {
-        bool checked = content.state;
+    if (isHoldButton(node, doc.interner())) {
+        bool checked = node.content_state;
         // Resolve node.id (InternedId) to string for ImGui ID and callbacks
-        std::string node_id_str(doc.blueprint().interner().resolve(node.id));
+        std::string node_id_str(doc.interner().resolve(node.id));
         std::string id = "##hold_" + node_id_str;
         if (ImGui::Checkbox(id.c_str(), &checked)) {
             if (holdButtonCallback_) {
@@ -71,25 +70,31 @@ void NodeContentRenderer::renderSwitch(const Node& node, NodeContent& content,
     }
 }
 
-void NodeContentRenderer::renderValue(NodeContent& content, float width, bool readOnly) {
+void NodeContentRenderer::renderValue(const bp2::Blueprint::Node& node,
+                                       float width, bool readOnly) {
     if (readOnly) return;
+    // node.content_value is const in the blueprint; this renderer is read-only display
+    // (mutations go through EditorModel). Just show the slider as read-only.
+    float val = node.content_value;
     ImGui::SetNextItemWidth(width);
-    std::string id = "##v_" + std::to_string(reinterpret_cast<uintptr_t>(&content));
-    ImGui::SliderFloat(id.c_str(), &content.value, content.min, content.max, "%.2f");
+    std::string id = "##v_" + std::to_string(node.id.raw());
+    ImGui::SliderFloat(id.c_str(), &val, node.content_min, node.content_max, "%.2f");
 }
 
-void NodeContentRenderer::renderGauge(const NodeContent& content, float width) {
+void NodeContentRenderer::renderGauge(const bp2::Blueprint::Node& node, float width) {
     // Gauge is now rendered by VoltmeterWidget in the scene graph.
     // No ImGui overlay needed — the analog needle gauge replaces
     // the old progress bar.
-    (void)content;
+    (void)node;
     (void)width;
 }
 
-void NodeContentRenderer::renderText(const NodeContent& content) {
-    ImGui::Text("%s", content.label.c_str());
+void NodeContentRenderer::renderText(const bp2::Blueprint::Node& node) {
+    ImGui::Text("%s", node.content_label.c_str());
 }
 
-bool NodeContentRenderer::isHoldButton(const Node& node) const {
-    return node.type_name == "HoldButton";
+bool NodeContentRenderer::isHoldButton(const bp2::Blueprint::Node& node,
+                                        const ui::StringInterner& interner) const {
+    std::string_view type_sv = interner.resolve(node.type);
+    return type_sv == "HoldButton";
 }

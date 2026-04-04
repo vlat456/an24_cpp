@@ -6,12 +6,96 @@
 #include "editor/visual/scene_hittest.h"
 #include "editor/visual/renderer/draw_list.h"
 #include "editor/imgui_draw_list.h"
+#include "editor/visual/oscilloscope_plot.h"
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
-#include "ui/renderer/tooltip.h"
+#include "editor/signal_key_resolver.h"
+#include "editor/external_ref_mapping.h"  // editor::build_signal_key
+#include "blueprint_v2/path/path.h"
 #include <imgui.h>
 #include <unordered_set>
 #include <cstdio>
+#include <cstdlib>
+
+// ===========================================================================
+// Development diagnostics: hover signal key resolution trace
+// ===========================================================================
+
+static bool maybe_log_hover_signal_resolution(
+    const std::string& visual_node,
+    const std::string& visual_port,
+    const std::string& resolved_key,
+    float value) {
+    static bool initialized = false;
+    static bool enabled = false;
+    
+    if (!initialized) {
+        const char* env = std::getenv("AN24_EDITOR_DEBUG_SIGNAL_KEYS");
+        enabled = (env != nullptr && env[0] == '1');
+        initialized = true;
+    }
+    
+    if (enabled) {
+        fprintf(stdout, "[DBG-HOVER] %s.%s => %s (%.2fV)\n",
+                visual_node.c_str(), visual_port.c_str(), resolved_key.c_str(), value);
+        fflush(stdout);
+    }
+    
+    return enabled;
+}
+
+static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSystem& ws,
+                                 Pt cmin, ImDrawList* draw_list) {
+    if (!ws.showOscilloscope) return;
+    for (const auto& [wire_id, probe] : ws.oscilloscope.probes()) {
+        if (probe.doc_id != doc.id()) continue;
+        if (probe.group_id != win.group_id) continue;
+
+        Pt sp = win.viewport.world_to_screen(probe.world_pos, cmin);
+        visual::osc::draw_probe_marker(draw_list, sp, probe.color);
+    }
+}
+
+static void render_hover_scope_tooltip(Document& doc,
+                                       WindowSystem& ws,
+                                       const std::string& label,
+                                       const Pt& anchor_screen) {
+    const std::deque<float>& samples = ws.oscilloscope.hover_samples();
+    if (samples.empty()) return;
+
+    OscilloscopeProbe pseudo;
+    pseudo.label = label;
+    pseudo.wire_id = "hover_scope";
+    pseudo.color = IM_COL32(80, 200, 255, 255);
+
+    const ImVec2 display = ImGui::GetIO().DisplaySize;
+    constexpr float kWindowW = 380.0f;
+    constexpr float kWindowH = 132.0f;
+    float px = anchor_screen.x + 10.0f;
+    float py = anchor_screen.y - (kWindowH + 10.0f);
+    if (px + kWindowW > display.x - 8.0f) px = display.x - kWindowW - 8.0f;
+    if (px < 8.0f) px = 8.0f;
+    if (py < 8.0f) py = anchor_screen.y + 10.0f;
+    if (py + kWindowH > display.y - 8.0f) py = display.y - kWindowH - 8.0f;
+
+    ImGui::SetNextWindowBgAlpha(0.96f);
+    ImGui::SetNextWindowPos(ImVec2(px, py), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(kWindowW, kWindowH), ImGuiCond_Always);
+    if (ImGui::Begin("##hover_scope", nullptr,
+                     ImGuiWindowFlags_NoDecoration |
+                     ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoFocusOnAppearing |
+                     ImGuiWindowFlags_NoNav)) {
+        std::vector<OscilloscopeModel::ChannelView> one;
+        one.push_back({&pseudo, &samples});
+        float min_v = 0.0f;
+        float max_v = 0.0f;
+        visual::osc::compute_range(one, min_v, max_v);
+        visual::osc::render_channel_plot(pseudo, samples, min_v, max_v, 72.0f, -1.0f);
+        visual::osc::render_stats_row(OscilloscopeModel::compute_stats(samples, ws.oscilloscope.sample_period_sec()));
+    }
+    ImGui::End();
+}
 
 static ImGuiDrawList make_dl(ImDrawList* raw) {
     ImGuiDrawList dl;
@@ -33,8 +117,9 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
 
     renderGrid(win, cmin, cmax, draw_list);
     renderBlueprint(win, doc, cmin, cmax, draw_list);
-    renderTooltips(win, doc, cmin, draw_list);
+    renderTooltips(win, doc, ws, cmin, draw_list);
     renderTempWire(win, cmin, draw_list);
+    render_probe_markers(win, doc, ws, cmin, draw_list);
     node_renderer_.render(doc, win, cmin);
     renderMarquee(win, cmin, draw_list);
     
@@ -54,7 +139,15 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
 
     // Build energized wire set from simulation (reuse buffer across frames)
     energized_buf_.clear();
-    doc.buildEnergizedWireSet(energized_buf_, win.group_id);
+    if (win.is_external_ref() && win.external_blueprint && win.external_interner && win.external_arena) {
+        doc.buildEnergizedWireSetExternal(energized_buf_,
+                                          *win.external_blueprint,
+                                          *win.external_interner,
+                                          *win.external_arena,
+                                          win.parent_instance_id);
+    } else {
+        doc.buildEnergizedWireSet(energized_buf_, win.group_id);
+    }
 
     // Resolve selected node IDs → pointers for this frame.
     // Must outlive ctx (which stores a pointer to it).
@@ -74,18 +167,9 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
     win.scene.render(&dl, ctx);
 }
 
-/// Walk up the widget parent chain to find the owning node's ID.
-/// Returns the id() of the nearest ancestor whose parent is nullptr
-/// (i.e. the root widget, which is always a node/bus/group widget).
-static std::string_view find_owner_node_id(const visual::Widget* w) {
-    const visual::Widget* cur = w;
-    while (cur->parent()) {
-        cur = cur->parent();
-    }
-    return cur->id();
-}
-
-void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin, ImDrawList* draw_list) {
+void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowSystem& ws,
+                                    Pt cmin, ImDrawList* draw_list) {
+    (void)draw_list;
     if (!doc.isSimulationRunning()) return;
 
     ImVec2 mp = ImGui::GetMousePos();
@@ -93,72 +177,140 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin
     Pt mouse_world = win.viewport.screen_to_world(mouse_screen, cmin);
 
     auto hit = visual::hit_test(win.scene, mouse_world);
-
-    ui::Tooltip tip;
+    ws.oscilloscope.clear_hover_signal();
 
     if (auto* hp = std::get_if<visual::HitPort>(&hit)) {
         visual::Port* port = hp->port;
-        std::string_view node_id = find_owner_node_id(port);
+        std::string_view node_id = port->rootAncestorId();
         if (node_id.empty()) return;
 
         std::string_view port_name = port->name();
-        float val = doc.simulation().get_port_value(std::string(node_id), std::string(port_name));
-
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "%.3f", val);
-
         Pt port_screen = win.viewport.world_to_screen(port->worldPos(), cmin);
-        tip.active = true;
-        tip.screen_pos = port_screen;
-        tip.label = std::string(node_id) + "." + std::string(port_name);
-        tip.value = buf;
+        std::string signal_key;
+        auto resolve_with_context = [&](const bp2::Blueprint& bp_ref,
+                                        const ui::StringInterner& key_interner,
+                                        const bp2::Blueprint::Node* node,
+                                        ui::InternedId node_iid,
+                                        ui::InternedId port_iid,
+                                        const editor::SignalKeyContext& context) {
+            editor::SignalEndpoint endpoint{node, node_iid, port_iid};
+            return editor::resolve_runtime_signal_key(bp_ref, key_interner, endpoint, context);
+        };
+
+        // Use centralized resolver for signal key lookup
+        if (win.is_external_ref() && !win.parent_instance_id.empty()) {
+            auto node_iid = win.external_interner ? win.external_interner->lookup(node_id) : ui::InternedId();
+            auto port_iid = win.external_interner ? win.external_interner->lookup(port_name) : ui::InternedId();
+            if (!node_iid.empty() && !port_iid.empty() && win.external_blueprint) {
+                const bp2::Blueprint::Node* node = win.external_blueprint->find_node(node_iid);
+                signal_key = resolve_with_context(*win.external_blueprint,
+                                                  *win.external_interner,
+                                                  node,
+                                                  node_iid,
+                                                  port_iid,
+                                                  editor::external_ref_signal_context(win.parent_instance_id));
+                // If resolver returns empty, use fallback
+                if (signal_key.empty()) {
+                    signal_key = editor::build_signal_key(node_id, port_name);
+                }
+            } else {
+                signal_key = editor::build_signal_key(node_id, port_name);
+            }
+        } else {
+            auto node_iid = doc.interner().lookup(node_id);
+            auto port_iid = doc.interner().lookup(port_name);
+            if (!node_iid.empty() && !port_iid.empty()) {
+                const bp2::Blueprint::Node* node = doc.blueprint().find_node(node_iid);
+                signal_key = resolve_with_context(doc.blueprint(),
+                                                  doc.interner(),
+                                                  node,
+                                                  node_iid,
+                                                  port_iid,
+                                                  editor::root_signal_context());
+                // If resolver returns empty, use fallback
+                if (signal_key.empty()) {
+                    signal_key = editor::build_signal_key(node_id, port_name);
+                }
+            } else {
+                signal_key = editor::build_signal_key(node_id, port_name);
+            }
+        }
+        
+        // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
+        if (!signal_key.empty()) {
+            float current_value = doc.simulation().get_wire_voltage(signal_key);
+            maybe_log_hover_signal_resolution(std::string(node_id), std::string(port_name), signal_key, current_value);
+        }
+        
+        ws.oscilloscope.set_hover_signal(signal_key);
+        render_hover_scope_tooltip(doc, ws, signal_key, port_screen);
+        return;
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
         visual::Wire* wire = hw->wire;
         std::string_view wire_id_sv = wire->id();
-        auto wire_iid = doc.blueprint().interner().lookup(wire_id_sv);
-        const ::Wire* data_wire = doc.blueprint().find_wire(wire_iid);
+        // For external-ref windows, use the external interner/arena to decode wire paths
+        auto& interner = win.is_external_ref() && win.external_interner
+                         ? *win.external_interner : doc.interner();
+        auto wire_iid = interner.lookup(wire_id_sv);
+        const bp2::Blueprint& bp_ref = win.is_external_ref() && win.external_blueprint
+                                       ? *win.external_blueprint : doc.blueprint();
+        const bp2::Blueprint::Wire* data_wire = bp_ref.find_wire(wire_iid);
         if (!data_wire) return;
 
-        const auto& bp_interner = doc.blueprint().interner();
-        std::string_view node_sv = bp_interner.resolve(data_wire->start.node_id);
-        std::string_view port_sv = bp_interner.resolve(data_wire->start.port_name);
+        // Decode the source port path: Port -> Node -> Root
+        bp2::PathArena& arena_ref = win.is_external_ref() && win.external_arena
+                                    ? *win.external_arena : const_cast<bp2::PathArena&>(doc.arena());
+        bp2::Path src = data_wire->source;
+        if (src.kind() != bp2::PathKind::Port) return;
+        ui::InternedId port_iid = src.segment();
+        bp2::Path node_path = arena_ref.parent(src);
+        if (node_path.kind() != bp2::PathKind::Node) return;
+        ui::InternedId node_iid = node_path.segment();
+
         std::string signal_key;
-        signal_key.reserve(node_sv.size() + 1 + port_sv.size());
-        signal_key.append(node_sv);
-        signal_key.push_back('.');
-        signal_key.append(port_sv);
-        float val = doc.simulation().get_wire_voltage(signal_key);
+        // Use resolver for signal key lookup
+        const bp2::Blueprint::Node* bp_node = bp_ref.find_node(node_iid);
+        if (win.is_external_ref() && !win.parent_instance_id.empty()) {
+            editor::SignalEndpoint endpoint{bp_node, node_iid, port_iid};
+            signal_key = editor::resolve_runtime_signal_key(
+                bp_ref, interner, endpoint,
+                editor::external_ref_signal_context(win.parent_instance_id));
+        } else {
+            editor::SignalEndpoint endpoint{bp_node, node_iid, port_iid};
+            signal_key = editor::resolve_runtime_signal_key(
+                bp_ref, interner, endpoint, editor::root_signal_context());
+         }
+         
+         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
+         if (!signal_key.empty()) {
+             std::string_view node_name = interner.resolve(node_iid);
+             std::string_view port_name = interner.resolve(port_iid);
+             float current_value = doc.simulation().get_wire_voltage(signal_key);
+             maybe_log_hover_signal_resolution(std::string(node_name), std::string(port_name), signal_key, current_value);
+         }
+         
+         // Project mouse onto wire segment for tooltip anchor
+         const auto& poly = wire->polyline();
+         size_t seg = hw->segment;
+         Pt anchor = mouse_world;
+         if (seg + 1 < poly.size()) {
+             // Closest point on segment
+             Pt a = poly[seg], b = poly[seg + 1];
+             float dx = b.x - a.x, dy = b.y - a.y;
+             float len_sq = dx * dx + dy * dy;
+             if (len_sq > 1e-6f) {
+                 float t = ((mouse_world.x - a.x) * dx + (mouse_world.y - a.y) * dy) / len_sq;
+                 if (t < 0.f) t = 0.f;
+                 if (t > 1.f) t = 1.f;
+                 anchor = Pt(a.x + t * dx, a.y + t * dy);
+             }
+         }
 
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "%.3f", val);
-
-        // Project mouse onto wire segment for tooltip anchor
-        const auto& poly = wire->polyline();
-        size_t seg = hw->segment;
-        Pt anchor = mouse_world;
-        if (seg + 1 < poly.size()) {
-            // Closest point on segment
-            Pt a = poly[seg], b = poly[seg + 1];
-            float dx = b.x - a.x, dy = b.y - a.y;
-            float len_sq = dx * dx + dy * dy;
-            if (len_sq > 1e-6f) {
-                float t = ((mouse_world.x - a.x) * dx + (mouse_world.y - a.y) * dy) / len_sq;
-                if (t < 0.f) t = 0.f;
-                if (t > 1.f) t = 1.f;
-                anchor = Pt(a.x + t * dx, a.y + t * dy);
-            }
-        }
-
-        tip.active = true;
-        tip.screen_pos = win.viewport.world_to_screen(anchor, cmin);
-        tip.label = signal_key;
-        tip.value = buf;
-    }
-
-    if (tip.active) {
-        auto dl = make_dl(draw_list);
-        ui::render_tooltip(dl, tip);
+         const Pt tip_screen = win.viewport.world_to_screen(anchor, cmin);
+         ws.oscilloscope.set_hover_signal(signal_key);
+         render_hover_scope_tooltip(doc, ws, signal_key, tip_screen);
+        return;
     }
 }
 
@@ -194,6 +346,7 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
     Modifiers mods;
     mods.alt  = io.KeyAlt;
     mods.ctrl = io.KeyCtrl || io.KeySuper;
+    mods.shift = io.KeyShift;
 
     ImVec2 mp = ImGui::GetMousePos();
     Pt screen_pos(mp.x, mp.y);
@@ -235,4 +388,3 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
     key_handler::process_keys(io.WantCaptureKeyboard, win.read_only,
         [&](Key k) { dispatch(win.input.on_key(k)); });
 }
-

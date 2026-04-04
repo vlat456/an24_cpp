@@ -1,0 +1,27 @@
+{
+  "tests": 3,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "OscilloscopeStats",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "SineWaveDetectsTu",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_oscilloscope_stats.cpp",
+          "line": 7
+        },
+        {
+          "name": "FlatTopWaveDetectsTu",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_oscilloscope_stats.cpp",
+          "line": 22
+        },
+        {
+          "name": "DcSignalHasNoTu",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_oscilloscope_stats.cpp",
+          "line": 39
+        }
+      ]
+    }
+  ]
+}

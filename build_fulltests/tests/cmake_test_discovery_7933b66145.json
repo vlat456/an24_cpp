@@ -1,0 +1,153 @@
+{
+  "tests": 27,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "InternedId",
+      "tests": 12,
+      "testsuite": [
+        {
+          "name": "DefaultConstructedIsEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 17
+        },
+        {
+          "name": "EmptyIdsAreEqual",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 22
+        },
+        {
+          "name": "NonEmptyIsNotEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 27
+        },
+        {
+          "name": "EqualityForSameString",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 33
+        },
+        {
+          "name": "InequalityForDifferentStrings",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 40
+        },
+        {
+          "name": "LessThanOrdering",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 47
+        },
+        {
+          "name": "CopySemantics",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 57
+        },
+        {
+          "name": "TriviallyCopyable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 68
+        },
+        {
+          "name": "SizeIsUint32",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 73
+        },
+        {
+          "name": "UsableInUnorderedSet",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 82
+        },
+        {
+          "name": "UsableAsUnorderedMapKey",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 95
+        },
+        {
+          "name": "SortableInVector",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 258
+        }
+      ]
+    },
+    {
+      "name": "StringInterner",
+      "tests": 15,
+      "testsuite": [
+        {
+          "name": "InternReturnsNonEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 111
+        },
+        {
+          "name": "DuplicateInternReturnsSameId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 117
+        },
+        {
+          "name": "DifferentStringsGetDifferentIds",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 124
+        },
+        {
+          "name": "ResolveRoundTrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 131
+        },
+        {
+          "name": "ResolveEmptyIdReturnsEmptyView",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 138
+        },
+        {
+          "name": "ResolveMultipleStrings",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 145
+        },
+        {
+          "name": "InternEmptyStringReturnsEmptyId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 156
+        },
+        {
+          "name": "InternFromStringView",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 162
+        },
+        {
+          "name": "InternFromStdString",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 169
+        },
+        {
+          "name": "InternFromCString",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 176
+        },
+        {
+          "name": "ResolvedViewRemainsValidAfterMoreInterns",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 187
+        },
+        {
+          "name": "SizeReflectsUniqueStrings",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 206
+        },
+        {
+          "name": "ContainsChecksByString",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 220
+        },
+        {
+          "name": "BulkIntern1000UniqueStrings",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 233
+        },
+        {
+          "name": "TwoInternerInstancesAreIsolated",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_interning.cpp",
+          "line": 276
+        }
+      ]
+    }
+  ]
+}

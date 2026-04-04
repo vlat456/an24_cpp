@@ -1,0 +1,7 @@
+161:NaNRobustness.Inf_TreatedAsTrue
+894:Any_V_to_BoolTest.PosInf_TreatedAsTrue
+906:Positive_V_to_BoolTest.PosInf_TreatedAsTrue
+1416:BlueprintCodec.DecodeRejectsNonFiniteNodePosition
+1417:BlueprintCodec.DecodeRejectsNonFiniteWireRoutingPoint
+1418:BlueprintCodec.DecodeRejectsNonFiniteNestedPosition
+1419:BlueprintCodec.DecodeRejectsNonFiniteViewportValues

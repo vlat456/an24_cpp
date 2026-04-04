@@ -1,0 +1,58 @@
+{
+  "tests": 8,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "FlatNetlist",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "EmptyByDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_flattener.cpp",
+          "line": 14
+        },
+        {
+          "name": "ComponentStruct",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_flattener.cpp",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "name": "Flattener",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "SingleNodeNoWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_flattener.cpp",
+          "line": 39
+        },
+        {
+          "name": "TwoNodesOneWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_flattener.cpp",
+          "line": 64
+        },
+        {
+          "name": "ThreeNodesChainedSignalCount",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_flattener.cpp",
+          "line": 121
+        },
+        {
+          "name": "NestedBlueprintExpands",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_flattener.cpp",
+          "line": 186
+        },
+        {
+          "name": "ParamsPreserved",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_flattener.cpp",
+          "line": 309
+        },
+        {
+          "name": "FlattenEmptyBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_flattener.cpp",
+          "line": 337
+        }
+      ]
+    }
+  ]
+}

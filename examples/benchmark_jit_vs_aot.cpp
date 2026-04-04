@@ -1,5 +1,6 @@
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
+#include "jit_solver/simulator.h"
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -27,62 +28,19 @@ BenchmarkResult benchmark_jit(const std::string& json_file, uint64_t iterations)
     std::ifstream file(json_file);
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-    auto ctx = parse_json(content);
-
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : ctx.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
-
-    auto build_result = build_systems_dev(ctx.devices, conn_pairs);
+    JIT_Simulator sim;
+    sim.start_from_json(content);
 
     auto setup_done = std::chrono::high_resolution_clock::now();
     result.setup_ms = std::chrono::duration<double, std::milli>(setup_done - start).count();
 
-    // Setup simulation state
-    SimulationState state;
-    state.across.resize(build_result.signal_count, 0.0f);
-    state.through.resize(build_result.signal_count, 0.0f);
-    state.conductance.resize(build_result.signal_count, 0.0f);
-    state.inv_conductance.resize(build_result.signal_count, 0.0f);
-    state.signal_types.resize(build_result.signal_count);
-    state.convergence_buffer.resize(build_result.signal_count, 0.0f);
-
     // Run simulation
     auto sim_start = std::chrono::high_resolution_clock::now();
 
-    const float dt = 1.0f / 60.0f;
+    const double dt = 1.0 / 60.0;
     for (uint64_t step = 0; step < iterations; ++step) {
-        // Electrical/Logical: every step
-        for (auto* variant : build_result.domain_components.electrical) {
-            std::visit([&](auto& comp) {
-                if constexpr (requires { comp.solve_electrical(state, dt); }) {
-                    comp.solve_electrical(state, dt);
-                }
-            }, *variant);
-        }
-
-        // Mechanical: every 3rd step — accumulated dt = dt * 3
-        if ((step % 3) == 0) {
-            for (auto* variant : build_result.domain_components.mechanical) {
-                std::visit([&](auto& comp) {
-                    if constexpr (requires { comp.solve_mechanical(state, dt); }) {
-                        comp.solve_mechanical(state, dt * 3.0f);
-                    }
-                }, *variant);
-            }
-        }
-
-        // Thermal: every 60th step — accumulated dt = dt * 60
-        if (step == 0) {
-            for (auto* variant : build_result.domain_components.thermal) {
-                std::visit([&](auto& comp) {
-                    if constexpr (requires { comp.solve_thermal(state, dt); }) {
-                        comp.solve_thermal(state, dt * 60.0f);
-                    }
-                }, *variant);
-            }
-        }
+        (void)step;
+        sim.step(dt);
     }
 
     auto sim_done = std::chrono::high_resolution_clock::now();
@@ -123,7 +81,7 @@ int main(int argc, char** argv) {
 
     std::cout << jit_result.name << ":\n";
     std::cout << "  Setup:       " << jit_result.setup_ms << " ms\n";
-    std::cout << "  Simulation: " << jit_result.simulation_ms << " ms\n";
+    std::cout << "  Simulation:  " << jit_result.simulation_ms << " ms\n";
     std::cout << "  Total:       " << jit_result.total_ms << " ms\n";
     std::cout << "  Time/step:  " << (jit_result.simulation_ms / jit_result.steps * 1000.0) << " µs\n";
     std::cout << "  Steps/sec:   " << (jit_result.steps / jit_result.simulation_ms * 1000.0) << " steps/s\n";

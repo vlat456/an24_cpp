@@ -1,27 +1,33 @@
 {
-  "exposes": {
-    "heat_in": {
-      "direction": "In",
-      "type": "I"
+  "version": "3.0",
+  "id": "Radiator",
+  "display_name": "Radiator",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "heat_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "I",
+      "source_writer": false
     },
-    "heat_out": {
-      "direction": "Out",
-      "type": "Temperature"
+    {
+      "name": "heat_out",
+      "domain": 16,
+      "direction": 1,
+      "type": "Temperature",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Heat exchanger/radiator for cooling",
-    "domains": [
-      "Thermal"
-    ],
-    "name": "Radiator"
-  },
-  "params": {
-    "cooling_capacity": {
-      "default": "1000.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Heat exchanger/radiator for cooling",
+  "domains": [
+    "Thermal"
+  ],
+  "param_defaults": {
+    "cooling_capacity": "1000.0"
+  }
 }

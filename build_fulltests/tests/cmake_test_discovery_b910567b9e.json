@@ -1,0 +1,193 @@
+{
+  "tests": 35,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "JsonParserTest",
+      "tests": 28,
+      "testsuite": [
+        {
+          "name": "ParseEmptyContext",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 8
+        },
+        {
+          "name": "ParseErrorOnInvalidJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 17
+        },
+        {
+          "name": "ParseAndSerializeRoundTrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 21
+        },
+        {
+          "name": "RoundTripWithTemplates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 58
+        },
+        {
+          "name": "ParseMultipleDomains",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 97
+        },
+        {
+          "name": "ParseDevicesWithAllFields",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 119
+        },
+        {
+          "name": "ParseConnectionFormats",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 174
+        },
+        {
+          "name": "SerializePreservesData",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 200
+        },
+        {
+          "name": "InOutPortDirection_Roundtrip_g7h8",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 221
+        },
+        {
+          "name": "InOutEnumExists_g7h8",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 246
+        },
+        {
+          "name": "ParsePortType_FromJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 257
+        },
+        {
+          "name": "ParsePortType_RPM_FromJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 275
+        },
+        {
+          "name": "ValidateConnection_MismatchedTypes_ShouldFail",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 293
+        },
+        {
+          "name": "ValidateConnection_MatchingTypes_ShouldPass",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 327
+        },
+        {
+          "name": "ValidateConnection_BoolToV_ShouldFail",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 356
+        },
+        {
+          "name": "ValidateConnection_AnyType_ShouldPass",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 389
+        },
+        {
+          "name": "PortTypeSerialization_RoundTrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 418
+        },
+        {
+          "name": "Regression_PortTypeMerge_TypeDefinitionTypesCopied",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 441
+        },
+        {
+          "name": "Regression_PortTypeMerge_InlinePortWithType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 474
+        },
+        {
+          "name": "Regression_LerpNodeAnyType_CanConnectToAnything",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 499
+        },
+        {
+          "name": "OneToOne_MultipleWiresToSamePort_IsValid",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 530
+        },
+        {
+          "name": "OneToOne_MultipleWiresFromSamePort_IsValid",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 549
+        },
+        {
+          "name": "OneToOne_BusAliasPorts_CanHaveMultipleWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 568
+        },
+        {
+          "name": "OneToOne_RefNode_CanHaveMultipleWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 589
+        },
+        {
+          "name": "ParseTypeDefinition_ExecutionMissingKeyThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 622
+        },
+        {
+          "name": "ParseTypeDefinition_ExecutionUnknownKeyThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 642
+        },
+        {
+          "name": "ParseTypeDefinition_ParamSchemaParsed",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 687
+        },
+        {
+          "name": "MergeDeviceInstance_ParamSchemaRejectsInvalidValue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 715
+        }
+      ]
+    },
+    {
+      "name": "TypeRegistry",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "LoadRecursive_SubdirSetsCategory",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 664
+        },
+        {
+          "name": "LoadRecursive_DeepNesting",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 733
+        },
+        {
+          "name": "BuildMenuTree_FlatLibrary",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 750
+        },
+        {
+          "name": "BuildMenuTree_WithSubdirs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 765
+        },
+        {
+          "name": "BuildMenuTree_EntriesAreSorted",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 806
+        },
+        {
+          "name": "BuildMenuTree_BlueprintsInSameTree",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 822
+        },
+        {
+          "name": "ListClassnames_IncludesAllCategorized",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 839
+        }
+      ]
+    }
+  ]
+}

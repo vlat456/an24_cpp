@@ -1,0 +1,276 @@
+{
+  "tests": 48,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "RefNodeWidget",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "ConstructFromNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 41
+        },
+        {
+          "name": "SinglePortCenteredOnTopEdge",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 59
+        },
+        {
+          "name": "UsesFirstInputIfNoOutputs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 83
+        },
+        {
+          "name": "DefaultPortWhenNoPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 98
+        },
+        {
+          "name": "FindPortByName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 111
+        },
+        {
+          "name": "SizeSnappedToGrid",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 125
+        },
+        {
+          "name": "AddToScene",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 139
+        },
+        {
+          "name": "SetCustomColorViaBasePointer",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 684
+        },
+        {
+          "name": "RenderPostDoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 766
+        }
+      ]
+    },
+    {
+      "name": "TextNodeWidget",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "ConstructFromNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 160
+        },
+        {
+          "name": "FontSizeParsing",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 178
+        },
+        {
+          "name": "EmptyTextDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 205
+        },
+        {
+          "name": "SetText",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 217
+        },
+        {
+          "name": "SizeSnappedToGrid",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 230
+        },
+        {
+          "name": "SetCustomColorViaBasePointer",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 703
+        },
+        {
+          "name": "RenderPostDoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 780
+        }
+      ]
+    },
+    {
+      "name": "GroupNodeWidget",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "ConstructFromNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 248
+        },
+        {
+          "name": "EnforcesMinimumSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 265
+        },
+        {
+          "name": "BorderHitTestTitleBar",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 279
+        },
+        {
+          "name": "BorderHitTestInterior",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 294
+        },
+        {
+          "name": "BorderHitTestEdges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 309
+        },
+        {
+          "name": "BorderHitTestOutside",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 332
+        },
+        {
+          "name": "CustomColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 348
+        },
+        {
+          "name": "SetCustomColorViaBasePointer",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 722
+        },
+        {
+          "name": "RenderPostDoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 794
+        }
+      ]
+    },
+    {
+      "name": "BusNodeWidget",
+      "tests": 14,
+      "testsuite": [
+        {
+          "name": "ConstructWithNoWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 365
+        },
+        {
+          "name": "ConstructWithWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 383
+        },
+        {
+          "name": "ResolveWirePort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 407
+        },
+        {
+          "name": "ConnectWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 432
+        },
+        {
+          "name": "DisconnectWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 452
+        },
+        {
+          "name": "SwapAliasPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 479
+        },
+        {
+          "name": "SwapNonexistentFails",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 517
+        },
+        {
+          "name": "HorizontalOrientation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 529
+        },
+        {
+          "name": "VerticalOrientation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 542
+        },
+        {
+          "name": "IgnoresUnrelatedWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 555
+        },
+        {
+          "name": "ConnectUnrelatedWireIgnored",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 574
+        },
+        {
+          "name": "SetCustomColorViaBasePointer",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 741
+        },
+        {
+          "name": "RenderPostDoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 808
+        },
+        {
+          "name": "DisconnectOneWirePreservesOthers",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 830
+        }
+      ]
+    },
+    {
+      "name": "NodeFactory",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "CreatesBusNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 598
+        },
+        {
+          "name": "CreatesRefNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 610
+        },
+        {
+          "name": "CreatesGroupNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 622
+        },
+        {
+          "name": "CreatesTextNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 634
+        },
+        {
+          "name": "CreatesStandardNodeByDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 646
+        },
+        {
+          "name": "BusNodeWithWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 659
+        },
+        {
+          "name": "CreatesWidgetWithCustomColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 869
+        },
+        {
+          "name": "BusNodeCreatedWithCustomColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 881
+        },
+        {
+          "name": "GroupNodeCreatedWithCustomColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_specialized_node_widgets.cpp",
+          "line": 894
+        }
+      ]
+    }
+  ]
+}

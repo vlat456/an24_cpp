@@ -28,7 +28,7 @@ private:
 
 class Spacer : public Widget {
 public:
-    Spacer() { setFlexible(true); }
+    Spacer() { setFlexGrow(1.0f); }
 
     Pt preferredSize(IDrawList* dl) const override { return Pt(0, 0); }
     void render(IDrawList* dl, const RenderContext& ctx) const override {}

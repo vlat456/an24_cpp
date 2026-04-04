@@ -5,6 +5,10 @@
 #include "visual/inspector/inspector.h"
 #include "window/properties_window.h"
 #include "json_parser/json_parser.h"
+#include "commands/extract_blueprint.h"
+#include "pi_zn_tuner.h"
+#include "oscilloscope.h"
+#include <cstring>
 #include <memory>
 #include <vector>
 #include <string>
@@ -82,8 +86,67 @@ public:
         std::string sub_blueprint_id;
     } pendingBakeIn;
 
+    struct SetNameState {
+        bool show = false;
+        std::string doc_id;            ///< Document whose blueprint name to set
+        bool save_after = false;       ///< If true, trigger save after name is confirmed
+        char buf[128] = {};            ///< ImGui input buffer
+    } setName;
+
+    struct PendingExtractToBlueprint {
+        bool show_dialog = false;
+        std::string doc_id;
+        std::string group_id;
+        std::vector<ui::InternedId> selected_node_ids;
+        char name_buf[128] = {};
+        bool has_preview = false;
+        editor::commands::ExtractToBlueprintPreview preview;
+        std::string preview_error;
+        std::string preview_name;
+        bool allow_nonembedded_descendant_refs = false;
+        bool preview_allow_nonembedded_descendant_refs = false;
+
+        void reset() {
+            show_dialog = false;
+            doc_id.clear();
+            group_id.clear();
+            selected_node_ids.clear();
+            std::memset(name_buf, 0, sizeof(name_buf));
+            has_preview = false;
+            preview = {};
+            preview_error.clear();
+            preview_name.clear();
+            allow_nonembedded_descendant_refs = false;
+            preview_allow_nonembedded_descendant_refs = false;
+        }
+    } pendingExtract;
+
+    struct ZNTuneState {
+        bool show_result_popup = false;
+        bool last_ok = false;
+        bool last_was_preview = false;
+        char pi_node[128] = "pi_1";
+        char feedback_signal[128] = "bus_1.v";
+        float cfg_dt_sec = 1.0f / 60.0f;
+        float cfg_run_time_sec = 16.0f;
+        float cfg_settle_time_sec = 3.0f;
+        float cfg_kp_lo = 0.01f;
+        float cfg_kp_hi = 80.0f;
+        int cfg_max_expand = 10;
+        int cfg_binary_iters = 14;
+        int cfg_min_peaks = 4;
+        float Ku = 0.0f;
+        float Tu = 0.0f;
+        float Kp = 0.0f;
+        float Ki = 0.0f;
+        char error[256] = {};
+        ZNTuneConfig last_cfg{};
+    } znTune;
+
     bool showInspector = true;
+    bool showOscilloscope = true;
     EditorSettings settings;
+    OscilloscopeModel oscilloscope;
 
     // ── Utility ──
 

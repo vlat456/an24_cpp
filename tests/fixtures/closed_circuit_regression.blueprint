@@ -1,0 +1,761 @@
+{
+  "display_name": "GENERATOR_STARTER",
+  "grid_step": 16.0,
+  "id": "",
+  "interface": [],
+  "name": "GENERATOR_STARTER",
+  "nested": [],
+  "nodes": [
+    {
+      "id": "bus_1",
+      "name": "bus_1",
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 880.0,
+        "y": -64.0
+      },
+      "render_hint": "bus",
+      "string_params": {
+        "port_edge": "bottom"
+      },
+      "type": "Bus"
+    },
+    {
+      "id": "bus_2",
+      "name": "bus_2",
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 688.0,
+        "y": -240.0
+      },
+      "render_hint": "bus",
+      "string_params": {
+        "port_edge": "bottom"
+      },
+      "type": "Bus"
+    },
+    {
+      "id": "controlledvoltagesource_1",
+      "name": "GEN",
+      "params": {
+        "r_internal": 0.009999999776482582
+      },
+      "ports": {
+        "cmd": {
+          "direction": "In",
+          "type": 7
+        },
+        "v_neg": {
+          "direction": "Out",
+          "type": 0
+        },
+        "v_pos": {
+          "direction": "Out",
+          "type": 0
+        },
+        "gain": {
+          "direction": "In",
+          "type": 7
+        },
+        "offset": {
+          "direction": "In",
+          "type": 7
+        },
+        "min_v": {
+          "direction": "In",
+          "type": 7
+        },
+        "max_v": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 544.0,
+        "y": -32.0
+      },
+      "type": "ControlledVoltageSource"
+    },
+    {
+      "content_label": "OFF",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 5,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "currentsense_1",
+      "name": "currentsense_1",
+      "params": {
+        "conductance": 10.0
+      },
+      "ports": {
+        "i_out": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 976.0,
+        "y": -144.0
+      },
+      "type": "CurrentSense"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "extract_inst_1:feedback",
+      "name": "feedback",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 0
+        },
+        "port": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 768.0,
+        "y": -400.0
+      },
+      "string_params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintInput"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "extract_inst_1:output",
+      "name": "output",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 0
+        },
+        "port": {
+          "direction": "In",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 1280.0,
+        "y": -400.0
+      },
+      "string_params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    },
+    {
+      "blueprint_path": "math/FirstOrderLag",
+      "expandable": true,
+      "height": 64.0,
+      "id": "firstorderlag_1",
+      "name": "FieldLag",
+      "params": {
+        "initial_val": 0.6000000238418579,
+        "rate": 6.0
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        },
+        "rate": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 208.0,
+        "y": -32.0
+      },
+      "type": "FirstOrderLag",
+      "width": 160.0
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "lut_1",
+      "name": "RN180_excitation",
+      "ports": {
+        "input": {
+          "direction": "In",
+          "type": 7
+        },
+        "output": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1104.0,
+        "y": -400.0
+      },
+      "string_params": {
+        "table": "0.0:0.6; 1.0:28.5"
+      },
+      "type": "LUT"
+    },
+    {
+      "id": "multiply_1",
+      "name": "multiply_1",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 416.0,
+        "y": -48.0
+      },
+      "type": "Multiply"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "pi_1",
+      "name": "RN180",
+      "params": {},
+      "ports": {
+        "feedback": {
+          "direction": "In",
+          "type": 7
+        },
+        "output": {
+          "direction": "Out",
+          "type": 7
+        },
+        "setpoint": {
+          "direction": "In",
+          "type": 7
+        },
+        "Ki": {
+          "direction": "In",
+          "type": 7
+        },
+        "Kp": {
+          "direction": "In",
+          "type": 7
+        },
+        "output_max": {
+          "direction": "In",
+          "type": 7
+        },
+        "output_min": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 944.0,
+        "y": -400.0
+      },
+      "type": "PI"
+    },
+    {
+      "id": "refnode_1",
+      "layout_overrides": [
+        {
+          "port_name": "o",
+          "side": "bottom"
+        }
+      ],
+      "name": "RPM",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 400.0,
+        "y": -112.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "refnode_4",
+      "name": "refnode_4",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": 32.0
+      },
+      "render_hint": "ref",
+      "type": "RefNode"
+    },
+    {
+      "id": "resistor_1",
+      "name": "resistor_1",
+      "params": {
+        "conductance": 0.10000000149011612
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 848.0,
+        "y": -144.0
+      },
+      "type": "Resistor"
+    },
+    {
+      "group_id": "extract_inst_1",
+      "id": "value_1",
+      "name": "IdealVoltage",
+      "params": {
+        "value": 28.5
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -320.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "value_2",
+      "name": "FieldRate",
+      "params": {
+        "value": 6.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 144.0,
+        "y": 64.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "content_label": "V",
+      "content_max": 28.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 1,
+      "content_unit": "V",
+      "content_value": 0.0,
+      "id": "voltmeter_1",
+      "name": "voltmeter_1",
+      "params": {
+        "max": 28.0,
+        "min": 0.0
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -400.0
+      },
+      "type": "Voltmeter"
+    },
+    {
+      "id": "val_cvs1_gain",
+      "name": "cvs1_gain",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 464.0,
+        "y": -32.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_cvs1_offset",
+      "name": "cvs1_offset",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 464.0,
+        "y": 8.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_cvs1_min_v",
+      "name": "cvs1_min_v",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 464.0,
+        "y": 48.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_cvs1_max_v",
+      "name": "cvs1_max_v",
+      "params": {
+        "value": 30.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 464.0,
+        "y": 88.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_pi1_Ki",
+      "name": "pi1_Ki",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -400.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_pi1_Kp",
+      "name": "pi1_Kp",
+      "params": {
+        "value": 0.10000000149011612
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -360.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_pi1_output_max",
+      "name": "pi1_output_max",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -320.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "val_pi1_output_min",
+      "name": "pi1_output_min",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 864.0,
+        "y": -280.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    }
+  ],
+  "pan_x": -189.33892822265625,
+  "pan_y": -568.8621826171875,
+  "version": "3.0",
+  "wires": [
+    {
+      "id": "wire_23",
+      "source": "/firstorderlag_1:out",
+      "target": "/multiply_1:B"
+    },
+    {
+      "id": "wire_28",
+      "source": "/multiply_1:o",
+      "target": "/controlledvoltagesource_1:cmd"
+    },
+    {
+      "id": "wire_29",
+      "source": "/refnode_4:v",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_30",
+      "routing_points": [
+        [
+          912.0,
+          0.0
+        ]
+      ],
+      "source": "/controlledvoltagesource_1:v_neg",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_32",
+      "routing_points": [
+        [
+          720.0,
+          16.0
+        ]
+      ],
+      "source": "/controlledvoltagesource_1:v_pos",
+      "target": "/bus_2:v"
+    },
+    {
+      "id": "wire_36",
+      "routing_points": [
+        [
+          1120.0,
+          -96.0
+        ],
+        [
+          1120.0,
+          0.0
+        ],
+        [
+          928.0,
+          0.0
+        ]
+      ],
+      "source": "/currentsense_1:v_out",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_39",
+      "routing_points": [
+        [
+          736.0,
+          -112.0
+        ]
+      ],
+      "source": "/bus_2:v",
+      "target": "/resistor_1:v_in"
+    },
+    {
+      "id": "wire_41",
+      "source": "/resistor_1:v_out",
+      "target": "/currentsense_1:v_in"
+    },
+    {
+      "id": "wire_42",
+      "routing_points": [
+        [
+          880.0,
+          -352.0
+        ]
+      ],
+      "source": "/value_1:o",
+      "target": "/pi_1:setpoint"
+    },
+    {
+      "id": "wire_48",
+      "source": "/pi_1:output",
+      "target": "/lut_1:input"
+    },
+    {
+      "id": "wire_50",
+      "source": "/value_2:o",
+      "target": "/firstorderlag_1:rate"
+    },
+    {
+      "id": "wire_51",
+      "routing_points": [
+        [
+          416.0,
+          -128.0
+        ],
+        [
+          384.0,
+          -128.0
+        ],
+        [
+          384.0,
+          -16.0
+        ]
+      ],
+      "source": "/refnode_1:o",
+      "target": "/multiply_1:A"
+    },
+    {
+      "id": "wire_52",
+      "routing_points": [
+        [
+          752.0,
+          -160.0
+        ],
+        [
+          832.0,
+          -160.0
+        ],
+        [
+          832.0,
+          -368.0
+        ]
+      ],
+      "source": "/bus_2:v",
+      "target": "/voltmeter_1:v_in"
+    },
+    {
+      "id": "reg_wire_feedback",
+      "source": "/bus_2:v",
+      "target": "/pi_1:feedback"
+    },
+    {
+      "id": "reg_wire_exc_to_lag",
+      "source": "/lut_1:output",
+      "target": "/firstorderlag_1:in"
+    },
+    {
+      "id": "wire_val_cvs1_gain",
+      "source": "/val_cvs1_gain:o",
+      "target": "/controlledvoltagesource_1:gain"
+    },
+    {
+      "id": "wire_val_cvs1_offset",
+      "source": "/val_cvs1_offset:o",
+      "target": "/controlledvoltagesource_1:offset"
+    },
+    {
+      "id": "wire_val_cvs1_min_v",
+      "source": "/val_cvs1_min_v:o",
+      "target": "/controlledvoltagesource_1:min_v"
+    },
+    {
+      "id": "wire_val_cvs1_max_v",
+      "source": "/val_cvs1_max_v:o",
+      "target": "/controlledvoltagesource_1:max_v"
+    },
+    {
+      "id": "wire_val_pi1_Ki",
+      "source": "/val_pi1_Ki:o",
+      "target": "/pi_1:Ki"
+    },
+    {
+      "id": "wire_val_pi1_Kp",
+      "source": "/val_pi1_Kp:o",
+      "target": "/pi_1:Kp"
+    },
+    {
+      "id": "wire_val_pi1_output_max",
+      "source": "/val_pi1_output_max:o",
+      "target": "/pi_1:output_max"
+    },
+    {
+      "id": "wire_val_pi1_output_min",
+      "source": "/val_pi1_output_min:o",
+      "target": "/pi_1:output_min"
+    }
+  ],
+  "zoom": 0.6598597168922424
+}

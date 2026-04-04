@@ -1,31 +1,59 @@
 {
-  "exposes": {
-    "input": {
-      "direction": "In",
-      "type": "I"
+  "version": "3.0",
+  "id": "InertiaNode",
+  "display_name": "InertiaNode",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "torque_in",
+      "domain": 4,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "output": {
-      "direction": "Out",
-      "type": "Temperature"
-    }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Mechanical inertia simulation node",
-    "domains": [
-      "Mechanical"
-    ],
-    "name": "InertiaNode"
-  },
-  "params": {
-    "damping": {
-      "default": "0.5",
-      "type": "float"
+    {
+      "name": "mass",
+      "domain": 4,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "mass": {
-      "default": "1.0",
+    {
+      "name": "inv_inertia",
+      "domain": 4,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "damping",
+      "domain": 4,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "rpm_out",
+      "domain": 4,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Mechanical inertia simulation node",
+  "domains": [
+    "Mechanical"
+  ],
+  "param_defaults": {
+    "initial_rpm": "1.0"
+  },
+  "param_schema": {
+    "initial_rpm": {
       "type": "float"
     }
-  },
-  "version": 2
+  }
 }

@@ -1,0 +1,41 @@
+{
+  "version": "3.0",
+  "id": "CurrentSense",
+  "display_name": "CurrentSense",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "i_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "I",
+      "source_writer": false
+    },
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Series current measurement node (ammeter). Near-zero resistance passthrough that outputs measured current in amperes.",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "conductance": "0.05"
+  },
+  "content_type": "Text"
+}

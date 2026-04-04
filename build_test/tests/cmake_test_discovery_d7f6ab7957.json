@@ -1,0 +1,27 @@
+{
+  "tests": 3,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "UIMath",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "PtExists",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_math.cpp",
+          "line": 4
+        },
+        {
+          "name": "PtOperations",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_math.cpp",
+          "line": 10
+        },
+        {
+          "name": "PtEquality",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_math.cpp",
+          "line": 27
+        }
+      ]
+    }
+  ]
+}

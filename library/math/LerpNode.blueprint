@@ -1,31 +1,34 @@
 {
-  "exposes": {
-    "input": {
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "LerpNode",
+  "display_name": "LerpNode",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "input",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "output": {
-      "direction": "Out",
-      "type": "Any"
+    {
+      "name": "output",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Linear interpolation node (first-order filter) for sensor simulation with deadzone",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "LerpNode"
-  },
-  "params": {
-    "deadzone": {
-      "default": "0.001",
-      "type": "float"
-    },
-    "factor": {
-      "default": "0.05",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Linear interpolation node (first-order filter) for sensor simulation with deadzone",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "deadzone": "0.001",
+    "factor": "0.05"
+  }
 }

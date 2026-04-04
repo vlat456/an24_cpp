@@ -1,51 +1,46 @@
 {
-  "exposes": {
-    "feedback": {
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "PID",
+  "display_name": "PID",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "feedback",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "output": {
-      "direction": "Out",
-      "type": "Any"
+    {
+      "name": "output",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     },
-    "setpoint": {
-      "direction": "In",
-      "type": "Any"
+    {
+      "name": "setpoint",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "PID controller with proportional, integral, and derivative terms",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "PID"
-  },
-  "params": {
-    "Kd": {
-      "default": "0.0",
-      "type": "float"
-    },
-    "Ki": {
-      "default": "0.0",
-      "type": "float"
-    },
-    "Kp": {
-      "default": "1.0",
-      "type": "float"
-    },
-    "filter_alpha": {
-      "default": "0.2",
-      "type": "float"
-    },
-    "output_max": {
-      "default": "1000.0",
-      "type": "float"
-    },
-    "output_min": {
-      "default": "-1000.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "PID controller with proportional, integral, and derivative terms",
+  "domains": [
+    "Electrical",
+    "Logical"
+  ],
+  "param_defaults": {
+    "Kd": "0.0",
+    "Ki": "0.0",
+    "Kp": "1.0",
+    "filter_alpha": "0.2",
+    "output_max": "1000.0",
+    "output_min": "-1000.0"
+  }
 }

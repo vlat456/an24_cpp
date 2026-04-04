@@ -2,12 +2,12 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "ui/core/interned_id.h"
+#include "data/node_content.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
 #include <string_view>
 #include <optional>
 #include <cstdint>
-
-struct Node;
 
 namespace visual {
 
@@ -17,7 +17,7 @@ namespace visual {
 /// allowing clicks to pass through to nodes inside the group.
 class GroupNodeWidget : public Widget {
 public:
-    explicit GroupNodeWidget(const ::Node& data, const ui::StringInterner& interner);
+    explicit GroupNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }

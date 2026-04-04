@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <optional>
 #include <vector>
 #include <variant>
@@ -16,86 +17,36 @@
 #include "provider.h"
 #include "all.h"
 
-// Port names enum (for constexpr Provider pattern)
-// Used by AOT components to get compile-time port indices
-enum class PortNames : uint32_t {
-    A,
-    B,
-    Va,
-    Vb,
-    Vin,
-    ac_out,
-    brightness,
-    control,
-    ctrl,
-    dc_in,
-    ext,
-    feedback,
-    flow_in,
-    flow_out,
-    force_out,
-    heat_in,
-    heat_out,
-    i,
-    i1,
-    i2,
-    in,
-    input,
-    k_mod,
-    lamp,
-    o,
-    o1,
-    o2,
-    out,
-    output,
-    p_out,
-    port,
-    pos_a,
-    pos_b,
-    power,
-    primary,
-    reset,
-    rpm_out,
-    secondary,
-    setpoint,
-    state,
-    t4_out,
-    temp,
-    temp_in,
-    temp_out,
-    trigger,
-    tripped,
-    v,
-    v_bus,
-    v_gen,
-    v_gen_ref,
-    v_in,
-    v_out,
-    v_start
-};
+// PortNames enum is defined in port_names.h (included transitively via provider.h)
+// Separated to break circular dependency: component.h → port_registry.h → all.h → component.h
+#include "port_names.h"
 
 // Component type enumeration
 enum class ComponentType {
-    AGK47,
     AND,
     AZS,
+    Accumulator,
     Add,
     Any_V_to_Bool,
     AsymSlewRate,
     AsymTMO,
-    Battery,
     BlueprintInput,
     BlueprintOutput,
     Bus,
     Clamp,
     Comparator,
-    DMR400,
+    ControlledCurrentSource,
+    ControlledVoltageSource,
+    CurrentSense,
     Divide,
     ElectricHeater,
     ElectricPump,
+    ElectricalConductance,
+    ElectricalSource,
     FastTMO,
-    GS24,
+    FuelTank,
     Generator,
+    GidroAccumulator,
     Greater,
     GreaterEq,
     Gyroscope,
@@ -124,14 +75,13 @@ enum class ComponentType {
     PI,
     PID,
     Positive_V_to_Bool,
-    RU19A,
-    RUG82,
     Radiator,
     RefNode,
     Relay,
     Resistor,
     SampleHold,
     SlewRate,
+    Slider,
     SolenoidValve,
     Splitter,
     Spring,
@@ -140,40 +90,47 @@ enum class ComponentType {
     TempSensor,
     TimeDelay,
     Transformer,
+    Value,
+    VariableConductance,
+    VoltageSense,
     Voltmeter,
     XOR,
     _COUNT  // sentinel — must be last
 };
 
 // Port count for each component
-constexpr size_t AGK47_PORT_COUNT = 1;
 constexpr size_t AND_PORT_COUNT = 3;
 constexpr size_t AZS_PORT_COUNT = 6;
+constexpr size_t Accumulator_PORT_COUNT = 2;
 constexpr size_t Add_PORT_COUNT = 3;
 constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t AsymSlewRate_PORT_COUNT = 2;
 constexpr size_t AsymTMO_PORT_COUNT = 2;
-constexpr size_t Battery_PORT_COUNT = 2;
 constexpr size_t BlueprintInput_PORT_COUNT = 2;
 constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
-constexpr size_t Clamp_PORT_COUNT = 2;
+constexpr size_t Clamp_PORT_COUNT = 4;
 constexpr size_t Comparator_PORT_COUNT = 3;
-constexpr size_t DMR400_PORT_COUNT = 4;
+constexpr size_t ControlledCurrentSource_PORT_COUNT = 3;
+constexpr size_t ControlledVoltageSource_PORT_COUNT = 8;
+constexpr size_t CurrentSense_PORT_COUNT = 3;
 constexpr size_t Divide_PORT_COUNT = 3;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
-constexpr size_t ElectricPump_PORT_COUNT = 2;
+constexpr size_t ElectricPump_PORT_COUNT = 3;
+constexpr size_t ElectricalConductance_PORT_COUNT = 2;
+constexpr size_t ElectricalSource_PORT_COUNT = 2;
 constexpr size_t FastTMO_PORT_COUNT = 2;
-constexpr size_t GS24_PORT_COUNT = 3;
+constexpr size_t FuelTank_PORT_COUNT = 2;
 constexpr size_t Generator_PORT_COUNT = 2;
+constexpr size_t GidroAccumulator_PORT_COUNT = 2;
 constexpr size_t Greater_PORT_COUNT = 3;
 constexpr size_t GreaterEq_PORT_COUNT = 3;
 constexpr size_t Gyroscope_PORT_COUNT = 1;
 constexpr size_t HighPowerLoad_PORT_COUNT = 2;
 constexpr size_t HoldButton_PORT_COUNT = 4;
 constexpr size_t IndicatorLight_PORT_COUNT = 3;
-constexpr size_t InertiaNode_PORT_COUNT = 2;
-constexpr size_t Integrator_PORT_COUNT = 3;
+constexpr size_t InertiaNode_PORT_COUNT = 5;
+constexpr size_t Integrator_PORT_COUNT = 4;
 constexpr size_t Inverter_PORT_COUNT = 2;
 constexpr size_t LUT_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
@@ -187,21 +144,20 @@ constexpr size_t Monostable_PORT_COUNT = 2;
 constexpr size_t Multiply_PORT_COUNT = 3;
 constexpr size_t NAND_PORT_COUNT = 3;
 constexpr size_t NOT_PORT_COUNT = 2;
-constexpr size_t Normalize_PORT_COUNT = 2;
+constexpr size_t Normalize_PORT_COUNT = 4;
 constexpr size_t OR_PORT_COUNT = 3;
 constexpr size_t P_PORT_COUNT = 3;
 constexpr size_t PD_PORT_COUNT = 3;
-constexpr size_t PI_PORT_COUNT = 3;
+constexpr size_t PI_PORT_COUNT = 7;
 constexpr size_t PID_PORT_COUNT = 3;
 constexpr size_t Positive_V_to_Bool_PORT_COUNT = 2;
-constexpr size_t RU19A_PORT_COUNT = 5;
-constexpr size_t RUG82_PORT_COUNT = 2;
 constexpr size_t Radiator_PORT_COUNT = 2;
 constexpr size_t RefNode_PORT_COUNT = 1;
-constexpr size_t Relay_PORT_COUNT = 3;
+constexpr size_t Relay_PORT_COUNT = 5;
 constexpr size_t Resistor_PORT_COUNT = 2;
 constexpr size_t SampleHold_PORT_COUNT = 3;
 constexpr size_t SlewRate_PORT_COUNT = 2;
+constexpr size_t Slider_PORT_COUNT = 2;
 constexpr size_t SolenoidValve_PORT_COUNT = 3;
 constexpr size_t Splitter_PORT_COUNT = 3;
 constexpr size_t Spring_PORT_COUNT = 3;
@@ -210,13 +166,13 @@ constexpr size_t Switch_PORT_COUNT = 4;
 constexpr size_t TempSensor_PORT_COUNT = 2;
 constexpr size_t TimeDelay_PORT_COUNT = 2;
 constexpr size_t Transformer_PORT_COUNT = 2;
+constexpr size_t Value_PORT_COUNT = 1;
+constexpr size_t VariableConductance_PORT_COUNT = 5;
+constexpr size_t VoltageSense_PORT_COUNT = 5;
 constexpr size_t Voltmeter_PORT_COUNT = 1;
 constexpr size_t XOR_PORT_COUNT = 3;
 
 // Port names for each component (in field declaration order)
-constexpr const char* AGK47_PORTS[] = {
-    "input"
-};
 constexpr const char* AND_PORTS[] = {
     "A",
     "B",
@@ -229,6 +185,10 @@ constexpr const char* AZS_PORTS[] = {
     "tripped",
     "v_in",
     "v_out"
+};
+constexpr const char* Accumulator_PORTS[] = {
+    "in",
+    "out"
 };
 constexpr const char* Add_PORTS[] = {
     "A",
@@ -247,10 +207,6 @@ constexpr const char* AsymTMO_PORTS[] = {
     "in",
     "out"
 };
-constexpr const char* Battery_PORTS[] = {
-    "v_in",
-    "v_out"
-};
 constexpr const char* BlueprintInput_PORTS[] = {
     "ext",
     "port"
@@ -264,6 +220,8 @@ constexpr const char* Bus_PORTS[] = {
 };
 constexpr const char* Clamp_PORTS[] = {
     "in",
+    "max",
+    "min",
     "out"
 };
 constexpr const char* Comparator_PORTS[] = {
@@ -271,9 +229,23 @@ constexpr const char* Comparator_PORTS[] = {
     "Vb",
     "o"
 };
-constexpr const char* DMR400_PORTS[] = {
-    "lamp",
-    "v_gen_ref",
+constexpr const char* ControlledCurrentSource_PORTS[] = {
+    "cmd",
+    "v_neg",
+    "v_pos"
+};
+constexpr const char* ControlledVoltageSource_PORTS[] = {
+    "cmd",
+    "gain",
+    "i_out",
+    "max_v",
+    "min_v",
+    "offset",
+    "v_neg",
+    "v_pos"
+};
+constexpr const char* CurrentSense_PORTS[] = {
+    "i_out",
     "v_in",
     "v_out"
 };
@@ -287,21 +259,33 @@ constexpr const char* ElectricHeater_PORTS[] = {
     "power"
 };
 constexpr const char* ElectricPump_PORTS[] = {
+    "p_in",
     "p_out",
     "v_in"
+};
+constexpr const char* ElectricalConductance_PORTS[] = {
+    "v_in",
+    "v_out"
+};
+constexpr const char* ElectricalSource_PORTS[] = {
+    "v_in",
+    "v_out"
 };
 constexpr const char* FastTMO_PORTS[] = {
     "in",
     "out"
 };
-constexpr const char* GS24_PORTS[] = {
-    "k_mod",
-    "v_in",
-    "v_out"
+constexpr const char* FuelTank_PORTS[] = {
+    "flow_out",
+    "level_out"
 };
 constexpr const char* Generator_PORTS[] = {
     "v_in",
     "v_out"
+};
+constexpr const char* GidroAccumulator_PORTS[] = {
+    "p_in",
+    "p_out"
 };
 constexpr const char* Greater_PORTS[] = {
     "A",
@@ -332,10 +316,14 @@ constexpr const char* IndicatorLight_PORTS[] = {
     "v_out"
 };
 constexpr const char* InertiaNode_PORTS[] = {
-    "input",
-    "output"
+    "damping",
+    "inv_inertia",
+    "mass",
+    "rpm_out",
+    "torque_in"
 };
 constexpr const char* Integrator_PORTS[] = {
+    "gain",
     "in",
     "out",
     "reset"
@@ -400,6 +388,8 @@ constexpr const char* NOT_PORTS[] = {
 };
 constexpr const char* Normalize_PORTS[] = {
     "in",
+    "max",
+    "min",
     "out"
 };
 constexpr const char* OR_PORTS[] = {
@@ -418,8 +408,12 @@ constexpr const char* PD_PORTS[] = {
     "setpoint"
 };
 constexpr const char* PI_PORTS[] = {
+    "Ki",
+    "Kp",
     "feedback",
     "output",
+    "output_max",
+    "output_min",
     "setpoint"
 };
 constexpr const char* PID_PORTS[] = {
@@ -431,17 +425,6 @@ constexpr const char* Positive_V_to_Bool_PORTS[] = {
     "Vin",
     "o"
 };
-constexpr const char* RU19A_PORTS[] = {
-    "k_mod",
-    "rpm_out",
-    "t4_out",
-    "v_bus",
-    "v_start"
-};
-constexpr const char* RUG82_PORTS[] = {
-    "k_mod",
-    "v_gen"
-};
 constexpr const char* Radiator_PORTS[] = {
     "heat_in",
     "heat_out"
@@ -451,6 +434,8 @@ constexpr const char* RefNode_PORTS[] = {
 };
 constexpr const char* Relay_PORTS[] = {
     "control",
+    "hold_threshold",
+    "state",
     "v_in",
     "v_out"
 };
@@ -465,6 +450,10 @@ constexpr const char* SampleHold_PORTS[] = {
 };
 constexpr const char* SlewRate_PORTS[] = {
     "in",
+    "out"
+};
+constexpr const char* Slider_PORTS[] = {
+    "control",
     "out"
 };
 constexpr const char* SolenoidValve_PORTS[] = {
@@ -505,6 +494,23 @@ constexpr const char* Transformer_PORTS[] = {
     "primary",
     "secondary"
 };
+constexpr const char* Value_PORTS[] = {
+    "o"
+};
+constexpr const char* VariableConductance_PORTS[] = {
+    "cmd",
+    "g_max",
+    "g_min",
+    "v_in",
+    "v_out"
+};
+constexpr const char* VoltageSense_PORTS[] = {
+    "gain",
+    "offset",
+    "out",
+    "v_in",
+    "v_ref"
+};
 constexpr const char* Voltmeter_PORTS[] = {
     "v_in"
 };
@@ -514,6 +520,1190 @@ constexpr const char* XOR_PORTS[] = {
     "o"
 };
 
+enum class RegistryPortDirection : uint8_t { In = 0, Out = 1, InOut = 2 };
+
+constexpr RegistryPortDirection AND_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t AND_PORT_DOMAINS[] = {
+    2,
+    2,
+    2
+};
+constexpr bool AND_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool AND_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection AZS_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t AZS_PORT_DOMAINS[] = {
+    16,
+    2,
+    16,
+    2,
+    1,
+    1
+};
+constexpr bool AZS_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool AZS_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Accumulator_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Accumulator_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool Accumulator_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Accumulator_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Add_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Add_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool Add_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Add_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Any_V_to_Bool_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Any_V_to_Bool_PORT_DOMAINS[] = {
+    1,
+    2
+};
+constexpr bool Any_V_to_Bool_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Any_V_to_Bool_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection AsymSlewRate_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t AsymSlewRate_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool AsymSlewRate_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool AsymSlewRate_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection AsymTMO_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t AsymTMO_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool AsymTMO_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool AsymTMO_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection BlueprintInput_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t BlueprintInput_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool BlueprintInput_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool BlueprintInput_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection BlueprintOutput_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t BlueprintOutput_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool BlueprintOutput_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool BlueprintOutput_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Bus_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::InOut
+};
+constexpr uint8_t Bus_PORT_DOMAINS[] = {
+    1
+};
+constexpr bool Bus_PORT_SOURCE_WRITER[] = {
+    false
+};
+constexpr bool Bus_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Clamp_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Clamp_PORT_DOMAINS[] = {
+    1,
+    2,
+    2,
+    1
+};
+constexpr bool Clamp_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool Clamp_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Comparator_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Comparator_PORT_DOMAINS[] = {
+    3,
+    3,
+    2
+};
+constexpr bool Comparator_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Comparator_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection ControlledCurrentSource_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t ControlledCurrentSource_PORT_DOMAINS[] = {
+    2,
+    1,
+    1
+};
+constexpr bool ControlledCurrentSource_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    true
+};
+constexpr bool ControlledCurrentSource_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection ControlledVoltageSource_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t ControlledVoltageSource_PORT_DOMAINS[] = {
+    2,
+    2,
+    1,
+    2,
+    2,
+    2,
+    1,
+    1
+};
+constexpr bool ControlledVoltageSource_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true
+};
+constexpr bool ControlledVoltageSource_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection CurrentSense_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t CurrentSense_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool CurrentSense_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool CurrentSense_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Divide_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Divide_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool Divide_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Divide_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection ElectricHeater_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t ElectricHeater_PORT_DOMAINS[] = {
+    16,
+    1
+};
+constexpr bool ElectricHeater_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool ElectricHeater_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection ElectricPump_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t ElectricPump_PORT_DOMAINS[] = {
+    8,
+    8,
+    1
+};
+constexpr bool ElectricPump_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool ElectricPump_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection ElectricalConductance_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t ElectricalConductance_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool ElectricalConductance_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool ElectricalConductance_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection ElectricalSource_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t ElectricalSource_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool ElectricalSource_PORT_SOURCE_WRITER[] = {
+    false,
+    true
+};
+constexpr bool ElectricalSource_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection FastTMO_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t FastTMO_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool FastTMO_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool FastTMO_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection FuelTank_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t FuelTank_PORT_DOMAINS[] = {
+    8,
+    1
+};
+constexpr bool FuelTank_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool FuelTank_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Generator_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Generator_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool Generator_PORT_SOURCE_WRITER[] = {
+    false,
+    true
+};
+constexpr bool Generator_SCHEDULER_SOURCE = true;
+
+constexpr RegistryPortDirection GidroAccumulator_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t GidroAccumulator_PORT_DOMAINS[] = {
+    8,
+    8
+};
+constexpr bool GidroAccumulator_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool GidroAccumulator_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Greater_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Greater_PORT_DOMAINS[] = {
+    1,
+    1,
+    2
+};
+constexpr bool Greater_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Greater_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection GreaterEq_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t GreaterEq_PORT_DOMAINS[] = {
+    1,
+    1,
+    2
+};
+constexpr bool GreaterEq_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool GreaterEq_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Gyroscope_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In
+};
+constexpr uint8_t Gyroscope_PORT_DOMAINS[] = {
+    1
+};
+constexpr bool Gyroscope_PORT_SOURCE_WRITER[] = {
+    false
+};
+constexpr bool Gyroscope_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection HighPowerLoad_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t HighPowerLoad_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool HighPowerLoad_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool HighPowerLoad_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection HoldButton_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t HoldButton_PORT_DOMAINS[] = {
+    16,
+    2,
+    1,
+    1
+};
+constexpr bool HoldButton_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool HoldButton_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection IndicatorLight_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t IndicatorLight_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool IndicatorLight_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool IndicatorLight_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection InertiaNode_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t InertiaNode_PORT_DOMAINS[] = {
+    4,
+    4,
+    4,
+    4,
+    4
+};
+constexpr bool InertiaNode_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool InertiaNode_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Integrator_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t Integrator_PORT_DOMAINS[] = {
+    2,
+    1,
+    1,
+    2
+};
+constexpr bool Integrator_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool Integrator_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Inverter_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t Inverter_PORT_DOMAINS[] = {
+    16,
+    1
+};
+constexpr bool Inverter_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Inverter_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection LUT_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t LUT_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool LUT_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool LUT_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection LerpNode_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t LerpNode_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool LerpNode_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool LerpNode_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Lesser_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Lesser_PORT_DOMAINS[] = {
+    1,
+    1,
+    2
+};
+constexpr bool Lesser_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Lesser_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection LesserEq_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t LesserEq_PORT_DOMAINS[] = {
+    1,
+    1,
+    2
+};
+constexpr bool LesserEq_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool LesserEq_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Load_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In
+};
+constexpr uint8_t Load_PORT_DOMAINS[] = {
+    1
+};
+constexpr bool Load_PORT_SOURCE_WRITER[] = {
+    false
+};
+constexpr bool Load_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Max_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Max_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool Max_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Max_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Merger_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Merger_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool Merger_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Merger_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Min_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Min_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool Min_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Min_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Monostable_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Monostable_PORT_DOMAINS[] = {
+    2,
+    2
+};
+constexpr bool Monostable_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Monostable_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Multiply_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Multiply_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool Multiply_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Multiply_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection NAND_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t NAND_PORT_DOMAINS[] = {
+    2,
+    2,
+    2
+};
+constexpr bool NAND_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool NAND_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection NOT_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t NOT_PORT_DOMAINS[] = {
+    2,
+    2
+};
+constexpr bool NOT_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool NOT_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Normalize_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Normalize_PORT_DOMAINS[] = {
+    1,
+    2,
+    2,
+    1
+};
+constexpr bool Normalize_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool Normalize_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection OR_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t OR_PORT_DOMAINS[] = {
+    2,
+    2,
+    2
+};
+constexpr bool OR_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool OR_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection P_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t P_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool P_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool P_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection PD_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t PD_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool PD_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool PD_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection PI_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In
+};
+constexpr uint8_t PI_PORT_DOMAINS[] = {
+    2,
+    2,
+    1,
+    1,
+    2,
+    2,
+    1
+};
+constexpr bool PI_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool PI_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection PID_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t PID_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool PID_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool PID_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Positive_V_to_Bool_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Positive_V_to_Bool_PORT_DOMAINS[] = {
+    1,
+    2
+};
+constexpr bool Positive_V_to_Bool_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Positive_V_to_Bool_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Radiator_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Radiator_PORT_DOMAINS[] = {
+    1,
+    16
+};
+constexpr bool Radiator_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Radiator_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection RefNode_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out
+};
+constexpr uint8_t RefNode_PORT_DOMAINS[] = {
+    1
+};
+constexpr bool RefNode_PORT_SOURCE_WRITER[] = {
+    false
+};
+constexpr bool RefNode_SCHEDULER_SOURCE = true;
+
+constexpr RegistryPortDirection Relay_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Relay_PORT_DOMAINS[] = {
+    2,
+    2,
+    2,
+    1,
+    1
+};
+constexpr bool Relay_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool Relay_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Resistor_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Resistor_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool Resistor_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Resistor_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection SampleHold_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
+};
+constexpr uint8_t SampleHold_PORT_DOMAINS[] = {
+    1,
+    1,
+    2
+};
+constexpr bool SampleHold_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool SampleHold_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection SlewRate_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t SlewRate_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool SlewRate_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool SlewRate_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Slider_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Slider_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool Slider_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Slider_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection SolenoidValve_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t SolenoidValve_PORT_DOMAINS[] = {
+    1,
+    8,
+    8
+};
+constexpr bool SolenoidValve_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool SolenoidValve_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Splitter_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Splitter_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool Splitter_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Splitter_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Spring_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In
+};
+constexpr uint8_t Spring_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool Spring_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Spring_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Subtract_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Subtract_PORT_DOMAINS[] = {
+    1,
+    1,
+    1
+};
+constexpr bool Subtract_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool Subtract_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Switch_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Switch_PORT_DOMAINS[] = {
+    16,
+    2,
+    1,
+    1
+};
+constexpr bool Switch_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool Switch_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection TempSensor_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t TempSensor_PORT_DOMAINS[] = {
+    1,
+    16
+};
+constexpr bool TempSensor_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool TempSensor_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection TimeDelay_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t TimeDelay_PORT_DOMAINS[] = {
+    2,
+    2
+};
+constexpr bool TimeDelay_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool TimeDelay_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Transformer_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Transformer_PORT_DOMAINS[] = {
+    1,
+    2
+};
+constexpr bool Transformer_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Transformer_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Value_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Value_PORT_DOMAINS[] = {
+    2
+};
+constexpr bool Value_PORT_SOURCE_WRITER[] = {
+    false
+};
+constexpr bool Value_SCHEDULER_SOURCE = true;
+
+constexpr RegistryPortDirection VariableConductance_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t VariableConductance_PORT_DOMAINS[] = {
+    2,
+    2,
+    2,
+    1,
+    1
+};
+constexpr bool VariableConductance_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool VariableConductance_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection VoltageSense_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In
+};
+constexpr uint8_t VoltageSense_PORT_DOMAINS[] = {
+    2,
+    2,
+    2,
+    1,
+    1
+};
+constexpr bool VoltageSense_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool VoltageSense_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Voltmeter_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In
+};
+constexpr uint8_t Voltmeter_PORT_DOMAINS[] = {
+    1
+};
+constexpr bool Voltmeter_PORT_SOURCE_WRITER[] = {
+    false
+};
+constexpr bool Voltmeter_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection XOR_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t XOR_PORT_DOMAINS[] = {
+    2,
+    2,
+    2
+};
+constexpr bool XOR_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false
+};
+constexpr bool XOR_SCHEDULER_SOURCE = false;
+
 // Get port names for a component type
 // Convert port name string to PortNames enum
 // Auto-generated from components/*.blueprint — never maintain by hand!
@@ -521,33 +1711,51 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
     static const std::unordered_map<std::string, PortNames> map = {
         {"A", PortNames::A},
         {"B", PortNames::B},
+        {"Ki", PortNames::Ki},
+        {"Kp", PortNames::Kp},
         {"Va", PortNames::Va},
         {"Vb", PortNames::Vb},
         {"Vin", PortNames::Vin},
         {"ac_out", PortNames::ac_out},
         {"brightness", PortNames::brightness},
+        {"cmd", PortNames::cmd},
         {"control", PortNames::control},
         {"ctrl", PortNames::ctrl},
+        {"damping", PortNames::damping},
         {"dc_in", PortNames::dc_in},
         {"ext", PortNames::ext},
         {"feedback", PortNames::feedback},
         {"flow_in", PortNames::flow_in},
         {"flow_out", PortNames::flow_out},
         {"force_out", PortNames::force_out},
+        {"g_max", PortNames::g_max},
+        {"g_min", PortNames::g_min},
+        {"gain", PortNames::gain},
         {"heat_in", PortNames::heat_in},
         {"heat_out", PortNames::heat_out},
+        {"hold_threshold", PortNames::hold_threshold},
         {"i", PortNames::i},
         {"i1", PortNames::i1},
         {"i2", PortNames::i2},
+        {"i_out", PortNames::i_out},
         {"in", PortNames::in},
         {"input", PortNames::input},
-        {"k_mod", PortNames::k_mod},
-        {"lamp", PortNames::lamp},
+        {"inv_inertia", PortNames::inv_inertia},
+        {"level_out", PortNames::level_out},
+        {"mass", PortNames::mass},
+        {"max", PortNames::max},
+        {"max_v", PortNames::max_v},
+        {"min", PortNames::min},
+        {"min_v", PortNames::min_v},
         {"o", PortNames::o},
         {"o1", PortNames::o1},
         {"o2", PortNames::o2},
+        {"offset", PortNames::offset},
         {"out", PortNames::out},
         {"output", PortNames::output},
+        {"output_max", PortNames::output_max},
+        {"output_min", PortNames::output_min},
+        {"p_in", PortNames::p_in},
         {"p_out", PortNames::p_out},
         {"port", PortNames::port},
         {"pos_a", PortNames::pos_a},
@@ -559,19 +1767,18 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"secondary", PortNames::secondary},
         {"setpoint", PortNames::setpoint},
         {"state", PortNames::state},
-        {"t4_out", PortNames::t4_out},
         {"temp", PortNames::temp},
         {"temp_in", PortNames::temp_in},
         {"temp_out", PortNames::temp_out},
+        {"torque_in", PortNames::torque_in},
         {"trigger", PortNames::trigger},
         {"tripped", PortNames::tripped},
         {"v", PortNames::v},
-        {"v_bus", PortNames::v_bus},
-        {"v_gen", PortNames::v_gen},
-        {"v_gen_ref", PortNames::v_gen_ref},
         {"v_in", PortNames::v_in},
+        {"v_neg", PortNames::v_neg},
         {"v_out", PortNames::v_out},
-        {"v_start", PortNames::v_start},
+        {"v_pos", PortNames::v_pos},
+        {"v_ref", PortNames::v_ref},
     };
     auto it = map.find(name);
     if (it != map.end()) return it->second;
@@ -581,34 +1788,38 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
 // Get port names for a component type
 inline std::vector<std::string> get_component_ports(const std::string& classname) {
     static const std::unordered_map<std::string, std::vector<std::string>> registry = {
-        {"AGK47", {"input"}},
         {"AND", {"A", "B", "o"}},
         {"AZS", {"control", "state", "temp", "tripped", "v_in", "v_out"}},
+        {"Accumulator", {"in", "out"}},
         {"Add", {"A", "B", "o"}},
         {"Any_V_to_Bool", {"Vin", "o"}},
         {"AsymSlewRate", {"in", "out"}},
         {"AsymTMO", {"in", "out"}},
-        {"Battery", {"v_in", "v_out"}},
         {"BlueprintInput", {"ext", "port"}},
         {"BlueprintOutput", {"ext", "port"}},
         {"Bus", {"v"}},
-        {"Clamp", {"in", "out"}},
+        {"Clamp", {"in", "max", "min", "out"}},
         {"Comparator", {"Va", "Vb", "o"}},
-        {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
+        {"ControlledCurrentSource", {"cmd", "v_neg", "v_pos"}},
+        {"ControlledVoltageSource", {"cmd", "gain", "i_out", "max_v", "min_v", "offset", "v_neg", "v_pos"}},
+        {"CurrentSense", {"i_out", "v_in", "v_out"}},
         {"Divide", {"A", "B", "o"}},
         {"ElectricHeater", {"heat_out", "power"}},
-        {"ElectricPump", {"p_out", "v_in"}},
+        {"ElectricPump", {"p_in", "p_out", "v_in"}},
+        {"ElectricalConductance", {"v_in", "v_out"}},
+        {"ElectricalSource", {"v_in", "v_out"}},
         {"FastTMO", {"in", "out"}},
-        {"GS24", {"k_mod", "v_in", "v_out"}},
+        {"FuelTank", {"flow_out", "level_out"}},
         {"Generator", {"v_in", "v_out"}},
+        {"GidroAccumulator", {"p_in", "p_out"}},
         {"Greater", {"A", "B", "o"}},
         {"GreaterEq", {"A", "B", "o"}},
         {"Gyroscope", {"input"}},
         {"HighPowerLoad", {"v_in", "v_out"}},
         {"HoldButton", {"control", "state", "v_in", "v_out"}},
         {"IndicatorLight", {"brightness", "v_in", "v_out"}},
-        {"InertiaNode", {"input", "output"}},
-        {"Integrator", {"in", "out", "reset"}},
+        {"InertiaNode", {"damping", "inv_inertia", "mass", "rpm_out", "torque_in"}},
+        {"Integrator", {"gain", "in", "out", "reset"}},
         {"Inverter", {"ac_out", "dc_in"}},
         {"LUT", {"input", "output"}},
         {"LerpNode", {"input", "output"}},
@@ -622,21 +1833,20 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Multiply", {"A", "B", "o"}},
         {"NAND", {"A", "B", "o"}},
         {"NOT", {"A", "o"}},
-        {"Normalize", {"in", "out"}},
+        {"Normalize", {"in", "max", "min", "out"}},
         {"OR", {"A", "B", "o"}},
         {"P", {"feedback", "output", "setpoint"}},
         {"PD", {"feedback", "output", "setpoint"}},
-        {"PI", {"feedback", "output", "setpoint"}},
+        {"PI", {"Ki", "Kp", "feedback", "output", "output_max", "output_min", "setpoint"}},
         {"PID", {"feedback", "output", "setpoint"}},
         {"Positive_V_to_Bool", {"Vin", "o"}},
-        {"RU19A", {"k_mod", "rpm_out", "t4_out", "v_bus", "v_start"}},
-        {"RUG82", {"k_mod", "v_gen"}},
         {"Radiator", {"heat_in", "heat_out"}},
         {"RefNode", {"v"}},
-        {"Relay", {"control", "v_in", "v_out"}},
+        {"Relay", {"control", "hold_threshold", "state", "v_in", "v_out"}},
         {"Resistor", {"v_in", "v_out"}},
         {"SampleHold", {"in", "out", "trigger"}},
         {"SlewRate", {"in", "out"}},
+        {"Slider", {"control", "out"}},
         {"SolenoidValve", {"ctrl", "flow_in", "flow_out"}},
         {"Splitter", {"i", "o1", "o2"}},
         {"Spring", {"force_out", "pos_a", "pos_b"}},
@@ -645,6 +1855,9 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"TempSensor", {"temp_in", "temp_out"}},
         {"TimeDelay", {"in", "out"}},
         {"Transformer", {"primary", "secondary"}},
+        {"Value", {"o"}},
+        {"VariableConductance", {"cmd", "g_max", "g_min", "v_in", "v_out"}},
+        {"VoltageSense", {"gain", "offset", "out", "v_in", "v_ref"}},
         {"Voltmeter", {"v_in"}},
         {"XOR", {"A", "B", "o"}},
     };
@@ -656,29 +1869,1353 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
     return {};
 }
 
+inline bool has_component_metadata(const std::string& classname) {
+    static const std::unordered_set<std::string> known = {
+        "AND",
+        "AZS",
+        "Accumulator",
+        "Add",
+        "Any_V_to_Bool",
+        "AsymSlewRate",
+        "AsymTMO",
+        "BlueprintInput",
+        "BlueprintOutput",
+        "Bus",
+        "Clamp",
+        "Comparator",
+        "ControlledCurrentSource",
+        "ControlledVoltageSource",
+        "CurrentSense",
+        "Divide",
+        "ElectricHeater",
+        "ElectricPump",
+        "ElectricalConductance",
+        "ElectricalSource",
+        "FastTMO",
+        "FuelTank",
+        "Generator",
+        "GidroAccumulator",
+        "Greater",
+        "GreaterEq",
+        "Gyroscope",
+        "HighPowerLoad",
+        "HoldButton",
+        "IndicatorLight",
+        "InertiaNode",
+        "Integrator",
+        "Inverter",
+        "LUT",
+        "LerpNode",
+        "Lesser",
+        "LesserEq",
+        "Load",
+        "Max",
+        "Merger",
+        "Min",
+        "Monostable",
+        "Multiply",
+        "NAND",
+        "NOT",
+        "Normalize",
+        "OR",
+        "P",
+        "PD",
+        "PI",
+        "PID",
+        "Positive_V_to_Bool",
+        "Radiator",
+        "RefNode",
+        "Relay",
+        "Resistor",
+        "SampleHold",
+        "SlewRate",
+        "Slider",
+        "SolenoidValve",
+        "Splitter",
+        "Spring",
+        "Subtract",
+        "Switch",
+        "TempSensor",
+        "TimeDelay",
+        "Transformer",
+        "Value",
+        "VariableConductance",
+        "VoltageSense",
+        "Voltmeter",
+        "XOR",
+    };
+    return known.count(classname) > 0;
+}
+
+inline bool is_scheduler_source_component(const std::string& classname) {
+    static const std::unordered_map<std::string, bool> registry = {
+        {"AND", false},
+        {"AZS", false},
+        {"Accumulator", false},
+        {"Add", false},
+        {"Any_V_to_Bool", false},
+        {"AsymSlewRate", false},
+        {"AsymTMO", false},
+        {"BlueprintInput", false},
+        {"BlueprintOutput", false},
+        {"Bus", false},
+        {"Clamp", false},
+        {"Comparator", false},
+        {"ControlledCurrentSource", false},
+        {"ControlledVoltageSource", false},
+        {"CurrentSense", false},
+        {"Divide", false},
+        {"ElectricHeater", false},
+        {"ElectricPump", false},
+        {"ElectricalConductance", false},
+        {"ElectricalSource", false},
+        {"FastTMO", false},
+        {"FuelTank", false},
+        {"Generator", true},
+        {"GidroAccumulator", false},
+        {"Greater", false},
+        {"GreaterEq", false},
+        {"Gyroscope", false},
+        {"HighPowerLoad", false},
+        {"HoldButton", false},
+        {"IndicatorLight", false},
+        {"InertiaNode", false},
+        {"Integrator", false},
+        {"Inverter", false},
+        {"LUT", false},
+        {"LerpNode", false},
+        {"Lesser", false},
+        {"LesserEq", false},
+        {"Load", false},
+        {"Max", false},
+        {"Merger", false},
+        {"Min", false},
+        {"Monostable", false},
+        {"Multiply", false},
+        {"NAND", false},
+        {"NOT", false},
+        {"Normalize", false},
+        {"OR", false},
+        {"P", false},
+        {"PD", false},
+        {"PI", false},
+        {"PID", false},
+        {"Positive_V_to_Bool", false},
+        {"Radiator", false},
+        {"RefNode", true},
+        {"Relay", false},
+        {"Resistor", false},
+        {"SampleHold", false},
+        {"SlewRate", false},
+        {"Slider", false},
+        {"SolenoidValve", false},
+        {"Splitter", false},
+        {"Spring", false},
+        {"Subtract", false},
+        {"Switch", false},
+        {"TempSensor", false},
+        {"TimeDelay", false},
+        {"Transformer", false},
+        {"Value", true},
+        {"VariableConductance", false},
+        {"VoltageSense", false},
+        {"Voltmeter", false},
+        {"XOR", false},
+    };
+    auto it = registry.find(classname);
+    if (it == registry.end()) return false;
+    return it->second;
+}
+
+inline std::vector<std::string> get_output_ports(const std::string& classname) {
+    std::vector<std::string> result;
+    if (classname == "AND") {
+        for (size_t i = 0; i < AND_PORT_COUNT; ++i) {
+            if (AND_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AND_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(AND_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "AZS") {
+        for (size_t i = 0; i < AZS_PORT_COUNT; ++i) {
+            if (AZS_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AZS_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(AZS_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Accumulator") {
+        for (size_t i = 0; i < Accumulator_PORT_COUNT; ++i) {
+            if (Accumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Accumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Accumulator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Add") {
+        for (size_t i = 0; i < Add_PORT_COUNT; ++i) {
+            if (Add_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Add_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Add_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Any_V_to_Bool") {
+        for (size_t i = 0; i < Any_V_to_Bool_PORT_COUNT; ++i) {
+            if (Any_V_to_Bool_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Any_V_to_Bool_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Any_V_to_Bool_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "AsymSlewRate") {
+        for (size_t i = 0; i < AsymSlewRate_PORT_COUNT; ++i) {
+            if (AsymSlewRate_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AsymSlewRate_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(AsymSlewRate_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "AsymTMO") {
+        for (size_t i = 0; i < AsymTMO_PORT_COUNT; ++i) {
+            if (AsymTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AsymTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(AsymTMO_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "BlueprintInput") {
+        for (size_t i = 0; i < BlueprintInput_PORT_COUNT; ++i) {
+            if (BlueprintInput_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || BlueprintInput_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(BlueprintInput_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "BlueprintOutput") {
+        for (size_t i = 0; i < BlueprintOutput_PORT_COUNT; ++i) {
+            if (BlueprintOutput_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || BlueprintOutput_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(BlueprintOutput_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Bus") {
+        for (size_t i = 0; i < Bus_PORT_COUNT; ++i) {
+            if (Bus_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Bus_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Bus_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Clamp") {
+        for (size_t i = 0; i < Clamp_PORT_COUNT; ++i) {
+            if (Clamp_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Clamp_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Clamp_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Comparator") {
+        for (size_t i = 0; i < Comparator_PORT_COUNT; ++i) {
+            if (Comparator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Comparator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Comparator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ControlledCurrentSource") {
+        for (size_t i = 0; i < ControlledCurrentSource_PORT_COUNT; ++i) {
+            if (ControlledCurrentSource_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ControlledCurrentSource_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(ControlledCurrentSource_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ControlledVoltageSource") {
+        for (size_t i = 0; i < ControlledVoltageSource_PORT_COUNT; ++i) {
+            if (ControlledVoltageSource_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ControlledVoltageSource_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(ControlledVoltageSource_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "CurrentSense") {
+        for (size_t i = 0; i < CurrentSense_PORT_COUNT; ++i) {
+            if (CurrentSense_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || CurrentSense_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(CurrentSense_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Divide") {
+        for (size_t i = 0; i < Divide_PORT_COUNT; ++i) {
+            if (Divide_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Divide_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Divide_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricHeater") {
+        for (size_t i = 0; i < ElectricHeater_PORT_COUNT; ++i) {
+            if (ElectricHeater_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricHeater_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(ElectricHeater_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricPump") {
+        for (size_t i = 0; i < ElectricPump_PORT_COUNT; ++i) {
+            if (ElectricPump_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricPump_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(ElectricPump_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricalConductance") {
+        for (size_t i = 0; i < ElectricalConductance_PORT_COUNT; ++i) {
+            if (ElectricalConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricalConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(ElectricalConductance_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricalSource") {
+        for (size_t i = 0; i < ElectricalSource_PORT_COUNT; ++i) {
+            if (ElectricalSource_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricalSource_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(ElectricalSource_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "FastTMO") {
+        for (size_t i = 0; i < FastTMO_PORT_COUNT; ++i) {
+            if (FastTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || FastTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(FastTMO_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "FuelTank") {
+        for (size_t i = 0; i < FuelTank_PORT_COUNT; ++i) {
+            if (FuelTank_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || FuelTank_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(FuelTank_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Generator") {
+        for (size_t i = 0; i < Generator_PORT_COUNT; ++i) {
+            if (Generator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Generator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Generator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "GidroAccumulator") {
+        for (size_t i = 0; i < GidroAccumulator_PORT_COUNT; ++i) {
+            if (GidroAccumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || GidroAccumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(GidroAccumulator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Greater") {
+        for (size_t i = 0; i < Greater_PORT_COUNT; ++i) {
+            if (Greater_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Greater_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Greater_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "GreaterEq") {
+        for (size_t i = 0; i < GreaterEq_PORT_COUNT; ++i) {
+            if (GreaterEq_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || GreaterEq_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(GreaterEq_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Gyroscope") {
+        for (size_t i = 0; i < Gyroscope_PORT_COUNT; ++i) {
+            if (Gyroscope_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Gyroscope_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Gyroscope_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "HighPowerLoad") {
+        for (size_t i = 0; i < HighPowerLoad_PORT_COUNT; ++i) {
+            if (HighPowerLoad_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || HighPowerLoad_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(HighPowerLoad_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "HoldButton") {
+        for (size_t i = 0; i < HoldButton_PORT_COUNT; ++i) {
+            if (HoldButton_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || HoldButton_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(HoldButton_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "IndicatorLight") {
+        for (size_t i = 0; i < IndicatorLight_PORT_COUNT; ++i) {
+            if (IndicatorLight_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || IndicatorLight_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(IndicatorLight_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "InertiaNode") {
+        for (size_t i = 0; i < InertiaNode_PORT_COUNT; ++i) {
+            if (InertiaNode_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || InertiaNode_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(InertiaNode_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Integrator") {
+        for (size_t i = 0; i < Integrator_PORT_COUNT; ++i) {
+            if (Integrator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Integrator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Integrator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Inverter") {
+        for (size_t i = 0; i < Inverter_PORT_COUNT; ++i) {
+            if (Inverter_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Inverter_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Inverter_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "LUT") {
+        for (size_t i = 0; i < LUT_PORT_COUNT; ++i) {
+            if (LUT_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || LUT_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(LUT_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "LerpNode") {
+        for (size_t i = 0; i < LerpNode_PORT_COUNT; ++i) {
+            if (LerpNode_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || LerpNode_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(LerpNode_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Lesser") {
+        for (size_t i = 0; i < Lesser_PORT_COUNT; ++i) {
+            if (Lesser_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Lesser_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Lesser_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "LesserEq") {
+        for (size_t i = 0; i < LesserEq_PORT_COUNT; ++i) {
+            if (LesserEq_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || LesserEq_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(LesserEq_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Load") {
+        for (size_t i = 0; i < Load_PORT_COUNT; ++i) {
+            if (Load_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Load_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Load_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Max") {
+        for (size_t i = 0; i < Max_PORT_COUNT; ++i) {
+            if (Max_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Max_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Max_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Merger") {
+        for (size_t i = 0; i < Merger_PORT_COUNT; ++i) {
+            if (Merger_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Merger_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Merger_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Min") {
+        for (size_t i = 0; i < Min_PORT_COUNT; ++i) {
+            if (Min_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Min_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Min_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Monostable") {
+        for (size_t i = 0; i < Monostable_PORT_COUNT; ++i) {
+            if (Monostable_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Monostable_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Monostable_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Multiply") {
+        for (size_t i = 0; i < Multiply_PORT_COUNT; ++i) {
+            if (Multiply_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Multiply_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Multiply_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "NAND") {
+        for (size_t i = 0; i < NAND_PORT_COUNT; ++i) {
+            if (NAND_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || NAND_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(NAND_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "NOT") {
+        for (size_t i = 0; i < NOT_PORT_COUNT; ++i) {
+            if (NOT_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || NOT_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(NOT_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Normalize") {
+        for (size_t i = 0; i < Normalize_PORT_COUNT; ++i) {
+            if (Normalize_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Normalize_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Normalize_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "OR") {
+        for (size_t i = 0; i < OR_PORT_COUNT; ++i) {
+            if (OR_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || OR_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(OR_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "P") {
+        for (size_t i = 0; i < P_PORT_COUNT; ++i) {
+            if (P_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || P_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(P_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "PD") {
+        for (size_t i = 0; i < PD_PORT_COUNT; ++i) {
+            if (PD_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || PD_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(PD_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "PI") {
+        for (size_t i = 0; i < PI_PORT_COUNT; ++i) {
+            if (PI_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || PI_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(PI_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "PID") {
+        for (size_t i = 0; i < PID_PORT_COUNT; ++i) {
+            if (PID_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || PID_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(PID_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Positive_V_to_Bool") {
+        for (size_t i = 0; i < Positive_V_to_Bool_PORT_COUNT; ++i) {
+            if (Positive_V_to_Bool_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Positive_V_to_Bool_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Positive_V_to_Bool_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Radiator") {
+        for (size_t i = 0; i < Radiator_PORT_COUNT; ++i) {
+            if (Radiator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Radiator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Radiator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "RefNode") {
+        for (size_t i = 0; i < RefNode_PORT_COUNT; ++i) {
+            if (RefNode_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || RefNode_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(RefNode_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Relay") {
+        for (size_t i = 0; i < Relay_PORT_COUNT; ++i) {
+            if (Relay_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Relay_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Relay_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Resistor") {
+        for (size_t i = 0; i < Resistor_PORT_COUNT; ++i) {
+            if (Resistor_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Resistor_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Resistor_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "SampleHold") {
+        for (size_t i = 0; i < SampleHold_PORT_COUNT; ++i) {
+            if (SampleHold_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || SampleHold_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(SampleHold_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "SlewRate") {
+        for (size_t i = 0; i < SlewRate_PORT_COUNT; ++i) {
+            if (SlewRate_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || SlewRate_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(SlewRate_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Slider") {
+        for (size_t i = 0; i < Slider_PORT_COUNT; ++i) {
+            if (Slider_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Slider_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Slider_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "SolenoidValve") {
+        for (size_t i = 0; i < SolenoidValve_PORT_COUNT; ++i) {
+            if (SolenoidValve_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || SolenoidValve_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(SolenoidValve_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Splitter") {
+        for (size_t i = 0; i < Splitter_PORT_COUNT; ++i) {
+            if (Splitter_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Splitter_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Splitter_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Spring") {
+        for (size_t i = 0; i < Spring_PORT_COUNT; ++i) {
+            if (Spring_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Spring_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Spring_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Subtract") {
+        for (size_t i = 0; i < Subtract_PORT_COUNT; ++i) {
+            if (Subtract_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Subtract_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Subtract_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Switch") {
+        for (size_t i = 0; i < Switch_PORT_COUNT; ++i) {
+            if (Switch_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Switch_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Switch_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "TempSensor") {
+        for (size_t i = 0; i < TempSensor_PORT_COUNT; ++i) {
+            if (TempSensor_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || TempSensor_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(TempSensor_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "TimeDelay") {
+        for (size_t i = 0; i < TimeDelay_PORT_COUNT; ++i) {
+            if (TimeDelay_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || TimeDelay_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(TimeDelay_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Transformer") {
+        for (size_t i = 0; i < Transformer_PORT_COUNT; ++i) {
+            if (Transformer_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Transformer_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Transformer_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Value") {
+        for (size_t i = 0; i < Value_PORT_COUNT; ++i) {
+            if (Value_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Value_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Value_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "VariableConductance") {
+        for (size_t i = 0; i < VariableConductance_PORT_COUNT; ++i) {
+            if (VariableConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || VariableConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(VariableConductance_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "VoltageSense") {
+        for (size_t i = 0; i < VoltageSense_PORT_COUNT; ++i) {
+            if (VoltageSense_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || VoltageSense_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(VoltageSense_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Voltmeter") {
+        for (size_t i = 0; i < Voltmeter_PORT_COUNT; ++i) {
+            if (Voltmeter_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Voltmeter_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Voltmeter_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "XOR") {
+        for (size_t i = 0; i < XOR_PORT_COUNT; ++i) {
+            if (XOR_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || XOR_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(XOR_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    return result;
+}
+
+inline std::vector<std::string> get_source_writer_ports(const std::string& classname, uint8_t domain_mask) {
+    std::vector<std::string> result;
+    if (classname == "AND") {
+        for (size_t i = 0; i < AND_PORT_COUNT; ++i) {
+            if (AND_PORT_SOURCE_WRITER[i] && ((AND_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(AND_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "AZS") {
+        for (size_t i = 0; i < AZS_PORT_COUNT; ++i) {
+            if (AZS_PORT_SOURCE_WRITER[i] && ((AZS_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(AZS_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Accumulator") {
+        for (size_t i = 0; i < Accumulator_PORT_COUNT; ++i) {
+            if (Accumulator_PORT_SOURCE_WRITER[i] && ((Accumulator_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Accumulator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Add") {
+        for (size_t i = 0; i < Add_PORT_COUNT; ++i) {
+            if (Add_PORT_SOURCE_WRITER[i] && ((Add_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Add_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Any_V_to_Bool") {
+        for (size_t i = 0; i < Any_V_to_Bool_PORT_COUNT; ++i) {
+            if (Any_V_to_Bool_PORT_SOURCE_WRITER[i] && ((Any_V_to_Bool_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Any_V_to_Bool_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "AsymSlewRate") {
+        for (size_t i = 0; i < AsymSlewRate_PORT_COUNT; ++i) {
+            if (AsymSlewRate_PORT_SOURCE_WRITER[i] && ((AsymSlewRate_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(AsymSlewRate_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "AsymTMO") {
+        for (size_t i = 0; i < AsymTMO_PORT_COUNT; ++i) {
+            if (AsymTMO_PORT_SOURCE_WRITER[i] && ((AsymTMO_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(AsymTMO_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "BlueprintInput") {
+        for (size_t i = 0; i < BlueprintInput_PORT_COUNT; ++i) {
+            if (BlueprintInput_PORT_SOURCE_WRITER[i] && ((BlueprintInput_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(BlueprintInput_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "BlueprintOutput") {
+        for (size_t i = 0; i < BlueprintOutput_PORT_COUNT; ++i) {
+            if (BlueprintOutput_PORT_SOURCE_WRITER[i] && ((BlueprintOutput_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(BlueprintOutput_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Bus") {
+        for (size_t i = 0; i < Bus_PORT_COUNT; ++i) {
+            if (Bus_PORT_SOURCE_WRITER[i] && ((Bus_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Bus_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Clamp") {
+        for (size_t i = 0; i < Clamp_PORT_COUNT; ++i) {
+            if (Clamp_PORT_SOURCE_WRITER[i] && ((Clamp_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Clamp_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Comparator") {
+        for (size_t i = 0; i < Comparator_PORT_COUNT; ++i) {
+            if (Comparator_PORT_SOURCE_WRITER[i] && ((Comparator_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Comparator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ControlledCurrentSource") {
+        for (size_t i = 0; i < ControlledCurrentSource_PORT_COUNT; ++i) {
+            if (ControlledCurrentSource_PORT_SOURCE_WRITER[i] && ((ControlledCurrentSource_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(ControlledCurrentSource_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ControlledVoltageSource") {
+        for (size_t i = 0; i < ControlledVoltageSource_PORT_COUNT; ++i) {
+            if (ControlledVoltageSource_PORT_SOURCE_WRITER[i] && ((ControlledVoltageSource_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(ControlledVoltageSource_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "CurrentSense") {
+        for (size_t i = 0; i < CurrentSense_PORT_COUNT; ++i) {
+            if (CurrentSense_PORT_SOURCE_WRITER[i] && ((CurrentSense_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(CurrentSense_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Divide") {
+        for (size_t i = 0; i < Divide_PORT_COUNT; ++i) {
+            if (Divide_PORT_SOURCE_WRITER[i] && ((Divide_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Divide_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricHeater") {
+        for (size_t i = 0; i < ElectricHeater_PORT_COUNT; ++i) {
+            if (ElectricHeater_PORT_SOURCE_WRITER[i] && ((ElectricHeater_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(ElectricHeater_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricPump") {
+        for (size_t i = 0; i < ElectricPump_PORT_COUNT; ++i) {
+            if (ElectricPump_PORT_SOURCE_WRITER[i] && ((ElectricPump_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(ElectricPump_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricalConductance") {
+        for (size_t i = 0; i < ElectricalConductance_PORT_COUNT; ++i) {
+            if (ElectricalConductance_PORT_SOURCE_WRITER[i] && ((ElectricalConductance_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(ElectricalConductance_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricalSource") {
+        for (size_t i = 0; i < ElectricalSource_PORT_COUNT; ++i) {
+            if (ElectricalSource_PORT_SOURCE_WRITER[i] && ((ElectricalSource_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(ElectricalSource_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "FastTMO") {
+        for (size_t i = 0; i < FastTMO_PORT_COUNT; ++i) {
+            if (FastTMO_PORT_SOURCE_WRITER[i] && ((FastTMO_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(FastTMO_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "FuelTank") {
+        for (size_t i = 0; i < FuelTank_PORT_COUNT; ++i) {
+            if (FuelTank_PORT_SOURCE_WRITER[i] && ((FuelTank_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(FuelTank_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Generator") {
+        for (size_t i = 0; i < Generator_PORT_COUNT; ++i) {
+            if (Generator_PORT_SOURCE_WRITER[i] && ((Generator_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Generator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "GidroAccumulator") {
+        for (size_t i = 0; i < GidroAccumulator_PORT_COUNT; ++i) {
+            if (GidroAccumulator_PORT_SOURCE_WRITER[i] && ((GidroAccumulator_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(GidroAccumulator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Greater") {
+        for (size_t i = 0; i < Greater_PORT_COUNT; ++i) {
+            if (Greater_PORT_SOURCE_WRITER[i] && ((Greater_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Greater_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "GreaterEq") {
+        for (size_t i = 0; i < GreaterEq_PORT_COUNT; ++i) {
+            if (GreaterEq_PORT_SOURCE_WRITER[i] && ((GreaterEq_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(GreaterEq_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Gyroscope") {
+        for (size_t i = 0; i < Gyroscope_PORT_COUNT; ++i) {
+            if (Gyroscope_PORT_SOURCE_WRITER[i] && ((Gyroscope_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Gyroscope_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "HighPowerLoad") {
+        for (size_t i = 0; i < HighPowerLoad_PORT_COUNT; ++i) {
+            if (HighPowerLoad_PORT_SOURCE_WRITER[i] && ((HighPowerLoad_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(HighPowerLoad_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "HoldButton") {
+        for (size_t i = 0; i < HoldButton_PORT_COUNT; ++i) {
+            if (HoldButton_PORT_SOURCE_WRITER[i] && ((HoldButton_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(HoldButton_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "IndicatorLight") {
+        for (size_t i = 0; i < IndicatorLight_PORT_COUNT; ++i) {
+            if (IndicatorLight_PORT_SOURCE_WRITER[i] && ((IndicatorLight_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(IndicatorLight_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "InertiaNode") {
+        for (size_t i = 0; i < InertiaNode_PORT_COUNT; ++i) {
+            if (InertiaNode_PORT_SOURCE_WRITER[i] && ((InertiaNode_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(InertiaNode_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Integrator") {
+        for (size_t i = 0; i < Integrator_PORT_COUNT; ++i) {
+            if (Integrator_PORT_SOURCE_WRITER[i] && ((Integrator_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Integrator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Inverter") {
+        for (size_t i = 0; i < Inverter_PORT_COUNT; ++i) {
+            if (Inverter_PORT_SOURCE_WRITER[i] && ((Inverter_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Inverter_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "LUT") {
+        for (size_t i = 0; i < LUT_PORT_COUNT; ++i) {
+            if (LUT_PORT_SOURCE_WRITER[i] && ((LUT_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(LUT_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "LerpNode") {
+        for (size_t i = 0; i < LerpNode_PORT_COUNT; ++i) {
+            if (LerpNode_PORT_SOURCE_WRITER[i] && ((LerpNode_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(LerpNode_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Lesser") {
+        for (size_t i = 0; i < Lesser_PORT_COUNT; ++i) {
+            if (Lesser_PORT_SOURCE_WRITER[i] && ((Lesser_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Lesser_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "LesserEq") {
+        for (size_t i = 0; i < LesserEq_PORT_COUNT; ++i) {
+            if (LesserEq_PORT_SOURCE_WRITER[i] && ((LesserEq_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(LesserEq_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Load") {
+        for (size_t i = 0; i < Load_PORT_COUNT; ++i) {
+            if (Load_PORT_SOURCE_WRITER[i] && ((Load_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Load_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Max") {
+        for (size_t i = 0; i < Max_PORT_COUNT; ++i) {
+            if (Max_PORT_SOURCE_WRITER[i] && ((Max_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Max_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Merger") {
+        for (size_t i = 0; i < Merger_PORT_COUNT; ++i) {
+            if (Merger_PORT_SOURCE_WRITER[i] && ((Merger_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Merger_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Min") {
+        for (size_t i = 0; i < Min_PORT_COUNT; ++i) {
+            if (Min_PORT_SOURCE_WRITER[i] && ((Min_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Min_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Monostable") {
+        for (size_t i = 0; i < Monostable_PORT_COUNT; ++i) {
+            if (Monostable_PORT_SOURCE_WRITER[i] && ((Monostable_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Monostable_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Multiply") {
+        for (size_t i = 0; i < Multiply_PORT_COUNT; ++i) {
+            if (Multiply_PORT_SOURCE_WRITER[i] && ((Multiply_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Multiply_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "NAND") {
+        for (size_t i = 0; i < NAND_PORT_COUNT; ++i) {
+            if (NAND_PORT_SOURCE_WRITER[i] && ((NAND_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(NAND_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "NOT") {
+        for (size_t i = 0; i < NOT_PORT_COUNT; ++i) {
+            if (NOT_PORT_SOURCE_WRITER[i] && ((NOT_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(NOT_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Normalize") {
+        for (size_t i = 0; i < Normalize_PORT_COUNT; ++i) {
+            if (Normalize_PORT_SOURCE_WRITER[i] && ((Normalize_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Normalize_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "OR") {
+        for (size_t i = 0; i < OR_PORT_COUNT; ++i) {
+            if (OR_PORT_SOURCE_WRITER[i] && ((OR_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(OR_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "P") {
+        for (size_t i = 0; i < P_PORT_COUNT; ++i) {
+            if (P_PORT_SOURCE_WRITER[i] && ((P_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(P_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "PD") {
+        for (size_t i = 0; i < PD_PORT_COUNT; ++i) {
+            if (PD_PORT_SOURCE_WRITER[i] && ((PD_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(PD_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "PI") {
+        for (size_t i = 0; i < PI_PORT_COUNT; ++i) {
+            if (PI_PORT_SOURCE_WRITER[i] && ((PI_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(PI_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "PID") {
+        for (size_t i = 0; i < PID_PORT_COUNT; ++i) {
+            if (PID_PORT_SOURCE_WRITER[i] && ((PID_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(PID_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Positive_V_to_Bool") {
+        for (size_t i = 0; i < Positive_V_to_Bool_PORT_COUNT; ++i) {
+            if (Positive_V_to_Bool_PORT_SOURCE_WRITER[i] && ((Positive_V_to_Bool_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Positive_V_to_Bool_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Radiator") {
+        for (size_t i = 0; i < Radiator_PORT_COUNT; ++i) {
+            if (Radiator_PORT_SOURCE_WRITER[i] && ((Radiator_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Radiator_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "RefNode") {
+        for (size_t i = 0; i < RefNode_PORT_COUNT; ++i) {
+            if (RefNode_PORT_SOURCE_WRITER[i] && ((RefNode_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(RefNode_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Relay") {
+        for (size_t i = 0; i < Relay_PORT_COUNT; ++i) {
+            if (Relay_PORT_SOURCE_WRITER[i] && ((Relay_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Relay_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Resistor") {
+        for (size_t i = 0; i < Resistor_PORT_COUNT; ++i) {
+            if (Resistor_PORT_SOURCE_WRITER[i] && ((Resistor_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Resistor_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "SampleHold") {
+        for (size_t i = 0; i < SampleHold_PORT_COUNT; ++i) {
+            if (SampleHold_PORT_SOURCE_WRITER[i] && ((SampleHold_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(SampleHold_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "SlewRate") {
+        for (size_t i = 0; i < SlewRate_PORT_COUNT; ++i) {
+            if (SlewRate_PORT_SOURCE_WRITER[i] && ((SlewRate_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(SlewRate_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Slider") {
+        for (size_t i = 0; i < Slider_PORT_COUNT; ++i) {
+            if (Slider_PORT_SOURCE_WRITER[i] && ((Slider_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Slider_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "SolenoidValve") {
+        for (size_t i = 0; i < SolenoidValve_PORT_COUNT; ++i) {
+            if (SolenoidValve_PORT_SOURCE_WRITER[i] && ((SolenoidValve_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(SolenoidValve_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Splitter") {
+        for (size_t i = 0; i < Splitter_PORT_COUNT; ++i) {
+            if (Splitter_PORT_SOURCE_WRITER[i] && ((Splitter_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Splitter_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Spring") {
+        for (size_t i = 0; i < Spring_PORT_COUNT; ++i) {
+            if (Spring_PORT_SOURCE_WRITER[i] && ((Spring_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Spring_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Subtract") {
+        for (size_t i = 0; i < Subtract_PORT_COUNT; ++i) {
+            if (Subtract_PORT_SOURCE_WRITER[i] && ((Subtract_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Subtract_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Switch") {
+        for (size_t i = 0; i < Switch_PORT_COUNT; ++i) {
+            if (Switch_PORT_SOURCE_WRITER[i] && ((Switch_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Switch_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "TempSensor") {
+        for (size_t i = 0; i < TempSensor_PORT_COUNT; ++i) {
+            if (TempSensor_PORT_SOURCE_WRITER[i] && ((TempSensor_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(TempSensor_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "TimeDelay") {
+        for (size_t i = 0; i < TimeDelay_PORT_COUNT; ++i) {
+            if (TimeDelay_PORT_SOURCE_WRITER[i] && ((TimeDelay_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(TimeDelay_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Transformer") {
+        for (size_t i = 0; i < Transformer_PORT_COUNT; ++i) {
+            if (Transformer_PORT_SOURCE_WRITER[i] && ((Transformer_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Transformer_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Value") {
+        for (size_t i = 0; i < Value_PORT_COUNT; ++i) {
+            if (Value_PORT_SOURCE_WRITER[i] && ((Value_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Value_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "VariableConductance") {
+        for (size_t i = 0; i < VariableConductance_PORT_COUNT; ++i) {
+            if (VariableConductance_PORT_SOURCE_WRITER[i] && ((VariableConductance_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(VariableConductance_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "VoltageSense") {
+        for (size_t i = 0; i < VoltageSense_PORT_COUNT; ++i) {
+            if (VoltageSense_PORT_SOURCE_WRITER[i] && ((VoltageSense_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(VoltageSense_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Voltmeter") {
+        for (size_t i = 0; i < Voltmeter_PORT_COUNT; ++i) {
+            if (Voltmeter_PORT_SOURCE_WRITER[i] && ((Voltmeter_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Voltmeter_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "XOR") {
+        for (size_t i = 0; i < XOR_PORT_COUNT; ++i) {
+            if (XOR_PORT_SOURCE_WRITER[i] && ((XOR_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(XOR_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    return result;
+}
+
 // Component variant for dynamic component storage (Editor JIT mode)
 // Enables type-safe storage of any component type without virtual calls
 using ComponentVariant = std::variant<
-    AGK47<JitProvider>,
     AND<JitProvider>,
     AZS<JitProvider>,
+    Accumulator<JitProvider>,
     Add<JitProvider>,
     Any_V_to_Bool<JitProvider>,
     AsymSlewRate<JitProvider>,
     AsymTMO<JitProvider>,
-    Battery<JitProvider>,
     BlueprintInput<JitProvider>,
     BlueprintOutput<JitProvider>,
     Bus<JitProvider>,
     Clamp<JitProvider>,
     Comparator<JitProvider>,
-    DMR400<JitProvider>,
+    ControlledCurrentSource<JitProvider>,
+    ControlledVoltageSource<JitProvider>,
+    CurrentSense<JitProvider>,
     Divide<JitProvider>,
     ElectricHeater<JitProvider>,
     ElectricPump<JitProvider>,
+    ElectricalConductance<JitProvider>,
+    ElectricalSource<JitProvider>,
     FastTMO<JitProvider>,
-    GS24<JitProvider>,
+    FuelTank<JitProvider>,
     Generator<JitProvider>,
+    GidroAccumulator<JitProvider>,
     Greater<JitProvider>,
     GreaterEq<JitProvider>,
     Gyroscope<JitProvider>,
@@ -707,14 +3244,13 @@ using ComponentVariant = std::variant<
     PI<JitProvider>,
     PID<JitProvider>,
     Positive_V_to_Bool<JitProvider>,
-    RU19A<JitProvider>,
-    RUG82<JitProvider>,
     Radiator<JitProvider>,
     RefNode<JitProvider>,
     Relay<JitProvider>,
     Resistor<JitProvider>,
     SampleHold<JitProvider>,
     SlewRate<JitProvider>,
+    Slider<JitProvider>,
     SolenoidValve<JitProvider>,
     Splitter<JitProvider>,
     Spring<JitProvider>,
@@ -723,27 +3259,12 @@ using ComponentVariant = std::variant<
     TempSensor<JitProvider>,
     TimeDelay<JitProvider>,
     Transformer<JitProvider>,
+    Value<JitProvider>,
+    VariableConductance<JitProvider>,
+    VoltageSense<JitProvider>,
     Voltmeter<JitProvider>,
     XOR<JitProvider>
 >;
-
-// Visitor helper for calling solve_electrical on component variant
-template <typename... Visitors>
-struct overloaded : Visitors... {
-    using Visitors::operator()...;
-};
-
-// Helper visitor to call solve_electrical on any component
-inline auto solve_electrical_visitor = [](auto& component, SimulationState& st, float dt) {
-    component.solve_electrical(st, dt);
-};
-
-// Helper visitor to call post_step on any component (optional)
-inline auto post_step_visitor = [](auto& component, SimulationState& st, float dt) {
-    if constexpr (requires { component.post_step(st, dt); }) {
-        component.post_step(st, dt);
-    }
-};
 
 // Compile-time guard: ComponentType and ComponentVariant must stay in sync
 static_assert(

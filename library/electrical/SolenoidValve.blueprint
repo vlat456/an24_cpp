@@ -1,32 +1,40 @@
 {
-  "exposes": {
-    "ctrl": {
-      "direction": "In",
-      "type": "Temperature"
+  "version": "3.0",
+  "id": "SolenoidValve",
+  "display_name": "SolenoidValve",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "ctrl",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
     },
-    "flow_in": {
-      "direction": "In",
-      "type": "I"
+    {
+      "name": "flow_in",
+      "domain": 8,
+      "direction": 0,
+      "type": "Pressure",
+      "source_writer": false
     },
-    "flow_out": {
-      "direction": "Out",
-      "type": "Temperature"
+    {
+      "name": "flow_out",
+      "domain": 8,
+      "direction": 1,
+      "type": "Pressure",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Electrically controlled hydraulic valve",
-    "domains": [
-      "Electrical",
-      "Hydraulic"
-    ],
-    "name": "SolenoidValve"
-  },
-  "params": {
-    "normally_closed": {
-      "default": "true",
-      "type": "bool"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Electrically controlled hydraulic valve",
+  "domains": [
+    "Hydraulic"
+  ],
+  "param_defaults": {
+    "normally_closed": "true"
+  }
 }

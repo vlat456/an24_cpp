@@ -1,6 +1,14 @@
 #include <gtest/gtest.h>
 #include "codegen/codegen.h"
-#include "jit_solver/SOR_constants.h"
+
+// ==...== Domain schedule constants (formerly in legacy solver constants) ==...==
+// These are embedded as string literals in generated AOT code and must remain consistent.
+namespace DomainSchedule {
+    constexpr int MECHANICAL_PERIOD = 3;   // 20 Hz = every 3rd step at 60 Hz
+    constexpr int HYDRAULIC_PERIOD = 12;   // 5 Hz = every 12th step at 60 Hz
+    constexpr int THERMAL_PERIOD = 60;     // 1 Hz = every 60th step at 60 Hz
+    constexpr int CYCLE_LENGTH = 60;        // Least common multiple of all periods
+}
 
 
 // =============================================================================
@@ -16,6 +24,9 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "gnd";
         dev.classname = "RefNode";
+        ExecutionPhases phases;
+        phases.electrical_passive = true;
+        dev.execution = phases;
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
         port_to_signal["gnd.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
@@ -26,6 +37,9 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "bat";
         dev.classname = "Battery";
+        ExecutionPhases phases;
+        phases.electrical_passive = true;
+        dev.execution = phases;
         dev.params["domain"] = "Electrical";
         dev.params["emf"] = "28";
         dev.params["internal_r"] = "0.05";
@@ -41,6 +55,10 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "rad";
         dev.classname = "Radiator";
+        ExecutionPhases phases;
+        phases.electrical_passive = true;
+        phases.thermal = true;
+        dev.execution = phases;
         dev.params["domain"] = "Electrical,Thermal";
         dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
@@ -54,6 +72,11 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "pump";
         dev.classname = "ElectricPump";
+        ExecutionPhases phases;
+        phases.electrical_passive = true;
+        phases.mechanical = true;
+        phases.hydraulic = true;
+        dev.execution = phases;
         dev.params["domain"] = "Electrical,Mechanical,Hydraulic";
         dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
@@ -78,40 +101,39 @@ static auto make_multi_domain_devices() {
 }
 
 // =============================================================================
-// Tests: generated header contains accumulator fields
+// Tests: generated header uses push single-pass fields (no accumulators)
 // =============================================================================
 
-TEST(CodegenAccumulator, HeaderContainsAccumulatorFields) {
+TEST(CodegenAccumulator, HeaderDoesNotContainAccumulatorFields) {
     auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
 
     std::string header = CodeGen::generate_header(
         "test.json", devices, connections, port_to_signal, signal_count);
 
-    EXPECT_NE(header.find("acc_mechanical_"), std::string::npos)
-        << "Header must declare acc_mechanical_ field";
-    EXPECT_NE(header.find("acc_hydraulic_"), std::string::npos)
-        << "Header must declare acc_hydraulic_ field";
-    EXPECT_NE(header.find("acc_thermal_"), std::string::npos)
-        << "Header must declare acc_thermal_ field";
+    EXPECT_EQ(header.find("acc_mechanical_"), std::string::npos)
+        << "Header must not declare acc_mechanical_ field in push single-pass mode";
+    EXPECT_EQ(header.find("acc_hydraulic_"), std::string::npos)
+        << "Header must not declare acc_hydraulic_ field in push single-pass mode";
+    EXPECT_EQ(header.find("acc_thermal_"), std::string::npos)
+        << "Header must not declare acc_thermal_ field in push single-pass mode";
 }
 
 // =============================================================================
-// Tests: generated source accumulates dt in solve_step
+// Tests: generated source does not accumulate dt in solve_step
 // =============================================================================
 
-TEST(CodegenAccumulator, SolveStepAccumulatesDt) {
+TEST(CodegenAccumulator, SolveStepHasNoAccumulatorDtUpdates) {
     auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
 
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
-    // solve_step must accumulate dt into all three accumulators
-    EXPECT_NE(source.find("acc_mechanical_ += dt"), std::string::npos)
-        << "solve_step must accumulate dt into acc_mechanical_";
-    EXPECT_NE(source.find("acc_hydraulic_  += dt"), std::string::npos)
-        << "solve_step must accumulate dt into acc_hydraulic_";
-    EXPECT_NE(source.find("acc_thermal_    += dt"), std::string::npos)
-        << "solve_step must accumulate dt into acc_thermal_";
+    EXPECT_EQ(source.find("acc_mechanical_ += dt"), std::string::npos)
+        << "solve_step must not update acc_mechanical_ in push single-pass mode";
+    EXPECT_EQ(source.find("acc_hydraulic_  += dt"), std::string::npos)
+        << "solve_step must not update acc_hydraulic_ in push single-pass mode";
+    EXPECT_EQ(source.find("acc_thermal_    += dt"), std::string::npos)
+        << "solve_step must not update acc_thermal_ in push single-pass mode";
 }
 
 // =============================================================================
@@ -132,50 +154,7 @@ TEST(CodegenAccumulator, NoDtMultiplyPatternInGenerated) {
         << "Generated code must NOT use dt * 60.0f (old pattern)";
 }
 
-// =============================================================================
-// Tests: mechanical uses accumulator and resets
-// =============================================================================
 
-TEST(CodegenAccumulator, MechanicalUsesAccumulatorAndResets) {
-    auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
-
-    std::string source = CodeGen::generate_source(
-        "test.h", devices, connections, port_to_signal, signal_count);
-
-    // Mechanical solver must receive acc_mechanical_
-    EXPECT_NE(source.find("solve_mechanical(*st, acc_mechanical_)"), std::string::npos)
-        << "Mechanical solver must receive accumulated dt, not dt*3";
-
-    // Must reset after use
-    EXPECT_NE(source.find("acc_mechanical_ = 0.0f"), std::string::npos)
-        << "acc_mechanical_ must be reset after mechanical solve";
-}
-
-TEST(CodegenAccumulator, HydraulicUsesAccumulatorAndResets) {
-    auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
-
-    std::string source = CodeGen::generate_source(
-        "test.h", devices, connections, port_to_signal, signal_count);
-
-    EXPECT_NE(source.find("solve_hydraulic(*st, acc_hydraulic_)"), std::string::npos)
-        << "Hydraulic solver must receive accumulated dt, not dt*12";
-
-    EXPECT_NE(source.find("acc_hydraulic_ = 0.0f"), std::string::npos)
-        << "acc_hydraulic_ must be reset after hydraulic solve";
-}
-
-TEST(CodegenAccumulator, ThermalUsesAccumulatorAndResets) {
-    auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
-
-    std::string source = CodeGen::generate_source(
-        "test.h", devices, connections, port_to_signal, signal_count);
-
-    EXPECT_NE(source.find("solve_thermal(*st, acc_thermal_)"), std::string::npos)
-        << "Thermal solver must receive accumulated dt, not dt*60";
-
-    EXPECT_NE(source.find("acc_thermal_ = 0.0f"), std::string::npos)
-        << "acc_thermal_ must be reset after thermal solve";
-}
 
 // =============================================================================
 // Tests: DomainSchedule constants are consistent
@@ -212,3 +191,5 @@ TEST(CodegenAccumulator, DispatchTableSizeMatchesCycleLength) {
     EXPECT_NE(source.find(last_step), std::string::npos)
         << "Last step method step_" << DomainSchedule::CYCLE_LENGTH - 1 << " must be generated";
 }
+
+

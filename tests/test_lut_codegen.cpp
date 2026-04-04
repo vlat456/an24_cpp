@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "codegen/codegen.h"
 #include "json_parser/json_parser.h"
+#include "test_execution_phases.h"
 
 
 // =============================================================================
@@ -14,6 +15,7 @@ static auto make_lut_device(const std::string& name, const std::string& table) {
     dev.ports["input"]  = {PortDirection::In,  PortType::Any, std::nullopt};
     dev.ports["output"] = {PortDirection::Out, PortType::Any, std::nullopt};
     dev.params["table"] = table;
+    dev.execution = test_exec::lut();
     return dev;
 }
 
@@ -21,7 +23,8 @@ static auto make_ref_node() {
     DeviceInstance dev;
     dev.name = "gnd";
     dev.classname = "RefNode";
-    dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    dev.ports["v"] = {PortDirection::Out, PortType::V, std::nullopt};
+    dev.execution = test_exec::electrical_passive();
     return dev;
 }
 
@@ -38,7 +41,7 @@ static CodegenSetup make_setup(std::vector<DeviceInstance> extra_devices) {
 
     // Always need a RefNode
     auto gnd = make_ref_node();
-    s.port_to_signal["gnd.v_out"] = next_sig++;
+    s.port_to_signal["gnd.v"] = next_sig++;
     s.devices.push_back(std::move(gnd));
 
     for (auto& dev : extra_devices) {
@@ -86,10 +89,10 @@ TEST(LUTCodegen, PreLoad_EmitsStaticArenaArrays) {
     EXPECT_NE(source.find("lut_vals_data[]"), std::string::npos)
         << "pre_load must emit static lut_vals_data array";
 
-    // Must contain the actual key values
-    EXPECT_NE(source.find("10f"), std::string::npos);
-    EXPECT_NE(source.find("30f"), std::string::npos);
-    EXPECT_NE(source.find("50f"), std::string::npos);
+    // Must contain the actual key values (format_float produces "10.0", "30.0", "50.0")
+    EXPECT_NE(source.find("10.0f"), std::string::npos);
+    EXPECT_NE(source.find("30.0f"), std::string::npos);
+    EXPECT_NE(source.find("50.0f"), std::string::npos);
 
     // Must assign to g_state arena
     EXPECT_NE(source.find("g_state->lut_keys.assign"), std::string::npos);
@@ -124,6 +127,7 @@ TEST(LUTCodegen, NoLUTs_NoArenaCode) {
     bat.params["internal_r"] = "0.1";
     bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.execution = test_exec::electrical_passive();
 
     auto setup = make_setup({std::move(bat)});
 
@@ -172,8 +176,8 @@ TEST(LUTCodegen, SingleEntryTable) {
 
     EXPECT_NE(source.find("single_lut.table_offset = 0"), std::string::npos);
     EXPECT_NE(source.find("single_lut.table_size = 1"), std::string::npos);
-    EXPECT_NE(source.find("42f"), std::string::npos);
-    EXPECT_NE(source.find("99f"), std::string::npos);
+    EXPECT_NE(source.find("42.0f"), std::string::npos);
+    EXPECT_NE(source.find("99.0f"), std::string::npos);
 }
 
 TEST(LUTCodegen, NegativeKeyValues_EncodedCorrectly) {
@@ -183,9 +187,9 @@ TEST(LUTCodegen, NegativeKeyValues_EncodedCorrectly) {
         "test.h", setup.devices, setup.connections,
         setup.port_to_signal, setup.signal_count);
 
-    // Negative values should appear with minus sign
-    EXPECT_NE(source.find("-10f"), std::string::npos);
-    EXPECT_NE(source.find("-5f"), std::string::npos);
+    // Negative values should appear with minus sign (format_float produces "-10.0", "-5.0")
+    EXPECT_NE(source.find("-10.0f"), std::string::npos);
+    EXPECT_NE(source.find("-5.0f"), std::string::npos);
 }
 
 // =============================================================================
@@ -200,6 +204,7 @@ TEST(LUTCodegen, GenericParamLoop_SkippedForLUT) {
     lut.ports["input"]  = {PortDirection::In,  PortType::Any, std::nullopt};
     lut.ports["output"] = {PortDirection::Out, PortType::Any, std::nullopt};
     lut.params["table"] = "0:0; 100:100";
+    lut.execution = test_exec::lut();
 
     auto setup = make_setup({std::move(lut)});
 
@@ -223,7 +228,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
     uint32_t next_sig = 0;
 
     auto gnd = make_ref_node();
-    s.port_to_signal["gnd.v_out"] = next_sig++;
+    s.port_to_signal["gnd.v"] = next_sig++;
     s.devices.push_back(std::move(gnd));
 
     // Normal device
@@ -232,6 +237,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
     bat.classname = "Battery";
     bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -262,7 +268,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
     uint32_t next_sig = 0;
 
     auto gnd = make_ref_node();
-    s.port_to_signal["gnd.v_out"] = next_sig++;
+    s.port_to_signal["gnd.v"] = next_sig++;
     s.devices.push_back(std::move(gnd));
 
     DeviceInstance bat;
@@ -272,6 +278,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
     bat.params["emf"] = "24.0";
     bat.params["internal_r"] = "0.05";
+    bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -306,7 +313,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     uint32_t next_sig = 0;
 
     auto gnd = make_ref_node();
-    s.port_to_signal["gnd.v_out"] = next_sig++;
+    s.port_to_signal["gnd.v"] = next_sig++;
     s.devices.push_back(std::move(gnd));
 
     DeviceInstance bat;
@@ -314,6 +321,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     bat.classname = "Battery";
     bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -346,7 +354,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     uint32_t next_sig = 0;
 
     auto gnd = make_ref_node();
-    s.port_to_signal["gnd.v_out"] = next_sig++;
+    s.port_to_signal["gnd.v"] = next_sig++;
     s.devices.push_back(std::move(gnd));
 
     DeviceInstance bat;
@@ -356,6 +364,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
     bat.params["emf"] = "24.0";
     bat.params["internal_r"] = "0.05";
+    bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));

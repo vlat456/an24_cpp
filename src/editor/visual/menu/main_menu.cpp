@@ -1,7 +1,9 @@
 #include "main_menu.h"
 #include "editor/visual/dialogs/file_dialogs.h"
+#include "editor/pi_zn_tuner.h"
 #include <imgui.h>
 #include <filesystem>
+#include <cstring>
 
 
 MainMenu::Result MainMenu::render(WindowSystem& ws) {
@@ -20,6 +22,8 @@ MainMenu::Result MainMenu::render(WindowSystem& ws) {
     }
 
     renderFileMenu(ws, result);
+    renderBlueprintMenu(ws);
+    renderToolsMenu(ws);
     renderEditMenu(ws);
     renderViewMenu(ws);
 
@@ -46,7 +50,13 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
 
     if (ImGui::MenuItem("Save", "Ctrl+S", false, active_doc != nullptr)) {
         if (active_doc) {
-            if (active_doc->filepath().empty()) {
+            // If blueprint has no name yet, prompt for one before saving
+            if (active_doc->blueprint().name().empty()) {
+                ws.setName.show = true;
+                ws.setName.doc_id = active_doc->id();
+                ws.setName.save_after = true;
+                std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
+            } else if (active_doc->filepath().empty()) {
                 if (auto path = dialogs::saveBlueprint()) {
                     active_doc->save(*path);
                     ws.settings.addRecentFile(*path);
@@ -75,13 +85,16 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
 void MainMenu::renderRecentFilesMenu(WindowSystem& ws) {
     if (!ImGui::BeginMenu("Recent Files", !ws.settings.recentFiles().empty())) return;
 
-    for (size_t i = 0; i < ws.settings.recentFiles().size(); i++) {
-        const std::string& recent_path = ws.settings.recentFiles()[i];
+    // Snapshot: openDocument() mutates recentFiles() via addRecentFile (erase+insert).
+    const auto recent_snapshot = ws.settings.recentFiles();
+    std::string deferred_open;
+
+    for (size_t i = 0; i < recent_snapshot.size(); i++) {
+        const std::string& recent_path = recent_snapshot[i];
         std::string name = std::filesystem::path(recent_path).filename().string();
         
         if (ImGui::MenuItem(name.c_str())) {
-            std::string path_copy = recent_path;
-            ws.openDocument(path_copy);
+            deferred_open = recent_path;
         }
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s", recent_path.c_str());
@@ -94,13 +107,18 @@ void MainMenu::renderRecentFilesMenu(WindowSystem& ws) {
     }
 
     ImGui::EndMenu();
+
+    // Open after menu rendering is complete to avoid mutating during iteration
+    if (!deferred_open.empty()) {
+        ws.openDocument(deferred_open);
+    }
 }
 
 void MainMenu::renderEditMenu(WindowSystem& ws) {
     if (!ImGui::BeginMenu("Edit")) return;
 
     Document* active_doc = ws.activeDocument();
-    bool props_open = ws.propertiesWindow().isOpen();
+    bool props_open = ws.propertiesWindow().is_open();
     bool can_undo = active_doc && active_doc->canUndo() && !props_open;
     bool can_redo = active_doc && active_doc->canRedo() && !props_open;
     bool has_sel = active_doc && !active_doc->input().selected_nodes().empty();
@@ -130,6 +148,9 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
     if (ImGui::MenuItem("Inspector", nullptr, ws.showInspector)) {
         ws.showInspector = !ws.showInspector;
     }
+    if (ImGui::MenuItem("Oscilloscope", nullptr, ws.showOscilloscope)) {
+        ws.showOscilloscope = !ws.showOscilloscope;
+    }
 
     Document* active_doc = ws.activeDocument();
     if (active_doc) {
@@ -150,3 +171,109 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
     ImGui::EndMenu();
 }
 
+void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
+    if (!ImGui::BeginMenu("Blueprint")) return;
+
+    Document* active_doc = ws.activeDocument();
+
+    // Show current name (or "not set")
+    if (active_doc && !active_doc->blueprint().name().empty()) {
+        ImGui::TextDisabled("Name: %s", active_doc->blueprint().name().c_str());
+    } else if (active_doc && !active_doc->blueprint().display_name().empty()) {
+        ImGui::TextDisabled("Name: %s", active_doc->blueprint().display_name().c_str());
+    } else {
+        ImGui::TextDisabled("Name: (not set)");
+    }
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Set Name...", nullptr, false, active_doc != nullptr)) {
+        if (active_doc) {
+            ws.setName.show = true;
+            ws.setName.doc_id = active_doc->id();
+            ws.setName.save_after = false;
+            std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
+            // Pre-fill with current name
+            const auto& current = active_doc->blueprint().name();
+            const auto& fallback = active_doc->blueprint().display_name();
+            if (!current.empty()) {
+                std::strncpy(ws.setName.buf, current.c_str(),
+                             sizeof(ws.setName.buf) - 1);
+            } else if (!fallback.empty()) {
+                std::strncpy(ws.setName.buf, fallback.c_str(),
+                             sizeof(ws.setName.buf) - 1);
+            }
+        }
+    }
+
+    ImGui::EndMenu();
+}
+
+void MainMenu::renderToolsMenu(WindowSystem& ws) {
+    if (!ImGui::BeginMenu("Tools")) return;
+
+    Document* active_doc = ws.activeDocument();
+    auto run_zn = [&](bool apply_result) {
+        if (!active_doc) return;
+        ZNTuneConfig cfg;
+        cfg.pi_node = ws.znTune.pi_node;
+        cfg.feedback_signal = ws.znTune.feedback_signal;
+        cfg.dt_sec = ws.znTune.cfg_dt_sec;
+        cfg.run_time_sec = ws.znTune.cfg_run_time_sec;
+        cfg.settle_time_sec = ws.znTune.cfg_settle_time_sec;
+        cfg.kp_lo = ws.znTune.cfg_kp_lo;
+        cfg.kp_hi = ws.znTune.cfg_kp_hi;
+        cfg.max_expand = ws.znTune.cfg_max_expand;
+        cfg.binary_iters = ws.znTune.cfg_binary_iters;
+        cfg.min_peaks = ws.znTune.cfg_min_peaks;
+        if (!active_doc->isSimulationRunning()) {
+            active_doc->startSimulation();
+        }
+
+        ZNTuneResult r = tune_pi_ziegler_nichols(*active_doc, cfg, apply_result);
+        ws.znTune.last_ok = r.ok;
+        ws.znTune.last_was_preview = !apply_result;
+        ws.znTune.last_cfg = cfg;
+        ws.znTune.Ku = r.Ku;
+        ws.znTune.Tu = r.Tu;
+        ws.znTune.Kp = r.Kp;
+        ws.znTune.Ki = r.Ki;
+        std::memset(ws.znTune.error, 0, sizeof(ws.znTune.error));
+        if (!r.ok) {
+            std::strncpy(ws.znTune.error, r.error.c_str(), sizeof(ws.znTune.error) - 1);
+        }
+        ws.znTune.show_result_popup = true;
+    };
+
+    if (ImGui::MenuItem("Auto Tune PI (ZN)", nullptr, false, active_doc != nullptr)) {
+        run_zn(true);
+    }
+    if (ImGui::MenuItem("Auto Tune PI (ZN) [Preview]", nullptr, false, active_doc != nullptr)) {
+        run_zn(false);
+    }
+
+    ImGui::Separator();
+    ImGui::InputText("PI node", ws.znTune.pi_node, sizeof(ws.znTune.pi_node));
+    ImGui::InputText("Feedback", ws.znTune.feedback_signal, sizeof(ws.znTune.feedback_signal));
+    ImGui::InputFloat("dt (s)", &ws.znTune.cfg_dt_sec, 0.0f, 0.0f, "%.5f");
+    ImGui::InputFloat("run time (s)", &ws.znTune.cfg_run_time_sec, 0.0f, 0.0f, "%.2f");
+    ImGui::InputFloat("settle (s)", &ws.znTune.cfg_settle_time_sec, 0.0f, 0.0f, "%.2f");
+    ImGui::InputFloat("Kp low", &ws.znTune.cfg_kp_lo, 0.0f, 0.0f, "%.4f");
+    ImGui::InputFloat("Kp high", &ws.znTune.cfg_kp_hi, 0.0f, 0.0f, "%.4f");
+    ImGui::InputInt("max expand", &ws.znTune.cfg_max_expand);
+    ImGui::InputInt("binary iters", &ws.znTune.cfg_binary_iters);
+    ImGui::InputInt("min peaks", &ws.znTune.cfg_min_peaks);
+
+    ws.znTune.cfg_dt_sec = std::max(1e-4f, ws.znTune.cfg_dt_sec);
+    ws.znTune.cfg_run_time_sec = std::max(1.0f, ws.znTune.cfg_run_time_sec);
+    ws.znTune.cfg_settle_time_sec = std::max(0.0f, ws.znTune.cfg_settle_time_sec);
+    if (ws.znTune.cfg_settle_time_sec >= ws.znTune.cfg_run_time_sec) {
+        ws.znTune.cfg_settle_time_sec = ws.znTune.cfg_run_time_sec * 0.5f;
+    }
+    ws.znTune.cfg_kp_lo = std::max(1e-6f, ws.znTune.cfg_kp_lo);
+    ws.znTune.cfg_kp_hi = std::max(ws.znTune.cfg_kp_lo * 1.1f, ws.znTune.cfg_kp_hi);
+    ws.znTune.cfg_max_expand = std::max(0, ws.znTune.cfg_max_expand);
+    ws.znTune.cfg_binary_iters = std::max(1, ws.znTune.cfg_binary_iters);
+    ws.znTune.cfg_min_peaks = std::max(2, ws.znTune.cfg_min_peaks);
+
+    ImGui::EndMenu();
+}

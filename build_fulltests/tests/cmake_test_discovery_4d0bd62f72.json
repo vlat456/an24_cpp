@@ -1,0 +1,253 @@
+{
+  "tests": 41,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "LUTParseTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "BasicParse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 45
+        },
+        {
+          "name": "NegativeValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 58
+        },
+        {
+          "name": "EmptyString",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 67
+        },
+        {
+          "name": "SingleEntry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 74
+        },
+        {
+          "name": "ExtraWhitespace",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 83
+        }
+      ]
+    },
+    {
+      "name": "LUTSolveTest",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "ExactBreakpoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 96
+        },
+        {
+          "name": "LinearInterpolation_Midpoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 104
+        },
+        {
+          "name": "LinearInterpolation_Quarter",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 112
+        },
+        {
+          "name": "ClampBelow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 120
+        },
+        {
+          "name": "ClampAbove",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 128
+        },
+        {
+          "name": "SingleBreakpoint_AlwaysReturnsValue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 136
+        },
+        {
+          "name": "EmptyTable_ReturnsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 148
+        },
+        {
+          "name": "RealisticEngineCurve",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 213
+        }
+      ]
+    },
+    {
+      "name": "LUTArenaTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "MultipleLUTs_ShareArena",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 164
+        }
+      ]
+    },
+    {
+      "name": "LUTParseEdge",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "TrailingSemicolon",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 237
+        },
+        {
+          "name": "LeadingSemicolons",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 246
+        },
+        {
+          "name": "MultipleSemicolonsBetweenEntries",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 254
+        },
+        {
+          "name": "NoColonReturnsEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 261
+        },
+        {
+          "name": "PartialParse_ValidBeforeGarbage",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 268
+        },
+        {
+          "name": "DecimalValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 278
+        },
+        {
+          "name": "ScientificNotation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 289
+        },
+        {
+          "name": "VeryLargeTable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 300
+        },
+        {
+          "name": "ZeroKeyAndZeroValue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 316
+        },
+        {
+          "name": "NegativeOnlyKeys",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 325
+        }
+      ]
+    },
+    {
+      "name": "LUTInterpolationEdge",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "TwoEntryTable_AllPositions",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 339
+        },
+        {
+          "name": "EveryBreakpointExact",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 379
+        },
+        {
+          "name": "EverySegmentMidpoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 392
+        },
+        {
+          "name": "NonMonotonicValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 413
+        },
+        {
+          "name": "EqualAdjacentKeys",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 427
+        },
+        {
+          "name": "VeryLargeInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 440
+        },
+        {
+          "name": "ConstantValueTable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 453
+        },
+        {
+          "name": "DecreasingValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 465
+        },
+        {
+          "name": "LargeTable_Accuracy",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 479
+        },
+        {
+          "name": "NegativeKeysInterpolation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 507
+        }
+      ]
+    },
+    {
+      "name": "LUTArenaStress",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "ManyLUTs_CorrectIsolation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 528
+        },
+        {
+          "name": "ArenaOffsets_NoOverlap",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 561
+        },
+        {
+          "name": "LargeTableInArena",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 604
+        }
+      ]
+    },
+    {
+      "name": "LUTRegression",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "OutputNotStale",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 627
+        },
+        {
+          "name": "MultipleStepsStable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 647
+        },
+        {
+          "name": "ZeroInputZeroTable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 659
+        },
+        {
+          "name": "TableOffsetRespected",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut.cpp",
+          "line": 667
+        }
+      ]
+    }
+  ]
+}

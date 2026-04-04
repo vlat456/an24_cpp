@@ -2,7 +2,7 @@
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/render_theme.h"
 #include "visual/render_context.h"
-#include "data/node.h"
+#include "data/node_content.h"
 #include <algorithm>
 #include <cmath>
 
@@ -73,7 +73,7 @@ void TypeNameWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     float font = FONT_SIZE * zoom;
 
     Pt text_size = dl->calc_text_size(type_name_.c_str(), font);
-    float tx = origin.x + (w - text_size.x) / 2;
+    float tx = origin.x + w - text_size.x - RIGHT_PADDING * zoom;
     float ty = origin.y + (HEIGHT * zoom - font) / 2;
     dl->add_text(Pt(tx, ty), type_name_.c_str(), render_theme::COLOR_TEXT_DIM, font);
 }
@@ -89,15 +89,24 @@ Pt SwitchWidget::preferredSize(IDrawList*) const {
     return Pt(MIN_WIDTH, HEIGHT);
 }
 
+void SwitchWidget::layout(float w, float h) {
+    // Accept the full space from the parent but keep our natural height.
+    // render() will center the actual toggle within this box.
+    setSize(Pt(w, HEIGHT));
+}
+
 void SwitchWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     Pt origin = ctx.world_to_screen(worldPos());
     float zoom = ctx.zoom;
-    float w = size().x * zoom;
+    float box_w = size().x * zoom;
+    float w = MIN_WIDTH * zoom;  // Always draw at natural width
     float h = HEIGHT * zoom;
     float r = ROUNDING * zoom;
 
-    Pt min = origin;
-    Pt max(origin.x + w, origin.y + h);
+    // Center the toggle horizontally within the allocated box
+    float offset_x = (box_w - w) / 2.0f;
+    Pt min(origin.x + offset_x, origin.y);
+    Pt max(min.x + w, origin.y + h);
 
     uint32_t fill;
     if (tripped_) {
@@ -114,7 +123,7 @@ void SwitchWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     const char* label = tripped_ ? "TRIP" : (state_ ? "ON" : "OFF");
     float font = FONT_SIZE * zoom;
     Pt text_size = dl->calc_text_size(label, font);
-    float tx = origin.x + (w - text_size.x) / 2.0f;
+    float tx = min.x + (w - text_size.x) / 2.0f;
     float ty = origin.y + (h - font) / 2.0f;
     uint32_t text_color = tripped_ ? 0xFFFFFFFF : render_theme::COLOR_TEXT;
     dl->add_text(Pt(tx, ty), label, text_color, font);
@@ -187,6 +196,81 @@ void VerticalToggleWidget::render(IDrawList* dl, const RenderContext& ctx) const
 void VerticalToggleWidget::updateFromContent(const NodeContent& content) {
     state_ = content.state;
     tripped_ = content.tripped;
+}
+
+// ============================================================================
+// SliderWidget
+// ============================================================================
+
+SliderWidget::SliderWidget(float value, float min_val, float max_val)
+    : value_(value), min_val_(min_val), max_val_(max_val)
+{
+    setFlexible(false);
+    setSize(Pt(MIN_WIDTH, HEIGHT));
+}
+
+Pt SliderWidget::preferredSize(IDrawList*) const {
+    return Pt(MIN_WIDTH, HEIGHT);
+}
+
+void SliderWidget::layout(float w, float h) {
+    setSize(Pt(w, HEIGHT));
+}
+
+float SliderWidget::normalizedFromLocalX(float local_x) const {
+    float pad = HANDLE_RADIUS;
+    float track_w = size().x - 2.0f * pad;
+    if (track_w <= 0.0f) return 0.0f;
+    float t = (local_x - pad) / track_w;
+    return std::clamp(t, 0.0f, 1.0f);
+}
+
+void SliderWidget::render(IDrawList* dl, const RenderContext& ctx) const {
+    Pt origin = ctx.world_to_screen(worldPos());
+    float zoom = ctx.zoom;
+    float w = size().x * zoom;
+    float h = HEIGHT * zoom;
+    float pad = HANDLE_RADIUS * zoom;
+    float track_h = TRACK_HEIGHT * zoom;
+    float r = ROUNDING * zoom;
+
+    // Track background
+    float track_y = origin.y + (h - track_h) / 2.0f;
+    Pt track_min(origin.x + pad, track_y);
+    Pt track_max(origin.x + w - pad, track_y + track_h);
+    dl->add_rect_filled_with_rounding(track_min, track_max, 0xFF1C1D24, r);
+
+    // Filled portion
+    float range = max_val_ - min_val_;
+    float t = (range > 1e-6f) ? std::clamp((value_ - min_val_) / range, 0.0f, 1.0f) : 0.0f;
+    float track_w = w - 2.0f * pad;
+    float fill_w = t * track_w;
+    if (fill_w > 0.5f) {
+        Pt fill_max(track_min.x + fill_w, track_y + track_h);
+        dl->add_rect_filled_with_rounding(track_min, fill_max, 0xFF3A6830, r);
+    }
+
+    // Handle circle
+    float cx = track_min.x + t * track_w;
+    float cy = origin.y + h / 2.0f;
+    float handle_r = HANDLE_RADIUS * zoom;
+    dl->add_circle_filled(Pt(cx, cy), handle_r, 0xFF5078C0, 16);
+    dl->add_circle(Pt(cx, cy), handle_r, 0xFF3050A0, 16);
+
+    // Value text below track
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.1f", value_);
+    float font = FONT_SIZE * zoom;
+    Pt text_sz = dl->calc_text_size(buf, font);
+    float tx = origin.x + (w - text_sz.x) / 2.0f;
+    float ty = track_max.y + 1.0f * zoom;
+    dl->add_text(Pt(tx, ty), buf, render_theme::COLOR_TEXT_DIM, font);
+}
+
+void SliderWidget::updateFromContent(const NodeContent& content) {
+    value_ = content.value;
+    min_val_ = content.min;
+    max_val_ = content.max;
 }
 
 VoltmeterWidget::VoltmeterWidget(float value, float min_val, float max_val,
@@ -268,6 +352,60 @@ void VoltmeterWidget::render(IDrawList* dl, const RenderContext& ctx) const {
 
 void VoltmeterWidget::updateFromContent(const NodeContent& content) {
     value_ = content.value;
+    min_val_ = content.min;
+    max_val_ = content.max;
+}
+
+// ============================================================================
+// IndicatorWidget
+// ============================================================================
+
+IndicatorWidget::IndicatorWidget(float brightness)
+    : brightness_(brightness)
+{
+    setFlexible(false);
+    setSize(Pt(SIZE, SIZE));
+}
+
+Pt IndicatorWidget::preferredSize(IDrawList*) const {
+    return Pt(SIZE, SIZE);
+}
+
+void IndicatorWidget::layout(float w, float h) {
+    Widget::layout(w, h);
+}
+
+void IndicatorWidget::render(IDrawList* dl, const RenderContext& ctx) const {
+    Pt origin = ctx.world_to_screen(worldPos());
+    float zoom = ctx.zoom;
+
+    // Circle radius: larger when brighter (0.3 to 0.45 of SIZE)
+    float brightness = std::clamp(brightness_, 0.0f, 1.0f);
+    float r_base = 0.3f + 0.15f * brightness;
+    float r = SIZE * r_base * zoom;
+
+    float cx = origin.x + size().x * zoom * 0.5f;
+    float cy = origin.y + size().y * zoom * 0.5f;
+
+    uint32_t fill_color;
+    if (brightness <= 0.0f) {
+        fill_color = COLOR_OFF;
+    } else {
+        // Interpolate from gray to green based on brightness
+        uint8_t g = static_cast<uint8_t>(48 + 207 * brightness);
+        uint8_t r_col = static_cast<uint8_t>(48 * (1.0f - brightness));
+        uint8_t b_col = static_cast<uint8_t>(48 * (1.0f - brightness));
+        // Alpha: more transparent when dimmer
+        uint8_t alpha = static_cast<uint8_t>(80 + 175 * brightness);
+        fill_color = (alpha << 24) | (b_col << 16) | (g << 8) | r_col;
+    }
+
+    dl->add_circle_filled(Pt(cx, cy), r, fill_color, 16);
+    dl->add_circle(Pt(cx, cy), r, 0xFF404040, 16);
+}
+
+void IndicatorWidget::updateFromContent(const NodeContent& content) {
+    brightness_ = std::clamp(content.value, 0.0f, 1.0f);
 }
 
 } // namespace visual

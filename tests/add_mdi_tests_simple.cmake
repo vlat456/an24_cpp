@@ -4,7 +4,6 @@ add_executable(mdi_tests
     document_tests.cpp
     # Only include editor sources that don't depend on ImGui
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
 )

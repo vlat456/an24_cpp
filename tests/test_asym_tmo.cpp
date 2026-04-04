@@ -34,13 +34,21 @@ static FastTMO<JitProvider> make_fast_tmo(float tau = 0.1f, float deadzone = 0.0
 static SimulationState make_state(float input_val)
 {
     SimulationState st;
-    st.across.resize(2, 0.0f);
-    st.through.resize(2, 0.0f);
-    st.conductance.resize(2, 0.0f);
-    st.across[0] = input_val;
-    st.across[1] = 0.0f;
+    st.values.resize(2, 0.0f);
+    st.values[0] = input_val;
+    st.values[1] = 0.0f;
     return st;
 }
+
+/// Simulate one complete frame: execute + commit (two-phase semantics)
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, double dt) {
+    comp.execute(st, dt);
+    comp.commit(st, dt);
+}
+
+#define step_asym(comp, st, dt) step_component(comp, st, dt)
+#define step_fast(comp, st, dt) step_component(comp, st, dt)
 
 // =============================================================================
 // AsymTMO Tests
@@ -52,10 +60,10 @@ TEST(AsymTMOTest, ColdStart_FirstFrame)
     auto comp = make_asym_tmo();
     auto st = make_state(10.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_asym(comp, st, 1.0 / 60.0);
 
-    // After first frame, output should be at input value
-    EXPECT_FLOAT_EQ(st.across[1], 10.0f);
+    // Cold-start: output = cold-start-adjusted committed value = 10.0
+    EXPECT_FLOAT_EQ(st.values[1], 10.0f);
     EXPECT_FLOAT_EQ(comp.first_frame_mask, 0.0f);
 }
 
@@ -66,22 +74,22 @@ TEST(AsymTMOTest, AsymmetricResponse_RiseFastFallSlow)
 
     // Start at 0
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_asym(comp, st, 1.0 / 60.0);  // cold start at 0
 
     // Step to 10.0 (rising)
-    st.across[0] = 10.0f;
+    st.values[0] = 10.0f;
     float out_after_rise = 0.0f;
     for (int i = 0; i < 30; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
-        out_after_rise = st.across[1];
+        step_asym(comp, st, 1.0 / 60.0);
+        out_after_rise = st.values[1];
     }
 
     // Step back to 0 (falling)
-    st.across[0] = 0.0f;
+    st.values[0] = 0.0f;
     float out_falling = 0.0f;
     for (int i = 0; i < 30; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
-        out_falling = st.across[1];
+        step_asym(comp, st, 1.0 / 60.0);
+        out_falling = st.values[1];
     }
 
     // After same time, falling should be closer to start than rising was to end
@@ -95,25 +103,25 @@ TEST(AsymTMOTest, SymmetricBehavior_WhenTauEqual)
     auto comp = make_asym_tmo(0.1f, 0.1f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_asym(comp, st, 1.0 / 60.0);  // cold start at 0
 
     // Step up to 10.0
-    st.across[0] = 10.0f;
+    st.values[0] = 10.0f;
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_asym(comp, st, 1.0 / 60.0);
     }
-    float out_rise = st.across[1];
+    float out_rise = st.values[1];
 
     // Reset and step down
     auto comp2 = make_asym_tmo(0.1f, 0.1f);
     auto st2 = make_state(10.0f);
-    comp2.solve_logical(st2, 1.0f / 60.0f);
+    step_asym(comp2, st2, 1.0f / 60.0f);  // cold start at 10
 
-    st2.across[0] = 0.0f;
+    st2.values[0] = 0.0f;
     for (int i = 0; i < 10; ++i) {
-        comp2.solve_logical(st2, 1.0f / 60.0f);
+        step_asym(comp2, st2, 1.0f / 60.0f);
     }
-    float out_fall = st2.across[1];
+    float out_fall = st2.values[1];
 
     // With symmetric taus, rise and fall rates should be similar
     // (checking that both respond significantly in 10 frames)
@@ -126,19 +134,19 @@ TEST(AsymTMOTest, Deadzone_PreventsMicroAdjustments)
     auto comp = make_asym_tmo(0.1f, 0.1f, 0.5f);  // Large deadzone
 
     auto st = make_state(5.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_asym(comp, st, 1.0 / 60.0);  // cold start at 5
 
-    float initial_out = st.across[1];
+    float initial_out = st.values[1];
 
     // Change input by less than deadzone
-    st.across[0] = 5.3f;  // diff = 0.3 < deadzone (0.5)
+    st.values[0] = 5.3f;  // diff = 0.3 < deadzone (0.5)
 
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_asym(comp, st, 1.0 / 60.0);
     }
 
     // Output should not have changed significantly
-    EXPECT_NEAR(st.across[1], initial_out, 0.01f);
+    EXPECT_NEAR(st.values[1], initial_out, 0.01f);
 }
 
 TEST(AsymTMOTest, Deadzone_AllowsLargeChanges)
@@ -146,17 +154,17 @@ TEST(AsymTMOTest, Deadzone_AllowsLargeChanges)
     auto comp = make_asym_tmo(0.1f, 0.1f, 0.5f);
 
     auto st = make_state(5.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_asym(comp, st, 1.0 / 60.0);  // cold start at 5
 
     // Change input by MORE than deadzone
-    st.across[0] = 10.0f;  // diff = 5.0 > deadzone (0.5)
+    st.values[0] = 10.0f;  // diff = 5.0 > deadzone (0.5)
 
     for (int i = 0; i < 30; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_asym(comp, st, 1.0 / 60.0);
     }
 
     // Output should approach new input
-    EXPECT_GT(st.across[1], 7.0f);
+    EXPECT_GT(st.values[1], 7.0f);
 }
 
 TEST(AsymTMOTest, SelectsTauUp_WhenDiffPositive)
@@ -164,20 +172,20 @@ TEST(AsymTMOTest, SelectsTauUp_WhenDiffPositive)
     auto comp = make_asym_tmo(0.05f, 1.0f);  // Fast rise, very slow fall
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_asym(comp, st, 1.0 / 60.0);  // cold start at 0
 
     // Rising edge (input > current_value)
-    st.across[0] = 10.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
-    float after_first_rise = st.across[1];
+    st.values[0] = 10.0f;
+    step_asym(comp, st, 1.0 / 60.0);  // stages first rise step
+    float after_first_rise = st.values[1];
 
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_asym(comp, st, 1.0 / 60.0);
     }
 
     // With fast tau_up, should quickly approach target
-    EXPECT_GT(st.across[1], 8.0f);  // Should be very close to target
-    EXPECT_GT(st.across[1], after_first_rise);  // Should continue rising
+    EXPECT_GT(st.values[1], 8.0f);
+    EXPECT_GT(st.values[1], after_first_rise);
 }
 
 TEST(AsymTMOTest, SelectsTauDown_WhenDiffNegative)
@@ -185,17 +193,17 @@ TEST(AsymTMOTest, SelectsTauDown_WhenDiffNegative)
     auto comp = make_asym_tmo(0.01f, 1.0f);  // Very fast rise, very slow fall
 
     auto st = make_state(10.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_asym(comp, st, 1.0 / 60.0);  // cold start at 10
 
     // Falling edge (input < current_value)
-    st.across[0] = 0.0f;
+    st.values[0] = 0.0f;
 
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_asym(comp, st, 1.0 / 60.0);
     }
 
     // With slow tau_down, should fall very slowly
-    EXPECT_GT(st.across[1], 5.0f);  // Still above 5 after 10 frames
+    EXPECT_GT(st.values[1], 5.0f);  // Still above 5 after 10 frames
 }
 
 TEST(AsymTMOTest, PreLoad_ComputesInverseTaus)
@@ -225,16 +233,16 @@ TEST(AsymTMOTest, HandlesZeroDt_Pause)
     auto comp = make_asym_tmo();
     auto st = make_state(5.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
-    float out_before_pause = st.across[1];
+    step_asym(comp, st, 1.0 / 60.0);  // cold start at 5
+    float out_before_pause = st.values[1];
 
     // Simulate pause (dt = 0)
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 0.0f);
+        step_asym(comp, st, 0.0f);
     }
 
     // Output should not change during pause
-    EXPECT_FLOAT_EQ(st.across[1], out_before_pause);
+    EXPECT_FLOAT_EQ(st.values[1], out_before_pause);
 }
 
 TEST(AsymTMOTest, ExtremeValues_LargeTau)
@@ -243,15 +251,15 @@ TEST(AsymTMOTest, ExtremeValues_LargeTau)
     auto comp = make_asym_tmo(100.0f, 100.0f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_asym(comp, st, 1.0 / 60.0);  // cold start at 0
 
-    st.across[0] = 10.0f;
+    st.values[0] = 10.0f;
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_asym(comp, st, 1.0 / 60.0);
     }
 
     // With very large tau, output should barely move
-    EXPECT_LT(st.across[1], 1.0f);
+    EXPECT_LT(st.values[1], 1.0f);
 }
 
 TEST(AsymTMOTest, ExtremeValues_SmallTau)
@@ -260,13 +268,15 @@ TEST(AsymTMOTest, ExtremeValues_SmallTau)
     auto comp = make_asym_tmo(0.001f, 0.001f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_asym(comp, st, 1.0 / 60.0);  // cold start at 0
 
-    st.across[0] = 10.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    st.values[0] = 10.0f;
+    step_asym(comp, st, 1.0 / 60.0);  // output = committed 0, stages ~10
+    // One-frame delay: output still 0 after first step
+    step_asym(comp, st, 1.0 / 60.0);  // output = committed ~10
 
-    // With very small tau, should reach target almost immediately
-    EXPECT_GT(st.across[1], 9.0f);
+    // With very small tau, should reach target after one-frame delay
+    EXPECT_GT(st.values[1], 9.0f);
 }
 
 // =============================================================================
@@ -278,9 +288,10 @@ TEST(FastTMOTest, ColdStart_FirstFrame)
     auto comp = make_fast_tmo();
     auto st = make_state(10.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_fast(comp, st, 1.0 / 60.0);
 
-    EXPECT_FLOAT_EQ(st.across[1], 10.0f);
+    // Cold-start: output = cold-start-adjusted committed value = 10.0
+    EXPECT_FLOAT_EQ(st.values[1], 10.0f);
     EXPECT_FLOAT_EQ(comp.first_frame_mask, 0.0f);
 }
 
@@ -289,18 +300,18 @@ TEST(FastTMOTest, BasicLowPassFiltering)
     auto comp = make_fast_tmo(0.1f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_fast(comp, st, 1.0 / 60.0);  // cold start at 0
 
     // Step to 10.0
-    st.across[0] = 10.0f;
+    st.values[0] = 10.0f;
 
     for (int i = 0; i < 30; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_fast(comp, st, 1.0 / 60.0);
     }
 
     // Should approach 10.0 (exponential decay)
-    EXPECT_GT(st.across[1], 7.0f);
-    EXPECT_LT(st.across[1], 10.0f);
+    EXPECT_GT(st.values[1], 7.0f);
+    EXPECT_LT(st.values[1], 10.0f);
 }
 
 TEST(FastTMOTest, LargerTau_SlowerResponse)
@@ -311,19 +322,19 @@ TEST(FastTMOTest, LargerTau_SlowerResponse)
     auto st_fast = make_state(0.0f);
     auto st_slow = make_state(0.0f);
 
-    comp_fast.solve_logical(st_fast, 1.0f / 60.0f);
-    comp_slow.solve_logical(st_slow, 1.0f / 60.0f);
+    step_fast(comp_fast, st_fast, 1.0f / 60.0f);  // cold start
+    step_fast(comp_slow, st_slow, 1.0f / 60.0f);  // cold start
 
-    st_fast.across[0] = 10.0f;
-    st_slow.across[0] = 10.0f;
+    st_fast.values[0] = 10.0f;
+    st_slow.values[0] = 10.0f;
 
     for (int i = 0; i < 10; ++i) {
-        comp_fast.solve_logical(st_fast, 1.0f / 60.0f);
-        comp_slow.solve_logical(st_slow, 1.0f / 60.0f);
+        step_fast(comp_fast, st_fast, 1.0f / 60.0f);
+        step_fast(comp_slow, st_slow, 1.0f / 60.0f);
     }
 
     // Fast tau (0.01) should respond more quickly than slow tau (1.0)
-    EXPECT_GT(st_fast.across[1], st_slow.across[1]);
+    EXPECT_GT(st_fast.values[1], st_slow.values[1]);
 }
 
 TEST(FastTMOTest, Deadzone_PreventsMicroAdjustments)
@@ -331,18 +342,18 @@ TEST(FastTMOTest, Deadzone_PreventsMicroAdjustments)
     auto comp = make_fast_tmo(0.1f, 0.5f);
 
     auto st = make_state(5.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_fast(comp, st, 1.0 / 60.0);  // cold start at 5
 
-    float initial_out = st.across[1];
+    float initial_out = st.values[1];
 
     // Change by less than deadzone
-    st.across[0] = 5.3f;
+    st.values[0] = 5.3f;
 
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_fast(comp, st, 1.0 / 60.0);
     }
 
-    EXPECT_NEAR(st.across[1], initial_out, 0.01f);
+    EXPECT_NEAR(st.values[1], initial_out, 0.01f);
 }
 
 TEST(FastTMOTest, HandlesZeroDt_Pause)
@@ -350,14 +361,14 @@ TEST(FastTMOTest, HandlesZeroDt_Pause)
     auto comp = make_fast_tmo();
     auto st = make_state(5.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
-    float out_before_pause = st.across[1];
+    step_fast(comp, st, 1.0 / 60.0);  // cold start at 5
+    float out_before_pause = st.values[1];
 
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 0.0f);
+        step_fast(comp, st, 0.0f);
     }
 
-    EXPECT_FLOAT_EQ(st.across[1], out_before_pause);
+    EXPECT_FLOAT_EQ(st.values[1], out_before_pause);
 }
 
 TEST(FastTMOTest, RationalApproximation_Stable)
@@ -366,17 +377,19 @@ TEST(FastTMOTest, RationalApproximation_Stable)
     auto comp = make_fast_tmo(0.1f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_fast(comp, st, 1.0 / 60.0);  // cold start at 0
 
-    st.across[0] = 10.0f;
+    st.values[0] = 10.0f;
 
     // Even with very large dt (lag spike), should not explode
-    comp.solve_logical(st, 1.0f);  // 1 second!
+    step_fast(comp, st, 1.0f);  // 1 second!
 
-    EXPECT_FALSE(std::isinf(st.across[1]));
-    EXPECT_FALSE(std::isnan(st.across[1]));
-    EXPECT_GE(st.across[1], 0.0f);
-    EXPECT_LE(st.across[1], 10.0f);
+    EXPECT_FALSE(std::isinf(st.values[1]));
+    EXPECT_FALSE(std::isnan(st.values[1]));
+    // One-frame delay: output still shows 0.0 (cold-start committed value)
+    // The staged value is clamped to [0, 10]; it will appear next frame
+    EXPECT_GE(st.values[1], 0.0f);
+    EXPECT_LE(st.values[1], 10.0f);
 }
 
 TEST(FastTMOTest, PreLoad_ComputesInverseTau)
@@ -402,15 +415,16 @@ TEST(FastTMOTest, StatePersistsBetweenFrames)
     auto comp = make_fast_tmo(0.1f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_fast(comp, st, 1.0 / 60.0);  // cold start at 0
 
-    st.across[0] = 10.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
-    float out1 = st.across[1];
+    st.values[0] = 10.0f;
+    step_fast(comp, st, 1.0 / 60.0);  // output = 0.0 (committed), stages first step
+    step_fast(comp, st, 1.0 / 60.0);  // output = first step value
+    float out1 = st.values[1];
 
     // Same input, next frame should continue approaching target
-    comp.solve_logical(st, 1.0f / 60.0f);
-    float out2 = st.across[1];
+    step_fast(comp, st, 1.0 / 60.0);
+    float out2 = st.values[1];
 
     EXPECT_GT(out2, out1);
     EXPECT_LT(out2, 10.0f);
@@ -421,17 +435,17 @@ TEST(FastTMOTest, ZeroDeadzone_AllowsAllChanges)
     auto comp = make_fast_tmo(0.1f, 0.0f);
 
     auto st = make_state(5.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_fast(comp, st, 1.0 / 60.0);  // cold start at 5
 
     // Even tiny change should propagate
-    st.across[0] = 5.001f;
+    st.values[0] = 5.001f;
 
     for (int i = 0; i < 20; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_fast(comp, st, 1.0 / 60.0);
     }
 
     // Should approach new value
-    EXPECT_NEAR(st.across[1], 5.001f, 0.01f);
+    EXPECT_NEAR(st.values[1], 5.001f, 0.01f);
 }
 
 // =============================================================================
@@ -447,18 +461,18 @@ TEST(TMOTest, AsymVsFast_WithSameParameters)
     auto st_asym = make_state(0.0f);
     auto st_fast = make_state(0.0f);
 
-    asym.solve_logical(st_asym, 1.0f / 60.0f);
-    fast.solve_logical(st_fast, 1.0f / 60.0f);
+    step_asym(asym, st_asym, 1.0f / 60.0f);  // cold start
+    step_fast(fast, st_fast, 1.0f / 60.0f);   // cold start
 
     // Step to 10.0
-    st_asym.across[0] = 10.0f;
-    st_fast.across[0] = 10.0f;
+    st_asym.values[0] = 10.0f;
+    st_fast.values[0] = 10.0f;
 
     for (int i = 0; i < 30; ++i) {
-        asym.solve_logical(st_asym, 1.0f / 60.0f);
-        fast.solve_logical(st_fast, 1.0f / 60.0f);
+        step_asym(asym, st_asym, 1.0f / 60.0f);
+        step_fast(fast, st_fast, 1.0f / 60.0f);
     }
 
     // Outputs should be very close
-    EXPECT_NEAR(st_asym.across[1], st_fast.across[1], 0.1f);
+    EXPECT_NEAR(st_asym.values[1], st_fast.values[1], 0.1f);
 }

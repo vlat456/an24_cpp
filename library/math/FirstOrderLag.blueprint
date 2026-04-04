@@ -1,0 +1,264 @@
+{
+  "version": "3.0",
+  "id": "FirstOrderLag",
+  "display_name": "FirstOrderLag",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "direction": 0,
+      "domain": 1,
+      "name": "in",
+      "source_writer": false,
+      "type": "Any"
+    },
+    {
+      "direction": 1,
+      "domain": 1,
+      "name": "out",
+      "source_writer": false,
+      "type": "Any"
+    },
+    {
+      "direction": 0,
+      "domain": 1,
+      "name": "rate",
+      "source_writer": false,
+      "type": "Any"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "accumulator",
+      "params": {
+        "initial_val": 0.6000000238418579
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -64.0,
+        "y": 80.0
+      },
+      "type": "Accumulator"
+    },
+    {
+      "id": "in",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 7
+        },
+        "port": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -336.0,
+        "y": 304.0
+      },
+      "string_params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintInput"
+    },
+    {
+      "id": "multiply",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -192.0,
+        "y": 80.0
+      },
+      "type": "Multiply"
+    },
+    {
+      "id": "out",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 7
+        },
+        "port": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 224.0,
+        "y": 96.0
+      },
+      "string_params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    },
+    {
+      "id": "rate",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 7
+        },
+        "port": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": -336.0,
+        "y": 96.0
+      },
+      "string_params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintInput"
+    },
+    {
+      "id": "splitter",
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": 7
+        },
+        "o1": {
+          "direction": "Out",
+          "type": 7
+        },
+        "o2": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 64.0,
+        "y": 80.0
+      },
+      "type": "Splitter"
+    },
+    {
+      "id": "subtract",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 192.0,
+        "y": 304.0
+      },
+      "type": "Subtract"
+    }
+  ],
+  "wires": [
+    {
+      "id": "w_acc_to_split",
+      "source": "/accumulator:out",
+      "target": "/splitter:i"
+    },
+    {
+      "id": "w_split_o1_to_sub",
+      "routing_points": [
+        [
+          160.0,
+          112.0
+        ],
+        [
+          160.0,
+          352.0
+        ]
+      ],
+      "source": "/splitter:o1",
+      "target": "/subtract:B"
+    },
+    {
+      "id": "w_split_o2_to_out",
+      "source": "/splitter:o2",
+      "target": "/out:port"
+    },
+    {
+      "id": "w_in_to_sub",
+      "source": "/in:port",
+      "target": "/subtract:A"
+    },
+    {
+      "id": "w_sub_to_mul",
+      "routing_points": [
+        [
+          304.0,
+          336.0
+        ],
+        [
+          304.0,
+          256.0
+        ],
+        [
+          -240.0,
+          256.0
+        ],
+        [
+          -240.0,
+          112.0
+        ]
+      ],
+      "source": "/subtract:o",
+      "target": "/multiply:A"
+    },
+    {
+      "id": "w_mul_to_acc",
+      "source": "/multiply:o",
+      "target": "/accumulator:in"
+    },
+    {
+      "id": "w_rate_to_mul",
+      "source": "/rate:port",
+      "target": "/multiply:B"
+    }
+  ],
+  "nested": [],
+  "cpp_class": false,
+  "description": "First-order lag filter: state += (target - state) * rate * dt. Composite of Subtract + Multiply + Accumulator.",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "initial_val": "0.6",
+    "rate": "6.0"
+  },
+  "name": "FirstOrderLag",
+  "pan_x": -423.369873046875,
+  "pan_y": -103.17134094238281,
+  "zoom": 1.2116440534591675,
+  "grid_step": 16.0
+}

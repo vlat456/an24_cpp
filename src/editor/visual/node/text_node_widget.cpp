@@ -3,8 +3,10 @@
 #include "visual/renderer/render_theme.h"
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/handle_renderer.h"
+#include "visual/snap.h"
 #include "editor/layout_constants.h"
-#include "data/node.h"
+#include "data/node_content.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cmath>
 
@@ -14,38 +16,46 @@ namespace visual {
 // Construction
 // ============================================================================
 
-TextNodeWidget::TextNodeWidget(const ::Node& data, const ui::StringInterner& interner)
+TextNodeWidget::TextNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
     : node_iid_(data.id)
     , interner_(&interner)
     , name_(data.name)
     , font_size_base_(editor_constants::Font::Large)
 {
-    if (data.color.has_value()) {
-        custom_fill_ = data.color->to_uint32();
+    if (data.has_color) {
+        NodeColor c;
+        c.r = data.color_r;
+        c.g = data.color_g;
+        c.b = data.color_b;
+        c.a = data.color_a;
+        custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(data.pos);
+    setLocalPos(Pt(data.x, data.y));
 
-    // Extract text from params
-    auto it = data.params.find("text");
-    if (it != data.params.end()) {
-        text_ = it->second;
+    // Extract text from string_params
+    {
+        auto it = data.string_params.find("text");
+        if (it != data.string_params.end()) {
+            text_ = it->second;
+        }
     }
 
-    // Extract font size from params
-    auto fs = data.params.find("font_size");
-    if (fs != data.params.end()) {
-        if (fs->second == "small")       font_size_base_ = editor_constants::Font::Small;
-        else if (fs->second == "medium") font_size_base_ = editor_constants::Font::Medium;
+    // Extract font size from string_params
+    {
+        auto fs = data.string_params.find("font_size");
+        if (fs != data.string_params.end()) {
+            if (fs->second == "small")       font_size_base_ = editor_constants::Font::Small;
+            else if (fs->second == "medium") font_size_base_ = editor_constants::Font::Medium;
+        }
     }
 
     // Snap size to grid
-    auto snap = [](float v) {
-        constexpr float g = editor_constants::PORT_LAYOUT_GRID;
-        return std::ceil(v / g) * g;
-    };
-    float w = snap(std::max(data.size.x, 64.0f));
-    float h = snap(std::max(data.size.y, 32.0f));
+    ui::Pt default_sz(128.0f, 48.0f);
+    float sw = data.width.has_value()  ? *data.width  : default_sz.x;
+    float sh = data.height.has_value() ? *data.height : default_sz.y;
+    float w = editor_math::snap_size_to_layout_grid(std::max(sw, 64.0f));
+    float h = editor_math::snap_size_to_layout_grid(std::max(sh, 32.0f));
     setSize(Pt(w, h));
 }
 

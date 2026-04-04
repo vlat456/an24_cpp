@@ -1,32 +1,35 @@
 {
-  "exposes": {
-    "heat_out": {
-      "direction": "Out",
-      "type": "Temperature"
+  "version": "3.0",
+  "id": "ElectricHeater",
+  "display_name": "ElectricHeater",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "heat_out",
+      "domain": 16,
+      "direction": 1,
+      "type": "Temperature",
+      "source_writer": false
     },
-    "power": {
-      "direction": "In",
-      "type": "Pressure"
+    {
+      "name": "power",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Electrical heater converting power to heat",
-    "domains": [
-      "Electrical",
-      "Thermal"
-    ],
-    "name": "ElectricHeater"
-  },
-  "params": {
-    "efficiency": {
-      "default": "0.9",
-      "type": "float"
-    },
-    "max_power": {
-      "default": "1000.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Electrical heater converting power to heat",
+  "domains": [
+    "Electrical",
+    "Thermal"
+  ],
+  "param_defaults": {
+    "efficiency": "0.9",
+    "max_power": "1000.0"
+  }
 }

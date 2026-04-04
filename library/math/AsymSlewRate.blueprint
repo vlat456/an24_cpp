@@ -1,39 +1,35 @@
 {
-  "exposes": {
-    "in": {
-      "direction": "In",
-      "type": "Any"
+  "version": "3.0",
+  "id": "AsymSlewRate",
+  "display_name": "AsymSlewRate",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "in",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "out": {
-      "direction": "Out",
-      "type": "Any"
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Asymmetric linear rate limiter for WASM",
-    "domains": [
-      "Logical"
-    ],
-    "name": "AsymSlewRate",
-    "size": [
-      2.0,
-      1.0
-    ]
-  },
-  "params": {
-    "deadzone": {
-      "default": "0.0001",
-      "type": "float"
-    },
-    "rate_down": {
-      "default": "0.5",
-      "type": "float"
-    },
-    "rate_up": {
-      "default": "1.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Asymmetric linear rate limiter for WASM",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "deadzone": "0.0001",
+    "rate_down": "0.5",
+    "rate_up": "1.0"
+  }
 }

@@ -1,0 +1,32 @@
+{
+  "tests": 4,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "BakeIn",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "SetsBakedInFlag",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bake_in.cpp",
+          "line": 17
+        },
+        {
+          "name": "FlattensParamOverrides",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bake_in.cpp",
+          "line": 81
+        },
+        {
+          "name": "FlattensLayoutOverrides",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bake_in.cpp",
+          "line": 111
+        },
+        {
+          "name": "NonexistentId_ReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bake_in.cpp",
+          "line": 142
+        }
+      ]
+    }
+  ]
+}

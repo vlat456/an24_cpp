@@ -4,8 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <set>
-#include "editor/data/flat_blueprint.h"
-#include "editor/data/type_def_convert.h"
+#include "../parse_number.h"
 
 using json = nlohmann::json;
 
@@ -17,6 +16,13 @@ static Domain parse_domain(const std::string& s) {
     if (s == "Mechanical") return Domain::Mechanical;
     if (s == "Thermal") return Domain::Thermal;
     throw std::runtime_error("Unknown domain: " + s);
+}
+
+static Domain parse_domain_mask_int(int v) {
+    if (v <= 0 || (v & ~31) != 0) {
+        throw std::runtime_error("Invalid domain bitmask value: " + std::to_string(v));
+    }
+    return static_cast<Domain>(static_cast<uint8_t>(v));
 }
 
 // Helper: convert Domain to string
@@ -31,6 +37,123 @@ static std::string domain_to_string(Domain d) {
     return "Unknown";
 }
 
+static ParamSchemaType parse_param_schema_type(const std::string& s) {
+    if (s == "float") return ParamSchemaType::Float;
+    if (s == "int") return ParamSchemaType::Int;
+    if (s == "bool") return ParamSchemaType::Bool;
+    if (s == "string") return ParamSchemaType::String;
+    throw std::runtime_error("Unknown param schema type: " + s);
+}
+
+static std::unordered_map<std::string, ParamSchemaEntry> parse_param_schema(const json& j) {
+    std::unordered_map<std::string, ParamSchemaEntry> out;
+    if (!j.is_object()) {
+        throw std::runtime_error("'param_schema' must be an object");
+    }
+    for (const auto& [name, entry] : j.items()) {
+        if (!entry.is_object()) {
+            throw std::runtime_error("param_schema entry '" + name + "' must be object");
+        }
+        if (!entry.contains("type") || !entry["type"].is_string()) {
+            throw std::runtime_error("param_schema entry '" + name + "' missing string 'type'");
+        }
+        ParamSchemaEntry e;
+        e.type = parse_param_schema_type(entry["type"].get<std::string>());
+        if (entry.contains("required")) {
+            if (!entry["required"].is_boolean()) {
+                throw std::runtime_error("param_schema entry '" + name + "' field 'required' must be bool");
+            }
+            e.required = entry["required"].get<bool>();
+        }
+        if (entry.contains("min")) {
+            if (!entry["min"].is_number()) {
+                throw std::runtime_error("param_schema entry '" + name + "' field 'min' must be number");
+            }
+            e.min = entry["min"].get<double>();
+        }
+        if (entry.contains("max")) {
+            if (!entry["max"].is_number()) {
+                throw std::runtime_error("param_schema entry '" + name + "' field 'max' must be number");
+            }
+            e.max = entry["max"].get<double>();
+        }
+        if (e.min.has_value() && e.max.has_value() && *e.min > *e.max) {
+            throw std::runtime_error("param_schema entry '" + name + "' has min > max");
+        }
+        if (entry.contains("visual_only")) {
+            if (!entry["visual_only"].is_boolean()) {
+                throw std::runtime_error("param_schema entry '" + name + "' field 'visual_only' must be bool");
+            }
+            e.visual_only = entry["visual_only"].get<bool>();
+        }
+        out[name] = e;
+    }
+    return out;
+}
+
+static void validate_params_against_schema(
+    const std::unordered_map<std::string, std::string>& params,
+    const std::unordered_map<std::string, ParamSchemaEntry>& schema,
+    const std::string& dev_name,
+    const std::string& classname
+) {
+    for (const auto& [name, entry] : schema) {
+        auto it = params.find(name);
+        if (it == params.end()) {
+            if (entry.required) {
+                throw std::runtime_error("Missing required parameter '" + name + "' on device '" + dev_name + "' (" + classname + ")");
+            }
+            continue;
+        }
+        const std::string& value = it->second;
+        switch (entry.type) {
+            case ParamSchemaType::Float: {
+                float v = 0.0f;
+                if (!locale_safe::parse_float(value, v)) {
+                    throw std::runtime_error("Parameter '" + name + "' must be float on device '" + dev_name + "' (" + classname + ")");
+                }
+                if (entry.min.has_value() && static_cast<double>(v) < *entry.min) {
+                    throw std::runtime_error("Parameter '" + name + "' below min on device '" + dev_name + "' (" + classname + ")");
+                }
+                if (entry.max.has_value() && static_cast<double>(v) > *entry.max) {
+                    throw std::runtime_error("Parameter '" + name + "' above max on device '" + dev_name + "' (" + classname + ")");
+                }
+                break;
+            }
+            case ParamSchemaType::Int: {
+                long long v = 0;
+                if (!locale_safe::parse_int64(value, v)) {
+                    throw std::runtime_error("Parameter '" + name + "' must be int on device '" + dev_name + "' (" + classname + ")");
+                }
+                if (entry.min.has_value() && static_cast<double>(v) < *entry.min) {
+                    throw std::runtime_error("Parameter '" + name + "' below min on device '" + dev_name + "' (" + classname + ")");
+                }
+                if (entry.max.has_value() && static_cast<double>(v) > *entry.max) {
+                    throw std::runtime_error("Parameter '" + name + "' above max on device '" + dev_name + "' (" + classname + ")");
+                }
+                break;
+            }
+            case ParamSchemaType::Bool: {
+                if (!(value == "true" || value == "false" || value == "1" || value == "0")) {
+                    throw std::runtime_error("Parameter '" + name + "' must be bool on device '" + dev_name + "' (" + classname + ")");
+                }
+                break;
+            }
+            case ParamSchemaType::String:
+                break;
+        }
+    }
+}
+
+static bool has_domain_in(const std::vector<Domain>& domains, Domain target) {
+    for (Domain d : domains) {
+        if (has_domain(d, target)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Helper: convert string to PortDirection
 static PortDirection parse_port_direction(const std::string& s) {
     if (s == "in" || s == "input" || s == "i" || s == "In") return PortDirection::In;
@@ -43,6 +166,8 @@ static PortDirection parse_port_direction(const std::string& s) {
 static PortType parse_port_type(const std::string& s) {
     if (s == "V") return PortType::V;
     if (s == "I") return PortType::I;
+    if (s == "Signal") return PortType::Any;
+    if (s == "Fraction") return PortType::Any;
     if (s == "Bool") return PortType::Bool;
     if (s == "RPM") return PortType::RPM;
     if (s == "Temperature") return PortType::Temperature;
@@ -90,6 +215,18 @@ static Port parse_port(const json& j) {
             port.type = parse_port_type(j["type"].get<std::string>());
         } else {
             throw std::runtime_error("Port definition missing required 'type' field");
+        }
+        if (j.contains("domain")) {
+            if (!j["domain"].is_number_integer()) {
+                throw std::runtime_error("Port definition field 'domain' must be integer bitmask");
+            }
+            port.domain = parse_domain_mask_int(j["domain"].get<int>());
+        }
+        if (j.contains("source_writer")) {
+            if (!j["source_writer"].is_boolean()) {
+                throw std::runtime_error("Port definition field 'source_writer' must be bool");
+            }
+            port.source_writer = j["source_writer"].get<bool>();
         }
         if (j.contains("alias")) {
             port.alias = j["alias"].get<std::string>();
@@ -283,6 +420,7 @@ static ParserContext parse_json_impl(const std::string& json_text,
                                      TypeRegistry& registry,
                                      std::set<std::string> expanding) {
     spdlog::debug("[json_parser] Parsing JSON text");
+    const bool is_top_level = expanding.empty();
 
     auto j = json::parse(json_text);
     ParserContext ctx;
@@ -301,6 +439,7 @@ static ParserContext parse_json_impl(const std::string& json_text,
 
     // Parse devices (also accepts "top_level_devices")
     std::vector<DeviceInstance> raw_devices;
+    std::set<std::string> expanded_instance_names;
     if (j.contains("devices")) {
         for (const auto& dev_j : j["devices"]) {
             raw_devices.push_back(parse_device(dev_j));
@@ -361,6 +500,7 @@ static ParserContext parse_json_impl(const std::string& json_text,
             expanding.insert(raw_dev.classname);
             ParserContext nested = parse_json_impl(nested_json.dump(), registry, expanding);
             merge_nested_blueprint(ctx, nested, raw_dev.name);
+            expanded_instance_names.insert(raw_dev.name);
 
             spdlog::info("[json_parser] Expanded blueprint '{}' as device '{}' ({} devices)",
                         raw_dev.classname, raw_dev.name, nested.devices.size());
@@ -390,13 +530,27 @@ static ParserContext parse_json_impl(const std::string& json_text,
         }
     }
 
+    // Parse optional initial values map: "device.port" -> float
+    if (j.contains("initial_values")) {
+        if (!j["initial_values"].is_object()) {
+            throw std::runtime_error("'initial_values' must be an object");
+        }
+        for (const auto& [port_ref, val] : j["initial_values"].items()) {
+            if (!val.is_number()) {
+                throw std::runtime_error("initial_values entry '" + port_ref + "' must be numeric");
+            }
+            ctx.initial_values[port_ref] = val.get<float>();
+        }
+    }
+
     // Rewrite connections that point to expanded nested blueprints
     // When a blueprint "lamp_bp" is expanded, its exposed ports become "lamp_bp:vin.port"
     // So we need to rewrite "lamp_bp.vin" -> "lamp_bp:vin.port"
     // But we must NOT rewrite internal connections that already have the prefix
-    // Skip this for recursive blueprint loading (only process at top level)
-    if (ctx.devices.empty() || ctx.devices[0].name.find(':') == std::string::npos || true) {  // TODO: better detection
+    // Skip this for recursive blueprint loading (only process at top level).
+    if (is_top_level) {
         std::set<std::string> expanded_blueprint_names;
+        expanded_blueprint_names.insert(expanded_instance_names.begin(), expanded_instance_names.end());
         // Find all expanded blueprints by looking for BlueprintInput/BlueprintOutput devices
         // These have names like "lamp_bp:vin" and "lamp_bp:vout"
         // The blueprint name is everything before the LAST colon
@@ -418,7 +572,13 @@ static ParserContext parse_json_impl(const std::string& json_text,
                          expanded_blueprint_names.size(),
                          fmt::join(expanded_blueprint_names, ", "));
 
-            // Rewrite connections (only parent connections, not internal ones)
+            // === PARITY GUARD: Parent Connection Rewrite ===
+            // INVARIANT: This rewrite is CANONICAL for parent-facing composite ports.
+            // - Blueprint expanded from TypeRegistry: device_name + ":" + port_name becomes exposed.
+            // - Parent connections (editor/root) use format: instance:port.ext (expanded side).
+            // - Internal connections (within expanded blueprint) use format: instance:port.port.
+            // - Root/editor resolver must map expandable root endpoints to :instance:port.ext format.
+            // - AOT and JIT solvers must agree on bridge semantics (.ext vs .port union).
             for (auto& conn : ctx.connections) {
                 // Helper to rewrite one side of a connection
                 auto rewrite_port = [&](std::string& port_ref) {
@@ -428,6 +588,15 @@ static ParserContext parse_json_impl(const std::string& json_text,
                     std::string device_name = port_ref.substr(0, dot_pos);
                     std::string port_name = port_ref.substr(dot_pos + 1);
 
+                    // INVARIANT: port_name must be non-empty after extraction.
+                    // If port_name is empty (malformed endpoint like "instance."),
+                    // skip rewrite and let downstream validation catch it.
+                    if (port_name.empty()) {
+                        spdlog::warn("[json_parser] Malformed endpoint (empty port): '{}' - skipping rewrite",
+                                    port_ref);
+                        return;
+                    }
+
                     // Skip if already has prefix (internal connection, already processed)
                     if (device_name.find(':') != std::string::npos) {
                         return;
@@ -435,9 +604,16 @@ static ParserContext parse_json_impl(const std::string& json_text,
 
                     // Check if this device is an expanded blueprint
                     if (expanded_blueprint_names.count(device_name)) {
-                        // Rewrite: "lamp_bp.vin" -> "lamp_bp:vin.port"
+                        // Rewrite parent-facing composite ports to the bridge node's
+                        // external side: "lamp_bp.vin" -> "lamp_bp:vin.ext".
+                        // The internal ".port" endpoint stays for connections inside
+                        // the expanded blueprint only.
+                        // [PARITY] This contract must be mirrored in:
+                        //   - signal_key_resolver.cpp (root/external signal mapping)
+                        //   - jit_solver.cpp (BlueprintInput/BlueprintOutput bridge union)
+                        //   - codegen.cpp (AOT equivalent bridge union)
                         std::string old_ref = port_ref;
-                        port_ref = device_name + ":" + port_name + ".port";
+                        port_ref = device_name + ":" + port_name + ".ext";
                         spdlog::info("[json_parser] Rewrote parent connection: '{}' -> '{}'",
                                     old_ref, port_ref);
                     }
@@ -477,11 +653,11 @@ static ParserContext parse_json_impl(const std::string& json_text,
 
         // Check if ports are already occupied - log warning but don't throw
         if (!from_allows_multiple && occupied_ports.count(conn.from)) {
-            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing for compatibility",
+            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing duplicate",
                           conn.from);
         }
         if (!to_allows_multiple && occupied_ports.count(conn.to)) {
-            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing for compatibility",
+            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing duplicate",
                           conn.to);
         }
 
@@ -644,6 +820,14 @@ std::string serialize_json(const ParserContext& ctx) {
         j["connections"] = connections;
     }
 
+    if (!ctx.initial_values.empty()) {
+        json initial_values;
+        for (const auto& [port_ref, value] : ctx.initial_values) {
+            initial_values[port_ref] = value;
+        }
+        j["initial_values"] = initial_values;
+    }
+
     return j.dump(2);  // Pretty print with 2-space indent
 }
 
@@ -674,17 +858,22 @@ TypeDefinition parse_type_definition(const json& j) {
             }
         }
     }
-
-    // Parse domains
-    if (j.contains("domains") && j["domains"].is_array()) {
-        std::vector<Domain> domains;
-        for (const auto& d : j["domains"]) {
-            domains.push_back(parse_domain(d.get<std::string>()));
-        }
-        if (!domains.empty()) {
-            def.domains = domains;
-        }
+    if (j.contains("param_schema")) {
+        def.param_schema = parse_param_schema(j["param_schema"]);
     }
+
+    // Parse domains (mandatory, no fallback)
+    if (!j.contains("domains") || !j["domains"].is_array()) {
+        throw std::runtime_error("Type definition missing required 'domains' array for component '" + def.classname + "'");
+    }
+    std::vector<Domain> domains;
+    for (const auto& d : j["domains"]) {
+        domains.push_back(parse_domain(d.get<std::string>()));
+    }
+    if (domains.empty()) {
+        throw std::runtime_error("Type definition has empty 'domains' array for component '" + def.classname + "'");
+    }
+    def.domains = std::move(domains);
 
     // Parse priority
     if (j.contains("priority")) {
@@ -709,6 +898,11 @@ TypeDefinition parse_type_definition(const json& j) {
     // Parse visual_only flag
     if (j.contains("visual_only")) {
         def.visual_only = j["visual_only"].get<bool>();
+    }
+
+    // Parse scheduler_source flag
+    if (j.contains("scheduler_source")) {
+        def.scheduler_source = j["scheduler_source"].get<bool>();
     }
 
     // Parse size {x, y} in grid units
@@ -799,7 +993,7 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
         return registry;
     }
 
-    // Scan for *.blueprint files recursively (v2 format)
+    // Scan for *.blueprint files recursively (v3 format only)
     size_t loaded_count = 0;
     for (const auto& entry : std::filesystem::recursive_directory_iterator(library_path)) {
         if (entry.is_regular_file() && entry.path().extension() == ".blueprint") {
@@ -809,22 +1003,262 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                 std::string content((std::istreambuf_iterator<char>(file)),
                                      std::istreambuf_iterator<char>());
 
-                // Parse v2 blueprint
-                auto bp_opt = parse_flat_blueprint(content);
-                if (!bp_opt.has_value()) {
-                    spdlog::error("[json_parser] Failed to parse v2 blueprint '{}'",
-                                  entry.path().string());
-                    continue;
+                json j = json::parse(content);
+                if (!j.contains("version") || !j["version"].is_string()
+                    || j["version"].get<std::string>() != "3.0") {
+                    throw std::runtime_error("Invalid or unsupported 'version' in '" + entry.path().string() + "'");
                 }
 
-                // Convert to TypeDefinition
-                TypeDefinition def = flat_to_type_definition(*bp_opt);
+                TypeDefinition def;
+                if (!j.contains("id") || !j["id"].is_string() || j["id"].get<std::string>().empty()) {
+                    throw std::runtime_error("Missing required non-empty 'id' in '" + entry.path().string() + "'");
+                }
+                def.classname = j["id"].get<std::string>();
+
+                if (j.contains("display_name") && j["display_name"].is_string()) {
+                    def.description = j["display_name"].get<std::string>();
+                } else if (j.contains("description") && j["description"].is_string()) {
+                    def.description = j["description"].get<std::string>();
+                }
+
+                if (!j.contains("cpp_class") || !j["cpp_class"].is_boolean()) {
+                    throw std::runtime_error("Missing required boolean 'cpp_class' for component '" + def.classname + "'");
+                }
+                def.cpp_class = j["cpp_class"].get<bool>();
+
+                if (j.contains("priority") && j["priority"].is_string()) {
+                    def.priority = j["priority"].get<std::string>();
+                }
+                if (j.contains("critical") && j["critical"].is_boolean()) {
+                    def.critical = j["critical"].get<bool>();
+                }
+                if (j.contains("content_type") && j["content_type"].is_string()) {
+                    def.content_type = j["content_type"].get<std::string>();
+                }
+                if (j.contains("render_hint") && j["render_hint"].is_string()) {
+                    def.render_hint = j["render_hint"].get<std::string>();
+                }
+                if (j.contains("visual_only") && j["visual_only"].is_boolean()) {
+                    def.visual_only = j["visual_only"].get<bool>();
+                }
+                if (!j.contains("scheduler_source") || !j["scheduler_source"].is_boolean()) {
+                    throw std::runtime_error("Missing required boolean 'scheduler_source' for component '" + def.classname + "'");
+                }
+                def.scheduler_source = j["scheduler_source"].get<bool>();
+
+                // Parse domains (mandatory, no fallback)
+                if (!j.contains("domains") || !j["domains"].is_array()) {
+                    throw std::runtime_error("Missing required 'domains' array for component '" + def.classname + "'");
+                }
+                {
+                    std::vector<Domain> domains;
+                    for (const auto& d : j["domains"]) {
+                        if (!d.is_string()) {
+                            throw std::runtime_error("Invalid domain entry for component '" + def.classname + "': must be string");
+                        }
+                        domains.push_back(parse_domain(d.get<std::string>()));
+                    }
+                    if (domains.empty()) {
+                        throw std::runtime_error("Empty 'domains' array for component '" + def.classname + "'");
+                    }
+                    def.domains = std::move(domains);
+                }
+
+                if (!j.contains("interface") || !j["interface"].is_array()) {
+                    throw std::runtime_error("Missing required 'interface' array for component '" + def.classname + "'");
+                }
+                for (const auto& p : j["interface"]) {
+                    if (!p.is_object()) {
+                        throw std::runtime_error("Invalid interface entry for component '" + def.classname + "': must be object");
+                    }
+                    if (!p.contains("name") || !p["name"].is_string() || p["name"].get<std::string>().empty()) {
+                        throw std::runtime_error("Interface entry missing required non-empty 'name' for component '" + def.classname + "'");
+                    }
+                    if (!p.contains("direction") || !p["direction"].is_number_integer()) {
+                        throw std::runtime_error("Interface entry missing required integer 'direction' for component '" + def.classname + "'");
+                    }
+                    if (!p.contains("domain") || !p["domain"].is_number_integer()) {
+                        throw std::runtime_error("Interface entry missing required integer 'domain' for component '" + def.classname + "'");
+                    }
+                    if (!p.contains("source_writer") || !p["source_writer"].is_boolean()) {
+                        throw std::runtime_error("Interface entry missing required boolean 'source_writer' for component '" + def.classname + "'");
+                    }
+                    if (!p.contains("type") || !p["type"].is_string()) {
+                        throw std::runtime_error("Interface entry missing required string 'type' for component '" + def.classname + "'");
+                    }
+
+                    Port port;
+                    int dir = p["direction"].get<int>();
+                    if (dir == 0) port.direction = PortDirection::In;
+                    else if (dir == 1) port.direction = PortDirection::Out;
+                    else if (dir == 2) port.direction = PortDirection::InOut;
+                    else {
+                        throw std::runtime_error("Invalid interface direction value for component '" + def.classname + "'");
+                    }
+                    port.domain = parse_domain_mask_int(p["domain"].get<int>());
+                    port.source_writer = p["source_writer"].get<bool>();
+                    port.type = parse_port_type(p["type"].get<std::string>());
+
+                    def.ports[p["name"].get<std::string>()] = port;
+                }
+
+                if (j.contains("param_defaults") && j["param_defaults"].is_object()) {
+                    for (auto& [k, v] : j["param_defaults"].items()) {
+                        if (v.is_string()) {
+                            def.params[k] = v.get<std::string>();
+                        } else if (v.is_number()) {
+                            def.params[k] = locale_safe::format_float(static_cast<float>(v.get<double>()));
+                        }
+                    }
+                }
+                if (j.contains("param_schema")) {
+                    def.param_schema = parse_param_schema(j["param_schema"]);
+                }
+
+                // Parse solver_role metadata (optional, for primitives).
+                // Must come after interface + param_defaults so port/param references can be validated.
+                if (j.contains("solver_role") && j["solver_role"].is_object()) {
+                    auto& sr = j["solver_role"];
+                    SolverRole role;
+                    if (!sr.contains("kind") || !sr["kind"].is_string() || sr["kind"].get<std::string>().empty()) {
+                        throw std::runtime_error("solver_role missing required non-empty 'kind' for component '" + def.classname + "'");
+                    }
+                    role.kind = sr["kind"].get<std::string>();
+
+                    // Validate kind
+                    if (role.kind != "ConductanceBranch" && role.kind != "TheveninSource" && role.kind != "FixedVoltageNode") {
+                        throw std::runtime_error("solver_role has invalid kind '" + role.kind +
+                            "' for component '" + def.classname + "'. Must be ConductanceBranch, TheveninSource, or FixedVoltageNode");
+                    }
+
+                    if (!sr.contains("ports") || !sr["ports"].is_object()) {
+                        throw std::runtime_error("solver_role missing required 'ports' object for component '" + def.classname + "'");
+                    }
+                    for (auto& [k, v] : sr["ports"].items()) {
+                        if (!v.is_string()) {
+                            throw std::runtime_error("solver_role port key '" + k + "' must map to a string port name for component '" + def.classname + "'");
+                        }
+                        role.port_map[k] = v.get<std::string>();
+                    }
+
+                    if (!sr.contains("params") || !sr["params"].is_object()) {
+                        throw std::runtime_error("solver_role missing required 'params' object for component '" + def.classname + "'");
+                    }
+                    for (auto& [k, v] : sr["params"].items()) {
+                        if (!v.is_string()) {
+                            throw std::runtime_error("solver_role param key '" + k + "' must map to a string param name for component '" + def.classname + "'");
+                        }
+                        role.param_map[k] = v.get<std::string>();
+                    }
+
+                    // Validate port references exist in interface
+                    for (const auto& [role_key, port_name] : role.port_map) {
+                        if (def.ports.find(port_name) == def.ports.end()) {
+                            throw std::runtime_error("solver_role port '" + role_key + "' references non-existent interface port '" +
+                                port_name + "' for component '" + def.classname + "'");
+                        }
+                    }
+
+                    def.solver_role = std::move(role);
+                }
+
+                auto parse_endpoint = [](std::string const& s) -> std::optional<std::pair<std::string, std::string>> {
+                    if (s.empty() || s[0] != '/') return std::nullopt;
+                    size_t colon = s.rfind(':');
+                    if (colon == std::string::npos || colon <= 1 || colon + 1 >= s.size()) {
+                        return std::nullopt;
+                    }
+                    std::string node = s.substr(1, colon - 1);
+                    std::string port = s.substr(colon + 1);
+                    return std::make_pair(node, port);
+                };
+
+                if (j.contains("nodes") && j["nodes"].is_array()) {
+                    for (auto const& n : j["nodes"]) {
+                        if (!n.is_object()) {
+                            throw std::runtime_error("Invalid node entry in component '" + def.classname + "': must be object");
+                        }
+                        if (!n.contains("id") || !n["id"].is_string() || n["id"].get<std::string>().empty()) {
+                            throw std::runtime_error("Node missing required non-empty 'id' in component '" + def.classname + "'");
+                        }
+                        if (!n.contains("type") || !n["type"].is_string() || n["type"].get<std::string>().empty()) {
+                            throw std::runtime_error("Node missing required non-empty 'type' in component '" + def.classname + "'");
+                        }
+                        DeviceInstance dev;
+                        dev.name = n["id"].get<std::string>();
+                        dev.classname = n["type"].get<std::string>();
+                        if (n.contains("name") && n["name"].is_string()) {
+                            dev.display_name = n["name"].get<std::string>();
+                        }
+                        if (n.contains("params") && n["params"].is_object()) {
+                            for (auto& [k, v] : n["params"].items()) {
+                                if (v.is_string()) dev.params[k] = v.get<std::string>();
+                                else if (v.is_number()) dev.params[k] = locale_safe::format_float(static_cast<float>(v.get<double>()));
+                            }
+                        }
+                        // Merge string_params into params (e.g. LUT table, Bus port_edge).
+                        // The editor stores string-valued configuration in a separate
+                        // "string_params" object; the simulation engine expects them
+                        // merged into the flat params map.
+                        if (n.contains("string_params") && n["string_params"].is_object()) {
+                            for (auto& [k, v] : n["string_params"].items()) {
+                                if (v.is_string()) dev.params[k] = v.get<std::string>();
+                            }
+                        }
+                        if (n.contains("position") && n["position"].is_object()) {
+                            float px = n["position"].value("x", 0.0f);
+                            float py = n["position"].value("y", 0.0f);
+                            dev.pos = {px, py};
+                        }
+                        if (n.contains("size") && n["size"].is_object()) {
+                            float sw = n["size"].value("w", 0.0f);
+                            float sh = n["size"].value("h", 0.0f);
+                            dev.size = {sw, sh};
+                        }
+                        def.devices.push_back(std::move(dev));
+                    }
+                }
+
+                if (j.contains("wires") && j["wires"].is_array()) {
+                    for (auto const& w : j["wires"]) {
+                        if (!w.is_object() || !w.contains("source") || !w.contains("target")
+                            || !w["source"].is_string() || !w["target"].is_string()) {
+                            throw std::runtime_error("Invalid wire entry in component '" + def.classname + "': require string source/target");
+                        }
+                        auto src = parse_endpoint(w["source"].get<std::string>());
+                        auto tgt = parse_endpoint(w["target"].get<std::string>());
+                        if (!src || !tgt) {
+                            throw std::runtime_error("Invalid wire endpoint format in component '" + def.classname + "'");
+                        }
+                        Connection c;
+                        c.from = src->first + "." + src->second;
+                        c.to = tgt->first + "." + tgt->second;
+                        def.connections.push_back(std::move(c));
+                    }
+                }
+
+                if (j.contains("nested") && j["nested"].is_array()) {
+                    for (auto const& n : j["nested"]) {
+                        if (!n.is_object()) {
+                            throw std::runtime_error("Invalid nested entry in component '" + def.classname + "': must be object");
+                        }
+                        if (!n.contains("id") || !n["id"].is_string() || n["id"].get<std::string>().empty()) {
+                            throw std::runtime_error("Nested entry missing required non-empty 'id' in component '" + def.classname + "'");
+                        }
+                        if (!n.contains("blueprint") || !n["blueprint"].is_string() || n["blueprint"].get<std::string>().empty()) {
+                            throw std::runtime_error("Nested entry missing required non-empty 'blueprint' in component '" + def.classname + "'");
+                        }
+                        SubBlueprintRef ref;
+                        ref.id = n["id"].get<std::string>();
+                        ref.type_name = n["blueprint"].get<std::string>();
+                        ref.blueprint_path = ref.type_name;
+                        def.sub_blueprints.push_back(std::move(ref));
+                    }
+                }
 
                 // Check for duplicate classnames
                 if (registry.has(def.classname)) {
-                    spdlog::error("[json_parser] Duplicate classname '{}' in '{}', skipping",
-                                  def.classname, entry.path().string());
-                    continue;
+                    throw std::runtime_error("Duplicate classname '" + def.classname + "' in '" + entry.path().string() + "'");
                 }
 
                 // Compute category from relative directory path
@@ -844,8 +1278,10 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                              category.empty() ? "root" : category);
             }
             catch (const std::exception& e) {
+                const std::string err = e.what();
                 spdlog::error("[json_parser] Failed to parse type definition '{}': {}",
-                             entry.path().string(), e.what());
+                             entry.path().string(), err);
+                throw;
             }
         }
     }
@@ -871,27 +1307,46 @@ DeviceInstance merge_device_instance(
             if (!merged.ports.count(port_name)) {
                 merged.ports[port_name] = port;
             } else {
-                // Port exists in instance - always copy type and alias from definition
-                // This ensures port types from type definitions are always used
+                // Port exists in instance - always copy authoritative fields from definition.
+                // Instance may only override direction; type, alias, domain, and source_writer
+                // are owned by the type definition and must not be silently defaulted.
                 merged.ports[port_name].type = port.type;
                 merged.ports[port_name].alias = port.alias;
+                merged.ports[port_name].domain = port.domain;
+                merged.ports[port_name].source_writer = port.source_writer;
             }
         }
     }
 
-    // Merge params: instance overrides, defaults fill gaps
+    // Merge params: instance overrides, defaults fill gaps.
+    // Skip visual_only params (editor-only, not consumed by simulation).
     for (const auto& [param_name, param_value] : definition.params) {
+        auto schema_it = definition.param_schema.find(param_name);
+        if (schema_it != definition.param_schema.end() && schema_it->second.visual_only) {
+            continue;
+        }
         if (!merged.params.count(param_name)) {
             merged.params[param_name] = param_value;
         }
     }
 
-    // Copy domains from type definition (NOT user-configurable)
-    if (definition.domains.has_value()) {
-        merged.domains = *definition.domains;
-    } else {
-        merged.domains = {Domain::Electrical};  // Default fallback
+    // Strip visual_only params that arrived via the instance itself
+    // (e.g., from a JSON file that wasn't filtered by the editor).
+    for (auto it = merged.params.begin(); it != merged.params.end(); ) {
+        auto schema_it = definition.param_schema.find(it->first);
+        if (schema_it != definition.param_schema.end() && schema_it->second.visual_only) {
+            it = merged.params.erase(it);
+        } else {
+            ++it;
+        }
     }
+
+    // Copy domains from type definition (mandatory, no fallback)
+    if (!definition.domains.has_value() || definition.domains->empty()) {
+        throw std::runtime_error(
+            "Missing domains metadata in type definition for component '" + definition.classname + "'");
+    }
+    merged.domains = *definition.domains;
 
     // Merge priority: instance overrides default (only if instance has default priority)
     if (merged.priority == "med" && definition.priority != "med") {
@@ -908,6 +1363,17 @@ DeviceInstance merge_device_instance(
         merged.visual_only = true;
     }
 
+    // Propagate explicit execution-phase metadata from definition when present.
+    merged.execution = definition.execution;
+    merged.scheduler_source = definition.scheduler_source;
+
+    // Propagate solver_role metadata from definition when present.
+    merged.solver_role = definition.solver_role;
+
+    if (!definition.param_schema.empty()) {
+        validate_params_against_schema(merged.params, definition.param_schema, merged.name, merged.classname);
+    }
+
     return merged;
 }
 
@@ -915,6 +1381,7 @@ DeviceInstance merge_device_instance(
 MenuTree TypeRegistry::build_menu_tree() const {
     MenuTree root;
     for (const auto& [classname, _] : types) {
+        if (classname.empty()) continue;  // Skip entries with empty classnames
         MenuTree* node = &root;
 
         auto cat_it = categories.find(classname);
@@ -932,6 +1399,12 @@ MenuTree TypeRegistry::build_menu_tree() const {
         }
 
         node->entries.push_back(classname);
+        auto it = types.find(classname);
+        if (it != types.end() && !it->second.description.empty()) {
+            node->labels[classname] = it->second.description;
+        } else {
+            node->labels[classname] = classname;
+        }
     }
 
     // Sort entries at every level

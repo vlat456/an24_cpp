@@ -1,39 +1,50 @@
 {
-  "exposes": {
-    "Va": {
-      "direction": "In",
-      "type": "V"
+  "version": "3.0",
+  "id": "Comparator",
+  "display_name": "Comparator",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "Va",
+      "domain": 3,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "Vb": {
-      "direction": "In",
-      "type": "V"
+    {
+      "name": "Vb",
+      "domain": 3,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     },
-    "o": {
-      "direction": "Out",
-      "type": "Bool"
+    {
+      "name": "o",
+      "domain": 2,
+      "direction": 1,
+      "type": "Bool",
+      "source_writer": false
     }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Voltage comparator with hysteresis. Compares Va to Vb with configurable turn-on (Von) and turn-off (Voff) thresholds. Output is boolean (TRUE/FALSE). Thresholds are set via component parameters, not input ports.",
+  "domains": [
+    "Electrical",
+    "Logical"
+  ],
+  "param_defaults": {
+    "Voff": "2.0",
+    "Von": "5.0"
   },
-  "meta": {
-    "cpp_class": true,
-    "description": "Voltage comparator with hysteresis. Compares Va to Vb with configurable turn-on (Von) and turn-off (Voff) thresholds. Output is boolean (TRUE/FALSE). Thresholds are set via component parameters, not input ports.",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Comparator",
-    "size": [
-      3.0,
-      2.0
-    ]
-  },
-  "params": {
+  "param_schema": {
     "Voff": {
-      "default": "2.0",
       "type": "float"
     },
     "Von": {
-      "default": "5.0",
       "type": "float"
     }
-  },
-  "version": 2
+  }
 }

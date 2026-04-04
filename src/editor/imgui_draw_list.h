@@ -4,7 +4,7 @@
 #include "ui/math/pt.h"
 #include <imgui.h>
 
-/// ImGui adapter for IDrawList interface
+/// ImGui wrapper for IDrawList interface
 /// Wraps ImDrawList* from ImGui for use with the blueprint renderer
 class ImGuiDrawList : public ui::IDrawList {
 public:
@@ -87,5 +87,11 @@ public:
         static_assert(sizeof(ui::Pt) == sizeof(ImVec2), "ui::Pt and ImVec2 must have same layout");
         const auto* im_pts = reinterpret_cast<const ImVec2*>(points);
         dl->AddPolyline(im_pts, (int)count, c, false, thickness);
+    }
+
+    void add_triangle_filled(ui::Pt a, ui::Pt b, ui::Pt c, uint32_t color) override {
+        ImU32 col = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,
+                             (color >> 16) & 0xFF, (color >> 24) & 0xFF);
+        dl->AddTriangleFilled(ImVec2(a.x, a.y), ImVec2(b.x, b.y), ImVec2(c.x, c.y), col);
     }
 };

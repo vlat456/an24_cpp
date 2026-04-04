@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/closed_loop_latency_regression_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_off/tests/closed_loop_latency_regression_tests[1]_tests.cmake")
+else()
+  add_test(closed_loop_latency_regression_tests_NOT_BUILT closed_loop_latency_regression_tests_NOT_BUILT)
+endif()

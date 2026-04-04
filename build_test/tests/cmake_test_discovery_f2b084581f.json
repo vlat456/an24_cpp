@@ -1,0 +1,132 @@
+{
+  "tests": 24,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PropertiesWindowTest",
+      "tests": 24,
+      "testsuite": [
+        {
+          "name": "OpenSetsTarget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 64
+        },
+        {
+          "name": "OpenInitializesPendingState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 78
+        },
+        {
+          "name": "OpenKeepsLutTableAsStringParam",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 93
+        },
+        {
+          "name": "OpenInitializesPendingBridgePortType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 114
+        },
+        {
+          "name": "CancelDoesNotMutateLiveNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 127
+        },
+        {
+          "name": "LiveNodeUntouchedDuringEditing",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 155
+        },
+        {
+          "name": "OpenTwiceDiscardsFirstSession",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 177
+        },
+        {
+          "name": "ClosedWindowIsNotOpen",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 214
+        },
+        {
+          "name": "ApplyEmitsCmdSetParam",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 232
+        },
+        {
+          "name": "ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 259
+        },
+        {
+          "name": "ApplyBridgePortTypePropagatesToCollapsedNodeAndNestedIface",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 285
+        },
+        {
+          "name": "ApplyThenUndoRevertsParam",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 331
+        },
+        {
+          "name": "ApplyNoChangesDoesNotPushUndo",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 366
+        },
+        {
+          "name": "ApplyInvokesCallback",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 383
+        },
+        {
+          "name": "NameChangePushesUndo",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 406
+        },
+        {
+          "name": "NameChangeUndoRestoresOldName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 426
+        },
+        {
+          "name": "NameChangePreservesNodeAndWireOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 452
+        },
+        {
+          "name": "ParamAndNameChangeSingleUndo",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 517
+        },
+        {
+          "name": "CloseGracefullyWhenNodeRemoved",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 554
+        },
+        {
+          "name": "ApplyGracefullyWhenNodeRemoved",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 574
+        },
+        {
+          "name": "CancelGracefullyWhenNodeRemoved",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 595
+        },
+        {
+          "name": "PortLayoutOverride_ApplyChanges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 616
+        },
+        {
+          "name": "PortLayoutOverride_UndoRestoresOriginal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 651
+        },
+        {
+          "name": "PortLayoutOverride_NoChangesDoesNotPushUndo",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 687
+        }
+      ]
+    }
+  ]
+}

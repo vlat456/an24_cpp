@@ -1,25 +1,30 @@
 {
-  "exposes": {
-    "Vin": {
-      "direction": "In",
-      "type": "V"
+  "version": "3.0",
+  "id": "Any_V_to_Bool",
+  "display_name": "Any_V_to_Bool",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "Vin",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
     },
-    "o": {
-      "direction": "Out",
-      "type": "Bool"
+    {
+      "name": "o",
+      "domain": 2,
+      "direction": 1,
+      "type": "Bool",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Convert any non-zero voltage to TRUE (including negative)",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Any_V_to_Bool",
-    "size": [
-      2.0,
-      2.0
-    ]
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Convert any non-zero voltage to TRUE (including negative)",
+  "domains": [
+    "Logical"
+  ]
 }

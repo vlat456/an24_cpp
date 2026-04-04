@@ -1,0 +1,87 @@
+{
+  "tests": 15,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "UIScene",
+      "tests": 15,
+      "testsuite": [
+        {
+          "name": "AddWidget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 15
+        },
+        {
+          "name": "RemoveWidget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 27
+        },
+        {
+          "name": "Clear",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 39
+        },
+        {
+          "name": "FindById",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 49
+        },
+        {
+          "name": "RenderWithoutRenderContext",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 68
+        },
+        {
+          "name": "FlushGuard_AutoFlushOnDestruction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 83
+        },
+        {
+          "name": "FlushGuard_NoFlushWhenReleased",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 101
+        },
+        {
+          "name": "FlushGuard_MoveSemantics",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 120
+        },
+        {
+          "name": "FlushGuard_MultipleRemovals",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 137
+        },
+        {
+          "name": "FlushGuard_EarlyReturn",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 155
+        },
+        {
+          "name": "IsIndexable_ChildDoesNotShadowRoot",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 196
+        },
+        {
+          "name": "IsIndexable_NonIndexableRootNotFindable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 213
+        },
+        {
+          "name": "IsIndexable_IndexableChildIsFindable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 225
+        },
+        {
+          "name": "IsIndexable_UnindexSkipsNonIndexable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 239
+        },
+        {
+          "name": "IsIndexable_AttachDetachRespected",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_scene.cpp",
+          "line": 258
+        }
+      ]
+    }
+  ]
+}

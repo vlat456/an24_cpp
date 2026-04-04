@@ -6,6 +6,7 @@
 #include "codegen/codegen.h"
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
+#include "test_execution_phases.h"
 
 
 // Helper: build a minimal circuit with blueprint-expanded device names
@@ -28,15 +29,17 @@ static auto make_colon_circuit() {
     ref.params = {{"value", "0"}};
     ref.ports["v"] = {PortDirection::Out};
     ref.domains = {Domain::Electrical};
+    ref.execution = test_exec::electrical_passive();
     devices.push_back(ref);
 
     DeviceInstance bat;
     bat.name = "bp_1:bat";
-    bat.classname = "Battery";
-    bat.params = {{"v_nominal", "28"}, {"internal_r", "0.01"}, {"capacity", "100"}, {"charge", "100"}};
+    bat.classname = "ElectricalSource";
+    bat.params = {{"voltage", "28"}, {"resistance", "0.01"}};
     bat.ports["v_out"] = {PortDirection::Out};
     bat.ports["v_in"] = {PortDirection::In};
     bat.domains = {Domain::Electrical};
+    bat.execution = test_exec::electrical_passive();
     devices.push_back(bat);
 
     DeviceInstance bus;
@@ -44,15 +47,17 @@ static auto make_colon_circuit() {
     bus.classname = "Bus";
     bus.ports["v"] = {PortDirection::InOut};
     bus.domains = {Domain::Electrical};
+    bus.execution = test_exec::bus();
     devices.push_back(bus);
 
     DeviceInstance load;
     load.name = "bp_1:load.1";  // also has a dot
     load.classname = "Load";
-    load.params = {{"resistance", "10"}};
+    load.params = {{"conductance", "0.1"}};
     load.ports["v_in"] = {PortDirection::In};
     load.ports["v_out"] = {PortDirection::Out};
     load.domains = {Domain::Electrical};
+    load.execution = test_exec::electrical_passive();
     devices.push_back(load);
 
     conn_pairs.push_back({"bp_1:bat.v_in", "bp_1:gnd.v"});
@@ -116,8 +121,8 @@ TEST(CodegenSanitize, DeviceNamesWithColonsAreValidIdentifiers) {
         << "Sanitized name bp_1_load_DOT_1 not found in header (dot should become _DOT_)";
 
     // Verify source also uses sanitized names in method bodies
-    EXPECT_NE(source.find("bp_1_bat.solve_electrical"), std::string::npos)
-        << "Source should use sanitized name in solve_electrical call";
+    EXPECT_NE(source.find("bp_1_bat.execute"), std::string::npos)
+        << "Source should use sanitized name in execute call";
     EXPECT_NE(source.find("bp_1_bat.pre_load"), std::string::npos)
         << "Source should use sanitized name in pre_load";
 }
@@ -133,6 +138,7 @@ TEST(CodegenSanitize, SanitizeNameFunction) {
         dev.classname = "RefNode";
         dev.ports["v"] = {PortDirection::Out};
         dev.domains = {Domain::Electrical};
+        dev.execution = test_exec::electrical_passive();
         devices.push_back(dev);
 
         std::unordered_map<std::string, uint32_t> port_to_signal;
@@ -164,6 +170,7 @@ TEST(CodegenSanitize, NoCollisionBetweenDotAndDashAndColon) {
         dev.classname = "RefNode";
         dev.ports["v"] = {PortDirection::Out};
         dev.domains = {Domain::Electrical};
+        dev.execution = test_exec::electrical_passive();
         devices.push_back(dev);
 
         std::unordered_map<std::string, uint32_t> port_to_signal;

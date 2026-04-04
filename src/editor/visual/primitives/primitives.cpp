@@ -12,7 +12,7 @@ Label::Label(std::string_view text, float font_size, uint32_t color,
 
 float Label::estimateWidth() const {
     if (text_.empty()) return 0;
-    return text_.length() * font_size_ * 0.6f;
+    return text_.length() * font_size_ * 0.8f;
 }
 
 Pt Label::preferredSize(IDrawList* dl) const {
@@ -26,7 +26,7 @@ void Label::render(IDrawList* dl, const RenderContext& ctx) const {
     Pt pos = ctx.world_to_screen(worldPos());
     Pt sz = size();
     float zoom = ctx.zoom;
-    
+
     float font = font_size_ * zoom;
     float ty = pos.y + (sz.y * zoom - font) / 2;
     float tx = pos.x;

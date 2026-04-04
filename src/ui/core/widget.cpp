@@ -4,6 +4,6 @@
 namespace ui {
 
 // Widget is now non-templated.
-// This file kept for CMake source list compatibility.
+// This file is kept in the CMake source list.
 
 } // namespace ui

@@ -1,0 +1,1009 @@
+Start testing: Mar 30 14:32 CEST
+----------------------------------------------------------
+220/1507 Testing: BugAotDefault.UnmappedPortReturnsUINT32MAX
+220/1507 Test: BugAotDefault.UnmappedPortReturnsUINT32MAX
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/bug_hunt_regression_tests" "--gtest_filter=BugAotDefault.UnmappedPortReturnsUINT32MAX" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"BugAotDefault.UnmappedPortReturnsUINT32MAX" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BugAotDefault.UnmappedPortReturnsUINT32MAX
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BugAotDefault
+[ RUN      ] BugAotDefault.UnmappedPortReturnsUINT32MAX
+[       OK ] BugAotDefault.UnmappedPortReturnsUINT32MAX (0 ms)
+[----------] 1 test from BugAotDefault (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BugAotDefault.UnmappedPortReturnsUINT32MAX" end time: Mar 30 14:32 CEST
+"BugAotDefault.UnmappedPortReturnsUINT32MAX" time elapsed: 00:00:00
+----------------------------------------------------------
+
+221/1507 Testing: BugAotDefault.EmptyProviderReturnsUINT32MAX
+221/1507 Test: BugAotDefault.EmptyProviderReturnsUINT32MAX
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/bug_hunt_regression_tests" "--gtest_filter=BugAotDefault.EmptyProviderReturnsUINT32MAX" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"BugAotDefault.EmptyProviderReturnsUINT32MAX" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BugAotDefault.EmptyProviderReturnsUINT32MAX
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BugAotDefault
+[ RUN      ] BugAotDefault.EmptyProviderReturnsUINT32MAX
+[       OK ] BugAotDefault.EmptyProviderReturnsUINT32MAX (0 ms)
+[----------] 1 test from BugAotDefault (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BugAotDefault.EmptyProviderReturnsUINT32MAX" end time: Mar 30 14:32 CEST
+"BugAotDefault.EmptyProviderReturnsUINT32MAX" time elapsed: 00:00:00
+----------------------------------------------------------
+
+222/1507 Testing: BugAotDefault.IndexZeroIsStillValidMapping
+222/1507 Test: BugAotDefault.IndexZeroIsStillValidMapping
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/bug_hunt_regression_tests" "--gtest_filter=BugAotDefault.IndexZeroIsStillValidMapping" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"BugAotDefault.IndexZeroIsStillValidMapping" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BugAotDefault.IndexZeroIsStillValidMapping
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BugAotDefault
+[ RUN      ] BugAotDefault.IndexZeroIsStillValidMapping
+[       OK ] BugAotDefault.IndexZeroIsStillValidMapping (0 ms)
+[----------] 1 test from BugAotDefault (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BugAotDefault.IndexZeroIsStillValidMapping" end time: Mar 30 14:32 CEST
+"BugAotDefault.IndexZeroIsStillValidMapping" time elapsed: 00:00:00
+----------------------------------------------------------
+
+223/1507 Testing: BugAotDefault.AotAndJitSentinelsMatch
+223/1507 Test: BugAotDefault.AotAndJitSentinelsMatch
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/bug_hunt_regression_tests" "--gtest_filter=BugAotDefault.AotAndJitSentinelsMatch" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"BugAotDefault.AotAndJitSentinelsMatch" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BugAotDefault.AotAndJitSentinelsMatch
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BugAotDefault
+[ RUN      ] BugAotDefault.AotAndJitSentinelsMatch
+[       OK ] BugAotDefault.AotAndJitSentinelsMatch (0 ms)
+[----------] 1 test from BugAotDefault (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BugAotDefault.AotAndJitSentinelsMatch" end time: Mar 30 14:32 CEST
+"BugAotDefault.AotAndJitSentinelsMatch" time elapsed: 00:00:00
+----------------------------------------------------------
+
+823/1507 Testing: BlueprintExtension.CodegenUsesBluprintExtension
+823/1507 Test: BlueprintExtension.CodegenUsesBluprintExtension
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/blueprint_loading_tests" "--gtest_filter=BlueprintExtension.CodegenUsesBluprintExtension" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"BlueprintExtension.CodegenUsesBluprintExtension" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintExtension.CodegenUsesBluprintExtension
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintExtension
+[ RUN      ] BlueprintExtension.CodegenUsesBluprintExtension
+[2026-03-30 14:32:26.909] [info] [json_parser] Loaded 79 type definitions from 'library/'
+[       OK ] BlueprintExtension.CodegenUsesBluprintExtension (13 ms)
+[----------] 1 test from BlueprintExtension (13 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (13 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintExtension.CodegenUsesBluprintExtension" end time: Mar 30 14:32 CEST
+"BlueprintExtension.CodegenUsesBluprintExtension" time elapsed: 00:00:00
+----------------------------------------------------------
+
+863/1507 Testing: LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString
+863/1507 Test: LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LUTCodegen
+[ RUN      ] LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString
+[       OK ] LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString (0 ms)
+[----------] 1 test from LUTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString" end time: Mar 30 14:32 CEST
+"LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString" time elapsed: 00:00:00
+----------------------------------------------------------
+
+864/1507 Testing: LUTCodegen.PreLoad_EmitsStaticArenaArrays
+864/1507 Test: LUTCodegen.PreLoad_EmitsStaticArenaArrays
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=LUTCodegen.PreLoad_EmitsStaticArenaArrays" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"LUTCodegen.PreLoad_EmitsStaticArenaArrays" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = LUTCodegen.PreLoad_EmitsStaticArenaArrays
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LUTCodegen
+[ RUN      ] LUTCodegen.PreLoad_EmitsStaticArenaArrays
+[       OK ] LUTCodegen.PreLoad_EmitsStaticArenaArrays (0 ms)
+[----------] 1 test from LUTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"LUTCodegen.PreLoad_EmitsStaticArenaArrays" end time: Mar 30 14:32 CEST
+"LUTCodegen.PreLoad_EmitsStaticArenaArrays" time elapsed: 00:00:00
+----------------------------------------------------------
+
+865/1507 Testing: LUTCodegen.MultipleLUTs_OffsetsIncrement
+865/1507 Test: LUTCodegen.MultipleLUTs_OffsetsIncrement
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=LUTCodegen.MultipleLUTs_OffsetsIncrement" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"LUTCodegen.MultipleLUTs_OffsetsIncrement" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = LUTCodegen.MultipleLUTs_OffsetsIncrement
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LUTCodegen
+[ RUN      ] LUTCodegen.MultipleLUTs_OffsetsIncrement
+[       OK ] LUTCodegen.MultipleLUTs_OffsetsIncrement (0 ms)
+[----------] 1 test from LUTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"LUTCodegen.MultipleLUTs_OffsetsIncrement" end time: Mar 30 14:32 CEST
+"LUTCodegen.MultipleLUTs_OffsetsIncrement" time elapsed: 00:00:00
+----------------------------------------------------------
+
+866/1507 Testing: LUTCodegen.NoLUTs_NoArenaCode
+866/1507 Test: LUTCodegen.NoLUTs_NoArenaCode
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=LUTCodegen.NoLUTs_NoArenaCode" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"LUTCodegen.NoLUTs_NoArenaCode" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = LUTCodegen.NoLUTs_NoArenaCode
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LUTCodegen
+[ RUN      ] LUTCodegen.NoLUTs_NoArenaCode
+[       OK ] LUTCodegen.NoLUTs_NoArenaCode (0 ms)
+[----------] 1 test from LUTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"LUTCodegen.NoLUTs_NoArenaCode" end time: Mar 30 14:32 CEST
+"LUTCodegen.NoLUTs_NoArenaCode" time elapsed: 00:00:00
+----------------------------------------------------------
+
+867/1507 Testing: LUTCodegen.EmptyTableParam_StillEmitsZeroSize
+867/1507 Test: LUTCodegen.EmptyTableParam_StillEmitsZeroSize
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=LUTCodegen.EmptyTableParam_StillEmitsZeroSize" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"LUTCodegen.EmptyTableParam_StillEmitsZeroSize" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = LUTCodegen.EmptyTableParam_StillEmitsZeroSize
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LUTCodegen
+[ RUN      ] LUTCodegen.EmptyTableParam_StillEmitsZeroSize
+[       OK ] LUTCodegen.EmptyTableParam_StillEmitsZeroSize (0 ms)
+[----------] 1 test from LUTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"LUTCodegen.EmptyTableParam_StillEmitsZeroSize" end time: Mar 30 14:32 CEST
+"LUTCodegen.EmptyTableParam_StillEmitsZeroSize" time elapsed: 00:00:00
+----------------------------------------------------------
+
+868/1507 Testing: LUTCodegen.ArenaComment_ShowsTotalFloats
+868/1507 Test: LUTCodegen.ArenaComment_ShowsTotalFloats
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=LUTCodegen.ArenaComment_ShowsTotalFloats" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"LUTCodegen.ArenaComment_ShowsTotalFloats" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = LUTCodegen.ArenaComment_ShowsTotalFloats
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LUTCodegen
+[ RUN      ] LUTCodegen.ArenaComment_ShowsTotalFloats
+[       OK ] LUTCodegen.ArenaComment_ShowsTotalFloats (0 ms)
+[----------] 1 test from LUTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"LUTCodegen.ArenaComment_ShowsTotalFloats" end time: Mar 30 14:32 CEST
+"LUTCodegen.ArenaComment_ShowsTotalFloats" time elapsed: 00:00:00
+----------------------------------------------------------
+
+869/1507 Testing: LUTCodegen.SingleEntryTable
+869/1507 Test: LUTCodegen.SingleEntryTable
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=LUTCodegen.SingleEntryTable" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"LUTCodegen.SingleEntryTable" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = LUTCodegen.SingleEntryTable
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LUTCodegen
+[ RUN      ] LUTCodegen.SingleEntryTable
+[       OK ] LUTCodegen.SingleEntryTable (0 ms)
+[----------] 1 test from LUTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"LUTCodegen.SingleEntryTable" end time: Mar 30 14:32 CEST
+"LUTCodegen.SingleEntryTable" time elapsed: 00:00:00
+----------------------------------------------------------
+
+870/1507 Testing: LUTCodegen.NegativeKeyValues_EncodedCorrectly
+870/1507 Test: LUTCodegen.NegativeKeyValues_EncodedCorrectly
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=LUTCodegen.NegativeKeyValues_EncodedCorrectly" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"LUTCodegen.NegativeKeyValues_EncodedCorrectly" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = LUTCodegen.NegativeKeyValues_EncodedCorrectly
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LUTCodegen
+[ RUN      ] LUTCodegen.NegativeKeyValues_EncodedCorrectly
+[       OK ] LUTCodegen.NegativeKeyValues_EncodedCorrectly (0 ms)
+[----------] 1 test from LUTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"LUTCodegen.NegativeKeyValues_EncodedCorrectly" end time: Mar 30 14:32 CEST
+"LUTCodegen.NegativeKeyValues_EncodedCorrectly" time elapsed: 00:00:00
+----------------------------------------------------------
+
+871/1507 Testing: LUTCodegen.GenericParamLoop_SkippedForLUT
+871/1507 Test: LUTCodegen.GenericParamLoop_SkippedForLUT
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=LUTCodegen.GenericParamLoop_SkippedForLUT" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"LUTCodegen.GenericParamLoop_SkippedForLUT" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = LUTCodegen.GenericParamLoop_SkippedForLUT
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LUTCodegen
+[ RUN      ] LUTCodegen.GenericParamLoop_SkippedForLUT
+[       OK ] LUTCodegen.GenericParamLoop_SkippedForLUT (0 ms)
+[----------] 1 test from LUTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"LUTCodegen.GenericParamLoop_SkippedForLUT" end time: Mar 30 14:32 CEST
+"LUTCodegen.GenericParamLoop_SkippedForLUT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+872/1507 Testing: AOTCodegen.VisualOnly_FilteredFromHeader
+872/1507 Test: AOTCodegen.VisualOnly_FilteredFromHeader
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=AOTCodegen.VisualOnly_FilteredFromHeader" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AOTCodegen.VisualOnly_FilteredFromHeader" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AOTCodegen.VisualOnly_FilteredFromHeader
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AOTCodegen
+[ RUN      ] AOTCodegen.VisualOnly_FilteredFromHeader
+[       OK ] AOTCodegen.VisualOnly_FilteredFromHeader (0 ms)
+[----------] 1 test from AOTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"AOTCodegen.VisualOnly_FilteredFromHeader" end time: Mar 30 14:32 CEST
+"AOTCodegen.VisualOnly_FilteredFromHeader" time elapsed: 00:00:00
+----------------------------------------------------------
+
+873/1507 Testing: AOTCodegen.VisualOnly_FilteredFromSource
+873/1507 Test: AOTCodegen.VisualOnly_FilteredFromSource
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=AOTCodegen.VisualOnly_FilteredFromSource" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AOTCodegen.VisualOnly_FilteredFromSource" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AOTCodegen.VisualOnly_FilteredFromSource
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AOTCodegen
+[ RUN      ] AOTCodegen.VisualOnly_FilteredFromSource
+[       OK ] AOTCodegen.VisualOnly_FilteredFromSource (0 ms)
+[----------] 1 test from AOTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"AOTCodegen.VisualOnly_FilteredFromSource" end time: Mar 30 14:32 CEST
+"AOTCodegen.VisualOnly_FilteredFromSource" time elapsed: 00:00:00
+----------------------------------------------------------
+
+874/1507 Testing: AOTCodegen.Text_VisualOnly_FilteredFromHeader
+874/1507 Test: AOTCodegen.Text_VisualOnly_FilteredFromHeader
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=AOTCodegen.Text_VisualOnly_FilteredFromHeader" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AOTCodegen.Text_VisualOnly_FilteredFromHeader" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AOTCodegen.Text_VisualOnly_FilteredFromHeader
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AOTCodegen
+[ RUN      ] AOTCodegen.Text_VisualOnly_FilteredFromHeader
+[       OK ] AOTCodegen.Text_VisualOnly_FilteredFromHeader (0 ms)
+[----------] 1 test from AOTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"AOTCodegen.Text_VisualOnly_FilteredFromHeader" end time: Mar 30 14:32 CEST
+"AOTCodegen.Text_VisualOnly_FilteredFromHeader" time elapsed: 00:00:00
+----------------------------------------------------------
+
+875/1507 Testing: AOTCodegen.Text_VisualOnly_FilteredFromSource
+875/1507 Test: AOTCodegen.Text_VisualOnly_FilteredFromSource
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/lut_codegen_tests" "--gtest_filter=AOTCodegen.Text_VisualOnly_FilteredFromSource" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AOTCodegen.Text_VisualOnly_FilteredFromSource" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AOTCodegen.Text_VisualOnly_FilteredFromSource
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AOTCodegen
+[ RUN      ] AOTCodegen.Text_VisualOnly_FilteredFromSource
+[       OK ] AOTCodegen.Text_VisualOnly_FilteredFromSource (0 ms)
+[----------] 1 test from AOTCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"AOTCodegen.Text_VisualOnly_FilteredFromSource" end time: Mar 30 14:32 CEST
+"AOTCodegen.Text_VisualOnly_FilteredFromSource" time elapsed: 00:00:00
+----------------------------------------------------------
+
+882/1507 Testing: CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers
+882/1507 Test: CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/codegen_sanitize_tests" "--gtest_filter=CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CodegenSanitize
+[ RUN      ] CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers
+[       OK ] CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers (5 ms)
+[----------] 1 test from CodegenSanitize (5 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (5 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers" end time: Mar 30 14:32 CEST
+"CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers" time elapsed: 00:00:00
+----------------------------------------------------------
+
+883/1507 Testing: CodegenSanitize.SanitizeNameFunction
+883/1507 Test: CodegenSanitize.SanitizeNameFunction
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/codegen_sanitize_tests" "--gtest_filter=CodegenSanitize.SanitizeNameFunction" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenSanitize.SanitizeNameFunction" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CodegenSanitize.SanitizeNameFunction
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CodegenSanitize
+[ RUN      ] CodegenSanitize.SanitizeNameFunction
+[       OK ] CodegenSanitize.SanitizeNameFunction (0 ms)
+[----------] 1 test from CodegenSanitize (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenSanitize.SanitizeNameFunction" end time: Mar 30 14:32 CEST
+"CodegenSanitize.SanitizeNameFunction" time elapsed: 00:00:00
+----------------------------------------------------------
+
+884/1507 Testing: CodegenSanitize.NoCollisionBetweenDotAndDashAndColon
+884/1507 Test: CodegenSanitize.NoCollisionBetweenDotAndDashAndColon
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/codegen_sanitize_tests" "--gtest_filter=CodegenSanitize.NoCollisionBetweenDotAndDashAndColon" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenSanitize.NoCollisionBetweenDotAndDashAndColon" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CodegenSanitize.NoCollisionBetweenDotAndDashAndColon
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CodegenSanitize
+[ RUN      ] CodegenSanitize.NoCollisionBetweenDotAndDashAndColon
+[       OK ] CodegenSanitize.NoCollisionBetweenDotAndDashAndColon (0 ms)
+[----------] 1 test from CodegenSanitize (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenSanitize.NoCollisionBetweenDotAndDashAndColon" end time: Mar 30 14:32 CEST
+"CodegenSanitize.NoCollisionBetweenDotAndDashAndColon" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1019/1507 Testing: CodegenAccumulator.HeaderDoesNotContainAccumulatorFields
+1019/1507 Test: CodegenAccumulator.HeaderDoesNotContainAccumulatorFields
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/codegen_accumulator_tests" "--gtest_filter=CodegenAccumulator.HeaderDoesNotContainAccumulatorFields" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenAccumulator.HeaderDoesNotContainAccumulatorFields" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CodegenAccumulator.HeaderDoesNotContainAccumulatorFields
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CodegenAccumulator
+[ RUN      ] CodegenAccumulator.HeaderDoesNotContainAccumulatorFields
+[       OK ] CodegenAccumulator.HeaderDoesNotContainAccumulatorFields (0 ms)
+[----------] 1 test from CodegenAccumulator (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenAccumulator.HeaderDoesNotContainAccumulatorFields" end time: Mar 30 14:32 CEST
+"CodegenAccumulator.HeaderDoesNotContainAccumulatorFields" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1020/1507 Testing: CodegenAccumulator.SolveStepHasNoAccumulatorDtUpdates
+1020/1507 Test: CodegenAccumulator.SolveStepHasNoAccumulatorDtUpdates
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/codegen_accumulator_tests" "--gtest_filter=CodegenAccumulator.SolveStepHasNoAccumulatorDtUpdates" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenAccumulator.SolveStepHasNoAccumulatorDtUpdates" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CodegenAccumulator.SolveStepHasNoAccumulatorDtUpdates
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CodegenAccumulator
+[ RUN      ] CodegenAccumulator.SolveStepHasNoAccumulatorDtUpdates
+[       OK ] CodegenAccumulator.SolveStepHasNoAccumulatorDtUpdates (0 ms)
+[----------] 1 test from CodegenAccumulator (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenAccumulator.SolveStepHasNoAccumulatorDtUpdates" end time: Mar 30 14:32 CEST
+"CodegenAccumulator.SolveStepHasNoAccumulatorDtUpdates" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1021/1507 Testing: CodegenAccumulator.NoDtMultiplyPatternInGenerated
+1021/1507 Test: CodegenAccumulator.NoDtMultiplyPatternInGenerated
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/codegen_accumulator_tests" "--gtest_filter=CodegenAccumulator.NoDtMultiplyPatternInGenerated" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenAccumulator.NoDtMultiplyPatternInGenerated" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CodegenAccumulator.NoDtMultiplyPatternInGenerated
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CodegenAccumulator
+[ RUN      ] CodegenAccumulator.NoDtMultiplyPatternInGenerated
+[       OK ] CodegenAccumulator.NoDtMultiplyPatternInGenerated (0 ms)
+[----------] 1 test from CodegenAccumulator (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenAccumulator.NoDtMultiplyPatternInGenerated" end time: Mar 30 14:32 CEST
+"CodegenAccumulator.NoDtMultiplyPatternInGenerated" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1022/1507 Testing: CodegenAccumulator.MechanicalUsesAccumulatorAndResets
+1022/1507 Test: CodegenAccumulator.MechanicalUsesAccumulatorAndResets
+Command: ""
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenAccumulator.MechanicalUsesAccumulatorAndResets" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenAccumulator.MechanicalUsesAccumulatorAndResets" end time: Mar 30 14:32 CEST
+"CodegenAccumulator.MechanicalUsesAccumulatorAndResets" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1023/1507 Testing: CodegenAccumulator.HydraulicUsesAccumulatorAndResets
+1023/1507 Test: CodegenAccumulator.HydraulicUsesAccumulatorAndResets
+Command: ""
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenAccumulator.HydraulicUsesAccumulatorAndResets" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenAccumulator.HydraulicUsesAccumulatorAndResets" end time: Mar 30 14:32 CEST
+"CodegenAccumulator.HydraulicUsesAccumulatorAndResets" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1024/1507 Testing: CodegenAccumulator.ThermalUsesAccumulatorAndResets
+1024/1507 Test: CodegenAccumulator.ThermalUsesAccumulatorAndResets
+Command: ""
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenAccumulator.ThermalUsesAccumulatorAndResets" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenAccumulator.ThermalUsesAccumulatorAndResets" end time: Mar 30 14:32 CEST
+"CodegenAccumulator.ThermalUsesAccumulatorAndResets" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1025/1507 Testing: CodegenAccumulator.DomainScheduleConstantsAreCanonical
+1025/1507 Test: CodegenAccumulator.DomainScheduleConstantsAreCanonical
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/codegen_accumulator_tests" "--gtest_filter=CodegenAccumulator.DomainScheduleConstantsAreCanonical" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenAccumulator.DomainScheduleConstantsAreCanonical" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CodegenAccumulator.DomainScheduleConstantsAreCanonical
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CodegenAccumulator
+[ RUN      ] CodegenAccumulator.DomainScheduleConstantsAreCanonical
+[       OK ] CodegenAccumulator.DomainScheduleConstantsAreCanonical (0 ms)
+[----------] 1 test from CodegenAccumulator (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenAccumulator.DomainScheduleConstantsAreCanonical" end time: Mar 30 14:32 CEST
+"CodegenAccumulator.DomainScheduleConstantsAreCanonical" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1026/1507 Testing: CodegenAccumulator.DispatchTableSizeMatchesCycleLength
+1026/1507 Test: CodegenAccumulator.DispatchTableSizeMatchesCycleLength
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/codegen_accumulator_tests" "--gtest_filter=CodegenAccumulator.DispatchTableSizeMatchesCycleLength" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenAccumulator.DispatchTableSizeMatchesCycleLength" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CodegenAccumulator.DispatchTableSizeMatchesCycleLength
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CodegenAccumulator
+[ RUN      ] CodegenAccumulator.DispatchTableSizeMatchesCycleLength
+[       OK ] CodegenAccumulator.DispatchTableSizeMatchesCycleLength (0 ms)
+[----------] 1 test from CodegenAccumulator (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenAccumulator.DispatchTableSizeMatchesCycleLength" end time: Mar 30 14:32 CEST
+"CodegenAccumulator.DispatchTableSizeMatchesCycleLength" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1027/1507 Testing: CodegenAccumulator.ControlCommitPhaseIsEmittedBeforeSecondElectricalPass
+1027/1507 Test: CodegenAccumulator.ControlCommitPhaseIsEmittedBeforeSecondElectricalPass
+Command: ""
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"CodegenAccumulator.ControlCommitPhaseIsEmittedBeforeSecondElectricalPass" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"CodegenAccumulator.ControlCommitPhaseIsEmittedBeforeSecondElectricalPass" end time: Mar 30 14:32 CEST
+"CodegenAccumulator.ControlCommitPhaseIsEmittedBeforeSecondElectricalPass" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1028/1507 Testing: AotComposite.GeneratesSystemsForComposite
+1028/1507 Test: AotComposite.GeneratesSystemsForComposite
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/aot_composite_tests" "--gtest_filter=AotComposite.GeneratesSystemsForComposite" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AotComposite.GeneratesSystemsForComposite" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AotComposite.GeneratesSystemsForComposite
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AotComposite
+[ RUN      ] AotComposite.GeneratesSystemsForComposite
+[       OK ] AotComposite.GeneratesSystemsForComposite (0 ms)
+[----------] 1 test from AotComposite (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"AotComposite.GeneratesSystemsForComposite" end time: Mar 30 14:32 CEST
+"AotComposite.GeneratesSystemsForComposite" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1029/1507 Testing: AotComposite.NestedComposite_ContainsSubSystems
+1029/1507 Test: AotComposite.NestedComposite_ContainsSubSystems
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/aot_composite_tests" "--gtest_filter=AotComposite.NestedComposite_ContainsSubSystems" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AotComposite.NestedComposite_ContainsSubSystems" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AotComposite.NestedComposite_ContainsSubSystems
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AotComposite
+[ RUN      ] AotComposite.NestedComposite_ContainsSubSystems
+[       OK ] AotComposite.NestedComposite_ContainsSubSystems (0 ms)
+[----------] 1 test from AotComposite (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"AotComposite.NestedComposite_ContainsSubSystems" end time: Mar 30 14:32 CEST
+"AotComposite.NestedComposite_ContainsSubSystems" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1030/1507 Testing: AotComposite.ThreeLevelsDeep_FullHierarchy
+1030/1507 Test: AotComposite.ThreeLevelsDeep_FullHierarchy
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/aot_composite_tests" "--gtest_filter=AotComposite.ThreeLevelsDeep_FullHierarchy" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AotComposite.ThreeLevelsDeep_FullHierarchy" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AotComposite.ThreeLevelsDeep_FullHierarchy
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AotComposite
+[ RUN      ] AotComposite.ThreeLevelsDeep_FullHierarchy
+[       OK ] AotComposite.ThreeLevelsDeep_FullHierarchy (0 ms)
+[----------] 1 test from AotComposite (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"AotComposite.ThreeLevelsDeep_FullHierarchy" end time: Mar 30 14:32 CEST
+"AotComposite.ThreeLevelsDeep_FullHierarchy" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1031/1507 Testing: AotComposite.TopoSort_LeavesFirst
+1031/1507 Test: AotComposite.TopoSort_LeavesFirst
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/aot_composite_tests" "--gtest_filter=AotComposite.TopoSort_LeavesFirst" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AotComposite.TopoSort_LeavesFirst" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AotComposite.TopoSort_LeavesFirst
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AotComposite
+[ RUN      ] AotComposite.TopoSort_LeavesFirst
+[       OK ] AotComposite.TopoSort_LeavesFirst (0 ms)
+[----------] 1 test from AotComposite (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"AotComposite.TopoSort_LeavesFirst" end time: Mar 30 14:32 CEST
+"AotComposite.TopoSort_LeavesFirst" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1032/1507 Testing: AotComposite.PreLoad_CallsSubComposites
+1032/1507 Test: AotComposite.PreLoad_CallsSubComposites
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/aot_composite_tests" "--gtest_filter=AotComposite.PreLoad_CallsSubComposites" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AotComposite.PreLoad_CallsSubComposites" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AotComposite.PreLoad_CallsSubComposites
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AotComposite
+[ RUN      ] AotComposite.PreLoad_CallsSubComposites
+[       OK ] AotComposite.PreLoad_CallsSubComposites (0 ms)
+[----------] 1 test from AotComposite (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"AotComposite.PreLoad_CallsSubComposites" end time: Mar 30 14:32 CEST
+"AotComposite.PreLoad_CallsSubComposites" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1033/1507 Testing: AotComposite.OutputMatchesJitExpansion
+1033/1507 Test: AotComposite.OutputMatchesJitExpansion
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/aot_composite_tests" "--gtest_filter=AotComposite.OutputMatchesJitExpansion" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"AotComposite.OutputMatchesJitExpansion" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AotComposite.OutputMatchesJitExpansion
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AotComposite
+[ RUN      ] AotComposite.OutputMatchesJitExpansion
+[       OK ] AotComposite.OutputMatchesJitExpansion (0 ms)
+[----------] 1 test from AotComposite (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"AotComposite.OutputMatchesJitExpansion" end time: Mar 30 14:32 CEST
+"AotComposite.OutputMatchesJitExpansion" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1034/1507 Testing: JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke
+1034/1507 Test: JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/jit_aot_bridge_equivalence_tests" "--gtest_filter=JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from JitAotBridgeEquivalence
+[ RUN      ] JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke
+[       OK ] JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke (0 ms)
+[----------] 1 test from JitAotBridgeEquivalence (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke" end time: Mar 30 14:32 CEST
+"JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1190/1507 Testing: HierarchicalCodegen.SubBlueprintInstances_CodegenGeneratesCode
+1190/1507 Test: HierarchicalCodegen.SubBlueprintInstances_CodegenGeneratesCode
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/sub_blueprint_ref_tests" "--gtest_filter=HierarchicalCodegen.SubBlueprintInstances_CodegenGeneratesCode" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"HierarchicalCodegen.SubBlueprintInstances_CodegenGeneratesCode" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = HierarchicalCodegen.SubBlueprintInstances_CodegenGeneratesCode
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from HierarchicalCodegen
+[ RUN      ] HierarchicalCodegen.SubBlueprintInstances_CodegenGeneratesCode
+[       OK ] HierarchicalCodegen.SubBlueprintInstances_CodegenGeneratesCode (0 ms)
+[----------] 1 test from HierarchicalCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"HierarchicalCodegen.SubBlueprintInstances_CodegenGeneratesCode" end time: Mar 30 14:32 CEST
+"HierarchicalCodegen.SubBlueprintInstances_CodegenGeneratesCode" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1191/1507 Testing: HierarchicalCodegen.MultipleSubBlueprints_CodegenHandlesAll
+1191/1507 Test: HierarchicalCodegen.MultipleSubBlueprints_CodegenHandlesAll
+Command: "/Users/vladimir/an24_cpp/build_fulltests/tests/sub_blueprint_ref_tests" "--gtest_filter=HierarchicalCodegen.MultipleSubBlueprints_CodegenHandlesAll" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_fulltests/tests
+"HierarchicalCodegen.MultipleSubBlueprints_CodegenHandlesAll" start time: Mar 30 14:32 CEST
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_fulltests/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = HierarchicalCodegen.MultipleSubBlueprints_CodegenHandlesAll
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from HierarchicalCodegen
+[ RUN      ] HierarchicalCodegen.MultipleSubBlueprints_CodegenHandlesAll
+[       OK ] HierarchicalCodegen.MultipleSubBlueprints_CodegenHandlesAll (0 ms)
+[----------] 1 test from HierarchicalCodegen (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"HierarchicalCodegen.MultipleSubBlueprints_CodegenHandlesAll" end time: Mar 30 14:32 CEST
+"HierarchicalCodegen.MultipleSubBlueprints_CodegenHandlesAll" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Mar 30 14:32 CEST

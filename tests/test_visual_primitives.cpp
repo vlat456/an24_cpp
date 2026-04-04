@@ -23,7 +23,7 @@ TEST(LabelTest, SetSizeFromConstructor) {
     visual::Label label("Test", 14.0f);
     Pt ps = label.preferredSize(nullptr);
     
-    EXPECT_EQ(ps.x, 4 * 14 * 0.6f); // "Test" = 4 chars
+    EXPECT_EQ(ps.x, 4 * 14 * 0.8f); // "Test" = 4 chars, estimate uses 0.8 multiplier
     EXPECT_EQ(ps.y, 14.0f);
 }
 

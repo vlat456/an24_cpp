@@ -50,7 +50,8 @@ public:
 
 private:
     std::string type_name_;
-    static constexpr float FONT_SIZE = 10.0f;
+    static constexpr float FONT_SIZE = 9.0f;
+    static constexpr float RIGHT_PADDING = 5.0f;
 };
 
 class SwitchWidget : public Widget {
@@ -63,8 +64,10 @@ public:
     bool tripped() const { return tripped_; }
 
     Pt preferredSize(IDrawList* dl) const override;
+    void layout(float w, float h) override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void updateFromContent(const NodeContent& content) override;
+    bool isToggleable() const override { return true; }
 
     static constexpr float HEIGHT = 20.0f;
     static constexpr float MIN_WIDTH = 40.0f;
@@ -88,6 +91,7 @@ public:
     Pt preferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void updateFromContent(const NodeContent& content) override;
+    bool isToggleable() const override { return true; }
 
     static constexpr float WIDTH = 16.0f;
     static constexpr float HEIGHT = 50.0f;
@@ -98,6 +102,38 @@ private:
     bool state_;
     bool tripped_;
     static constexpr float ROUNDING = 2.0f;
+};
+
+class SliderWidget : public Widget {
+public:
+    SliderWidget(float value = 0.0f, float min_val = 0.0f, float max_val = 1.0f);
+
+    void setValue(float v) { value_ = v; }
+    float getValue() const { return value_; }
+    float minVal() const { return min_val_; }
+    float maxVal() const { return max_val_; }
+
+    /// Compute normalized value [0,1] from a local X coordinate within the widget.
+    float normalizedFromLocalX(float local_x) const;
+
+    Pt preferredSize(IDrawList* dl) const override;
+    void layout(float w, float h) override;
+    void render(IDrawList* dl, const RenderContext& ctx) const override;
+    void updateFromContent(const NodeContent& content) override;
+
+    static constexpr float HEIGHT = 16.0f;
+    static constexpr float MIN_WIDTH = 60.0f;
+    static constexpr float TRACK_HEIGHT = 4.0f;
+    static constexpr float HANDLE_RADIUS = 6.0f;
+
+private:
+    float value_;
+    float min_val_;
+    float max_val_;
+
+    static constexpr float ROUNDING = 2.0f;
+    static constexpr float FONT_SIZE = 9.0f;
+    static constexpr float PADDING = 2.0f;
 };
 
 class VoltmeterWidget : public Widget {
@@ -131,6 +167,27 @@ private:
     static constexpr uint32_t COLOR_TEXT         = 0xFFDCD5D4;
     static constexpr float VALUE_FONT_SIZE = 14.0f;
     static constexpr float UNIT_FONT_SIZE = 10.0f;
+};
+
+class IndicatorWidget : public Widget {
+public:
+    IndicatorWidget(float brightness = 0.0f);
+
+    void setBrightness(float b) { brightness_ = b; }
+    float getBrightness() const { return brightness_; }
+
+    Pt preferredSize(IDrawList* dl) const override;
+    void layout(float w, float h) override;
+    void render(IDrawList* dl, const RenderContext& ctx) const override;
+    void updateFromContent(const NodeContent& content) override;
+
+    static constexpr float SIZE = 24.0f;
+    static constexpr float MIN_SIZE = 16.0f;
+
+private:
+    float brightness_;
+    static constexpr uint32_t COLOR_OFF = 0xFF505050;
+    static constexpr uint32_t COLOR_ON  = 0xFF30D040;
 };
 
 } // namespace visual

@@ -132,15 +132,15 @@ int main() {
             auto it_sig = result.port_to_signal.find(full_port);
             if (it_sig != result.port_to_signal.end()) {
                 uint32_t new_sig = signal_remap[it_sig->second];
-                state.across[new_sig] = value;
+                state.values[new_sig] = value;
                 std::cout << "Set signal " << new_sig << " = " << value << " V\n";
             }
         }
     }
 
     std::cout << "\n=== Initial voltages ===\n";
-    for (size_t i = 0; i < state.across.size(); ++i) {
-        std::cout << "signal[" << i << "]: " << state.across[i]
+    for (size_t i = 0; i < state.values.size(); ++i) {
+        std::cout << "signal[" << i << "]: " << state.values[i]
                   << (state.signal_types[i].is_fixed ? " (FIXED)" : "") << "\n";
     }
     std::cout << "\n";

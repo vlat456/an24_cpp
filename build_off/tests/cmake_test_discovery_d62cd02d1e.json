@@ -1,0 +1,42 @@
+{
+  "tests": 6,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "CurrentSense",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "ComputesCurrentFromVoltageDifference",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
+          "line": 33
+        },
+        {
+          "name": "ZeroCurrentWhenEqualVoltage",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
+          "line": 48
+        },
+        {
+          "name": "NegativeCurrentWhenReversed",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
+          "line": 60
+        },
+        {
+          "name": "UsesConfiguredConductance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
+          "line": 74
+        },
+        {
+          "name": "ZeroVoltageDifference_ZeroCurrent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
+          "line": 86
+        },
+        {
+          "name": "ExecuteComputesCurrent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
+          "line": 103
+        }
+      ]
+    }
+  ]
+}

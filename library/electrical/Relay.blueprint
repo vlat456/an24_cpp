@@ -1,31 +1,68 @@
 {
-  "exposes": {
-    "control": {
-      "direction": "In",
-      "type": "Bool"
+  "version": "3.0",
+  "id": "Relay",
+  "display_name": "Relay",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "control",
+      "domain": 2,
+      "direction": 0,
+      "type": "Bool",
+      "source_writer": false
     },
-    "v_in": {
-      "direction": "In",
-      "type": "V"
+    {
+      "name": "state",
+      "domain": 2,
+      "direction": 1,
+      "type": "Bool",
+      "source_writer": false
     },
-    "v_out": {
-      "direction": "Out",
-      "type": "V"
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "hold_threshold",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
     }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Electrical relay (on/off switch). When closed, connects v_in to v_out. Uses post_step voltage merging for realistic behavior.",
+  "domains": [
+    "Electrical",
+    "Logical"
+  ],
+  "param_defaults": {
+    "closed": "false",
+    "g_open": "1e-6",
+    "g_closed": "1000.0"
   },
-  "meta": {
-    "cpp_class": true,
-    "description": "Electrical relay (on/off switch). When closed, connects v_in to v_out. Uses post_step voltage merging for realistic behavior.",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Relay"
-  },
-  "params": {
+  "param_schema": {
     "closed": {
-      "default": "false",
       "type": "bool"
+    },
+    "g_open": {
+      "type": "float"
+    },
+    "g_closed": {
+      "type": "float"
     }
-  },
-  "version": 2
+  }
 }

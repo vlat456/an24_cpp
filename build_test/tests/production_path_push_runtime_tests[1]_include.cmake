@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_test/tests/production_path_push_runtime_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_test/tests/production_path_push_runtime_tests[1]_tests.cmake")
+else()
+  add_test(production_path_push_runtime_tests_NOT_BUILT production_path_push_runtime_tests_NOT_BUILT)
+endif()

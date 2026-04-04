@@ -3,12 +3,12 @@
 #include "visual/render_context.h"
 #include "visual/port/visual_port.h"
 #include "ui/core/interned_id.h"
+#include "data/node_content.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
 #include <string_view>
 #include <optional>
 #include <cstdint>
-
-struct Node;
 
 namespace visual {
 
@@ -16,7 +16,7 @@ namespace visual {
 /// Single centered port, minimal box + text rendering.
 class RefNodeWidget : public Widget {
 public:
-    explicit RefNodeWidget(const ::Node& data, const ui::StringInterner& interner);
+    explicit RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
@@ -28,6 +28,9 @@ public:
     Port* port(std::string_view name) const;
     Port* portByName(std::string_view port_name,
                      std::string_view wire_id = {}) const override;
+
+    /// Set which edge the single port is anchored to.
+    void setPortLayoutSide(PortLayoutSide side);
 
     void setCustomColor(std::optional<uint32_t> c) override { custom_fill_ = c; }
     std::optional<uint32_t> customColor() const override { return custom_fill_; }
@@ -46,8 +49,10 @@ private:
     Port* port_ = nullptr;
     std::optional<uint32_t> custom_fill_;
 
-    void buildLayout(const ::Node& data, const ui::StringInterner& interner);
+    void buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
     void positionPort();
+
+    PortLayoutSide port_layout_side_ = PortLayoutSide::Top;
 };
 
 } // namespace visual

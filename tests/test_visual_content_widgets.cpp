@@ -21,25 +21,70 @@ struct NodeContent {
 
 namespace visual {
 
-class MockDrawList : public ::IDrawList {
+class MockDrawList : public IDrawList {
 public:
-    void add_line(Pt, Pt, uint32_t, float) {}
-    void add_rect(Pt, Pt, uint32_t, float) {}
-    void add_rect_with_rounding_corners(Pt, Pt, uint32_t, float, int, float) {}
-    void add_rect_filled(Pt, Pt, uint32_t) {}
-    void add_rect_filled_with_rounding(Pt, Pt, uint32_t, float) {}
-    void add_rect_filled_with_rounding_corners(Pt, Pt, uint32_t, float, int) {}
-    void add_circle(Pt, float, uint32_t, int) {}
-    void add_circle_filled(Pt, float, uint32_t, int) {}
-    void add_text(Pt, const char*, uint32_t, float) {}
-    void add_polyline(const Pt*, size_t, uint32_t, float) {}
-    Pt calc_text_size(const char* text, float font_size) const {
-        float w = strlen(text) * font_size * 0.6f;
-        return Pt(w, font_size);
+    void add_line(Pt, Pt, uint32_t, float) override {}
+    void add_rect(Pt, Pt, uint32_t, float) override {}
+    void add_rect_with_rounding_corners(Pt, Pt, uint32_t, float, int, float) override {}
+    void add_rect_filled(Pt, Pt, uint32_t) override {}
+    void add_rect_filled_with_rounding(Pt, Pt, uint32_t, float) override {}
+    void add_rect_filled_with_rounding_corners(Pt, Pt, uint32_t, float, int) override {}
+    void add_circle(Pt, float, uint32_t, int) override {}
+    void add_circle_filled(Pt, float, uint32_t, int) override {}
+    void add_text(Pt, const char*, uint32_t, float) override {}
+    void add_polyline(const Pt*, size_t, uint32_t, float) override {}
+    void add_triangle_filled(Pt, Pt, Pt, uint32_t) override {}
+    Pt calc_text_size(const char* text, float font_size) const override {
+        return Pt(std::strlen(text) * font_size * 0.6f, font_size);
+    }
+};
+
+/// Draw list that records all draw calls for verification in tests.
+struct CircleCall {
+    Pt center;
+    float radius;
+    uint32_t color;
+    int segments;
+    bool filled;
+};
+
+class RecordingDrawList : public IDrawList {
+public:
+    std::vector<CircleCall> circle_calls;
+    int total_calls = 0;
+
+    void add_line(Pt, Pt, uint32_t, float) override { ++total_calls; }
+    void add_rect(Pt, Pt, uint32_t, float) override { ++total_calls; }
+    void add_rect_with_rounding_corners(Pt, Pt, uint32_t, float, int, float) override { ++total_calls; }
+    void add_rect_filled(Pt, Pt, uint32_t) override { ++total_calls; }
+    void add_rect_filled_with_rounding(Pt, Pt, uint32_t, float) override { ++total_calls; }
+    void add_rect_filled_with_rounding_corners(Pt, Pt, uint32_t, float, int) override { ++total_calls; }
+    void add_circle(Pt c, float r, uint32_t color, int seg) override {
+        ++total_calls;
+        circle_calls.push_back({c, r, color, seg, false});
+    }
+    void add_circle_filled(Pt c, float r, uint32_t color, int seg) override {
+        ++total_calls;
+        circle_calls.push_back({c, r, color, seg, true});
+    }
+    void add_text(Pt, const char*, uint32_t, float) override { ++total_calls; }
+    void add_polyline(const Pt*, size_t, uint32_t, float) override { ++total_calls; }
+    void add_triangle_filled(Pt, Pt, Pt, uint32_t) override { ++total_calls; }
+    Pt calc_text_size(const char* text, float font_size) const override {
+        return Pt(std::strlen(text) * font_size * 0.6f, font_size);
     }
 };
 
 } // namespace visual
+
+/// Helper: create a default RenderContext at zoom=1 with origin at (0,0).
+static visual::RenderContext make_default_render_ctx() {
+    visual::RenderContext ctx;
+    ctx.zoom = 1.0f;
+    ctx.pan = Pt(0, 0);
+    ctx.canvas_min = Pt(0, 0);
+    return ctx;
+}
 
 TEST(HeaderWidgetTest, PreferredSize) {
     visual::HeaderWidget header("TestNode", 0xFF404040);
@@ -222,7 +267,7 @@ TEST(ContentWidgetTest, InLayout) {
 }
 
 TEST(ContentWidgetTest, NestedInContainer) {
-    visual::Container container(Edges::all(5));
+    visual::Container container(ui::Edges::all(5));
     container.emplaceChild<visual::VoltmeterWidget>();
     
     container.layout(100, 120);
@@ -230,4 +275,293 @@ TEST(ContentWidgetTest, NestedInContainer) {
     Pt child_pos = container.children()[0]->localPos();
     EXPECT_EQ(child_pos.x, 5);
     EXPECT_EQ(child_pos.y, 5);
+}
+
+TEST(IndicatorWidgetTest, InitialBrightness) {
+    visual::IndicatorWidget ind;
+    
+    EXPECT_FLOAT_EQ(ind.getBrightness(), 0.0f);
+}
+
+TEST(IndicatorWidgetTest, SetBrightness) {
+    visual::IndicatorWidget ind;
+    
+    ind.setBrightness(0.75f);
+    EXPECT_FLOAT_EQ(ind.getBrightness(), 0.75f);
+}
+
+TEST(IndicatorWidgetTest, PreferredSize) {
+    visual::IndicatorWidget ind;
+    visual::MockDrawList dl;
+    
+    Pt ps = ind.preferredSize(&dl);
+    
+    EXPECT_EQ(ps.x, visual::IndicatorWidget::SIZE);
+    EXPECT_EQ(ps.y, visual::IndicatorWidget::SIZE);
+}
+
+TEST(IndicatorWidgetTest, NotFlexible) {
+    visual::IndicatorWidget ind;
+    EXPECT_FALSE(ind.isFlexible());
+}
+
+TEST(IndicatorWidgetTest, UpdateFromContent) {
+    visual::IndicatorWidget ind;
+    
+    NodeContent content;
+    content.value = 0.6f;
+    
+    ind.updateFromContent(content);
+    
+    EXPECT_FLOAT_EQ(ind.getBrightness(), 0.6f);
+}
+
+TEST(IndicatorWidgetTest, UpdateFromContentClampsToOne) {
+    visual::IndicatorWidget ind;
+    
+    NodeContent content;
+    content.value = 1.5f;  // over 1.0
+    
+    ind.updateFromContent(content);
+    
+    EXPECT_FLOAT_EQ(ind.getBrightness(), 1.0f);
+}
+
+TEST(IndicatorWidgetTest, UpdateFromContentClampsToZero) {
+    visual::IndicatorWidget ind;
+    
+    NodeContent content;
+    content.value = -0.5f;  // negative
+    
+    ind.updateFromContent(content);
+    
+    EXPECT_FLOAT_EQ(ind.getBrightness(), 0.0f);
+}
+
+// ============================================================================
+// IndicatorWidget rendering tests
+// ============================================================================
+
+TEST(IndicatorWidgetTest, RenderEmitsFilledCircleAndOutline) {
+    // Verify that render() produces exactly 2 circle calls:
+    // one filled circle (the lamp body) and one outline circle (the border).
+    visual::IndicatorWidget ind(0.5f);
+    ind.setLocalPos(Pt(0, 0));
+    ind.layout(visual::IndicatorWidget::SIZE, visual::IndicatorWidget::SIZE);
+
+    visual::RecordingDrawList dl;
+    auto ctx = make_default_render_ctx();
+
+    ind.render(&dl, ctx);
+
+    // Must have exactly 2 circle calls: filled + outline
+    ASSERT_EQ(dl.circle_calls.size(), 2u);
+    EXPECT_TRUE(dl.circle_calls[0].filled) << "First circle should be filled (lamp body)";
+    EXPECT_FALSE(dl.circle_calls[1].filled) << "Second circle should be outline (border)";
+}
+
+TEST(IndicatorWidgetTest, RenderCircleCenteredInWidget) {
+    visual::IndicatorWidget ind(0.0f);
+    ind.setLocalPos(Pt(10, 20));
+    ind.layout(visual::IndicatorWidget::SIZE, visual::IndicatorWidget::SIZE);
+
+    visual::RecordingDrawList dl;
+    auto ctx = make_default_render_ctx();
+    ind.render(&dl, ctx);
+
+    ASSERT_GE(dl.circle_calls.size(), 1u);
+    // Center should be at (10 + SIZE/2, 20 + SIZE/2) with zoom=1
+    float expected_cx = 10.0f + visual::IndicatorWidget::SIZE * 0.5f;
+    float expected_cy = 20.0f + visual::IndicatorWidget::SIZE * 0.5f;
+    EXPECT_NEAR(dl.circle_calls[0].center.x, expected_cx, 0.01f);
+    EXPECT_NEAR(dl.circle_calls[0].center.y, expected_cy, 0.01f);
+}
+
+TEST(IndicatorWidgetTest, RenderRadiusGrowsWithBrightness) {
+    // At brightness=0, radius should be smaller than at brightness=1
+    auto render_and_get_radius = [](float brightness) -> float {
+        visual::IndicatorWidget ind(brightness);
+        ind.setLocalPos(Pt(0, 0));
+        ind.layout(visual::IndicatorWidget::SIZE, visual::IndicatorWidget::SIZE);
+
+        visual::RecordingDrawList dl;
+        auto ctx = make_default_render_ctx();
+        ind.render(&dl, ctx);
+        return dl.circle_calls.empty() ? 0.0f : dl.circle_calls[0].radius;
+    };
+
+    float r_off = render_and_get_radius(0.0f);
+    float r_half = render_and_get_radius(0.5f);
+    float r_full = render_and_get_radius(1.0f);
+
+    EXPECT_GT(r_off, 0.0f) << "Radius should be positive even when off";
+    EXPECT_GT(r_half, r_off) << "Radius should grow with brightness";
+    EXPECT_GT(r_full, r_half) << "Radius should grow with brightness";
+}
+
+TEST(IndicatorWidgetTest, RenderColorOffIsGray) {
+    visual::IndicatorWidget ind(0.0f);
+    ind.setLocalPos(Pt(0, 0));
+    ind.layout(visual::IndicatorWidget::SIZE, visual::IndicatorWidget::SIZE);
+
+    visual::RecordingDrawList dl;
+    auto ctx = make_default_render_ctx();
+    ind.render(&dl, ctx);
+
+    ASSERT_GE(dl.circle_calls.size(), 1u);
+    // When brightness = 0, fill_color should be COLOR_OFF (0xFF505050)
+    EXPECT_EQ(dl.circle_calls[0].color, 0xFF505050u)
+        << "Off state should use gray color (COLOR_OFF)";
+}
+
+TEST(IndicatorWidgetTest, RenderColorOnHasGreenChannel) {
+    visual::IndicatorWidget ind(1.0f);
+    ind.setLocalPos(Pt(0, 0));
+    ind.layout(visual::IndicatorWidget::SIZE, visual::IndicatorWidget::SIZE);
+
+    visual::RecordingDrawList dl;
+    auto ctx = make_default_render_ctx();
+    ind.render(&dl, ctx);
+
+    ASSERT_GE(dl.circle_calls.size(), 1u);
+    uint32_t color = dl.circle_calls[0].color;
+    // ImGui color format is AABBGGRR
+    uint8_t g = (color >> 8) & 0xFF;
+    EXPECT_GT(g, 200u) << "Full brightness should have dominant green channel";
+}
+
+TEST(IndicatorWidgetTest, RenderAtZoom2ScalesRadius) {
+    visual::IndicatorWidget ind(0.5f);
+    ind.setLocalPos(Pt(0, 0));
+    ind.layout(visual::IndicatorWidget::SIZE, visual::IndicatorWidget::SIZE);
+
+    // Render at zoom=1
+    visual::RecordingDrawList dl1;
+    auto ctx1 = make_default_render_ctx();
+    ctx1.zoom = 1.0f;
+    ind.render(&dl1, ctx1);
+
+    // Render at zoom=2
+    visual::RecordingDrawList dl2;
+    auto ctx2 = make_default_render_ctx();
+    ctx2.zoom = 2.0f;
+    ind.render(&dl2, ctx2);
+
+    ASSERT_GE(dl1.circle_calls.size(), 1u);
+    ASSERT_GE(dl2.circle_calls.size(), 1u);
+    EXPECT_NEAR(dl2.circle_calls[0].radius, dl1.circle_calls[0].radius * 2.0f, 0.01f)
+        << "Circle radius should scale linearly with zoom";
+}
+
+TEST(IndicatorWidgetTest, RenderBorderAlwaysPresent) {
+    // Verify the outline circle is drawn regardless of brightness
+    for (float b : {0.0f, 0.5f, 1.0f}) {
+        visual::IndicatorWidget ind(b);
+        ind.setLocalPos(Pt(0, 0));
+        ind.layout(visual::IndicatorWidget::SIZE, visual::IndicatorWidget::SIZE);
+
+        visual::RecordingDrawList dl;
+        auto ctx = make_default_render_ctx();
+        ind.render(&dl, ctx);
+
+        ASSERT_EQ(dl.circle_calls.size(), 2u)
+            << "Should always draw filled circle + outline, brightness=" << b;
+        // Outline color should be 0xFF404040
+        EXPECT_EQ(dl.circle_calls[1].color, 0xFF404040u)
+            << "Border color should be 0xFF404040, brightness=" << b;
+    }
+}
+
+TEST(IndicatorWidgetTest, LayoutAcceptsParentSize) {
+    // Verify layout() preserves parent-assigned size via Widget::layout()
+    visual::IndicatorWidget ind;
+    ind.layout(100.0f, 100.0f);
+    // Widget::layout base call sets size
+    EXPECT_EQ(ind.size().x, 100.0f);
+    EXPECT_EQ(ind.size().y, 100.0f);
+}
+
+TEST(IndicatorWidgetTest, RenderCircleCenteredInLargerWidget) {
+    // Regression: When Container gives the IndicatorWidget a size larger than
+    // its natural SIZE (e.g., full node width), the circle must be centered
+    // in the actual widget bounds, not at the hardcoded SIZE offset.
+    visual::IndicatorWidget ind(0.5f);
+    float large_w = 80.0f;  // Much wider than SIZE=24
+    float large_h = 60.0f;  // Taller than SIZE=24
+    ind.setLocalPos(Pt(10, 20));
+    ind.layout(large_w, large_h);
+
+    visual::RecordingDrawList dl;
+    auto ctx = make_default_render_ctx();
+    ind.render(&dl, ctx);
+
+    ASSERT_GE(dl.circle_calls.size(), 1u);
+    // Center should be at (10 + 80/2, 20 + 60/2) = (50, 50), not (22, 32)
+    float expected_cx = 10.0f + large_w * 0.5f;
+    float expected_cy = 20.0f + large_h * 0.5f;
+    EXPECT_NEAR(dl.circle_calls[0].center.x, expected_cx, 0.01f)
+        << "Circle X must be centered in actual widget width, not hardcoded SIZE";
+    EXPECT_NEAR(dl.circle_calls[0].center.y, expected_cy, 0.01f)
+        << "Circle Y must be centered in actual widget height, not hardcoded SIZE";
+}
+
+TEST(IndicatorWidgetTest, RenderInContainerEmitsDrawCalls) {
+    // Verify the widget renders correctly when nested in a Container,
+    // simulating real usage in the node layout tree.
+    visual::Container container(ui::Edges::all(4));
+    auto* ind = container.emplaceChild<visual::IndicatorWidget>(0.8f);
+
+    container.setLocalPos(Pt(50, 60));
+    container.layout(40, 40);
+
+    visual::RecordingDrawList dl;
+    auto ctx = make_default_render_ctx();
+    // renderTree renders the container and all children
+    container.renderTree(&dl, ctx);
+
+    // The indicator should have emitted its 2 circle calls
+    EXPECT_GE(dl.circle_calls.size(), 2u)
+        << "IndicatorWidget in Container must render circle calls via renderTree";
+    // Verify the filled circle has a non-zero radius
+    EXPECT_GT(dl.circle_calls[0].radius, 0.0f);
+    EXPECT_TRUE(dl.circle_calls[0].filled);
+}
+
+// ============================================================================
+// isToggleable() tests — content widgets self-report click-to-toggle support
+// ============================================================================
+
+TEST(SwitchWidgetTest, IsToggleable) {
+    visual::SwitchWidget sw;
+    EXPECT_TRUE(sw.isToggleable());
+}
+
+TEST(VerticalToggleTest, IsToggleable) {
+    visual::VerticalToggleWidget toggle;
+    EXPECT_TRUE(toggle.isToggleable());
+}
+
+TEST(SliderWidgetTest, NotToggleable) {
+    visual::SliderWidget slider;
+    EXPECT_FALSE(slider.isToggleable());
+}
+
+TEST(VoltmeterWidgetTest, NotToggleable) {
+    visual::VoltmeterWidget vm;
+    EXPECT_FALSE(vm.isToggleable());
+}
+
+TEST(IndicatorWidgetTest, NotToggleable) {
+    visual::IndicatorWidget ind;
+    EXPECT_FALSE(ind.isToggleable());
+}
+
+TEST(HeaderWidgetTest, NotToggleable) {
+    visual::HeaderWidget header("Test", 0xFF404040);
+    EXPECT_FALSE(header.isToggleable());
+}
+
+TEST(TypeNameWidgetTest, NotToggleable) {
+    visual::TypeNameWidget type_name("Test");
+    EXPECT_FALSE(type_name.isToggleable());
 }

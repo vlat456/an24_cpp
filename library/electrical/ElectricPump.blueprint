@@ -1,28 +1,41 @@
 {
-  "exposes": {
-    "p_out": {
-      "direction": "Out",
-      "type": "Temperature"
+  "version": "3.0",
+  "id": "ElectricPump",
+  "display_name": "ElectricPump",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "p_in",
+      "domain": 8,
+      "direction": 0,
+      "type": "Pressure",
+      "source_writer": false
     },
-    "v_in": {
-      "direction": "In",
-      "type": "V"
+    {
+      "name": "p_out",
+      "domain": 8,
+      "direction": 1,
+      "type": "Pressure",
+      "source_writer": false
+    },
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Electric motor driving hydraulic pump",
-    "domains": [
-      "Electrical",
-      "Hydraulic"
-    ],
-    "name": "ElectricPump"
-  },
-  "params": {
-    "max_pressure": {
-      "default": "1000.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Electric motor driving hydraulic pump",
+  "domains": [
+    "Electrical",
+    "Hydraulic"
+  ],
+  "param_defaults": {
+    "max_pressure": "1000.0"
+  }
 }

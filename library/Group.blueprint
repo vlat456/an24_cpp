@@ -1,13 +1,17 @@
 {
-  "meta": {
-    "description": "Visual grouping rectangle for organizing circuit sections. No logic, no ports.",
-    "name": "Group",
-    "render_hint": "group",
-    "size": [
-      10.0,
-      6.0
-    ],
-    "visual_only": true
-  },
-  "version": 2
+  "version": "3.0",
+  "id": "Group",
+  "display_name": "Group",
+  "scheduler_source": false,
+  "interface": [],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": false,
+  "description": "Visual grouping rectangle for organizing circuit sections. No logic, no ports.",
+  "domains": [
+    "Logical"
+  ],
+  "render_hint": "group",
+  "visual_only": true
 }
