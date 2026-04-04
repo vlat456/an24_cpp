@@ -85,6 +85,16 @@ These provide electrical elements to the subsolver; they do not push-write elect
 
 - `HighPowerLoad` is currently a no-op stub and does not affect circuit solve
 
+### Widget-interactive components
+
+These components expose interactive widgets (knobs, sliders, toggles) in the visual editor:
+
+- `KnobSwitch`: Multi-position rotary switch with visual tick marks
+- `Slider`: Linear slide control
+- `HoldButton`: Momentary pushbutton
+- `Switch`: Binary toggle switch
+- `IndicatorLight`: Visual output indicator
+
 ---
 
 ## Primitive-First Direction

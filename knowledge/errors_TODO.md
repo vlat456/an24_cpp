@@ -896,7 +896,7 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 - Topological writer/read classification still relies on hardcoded classname and port-name string lists.
 - New components (or new output ports on existing components) can silently be misclassified as inputs if not manually added.
-- This already caused a real regression (`RU19A` observation outputs `rpm_out`/`t4_out` missing from writer classification).
+- This already caused a real regression (`12SAM28` observation outputs missing from writer classification).
 
 **Target architecture:**
 
@@ -922,7 +922,7 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
    - Remove fallback "shotgun" output-name sets.
    - Remove all inference branches and compatibility/legacy fallback logic.
 4. **Tests (required)**
-   - Add classification tests for at least: `RU19A`, `GS24`, `ControlledVoltageSource`, `ControlledCurrentSource`, `RefNode`, `Battery`, `Generator`.
+   - Add classification tests for at least: `12SAM28`, `ControlledVoltageSource`, `ControlledCurrentSource`, `RefNode`, `Battery`, `Generator`.
    - Add one generic regression that verifies all output ports declared by metadata produce writer edges in topo ordering.
    - Add one generic regression that verifies scheduler source bucket membership is determined only by `scheduler_source` metadata.
 
@@ -1264,7 +1264,117 @@ This caused at least 3 bugs and every new code path that touched composite bound
 - `SignalKeyResolver.MultipleBridgeNodes_ResolveIndependently`
 - `SignalKeyResolver.BridgeNode_ProxyIdWithUnderscores_ColonStillWorks`
 
-**Tests:** All 1427 pass
+**Tests:** All 1453 pass
+
+---
+
+## KnobSwitch Bugs (Issues 38-41)
+
+### ~~38. Tick Marks Not Updating When Positions Changed in Inspector~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** When changing `positions` from 2→5 via the inspector, no new tick marks appear on the knob widget. The visual knob still shows only 2 tick marks.
+
+**Root cause:** In `properties_window.cpp::apply()`, when user changes `positions` param via inspector, the bp2 node's `params` are updated but `content_max` is NOT synced. `rebuildAllWindows()` rebuilds widgets from stale `content_max`.
+
+**Fix:** Added code in `properties_window.cpp::apply()` to sync `content_max`/`content_min` from params after param changes for Knob/Slider/Gauge content types.
+
+**Files changed:**
+
+- `src/editor/window/properties_window.cpp` — `apply()` now syncs content_max/min from params
+
+**Regression tests:** 4 new tests in `test_properties_window.cpp`
+
+**Tests:** All 1453 pass
+
+---
+
+### ~~39. InOut Terminals Duplicated on Both Sides~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** t1..t5 terminals are duplicated on both sides of the node (InOut port drawing limitation).
+
+**Root cause:** In `visual_node.cpp::buildStandardLayout()`, the fast path pairs inputs[i] with outputs[i] by index. For InOut ports, the same port appears in BOTH arrays, causing duplicates on left AND right sides.
+
+**Fix:** Modified `visual_node.cpp::buildStandardLayout()` to filter out InOut ports from the outputs list (they're already in inputs).
+
+**Files changed:**
+
+- `src/editor/visual/node/visual_node.cpp` — InOut filter in `buildStandardLayout()`
+
+**Regression tests:** 2 new tests in `test_scene_mutations.cpp`
+
+**Tests:** All 1453 pass
+
+---
+
+### ~~40. Node Editing Allowed During Simulation~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** Node dragging/resizing should be disabled during simulation mode, but knob drag should still work (currently clicking on knob drags the whole node). Also shouldn't be able to select nodes.
+
+**Root cause:** `CanvasInput::read_only` is NOT tied to `simulation_running_`. During simulation, user can still drag nodes/resize them.
+
+**Fix:** Added a new `simulation_mode` flag (separate from `read_only`) to allow widget interaction while blocking node editing:
+
+- Blocks node dragging, selection, wire creation, resize, routing points, context menus, delete key
+- Still allows slider/knob/toggle interaction and panning
+- Also blocks node selection during simulation mode
+
+**Files changed:**
+
+- `src/editor/input/canvas_input.h` — Added `simulation_mode` flag
+- `src/editor/input/canvas_input.cpp` — `simulation_mode` handling in `on_mouse_down`, `on_key`, `on_double_click`, right-click
+- `src/editor/window/blueprint_window.h` — Added `set_simulation_mode()` method
+- `src/editor/document.cpp` — wire up simulation start/stop to set simulation_mode
+
+**Regression tests:** 8 new tests in `test_canvas_input.cpp`
+
+**Tests:** All 1453 pass
+
+---
+
+### ~~41. initial_position Serialized as Float Instead of Int~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** Simulation fails to start for KnobSwitch because `initial_position` param is serialized as float string ("0.000000") but schema expects int ("0").
+
+**Root cause:** In `document.cpp::build_simulation_json()`, all params are serialized with `std::to_string(float)` producing "0.000000", but `initial_position` and `positions` params are typed as `ParamSchemaType::Int` in the schema, causing validation failure.
+
+**Fix:** Modified `document.cpp::build_simulation_json()` to check param schema type and serialize Int params as integer strings instead of float strings.
+
+**Files changed:**
+
+- `src/editor/document.cpp` — int param serialization in `build_simulation_json()`
+
+**Tests:** All 1453 pass
+
+---
+
+### Port Direction Analysis (for Issue Discussion)
+
+**Q: Do we need port direction information?**
+
+No, but it's load-bearing in three places beyond the visual layer:
+
+1. **Push-scheduler ordering** (`jit_solver.cpp:1288-1304`) — direction determines which ports are "writes" vs "reads" for topological sort. Without it, push components could execute in wrong order.
+
+2. **Wire validation** (`path_resolver.cpp`, `canvas_input.cpp`) — prevents output-to-output and input-to-input connections.
+
+3. **Blueprint persistence and codec** — direction is baked into the JSON format for both library definitions and saved blueprints.
+
+The electrical subsolver doesn't care at all — it uses connectivity and solver roles, not direction.
+
+**The pain points are specifically around InOut**, not direction in general. Options:
+
+- Flatten InOut at the visual layer (treat as Input, never duplicate)
+- Replace InOut with paired In/Out ports for electrical terminals
+
+Removing direction entirely would touch ~50 source files, ~30 test files, and every `.blueprint` in the library.
 
 ---
 
@@ -1309,4 +1419,8 @@ This caused at least 3 bugs and every new code path that touched composite bound
 | 35    | Content click detection hardcoded to specific types | ~~Medium~~ | Low | **FIXED** |
 | 36    | GroundPower tooltip shows 0V (bridge naming) | ~~High~~ | Low | **FIXED** |
 | 37    | Bridge node naming convention fragility | ~~High~~ | Medium | **FIXED** |
+| 38    | KnobSwitch tick marks not updating in inspector | ~~High~~   | Low    | **FIXED** |
+| 39    | KnobSwitch InOut terminals duplicated on both sides | ~~High~~   | Low    | **FIXED** |
+| 40    | Node editing allowed during simulation | ~~High~~   | Medium | **FIXED** |
+| 41    | KnobSwitch initial_position serialized as float | ~~High~~   | Low    | **FIXED** |
 | 16    | Runtime API simplification (commit_control removal) | ~~Medium~~ | Low | **COMPLETED** |

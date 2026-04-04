@@ -119,5 +119,4 @@ using ComponentVariant = std::variant<
 ## See Also
 
 - `03_components.md` — Component API (execute/commit)
-- `knowledge_aot.md` — AOT codegen system
-- `knowledge_jit.md` — JIT solver internals
+- `10_quick_reference.md` — Build commands and file locations

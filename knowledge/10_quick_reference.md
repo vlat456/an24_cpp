@@ -98,7 +98,16 @@ cmake --build build --target update_port_registry
 | Temperature | T | Thermal |
 | Heat | H | Thermal |
 
-## Component Template Pattern
+## Component Categories (Quick)
+
+| Category | Components |
+|----------|------------|
+| Electrical | Battery, Generator, Switch, Relay, AZS, Resistor, Load, Voltmeter, CurrentSense, VoltageSense, IndicatorLight, ElectricalSource, ElectricalConductance, ControlledVoltageSource, ControlledCurrentSource, Inverter, ElectricPump, ElectricHeater, SolenoidValve, Radiator, FuelTank, GidroAccumulator, Transformer, VariableConductance, GroundPower, Gyroscope, HighPowerLoad, HoldButton, Positive_V_to_Bool, Any_V_to_Bool, KnobSwitch, Slider |
+| Logical | AND, OR, NOT, XOR, NAND, Comparator, Greater, Lesser, GreaterEq, LesserEq, PID, PI, PD, P, LUT |
+| Math | Add, Subtract, Multiply, Divide, Clamp, Normalize, Min, Max, SlewRate, AsymSlewRate, FastTMO, AsymTMO, Integrator, Accumulator, SampleHold, TimeDelay, Monostable, LerpNode, FirstOrderLag |
+| Thermal | TempSensor |
+| Mechanical | InertiaNode, Spring |
+| Structural | Bus, RefNode, Splitter, Merger, BlueprintInput, BlueprintOutput, Group, Text, Value |
 
 ```cpp
 template <typename Provider = JitProvider>
