@@ -412,6 +412,30 @@ TEST(PushBuildValidation, RotarySwitchAliasesInstantiateDistinctVariantTypes) {
     EXPECT_TRUE(std::holds_alternative<RotarySwitchNTo1<JitProvider>>(it_b->second));
 }
 
+TEST(PushBuildValidation, RotarySwitchAliasPortDirectionsMatchTopologyIntent) {
+    auto out_1_to_n = get_output_ports("RotarySwitch1ToN");
+    auto out_n_to_1 = get_output_ports("RotarySwitchNTo1");
+
+    std::unordered_set<std::string> s1(out_1_to_n.begin(), out_1_to_n.end());
+    std::unordered_set<std::string> s2(out_n_to_1.begin(), out_n_to_1.end());
+
+    // 1->N: one electrical input (wiper), N electrical outputs (throw*)
+    EXPECT_EQ(s1.count("wiper"), 0u);
+    EXPECT_EQ(s1.count("throw1"), 1u);
+    EXPECT_EQ(s1.count("throw2"), 1u);
+    EXPECT_EQ(s1.count("throw3"), 1u);
+    EXPECT_EQ(s1.count("throw4"), 1u);
+    EXPECT_EQ(s1.count("throw5"), 1u);
+
+    // N->1: N electrical inputs (throw*), one electrical output (wiper)
+    EXPECT_EQ(s2.count("wiper"), 1u);
+    EXPECT_EQ(s2.count("throw1"), 0u);
+    EXPECT_EQ(s2.count("throw2"), 0u);
+    EXPECT_EQ(s2.count("throw3"), 0u);
+    EXPECT_EQ(s2.count("throw4"), 0u);
+    EXPECT_EQ(s2.count("throw5"), 0u);
+}
+
 TEST(PushBuildValidation, SingleBatteryOK) {
     // Just one ElectricalSource - should succeed
     std::vector<DeviceInstance> devices = {

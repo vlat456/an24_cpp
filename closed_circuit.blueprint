@@ -2049,8 +2049,8 @@
         }
       },
       "position": {
-        "x": -96.0,
-        "y": -672.0
+        "x": 320.0,
+        "y": -656.0
       },
       "render_hint": "bus",
       "string_params": {
@@ -2693,8 +2693,8 @@
         }
       },
       "position": {
-        "x": -192.0,
-        "y": -480.0
+        "x": -464.0,
+        "y": -848.0
       },
       "type": "GroundPower",
       "width": 160.0
@@ -3101,63 +3101,6 @@
       "type": "Integrator"
     },
     {
-      "content_label": "",
-      "content_max": 5.0,
-      "content_min": 0.0,
-      "content_state": false,
-      "content_tripped": false,
-      "content_type": 8,
-      "content_unit": "",
-      "content_value": 0.0,
-      "id": "knobswitch_1",
-      "name": "knobswitch_1",
-      "params": {
-        "g_closed": 1000.0,
-        "g_open": 9.999999974752427e-07,
-        "initial_position": 0.0,
-        "positions": 5.0
-      },
-      "ports": {
-        "wiper": {
-          "direction": "InOut",
-          "type": 0
-        },
-        "control": {
-          "direction": "In",
-          "type": 7
-        },
-        "position": {
-          "direction": "Out",
-          "type": 7
-        },
-        "throw1": {
-          "direction": "InOut",
-          "type": 0
-        },
-        "throw2": {
-          "direction": "InOut",
-          "type": 0
-        },
-        "throw3": {
-          "direction": "InOut",
-          "type": 0
-        },
-        "throw4": {
-          "direction": "InOut",
-          "type": 0
-        },
-        "throw5": {
-          "direction": "InOut",
-          "type": 0
-        }
-      },
-      "position": {
-        "x": 384.0,
-        "y": -688.0
-      },
-      "type": "KnobSwitch"
-    },
-    {
       "group_id": "extract_inst_1",
       "id": "lut_1",
       "name": "RN180_excitation",
@@ -3540,6 +3483,63 @@
         "y": -704.0
       },
       "type": "Resistor"
+    },
+    {
+      "content_label": "",
+      "content_max": 5.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 8,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "rotaryswitch1ton_1",
+      "name": "rotaryswitch1ton_1",
+      "params": {
+        "g_closed": 1000.0,
+        "g_open": 9.999999974752427e-07,
+        "initial_position": 0.0,
+        "positions": 5.0
+      },
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": 7
+        },
+        "position": {
+          "direction": "Out",
+          "type": 7
+        },
+        "throw1": {
+          "direction": "Out",
+          "type": 0
+        },
+        "throw2": {
+          "direction": "Out",
+          "type": 0
+        },
+        "throw3": {
+          "direction": "Out",
+          "type": 0
+        },
+        "throw4": {
+          "direction": "Out",
+          "type": 0
+        },
+        "throw5": {
+          "direction": "Out",
+          "type": 0
+        },
+        "wiper": {
+          "direction": "In",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": -176.0,
+        "y": -880.0
+      },
+      "type": "RotarySwitch1ToN"
     },
     {
       "content_label": "",
@@ -4500,8 +4500,8 @@
       "type": "Voltmeter"
     }
   ],
-  "pan_x": -171.0299835205078,
-  "pan_y": -955.3153076171875,
+  "pan_x": -643.856201171875,
+  "pan_y": -913.7785034179688,
   "version": "3.0",
   "wires": [
     {
@@ -5317,45 +5317,45 @@
       "target": "/groundpower_1:v_in"
     },
     {
-      "id": "wire_147",
-      "source": "/bus_1:v",
-      "target": "/knobswitch_1:wiper"
-    },
-    {
-      "id": "wire_149",
-      "source": "/bus_3:v",
-      "target": "/indicatorlight_2:v_in"
-    },
-    {
-      "id": "wire_150",
-      "source": "/groundpower_1:v_out",
-      "target": "/bus_3:v"
-    },
-    {
-      "id": "wire_151",
-      "source": "/indicatorlight_2:v_out",
-      "target": "/knobswitch_1:throw2"
-    },
-    {
-      "id": "wire_152",
-      "source": "/indicatorlight_3:v_out",
-      "target": "/knobswitch_1:throw1"
-    },
-    {
-      "id": "wire_153",
-      "source": "/bus_3:v",
+      "id": "wire_156",
+      "source": "/rotaryswitch1ton_1:throw1",
       "target": "/indicatorlight_3:v_in"
     },
     {
-      "id": "wire_154",
-      "source": "/indicatorlight_4:v_out",
-      "target": "/knobswitch_1:throw3"
+      "id": "wire_157",
+      "source": "/rotaryswitch1ton_1:throw2",
+      "target": "/indicatorlight_2:v_in"
     },
     {
-      "id": "wire_155",
-      "source": "/bus_3:v",
+      "id": "wire_158",
+      "source": "/rotaryswitch1ton_1:throw4",
       "target": "/indicatorlight_4:v_in"
+    },
+    {
+      "id": "wire_159",
+      "source": "/indicatorlight_3:v_out",
+      "target": "/bus_3:v"
+    },
+    {
+      "id": "wire_160",
+      "source": "/indicatorlight_2:v_out",
+      "target": "/bus_3:v"
+    },
+    {
+      "id": "wire_161",
+      "source": "/indicatorlight_4:v_out",
+      "target": "/bus_3:v"
+    },
+    {
+      "id": "wire_162",
+      "source": "/bus_3:v",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_163",
+      "source": "/groundpower_1:v_out",
+      "target": "/rotaryswitch1ton_1:wiper"
     }
   ],
-  "zoom": 1.1441707611083984
+  "zoom": 1.1244862079620361
 }

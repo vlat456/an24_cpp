@@ -1515,12 +1515,12 @@ constexpr bool Resistor_SCHEDULER_SOURCE = false;
 constexpr RegistryPortDirection RotarySwitch1ToN_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::Out,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::In
 };
 constexpr uint8_t RotarySwitch1ToN_PORT_DOMAINS[] = {
     2,
@@ -1547,12 +1547,12 @@ constexpr bool RotarySwitch1ToN_SCHEDULER_SOURCE = false;
 constexpr RegistryPortDirection RotarySwitchNTo1_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::Out,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
 };
 constexpr uint8_t RotarySwitchNTo1_PORT_DOMAINS[] = {
     2,

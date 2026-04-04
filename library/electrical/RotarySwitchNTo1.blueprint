@@ -7,42 +7,42 @@
     {
       "name": "wiper",
       "domain": 1,
-      "direction": 2,
+      "direction": 1,
       "type": "V",
       "source_writer": false
     },
     {
       "name": "throw1",
       "domain": 1,
-      "direction": 2,
+      "direction": 0,
       "type": "V",
       "source_writer": false
     },
     {
       "name": "throw2",
       "domain": 1,
-      "direction": 2,
+      "direction": 0,
       "type": "V",
       "source_writer": false
     },
     {
       "name": "throw3",
       "domain": 1,
-      "direction": 2,
+      "direction": 0,
       "type": "V",
       "source_writer": false
     },
     {
       "name": "throw4",
       "domain": 1,
-      "direction": 2,
+      "direction": 0,
       "type": "V",
       "source_writer": false
     },
     {
       "name": "throw5",
       "domain": 1,
-      "direction": 2,
+      "direction": 0,
       "type": "V",
       "source_writer": false
     },
