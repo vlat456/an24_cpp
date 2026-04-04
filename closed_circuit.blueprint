@@ -1670,6 +1670,281 @@
         "x": 562.0,
         "y": 448.0
       }
+    },
+    {
+      "blueprint": "GroundPower",
+      "definition": {
+        "cpp_class": false,
+        "description": "Ground Power",
+        "display_name": "GroundPower",
+        "domains": [
+          "Electrical"
+        ],
+        "grid_step": 16.0,
+        "id": "GroundPower",
+        "interface": [
+          {
+            "direction": 0,
+            "domain": 1,
+            "name": "v_in",
+            "source_writer": false,
+            "type": "V"
+          },
+          {
+            "direction": 1,
+            "domain": 1,
+            "name": "v_out",
+            "source_writer": false,
+            "type": "V"
+          }
+        ],
+        "nested": [],
+        "nodes": [
+          {
+            "group_id": "groundpower_1",
+            "id": "groundpower_1:v_in",
+            "name": "v_in",
+            "ports": {
+              "ext": {
+                "direction": "In",
+                "type": 7
+              },
+              "port": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 0.0,
+              "y": 160.0
+            },
+            "string_params": {
+              "exposed_direction": "In",
+              "exposed_type": "V"
+            },
+            "type": "BlueprintInput"
+          },
+          {
+            "group_id": "groundpower_1",
+            "id": "groundpower_1:v_out",
+            "name": "v_out",
+            "ports": {
+              "ext": {
+                "direction": "Out",
+                "type": 7
+              },
+              "port": {
+                "direction": "In",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 352.0,
+              "y": 32.0
+            },
+            "string_params": {
+              "exposed_direction": "Out",
+              "exposed_type": "V"
+            },
+            "type": "BlueprintOutput"
+          },
+          {
+            "group_id": "groundpower_1",
+            "id": "groundpower_1_k_max",
+            "name": "k_max",
+            "params": {
+              "value": 30.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 0.0,
+              "y": 96.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "group_id": "groundpower_1",
+            "id": "groundpower_1_k_one",
+            "name": "k_one",
+            "params": {
+              "value": 1.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 0.0,
+              "y": 32.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "group_id": "groundpower_1",
+            "id": "groundpower_1_k_voltage",
+            "name": "k_voltage",
+            "params": {
+              "value": 28.5
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "group_id": "groundpower_1",
+            "id": "groundpower_1_k_zero",
+            "name": "k_zero",
+            "params": {
+              "value": 0.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 0.0,
+              "y": 64.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "group_id": "groundpower_1",
+            "id": "groundpower_1_k_zero_2",
+            "name": "k_zero_2",
+            "params": {
+              "value": 0.0
+            },
+            "ports": {
+              "o": {
+                "direction": "Out",
+                "type": 7
+              }
+            },
+            "position": {
+              "x": 0.0,
+              "y": 80.0
+            },
+            "render_hint": "ref",
+            "type": "Value"
+          },
+          {
+            "group_id": "groundpower_1",
+            "id": "groundpower_1_src",
+            "name": "src",
+            "params": {
+              "r_internal": 0.009999999776482582
+            },
+            "ports": {
+              "cmd": {
+                "direction": "In",
+                "type": 7
+              },
+              "gain": {
+                "direction": "In",
+                "type": 7
+              },
+              "i_out": {
+                "direction": "Out",
+                "type": 1
+              },
+              "max_v": {
+                "direction": "In",
+                "type": 7
+              },
+              "min_v": {
+                "direction": "In",
+                "type": 7
+              },
+              "offset": {
+                "direction": "In",
+                "type": 7
+              },
+              "v_neg": {
+                "direction": "In",
+                "type": 0
+              },
+              "v_pos": {
+                "direction": "Out",
+                "type": 0
+              }
+            },
+            "position": {
+              "x": 160.0,
+              "y": 32.0
+            },
+            "type": "ControlledVoltageSource"
+          }
+        ],
+        "pan_x": 0.0,
+        "pan_y": 0.0,
+        "scheduler_source": false,
+        "version": "3.0",
+        "wires": [
+          {
+            "id": "wire_groundpower_1_w_voltage_cmd",
+            "source": "/groundpower_1_k_voltage:o",
+            "target": "/groundpower_1_src:cmd"
+          },
+          {
+            "id": "wire_groundpower_1_w_one_gain",
+            "source": "/groundpower_1_k_one:o",
+            "target": "/groundpower_1_src:gain"
+          },
+          {
+            "id": "wire_groundpower_1_w_zero_offset",
+            "source": "/groundpower_1_k_zero:o",
+            "target": "/groundpower_1_src:offset"
+          },
+          {
+            "id": "wire_groundpower_1_w_zero_min",
+            "source": "/groundpower_1_k_zero_2:o",
+            "target": "/groundpower_1_src:min_v"
+          },
+          {
+            "id": "wire_groundpower_1_w_max_max",
+            "source": "/groundpower_1_k_max:o",
+            "target": "/groundpower_1_src:max_v"
+          },
+          {
+            "id": "wire_groundpower_1_w_vin_neg",
+            "source": "/groundpower_1:v_in:port",
+            "target": "/groundpower_1_src:v_neg"
+          },
+          {
+            "id": "wire_groundpower_1_w_src_vout",
+            "source": "/groundpower_1_src:v_pos",
+            "target": "/groundpower_1:v_out:port"
+          }
+        ],
+        "zoom": 1.0
+      },
+      "embedded": true,
+      "id": "groundpower_1",
+      "position": {
+        "x": 192.0,
+        "y": -512.0
+      }
     }
   ],
   "nodes": [
@@ -1757,6 +2032,25 @@
       "position": {
         "x": 688.0,
         "y": -608.0
+      },
+      "render_hint": "bus",
+      "string_params": {
+        "port_edge": "bottom"
+      },
+      "type": "Bus"
+    },
+    {
+      "id": "bus_3",
+      "name": "bus_3",
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": -96.0,
+        "y": -672.0
       },
       "render_hint": "bus",
       "string_params": {
@@ -2106,8 +2400,8 @@
         }
       },
       "position": {
-        "x": 272.0,
-        "y": -400.0
+        "x": 96.0,
+        "y": -368.0
       },
       "type": "LoadVoltageDrp",
       "width": 160.0
@@ -2383,6 +2677,224 @@
       "width": 160.0
     },
     {
+      "blueprint_path": "GroundPower",
+      "expandable": true,
+      "height": 64.0,
+      "id": "groundpower_1",
+      "name": "groundpower_1",
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": -192.0,
+        "y": -480.0
+      },
+      "type": "GroundPower",
+      "width": 160.0
+    },
+    {
+      "group_id": "groundpower_1",
+      "id": "groundpower_1:v_in",
+      "name": "v_in",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": 7
+        },
+        "port": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 160.0
+      },
+      "string_params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintInput"
+    },
+    {
+      "group_id": "groundpower_1",
+      "id": "groundpower_1:v_out",
+      "name": "v_out",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": 7
+        },
+        "port": {
+          "direction": "In",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 352.0,
+        "y": 32.0
+      },
+      "string_params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    },
+    {
+      "group_id": "groundpower_1",
+      "id": "groundpower_1_k_max",
+      "name": "k_max",
+      "params": {
+        "value": 30.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 96.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "groundpower_1",
+      "id": "groundpower_1_k_one",
+      "name": "k_one",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 32.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "groundpower_1",
+      "id": "groundpower_1_k_voltage",
+      "name": "k_voltage",
+      "params": {
+        "value": 28.5
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "groundpower_1",
+      "id": "groundpower_1_k_zero",
+      "name": "k_zero",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 64.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "groundpower_1",
+      "id": "groundpower_1_k_zero_2",
+      "name": "k_zero_2",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 0.0,
+        "y": 80.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "group_id": "groundpower_1",
+      "id": "groundpower_1_src",
+      "name": "src",
+      "params": {
+        "r_internal": 0.009999999776482582
+      },
+      "ports": {
+        "cmd": {
+          "direction": "In",
+          "type": 7
+        },
+        "gain": {
+          "direction": "In",
+          "type": 7
+        },
+        "i_out": {
+          "direction": "Out",
+          "type": 1
+        },
+        "max_v": {
+          "direction": "In",
+          "type": 7
+        },
+        "min_v": {
+          "direction": "In",
+          "type": 7
+        },
+        "offset": {
+          "direction": "In",
+          "type": 7
+        },
+        "v_neg": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_pos": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 160.0,
+        "y": 32.0
+      },
+      "type": "ControlledVoltageSource"
+    },
+    {
       "content_label": "",
       "content_max": 1.0,
       "content_min": 0.0,
@@ -2414,6 +2926,114 @@
       "position": {
         "x": 896.0,
         "y": -576.0
+      },
+      "type": "IndicatorLight",
+      "width": 80.0
+    },
+    {
+      "content_label": "",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 7,
+      "content_unit": "",
+      "content_value": 0.0,
+      "height": 80.0,
+      "id": "indicatorlight_2",
+      "name": "indicatorlight_2",
+      "params": {
+        "conductance": 0.0020000000949949026
+      },
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 96.0,
+        "y": -640.0
+      },
+      "type": "IndicatorLight",
+      "width": 80.0
+    },
+    {
+      "content_label": "",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 7,
+      "content_unit": "",
+      "content_value": 0.0,
+      "height": 80.0,
+      "id": "indicatorlight_3",
+      "name": "indicatorlight_3",
+      "params": {
+        "conductance": 0.0020000000949949026
+      },
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 96.0,
+        "y": -736.0
+      },
+      "type": "IndicatorLight",
+      "width": 80.0
+    },
+    {
+      "content_label": "",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 7,
+      "content_unit": "",
+      "content_value": 0.0,
+      "height": 80.0,
+      "id": "indicatorlight_4",
+      "name": "indicatorlight_4",
+      "params": {
+        "conductance": 0.0020000000949949026
+      },
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 96.0,
+        "y": -544.0
       },
       "type": "IndicatorLight",
       "width": 80.0
@@ -2479,6 +3099,63 @@
         "y": -432.0
       },
       "type": "Integrator"
+    },
+    {
+      "content_label": "",
+      "content_max": 5.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 8,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "knobswitch_1",
+      "name": "knobswitch_1",
+      "params": {
+        "g_closed": 1000.0,
+        "g_open": 9.999999974752427e-07,
+        "initial_position": 0.0,
+        "positions": 5.0
+      },
+      "ports": {
+        "common": {
+          "direction": "InOut",
+          "type": 0
+        },
+        "control": {
+          "direction": "In",
+          "type": 7
+        },
+        "position": {
+          "direction": "Out",
+          "type": 7
+        },
+        "t1": {
+          "direction": "InOut",
+          "type": 0
+        },
+        "t2": {
+          "direction": "InOut",
+          "type": 0
+        },
+        "t3": {
+          "direction": "InOut",
+          "type": 0
+        },
+        "t4": {
+          "direction": "InOut",
+          "type": 0
+        },
+        "t5": {
+          "direction": "InOut",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 384.0,
+        "y": -688.0
+      },
+      "type": "KnobSwitch"
     },
     {
       "group_id": "extract_inst_1",
@@ -3823,8 +4500,8 @@
       "type": "Voltmeter"
     }
   ],
-  "pan_x": -191.00881958007813,
-  "pan_y": -633.5184326171875,
+  "pan_x": -171.0299835205078,
+  "pan_y": -955.3153076171875,
   "version": "3.0",
   "wires": [
     {
@@ -4598,7 +5275,87 @@
       "id": "wire_143",
       "source": "/bus_2:v",
       "target": "/indicatorlight_1:v_in"
+    },
+    {
+      "id": "wire_groundpower_1_w_voltage_cmd",
+      "source": "/groundpower_1_k_voltage:o",
+      "target": "/groundpower_1_src:cmd"
+    },
+    {
+      "id": "wire_groundpower_1_w_one_gain",
+      "source": "/groundpower_1_k_one:o",
+      "target": "/groundpower_1_src:gain"
+    },
+    {
+      "id": "wire_groundpower_1_w_zero_offset",
+      "source": "/groundpower_1_k_zero:o",
+      "target": "/groundpower_1_src:offset"
+    },
+    {
+      "id": "wire_groundpower_1_w_zero_min",
+      "source": "/groundpower_1_k_zero_2:o",
+      "target": "/groundpower_1_src:min_v"
+    },
+    {
+      "id": "wire_groundpower_1_w_max_max",
+      "source": "/groundpower_1_k_max:o",
+      "target": "/groundpower_1_src:max_v"
+    },
+    {
+      "id": "wire_groundpower_1_w_vin_neg",
+      "source": "/groundpower_1:v_in:port",
+      "target": "/groundpower_1_src:v_neg"
+    },
+    {
+      "id": "wire_groundpower_1_w_src_vout",
+      "source": "/groundpower_1_src:v_pos",
+      "target": "/groundpower_1:v_out:port"
+    },
+    {
+      "id": "wire_145",
+      "source": "/bus_1:v",
+      "target": "/groundpower_1:v_in"
+    },
+    {
+      "id": "wire_147",
+      "source": "/bus_1:v",
+      "target": "/knobswitch_1:common"
+    },
+    {
+      "id": "wire_149",
+      "source": "/bus_3:v",
+      "target": "/indicatorlight_2:v_in"
+    },
+    {
+      "id": "wire_150",
+      "source": "/groundpower_1:v_out",
+      "target": "/bus_3:v"
+    },
+    {
+      "id": "wire_151",
+      "source": "/indicatorlight_2:v_out",
+      "target": "/knobswitch_1:t2"
+    },
+    {
+      "id": "wire_152",
+      "source": "/indicatorlight_3:v_out",
+      "target": "/knobswitch_1:t1"
+    },
+    {
+      "id": "wire_153",
+      "source": "/bus_3:v",
+      "target": "/indicatorlight_3:v_in"
+    },
+    {
+      "id": "wire_154",
+      "source": "/indicatorlight_4:v_out",
+      "target": "/knobswitch_1:t3"
+    },
+    {
+      "id": "wire_155",
+      "source": "/bus_3:v",
+      "target": "/indicatorlight_4:v_in"
     }
   ],
-  "zoom": 0.6346286535263062
+  "zoom": 1.1441707611083984
 }

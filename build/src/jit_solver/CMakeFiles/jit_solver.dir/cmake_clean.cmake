@@ -65,6 +65,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/jit_solver.dir/components/integrator.cpp.o.d"
   "CMakeFiles/jit_solver.dir/components/inverter.cpp.o"
   "CMakeFiles/jit_solver.dir/components/inverter.cpp.o.d"
+  "CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o"
+  "CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o.d"
   "CMakeFiles/jit_solver.dir/components/lerp_node.cpp.o"
   "CMakeFiles/jit_solver.dir/components/lerp_node.cpp.o.d"
   "CMakeFiles/jit_solver.dir/components/lesser.cpp.o"

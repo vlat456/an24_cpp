@@ -586,6 +586,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Users/vladimir/an24_cpp/src/jit_solver/components/sample_hold.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/integrator.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/clamp.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/normalize.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/min.h \

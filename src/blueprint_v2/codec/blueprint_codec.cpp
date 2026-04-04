@@ -763,7 +763,7 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                 throw std::runtime_error("invalid node entry: content_type must be integer");
             }
             int ct = n["content_type"].get<int>();
-            if (ct < 0 || ct > static_cast<int>(NodeContentType::Indicator)) {
+            if (ct < 0 || ct > static_cast<int>(NodeContentType::Knob)) {
                 throw std::runtime_error("invalid node entry: content_type out of range");
             }
             node.content_type = static_cast<NodeContentType>(ct);

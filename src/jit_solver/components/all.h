@@ -66,6 +66,7 @@
 #include "sample_hold.h"
 #include "accumulator.h"
 #include "integrator.h"
+#include "knob_switch.h"
 #include "clamp.h"
 #include "normalize.h"
 #include "min.h"

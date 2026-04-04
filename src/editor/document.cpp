@@ -173,11 +173,22 @@ std::string Document::build_simulation_json() const {
             return it != type_def->param_schema.end() && it->second.visual_only;
         };
 
+        // Check if a param should be serialized as an integer string.
+        auto is_int_param = [&](const std::string& key) -> bool {
+            if (!type_def) return false;
+            auto it = type_def->param_schema.find(key);
+            return it != type_def->param_schema.end() && it->second.type == ParamSchemaType::Int;
+        };
+
         json params = json::object();
         for (const auto& [k, v] : n.params) {
             std::string key = std::string(interner_.resolve(k));
             if (is_visual_only(key)) continue;
-            params[key] = std::to_string(v);
+            if (is_int_param(key)) {
+                params[key] = std::to_string(static_cast<long long>(v));
+            } else {
+                params[key] = std::to_string(v);
+            }
         }
         for (const auto& [k, v] : n.string_params) {
             if (is_visual_only(k)) continue;
@@ -388,6 +399,10 @@ void Document::startSimulation() {
         try {
             simulation_.start_from_json(build_simulation_json());
             simulation_running_ = true;
+            // Block editing gestures (but allow widget interaction) in all windows.
+            for (auto& win : window_manager_.windows()) {
+                win->set_simulation_mode(true);
+            }
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to start simulation: {}", e.what());
             simulation_.stop();
@@ -398,6 +413,9 @@ void Document::startSimulation() {
 void Document::stopSimulation() {
     simulation_.stop();
     simulation_running_ = false;
+    for (auto& win : window_manager_.windows()) {
+        win->set_simulation_mode(false);
+    }
 }
 
 void Document::rebuildSimulation() {
@@ -408,6 +426,9 @@ void Document::rebuildSimulation() {
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to rebuild simulation: {}", e.what());
             simulation_running_ = false;
+            for (auto& win : window_manager_.windows()) {
+                win->set_simulation_mode(false);
+            }
         }
     }
 }
@@ -529,6 +550,18 @@ void Document::updateNodeContentFromSimulation() {
                 if (std::isfinite(control_val)) {
                     content.value = control_val;
                 }
+            }
+        } else if (type_name == "KnobSwitch") {
+            // Read position output from simulation
+            float pos_val = simulation_.get_port_value(nid, "position");
+            if (std::isfinite(pos_val)) {
+                content.value = pos_val;
+            }
+            // Sync num_positions from params
+            auto pos_key = interner_.lookup("positions");
+            if (!pos_key.empty()) {
+                auto it = n.params.find(pos_key);
+                if (it != n.params.end()) content.max = it->second;
             }
         }
 
@@ -700,6 +733,32 @@ void Document::setSliderValue(const std::string& node_id, float value) {
     content.value = value;
     content.min   = n->content_min;
     content.max   = n->content_max;
+
+    for (const auto& win : window_manager_.windows()) {
+        if (n->group_id != win->group_id) continue;
+        auto* widget = win->scene.find(interner_.resolve(node_iid));
+        if (!widget) continue;
+        auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
+        if (nw) nw->updateContent(content);
+    }
+}
+
+void Document::setKnobPosition(const std::string& node_id, int position) {
+    // Push knob position to simulation via signal override (0-based float)
+    signal_overrides_[node_id + ".control"] = static_cast<float>(position);
+
+    // Push to visual widgets in all windows
+    auto node_iid = interner_.lookup(node_id);
+    if (node_iid.empty()) return;
+
+    const bp2::Blueprint::Node* n = model_.current().find_node(node_iid);
+    if (!n) return;
+
+    NodeContent content;
+    content.type  = static_cast<NodeContentType>(n->content_type);
+    content.value = static_cast<float>(position);
+    content.max   = n->content_max;
+    content.min   = n->content_min;
 
     for (const auto& win : window_manager_.windows()) {
         if (n->group_id != win->group_id) continue;
@@ -1276,6 +1335,9 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r,
     }
     if (!r.slider_node_id.empty()) {
         setSliderValue(r.slider_node_id, r.slider_value);
+    }
+    if (!r.knob_node_id.empty()) {
+        setKnobPosition(r.knob_node_id, r.knob_position);
     }
     if (!r.toggle_probe_wire_id.empty()) {
         action.toggle_probe_wire_id = r.toggle_probe_wire_id;

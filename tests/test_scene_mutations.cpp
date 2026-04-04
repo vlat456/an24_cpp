@@ -513,3 +513,83 @@ TEST(SnapMath, SideFromRelativePosition) {
     // Same position — dx==dy==0 → horizontal wins (right by >=0 check)
     EXPECT_EQ(side_from_relative_position(origin, origin), PortLayoutSide::Right);
 }
+
+// =============================================================================
+// Bug 2 regression: InOut ports must not appear on both sides of a node
+// =============================================================================
+
+TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
+    // When a node has InOut ports (e.g. KnobSwitch t1..t5), they appear in
+    // BOTH inputs[] and outputs[] arrays.  buildStandardLayout() must filter
+    // them from the outputs list so they only render on the left side.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_bp2_node(I, "knob_1", "KnobSwitch");
+    // InOut ports: appear in both inputs and outputs
+    knob.inputs.push_back(EditorPort(I.intern("t1"), PortSide::InOut, PortType::V));
+    knob.inputs.push_back(EditorPort(I.intern("t2"), PortSide::InOut, PortType::V));
+    knob.inputs.push_back(EditorPort(I.intern("t3"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("t1"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("t2"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("t3"), PortSide::InOut, PortType::V));
+    knob.content_type = bp2::NodeContentType::Knob;
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    // Count port widgets — each InOut port should appear exactly once, not twice.
+    int t1_count = 0, t2_count = 0, t3_count = 0;
+    for (auto* p : widget->ports()) {
+        std::string_view pname = p->name();
+        if (pname == "t1") t1_count++;
+        else if (pname == "t2") t2_count++;
+        else if (pname == "t3") t3_count++;
+    }
+    EXPECT_EQ(t1_count, 1) << "InOut port t1 should appear exactly once";
+    EXPECT_EQ(t2_count, 1) << "InOut port t2 should appear exactly once";
+    EXPECT_EQ(t3_count, 1) << "InOut port t3 should appear exactly once";
+}
+
+TEST(SceneMutations, InOutPortsMixedWithRegularPorts) {
+    // A node with both regular and InOut ports: regular ports should still
+    // appear on their respective sides, InOut ports only on the left.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto node = make_bp2_node(I, "mixed_1", "MixedComponent");
+    // Regular input
+    node.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    // InOut ports in both arrays
+    node.inputs.push_back(EditorPort(I.intern("bus"), PortSide::InOut, PortType::V));
+    node.outputs.push_back(EditorPort(I.intern("bus"), PortSide::InOut, PortType::V));
+    // Regular output
+    node.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("mixed_1"));
+    ASSERT_NE(widget, nullptr);
+
+    // Count all port widgets
+    int bus_count = 0, v_in_count = 0, v_out_count = 0;
+    for (auto* p : widget->ports()) {
+        std::string_view pname = p->name();
+        if (pname == "bus") bus_count++;
+        else if (pname == "v_in") v_in_count++;
+        else if (pname == "v_out") v_out_count++;
+    }
+    EXPECT_EQ(bus_count, 1) << "InOut port 'bus' should appear exactly once";
+    EXPECT_EQ(v_in_count, 1) << "Regular input 'v_in' should appear once";
+    EXPECT_EQ(v_out_count, 1) << "Regular output 'v_out' should appear once";
+}

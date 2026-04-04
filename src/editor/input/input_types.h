@@ -51,6 +51,7 @@ enum class InputState {
     MarqueeSelect,         ///< Alt+left-drag rectangle selection
     ResizingNode,          ///< Left-drag on a resize handle (group nodes)
     DraggingSlider,        ///< Left-drag on a slider content widget
+    DraggingKnob,          ///< Left-drag on a knob switch widget
 };
 
 /// Actions the canvas input wants the host (Document / WindowSystem) to perform.
@@ -68,6 +69,8 @@ struct InputResult {
     ui::Pt toggle_probe_world_pos;
     std::string slider_node_id;         ///< non-empty = set this Slider node's value
     float slider_value = 0.0f;          ///< raw value (already mapped from min..max)
+    std::string knob_node_id;           ///< non-empty = set this Knob node's position
+    int knob_position = 0;              ///< 0-based position index
 
     /// Combine results (logical OR of flags)
     InputResult& operator|=(const InputResult& o) {
@@ -83,6 +86,10 @@ struct InputResult {
         if (!o.slider_node_id.empty()) {
             slider_node_id = o.slider_node_id;
             slider_value = o.slider_value;
+        }
+        if (!o.knob_node_id.empty()) {
+            knob_node_id = o.knob_node_id;
+            knob_position = o.knob_position;
         }
         if (o.show_context_menu) context_menu_pos = o.context_menu_pos;
         if (o.show_node_context_menu) {

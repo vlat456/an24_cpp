@@ -1,0 +1,94 @@
+{
+  "version": "3.0",
+  "id": "KnobSwitch",
+  "display_name": "Knob Switch",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "common",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "t1",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "t2",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "t3",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "t4",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "t5",
+      "domain": 1,
+      "direction": 2,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "control",
+      "domain": 2,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "position",
+      "domain": 2,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Multi-position rotary selector switch (2-5 positions). Connects selected terminal (t1..tN) to common via dynamic conductance. Position controlled by 'control' input (0-based). Set 'positions' param to 2-5.",
+  "domains": [
+    "Electrical",
+    "Logical"
+  ],
+  "param_defaults": {
+    "positions": "2",
+    "initial_position": "0",
+    "g_open": "1e-6",
+    "g_closed": "1000.0"
+  },
+  "param_schema": {
+    "positions": {
+      "type": "int"
+    },
+    "initial_position": {
+      "type": "int"
+    },
+    "g_open": {
+      "type": "float"
+    },
+    "g_closed": {
+      "type": "float"
+    }
+  },
+  "content_type": "Knob"
+}

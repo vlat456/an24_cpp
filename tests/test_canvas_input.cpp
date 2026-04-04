@@ -846,3 +846,270 @@ TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
         EXPECT_EQ(result.toggle_switch_node_id, "azs_1");
     }
 }
+
+// ============================================================================
+// Bug 3 regression: simulation_mode blocks editing but allows widget interaction
+// ============================================================================
+
+TEST(CanvasInputSimMode, SimModeBlocksNodeDrag) {
+    // In simulation mode, clicking on a node body should NOT enter
+    // DraggingNode state and should NOT select the node.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto node = make_node(I, "n1", "Battery", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.simulation_mode = true;
+
+    const Pt canvas_min(0.0f, 0.0f);
+    Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
+    input.on_mouse_down(click_pos, MouseButton::Left, canvas_min);
+
+    EXPECT_NE(input.state(), InputState::DraggingNode)
+        << "simulation_mode must block node dragging";
+    EXPECT_EQ(input.state(), InputState::Panning)
+        << "clicking on node body in simulation_mode should pan";
+    EXPECT_EQ(input.selected_nodes().size(), 0u)
+        << "simulation_mode must not select nodes";
+}
+
+TEST(CanvasInputSimMode, SimModeBlocksWireCreation) {
+    // In simulation mode, clicking on a port should NOT enter wire creation.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
+    ASSERT_NE(src_w, nullptr);
+    auto* src_out = src_w->portByName("v_out");
+    ASSERT_NE(src_out, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.simulation_mode = true;
+
+    const Pt canvas_min(0.0f, 0.0f);
+    Pt port_pos = src_out->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+    input.on_mouse_down(port_pos, MouseButton::Left, canvas_min);
+
+    EXPECT_NE(input.state(), InputState::CreatingWire)
+        << "simulation_mode must block wire creation";
+}
+
+TEST(CanvasInputSimMode, SimModeBlocksDeleteKey) {
+    // In simulation mode, pressing Delete with a selected node must NOT remove it.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto node = make_node(I, "n1", "Battery", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.simulation_mode = true;
+
+    ASSERT_TRUE(input.select_node_by_id("n1"));
+    input.on_key(Key::Delete);
+
+    // Node must still exist
+    EXPECT_NE(model.current().find_node(I.intern("n1")), nullptr)
+        << "simulation_mode must block node deletion";
+}
+
+TEST(CanvasInputSimMode, SimModeAllowsToggleInteraction) {
+    // In simulation mode, clicking on a VerticalToggle content area should
+    // still return toggle_switch_node_id.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    azs.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.content_state = false;
+    azs.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    azs.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+
+    EXPECT_EQ(result.toggle_switch_node_id, "azs_1")
+        << "simulation_mode must allow toggle interaction";
+}
+
+TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
+    // In simulation mode, clicking on a Knob content area should still
+    // enter DraggingKnob state and return knob_node_id.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+    knob.content_type = bp2::NodeContentType::Knob;
+    knob.content_max = 5.0f;
+    knob.inputs.push_back(EditorPort(I.intern("t1"), PortSide::InOut, PortType::V));
+    knob.outputs.push_back(EditorPort(I.intern("t1"), PortSide::InOut, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+
+    EXPECT_EQ(result.knob_node_id, "knob_1")
+        << "simulation_mode must allow knob interaction";
+    EXPECT_EQ(input.state(), InputState::DraggingKnob)
+        << "simulation_mode must allow knob drag state";
+}
+
+TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
+    // In simulation mode, clicking on a Slider content area should still
+    // enter DraggingSlider state and return slider_node_id.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.content_type = bp2::NodeContentType::Slider;
+    slider.content_min = 0.0f;
+    slider.content_max = 100.0f;
+    slider.inputs.push_back(EditorPort(I.intern("ctrl"), PortSide::Input, PortType::V));
+    slider.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+
+    EXPECT_EQ(result.slider_node_id, "slider_1")
+        << "simulation_mode must allow slider interaction";
+    EXPECT_EQ(input.state(), InputState::DraggingSlider)
+        << "simulation_mode must allow slider drag state";
+}
+
+TEST(CanvasInputSimMode, SimModeBlocksRightClickContextMenu) {
+    // In simulation mode, right-clicking should NOT show context menus.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto node = make_node(I, "n1", "Battery", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.simulation_mode = true;
+
+    const Pt canvas_min(0.0f, 0.0f);
+    Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
+    auto result = input.on_mouse_down(click_pos, MouseButton::Right, canvas_min);
+
+    EXPECT_FALSE(result.show_node_context_menu)
+        << "simulation_mode must block right-click context menu";
+    EXPECT_FALSE(result.show_context_menu)
+        << "simulation_mode must block right-click context menu";
+}
+
+TEST(CanvasInputSimMode, SimModeAllowsPanning) {
+    // In simulation mode, clicking on empty space should enter panning.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.simulation_mode = true;
+
+    const Pt canvas_min(0.0f, 0.0f);
+    input.on_mouse_down(Pt(500.0f, 500.0f), MouseButton::Left, canvas_min);
+
+    EXPECT_EQ(input.state(), InputState::Panning)
+        << "simulation_mode must allow panning on empty space";
+}

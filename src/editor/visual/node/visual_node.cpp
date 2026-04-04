@@ -121,8 +121,17 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
 
     // Fast path: no overrides — use existing paired-row layout
     if (data.layout_overrides.empty()) {
-        // Port rows: pair inputs and outputs
-        size_t max_ports = std::max(data.inputs.size(), data.outputs.size());
+        // Port rows: pair inputs and outputs.
+        // [BUG-2] InOut ports appear in BOTH inputs and outputs arrays;
+        // filter duplicates from outputs so they only render on the left side.
+        std::vector<EditorPort> right_ports;
+        right_ports.reserve(data.outputs.size());
+        for (const auto& p : data.outputs) {
+            if (p.side == PortSide::InOut) continue;  // already in inputs
+            right_ports.push_back(p);
+        }
+
+        size_t max_ports = std::max(data.inputs.size(), right_ports.size());
         for (size_t i = 0; i < max_ports; i++) {
             std::string_view left_name;
             std::string_view right_name;
@@ -130,10 +139,10 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
                 left_name = interner.resolve(data.inputs[i].name);
             }
             PortType left_type = (i < data.inputs.size()) ? data.inputs[i].type : PortType::Any;
-            if (i < data.outputs.size()) {
-                right_name = interner.resolve(data.outputs[i].name);
+            if (i < right_ports.size()) {
+                right_name = interner.resolve(right_ports[i].name);
             }
-            PortType right_type = (i < data.outputs.size()) ? data.outputs[i].type : PortType::Any;
+            PortType right_type = (i < right_ports.size()) ? right_ports[i].type : PortType::Any;
             buildPortRow(left_name, left_type, right_name, right_type);
         }
 
@@ -172,6 +181,15 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
                 Edges{margin, 2.0f, margin, 2.0f});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<IndicatorWidget>(data.content_value);
+        } else if (content_type == NodeContentType::Knob) {
+            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
+            auto* container = layout_->emplaceChild<Container>(
+                Edges{margin, 2.0f, margin, 2.0f});
+            container->setFlexGrow(1.0f);
+            int pos = static_cast<int>(data.content_value);
+            int num = static_cast<int>(data.content_max);
+            if (num < 2) num = 2;
+            content_widget_ = container->emplaceChild<KnobWidget>(pos, num);
         } else if (content_type != NodeContentType::None) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
@@ -280,6 +298,12 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui
     } else if (content_type == NodeContentType::Indicator) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<IndicatorWidget>(data.content_value);
+    } else if (content_type == NodeContentType::Knob) {
+        auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
+        int pos = static_cast<int>(data.content_value);
+        int num = static_cast<int>(data.content_max);
+        if (num < 2) num = 2;
+        content_widget_ = inner->emplaceChild<KnobWidget>(pos, num);
     } else if (content_type != NodeContentType::None) {
         if (!data.content_label.empty()) {
             content_widget_ = center->emplaceChild<Label>(

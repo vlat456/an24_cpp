@@ -41,6 +41,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/vladimir/an24_cpp/src/jit_solver/components/inertia_node.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/inertia_node.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/inertia_node.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/integrator.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/integrator.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/integrator.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/inverter.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/inverter.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/inverter.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/lerp_node.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/lerp_node.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/lerp_node.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/lesser.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/lesser.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/lesser.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/lesser_eq.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/lesser_eq.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/lesser_eq.cpp.o.d"

@@ -207,6 +207,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/electrical_parity_fixtures_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/external_ref_signal_mapping_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/signal_key_resolver_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/knob_switch_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

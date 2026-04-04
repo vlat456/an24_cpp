@@ -1473,6 +1473,20 @@ signal_key_resolver_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/build
 .PHONY : signal_key_resolver_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/knob_switch_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/knob_switch_tests.dir/rule
+.PHONY : tests/CMakeFiles/knob_switch_tests.dir/rule
+
+# Convenience name for target.
+knob_switch_tests: tests/CMakeFiles/knob_switch_tests.dir/rule
+.PHONY : knob_switch_tests
+
+# fast build rule for target.
+knob_switch_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/build
+.PHONY : knob_switch_tests/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -3387,6 +3401,30 @@ test_jit_aot_bridge_equivalence.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.s
 .PHONY : test_jit_aot_bridge_equivalence.cpp.s
 
+test_knob_switch.o: test_knob_switch.cpp.o
+.PHONY : test_knob_switch.o
+
+# target to build an object file
+test_knob_switch.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/test_knob_switch.cpp.o
+.PHONY : test_knob_switch.cpp.o
+
+test_knob_switch.i: test_knob_switch.cpp.i
+.PHONY : test_knob_switch.i
+
+# target to preprocess a source file
+test_knob_switch.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/test_knob_switch.cpp.i
+.PHONY : test_knob_switch.cpp.i
+
+test_knob_switch.s: test_knob_switch.cpp.s
+.PHONY : test_knob_switch.s
+
+# target to generate assembly for a file
+test_knob_switch.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/test_knob_switch.cpp.s
+.PHONY : test_knob_switch.cpp.s
+
 test_logic_gates.o: test_logic_gates.cpp.o
 .PHONY : test_logic_gates.o
 
@@ -4594,6 +4632,7 @@ help:
 	@echo "... integrator_tests"
 	@echo "... jit_aot_bridge_equivalence_tests"
 	@echo "... json_parser_tests"
+	@echo "... knob_switch_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
@@ -4867,6 +4906,9 @@ help:
 	@echo "... test_jit_aot_bridge_equivalence.o"
 	@echo "... test_jit_aot_bridge_equivalence.i"
 	@echo "... test_jit_aot_bridge_equivalence.s"
+	@echo "... test_knob_switch.o"
+	@echo "... test_knob_switch.i"
+	@echo "... test_knob_switch.s"
 	@echo "... test_logic_gates.o"
 	@echo "... test_logic_gates.i"
 	@echo "... test_logic_gates.s"

@@ -84,6 +84,8 @@ add_library(jit_solver
     components/electrical_source.cpp
     # Generic constant value source (non-electrical)
     components/value.cpp
+    # Multi-position rotary selector switch
+    components/knob_switch.cpp
 )
 
 target_include_directories(jit_solver PUBLIC

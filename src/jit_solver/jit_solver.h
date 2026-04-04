@@ -18,6 +18,7 @@
 #include "components/azs.h"
 #include "components/hold_button.h"
 #include "components/relay.h"
+#include "components/knob_switch.h"
 #include "components/electrical_conductance.h"
 #include "components/electrical_source.h"
 
@@ -45,6 +46,7 @@ struct SolverOwnedRefs {
     std::vector<AZS<JitProvider>*> azs_switches;
     std::vector<HoldButton<JitProvider>*> hold_buttons;
     std::vector<Relay<JitProvider>*> relays;
+    std::vector<KnobSwitch<JitProvider>*> knob_switches;
 
     // Commit-phase components (commit() called after solve_electrical each frame)
     std::vector<Generator<JitProvider>*> generators;

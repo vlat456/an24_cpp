@@ -1614,6 +1614,19 @@ signal_key_resolver_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/build
 .PHONY : signal_key_resolver_tests/fast
 
+#=============================================================================
+# Target rules for targets named knob_switch_tests
+
+# Build rule for target.
+knob_switch_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 knob_switch_tests
+.PHONY : knob_switch_tests
+
+# fast build rule for target.
+knob_switch_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/build
+.PHONY : knob_switch_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1683,6 +1696,7 @@ help:
 	@echo "... jit_solver"
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
+	@echo "... knob_switch_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"

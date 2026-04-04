@@ -248,4 +248,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/electrical_parity_fixtures_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/external_ref_signal_mapping_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/signal_key_resolver_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/knob_switch_tests.dir/DependInfo.cmake"
   )

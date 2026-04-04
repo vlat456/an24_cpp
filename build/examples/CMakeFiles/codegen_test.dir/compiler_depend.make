@@ -570,6 +570,7 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   /Users/vladimir/an24_cpp/src/jit_solver/components/inertia_node.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/integrator.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/inverter.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/lerp_node.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/lesser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/lesser_eq.h \
@@ -1227,6 +1228,8 @@ _deps/json-src/include/nlohmann/detail/iterators/internal_iterator.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_ctype.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_heap_until.h:
+
+/Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_heap.h:
 

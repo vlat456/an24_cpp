@@ -977,6 +977,30 @@ components/inverter.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/inverter.cpp.s
 .PHONY : components/inverter.cpp.s
 
+components/knob_switch.o: components/knob_switch.cpp.o
+.PHONY : components/knob_switch.o
+
+# target to build an object file
+components/knob_switch.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o
+.PHONY : components/knob_switch.cpp.o
+
+components/knob_switch.i: components/knob_switch.cpp.i
+.PHONY : components/knob_switch.i
+
+# target to preprocess a source file
+components/knob_switch.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.i
+.PHONY : components/knob_switch.cpp.i
+
+components/knob_switch.s: components/knob_switch.cpp.s
+.PHONY : components/knob_switch.s
+
+# target to generate assembly for a file
+components/knob_switch.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.s
+.PHONY : components/knob_switch.cpp.s
+
 components/lerp_node.o: components/lerp_node.cpp.o
 .PHONY : components/lerp_node.o
 
@@ -2122,6 +2146,9 @@ help:
 	@echo "... components/inverter.o"
 	@echo "... components/inverter.i"
 	@echo "... components/inverter.s"
+	@echo "... components/knob_switch.o"
+	@echo "... components/knob_switch.i"
+	@echo "... components/knob_switch.s"
 	@echo "... components/lerp_node.o"
 	@echo "... components/lerp_node.i"
 	@echo "... components/lerp_node.s"

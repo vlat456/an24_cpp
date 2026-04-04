@@ -124,6 +124,7 @@ public:
 
     void triggerSwitch(const std::string& node_id);
     void setSliderValue(const std::string& node_id, float value);
+    void setKnobPosition(const std::string& node_id, int position);
     void holdButtonPress(const std::string& node_id);
     void holdButtonRelease(const std::string& node_id);
 

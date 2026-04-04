@@ -313,6 +313,23 @@ void CanvasInput::enter_drag_slider(visual::Widget* node_widget, Pt slider_world
     slider_widget_width_ = slider_width;
 }
 
+void CanvasInput::enter_drag_knob(visual::Widget* node_widget, Pt world_pos) {
+    state_ = InputState::DraggingKnob;
+    knob_node_id_ = interner_.intern(node_widget->id());
+    knob_drag_start_x_ = world_pos.x;
+
+    // Read current position and num_positions from the data model
+    const bp2::Blueprint::Node* node = model_.current().find_node(knob_node_id_);
+    if (node) {
+        knob_drag_start_pos_ = static_cast<int>(node->content_value);
+        knob_num_positions_ = static_cast<int>(node->content_max);
+        if (knob_num_positions_ < 2) knob_num_positions_ = 2;
+    } else {
+        knob_drag_start_pos_ = 0;
+        knob_num_positions_ = 2;
+    }
+}
+
 void CanvasInput::leave_state() {
     state_ = InputState::Idle;
     drag_offsets_.clear();
@@ -377,6 +394,30 @@ std::string CanvasInput::check_slider_hit(visual::Widget& widget, Pt world_pos, 
 }
 
 // ============================================================================
+// Knob content hit check
+// ============================================================================
+
+std::string CanvasInput::check_knob_hit(visual::Widget& widget, Pt world_pos) {
+    std::string node_id(widget.id());
+    ui::InternedId node_iid = interner_.lookup(node_id);
+    const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr
+                                                         : model_.current().find_node(node_iid);
+    if (!node) return {};
+    if (node->content_type != bp2::NodeContentType::Knob) return {};
+
+    if (auto* nw = dynamic_cast<visual::NodeWidget*>(&widget)) {
+        Bounds cb = nw->contentBounds();
+        Pt wpos = nw->worldPos();
+        float lx = world_pos.x - wpos.x;
+        float ly = world_pos.y - wpos.y;
+        if (cb.contains(lx, ly)) {
+            return node_id;
+        }
+    }
+    return {};
+}
+
+// ============================================================================
 // on_mouse_down
 // ============================================================================
 
@@ -406,6 +447,61 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
                 clear_selection();
                 enter_panning();
             }
+            return result;
+        }
+
+        if (simulation_mode) {
+            // Simulation mode: allow slider/knob/toggle interaction + panning/selection,
+            // but block wire creation, node dragging, resize, and routing point manipulation.
+            auto hit = visual::hit_test(scene_, world);
+            if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
+                // Check slider
+                float slider_local_x = 0.0f;
+                auto slider_id = check_slider_hit(*hn->widget, world, slider_local_x);
+                if (!slider_id.empty()) {
+                    auto* nw = dynamic_cast<visual::NodeWidget*>(hn->widget);
+                    if (nw) {
+                        Bounds cb = nw->contentBounds();
+                        Pt nw_pos = nw->worldPos();
+                        Pt slider_wpos(nw_pos.x + cb.x, nw_pos.y + cb.y);
+                        enter_drag_slider(hn->widget, slider_wpos, cb.w);
+
+                        ui::InternedId nid_iid = interner_.lookup(slider_id);
+                        const bp2::Blueprint::Node* node = nid_iid.empty() ? nullptr
+                                                                           : model_.current().find_node(nid_iid);
+                        if (node) {
+                            float pad = visual::SliderWidget::HANDLE_RADIUS;
+                            float track_w = cb.w - 2.0f * pad;
+                            float t = (track_w > 0.0f) ? std::clamp((slider_local_x - pad) / track_w, 0.0f, 1.0f) : 0.0f;
+                            float val = node->content_min + t * (node->content_max - node->content_min);
+                            result.slider_node_id = std::move(slider_id);
+                            result.slider_value = val;
+                        }
+                    }
+                    return result;
+                }
+
+                // Check knob
+                auto knob_id = check_knob_hit(*hn->widget, world);
+                if (!knob_id.empty()) {
+                    enter_drag_knob(hn->widget, world);
+                    result.knob_node_id = std::move(knob_id);
+                    result.knob_position = knob_drag_start_pos_;
+                    return result;
+                }
+
+                // Check toggle
+                auto toggle_id = check_content_toggle(*hn->widget, world);
+                if (!toggle_id.empty()) {
+                    result.toggle_switch_node_id = std::move(toggle_id);
+                    return result;
+                }
+
+                // Not a widget hit → ignore (pan if dragged)
+            }
+            // Hit node body or empty space → pan
+            clear_selection();
+            enter_panning();
             return result;
         }
 
@@ -462,6 +558,16 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
                 return result;
             }
 
+            // Check if click landed on Knob content area → enter drag
+            auto knob_id = check_knob_hit(*hn->widget, world);
+            if (!knob_id.empty()) {
+                enter_drag_knob(hn->widget, world);
+                // Emit current position immediately on click
+                result.knob_node_id = std::move(knob_id);
+                result.knob_position = knob_drag_start_pos_;
+                return result;
+            }
+
             // Check if click landed on Switch/VerticalToggle content area
             auto toggle_id = check_content_toggle(*hn->widget, world);
             if (!toggle_id.empty()) {
@@ -479,7 +585,7 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             clear_selection();
             enter_panning();
         }
-    } else if (btn == MouseButton::Right && !read_only) {
+    } else if (btn == MouseButton::Right && !read_only && !simulation_mode) {
         auto hit = visual::hit_test(scene_, world);
         if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
             result.show_node_context_menu = true;
@@ -679,6 +785,21 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                     result.slider_node_id = std::string(interner_.resolve(slider_node_id_));
                     result.slider_value = val;
                 }
+                break;
+            }
+
+            case InputState::DraggingKnob: {
+                last_world_pos_ = last_world_pos_ + world_delta;
+                // Compute position change from horizontal drag delta.
+                // Each 30 world-units of horizontal movement = one position step.
+                float dx = last_world_pos_.x - knob_drag_start_x_;
+                constexpr float PIXELS_PER_STEP = 30.0f;
+                int delta_steps = static_cast<int>(dx / PIXELS_PER_STEP);
+                int new_pos = std::clamp(knob_drag_start_pos_ + delta_steps,
+                                          0, knob_num_positions_ - 1);
+
+                result.knob_node_id = std::string(interner_.resolve(knob_node_id_));
+                result.knob_position = new_pos;
                 break;
             }
 
@@ -906,8 +1027,8 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
     auto hit = visual::hit_test(scene_, world);
 
-    // 1. Routing-point removal (editing operation — skip in read-only)
-    if (!read_only) {
+    // 1. Routing-point removal (editing operation — skip in read-only/simulation)
+    if (!read_only && !simulation_mode) {
         if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
             ui::InternedId wire_iid = interner_.intern(hrp->wire->id());
             const bp2::Blueprint::Wire* bp2_wire = model_.current().find_wire(wire_iid);
@@ -940,8 +1061,8 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
         }
     }
 
-    // 3. Wire hit → add routing point (editing operation — skip in read-only)
-    if (!read_only) {
+    // 3. Wire hit → add routing point (editing operation — skip in read-only/simulation)
+    if (!read_only && !simulation_mode) {
         if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
             ui::InternedId wire_iid = interner_.intern(hw->wire->id());
             const bp2::Blueprint::Wire* bp2_wire = model_.current().find_wire(wire_iid);
@@ -975,8 +1096,8 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 InputResult CanvasInput::on_key(Key key) {
     InputResult result;
 
-    if (read_only) {
-        // Read-only: only Escape (clear selection) is allowed
+    if (read_only || simulation_mode) {
+        // Read-only / simulation: only Escape (clear selection) is allowed
         if (key == Key::Escape) clear_selection();
         return result;
     }

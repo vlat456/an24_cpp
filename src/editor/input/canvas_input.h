@@ -46,6 +46,12 @@ public:
     /// When true, the FSM suppresses all editing gestures.
     bool read_only = false;
 
+    /// When true, editing is suppressed but interactive widgets (slider, knob,
+    /// toggle) still respond to clicks/drags.  Used during simulation mode so
+    /// the user can manipulate controls without accidentally dragging nodes or
+    /// creating wires.
+    bool simulation_mode = false;
+
     // ---- Event handlers (call from ImGui loop) ----
 
     InputResult on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas_min, Modifiers mods = {});
@@ -160,6 +166,12 @@ private:
     Pt slider_widget_world_pos_;  ///< world pos of the SliderWidget at drag start
     float slider_widget_width_ = 0.0f;  ///< width of the SliderWidget
 
+    // Knob drag — stored as InternedId + drag start X for delta tracking
+    ui::InternedId knob_node_id_;
+    float knob_drag_start_x_ = 0.0f;    ///< world X at drag start
+    int knob_drag_start_pos_ = 0;        ///< position at drag start
+    int knob_num_positions_ = 2;         ///< total positions for this knob
+
     // Marquee
     Pt marquee_start_;
     Pt marquee_end_;
@@ -185,6 +197,7 @@ private:
                               Pt anchor_pos, PortSide fixed_side, PortType fixed_type);
     void enter_marquee(Pt world_pos);
     void enter_drag_slider(visual::Widget* node_widget, Pt slider_world_pos, float slider_width);
+    void enter_drag_knob(visual::Widget* node_widget, Pt world_pos);
     void leave_state();  // return to Idle (clean up transient data)
 
 public:
@@ -233,6 +246,10 @@ private:
     /// Returns the node ID if hit, empty string otherwise.
     /// Sets out_local_x to the local X coordinate within the slider widget.
     std::string check_slider_hit(visual::Widget& widget, Pt world_pos, float& out_local_x);
+
+    /// Check if a click on a node widget hit a Knob content area.
+    /// Returns the node ID if hit, empty string otherwise.
+    std::string check_knob_hit(visual::Widget& widget, Pt world_pos);
 
     // ---- Utility ----
 

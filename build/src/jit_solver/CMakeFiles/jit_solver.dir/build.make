@@ -1136,6 +1136,20 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/value.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/jit_solver.dir/components/value.cpp.s"
 	cd /Users/vladimir/an24_cpp/build/src/jit_solver && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/vladimir/an24_cpp/src/jit_solver/components/value.cpp -o CMakeFiles/jit_solver.dir/components/value.cpp.s
 
+src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o: src/jit_solver/CMakeFiles/jit_solver.dir/flags.make
+src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o: /Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.cpp
+src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o: src/jit_solver/CMakeFiles/jit_solver.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_77) "Building CXX object src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o"
+	cd /Users/vladimir/an24_cpp/build/src/jit_solver && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o -MF CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o.d -o CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.cpp
+
+src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/jit_solver.dir/components/knob_switch.cpp.i"
+	cd /Users/vladimir/an24_cpp/build/src/jit_solver && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.cpp > CMakeFiles/jit_solver.dir/components/knob_switch.cpp.i
+
+src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/jit_solver.dir/components/knob_switch.cpp.s"
+	cd /Users/vladimir/an24_cpp/build/src/jit_solver && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/vladimir/an24_cpp/src/jit_solver/components/knob_switch.cpp -o CMakeFiles/jit_solver.dir/components/knob_switch.cpp.s
+
 # Object files for target jit_solver
 jit_solver_OBJECTS = \
 "CMakeFiles/jit_solver.dir/jit_solver.cpp.o" \
@@ -1213,7 +1227,8 @@ jit_solver_OBJECTS = \
 "CMakeFiles/jit_solver.dir/components/variable_conductance.cpp.o" \
 "CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.o" \
 "CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o" \
-"CMakeFiles/jit_solver.dir/components/value.cpp.o"
+"CMakeFiles/jit_solver.dir/components/value.cpp.o" \
+"CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o"
 
 # External object files for target jit_solver
 jit_solver_EXTERNAL_OBJECTS =
@@ -1294,9 +1309,10 @@ src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/compone
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.o
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/components/value.cpp.o
+src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/components/knob_switch.cpp.o
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/build.make
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_77) "Linking CXX static library libjit_solver.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_78) "Linking CXX static library libjit_solver.a"
 	cd /Users/vladimir/an24_cpp/build/src/jit_solver && $(CMAKE_COMMAND) -P CMakeFiles/jit_solver.dir/cmake_clean_target.cmake
 	cd /Users/vladimir/an24_cpp/build/src/jit_solver && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/jit_solver.dir/link.txt --verbose=$(VERBOSE)
 

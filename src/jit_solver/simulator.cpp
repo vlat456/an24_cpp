@@ -66,6 +66,16 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st) {
         auto& elem = island.elements[comp->electrical_handle.element_index];
         elem.value_a = g;
     }
+
+    for (auto* comp : br.solver_owned.knob_switches) {
+        for (int i = 0; i < comp->num_handles; ++i) {
+            if (!is_valid(comp->electrical_handles[i])) continue;
+            float g = (i == comp->selected) ? comp->g_closed : comp->g_open;
+            auto& island = br.electrical_plan.islands[comp->electrical_handles[i].island_index];
+            auto& elem = island.elements[comp->electrical_handles[i].element_index];
+            elem.value_a = g;
+        }
+    }
 }
 
 /// Commit pass for solver-owned components that need per-frame state integration.
@@ -81,6 +91,7 @@ void commit_solver_owned_devices(BuildResult& br, SimulationState& st, double dt
     for (auto* comp : br.solver_owned.azs_switches) { comp->commit(st, dt); }
     for (auto* comp : br.solver_owned.hold_buttons) { comp->commit(st, dt); }
     for (auto* comp : br.solver_owned.relays) { comp->commit(st, dt); }
+    for (auto* comp : br.solver_owned.knob_switches) { comp->commit(st, dt); }
 }
 
 } // anonymous namespace

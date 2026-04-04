@@ -1607,3 +1607,16 @@ target_link_libraries(signal_key_resolver_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(signal_key_resolver_tests)
+
+# KnobSwitch (multi-position rotary selector) component tests
+add_executable(knob_switch_tests
+    test_knob_switch.cpp
+)
+target_include_directories(knob_switch_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(knob_switch_tests PRIVATE
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(knob_switch_tests)

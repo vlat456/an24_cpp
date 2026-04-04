@@ -190,4 +190,41 @@ private:
     static constexpr uint32_t COLOR_ON  = 0xFF30D040;
 };
 
+/// Multi-position rotary knob switch widget.
+/// Displays a circle knob with radial tick marks on a top 180° arc.
+/// Positions are evenly distributed across the arc sweep.
+/// Drag left to decrement, drag right to increment.
+class KnobWidget : public Widget {
+public:
+    KnobWidget(int position = 0, int num_positions = 2);
+
+    void setPosition(int pos) { position_ = pos; }
+    int getPosition() const { return position_; }
+    int numPositions() const { return num_positions_; }
+
+    Pt preferredSize(IDrawList* dl) const override;
+    void layout(float w, float h) override;
+    void render(IDrawList* dl, const RenderContext& ctx) const override;
+    void updateFromContent(const NodeContent& content) override;
+
+    static constexpr float SIZE = 48.0f;
+    static constexpr float KNOB_RADIUS = 16.0f;
+    static constexpr float TICK_INNER = 20.0f;
+    static constexpr float TICK_OUTER = 24.0f;
+
+private:
+    int position_;
+    int num_positions_;
+
+    static constexpr float ARC_START_DEG = 225.0f;  ///< Start angle (9 o'clock, upper-left)
+    static constexpr float ARC_SWEEP_DEG = -270.0f;  ///< Sweep CW across top to 3 o'clock
+
+    static constexpr uint32_t COLOR_KNOB_FILL   = 0xFF3A3A42;
+    static constexpr uint32_t COLOR_KNOB_BORDER = 0xFF606068;
+    static constexpr uint32_t COLOR_INDICATOR   = 0xFF5078C0;
+    static constexpr uint32_t COLOR_TICK        = 0xFF808090;
+    static constexpr uint32_t COLOR_TICK_ACTIVE = 0xFF5078C0;
+    static constexpr float FONT_SIZE = 9.0f;
+};
+
 } // namespace visual

@@ -56,6 +56,7 @@ enum class ComponentType {
     InertiaNode,
     Integrator,
     Inverter,
+    KnobSwitch,
     LUT,
     LerpNode,
     Lesser,
@@ -132,6 +133,7 @@ constexpr size_t IndicatorLight_PORT_COUNT = 3;
 constexpr size_t InertiaNode_PORT_COUNT = 5;
 constexpr size_t Integrator_PORT_COUNT = 4;
 constexpr size_t Inverter_PORT_COUNT = 2;
+constexpr size_t KnobSwitch_PORT_COUNT = 8;
 constexpr size_t LUT_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
 constexpr size_t Lesser_PORT_COUNT = 3;
@@ -331,6 +333,16 @@ constexpr const char* Integrator_PORTS[] = {
 constexpr const char* Inverter_PORTS[] = {
     "ac_out",
     "dc_in"
+};
+constexpr const char* KnobSwitch_PORTS[] = {
+    "common",
+    "control",
+    "position",
+    "t1",
+    "t2",
+    "t3",
+    "t4",
+    "t5"
 };
 constexpr const char* LUT_PORTS[] = {
     "input",
@@ -1065,6 +1077,38 @@ constexpr bool Inverter_PORT_SOURCE_WRITER[] = {
 };
 constexpr bool Inverter_SCHEDULER_SOURCE = false;
 
+constexpr RegistryPortDirection KnobSwitch_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut,
+    RegistryPortDirection::InOut
+};
+constexpr uint8_t KnobSwitch_PORT_DOMAINS[] = {
+    1,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1
+};
+constexpr bool KnobSwitch_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+};
+constexpr bool KnobSwitch_SCHEDULER_SOURCE = false;
+
 constexpr RegistryPortDirection LUT_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::Out
@@ -1719,6 +1763,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"ac_out", PortNames::ac_out},
         {"brightness", PortNames::brightness},
         {"cmd", PortNames::cmd},
+        {"common", PortNames::common},
         {"control", PortNames::control},
         {"ctrl", PortNames::ctrl},
         {"damping", PortNames::damping},
@@ -1760,6 +1805,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"port", PortNames::port},
         {"pos_a", PortNames::pos_a},
         {"pos_b", PortNames::pos_b},
+        {"position", PortNames::position},
         {"power", PortNames::power},
         {"primary", PortNames::primary},
         {"reset", PortNames::reset},
@@ -1767,6 +1813,11 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"secondary", PortNames::secondary},
         {"setpoint", PortNames::setpoint},
         {"state", PortNames::state},
+        {"t1", PortNames::t1},
+        {"t2", PortNames::t2},
+        {"t3", PortNames::t3},
+        {"t4", PortNames::t4},
+        {"t5", PortNames::t5},
         {"temp", PortNames::temp},
         {"temp_in", PortNames::temp_in},
         {"temp_out", PortNames::temp_out},
@@ -1821,6 +1872,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"InertiaNode", {"damping", "inv_inertia", "mass", "rpm_out", "torque_in"}},
         {"Integrator", {"gain", "in", "out", "reset"}},
         {"Inverter", {"ac_out", "dc_in"}},
+        {"KnobSwitch", {"common", "control", "position", "t1", "t2", "t3", "t4", "t5"}},
         {"LUT", {"input", "output"}},
         {"LerpNode", {"input", "output"}},
         {"Lesser", {"A", "B", "o"}},
@@ -1904,6 +1956,7 @@ inline bool has_component_metadata(const std::string& classname) {
         "InertiaNode",
         "Integrator",
         "Inverter",
+        "KnobSwitch",
         "LUT",
         "LerpNode",
         "Lesser",
@@ -1982,6 +2035,7 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"InertiaNode", false},
         {"Integrator", false},
         {"Inverter", false},
+        {"KnobSwitch", false},
         {"LUT", false},
         {"LerpNode", false},
         {"Lesser", false},
@@ -2289,6 +2343,14 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
         for (size_t i = 0; i < Inverter_PORT_COUNT; ++i) {
             if (Inverter_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Inverter_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
                 result.push_back(Inverter_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "KnobSwitch") {
+        for (size_t i = 0; i < KnobSwitch_PORT_COUNT; ++i) {
+            if (KnobSwitch_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || KnobSwitch_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(KnobSwitch_PORTS[i]);
             }
         }
         return result;
@@ -2874,6 +2936,14 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         }
         return result;
     }
+    if (classname == "KnobSwitch") {
+        for (size_t i = 0; i < KnobSwitch_PORT_COUNT; ++i) {
+            if (KnobSwitch_PORT_SOURCE_WRITER[i] && ((KnobSwitch_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(KnobSwitch_PORTS[i]);
+            }
+        }
+        return result;
+    }
     if (classname == "LUT") {
         for (size_t i = 0; i < LUT_PORT_COUNT; ++i) {
             if (LUT_PORT_SOURCE_WRITER[i] && ((LUT_PORT_DOMAINS[i] & domain_mask) != 0)) {
@@ -3225,6 +3295,7 @@ using ComponentVariant = std::variant<
     InertiaNode<JitProvider>,
     Integrator<JitProvider>,
     Inverter<JitProvider>,
+    KnobSwitch<JitProvider>,
     LUT<JitProvider>,
     LerpNode<JitProvider>,
     Lesser<JitProvider>,

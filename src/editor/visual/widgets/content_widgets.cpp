@@ -408,4 +408,88 @@ void IndicatorWidget::updateFromContent(const NodeContent& content) {
     brightness_ = std::clamp(content.value, 0.0f, 1.0f);
 }
 
+// ============================================================================
+// KnobWidget
+// ============================================================================
+
+KnobWidget::KnobWidget(int position, int num_positions)
+    : position_(position), num_positions_(num_positions)
+{
+    setFlexible(false);
+    setSize(Pt(SIZE, SIZE));
+}
+
+Pt KnobWidget::preferredSize(IDrawList*) const {
+    return Pt(SIZE, SIZE);
+}
+
+void KnobWidget::layout(float w, float h) {
+    Widget::layout(w, h);
+}
+
+void KnobWidget::render(IDrawList* dl, const RenderContext& ctx) const {
+    Pt origin = ctx.world_to_screen(worldPos());
+    float zoom = ctx.zoom;
+
+    float cx = origin.x + size().x * zoom * 0.5f;
+    float cy = origin.y + size().y * zoom * 0.5f;
+
+    constexpr float DEG2RAD = 3.14159265f / 180.0f;
+    auto angle_to_pt = [&](float angle_deg, float radius) -> Pt {
+        float rad = angle_deg * DEG2RAD;
+        return Pt(cx + std::cos(rad) * radius, cy - std::sin(rad) * radius);
+    };
+
+    // Draw tick marks for each position
+    float knob_r = KNOB_RADIUS * zoom;
+    float tick_in = TICK_INNER * zoom;
+    float tick_out = TICK_OUTER * zoom;
+
+    for (int i = 0; i < num_positions_; ++i) {
+        float t = (num_positions_ > 1) 
+            ? static_cast<float>(i) / (num_positions_ - 1) 
+            : 0.5f;
+        float angle = ARC_START_DEG + t * ARC_SWEEP_DEG;
+
+        Pt inner = angle_to_pt(angle, tick_in);
+        Pt outer = angle_to_pt(angle, tick_out);
+
+        uint32_t color = (i == position_) ? COLOR_TICK_ACTIVE : COLOR_TICK;
+        float thickness = (i == position_) ? 2.5f * zoom : 1.5f * zoom;
+        dl->add_line(inner, outer, color, thickness);
+    }
+
+    // Draw knob circle
+    dl->add_circle_filled(Pt(cx, cy), knob_r, COLOR_KNOB_FILL, 24);
+    dl->add_circle(Pt(cx, cy), knob_r, COLOR_KNOB_BORDER, 24);
+
+    // Draw indicator line from center toward selected position
+    float sel_t = (num_positions_ > 1) 
+        ? static_cast<float>(position_) / (num_positions_ - 1) 
+        : 0.5f;
+    float sel_angle = ARC_START_DEG + sel_t * ARC_SWEEP_DEG;
+    Pt indicator_tip = angle_to_pt(sel_angle, knob_r * 0.85f);
+    dl->add_line(Pt(cx, cy), indicator_tip, COLOR_INDICATOR, 2.0f * zoom);
+
+    // Draw small dot at indicator tip
+    dl->add_circle_filled(indicator_tip, 2.5f * zoom, COLOR_INDICATOR, 8);
+
+    // Position label below knob
+    char buf[8];
+    snprintf(buf, sizeof(buf), "%d", position_ + 1);  // 1-based display
+    float font = FONT_SIZE * zoom;
+    Pt text_sz = dl->calc_text_size(buf, font);
+    float tx = cx - text_sz.x / 2.0f;
+    float ty = origin.y + size().y * zoom - font;
+    dl->add_text(Pt(tx, ty), buf, render_theme::COLOR_TEXT_DIM, font);
+}
+
+void KnobWidget::updateFromContent(const NodeContent& content) {
+    position_ = static_cast<int>(content.value);
+    num_positions_ = static_cast<int>(content.max);
+    if (num_positions_ < 2) num_positions_ = 2;
+    if (position_ < 0) position_ = 0;
+    if (position_ >= num_positions_) position_ = num_positions_ - 1;
+}
+
 } // namespace visual
