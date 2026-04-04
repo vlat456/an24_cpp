@@ -1004,6 +1004,11 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
     bp2::Blueprint inline_bp;
     if (loaded_opt) {
+        spdlog::debug("[editor] addBlueprint('{}'): loaded {} nodes, {} wires from '{}'",
+                      blueprint_name,
+                      loaded_opt->nodes().size(),
+                      loaded_opt->wires().size(),
+                      blueprint_file.string());
         bp2::Blueprint loaded = std::move(*loaded_opt);
         inline_bp = loaded.with_interface(collapsed.iface);
         inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
@@ -1048,8 +1053,11 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
             w_remapped.domain = w.domain;
             w_remapped.routing_points = std::move(w.routing_points);
 
+            // Copy the wire for root_internal_wires before moving into remapped_bp.
+            // Both consumers need a valid wire; moving twice would corrupt the second.
+            bp2::Blueprint::Wire w_for_doc = w_remapped;
             remapped_bp = remapped_bp.with_wire(std::move(w_remapped));
-            root_internal_wires.push_back(std::move(w_remapped));
+            root_internal_wires.push_back(std::move(w_for_doc));
         }
 
         inline_bp = std::move(remapped_bp);
@@ -1139,7 +1147,16 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
             win->set_read_only(!nested->embedded);
 
             if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && nested->inline_def) {
-                win->pending_auto_fit = has_default_pan_zoom(*nested->inline_def);
+                if (has_default_pan_zoom(*nested->inline_def)) {
+                    win->pending_auto_fit = true;
+                } else {
+                    // Apply saved viewport from the nested blueprint definition
+                    win->viewport.pan.x     = nested->inline_def->pan_x();
+                    win->viewport.pan.y     = nested->inline_def->pan_y();
+                    win->viewport.zoom      = nested->inline_def->zoom();
+                    win->viewport.grid_step = nested->inline_def->grid_step();
+                    win->viewport.clamp_zoom();
+                }
             } else {
                 // Referenced nested or embedded with missing inline_def:
                 // no saved viewport, auto-fit on first open.

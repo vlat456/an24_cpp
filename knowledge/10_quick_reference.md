@@ -52,6 +52,8 @@ cd build && ctest
 | Component internals | `knowledge/03_components.md` |
 | Blueprint/library format | `knowledge/07_library.md` |
 | Architecture overview | `knowledge/01_architecture.md` |
+| Editor internals | `knowledge/05_editor.md` |
+| Errors/TODO | `knowledge/errors_TODO.md` |
 
 ## AOT Code Generation
 

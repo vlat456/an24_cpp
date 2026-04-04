@@ -635,42 +635,39 @@ if (n.contains("string_params") && n["string_params"].is_object()) {
 
 Right-click-inserting a composite blueprint (e.g., 12SAM28 into `closed_circuit.blueprint`) created a sub-window that opened empty on double-click. The node was inserted and simulated correctly, but the sub-window had no content.
 
-**Root cause (two-part):**
+**Root cause (three-part):**
 
 1. `addBlueprint()` created internal nodes only inside `nested.inline_def` (the nested blueprint's own node list) but did NOT add them to the root blueprint. The `rebuild()` function for sub-windows iterates `bp.nodes()` (root blueprint's node list) filtered by `group_id`. Since internal nodes were only in `nested.inline_def`, not in the root `nodes()` list, they were never rendered in the sub-window.
 
-2. Even after promoting nodes to the root, wires were still missing because they weren't added to the root blueprint, and node positions/wire routing points weren't preserved because `addBlueprint` was manually constructing the inline blueprint from `TypeDefinition` data (which lacks positions/routing_points).
+2. Even after promoting nodes to the root, wires were missing because they weren't added to the root blueprint, and node positions/wire routing points weren't preserved because `addBlueprint` was manually constructing the inline blueprint from `TypeDefinition` data (which lacks positions/routing_points).
+
+3. **Wire object moved twice bug:** When remapping wires, `w_remapped` was moved into `remapped_bp` AND then moved again into `root_internal_wires`. Since `std::move` transfers ownership, the second `push_back(std::move(w_remapped))` received a moved-from object with empty fields. Both consumers need the same wire data — must copy before first move.
 
 **Fix:** Refactored `addBlueprint()` to use `load_blueprint_from_file_validated()` — the same JSON parsing code used for loading saved documents. This gives us all metadata for free:
 - Node positions from `"position": {"x":..., "y":...}` in the `.blueprint` file
 - Wire routing points from `"routing_points"` in the `.blueprint` file  
 - Viewport settings (`pan_x`, `pan_y`, `zoom`, `grid_step`) for sub-window auto-fit
+- Library blueprint path lookup via `registry.categories[blueprint_name]` (e.g., `"systems"` → `library/systems/`)
 
 After loading, all internal node IDs and wire endpoints are namespace-remapped to `unique_id + "_" + original_name` (e.g., `"12SAM28_1_battery"`) to avoid collisions when inserting the same blueprint multiple times. Remapped nodes and wires are added to the root blueprint via `cmd_add_node()` / `cmd_add_wire()`. The loaded blueprint (with remapped IDs) becomes `inline_def`.
 
+Also fixed sub-window viewport: instead of blindly setting `pending_auto_fit = has_default_pan_zoom(*nested->inline_def)`, apply saved viewport from nested blueprint directly to window:
+
 ```cpp
-// Load full blueprint with positions, wires, viewport from .blueprint file
-auto loaded_opt = load_blueprint_from_file_validated(blueprint_file.c_str(), ...);
-bp2::Blueprint loaded = std::move(*loaded_opt);
-
-// Namespace-remap all internal node IDs
-for (bp2::Blueprint::Node n : loaded.nodes()) {
-    n.id = interner_.intern(unique_id + "_" + original_name);
-    n.group_id = unique_id;
-    remapped_bp = remapped_bp.with_node(std::move(n));
-    execute(model_, interner_, cmd_add_node(n));  // root blueprint
+if (has_default_pan_zoom(*nested->inline_def)) {
+    win->pending_auto_fit = true;
+} else {
+    win->viewport.pan.x     = nested->inline_def->pan_x();
+    win->viewport.pan.y     = nested->inline_def->pan_y();
+    win->viewport.zoom      = nested->inline_def->zoom();
+    win->viewport.grid_step = nested->inline_def->grid_step();
+    win->viewport.clamp_zoom();
 }
-
-// Same for wires — remap source/target paths, preserve routing_points
-execute(model_, interner_, cmd_add_wire(w_remapped));  // root blueprint
-
-// Use loaded blueprint (with remapped IDs) as inline_def
-nested.inline_def = std::make_unique<bp2::Blueprint>(std::move(remapped_bp));
-// Viewport from loaded blueprint → sub-window respects saved pan/zoom
-remapped_bp.with_viewport(loaded.pan_x(), loaded.pan_y(), ...);
 ```
 
-**Files changed:** `src/editor/document.cpp` — `addBlueprint()` function (complete rewrite), added `#include <filesystem>`
+**Key lesson:** Always reuse existing root-level document loading infrastructure. The root-level path already handles nodes, wires, positions, routing points, viewport, simulation integration, and oscilloscope rendering correctly. Don't manually reconstruct what JSON parsing already provides.
+
+**Files changed:** `src/editor/document.cpp` — `addBlueprint()` function (complete rewrite), added `#include <filesystem>`, viewport fix in `openSubWindow()`
 
 **Tests:** All 1462 pass
 

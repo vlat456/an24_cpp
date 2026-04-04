@@ -417,3 +417,57 @@ Port groups (all ports on one edge) are **centered on the respective node edge**
 Port is placed at the **exact geometric center** of the selected edge:
 - No snapping to `PORT_LAYOUT_GRID` on center position
 - Only clamped to keep port circle within node body bounds
+
+## Composite Blueprint Insertion
+
+When a user right-clicks → "Insert Blueprint" in the editor, the composite is inserted via `Document::addBlueprint()`.
+
+### How It Works
+
+1. **Load from `.blueprint` file** — uses `load_blueprint_from_file_validated()` with library path lookup via `registry.categories[blueprint_name]` (e.g., `"systems"` → `library/systems/12SAM28.blueprint`)
+
+2. **Namespace-remap IDs** — all internal node IDs become `unique_id + "_" + original_name` (e.g., `"12SAM28_1_battery"`) to avoid collisions when inserting the same blueprint multiple times
+
+3. **Promote to root blueprint** — internal nodes AND wires are added to the root blueprint (not just `inline_def`) with `group_id = unique_id`. This is critical: `rebuild()` iterates `bp.nodes()` filtered by `group_id`, so nodes must be in the root blueprint to appear in the sub-window.
+
+4. **Viewport from saved blueprint** — `openSubWindow()` applies saved viewport from `nested.inline_def` directly to the window (pan, zoom, grid_step)
+
+### Sub-Window Rendering
+
+Sub-windows display the contents of a nested composite blueprint when double-clicked. The rendering uses the existing `rebuild()` function:
+
+```cpp
+// rebuild() filters nodes by group_id — critical that internal nodes are in root blueprint
+for (const bp2::Blueprint::Node& n : bp.nodes()) {
+    if (n.group_id != group_id) continue;
+    scene.add(NodeFactory::create(n, interner, bus_wires));
+}
+
+// Wire routing points are preserved and applied to wire widgets
+for (size_t i = 0; i < w.routing_points.size(); ++i) {
+    wire_widget->addRoutingPoint(ui::Pt(w.routing_points[i].first, w.routing_points[i].second), i);
+}
+```
+
+### Key Files
+
+| File | Role |
+|------|------|
+| `document.cpp` | `addBlueprint()` — load, namespace-remap, promote to root; `openSubWindow()` — apply viewport |
+| `persist.cpp` | `load_blueprint_from_file_validated()` — JSON parsing with positions, routing points, viewport |
+| `scene_mutations.cpp` | `rebuild()` — creates node/wire widgets from blueprint data |
+| `blueprint_window.h` | `BlueprintWindow` — holds `external_blueprint`, `external_interner`, `external_arena` |
+| `sub_window_renderer.cpp` | Sub-window viewport auto-fit logic |
+
+### Common Pitfalls
+
+1. **Don't move the same object twice** — when remapping wires, copy before first move:
+   ```cpp
+   bp2::Blueprint::Wire w_for_doc = w_remapped;  // copy first
+   remapped_bp = remapped_bp.with_wire(std::move(w_remapped));
+   root_internal_wires.push_back(std::move(w_for_doc));  // use copy
+   ```
+
+2. **Library path lookup** — blueprints live in subdirectories (e.g., `library/systems/`). Use `registry.categories[blueprint_name]` to get the correct path.
+
+3. **Viewport default check** — only auto-fit if viewport is at default (near-zero pan, zoom=1). Otherwise apply saved viewport directly to window.
