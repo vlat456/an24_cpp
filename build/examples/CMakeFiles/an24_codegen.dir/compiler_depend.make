@@ -10,7 +10,6 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen.cpp.o: /Use
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -533,7 +532,6 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.c
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -1042,6 +1040,7 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.c
   _deps/json-src/include/nlohmann/ordered_map.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /Users/vladimir/an24_cpp/src/core/utils/union_find.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_composite_helpers.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_internal.h \
@@ -1057,7 +1056,6 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_h
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -1566,7 +1564,8 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_h
   _deps/json-src/include/nlohmann/ordered_map.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
-  /Users/vladimir/an24_cpp/src/core/solvers/shared/signal_union_rules.h \
+  /Users/vladimir/an24_cpp/src/core/utils/union_find.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_union_rules.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_composite_helpers.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_internal.h \
@@ -1583,7 +1582,6 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -2108,7 +2106,6 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cp
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -2634,7 +2631,6 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -3159,7 +3155,6 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -3715,8 +3710,6 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 /Users/vladimir/an24_cpp/src/parse_number.h:
 
-/Users/vladimir/an24_cpp/src/core/solvers/shared/signal_union_rules.h:
-
 /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_composite_helpers.h:
 
 /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_utils.h:
@@ -3770,6 +3763,8 @@ _deps/spdlog-src/include/spdlog/details/circular_q.h:
 _deps/json-src/include/nlohmann/detail/input/json_sax.hpp:
 
 _deps/spdlog-src/include/spdlog/details/log_msg.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/common/signal_union_rules.h:
 
 _deps/json-src/include/nlohmann/detail/hash.hpp:
 
@@ -3987,6 +3982,8 @@ _deps/json-src/include/nlohmann/detail/value_t.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/ostream_iterator.h:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator_traits.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator.h:
 
 _deps/json-src/include/nlohmann/detail/meta/std_fs.hpp:
@@ -4078,6 +4075,8 @@ _deps/json-src/include/nlohmann/detail/meta/std_fs.hpp:
 _deps/spdlog-src/include/spdlog/tweakme.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/unique_copy.h:
+
+/Users/vladimir/an24_cpp/src/core/utils/union_find.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int16_t.h:
 
@@ -4246,6 +4245,8 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/core.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_nl_item.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/for_each_n.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/for_each.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/wchar.h:
 
@@ -4507,6 +4508,14 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_errno_t.h:
 
+_deps/spdlog-src/include/spdlog/fmt/fmt.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/limits.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/limits.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ct_rune_t.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/enable_borrowed_range.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/remove_copy_if.h:
@@ -4589,12 +4598,6 @@ _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/limits.h:
-
-_deps/spdlog-src/include/spdlog/fmt/fmt.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/limits.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__function_like.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/erase_if_container.h:
@@ -4639,8 +4642,6 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/equal.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/for_each.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint8_t.h:
@@ -4655,29 +4656,17 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/vector:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/concepts:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int32_t.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_setsize.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/endian.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/wchar.h:
-
-/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternalLegacy.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/advance.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_seek_set.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_t.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/wchar.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/endian.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_endian.h:
 
@@ -4715,7 +4704,9 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_xlocale.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ct_rune_t.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/signal.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wctype.h:
 
 _deps/json-src/include/nlohmann/detail/iterators/iterator_traits.hpp:
 
@@ -4728,6 +4719,18 @@ _deps/json-src/include/nlohmann/detail/iterators/iterator_traits.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__mutex_base:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint64_t.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/vector:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/concepts:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int32_t.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_setsize.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternalLegacy.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binary_function.h:
 
@@ -4748,10 +4751,6 @@ _deps/json-src/include/nlohmann/detail/input/position_t.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/equal_range.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_int16_t.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_limits.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_intmax_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc_type.h:
 
@@ -4777,6 +4776,10 @@ _deps/json-src/include/nlohmann/detail/conversions/to_chars.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:
 
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_intmax_t.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_limits.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_wchar_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h:
@@ -4788,13 +4791,5 @@ _deps/json-src/include/nlohmann/detail/json_pointer.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_sorted_until.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/assert.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/signal.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wctype.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator_traits.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdio.h:
