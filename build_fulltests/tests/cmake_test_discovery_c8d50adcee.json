@@ -1,0 +1,22 @@
+{
+  "tests": 2,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ProductionPathPushRuntime",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "SinglePassSettlesLinearChain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_production_path_push_runtime.cpp",
+          "line": 5
+        },
+        {
+          "name": "CycleRemainsFinite",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_production_path_push_runtime.cpp",
+          "line": 35
+        }
+      ]
+    }
+  ]
+}

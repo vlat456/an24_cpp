@@ -1,0 +1,284 @@
+{
+  "tests": 46,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "HeaderWidgetTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "PreferredSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 89
+        },
+        {
+          "name": "WorldPos",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 99
+        },
+        {
+          "name": "EstimateTextWidth",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 107
+        },
+        {
+          "name": "NotToggleable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 559
+        }
+      ]
+    },
+    {
+      "name": "TypeNameWidgetTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "PreferredSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 113
+        },
+        {
+          "name": "WorldPos",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 123
+        },
+        {
+          "name": "NotToggleable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 564
+        }
+      ]
+    },
+    {
+      "name": "SwitchWidgetTest",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "InitialState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 131
+        },
+        {
+          "name": "SetState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 138
+        },
+        {
+          "name": "PreferredSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 148
+        },
+        {
+          "name": "NotFlexible",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 156
+        },
+        {
+          "name": "UpdateFromContent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 161
+        },
+        {
+          "name": "IsToggleable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 534
+        }
+      ]
+    },
+    {
+      "name": "VerticalToggleTest",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "InitialState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 174
+        },
+        {
+          "name": "SetState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 181
+        },
+        {
+          "name": "PreferredSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 191
+        },
+        {
+          "name": "NotFlexible",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 199
+        },
+        {
+          "name": "UpdateFromContent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 204
+        },
+        {
+          "name": "IsToggleable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 539
+        }
+      ]
+    },
+    {
+      "name": "VoltmeterWidgetTest",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "InitialValue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 217
+        },
+        {
+          "name": "SetValue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 223
+        },
+        {
+          "name": "PreferredSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 231
+        },
+        {
+          "name": "UpdateFromContent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 240
+        },
+        {
+          "name": "NotFlexible",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 251
+        },
+        {
+          "name": "NotToggleable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 549
+        }
+      ]
+    },
+    {
+      "name": "ContentWidgetTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "InLayout",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 256
+        },
+        {
+          "name": "NestedInContainer",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 269
+        }
+      ]
+    },
+    {
+      "name": "IndicatorWidgetTest",
+      "tests": 18,
+      "testsuite": [
+        {
+          "name": "InitialBrightness",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 280
+        },
+        {
+          "name": "SetBrightness",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 286
+        },
+        {
+          "name": "PreferredSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 293
+        },
+        {
+          "name": "NotFlexible",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 303
+        },
+        {
+          "name": "UpdateFromContent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 308
+        },
+        {
+          "name": "UpdateFromContentClampsToOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 319
+        },
+        {
+          "name": "UpdateFromContentClampsToZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 330
+        },
+        {
+          "name": "RenderEmitsFilledCircleAndOutline",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 345
+        },
+        {
+          "name": "RenderCircleCenteredInWidget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 363
+        },
+        {
+          "name": "RenderRadiusGrowsWithBrightness",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 380
+        },
+        {
+          "name": "RenderColorOffIsGray",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 402
+        },
+        {
+          "name": "RenderColorOnHasGreenChannel",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 417
+        },
+        {
+          "name": "RenderAtZoom2ScalesRadius",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 433
+        },
+        {
+          "name": "RenderBorderAlwaysPresent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 456
+        },
+        {
+          "name": "LayoutAcceptsParentSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 475
+        },
+        {
+          "name": "RenderCircleCenteredInLargerWidget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 484
+        },
+        {
+          "name": "RenderInContainerEmitsDrawCalls",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 508
+        },
+        {
+          "name": "NotToggleable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 554
+        }
+      ]
+    },
+    {
+      "name": "SliderWidgetTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "NotToggleable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_content_widgets.cpp",
+          "line": 544
+        }
+      ]
+    }
+  ]
+}

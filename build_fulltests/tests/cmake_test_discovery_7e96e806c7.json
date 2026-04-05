@@ -1,0 +1,117 @@
+{
+  "tests": 21,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "SignalKeyResolver",
+      "tests": 21,
+      "testsuite": [
+        {
+          "name": "BuildSignalKey",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 16
+        },
+        {
+          "name": "ResolveExternalRefSignalKey",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 22
+        },
+        {
+          "name": "MapCompositePortKey",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 28
+        },
+        {
+          "name": "BuildSignalKeyVariants",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 34
+        },
+        {
+          "name": "ResolveExternalRefNested",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 42
+        },
+        {
+          "name": "MapCompositePortKeyVariants",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 49
+        },
+        {
+          "name": "RoundTripExternalRef",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 57
+        },
+        {
+          "name": "EmptyComponents",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 64
+        },
+        {
+          "name": "ResolveRuntimeSignatureCheck",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 74
+        },
+        {
+          "name": "ContextModes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 92
+        },
+        {
+          "name": "ResolveRuntimeKey_RootNormalNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 118
+        },
+        {
+          "name": "ResolveRuntimeKey_RootExpandableNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 140
+        },
+        {
+          "name": "ResolveRuntimeKey_ExternalReferenceMode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 163
+        },
+        {
+          "name": "ExpandableRootNeverUsesRawNodeDotPort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 185
+        },
+        {
+          "name": "EmptyEndpointIds_ReturnsEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 214
+        },
+        {
+          "name": "FallbackRawKeyHelper_ConsistentFormat",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 238
+        },
+        {
+          "name": "EmbeddedBridgeNode_ColonConvention_Found",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 256
+        },
+        {
+          "name": "EmbeddedBridgeNode_UnderscoreConvention_NotFound",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 302
+        },
+        {
+          "name": "CompositePortKey_UsesColonConvention",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 349
+        },
+        {
+          "name": "MultipleBridgeNodes_ResolveIndependently",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 368
+        },
+        {
+          "name": "BridgeNode_ProxyIdWithUnderscores_ColonStillWorks",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_signal_key_resolver.cpp",
+          "line": 453
+        }
+      ]
+    }
+  ]
+}

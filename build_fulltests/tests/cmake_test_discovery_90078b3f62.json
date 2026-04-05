@@ -1,5 +1,5 @@
 {
-  "tests": 35,
+  "tests": 32,
   "name": "AllTests",
   "testsuites": [
     {
@@ -9,183 +9,168 @@
         {
           "name": "WithinRange_PassesThrough",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 52
+          "line": 53
         },
         {
           "name": "BelowMinimum_ClampsToMin",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 62
+          "line": 63
         },
         {
           "name": "AboveMaximum_ClampsToMax",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 72
+          "line": 73
         },
         {
           "name": "AtBoundary_Min",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 82
+          "line": 83
         },
         {
           "name": "AtBoundary_Max",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 92
+          "line": 93
         },
         {
           "name": "NegativeRange",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 102
+          "line": 103
         },
         {
           "name": "NegativeRange_ClampsBelow",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 112
+          "line": 113
         },
         {
           "name": "NegativeRange_ClampsAbove",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 122
+          "line": 123
         },
         {
           "name": "ZeroRange_ClampsToSingleValue",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 132
+          "line": 133
         },
         {
           "name": "SymmetricRange_Positive",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 142
+          "line": 143
         },
         {
           "name": "SymmetricRange_Negative",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 152
+          "line": 153
         },
         {
           "name": "LargeValues",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 162
+          "line": 163
         },
         {
           "name": "Regression_InvertedRange_NoCrash",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 385
+          "line": 354
         },
         {
           "name": "Regression_ZeroInput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 433
+          "line": 414
         }
       ]
     },
     {
       "name": "NormalizeTest",
-      "tests": 21,
+      "tests": 18,
       "testsuite": [
         {
           "name": "MidRange_MapsToZeroPointFive",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 176
+          "line": 177
         },
         {
           "name": "AtMin_MapsToZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 186
+          "line": 187
         },
         {
           "name": "AtMax_MapsToOne",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 196
+          "line": 197
         },
         {
           "name": "BelowMin_ClampsToZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 206
+          "line": 207
         },
         {
           "name": "AboveMax_ClampsToOne",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 216
+          "line": 217
         },
         {
           "name": "OffsetRange",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 226
+          "line": 227
         },
         {
           "name": "NegativeRange",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 236
+          "line": 237
         },
         {
           "name": "NegativeRange_Min",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 246
+          "line": 247
         },
         {
           "name": "NegativeRange_Max",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 256
+          "line": 257
         },
         {
           "name": "SmallRange_PressureSensor",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 266
+          "line": 267
         },
         {
           "name": "TemperatureRange_Celsius",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 277
+          "line": 278
         },
         {
           "name": "VoltageRange_Aircraft",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 288
+          "line": 289
         },
         {
           "name": "ZeroRange_DefaultsToZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 299
-        },
-        {
-          "name": "PreLoad_ComputesInvRange",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 311
-        },
-        {
-          "name": "PreLoad_ZeroRange_HandlesGracefully",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 322
-        },
-        {
-          "name": "PreLoad_NegativeRange_ComputesCorrectly",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 333
+          "line": 300
         },
         {
           "name": "RealWorld_OilPressureWarning",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 344
+          "line": 313
         },
         {
           "name": "RealWorld_FuelQuantityGauge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 357
+          "line": 326
         },
         {
           "name": "VariableInput_UpdatesCorrectly",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 368
+          "line": 337
         },
         {
           "name": "Regression_InvertedRange_SafeOutput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 410
+          "line": 391
         },
         {
           "name": "Regression_VerySmallRange",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_clamp_normalize.cpp",
-          "line": 422
+          "line": 403
         }
       ]
     }

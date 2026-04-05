@@ -35,17 +35,17 @@
         {
           "name": "NegativeRatioInvertsVoltage",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bug_hunt_regression.cpp",
-          "line": 94
+          "line": 92
         },
         {
           "name": "PositiveRatioScalesVoltage",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bug_hunt_regression.cpp",
-          "line": 108
+          "line": 106
         },
         {
           "name": "NearZeroRatioDoesNotCrash",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bug_hunt_regression.cpp",
-          "line": 122
+          "line": 120
         }
       ]
     }

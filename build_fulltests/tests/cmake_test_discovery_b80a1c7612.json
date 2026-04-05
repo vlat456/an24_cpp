@@ -1,0 +1,27 @@
+{
+  "tests": 3,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ProductionPathPortMap",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "AndGateReadsWiredInputs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_production_path_port_map.cpp",
+          "line": 4
+        },
+        {
+          "name": "NotGateReadsCorrectInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_production_path_port_map.cpp",
+          "line": 39
+        },
+        {
+          "name": "SubtractReadsBothInputs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_production_path_port_map.cpp",
+          "line": 67
+        }
+      ]
+    }
+  ]
+}

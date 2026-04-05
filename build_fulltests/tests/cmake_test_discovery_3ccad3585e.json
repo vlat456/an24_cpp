@@ -1,5 +1,5 @@
 {
-  "tests": 23,
+  "tests": 30,
   "name": "AllTests",
   "testsuites": [
     {
@@ -66,7 +66,7 @@
     },
     {
       "name": "BlueprintValidate",
-      "tests": 6,
+      "tests": 8,
       "testsuite": [
         {
           "name": "DuplicateNodeIdsFail",
@@ -97,12 +97,22 @@
           "name": "ValidBlueprintPasses",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
           "line": 339
+        },
+        {
+          "name": "EmbeddedProxyNodePassesInvariantChecker",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 421
+        },
+        {
+          "name": "NonEmbeddedExpandableNodeStillFailsTypeCheck",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 447
         }
       ]
     },
     {
       "name": "BlueprintRepair",
-      "tests": 2,
+      "tests": 4,
       "testsuite": [
         {
           "name": "DiagnoseAndRepairRemovesInvalidWireEndpoints",
@@ -113,37 +123,62 @@
           "name": "DiagnoseReportsUnknownNodeType",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
           "line": 391
+        },
+        {
+          "name": "DiagnoseSkipsEmbeddedProxyNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 467
+        },
+        {
+          "name": "DiagnoseStillReportsNonProxyUnknownType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 493
         }
       ]
     },
     {
       "name": "PersistValidation",
-      "tests": 5,
+      "tests": 8,
       "testsuite": [
         {
           "name": "RejectsInvalidWireEndpointOnLoad",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
-          "line": 10
+          "line": 12
         },
         {
           "name": "ValidateBlueprintForPersistRejectsUnknownType",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
-          "line": 54
+          "line": 56
         },
         {
           "name": "SaveUsesTypedParamNormalizationWhenRegistryAvailable",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
-          "line": 71
+          "line": 73
         },
         {
           "name": "ValidateBlueprintIntegrityPassesForValidBlueprint",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
-          "line": 112
+          "line": 114
         },
         {
           "name": "WireDomainMismatchIsToleratedWithoutThrow",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
-          "line": 132
+          "line": 134
+        },
+        {
+          "name": "ValidatePersistAcceptsEmbeddedProxyNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
+          "line": 175
+        },
+        {
+          "name": "ValidatePersistStillRejectsNonProxyUnknownType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
+          "line": 207
+        },
+        {
+          "name": "ClosedCircuitBlueprintLoadsViaBp2Codec",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
+          "line": 232
         }
       ]
     }

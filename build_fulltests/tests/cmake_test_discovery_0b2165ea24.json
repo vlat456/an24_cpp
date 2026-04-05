@@ -1,10 +1,10 @@
 {
-  "tests": 16,
+  "tests": 7,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "PortMacroTest",
-      "tests": 16,
+      "tests": 7,
       "testsuite": [
         {
           "name": "ComponentHasCorrectFieldTypes",
@@ -17,74 +17,29 @@
           "line": 22
         },
         {
-          "name": "RU19A_PortCountIsSix",
+          "name": "CompileTimePortCountValidation",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
           "line": 31
         },
         {
-          "name": "RU19A_PortNamesAreCorrect",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 35
-        },
-        {
-          "name": "DMR400_PortCountIsFour",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 49
-        },
-        {
-          "name": "DMR400_PortNamesAreCorrect",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 53
-        },
-        {
-          "name": "CompileTimePortCountValidation",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 65
-        },
-        {
           "name": "AllComponentsHavePortCounts",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 75
+          "line": 38
         },
         {
           "name": "GetPortNamesReturnsCorrectData",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 84
-        },
-        {
-          "name": "RU19AMigrated_HasAllPortFields",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 112
-        },
-        {
-          "name": "RU19AMigrated_FieldTypesAreCorrect",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 123
-        },
-        {
-          "name": "RU19AMigrated_PortCountMatchesRegistry",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 134
-        },
-        {
-          "name": "DMR400Migrated_HasAllPortFields",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 151
-        },
-        {
-          "name": "DMR400Migrated_PortCountMatchesRegistry",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 160
+          "line": 44
         },
         {
           "name": "PORTS_Supports32Ports",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 173
+          "line": 62
         },
         {
           "name": "PORTS25_DeclaresAllPorts",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_macro_test.cpp",
-          "line": 204
+          "line": 93
         }
       ]
     }

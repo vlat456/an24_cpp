@@ -1,15 +1,20 @@
 {
-  "tests": 1,
+  "tests": 2,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "JitAotBridgeEquivalence",
-      "tests": 1,
+      "tests": 2,
       "testsuite": [
         {
           "name": "MinimalBridgeTopologyAndCodegenSmoke",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_jit_aot_bridge_equivalence.cpp",
-          "line": 38
+          "line": 17
+        },
+        {
+          "name": "SignalAllocationParityForBridgeAndAliasRules",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_jit_aot_bridge_equivalence.cpp",
+          "line": 183
         }
       ]
     }

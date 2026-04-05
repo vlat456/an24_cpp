@@ -1,0 +1,27 @@
+{
+  "tests": 3,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "SAM28Composite",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "InitialOutputsAreSane",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_12sam28.cpp",
+          "line": 30
+        },
+        {
+          "name": "DischargeDecreasesChargeAndSoc",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_12sam28.cpp",
+          "line": 48
+        },
+        {
+          "name": "SocToOcvFeedbackCausesVoltageDrop",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_12sam28.cpp",
+          "line": 69
+        }
+      ]
+    }
+  ]
+}

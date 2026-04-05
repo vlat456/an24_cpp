@@ -1,0 +1,210 @@
+{
+  "tests": 30,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "E001_Noexcept",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "SolveElectricalIsNoexcept",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 56
+        },
+        {
+          "name": "SolveGaussianReturnsBool",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 68
+        },
+        {
+          "name": "DuplicateFixedConstraintsSameValueNoThrow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 99
+        }
+      ]
+    },
+    {
+      "name": "E002_SolverOwnedRefs",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "PopulatedAfterBuild",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 123
+        },
+        {
+          "name": "PointersMatchDeviceMap",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 155
+        },
+        {
+          "name": "EmptyCircuitHasEmptyRefs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 181
+        }
+      ]
+    },
+    {
+      "name": "E003_JitProviderFlatArray",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "DefaultConstructorAllUnmapped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 203
+        },
+        {
+          "name": "SetAndGet",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 212
+        },
+        {
+          "name": "HasReturnsTrueOnlyForMapped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 221
+        },
+        {
+          "name": "OverwriteMapping",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 231
+        },
+        {
+          "name": "SizeofIsSmall",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 240
+        },
+        {
+          "name": "PortNamesCountSentinel",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 248
+        },
+        {
+          "name": "AotProviderUnaffected",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 258
+        }
+      ]
+    },
+    {
+      "name": "E004_DoubleTime",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "GetTimeReturnsDouble",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 282
+        },
+        {
+          "name": "PrecisionAfterManySteps",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 290
+        },
+        {
+          "name": "SimulatorTimeStartsAtZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 328
+        }
+      ]
+    },
+    {
+      "name": "ArchitectureRegression",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "FullSimulatorSmokeWithAllFixes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 337
+        }
+      ]
+    },
+    {
+      "name": "E005_ComponentVariant",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "IsStdVariant",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 380
+        },
+        {
+          "name": "HasManyAlternatives",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 390
+        },
+        {
+          "name": "ContainsElectricalSourceAndAZS",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 399
+        }
+      ]
+    },
+    {
+      "name": "E006_NoMisleadingAlignas",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "SimulationStateDefaultAlignment",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 413
+        },
+        {
+          "name": "VectorDataIsHeapAllocated",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 426
+        }
+      ]
+    },
+    {
+      "name": "E008_DtClamp",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "MaxDtConstantExists",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 449
+        },
+        {
+          "name": "LargeDtIsClamped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 455
+        },
+        {
+          "name": "NormalDtIsNotClamped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 483
+        },
+        {
+          "name": "ExactlyMaxDtIsNotClamped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 510
+        },
+        {
+          "name": "ZeroDtIsIgnored",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 535
+        },
+        {
+          "name": "NegativeDtIsIgnored",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 552
+        }
+      ]
+    },
+    {
+      "name": "E009_SingleSolve",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "PipelineProducesConsistentElectricalResults",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 573
+        },
+        {
+          "name": "StepCountAndTimeConsistent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_architecture_regression.cpp",
+          "line": 620
+        }
+      ]
+    }
+  ]
+}

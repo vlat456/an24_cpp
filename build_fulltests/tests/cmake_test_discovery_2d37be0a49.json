@@ -24,17 +24,17 @@
         {
           "name": "DynamicInsertedBeforeFixed",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_state.cpp",
-          "line": 45
+          "line": 44
         },
         {
           "name": "NoLegacySorArrays",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_state.cpp",
-          "line": 60
+          "line": 58
         },
         {
           "name": "LutArenaPreserved",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_state.cpp",
-          "line": 67
+          "line": 65
         }
       ]
     }

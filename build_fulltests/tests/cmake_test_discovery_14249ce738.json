@@ -1,0 +1,87 @@
+{
+  "tests": 15,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ElectricalSubsolver",
+      "tests": 15,
+      "testsuite": [
+        {
+          "name": "SimpleTheveninDivider",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 34
+        },
+        {
+          "name": "SeriesChainTwoResistors",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 93
+        },
+        {
+          "name": "DuplicateFixedConstraintsDeduplicatedSilently",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 160
+        },
+        {
+          "name": "ZeroConductanceResultsInSingularFallback",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 201
+        },
+        {
+          "name": "BranchCurrentStoragePopulated",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 238
+        },
+        {
+          "name": "EmptyPlanClearsBranchCurrents",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 312
+        },
+        {
+          "name": "AllNodesFixedNoSolveNeeded",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 322
+        },
+        {
+          "name": "VoltageWritebackToSimulationState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 355
+        },
+        {
+          "name": "SignalIndexAtBoundaryWritesCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 409
+        },
+        {
+          "name": "SingularIslandDoesNotThrowAndKeepsPreviousState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 446
+        },
+        {
+          "name": "SpecializedN1SolveMatchesExpectedDivider",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 486
+        },
+        {
+          "name": "SpecializedN2SolveMatchesSeriesChain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 511
+        },
+        {
+          "name": "SolveCountersTrackSpecializedPaths",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 542
+        },
+        {
+          "name": "SolveCountersTrackDensePathForN3",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 598
+        },
+        {
+          "name": "ReservedScratchBuffersStayStableAcrossSteps",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_subsolver.cpp",
+          "line": 628
+        }
+      ]
+    }
+  ]
+}

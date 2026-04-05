@@ -1,0 +1,77 @@
+{
+  "tests": 13,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ElectricalHandleBuild",
+      "tests": 13,
+      "testsuite": [
+        {
+          "name": "ElectricalSourceCreatesTheveninElement",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 39
+        },
+        {
+          "name": "GeneratorGetsValidHandle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 68
+        },
+        {
+          "name": "IndicatorLightGetsValidHandle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 93
+        },
+        {
+          "name": "HandlePointsToCorrectElementKind",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 120
+        },
+        {
+          "name": "IndicatorHandlePointsToConductanceBranch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 145
+        },
+        {
+          "name": "DeterministicHandles",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 174
+        },
+        {
+          "name": "CurrentSenseGetsValidHandle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 208
+        },
+        {
+          "name": "CurrentSenseHandlePointsToConductanceBranch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 232
+        },
+        {
+          "name": "MultipleIslandsIndependentHandles",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 262
+        },
+        {
+          "name": "GeneratorHandlePointsToTheveninSource",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 295
+        },
+        {
+          "name": "GeneratorWithParamsGetsValidHandle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 322
+        },
+        {
+          "name": "KnobSwitchMetadataGetsHandles",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 352
+        },
+        {
+          "name": "KnobSwitchMetadataWithoutBindHandleGetsNoHandles",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_handles_build.cpp",
+          "line": 402
+        }
+      ]
+    }
+  ]
+}

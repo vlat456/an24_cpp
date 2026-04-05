@@ -1,40 +1,30 @@
 {
-  "tests": 6,
+  "tests": 4,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "FactoryValidationTest",
-      "tests": 6,
+      "tests": 4,
       "testsuite": [
         {
           "name": "Factory_CreatesAllKnownComponents",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/factory_validation_test.cpp",
-          "line": 161
-        },
-        {
-          "name": "DISABLED_UnknownComponentType_Throws",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/factory_validation_test.cpp",
-          "line": 197
+          "line": 156
         },
         {
           "name": "PortRegistryConstants_AreCorrect",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/factory_validation_test.cpp",
-          "line": 220
+          "line": 191
         },
         {
           "name": "AllRegistryPortsAreRecognized",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/factory_validation_test.cpp",
-          "line": 254
-        },
-        {
-          "name": "DISABLED_UnknownPortName_Throws",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/factory_validation_test.cpp",
-          "line": 295
+          "line": 219
         },
         {
           "name": "MissingReferenceNode_WarnsButBuilds",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/factory_validation_test.cpp",
-          "line": 318
+          "line": 255
         }
       ]
     }

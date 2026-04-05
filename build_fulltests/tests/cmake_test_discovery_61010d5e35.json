@@ -1,0 +1,82 @@
+{
+  "tests": 14,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ElectricalPrimitives",
+      "tests": 14,
+      "testsuite": [
+        {
+          "name": "ResistorAndConductancePrimitiveEquivalent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 54
+        },
+        {
+          "name": "PrimitiveOnlyCircuitSolvesCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 160
+        },
+        {
+          "name": "PrimitiveOnlyCircuitStableOverTime",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 205
+        },
+        {
+          "name": "BuildPlanIncludesPrimitiveElements",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 241
+        },
+        {
+          "name": "PrimitivesAreSolverOwnedNotScheduled",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 296
+        },
+        {
+          "name": "MixedWrapperAndPrimitiveInSameIsland",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 326
+        },
+        {
+          "name": "SourceAndBatteryEquivalent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 363
+        },
+        {
+          "name": "TwoConductancesInSeries",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 416
+        },
+        {
+          "name": "DefaultParametersWork",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 464
+        },
+        {
+          "name": "UnknownParamThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 506
+        },
+        {
+          "name": "MetadataProducesCorrectElementKind",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 560
+        },
+        {
+          "name": "MetadataMissingPortKeyThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 673
+        },
+        {
+          "name": "MetadataMissingParamKeyThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 745
+        },
+        {
+          "name": "MetadataPropagatedThroughLibraryPipeline",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_primitives.cpp",
+          "line": 795
+        }
+      ]
+    }
+  ]
+}

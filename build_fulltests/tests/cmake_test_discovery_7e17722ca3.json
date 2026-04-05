@@ -1,0 +1,77 @@
+{
+  "tests": 13,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ElectricalIslandBuild",
+      "tests": 13,
+      "testsuite": [
+        {
+          "name": "ClosedCircuitOneIsland",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 40
+        },
+        {
+          "name": "TwoDisconnectedNetsTwoIslands",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 98
+        },
+        {
+          "name": "MissingRequiredPortThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 134
+        },
+        {
+          "name": "RefNodeCreatesFixedVoltageNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 158
+        },
+        {
+          "name": "BatteryCreatesTheveninSource",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 188
+        },
+        {
+          "name": "GeneratorCreatesTheveninSource",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 219
+        },
+        {
+          "name": "ResistorCreatesConductanceBranch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 250
+        },
+        {
+          "name": "IndicatorLightCreatesConductanceBranch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 282
+        },
+        {
+          "name": "IslandsOrderedBySmallestSignalIndex",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 314
+        },
+        {
+          "name": "UnsupportedComponentsIgnored",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 355
+        },
+        {
+          "name": "RelayCreatesDynamicConductanceBranch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 388
+        },
+        {
+          "name": "BatteryWithExtraParamsDoesNotThrow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 416
+        },
+        {
+          "name": "IndicatorLightWithExtraParamsDoesNotThrow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_island_build.cpp",
+          "line": 434
+        }
+      ]
+    }
+  ]
+}

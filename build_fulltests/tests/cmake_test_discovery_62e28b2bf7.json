@@ -1,10 +1,10 @@
 {
-  "tests": 5,
+  "tests": 4,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "PortMapRegression",
-      "tests": 5,
+      "tests": 4,
       "testsuite": [
         {
           "name": "AllComponentPortsAreInStringToPortName",
@@ -19,17 +19,12 @@
         {
           "name": "NOT_Gate_Reads_Correct_Input",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_map_regression.cpp",
-          "line": 124
+          "line": 129
         },
         {
           "name": "Subtract_Reads_Both_Inputs",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_map_regression.cpp",
-          "line": 174
-        },
-        {
-          "name": "DISABLED_Subtract_GSC_Topology_SignalIndices",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_map_regression.cpp",
-          "line": 224
+          "line": 184
         }
       ]
     }

@@ -1,10 +1,10 @@
 {
-  "tests": 9,
+  "tests": 5,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "CodegenAccumulator",
-      "tests": 9,
+      "tests": 5,
       "testsuite": [
         {
           "name": "HeaderDoesNotContainAccumulatorFields",
@@ -22,34 +22,14 @@
           "line": 143
         },
         {
-          "name": "DISABLED_MechanicalUsesAccumulatorAndResets",
+          "name": "DomainScheduleConstantsAreCanonical",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
           "line": 163
         },
         {
-          "name": "DISABLED_HydraulicUsesAccumulatorAndResets",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
-          "line": 180
-        },
-        {
-          "name": "DISABLED_ThermalUsesAccumulatorAndResets",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
-          "line": 195
-        },
-        {
-          "name": "DomainScheduleConstantsAreCanonical",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
-          "line": 212
-        },
-        {
           "name": "DispatchTableSizeMatchesCycleLength",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
-          "line": 227
-        },
-        {
-          "name": "DISABLED_ControlCommitPhaseIsEmittedBeforeSecondElectricalPass",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
-          "line": 246
+          "line": 178
         }
       ]
     }

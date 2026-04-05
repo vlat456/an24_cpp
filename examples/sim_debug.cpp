@@ -35,6 +35,7 @@
 #include <set>
 #include <map>
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 
 // ============================================================================
@@ -181,8 +182,16 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
         device["ports"] = std::move(ports);
 
         json params = json::object();
-        for (const auto& [k, v] : n.params)
-            params[std::string(interner.resolve(k))] = std::to_string(v);
+        for (const auto& [k, v] : n.params) {
+            // Serialize integer-valued floats without decimal (e.g. "5" not "5.000000")
+            // so that downstream Int schema validation doesn't reject them.
+            float intpart;
+            if (std::modff(v, &intpart) == 0.0f && std::fabs(v) < 1e9f) {
+                params[std::string(interner.resolve(k))] = std::to_string(static_cast<long long>(v));
+            } else {
+                params[std::string(interner.resolve(k))] = std::to_string(v);
+            }
+        }
         for (const auto& [k, v] : n.string_params)
             params[k] = v;
         if (!params.empty())

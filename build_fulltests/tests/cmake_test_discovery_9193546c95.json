@@ -14,12 +14,12 @@
         {
           "name": "CodecRejectsLegacyVersion2Json",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v3_migration.cpp",
-          "line": 96
+          "line": 89
         },
         {
           "name": "GSCIsV3AndDecodes",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v3_migration.cpp",
-          "line": 114
+          "line": 107
         }
       ]
     }

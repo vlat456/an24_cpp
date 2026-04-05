@@ -7,34 +7,34 @@
       "tests": 6,
       "testsuite": [
         {
-          "name": "ComputesCurrentFromVoltageDifference",
+          "name": "ReportsSolvedCurrent",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
           "line": 39
         },
         {
-          "name": "ZeroCurrentWhenEqualVoltage",
+          "name": "NoHandleOutputsZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
           "line": 54
         },
         {
-          "name": "NegativeCurrentWhenReversed",
+          "name": "NoElectricalRtOutputsZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
-          "line": 66
+          "line": 69
         },
         {
-          "name": "UsesConfiguredConductance",
+          "name": "OutOfRangeElementIdOutputsZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
-          "line": 80
+          "line": 82
         },
         {
-          "name": "ZeroVoltageDifference_ZeroCurrent",
+          "name": "ReadsZeroCurrentWhenNoDischarge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
-          "line": 92
+          "line": 97
         },
         {
-          "name": "ExecuteComputesCurrent",
+          "name": "ReadsNegativeCurrentForCharging",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_current_sense.cpp",
-          "line": 109
+          "line": 112
         }
       ]
     }

@@ -14,7 +14,7 @@
         {
           "name": "ExposedPortParameters",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_ports.cpp",
-          "line": 31
+          "line": 30
         }
       ]
     },
@@ -25,12 +25,12 @@
         {
           "name": "PassThroughLikeBus",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_ports.cpp",
-          "line": 42
+          "line": 41
         },
         {
           "name": "ExposedPortParameters",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_ports.cpp",
-          "line": 61
+          "line": 59
         }
       ]
     }

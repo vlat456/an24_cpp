@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/electrical_primitives_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_fulltests/tests/electrical_primitives_tests[1]_tests.cmake")
+else()
+  add_test(electrical_primitives_tests_NOT_BUILT electrical_primitives_tests_NOT_BUILT)
+endif()

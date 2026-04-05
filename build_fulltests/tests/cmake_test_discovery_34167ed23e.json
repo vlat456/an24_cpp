@@ -1,0 +1,68 @@
+{
+  "tests": 10,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ElectricalParityFixtures",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "SimpleTheveninDivider",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 45
+        },
+        {
+          "name": "SeriesChainTwoResistors",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 78
+        },
+        {
+          "name": "ParallelBranchSplit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 116
+        },
+        {
+          "name": "MultiIsland",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 156
+        },
+        {
+          "name": "NearShortHighConductance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 198
+        }
+      ]
+    },
+    {
+      "name": "ElectricalAotParity",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "SimpleTheveninDivider",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 344
+        },
+        {
+          "name": "SeriesChainTwoResistors",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 397
+        },
+        {
+          "name": "ParallelBranchSplit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 447
+        },
+        {
+          "name": "MultiIsland",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 493
+        },
+        {
+          "name": "NearShortHighConductance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_electrical_parity_fixtures.cpp",
+          "line": 544
+        }
+      ]
+    }
+  ]
+}

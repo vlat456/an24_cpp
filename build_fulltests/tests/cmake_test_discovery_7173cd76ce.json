@@ -1,20 +1,15 @@
 {
-  "tests": 2,
+  "tests": 1,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "BlueprintPorts",
-      "tests": 2,
+      "tests": 1,
       "testsuite": [
         {
-          "name": "DISABLED_BasicBatteryCircuit",
+          "name": "AliasPortUnification_JitAotParity",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_integration.cpp",
-          "line": 86
-        },
-        {
-          "name": "InputPassThroughToOutput",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_integration.cpp",
-          "line": 123
+          "line": 93
         }
       ]
     }

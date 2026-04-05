@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/knob_switch_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_fulltests/tests/knob_switch_tests[1]_tests.cmake")
+else()
+  add_test(knob_switch_tests_NOT_BUILT knob_switch_tests_NOT_BUILT)
+endif()

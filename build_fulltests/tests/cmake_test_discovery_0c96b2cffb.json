@@ -1,5 +1,5 @@
 {
-  "tests": 10,
+  "tests": 30,
   "name": "AllTests",
   "testsuites": [
     {
@@ -9,22 +9,22 @@
         {
           "name": "AliasReconnectUsesSelectedWireNotFirst",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 62
+          "line": 64
         },
         {
           "name": "AliasToAliasReconnectSwapsWireOrder",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 126
+          "line": 128
         },
         {
           "name": "BasePortStartsCreateWireAndUsesCanonicalBusPort",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 173
+          "line": 175
         },
         {
           "name": "DeleteNodeRemovesConnectedWiresBeforeRecreate",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 477
+          "line": 479
         }
       ]
     },
@@ -35,12 +35,12 @@
         {
           "name": "RejectsIncompatiblePortTypesOnWireCreate",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 235
+          "line": 237
         },
         {
           "name": "RejectsCrossDomainWireCreate",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 277
+          "line": 279
         }
       ]
     },
@@ -51,17 +51,17 @@
         {
           "name": "ReconnectUpdatesSelectedWireEndpoint",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 319
+          "line": 321
         },
         {
           "name": "ReconnectDropOnEmptyRemovesWire",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 381
+          "line": 383
         },
         {
           "name": "ReconnectWithRoutingPointsStillChecksTypeCompatibility",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 415
+          "line": 417
         }
       ]
     },
@@ -72,7 +72,143 @@
         {
           "name": "ShiftClickWireRequestsProbeToggle",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
-          "line": 528
+          "line": 530
+        }
+      ]
+    },
+    {
+      "name": "CanvasInputSelection",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "ClickNodeDoesNotMarkModelDirty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 586
+        }
+      ]
+    },
+    {
+      "name": "PathToNodePort",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "ValidPortPath_ReturnsNodeAndPortIds",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 622
+        },
+        {
+          "name": "NonPortPath_ReturnsEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 637
+        },
+        {
+          "name": "RootPath_ReturnsEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 649
+        }
+      ]
+    },
+    {
+      "name": "SideFromRelativePosition",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "NodeToTheRight_ReturnsRight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 662
+        },
+        {
+          "name": "NodeToTheLeft_ReturnsLeft",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 668
+        },
+        {
+          "name": "NodeBelow_ReturnsBottom",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 674
+        },
+        {
+          "name": "NodeAbove_ReturnsTop",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 680
+        },
+        {
+          "name": "DiagonalTiesGoHorizontal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 686
+        }
+      ]
+    },
+    {
+      "name": "CanvasInputRefOrientation",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "DragRefNodeReorientsTowardConnectedNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 697
+        }
+      ]
+    },
+    {
+      "name": "CanvasInputContentToggle",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "VerticalToggleContentBoundsWideEnough",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 771
+        },
+        {
+          "name": "ClickOnVerticalToggleContentReturnsToggle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 808
+        }
+      ]
+    },
+    {
+      "name": "CanvasInputSimMode",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "SimModeBlocksNodeDrag",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 854
+        },
+        {
+          "name": "SimModeBlocksWireCreation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 887
+        },
+        {
+          "name": "SimModeBlocksDeleteKey",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 919
+        },
+        {
+          "name": "SimModeAllowsToggleInteraction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 944
+        },
+        {
+          "name": "SimModeAllowsKnobInteraction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 983
+        },
+        {
+          "name": "SimModeAllowsSliderInteraction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 1024
+        },
+        {
+          "name": "SimModeBlocksRightClickContextMenu",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 1066
+        },
+        {
+          "name": "SimModeAllowsPanning",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_canvas_input.cpp",
+          "line": 1096
         }
       ]
     }

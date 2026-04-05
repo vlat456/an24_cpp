@@ -9,117 +9,117 @@
         {
           "name": "HasElectricalAndThermalDomains",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 65
+          "line": 74
         },
         {
           "name": "StartsOff",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 72
+          "line": 81
         },
         {
           "name": "OpenCircuitWhenOff",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 81
+          "line": 90
         },
         {
           "name": "PassesVoltageWhenClosed",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 92
+          "line": 100
         },
         {
           "name": "ZeroVoltageWhenOpen",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 103
+          "line": 111
         },
         {
           "name": "TogglesOnControlEdge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 118
+          "line": 126
         },
         {
           "name": "TogglesOffOnSecondEdge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 129
+          "line": 137
         },
         {
           "name": "NoToggleWithoutEdge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 140
+          "line": 148
         },
         {
           "name": "OutputsStateOn",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 155
+          "line": 163
         },
         {
           "name": "OutputsStateOff",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 165
+          "line": 173
         },
         {
           "name": "HeatsUpWithCurrent",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 179
+          "line": 187
         },
         {
           "name": "CoolsDownWhenNoCurrent",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 195
+          "line": 201
         },
         {
           "name": "TempNeverGoesNegative",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 207
+          "line": 213
         },
         {
           "name": "OutputsTempPort",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 220
+          "line": 226
         },
         {
           "name": "TripsWhenOverheated",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 235
+          "line": 241
         },
         {
           "name": "DoesNotTripBelowThreshold",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 249
+          "line": 255
         },
         {
           "name": "TrippedStaysOpenUntilManualReset",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 261
+          "line": 267
         },
         {
           "name": "CanReenableAfterCooldown",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 281
+          "line": 287
         },
         {
           "name": "RetripsIfStillHot",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 303
+          "line": 309
         },
         {
           "name": "NominalCurrentReachesSteadyStateAtOne",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 328
+          "line": 334
         },
         {
           "name": "DoubleNominalTripsQuickly",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 346
+          "line": 350
         },
         {
           "name": "ThermalWorksWithVariableDt",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 368
+          "line": 370
         },
         {
           "name": "RheatFromNominal",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
-          "line": 402
+          "line": 403
         }
       ]
     }

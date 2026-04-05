@@ -1,0 +1,52 @@
+{
+  "tests": 8,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "SplitterTest",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "OutputsMirrorInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_splitter.cpp",
+          "line": 37
+        },
+        {
+          "name": "ZeroInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_splitter.cpp",
+          "line": 49
+        },
+        {
+          "name": "NegativeInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_splitter.cpp",
+          "line": 61
+        },
+        {
+          "name": "LargeInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_splitter.cpp",
+          "line": 73
+        },
+        {
+          "name": "OutputsTrackChangingInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_splitter.cpp",
+          "line": 85
+        },
+        {
+          "name": "DomainIsLogical",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_splitter.cpp",
+          "line": 107
+        },
+        {
+          "name": "FirstOrderLag_ClosedLoop_ConvergesToTarget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_splitter.cpp",
+          "line": 127
+        },
+        {
+          "name": "FirstOrderLag_InitialValue_NotZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_splitter.cpp",
+          "line": 214
+        }
+      ]
+    }
+  ]
+}

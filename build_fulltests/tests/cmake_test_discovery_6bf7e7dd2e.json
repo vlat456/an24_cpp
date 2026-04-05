@@ -1,60 +1,116 @@
 {
-  "tests": 10,
+  "tests": 20,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "SceneMutations",
-      "tests": 10,
+      "tests": 18,
       "testsuite": [
         {
           "name": "RebuildCreatesNodeWidgets",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 52
+          "line": 55
         },
         {
           "name": "RebuildFiltersGroupId",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 75
+          "line": 78
         },
         {
           "name": "RebuildCreatesWireWidgets",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 95
+          "line": 98
         },
         {
           "name": "RebuildClearsExistingScene",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 121
+          "line": 124
         },
         {
           "name": "RebuildWithBusNodeCreatesAliasPortWires",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 143
+          "line": 146
         },
         {
           "name": "RebuildPreservesNodeColor",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 178
+          "line": 181
         },
         {
           "name": "RebuildPreservesBusNodeColor",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 197
+          "line": 200
         },
         {
           "name": "RebuildNoColorWhenNodeHasNoColor",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 217
+          "line": 220
         },
         {
           "name": "RebuildMultipleBusWires",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 239
+          "line": 242
         },
         {
           "name": "Regression_GSCLoadHasPortsAndWiresVisible",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
-          "line": 279
+          "line": 282
+        },
+        {
+          "name": "RefNodePortCenteredOnNodeWidth",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 302
+        },
+        {
+          "name": "RefNodeOrientsFacingConnectedNode_Right",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 332
+        },
+        {
+          "name": "RefNodeOrientsFacingConnectedNode_Left",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 366
+        },
+        {
+          "name": "RefNodeOrientsFacingConnectedNode_Bottom",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 400
+        },
+        {
+          "name": "RefNodeWithoutWireKeepsDefaultTopOrientation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 434
+        },
+        {
+          "name": "InOutPortsNotDuplicatedOnBothSides",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 521
+        },
+        {
+          "name": "InOutPortsMixedWithRegularPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 560
+        },
+        {
+          "name": "KnobSwitchUsesWiperThrowNamesAndNoDuplication",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 597
+        }
+      ]
+    },
+    {
+      "name": "SnapMath",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "SnapToHalfGrid",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 462
+        },
+        {
+          "name": "SideFromRelativePosition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 493
         }
       ]
     }

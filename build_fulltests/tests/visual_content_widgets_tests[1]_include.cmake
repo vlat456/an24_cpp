@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/visual_content_widgets_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_fulltests/tests/visual_content_widgets_tests[1]_tests.cmake")
+else()
+  add_test(visual_content_widgets_tests_NOT_BUILT visual_content_widgets_tests_NOT_BUILT)
+endif()

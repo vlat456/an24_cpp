@@ -1,40 +1,100 @@
 {
-  "tests": 6,
+  "tests": 18,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "AotComposite",
-      "tests": 6,
+      "tests": 18,
       "testsuite": [
         {
           "name": "GeneratesSystemsForComposite",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
-          "line": 40
+          "line": 14
         },
         {
           "name": "NestedComposite_ContainsSubSystems",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
-          "line": 83
+          "line": 57
         },
         {
           "name": "ThreeLevelsDeep_FullHierarchy",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
-          "line": 123
+          "line": 97
         },
         {
           "name": "TopoSort_LeavesFirst",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
-          "line": 171
+          "line": 145
         },
         {
           "name": "PreLoad_CallsSubComposites",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
-          "line": 204
+          "line": 178
         },
         {
           "name": "OutputMatchesJitExpansion",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
-          "line": 247
+          "line": 221
+        },
+        {
+          "name": "ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 395
+        },
+        {
+          "name": "ElectricalPlan_IndicatorLight_GeneratesConductanceBranch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 477
+        },
+        {
+          "name": "ElectricalPlan_NoElectricalDevices_HasZeroIslands",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 528
+        },
+        {
+          "name": "ElectricalBindings_WrapperHandlesGenerated",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 552
+        },
+        {
+          "name": "ElectricalBindings_StableAcrossConnectionReordering",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 631
+        },
+        {
+          "name": "ElectricalBindings_AssignAllHandleFieldsFromConstants",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 722
+        },
+        {
+          "name": "ElectricalBindings_MixedDevicesCorrectMapping",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 795
+        },
+        {
+          "name": "ElectricalDebugMap_ContainsRoleAndEndpoints",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 888
+        },
+        {
+          "name": "ElectricalDiagnostics_WarnPathGenerated",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 956
+        },
+        {
+          "name": "ElectricalDebugMap_ContainsIslandAndElementIndices",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 1021
+        },
+        {
+          "name": "GeneratedStepMethodsIncludeCommitCalls",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 1087
+        },
+        {
+          "name": "BridgeNodeExtPortUnification",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 1166
         }
       ]
     }

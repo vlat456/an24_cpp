@@ -1,5 +1,5 @@
 {
-  "tests": 30,
+  "tests": 38,
   "name": "AllTests",
   "testsuites": [
     {
@@ -9,152 +9,204 @@
         {
           "name": "EmptyByDefault",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 9
+          "line": 10
         },
         {
           "name": "ConstructWithBlueprint",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 16
+          "line": 17
         },
         {
           "name": "AddNode",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 24
+          "line": 25
         },
         {
           "name": "DuplicateNodeRejected",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 36
+          "line": 37
         },
         {
           "name": "RemoveNode",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 52
+          "line": 53
         },
         {
           "name": "RemoveNonexistentNode",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 65
+          "line": 66
         },
         {
           "name": "AddWire",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 71
+          "line": 72
         },
         {
           "name": "RejectsSelfLoopWire",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 97
+          "line": 98
         },
         {
           "name": "AddNested",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 118
+          "line": 119
         },
         {
           "name": "DuplicateNestedRejected",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 131
+          "line": 132
         },
         {
           "name": "RemoveNested",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 145
+          "line": 146
         },
         {
           "name": "UndoRestoresPreviousState",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 158
+          "line": 159
         },
         {
           "name": "RedoAfterUndo",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 173
+          "line": 174
         },
         {
           "name": "NewActionClearsRedoStack",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 190
+          "line": 191
         },
         {
           "name": "UpdateNodePosition",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 207
+          "line": 208
         },
         {
           "name": "UpdateNodePositionCreatesCheckpoint",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 226
+          "line": 227
         },
         {
           "name": "BakeNestedConvertsReferenceToEmbedded",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 245
+          "line": 246
         },
         {
           "name": "BakeNestedIsUndoable",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 273
+          "line": 274
         },
         {
           "name": "BakeNestedFailsForNonExistent",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 311
+          "line": 312
         },
         {
           "name": "BakeNestedFailsForAlreadyEmbedded",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 319
+          "line": 320
         },
         {
           "name": "BakeNestedFailsForUnknownBlueprintId",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 333
+          "line": 334
         },
         {
           "name": "CanUndoInitiallyFalse",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 347
+          "line": 348
         },
         {
           "name": "CanRedoInitiallyFalse",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 352
+          "line": 353
         },
         {
           "name": "UndoDoesNothingWhenEmpty",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 357
+          "line": 358
         },
         {
           "name": "RedoDoesNothingWhenEmpty",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 363
+          "line": 364
         },
         {
           "name": "NodesInRectReturnsOnlyContainedNodes",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 369
+          "line": 370
         },
         {
           "name": "NodesInRectReflectsNodeMovement",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 399
+          "line": 400
         },
         {
           "name": "WireExistsTracksAddAndRemove",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 424
+          "line": 425
         },
         {
           "name": "IsDirtyAfterUndoStackTruncation",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 462
+          "line": 463
         },
         {
           "name": "RandomizedEditsMaintainInvariants",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
-          "line": 491
+          "line": 492
+        }
+      ]
+    },
+    {
+      "name": "ReplacePreserveOrder",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "NodeReplacementKeepsInsertionOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
+          "line": 596
+        },
+        {
+          "name": "NodeAppendsIfNotFound",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
+          "line": 628
+        },
+        {
+          "name": "WireReplacementKeepsInsertionOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
+          "line": 648
+        },
+        {
+          "name": "NestedReplacementKeepsInsertionOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
+          "line": 679
+        },
+        {
+          "name": "ReplacementPreservesViewportAndMetadata",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
+          "line": 710
+        },
+        {
+          "name": "WireReplacementPreservesViewportAndMetadata",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
+          "line": 739
+        },
+        {
+          "name": "NestedReplacementPreservesViewportAndMetadata",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
+          "line": 771
+        }
+      ]
+    },
+    {
+      "name": "SubWindowOpenTargetRegression",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "NonEmbeddedNestedHasNullInlineDef",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_editor_model.cpp",
+          "line": 808
         }
       ]
     }

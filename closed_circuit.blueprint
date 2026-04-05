@@ -1962,7 +1962,7 @@
       "params": {
         "g_closed": 1000.0,
         "g_open": 9.999999974752427e-07,
-        "i_nominal": 20.0
+        "i_nominal": 80.0
       },
       "ports": {
         "control": {
@@ -4190,6 +4190,25 @@
       "type": "Value"
     },
     {
+      "id": "value_10",
+      "name": "value_10",
+      "params": {
+        "value": 1.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 48.0,
+        "y": 432.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
       "id": "value_2",
       "name": "FieldRate",
       "params": {
@@ -4500,8 +4519,8 @@
       "type": "Voltmeter"
     }
   ],
-  "pan_x": -643.856201171875,
-  "pan_y": -913.7785034179688,
+  "pan_x": -453.69384765625,
+  "pan_y": -906.45263671875,
   "version": "3.0",
   "wires": [
     {
@@ -4514,7 +4533,7 @@
       "routing_points": [
         [
           448.0,
-          -368.0
+          -336.0
         ],
         [
           448.0,
@@ -4563,12 +4582,12 @@
           -176.0
         ],
         [
-          240.0,
+          48.0,
           -176.0
         ],
         [
-          240.0,
-          -368.0
+          48.0,
+          -336.0
         ]
       ],
       "source": "/bus_2:v",
@@ -4636,7 +4655,7 @@
         ],
         [
           -64.0,
-          -352.0
+          -320.0
         ]
       ],
       "source": "/bus_1:v",
@@ -5132,11 +5151,6 @@
       "target": "/divide_rotor_accel:torque_in"
     },
     {
-      "id": "wire_129",
-      "source": "/slider_1:out",
-      "target": "/extract_inst_4:Torque"
-    },
-    {
       "id": "wire_val_controlledvoltagesource_2_gain",
       "source": "/val_controlledvoltagesource_2_gain:o",
       "target": "/controlledvoltagesource_2:gain"
@@ -5355,7 +5369,12 @@
       "id": "wire_163",
       "source": "/groundpower_1:v_out",
       "target": "/rotaryswitch1ton_1:wiper"
+    },
+    {
+      "id": "wire_164",
+      "source": "/value_10:o",
+      "target": "/extract_inst_4:Torque"
     }
   ],
-  "zoom": 1.1244862079620361
+  "zoom": 0.5167129635810852
 }

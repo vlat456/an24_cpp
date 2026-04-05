@@ -1,0 +1,67 @@
+{
+  "tests": 11,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "AccumulatorTest",
+      "tests": 11,
+      "testsuite": [
+        {
+          "name": "ColdStart_StartsAtInitialValue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 42
+        },
+        {
+          "name": "ColdStart_ZeroInitial",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 56
+        },
+        {
+          "name": "Accumulation_PositiveInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 67
+        },
+        {
+          "name": "Accumulation_NegativeInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 83
+        },
+        {
+          "name": "ZeroInput_NoAccumulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 99
+        },
+        {
+          "name": "ZeroDt_NoAccumulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 115
+        },
+        {
+          "name": "LargeDt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 137
+        },
+        {
+          "name": "NoGainParameter",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 154
+        },
+        {
+          "name": "NegativeCrossingZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 171
+        },
+        {
+          "name": "AlternatingInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 188
+        },
+        {
+          "name": "Precision_MaintainedOverTime",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_accumulator.cpp",
+          "line": 209
+        }
+      ]
+    }
+  ]
+}

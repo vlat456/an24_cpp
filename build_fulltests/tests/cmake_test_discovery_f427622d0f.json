@@ -9,92 +9,92 @@
         {
           "name": "ProportionalOnly_Basic",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 60
+          "line": 75
         },
         {
           "name": "ProportionalOnly_NegativeError",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 71
+          "line": 86
         },
         {
           "name": "ProportionalOnly_ZeroError",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 82
+          "line": 97
         },
         {
           "name": "IntegralOnly_Accumulates",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 95
+          "line": 110
         },
         {
           "name": "IntegralOnly_DecreasesWhenErrorChangesSign",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 107
+          "line": 122
         },
         {
           "name": "ProportionalAndIntegral_StepResponse",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 132
+          "line": 147
         },
         {
           "name": "ProportionalAndIntegral_SteadyStateZeroError",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 145
+          "line": 160
         },
         {
           "name": "NegativeGains_InvertControl",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 158
+          "line": 173
         },
         {
           "name": "IntegralTimeInvariance",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 173
+          "line": 188
         },
         {
           "name": "AntiWindupCapsOutput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 191
+          "line": 206
         },
         {
           "name": "AntiWindupIntegralClamped",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 205
+          "line": 220
         },
         {
           "name": "ZeroGains_ZeroOutput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 221
+          "line": 236
         },
         {
           "name": "ExtremeDt_ClampedToMax",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 231
+          "line": 246
         },
         {
           "name": "TinyDt_ClampedToMin",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 243
+          "line": 258
         },
         {
           "name": "OutputSaturation_PositiveClamp",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 254
+          "line": 269
         },
         {
           "name": "OutputSaturation_NegativeClamp",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 265
+          "line": 280
         },
         {
           "name": "MultipleInstances_IndependentState",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 276
+          "line": 291
         },
         {
           "name": "ComparedToPID_NoDerivative",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 293
+          "line": 308
         }
       ]
     },
@@ -105,72 +105,72 @@
         {
           "name": "ProportionalOnly_Basic",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 321
+          "line": 336
         },
         {
           "name": "ProportionalOnly_NegativeError",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 332
+          "line": 347
         },
         {
           "name": "ProportionalOnly_ZeroError",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 343
+          "line": 358
         },
         {
           "name": "HighGain",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 354
+          "line": 369
         },
         {
           "name": "ZeroGain_ZeroOutput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 367
+          "line": 382
         },
         {
           "name": "NegativeGain_InvertsControl",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 377
+          "line": 392
         },
         {
           "name": "OutputSaturation_PositiveClamp",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 388
+          "line": 403
         },
         {
           "name": "OutputSaturation_NegativeClamp",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 399
+          "line": 414
         },
         {
           "name": "OutputSaturation_AsymmetricLimits",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 410
+          "line": 425
         },
         {
           "name": "DtDoesNotAffectOutput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 426
+          "line": 441
         },
         {
           "name": "Memoryless_NoStateAccumulation",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 443
+          "line": 458
         },
         {
           "name": "Memoryless_ErrorChangeImmediate",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 461
+          "line": 476
         },
         {
           "name": "ComparedToPI_KiZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 483
+          "line": 498
         },
         {
           "name": "ComparedToPID_KiKdZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
-          "line": 507
+          "line": 515
         }
       ]
     }

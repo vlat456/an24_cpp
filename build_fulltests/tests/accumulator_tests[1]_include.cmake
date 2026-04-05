@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/accumulator_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_fulltests/tests/accumulator_tests[1]_tests.cmake")
+else()
+  add_test(accumulator_tests_NOT_BUILT accumulator_tests_NOT_BUILT)
+endif()

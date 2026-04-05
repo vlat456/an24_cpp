@@ -1,0 +1,22 @@
+{
+  "tests": 2,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ProductionPathParity",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "CompositeAotJitTopologyParity",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_production_path_parity.cpp",
+          "line": 67
+        },
+        {
+          "name": "MultiIslandDebugAndPlanParity",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_production_path_parity.cpp",
+          "line": 105
+        }
+      ]
+    }
+  ]
+}

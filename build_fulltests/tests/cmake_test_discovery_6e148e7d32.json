@@ -4,7 +4,7 @@
   "testsuites": [
     {
       "name": "BlueprintLoading",
-      "tests": 5,
+      "tests": 3,
       "testsuite": [
         {
           "name": "UnknownClassnameThrows",
@@ -20,42 +20,27 @@
           "name": "DirectBlueprintLoadWorks",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
           "line": 39
-        },
-        {
-          "name": "Integration_NestedBlueprintRunsSimulation",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 106
-        },
-        {
-          "name": "ExpandBlueprintFromTypeRegistry",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 276
         }
       ]
     },
     {
       "name": "ExtractExposedPorts",
-      "tests": 4,
+      "tests": 3,
       "testsuite": [
-        {
-          "name": "SimpleBatteryBlueprint",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 161
-        },
         {
           "name": "MultipleBlueprints",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 203
+          "line": 107
         },
         {
           "name": "EmptyBlueprint",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 233
+          "line": 137
         },
         {
           "name": "DefaultValues",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 248
+          "line": 152
         }
       ]
     },
@@ -66,17 +51,17 @@
         {
           "name": "DirectSelfReference_Throws",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 323
+          "line": 180
         },
         {
           "name": "IndirectCycle_Throws",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 357
+          "line": 214
         },
         {
           "name": "ValidNesting_NoCycle",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 396
+          "line": 253
         }
       ]
     },
@@ -87,32 +72,53 @@
         {
           "name": "RegistryLoadsOnlyBlueprintFiles",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 425
+          "line": 282
         },
         {
           "name": "RegistryIgnoresJsonFiles",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 436
+          "line": 293
         },
         {
           "name": "NoJsonFilesInLibrary",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 492
+          "line": 350
         },
         {
           "name": "AllLibraryFilesAreBlueprintExtension",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 520
+          "line": 378
         },
         {
           "name": "MainSaveFileIsBlueprintExtension",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 554
+          "line": 412
         },
         {
           "name": "CodegenUsesBluprintExtension",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
-          "line": 579
+          "line": 437
+        }
+      ]
+    },
+    {
+      "name": "BlueprintConvention",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "AllNodesHaveName_12SAM28",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 493
+        },
+        {
+          "name": "ValueNodesHaveRenderHint_12SAM28",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 509
+        },
+        {
+          "name": "NodeNameMatchesId_12SAM28",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 530
         }
       ]
     }

@@ -9,117 +9,117 @@
         {
           "name": "ColdStart_StartsAtInitialValue",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 45
+          "line": 46
         },
         {
           "name": "Integration_AccumulatesPositiveInput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 59
+          "line": 60
         },
         {
           "name": "Integration_AccumulatesNegativeInput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 75
+          "line": 76
         },
         {
           "name": "Reset_ZerosAccumulator",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 91
+          "line": 92
         },
         {
           "name": "ResetWhileHigh_StaysZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 117
+          "line": 118
         },
         {
           "name": "ResetReleased_ResumesIntegration",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 132
+          "line": 133
         },
         {
           "name": "Gain_ScalesIntegration",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 156
+          "line": 157
         },
         {
           "name": "NegativeGain_InvertsIntegration",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 172
+          "line": 173
         },
         {
           "name": "ZeroGain_NoAccumulation",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 188
+          "line": 189
         },
         {
           "name": "VariableDt_AdaptsIntegration",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 204
+          "line": 205
         },
         {
           "name": "ZeroDt_NoAccumulation",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 221
+          "line": 222
         },
         {
           "name": "ZeroInput_NoAccumulation",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 246
+          "line": 247
         },
         {
           "name": "Precision_MaintainedOverTime",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 262
+          "line": 263
         },
         {
           "name": "FuelConsumption_RealisticUseCase",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 278
+          "line": 279
         },
         {
           "name": "BatteryCharge_RealisticUseCase",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 303
+          "line": 304
         },
         {
           "name": "WearAccumulation_RealisticUseCase",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 319
+          "line": 320
         },
         {
           "name": "BooleanThreshold_Reset",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 335
+          "line": 336
         },
         {
           "name": "LargeDt_Clip",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 365
+          "line": 366
         },
         {
           "name": "MultipleResets",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 382
+          "line": 383
         },
         {
           "name": "NegativeInputCrossesZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 423
+          "line": 424
         },
         {
           "name": "AlternatingInput_CorrectIntegration",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 440
+          "line": 441
         },
         {
           "name": "ResetDoesNotAffectFirstFrameMask",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 468
+          "line": 469
         },
         {
           "name": "IntegrationContinuesAfterReset",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
-          "line": 485
+          "line": 486
         }
       ]
     }
