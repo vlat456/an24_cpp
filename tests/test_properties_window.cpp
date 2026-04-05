@@ -773,3 +773,128 @@ TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
     // from the dropdown — that's a separate serialization concern)
     EXPECT_EQ(node_ptr->string_params.at("exposed_type"), "V");
 }
+
+// =============================================================================
+// Bug 1 regression: Apply syncs content_max/min from params
+// =============================================================================
+
+// When the user changes the "positions" param for a Knob-type node via the
+// inspector, apply() must update content_max so the visual KnobWidget renders
+// the correct number of tick marks.
+TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax) {
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("knob1");
+    n.type = interner.intern("KnobSwitch");
+    n.name = "knob1";
+    n.content_type = bp2::NodeContentType::Knob;
+    n.content_max = 2.0f;  // Initial: 2 positions
+    n.params[interner.intern("positions")] = 2.0f;
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("knob1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_FLOAT_EQ(node_ptr->content_max, 2.0f);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "knob1", model, interner, [](const std::string&) {});
+
+    // User changes positions from 2 to 5
+    win.set_pending_param("positions", 5.0f);
+    win.apply();
+
+    node_ptr = model.current().find_node(interner.intern("knob1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("positions")), 5.0f);
+    EXPECT_FLOAT_EQ(node_ptr->content_max, 5.0f)
+        << "content_max must be synced from 'positions' param for Knob nodes";
+}
+
+// Verify content_max sync for Knob via undo: after undo, content_max must
+// revert to the original value.
+TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax_UndoReverts) {
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("knob1");
+    n.type = interner.intern("KnobSwitch");
+    n.name = "knob1";
+    n.content_type = bp2::NodeContentType::Knob;
+    n.content_max = 2.0f;
+    n.params[interner.intern("positions")] = 2.0f;
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("knob1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "knob1", model, interner, [](const std::string&) {});
+    win.set_pending_param("positions", 5.0f);
+    win.apply();
+
+    ASSERT_TRUE(model.can_undo());
+    model.undo();
+
+    node_ptr = model.current().find_node(interner.intern("knob1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_FLOAT_EQ(node_ptr->content_max, 2.0f)
+        << "Undo must revert content_max for Knob nodes";
+}
+
+// When the user changes "min" or "max" param for a Slider-type node,
+// apply() must sync content_min / content_max.
+TEST_F(PropertiesWindowTest, ApplySliderMinMaxSyncsContentRange) {
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("slider1");
+    n.type = interner.intern("Slider");
+    n.name = "slider1";
+    n.content_type = bp2::NodeContentType::Slider;
+    n.content_min = 0.0f;
+    n.content_max = 100.0f;
+    n.params[interner.intern("min")] = 0.0f;
+    n.params[interner.intern("max")] = 100.0f;
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("slider1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "slider1", model, interner, [](const std::string&) {});
+    win.set_pending_param("min", -10.0f);
+    win.set_pending_param("max", 200.0f);
+    win.apply();
+
+    node_ptr = model.current().find_node(interner.intern("slider1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_FLOAT_EQ(node_ptr->content_min, -10.0f)
+        << "content_min must be synced from 'min' param for Slider nodes";
+    EXPECT_FLOAT_EQ(node_ptr->content_max, 200.0f)
+        << "content_max must be synced from 'max' param for Slider nodes";
+}
+
+// When the user changes "min" or "max" param for a Gauge-type node,
+// apply() must sync content_min / content_max.
+TEST_F(PropertiesWindowTest, ApplyGaugeMinMaxSyncsContentRange) {
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("gauge1");
+    n.type = interner.intern("Voltmeter");
+    n.name = "gauge1";
+    n.content_type = bp2::NodeContentType::Gauge;
+    n.content_min = 0.0f;
+    n.content_max = 30.0f;
+    n.params[interner.intern("min")] = 0.0f;
+    n.params[interner.intern("max")] = 30.0f;
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("gauge1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "gauge1", model, interner, [](const std::string&) {});
+    win.set_pending_param("max", 60.0f);
+    win.apply();
+
+    node_ptr = model.current().find_node(interner.intern("gauge1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_FLOAT_EQ(node_ptr->content_min, 0.0f)
+        << "content_min unchanged for Gauge nodes";
+    EXPECT_FLOAT_EQ(node_ptr->content_max, 60.0f)
+        << "content_max must be synced from 'max' param for Gauge nodes";
+}

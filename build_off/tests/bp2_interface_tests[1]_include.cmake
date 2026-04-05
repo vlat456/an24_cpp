@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/bp2_interface_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_off/tests/bp2_interface_tests[1]_tests.cmake")
-else()
-  add_test(bp2_interface_tests_NOT_BUILT bp2_interface_tests_NOT_BUILT)
-endif()

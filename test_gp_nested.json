@@ -1,0 +1,13 @@
+{
+    "devices": [
+        {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
+        {"name": "load", "classname": "Resistor", "params": {"conductance": "0.1"}},
+        {"name": "gp", "classname": "GroundPower"}
+    ],
+    "connections": [
+        {"from": "gp.v_in", "to": "gnd.v"},
+        {"from": "gp.v_out", "to": "load.v_in"},
+        {"from": "load.v_out", "to": "gnd.v"}
+    ],
+    "templates": {}
+}

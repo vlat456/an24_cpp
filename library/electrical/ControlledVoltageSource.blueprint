@@ -71,5 +71,19 @@
   ],
   "param_defaults": {
     "r_internal": "0.1"
+  },
+  "solver_role": {
+    "kind": "TheveninSource",
+    "ports": {
+      "pos": "v_pos",
+      "neg": "v_neg"
+    },
+    "params": {
+      "resistance": "r_internal"
+    },
+    "values": {
+      "voltage": 0.0,
+      "bind_handle": 1.0
+    }
   }
 }

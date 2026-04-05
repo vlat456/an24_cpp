@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "jit_solver/scheduler.h"
-#include "jit_solver/state.h"
+#include "core/solvers/jit/scheduler.h"
+#include "core/solvers/jit/state.h"
 
 struct MockSource {
     int* counter = nullptr;

@@ -13,13 +13,13 @@
 /// E-009: Single-solve pipeline with one-frame delay is correct for a game.
 
 #include <gtest/gtest.h>
-#include "jit_solver/simulator.h"
-#include "jit_solver/jit_solver.h"
-#include "jit_solver/components/provider.h"
-#include "jit_solver/components/port_names.h"
-#include "jit_solver/components/port_registry.h"
-#include "jit_solver/subsolvers/electrical_subsolver.h"
-#include "jit_solver/state.h"
+#include "core/solvers/jit/simulator.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/components/provider.h"
+#include "core/solvers/jit/components/port_names.h"
+#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/jit/subsolvers/electrical_subsolver.h"
+#include "core/solvers/jit/state.h"
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -87,7 +87,6 @@ TEST(E001_Noexcept, SolveGaussianReturnsBool) {
 
     SimulationState st;
     st.values.resize(2, 5.0f);  // non-zero previous values
-    st.signal_types.resize(2, {Domain::Electrical, false});
     ElectricalRuntimeState rt;
 
     // Must not throw. Previous values preserved on singular fallback.
@@ -111,7 +110,6 @@ TEST(E001_Noexcept, DuplicateFixedConstraintsSameValueNoThrow) {
 
     SimulationState st;
     st.values.resize(4, 0.0f);
-    st.signal_types.resize(4, {Domain::Electrical, false});
     ElectricalRuntimeState rt;
 
     EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));

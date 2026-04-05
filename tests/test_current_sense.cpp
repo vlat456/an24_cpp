@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "jit_solver/components/all.h"
-#include "jit_solver/components/port_registry.h"
-#include "jit_solver/state.h"
+#include "core/solvers/jit/components/all.h"
+#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/jit/state.h"
 #include <cmath>
 
 // =============================================================================
@@ -27,8 +27,6 @@ static CurrentSense<JitProvider> make_current_sense(float g = 1000.0f) {
 static SimulationState make_state(size_t n = 3) {
     SimulationState st;
     st.values.resize(n, 0.0f);
-    st.signal_types.resize(n, {Domain::Electrical, false});
-    st.dynamic_signals_count = static_cast<uint32_t>(n);
     return st;
 }
 
@@ -41,7 +39,7 @@ static SimulationState make_state(size_t n = 3) {
 TEST(CurrentSense, ReportsSolvedCurrent) {
     // CurrentSense should read from electrical runtime state
     auto comp = make_current_sense(1000.0f);
-    comp.electrical_handle = {0, 0, 2};  // valid handle with component_index=2
+    comp.electrical_handle = {0, 0, 2};  // valid handle with element_id=2
 
     auto st = make_state();
     st.electrical_rt = new ElectricalRuntimeState();
@@ -81,8 +79,8 @@ TEST(CurrentSense, NoElectricalRtOutputsZero) {
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
-TEST(CurrentSense, OutOfRangeComponentIndexOutputsZero) {
-    // CurrentSense with component_index beyond branch_currents size outputs 0
+TEST(CurrentSense, OutOfRangeElementIdOutputsZero) {
+    // CurrentSense with element_id beyond branch_currents size outputs 0
     auto comp = make_current_sense(1000.0f);
     comp.electrical_handle = {0, 0, 100};  // valid handle but index 100
 

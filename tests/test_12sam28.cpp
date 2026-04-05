@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "jit_solver/simulator.h"
+#include "core/solvers/jit/simulator.h"
 
 #include <string>
 

@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_on/tests/push_scheduler_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_on/tests/push_scheduler_tests[1]_tests.cmake")
-else()
-  add_test(push_scheduler_tests_NOT_BUILT push_scheduler_tests_NOT_BUILT)
-endif()

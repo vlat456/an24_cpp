@@ -96,6 +96,7 @@ struct SolverRole {
     std::string kind;  // "ConductanceBranch", "TheveninSource", "FixedVoltageNode"
     std::unordered_map<std::string, std::string> port_map;   // role key -> port name (e.g. "a" -> "v_in")
     std::unordered_map<std::string, std::string> param_map;  // role key -> param name (e.g. "g" -> "conductance")
+    std::unordered_map<std::string, float> value_map;        // role key -> literal value (e.g. "voltage" -> 0.0)
 };
 
 /// Explicit execution-phase participation metadata loaded from component JSON.

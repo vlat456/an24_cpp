@@ -31,6 +31,20 @@
     "internal_r": "0.005",
     "v_nominal": "28.5"
   },
+  "solver_role": {
+    "kind": "TheveninSource",
+    "ports": {
+      "pos": "v_out",
+      "neg": "v_in"
+    },
+    "params": {
+      "voltage": "v_nominal",
+      "resistance": "internal_r"
+    },
+    "values": {
+      "bind_handle": 1.0
+    }
+  },
   "priority": "high",
   "content_type": "Gauge"
 }

@@ -1,7 +1,7 @@
 #include "json_parser/json_parser.h"
-#include "jit_solver/jit_solver.h"
-#include "jit_solver/state.h"
-#include "jit_solver/SOR_constants.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/state.h"
+#include "core/solvers/jit/SOR_constants.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <fstream>

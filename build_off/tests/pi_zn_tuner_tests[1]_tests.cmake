@@ -1,5 +1,0 @@
-add_test([=[PIZN.DetectsSustainedOscillationOnSine]=]  /Users/vladimir/an24_cpp/build_off/tests/pi_zn_tuner_tests [==[--gtest_filter=PIZN.DetectsSustainedOscillationOnSine]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[PIZN.DetectsSustainedOscillationOnSine]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_pi_zn_tuner.cpp:7 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_off/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-add_test([=[PIZN.EstimatesTuOnSine]=]  /Users/vladimir/an24_cpp/build_off/tests/pi_zn_tuner_tests [==[--gtest_filter=PIZN.EstimatesTuOnSine]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[PIZN.EstimatesTuOnSine]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_pi_zn_tuner.cpp:19 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_off/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-set(  pi_zn_tuner_tests_TESTS PIZN.DetectsSustainedOscillationOnSine PIZN.EstimatesTuOnSine)

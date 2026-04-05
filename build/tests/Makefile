@@ -1473,77 +1473,19 @@ signal_key_resolver_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/signal_key_resolver_tests.dir/build.make tests/CMakeFiles/signal_key_resolver_tests.dir/build
 .PHONY : signal_key_resolver_tests/fast
 
-__/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
-.PHONY : __/src/codegen/codegen.o
+# Convenience name for target.
+tests/CMakeFiles/knob_switch_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/knob_switch_tests.dir/rule
+.PHONY : tests/CMakeFiles/knob_switch_tests.dir/rule
 
-# target to build an object file
-__/src/codegen/codegen.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.o
-.PHONY : __/src/codegen/codegen.cpp.o
+# Convenience name for target.
+knob_switch_tests: tests/CMakeFiles/knob_switch_tests.dir/rule
+.PHONY : knob_switch_tests
 
-__/src/codegen/codegen.i: __/src/codegen/codegen.cpp.i
-.PHONY : __/src/codegen/codegen.i
-
-# target to preprocess a source file
-__/src/codegen/codegen.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.i
-.PHONY : __/src/codegen/codegen.cpp.i
-
-__/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
-.PHONY : __/src/codegen/codegen.s
-
-# target to generate assembly for a file
-__/src/codegen/codegen.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.s
-.PHONY : __/src/codegen/codegen.cpp.s
-
-__/src/codegen/electrical_codegen.o: __/src/codegen/electrical_codegen.cpp.o
-.PHONY : __/src/codegen/electrical_codegen.o
-
-# target to build an object file
-__/src/codegen/electrical_codegen.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.o
-.PHONY : __/src/codegen/electrical_codegen.cpp.o
-
-__/src/codegen/electrical_codegen.i: __/src/codegen/electrical_codegen.cpp.i
-.PHONY : __/src/codegen/electrical_codegen.i
-
-# target to preprocess a source file
-__/src/codegen/electrical_codegen.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.i
-.PHONY : __/src/codegen/electrical_codegen.cpp.i
-
-__/src/codegen/electrical_codegen.s: __/src/codegen/electrical_codegen.cpp.s
-.PHONY : __/src/codegen/electrical_codegen.s
-
-# target to generate assembly for a file
-__/src/codegen/electrical_codegen.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.s
-.PHONY : __/src/codegen/electrical_codegen.cpp.s
+# fast build rule for target.
+knob_switch_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/build
+.PHONY : knob_switch_tests/fast
 
 __/src/editor/commands/commands.o: __/src/editor/commands/commands.cpp.o
 .PHONY : __/src/editor/commands/commands.o
@@ -1599,6 +1541,102 @@ __/src/editor/commands/extract_blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint.cpp.s
 .PHONY : __/src/editor/commands/extract_blueprint.cpp.s
 
+__/src/editor/commands/extract_blueprint_analysis.o: __/src/editor/commands/extract_blueprint_analysis.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_analysis.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.cpp.o
+
+__/src/editor/commands/extract_blueprint_analysis.i: __/src/editor/commands/extract_blueprint_analysis.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_analysis.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.cpp.i
+
+__/src/editor/commands/extract_blueprint_analysis.s: __/src/editor/commands/extract_blueprint_analysis.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_analysis.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.cpp.s
+
+__/src/editor/commands/extract_blueprint_bridge.o: __/src/editor/commands/extract_blueprint_bridge.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_bridge.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.cpp.o
+
+__/src/editor/commands/extract_blueprint_bridge.i: __/src/editor/commands/extract_blueprint_bridge.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_bridge.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.cpp.i
+
+__/src/editor/commands/extract_blueprint_bridge.s: __/src/editor/commands/extract_blueprint_bridge.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_bridge.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.cpp.s
+
+__/src/editor/commands/extract_blueprint_build.o: __/src/editor/commands/extract_blueprint_build.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_build.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_build.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_build.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_build.cpp.o
+
+__/src/editor/commands/extract_blueprint_build.i: __/src/editor/commands/extract_blueprint_build.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_build.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_build.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_build.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_build.cpp.i
+
+__/src/editor/commands/extract_blueprint_build.s: __/src/editor/commands/extract_blueprint_build.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_build.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_build.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_build.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_build.cpp.s
+
+__/src/editor/commands/extract_blueprint_common.o: __/src/editor/commands/extract_blueprint_common.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_common.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_common.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_common.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_common.cpp.o
+
+__/src/editor/commands/extract_blueprint_common.i: __/src/editor/commands/extract_blueprint_common.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_common.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_common.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_common.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_common.cpp.i
+
+__/src/editor/commands/extract_blueprint_common.s: __/src/editor/commands/extract_blueprint_common.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_common.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_common.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_common.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_common.cpp.s
+
 __/src/editor/editor_settings.o: __/src/editor/editor_settings.cpp.o
 .PHONY : __/src/editor/editor_settings.o
 
@@ -1646,6 +1684,102 @@ __/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
 __/src/editor/input/canvas_input.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
+
+__/src/editor/input/canvas_input_mouse_down.o: __/src/editor/input/canvas_input_mouse_down.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_down.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_mouse_down.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_mouse_down.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_down.cpp.o
+
+__/src/editor/input/canvas_input_mouse_down.i: __/src/editor/input/canvas_input_mouse_down.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_down.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_mouse_down.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_mouse_down.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_down.cpp.i
+
+__/src/editor/input/canvas_input_mouse_down.s: __/src/editor/input/canvas_input_mouse_down.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_down.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_mouse_down.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_mouse_down.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_down.cpp.s
+
+__/src/editor/input/canvas_input_mouse_drag.o: __/src/editor/input/canvas_input_mouse_drag.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_mouse_drag.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_mouse_drag.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.cpp.o
+
+__/src/editor/input/canvas_input_mouse_drag.i: __/src/editor/input/canvas_input_mouse_drag.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_mouse_drag.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_mouse_drag.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.cpp.i
+
+__/src/editor/input/canvas_input_mouse_drag.s: __/src/editor/input/canvas_input_mouse_drag.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_mouse_drag.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_mouse_drag.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.cpp.s
+
+__/src/editor/input/canvas_input_mouse_up.o: __/src/editor/input/canvas_input_mouse_up.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_up.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_mouse_up.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_mouse_up.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_up.cpp.o
+
+__/src/editor/input/canvas_input_mouse_up.i: __/src/editor/input/canvas_input_mouse_up.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_up.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_mouse_up.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_mouse_up.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_up.cpp.i
+
+__/src/editor/input/canvas_input_mouse_up.s: __/src/editor/input/canvas_input_mouse_up.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_up.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_mouse_up.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_mouse_up.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_up.cpp.s
+
+__/src/editor/input/canvas_input_wires.o: __/src/editor/input/canvas_input_wires.cpp.o
+.PHONY : __/src/editor/input/canvas_input_wires.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_wires.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_wires.cpp.o
+.PHONY : __/src/editor/input/canvas_input_wires.cpp.o
+
+__/src/editor/input/canvas_input_wires.i: __/src/editor/input/canvas_input_wires.cpp.i
+.PHONY : __/src/editor/input/canvas_input_wires.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_wires.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_wires.cpp.i
+.PHONY : __/src/editor/input/canvas_input_wires.cpp.i
+
+__/src/editor/input/canvas_input_wires.s: __/src/editor/input/canvas_input_wires.cpp.s
+.PHONY : __/src/editor/input/canvas_input_wires.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_wires.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input_wires.cpp.s
+.PHONY : __/src/editor/input/canvas_input_wires.cpp.s
 
 __/src/editor/pi_zn_math.o: __/src/editor/pi_zn_math.cpp.o
 .PHONY : __/src/editor/pi_zn_math.o
@@ -2201,30 +2335,6 @@ __/src/editor/window/properties_window.s: __/src/editor/window/properties_window
 __/src/editor/window/properties_window.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/window/properties_window.cpp.s
 .PHONY : __/src/editor/window/properties_window.cpp.s
-
-__/src/json_parser/json_parser.o: __/src/json_parser/json_parser.cpp.o
-.PHONY : __/src/json_parser/json_parser.o
-
-# target to build an object file
-__/src/json_parser/json_parser.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/json_parser/json_parser.cpp.o
-.PHONY : __/src/json_parser/json_parser.cpp.o
-
-__/src/json_parser/json_parser.i: __/src/json_parser/json_parser.cpp.i
-.PHONY : __/src/json_parser/json_parser.i
-
-# target to preprocess a source file
-__/src/json_parser/json_parser.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/json_parser/json_parser.cpp.i
-.PHONY : __/src/json_parser/json_parser.cpp.i
-
-__/src/json_parser/json_parser.s: __/src/json_parser/json_parser.cpp.s
-.PHONY : __/src/json_parser/json_parser.s
-
-# target to generate assembly for a file
-__/src/json_parser/json_parser.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/json_parser/json_parser.cpp.s
-.PHONY : __/src/json_parser/json_parser.cpp.s
 
 __/src/ui/core/widget.o: __/src/ui/core/widget.cpp.o
 .PHONY : __/src/ui/core/widget.o
@@ -3386,6 +3496,30 @@ test_jit_aot_bridge_equivalence.s: test_jit_aot_bridge_equivalence.cpp.s
 test_jit_aot_bridge_equivalence.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.s
 .PHONY : test_jit_aot_bridge_equivalence.cpp.s
+
+test_knob_switch.o: test_knob_switch.cpp.o
+.PHONY : test_knob_switch.o
+
+# target to build an object file
+test_knob_switch.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/test_knob_switch.cpp.o
+.PHONY : test_knob_switch.cpp.o
+
+test_knob_switch.i: test_knob_switch.cpp.i
+.PHONY : test_knob_switch.i
+
+# target to preprocess a source file
+test_knob_switch.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/test_knob_switch.cpp.i
+.PHONY : test_knob_switch.cpp.i
+
+test_knob_switch.s: test_knob_switch.cpp.s
+.PHONY : test_knob_switch.s
+
+# target to generate assembly for a file
+test_knob_switch.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/test_knob_switch.cpp.s
+.PHONY : test_knob_switch.cpp.s
 
 test_logic_gates.o: test_logic_gates.cpp.o
 .PHONY : test_logic_gates.o
@@ -4594,6 +4728,7 @@ help:
 	@echo "... integrator_tests"
 	@echo "... jit_aot_bridge_equivalence_tests"
 	@echo "... json_parser_tests"
+	@echo "... knob_switch_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
@@ -4645,24 +4780,42 @@ help:
 	@echo "... visual_scene_v2_tests"
 	@echo "... visual_widget_tests"
 	@echo "... visual_wire_tests"
-	@echo "... __/src/codegen/codegen.o"
-	@echo "... __/src/codegen/codegen.i"
-	@echo "... __/src/codegen/codegen.s"
-	@echo "... __/src/codegen/electrical_codegen.o"
-	@echo "... __/src/codegen/electrical_codegen.i"
-	@echo "... __/src/codegen/electrical_codegen.s"
 	@echo "... __/src/editor/commands/commands.o"
 	@echo "... __/src/editor/commands/commands.i"
 	@echo "... __/src/editor/commands/commands.s"
 	@echo "... __/src/editor/commands/extract_blueprint.o"
 	@echo "... __/src/editor/commands/extract_blueprint.i"
 	@echo "... __/src/editor/commands/extract_blueprint.s"
+	@echo "... __/src/editor/commands/extract_blueprint_analysis.o"
+	@echo "... __/src/editor/commands/extract_blueprint_analysis.i"
+	@echo "... __/src/editor/commands/extract_blueprint_analysis.s"
+	@echo "... __/src/editor/commands/extract_blueprint_bridge.o"
+	@echo "... __/src/editor/commands/extract_blueprint_bridge.i"
+	@echo "... __/src/editor/commands/extract_blueprint_bridge.s"
+	@echo "... __/src/editor/commands/extract_blueprint_build.o"
+	@echo "... __/src/editor/commands/extract_blueprint_build.i"
+	@echo "... __/src/editor/commands/extract_blueprint_build.s"
+	@echo "... __/src/editor/commands/extract_blueprint_common.o"
+	@echo "... __/src/editor/commands/extract_blueprint_common.i"
+	@echo "... __/src/editor/commands/extract_blueprint_common.s"
 	@echo "... __/src/editor/editor_settings.o"
 	@echo "... __/src/editor/editor_settings.i"
 	@echo "... __/src/editor/editor_settings.s"
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
+	@echo "... __/src/editor/input/canvas_input_mouse_down.o"
+	@echo "... __/src/editor/input/canvas_input_mouse_down.i"
+	@echo "... __/src/editor/input/canvas_input_mouse_down.s"
+	@echo "... __/src/editor/input/canvas_input_mouse_drag.o"
+	@echo "... __/src/editor/input/canvas_input_mouse_drag.i"
+	@echo "... __/src/editor/input/canvas_input_mouse_drag.s"
+	@echo "... __/src/editor/input/canvas_input_mouse_up.o"
+	@echo "... __/src/editor/input/canvas_input_mouse_up.i"
+	@echo "... __/src/editor/input/canvas_input_mouse_up.s"
+	@echo "... __/src/editor/input/canvas_input_wires.o"
+	@echo "... __/src/editor/input/canvas_input_wires.i"
+	@echo "... __/src/editor/input/canvas_input_wires.s"
 	@echo "... __/src/editor/pi_zn_math.o"
 	@echo "... __/src/editor/pi_zn_math.i"
 	@echo "... __/src/editor/pi_zn_math.s"
@@ -4720,9 +4873,6 @@ help:
 	@echo "... __/src/editor/window/properties_window.o"
 	@echo "... __/src/editor/window/properties_window.i"
 	@echo "... __/src/editor/window/properties_window.s"
-	@echo "... __/src/json_parser/json_parser.o"
-	@echo "... __/src/json_parser/json_parser.i"
-	@echo "... __/src/json_parser/json_parser.s"
 	@echo "... __/src/ui/core/widget.o"
 	@echo "... __/src/ui/core/widget.i"
 	@echo "... __/src/ui/core/widget.s"
@@ -4867,6 +5017,9 @@ help:
 	@echo "... test_jit_aot_bridge_equivalence.o"
 	@echo "... test_jit_aot_bridge_equivalence.i"
 	@echo "... test_jit_aot_bridge_equivalence.s"
+	@echo "... test_knob_switch.o"
+	@echo "... test_knob_switch.i"
+	@echo "... test_knob_switch.s"
 	@echo "... test_logic_gates.o"
 	@echo "... test_logic_gates.i"
 	@echo "... test_logic_gates.s"

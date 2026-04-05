@@ -248,3 +248,240 @@ TEST(SignalKeyResolver, FallbackRawKeyHelper_ConsistentFormat) {
     // or when IDs are unavailable. Consistency is critical for continuity.
 }
 
+// ===========================================================================
+// BRIDGE NODE NAMING CONVENTION REGRESSION TESTS (Issue #37)
+// ===========================================================================
+
+// Test 17: Embedded bridge node with colon convention is resolved
+TEST(SignalKeyResolver, EmbeddedBridgeNode_ColonConvention_Found) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    // Simulate an embedded composite "gp_1" with a bridge node "gp_1:v_in"
+    bp2::Blueprint::Node bridge_node;
+    bridge_node.id = interner.intern("gp_1:v_in");
+    bridge_node.type = interner.intern("BlueprintInput");
+    bridge_node.name = "v_in";
+    bridge_node.group_id = "gp_1";
+    bp = bp.with_node(std::move(bridge_node));
+
+    // Create expandable proxy node
+    bp2::Blueprint::Node proxy_node;
+    proxy_node.id = interner.intern("gp_1");
+    proxy_node.type = interner.intern("GroundPower");
+    proxy_node.expandable = true;
+    proxy_node.blueprint_path = "electrical/GroundPower.blueprint";
+    proxy_node.outputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
+
+    // Create nested entry
+    bp2::Blueprint::Nested nested;
+    nested.id = proxy_node.id;
+    nested.blueprint_id = interner.intern("GroundPower");
+    nested.embedded = true;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(proxy_node));
+
+    ui::InternedId proxy_iid = interner.intern("gp_1");
+    ui::InternedId port_iid = interner.intern("v_in");
+
+    const auto* proxy = bp.find_node(proxy_iid);
+    ASSERT_NE(proxy, nullptr);
+
+    editor::SignalEndpoint endpoint{proxy, proxy_iid, port_iid};
+    editor::SignalKeyContext context = editor::root_signal_context();
+
+    std::string result = editor::resolve_runtime_signal_key(bp, interner, endpoint, context);
+    // Must resolve via bridge node "gp_1:v_in" → "gp_1:v_in.ext"
+    EXPECT_EQ(result, "gp_1:v_in.ext")
+        << "Embedded proxy port must resolve to colon-convention bridge node";
+}
+
+// Test 18: Underscore-convention bridge nodes are NOT found by resolver
+// This is a regression guard: the old addBlueprint created "gp_1_v_in" nodes.
+// After the fix, the resolver should NOT find them.
+TEST(SignalKeyResolver, EmbeddedBridgeNode_UnderscoreConvention_NotFound) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    // Create a bridge node with the OLD underscore convention
+    bp2::Blueprint::Node bad_bridge;
+    bad_bridge.id = interner.intern("gp_1_v_in");
+    bad_bridge.type = interner.intern("BlueprintInput");
+    bad_bridge.name = "v_in";
+    bad_bridge.group_id = "gp_1";
+    bp = bp.with_node(std::move(bad_bridge));
+
+    // Create expandable proxy node
+    bp2::Blueprint::Node proxy_node;
+    proxy_node.id = interner.intern("gp_1");
+    proxy_node.type = interner.intern("GroundPower");
+    proxy_node.expandable = true;
+    proxy_node.blueprint_path = "electrical/GroundPower.blueprint";
+    proxy_node.outputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
+
+    bp2::Blueprint::Nested nested;
+    nested.id = proxy_node.id;
+    nested.blueprint_id = interner.intern("GroundPower");
+    nested.embedded = true;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(proxy_node));
+
+    ui::InternedId proxy_iid = interner.intern("gp_1");
+    ui::InternedId port_iid = interner.intern("v_in");
+
+    const auto* proxy = bp.find_node(proxy_iid);
+    ASSERT_NE(proxy, nullptr);
+
+    editor::SignalEndpoint endpoint{proxy, proxy_iid, port_iid};
+    editor::SignalKeyContext context = editor::root_signal_context();
+
+    std::string result = editor::resolve_runtime_signal_key(bp, interner, endpoint, context);
+    // The underscore node should NOT be found by the resolver.
+    // It should fall through to the map_composite_port_key fallback.
+    EXPECT_NE(result, "gp_1_v_in.ext")
+        << "Resolver must NOT find underscore-convention bridge nodes";
+    EXPECT_EQ(result, "gp_1:v_in.ext")
+        << "Resolver should fall back to composite port key format";
+}
+
+// Test 19: Bridge node naming - colon convention is canonical for composites
+// When get_port_value() looks up a composite port, it uses the colon convention.
+TEST(SignalKeyResolver, CompositePortKey_UsesColonConvention) {
+    // Verify that map_composite_port_key always uses colon
+    std::string key1 = editor::map_composite_port_key("GroundPower_1", "v_in");
+    EXPECT_EQ(key1, "GroundPower_1:v_in.ext");
+    EXPECT_NE(key1.find(':'), std::string::npos)
+        << "Composite port key MUST contain colon separator";
+    EXPECT_EQ(key1.find('_'), std::string("GroundPower").size())
+        << "Only the instance suffix underscore should exist, not a port separator underscore";
+
+    std::string key2 = editor::map_composite_port_key("12SAM28_1", "v_out");
+    EXPECT_EQ(key2, "12SAM28_1:v_out.ext");
+}
+
+// ===========================================================================
+// Test 20: Multiple bridge nodes resolve independently (addBlueprint scenario)
+// Simulates what addBlueprint() produces: a composite with both input and
+// output bridge nodes using colon convention, plus internal nodes using
+// underscore convention. Verifies each port resolves to the correct bridge.
+// ===========================================================================
+TEST(SignalKeyResolver, MultipleBridgeNodes_ResolveIndependently) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    // Simulate addBlueprint() output for "gp_1" (GroundPower instance):
+    //   gp_1:v_in   → BlueprintInput  (colon convention, bridge)
+    //   gp_1:v_out  → BlueprintOutput (colon convention, bridge)
+    //   gp_1_src    → ControlledVoltageSource (underscore convention, internal)
+
+    bp2::Blueprint::Node bridge_in;
+    bridge_in.id = interner.intern("gp_1:v_in");
+    bridge_in.type = interner.intern("BlueprintInput");
+    bridge_in.name = "v_in";
+    bridge_in.group_id = "gp_1";
+    bp = bp.with_node(std::move(bridge_in));
+
+    bp2::Blueprint::Node bridge_out;
+    bridge_out.id = interner.intern("gp_1:v_out");
+    bridge_out.type = interner.intern("BlueprintOutput");
+    bridge_out.name = "v_out";
+    bridge_out.group_id = "gp_1";
+    bp = bp.with_node(std::move(bridge_out));
+
+    bp2::Blueprint::Node internal;
+    internal.id = interner.intern("gp_1_src");
+    internal.type = interner.intern("ControlledVoltageSource");
+    internal.name = "src";
+    internal.group_id = "gp_1";
+    bp = bp.with_node(std::move(internal));
+
+    // Create expandable proxy
+    bp2::Blueprint::Node proxy;
+    proxy.id = interner.intern("gp_1");
+    proxy.type = interner.intern("GroundPower");
+    proxy.expandable = true;
+    proxy.blueprint_path = "electrical/GroundPower.blueprint";
+    proxy.outputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
+    proxy.outputs.emplace_back(interner.intern("v_out"), PortSide::Output, PortType::V);
+
+    bp2::Blueprint::Nested nested;
+    nested.id = proxy.id;
+    nested.blueprint_id = interner.intern("GroundPower");
+    nested.embedded = true;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(proxy));
+
+    // Resolve v_in port → must find gp_1:v_in bridge
+    {
+        const auto* p = bp.find_node(interner.intern("gp_1"));
+        ASSERT_NE(p, nullptr);
+        editor::SignalEndpoint ep{p, interner.intern("gp_1"), interner.intern("v_in")};
+        std::string key = editor::resolve_runtime_signal_key(
+            bp, interner, ep, editor::root_signal_context());
+        EXPECT_EQ(key, "gp_1:v_in.ext");
+    }
+
+    // Resolve v_out port → must find gp_1:v_out bridge
+    {
+        const auto* p = bp.find_node(interner.intern("gp_1"));
+        ASSERT_NE(p, nullptr);
+        editor::SignalEndpoint ep{p, interner.intern("gp_1"), interner.intern("v_out")};
+        std::string key = editor::resolve_runtime_signal_key(
+            bp, interner, ep, editor::root_signal_context());
+        EXPECT_EQ(key, "gp_1:v_out.ext");
+    }
+
+    // Internal node "gp_1_src" should NOT be found as a bridge for any port
+    {
+        const auto* p = bp.find_node(interner.intern("gp_1"));
+        ASSERT_NE(p, nullptr);
+        editor::SignalEndpoint ep{p, interner.intern("gp_1"), interner.intern("src")};
+        std::string key = editor::resolve_runtime_signal_key(
+            bp, interner, ep, editor::root_signal_context());
+        // "src" is not a bridge port, so resolver falls through to composite key
+        EXPECT_EQ(key, "gp_1:src.ext");
+        // Critically, it must NOT resolve to "gp_1_src.ext" (underscore)
+        EXPECT_NE(key, "gp_1_src.ext");
+    }
+}
+
+// ===========================================================================
+// Test 21: Bridge node with underscore-heavy proxy ID (edge case)
+// Verifies that proxy IDs containing underscores (e.g. "ground_power_1")
+// don't confuse the colon-based bridge lookup.
+// ===========================================================================
+TEST(SignalKeyResolver, BridgeNode_ProxyIdWithUnderscores_ColonStillWorks) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    // Proxy ID itself contains underscores
+    bp2::Blueprint::Node bridge;
+    bridge.id = interner.intern("ground_power_1:v_in");
+    bridge.type = interner.intern("BlueprintInput");
+    bridge.name = "v_in";
+    bridge.group_id = "ground_power_1";
+    bp = bp.with_node(std::move(bridge));
+
+    bp2::Blueprint::Node proxy;
+    proxy.id = interner.intern("ground_power_1");
+    proxy.type = interner.intern("GroundPower");
+    proxy.expandable = true;
+    proxy.blueprint_path = "electrical/GroundPower.blueprint";
+    proxy.outputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
+
+    bp2::Blueprint::Nested nested;
+    nested.id = proxy.id;
+    nested.blueprint_id = interner.intern("GroundPower");
+    nested.embedded = true;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(proxy));
+
+    const auto* p = bp.find_node(interner.intern("ground_power_1"));
+    ASSERT_NE(p, nullptr);
+    editor::SignalEndpoint ep{p, interner.intern("ground_power_1"), interner.intern("v_in")};
+    std::string key = editor::resolve_runtime_signal_key(
+        bp, interner, ep, editor::root_signal_context());
+    EXPECT_EQ(key, "ground_power_1:v_in.ext")
+        << "Colon convention must work even when proxy ID contains underscores";
+}
+

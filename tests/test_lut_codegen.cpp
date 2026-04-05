@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "codegen/codegen.h"
+#include "core/solvers/aot/codegen.h"
 #include "json_parser/json_parser.h"
 #include "test_execution_phases.h"
 

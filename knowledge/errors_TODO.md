@@ -896,7 +896,7 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 - Topological writer/read classification still relies on hardcoded classname and port-name string lists.
 - New components (or new output ports on existing components) can silently be misclassified as inputs if not manually added.
-- This already caused a real regression (`RU19A` observation outputs `rpm_out`/`t4_out` missing from writer classification).
+- This already caused a real regression (`12SAM28` observation outputs missing from writer classification).
 
 **Target architecture:**
 
@@ -922,7 +922,7 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
    - Remove fallback "shotgun" output-name sets.
    - Remove all inference branches and compatibility/legacy fallback logic.
 4. **Tests (required)**
-   - Add classification tests for at least: `RU19A`, `GS24`, `ControlledVoltageSource`, `ControlledCurrentSource`, `RefNode`, `Battery`, `Generator`.
+   - Add classification tests for at least: `12SAM28`, `ControlledVoltageSource`, `ControlledCurrentSource`, `RefNode`, `Battery`, `Generator`.
    - Add one generic regression that verifies all output ports declared by metadata produce writer edges in topo ordering.
    - Add one generic regression that verifies scheduler source bucket membership is determined only by `scheduler_source` metadata.
 
@@ -1178,6 +1178,206 @@ The fix for this already existed in `NodeWidget::preferredSize()` (lines 362-368
 
 ---
 
+### ~~36. GroundPower Component — Tooltip Shows 0V~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** GroundPower (APR-2 ground power unit at 28.5V) was created as a composite blueprint. The simulation output was correct (downstream IndicatorLight showed 28.5V and brightness=1.0), but hovering over the `groundpower_1.v_out` port tooltip showed 0V.
+
+**Root cause (two-part):**
+
+1. **Simulation export** (`build_simulation_json()` in `document.cpp`): The embedded proxy's bridge nodes were generated with underscore convention (`groundpower_1_v_out`) by `addBlueprint()`, but the simulation JSON export assumed colon convention (`groundpower_1:v_out`). Parent-facing wires were not being rewritten to point to the actual bridge node ID.
+
+2. **Signal key resolver** (`signal_key_resolver.cpp`): `resolve_runtime_signal_key()` for embedded composites assumed the bridge node ID was always `proxy_id:port_name.ext` (colon convention). When bridge nodes used underscore convention, the lookup returned empty string, so the tooltip could not find the runtime signal.
+
+**Fix (two-part):**
+
+1. **`document.cpp::build_simulation_json()`** — Added two-pass bridge node discovery: first pass scans by `group_id` + `name` (catches underscore-style nodes), second pass overrides with exact colon-style ID if present. Parent-facing wire endpoints now use the actual bridge node ID rather than assuming colon convention.
+
+2. **`signal_key_resolver.cpp`** — Added `find_embedded_bridge_node()` function that tries colon convention first, then falls back to scanning nodes by `group_id` + `name` + type (`BlueprintInput`/`BlueprintOutput`). This handles both naming conventions.
+
+3. **`tests/CMakeLists.txt`** — Added `blueprint_v2` library linkage to `signal_key_resolver_tests` and `external_ref_signal_mapping_tests` targets (needed because `signal_key_resolver.cpp` now uses `bp2::Blueprint::find_nested()` and `bp2::Blueprint::find_node()`).
+
+**Files changed:**
+
+- `src/editor/document.cpp` — `build_simulation_json()` two-pass bridge discovery
+- `src/editor/signal_key_resolver.cpp` — `find_embedded_bridge_node()` with dual-convention support
+- `tests/CMakeLists.txt` — `blueprint_v2` linkage for test targets
+
+**Root architectural issue:** The codebase had two competing bridge-node naming conventions (colon `proxy:port` vs underscore `proxy_port`) created by different code paths. Fixed in issue #37 — colon convention is now canonical.
+
+**Tests:** All 1422 pass
+
+---
+
+### ~~37. Bridge Node Naming Convention — Architectural Fragility~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Severity:** High (recurring bug source — caused E-010, #36, and simulation export bugs)
+
+**Problem:**
+
+The codebase had **two competing naming conventions** for bridge nodes (`BlueprintInput`/`BlueprintOutput`) when composites are flattened or materialized:
+
+1. **Colon convention:** `proxy_id:port_name` — used by JSON parser expansion, `addComponent()` bridge insertion, runtime composite port lookups
+2. **Underscore convention:** `proxy_id_port_name` — used by `addBlueprint()` node materialization
+
+This caused at least 3 bugs and every new code path that touched composite boundaries needed fallback logic.
+
+**Fix — unified on colon convention as canonical:**
+
+1. **`document.cpp::addBlueprint()`** — Bridge nodes now use colon convention (`unique_id:original_name`). Internal (non-bridge) nodes continue to use underscore (`unique_id_original_name`). This aligns `addBlueprint()` with `addComponent()`, `json_parser.cpp`, and `simulator.cpp`.
+
+2. **`document.cpp::build_simulation_json()`** — Removed two-pass bridge discovery workaround. Single-pass scan now works because all bridge nodes consistently use colon convention.
+
+3. **`signal_key_resolver.cpp::find_embedded_bridge_node()`** — Removed structural fallback scan that searched by `group_id` + `name` + type. Now does direct ID lookup using colon convention only.
+
+4. **`simulator.cpp::get_port_value()`** — Clarified comment from "Fallback" to "Composite" since the `node:port.ext` lookup is the standard composite path, not a fallback.
+
+**Post-fix convention table:**
+
+| Location | Convention | Fallback? |
+|---|---|---|
+| `json_parser.cpp` (composite expansion) | Colon | No |
+| `document.cpp::addBlueprint()` (bridge nodes) | Colon | No |
+| `document.cpp::addBlueprint()` (internal nodes) | Underscore | No |
+| `document.cpp::addComponent()` (bridge creation) | Colon | No |
+| `document.cpp::build_simulation_json()` | Colon only | No |
+| `signal_key_resolver.cpp` | Colon only | No |
+| `simulator.cpp::get_port_value()` | Colon only | No |
+| `jit_solver.cpp::build_systems_dev()` | Agnostic (uses exact incoming names) | No |
+| `blueprint_v2/flattener/` | Neutral (preserves existing IDs) | No |
+
+**Files changed:**
+
+- `src/editor/document.cpp` — `addBlueprint()` bridge node naming fix, `build_simulation_json()` simplification
+- `src/editor/signal_key_resolver.cpp` — `find_embedded_bridge_node()` simplification
+- `src/jit_solver/simulator.cpp` — `get_port_value()` comment clarification
+- `knowledge/05_editor.md` — updated documentation
+
+**Regression tests (5 new):**
+
+- `SignalKeyResolver.EmbeddedBridgeNode_ColonConvention_Found`
+- `SignalKeyResolver.EmbeddedBridgeNode_UnderscoreConvention_NotFound`
+- `SignalKeyResolver.CompositePortKey_UsesColonConvention`
+- `SignalKeyResolver.MultipleBridgeNodes_ResolveIndependently`
+- `SignalKeyResolver.BridgeNode_ProxyIdWithUnderscores_ColonStillWorks`
+
+**Tests:** All 1453 pass
+
+---
+
+## KnobSwitch Bugs (Issues 38-41)
+
+### ~~38. Tick Marks Not Updating When Positions Changed in Inspector~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** When changing `positions` from 2→5 via the inspector, no new tick marks appear on the knob widget. The visual knob still shows only 2 tick marks.
+
+**Root cause:** In `properties_window.cpp::apply()`, when user changes `positions` param via inspector, the bp2 node's `params` are updated but `content_max` is NOT synced. `rebuildAllWindows()` rebuilds widgets from stale `content_max`.
+
+**Fix:** Added code in `properties_window.cpp::apply()` to sync `content_max`/`content_min` from params after param changes for Knob/Slider/Gauge content types.
+
+**Files changed:**
+
+- `src/editor/window/properties_window.cpp` — `apply()` now syncs content_max/min from params
+
+**Regression tests:** 4 new tests in `test_properties_window.cpp`
+
+**Tests:** All 1453 pass
+
+---
+
+### ~~39. InOut Terminals Duplicated on Both Sides~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** t1..t5 terminals are duplicated on both sides of the node (InOut port drawing limitation).
+
+**Root cause:** In `visual_node.cpp::buildStandardLayout()`, the fast path pairs inputs[i] with outputs[i] by index. For InOut ports, the same port appears in BOTH arrays, causing duplicates on left AND right sides.
+
+**Fix:** Modified `visual_node.cpp::buildStandardLayout()` to filter out InOut ports from the outputs list (they're already in inputs).
+
+**Files changed:**
+
+- `src/editor/visual/node/visual_node.cpp` — InOut filter in `buildStandardLayout()`
+
+**Regression tests:** 2 new tests in `test_scene_mutations.cpp`
+
+**Tests:** All 1453 pass
+
+---
+
+### ~~40. Node Editing Allowed During Simulation~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** Node dragging/resizing should be disabled during simulation mode, but knob drag should still work (currently clicking on knob drags the whole node). Also shouldn't be able to select nodes.
+
+**Root cause:** `CanvasInput::read_only` is NOT tied to `simulation_running_`. During simulation, user can still drag nodes/resize them.
+
+**Fix:** Added a new `simulation_mode` flag (separate from `read_only`) to allow widget interaction while blocking node editing:
+
+- Blocks node dragging, selection, wire creation, resize, routing points, context menus, delete key
+- Still allows slider/knob/toggle interaction and panning
+- Also blocks node selection during simulation mode
+
+**Files changed:**
+
+- `src/editor/input/canvas_input.h` — Added `simulation_mode` flag
+- `src/editor/input/canvas_input.cpp` — `simulation_mode` handling in `on_mouse_down`, `on_key`, `on_double_click`, right-click
+- `src/editor/window/blueprint_window.h` — Added `set_simulation_mode()` method
+- `src/editor/document.cpp` — wire up simulation start/stop to set simulation_mode
+
+**Regression tests:** 8 new tests in `test_canvas_input.cpp`
+
+**Tests:** All 1453 pass
+
+---
+
+### ~~41. initial_position Serialized as Float Instead of Int~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** Simulation fails to start for KnobSwitch because `initial_position` param is serialized as float string ("0.000000") but schema expects int ("0").
+
+**Root cause:** In `document.cpp::build_simulation_json()`, all params are serialized with `std::to_string(float)` producing "0.000000", but `initial_position` and `positions` params are typed as `ParamSchemaType::Int` in the schema, causing validation failure.
+
+**Fix:** Modified `document.cpp::build_simulation_json()` to check param schema type and serialize Int params as integer strings instead of float strings.
+
+**Files changed:**
+
+- `src/editor/document.cpp` — int param serialization in `build_simulation_json()`
+
+**Tests:** All 1453 pass
+
+---
+
+### Port Direction Analysis (for Issue Discussion)
+
+**Q: Do we need port direction information?**
+
+No, but it's load-bearing in three places beyond the visual layer:
+
+1. **Push-scheduler ordering** (`jit_solver.cpp:1288-1304`) — direction determines which ports are "writes" vs "reads" for topological sort. Without it, push components could execute in wrong order.
+
+2. **Wire validation** (`path_resolver.cpp`, `canvas_input.cpp`) — prevents output-to-output and input-to-input connections.
+
+3. **Blueprint persistence and codec** — direction is baked into the JSON format for both library definitions and saved blueprints.
+
+The electrical subsolver doesn't care at all — it uses connectivity and solver roles, not direction.
+
+**The pain points are specifically around InOut**, not direction in general. Options:
+
+- Flatten InOut at the visual layer (treat as Input, never duplicate)
+- Replace InOut with paired In/Out ports for electrical terminals
+
+Removing direction entirely would touch ~50 source files, ~30 test files, and every `.blueprint` in the library.
+
+---
+
 ## Summary Table
 
 | #     | Issue                                      | Priority   | Effort | Status              |
@@ -1217,4 +1417,68 @@ The fix for this already existed in `NodeWidget::preferredSize()` (lines 362-368
 | 33    | IndicatorWidget circle not centered in node | ~~Medium~~ | Low | **FIXED** |
 | 34    | AZS VerticalToggle content click area too narrow | ~~High~~ | Low | **FIXED** |
 | 35    | Content click detection hardcoded to specific types | ~~Medium~~ | Low | **FIXED** |
+| 36    | GroundPower tooltip shows 0V (bridge naming) | ~~High~~ | Low | **FIXED** |
+| 37    | Bridge node naming convention fragility | ~~High~~ | Medium | **FIXED** |
+| 38    | KnobSwitch tick marks not updating in inspector | ~~High~~   | Low    | **FIXED** |
+| 39    | KnobSwitch InOut terminals duplicated on both sides | ~~High~~   | Low    | **FIXED** |
+| 40    | Node editing allowed during simulation | ~~High~~   | Medium | **FIXED**           |
+| 41    | KnobSwitch initial_position serialized as float | ~~High~~   | Low    | **FIXED**          |
+| 42    | Wire "energized" visualization uses voltage, not current | ~~Medium~~ | —      | **WONTFIX (by design)** |
+| 43    | closed_circuit KnobSwitch kept legacy terminal names after strict rename | ~~High~~ | Low | **FIXED** |
+| 44    | KnobSwitch family classname checks duplicated across builder paths | ~~Low~~ | Low | **FIXED** |
+
+---
+
+## ~~42. Wire "Energized" Visualization Uses Voltage Instead of Current~~ ⚠️ WONTFIX (by design)
+
+**Status:** CLOSED — won't fix
+
+**Rationale for closing:**
+
+Wire visualization is **domain-agnostic** — wires carry all signal types (voltage, RPM, torque, bool, temperature, etc.). Making visualization "current-based" would tie it specifically to the electrical domain, breaking the generic design:
+
+- `wire_is_energized(abs(voltage) > threshold)` is correct for electrical signals (0V at GND = no potential = not energized)
+- RPM/torque/bool wires cannot be represented as "current" anyway
+- "Energized = voltage present" is a domain-specific concept that doesn't generalize
+
+**The user's confusion** is a UX issue: users interpret yellow = "current flowing", but the system shows yellow = "voltage potential present". This is a documentation/design issue, not a bug.
+
+**Options for future UX improvement** (not bug fixes):
+1. Add a UI toggle: "Show: Voltage / Current Flow" (per-viewport setting)
+2. Document the current behavior explicitly in the editor UI
+3. Add "current-based" as a separate visual layer on top of voltage-based (not a replacement)
+
+---
+
+## ~~43. closed_circuit KnobSwitch Still Used Legacy Terminal Names~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** After strict KnobSwitch terminal rename (`common`/`t*` -> `wiper`/`throw*`), `closed_circuit.blueprint` still had legacy endpoints for `knobswitch_1`. This made those wires silently non-connected (warning-only), resulting in a broken demo topology.
+
+**Root cause:** Blueprint migration gap: library/schema/runtime were updated, but one real project blueprint kept old endpoint names.
+
+**Fix:** Updated `closed_circuit.blueprint` KnobSwitch wiring to use strict port names (`wiper`, `throw1`).
+
+**Regression tests:**
+- `PushBuildValidation.KnobSwitchPortNamesAreWiperAndThrowsOnly`
+- `PushBuildValidation.KnobSwitchLegacyPortNamesAreNotConnected`
+
+**Notes:** Builder behavior for unknown ports remains warning + ignored connection (no throw). Tests now assert strict ports connect and legacy names do not.
+
+---
+
+## ~~44. KnobSwitch Family Classname Checks Were Duplicated~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** `KnobSwitch` / `RotarySwitch1ToN` / `RotarySwitchNTo1` classname checks were repeated in multiple `jit_solver.cpp` paths (`solver-owned` classification, component construction, electrical element extraction), increasing drift risk when adding family members.
+
+**Fix:** Added `is_knob_switch_family(std::string_view)` helper in `jit_solver.cpp` and switched repeated checks to this helper.
+
+**Additional hardening:** Builder now instantiates distinct variant alternatives for aliases (`RotarySwitch1ToN<JitProvider>`, `RotarySwitchNTo1<JitProvider>`) instead of always storing `KnobSwitch<JitProvider>`. This removes dead variant alternatives and validates alias type identity.
+
+**Regression tests:**
+- `PushBuildValidation.RotarySwitchAliasesInstantiateDistinctVariantTypes`
+- Existing alias build/scheduler tests remain green
 | 16    | Runtime API simplification (commit_control removal) | ~~Medium~~ | Low | **COMPLETED** |

@@ -23,8 +23,13 @@ target_link_libraries(hello_world PRIVATE jit_solver spdlog::spdlog)
 # target_link_libraries(benchmark PRIVATE json_parser jit_solver spdlog::spdlog)
 
 add_library(an24_codegen STATIC
-    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen_header.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen_source.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen_registry.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen_composite.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen_composite_helpers.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(an24_codegen PUBLIC
     ${CMAKE_SOURCE_DIR}/src
@@ -110,6 +115,13 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/app/editor_app.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_export.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_history.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_components.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_io.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_windows.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/oscilloscope.cpp
@@ -117,6 +129,10 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/pi_zn_math.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_down.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
@@ -151,6 +167,10 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_common.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_bridge.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_analysis.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_build.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/imgui_theme.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp

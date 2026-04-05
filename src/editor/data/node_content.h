@@ -15,7 +15,8 @@ enum class NodeContentType {
     Value,           ///< Отображаемое значение
     Text,            ///< Текст
     Slider,          ///< Интерактивный слайдер с min/max
-    Indicator        ///< Индикатор (лампочка) - круг с яркостью
+    Indicator,       ///< Индикатор (лампочка) - круг с яркостью
+    Knob             ///< Поворотный переключатель (2-5 позиций)
 };
 
 /// Содержимое узла (пока placeholder)
@@ -131,6 +132,16 @@ inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
     } else if (ct == "Indicator") {
         content.type = NodeContentType::Indicator;
         content.value = 0.0f;  // normalized brightness (0-1)
+    } else if (ct == "Knob") {
+        content.type = NodeContentType::Knob;
+        content.value = 0.0f;  // current position (0-based)
+        auto pos_it = def->params.find("positions");
+        content.max = (pos_it != def->params.end()) ? std::stof(pos_it->second) : 2.0f;
+        content.min = 0.0f;
+        auto init_it = def->params.find("initial_position");
+        if (init_it != def->params.end()) {
+            content.value = std::stof(init_it->second);
+        }
     }
     return content;
 }

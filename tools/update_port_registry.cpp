@@ -5,7 +5,7 @@
 /// Reads all .blueprint files from the library directory, extracts component
 /// port definitions, and writes the auto-generated port_registry.h.
 
-#include "codegen/codegen.h"
+#include "core/solvers/aot/codegen.h"
 #include "json_parser/json_parser.h"
 #include <iostream>
 

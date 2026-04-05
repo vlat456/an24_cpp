@@ -437,53 +437,173 @@ __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
 .PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
 
-__/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
-.PHONY : __/src/codegen/codegen.o
+__/src/core/solvers/aot/codegen.o: __/src/core/solvers/aot/codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen.o
 
 # target to build an object file
-__/src/codegen/codegen.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o
-.PHONY : __/src/codegen/codegen.cpp.o
+__/src/core/solvers/aot/codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen.cpp.o
 
-__/src/codegen/codegen.i: __/src/codegen/codegen.cpp.i
-.PHONY : __/src/codegen/codegen.i
+__/src/core/solvers/aot/codegen.i: __/src/core/solvers/aot/codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen.i
 
 # target to preprocess a source file
-__/src/codegen/codegen.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.i
-.PHONY : __/src/codegen/codegen.cpp.i
+__/src/core/solvers/aot/codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen.cpp.i
 
-__/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
-.PHONY : __/src/codegen/codegen.s
+__/src/core/solvers/aot/codegen.s: __/src/core/solvers/aot/codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen.s
 
 # target to generate assembly for a file
-__/src/codegen/codegen.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.s
-.PHONY : __/src/codegen/codegen.cpp.s
+__/src/core/solvers/aot/codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen.cpp.s
 
-__/src/codegen/electrical_codegen.o: __/src/codegen/electrical_codegen.cpp.o
-.PHONY : __/src/codegen/electrical_codegen.o
+__/src/core/solvers/aot/codegen_composite.o: __/src/core/solvers/aot/codegen_composite.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_composite.o
 
 # target to build an object file
-__/src/codegen/electrical_codegen.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o
-.PHONY : __/src/codegen/electrical_codegen.cpp.o
+__/src/core/solvers/aot/codegen_composite.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_composite.cpp.o
 
-__/src/codegen/electrical_codegen.i: __/src/codegen/electrical_codegen.cpp.i
-.PHONY : __/src/codegen/electrical_codegen.i
+__/src/core/solvers/aot/codegen_composite.i: __/src/core/solvers/aot/codegen_composite.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_composite.i
 
 # target to preprocess a source file
-__/src/codegen/electrical_codegen.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.i
-.PHONY : __/src/codegen/electrical_codegen.cpp.i
+__/src/core/solvers/aot/codegen_composite.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_composite.cpp.i
 
-__/src/codegen/electrical_codegen.s: __/src/codegen/electrical_codegen.cpp.s
-.PHONY : __/src/codegen/electrical_codegen.s
+__/src/core/solvers/aot/codegen_composite.s: __/src/core/solvers/aot/codegen_composite.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_composite.s
 
 # target to generate assembly for a file
-__/src/codegen/electrical_codegen.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.s
-.PHONY : __/src/codegen/electrical_codegen.cpp.s
+__/src/core/solvers/aot/codegen_composite.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_composite.cpp.s
+
+__/src/core/solvers/aot/codegen_composite_helpers.o: __/src/core/solvers/aot/codegen_composite_helpers.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.o
+
+# target to build an object file
+__/src/core/solvers/aot/codegen_composite_helpers.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_helpers.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.cpp.o
+
+__/src/core/solvers/aot/codegen_composite_helpers.i: __/src/core/solvers/aot/codegen_composite_helpers.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/codegen_composite_helpers.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_helpers.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.cpp.i
+
+__/src/core/solvers/aot/codegen_composite_helpers.s: __/src/core/solvers/aot/codegen_composite_helpers.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/codegen_composite_helpers.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_helpers.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.cpp.s
+
+__/src/core/solvers/aot/codegen_header.o: __/src/core/solvers/aot/codegen_header.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_header.o
+
+# target to build an object file
+__/src/core/solvers/aot/codegen_header.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_header.cpp.o
+
+__/src/core/solvers/aot/codegen_header.i: __/src/core/solvers/aot/codegen_header.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_header.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/codegen_header.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_header.cpp.i
+
+__/src/core/solvers/aot/codegen_header.s: __/src/core/solvers/aot/codegen_header.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_header.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/codegen_header.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_header.cpp.s
+
+__/src/core/solvers/aot/codegen_registry.o: __/src/core/solvers/aot/codegen_registry.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_registry.o
+
+# target to build an object file
+__/src/core/solvers/aot/codegen_registry.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_registry.cpp.o
+
+__/src/core/solvers/aot/codegen_registry.i: __/src/core/solvers/aot/codegen_registry.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_registry.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/codegen_registry.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_registry.cpp.i
+
+__/src/core/solvers/aot/codegen_registry.s: __/src/core/solvers/aot/codegen_registry.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_registry.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/codegen_registry.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_registry.cpp.s
+
+__/src/core/solvers/aot/codegen_source.o: __/src/core/solvers/aot/codegen_source.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_source.o
+
+# target to build an object file
+__/src/core/solvers/aot/codegen_source.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_source.cpp.o
+
+__/src/core/solvers/aot/codegen_source.i: __/src/core/solvers/aot/codegen_source.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_source.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/codegen_source.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_source.cpp.i
+
+__/src/core/solvers/aot/codegen_source.s: __/src/core/solvers/aot/codegen_source.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_source.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/codegen_source.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_source.cpp.s
+
+__/src/core/solvers/aot/electrical_codegen.o: __/src/core/solvers/aot/electrical_codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/electrical_codegen.o
+
+# target to build an object file
+__/src/core/solvers/aot/electrical_codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o
+.PHONY : __/src/core/solvers/aot/electrical_codegen.cpp.o
+
+__/src/core/solvers/aot/electrical_codegen.i: __/src/core/solvers/aot/electrical_codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/electrical_codegen.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/electrical_codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.cpp.i
+.PHONY : __/src/core/solvers/aot/electrical_codegen.cpp.i
+
+__/src/core/solvers/aot/electrical_codegen.s: __/src/core/solvers/aot/electrical_codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/electrical_codegen.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/electrical_codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.cpp.s
+.PHONY : __/src/core/solvers/aot/electrical_codegen.cpp.s
 
 __/src/editor/app/editor_app.o: __/src/editor/app/editor_app.cpp.o
 .PHONY : __/src/editor/app/editor_app.o
@@ -557,6 +677,102 @@ __/src/editor/commands/extract_blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint.cpp.s
 .PHONY : __/src/editor/commands/extract_blueprint.cpp.s
 
+__/src/editor/commands/extract_blueprint_analysis.o: __/src/editor/commands/extract_blueprint_analysis.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_analysis.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.cpp.o
+
+__/src/editor/commands/extract_blueprint_analysis.i: __/src/editor/commands/extract_blueprint_analysis.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_analysis.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.cpp.i
+
+__/src/editor/commands/extract_blueprint_analysis.s: __/src/editor/commands/extract_blueprint_analysis.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_analysis.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.cpp.s
+
+__/src/editor/commands/extract_blueprint_bridge.o: __/src/editor/commands/extract_blueprint_bridge.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_bridge.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.cpp.o
+
+__/src/editor/commands/extract_blueprint_bridge.i: __/src/editor/commands/extract_blueprint_bridge.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_bridge.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.cpp.i
+
+__/src/editor/commands/extract_blueprint_bridge.s: __/src/editor/commands/extract_blueprint_bridge.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_bridge.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.cpp.s
+
+__/src/editor/commands/extract_blueprint_build.o: __/src/editor/commands/extract_blueprint_build.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_build.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_build.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_build.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_build.cpp.o
+
+__/src/editor/commands/extract_blueprint_build.i: __/src/editor/commands/extract_blueprint_build.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_build.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_build.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_build.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_build.cpp.i
+
+__/src/editor/commands/extract_blueprint_build.s: __/src/editor/commands/extract_blueprint_build.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_build.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_build.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_build.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_build.cpp.s
+
+__/src/editor/commands/extract_blueprint_common.o: __/src/editor/commands/extract_blueprint_common.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_common.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_common.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_common.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_common.cpp.o
+
+__/src/editor/commands/extract_blueprint_common.i: __/src/editor/commands/extract_blueprint_common.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_common.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_common.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_common.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_common.cpp.i
+
+__/src/editor/commands/extract_blueprint_common.s: __/src/editor/commands/extract_blueprint_common.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_common.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_common.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_common.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_common.cpp.s
+
 __/src/editor/document.o: __/src/editor/document.cpp.o
 .PHONY : __/src/editor/document.o
 
@@ -580,6 +796,174 @@ __/src/editor/document.s: __/src/editor/document.cpp.s
 __/src/editor/document.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document.cpp.s
 .PHONY : __/src/editor/document.cpp.s
+
+__/src/editor/document_components.o: __/src/editor/document_components.cpp.o
+.PHONY : __/src/editor/document_components.o
+
+# target to build an object file
+__/src/editor/document_components.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_components.cpp.o
+.PHONY : __/src/editor/document_components.cpp.o
+
+__/src/editor/document_components.i: __/src/editor/document_components.cpp.i
+.PHONY : __/src/editor/document_components.i
+
+# target to preprocess a source file
+__/src/editor/document_components.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_components.cpp.i
+.PHONY : __/src/editor/document_components.cpp.i
+
+__/src/editor/document_components.s: __/src/editor/document_components.cpp.s
+.PHONY : __/src/editor/document_components.s
+
+# target to generate assembly for a file
+__/src/editor/document_components.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_components.cpp.s
+.PHONY : __/src/editor/document_components.cpp.s
+
+__/src/editor/document_export.o: __/src/editor/document_export.cpp.o
+.PHONY : __/src/editor/document_export.o
+
+# target to build an object file
+__/src/editor/document_export.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_export.cpp.o
+.PHONY : __/src/editor/document_export.cpp.o
+
+__/src/editor/document_export.i: __/src/editor/document_export.cpp.i
+.PHONY : __/src/editor/document_export.i
+
+# target to preprocess a source file
+__/src/editor/document_export.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_export.cpp.i
+.PHONY : __/src/editor/document_export.cpp.i
+
+__/src/editor/document_export.s: __/src/editor/document_export.cpp.s
+.PHONY : __/src/editor/document_export.s
+
+# target to generate assembly for a file
+__/src/editor/document_export.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_export.cpp.s
+.PHONY : __/src/editor/document_export.cpp.s
+
+__/src/editor/document_history.o: __/src/editor/document_history.cpp.o
+.PHONY : __/src/editor/document_history.o
+
+# target to build an object file
+__/src/editor/document_history.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_history.cpp.o
+.PHONY : __/src/editor/document_history.cpp.o
+
+__/src/editor/document_history.i: __/src/editor/document_history.cpp.i
+.PHONY : __/src/editor/document_history.i
+
+# target to preprocess a source file
+__/src/editor/document_history.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_history.cpp.i
+.PHONY : __/src/editor/document_history.cpp.i
+
+__/src/editor/document_history.s: __/src/editor/document_history.cpp.s
+.PHONY : __/src/editor/document_history.s
+
+# target to generate assembly for a file
+__/src/editor/document_history.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_history.cpp.s
+.PHONY : __/src/editor/document_history.cpp.s
+
+__/src/editor/document_input.o: __/src/editor/document_input.cpp.o
+.PHONY : __/src/editor/document_input.o
+
+# target to build an object file
+__/src/editor/document_input.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_input.cpp.o
+.PHONY : __/src/editor/document_input.cpp.o
+
+__/src/editor/document_input.i: __/src/editor/document_input.cpp.i
+.PHONY : __/src/editor/document_input.i
+
+# target to preprocess a source file
+__/src/editor/document_input.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_input.cpp.i
+.PHONY : __/src/editor/document_input.cpp.i
+
+__/src/editor/document_input.s: __/src/editor/document_input.cpp.s
+.PHONY : __/src/editor/document_input.s
+
+# target to generate assembly for a file
+__/src/editor/document_input.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_input.cpp.s
+.PHONY : __/src/editor/document_input.cpp.s
+
+__/src/editor/document_io.o: __/src/editor/document_io.cpp.o
+.PHONY : __/src/editor/document_io.o
+
+# target to build an object file
+__/src/editor/document_io.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_io.cpp.o
+.PHONY : __/src/editor/document_io.cpp.o
+
+__/src/editor/document_io.i: __/src/editor/document_io.cpp.i
+.PHONY : __/src/editor/document_io.i
+
+# target to preprocess a source file
+__/src/editor/document_io.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_io.cpp.i
+.PHONY : __/src/editor/document_io.cpp.i
+
+__/src/editor/document_io.s: __/src/editor/document_io.cpp.s
+.PHONY : __/src/editor/document_io.s
+
+# target to generate assembly for a file
+__/src/editor/document_io.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_io.cpp.s
+.PHONY : __/src/editor/document_io.cpp.s
+
+__/src/editor/document_simulation.o: __/src/editor/document_simulation.cpp.o
+.PHONY : __/src/editor/document_simulation.o
+
+# target to build an object file
+__/src/editor/document_simulation.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_simulation.cpp.o
+.PHONY : __/src/editor/document_simulation.cpp.o
+
+__/src/editor/document_simulation.i: __/src/editor/document_simulation.cpp.i
+.PHONY : __/src/editor/document_simulation.i
+
+# target to preprocess a source file
+__/src/editor/document_simulation.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_simulation.cpp.i
+.PHONY : __/src/editor/document_simulation.cpp.i
+
+__/src/editor/document_simulation.s: __/src/editor/document_simulation.cpp.s
+.PHONY : __/src/editor/document_simulation.s
+
+# target to generate assembly for a file
+__/src/editor/document_simulation.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_simulation.cpp.s
+.PHONY : __/src/editor/document_simulation.cpp.s
+
+__/src/editor/document_windows.o: __/src/editor/document_windows.cpp.o
+.PHONY : __/src/editor/document_windows.o
+
+# target to build an object file
+__/src/editor/document_windows.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_windows.cpp.o
+.PHONY : __/src/editor/document_windows.cpp.o
+
+__/src/editor/document_windows.i: __/src/editor/document_windows.cpp.i
+.PHONY : __/src/editor/document_windows.i
+
+# target to preprocess a source file
+__/src/editor/document_windows.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_windows.cpp.i
+.PHONY : __/src/editor/document_windows.cpp.i
+
+__/src/editor/document_windows.s: __/src/editor/document_windows.cpp.s
+.PHONY : __/src/editor/document_windows.s
+
+# target to generate assembly for a file
+__/src/editor/document_windows.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_windows.cpp.s
+.PHONY : __/src/editor/document_windows.cpp.s
 
 __/src/editor/editor_settings.o: __/src/editor/editor_settings.cpp.o
 .PHONY : __/src/editor/editor_settings.o
@@ -652,6 +1036,102 @@ __/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
 __/src/editor/input/canvas_input.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
+
+__/src/editor/input/canvas_input_mouse_down.o: __/src/editor/input/canvas_input_mouse_down.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_down.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_mouse_down.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_down.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_down.cpp.o
+
+__/src/editor/input/canvas_input_mouse_down.i: __/src/editor/input/canvas_input_mouse_down.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_down.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_mouse_down.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_down.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_down.cpp.i
+
+__/src/editor/input/canvas_input_mouse_down.s: __/src/editor/input/canvas_input_mouse_down.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_down.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_mouse_down.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_down.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_down.cpp.s
+
+__/src/editor/input/canvas_input_mouse_drag.o: __/src/editor/input/canvas_input_mouse_drag.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_mouse_drag.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_drag.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.cpp.o
+
+__/src/editor/input/canvas_input_mouse_drag.i: __/src/editor/input/canvas_input_mouse_drag.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_mouse_drag.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_drag.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.cpp.i
+
+__/src/editor/input/canvas_input_mouse_drag.s: __/src/editor/input/canvas_input_mouse_drag.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_mouse_drag.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_drag.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.cpp.s
+
+__/src/editor/input/canvas_input_mouse_up.o: __/src/editor/input/canvas_input_mouse_up.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_up.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_mouse_up.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_up.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_up.cpp.o
+
+__/src/editor/input/canvas_input_mouse_up.i: __/src/editor/input/canvas_input_mouse_up.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_up.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_mouse_up.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_up.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_up.cpp.i
+
+__/src/editor/input/canvas_input_mouse_up.s: __/src/editor/input/canvas_input_mouse_up.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_up.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_mouse_up.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_up.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_up.cpp.s
+
+__/src/editor/input/canvas_input_wires.o: __/src/editor/input/canvas_input_wires.cpp.o
+.PHONY : __/src/editor/input/canvas_input_wires.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_wires.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_wires.cpp.o
+.PHONY : __/src/editor/input/canvas_input_wires.cpp.o
+
+__/src/editor/input/canvas_input_wires.i: __/src/editor/input/canvas_input_wires.cpp.i
+.PHONY : __/src/editor/input/canvas_input_wires.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_wires.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_wires.cpp.i
+.PHONY : __/src/editor/input/canvas_input_wires.cpp.i
+
+__/src/editor/input/canvas_input_wires.s: __/src/editor/input/canvas_input_wires.cpp.s
+.PHONY : __/src/editor/input/canvas_input_wires.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_wires.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_wires.cpp.s
+.PHONY : __/src/editor/input/canvas_input_wires.cpp.s
 
 __/src/editor/oscilloscope.o: __/src/editor/oscilloscope.cpp.o
 .PHONY : __/src/editor/oscilloscope.o
@@ -1726,12 +2206,27 @@ help:
 	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.o"
 	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.i"
 	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.s"
-	@echo "... __/src/codegen/codegen.o"
-	@echo "... __/src/codegen/codegen.i"
-	@echo "... __/src/codegen/codegen.s"
-	@echo "... __/src/codegen/electrical_codegen.o"
-	@echo "... __/src/codegen/electrical_codegen.i"
-	@echo "... __/src/codegen/electrical_codegen.s"
+	@echo "... __/src/core/solvers/aot/codegen.o"
+	@echo "... __/src/core/solvers/aot/codegen.i"
+	@echo "... __/src/core/solvers/aot/codegen.s"
+	@echo "... __/src/core/solvers/aot/codegen_composite.o"
+	@echo "... __/src/core/solvers/aot/codegen_composite.i"
+	@echo "... __/src/core/solvers/aot/codegen_composite.s"
+	@echo "... __/src/core/solvers/aot/codegen_composite_helpers.o"
+	@echo "... __/src/core/solvers/aot/codegen_composite_helpers.i"
+	@echo "... __/src/core/solvers/aot/codegen_composite_helpers.s"
+	@echo "... __/src/core/solvers/aot/codegen_header.o"
+	@echo "... __/src/core/solvers/aot/codegen_header.i"
+	@echo "... __/src/core/solvers/aot/codegen_header.s"
+	@echo "... __/src/core/solvers/aot/codegen_registry.o"
+	@echo "... __/src/core/solvers/aot/codegen_registry.i"
+	@echo "... __/src/core/solvers/aot/codegen_registry.s"
+	@echo "... __/src/core/solvers/aot/codegen_source.o"
+	@echo "... __/src/core/solvers/aot/codegen_source.i"
+	@echo "... __/src/core/solvers/aot/codegen_source.s"
+	@echo "... __/src/core/solvers/aot/electrical_codegen.o"
+	@echo "... __/src/core/solvers/aot/electrical_codegen.i"
+	@echo "... __/src/core/solvers/aot/electrical_codegen.s"
 	@echo "... __/src/editor/app/editor_app.o"
 	@echo "... __/src/editor/app/editor_app.i"
 	@echo "... __/src/editor/app/editor_app.s"
@@ -1741,9 +2236,42 @@ help:
 	@echo "... __/src/editor/commands/extract_blueprint.o"
 	@echo "... __/src/editor/commands/extract_blueprint.i"
 	@echo "... __/src/editor/commands/extract_blueprint.s"
+	@echo "... __/src/editor/commands/extract_blueprint_analysis.o"
+	@echo "... __/src/editor/commands/extract_blueprint_analysis.i"
+	@echo "... __/src/editor/commands/extract_blueprint_analysis.s"
+	@echo "... __/src/editor/commands/extract_blueprint_bridge.o"
+	@echo "... __/src/editor/commands/extract_blueprint_bridge.i"
+	@echo "... __/src/editor/commands/extract_blueprint_bridge.s"
+	@echo "... __/src/editor/commands/extract_blueprint_build.o"
+	@echo "... __/src/editor/commands/extract_blueprint_build.i"
+	@echo "... __/src/editor/commands/extract_blueprint_build.s"
+	@echo "... __/src/editor/commands/extract_blueprint_common.o"
+	@echo "... __/src/editor/commands/extract_blueprint_common.i"
+	@echo "... __/src/editor/commands/extract_blueprint_common.s"
 	@echo "... __/src/editor/document.o"
 	@echo "... __/src/editor/document.i"
 	@echo "... __/src/editor/document.s"
+	@echo "... __/src/editor/document_components.o"
+	@echo "... __/src/editor/document_components.i"
+	@echo "... __/src/editor/document_components.s"
+	@echo "... __/src/editor/document_export.o"
+	@echo "... __/src/editor/document_export.i"
+	@echo "... __/src/editor/document_export.s"
+	@echo "... __/src/editor/document_history.o"
+	@echo "... __/src/editor/document_history.i"
+	@echo "... __/src/editor/document_history.s"
+	@echo "... __/src/editor/document_input.o"
+	@echo "... __/src/editor/document_input.i"
+	@echo "... __/src/editor/document_input.s"
+	@echo "... __/src/editor/document_io.o"
+	@echo "... __/src/editor/document_io.i"
+	@echo "... __/src/editor/document_io.s"
+	@echo "... __/src/editor/document_simulation.o"
+	@echo "... __/src/editor/document_simulation.i"
+	@echo "... __/src/editor/document_simulation.s"
+	@echo "... __/src/editor/document_windows.o"
+	@echo "... __/src/editor/document_windows.i"
+	@echo "... __/src/editor/document_windows.s"
 	@echo "... __/src/editor/editor_settings.o"
 	@echo "... __/src/editor/editor_settings.i"
 	@echo "... __/src/editor/editor_settings.s"
@@ -1753,6 +2281,18 @@ help:
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
+	@echo "... __/src/editor/input/canvas_input_mouse_down.o"
+	@echo "... __/src/editor/input/canvas_input_mouse_down.i"
+	@echo "... __/src/editor/input/canvas_input_mouse_down.s"
+	@echo "... __/src/editor/input/canvas_input_mouse_drag.o"
+	@echo "... __/src/editor/input/canvas_input_mouse_drag.i"
+	@echo "... __/src/editor/input/canvas_input_mouse_drag.s"
+	@echo "... __/src/editor/input/canvas_input_mouse_up.o"
+	@echo "... __/src/editor/input/canvas_input_mouse_up.i"
+	@echo "... __/src/editor/input/canvas_input_mouse_up.s"
+	@echo "... __/src/editor/input/canvas_input_wires.o"
+	@echo "... __/src/editor/input/canvas_input_wires.i"
+	@echo "... __/src/editor/input/canvas_input_wires.s"
 	@echo "... __/src/editor/oscilloscope.o"
 	@echo "... __/src/editor/oscilloscope.i"
 	@echo "... __/src/editor/oscilloscope.s"

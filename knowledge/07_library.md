@@ -15,6 +15,10 @@ library/
 │   ├── Battery.blueprint
 │   ├── Switch.blueprint
 │   ├── Relay.blueprint
+│   ├── KnobSwitch.blueprint
+│   ├── RotarySwitch1ToN.blueprint
+│   ├── RotarySwitchNTo1.blueprint
+│   ├── Slider.blueprint
 │   └── ...
 ├── logical/              # Logic gates
 │   ├── AND.blueprint
@@ -25,6 +29,7 @@ library/
 │   ├── Add.blueprint
 │   ├── Clamp.blueprint
 │   ├── SlewRate.blueprint
+│   ├── FirstOrderLag.blueprint
 │   └── ...
 ├── thermal/              # Thermal components
 │   ├── TempSensor.blueprint
@@ -32,14 +37,20 @@ library/
 ├── mechanical/           # Mechanical components
 │   ├── InertiaNode.blueprint
 │   └── ...
+├── mech/                 # Legacy mechanical (Spring)
+│   └── Spring.blueprint
 ├── systems/              # Composite blueprints
-│   ├── RU19A.blueprint
-│   ├── GS24.blueprint
+│   ├── 12SAM28.blueprint
 │   └── ...
 ├── Bus.blueprint         # Special nodes
 ├── RefNode.blueprint
 ├── Splitter.blueprint
-└── ...
+├── Merger.blueprint
+├── BlueprintInput.blueprint
+├── BlueprintOutput.blueprint
+├── Group.blueprint
+├── Text.blueprint
+└── Value.blueprint
 ```
 
 ## Blueprint Format (v3.0)
@@ -174,18 +185,40 @@ Visual annotation:
 ### Electrical Components
 | Component | Description |
 |-----------|-------------|
-| Battery | DC voltage source |
+| Battery | DC voltage source with internal resistance |
 | Generator | RPM-based generator |
 | Switch | Binary switch |
 | Relay | Electromechanical relay |
-| AZS | Automatic circuit breaker |
+| AZS | Automatic circuit breaker (zero-sequence) |
 | Resistor | Fixed resistance |
 | Load | Variable load |
 | Voltmeter | Voltage measurement |
+| VoltageSense | High-impedance voltage sensing |
 | CurrentSense | Current measurement |
 | IndicatorLight | Visual indicator |
 | ElectricPump | Hydraulic pump |
+| ElectricHeater | Thermal load |
 | SolenoidValve | Hydraulic valve |
+| ElectricalSource | Thevenin voltage source |
+| ElectricalConductance | Conductance branch |
+| ControlledVoltageSource | Controllable voltage source |
+| ControlledCurrentSource | Controllable current source |
+| Inverter | Voltage inverter |
+| Radiator | Thermal radiator |
+| FuelTank | Fuel reserve |
+| GidroAccumulator | Hydraulic accumulator |
+| Transformer | Isolated transformer |
+| VariableConductance | Variable resistance |
+| GroundPower | Ground reference node |
+| Gyroscope | Gyroscopic sensor |
+| HighPowerLoad | High power load stub |
+| HoldButton | Momentary hold button |
+| Positive_V_to_Bool | Voltage threshold to boolean |
+| Any_V_to_Bool | Any voltage to boolean |
+| KnobSwitch | Passive rotary selector (wiper + throws) |
+| RotarySwitch1ToN | KnobSwitch alias (1-to-N intent) |
+| RotarySwitchNTo1 | KnobSwitch alias (N-to-1 intent) |
+| Slider | Linear slide control |
 
 ### Logical Components
 | Component | Description |
@@ -204,6 +237,20 @@ Visual annotation:
 | SlewRate, AsymSlewRate | Rate limiting |
 | FastTMO, AsymTMO | Time constants |
 | Integrator | Integration |
+| Accumulator | Signal accumulation |
 | SampleHold | Sample and hold |
 | TimeDelay | Signal delay |
 | Monostable | One-shot pulse |
+| LerpNode | Linear interpolation |
+| FirstOrderLag | First-order lag filter |
+
+### Thermal Components
+| Component | Description |
+|-----------|-------------|
+| TempSensor | Temperature sensor |
+
+### Mechanical Components
+| Component | Description |
+|-----------|-------------|
+| InertiaNode | Rotational inertia |
+| Spring | Mechanical spring |

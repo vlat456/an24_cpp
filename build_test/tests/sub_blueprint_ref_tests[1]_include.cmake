@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_test/tests/sub_blueprint_ref_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_test/tests/sub_blueprint_ref_tests[1]_tests.cmake")
-else()
-  add_test(sub_blueprint_ref_tests_NOT_BUILT sub_blueprint_ref_tests_NOT_BUILT)
-endif()

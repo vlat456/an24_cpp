@@ -46,6 +46,12 @@ public:
     /// When true, the FSM suppresses all editing gestures.
     bool read_only = false;
 
+    /// When true, editing is suppressed but interactive widgets (slider, knob,
+    /// toggle) still respond to clicks/drags.  Used during simulation mode so
+    /// the user can manipulate controls without accidentally dragging nodes or
+    /// creating wires.
+    bool simulation_mode = false;
+
     // ---- Event handlers (call from ImGui loop) ----
 
     InputResult on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas_min, Modifiers mods = {});
@@ -160,6 +166,12 @@ private:
     Pt slider_widget_world_pos_;  ///< world pos of the SliderWidget at drag start
     float slider_widget_width_ = 0.0f;  ///< width of the SliderWidget
 
+    // Knob drag — stored as InternedId + drag start X for delta tracking
+    ui::InternedId knob_node_id_;
+    float knob_drag_start_x_ = 0.0f;    ///< world X at drag start
+    int knob_drag_start_pos_ = 0;        ///< position at drag start
+    int knob_num_positions_ = 2;         ///< total positions for this knob
+
     // Marquee
     Pt marquee_start_;
     Pt marquee_end_;
@@ -185,6 +197,7 @@ private:
                               Pt anchor_pos, PortSide fixed_side, PortType fixed_type);
     void enter_marquee(Pt world_pos);
     void enter_drag_slider(visual::Widget* node_widget, Pt slider_world_pos, float slider_width);
+    void enter_drag_knob(visual::Widget* node_widget, Pt world_pos);
     void leave_state();  // return to Idle (clean up transient data)
 
 public:
@@ -198,6 +211,11 @@ private:
     InputResult finish_wire_creation(Pt screen_pos, Pt canvas_min);
     InputResult finish_wire_reconnection(Pt screen_pos, Pt canvas_min);
     void finish_marquee();
+    bool try_handle_node_interaction(visual::Widget* widget, Pt world, InputResult& result);
+    void clear_selection_and_enter_panning();
+    void advance_world_cursor(Pt world_delta);
+    void snapshot_wire_routing_points(ui::InternedId wire_id,
+                                      std::vector<std::pair<float, float>> new_points);
 
     // ---- Drag sub-handlers (extracted from on_mouse_drag) ----
 
@@ -224,16 +242,6 @@ private:
     /// Commit resized node dimensions to the data layer via CmdResizeNode.
     void commit_resize_node();
 
-    /// Check if a click on a node widget hit a toggleable content area.
-    /// Uses the content widget's isToggleable() method — no hardcoded type checks.
-    /// Returns the node ID if toggled, empty string otherwise.
-    std::string check_content_toggle(visual::Widget& widget, Pt world_pos);
-
-    /// Check if a click on a node widget hit a Slider content area.
-    /// Returns the node ID if hit, empty string otherwise.
-    /// Sets out_local_x to the local X coordinate within the slider widget.
-    std::string check_slider_hit(visual::Widget& widget, Pt world_pos, float& out_local_x);
-
     // ---- Utility ----
 
     /// Find the data-layer index of a wire by its InternedId.
@@ -251,4 +259,8 @@ private:
         PortType fixed_type;
     };
     std::optional<WirePortMatch> find_wire_on_port(visual::Port* port) const;
+
+    /// Build a WirePortMatch for a given wire index and detach direction.
+    WirePortMatch build_wire_port_match(size_t wire_index, bool detach_start,
+                                        const bp2::Blueprint::Wire& w) const;
 };

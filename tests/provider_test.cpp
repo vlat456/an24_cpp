@@ -1,6 +1,6 @@
-#include "jit_solver/components/provider.h"
-#include "jit_solver/components/port_registry.h"
-#include "jit_solver/state.h"
+#include "core/solvers/jit/components/provider.h"
+#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/jit/state.h"
 #include <iostream>
 #include <cassert>
 
@@ -65,7 +65,6 @@ void test_signal_allocation() {
     
     // Allocation behavior:
     // - All signals append at end (index = values.size() at allocation time)
-    // - dynamic_signals_count tracks how many non-fixed allocations were made
     // - Returned indices are stable and never shift after allocation
     uint32_t sig1 = st.allocate_signal(0.0f, {Domain::Electrical, true});
     uint32_t sig2 = st.allocate_signal(24.0f, {Domain::Electrical, false});
@@ -77,7 +76,6 @@ void test_signal_allocation() {
     
     // Verify values array has grown to 3 (1 fixed + 2 dynamic)
     assert(st.values.size() == 3);
-    assert(st.signal_types.size() == 3);
     
     // Allocation trace:
     // - sig1 (fixed): idx=0, values=[0.0f]
@@ -89,18 +87,7 @@ void test_signal_allocation() {
     assert(st.values[sig2] == 24.0f);
     assert(st.values[sig3] == 0.0f);
     
-    // Verify signal types at the returned indices
-    assert(st.signal_types[sig2].domain == Domain::Electrical);
-    assert(st.signal_types[sig2].is_fixed == false);
-    assert(st.signal_types[sig3].domain == Domain::Logical);
-    assert(st.signal_types[sig3].is_fixed == false);
-    
-    // Verify dynamic_signals_count reflects number of dynamic allocations
-    assert(st.dynamic_signals_count == 2);
-    
     std::cout << "  values array size: " << st.values.size() << "\n";
-    std::cout << "  signal_types array size: " << st.signal_types.size() << "\n";
-    std::cout << "  dynamic_signals_count: " << st.dynamic_signals_count << "\n";
     std::cout << "✅ Signal allocation test passed!\n\n";
 }
 

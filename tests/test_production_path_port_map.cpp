@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "jit_solver/simulator.h"
+#include "core/solvers/jit/simulator.h"
 
 TEST(ProductionPathPortMap, AndGateReadsWiredInputs) {
     const char* json = R"({

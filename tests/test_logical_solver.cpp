@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "json_parser/json_parser.h"
-#include "jit_solver/simulator.h"
+#include "core/solvers/jit/simulator.h"
 
 /// TDD: Logical Solver and Comparator Component
 /// These tests are written FIRST (TDD approach) and will FAIL until implementation is complete

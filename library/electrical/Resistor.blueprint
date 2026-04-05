@@ -29,5 +29,15 @@
   ],
   "param_defaults": {
     "conductance": "0.1"
+  },
+  "solver_role": {
+    "kind": "ConductanceBranch",
+    "ports": {
+      "a": "v_in",
+      "b": "v_out"
+    },
+    "params": {
+      "g": "conductance"
+    }
   }
 }

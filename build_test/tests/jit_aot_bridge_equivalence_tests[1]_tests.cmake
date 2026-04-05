@@ -1,3 +1,0 @@
-add_test([=[JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke]=]  /Users/vladimir/an24_cpp/build_test/tests/jit_aot_bridge_equivalence_tests [==[--gtest_filter=JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_jit_aot_bridge_equivalence.cpp:38 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_test/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-set(  jit_aot_bridge_equivalence_tests_TESTS JitAotBridgeEquivalence.MinimalBridgeTopologyAndCodegenSmoke)

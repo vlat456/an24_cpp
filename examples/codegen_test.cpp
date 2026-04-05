@@ -1,6 +1,6 @@
-#include "codegen/codegen.h"
+#include "core/solvers/aot/codegen.h"
 #include "json_parser/json_parser.h"
-#include "jit_solver/jit_solver.h"
+#include "core/solvers/jit/jit_solver.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/path/path.h"
 #include <iostream>

@@ -37,5 +37,18 @@
   "param_defaults": {
     "conductance": "0.002"
   },
+  "solver_role": {
+    "kind": "ConductanceBranch",
+    "ports": {
+      "a": "v_in",
+      "b": "v_out"
+    },
+    "params": {
+      "g": "conductance"
+    },
+    "values": {
+      "bind_handle": 1.0
+    }
+  },
   "content_type": "Indicator"
 }

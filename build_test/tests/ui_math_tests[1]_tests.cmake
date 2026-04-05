@@ -1,7 +1,0 @@
-add_test([=[UIMath.PtExists]=]  /Users/vladimir/an24_cpp/build_test/tests/ui_math_tests [==[--gtest_filter=UIMath.PtExists]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[UIMath.PtExists]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_ui_math.cpp:4 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_test/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-add_test([=[UIMath.PtOperations]=]  /Users/vladimir/an24_cpp/build_test/tests/ui_math_tests [==[--gtest_filter=UIMath.PtOperations]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[UIMath.PtOperations]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_ui_math.cpp:10 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_test/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-add_test([=[UIMath.PtEquality]=]  /Users/vladimir/an24_cpp/build_test/tests/ui_math_tests [==[--gtest_filter=UIMath.PtEquality]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[UIMath.PtEquality]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_ui_math.cpp:27 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_test/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-set(  ui_math_tests_TESTS UIMath.PtExists UIMath.PtOperations UIMath.PtEquality)

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "jit_solver/state.h"
+#include "core/solvers/jit/state.h"
 
 template <typename T>
 concept HasThrough = requires(T t) { t.through; };
@@ -35,7 +35,6 @@ TEST(push_state, AllocateMultipleSignals) {
     EXPECT_EQ(a, 0u);
     EXPECT_EQ(b, 1u);
     EXPECT_EQ(c, 2u);
-    EXPECT_EQ(st.dynamic_signals_count, 2u);
     EXPECT_EQ(st.values.size(), 3u);
     EXPECT_FLOAT_EQ(st.values[0], 28.0f);
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
@@ -51,7 +50,6 @@ TEST(push_state, DynamicInsertedBeforeFixed) {
     EXPECT_EQ(fixed0, 0u);
     EXPECT_EQ(dyn0, 1u);
     EXPECT_EQ(dyn1, 2u);
-    EXPECT_EQ(st.dynamic_signals_count, 2u);
     EXPECT_FLOAT_EQ(st.values[0], 115.0f);
     EXPECT_FLOAT_EQ(st.values[1], 28.0f);
     EXPECT_FLOAT_EQ(st.values[2], 12.0f);

@@ -58,5 +58,18 @@
       "type": "float"
     }
   },
+  "solver_role": {
+    "kind": "ConductanceBranch",
+    "ports": {
+      "a": "v_in",
+      "b": "v_out"
+    },
+    "params": {
+      "g": "g_open"
+    },
+    "values": {
+      "bind_handle": 1.0
+    }
+  },
   "content_type": "HoldButton"
 }

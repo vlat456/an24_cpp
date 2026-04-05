@@ -85,6 +85,22 @@ These provide electrical elements to the subsolver; they do not push-write elect
 
 - `HighPowerLoad` is currently a no-op stub and does not affect circuit solve
 
+### Widget-interactive components
+
+These components expose interactive widgets (knobs, sliders, toggles) in the visual editor:
+
+- `KnobSwitch`: Multi-position rotary switch with visual tick marks
+- `Slider`: Linear slide control
+- `HoldButton`: Momentary pushbutton
+- `Switch`: Binary toggle switch
+- `IndicatorLight`: Visual output indicator
+
+### KnobSwitch semantics
+
+- `KnobSwitch` is a passive rotary contact with one wiper (`wiper`) and multiple throws (`throw1..throwN`).
+- Electrically, `wiper -> throwN` and `throwN -> wiper` are both valid; this is the same topology.
+- `InOut` on `wiper`/`throw*` is used to model passive contacts, not directed dataflow.
+
 ---
 
 ## Primitive-First Direction

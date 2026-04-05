@@ -203,7 +203,11 @@ bool validate_blueprint_integrity(
         ui::StringInterner& interner,
         const bp2::PathArena& arena,
         std::string* error_out) {
-    bp2::TypeRegistry bp2_registry = get_cached_bp2_registry(interner);
+    // Build a fresh registry for integrity checks.
+    // The cached registry is keyed by interner address; in tests, fixtures may
+    // reuse addresses across distinct interner lifetimes, which can make cached
+    // InternedId mappings stale and cause order-dependent validation failures.
+    bp2::TypeRegistry bp2_registry = build_bp2_registry_uncached(interner);
 
     // Debug/validation should still work on ad-hoc editor node types used in tests or
     // transient documents. Register unknown types with empty interfaces so structural

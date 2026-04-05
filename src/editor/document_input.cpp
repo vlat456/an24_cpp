@@ -1,0 +1,41 @@
+#include "document.h"
+
+Document::InputResultAction Document::applyInputResult(const InputResult& r,
+                                                        const std::string& group_id) {
+    InputResultAction action;
+
+    if (r.rebuild_simulation) {
+        rebuildSimulation();
+        window_manager_.remove_orphaned_windows();
+    }
+    if (r.show_context_menu) {
+        action.show_context_menu = true;
+        action.context_menu_pos = r.context_menu_pos;
+        action.context_menu_group_id = group_id;
+    }
+    if (r.show_node_context_menu) {
+        action.show_node_context_menu = true;
+        action.context_menu_node_id = r.context_menu_node_id;
+        action.node_context_menu_group_id = group_id;
+    }
+    if (!r.open_sub_window.empty()) {
+        openSubWindow(r.open_sub_window);
+    }
+    if (!r.toggle_switch_node_id.empty()) {
+        triggerSwitch(r.toggle_switch_node_id);
+    }
+    if (!r.slider_node_id.empty()) {
+        setSliderValue(r.slider_node_id, r.slider_value);
+    }
+    if (!r.knob_node_id.empty()) {
+        setKnobPosition(r.knob_node_id, r.knob_position);
+    }
+    if (!r.toggle_probe_wire_id.empty()) {
+        action.toggle_probe_wire_id = r.toggle_probe_wire_id;
+        action.toggle_probe_group_id = group_id;
+        action.has_toggle_probe_world_pos = r.has_toggle_probe_world_pos;
+        action.toggle_probe_world_pos = r.toggle_probe_world_pos;
+    }
+
+    return action;
+}

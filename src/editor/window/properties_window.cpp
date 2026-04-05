@@ -588,6 +588,27 @@ void PropertiesWindow::apply() {
 
         updated.string_params = pending_string_params_;
 
+        // Sync content_max / content_min from params for interactive widget types.
+        // When the user changes e.g. "positions" in the inspector, the bp2 node's
+        // content_max must be updated so visual widgets (KnobWidget tick marks,
+        // SliderWidget range, VoltmeterWidget range) reflect the new value.
+        // [BUG-1] Without this, changing positions 2→5 left ticks unchanged.
+        if (updated.content_type == bp2::NodeContentType::Knob) {
+            auto pos_key = interner_->intern("positions");
+            auto it = updated.params.find(pos_key);
+            if (it != updated.params.end()) {
+                updated.content_max = it->second;
+            }
+        } else if (updated.content_type == bp2::NodeContentType::Slider
+                || updated.content_type == bp2::NodeContentType::Gauge) {
+            auto min_key = interner_->intern("min");
+            auto max_key = interner_->intern("max");
+            auto min_it = updated.params.find(min_key);
+            auto max_it = updated.params.find(max_key);
+            if (min_it != updated.params.end()) updated.content_min = min_it->second;
+            if (max_it != updated.params.end()) updated.content_max = max_it->second;
+        }
+
         // Apply name change
         updated.name = pending_name_;
 

@@ -25,7 +25,8 @@ enum class NodeContentType {
     Value,
     Text,
     Slider,
-    Indicator
+    Indicator,
+    Knob
 };
 
 class Blueprint {

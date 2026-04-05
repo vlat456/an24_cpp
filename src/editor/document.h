@@ -3,7 +3,7 @@
 #include "window/window_manager.h"
 #include "visual/scene.h"
 #include "input/canvas_input.h"
-#include "jit_solver/simulator.h"
+#include "core/solvers/jit/simulator.h"
 #include "json_parser/json_parser.h"
 #include "visual/render_context.h"
 #include "blueprint_v2/editor_model/editor_model.h"
@@ -124,6 +124,7 @@ public:
 
     void triggerSwitch(const std::string& node_id);
     void setSliderValue(const std::string& node_id, float value);
+    void setKnobPosition(const std::string& node_id, int position);
     void holdButtonPress(const std::string& node_id);
     void holdButtonRelease(const std::string& node_id);
 

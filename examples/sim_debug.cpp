@@ -19,7 +19,7 @@
 ///   sim_debug GSC.blueprint -json
 ///   sim_debug GSC.blueprint -P -every 120 -n 600
 
-#include "jit_solver/simulator.h"
+#include "core/solvers/jit/simulator.h"
 #include "json_parser/json_parser.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/registry/type_registry.h"
@@ -125,15 +125,32 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
     // --- devices ---
     json devices = json::array();
     std::set<std::string> emitted_ids;
+    // Track skipped embedded proxy nodes for connection rewriting
+    std::set<std::string> skipped_embedded_proxies;
 
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        // Don't skip expandable (composite) nodes – emit them as regular
-        // devices so that parse_json_impl() can expand them via TypeRegistry.
+        // Embedded blueprint proxy nodes with materialized children: skip the
+        // proxy (its internal nodes are already flattened into the blueprint).
         if (n.expandable) {
-            // Expandable nodes only carry exposed interface ports.  Emit a
-            // minimal device entry – parse_json_impl will replace it with the
-            // expanded sub-graph.
+            const auto* nested = bp.find_nested(n.id);
+            if (nested && nested->embedded) {
+                bool has_materialized_children = false;
+                const std::string parent_id(interner.resolve(n.id));
+                for (const auto& child : bp.nodes()) {
+                    if (child.group_id == parent_id) {
+                        has_materialized_children = true;
+                        break;
+                    }
+                }
+                if (has_materialized_children) {
+                    skipped_embedded_proxies.insert(parent_id);
+                    continue;
+                }
+            }
         }
+
+        // Non-embedded expandable (composite) nodes — emit them as regular
+        // devices so that parse_json_impl() can expand them via TypeRegistry.
 
         std::string nid(interner.resolve(n.id));
         if (!emitted_ids.insert(nid).second) continue;
@@ -187,9 +204,29 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
                 std::string(interner.resolve(port_name))};
     };
 
-    // No special rewriting needed for expandable/composite nodes – they are
-    // emitted as normal devices and parse_json_impl() expands them, rewriting
-    // connections to point at the bridge nodes automatically.
+    // Build a lookup map for bridge nodes of skipped embedded proxies.
+    // Bridge nodes are BlueprintInput/BlueprintOutput nodes whose ID follows
+    // the canonical colon convention: "proxy_id:port_name".
+    // Key: "proxy_id.port_name" -> bridge node device id
+    std::map<std::string, std::string> proxy_port_to_bridge;
+    if (!skipped_embedded_proxies.empty()) {
+        for (const bp2::Blueprint::Node& n : bp.nodes()) {
+            std::string nid(interner.resolve(n.id));
+            // Match colon-convention IDs: "proxy_id:port_name"
+            for (const auto& proxy_id : skipped_embedded_proxies) {
+                if (nid.size() > proxy_id.size() + 1
+                    && nid.compare(0, proxy_id.size(), proxy_id) == 0
+                    && nid[proxy_id.size()] == ':') {
+                    std::string port_name = nid.substr(proxy_id.size() + 1);
+                    std::string key = proxy_id + "." + port_name;
+                    proxy_port_to_bridge[key] = nid;
+                }
+            }
+        }
+    }
+
+    // Rewrite connections referencing skipped embedded proxy nodes.
+    // Look up the actual bridge node ID by (proxy_id, port_name).
 
     json connections = json::array();
     std::set<std::string> emitted_conn;
@@ -198,6 +235,22 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
         auto [sn, sp] = path_to_node_port(w.source);
         auto [tn, tp] = path_to_node_port(w.target);
         if (sn.empty() || sp.empty() || tn.empty() || tp.empty()) continue;
+
+        // Rewrite endpoints referencing skipped embedded proxy nodes
+        if (skipped_embedded_proxies.count(sn)) {
+            auto it = proxy_port_to_bridge.find(sn + "." + sp);
+            if (it != proxy_port_to_bridge.end()) {
+                sn = it->second;
+                sp = "ext";
+            }
+        }
+        if (skipped_embedded_proxies.count(tn)) {
+            auto it = proxy_port_to_bridge.find(tn + "." + tp);
+            if (it != proxy_port_to_bridge.end()) {
+                tn = it->second;
+                tp = "ext";
+            }
+        }
 
         std::string key = sn + "." + sp + "→" + tn + "." + tp;
         if (!emitted_conn.insert(key).second) continue;
@@ -266,7 +319,7 @@ int main(int argc, char* argv[]) {
 
     if (quiet) spdlog::set_level(spdlog::level::off);
 
-    // --- Load blueprint file ---
+    // --- Load input file ---
     std::ifstream file(bp_path);
     if (!file.is_open()) {
         std::cerr << "Cannot open: " << bp_path << "\n";
@@ -276,19 +329,28 @@ int main(int argc, char* argv[]) {
     buf << file.rdbuf();
     std::string raw_json = buf.str();
 
-    ui::StringInterner interner;
-    bp2::PathArena arena(interner);
-    bp2::TypeRegistry registry = build_bp2_registry(interner);
+    std::string sim_json;
+    bool is_json_input = (bp_path.size() >= 5 &&
+                          bp_path.substr(bp_path.size() - 5) == ".json");
 
-    bp2::DecodeError err;
-    auto bp = bp2::BlueprintCodec::decode(raw_json, interner, arena, registry, &err);
-    if (!bp) {
-        std::cerr << "Failed to decode blueprint: " << err.message << "\n";
-        return 1;
+    if (is_json_input) {
+        // Raw simulator JSON — use directly
+        sim_json = raw_json;
+    } else {
+        // Blueprint file — decode and convert
+        ui::StringInterner interner;
+        bp2::PathArena arena(interner);
+        bp2::TypeRegistry registry = build_bp2_registry(interner);
+
+        bp2::DecodeError err;
+        auto bp = bp2::BlueprintCodec::decode(raw_json, interner, arena, registry, &err);
+        if (!bp) {
+            std::cerr << "Failed to decode blueprint: " << err.message << "\n";
+            return 1;
+        }
+
+        sim_json = build_simulation_json(*bp, interner, arena);
     }
-
-    // --- Build simulation JSON ---
-    std::string sim_json = build_simulation_json(*bp, interner, arena);
 
     if (dump_json) {
         std::cout << sim_json << "\n";

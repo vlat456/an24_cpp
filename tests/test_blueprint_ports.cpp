@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "jit_solver/state.h"
-#include "jit_solver/components/all.h"
-#include "jit_solver/components/port_registry.h"
+#include "core/solvers/jit/state.h"
+#include "core/solvers/jit/components/all.h"
+#include "core/solvers/jit/components/port_registry.h"
 
 template <typename Comp>
 void step_component(Comp& comp, SimulationState& st, double dt) {
@@ -15,7 +15,6 @@ TEST(BlueprintInput, PassThroughLikeBus) {
 
     SimulationState st;
     st.values.resize(2, 0.0f);
-    st.signal_types.resize(2, {Domain::Electrical, false});
 
     BlueprintInput<JitProvider> input;
     input.provider.set(PortNames::v, 0);
@@ -45,7 +44,6 @@ TEST(BlueprintOutput, PassThroughLikeBus) {
 
     SimulationState st;
     st.values.resize(2, 0.0f);
-    st.signal_types.resize(2, {Domain::Electrical, false});
 
     BlueprintOutput<JitProvider> output;
     output.provider.set(PortNames::v, 0);

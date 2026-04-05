@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include "jit_solver/simulator.h"
-#include "codegen/codegen.h"
-#include "jit_solver/jit_solver.h"
-#include "jit_solver/subsolvers/electrical_subsolver.h"
+#include "core/solvers/jit/simulator.h"
+#include "core/solvers/aot/codegen.h"
+#include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/subsolvers/electrical_subsolver.h"
 #include <cmath>
 
 namespace {
@@ -282,18 +282,18 @@ static void run_aot_electrical(
     }
     signal_count += 1;  // sentinel at end, matching build_systems_dev
     for (uint32_t i = 0; i < signal_count; ++i) {
-        out_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)out_state.allocate_signal(0.0f, {Domain::Electrical, false});
     }
 
     // Pre-allocate scratch buffers (reserve to avoid reallocation)
-    uint32_t max_nodes = 0, max_elems = 0, max_comp = 0;
+    uint32_t max_nodes = 0, max_elems = 0, max_element_id = 0;
     for (const auto& island : out_plan.islands) {
         max_nodes = std::max(max_nodes, (uint32_t)island.signal_indices.size());
         max_elems = std::max(max_elems, (uint32_t)island.elements.size());
         for (const auto& e : island.elements)
-            max_comp = std::max(max_comp, e.component_index);
+            max_element_id = std::max(max_element_id, e.element_id);
     }
-    out_rt.branch_currents.reserve(max_comp + 1);
+    out_rt.branch_currents.reserve(max_element_id + 1);
     out_rt.island_nodes.reserve(max_nodes);
     out_rt.fixed_nodes.reserve(max_elems);
     out_rt.fixed_voltages.reserve(max_nodes);
@@ -365,7 +365,7 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
@@ -380,7 +380,6 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
     // Compare signal values
     ASSERT_EQ(jit_result.electrical_plan.islands.size(), aot_plan.islands.size());
     for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
-        if (jit_state.signal_types[i].is_fixed) continue; // Skip fixed signals
         EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
             << "Signal " << i << " voltage mismatch";
     }
@@ -420,7 +419,7 @@ TEST(ElectricalAotParity, SeriesChainTwoResistors) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
@@ -432,7 +431,6 @@ TEST(ElectricalAotParity, SeriesChainTwoResistors) {
                        aot_plan, aot_state, aot_rt);
 
     for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
-        if (jit_state.signal_types[i].is_fixed) continue;
         EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
             << "Signal " << i << " voltage mismatch";
     }
@@ -472,7 +470,7 @@ TEST(ElectricalAotParity, ParallelBranchSplit) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
@@ -484,7 +482,6 @@ TEST(ElectricalAotParity, ParallelBranchSplit) {
                        aot_plan, aot_state, aot_rt);
 
     for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
-        if (jit_state.signal_types[i].is_fixed) continue;
         EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
             << "Signal " << i << " voltage mismatch";
     }
@@ -522,7 +519,7 @@ TEST(ElectricalAotParity, MultiIsland) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
@@ -536,7 +533,6 @@ TEST(ElectricalAotParity, MultiIsland) {
     ASSERT_EQ(jit_result.electrical_plan.islands.size(), aot_plan.islands.size());
 
     for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
-        if (jit_state.signal_types[i].is_fixed) continue;
         EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
             << "Signal " << i << " voltage mismatch";
     }
@@ -568,7 +564,7 @@ TEST(ElectricalAotParity, NearShortHighConductance) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
@@ -580,7 +576,6 @@ TEST(ElectricalAotParity, NearShortHighConductance) {
                        aot_plan, aot_state, aot_rt);
 
     for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
-        if (jit_state.signal_types[i].is_fixed) continue;
         EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
             << "Signal " << i << " voltage mismatch";
     }

@@ -1,3 +1,3 @@
-add_subdirectory(jit_solver)
+add_subdirectory(core/solvers/jit)
 add_subdirectory(json_parser)
 add_subdirectory(blueprint_v2)

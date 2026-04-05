@@ -9,6 +9,10 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/vladimir/an24_cpp/src/json_parser/json_parser.cpp" "src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o" "gcc" "src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/json_parser/json_parser_model.cpp" "src/json_parser/CMakeFiles/json_parser.dir/json_parser_model.cpp.o" "gcc" "src/json_parser/CMakeFiles/json_parser.dir/json_parser_model.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/json_parser/json_parser_registry.cpp" "src/json_parser/CMakeFiles/json_parser.dir/json_parser_registry.cpp.o" "gcc" "src/json_parser/CMakeFiles/json_parser.dir/json_parser_registry.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/json_parser/json_parser_serialize.cpp" "src/json_parser/CMakeFiles/json_parser.dir/json_parser_serialize.cpp.o" "gcc" "src/json_parser/CMakeFiles/json_parser.dir/json_parser_serialize.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/json_parser/json_parser_types.cpp" "src/json_parser/CMakeFiles/json_parser.dir/json_parser_types.cpp.o" "gcc" "src/json_parser/CMakeFiles/json_parser.dir/json_parser_types.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

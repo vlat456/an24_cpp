@@ -209,6 +209,102 @@ json_parser.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.s
 .PHONY : json_parser.cpp.s
 
+json_parser_model.o: json_parser_model.cpp.o
+.PHONY : json_parser_model.o
+
+# target to build an object file
+json_parser_model.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_model.cpp.o
+.PHONY : json_parser_model.cpp.o
+
+json_parser_model.i: json_parser_model.cpp.i
+.PHONY : json_parser_model.i
+
+# target to preprocess a source file
+json_parser_model.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_model.cpp.i
+.PHONY : json_parser_model.cpp.i
+
+json_parser_model.s: json_parser_model.cpp.s
+.PHONY : json_parser_model.s
+
+# target to generate assembly for a file
+json_parser_model.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_model.cpp.s
+.PHONY : json_parser_model.cpp.s
+
+json_parser_registry.o: json_parser_registry.cpp.o
+.PHONY : json_parser_registry.o
+
+# target to build an object file
+json_parser_registry.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_registry.cpp.o
+.PHONY : json_parser_registry.cpp.o
+
+json_parser_registry.i: json_parser_registry.cpp.i
+.PHONY : json_parser_registry.i
+
+# target to preprocess a source file
+json_parser_registry.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_registry.cpp.i
+.PHONY : json_parser_registry.cpp.i
+
+json_parser_registry.s: json_parser_registry.cpp.s
+.PHONY : json_parser_registry.s
+
+# target to generate assembly for a file
+json_parser_registry.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_registry.cpp.s
+.PHONY : json_parser_registry.cpp.s
+
+json_parser_serialize.o: json_parser_serialize.cpp.o
+.PHONY : json_parser_serialize.o
+
+# target to build an object file
+json_parser_serialize.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_serialize.cpp.o
+.PHONY : json_parser_serialize.cpp.o
+
+json_parser_serialize.i: json_parser_serialize.cpp.i
+.PHONY : json_parser_serialize.i
+
+# target to preprocess a source file
+json_parser_serialize.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_serialize.cpp.i
+.PHONY : json_parser_serialize.cpp.i
+
+json_parser_serialize.s: json_parser_serialize.cpp.s
+.PHONY : json_parser_serialize.s
+
+# target to generate assembly for a file
+json_parser_serialize.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_serialize.cpp.s
+.PHONY : json_parser_serialize.cpp.s
+
+json_parser_types.o: json_parser_types.cpp.o
+.PHONY : json_parser_types.o
+
+# target to build an object file
+json_parser_types.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_types.cpp.o
+.PHONY : json_parser_types.cpp.o
+
+json_parser_types.i: json_parser_types.cpp.i
+.PHONY : json_parser_types.i
+
+# target to preprocess a source file
+json_parser_types.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_types.cpp.i
+.PHONY : json_parser_types.cpp.i
+
+json_parser_types.s: json_parser_types.cpp.s
+.PHONY : json_parser_types.s
+
+# target to generate assembly for a file
+json_parser_types.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/json_parser_types.cpp.s
+.PHONY : json_parser_types.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -226,6 +322,18 @@ help:
 	@echo "... json_parser.o"
 	@echo "... json_parser.i"
 	@echo "... json_parser.s"
+	@echo "... json_parser_model.o"
+	@echo "... json_parser_model.i"
+	@echo "... json_parser_model.s"
+	@echo "... json_parser_registry.o"
+	@echo "... json_parser_registry.i"
+	@echo "... json_parser_registry.s"
+	@echo "... json_parser_serialize.o"
+	@echo "... json_parser_serialize.i"
+	@echo "... json_parser_serialize.s"
+	@echo "... json_parser_types.o"
+	@echo "... json_parser_types.i"
+	@echo "... json_parser_types.s"
 .PHONY : help
 
 

@@ -85,6 +85,17 @@ public:
 };
 ```
 
+Implementation is now split by concern:
+
+- `src/editor/document.cpp` — constructor/title + extraction glue
+- `src/editor/document_components.cpp` — component/blueprint authoring
+- `src/editor/document_export.cpp` — simulation JSON export helpers
+- `src/editor/document_input.cpp` — input result dispatch
+- `src/editor/document_history.cpp` — undo/redo orchestration
+- `src/editor/document_io.cpp` — save/load and wire-id sync
+- `src/editor/document_simulation.cpp` — simulation lifecycle, overrides, node-content updates, energized-wire readout
+- `src/editor/document_windows.cpp` — sub-window and external-reference window open logic
+
 ### WindowManager
 MDI window management - each sub-window or nested blueprint is a separate window:
 ```cpp
@@ -426,7 +437,11 @@ When a user right-clicks → "Insert Blueprint" in the editor, the composite is 
 
 1. **Load from `.blueprint` file** — uses `load_blueprint_from_file_validated()` with library path lookup via `registry.categories[blueprint_name]` (e.g., `"systems"` → `library/systems/12SAM28.blueprint`)
 
-2. **Namespace-remap IDs** — all internal node IDs become `unique_id + "_" + original_name` (e.g., `"12SAM28_1_battery"`) to avoid collisions when inserting the same blueprint multiple times
+2. **Namespace-remap IDs** — node IDs are remapped to avoid collisions when inserting the same blueprint multiple times. Two conventions are used:
+   - **Bridge nodes** (BlueprintInput/BlueprintOutput) use **colon convention**: `unique_id:original_name` (e.g., `"GroundPower_1:v_in"`)
+   - **Internal nodes** use **underscore convention**: `unique_id_original_name` (e.g., `"GroundPower_1_src"`)
+   
+   The colon convention is canonical for bridge nodes across all code paths (`addBlueprint`, `extractToBlueprint`, `addComponent`). This ensures `build_simulation_json()` and `signal_key_resolver` can reliably identify bridge nodes by looking for `proxy_id:port_name`.
 
 3. **Promote to root blueprint** — internal nodes AND wires are added to the root blueprint (not just `inline_def`) with `group_id = unique_id`. This is critical: `rebuild()` iterates `bp.nodes()` filtered by `group_id`, so nodes must be in the root blueprint to appear in the sub-window.
 
@@ -542,3 +557,9 @@ The `NodeColor::to_uint32()` helper converts (r,g,b,a) floats to this format.
 | Slider | SliderWidget | `"Slider"` | Yes (drag) |
 | Indicator | IndicatorWidget | `"Indicator"` | No (display only) |
 | Text | Label | `"Text"` | No |
+
+## KnobSwitch Port Semantics
+
+- `KnobSwitch` terminals `wiper`, `throw1..throwN` are modeled as passive electrical contacts.
+- Circuit usage is bidirectional at those terminals: `wiper -> throwN` and `throwN -> wiper` are both valid.
+- `InOut` on these ports exists to represent passive contacts; it is not directed signal-flow meaning.
