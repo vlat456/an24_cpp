@@ -624,8 +624,8 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     EXPECT_NE(result.header.find("sense_component"), std::string::npos);
     EXPECT_NE(result.header.find("lamp_component"), std::string::npos);
 
-    EXPECT_NE(result.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
-    EXPECT_NE(result.source.find("lamp.electrical_handle.component_index = ElectricalBindings::lamp_component"), std::string::npos);
+    EXPECT_NE(result.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos);
+    EXPECT_NE(result.source.find("lamp.electrical_handle.element_id = ElectricalBindings::lamp_component"), std::string::npos);
 }
 
 TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
@@ -715,8 +715,8 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
 
     EXPECT_EQ(sense_1, sense_2);
 
-    EXPECT_NE(r1.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
-    EXPECT_NE(r2.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
+    EXPECT_NE(r1.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos);
+    EXPECT_NE(r2.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos);
 }
 
 TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
@@ -784,10 +784,10 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
 
     EXPECT_NE(result.source.find("bat.electrical_handle.island_index = ElectricalBindings::bat_island"), std::string::npos);
     EXPECT_NE(result.source.find("bat.electrical_handle.element_index = ElectricalBindings::bat_element"), std::string::npos);
-    EXPECT_NE(result.source.find("bat.electrical_handle.component_index = ElectricalBindings::bat_component"), std::string::npos);
+    EXPECT_NE(result.source.find("bat.electrical_handle.element_id = ElectricalBindings::bat_component"), std::string::npos);
     EXPECT_NE(result.source.find("sense.electrical_handle.island_index = ElectricalBindings::sense_island"), std::string::npos);
     EXPECT_NE(result.source.find("sense.electrical_handle.element_index = ElectricalBindings::sense_element"), std::string::npos);
-    EXPECT_NE(result.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
+    EXPECT_NE(result.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos);
 }
 
 // Regression: when non-electrical devices are interleaved between electrical ones,
@@ -877,9 +877,9 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
         << "Non-electrical device should not have electrical binding";
 
     // Constructor must assign handle to bat and sense, not to logic
-    EXPECT_NE(result.source.find("bat.electrical_handle.component_index = ElectricalBindings::bat_component"), std::string::npos)
+    EXPECT_NE(result.source.find("bat.electrical_handle.element_id = ElectricalBindings::bat_component"), std::string::npos)
         << "Battery handle assignment missing";
-    EXPECT_NE(result.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos)
+    EXPECT_NE(result.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos)
         << "CurrentSense handle assignment missing";
     EXPECT_EQ(result.source.find("logic.electrical_handle"), std::string::npos)
         << "Non-electrical device should not get electrical_handle assignment";

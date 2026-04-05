@@ -166,7 +166,7 @@ void emit_constructor_params(
                 << "ElectricalBindings::" << binding.device_field_name << "_island;\n";
             oss << "    " << binding.device_field_name << ".electrical_handle.element_index = "
                 << "ElectricalBindings::" << binding.device_field_name << "_element;\n";
-            oss << "    " << binding.device_field_name << ".electrical_handle.component_index = "
+            oss << "    " << binding.device_field_name << ".electrical_handle.element_id = "
                 << "ElectricalBindings::" << binding.device_field_name << "_component;\n";
         }
     }
@@ -260,9 +260,9 @@ void emit_step_electrical_diagnostics(std::ostringstream& oss) {
     oss << "        if (!diag.solve_ok || diag.max_abs_kcl_residual > ELECTRICAL_DIAG_RESIDUAL_WARN) {\n";
     oss << "            spdlog::warn(\"[aot-elec] island={} solve_ok={} unknowns={} max_abs_kcl={} worst_signal={} worst_v={} worst_branch_comp={}\",\n";
     oss << "                diag.island_index, diag.solve_ok, diag.unknown_count, diag.max_abs_kcl_residual,\n";
-    oss << "                diag.worst_node_signal, diag.worst_node_voltage, diag.worst_branch_component_index);\n";
+    oss << "                diag.worst_node_signal, diag.worst_node_voltage, diag.worst_branch_element_id);\n";
     codegen_detail::emit_debug_map_lookup(oss,
-        "component_index", "== diag.worst_branch_component_index",
+        "component_index", "== diag.worst_branch_element_id",
         "[aot-elec] branch component={} device={} class={} role={} nodes=({},{})",
         "e.component_index, e.device_name, e.classname, e.role, e.node_a, e.node_b",
         true);
