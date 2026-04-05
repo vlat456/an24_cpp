@@ -4,6 +4,9 @@ add_library(blueprint_v2 STATIC
     blueprint/blueprint.cpp
     registry/type_registry.cpp
     codec/blueprint_codec.cpp
+    codec/blueprint_codec_common.cpp
+    codec/blueprint_codec_encode.cpp
+    codec/blueprint_codec_decode.cpp
     flattener/flattener.cpp
     editor_model/editor_model.cpp
     validation/path_resolver.cpp

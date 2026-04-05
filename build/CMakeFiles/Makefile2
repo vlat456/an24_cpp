@@ -749,12 +749,12 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/clean:
 _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/depend
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target gmock"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=43 "Built target gmock"
 .PHONY : _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/all
 
 # Build rule for subdir invocation for target.
 _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/rule
@@ -766,7 +766,7 @@ gmock: _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/rule
 # codegen rule for target.
 _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target gmock"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=43 "Finished codegen for target gmock"
 .PHONY : _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/codegen
 
 # clean rule for target.
@@ -782,12 +782,12 @@ _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/all: _deps/googletes
 _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/depend
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=43 "Built target gmock_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target gmock_main"
 .PHONY : _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/all
 
 # Build rule for subdir invocation for target.
 _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/rule
@@ -799,7 +799,7 @@ gmock_main: _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/rule
 # codegen rule for target.
 _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=43 "Finished codegen for target gmock_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target gmock_main"
 .PHONY : _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/codegen
 
 # clean rule for target.
@@ -814,12 +814,12 @@ _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/clean:
 _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all:
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest.dir/depend
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target gtest"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=44 "Built target gtest"
 .PHONY : _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 
 # Build rule for subdir invocation for target.
 _deps/googletest-build/googletest/CMakeFiles/gtest.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : _deps/googletest-build/googletest/CMakeFiles/gtest.dir/rule
@@ -831,7 +831,7 @@ gtest: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/rule
 # codegen rule for target.
 _deps/googletest-build/googletest/CMakeFiles/gtest.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target gtest"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=44 "Finished codegen for target gtest"
 .PHONY : _deps/googletest-build/googletest/CMakeFiles/gtest.dir/codegen
 
 # clean rule for target.
@@ -846,7 +846,7 @@ _deps/googletest-build/googletest/CMakeFiles/gtest.dir/clean:
 _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/depend
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=44 "Built target gtest_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target gtest_main"
 .PHONY : _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 
 # Build rule for subdir invocation for target.
@@ -863,7 +863,7 @@ gtest_main: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/rule
 # codegen rule for target.
 _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=44 "Finished codegen for target gtest_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target gtest_main"
 .PHONY : _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/codegen
 
 # clean rule for target.
@@ -878,12 +878,12 @@ _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/clean:
 _deps/nfde-build/src/CMakeFiles/nfd.dir/all:
 	$(MAKE) $(MAKESILENT) -f _deps/nfde-build/src/CMakeFiles/nfd.dir/build.make _deps/nfde-build/src/CMakeFiles/nfd.dir/depend
 	$(MAKE) $(MAKESILENT) -f _deps/nfde-build/src/CMakeFiles/nfd.dir/build.make _deps/nfde-build/src/CMakeFiles/nfd.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target nfd"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=70 "Built target nfd"
 .PHONY : _deps/nfde-build/src/CMakeFiles/nfd.dir/all
 
 # Build rule for subdir invocation for target.
 _deps/nfde-build/src/CMakeFiles/nfd.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 _deps/nfde-build/src/CMakeFiles/nfd.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : _deps/nfde-build/src/CMakeFiles/nfd.dir/rule
@@ -895,7 +895,7 @@ nfd: _deps/nfde-build/src/CMakeFiles/nfd.dir/rule
 # codegen rule for target.
 _deps/nfde-build/src/CMakeFiles/nfd.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f _deps/nfde-build/src/CMakeFiles/nfd.dir/build.make _deps/nfde-build/src/CMakeFiles/nfd.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target nfd"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=70 "Finished codegen for target nfd"
 .PHONY : _deps/nfde-build/src/CMakeFiles/nfd.dir/codegen
 
 # clean rule for target.
@@ -976,12 +976,12 @@ src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all: _deps/spdlog-build/CMakeFiles/
 src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f src/blueprint_v2/CMakeFiles/blueprint_v2.dir/build.make src/blueprint_v2/CMakeFiles/blueprint_v2.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/blueprint_v2/CMakeFiles/blueprint_v2.dir/build.make src/blueprint_v2/CMakeFiles/blueprint_v2.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=22,23 "Built target blueprint_v2"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=21,22,23,24 "Built target blueprint_v2"
 .PHONY : src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 
 # Build rule for subdir invocation for target.
 src/blueprint_v2/CMakeFiles/blueprint_v2.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 6
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : src/blueprint_v2/CMakeFiles/blueprint_v2.dir/rule
@@ -993,7 +993,7 @@ blueprint_v2: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/rule
 # codegen rule for target.
 src/blueprint_v2/CMakeFiles/blueprint_v2.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f src/blueprint_v2/CMakeFiles/blueprint_v2.dir/build.make src/blueprint_v2/CMakeFiles/blueprint_v2.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=22,23 "Finished codegen for target blueprint_v2"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=21,22,23,24 "Finished codegen for target blueprint_v2"
 .PHONY : src/blueprint_v2/CMakeFiles/blueprint_v2.dir/codegen
 
 # clean rule for target.
@@ -1084,7 +1084,7 @@ examples/CMakeFiles/codegen_test.dir/all: examples/CMakeFiles/an24_codegen.dir/a
 
 # Build rule for subdir invocation for target.
 examples/CMakeFiles/codegen_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 25
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 27
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/codegen_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : examples/CMakeFiles/codegen_test.dir/rule
@@ -1120,7 +1120,7 @@ examples/CMakeFiles/an24_editor.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v
 
 # Build rule for subdir invocation for target.
 examples/CMakeFiles/an24_editor.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 36
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 39
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/an24_editor.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : examples/CMakeFiles/an24_editor.dir/rule
@@ -1155,7 +1155,7 @@ examples/CMakeFiles/sim_debug.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.
 
 # Build rule for subdir invocation for target.
 examples/CMakeFiles/sim_debug.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 25
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/sim_debug.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : examples/CMakeFiles/sim_debug.dir/rule
@@ -1392,12 +1392,12 @@ tests/CMakeFiles/push_build_validation_tests.dir/all: src/core/solvers/jit/CMake
 tests/CMakeFiles/push_build_validation_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_build_validation_tests.dir/build.make tests/CMakeFiles/push_build_validation_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_build_validation_tests.dir/build.make tests/CMakeFiles/push_build_validation_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target push_build_validation_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=77 "Built target push_build_validation_tests"
 .PHONY : tests/CMakeFiles/push_build_validation_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/push_build_validation_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/push_build_validation_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/push_build_validation_tests.dir/rule
@@ -1409,7 +1409,7 @@ push_build_validation_tests: tests/CMakeFiles/push_build_validation_tests.dir/ru
 # codegen rule for target.
 tests/CMakeFiles/push_build_validation_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_build_validation_tests.dir/build.make tests/CMakeFiles/push_build_validation_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target push_build_validation_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=77 "Finished codegen for target push_build_validation_tests"
 .PHONY : tests/CMakeFiles/push_build_validation_tests.dir/codegen
 
 # clean rule for target.
@@ -1428,12 +1428,12 @@ tests/CMakeFiles/push_runtime_regression_tests.dir/all: src/core/solvers/jit/CMa
 tests/CMakeFiles/push_runtime_regression_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_runtime_regression_tests.dir/build.make tests/CMakeFiles/push_runtime_regression_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_runtime_regression_tests.dir/build.make tests/CMakeFiles/push_runtime_regression_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=77 "Built target push_runtime_regression_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target push_runtime_regression_tests"
 .PHONY : tests/CMakeFiles/push_runtime_regression_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/push_runtime_regression_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/push_runtime_regression_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/push_runtime_regression_tests.dir/rule
@@ -1445,7 +1445,7 @@ push_runtime_regression_tests: tests/CMakeFiles/push_runtime_regression_tests.di
 # codegen rule for target.
 tests/CMakeFiles/push_runtime_regression_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_runtime_regression_tests.dir/build.make tests/CMakeFiles/push_runtime_regression_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=77 "Finished codegen for target push_runtime_regression_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target push_runtime_regression_tests"
 .PHONY : tests/CMakeFiles/push_runtime_regression_tests.dir/codegen
 
 # clean rule for target.
@@ -1536,12 +1536,12 @@ tests/CMakeFiles/electrical_subsolver_tests.dir/all: src/core/solvers/jit/CMakeF
 tests/CMakeFiles/electrical_subsolver_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=41 "Built target electrical_subsolver_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target electrical_subsolver_tests"
 .PHONY : tests/CMakeFiles/electrical_subsolver_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/electrical_subsolver_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_subsolver_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/electrical_subsolver_tests.dir/rule
@@ -1553,7 +1553,7 @@ electrical_subsolver_tests: tests/CMakeFiles/electrical_subsolver_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/electrical_subsolver_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=41 "Finished codegen for target electrical_subsolver_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target electrical_subsolver_tests"
 .PHONY : tests/CMakeFiles/electrical_subsolver_tests.dir/codegen
 
 # clean rule for target.
@@ -1608,12 +1608,12 @@ tests/CMakeFiles/pid_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver.d
 tests/CMakeFiles/pid_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=72 "Built target pid_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target pid_tests"
 .PHONY : tests/CMakeFiles/pid_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/pid_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pid_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/pid_tests.dir/rule
@@ -1625,7 +1625,7 @@ pid_tests: tests/CMakeFiles/pid_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/pid_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=72 "Finished codegen for target pid_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target pid_tests"
 .PHONY : tests/CMakeFiles/pid_tests.dir/codegen
 
 # clean rule for target.
@@ -1866,7 +1866,7 @@ tests/CMakeFiles/logical_solver_tests.dir/all: src/blueprint_v2/CMakeFiles/bluep
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/logical_solver_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 25
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 27
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/logical_solver_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/logical_solver_tests.dir/rule
@@ -1897,12 +1897,12 @@ tests/CMakeFiles/blueprint_ports_tests.dir/all: src/core/solvers/jit/CMakeFiles/
 tests/CMakeFiles/blueprint_ports_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=21 "Built target blueprint_ports_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target blueprint_ports_tests"
 .PHONY : tests/CMakeFiles/blueprint_ports_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/blueprint_ports_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/blueprint_ports_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/blueprint_ports_tests.dir/rule
@@ -1914,7 +1914,7 @@ blueprint_ports_tests: tests/CMakeFiles/blueprint_ports_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/blueprint_ports_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=21 "Finished codegen for target blueprint_ports_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target blueprint_ports_tests"
 .PHONY : tests/CMakeFiles/blueprint_ports_tests.dir/codegen
 
 # clean rule for target.
@@ -1933,12 +1933,12 @@ tests/CMakeFiles/current_sense_tests.dir/all: src/core/solvers/jit/CMakeFiles/ji
 tests/CMakeFiles/current_sense_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=37 "Built target current_sense_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target current_sense_tests"
 .PHONY : tests/CMakeFiles/current_sense_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/current_sense_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/current_sense_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/current_sense_tests.dir/rule
@@ -1950,7 +1950,7 @@ current_sense_tests: tests/CMakeFiles/current_sense_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/current_sense_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=37 "Finished codegen for target current_sense_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target current_sense_tests"
 .PHONY : tests/CMakeFiles/current_sense_tests.dir/codegen
 
 # clean rule for target.
@@ -1969,12 +1969,12 @@ tests/CMakeFiles/bug_hunt_regression_tests.dir/all: src/core/solvers/jit/CMakeFi
 tests/CMakeFiles/bug_hunt_regression_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bug_hunt_regression_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=29 "Built target bug_hunt_regression_tests"
 .PHONY : tests/CMakeFiles/bug_hunt_regression_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bug_hunt_regression_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bug_hunt_regression_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
@@ -1986,7 +1986,7 @@ bug_hunt_regression_tests: tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/bug_hunt_regression_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target bug_hunt_regression_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=29 "Finished codegen for target bug_hunt_regression_tests"
 .PHONY : tests/CMakeFiles/bug_hunt_regression_tests.dir/codegen
 
 # clean rule for target.
@@ -2149,12 +2149,12 @@ tests/CMakeFiles/sample_hold_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_
 tests/CMakeFiles/sample_hold_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=79 "Built target sample_hold_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target sample_hold_tests"
 .PHONY : tests/CMakeFiles/sample_hold_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/sample_hold_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/sample_hold_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/sample_hold_tests.dir/rule
@@ -2166,7 +2166,7 @@ sample_hold_tests: tests/CMakeFiles/sample_hold_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/sample_hold_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=79 "Finished codegen for target sample_hold_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target sample_hold_tests"
 .PHONY : tests/CMakeFiles/sample_hold_tests.dir/codegen
 
 # clean rule for target.
@@ -2248,12 +2248,12 @@ tests/CMakeFiles/ui_renderer_tests.dir/all: _deps/googletest-build/googletest/CM
 tests/CMakeFiles/ui_renderer_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_renderer_tests.dir/build.make tests/CMakeFiles/ui_renderer_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_renderer_tests.dir/build.make tests/CMakeFiles/ui_renderer_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target ui_renderer_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=91 "Built target ui_renderer_tests"
 .PHONY : tests/CMakeFiles/ui_renderer_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/ui_renderer_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_renderer_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/ui_renderer_tests.dir/rule
@@ -2265,7 +2265,7 @@ ui_renderer_tests: tests/CMakeFiles/ui_renderer_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/ui_renderer_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_renderer_tests.dir/build.make tests/CMakeFiles/ui_renderer_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target ui_renderer_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=91 "Finished codegen for target ui_renderer_tests"
 .PHONY : tests/CMakeFiles/ui_renderer_tests.dir/codegen
 
 # clean rule for target.
@@ -2314,12 +2314,12 @@ tests/CMakeFiles/ui_scene_tests.dir/all: _deps/googletest-build/googletest/CMake
 tests/CMakeFiles/ui_scene_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=91 "Built target ui_scene_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target ui_scene_tests"
 .PHONY : tests/CMakeFiles/ui_scene_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/ui_scene_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_scene_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/ui_scene_tests.dir/rule
@@ -2331,7 +2331,7 @@ ui_scene_tests: tests/CMakeFiles/ui_scene_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/ui_scene_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=91 "Finished codegen for target ui_scene_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target ui_scene_tests"
 .PHONY : tests/CMakeFiles/ui_scene_tests.dir/codegen
 
 # clean rule for target.
@@ -2545,12 +2545,12 @@ tests/CMakeFiles/visual_scene_v2_tests.dir/all: _deps/googletest-build/googletes
 tests/CMakeFiles/visual_scene_v2_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=97 "Built target visual_scene_v2_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target visual_scene_v2_tests"
 .PHONY : tests/CMakeFiles/visual_scene_v2_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/visual_scene_v2_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/visual_scene_v2_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/visual_scene_v2_tests.dir/rule
@@ -2562,7 +2562,7 @@ visual_scene_v2_tests: tests/CMakeFiles/visual_scene_v2_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/visual_scene_v2_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=97 "Finished codegen for target visual_scene_v2_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target visual_scene_v2_tests"
 .PHONY : tests/CMakeFiles/visual_scene_v2_tests.dir/codegen
 
 # clean rule for target.
@@ -2613,12 +2613,12 @@ tests/CMakeFiles/visual_container_tests.dir/all: _deps/googletest-build/googlete
 tests/CMakeFiles/visual_container_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=94 "Built target visual_container_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target visual_container_tests"
 .PHONY : tests/CMakeFiles/visual_container_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/visual_container_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/visual_container_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/visual_container_tests.dir/rule
@@ -2630,7 +2630,7 @@ visual_container_tests: tests/CMakeFiles/visual_container_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/visual_container_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=94 "Finished codegen for target visual_container_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target visual_container_tests"
 .PHONY : tests/CMakeFiles/visual_container_tests.dir/codegen
 
 # clean rule for target.
@@ -2646,12 +2646,12 @@ tests/CMakeFiles/visual_primitives_tests.dir/all: _deps/googletest-build/googlet
 tests/CMakeFiles/visual_primitives_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target visual_primitives_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=97 "Built target visual_primitives_tests"
 .PHONY : tests/CMakeFiles/visual_primitives_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/visual_primitives_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/visual_primitives_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/visual_primitives_tests.dir/rule
@@ -2663,7 +2663,7 @@ visual_primitives_tests: tests/CMakeFiles/visual_primitives_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/visual_primitives_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target visual_primitives_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=97 "Finished codegen for target visual_primitives_tests"
 .PHONY : tests/CMakeFiles/visual_primitives_tests.dir/codegen
 
 # clean rule for target.
@@ -2722,7 +2722,7 @@ tests/CMakeFiles/scene_mutations_tests.dir/all: src/blueprint_v2/CMakeFiles/blue
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/scene_mutations_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 8
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 10
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/scene_mutations_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/scene_mutations_tests.dir/rule
@@ -2753,12 +2753,12 @@ tests/CMakeFiles/canvas_input_tests.dir/all: src/json_parser/CMakeFiles/json_par
 tests/CMakeFiles/canvas_input_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=29,30,31,32,33 "Built target canvas_input_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=30,31,32,33,34 "Built target canvas_input_tests"
 .PHONY : tests/CMakeFiles/canvas_input_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/canvas_input_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 10
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 12
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/canvas_input_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/canvas_input_tests.dir/rule
@@ -2770,7 +2770,7 @@ canvas_input_tests: tests/CMakeFiles/canvas_input_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/canvas_input_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=29,30,31,32,33 "Finished codegen for target canvas_input_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=30,31,32,33,34 "Finished codegen for target canvas_input_tests"
 .PHONY : tests/CMakeFiles/canvas_input_tests.dir/codegen
 
 # clean rule for target.
@@ -2786,12 +2786,12 @@ tests/CMakeFiles/oscilloscope_stats_tests.dir/all: _deps/googletest-build/google
 tests/CMakeFiles/oscilloscope_stats_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=70 "Built target oscilloscope_stats_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target oscilloscope_stats_tests"
 .PHONY : tests/CMakeFiles/oscilloscope_stats_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/oscilloscope_stats_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/oscilloscope_stats_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/oscilloscope_stats_tests.dir/rule
@@ -2803,7 +2803,7 @@ oscilloscope_stats_tests: tests/CMakeFiles/oscilloscope_stats_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/oscilloscope_stats_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=70 "Finished codegen for target oscilloscope_stats_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target oscilloscope_stats_tests"
 .PHONY : tests/CMakeFiles/oscilloscope_stats_tests.dir/codegen
 
 # clean rule for target.
@@ -2819,12 +2819,12 @@ tests/CMakeFiles/pi_zn_tuner_tests.dir/all: _deps/googletest-build/googletest/CM
 tests/CMakeFiles/pi_zn_tuner_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target pi_zn_tuner_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=72 "Built target pi_zn_tuner_tests"
 .PHONY : tests/CMakeFiles/pi_zn_tuner_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/pi_zn_tuner_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pi_zn_tuner_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/pi_zn_tuner_tests.dir/rule
@@ -2836,7 +2836,7 @@ pi_zn_tuner_tests: tests/CMakeFiles/pi_zn_tuner_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/pi_zn_tuner_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target pi_zn_tuner_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=72 "Finished codegen for target pi_zn_tuner_tests"
 .PHONY : tests/CMakeFiles/pi_zn_tuner_tests.dir/codegen
 
 # clean rule for target.
@@ -2854,12 +2854,12 @@ tests/CMakeFiles/port_registry_tests.dir/all: _deps/googletest-build/googletest/
 tests/CMakeFiles/port_registry_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_registry_tests.dir/build.make tests/CMakeFiles/port_registry_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_registry_tests.dir/build.make tests/CMakeFiles/port_registry_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target port_registry_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=74 "Built target port_registry_tests"
 .PHONY : tests/CMakeFiles/port_registry_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/port_registry_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/port_registry_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/port_registry_tests.dir/rule
@@ -2871,7 +2871,7 @@ port_registry_tests: tests/CMakeFiles/port_registry_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/port_registry_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_registry_tests.dir/build.make tests/CMakeFiles/port_registry_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target port_registry_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=74 "Finished codegen for target port_registry_tests"
 .PHONY : tests/CMakeFiles/port_registry_tests.dir/codegen
 
 # clean rule for target.
@@ -2926,12 +2926,12 @@ tests/CMakeFiles/editor_componentvariant_tests.dir/all: src/core/solvers/jit/CMa
 tests/CMakeFiles/editor_componentvariant_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_componentvariant_tests.dir/build.make tests/CMakeFiles/editor_componentvariant_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_componentvariant_tests.dir/build.make tests/CMakeFiles/editor_componentvariant_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target editor_componentvariant_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=38 "Built target editor_componentvariant_tests"
 .PHONY : tests/CMakeFiles/editor_componentvariant_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/editor_componentvariant_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_componentvariant_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/editor_componentvariant_tests.dir/rule
@@ -2943,7 +2943,7 @@ editor_componentvariant_tests: tests/CMakeFiles/editor_componentvariant_tests.di
 # codegen rule for target.
 tests/CMakeFiles/editor_componentvariant_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_componentvariant_tests.dir/build.make tests/CMakeFiles/editor_componentvariant_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target editor_componentvariant_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=38 "Finished codegen for target editor_componentvariant_tests"
 .PHONY : tests/CMakeFiles/editor_componentvariant_tests.dir/codegen
 
 # clean rule for target.
@@ -2959,12 +2959,12 @@ tests/CMakeFiles/editor_settings_tests.dir/all: _deps/googletest-build/googletes
 tests/CMakeFiles/editor_settings_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=38 "Built target editor_settings_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target editor_settings_tests"
 .PHONY : tests/CMakeFiles/editor_settings_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/editor_settings_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_settings_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/editor_settings_tests.dir/rule
@@ -2976,7 +2976,7 @@ editor_settings_tests: tests/CMakeFiles/editor_settings_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/editor_settings_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=38 "Finished codegen for target editor_settings_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target editor_settings_tests"
 .PHONY : tests/CMakeFiles/editor_settings_tests.dir/codegen
 
 # clean rule for target.
@@ -3062,12 +3062,12 @@ tests/CMakeFiles/json_parser_tests.dir/all: _deps/googletest-build/googletest/CM
 tests/CMakeFiles/json_parser_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target json_parser_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=67 "Built target json_parser_tests"
 .PHONY : tests/CMakeFiles/json_parser_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/json_parser_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/json_parser_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/json_parser_tests.dir/rule
@@ -3079,7 +3079,7 @@ json_parser_tests: tests/CMakeFiles/json_parser_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/json_parser_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target json_parser_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=67 "Finished codegen for target json_parser_tests"
 .PHONY : tests/CMakeFiles/json_parser_tests.dir/codegen
 
 # clean rule for target.
@@ -3098,12 +3098,12 @@ tests/CMakeFiles/factory_validation_tests.dir/all: src/core/solvers/jit/CMakeFil
 tests/CMakeFiles/factory_validation_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=42 "Built target factory_validation_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target factory_validation_tests"
 .PHONY : tests/CMakeFiles/factory_validation_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/factory_validation_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/factory_validation_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/factory_validation_tests.dir/rule
@@ -3115,7 +3115,7 @@ factory_validation_tests: tests/CMakeFiles/factory_validation_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/factory_validation_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=42 "Finished codegen for target factory_validation_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target factory_validation_tests"
 .PHONY : tests/CMakeFiles/factory_validation_tests.dir/codegen
 
 # clean rule for target.
@@ -3242,12 +3242,12 @@ tests/CMakeFiles/asym_tmo_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_sol
 tests/CMakeFiles/asym_tmo_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target asym_tmo_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=18 "Built target asym_tmo_tests"
 .PHONY : tests/CMakeFiles/asym_tmo_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/asym_tmo_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/asym_tmo_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/asym_tmo_tests.dir/rule
@@ -3259,7 +3259,7 @@ asym_tmo_tests: tests/CMakeFiles/asym_tmo_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/asym_tmo_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target asym_tmo_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=18 "Finished codegen for target asym_tmo_tests"
 .PHONY : tests/CMakeFiles/asym_tmo_tests.dir/codegen
 
 # clean rule for target.
@@ -3388,12 +3388,12 @@ tests/CMakeFiles/codegen_sanitize_tests.dir/all: src/json_parser/CMakeFiles/json
 tests/CMakeFiles/codegen_sanitize_tests.dir/all: examples/CMakeFiles/an24_codegen.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=35 "Built target codegen_sanitize_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target codegen_sanitize_tests"
 .PHONY : tests/CMakeFiles/codegen_sanitize_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/codegen_sanitize_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 25
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 24
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/codegen_sanitize_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/codegen_sanitize_tests.dir/rule
@@ -3405,7 +3405,7 @@ codegen_sanitize_tests: tests/CMakeFiles/codegen_sanitize_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/codegen_sanitize_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=35 "Finished codegen for target codegen_sanitize_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target codegen_sanitize_tests"
 .PHONY : tests/CMakeFiles/codegen_sanitize_tests.dir/codegen
 
 # clean rule for target.
@@ -3424,12 +3424,12 @@ tests/CMakeFiles/v_to_bool_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_so
 tests/CMakeFiles/v_to_bool_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target v_to_bool_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=94 "Built target v_to_bool_tests"
 .PHONY : tests/CMakeFiles/v_to_bool_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/v_to_bool_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/v_to_bool_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/v_to_bool_tests.dir/rule
@@ -3441,7 +3441,7 @@ v_to_bool_tests: tests/CMakeFiles/v_to_bool_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/v_to_bool_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target v_to_bool_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=94 "Finished codegen for target v_to_bool_tests"
 .PHONY : tests/CMakeFiles/v_to_bool_tests.dir/codegen
 
 # clean rule for target.
@@ -3501,7 +3501,7 @@ tests/CMakeFiles/inspector_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/inspector_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 8
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/inspector_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/inspector_tests.dir/rule
@@ -3537,7 +3537,7 @@ tests/CMakeFiles/properties_window_tests.dir/all: src/blueprint_v2/CMakeFiles/bl
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/properties_window_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 8
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/properties_window_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/properties_window_tests.dir/rule
@@ -3569,12 +3569,12 @@ tests/CMakeFiles/codegen_accumulator_tests.dir/all: src/json_parser/CMakeFiles/j
 tests/CMakeFiles/codegen_accumulator_tests.dir/all: examples/CMakeFiles/an24_codegen.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target codegen_accumulator_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=35 "Built target codegen_accumulator_tests"
 .PHONY : tests/CMakeFiles/codegen_accumulator_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/codegen_accumulator_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 24
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 25
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/codegen_accumulator_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/codegen_accumulator_tests.dir/rule
@@ -3586,7 +3586,7 @@ codegen_accumulator_tests: tests/CMakeFiles/codegen_accumulator_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/codegen_accumulator_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target codegen_accumulator_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=35 "Finished codegen for target codegen_accumulator_tests"
 .PHONY : tests/CMakeFiles/codegen_accumulator_tests.dir/codegen
 
 # clean rule for target.
@@ -3680,12 +3680,12 @@ tests/CMakeFiles/production_path_parity_tests.dir/all: src/json_parser/CMakeFile
 tests/CMakeFiles/production_path_parity_tests.dir/all: examples/CMakeFiles/an24_codegen.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=74 "Built target production_path_parity_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target production_path_parity_tests"
 .PHONY : tests/CMakeFiles/production_path_parity_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/production_path_parity_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 25
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 24
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/production_path_parity_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/production_path_parity_tests.dir/rule
@@ -3697,7 +3697,7 @@ production_path_parity_tests: tests/CMakeFiles/production_path_parity_tests.dir/
 # codegen rule for target.
 tests/CMakeFiles/production_path_parity_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=74 "Finished codegen for target production_path_parity_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target production_path_parity_tests"
 .PHONY : tests/CMakeFiles/production_path_parity_tests.dir/codegen
 
 # clean rule for target.
@@ -3716,12 +3716,12 @@ tests/CMakeFiles/production_path_port_map_tests.dir/all: src/core/solvers/jit/CM
 tests/CMakeFiles/production_path_port_map_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target production_path_port_map_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=75 "Built target production_path_port_map_tests"
 .PHONY : tests/CMakeFiles/production_path_port_map_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/production_path_port_map_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/production_path_port_map_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/production_path_port_map_tests.dir/rule
@@ -3733,7 +3733,7 @@ production_path_port_map_tests: tests/CMakeFiles/production_path_port_map_tests.
 # codegen rule for target.
 tests/CMakeFiles/production_path_port_map_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target production_path_port_map_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=75 "Finished codegen for target production_path_port_map_tests"
 .PHONY : tests/CMakeFiles/production_path_port_map_tests.dir/codegen
 
 # clean rule for target.
@@ -3752,12 +3752,12 @@ tests/CMakeFiles/production_path_push_runtime_tests.dir/all: src/core/solvers/ji
 tests/CMakeFiles/production_path_push_runtime_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=75 "Built target production_path_push_runtime_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target production_path_push_runtime_tests"
 .PHONY : tests/CMakeFiles/production_path_push_runtime_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/production_path_push_runtime_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/production_path_push_runtime_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/production_path_push_runtime_tests.dir/rule
@@ -3769,7 +3769,7 @@ production_path_push_runtime_tests: tests/CMakeFiles/production_path_push_runtim
 # codegen rule for target.
 tests/CMakeFiles/production_path_push_runtime_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=75 "Finished codegen for target production_path_push_runtime_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target production_path_push_runtime_tests"
 .PHONY : tests/CMakeFiles/production_path_push_runtime_tests.dir/codegen
 
 # clean rule for target.
@@ -3788,12 +3788,12 @@ tests/CMakeFiles/asym_slew_rate_tests.dir/all: src/core/solvers/jit/CMakeFiles/j
 tests/CMakeFiles/asym_slew_rate_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=18 "Built target asym_slew_rate_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target asym_slew_rate_tests"
 .PHONY : tests/CMakeFiles/asym_slew_rate_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/asym_slew_rate_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/asym_slew_rate_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/asym_slew_rate_tests.dir/rule
@@ -3805,7 +3805,7 @@ asym_slew_rate_tests: tests/CMakeFiles/asym_slew_rate_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/asym_slew_rate_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=18 "Finished codegen for target asym_slew_rate_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target asym_slew_rate_tests"
 .PHONY : tests/CMakeFiles/asym_slew_rate_tests.dir/codegen
 
 # clean rule for target.
@@ -3896,12 +3896,12 @@ tests/CMakeFiles/sam28_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_solver
 tests/CMakeFiles/sam28_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target sam28_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=79 "Built target sam28_tests"
 .PHONY : tests/CMakeFiles/sam28_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/sam28_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/sam28_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/sam28_tests.dir/rule
@@ -3913,7 +3913,7 @@ sam28_tests: tests/CMakeFiles/sam28_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/sam28_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sam28_tests.dir/build.make tests/CMakeFiles/sam28_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target sam28_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=79 "Finished codegen for target sam28_tests"
 .PHONY : tests/CMakeFiles/sam28_tests.dir/codegen
 
 # clean rule for target.
@@ -3932,12 +3932,12 @@ tests/CMakeFiles/clamp_normalize_tests.dir/all: src/core/solvers/jit/CMakeFiles/
 tests/CMakeFiles/clamp_normalize_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=34 "Built target clamp_normalize_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target clamp_normalize_tests"
 .PHONY : tests/CMakeFiles/clamp_normalize_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/clamp_normalize_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/clamp_normalize_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/clamp_normalize_tests.dir/rule
@@ -3949,7 +3949,7 @@ clamp_normalize_tests: tests/CMakeFiles/clamp_normalize_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/clamp_normalize_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=34 "Finished codegen for target clamp_normalize_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target clamp_normalize_tests"
 .PHONY : tests/CMakeFiles/clamp_normalize_tests.dir/codegen
 
 # clean rule for target.
@@ -3968,12 +3968,12 @@ tests/CMakeFiles/comparison_components_tests.dir/all: src/core/solvers/jit/CMake
 tests/CMakeFiles/comparison_components_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target comparison_components_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=37 "Built target comparison_components_tests"
 .PHONY : tests/CMakeFiles/comparison_components_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/comparison_components_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/comparison_components_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/comparison_components_tests.dir/rule
@@ -3985,7 +3985,7 @@ comparison_components_tests: tests/CMakeFiles/comparison_components_tests.dir/ru
 # codegen rule for target.
 tests/CMakeFiles/comparison_components_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target comparison_components_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=37 "Finished codegen for target comparison_components_tests"
 .PHONY : tests/CMakeFiles/comparison_components_tests.dir/codegen
 
 # clean rule for target.
@@ -4045,7 +4045,7 @@ tests/CMakeFiles/v3_migration_tests.dir/all: src/blueprint_v2/CMakeFiles/bluepri
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/v3_migration_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 5
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/v3_migration_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/v3_migration_tests.dir/rule
@@ -4082,7 +4082,7 @@ tests/CMakeFiles/command_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/command_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 25
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 27
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/command_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/command_tests.dir/rule
@@ -4149,12 +4149,12 @@ tests/CMakeFiles/bp2_path_tests.dir/all: src/json_parser/CMakeFiles/json_parser.
 tests/CMakeFiles/bp2_path_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=27 "Built target bp2_path_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_path_tests"
 .PHONY : tests/CMakeFiles/bp2_path_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bp2_path_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_path_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bp2_path_tests.dir/rule
@@ -4166,7 +4166,7 @@ bp2_path_tests: tests/CMakeFiles/bp2_path_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/bp2_path_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=27 "Finished codegen for target bp2_path_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target bp2_path_tests"
 .PHONY : tests/CMakeFiles/bp2_path_tests.dir/codegen
 
 # clean rule for target.
@@ -4185,12 +4185,12 @@ tests/CMakeFiles/bp2_interface_tests.dir/all: src/json_parser/CMakeFiles/json_pa
 tests/CMakeFiles/bp2_interface_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_interface_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=27 "Built target bp2_interface_tests"
 .PHONY : tests/CMakeFiles/bp2_interface_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bp2_interface_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 5
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 8
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_interface_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bp2_interface_tests.dir/rule
@@ -4202,7 +4202,7 @@ bp2_interface_tests: tests/CMakeFiles/bp2_interface_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/bp2_interface_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target bp2_interface_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=27 "Finished codegen for target bp2_interface_tests"
 .PHONY : tests/CMakeFiles/bp2_interface_tests.dir/codegen
 
 # clean rule for target.
@@ -4221,12 +4221,12 @@ tests/CMakeFiles/bp2_blueprint_tests.dir/all: src/json_parser/CMakeFiles/json_pa
 tests/CMakeFiles/bp2_blueprint_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_blueprint_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=25 "Built target bp2_blueprint_tests"
 .PHONY : tests/CMakeFiles/bp2_blueprint_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bp2_blueprint_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 5
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 8
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_blueprint_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bp2_blueprint_tests.dir/rule
@@ -4238,7 +4238,7 @@ bp2_blueprint_tests: tests/CMakeFiles/bp2_blueprint_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/bp2_blueprint_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target bp2_blueprint_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=25 "Finished codegen for target bp2_blueprint_tests"
 .PHONY : tests/CMakeFiles/bp2_blueprint_tests.dir/codegen
 
 # clean rule for target.
@@ -4262,7 +4262,7 @@ tests/CMakeFiles/bp2_registry_tests.dir/all: src/blueprint_v2/CMakeFiles/bluepri
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bp2_registry_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 5
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_registry_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bp2_registry_tests.dir/rule
@@ -4293,12 +4293,12 @@ tests/CMakeFiles/bp2_codec_tests.dir/all: src/json_parser/CMakeFiles/json_parser
 tests/CMakeFiles/bp2_codec_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=25 "Built target bp2_codec_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_codec_tests"
 .PHONY : tests/CMakeFiles/bp2_codec_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bp2_codec_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_codec_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bp2_codec_tests.dir/rule
@@ -4310,7 +4310,7 @@ bp2_codec_tests: tests/CMakeFiles/bp2_codec_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/bp2_codec_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=25 "Finished codegen for target bp2_codec_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target bp2_codec_tests"
 .PHONY : tests/CMakeFiles/bp2_codec_tests.dir/codegen
 
 # clean rule for target.
@@ -4329,12 +4329,12 @@ tests/CMakeFiles/bp2_flattener_tests.dir/all: src/json_parser/CMakeFiles/json_pa
 tests/CMakeFiles/bp2_flattener_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=26 "Built target bp2_flattener_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_flattener_tests"
 .PHONY : tests/CMakeFiles/bp2_flattener_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bp2_flattener_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_flattener_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bp2_flattener_tests.dir/rule
@@ -4346,7 +4346,7 @@ bp2_flattener_tests: tests/CMakeFiles/bp2_flattener_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/bp2_flattener_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=26 "Finished codegen for target bp2_flattener_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target bp2_flattener_tests"
 .PHONY : tests/CMakeFiles/bp2_flattener_tests.dir/codegen
 
 # clean rule for target.
@@ -4365,12 +4365,12 @@ tests/CMakeFiles/bp2_editor_model_tests.dir/all: src/json_parser/CMakeFiles/json
 tests/CMakeFiles/bp2_editor_model_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_editor_model_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=26 "Built target bp2_editor_model_tests"
 .PHONY : tests/CMakeFiles/bp2_editor_model_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bp2_editor_model_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 5
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 8
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_editor_model_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bp2_editor_model_tests.dir/rule
@@ -4382,7 +4382,7 @@ bp2_editor_model_tests: tests/CMakeFiles/bp2_editor_model_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/bp2_editor_model_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target bp2_editor_model_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=26 "Finished codegen for target bp2_editor_model_tests"
 .PHONY : tests/CMakeFiles/bp2_editor_model_tests.dir/codegen
 
 # clean rule for target.
@@ -4401,12 +4401,12 @@ tests/CMakeFiles/bp2_bake_tests.dir/all: src/json_parser/CMakeFiles/json_parser.
 tests/CMakeFiles/bp2_bake_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=24 "Built target bp2_bake_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target bp2_bake_tests"
 .PHONY : tests/CMakeFiles/bp2_bake_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bp2_bake_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_bake_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bp2_bake_tests.dir/rule
@@ -4418,7 +4418,7 @@ bp2_bake_tests: tests/CMakeFiles/bp2_bake_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/bp2_bake_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=24 "Finished codegen for target bp2_bake_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target bp2_bake_tests"
 .PHONY : tests/CMakeFiles/bp2_bake_tests.dir/codegen
 
 # clean rule for target.
@@ -4442,7 +4442,7 @@ tests/CMakeFiles/bp2_validation_tests.dir/all: src/blueprint_v2/CMakeFiles/bluep
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/bp2_validation_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 8
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_validation_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/bp2_validation_tests.dir/rule
@@ -4473,12 +4473,12 @@ tests/CMakeFiles/electrical_primitives_tests.dir/all: src/core/solvers/jit/CMake
 tests/CMakeFiles/electrical_primitives_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target electrical_primitives_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=41 "Built target electrical_primitives_tests"
 .PHONY : tests/CMakeFiles/electrical_primitives_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/electrical_primitives_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_primitives_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/electrical_primitives_tests.dir/rule
@@ -4490,7 +4490,7 @@ electrical_primitives_tests: tests/CMakeFiles/electrical_primitives_tests.dir/ru
 # codegen rule for target.
 tests/CMakeFiles/electrical_primitives_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target electrical_primitives_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=41 "Finished codegen for target electrical_primitives_tests"
 .PHONY : tests/CMakeFiles/electrical_primitives_tests.dir/codegen
 
 # clean rule for target.
@@ -4547,12 +4547,12 @@ tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/json_parser/CMak
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all: src/blueprint_v2/CMakeFiles/blueprint_v2.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target external_ref_signal_mapping_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=42 "Built target external_ref_signal_mapping_tests"
 .PHONY : tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 24
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 27
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule
@@ -4564,7 +4564,7 @@ external_ref_signal_mapping_tests: tests/CMakeFiles/external_ref_signal_mapping_
 # codegen rule for target.
 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target external_ref_signal_mapping_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=42 "Finished codegen for target external_ref_signal_mapping_tests"
 .PHONY : tests/CMakeFiles/external_ref_signal_mapping_tests.dir/codegen
 
 # clean rule for target.
@@ -4589,7 +4589,7 @@ tests/CMakeFiles/signal_key_resolver_tests.dir/all: src/blueprint_v2/CMakeFiles/
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/signal_key_resolver_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 25
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 27
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/signal_key_resolver_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/signal_key_resolver_tests.dir/rule
@@ -4620,12 +4620,12 @@ tests/CMakeFiles/knob_switch_tests.dir/all: src/core/solvers/jit/CMakeFiles/jit_
 tests/CMakeFiles/knob_switch_tests.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=67 "Built target knob_switch_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Built target knob_switch_tests"
 .PHONY : tests/CMakeFiles/knob_switch_tests.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/knob_switch_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/knob_switch_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/knob_switch_tests.dir/rule
@@ -4637,7 +4637,7 @@ knob_switch_tests: tests/CMakeFiles/knob_switch_tests.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/knob_switch_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/knob_switch_tests.dir/build.make tests/CMakeFiles/knob_switch_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=67 "Finished codegen for target knob_switch_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num= "Finished codegen for target knob_switch_tests"
 .PHONY : tests/CMakeFiles/knob_switch_tests.dir/codegen
 
 # clean rule for target.
