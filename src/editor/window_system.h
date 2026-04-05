@@ -148,6 +148,16 @@ public:
     EditorSettings settings;
     OscilloscopeModel oscilloscope;
 
+    struct InlineValueEditorState {
+        bool open = false;
+        std::string doc_id;
+        std::string node_id;
+        std::string buffer;
+        std::string error;
+        Pt anchor_screen;
+        bool has_anchor = false;
+    } inlineValueEditor;
+
     // ── Utility ──
 
     /// Remove documents that were marked closed. Call at end of frame.
@@ -158,6 +168,10 @@ public:
 
     /// Open color picker for a node
     void openColorPickerForNode(const std::string& node_id, const std::string& group_id, Document& doc);
+
+    /// Open inline value editor for a Value node
+    void openInlineValueEditorForNode(const std::string& node_id, Document& doc,
+                                      const ui::Pt* anchor_screen = nullptr);
 
     /// Dispatch InputResultAction from a document to the window system
     void handleInputAction(const Document::InputResultAction& action, Document& doc);

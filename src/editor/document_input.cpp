@@ -37,5 +37,12 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r,
         action.toggle_probe_world_pos = r.toggle_probe_world_pos;
     }
 
+    if (r.open_inline_value_editor && !r.inline_value_editor_node_id.empty()) {
+        action.open_inline_value_editor = true;
+        action.inline_value_editor_node_id = r.inline_value_editor_node_id;
+        action.has_inline_value_editor_screen_pos = r.has_inline_value_editor_screen_pos;
+        action.inline_value_editor_screen_pos = r.inline_value_editor_screen_pos;
+    }
+
     return action;
 }

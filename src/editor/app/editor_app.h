@@ -11,6 +11,7 @@
 #include "editor/visual/popups/bake_in_dialog.h"
 #include "editor/visual/popups/set_name_dialog.h"
 #include "editor/visual/popups/extract_to_blueprint_dialog.h"
+#include "editor/visual/popups/inline_value_editor_dialog.h"
 #include <memory>
 
 struct SDL_Window;
@@ -59,4 +60,5 @@ private:
     BakeInDialog bake_in_dialog_;
     SetNameDialog set_name_dialog_;
     ExtractToBlueprintDialog extract_to_blueprint_dialog_;
+    InlineValueEditorDialog inline_value_editor_dialog_;
 };

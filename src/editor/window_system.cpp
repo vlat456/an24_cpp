@@ -1,6 +1,8 @@
 #include "window_system.h"
 #include "visual/scene_mutations.h"
+#include "blueprint_v2/editor_model/editor_model.h"
 #include <spdlog/spdlog.h>
+#include <cstdio>
 
 WindowSystem::WindowSystem()
     : type_registry_(load_type_registry())
@@ -109,6 +111,10 @@ bool WindowSystem::closeDocument(Document& doc) {
     if (pendingExtract.doc_id == closing_id) {
         pendingExtract.reset();
     }
+    if (inlineValueEditor.doc_id == closing_id) {
+        inlineValueEditor.open = false;
+        inlineValueEditor.doc_id.clear();
+    }
     if (pending_tab_focus_ == &doc) {
         pending_tab_focus_ = nullptr;
     }
@@ -160,6 +166,8 @@ bool WindowSystem::closeAllDocuments() {
     pendingBakeIn.doc_id.clear();
     pendingBakeIn.show_confirmation = false;
     pendingExtract.reset();
+    inlineValueEditor.open = false;
+    inlineValueEditor.doc_id.clear();
     pending_tab_focus_ = nullptr;
 
     documents_.clear();
@@ -251,6 +259,34 @@ void WindowSystem::openColorPickerForNode(const std::string& node_id, const std:
     }
 }
 
+void WindowSystem::openInlineValueEditorForNode(const std::string& node_id, Document& doc,
+                                                const ui::Pt* anchor_screen) {
+    ui::InternedId iid = doc.interner().lookup(node_id);
+    if (iid.empty()) return;
+    const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
+    if (!node) return;
+    if (std::string(doc.interner().resolve(node->type)) != "Value") return;
+
+    const ui::InternedId value_key = doc.interner().intern("value");
+    float current = 0.0f;
+    auto it = node->params.find(value_key);
+    if (it != node->params.end()) {
+        current = it->second;
+    }
+
+    inlineValueEditor.open = true;
+    inlineValueEditor.doc_id = doc.id();
+    inlineValueEditor.node_id = node_id;
+    char buf[64];
+    std::snprintf(buf, sizeof(buf), "%.6g", static_cast<double>(current));
+    inlineValueEditor.buffer = buf;
+    inlineValueEditor.error.clear();
+    inlineValueEditor.has_anchor = (anchor_screen != nullptr);
+    if (anchor_screen != nullptr) {
+        inlineValueEditor.anchor_screen = *anchor_screen;
+    }
+}
+
 void WindowSystem::handleInputAction(const Document::InputResultAction& action, Document& doc) {
     if (action.show_context_menu) {
         contextMenu.show = true;
@@ -267,5 +303,11 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
     if (!action.toggle_probe_wire_id.empty()) {
         const ui::Pt* click = action.has_toggle_probe_world_pos ? &action.toggle_probe_world_pos : nullptr;
         oscilloscope.toggle_probe(doc, action.toggle_probe_group_id, action.toggle_probe_wire_id, click);
+    }
+    if (action.open_inline_value_editor && !action.inline_value_editor_node_id.empty()) {
+        const ui::Pt* anchor = action.has_inline_value_editor_screen_pos
+            ? &action.inline_value_editor_screen_pos
+            : nullptr;
+        openInlineValueEditorForNode(action.inline_value_editor_node_id, doc, anchor);
     }
 }

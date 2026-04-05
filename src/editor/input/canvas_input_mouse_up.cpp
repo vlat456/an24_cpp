@@ -215,6 +215,13 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
         std::string node_id(hn->widget->id());
         ui::InternedId node_iid = interner_.lookup(node_id);
         const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : model_.current().find_node(node_iid);
+        if (!read_only && !simulation_mode && node && std::string(interner_.resolve(node->type)) == "Value") {
+            result.open_inline_value_editor = true;
+            result.inline_value_editor_node_id = node_id;
+            result.has_inline_value_editor_screen_pos = true;
+            result.inline_value_editor_screen_pos = screen_pos;
+            return result;
+        }
         if (node && node->expandable) {
             result.open_sub_window = node_id;
             return result;

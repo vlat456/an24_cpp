@@ -71,6 +71,10 @@ struct InputResult {
     float slider_value = 0.0f;          ///< raw value (already mapped from min..max)
     std::string knob_node_id;           ///< non-empty = set this Knob node's position
     int knob_position = 0;              ///< 0-based position index
+    bool open_inline_value_editor = false;  ///< true if inline value editor should open
+    std::string inline_value_editor_node_id;  ///< non-empty = open inline value editor for a node
+    bool has_inline_value_editor_screen_pos = false;
+    ui::Pt inline_value_editor_screen_pos;
 
     /// Combine results (logical OR of flags)
     InputResult& operator|=(const InputResult& o) {
@@ -90,6 +94,14 @@ struct InputResult {
         if (!o.knob_node_id.empty()) {
             knob_node_id = o.knob_node_id;
             knob_position = o.knob_position;
+        }
+        open_inline_value_editor |= o.open_inline_value_editor;
+        if (!o.inline_value_editor_node_id.empty()) {
+            inline_value_editor_node_id = o.inline_value_editor_node_id;
+        }
+        if (o.has_inline_value_editor_screen_pos) {
+            has_inline_value_editor_screen_pos = true;
+            inline_value_editor_screen_pos = o.inline_value_editor_screen_pos;
         }
         if (o.show_context_menu) context_menu_pos = o.context_menu_pos;
         if (o.show_node_context_menu) {

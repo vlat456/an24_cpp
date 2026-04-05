@@ -168,6 +168,11 @@ public:
         std::string toggle_probe_group_id;
         bool has_toggle_probe_world_pos = false;
         Pt toggle_probe_world_pos;
+
+        bool open_inline_value_editor = false;
+        std::string inline_value_editor_node_id;
+        bool has_inline_value_editor_screen_pos = false;
+        Pt inline_value_editor_screen_pos;
     };
     InputResultAction applyInputResult(const InputResult& r, const std::string& group_id = "");
 

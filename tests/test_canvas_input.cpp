@@ -615,6 +615,57 @@ TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
     EXPECT_FALSE(model.is_dirty());
 }
 
+TEST(CanvasInputDoubleClick, ValueNodeOpensInlineValueEditor) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto value_node = make_node(I, "val1", "Value", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(value_node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+    const ui::Pt click_pos = widget->worldPos() + ui::Pt(10.0f, 10.0f);
+
+    InputResult r = input.on_double_click(click_pos, canvas_min);
+    EXPECT_TRUE(r.open_inline_value_editor);
+    EXPECT_EQ(r.inline_value_editor_node_id, "val1");
+}
+
+TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto group = make_node(I, "grp1", "Composite", 120.0f, 80.0f);
+    group.expandable = true;
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(group));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("grp1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+    const ui::Pt click_pos = widget->worldPos() + ui::Pt(10.0f, 10.0f);
+
+    InputResult r = input.on_double_click(click_pos, canvas_min);
+    EXPECT_FALSE(r.open_inline_value_editor);
+    EXPECT_EQ(r.open_sub_window, "grp1");
+}
+
 // ============================================================================
 // Regression: path_to_node_port() utility (extracted to snap.h)
 // ============================================================================
@@ -1112,4 +1163,67 @@ TEST(CanvasInputSimMode, SimModeAllowsPanning) {
 
     EXPECT_EQ(input.state(), InputState::Panning)
         << "simulation_mode must allow panning on empty space";
+}
+
+// ============================================================================
+// Regression: simulation_mode blocks inline value editor (BUG 3)
+// ============================================================================
+
+TEST(CanvasInputSimMode, SimModeBlocksInlineValueEditor) {
+    // In simulation mode, double-clicking a Value node must NOT open
+    // the inline value editor (editing params won't affect compiled solver).
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto value_node = make_node(I, "val1", "Value", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(value_node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.simulation_mode = true;
+
+    const Pt canvas_min(0.0f, 0.0f);
+    const Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
+
+    InputResult r = input.on_double_click(click_pos, canvas_min);
+    EXPECT_FALSE(r.open_inline_value_editor)
+        << "simulation_mode must block inline value editor";
+    EXPECT_TRUE(r.inline_value_editor_node_id.empty())
+        << "simulation_mode must not populate inline editor node id";
+}
+
+TEST(CanvasInputSimMode, ReadOnlyBlocksInlineValueEditor) {
+    // read_only mode must also block the inline value editor.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto value_node = make_node(I, "val1", "Value", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(value_node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    input.read_only = true;
+
+    const Pt canvas_min(0.0f, 0.0f);
+    const Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
+
+    InputResult r = input.on_double_click(click_pos, canvas_min);
+    EXPECT_FALSE(r.open_inline_value_editor)
+        << "read_only must block inline value editor";
 }
