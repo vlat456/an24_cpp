@@ -230,37 +230,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     // ---- Build a registry with full type definitions (ports + params) ----
 
     TypeRegistry registry;
-
-    // BlueprintInput: port (Out, Any), ext (In, Any, alias→port)
-    TypeDefinition bp_in;
-    bp_in.classname = "BlueprintInput";
-    bp_in.cpp_class = true;
-    bp_in.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
-    bp_in.ports["ext"]  = Port{PortDirection::In, PortType::Any, std::string("port")};
-    bp_in.domains = {{Domain::Electrical}};
-    bp_in.execution = make_execution(true, false, true, false, false, false, true, true, true);
-    registry.types["BlueprintInput"] = bp_in;
-
-    // BlueprintOutput: port (In, Any), ext (Out, Any, alias→port)
-    TypeDefinition bp_out;
-    bp_out.classname = "BlueprintOutput";
-    bp_out.cpp_class = true;
-    bp_out.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    bp_out.ports["ext"]  = Port{PortDirection::Out, PortType::Any, std::string("port")};
-    bp_out.domains = {{Domain::Electrical}};
-    bp_out.execution = make_execution(true, false, true, false, false, false, true, true, true);
-    registry.types["BlueprintOutput"] = bp_out;
-
-    // IndicatorLight: v_in (In), v_out (Out), brightness (Out)
-    TypeDefinition light;
-    light.classname = "IndicatorLight";
-    light.cpp_class = true;
-    light.ports["v_in"]       = Port{PortDirection::In, PortType::V, std::nullopt};
-    light.ports["v_out"]      = Port{PortDirection::Out, PortType::V, std::nullopt};
-    light.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    light.domains = {{Domain::Electrical}};
-    light.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    registry.types["IndicatorLight"] = light;
+    register_lamp_composite_types(registry);
 
     // Composite: voltage_indicator (vin→lamp→vout)
     TypeDefinition lamp;
@@ -395,30 +365,9 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
 
 TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
     TypeRegistry registry;
-
-    // === Register types with ports ===
-    TypeDefinition battery_type;
-    battery_type.classname = "Generator";
-    battery_type.cpp_class = true;
-    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    battery_type.domains = {{Domain::Electrical}};
-    registry.types["Generator"] = battery_type;
-
-    TypeDefinition resistor_type;
-    resistor_type.classname = "Resistor";
-    resistor_type.cpp_class = true;
-    resistor_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    resistor_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    resistor_type.domains = {{Domain::Electrical}};
-    registry.types["Resistor"] = resistor_type;
-
-    TypeDefinition refnode_type;
-    refnode_type.classname = "RefNode";
-    refnode_type.cpp_class = true;
-    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    refnode_type.domains = {{Domain::Electrical}};
-    registry.types["RefNode"] = refnode_type;
+    registry.types["Generator"] = make_generator_type();
+    registry.types["Resistor"] = make_resistor_type();
+    registry.types["RefNode"] = make_refnode_type();
 
     // Simple circuit: ElectricalSource -> Resistor -> RefNode (fixed voltage)
     TypeDefinition circuit;
@@ -477,24 +426,8 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
 
 TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
     TypeRegistry registry;
-
-    // === Register types with ports ===
-    TypeDefinition battery_type;
-    battery_type.classname = "Generator";
-    battery_type.cpp_class = true;
-    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    battery_type.domains = {{Domain::Electrical}};
-    registry.types["Generator"] = battery_type;
-
-    TypeDefinition light_type;
-    light_type.classname = "IndicatorLight";
-    light_type.cpp_class = true;
-    light_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    light_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    light_type.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    light_type.domains = {{Domain::Electrical}};
-    registry.types["IndicatorLight"] = light_type;
+    registry.types["ElectricalSource"] = make_electrical_source_type();
+    registry.types["IndicatorLight"] = make_indicator_light_type();
 
     TypeDefinition lamp_circuit;
     lamp_circuit.classname = "lamp_circuit";
@@ -788,30 +721,9 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
 
 TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
     TypeRegistry registry;
-
-    TypeDefinition battery_type;
-    battery_type.classname = "ElectricalSource";
-    battery_type.cpp_class = true;
-    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    battery_type.domains = {{Domain::Electrical}};
-    registry.types["ElectricalSource"] = battery_type;
-
-    TypeDefinition sense_type;
-    sense_type.classname = "CurrentSense";
-    sense_type.cpp_class = true;
-    sense_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    sense_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    sense_type.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    sense_type.domains = {{Domain::Electrical}};
-    registry.types["CurrentSense"] = sense_type;
-
-    TypeDefinition refnode_type;
-    refnode_type.classname = "RefNode";
-    refnode_type.cpp_class = true;
-    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    refnode_type.domains = {{Domain::Electrical}};
-    registry.types["RefNode"] = refnode_type;
+    registry.types["ElectricalSource"] = make_electrical_source_type();
+    registry.types["CurrentSense"] = make_currentsense_type();
+    registry.types["RefNode"] = make_refnode_type();
 
     TypeDefinition circuit;
     circuit.classname = "debug_map_circuit";
@@ -856,29 +768,7 @@ TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
 
 TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
     TypeRegistry registry;
-
-    TypeDefinition src_type;
-    src_type.classname = "ElectricalSource";
-    src_type.cpp_class = true;
-    src_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    src_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    src_type.domains = {{Domain::Electrical}};
-    registry.types["ElectricalSource"] = src_type;
-
-    TypeDefinition load_type;
-    load_type.classname = "ElectricalConductance";
-    load_type.cpp_class = true;
-    load_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    load_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    load_type.domains = {{Domain::Electrical}};
-    registry.types["ElectricalConductance"] = load_type;
-
-    TypeDefinition ref_type;
-    ref_type.classname = "RefNode";
-    ref_type.cpp_class = true;
-    ref_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    ref_type.domains = {{Domain::Electrical}};
-    registry.types["RefNode"] = ref_type;
+    register_basic_electrical_types(registry);
 
     TypeDefinition circuit;
     circuit.classname = "diag_warn_circuit";
@@ -921,29 +811,7 @@ TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
 
 TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
     TypeRegistry registry;
-
-    TypeDefinition src_type;
-    src_type.classname = "ElectricalSource";
-    src_type.cpp_class = true;
-    src_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    src_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    src_type.domains = {{Domain::Electrical}};
-    registry.types["ElectricalSource"] = src_type;
-
-    TypeDefinition load_type;
-    load_type.classname = "ElectricalConductance";
-    load_type.cpp_class = true;
-    load_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    load_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    load_type.domains = {{Domain::Electrical}};
-    registry.types["ElectricalConductance"] = load_type;
-
-    TypeDefinition ref_type;
-    ref_type.classname = "RefNode";
-    ref_type.cpp_class = true;
-    ref_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    ref_type.domains = {{Domain::Electrical}};
-    registry.types["RefNode"] = ref_type;
+    register_basic_electrical_types(registry);
 
     TypeDefinition circuit;
     circuit.classname = "debug_idx_circuit";

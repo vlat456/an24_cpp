@@ -21,13 +21,8 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     TypeDefinition gnd = make_refnode_type(PortDirection::Out);
     registry.types["RefNode"] = gnd;
 
-    TypeDefinition cmd;
-    cmd.classname = "Any_V_to_Bool";
-    cmd.cpp_class = true;
-    cmd.domains = {Domain::Electrical};
-    cmd.execution = make_execution(false, false, true, false, false, false, false, false, false);
+    TypeDefinition cmd = make_any_v_to_bool_type();
     cmd.ports["v_in"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    cmd.ports["o"] = Port{PortDirection::Out, PortType::Bool, std::nullopt};
     registry.types["Any_V_to_Bool"] = cmd;
 
     TypeDefinition src;
@@ -45,21 +40,10 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     src.ports["max_v"] = Port{PortDirection::In, PortType::Any, std::nullopt};
     registry.types["ControlledVoltageSource"] = src;
 
-    TypeDefinition val;
-    val.classname = "Value";
-    val.cpp_class = true;
-    val.domains = {Domain::Logical};
-    val.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    val.ports["o"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
+    TypeDefinition val = make_value_type();
     registry.types["Value"] = val;
 
-    TypeDefinition meter;
-    meter.classname = "Voltmeter";
-    meter.cpp_class = true;
-    meter.domains = {Domain::Electrical};
-    meter.execution = make_execution(false, true, false, false, false, false, false, false, false);
-    meter.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    meter.ports["out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    TypeDefinition meter = make_voltmeter_type();
     registry.types["Voltmeter"] = meter;
 
     std::vector<DeviceInstance> devices;
