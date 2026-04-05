@@ -268,4 +268,8 @@ private:
         PortType fixed_type;
     };
     std::optional<WirePortMatch> find_wire_on_port(visual::Port* port) const;
+
+    /// Build a WirePortMatch for a given wire index and detach direction.
+    WirePortMatch build_wire_port_match(size_t wire_index, bool detach_start,
+                                        const bp2::Blueprint::Wire& w) const;
 };

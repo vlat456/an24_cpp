@@ -634,6 +634,10 @@ gtest_discover_tests(scene_mutations_tests)
 add_executable(canvas_input_tests
     test_canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_down.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp

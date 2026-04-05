@@ -653,6 +653,102 @@ __/src/editor/input/canvas_input.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
 
+__/src/editor/input/canvas_input_mouse_down.o: __/src/editor/input/canvas_input_mouse_down.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_down.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_mouse_down.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_down.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_down.cpp.o
+
+__/src/editor/input/canvas_input_mouse_down.i: __/src/editor/input/canvas_input_mouse_down.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_down.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_mouse_down.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_down.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_down.cpp.i
+
+__/src/editor/input/canvas_input_mouse_down.s: __/src/editor/input/canvas_input_mouse_down.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_down.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_mouse_down.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_down.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_down.cpp.s
+
+__/src/editor/input/canvas_input_mouse_drag.o: __/src/editor/input/canvas_input_mouse_drag.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_mouse_drag.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_drag.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.cpp.o
+
+__/src/editor/input/canvas_input_mouse_drag.i: __/src/editor/input/canvas_input_mouse_drag.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_mouse_drag.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_drag.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.cpp.i
+
+__/src/editor/input/canvas_input_mouse_drag.s: __/src/editor/input/canvas_input_mouse_drag.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_mouse_drag.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_drag.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_drag.cpp.s
+
+__/src/editor/input/canvas_input_mouse_up.o: __/src/editor/input/canvas_input_mouse_up.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_up.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_mouse_up.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_up.cpp.o
+.PHONY : __/src/editor/input/canvas_input_mouse_up.cpp.o
+
+__/src/editor/input/canvas_input_mouse_up.i: __/src/editor/input/canvas_input_mouse_up.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_up.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_mouse_up.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_up.cpp.i
+.PHONY : __/src/editor/input/canvas_input_mouse_up.cpp.i
+
+__/src/editor/input/canvas_input_mouse_up.s: __/src/editor/input/canvas_input_mouse_up.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_up.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_mouse_up.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_mouse_up.cpp.s
+.PHONY : __/src/editor/input/canvas_input_mouse_up.cpp.s
+
+__/src/editor/input/canvas_input_wires.o: __/src/editor/input/canvas_input_wires.cpp.o
+.PHONY : __/src/editor/input/canvas_input_wires.o
+
+# target to build an object file
+__/src/editor/input/canvas_input_wires.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_wires.cpp.o
+.PHONY : __/src/editor/input/canvas_input_wires.cpp.o
+
+__/src/editor/input/canvas_input_wires.i: __/src/editor/input/canvas_input_wires.cpp.i
+.PHONY : __/src/editor/input/canvas_input_wires.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input_wires.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_wires.cpp.i
+.PHONY : __/src/editor/input/canvas_input_wires.cpp.i
+
+__/src/editor/input/canvas_input_wires.s: __/src/editor/input/canvas_input_wires.cpp.s
+.PHONY : __/src/editor/input/canvas_input_wires.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input_wires.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input_wires.cpp.s
+.PHONY : __/src/editor/input/canvas_input_wires.cpp.s
+
 __/src/editor/oscilloscope.o: __/src/editor/oscilloscope.cpp.o
 .PHONY : __/src/editor/oscilloscope.o
 
@@ -1753,6 +1849,18 @@ help:
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
+	@echo "... __/src/editor/input/canvas_input_mouse_down.o"
+	@echo "... __/src/editor/input/canvas_input_mouse_down.i"
+	@echo "... __/src/editor/input/canvas_input_mouse_down.s"
+	@echo "... __/src/editor/input/canvas_input_mouse_drag.o"
+	@echo "... __/src/editor/input/canvas_input_mouse_drag.i"
+	@echo "... __/src/editor/input/canvas_input_mouse_drag.s"
+	@echo "... __/src/editor/input/canvas_input_mouse_up.o"
+	@echo "... __/src/editor/input/canvas_input_mouse_up.i"
+	@echo "... __/src/editor/input/canvas_input_mouse_up.s"
+	@echo "... __/src/editor/input/canvas_input_wires.o"
+	@echo "... __/src/editor/input/canvas_input_wires.i"
+	@echo "... __/src/editor/input/canvas_input_wires.s"
 	@echo "... __/src/editor/oscilloscope.o"
 	@echo "... __/src/editor/oscilloscope.i"
 	@echo "... __/src/editor/oscilloscope.s"
