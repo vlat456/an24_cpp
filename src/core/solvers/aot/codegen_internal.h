@@ -63,7 +63,7 @@ inline std::vector<DeviceInstance> filter_simulation_devices(
 /// Emit the ElectricalDebugEntry struct definition.
 inline void emit_electrical_debug_entry_struct(std::ostringstream& oss) {
     oss << "struct ElectricalDebugEntry {\n";
-    oss << "    uint32_t component_index;\n";
+    oss << "    uint32_t element_id;\n";
     oss << "    uint32_t island_index;\n";
     oss << "    uint32_t element_index;\n";
     oss << "    const char* device_name;\n";
@@ -79,16 +79,37 @@ inline void emit_device_execute_commit(
     std::ostringstream& oss,
     const std::vector<DeviceInstance>& devices
 ) {
+    // Match JIT scheduler semantics: source bucket before consumer bucket.
+    // Order within each bucket remains declaration order.
     for (const auto& dev : devices) {
+        if (!dev.scheduler_source) {
+            continue;
+        }
         oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
     }
     for (const auto& dev : devices) {
+        if (dev.scheduler_source) {
+            continue;
+        }
+        oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
+    }
+
+    for (const auto& dev : devices) {
+        if (!dev.scheduler_source) {
+            continue;
+        }
+        oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";
+    }
+    for (const auto& dev : devices) {
+        if (dev.scheduler_source) {
+            continue;
+        }
         oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";
     }
 }
 
 /// Emit a debug-map lookup loop that finds an entry by a field match and logs it.
-/// Used both in step diagnostics (match by component_index) and dump_island_debug
+/// Used both in step diagnostics (match by element_id) and dump_island_debug
 /// (match by island_index).
 inline void emit_debug_map_lookup(
     std::ostringstream& oss,

@@ -4,6 +4,7 @@
 #include "core/solvers/aot/codegen_composite_helpers.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "json_parser/json_parser.h"
+#include "test_fixtures.h"
 #include "test_helpers.h"
 
 namespace {
@@ -17,12 +18,7 @@ namespace {
 TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     TypeRegistry registry;
 
-    TypeDefinition gnd;
-    gnd.classname = "RefNode";
-    gnd.cpp_class = true;
-    gnd.domains = {Domain::Electrical};
-    gnd.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    gnd.ports["v"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    TypeDefinition gnd = make_refnode_type(PortDirection::Out);
     registry.types["RefNode"] = gnd;
 
     TypeDefinition cmd;

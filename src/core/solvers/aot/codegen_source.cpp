@@ -160,14 +160,14 @@ void emit_constructor_params(
         oss << "    { AotElectricalPlan aot_plan;\n";
         oss << "      electrical_plan_.islands = std::move(aot_plan.islands); }\n";
         oss << "    electrical_rt_.reserve(ELECTRICAL_MAX_ISLAND_NODES, "
-            << "ELECTRICAL_MAX_ISLAND_ELEMENTS, ELECTRICAL_MAX_COMPONENT_INDEX);\n";
+            << "ELECTRICAL_MAX_ISLAND_ELEMENTS, ELECTRICAL_MAX_ELEMENT_ID);\n";
         for (const auto& binding : electrical_plan.device_bindings) {
             oss << "    " << binding.device_field_name << ".electrical_handle.island_index = "
                 << "ElectricalBindings::" << binding.device_field_name << "_island;\n";
             oss << "    " << binding.device_field_name << ".electrical_handle.element_index = "
                 << "ElectricalBindings::" << binding.device_field_name << "_element;\n";
             oss << "    " << binding.device_field_name << ".electrical_handle.element_id = "
-                << "ElectricalBindings::" << binding.device_field_name << "_component;\n";
+                << "ElectricalBindings::" << binding.device_field_name << "_element_id;\n";
         }
     }
 }
@@ -262,9 +262,9 @@ void emit_step_electrical_diagnostics(std::ostringstream& oss) {
     oss << "                diag.island_index, diag.solve_ok, diag.unknown_count, diag.max_abs_kcl_residual,\n";
     oss << "                diag.worst_node_signal, diag.worst_node_voltage, diag.worst_branch_element_id);\n";
     codegen_detail::emit_debug_map_lookup(oss,
-        "component_index", "== diag.worst_branch_element_id",
+        "element_id", "== diag.worst_branch_element_id",
         "[aot-elec] branch component={} device={} class={} role={} nodes=({},{})",
-        "e.component_index, e.device_name, e.classname, e.role, e.node_a, e.node_b",
+        "e.element_id, e.device_name, e.classname, e.role, e.node_a, e.node_b",
         true);
     oss << "            dump_island_debug(diag.island_index);\n";
     oss << "        }\n";
@@ -414,7 +414,7 @@ std::string CodeGen::generate_source(
         codegen_detail::emit_debug_map_lookup(oss,
             "island_index", "== island_idx",
             "[aot-elec]   elem={} comp={} device={} class={} role={} nodes=({},{})",
-            "e.element_index, e.component_index, e.device_name, e.classname, e.role, e.node_a, e.node_b",
+            "e.element_index, e.element_id, e.device_name, e.classname, e.role, e.node_a, e.node_b",
             false);
         oss << "}\n\n";
     }

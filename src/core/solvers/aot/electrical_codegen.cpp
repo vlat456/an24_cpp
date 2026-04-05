@@ -61,7 +61,7 @@ struct RawElement {
     uint32_t node_b;
     float value_a;
     float value_b;
-    size_t component_index;
+    size_t element_id;
     std::string device_name;   // for handle assignment back to wrapper components
     std::string device_classname;
 };
@@ -359,7 +359,7 @@ void build_electrical_islands(
                 re.node_b,
                 re.value_a,
                 re.value_b,
-                static_cast<uint32_t>(re.component_index)
+                static_cast<uint32_t>(re.element_id)
             });
         }
 
@@ -376,17 +376,17 @@ void build_device_bindings(
     std::vector<ElectricalPlanCodegen::DeviceBinding>& bindings
 ) {
     // Map wrapper components to electrical island positions
-    std::unordered_map<uint32_t, size_t> component_to_raw_idx;
+    std::unordered_map<uint32_t, size_t> element_to_raw_idx;
     for (size_t i = 0; i < raw_elements.size(); ++i) {
-        component_to_raw_idx[static_cast<uint32_t>(raw_elements[i].component_index)] = i;
+        element_to_raw_idx[static_cast<uint32_t>(raw_elements[i].element_id)] = i;
     }
 
-    std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> component_to_island_elem;
+    std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> element_to_island_elem;
     for (size_t island_i = 0; island_i < plan.islands.size(); ++island_i) {
         const auto& island = plan.islands[island_i];
         for (size_t elem_i = 0; elem_i < island.elements.size(); ++elem_i) {
             const auto& elem = island.elements[elem_i];
-            component_to_island_elem[elem.component_index] = {
+            element_to_island_elem[elem.element_id] = {
                 static_cast<uint32_t>(island_i),
                 static_cast<uint32_t>(elem_i)
             };
@@ -401,10 +401,10 @@ void build_device_bindings(
     };
 
     std::vector<ElectricalPlanCodegen::DeviceBinding> tmp_bindings;
-    tmp_bindings.reserve(component_to_island_elem.size());
-    for (const auto& [component_index, pos] : component_to_island_elem) {
-        auto raw_it = component_to_raw_idx.find(component_index);
-        if (raw_it == component_to_raw_idx.end()) {
+    tmp_bindings.reserve(element_to_island_elem.size());
+    for (const auto& [element_id, pos] : element_to_island_elem) {
+        auto raw_it = element_to_raw_idx.find(element_id);
+        if (raw_it == element_to_raw_idx.end()) {
             continue;
         }
         const auto& re = raw_elements[raw_it->second];
@@ -413,14 +413,14 @@ void build_device_bindings(
                 sanitize_codegen_name(re.device_name),
                 pos.first,
                 pos.second,
-                component_index
+                element_id
             });
         }
     }
 
     // Sort and deduplicate
     std::sort(tmp_bindings.begin(), tmp_bindings.end(), [](const auto& a, const auto& b) {
-        if (a.component_index != b.component_index) return a.component_index < b.component_index;
+        if (a.element_id != b.element_id) return a.element_id < b.element_id;
         if (a.island_index != b.island_index) return a.island_index < b.island_index;
         if (a.element_index != b.element_index) return a.element_index < b.element_index;
         return a.device_field_name < b.device_field_name;
@@ -429,7 +429,7 @@ void build_device_bindings(
         return a.device_field_name == b.device_field_name &&
                a.island_index == b.island_index &&
                a.element_index == b.element_index &&
-               a.component_index == b.component_index;
+               a.element_id == b.element_id;
     }), tmp_bindings.end());
 
     bindings = std::move(tmp_bindings);
@@ -443,9 +443,9 @@ void build_component_debug(
     const ElectricalPlanCodegen& plan,
     std::vector<ElectricalPlanCodegen::ComponentDebug>& debug
 ) {
-    std::unordered_map<uint32_t, size_t> component_to_raw_idx;
+    std::unordered_map<uint32_t, size_t> element_to_raw_idx;
     for (size_t i = 0; i < raw_elements.size(); ++i) {
-        component_to_raw_idx[static_cast<uint32_t>(raw_elements[i].component_index)] = i;
+        element_to_raw_idx[static_cast<uint32_t>(raw_elements[i].element_id)] = i;
     }
 
     std::vector<ElectricalPlanCodegen::ComponentDebug> tmp_debug;
@@ -454,13 +454,13 @@ void build_component_debug(
         const auto& island = plan.islands[island_i];
         for (size_t elem_i = 0; elem_i < island.elements.size(); ++elem_i) {
             const auto& elem = island.elements[elem_i];
-            auto raw_it = component_to_raw_idx.find(elem.component_index);
-            if (raw_it == component_to_raw_idx.end()) {
+            auto raw_it = element_to_raw_idx.find(elem.element_id);
+            if (raw_it == element_to_raw_idx.end()) {
                 continue;
             }
             const auto& re = raw_elements[raw_it->second];
             tmp_debug.push_back({
-                static_cast<uint32_t>(re.component_index),
+                static_cast<uint32_t>(re.element_id),
                 static_cast<uint32_t>(island_i),
                 static_cast<uint32_t>(elem_i),
                 re.device_name,
@@ -473,7 +473,7 @@ void build_component_debug(
     }
 
     std::sort(tmp_debug.begin(), tmp_debug.end(), [](const auto& a, const auto& b) {
-        if (a.component_index != b.component_index) return a.component_index < b.component_index;
+        if (a.element_id != b.element_id) return a.element_id < b.element_id;
         if (a.island_index != b.island_index) return a.island_index < b.island_index;
         if (a.element_index != b.element_index) return a.element_index < b.element_index;
         return a.device_name < b.device_name;

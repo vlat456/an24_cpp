@@ -5,35 +5,6 @@
 
 namespace codegen_composite_detail {
 
-UnionFind::UnionFind(size_t size) : parent(size), rank(size, 0) {
-    for (uint32_t i = 0; i < static_cast<uint32_t>(size); ++i) {
-        parent[i] = i;
-    }
-}
-
-uint32_t UnionFind::find(uint32_t x) const {
-    while (parent[x] != x) {
-        parent[x] = parent[parent[x]];
-        x = parent[x];
-    }
-    return x;
-}
-
-void UnionFind::unite(uint32_t a, uint32_t b) {
-    uint32_t ra = find(a);
-    uint32_t rb = find(b);
-    if (ra == rb) {
-        return;
-    }
-    if (rank[ra] < rank[rb]) {
-        std::swap(ra, rb);
-    }
-    parent[rb] = ra;
-    if (rank[ra] == rank[rb]) {
-        rank[ra]++;
-    }
-}
-
 void build_port_index_map(
     const std::vector<DeviceInstance>& expanded_devices,
     std::vector<std::string>& out_all_ports,

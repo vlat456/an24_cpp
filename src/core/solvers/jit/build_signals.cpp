@@ -1,5 +1,6 @@
 #include "jit_solver_internal.h"
 #include "../common/signal_union_rules.h"
+#include "../../utils/union_find.h"
 #include <algorithm>
 #include <map>
 #include <spdlog/spdlog.h>
@@ -33,42 +34,7 @@ void process_port_unions(
         return;
     }
 
-    struct UnionFind {
-        std::vector<uint32_t> parent;
-        std::vector<uint32_t> rank;
-
-        explicit UnionFind(size_t n) : parent(n), rank(n, 0) {
-            for (uint32_t i = 0; i < n; ++i) {
-                parent[i] = i;
-            }
-        }
-
-        uint32_t find(uint32_t x) {
-            if (parent[x] != x) {
-                parent[x] = find(parent[x]);
-            }
-            return parent[x];
-        }
-
-        void unite(uint32_t a, uint32_t b) {
-            const uint32_t ra = find(a);
-            const uint32_t rb = find(b);
-            if (ra == rb) {
-                return;
-            }
-
-            if (rank[ra] < rank[rb]) {
-                parent[ra] = rb;
-            } else if (rank[ra] > rank[rb]) {
-                parent[rb] = ra;
-            } else {
-                parent[rb] = ra;
-                rank[ra]++;
-            }
-        }
-    };
-
-    UnionFind uf(all_ports.size());
+    core::utils::UnionFind uf(all_ports.size());
 
     // === PARITY GUARD: bridge/connection/alias unions ===
     // INVARIANT: this must stay behaviorally aligned with the AOT path.

@@ -3,6 +3,7 @@
 #include "json_parser/json_parser.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "test_helpers.h"
+#include "test_fixtures.h"
 #include <regex>
 #include <set>
 #include <unordered_map>
@@ -621,11 +622,11 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     auto result = CodeGen::generate_composite_systems(circuit, registry);
 
     EXPECT_NE(result.header.find("struct ElectricalBindings"), std::string::npos);
-    EXPECT_NE(result.header.find("sense_component"), std::string::npos);
-    EXPECT_NE(result.header.find("lamp_component"), std::string::npos);
+    EXPECT_NE(result.header.find("sense_element_id"), std::string::npos);
+    EXPECT_NE(result.header.find("lamp_element_id"), std::string::npos);
 
-    EXPECT_NE(result.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos);
-    EXPECT_NE(result.source.find("lamp.electrical_handle.element_id = ElectricalBindings::lamp_component"), std::string::npos);
+    EXPECT_NE(result.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_element_id"), std::string::npos);
+    EXPECT_NE(result.source.find("lamp.electrical_handle.element_id = ElectricalBindings::lamp_element_id"), std::string::npos);
 }
 
 TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
@@ -699,7 +700,7 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
     auto r2 = CodeGen::generate_composite_systems(c2, registry);
 
     auto extract_component_const = [](const std::string& header, const std::string& dev) -> int {
-        std::regex re("static constexpr uint32_t " + dev + "_component\\s*=\\s*(\\d+)");
+        std::regex re("static constexpr uint32_t " + dev + "_element_id\\s*=\\s*(\\d+)");
         std::smatch m;
         if (!std::regex_search(header, m, re)) {
             return -1;
@@ -715,8 +716,8 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
 
     EXPECT_EQ(sense_1, sense_2);
 
-    EXPECT_NE(r1.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos);
-    EXPECT_NE(r2.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos);
+    EXPECT_NE(r1.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_element_id"), std::string::npos);
+    EXPECT_NE(r2.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_element_id"), std::string::npos);
 }
 
 TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
@@ -777,17 +778,17 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
 
     EXPECT_NE(result.header.find("bat_island"), std::string::npos);
     EXPECT_NE(result.header.find("bat_element"), std::string::npos);
-    EXPECT_NE(result.header.find("bat_component"), std::string::npos);
+    EXPECT_NE(result.header.find("bat_element_id"), std::string::npos);
     EXPECT_NE(result.header.find("sense_island"), std::string::npos);
     EXPECT_NE(result.header.find("sense_element"), std::string::npos);
-    EXPECT_NE(result.header.find("sense_component"), std::string::npos);
+    EXPECT_NE(result.header.find("sense_element_id"), std::string::npos);
 
     EXPECT_NE(result.source.find("bat.electrical_handle.island_index = ElectricalBindings::bat_island"), std::string::npos);
     EXPECT_NE(result.source.find("bat.electrical_handle.element_index = ElectricalBindings::bat_element"), std::string::npos);
-    EXPECT_NE(result.source.find("bat.electrical_handle.element_id = ElectricalBindings::bat_component"), std::string::npos);
+    EXPECT_NE(result.source.find("bat.electrical_handle.element_id = ElectricalBindings::bat_element_id"), std::string::npos);
     EXPECT_NE(result.source.find("sense.electrical_handle.island_index = ElectricalBindings::sense_island"), std::string::npos);
     EXPECT_NE(result.source.find("sense.electrical_handle.element_index = ElectricalBindings::sense_element"), std::string::npos);
-    EXPECT_NE(result.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos);
+    EXPECT_NE(result.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_element_id"), std::string::npos);
 }
 
 // Regression: when non-electrical devices are interleaved between electrical ones,
@@ -867,19 +868,19 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
     auto result = CodeGen::generate_composite_systems(circuit, registry);
 
     // bat and sense must have correct bindings (not logic's name)
-    EXPECT_NE(result.header.find("bat_component"), std::string::npos)
+    EXPECT_NE(result.header.find("bat_element_id"), std::string::npos)
         << "Battery binding missing from header";
-    EXPECT_NE(result.header.find("sense_component"), std::string::npos)
+    EXPECT_NE(result.header.find("sense_element_id"), std::string::npos)
         << "CurrentSense binding missing from header";
 
     // logic must NOT appear in electrical bindings (it's not an electrical component)
-    EXPECT_EQ(result.header.find("logic_component"), std::string::npos)
+    EXPECT_EQ(result.header.find("logic_element_id"), std::string::npos)
         << "Non-electrical device should not have electrical binding";
 
     // Constructor must assign handle to bat and sense, not to logic
-    EXPECT_NE(result.source.find("bat.electrical_handle.element_id = ElectricalBindings::bat_component"), std::string::npos)
+    EXPECT_NE(result.source.find("bat.electrical_handle.element_id = ElectricalBindings::bat_element_id"), std::string::npos)
         << "Battery handle assignment missing";
-    EXPECT_NE(result.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_component"), std::string::npos)
+    EXPECT_NE(result.source.find("sense.electrical_handle.element_id = ElectricalBindings::sense_element_id"), std::string::npos)
         << "CurrentSense handle assignment missing";
     EXPECT_EQ(result.source.find("logic.electrical_handle"), std::string::npos)
         << "Non-electrical device should not get electrical_handle assignment";
@@ -1157,6 +1158,61 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
     }
 }
 
+TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
+    TypeRegistry registry;
+
+    TypeDefinition src_type;
+    src_type.classname = "RefNode";
+    src_type.cpp_class = true;
+    src_type.ports["v"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    src_type.domains = {{Domain::Electrical}};
+    src_type.scheduler_source = true;
+    src_type.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    registry.types["RefNode"] = src_type;
+
+    TypeDefinition consumer_type;
+    consumer_type.classname = "Voltmeter";
+    consumer_type.cpp_class = true;
+    consumer_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    consumer_type.domains = {{Domain::Electrical}};
+    consumer_type.scheduler_source = false;
+    consumer_type.execution = make_execution(false, true, false, false, false, false, false, false, false);
+    registry.types["Voltmeter"] = consumer_type;
+
+    TypeDefinition td;
+    td.classname = "sched_order_test";
+    td.cpp_class = false;
+
+    DeviceInstance meter;
+    meter.name = "meter";
+    meter.classname = "Voltmeter";
+
+    DeviceInstance src;
+    src.name = "src";
+    src.classname = "RefNode";
+
+    // Intentionally reversed declaration order: consumer first, source second.
+    td.devices = {meter, src};
+    td.connections = {{"src.v", "meter.v", {}}};
+    registry.types[td.classname] = td;
+
+    auto result = CodeGen::generate_composite_systems(td, registry);
+
+    const size_t src_exec = result.source.find("src.execute(*st, dt)");
+    const size_t meter_exec = result.source.find("meter.execute(*st, dt)");
+    const size_t src_commit = result.source.find("src.commit(*st, dt)");
+    const size_t meter_commit = result.source.find("meter.commit(*st, dt)");
+
+    ASSERT_NE(src_exec, std::string::npos);
+    ASSERT_NE(meter_exec, std::string::npos);
+    ASSERT_NE(src_commit, std::string::npos);
+    ASSERT_NE(meter_commit, std::string::npos);
+
+    EXPECT_LT(src_exec, meter_exec) << "source execute must run before consumer execute";
+    EXPECT_LT(meter_exec, src_commit) << "consumer execute must run before source commit (JIT parity)";
+    EXPECT_LT(src_commit, meter_commit) << "source commit must run before consumer commit";
+}
+
 // =============================================================================
 // Regression: AOT codegen must unify BlueprintInput/BlueprintOutput ext↔port
 // signals via UnionFind, matching JIT solver behavior. Without this, composites
@@ -1167,34 +1223,15 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     TypeRegistry registry;
 
     // BlueprintInput: port (Out, Any), ext (In, Any, alias→port)
-    TypeDefinition bp_in;
-    bp_in.classname = "BlueprintInput";
-    bp_in.cpp_class = true;
-    bp_in.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
-    bp_in.ports["ext"]  = Port{PortDirection::In, PortType::Any, std::string("port")};
-    bp_in.domains = {{Domain::Electrical}};
-    bp_in.execution = make_execution(true, false, true, false, false, false, true, true, true);
+    TypeDefinition bp_in = make_blueprint_input_type();
     registry.types["BlueprintInput"] = bp_in;
 
     // BlueprintOutput: port (In, Any), ext (Out, Any, alias→port)
-    TypeDefinition bp_out;
-    bp_out.classname = "BlueprintOutput";
-    bp_out.cpp_class = true;
-    bp_out.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    bp_out.ports["ext"]  = Port{PortDirection::Out, PortType::Any, std::string("port")};
-    bp_out.domains = {{Domain::Electrical}};
-    bp_out.execution = make_execution(true, false, true, false, false, false, true, true, true);
+    TypeDefinition bp_out = make_blueprint_output_type();
     registry.types["BlueprintOutput"] = bp_out;
 
     // IndicatorLight (simple pass-through component)
-    TypeDefinition light;
-    light.classname = "IndicatorLight";
-    light.cpp_class = true;
-    light.ports["v_in"]       = Port{PortDirection::In, PortType::V, std::nullopt};
-    light.ports["v_out"]      = Port{PortDirection::Out, PortType::V, std::nullopt};
-    light.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    light.domains = {{Domain::Electrical}};
-    light.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    TypeDefinition light = make_indicator_light_type();
     registry.types["IndicatorLight"] = light;
 
     // Composite: vin→lamp→vout

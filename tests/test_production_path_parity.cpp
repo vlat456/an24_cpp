@@ -3,40 +3,14 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/aot/codegen.h"
 #include "test_helpers.h"
+#include "test_fixtures.h"
 #include <set>
 
 namespace {
 
 TypeRegistry build_registry_for_lamp() {
     TypeRegistry registry;
-
-    TypeDefinition bp_in;
-    bp_in.classname = "BlueprintInput";
-    bp_in.cpp_class = true;
-    bp_in.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
-    bp_in.ports["ext"] = Port{PortDirection::In, PortType::Any, std::string("port")};
-    bp_in.domains = {{Domain::Electrical}};
-    bp_in.execution = make_execution(true, false, true, false, false, false, true, true, true);
-    registry.types["BlueprintInput"] = bp_in;
-
-    TypeDefinition bp_out;
-    bp_out.classname = "BlueprintOutput";
-    bp_out.cpp_class = true;
-    bp_out.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    bp_out.ports["ext"] = Port{PortDirection::Out, PortType::Any, std::string("port")};
-    bp_out.domains = {{Domain::Electrical}};
-    bp_out.execution = make_execution(true, false, true, false, false, false, true, true, true);
-    registry.types["BlueprintOutput"] = bp_out;
-
-    TypeDefinition light;
-    light.classname = "IndicatorLight";
-    light.cpp_class = true;
-    light.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    light.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    light.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    light.domains = {{Domain::Electrical}};
-    light.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    registry.types["IndicatorLight"] = light;
+    register_lamp_composite_types(registry);
 
     TypeDefinition lamp;
     lamp.classname = "voltage_indicator";
@@ -104,32 +78,7 @@ TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
 
 TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
     TypeRegistry registry;
-
-    TypeDefinition source_type;
-    source_type.classname = "ElectricalSource";
-    source_type.cpp_class = true;
-    source_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    source_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    source_type.domains = {{Domain::Electrical}};
-    source_type.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    registry.types["ElectricalSource"] = source_type;
-
-    TypeDefinition cond_type;
-    cond_type.classname = "ElectricalConductance";
-    cond_type.cpp_class = true;
-    cond_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    cond_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    cond_type.domains = {{Domain::Electrical}};
-    cond_type.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    registry.types["ElectricalConductance"] = cond_type;
-
-    TypeDefinition ref_type;
-    ref_type.classname = "RefNode";
-    ref_type.cpp_class = true;
-    ref_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    ref_type.domains = {{Domain::Electrical}};
-    ref_type.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    registry.types["RefNode"] = ref_type;
+    register_basic_electrical_types(registry);
 
     TypeDefinition circuit;
     circuit.classname = "multi_island_circuit";

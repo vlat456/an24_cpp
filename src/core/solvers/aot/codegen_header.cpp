@@ -13,7 +13,7 @@ void emit_electrical_plan_debug(
         oss << "constexpr uint32_t ELECTRICAL_ISLAND_COUNT = 0;\n\n";
         oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = 0;\n";
         oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = 0;\n";
-        oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = 0;\n\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ELEMENT_ID = 0;\n\n";
         codegen_detail::emit_electrical_debug_entry_struct(oss);
         oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {};\n";
         oss << "constexpr uint32_t ELECTRICAL_DEBUG_COUNT = 0;\n\n";
@@ -22,7 +22,7 @@ void emit_electrical_plan_debug(
 
     oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {\n";
     for (const auto& dbg : electrical_plan.component_debug) {
-        oss << "    { " << dbg.component_index << ", " << dbg.island_index << ", "
+        oss << "    { " << dbg.element_id << ", " << dbg.island_index << ", "
             << dbg.element_index << ", \"" << dbg.device_name
             << "\", \"" << dbg.device_classname << "\", \"" << dbg.role
             << "\", " << dbg.node_a << ", " << dbg.node_b << " },\n";
@@ -33,18 +33,18 @@ void emit_electrical_plan_debug(
 
     uint32_t max_island_nodes = 0;
     uint32_t max_island_elements = 0;
-    uint32_t max_component_index = 0;
+    uint32_t max_element_id = 0;
     for (const auto& island : electrical_plan.islands) {
         max_island_nodes = std::max(max_island_nodes, static_cast<uint32_t>(island.signal_indices.size()));
         max_island_elements = std::max(max_island_elements, static_cast<uint32_t>(island.elements.size()));
         for (const auto& elem : island.elements) {
-            max_component_index = std::max(max_component_index, elem.component_index);
+            max_element_id = std::max(max_element_id, elem.element_id);
         }
     }
     oss << "/// Pre-allocated scratch buffer sizes for electrical solve\n";
     oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = " << max_island_nodes << ";\n";
     oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = " << max_island_elements << ";\n";
-    oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = " << max_component_index << ";\n\n";
+    oss << "constexpr uint32_t ELECTRICAL_MAX_ELEMENT_ID = " << max_element_id << ";\n\n";
 }
 
 void emit_systems_class_declaration(
@@ -98,7 +98,7 @@ void emit_systems_class_declaration(
             oss << "        static constexpr uint32_t " << binding.device_field_name
                 << "_element = " << binding.element_index << ";\n";
             oss << "        static constexpr uint32_t " << binding.device_field_name
-                << "_component = " << binding.component_index << ";\n";
+                << "_element_id = " << binding.element_id << ";\n";
         }
         oss << "    };\n";
         oss << "\n";
@@ -215,7 +215,7 @@ std::string CodeGen::generate_header(
                 }
                 oss << "    { " << kind_str << ", " << elem.node_a << ", " << elem.node_b
                     << ", " << locale_safe::format_float(elem.value_a) << "f, "
-                    << locale_safe::format_float(elem.value_b) << "f, " << elem.component_index << " },\n";
+                    << locale_safe::format_float(elem.value_b) << "f, " << elem.element_id << " },\n";
             }
             oss << "};\n\n";
         }

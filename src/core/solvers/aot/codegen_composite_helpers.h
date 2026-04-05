@@ -1,18 +1,11 @@
 #pragma once
 
 #include "codegen_internal.h"
+#include "../../utils/union_find.h"
 
 namespace codegen_composite_detail {
 
-struct UnionFind {
-    mutable std::vector<uint32_t> parent;
-    std::vector<uint32_t> rank;
-
-    explicit UnionFind(size_t size);
-
-    uint32_t find(uint32_t x) const;
-    void unite(uint32_t a, uint32_t b);
-};
+using UnionFind = core::utils::UnionFind;
 
 void build_port_index_map(
     const std::vector<DeviceInstance>& expanded_devices,

@@ -27,7 +27,7 @@ struct ElectricalElementCodegen {
     uint32_t node_b;
     float value_a;
     float value_b;
-    uint32_t component_index;
+    uint32_t element_id;
 };
 
 struct ElectricalIslandPlanCodegen {
@@ -37,7 +37,7 @@ struct ElectricalIslandPlanCodegen {
 
 struct ElectricalPlanCodegen {
     struct ComponentDebug {
-        uint32_t component_index;
+        uint32_t element_id;
         uint32_t island_index;
         uint32_t element_index;
         std::string device_name;
@@ -52,7 +52,7 @@ struct ElectricalPlanCodegen {
         std::string device_field_name;
         uint32_t island_index;
         uint32_t element_index;
-        uint32_t component_index;
+        uint32_t element_id;
     };
     std::vector<DeviceBinding> device_bindings;
     std::vector<ComponentDebug> component_debug;
