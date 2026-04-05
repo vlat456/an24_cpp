@@ -461,6 +461,126 @@ __/src/core/solvers/aot/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen.cpp.s
 .PHONY : __/src/core/solvers/aot/codegen.cpp.s
 
+__/src/core/solvers/aot/codegen_composite.o: __/src/core/solvers/aot/codegen_composite.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_composite.o
+
+# target to build an object file
+__/src/core/solvers/aot/codegen_composite.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_composite.cpp.o
+
+__/src/core/solvers/aot/codegen_composite.i: __/src/core/solvers/aot/codegen_composite.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_composite.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/codegen_composite.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_composite.cpp.i
+
+__/src/core/solvers/aot/codegen_composite.s: __/src/core/solvers/aot/codegen_composite.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_composite.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/codegen_composite.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_composite.cpp.s
+
+__/src/core/solvers/aot/codegen_composite_helpers.o: __/src/core/solvers/aot/codegen_composite_helpers.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.o
+
+# target to build an object file
+__/src/core/solvers/aot/codegen_composite_helpers.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_helpers.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.cpp.o
+
+__/src/core/solvers/aot/codegen_composite_helpers.i: __/src/core/solvers/aot/codegen_composite_helpers.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/codegen_composite_helpers.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_helpers.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.cpp.i
+
+__/src/core/solvers/aot/codegen_composite_helpers.s: __/src/core/solvers/aot/codegen_composite_helpers.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/codegen_composite_helpers.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_helpers.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_composite_helpers.cpp.s
+
+__/src/core/solvers/aot/codegen_header.o: __/src/core/solvers/aot/codegen_header.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_header.o
+
+# target to build an object file
+__/src/core/solvers/aot/codegen_header.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_header.cpp.o
+
+__/src/core/solvers/aot/codegen_header.i: __/src/core/solvers/aot/codegen_header.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_header.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/codegen_header.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_header.cpp.i
+
+__/src/core/solvers/aot/codegen_header.s: __/src/core/solvers/aot/codegen_header.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_header.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/codegen_header.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_header.cpp.s
+
+__/src/core/solvers/aot/codegen_registry.o: __/src/core/solvers/aot/codegen_registry.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_registry.o
+
+# target to build an object file
+__/src/core/solvers/aot/codegen_registry.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_registry.cpp.o
+
+__/src/core/solvers/aot/codegen_registry.i: __/src/core/solvers/aot/codegen_registry.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_registry.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/codegen_registry.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_registry.cpp.i
+
+__/src/core/solvers/aot/codegen_registry.s: __/src/core/solvers/aot/codegen_registry.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_registry.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/codegen_registry.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_registry.cpp.s
+
+__/src/core/solvers/aot/codegen_source.o: __/src/core/solvers/aot/codegen_source.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_source.o
+
+# target to build an object file
+__/src/core/solvers/aot/codegen_source.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.o
+.PHONY : __/src/core/solvers/aot/codegen_source.cpp.o
+
+__/src/core/solvers/aot/codegen_source.i: __/src/core/solvers/aot/codegen_source.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_source.i
+
+# target to preprocess a source file
+__/src/core/solvers/aot/codegen_source.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.i
+.PHONY : __/src/core/solvers/aot/codegen_source.cpp.i
+
+__/src/core/solvers/aot/codegen_source.s: __/src/core/solvers/aot/codegen_source.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_source.s
+
+# target to generate assembly for a file
+__/src/core/solvers/aot/codegen_source.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.s
+.PHONY : __/src/core/solvers/aot/codegen_source.cpp.s
+
 __/src/core/solvers/aot/electrical_codegen.o: __/src/core/solvers/aot/electrical_codegen.cpp.o
 .PHONY : __/src/core/solvers/aot/electrical_codegen.o
 
@@ -1993,6 +2113,21 @@ help:
 	@echo "... __/src/core/solvers/aot/codegen.o"
 	@echo "... __/src/core/solvers/aot/codegen.i"
 	@echo "... __/src/core/solvers/aot/codegen.s"
+	@echo "... __/src/core/solvers/aot/codegen_composite.o"
+	@echo "... __/src/core/solvers/aot/codegen_composite.i"
+	@echo "... __/src/core/solvers/aot/codegen_composite.s"
+	@echo "... __/src/core/solvers/aot/codegen_composite_helpers.o"
+	@echo "... __/src/core/solvers/aot/codegen_composite_helpers.i"
+	@echo "... __/src/core/solvers/aot/codegen_composite_helpers.s"
+	@echo "... __/src/core/solvers/aot/codegen_header.o"
+	@echo "... __/src/core/solvers/aot/codegen_header.i"
+	@echo "... __/src/core/solvers/aot/codegen_header.s"
+	@echo "... __/src/core/solvers/aot/codegen_registry.o"
+	@echo "... __/src/core/solvers/aot/codegen_registry.i"
+	@echo "... __/src/core/solvers/aot/codegen_registry.s"
+	@echo "... __/src/core/solvers/aot/codegen_source.o"
+	@echo "... __/src/core/solvers/aot/codegen_source.i"
+	@echo "... __/src/core/solvers/aot/codegen_source.s"
 	@echo "... __/src/core/solvers/aot/electrical_codegen.o"
 	@echo "... __/src/core/solvers/aot/electrical_codegen.i"
 	@echo "... __/src/core/solvers/aot/electrical_codegen.s"

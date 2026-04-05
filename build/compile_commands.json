@@ -703,6 +703,36 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_header.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_header.cpp",
+  "output": "examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_source.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_source.cpp",
+  "output": "examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_registry.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_registry.cpp",
+  "output": "examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_composite.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_composite.cpp",
+  "output": "examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_helpers.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_composite_helpers.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_composite_helpers.cpp",
+  "output": "examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_helpers.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
   "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
   "output": "examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o"
@@ -1783,21 +1813,9 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/lut_codegen_tests.dir/test_lut_codegen.cpp.o -c /Users/vladimir/an24_cpp/tests/test_lut_codegen.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/lut_codegen_tests.dir/test_lut_codegen.cpp.o -c /Users/vladimir/an24_cpp/tests/test_lut_codegen.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_lut_codegen.cpp",
   "output": "tests/CMakeFiles/lut_codegen_tests.dir/test_lut_codegen.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "output": "tests/CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/codegen.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "output": "tests/CMakeFiles/lut_codegen_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -1873,81 +1891,27 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/codegen_accumulator_tests.dir/test_codegen_accumulator.cpp.o -c /Users/vladimir/an24_cpp/tests/test_codegen_accumulator.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/codegen_accumulator_tests.dir/test_codegen_accumulator.cpp.o -c /Users/vladimir/an24_cpp/tests/test_codegen_accumulator.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_codegen_accumulator.cpp",
   "output": "tests/CMakeFiles/codegen_accumulator_tests.dir/test_codegen_accumulator.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "output": "tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/codegen.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "output": "tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/aot_composite_tests.dir/test_aot_composite.cpp.o -c /Users/vladimir/an24_cpp/tests/test_aot_composite.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/aot_composite_tests.dir/test_aot_composite.cpp.o -c /Users/vladimir/an24_cpp/tests/test_aot_composite.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_aot_composite.cpp",
   "output": "tests/CMakeFiles/aot_composite_tests.dir/test_aot_composite.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "output": "tests/CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/codegen.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "output": "tests/CMakeFiles/aot_composite_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/aot_composite_tests.dir/__/src/json_parser/json_parser.cpp.o -c /Users/vladimir/an24_cpp/src/json_parser/json_parser.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/json_parser/json_parser.cpp",
-  "output": "tests/CMakeFiles/aot_composite_tests.dir/__/src/json_parser/json_parser.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.o -c /Users/vladimir/an24_cpp/tests/test_jit_aot_bridge_equivalence.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.o -c /Users/vladimir/an24_cpp/tests/test_jit_aot_bridge_equivalence.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_jit_aot_bridge_equivalence.cpp",
   "output": "tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "output": "tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/codegen.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "output": "tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/production_path_parity_tests.dir/test_production_path_parity.cpp.o -c /Users/vladimir/an24_cpp/tests/test_production_path_parity.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/production_path_parity_tests.dir/test_production_path_parity.cpp.o -c /Users/vladimir/an24_cpp/tests/test_production_path_parity.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_production_path_parity.cpp",
   "output": "tests/CMakeFiles/production_path_parity_tests.dir/test_production_path_parity.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.cpp",
-  "output": "tests/CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/codegen.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/aot/electrical_codegen.cpp",
-  "output": "tests/CMakeFiles/production_path_parity_tests.dir/__/src/core/solvers/aot/electrical_codegen.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",

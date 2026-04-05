@@ -1075,7 +1075,7 @@ TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
 
     EXPECT_NE(result.header.find("island_index"), std::string::npos);
     EXPECT_NE(result.header.find("element_index"), std::string::npos);
-    EXPECT_NE(result.source.find("if (e.island_index != island_idx) continue;"), std::string::npos);
+    EXPECT_NE(result.source.find("if (e.island_index == island_idx)"), std::string::npos);
     EXPECT_NE(result.source.find("[aot-elec]   elem={} comp={}"), std::string::npos);
 }
 

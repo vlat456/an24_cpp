@@ -960,8 +960,6 @@ gtest_discover_tests(asym_tmo_tests)
 # LUT codegen tests (AOT code generation for LUT arena)
 add_executable(lut_codegen_tests
     test_lut_codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(lut_codegen_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -969,6 +967,7 @@ target_include_directories(lut_codegen_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(lut_codegen_tests PRIVATE
+    an24_codegen
     json_parser
     jit_solver
     GTest::gtest_main
@@ -1115,8 +1114,6 @@ gtest_discover_tests(properties_window_tests)
 # Codegen accumulator regression tests — verify AOT emits accumulator-based domain scheduling
 add_executable(codegen_accumulator_tests
     test_codegen_accumulator.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(codegen_accumulator_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1124,6 +1121,7 @@ target_include_directories(codegen_accumulator_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(codegen_accumulator_tests PRIVATE
+    an24_codegen
     json_parser
     jit_solver
     GTest::gtest_main
@@ -1134,15 +1132,13 @@ gtest_discover_tests(codegen_accumulator_tests)
 # AOT Composite codegen tests (Phase 7: hierarchical AOT codegen)
 add_executable(aot_composite_tests
     test_aot_composite.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/json_parser/json_parser.cpp
 )
 target_include_directories(aot_composite_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(aot_composite_tests PRIVATE
+    an24_codegen
     json_parser
     jit_solver
     spdlog::spdlog
@@ -1155,8 +1151,6 @@ gtest_discover_tests(aot_composite_tests
 # Minimal bridge-based JIT vs AOT equivalence regression
 add_executable(jit_aot_bridge_equivalence_tests
     test_jit_aot_bridge_equivalence.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(jit_aot_bridge_equivalence_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1164,6 +1158,7 @@ target_include_directories(jit_aot_bridge_equivalence_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(jit_aot_bridge_equivalence_tests PRIVATE
+    an24_codegen
     json_parser
     jit_solver
     spdlog::spdlog
@@ -1175,8 +1170,6 @@ gtest_discover_tests(jit_aot_bridge_equivalence_tests
 
 add_executable(production_path_parity_tests
     test_production_path_parity.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(production_path_parity_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1184,6 +1177,7 @@ target_include_directories(production_path_parity_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(production_path_parity_tests PRIVATE
+    an24_codegen
     json_parser
     jit_solver
     spdlog::spdlog
