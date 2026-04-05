@@ -1657,14 +1657,16 @@ TEST(PushRuntime, ClosedCircuit_EditorIdBasedLookup_NonZeroVoltage) {
 }
 
 TEST(PushRuntime, AZS_ElectricalSolverPath_ClosedProducesSag) {
+    // Use a moderate load conductance (0.5 S → ~14A) to stay below i_nominal (20A)
+    // so the AZS thermal model doesn't trip during the test.
     const char* kJson = R"({
   "devices": [
     {"name":"gnd","classname":"RefNode","params":{"value":"0.0"}},
-    {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
+    {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.5"}},
     {"name":"azs","classname":"AZS","params":{"closed":"true","i_nominal":"20.0","g_open":"1e-6","g_closed":"1000.0"}},
     {"name":"load","classname":"VariableConductance"},
-    {"name":"v_gmin","classname":"Value","params":{"value":"17.5"}},
-    {"name":"v_gmax","classname":"Value","params":{"value":"17.5"}},
+    {"name":"v_gmin","classname":"Value","params":{"value":"0.5"}},
+    {"name":"v_gmax","classname":"Value","params":{"value":"0.5"}},
     {"name":"v_cmd","classname":"Value","params":{"value":"1.0"}}
   ],
   "connections": [
@@ -1776,4 +1778,50 @@ TEST(PushRuntime, AZS_OpenState_ParasiticConductance_StaysFinite) {
         << "Open AZS should barely load the source";
     EXPECT_LT(v_load, 1.0f)
         << "Open AZS should pass negligible current to load";
+}
+
+// Regression: AZS thermal model must run in full simulator pipeline.
+// Before this fix, AZS::execute() was never called for solver-owned components,
+// so the thermal model was dead code and AZS would never trip thermally.
+TEST(PushRuntime, AZS_ThermalTripRunsInFullSimulator) {
+    // High load conductance (100 S) draws ~100A through a 20A-rated AZS.
+    // Must trip thermally within a few seconds.
+    const char* kJson = R"({
+  "devices": [
+    {"name":"gnd","classname":"RefNode","params":{"value":"0.0"}},
+    {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
+    {"name":"azs","classname":"AZS","params":{"closed":"true","i_nominal":"20.0","g_open":"1e-6","g_closed":"1000.0"}},
+    {"name":"load","classname":"Resistor","params":{"conductance":"100.0"}}
+  ],
+  "connections": [
+    {"from":"src.v_out","to":"azs.v_in"},
+    {"from":"azs.v_out","to":"load.v_in"},
+    {"from":"load.v_out","to":"gnd.v"},
+    {"from":"src.v_in","to":"gnd.v"}
+  ]
+})";
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(kJson));
+
+    // Run for enough steps for thermal model to trip (~1-2 seconds at 60Hz)
+    const double dt = 1.0 / 60.0;
+    float v_before_trip = 0.0f;
+    bool tripped = false;
+    for (int i = 0; i < 300; ++i) {
+        sim.step(dt);
+        float state = sim.get_wire_voltage("azs.state");
+        if (i == 0) {
+            v_before_trip = sim.get_wire_voltage("azs.v_out");
+            EXPECT_GT(v_before_trip, 1.0f) << "AZS should initially be closed and passing voltage";
+        }
+        if (state < 0.5f && i > 0) {
+            tripped = true;
+            break;
+        }
+    }
+
+    EXPECT_TRUE(tripped)
+        << "AZS thermal model should trip when overcurrent flows through closed breaker. "
+           "If this test fails, AZS::execute() is not being called in the simulator pipeline.";
 }

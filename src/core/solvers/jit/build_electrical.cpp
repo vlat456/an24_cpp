@@ -12,6 +12,11 @@ void commit_component_adapter(void* instance, SimulationState& st, double dt) {
     static_cast<Comp*>(instance)->commit(st, dt);
 }
 
+template <typename Comp>
+void execute_component_adapter(void* instance, SimulationState& st, double dt) {
+    static_cast<Comp*>(instance)->execute(st, dt);
+}
+
 void build_electrical_islands(
     BuildResult& result,
     const std::vector<DeviceInstance>& devices)
@@ -657,18 +662,27 @@ void populate_solver_owned_refs(BuildResult& result)
     }
 }
 
-void build_solver_commit_ops(BuildResult& result)
+void build_solver_step_ops(BuildResult& result)
 {
+    result.solver_execute_ops.clear();
     result.solver_commit_ops.clear();
 
     auto add_group = [&](auto& comps) {
         using CompPtr = std::decay_t<decltype(comps.front())>;
         using Comp = std::remove_pointer_t<CompPtr>;
         for (auto* comp : comps) {
-            SolverCommitOp op;
-            op.instance = comp;
-            op.fn = &commit_component_adapter<Comp>;
-            result.solver_commit_ops.push_back(op);
+            {
+                SolverStepOp op;
+                op.instance = comp;
+                op.fn = &execute_component_adapter<Comp>;
+                result.solver_execute_ops.push_back(op);
+            }
+            {
+                SolverStepOp op;
+                op.instance = comp;
+                op.fn = &commit_component_adapter<Comp>;
+                result.solver_commit_ops.push_back(op);
+            }
         }
     };
 

@@ -78,8 +78,8 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st, ElectricalRunt
 
 /// Commit pass for solver-owned components that need per-frame state integration.
 /// Uses compiled commit ops to avoid per-frame per-type branching.
-void commit_solver_owned_devices(BuildResult& br, SimulationState& st, double dt) {
-    for (const auto& op : br.solver_commit_ops) {
+void run_solver_owned_ops(const std::vector<SolverStepOp>& ops, SimulationState& st, double dt) {
+    for (const auto& op : ops) {
         if (op.instance != nullptr && op.fn != nullptr) {
             op.fn(op.instance, st, dt);
         }
@@ -231,8 +231,9 @@ void Simulator<SolverTag>::step(double dt) {
     //   1. update_dynamic_sources — stamp actuator states (AZS/Relay/CVS)
     //      from PREVIOUS frame's commit into the electrical build plan
     //   2. solve_electrical — single Gaussian solve for all islands
-    //   3. scheduler.step — execute all logical/mechanical/etc. components
-    //   4. commit_solver_owned_devices — battery discharge, state transitions
+    //   3. execute solver-owned — post-solve compute (e.g., AZS thermal model)
+    //   4. scheduler.step — execute all logical/mechanical/etc. components
+    //   5. commit solver-owned — battery discharge, state transitions
     //
     // The previous 9-phase pipeline ran two electrical solves per frame to
     // handle within-frame actuator feedback. At 60Hz+, one-frame delay
@@ -263,12 +264,16 @@ void Simulator<SolverTag>::step(double dt) {
     // Run electrical subsolver to compute node voltages and branch currents
     solve_electrical(build_result_->electrical_plan, electrical_rt_.element_value_a, state_, electrical_rt_, dt);
 
+    // Execute pass for solver-owned components that need post-solve computation
+    // (e.g., AZS thermal model reads branch currents from solved electrical state).
+    run_solver_owned_ops(build_result_->solver_execute_ops, state_, dt);
+
     build_result_->scheduler.step(state_, dt);
 
     // Explicit commit pass for solver-owned components (Battery discharge, etc).
     // These are NOT in the scheduler's source/consumer lists but need per-frame
     // commit to update internal state (e.g., Battery.charge).
-    commit_solver_owned_devices(*build_result_, state_, dt);
+    run_solver_owned_ops(build_result_->solver_commit_ops, state_, dt);
 
     // Guard destructor clears state_.electrical_rt = nullptr here.
 

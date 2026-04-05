@@ -83,11 +83,11 @@ struct ElectricalPatchOp {
     float closed_value = 0.0f;
 };
 
-using SolverCommitFn = void (*)(void*, SimulationState&, double);
+using SolverStepFn = void (*)(void*, SimulationState&, double);
 
-struct SolverCommitOp {
+struct SolverStepOp {
     void* instance = nullptr;
-    SolverCommitFn fn = nullptr;
+    SolverStepFn fn = nullptr;
 };
 
 /// Build port-to-signal mapping from devices and connections
@@ -125,9 +125,13 @@ struct BuildResult {
     /// Each op writes current-frame mutable element values by element_id.
     std::vector<ElectricalPatchOp> electrical_patch_ops;
 
+    /// Compiled post-solve execute operations for solver-owned components.
+    /// Runs after solve_electrical so components can read branch currents.
+    std::vector<SolverStepOp> solver_execute_ops;
+
     /// Compiled post-solve commit operations for solver-owned components.
     /// Eliminates per-frame per-type commit loops in simulator.
-    std::vector<SolverCommitOp> solver_commit_ops;
+    std::vector<SolverStepOp> solver_commit_ops;
 };
 
 BuildResult build_systems_dev(
