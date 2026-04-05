@@ -802,8 +802,47 @@ void build_and_register_components(
     // Sentinel is a fixed signal: it is always allocated at the end and never changes
     result.fixed_signals.push_back(result.signal_count - 1);
 
+    validate_source_writer_conflicts(result, devices);
     validate_consumer_guardrails(result, consumer_device_names, devices);
     topological_sort_consumers(result, consumer_device_names, devices);
+}
+
+void validate_source_writer_conflicts(
+    const BuildResult& result,
+    const std::vector<DeviceInstance>& devices)
+{
+    // Build a map: signal_index -> list of (device.port) that are source_writers.
+    // If any signal has more than one source_writer, it's a conflict.
+    std::unordered_map<uint32_t, std::vector<std::string>> writers_by_signal;
+
+    for (const auto& dev : devices) {
+        if (dev.visual_only) {
+            continue;
+        }
+
+        const auto sw_ports = active_source_writer_ports_for(dev.classname);
+        for (const auto& port_name : sw_ports) {
+            const std::string full_port = dev.name + "." + port_name;
+            auto it = result.port_to_signal.find(full_port);
+            if (it == result.port_to_signal.end()) {
+                continue;
+            }
+            writers_by_signal[it->second].push_back(full_port);
+        }
+    }
+
+    for (const auto& [signal_idx, writers] : writers_by_signal) {
+        if (writers.size() > 1) {
+            std::string detail;
+            for (size_t i = 0; i < writers.size(); ++i) {
+                if (i > 0) detail += ", ";
+                detail += writers[i];
+            }
+            throw std::runtime_error(
+                "Source conflict on signal " + std::to_string(signal_idx) +
+                ": multiple source-writer ports drive the same wire: " + detail);
+        }
+    }
 }
 
 void validate_consumer_guardrails(

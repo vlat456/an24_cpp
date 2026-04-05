@@ -16,6 +16,10 @@
 #include <cstdio>
 
 
+// ===== Section 1: Helper Functions =====
+// These are used across multiple codegen phases for string formatting,
+// type inference, and port resolution. Low complexity, ~15 LOC each.
+
 namespace {
 
 std::string to_upper(const std::string& s) {
@@ -113,6 +117,152 @@ std::string get_port_name(const std::unordered_map<std::string, Port>& ports, co
 
 } // anonymous namespace
 
+// ===== Section 2: generate_header() and helper functions =====
+
+// ===== Helper 2a: Emit electrical plan debug and limits (if islands present) =====
+// LOC: ~50 (debug map emission + max sizes computation)
+void emit_electrical_plan_debug(
+    std::ostringstream& oss,
+    const ElectricalPlanCodegen& electrical_plan
+) {
+    if (electrical_plan.islands.empty()) {
+        oss << "constexpr uint32_t ELECTRICAL_ISLAND_COUNT = 0;\n\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = 0;\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = 0;\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = 0;\n\n";
+        oss << "struct ElectricalDebugEntry {\n";
+        oss << "    uint32_t component_index;\n";
+        oss << "    uint32_t island_index;\n";
+        oss << "    uint32_t element_index;\n";
+        oss << "    const char* device_name;\n";
+        oss << "    const char* classname;\n";
+        oss << "    const char* role;\n";
+        oss << "    uint32_t node_a;\n";
+        oss << "    uint32_t node_b;\n";
+        oss << "};\n\n";
+        oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {};\n";
+        oss << "constexpr uint32_t ELECTRICAL_DEBUG_COUNT = 0;\n\n";
+        return;
+    }
+
+    oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {\n";
+    for (const auto& dbg : electrical_plan.component_debug) {
+        oss << "    { " << dbg.component_index << ", " << dbg.island_index << ", "
+            << dbg.element_index << ", \"" << dbg.device_name
+            << "\", \"" << dbg.device_classname << "\", \"" << dbg.role
+            << "\", " << dbg.node_a << ", " << dbg.node_b << " },\n";
+    }
+    oss << "};\n";
+    oss << "constexpr uint32_t ELECTRICAL_DEBUG_COUNT = "
+        << electrical_plan.component_debug.size() << ";\n\n";
+
+    // Compute max island sizes
+    uint32_t max_island_nodes = 0;
+    uint32_t max_island_elements = 0;
+    uint32_t max_component_index = 0;
+    for (const auto& island : electrical_plan.islands) {
+        max_island_nodes = std::max(max_island_nodes, (uint32_t)island.signal_indices.size());
+        max_island_elements = std::max(max_island_elements, (uint32_t)island.elements.size());
+        for (const auto& elem : island.elements) {
+            max_component_index = std::max(max_component_index, elem.component_index);
+        }
+    }
+    oss << "/// Pre-allocated scratch buffer sizes for electrical solve\n";
+    oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = " << max_island_nodes << ";\n";
+    oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = " << max_island_elements << ";\n";
+    oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = " << max_component_index << ";\n\n";
+}
+
+// ===== Helper 2b: Emit Systems class declaration =====
+// LOC: ~80 (device members, port indices, electrical bindings, method signatures)
+void emit_systems_class_declaration(
+    std::ostringstream& oss,
+    const std::string& class_name,
+    const std::vector<DeviceInstance>& devices,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal,
+    uint32_t signal_count,
+    const ElectricalPlanCodegen& electrical_plan
+) {
+    oss << "// ==============================================================================\n";
+    oss << "// SYSTEMS CLASS (ECS-like: direct field access, no virtual calls)\n";
+    oss << "// Components are NON-VIRTUAL for AOT - no vtable overhead\n";
+    oss << "// ==============================================================================\n\n";
+
+    oss << "class " << class_name << " {\n";
+    oss << "public:\n";
+
+    // Device member variables
+    for (const auto& dev : devices) {
+        std::string aot_type = generate_aot_provider_type(dev, port_to_signal, signal_count);
+        oss << "    " << dev.classname << "<" << aot_type << "> " << sanitize_name(dev.name) << ";\n";
+    }
+    oss << "\n";
+
+    // Port index constants (data-oriented layout)
+    oss << "    // Port indices - stored separately for O(1) access\n";
+    for (const auto& dev : devices) {
+        for (const auto& port : dev.ports) {
+            const std::string& port_name = port.first;
+            if (port.second.alias.has_value() && !port.second.alias.value().empty()) {
+                continue;
+            }
+            std::string port_key = dev.name + "." + port_name;
+            uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
+            oss << "    static constexpr uint32_t " << sanitize_name(dev.name) << "_" << port_name << "_idx = " << sig << ";\n";
+        }
+    }
+    oss << "\n";
+
+    // Step counter
+    oss << "    uint32_t step_counter_ = 0;\n\n";
+
+    // Electrical plan members and bindings
+    if (!electrical_plan.islands.empty()) {
+        oss << "    ElectricalBuildPlan electrical_plan_;\n";
+        oss << "    ElectricalRuntimeState electrical_rt_;\n";
+        oss << "    static constexpr float ELECTRICAL_DIAG_RESIDUAL_WARN = 1e-4f;\n";
+        oss << "    static constexpr uint32_t ELECTRICAL_COUNTER_LOG_PERIOD = 600;\n";
+        oss << "\n";
+        oss << "    struct ElectricalBindings {\n";
+        for (const auto& binding : electrical_plan.device_bindings) {
+            oss << "        static constexpr uint32_t " << binding.device_field_name
+                << "_island = " << binding.island_index << ";\n";
+            oss << "        static constexpr uint32_t " << binding.device_field_name
+                << "_element = " << binding.element_index << ";\n";
+            oss << "        static constexpr uint32_t " << binding.device_field_name
+                << "_component = " << binding.component_index << ";\n";
+        }
+        oss << "    };\n";
+        oss << "\n";
+        oss << "    static void dump_island_debug(uint32_t island_idx);\n";
+    }
+    oss << "\n";
+
+    // Constructor/Destructor
+    oss << "    " << class_name << "();\n";
+    oss << "    ~" << class_name << "();\n\n";
+    oss << "    " << class_name << "(const " << class_name << "&) = delete;\n";
+    oss << "    " << class_name << "& operator=(const " << class_name << "&) = delete;\n\n";
+
+    // Methods
+    oss << "    /// Pre-load initialization\n";
+    oss << "    void pre_load();\n\n";
+    oss << "    /// Main solve step with jump table dispatch\n";
+    oss << "    void solve_step(void* state, uint32_t step, double dt);\n\n";
+
+    for (int step = 0; step < 60; ++step) {
+        oss << "    AOT_INLINE void step_" << step << "(void* state, double dt);\n";
+    }
+    oss << "\n";
+
+    oss << "    /// Convergence check\n";
+    oss << "    AOT_INLINE bool check_convergence(void* state, float tolerance) const;\n\n";
+    oss << "    uint32_t component_count() const { return " << devices.size() << "; }\n";
+    oss << "};\n\n";
+}
+
+// ===== Main generate_header() - refactored orchestrator =====
+// LOC: ~50 (clean 4-phase delegation)
 std::string CodeGen::generate_header(
     const std::string& source_file,
     const std::vector<DeviceInstance>& devices_unfiltered,
@@ -122,7 +272,7 @@ std::string CodeGen::generate_header(
     const std::string& class_name,
     const ElectricalPlanCodegen& electrical_plan
 ) {
-    // Filter out visual-only devices (no simulation behavior, e.g. Group)
+    // Filter out visual-only devices
     std::vector<DeviceInstance> devices;
     devices.reserve(devices_unfiltered.size());
     for (const auto& d : devices_unfiltered)
@@ -130,7 +280,7 @@ std::string CodeGen::generate_header(
 
     std::ostringstream oss;
 
-    // Header guard
+    // ===== Phase 1: Header prelude (guard, includes, pragmas) =====
     std::string guard = "GENERATED_" + sanitize_name(source_file);
     std::replace(guard.begin(), guard.end(), '/', '_');
     std::replace(guard.begin(), guard.end(), '\\', '_');
@@ -160,7 +310,7 @@ std::string CodeGen::generate_header(
     oss << "#define AOT_UNLIKELY(x) (x)\n";
     oss << "#endif\n\n";
 
-    // Signal constants
+    // ===== Phase 2: Signal constants =====
     oss << "// ==============================================================================\n";
     oss << "// SIGNAL INDICES (ECS-like: direct array access, no lookups)\n";
     oss << "// ==============================================================================\n\n";
@@ -187,15 +337,13 @@ std::string CodeGen::generate_header(
     }
     oss << "};\n\n";
 
-    // Signal count
+    // Signal count and device count
     oss << "/// Total number of unique signals (for memory allocation)\n";
     oss << "constexpr uint32_t SIGNAL_COUNT = " << signal_count << ";\n\n";
-
-    // Device count
     oss << "/// Number of devices in this system\n";
     oss << "constexpr uint32_t DEVICE_COUNT = " << devices.size() << ";\n\n";
 
-    // Electrical plan — static island data for AOT solve_electrical()
+    // ===== Phase 3: Electrical island plan (if present) =====
     if (!electrical_plan.islands.empty()) {
         oss << "// ==============================================================================\n";
         oss << "// ELECTRICAL ISLAND PLAN (AOT static arrays)\n";
@@ -204,8 +352,7 @@ std::string CodeGen::generate_header(
         oss << "constexpr uint32_t ELECTRICAL_ISLAND_COUNT = "
             << electrical_plan.islands.size() << ";\n\n";
 
-        // Emit element kind enum for codegen use in static arrays
-        // (runtime uses ElectricalElementKind which has same values)
+        // Emit island arrays
         for (size_t island_idx = 0; island_idx < electrical_plan.islands.size(); ++island_idx) {
             const auto& island = electrical_plan.islands[island_idx];
             oss << "// -- Island " << island_idx << " --\n";
@@ -234,7 +381,7 @@ std::string CodeGen::generate_header(
             oss << "};\n\n";
         }
 
-        // ElectricalBuildPlan struct using static arrays
+        // AotElectricalPlan struct adapter
         oss << "// ElectricalBuildPlan adapter: uses static constexpr arrays\n";
         oss << "struct AotElectricalPlan {\n";
         oss << "    std::vector<ElectricalIslandPlan> islands;\n";
@@ -252,6 +399,7 @@ std::string CodeGen::generate_header(
         oss << "    }\n";
         oss << "};\n\n";
 
+        // Debug entry struct and map
         oss << "struct ElectricalDebugEntry {\n";
         oss << "    uint32_t component_index;\n";
         oss << "    uint32_t island_index;\n";
@@ -269,30 +417,9 @@ std::string CodeGen::generate_header(
                 << "\", \"" << dbg.device_classname << "\", \"" << dbg.role
                 << "\", " << dbg.node_a << ", " << dbg.node_b << " },\n";
         }
-        oss << "};\n";
-        oss << "constexpr uint32_t ELECTRICAL_DEBUG_COUNT = "
-            << electrical_plan.component_debug.size() << ";\n\n";
+        oss << "};\n\n";
 
-        // Compute max island sizes for scratch buffer pre-allocation
-        uint32_t max_island_nodes = 0;
-        uint32_t max_island_elements = 0;
-        uint32_t max_component_index = 0;
-        for (const auto& island : electrical_plan.islands) {
-            max_island_nodes = std::max(max_island_nodes, (uint32_t)island.signal_indices.size());
-            max_island_elements = std::max(max_island_elements, (uint32_t)island.elements.size());
-            for (const auto& elem : island.elements) {
-                max_component_index = std::max(max_component_index, elem.component_index);
-            }
-        }
-        oss << "/// Pre-allocated scratch buffer sizes for electrical solve\n";
-        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = " << max_island_nodes << ";\n";
-        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = " << max_island_elements << ";\n";
-        oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = " << max_component_index << ";\n\n";
-    } else {
-        oss << "constexpr uint32_t ELECTRICAL_ISLAND_COUNT = 0;\n\n";
-        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = 0;\n";
-        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = 0;\n";
-        oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = 0;\n\n";
+        // Debug entry struct and map (now uses helper)
         oss << "struct ElectricalDebugEntry {\n";
         oss << "    uint32_t component_index;\n";
         oss << "    uint32_t island_index;\n";
@@ -303,200 +430,123 @@ std::string CodeGen::generate_header(
         oss << "    uint32_t node_a;\n";
         oss << "    uint32_t node_b;\n";
         oss << "};\n\n";
-        oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {};\n";
-        oss << "constexpr uint32_t ELECTRICAL_DEBUG_COUNT = 0;\n\n";
+
+        // Phase 4: Electrical debug + limits (delegated to helper)
+        emit_electrical_plan_debug(oss, electrical_plan);
+    } else {
+        // Empty electrical plan
+        emit_electrical_plan_debug(oss, electrical_plan);
     }
 
-    // Global simulation state pointer (set at init, available globally)
+    // Phase 5: Global state + Systems class (delegated to helper)
     oss << "/// Global simulation state pointer (set once, used by all components)\n";
     oss << "extern SimulationState* g_state;\n\n";
-
-    // Systems class - ECS-like optimized
-    oss << "// ==============================================================================\n";
-    oss << "// SYSTEMS CLASS (ECS-like: direct field access, no virtual calls)\n";
-    oss << "// Components are NON-VIRTUAL for AOT - no vtable overhead\n";
-    oss << "// ==============================================================================\n\n";
-
-    oss << "class " << class_name << " {\n";
-    oss << "public:\n";
-
-    // Device objects with AotProvider - compile-time constexpr port index lookup
-    // Zero-cost abstraction: provider.get(PortNames::v_in) compiles to a constant
-    for (const auto& dev : devices) {
-        std::string aot_type = generate_aot_provider_type(dev, port_to_signal, signal_count);
-        oss << "    " << dev.classname << "<" << aot_type << "> " << sanitize_name(dev.name) << ";\n";
-    }
-    oss << "\n";
-
-    // Port indices as flat arrays (DATA-ORIENTED: cache-friendly, no indirection)
-    oss << "    // Port indices - stored separately for direct access (data-oriented)\n";
-    oss << "    // This allows O(1) access without loading from object fields\n";
-    for (const auto& dev : devices) {
-        for (const auto& port : dev.ports) {
-            const std::string& port_name = port.first;
-            if (port.second.alias.has_value() && !port.second.alias.value().empty()) {
-                continue;  // Skip alias ports
-            }
-            std::string port_key = dev.name + "." + port_name;
-            uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
-            oss << "    static constexpr uint32_t " << sanitize_name(dev.name) << "_" << port_name << "_idx = " << sig << ";\n";
-        }
-    }
-    oss << "\n";
-
-    // Global simulation step counter (not modulo cycle index)
-    oss << "    uint32_t step_counter_ = 0;\n\n";
-
-    // Electrical plan and runtime state (for AOT solve_electrical)
-    if (!electrical_plan.islands.empty()) {
-        oss << "    ElectricalBuildPlan electrical_plan_;\n";
-        oss << "    ElectricalRuntimeState electrical_rt_;\n";
-        oss << "    static constexpr float ELECTRICAL_DIAG_RESIDUAL_WARN = 1e-4f;\n";
-        oss << "    static constexpr uint32_t ELECTRICAL_COUNTER_LOG_PERIOD = 600;\n";
-        oss << "\n";
-        oss << "    struct ElectricalBindings {\n";
-        for (const auto& binding : electrical_plan.device_bindings) {
-            oss << "        static constexpr uint32_t " << binding.device_field_name
-                << "_island = " << binding.island_index << ";\n";
-            oss << "        static constexpr uint32_t " << binding.device_field_name
-                << "_element = " << binding.element_index << ";\n";
-            oss << "        static constexpr uint32_t " << binding.device_field_name
-                << "_component = " << binding.component_index << ";\n";
-        }
-        oss << "    };\n";
-
-        oss << "\n";
-        oss << "    static void dump_island_debug(uint32_t island_idx);\n";
-    }
-    oss << "\n";
-
-    // Constructor / Destructor
-    oss << "    " << class_name << "();\n";
-    oss << "    ~" << class_name << "();\n\n";
-
-    // Non-copyable (owns raw pointer)
-    oss << "    " << class_name << "(const " << class_name << "&) = delete;\n";
-    oss << "    " << class_name << "& operator=(const " << class_name << "&) = delete;\n\n";
-
-    // Methods - all inline for optimization
-    oss << "    /// Pre-load initialization\n";
-    oss << "    void pre_load();\n\n";
-
-    oss << "    /// Main solve step with jump table dispatch (ECS-like)\n";
-    oss << "    void solve_step(void* state, uint32_t step, double dt);\n\n";
-
-    // Generate CYCLE_LENGTH step methods
-    for (int step = 0; step < 60; ++step) {
-        oss << "    AOT_INLINE void step_" << step << "(void* state, double dt);\n";
-    }
-    oss << "\n";
-
-    oss << "    /// Convergence check (sparse sampling)\n";
-    oss << "    AOT_INLINE bool check_convergence(void* state, float tolerance) const;\n\n";
-
-    oss << "    uint32_t component_count() const { return " << devices.size() << "; }\n";
-
-    oss << "};\n\n";
+    
+    emit_systems_class_declaration(oss, class_name, devices, port_to_signal, signal_count, electrical_plan);
 
     return oss.str();
 }
 
-std::string CodeGen::generate_source(
+// ===== Section 3: generate_source() and helper functions =====
+// Generate C++ source file for AOT compiled system.
+// Splits large function into focused helpers for maintainability.
+
+// ===== Helper 3a: Emit source prelude (includes, pragmas, template instantiations) =====
+// LOC: ~40
+void emit_source_prelude(
+    std::ostringstream& oss,
     const std::string& header_name,
-    const std::vector<DeviceInstance>& devices_unfiltered,
-    const std::vector<Connection>& connections,
+    const std::vector<DeviceInstance>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,
-    const std::string& class_name,
-    const ElectricalPlanCodegen& electrical_plan
+    const std::string& class_name
 ) {
-    // Filter out visual-only devices (no simulation behavior, e.g. Group)
-    std::vector<DeviceInstance> devices;
-    devices.reserve(devices_unfiltered.size());
-    for (const auto& d : devices_unfiltered)
-        if (!d.visual_only) devices.push_back(d);
-
-    std::ostringstream oss;
-
     oss << "#include \"" << header_name << "\"\n";
-    // Include template definitions from all.cpp so compiler can instantiate AotProvider versions
     oss << "#include \"core/solvers/jit/components/all.cpp\"\n";
-    // Electrical subsolver for AOT island solve
     oss << "#include \"core/solvers/jit/subsolvers/electrical_subsolver.h\"\n";
     oss << "#include <spdlog/spdlog.h>\n";
     oss << "#include <cstring>  // memcpy\n\n";
-    // Enable fast-math for generated code only (not spdlog)
     oss << "#ifdef __GNUC__\n";
     oss << "#pragma GCC optimize(\"fast-math,unroll-loops\")\n";
     oss << "#endif\n\n";
 
-    // Explicit template instantiations for AotProvider
-    // These tell the compiler to generate code for Component<AotProvider<Bindings...>>
     oss << "// Explicit template instantiations for AOT\n";
     for (const auto& dev : devices) {
         std::string aot_type = generate_aot_provider_type(dev, port_to_signal, signal_count);
         oss << "template class " << dev.classname << "<" << aot_type << ">;\n";
     }
     oss << "\n";
+}
 
-    // Constructor - initialize component parameters (port indices are compile-time constants)
-    oss << class_name << "::" << class_name << "()\n";
-    oss << "{\n";
+// ===== Helper 3b: Parse LUT table parameter into LUT entries =====
+// LOC: ~50
+struct LutEntry { std::string dev_name; std::vector<float> keys; std::vector<float> values; };
 
-    // Port indices are now static constexpr - no runtime initialization needed!
+std::optional<LutEntry> parse_lut_table(const DeviceInstance& dev) {
+    auto it = dev.params.find("table");
+    if (it == dev.params.end()) {
+        return std::nullopt;
+    }
 
-    // Collect LUT tables for arena generation
-    struct LutEntry { std::string dev_name; std::vector<float> keys; std::vector<float> values; };
-    std::vector<LutEntry> lut_entries;
-    uint32_t lut_arena_offset = 0;
+    LutEntry entry;
+    entry.dev_name = sanitize_name(dev.name);
+    std::string tbl = it->second;
+    size_t pos = 0;
 
-    // Generate parameter assignments
+    while (pos < tbl.size()) {
+        while (pos < tbl.size() && (tbl[pos] == ' ' || tbl[pos] == ';')) ++pos;
+        if (pos >= tbl.size()) break;
+        size_t colon = tbl.find(':', pos);
+        if (colon == std::string::npos) break;
+        size_t end = tbl.find(';', colon + 1);
+        if (end == std::string::npos) end = tbl.size();
+        float key_f, val_f;
+        if (locale_safe::parse_float(tbl.substr(pos, colon - pos), key_f) &&
+            locale_safe::parse_float(tbl.substr(colon + 1, end - colon - 1), val_f)) {
+            entry.keys.push_back(key_f);
+            entry.values.push_back(val_f);
+        } else {
+            return std::nullopt;
+        }
+        pos = end;
+    }
+
+    return entry;
+}
+
+// ===== Helper 3c: Emit constructor parameter initialization =====
+// LOC: ~55
+void emit_constructor_params(
+    std::ostringstream& oss,
+    const std::vector<DeviceInstance>& devices,
+    const ElectricalPlanCodegen& electrical_plan,
+    std::vector<LutEntry>& out_lut_entries,
+    uint32_t& out_lut_offset
+) {
+    out_lut_offset = 0;
     for (const auto& dev : devices) {
-        // LUT: parse table param into arena, emit offset/size instead
         if (dev.classname == "LUT") {
-            auto it = dev.params.find("table");
-            if (it != dev.params.end()) {
-                LutEntry entry;
-                entry.dev_name = sanitize_name(dev.name);
-                // Inline parse (same format as LUT::parse_table)
-                std::string tbl = it->second;
-                size_t pos = 0;
-                while (pos < tbl.size()) {
-                    while (pos < tbl.size() && (tbl[pos] == ' ' || tbl[pos] == ';')) ++pos;
-                    if (pos >= tbl.size()) break;
-                    size_t colon = tbl.find(':', pos);
-                    if (colon == std::string::npos) break;
-                    size_t end = tbl.find(';', colon + 1);
-                    if (end == std::string::npos) end = tbl.size();
-                    float key_f, val_f;
-                    if (locale_safe::parse_float(tbl.substr(pos, colon - pos), key_f) &&
-                        locale_safe::parse_float(tbl.substr(colon + 1, end - colon - 1), val_f)) {
-                        entry.keys.push_back(key_f);
-                        entry.values.push_back(val_f);
-                    } else { break; }
-                    pos = end;
-                }
-                oss << "    " << entry.dev_name << ".table_offset = " << lut_arena_offset << ";\n";
+            auto lut_opt = parse_lut_table(dev);
+            if (lut_opt.has_value()) {
+                auto& entry = *lut_opt;
+                oss << "    " << entry.dev_name << ".table_offset = " << out_lut_offset << ";\n";
                 oss << "    " << entry.dev_name << ".table_size = " << entry.keys.size() << ";\n";
-                lut_arena_offset += static_cast<uint32_t>(entry.keys.size());
-                lut_entries.push_back(std::move(entry));
+                out_lut_offset += static_cast<uint32_t>(entry.keys.size());
+                out_lut_entries.push_back(std::move(entry));
             }
-            continue;  // skip generic param loop for LUT
+            continue;
         }
 
         for (const auto& param : dev.params) {
-            const std::string& param_name = param.first;
-            const std::string& value = param.second;
-
-            // Skip internal computed fields
-            if (param_name == "inv_internal_r" || param_name == "inv_capacity") continue;
-
-            std::string type = infer_type(value);
-            oss << "    " << sanitize_name(dev.name) << "." << param_name << " = " << format_value(value, type) << ";\n";
+            if (param.first == "inv_internal_r" || param.first == "inv_capacity") {
+                continue;
+            }
+            std::string type = infer_type(param.second);
+            oss << "    " << sanitize_name(dev.name) << "." << param.first << " = "
+                << format_value(param.second, type) << ";\n";
         }
     }
 
-    // Initialize electrical plan and pre-allocate scratch buffers
     if (!electrical_plan.islands.empty()) {
         oss << "    { AotElectricalPlan aot_plan;\n";
         oss << "      electrical_plan_.islands = std::move(aot_plan.islands); }\n";
@@ -511,20 +561,27 @@ std::string CodeGen::generate_source(
                 << "ElectricalBindings::" << binding.device_field_name << "_component;\n";
         }
     }
-    oss << "}\n\n";
+}
 
-    // Destructor
-    oss << class_name << "::~" << class_name << "() {}\n\n";
-
-    // Pre-load: call pre_load() on components that have it, then LUT arena init
+// ===== Helper 3d: Emit pre_load and LUT arena initialization =====
+// LOC: ~55
+void emit_preload_method(
+    std::ostringstream& oss,
+    const std::string& class_name,
+    const std::vector<DeviceInstance>& devices,
+    const std::vector<LutEntry>& lut_entries
+) {
     oss << "void " << class_name << "::pre_load() {\n";
-    // All cpp_class components have pre_load() (empty stub or real implementation)
     for (const auto& dev : devices) {
         oss << "    " << sanitize_name(dev.name) << ".pre_load();\n";
     }
-    // Emit LUT arena initialization
+
     if (!lut_entries.empty()) {
-        oss << "    // LUT arena: all breakpoint tables concatenated (" << lut_arena_offset << " floats total)\n";
+        uint32_t lut_total = 0;
+        for (const auto& e : lut_entries) {
+            lut_total += static_cast<uint32_t>(e.keys.size());
+        }
+        oss << "    // LUT arena: all breakpoint tables (" << lut_total << " floats total)\n";
         oss << "    static const float lut_keys_data[] = {";
         bool first_k = true;
         for (const auto& e : lut_entries) {
@@ -545,23 +602,23 @@ std::string CodeGen::generate_source(
             }
         }
         oss << "};\n";
-        oss << "    g_state->lut_keys.assign(lut_keys_data, lut_keys_data + " << lut_arena_offset << ");\n";
-        oss << "    g_state->lut_values.assign(lut_vals_data, lut_vals_data + " << lut_arena_offset << ");\n";
+        oss << "    g_state->lut_keys.assign(lut_keys_data, lut_keys_data + " << lut_total << ");\n";
+        oss << "    g_state->lut_values.assign(lut_vals_data, lut_vals_data + " << lut_total << ");\n";
     }
     oss << "}\n\n";
+}
 
-    // Jump table dispatch - computed goto (GCC/Clang) or switch fallback (MSVC)
+// ===== Helper 3e: Emit dispatch table and step switch =====
+// LOC: ~50 (core dispatch logic)
+void emit_solve_step_dispatch(std::ostringstream& oss, const std::string& class_name) {
     oss << "void " << class_name << "::solve_step(void* state, uint32_t step, double dt) {\n";
-    oss << "    if (dt <= 0.0) return;\n";
-    oss << "\n";
+    oss << "    if (dt <= 0.0) return;\n\n";
     oss << "#ifndef _MSC_VER\n";
-    oss << "    // Computed goto dispatch table (static const for one-time init)\n";
     oss << "    static const void* dispatch_table[" << 60 << "] = {\n";
     for (int i = 0; i < 60; ++i) {
         oss << "        &&step_" << i << (i < 60 - 1 ? ",\n" : "\n");
     }
-    oss << "    };\n\n";
-    oss << "    // Direct jump - no bounds check needed (step % " << 60 << " is always 0-" << 60 - 1 << ")\n";
+    oss << "    };\n";
     oss << "    goto *dispatch_table[step % " << 60 << "];\n\n";
     for (int i = 0; i < 60; ++i) {
         oss << "    step_" << i << ":\n";
@@ -570,7 +627,6 @@ std::string CodeGen::generate_source(
         oss << "        return;\n\n";
     }
     oss << "#else\n";
-    oss << "    // MSVC fallback: switch-based dispatch\n";
     oss << "    switch (step % " << 60 << ") {\n";
     for (int i = 0; i < 60; ++i) {
         oss << "        case " << i << ": step_" << i << "(state, dt); ++step_counter_; return;\n";
@@ -578,59 +634,104 @@ std::string CodeGen::generate_source(
     oss << "    }\n";
     oss << "#endif\n";
     oss << "}\n\n";
+}
 
-    // Push model: single-pass per frame, sources/consumers already encoded in
-    // component execute() behavior and device ordering generated from blueprint.
+// ===== Helper 3f: Emit electrical diagnostics for one step =====
+// LOC: ~30 (tightly coupled electrical logging logic)
+void emit_step_electrical_diagnostics(std::ostringstream& oss) {
+    oss << "    st->electrical_rt = &electrical_rt_;\n";
+    oss << "    solve_electrical(electrical_plan_, *st, electrical_rt_, dt);\n";
+    oss << "    if (step_counter_ > 0 && (step_counter_ % ELECTRICAL_COUNTER_LOG_PERIOD) == 0) {\n";
+    oss << "        const auto& c = electrical_rt_.counters;\n";
+    oss << "        spdlog::info(\"[aot-elec] solve counters: islands={} n0={} n1={} n2={} dense={} singular={}\",\n";
+    oss << "            c.islands_total, c.solves_n0, c.solves_n1, c.solves_n2, c.solves_dense, c.singular_fallbacks);\n";
+    oss << "    }\n";
+    oss << "    for (const auto& diag : electrical_rt_.island_diagnostics) {\n";
+    oss << "        if (!diag.solve_ok || diag.max_abs_kcl_residual > ELECTRICAL_DIAG_RESIDUAL_WARN) {\n";
+    oss << "            spdlog::warn(\"[aot-elec] island={} solve_ok={} unknowns={} max_abs_kcl={} worst_signal={} worst_v={} worst_branch_comp={}\",\n";
+    oss << "                diag.island_index, diag.solve_ok, diag.unknown_count, diag.max_abs_kcl_residual,\n";
+    oss << "                diag.worst_node_signal, diag.worst_node_voltage, diag.worst_branch_component_index);\n";
+    oss << "            for (uint32_t i = 0; i < ELECTRICAL_DEBUG_COUNT; ++i) {\n";
+    oss << "                const auto& e = ELECTRICAL_DEBUG_MAP[i];\n";
+    oss << "                if (e.component_index == diag.worst_branch_component_index) {\n";
+    oss << "                    spdlog::warn(\"[aot-elec] branch component={} device={} class={} role={} nodes=({},{})\",\n";
+    oss << "                        e.component_index, e.device_name, e.classname, e.role, e.node_a, e.node_b);\n";
+    oss << "                    break;\n";
+    oss << "                }\n";
+    oss << "            }\n";
+    oss << "            dump_island_debug(diag.island_index);\n";
+    oss << "        }\n";
+    oss << "    }\n";
+}
+
+// ===== Main generate_source() - refactored orchestrator =====
+// LOC: ~80 (clean delegation, low complexity)
+std::string CodeGen::generate_source(
+    const std::string& header_name,
+    const std::vector<DeviceInstance>& devices_unfiltered,
+    const std::vector<Connection>& connections,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal,
+    uint32_t signal_count,
+    const std::string& class_name,
+    const ElectricalPlanCodegen& electrical_plan
+) {
+    // Filter out visual-only devices
+    std::vector<DeviceInstance> devices;
+    devices.reserve(devices_unfiltered.size());
+    for (const auto& d : devices_unfiltered)
+        if (!d.visual_only) devices.push_back(d);
+
+    std::ostringstream oss;
+
+    // Phase 1: Emit source prelude (includes, instantiations)
+    emit_source_prelude(oss, header_name, devices, port_to_signal, signal_count, class_name);
+
+    // Phase 2: Emit constructor
+    oss << class_name << "::" << class_name << "()\n{\n";
+    std::vector<LutEntry> lut_entries;
+    uint32_t lut_arena_offset = 0;
+    emit_constructor_params(oss, devices, electrical_plan, lut_entries, lut_arena_offset);
+    oss << "}\n\n";
+
+    // Phase 3: Destructor
+    oss << class_name << "::~" << class_name << "() {}\n\n";
+
+    // Phase 4: Pre-load
+    emit_preload_method(oss, class_name, devices, lut_entries);
+
+    // Phase 5: Solve step dispatch
+    emit_solve_step_dispatch(oss, class_name);
+
+    // Phase 6: Emit 60 step methods (electrical solve + execute + commit)
     for (int step = 0; step < 60; ++step) {
         oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, double dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-        // Electrical solve: compute node voltages and branch currents before component execute
+        
         if (!electrical_plan.islands.empty()) {
-            oss << "    st->electrical_rt = &electrical_rt_;\n";
-            oss << "    solve_electrical(electrical_plan_, *st, electrical_rt_, dt);\n";
-            oss << "    if (step_counter_ > 0 && (step_counter_ % ELECTRICAL_COUNTER_LOG_PERIOD) == 0) {\n";
-            oss << "        const auto& c = electrical_rt_.counters;\n";
-            oss << "        spdlog::info(\"[aot-elec] solve counters: islands={} n0={} n1={} n2={} dense={} singular={}\",\n";
-            oss << "            c.islands_total, c.solves_n0, c.solves_n1, c.solves_n2, c.solves_dense, c.singular_fallbacks);\n";
-            oss << "    }\n";
-            oss << "    for (const auto& diag : electrical_rt_.island_diagnostics) {\n";
-            oss << "        if (!diag.solve_ok || diag.max_abs_kcl_residual > ELECTRICAL_DIAG_RESIDUAL_WARN) {\n";
-            oss << "            spdlog::warn(\"[aot-elec] island={} solve_ok={} unknowns={} max_abs_kcl={} worst_signal={} worst_v={} worst_branch_comp={}\",\n";
-            oss << "                diag.island_index, diag.solve_ok, diag.unknown_count, diag.max_abs_kcl_residual,\n";
-            oss << "                diag.worst_node_signal, diag.worst_node_voltage, diag.worst_branch_component_index);\n";
-            oss << "            for (uint32_t i = 0; i < ELECTRICAL_DEBUG_COUNT; ++i) {\n";
-            oss << "                const auto& e = ELECTRICAL_DEBUG_MAP[i];\n";
-            oss << "                if (e.component_index == diag.worst_branch_component_index) {\n";
-            oss << "                    spdlog::warn(\"[aot-elec] branch component={} device={} class={} role={} nodes=({},{})\",\n";
-            oss << "                        e.component_index, e.device_name, e.classname, e.role, e.node_a, e.node_b);\n";
-            oss << "                    break;\n";
-            oss << "                }\n";
-            oss << "            }\n";
-            oss << "            dump_island_debug(diag.island_index);\n";
-            oss << "        }\n";
-            oss << "    }\n";
+            emit_step_electrical_diagnostics(oss);
         }
+        
         for (const auto& dev : devices) {
             oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
         }
-        // Commit pass: update internal state for all components.
-        // Mirrors JIT Simulator::step() which calls scheduler commit + commit_solver_owned_devices.
         for (const auto& dev : devices) {
             oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";
         }
+        
         if (!electrical_plan.islands.empty()) {
             oss << "    st->electrical_rt = nullptr;\n";
         }
         oss << "}\n\n";
     }
 
-    // Push model single-pass has no iterative convergence stage.
+    // Phase 7: Convergence check (push model: always converged)
     oss << "AOT_INLINE bool " << class_name << "::check_convergence(void* state, float tolerance) const {\n";
     oss << "    (void)state;\n";
     oss << "    (void)tolerance;\n";
     oss << "    return true;\n";
     oss << "}\n\n";
 
+    // Phase 8: Optional debug dump for electrical islands
     if (!electrical_plan.islands.empty()) {
         oss << "void " << class_name << "::dump_island_debug(uint32_t island_idx) {\n";
         oss << "    spdlog::warn(\"[aot-elec] dump island={} entries={}\", island_idx, ELECTRICAL_DEBUG_COUNT);\n";
@@ -645,6 +746,11 @@ std::string CodeGen::generate_source(
 
     return oss.str();
 }
+
+// ===== Section 4: write_files() =====
+// Write generated header and source files to disk.
+// Emits: .h and .cpp files with content from generate_header() and generate_source().
+// Complexity: Low (simple file I/O, ~65 LOC).
 
 void CodeGen::write_files(
     const std::string& out_dir,
@@ -711,22 +817,27 @@ void CodeGen::write_files(
     }
 }
 
-void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::string& output_path) {
-    std::cerr << "[codegen] Generating port registry from TypeRegistry (" << registry.types.size() << " types)\n";
+// ===== Section 5: generate_port_registry() and helper functions =====
+// Generate a header file containing the complete port registry and ComponentVariant.
+// This supports both JIT (dynamic component storage) and AOT (static analysis).
+// Refactored to extract metadata arrays and lookup functions into helpers.
 
-    struct PortMeta {
-        std::string name;
-        PortDirection direction = PortDirection::Out;
-        Domain domain = Domain::Electrical;
-        bool source_writer = false;
-    };
+// ===== Helper 5a: Build component metadata from registry =====
+// LOC: ~30 (extract ports and metadata from TypeRegistry)
+struct PortMeta {
+    std::string name;
+    PortDirection direction = PortDirection::Out;
+    Domain domain = Domain::Electrical;
+    bool source_writer = false;
+};
 
-    struct ComponentPorts {
-        std::string classname;
-        std::vector<PortMeta> ports;
-        bool scheduler_source = false;
-    };
+struct ComponentPorts {
+    std::string classname;
+    std::vector<PortMeta> ports;
+    bool scheduler_source = false;
+};
 
+std::vector<ComponentPorts> build_component_metadata(const TypeRegistry& registry) {
     std::vector<ComponentPorts> all_components;
 
     for (const auto& [name, def] : registry.types) {
@@ -756,17 +867,15 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
             return a.classname < b.classname;
         });
 
-    // Collect all unique port names for Param enum
-    std::set<std::string> all_port_names;
-    for (const auto& comp : all_components) {
-        for (const auto& port : comp.ports) {
-            all_port_names.insert(port.name);
-        }
-    }
+    return all_components;
+}
 
-    // Generate header file
-    std::ostringstream oss;
-
+// ===== Helper 5b: Emit port registry header prelude (includes, enums, constants) =====
+// LOC: ~50 (header guard, includes, ComponentType enum, port count constants)
+void emit_port_registry_prelude(
+    std::ostringstream& oss,
+    const std::vector<ComponentPorts>& all_components
+) {
     oss << "// Auto-generated by codegen from library/*.blueprint\n";
     oss << "// DO NOT EDIT - changes will be overwritten\n";
     oss << "// \n";
@@ -784,14 +893,9 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "#include <variant>\n";
     oss << "\n";
     // Include Provider pattern and component definitions
-    // These are relative to port_registry.h location (src/jit_solver/components/)
     oss << "#include \"provider.h\"\n";
     oss << "#include \"all.h\"\n";
     oss << "\n";
-    // PortNames enum is in port_names.h (included transitively via provider.h)
-    // Separated to break circular dependency: component.h -> port_registry.h -> all.h -> component.h
-    oss << "// PortNames enum is defined in port_names.h (included transitively via provider.h)\n";
-    oss << "// Separated to break circular dependency: component.h → port_registry.h → all.h → component.h\n";
     oss << "#include \"port_names.h\"\n";
     oss << "\n";
 
@@ -811,7 +915,14 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
         oss << "constexpr size_t " << comp.classname << "_PORT_COUNT = " << comp.ports.size() << ";\n";
     }
     oss << "\n";
+}
 
+// ===== Helper 5c: Emit port names and metadata arrays =====
+// LOC: ~70 (port name lists, direction/domain/source_writer arrays)
+void emit_port_registry_metadata(
+    std::ostringstream& oss,
+    const std::vector<ComponentPorts>& all_components
+) {
     // Generate port name lists
     oss << "// Port names for each component (in field declaration order)\n";
     for (const auto& comp : all_components) {
@@ -858,11 +969,16 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
         oss << "constexpr bool " << comp.classname << "_SCHEDULER_SOURCE = "
             << (comp.scheduler_source ? "true" : "false") << ";\n\n";
     }
+}
 
-    // Generate helper function to get ports by classname
-    oss << "// Get port names for a component type\n";
-
-    // Generate string_to_port_name lookup (auto-generated, never hand-maintain!)
+// ===== Helper 5d: Emit port registry lookup functions (string_to_port_name, etc.) =====
+// LOC: ~60 (lookup functions: string_to_port_name, get_component_ports, etc.)
+void emit_port_registry_lookups(
+    std::ostringstream& oss,
+    const std::vector<ComponentPorts>& all_components,
+    const std::set<std::string>& all_port_names
+) {
+    // Generate string_to_port_name lookup
     oss << "// Convert port name string to PortNames enum\n";
     oss << "// Auto-generated from components/*.blueprint — never maintain by hand!\n";
     oss << "inline std::optional<PortNames> string_to_port_name(const std::string& name) {\n";
@@ -947,7 +1063,14 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     }
     oss << "    return result;\n";
     oss << "}\n\n";
+}
 
+// ===== Helper 5e: Emit component variant and compile-time guard =====
+// LOC: ~20 (ComponentVariant definition and static_assert)
+void emit_port_registry_variant(
+    std::ostringstream& oss,
+    const std::vector<ComponentPorts>& all_components
+) {
     // Generate ComponentVariant for dynamic component containers (Editor JIT)
     oss << "// Component variant for dynamic component storage (Editor JIT mode)\n";
     oss << "// Enables type-safe storage of any component type without virtual calls\n";
@@ -965,77 +1088,234 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentType::_COUNT),\n";
     oss << "    \"ComponentType enum and ComponentVariant are out of sync — regenerate port_registry.h\"\n";
     oss << ");\n\n";
+}
 
-    // Write to file
+// ===== Helper 5f: Generate port_names.h file (breakout from circular dependency) =====
+// LOC: ~40 (generates separate lightweight header with PortNames enum)
+void generate_port_names_header(
+    const std::string& output_path,
+    const std::set<std::string>& all_port_names
+) {
+    std::string dir = output_path;
+    auto slash = dir.find_last_of("/\\");
+    if (slash != std::string::npos) {
+        dir = dir.substr(0, slash + 1);
+    } else {
+        dir = "";
+    }
+    std::string port_names_path = dir + "port_names.h";
+
+    std::ostringstream pn;
+    pn << "// Auto-generated by codegen from library/*.blueprint\n";
+    pn << "// DO NOT EDIT - changes will be overwritten\n";
+    pn << "//\n";
+    pn << "// Lightweight header containing only the PortNames enum.\n";
+    pn << "// Split from port_registry.h to avoid circular includes:\n";
+    pn << "//   component.h → port_registry.h → all.h → component.h\n";
+    pn << "// This file has NO dependency on component headers.\n";
+    pn << "\n";
+    pn << "#pragma once\n";
+    pn << "\n";
+    pn << "#include <cstdint>\n";
+    pn << "\n";
+    pn << "// Port names enum (for constexpr Provider pattern)\n";
+    pn << "// Used by AOT components to get compile-time port indices\n";
+    pn << "enum class PortNames : uint32_t {\n";
+    for (const auto& port_name : all_port_names) {
+        pn << "    " << port_name << ",\n";
+    }
+    pn << "    _COUNT  // Sentinel: must always be last. Used to size flat arrays indexed by PortNames.\n";
+    pn << "};\n";
+
+    std::ofstream pn_out(port_names_path);
+    if (pn_out.is_open()) {
+        pn_out << pn.str();
+        pn_out.close();
+        std::cerr << "[codegen] Generated port names: " << port_names_path << "\n";
+    } else {
+        std::cerr << "[codegen] Warning: could not write " << port_names_path << "\n";
+    }
+}
+
+// ===== Main generate_port_registry() - refactored orchestrator =====
+// LOC: ~40 (clean 5-phase delegation)
+void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::string& output_path) {
+    std::cerr << "[codegen] Generating port registry from TypeRegistry (" << registry.types.size() << " types)\n";
+
+    // 1. Build component metadata from registry
+    auto all_components = build_component_metadata(registry);
+
+    // 2. Collect all unique port names for Param enum
+    std::set<std::string> all_port_names;
+    for (const auto& comp : all_components) {
+        for (const auto& port : comp.ports) {
+            all_port_names.insert(port.name);
+        }
+    }
+
+    // 3. Generate header file
+    std::ostringstream oss;
+    emit_port_registry_prelude(oss, all_components);
+    emit_port_registry_metadata(oss, all_components);
+    emit_port_registry_lookups(oss, all_components, all_port_names);
+    emit_port_registry_variant(oss, all_components);
+
+    // 4. Write header to file
     std::ofstream out(output_path);
     if (!out.is_open()) {
         std::cerr << "[codegen] Error: could not write to " << output_path << "\n";
         return;
     }
-
     out << oss.str();
     out.close();
-
     std::cerr << "[codegen] Generated port registry: " << output_path << "\n";
-    std::cerr << "[codegen]   - " << all_components.size() << " components\n";
 
-    // Generate port_names.h alongside port_registry.h
-    // This lightweight header breaks the circular dependency:
-    //   component.h → port_registry.h → all.h → component.h
-    {
-        // Derive port_names.h path from port_registry.h path
-        std::string dir = output_path;
-        auto slash = dir.find_last_of("/\\");
-        if (slash != std::string::npos) {
-            dir = dir.substr(0, slash + 1);
-        } else {
-            dir = "";
-        }
-        std::string port_names_path = dir + "port_names.h";
+    // 5. Generate port_names.h (separate file to break circular dependency)
+    generate_port_names_header(output_path, all_port_names);
 
-        std::ostringstream pn;
-        pn << "// Auto-generated by codegen from library/*.blueprint\n";
-        pn << "// DO NOT EDIT - changes will be overwritten\n";
-        pn << "//\n";
-        pn << "// Lightweight header containing only the PortNames enum.\n";
-        pn << "// Split from port_registry.h to avoid circular includes:\n";
-        pn << "//   component.h → port_registry.h → all.h → component.h\n";
-        pn << "// This file has NO dependency on component headers.\n";
-        pn << "\n";
-        pn << "#pragma once\n";
-        pn << "\n";
-        pn << "#include <cstdint>\n";
-        pn << "\n";
-        pn << "// Port names enum (for constexpr Provider pattern)\n";
-        pn << "// Used by AOT components to get compile-time port indices\n";
-        pn << "enum class PortNames : uint32_t {\n";
-        size_t pn_idx = 0;
-        for (const auto& port_name : all_port_names) {
-            pn << "    " << port_name;
-            pn << ",\n";
-            pn_idx++;
-        }
-        pn << "    _COUNT  // Sentinel: must always be last. Used to size flat arrays indexed by PortNames.\n";
-        pn << "};\n";
-
-        std::ofstream pn_out(port_names_path);
-        if (pn_out.is_open()) {
-            pn_out << pn.str();
-            pn_out.close();
-            std::cerr << "[codegen] Generated port names: " << port_names_path << "\n";
-        } else {
-            std::cerr << "[codegen] Warning: could not write " << port_names_path << "\n";
-        }
-    }
-
-    // Count total ports
+    // Log summary statistics
     size_t total_ports = 0;
     for (const auto& comp : all_components) {
         total_ports += comp.ports.size();
     }
+    std::cerr << "[codegen]   - " << all_components.size() << " components\n";
     std::cerr << "[codegen]   - " << total_ports << " total ports\n";
 }
 
+// ===== Section 6: generate_composite_systems() and helper functions =====
+// Generate header+source for composite (blueprint) systems.
+// Expanded composite: sub-blueprints flattened, signals allocated via union-find.
+// Refactored to extract signal allocation logic into helpers.
+
+// ===== Helper 6a: Build initial port index map =====
+// LOC: ~20 (Create port→index mapping from expanded devices)
+void build_port_index_map(
+    const std::vector<DeviceInstance>& expanded_devices,
+    std::vector<std::string>& out_all_ports,
+    std::unordered_map<std::string, uint32_t>& out_port_to_idx
+) {
+    for (const auto& dev : expanded_devices) {
+        for (const auto& [port_name, port] : dev.ports) {
+            std::string full_port = dev.name + "." + port_name;
+            uint32_t idx = static_cast<uint32_t>(out_all_ports.size());
+            out_all_ports.push_back(full_port);
+            out_port_to_idx[full_port] = idx;
+        }
+    }
+}
+
+// ===== Helper 6b: UnionFind struct for signal allocation =====
+// LOC: ~20 (Encapsulate UF logic for clarity)
+struct UnionFind {
+    mutable std::vector<uint32_t> parent;
+    std::vector<uint32_t> rank;
+
+    UnionFind(size_t size) : parent(size), rank(size, 0) {
+        for (uint32_t i = 0; i < static_cast<uint32_t>(size); ++i) {
+            parent[i] = i;
+        }
+    }
+
+    uint32_t find(uint32_t x) const {
+        while (parent[x] != x) {
+            parent[x] = parent[parent[x]];
+            x = parent[x];
+        }
+        return x;
+    }
+
+    void unite(uint32_t a, uint32_t b) {
+        uint32_t ra = find(a), rb = find(b);
+        if (ra == rb) return;
+        if (rank[ra] < rank[rb]) std::swap(ra, rb);
+        parent[rb] = ra;
+        if (rank[ra] == rank[rb]) rank[ra]++;
+    }
+};
+
+// ===== Helper 6c: Apply union rules for signal allocation =====
+// LOC: ~50 (BlueprintInput/Output, connections, aliases unification)
+void apply_signal_allocation_rules(
+    UnionFind& uf,
+    const std::vector<DeviceInstance>& expanded_devices,
+    const std::vector<Connection>& expanded_connections,
+    const std::unordered_map<std::string, uint32_t>& port_to_idx
+) {
+    // === PARITY GUARD: BlueprintInput/Output Bridge Union ===
+    // INVARIANT: ext↔port union MUST match JIT solver's logic.
+    // [CRITICAL] This code must remain in sync with jit_solver.cpp bridge unification.
+    for (const auto& dev : expanded_devices) {
+        if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
+            std::string ext_key  = dev.name + ".ext";
+            std::string port_key = dev.name + ".port";
+            auto it_ext  = port_to_idx.find(ext_key);
+            auto it_port = port_to_idx.find(port_key);
+            if (it_ext != port_to_idx.end() && it_port != port_to_idx.end()) {
+                uf.unite(it_ext->second, it_port->second);
+            }
+        }
+    }
+
+    // Union connected ports
+    for (const auto& conn : expanded_connections) {
+        auto it_from = port_to_idx.find(conn.from);
+        auto it_to = port_to_idx.find(conn.to);
+        if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
+            uf.unite(it_from->second, it_to->second);
+        }
+    }
+
+    // Union alias ports within same device
+    for (const auto& dev : expanded_devices) {
+        for (const auto& [port_name, port] : dev.ports) {
+            if (port.alias.has_value() && !port.alias->empty()) {
+                std::string full_port = dev.name + "." + port_name;
+                std::string full_alias = dev.name + "." + *port.alias;
+                auto it_port = port_to_idx.find(full_port);
+                auto it_alias = port_to_idx.find(full_alias);
+                if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
+                    uf.unite(it_port->second, it_alias->second);
+                }
+            }
+        }
+    }
+}
+
+// ===== Helper 6d: Remap UF roots to sequential signal indices =====
+// LOC: ~25 (Map root→signal, then finalize port_to_signal)
+std::unordered_map<std::string, uint32_t> finalize_signal_indices(
+    const UnionFind& uf,
+    const std::vector<std::string>& all_ports,
+    const std::unordered_map<std::string, uint32_t>& port_to_idx,
+    uint32_t& out_signal_count
+) {
+    std::unordered_map<std::string, uint32_t> port_to_signal;
+    for (const auto& port : all_ports) {
+        port_to_signal[port] = uf.find(port_to_idx.at(port));
+    }
+
+    std::map<uint32_t, uint32_t> root_to_signal;
+    std::vector<uint32_t> unique_roots;
+    for (const auto& [port, root] : port_to_signal) {
+        unique_roots.push_back(root);
+    }
+    std::sort(unique_roots.begin(), unique_roots.end());
+    unique_roots.erase(std::unique(unique_roots.begin(), unique_roots.end()), unique_roots.end());
+
+    uint32_t next_signal = 0;
+    for (uint32_t root : unique_roots) {
+        root_to_signal[root] = next_signal++;
+    }
+    for (auto& [port, sig] : port_to_signal) {
+        sig = root_to_signal[sig];
+    }
+    out_signal_count = next_signal;
+
+    return port_to_signal;
+}
+
+// ===== Main generate_composite_systems() - refactored orchestrator =====
+// LOC: ~50 (clean 5-phase delegation)
 CompositeCodegenResult CodeGen::generate_composite_systems(
     const TypeDefinition& td,
     const TypeRegistry& registry)
@@ -1055,100 +1335,13 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
     // 3. Signal allocation (union-find) — same algorithm as build_systems_dev
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
+    build_port_index_map(expanded.devices, all_ports, port_to_idx);
 
-    for (const auto& dev : expanded.devices) {
-        for (const auto& [port_name, port] : dev.ports) {
-            std::string full_port = dev.name + "." + port_name;
-            uint32_t idx = static_cast<uint32_t>(all_ports.size());
-            all_ports.push_back(full_port);
-            port_to_idx[full_port] = idx;
-        }
-    }
+    UnionFind uf(all_ports.size());
+    apply_signal_allocation_rules(uf, expanded.devices, expanded.connections, port_to_idx);
 
-    // Union-Find
-    std::vector<uint32_t> uf_parent(all_ports.size());
-    std::vector<uint32_t> uf_rank(all_ports.size(), 0);
-    for (uint32_t i = 0; i < all_ports.size(); ++i) uf_parent[i] = i;
-
-    auto uf_find = [&](uint32_t x) -> uint32_t {
-        while (uf_parent[x] != x) {
-            uf_parent[x] = uf_parent[uf_parent[x]];
-            x = uf_parent[x];
-        }
-        return x;
-    };
-    auto uf_unite = [&](uint32_t a, uint32_t b) {
-        uint32_t ra = uf_find(a), rb = uf_find(b);
-        if (ra == rb) return;
-        if (uf_rank[ra] < uf_rank[rb]) std::swap(ra, rb);
-        uf_parent[rb] = ra;
-        if (uf_rank[ra] == uf_rank[rb]) uf_rank[ra]++;
-    };
-
-    // === PARITY GUARD: BlueprintInput/Output Bridge Union ===
-    // INVARIANT: ext↔port union MUST match JIT solver's logic.
-    // [CRITICAL] This code must remain in sync with jit_solver.cpp bridge unification.
-    // - Both paths (JIT in jit_solver.cpp:271-289, AOT here) must unify .ext and .port identically.
-    // - Parser rewrite ensures parent connections use :instance:port.ext format.
-    // - Failure to mirror this will cause JIT/AOT divergence for composite blueprints.
-    for (const auto& dev : expanded.devices) {
-        if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
-            std::string ext_key  = dev.name + ".ext";
-            std::string port_key = dev.name + ".port";
-            auto it_ext  = port_to_idx.find(ext_key);
-            auto it_port = port_to_idx.find(port_key);
-            if (it_ext != port_to_idx.end() && it_port != port_to_idx.end()) {
-                uf_unite(it_ext->second, it_port->second);
-            }
-        }
-    }
-
-    // Union connected ports
-    for (const auto& conn : expanded.connections) {
-        auto it_from = port_to_idx.find(conn.from);
-        auto it_to = port_to_idx.find(conn.to);
-        if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
-            uf_unite(it_from->second, it_to->second);
-        }
-    }
-
-    // Union alias ports within same device
-    for (const auto& dev : expanded.devices) {
-        for (const auto& [port_name, port] : dev.ports) {
-            if (port.alias.has_value() && !port.alias->empty()) {
-                std::string full_port = dev.name + "." + port_name;
-                std::string full_alias = dev.name + "." + *port.alias;
-                auto it_port = port_to_idx.find(full_port);
-                auto it_alias = port_to_idx.find(full_alias);
-                if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
-                    uf_unite(it_port->second, it_alias->second);
-                }
-            }
-        }
-    }
-
-    // Map each port → root, then remap roots to sequential 0-based signal indices
-    std::unordered_map<std::string, uint32_t> port_to_signal;
-    for (const auto& port : all_ports) {
-        port_to_signal[port] = uf_find(port_to_idx[port]);
-    }
-
-    std::map<uint32_t, uint32_t> root_to_signal;
-    std::vector<uint32_t> unique_roots;
-    for (const auto& [port, root] : port_to_signal) {
-        unique_roots.push_back(root);
-    }
-    std::sort(unique_roots.begin(), unique_roots.end());
-    unique_roots.erase(std::unique(unique_roots.begin(), unique_roots.end()), unique_roots.end());
-
-    uint32_t next_signal = 0;
-    for (uint32_t root : unique_roots) {
-        root_to_signal[root] = next_signal++;
-    }
-    for (auto& [port, sig] : port_to_signal) {
-        sig = root_to_signal[sig];
-    }
-    uint32_t signal_count = next_signal;
+    uint32_t signal_count = 0;
+    auto port_to_signal = finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
 
     // 4. Extract electrical island plan (for AOT solve_electrical)
     ElectricalPlanCodegen electrical_plan = extract_electrical_plan(expanded.devices, port_to_signal);

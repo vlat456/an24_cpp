@@ -50,6 +50,10 @@ void build_and_register_components(
     BuildResult& result,
     const std::vector<DeviceInstance>& devices);
 
+void validate_source_writer_conflicts(
+    const BuildResult& result,
+    const std::vector<DeviceInstance>& devices);
+
 void validate_consumer_guardrails(
     const BuildResult& result,
     const std::vector<std::string>& consumer_device_names,

@@ -54,47 +54,41 @@ constexpr ClassnameElectricalRule k_classname_rules[] = {
 
 } // anonymous namespace
 
-ElectricalPlanCodegen extract_electrical_plan(
-    const std::vector<DeviceInstance>& devices,
+// ===== Section 1: Helper Types & Functions for Element Extraction =====
+struct RawElement {
+    ElectricalElementKindCodegen kind;
+    uint32_t node_a;
+    uint32_t node_b;
+    float value_a;
+    float value_b;
+    size_t component_index;
+    std::string device_name;   // for handle assignment back to wrapper components
+    std::string device_classname;
+};
+
+// Convert electrical element kind to string representation
+std::string kind_to_role(ElectricalElementKindCodegen k) {
+    if (k == ElectricalElementKindCodegen::FixedVoltageNode) {
+        return "FixedVoltageNode";
+    }
+    if (k == ElectricalElementKindCodegen::TheveninSource) {
+        return "TheveninSource";
+    }
+    return "ConductanceBranch";
+}
+
+// ===== Section 2: Raw Element Collection (solver_role path) =====
+// Extract electrical element from device with explicit solver_role.
+// Handles three element kinds: FixedVoltageNode, TheveninSource, ConductanceBranch.
+std::optional<RawElement> extract_solver_role_element(
+    const DeviceInstance& dev,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    const ElectricalExtractOptions& options
+    const ElectricalExtractOptions& options,
+    size_t& element_idx
 ) {
-    ElectricalPlanCodegen plan;
+    const auto& role = *dev.solver_role;
 
-    struct RawElement {
-        ElectricalElementKindCodegen kind;
-        uint32_t node_a;
-        uint32_t node_b;
-        float value_a;
-        float value_b;
-        size_t component_index;
-        std::string device_name;   // for handle assignment back to wrapper components
-        std::string device_classname;
-    };
-
-    auto kind_to_role = [](ElectricalElementKindCodegen k) -> std::string {
-        if (k == ElectricalElementKindCodegen::FixedVoltageNode) {
-            return "FixedVoltageNode";
-        }
-        if (k == ElectricalElementKindCodegen::TheveninSource) {
-            return "TheveninSource";
-        }
-        return "ConductanceBranch";
-    };
-
-    std::vector<RawElement> raw_elements;
-
-    auto device_has_any_ports = [&](const DeviceInstance& dev) -> bool {
-        for (const auto& [port_name, _port] : dev.ports) {
-            std::string full_port = dev.name + "." + port_name;
-            if (port_to_signal.find(full_port) != port_to_signal.end()) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    auto resolve_port = [&](const DeviceInstance& dev, const std::string& port_name) -> std::optional<uint32_t> {
+    auto resolve_port = [&](const std::string& port_name) -> std::optional<uint32_t> {
         const std::string full_port = dev.name + "." + port_name;
         auto it = port_to_signal.find(full_port);
         if (it == port_to_signal.end()) {
@@ -114,140 +108,203 @@ ElectricalPlanCodegen extract_electrical_plan(
         return it->second;
     };
 
-    size_t element_idx = 0;
-    for (const auto& dev : devices) {
-        if (dev.visual_only) {
+    if (role.kind == "FixedVoltageNode") {
+        float value = 0.0f;
+        auto it_val = role.param_map.find("voltage");
+        if (it_val != role.param_map.end()) {
+            auto it_param = dev.params.find(it_val->second);
+            if (it_param != dev.params.end()) {
+                value = parse_float_codegen(it_param->second, 0.0f);
+            }
+        }
+        auto node_a_opt = resolve_port(role.port_map.at("node"));
+        if (!node_a_opt.has_value()) {
+            return std::nullopt;
+        }
+        return RawElement{
+            ElectricalElementKindCodegen::FixedVoltageNode,
+            *node_a_opt, UINT32_MAX, value, 0.0f, element_idx++,
+            dev.name, dev.classname
+        };
+    }
+
+    if (role.kind == "TheveninSource") {
+        float voltage = 28.0f;
+        float resistance = 0.01f;
+        auto it_v = role.param_map.find("voltage");
+        if (it_v != role.param_map.end()) {
+            auto it_param = dev.params.find(it_v->second);
+            if (it_param != dev.params.end()) {
+                voltage = parse_float_codegen(it_param->second, 28.0f);
+            }
+        }
+        auto it_r = role.param_map.find("resistance");
+        if (it_r != role.param_map.end()) {
+            auto it_param = dev.params.find(it_r->second);
+            if (it_param != dev.params.end()) {
+                resistance = parse_float_codegen(it_param->second, 0.01f);
+            }
+        }
+        auto node_pos_opt = resolve_port(role.port_map.at("pos"));
+        auto node_neg_opt = resolve_port(role.port_map.at("neg"));
+        if (!node_pos_opt.has_value() || !node_neg_opt.has_value()) {
+            return std::nullopt;
+        }
+        return RawElement{
+            ElectricalElementKindCodegen::TheveninSource,
+            *node_pos_opt, *node_neg_opt, voltage, resistance, element_idx++,
+            dev.name, dev.classname
+        };
+    }
+
+    if (role.kind == "ConductanceBranch") {
+        float conductance = 0.1f;
+        auto it_g = role.param_map.find("g");
+        if (it_g != role.param_map.end()) {
+            auto it_param = dev.params.find(it_g->second);
+            if (it_param != dev.params.end()) {
+                conductance = parse_float_codegen(it_param->second, 0.1f);
+            }
+        }
+        auto node_a_opt = resolve_port(role.port_map.at("a"));
+        auto node_b_opt = resolve_port(role.port_map.at("b"));
+        if (!node_a_opt.has_value() || !node_b_opt.has_value()) {
+            return std::nullopt;
+        }
+        return RawElement{
+            ElectricalElementKindCodegen::ConductanceBranch,
+            *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++,
+            dev.name, dev.classname
+        };
+    }
+
+    return std::nullopt;
+}
+
+// ===== Section 3: Raw Element Collection (classname rule path) =====
+// Extract electrical element from device using classname-based rules.
+std::optional<RawElement> extract_classname_rule_element(
+    const DeviceInstance& dev,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal,
+    const ElectricalExtractOptions& options,
+    size_t& element_idx
+) {
+    auto resolve_port = [&](const std::string& port_name) -> std::optional<uint32_t> {
+        const std::string full_port = dev.name + "." + port_name;
+        auto it = port_to_signal.find(full_port);
+        if (it == port_to_signal.end()) {
+            if (options.strict_port_resolution) {
+                throw std::runtime_error(
+                    "[codegen] electrical port '" + full_port +
+                    "' not found in signal map for device '" + dev.name +
+                    "' (classname: " + dev.classname + ")"
+                );
+            }
+            if (options.warn_on_missing_ports) {
+                spdlog::warn("[codegen] electrical port '{}' not found in signal map for device '{}' (classname: {}). Element skipped from electrical plan.",
+                    full_port, dev.name, dev.classname);
+            }
+            return std::nullopt;
+        }
+        return it->second;
+    };
+
+    for (const auto& rule : k_classname_rules) {
+        if (dev.classname != rule.classname) {
             continue;
         }
 
-        if (!device_has_any_ports(dev)) {
-            continue;
+        auto node_a_opt = resolve_port(rule.port_a);
+        if (!node_a_opt.has_value()) {
+            return std::nullopt;
         }
 
-        if (dev.solver_role.has_value()) {
-            const auto& role = *dev.solver_role;
-
-            if (role.kind == "FixedVoltageNode") {
-                float value = 0.0f;
-                auto it_val = role.param_map.find("voltage");
-                if (it_val != role.param_map.end()) {
-                    auto it_param = dev.params.find(it_val->second);
-                    if (it_param != dev.params.end()) {
-                        value = parse_float_codegen(it_param->second, 0.0f);
-                    }
-                }
-                auto node_a_opt = resolve_port(dev, role.port_map.at("node"));
-                if (!node_a_opt.has_value()) {
-                    continue;
-                }
-                raw_elements.push_back({
-                    ElectricalElementKindCodegen::FixedVoltageNode,
-                    *node_a_opt, UINT32_MAX, value, 0.0f, element_idx++,
-                    dev.name, dev.classname
-                });
-            } else if (role.kind == "TheveninSource") {
-                float voltage = 28.0f;
-                float resistance = 0.01f;
-                auto it_v = role.param_map.find("voltage");
-                if (it_v != role.param_map.end()) {
-                    auto it_param = dev.params.find(it_v->second);
-                    if (it_param != dev.params.end()) {
-                        voltage = parse_float_codegen(it_param->second, 28.0f);
-                    }
-                }
-                auto it_r = role.param_map.find("resistance");
-                if (it_r != role.param_map.end()) {
-                    auto it_param = dev.params.find(it_r->second);
-                    if (it_param != dev.params.end()) {
-                        resistance = parse_float_codegen(it_param->second, 0.01f);
-                    }
-                }
-                auto node_pos_opt = resolve_port(dev, role.port_map.at("pos"));
-                auto node_neg_opt = resolve_port(dev, role.port_map.at("neg"));
-                if (!node_pos_opt.has_value() || !node_neg_opt.has_value()) {
-                    continue;
-                }
-                raw_elements.push_back({
-                    ElectricalElementKindCodegen::TheveninSource,
-                    *node_pos_opt, *node_neg_opt, voltage, resistance, element_idx++,
-                    dev.name, dev.classname
-                });
-            } else if (role.kind == "ConductanceBranch") {
-                float conductance = 0.1f;
-                auto it_g = role.param_map.find("g");
-                if (it_g != role.param_map.end()) {
-                    auto it_param = dev.params.find(it_g->second);
-                    if (it_param != dev.params.end()) {
-                        conductance = parse_float_codegen(it_param->second, 0.1f);
-                    }
-                }
-                auto node_a_opt = resolve_port(dev, role.port_map.at("a"));
-                auto node_b_opt = resolve_port(dev, role.port_map.at("b"));
-                if (!node_a_opt.has_value() || !node_b_opt.has_value()) {
-                    continue;
-                }
-                raw_elements.push_back({
-                    ElectricalElementKindCodegen::ConductanceBranch,
-                    *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++,
-                    dev.name, dev.classname
-                });
-            }
-            continue;
-        }
-
-        for (const auto& rule : k_classname_rules) {
-            if (dev.classname != rule.classname) {
-                continue;
-            }
-
-            auto node_a_opt = resolve_port(dev, rule.port_a);
-            if (!node_a_opt.has_value()) {
-                break;
-            }
-
-            if (rule.kind == ElectricalElementKindCodegen::FixedVoltageNode) {
-                raw_elements.push_back({
-                    rule.kind,
-                    *node_a_opt,
-                    UINT32_MAX,
-                    read_param_or(dev, rule.param_a, rule.param_a_default),
-                    0.0f,
-                    element_idx++,
-                    dev.name, dev.classname
-                });
-                break;
-            }
-
-            auto node_b_opt = resolve_port(dev, rule.port_b);
-            if (!node_b_opt.has_value()) {
-                break;
-            }
-
-            float value_a = read_param_or(dev, rule.param_a, rule.param_a_default);
-            float value_b = 0.0f;
-            if (rule.param_b != nullptr) {
-                value_b = read_param_or(dev, rule.param_b, rule.param_b_default);
-            }
-
-            raw_elements.push_back({
+        if (rule.kind == ElectricalElementKindCodegen::FixedVoltageNode) {
+            return RawElement{
                 rule.kind,
                 *node_a_opt,
-                *node_b_opt,
-                value_a,
-                value_b,
+                UINT32_MAX,
+                read_param_or(dev, rule.param_a, rule.param_a_default),
+                0.0f,
                 element_idx++,
                 dev.name, dev.classname
-            });
-            break;
+            };
+        }
+
+        auto node_b_opt = resolve_port(rule.port_b);
+        if (!node_b_opt.has_value()) {
+            return std::nullopt;
+        }
+
+        float value_a = read_param_or(dev, rule.param_a, rule.param_a_default);
+        float value_b = 0.0f;
+        if (rule.param_b != nullptr) {
+            value_b = read_param_or(dev, rule.param_b, rule.param_b_default);
+        }
+
+        return RawElement{
+            rule.kind,
+            *node_a_opt,
+            *node_b_opt,
+            value_a,
+            value_b,
+            element_idx++,
+            dev.name, dev.classname
+        };
+    }
+
+    return std::nullopt;
+}
+
+// ===== Section 4: Disjoint Set Union for Island Building =====
+// Simple union-find data structure with path compression and union by rank.
+struct DisjointSet {
+    std::unordered_map<uint32_t, uint32_t> parent;
+    std::unordered_map<uint32_t, uint32_t> rank;
+
+    void init(const std::unordered_set<uint32_t>& nodes) {
+        for (uint32_t n : nodes) {
+            parent[n] = n;
+            rank[n] = 0;
         }
     }
 
-    if (raw_elements.empty()) {
-        return plan;
+    uint32_t find(uint32_t x) {
+        while (parent[x] != x) {
+            parent[x] = parent[parent[x]];
+            x = parent[x];
+        }
+        return x;
     }
 
-    std::unordered_map<uint32_t, uint32_t> uf_parent;
-    std::unordered_map<uint32_t, uint32_t> uf_rank;
+    void unite(uint32_t a, uint32_t b) {
+        uint32_t ra = find(a);
+        uint32_t rb = find(b);
+        if (ra == rb) {
+            return;
+        }
+        if (rank[ra] < rank[rb]) {
+            std::swap(ra, rb);
+        }
+        parent[rb] = ra;
+        if (rank[ra] == rank[rb]) {
+            rank[ra]++;
+        }
+    }
+};
+
+// ===== Section 5: Island Construction =====
+// Build electrical islands from raw elements using union-find.
+// LOC: ~50 (tight coupling to island grouping and node collection)
+void build_electrical_islands(
+    const std::vector<RawElement>& raw_elements,
+    ElectricalPlanCodegen& plan
+) {
+    if (raw_elements.empty()) {
+        return;
+    }
+
+    // Collect all nodes and initialize union-find
     std::unordered_set<uint32_t> all_nodes;
     for (const auto& elem : raw_elements) {
         all_nodes.insert(elem.node_a);
@@ -255,46 +312,25 @@ ElectricalPlanCodegen extract_electrical_plan(
             all_nodes.insert(elem.node_b);
         }
     }
-    for (uint32_t n : all_nodes) {
-        uf_parent[n] = n;
-        uf_rank[n] = 0;
-    }
 
-    auto uf_find = [&](uint32_t x) {
-        while (uf_parent[x] != x) {
-            uf_parent[x] = uf_parent[uf_parent[x]];
-            x = uf_parent[x];
-        }
-        return x;
-    };
+    DisjointSet uf;
+    uf.init(all_nodes);
 
-    auto uf_unite = [&](uint32_t a, uint32_t b) {
-        uint32_t ra = uf_find(a);
-        uint32_t rb = uf_find(b);
-        if (ra == rb) {
-            return;
-        }
-        if (uf_rank[ra] < uf_rank[rb]) {
-            std::swap(ra, rb);
-        }
-        uf_parent[rb] = ra;
-        if (uf_rank[ra] == uf_rank[rb]) {
-            uf_rank[ra]++;
-        }
-    };
-
+    // Union nodes for each element
     for (const auto& elem : raw_elements) {
         if (elem.node_b != UINT32_MAX) {
-            uf_unite(elem.node_a, elem.node_b);
+            uf.unite(elem.node_a, elem.node_b);
         }
     }
 
+    // Group elements by island root
     std::map<uint32_t, std::vector<size_t>> island_members;
     for (size_t i = 0; i < raw_elements.size(); ++i) {
-        uint32_t root = uf_find(raw_elements[i].node_a);
+        uint32_t root = uf.find(raw_elements[i].node_a);
         island_members[root].push_back(i);
     }
 
+    // Build island structures (stable order by root)
     std::vector<std::pair<uint32_t, std::vector<size_t>>> sorted_islands(
         island_members.begin(), island_members.end());
     std::sort(sorted_islands.begin(), sorted_islands.end(),
@@ -329,10 +365,17 @@ ElectricalPlanCodegen extract_electrical_plan(
 
         plan.islands.push_back(std::move(island));
     }
+}
 
-    // Build stable symbolic binding list for wrapper components.
-    // Use device_name/classname stored on raw elements (not devices array index,
-    // since component_index != device array index when non-electrical devices exist).
+// ===== Section 6: Device Bindings for Wrapper Components =====
+// Build stable symbolic binding list mapping wrapper components to electrical islands.
+// LOC: ~60 (filtering + sorting + dedup)
+void build_device_bindings(
+    const std::vector<RawElement>& raw_elements,
+    const ElectricalPlanCodegen& plan,
+    std::vector<ElectricalPlanCodegen::DeviceBinding>& bindings
+) {
+    // Map wrapper components to electrical island positions
     std::unordered_map<uint32_t, size_t> component_to_raw_idx;
     for (size_t i = 0; i < raw_elements.size(); ++i) {
         component_to_raw_idx[static_cast<uint32_t>(raw_elements[i].component_index)] = i;
@@ -350,19 +393,23 @@ ElectricalPlanCodegen extract_electrical_plan(
         }
     }
 
-    std::vector<ElectricalPlanCodegen::DeviceBinding> bindings;
-    bindings.reserve(component_to_island_elem.size());
+    // Wrapper components that need electrical handles
+    static const std::set<std::string> wrapper_classnames{
+        "Generator", "IndicatorLight", "CurrentSense",
+        "ControlledVoltageSource", "VariableConductance",
+        "AZS", "HoldButton"
+    };
+
+    std::vector<ElectricalPlanCodegen::DeviceBinding> tmp_bindings;
+    tmp_bindings.reserve(component_to_island_elem.size());
     for (const auto& [component_index, pos] : component_to_island_elem) {
         auto raw_it = component_to_raw_idx.find(component_index);
         if (raw_it == component_to_raw_idx.end()) {
             continue;
         }
         const auto& re = raw_elements[raw_it->second];
-        if (re.device_classname == "Generator" ||
-            re.device_classname == "IndicatorLight" || re.device_classname == "CurrentSense" ||
-            re.device_classname == "ControlledVoltageSource" || re.device_classname == "VariableConductance" ||
-            re.device_classname == "AZS" || re.device_classname == "HoldButton") {
-            bindings.push_back({
+        if (wrapper_classnames.count(re.device_classname) > 0) {
+            tmp_bindings.push_back({
                 sanitize_codegen_name(re.device_name),
                 pos.first,
                 pos.second,
@@ -370,28 +417,39 @@ ElectricalPlanCodegen extract_electrical_plan(
             });
         }
     }
-    std::sort(bindings.begin(), bindings.end(), [](const auto& a, const auto& b) {
-        if (a.component_index != b.component_index) {
-            return a.component_index < b.component_index;
-        }
-        if (a.island_index != b.island_index) {
-            return a.island_index < b.island_index;
-        }
-        if (a.element_index != b.element_index) {
-            return a.element_index < b.element_index;
-        }
+
+    // Sort and deduplicate
+    std::sort(tmp_bindings.begin(), tmp_bindings.end(), [](const auto& a, const auto& b) {
+        if (a.component_index != b.component_index) return a.component_index < b.component_index;
+        if (a.island_index != b.island_index) return a.island_index < b.island_index;
+        if (a.element_index != b.element_index) return a.element_index < b.element_index;
         return a.device_field_name < b.device_field_name;
     });
-    bindings.erase(std::unique(bindings.begin(), bindings.end(), [](const auto& a, const auto& b) {
+    tmp_bindings.erase(std::unique(tmp_bindings.begin(), tmp_bindings.end(), [](const auto& a, const auto& b) {
         return a.device_field_name == b.device_field_name &&
                a.island_index == b.island_index &&
                a.element_index == b.element_index &&
                a.component_index == b.component_index;
-    }), bindings.end());
-    plan.device_bindings = std::move(bindings);
+    }), tmp_bindings.end());
 
-    std::vector<ElectricalPlanCodegen::ComponentDebug> debug;
-    debug.reserve(raw_elements.size());
+    bindings = std::move(tmp_bindings);
+}
+
+// ===== Section 7: Debug Metadata =====
+// Build component debug tables for introspection and troubleshooting.
+// LOC: ~50 (metadata collection + sorting)
+void build_component_debug(
+    const std::vector<RawElement>& raw_elements,
+    const ElectricalPlanCodegen& plan,
+    std::vector<ElectricalPlanCodegen::ComponentDebug>& debug
+) {
+    std::unordered_map<uint32_t, size_t> component_to_raw_idx;
+    for (size_t i = 0; i < raw_elements.size(); ++i) {
+        component_to_raw_idx[static_cast<uint32_t>(raw_elements[i].component_index)] = i;
+    }
+
+    std::vector<ElectricalPlanCodegen::ComponentDebug> tmp_debug;
+    tmp_debug.reserve(raw_elements.size());
     for (size_t island_i = 0; island_i < plan.islands.size(); ++island_i) {
         const auto& island = plan.islands[island_i];
         for (size_t elem_i = 0; elem_i < island.elements.size(); ++elem_i) {
@@ -401,7 +459,7 @@ ElectricalPlanCodegen extract_electrical_plan(
                 continue;
             }
             const auto& re = raw_elements[raw_it->second];
-            debug.push_back({
+            tmp_debug.push_back({
                 static_cast<uint32_t>(re.component_index),
                 static_cast<uint32_t>(island_i),
                 static_cast<uint32_t>(elem_i),
@@ -413,19 +471,72 @@ ElectricalPlanCodegen extract_electrical_plan(
             });
         }
     }
-    std::sort(debug.begin(), debug.end(), [](const auto& a, const auto& b) {
-        if (a.component_index != b.component_index) {
-            return a.component_index < b.component_index;
-        }
-        if (a.island_index != b.island_index) {
-            return a.island_index < b.island_index;
-        }
-        if (a.element_index != b.element_index) {
-            return a.element_index < b.element_index;
-        }
+
+    std::sort(tmp_debug.begin(), tmp_debug.end(), [](const auto& a, const auto& b) {
+        if (a.component_index != b.component_index) return a.component_index < b.component_index;
+        if (a.island_index != b.island_index) return a.island_index < b.island_index;
+        if (a.element_index != b.element_index) return a.element_index < b.element_index;
         return a.device_name < b.device_name;
     });
-    plan.component_debug = std::move(debug);
+
+    debug = std::move(tmp_debug);
+}
+
+// ===== Main Entry Point: extract_electrical_plan() =====
+// Orchestrate extraction of electrical elements, island building, and binding generation.
+// LOC: ~80 (clean delegation to helpers, low complexity)
+ElectricalPlanCodegen extract_electrical_plan(
+    const std::vector<DeviceInstance>& devices,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal,
+    const ElectricalExtractOptions& options
+) {
+    ElectricalPlanCodegen plan;
+
+    // Collect electrical elements from devices (phase 1: extraction)
+    std::vector<RawElement> raw_elements;
+    size_t element_idx = 0;
+
+    auto device_has_any_ports = [&](const DeviceInstance& dev) -> bool {
+        for (const auto& [port_name, _port] : dev.ports) {
+            std::string full_port = dev.name + "." + port_name;
+            if (port_to_signal.find(full_port) != port_to_signal.end()) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    for (const auto& dev : devices) {
+        if (dev.visual_only || !device_has_any_ports(dev)) {
+            continue;
+        }
+
+        // Extract from solver_role first (explicit specification)
+        if (dev.solver_role.has_value()) {
+            auto elem_opt = extract_solver_role_element(dev, port_to_signal, options, element_idx);
+            if (elem_opt.has_value()) {
+                raw_elements.push_back(std::move(*elem_opt));
+            }
+            continue;
+        }
+
+        // Fall back to classname-based rules
+        auto elem_opt = extract_classname_rule_element(dev, port_to_signal, options, element_idx);
+        if (elem_opt.has_value()) {
+            raw_elements.push_back(std::move(*elem_opt));
+        }
+    }
+
+    if (raw_elements.empty()) {
+        return plan;
+    }
+
+    // Build islands from raw elements (phase 2: island construction)
+    build_electrical_islands(raw_elements, plan);
+
+    // Build device bindings and debug metadata (phase 3: bindings & debug)
+    build_device_bindings(raw_elements, plan, plan.device_bindings);
+    build_component_debug(raw_elements, plan, plan.component_debug);
 
     return plan;
 }
