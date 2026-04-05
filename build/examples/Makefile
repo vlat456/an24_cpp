@@ -677,6 +677,102 @@ __/src/editor/commands/extract_blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint.cpp.s
 .PHONY : __/src/editor/commands/extract_blueprint.cpp.s
 
+__/src/editor/commands/extract_blueprint_analysis.o: __/src/editor/commands/extract_blueprint_analysis.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_analysis.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.cpp.o
+
+__/src/editor/commands/extract_blueprint_analysis.i: __/src/editor/commands/extract_blueprint_analysis.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_analysis.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.cpp.i
+
+__/src/editor/commands/extract_blueprint_analysis.s: __/src/editor/commands/extract_blueprint_analysis.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_analysis.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_analysis.cpp.s
+
+__/src/editor/commands/extract_blueprint_bridge.o: __/src/editor/commands/extract_blueprint_bridge.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_bridge.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.cpp.o
+
+__/src/editor/commands/extract_blueprint_bridge.i: __/src/editor/commands/extract_blueprint_bridge.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_bridge.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.cpp.i
+
+__/src/editor/commands/extract_blueprint_bridge.s: __/src/editor/commands/extract_blueprint_bridge.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_bridge.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_bridge.cpp.s
+
+__/src/editor/commands/extract_blueprint_build.o: __/src/editor/commands/extract_blueprint_build.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_build.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_build.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_build.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_build.cpp.o
+
+__/src/editor/commands/extract_blueprint_build.i: __/src/editor/commands/extract_blueprint_build.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_build.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_build.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_build.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_build.cpp.i
+
+__/src/editor/commands/extract_blueprint_build.s: __/src/editor/commands/extract_blueprint_build.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_build.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_build.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_build.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_build.cpp.s
+
+__/src/editor/commands/extract_blueprint_common.o: __/src/editor/commands/extract_blueprint_common.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_common.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint_common.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_common.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint_common.cpp.o
+
+__/src/editor/commands/extract_blueprint_common.i: __/src/editor/commands/extract_blueprint_common.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_common.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint_common.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_common.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint_common.cpp.i
+
+__/src/editor/commands/extract_blueprint_common.s: __/src/editor/commands/extract_blueprint_common.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_common.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint_common.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_common.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint_common.cpp.s
+
 __/src/editor/document.o: __/src/editor/document.cpp.o
 .PHONY : __/src/editor/document.o
 
@@ -2140,6 +2236,18 @@ help:
 	@echo "... __/src/editor/commands/extract_blueprint.o"
 	@echo "... __/src/editor/commands/extract_blueprint.i"
 	@echo "... __/src/editor/commands/extract_blueprint.s"
+	@echo "... __/src/editor/commands/extract_blueprint_analysis.o"
+	@echo "... __/src/editor/commands/extract_blueprint_analysis.i"
+	@echo "... __/src/editor/commands/extract_blueprint_analysis.s"
+	@echo "... __/src/editor/commands/extract_blueprint_bridge.o"
+	@echo "... __/src/editor/commands/extract_blueprint_bridge.i"
+	@echo "... __/src/editor/commands/extract_blueprint_bridge.s"
+	@echo "... __/src/editor/commands/extract_blueprint_build.o"
+	@echo "... __/src/editor/commands/extract_blueprint_build.i"
+	@echo "... __/src/editor/commands/extract_blueprint_build.s"
+	@echo "... __/src/editor/commands/extract_blueprint_common.o"
+	@echo "... __/src/editor/commands/extract_blueprint_common.i"
+	@echo "... __/src/editor/commands/extract_blueprint_common.s"
 	@echo "... __/src/editor/document.o"
 	@echo "... __/src/editor/document.i"
 	@echo "... __/src/editor/document.s"

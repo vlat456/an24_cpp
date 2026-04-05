@@ -167,6 +167,10 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_common.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_bridge.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_analysis.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_build.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/imgui_theme.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp

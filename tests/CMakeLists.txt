@@ -1372,6 +1372,10 @@ add_executable(command_tests
     test_commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_common.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_bridge.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_analysis.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_build.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_include_directories(command_tests PRIVATE

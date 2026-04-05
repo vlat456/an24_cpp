@@ -1093,6 +1093,30 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_common.cpp.o -c /Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_common.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_common.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_common.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.o -c /Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_bridge.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_bridge.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.o -c /Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_analysis.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_analysis.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_build.cpp.o -c /Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_build.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_build.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint_build.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/imgui_theme.cpp.o -c /Users/vladimir/an24_cpp/src/editor/imgui_theme.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/imgui_theme.cpp",
   "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/imgui_theme.cpp.o"
@@ -2008,6 +2032,30 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/ui -I/Users/vladimir/an24_cpp/src/ui/core -I/Users/vladimir/an24_cpp/src/ui/math -I/Users/vladimir/an24_cpp/src/ui/layout -I/Users/vladimir/an24_cpp/src/ui/renderer -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint.cpp.o -c /Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint.cpp",
   "output": "tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/ui -I/Users/vladimir/an24_cpp/src/ui/core -I/Users/vladimir/an24_cpp/src/ui/math -I/Users/vladimir/an24_cpp/src/ui/layout -I/Users/vladimir/an24_cpp/src/ui/renderer -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_common.cpp.o -c /Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_common.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_common.cpp",
+  "output": "tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_common.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/ui -I/Users/vladimir/an24_cpp/src/ui/core -I/Users/vladimir/an24_cpp/src/ui/math -I/Users/vladimir/an24_cpp/src/ui/layout -I/Users/vladimir/an24_cpp/src/ui/renderer -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.o -c /Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_bridge.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_bridge.cpp",
+  "output": "tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_bridge.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/ui -I/Users/vladimir/an24_cpp/src/ui/core -I/Users/vladimir/an24_cpp/src/ui/math -I/Users/vladimir/an24_cpp/src/ui/layout -I/Users/vladimir/an24_cpp/src/ui/renderer -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.o -c /Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_analysis.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_analysis.cpp",
+  "output": "tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_analysis.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/ui -I/Users/vladimir/an24_cpp/src/ui/core -I/Users/vladimir/an24_cpp/src/ui/math -I/Users/vladimir/an24_cpp/src/ui/layout -I/Users/vladimir/an24_cpp/src/ui/renderer -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_build.cpp.o -c /Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_build.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/commands/extract_blueprint_build.cpp",
+  "output": "tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint_build.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
