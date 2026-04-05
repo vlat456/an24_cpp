@@ -929,14 +929,7 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
 TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     TypeRegistry registry;
 
-    TypeDefinition src_type;
-    src_type.classname = "RefNode";
-    src_type.cpp_class = true;
-    src_type.ports["v"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    src_type.domains = {{Domain::Electrical}};
-    src_type.scheduler_source = true;
-    src_type.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    registry.types["RefNode"] = src_type;
+    registry.types["RefNode"] = make_refnode_type(PortDirection::Out);
 
     TypeDefinition consumer_type;
     consumer_type.classname = "Voltmeter";
@@ -1096,21 +1089,8 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     vc.execution = make_execution(true, false, false, false, false, false, false, false, false);
     registry.types["VariableConductance"] = vc;
 
-    TypeDefinition refnode_type;
-    refnode_type.classname = "RefNode";
-    refnode_type.cpp_class = true;
-    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    refnode_type.domains = {{Domain::Electrical}};
-    refnode_type.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    registry.types["RefNode"] = refnode_type;
-
-    TypeDefinition value_type;
-    value_type.classname = "Value";
-    value_type.cpp_class = true;
-    value_type.ports["o"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
-    value_type.domains = {{Domain::Logical}};
-    value_type.execution = make_execution(false, true, false, false, false, false, false, false, false);
-    registry.types["Value"] = value_type;
+    registry.types["RefNode"] = make_refnode_type();
+    registry.types["Value"] = make_value_type();
 
     TypeDefinition circuit;
     circuit.classname = "dynamic_patch_test";
