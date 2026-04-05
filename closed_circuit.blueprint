@@ -2081,8 +2081,8 @@
         }
       },
       "position": {
-        "x": 1760.0,
-        "y": -320.0
+        "x": 1792.0,
+        "y": -312.0
       },
       "type": "Clamp"
     },
@@ -3234,6 +3234,7 @@
     },
     {
       "group_id": "extract_inst_2",
+      "height": 64.0,
       "id": "multiply_4",
       "name": "LoadCmdNorm",
       "ports": {
@@ -3251,10 +3252,11 @@
         }
       },
       "position": {
-        "x": 1632.0,
+        "x": 1600.0,
         "y": -320.0
       },
-      "type": "Multiply"
+      "type": "Multiply",
+      "width": 80.0
     },
     {
       "group_id": "extract_inst_3",
@@ -3766,8 +3768,8 @@
         }
       },
       "position": {
-        "x": 1680.0,
-        "y": -232.0
+        "x": 1744.0,
+        "y": -272.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -3786,8 +3788,8 @@
         }
       },
       "position": {
-        "x": 1680.0,
-        "y": -272.0
+        "x": 1744.0,
+        "y": -256.0
       },
       "render_hint": "ref",
       "type": "Value"
@@ -4536,8 +4538,8 @@
       "type": "Voltmeter"
     }
   ],
-  "pan_x": -179.82977294921875,
-  "pan_y": -617.0382080078125,
+  "pan_x": 87.10983276367188,
+  "pan_y": -438.66387939453125,
   "version": "3.0",
   "wires": [
     {
@@ -5376,5 +5378,5 @@
       "target": "/bus_1:v"
     }
   ],
-  "zoom": 0.572724461555481
+  "zoom": 0.9751498699188232
 }
