@@ -83,6 +83,13 @@ struct ElectricalPatchOp {
     float closed_value = 0.0f;
 };
 
+using SolverCommitFn = void (*)(void*, SimulationState&, double);
+
+struct SolverCommitOp {
+    void* instance = nullptr;
+    SolverCommitFn fn = nullptr;
+};
+
 /// Build port-to-signal mapping from devices and connections
 /// For AOT, this is used by codegen to generate component bindings
 struct BuildResult {
@@ -117,6 +124,10 @@ struct BuildResult {
     /// Compiled pre-solve electrical patch operations.
     /// Each op writes current-frame mutable element values by element_id.
     std::vector<ElectricalPatchOp> electrical_patch_ops;
+
+    /// Compiled post-solve commit operations for solver-owned components.
+    /// Eliminates per-frame per-type commit loops in simulator.
+    std::vector<SolverCommitOp> solver_commit_ops;
 };
 
 BuildResult build_systems_dev(

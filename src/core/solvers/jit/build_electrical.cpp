@@ -7,6 +7,11 @@
 
 namespace jit_solver_impl {
 
+template <typename Comp>
+void commit_component_adapter(void* instance, SimulationState& st, double dt) {
+    static_cast<Comp*>(instance)->commit(st, dt);
+}
+
 void build_electrical_islands(
     BuildResult& result,
     const std::vector<DeviceInstance>& devices)
@@ -650,6 +655,33 @@ void populate_solver_owned_refs(BuildResult& result)
             }
         }, variant);
     }
+}
+
+void build_solver_commit_ops(BuildResult& result)
+{
+    result.solver_commit_ops.clear();
+
+    auto add_group = [&](auto& comps) {
+        using CompPtr = std::decay_t<decltype(comps.front())>;
+        using Comp = std::remove_pointer_t<CompPtr>;
+        for (auto* comp : comps) {
+            SolverCommitOp op;
+            op.instance = comp;
+            op.fn = &commit_component_adapter<Comp>;
+            result.solver_commit_ops.push_back(op);
+        }
+    };
+
+    if (!result.solver_owned.generators.empty()) add_group(result.solver_owned.generators);
+    if (!result.solver_owned.resistors.empty()) add_group(result.solver_owned.resistors);
+    if (!result.solver_owned.electrical_conductances.empty()) add_group(result.solver_owned.electrical_conductances);
+    if (!result.solver_owned.electrical_sources.empty()) add_group(result.solver_owned.electrical_sources);
+    if (!result.solver_owned.controlled_voltage_sources.empty()) add_group(result.solver_owned.controlled_voltage_sources);
+    if (!result.solver_owned.variable_conductances.empty()) add_group(result.solver_owned.variable_conductances);
+    if (!result.solver_owned.azs_switches.empty()) add_group(result.solver_owned.azs_switches);
+    if (!result.solver_owned.hold_buttons.empty()) add_group(result.solver_owned.hold_buttons);
+    if (!result.solver_owned.relays.empty()) add_group(result.solver_owned.relays);
+    if (!result.solver_owned.knob_switches.empty()) add_group(result.solver_owned.knob_switches);
 }
 
 }  // namespace

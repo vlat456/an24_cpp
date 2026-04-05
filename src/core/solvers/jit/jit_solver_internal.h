@@ -91,6 +91,8 @@ void build_electrical_islands(
 
 void build_electrical_patch_ops(BuildResult& result);
 
+void build_solver_commit_ops(BuildResult& result);
+
 void populate_solver_owned_refs(BuildResult& result);
 
 }  // namespace jit_solver_impl

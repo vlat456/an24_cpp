@@ -33,5 +33,8 @@ BuildResult build_systems_dev(
     // Phase 5: Build compiled electrical runtime patch operations
     build_electrical_patch_ops(result);
 
+    // Phase 6: Build compiled solver-owned commit operations
+    build_solver_commit_ops(result);
+
     return result;
 }

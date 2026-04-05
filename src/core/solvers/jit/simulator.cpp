@@ -77,19 +77,13 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st, ElectricalRunt
 }
 
 /// Commit pass for solver-owned components that need per-frame state integration.
-/// Uses pre-built typed pointer lists (SolverOwnedRefs) to avoid per-frame
-/// std::visit scan over all 68+ ComponentVariant types.
+/// Uses compiled commit ops to avoid per-frame per-type branching.
 void commit_solver_owned_devices(BuildResult& br, SimulationState& st, double dt) {
-    for (auto* comp : br.solver_owned.generators) { comp->commit(st, dt); }
-    for (auto* comp : br.solver_owned.resistors) { comp->commit(st, dt); }
-    for (auto* comp : br.solver_owned.electrical_conductances) { comp->commit(st, dt); }
-    for (auto* comp : br.solver_owned.electrical_sources) { comp->commit(st, dt); }
-    for (auto* comp : br.solver_owned.controlled_voltage_sources) { comp->commit(st, dt); }
-    for (auto* comp : br.solver_owned.variable_conductances) { comp->commit(st, dt); }
-    for (auto* comp : br.solver_owned.azs_switches) { comp->commit(st, dt); }
-    for (auto* comp : br.solver_owned.hold_buttons) { comp->commit(st, dt); }
-    for (auto* comp : br.solver_owned.relays) { comp->commit(st, dt); }
-    for (auto* comp : br.solver_owned.knob_switches) { comp->commit(st, dt); }
+    for (const auto& op : br.solver_commit_ops) {
+        if (op.instance != nullptr && op.fn != nullptr) {
+            op.fn(op.instance, st, dt);
+        }
+    }
 }
 
 } // anonymous namespace
