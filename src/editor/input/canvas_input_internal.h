@@ -7,6 +7,7 @@
 #include "ui/math/pt.h"
 #include "data/port.h"
 #include "debug.h"
+#include "visual/persist.h"
 #include "visual/snap.h"
 #include <cstdio>
 #include <cassert>

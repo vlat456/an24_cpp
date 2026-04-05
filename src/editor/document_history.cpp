@@ -1,6 +1,7 @@
 #include "document.h"
 
 #include "debug.h"
+#include "visual/persist.h"
 #include "visual/scene_mutations.h"
 
 #include <spdlog/spdlog.h>
