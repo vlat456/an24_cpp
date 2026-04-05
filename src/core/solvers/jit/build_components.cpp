@@ -1,4 +1,5 @@
 #include "jit_solver_internal.h"
+#include "build_components_common.h"
 
 #include "components/switch.h"
 #include "components/relay.h"
@@ -105,20 +106,6 @@ void build_and_register_components(
 
         ParamReader param_reader(dev.params, dev);
 
-        // Set up port indices for the provider
-        auto setup_ports = [&](auto& comp) {
-            for (const auto& [port_name, port] : dev.ports) {
-                const std::string full_port = dev.name + "." + port_name;
-                auto it = result.port_to_signal.find(full_port);
-                if (it != result.port_to_signal.end()) {
-                    auto port_enum = string_to_port_name(port_name);
-                    if (port_enum.has_value()) {
-                        comp.provider.set(port_enum.value(), it->second);
-                    }
-                }
-            }
-        };
-
         auto build_knob_switch = [&](auto type_tag) {
             using CompType = decltype(type_tag);
             (void)type_tag;
@@ -130,7 +117,7 @@ void build_and_register_components(
             comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
             comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
             comp.pre_load();
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
 
             result.devices[dev.name] = comp;
@@ -142,14 +129,14 @@ void build_and_register_components(
             comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.5f);
             comp.internal_r = param_reader.consume_float_optional("internal_r", 0.005f);
             comp.pre_load();
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }
         else if (dev.classname == "RefNode") {
             RefNode<JitProvider> comp;
             comp.value = param_reader.consume_float_optional("value", 0.0f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<RefNode<JitProvider>>(result.devices[dev.name]));
@@ -162,7 +149,7 @@ void build_and_register_components(
         else if (dev.classname == "Value") {
             Value<JitProvider> comp;
             comp.value = param_reader.consume_float_optional("value", 0.0f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<Value<JitProvider>>(result.devices[dev.name]));
@@ -170,7 +157,7 @@ void build_and_register_components(
         else if (dev.classname == "Switch") {
             Switch<JitProvider> comp;
             comp.closed = param_reader.consume_bool_optional("closed", false);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Switch<JitProvider>>(result.devices[dev.name]));
@@ -180,7 +167,7 @@ void build_and_register_components(
             comp.closed = param_reader.consume_bool_optional("closed", false);
             comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
             comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }
@@ -200,21 +187,21 @@ void build_and_register_components(
             comp.idle = param_reader.consume_float_optional("idle", 0.0f);
             comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
             comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }
         else if (dev.classname == "Load") {
             Load<JitProvider> comp;
             comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Load<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "Bus") {
             Bus<JitProvider> comp;
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Bus<JitProvider>>(result.devices[dev.name]));
@@ -223,7 +210,7 @@ void build_and_register_components(
             BlueprintInput<JitProvider> comp;
             param_reader.consume_string_optional("exposed_direction", "In");
             param_reader.consume_string_optional("exposed_type", "V");
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<BlueprintInput<JitProvider>>(result.devices[dev.name]));
@@ -232,7 +219,7 @@ void build_and_register_components(
             BlueprintOutput<JitProvider> comp;
             param_reader.consume_string_optional("exposed_direction", "Out");
             param_reader.consume_string_optional("exposed_type", "V");
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<BlueprintOutput<JitProvider>>(result.devices[dev.name]));
@@ -241,7 +228,7 @@ void build_and_register_components(
             Comparator<JitProvider> comp;
             comp.Von = param_reader.consume_float_optional("Von", 5.0f);
             comp.Voff = param_reader.consume_float_optional("Voff", 2.0f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Comparator<JitProvider>>(result.devices[dev.name]));
@@ -250,7 +237,7 @@ void build_and_register_components(
             CurrentSense<JitProvider> comp;
             comp.conductance = param_reader.consume_float_optional("conductance", 1000.0f);
             comp.pre_load();
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<CurrentSense<JitProvider>>(result.devices[dev.name]));
@@ -263,21 +250,21 @@ void build_and_register_components(
             comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
             comp.k_cool = param_reader.consume_float_optional("k_cool", 1.0f);
             comp.pre_load();
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }
         else if (dev.classname == "Resistor") {
             Resistor<JitProvider> comp;
             comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }
         else if (dev.classname == "ElectricalConductance") {
             ElectricalConductance<JitProvider> comp;
             comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }
@@ -285,7 +272,7 @@ void build_and_register_components(
             ElectricalSource<JitProvider> comp;
             comp.voltage = param_reader.consume_float_optional("voltage", 28.0f);
             comp.resistance = param_reader.consume_float_optional("resistance", 0.01f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }
@@ -293,7 +280,7 @@ void build_and_register_components(
             Voltmeter<JitProvider> comp;
             comp.min = param_reader.consume_float_optional("min", 0.0f);
             comp.max = param_reader.consume_float_optional("max", 28.0f);
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Voltmeter<JitProvider>>(result.devices[dev.name]));
@@ -303,7 +290,7 @@ void build_and_register_components(
             comp.conductance = param_reader.consume_float_optional("conductance", 1.0f);
             comp.rated_voltage = param_reader.consume_float_optional("rated_voltage", 28.0f);
             comp.pre_load();
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<IndicatorLight<JitProvider>>(result.devices[dev.name]));
@@ -313,21 +300,21 @@ void build_and_register_components(
         // Math/logical components
         else if (dev.classname == "Min") {
             Min<JitProvider> comp;
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Min<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "Max") {
             Max<JitProvider> comp;
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Max<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "Clamp") {
             Clamp<JitProvider> comp;
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Clamp<JitProvider>>(result.devices[dev.name]));
@@ -343,7 +330,7 @@ void build_and_register_components(
             ControlledVoltageSource<JitProvider> comp;
             comp.r_internal = param_reader.consume_float_optional("r_internal", 0.1f);
             comp.pre_load();
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }
@@ -354,14 +341,14 @@ void build_and_register_components(
             comp.max_i = param_reader.consume_float_optional("max_i", 100.0f);
             comp.g_shunt = param_reader.consume_float_optional("g_shunt", 0.001f);
             comp.pre_load();
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ControlledCurrentSource<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "VariableConductance") {
             VariableConductance<JitProvider> comp;
-            setup_ports(comp);
+            setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }

@@ -89,6 +89,8 @@ void build_electrical_islands(
     BuildResult& result,
     const std::vector<DeviceInstance>& devices);
 
+void build_electrical_patch_ops(BuildResult& result);
+
 void populate_solver_owned_refs(BuildResult& result);
 
 }  // namespace jit_solver_impl

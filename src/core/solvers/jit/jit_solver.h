@@ -55,6 +55,34 @@ struct SolverOwnedRefs {
     std::vector<ElectricalSource<JitProvider>*> electrical_sources;
 };
 
+enum class ElectricalPatchKind : uint8_t {
+    AffineClamp,
+    LerpClamped01,
+    BoolSwitch,
+    IndexSwitch
+};
+
+struct ElectricalPatchOp {
+    ElectricalPatchKind kind = ElectricalPatchKind::AffineClamp;
+    uint32_t element_id = UINT32_MAX;
+
+    // Signal-driven operands (used by AffineClamp/LerpClamped01).
+    uint32_t s0 = UINT32_MAX;
+    uint32_t s1 = UINT32_MAX;
+    uint32_t s2 = UINT32_MAX;
+    uint32_t s3 = UINT32_MAX;
+    uint32_t s4 = UINT32_MAX;
+
+    // Pointer-driven state (used by BoolSwitch/IndexSwitch).
+    const bool* bool_state = nullptr;
+    const int* int_state = nullptr;
+    int index_value = 0;
+
+    // Constant outputs for switch kinds.
+    float open_value = 0.0f;
+    float closed_value = 0.0f;
+};
+
 /// Build port-to-signal mapping from devices and connections
 /// For AOT, this is used by codegen to generate component bindings
 struct BuildResult {
@@ -67,6 +95,9 @@ struct BuildResult {
     /// NOTE: This is storage only — all per-frame dispatch uses PushScheduler
     /// (type-erased fn ptrs) or SolverOwnedRefs (typed pointer lists).
     /// std::visit on this map only happens at build time.
+    /// INVARIANT: After `build_systems_dev()` completes pointer extraction
+    /// (scheduler + solver_owned), this map must not be structurally modified
+    /// (insert/erase/rehash), otherwise stored pointers become dangling.
     std::unordered_map<std::string, ComponentVariant> devices;
 
     /// Push scheduler populated at build time.
@@ -82,6 +113,10 @@ struct BuildResult {
     /// Pre-built typed pointer lists for solver-owned components.
     /// Eliminates per-frame std::visit over all 68+ variant types.
     SolverOwnedRefs solver_owned;
+
+    /// Compiled pre-solve electrical patch operations.
+    /// Each op writes current-frame mutable element values by element_id.
+    std::vector<ElectricalPatchOp> electrical_patch_ops;
 };
 
 BuildResult build_systems_dev(

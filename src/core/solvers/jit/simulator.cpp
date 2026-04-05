@@ -1,11 +1,4 @@
 #include "simulator.h"
-#include "components/controlled_voltage_source.h"
-#include "components/electrical_conductance.h"
-#include "components/electrical_source.h"
-#include "components/azs.h"
-#include "components/hold_button.h"
-#include "components/relay.h"
-#include "components/variable_conductance.h"
 #include "components/port_registry.h"
 #include "../../../json_parser/json_parser.h"
 #include "../../../parse_number.h"
@@ -14,67 +7,72 @@
 
 namespace {
 
-/// Pre-solve pass: update dynamic Thevenin source voltages before solve_electrical().
-/// Uses pre-built typed pointer lists (SolverOwnedRefs) to avoid per-frame
-/// std::visit scan over all 68+ ComponentVariant types.
-void update_dynamic_sources(BuildResult& br, SimulationState& st) {
-    for (auto* comp : br.solver_owned.controlled_voltage_sources) {
-        if (!is_valid(comp->electrical_handle)) continue;
-        float cmd = st.values[comp->provider.get(PortNames::cmd)];
-        float gain = st.values[comp->provider.get(PortNames::gain)];
-        float offset = st.values[comp->provider.get(PortNames::offset)];
-        float min_v = st.values[comp->provider.get(PortNames::min_v)];
-        float max_v = st.values[comp->provider.get(PortNames::max_v)];
-        float v_source = std::clamp(cmd * gain + offset, min_v, max_v);
-        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
-        auto& elem = island.elements[comp->electrical_handle.element_index];
-        elem.value_a = v_source;
-    }
-
-    for (auto* comp : br.solver_owned.variable_conductances) {
-        if (!is_valid(comp->electrical_handle)) continue;
-        float cmd = st.values[comp->provider.get(PortNames::cmd)];
-        float g_min = st.values[comp->provider.get(PortNames::g_min)];
-        float g_max = st.values[comp->provider.get(PortNames::g_max)];
-        float t = std::clamp(cmd, 0.0f, 1.0f);
-        float g = g_min + (g_max - g_min) * t;
-        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
-        auto& elem = island.elements[comp->electrical_handle.element_index];
-        elem.value_a = g;
-    }
-
-    for (auto* comp : br.solver_owned.azs_switches) {
-        if (!is_valid(comp->electrical_handle)) continue;
-        float g = comp->closed ? comp->g_closed : comp->g_open;
-        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
-        auto& elem = island.elements[comp->electrical_handle.element_index];
-        elem.value_a = g;
-    }
-
-    for (auto* comp : br.solver_owned.hold_buttons) {
-        if (!is_valid(comp->electrical_handle)) continue;
-        float g = comp->is_pressed ? comp->g_closed : comp->g_open;
-        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
-        auto& elem = island.elements[comp->electrical_handle.element_index];
-        elem.value_a = g;
-    }
-
-    for (auto* comp : br.solver_owned.relays) {
-        if (!is_valid(comp->electrical_handle)) continue;
-        float g = comp->closed ? comp->g_closed : comp->g_open;
-        auto& island = br.electrical_plan.islands[comp->electrical_handle.island_index];
-        auto& elem = island.elements[comp->electrical_handle.element_index];
-        elem.value_a = g;
-    }
-
-    for (auto* comp : br.solver_owned.knob_switches) {
-        for (int i = 0; i < comp->num_handles; ++i) {
-            if (!is_valid(comp->electrical_handles[i])) continue;
-            float g = (i == comp->selected) ? comp->g_closed : comp->g_open;
-            auto& island = br.electrical_plan.islands[comp->electrical_handles[i].island_index];
-            auto& elem = island.elements[comp->electrical_handles[i].element_index];
-            elem.value_a = g;
+void ensure_runtime_element_values(const ElectricalBuildPlan& plan, ElectricalRuntimeState& rt) {
+    uint32_t max_element_id = 0;
+    bool has_elements = false;
+    for (const auto& island : plan.islands) {
+        for (const auto& elem : island.elements) {
+            has_elements = true;
+            max_element_id = std::max(max_element_id, elem.element_id);
         }
+    }
+
+    if (!has_elements) {
+        rt.element_value_a.clear();
+        return;
+    }
+
+    const size_t needed = static_cast<size_t>(max_element_id) + 1;
+    if (rt.element_value_a.size() < needed) {
+        rt.element_value_a.resize(needed, 0.0f);
+        for (const auto& island : plan.islands) {
+            for (const auto& elem : island.elements) {
+                if (elem.element_id < rt.element_value_a.size()) {
+                    rt.element_value_a[elem.element_id] = elem.value_a;
+                }
+            }
+        }
+    }
+}
+
+/// Pre-solve pass: apply compiled electrical patch operations.
+void update_dynamic_sources(BuildResult& br, SimulationState& st, ElectricalRuntimeState& rt) {
+    for (const auto& op : br.electrical_patch_ops) {
+        if (op.element_id >= rt.element_value_a.size()) {
+            continue;
+        }
+
+        float out = rt.element_value_a[op.element_id];
+        switch (op.kind) {
+            case ElectricalPatchKind::AffineClamp: {
+                float cmd = st.values[op.s0];
+                float gain = st.values[op.s1];
+                float offset = st.values[op.s2];
+                float min_v = st.values[op.s3];
+                float max_v = st.values[op.s4];
+                out = std::clamp(cmd * gain + offset, min_v, max_v);
+                break;
+            }
+            case ElectricalPatchKind::LerpClamped01: {
+                float cmd = st.values[op.s0];
+                float lo = st.values[op.s1];
+                float hi = st.values[op.s2];
+                float t = std::clamp(cmd, 0.0f, 1.0f);
+                out = lo + (hi - lo) * t;
+                break;
+            }
+            case ElectricalPatchKind::BoolSwitch: {
+                const bool state = (op.bool_state != nullptr) ? *op.bool_state : false;
+                out = state ? op.closed_value : op.open_value;
+                break;
+            }
+            case ElectricalPatchKind::IndexSwitch: {
+                const int idx = (op.int_state != nullptr) ? *op.int_state : -1;
+                out = (idx == op.index_value) ? op.closed_value : op.open_value;
+                break;
+            }
+        }
+        rt.element_value_a[op.element_id] = out;
     }
 }
 
@@ -190,6 +188,7 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
     // Explicitly clear electrical_rt pointer: solver-owned electrical propagation
     // runs inside step(), not between steps. Pointer must not be stale.
     state_.electrical_rt = nullptr;
+    electrical_rt_ = ElectricalRuntimeState{};
 
     time_ = 0.0;
     step_count_ = 0;
@@ -200,6 +199,7 @@ template <typename SolverTag>
 void Simulator<SolverTag>::stop() {
     build_result_.reset();
     state_ = SimulationState();
+    electrical_rt_ = ElectricalRuntimeState{};
     time_ = 0.0;
     step_count_ = 0;
     running_ = false;
@@ -259,12 +259,15 @@ void Simulator<SolverTag>::step(double dt) {
         ~RtGuard() { st.electrical_rt = nullptr; }
     } guard{state_};
 
+    // Ensure runtime mutable element values are initialized from build-plan defaults.
+    ensure_runtime_element_values(build_result_->electrical_plan, electrical_rt_);
+
     // Pre-solve: update dynamic Thevenin source voltages (ControlledVoltageSource).
     // Reads cmd from previous frame's signal array (one-frame-delay semantic).
-    update_dynamic_sources(*build_result_, state_);
+    update_dynamic_sources(*build_result_, state_, electrical_rt_);
 
     // Run electrical subsolver to compute node voltages and branch currents
-    solve_electrical(build_result_->electrical_plan, state_, electrical_rt_, dt);
+    solve_electrical(build_result_->electrical_plan, electrical_rt_.element_value_a, state_, electrical_rt_, dt);
 
     build_result_->scheduler.step(state_, dt);
 

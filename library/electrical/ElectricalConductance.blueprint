@@ -38,6 +38,9 @@
     },
     "params": {
       "g": "conductance"
+    },
+    "values": {
+      "bind_handle": 1.0
     }
   }
 }

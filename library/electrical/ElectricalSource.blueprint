@@ -40,6 +40,9 @@
     "params": {
       "voltage": "voltage",
       "resistance": "resistance"
+    },
+    "values": {
+      "bind_handle": 1.0
     }
   }
 }

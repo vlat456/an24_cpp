@@ -30,6 +30,9 @@
     },
     "params": {
       "voltage": "value"
+    },
+    "values": {
+      "bind_handle": 1.0
     }
   },
   "render_hint": "ref"

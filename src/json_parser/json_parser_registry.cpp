@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 #include <set>
 #include <spdlog/spdlog.h>
+#include <string>
 
 using json = nlohmann::json;
 
@@ -201,6 +202,58 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
     }
     if (j.contains("param_schema")) {
         def.param_schema = parse_param_schema(j["param_schema"]);
+    }
+
+    if (j.contains("solver_role")) {
+        if (!j["solver_role"].is_object()) {
+            throw std::runtime_error("'solver_role' must be an object for component '" + def.classname + "'");
+        }
+
+        const auto& sr = j["solver_role"];
+        SolverRole role;
+
+        if (!sr.contains("kind") || !sr["kind"].is_string()) {
+            throw std::runtime_error("solver_role missing required string 'kind' for component '" + def.classname + "'");
+        }
+        role.kind = sr["kind"].get<std::string>();
+
+        if (sr.contains("ports")) {
+            if (!sr["ports"].is_object()) {
+                throw std::runtime_error("solver_role field 'ports' must be object for component '" + def.classname + "'");
+            }
+            for (const auto& [k, v] : sr["ports"].items()) {
+                if (!v.is_string()) {
+                    throw std::runtime_error("solver_role ports['" + k + "'] must be string for component '" + def.classname + "'");
+                }
+                role.port_map[k] = v.get<std::string>();
+            }
+        }
+
+        if (sr.contains("params")) {
+            if (!sr["params"].is_object()) {
+                throw std::runtime_error("solver_role field 'params' must be object for component '" + def.classname + "'");
+            }
+            for (const auto& [k, v] : sr["params"].items()) {
+                if (!v.is_string()) {
+                    throw std::runtime_error("solver_role params['" + k + "'] must be string for component '" + def.classname + "'");
+                }
+                role.param_map[k] = v.get<std::string>();
+            }
+        }
+
+        if (sr.contains("values")) {
+            if (!sr["values"].is_object()) {
+                throw std::runtime_error("solver_role field 'values' must be object for component '" + def.classname + "'");
+            }
+            for (const auto& [k, v] : sr["values"].items()) {
+                if (!v.is_number()) {
+                    throw std::runtime_error("solver_role values['" + k + "'] must be number for component '" + def.classname + "'");
+                }
+                role.value_map[k] = static_cast<float>(v.get<double>());
+            }
+        }
+
+        def.solver_role = std::move(role);
     }
 
     // For non-cpp_class blueprints: convert v3 nodes/wires to devices/connections

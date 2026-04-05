@@ -30,5 +30,8 @@ BuildResult build_systems_dev(
     // Phase 4: Populate solver-owned typed reference lists
     populate_solver_owned_refs(result);
 
+    // Phase 5: Build compiled electrical runtime patch operations
+    build_electrical_patch_ops(result);
+
     return result;
 }

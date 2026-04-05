@@ -17,7 +17,7 @@ struct ElectricalElement {
     uint32_t node_b;
     float value_a;
     float value_b;
-    uint32_t component_index;
+    uint32_t element_id;
 };
 
 // == ElectricalIslandPlan ==
@@ -38,7 +38,7 @@ struct ElectricalBuildPlan {
 struct ElectricalPrimitiveHandle {
     uint32_t island_index = UINT32_MAX;
     uint32_t element_index = UINT32_MAX;
-    uint32_t component_index = UINT32_MAX;  // for indexing into branch_currents
+    uint32_t element_id = UINT32_MAX;  // for indexing into branch_currents
 };
 
 // Helper to check if a handle points to a valid element
@@ -71,10 +71,11 @@ struct ElectricalRuntimeState {
         uint32_t worst_node_signal = UINT32_MAX;
         float worst_node_voltage = 0.0f;
         float max_abs_kcl_residual = 0.0f;
-        uint32_t worst_branch_component_index = UINT32_MAX;
+        uint32_t worst_branch_element_id = UINT32_MAX;
     };
 
     std::vector<float> branch_currents;
+    std::vector<float> element_value_a;
     std::vector<float> scratch_matrix;
     std::vector<float> scratch_rhs;
 
@@ -93,9 +94,10 @@ struct ElectricalRuntimeState {
         counters = {};
     }
 
-    void reserve(uint32_t max_nodes, uint32_t max_elements, uint32_t max_component_index) {
+    void reserve(uint32_t max_nodes, uint32_t max_elements, uint32_t max_element_id) {
         uint32_t max_unknowns = max_nodes;
-        branch_currents.reserve(max_component_index + 1);
+        branch_currents.reserve(max_element_id + 1);
+        element_value_a.reserve(max_element_id + 1);
         island_nodes.reserve(max_nodes);
         fixed_nodes.reserve(max_elements);
         fixed_voltages.reserve(max_nodes);
@@ -115,8 +117,8 @@ inline float get_branch_current(const ElectricalRuntimeState& rt, const Electric
     if (!is_valid(handle)) {
         return 0.0f;
     }
-    if (handle.component_index >= rt.branch_currents.size()) {
+    if (handle.element_id >= rt.branch_currents.size()) {
         return 0.0f;
     }
-    return rt.branch_currents[handle.component_index];
+    return rt.branch_currents[handle.element_id];
 }
