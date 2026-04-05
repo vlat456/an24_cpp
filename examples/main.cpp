@@ -140,8 +140,7 @@ int main() {
 
     std::cout << "\n=== Initial voltages ===\n";
     for (size_t i = 0; i < state.values.size(); ++i) {
-        std::cout << "signal[" << i << "]: " << state.values[i]
-                  << (state.signal_types[i].is_fixed ? " (FIXED)" : "") << "\n";
+        std::cout << "signal[" << i << "]: " << state.values[i] << "\n";
     }
     std::cout << "\n";
 

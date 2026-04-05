@@ -39,8 +39,6 @@ struct AZSTestFixture : public ::testing::Test {
 
     void SetUp() override {
         st.values.resize(SIGNAL_COUNT, 0.0f);
-        st.signal_types.resize(SIGNAL_COUNT, {Domain::Electrical, false});
-        st.dynamic_signals_count = SIGNAL_COUNT;
 
         azs.provider.set(PortNames::v_in, IDX_V_IN);
         azs.provider.set(PortNames::v_out, IDX_V_OUT);

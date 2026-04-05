@@ -25,8 +25,6 @@ struct KnobSwitchTestFixture : public ::testing::Test {
 
     void SetUp() override {
         st.values.resize(SIGNAL_COUNT, 0.0f);
-        st.signal_types.resize(SIGNAL_COUNT, {Domain::Logical, false});
-        st.dynamic_signals_count = SIGNAL_COUNT;
 
         knob.provider.set(PortNames::control, IDX_CONTROL);
         knob.provider.set(PortNames::position, IDX_POSITION);
@@ -122,8 +120,6 @@ TEST_F(KnobSwitchTestFixture, PreLoadClampsNegativePosition) {
 TEST(KnobSwitchTwoPosition, SwitchesBetweenTwoPositions) {
     SimulationState st;
     st.values.resize(2, 0.0f);
-    st.signal_types.resize(2, {Domain::Logical, false});
-    st.dynamic_signals_count = 2;
 
     KnobSwitch<JitProvider> knob;
     knob.provider.set(PortNames::control, 0);
@@ -152,8 +148,6 @@ TEST(KnobSwitchTwoPosition, SwitchesBetweenTwoPositions) {
 TEST(KnobSwitchFivePosition, AllPositionsAccessible) {
     SimulationState st;
     st.values.resize(2, 0.0f);
-    st.signal_types.resize(2, {Domain::Logical, false});
-    st.dynamic_signals_count = 2;
 
     KnobSwitch<JitProvider> knob;
     knob.provider.set(PortNames::control, 0);

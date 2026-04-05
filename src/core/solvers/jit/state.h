@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-/// Signal metadata.
+/// Legacy allocation tag kept only for API compatibility.
 struct SignalType {
     Domain domain;
     bool is_fixed;
@@ -22,14 +22,9 @@ struct SignalType {
 /// custom aligned allocator (e.g., std::vector<float, AlignedAllocator<64>>).
 struct SimulationState {
     std::vector<float> values;
-    std::vector<SignalType> signal_types;
 
     std::vector<float> lut_keys;
     std::vector<float> lut_values;
-
-    // Number of non-fixed signals allocated so far.
-    // Allocation is append-only so returned indices remain stable.
-    uint32_t dynamic_signals_count = 0;
 
     // Pointer to currently active electrical runtime state.
     // Set by simulator before scheduler.step() each frame.
@@ -38,5 +33,15 @@ struct SimulationState {
 
     SimulationState() = default;
 
-    [[nodiscard]] uint32_t allocate_signal(float initial_value, SignalType type);
+    [[nodiscard]] uint32_t allocate_signal(float initial_value) {
+        const uint32_t idx = static_cast<uint32_t>(values.size());
+        values.push_back(initial_value);
+        return idx;
+    }
+
+    // Legacy compatibility overload used by existing call sites.
+    [[nodiscard]] uint32_t allocate_signal(float initial_value, SignalType /*type*/) {
+        return allocate_signal(initial_value);
+    }
+
 };

@@ -1463,7 +1463,6 @@ TEST(PushRuntime, RelayCustomHoldThresholdIsRespected) {
 
     SimulationState st;
     st.values.resize(5, 0.0f);
-    st.signal_types.resize(5, {Domain::Electrical, false});
     st.values[4] = 2.0f;  // hold_threshold = 2.0 via port
 
     // 1.0 < 2.0 threshold → should NOT close

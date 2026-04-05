@@ -71,8 +71,6 @@ static Transformer<JitProvider> make_transformer_test(SimulationState& st,
     st.values.resize(2, 0.0f);
     st.values[0] = v_primary;
     st.values[1] = v_secondary;
-    st.signal_types.resize(2, {Domain::Electrical, false});
-    st.dynamic_signals_count = 2;
 
     Transformer<JitProvider> xfmr;
     xfmr.ratio = ratio;

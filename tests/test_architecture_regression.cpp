@@ -87,7 +87,6 @@ TEST(E001_Noexcept, SolveGaussianReturnsBool) {
 
     SimulationState st;
     st.values.resize(2, 5.0f);  // non-zero previous values
-    st.signal_types.resize(2, {Domain::Electrical, false});
     ElectricalRuntimeState rt;
 
     // Must not throw. Previous values preserved on singular fallback.
@@ -111,7 +110,6 @@ TEST(E001_Noexcept, DuplicateFixedConstraintsSameValueNoThrow) {
 
     SimulationState st;
     st.values.resize(4, 0.0f);
-    st.signal_types.resize(4, {Domain::Electrical, false});
     ElectricalRuntimeState rt;
 
     EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));

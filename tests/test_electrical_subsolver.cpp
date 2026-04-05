@@ -21,7 +21,6 @@ ElectricalIslandPlan make_island(
 SimulationState make_sim_state(size_t num_signals) {
     SimulationState st;
     st.values.resize(num_signals, 0.0f);
-    st.signal_types.resize(num_signals, {Domain::Electrical, false});
     return st;
 }
 
@@ -48,21 +47,21 @@ TEST(ElectricalSubsolver, SimpleTheveninDivider) {
                 ElectricalElementKind::FixedVoltageNode,
                 0, 0,   // node_a=0, node_b=0 (unused)
                 0.0f, 0.0f,  // value_a=0V
-                0u  // component_index=0
+                0u  // element_id=0
             },
             // TheveninSource: Vth=28, Rseries=1 from node 1 to node 0.
             ElectricalElement{
                 ElectricalElementKind::TheveninSource,
                 1, 0,
                 28.0f, 1.0f,  // value_a=Vth=28, value_b=Rseries=1
-                1u  // component_index=1
+                1u  // element_id=1
             },
             // ConductanceBranch: g=1S from node 1 to node 0 (load to ground)
             ElectricalElement{
                 ElectricalElementKind::ConductanceBranch,
                 1, 0,   // node_a=1, node_b=0
                 1.0f, 0.0f,  // value_a=g=1
-                2u  // component_index=2
+                2u  // element_id=2
             }
         }
     ));
@@ -259,7 +258,7 @@ TEST(ElectricalSubsolver, BranchCurrentStoragePopulated) {
                 ElectricalElementKind::FixedVoltageNode,
                 0, 0,
                 0.0f, 0.0f,
-                5u  // high component_index
+                5u  // high element_id
             },
             // Thevenin from node 1 to node 0: Vth=10, Rseries=1
             ElectricalElement{
@@ -390,7 +389,6 @@ TEST(ElectricalSubsolver, VoltageWritebackToSimulationState) {
     // Create state with extra space
     SimulationState st;
     st.values.resize(50, 999.0f);  // Initialize with sentinel
-    st.signal_types.resize(50, {Domain::Electrical, false});
 
     ElectricalRuntimeState rt;
 
@@ -642,7 +640,7 @@ TEST(ElectricalSubsolver, ReservedScratchBuffersStayStableAcrossSteps) {
     SimulationState st = make_sim_state(6);
     ElectricalRuntimeState rt;
     rt.enable_diagnostics = true;
-    rt.reserve(/*max_nodes=*/3, /*max_elements=*/4, /*max_component_index=*/3);
+    rt.reserve(/*max_nodes=*/3, /*max_elements=*/4, /*max_element_id=*/3);
 
     solve_electrical(plan, st, rt, 0.0f);
 

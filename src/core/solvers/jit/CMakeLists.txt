@@ -9,7 +9,6 @@ add_library(jit_solver
     build_components_physical.cpp
     build_components_validation.cpp
     build_electrical.cpp
-    state.cpp
     simulator.cpp
     subsolvers/electrical_subsolver.cpp
     # Phase 2 Slice 1: Migrated push-style components
