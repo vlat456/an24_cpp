@@ -17,11 +17,12 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
     drag_anchor_ = drag_anchor_ + world_delta;
 
     bool all_ref_nodes = true;
+    ui::InternedId value_type = interner_.intern("Value");
     for (auto* w : selected_nodes()) {
         ui::InternedId nid = interner_.intern(w->id());
         if (nid.empty()) continue;
         const bp2::Blueprint::Node* n = model_.current().find_node(nid);
-        if (!n || n->render_hint != "ref") {
+        if (!n || n->render_hint != "ref" || n->type == value_type) {
             all_ref_nodes = false;
             break;
         }
