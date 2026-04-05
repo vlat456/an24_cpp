@@ -1,4 +1,5 @@
 #include "codegen_composite_helpers.h"
+#include "../shared/signal_union_rules.h"
 
 #include <map>
 
@@ -55,39 +56,13 @@ void apply_signal_allocation_rules(
     const std::vector<Connection>& expanded_connections,
     const std::unordered_map<std::string, uint32_t>& port_to_idx
 ) {
-    for (const auto& dev : expanded_devices) {
-        if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
-            std::string ext_key = dev.name + ".ext";
-            std::string port_key = dev.name + ".port";
-            auto it_ext = port_to_idx.find(ext_key);
-            auto it_port = port_to_idx.find(port_key);
-            if (it_ext != port_to_idx.end() && it_port != port_to_idx.end()) {
-                uf.unite(it_ext->second, it_port->second);
-            }
-        }
-    }
-
-    for (const auto& conn : expanded_connections) {
-        auto it_from = port_to_idx.find(conn.from);
-        auto it_to = port_to_idx.find(conn.to);
-        if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
-            uf.unite(it_from->second, it_to->second);
-        }
-    }
-
-    for (const auto& dev : expanded_devices) {
-        for (const auto& [port_name, port] : dev.ports) {
-            if (port.alias.has_value() && !port.alias->empty()) {
-                std::string full_port = dev.name + "." + port_name;
-                std::string full_alias = dev.name + "." + *port.alias;
-                auto it_port = port_to_idx.find(full_port);
-                auto it_alias = port_to_idx.find(full_alias);
-                if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
-                    uf.unite(it_port->second, it_alias->second);
-                }
-            }
-        }
-    }
+    signal_union_rules::apply_signal_union_rules(
+        uf,
+        expanded_devices,
+        expanded_connections,
+        port_to_idx,
+        /*skip_visual_only=*/false,
+        [](const std::string&, const std::string&, bool, bool) {});
 }
 
 std::unordered_map<std::string, uint32_t> finalize_signal_indices(

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "core/solvers/aot/codegen.h"
+#include "core/solvers/aot/codegen_composite_helpers.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "json_parser/json_parser.h"
 #include "test_helpers.h"
@@ -177,4 +178,74 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     EXPECT_NE(aot_source.find("cmd_logic.execute"), std::string::npos);
     EXPECT_NE(aot_source.find("src.execute"), std::string::npos);
     EXPECT_NE(aot_source.find("meter.execute"), std::string::npos);
+}
+
+TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
+    std::vector<DeviceInstance> devices;
+
+    DeviceInstance vin;
+    vin.name = "vin";
+    vin.classname = "BlueprintInput";
+    vin.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
+    vin.ports["ext"] = Port{PortDirection::In, PortType::Any, std::string("port")};
+    devices.push_back(vin);
+
+    DeviceInstance pass;
+    pass.name = "pass";
+    pass.classname = "Resistor";
+    pass.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    pass.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    pass.params["conductance"] = "1.0";
+    devices.push_back(pass);
+
+    DeviceInstance vout;
+    vout.name = "vout";
+    vout.classname = "BlueprintOutput";
+    vout.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    vout.ports["ext"] = Port{PortDirection::Out, PortType::Any, std::string("port")};
+    devices.push_back(vout);
+
+    std::vector<Connection> connections = {
+        {"vin.port", "pass.v_in"},
+        {"pass.v_out", "vout.port"},
+    };
+
+    std::vector<std::pair<std::string, std::string>> conn_pairs;
+    conn_pairs.reserve(connections.size());
+    for (const auto& c : connections) {
+        conn_pairs.emplace_back(c.from, c.to);
+    }
+    BuildResult jit = build_systems_dev(devices, conn_pairs);
+
+    std::vector<std::string> all_ports;
+    std::unordered_map<std::string, uint32_t> port_to_idx;
+    codegen_composite_detail::build_port_index_map(devices, all_ports, port_to_idx);
+
+    codegen_composite_detail::UnionFind uf(all_ports.size());
+    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, connections, port_to_idx);
+
+    uint32_t aot_signal_count = 0;
+    auto aot_port_to_signal =
+        codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, aot_signal_count);
+
+    for (const auto& [port, aot_sig] : aot_port_to_signal) {
+        auto it_jit = jit.port_to_signal.find(port);
+        ASSERT_NE(it_jit, jit.port_to_signal.end()) << "Missing JIT signal for port " << port;
+        (void)aot_sig;
+    }
+
+    for (const auto& [port_a, aot_sig_a] : aot_port_to_signal) {
+        for (const auto& [port_b, aot_sig_b] : aot_port_to_signal) {
+            const bool aot_same = (aot_sig_a == aot_sig_b);
+            const bool jit_same = (jit.port_to_signal.at(port_a) == jit.port_to_signal.at(port_b));
+            EXPECT_EQ(jit_same, aot_same)
+                << "Partition mismatch for ports '" << port_a << "' and '" << port_b << "'";
+        }
+    }
+
+    EXPECT_EQ(jit.port_to_signal.at("vin.ext"), jit.port_to_signal.at("vin.port"));
+    EXPECT_EQ(jit.port_to_signal.at("vout.ext"), jit.port_to_signal.at("vout.port"));
+    EXPECT_EQ(jit.port_to_signal.at("vin.port"), jit.port_to_signal.at("pass.v_in"));
+    EXPECT_EQ(jit.port_to_signal.at("pass.v_out"), jit.port_to_signal.at("vout.port"));
+    EXPECT_EQ(jit.signal_count, aot_signal_count + 1);
 }
