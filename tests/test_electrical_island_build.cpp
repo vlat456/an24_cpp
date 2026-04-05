@@ -8,6 +8,11 @@
 
 namespace {
 
+const TypeRegistry& test_registry() {
+    static const TypeRegistry registry = load_type_registry("library/");
+    return registry;
+}
+
 // Helper to create a basic device instance with explicit ports
 DeviceInstance make_device(const std::string& name, const std::string& classname,
                           const std::unordered_map<std::string, std::string>& params = {},
@@ -27,6 +32,30 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
     }
+
+    if (const TypeDefinition* def = test_registry().get(classname)) {
+        for (const auto& [param_name, param_value] : def->params) {
+            auto schema_it = def->param_schema.find(param_name);
+            if (schema_it != def->param_schema.end() && schema_it->second.visual_only) {
+                continue;
+            }
+            if (!dev.params.count(param_name)) {
+                dev.params[param_name] = param_value;
+            }
+        }
+        dev.solver_role = def->solver_role;
+    }
+    return dev;
+}
+
+DeviceInstance make_device_without_solver_role(
+    const std::string& name,
+    const std::string& classname,
+    const std::unordered_map<std::string, std::string>& params = {},
+    const std::vector<std::string>& explicit_ports = {}
+) {
+    DeviceInstance dev = make_device(name, classname, params, explicit_ports);
+    dev.solver_role.reset();
     return dev;
 }
 
@@ -450,4 +479,35 @@ TEST(ElectricalIslandBuild, IndicatorLightWithExtraParamsDoesNotThrow) {
 
     // Must NOT throw "Unknown/unconsumed parameter"
     EXPECT_NO_THROW(build_systems_dev(devices, connections));
+}
+
+TEST(ElectricalIslandBuild, MissingSolverRoleOnElectricalPrimitivesThrows) {
+    // Strictness regression: no classname fallback extraction is allowed.
+    // If a required electrical primitive reaches builder without solver_role,
+    // build must fail fast.
+    std::vector<DeviceInstance> devices = {
+        make_device_without_solver_role("generator", "Generator", {{"v_nominal", "28.0"}, {"internal_r", "0.02"}}),
+        make_device_without_solver_role("resistor", "Resistor", {{"conductance", "0.1"}}),
+        make_device_without_solver_role("cvs", "ControlledVoltageSource", {{"r_internal", "0.01"}}),
+        make_device_without_solver_role("azs", "AZS", {{"g_open", "1e-6"}, {"g_closed", "1000"}}),
+        make_device_without_solver_role("relay", "Relay", {{"g_open", "1e-6"}, {"g_closed", "1000"}}),
+        make_device_without_solver_role("knob", "KnobSwitch", {{"positions", "2"}}),
+        make_device("gnd", "RefNode", {{"value", "0.0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"generator.v_in", "gnd.v"},
+        {"generator.v_out", "resistor.v_in"},
+        {"resistor.v_out", "gnd.v"},
+        {"cvs.v_neg", "gnd.v"},
+        {"cvs.v_pos", "gnd.v"},
+        {"azs.v_in", "gnd.v"},
+        {"azs.v_out", "gnd.v"},
+        {"relay.v_in", "gnd.v"},
+        {"relay.v_out", "gnd.v"},
+        {"knob.wiper", "gnd.v"},
+        {"knob.throw1", "gnd.v"},
+    };
+
+    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
 }

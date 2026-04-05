@@ -3,6 +3,8 @@
   "id": "Bus",
   "display_name": "Bus",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "v",

@@ -3,6 +3,7 @@
   "id": "VariableConductance",
   "display_name": "VariableConductance",
   "scheduler_source": false,
+  "solver_owned_electrical": true,
   "interface": [
     {
       "name": "v_in",

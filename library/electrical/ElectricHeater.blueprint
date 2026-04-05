@@ -3,6 +3,8 @@
   "id": "ElectricHeater",
   "display_name": "ElectricHeater",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "heat_out",

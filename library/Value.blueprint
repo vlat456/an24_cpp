@@ -3,6 +3,8 @@
   "id": "Value",
   "display_name": "Value",
   "scheduler_source": true,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "o",

@@ -15,7 +15,6 @@ add_library(jit_solver
     components/switch.cpp
     components/relay.cpp
     components/hold_button.cpp
-    components/load.cpp
     components/ref_node.cpp
     components/generator.cpp
     components/bus.cpp
@@ -74,7 +73,6 @@ add_library(jit_solver
     components/fuel_tank.cpp
     components/gidro_accumulator.cpp
     components/gyroscope.cpp
-    components/high_power_load.cpp
     components/inertia_node.cpp
     components/inverter.cpp
     components/radiator.cpp

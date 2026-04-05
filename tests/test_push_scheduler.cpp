@@ -30,7 +30,7 @@ struct MockConsumer {
 
 TEST(push_scheduler, SourcesBeforeConsumers) {
     SimulationState st;
-    st.allocate_signal(0.0f, {Domain::Electrical, false});
+    st.allocate_signal(0.0f);
 
     int counter = 0;
     MockSource src{&counter, 0};
@@ -48,7 +48,7 @@ TEST(push_scheduler, SourcesBeforeConsumers) {
 
 TEST(push_scheduler, MultipleSourcesMultipleConsumers) {
     SimulationState st;
-    st.allocate_signal(0.0f, {Domain::Electrical, false});
+    st.allocate_signal(0.0f);
 
     int counter = 0;
     MockSource src1{&counter, 0};
@@ -76,7 +76,7 @@ TEST(push_scheduler, EmptySchedulerNoOp) {
 
 TEST(push_scheduler, SinglePassExecution) {
     SimulationState st;
-    st.allocate_signal(0.0f, {Domain::Electrical, false});
+    st.allocate_signal(0.0f);
 
     int exec_count = 0;
     MockSource src{&exec_count, 0};

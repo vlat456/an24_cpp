@@ -3,6 +3,8 @@
   "id": "Multiply",
   "display_name": "Multiply",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "A",

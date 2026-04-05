@@ -3,6 +3,8 @@
   "id": "TimeDelay",
   "display_name": "TimeDelay",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "in",

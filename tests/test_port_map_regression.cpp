@@ -20,12 +20,12 @@ TEST(PortMapRegression, AllComponentPortsAreInStringToPortName) {
         "Any_V_to_Bool", "Positive_V_to_Bool",
         "Subtract", "Comparator", "Merger", "Splitter",
         "ElectricalSource", "Bus", "RefNode", "Switch", "Relay",
-        "Resistor", "Load", "IndicatorLight", "Voltmeter",
+        "Resistor", "IndicatorLight", "Voltmeter",
         "HoldButton",
         "Generator", "Inverter", "Transformer",
         "LerpNode", "InertiaNode", "Gyroscope",
         "ElectricHeater", "ElectricPump", "Radiator",
-        "SolenoidValve", "TempSensor", "HighPowerLoad",
+        "SolenoidValve", "TempSensor",
         "BlueprintInput", "BlueprintOutput",
         "P", "PI", "PD", "PID"
     };
@@ -81,7 +81,7 @@ TEST(PortMapRegression, AND_Gate_Reads_Correct_Signals) {
     for (uint32_t i = 0; i < result.signal_count; ++i) {
         bool is_fixed = std::binary_search(
             result.fixed_signals.begin(), result.fixed_signals.end(), i);
-        (void)state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        (void)state.allocate_signal(0.0f);
     }
 
     // Init ground
@@ -154,7 +154,7 @@ TEST(PortMapRegression, NOT_Gate_Reads_Correct_Input) {
     for (uint32_t i = 0; i < result.signal_count; ++i) {
         bool is_fixed = std::binary_search(
             result.fixed_signals.begin(), result.fixed_signals.end(), i);
-        (void)state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        (void)state.allocate_signal(0.0f);
     }
     auto gnd_it = result.port_to_signal.find("gnd.v");
     if (gnd_it != result.port_to_signal.end())
@@ -208,7 +208,7 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
     for (uint32_t i = 0; i < result.signal_count; ++i) {
         bool is_fixed = std::binary_search(
             result.fixed_signals.begin(), result.fixed_signals.end(), i);
-        (void)state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        (void)state.allocate_signal(0.0f);
     }
     auto gnd_it = result.port_to_signal.find("gnd.v");
     if (gnd_it != result.port_to_signal.end())
@@ -232,5 +232,4 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
     EXPECT_GT(get("sub.o"), 20.0f)
         << "Subtract(28, 0) must output ~28! (port A/B mapping regression)";
 }
-
 

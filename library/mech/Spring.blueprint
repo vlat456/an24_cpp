@@ -3,6 +3,8 @@
   "id": "Spring",
   "display_name": "Spring",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "force_out",

@@ -34,6 +34,15 @@ inline TypeDefinition make_indicator_light_type() {
     td.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.params["conductance"] = "0.002";
+    SolverRole role;
+    role.kind = "ConductanceBranch";
+    role.port_map["a"] = "v_in";
+    role.port_map["b"] = "v_out";
+    role.param_map["g"] = "conductance";
+    role.value_map["bind_handle"] = 1.0f;
+    td.solver_role = role;
+    td.solver_owned_electrical = false;
     return td;
 }
 
@@ -45,6 +54,14 @@ inline TypeDefinition make_refnode_type(PortDirection direction = PortDirection:
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
     td.scheduler_source = true;
+    td.params["value"] = "0.0";
+    SolverRole role;
+    role.kind = "FixedVoltageNode";
+    role.port_map["node"] = "v";
+    role.param_map["voltage"] = "value";
+    role.value_map["bind_handle"] = 1.0f;
+    td.solver_role = role;
+    td.solver_owned_electrical = false;
     return td;
 }
 
@@ -56,6 +73,17 @@ inline TypeDefinition make_electrical_source_type() {
     td.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.params["voltage"] = "28.0";
+    td.params["resistance"] = "0.01";
+    SolverRole role;
+    role.kind = "TheveninSource";
+    role.port_map["pos"] = "v_out";
+    role.port_map["neg"] = "v_in";
+    role.param_map["voltage"] = "voltage";
+    role.param_map["resistance"] = "resistance";
+    role.value_map["bind_handle"] = 1.0f;
+    td.solver_role = role;
+    td.solver_owned_electrical = true;
     return td;
 }
 
@@ -67,6 +95,15 @@ inline TypeDefinition make_electrical_conductance_type() {
     td.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.params["conductance"] = "0.1";
+    SolverRole role;
+    role.kind = "ConductanceBranch";
+    role.port_map["a"] = "v_in";
+    role.port_map["b"] = "v_out";
+    role.param_map["g"] = "conductance";
+    role.value_map["bind_handle"] = 1.0f;
+    td.solver_role = role;
+    td.solver_owned_electrical = true;
     return td;
 }
 
@@ -78,6 +115,17 @@ inline TypeDefinition make_generator_type() {
     td.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.params["v_nominal"] = "28.5";
+    td.params["internal_r"] = "0.005";
+    SolverRole role;
+    role.kind = "TheveninSource";
+    role.port_map["pos"] = "v_out";
+    role.port_map["neg"] = "v_in";
+    role.param_map["voltage"] = "v_nominal";
+    role.param_map["resistance"] = "internal_r";
+    role.value_map["bind_handle"] = 1.0f;
+    td.solver_role = role;
+    td.solver_owned_electrical = true;
     return td;
 }
 
@@ -90,6 +138,15 @@ inline TypeDefinition make_currentsense_type() {
     td.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.params["conductance"] = "0.05";
+    SolverRole role;
+    role.kind = "ConductanceBranch";
+    role.port_map["a"] = "v_in";
+    role.port_map["b"] = "v_out";
+    role.param_map["g"] = "conductance";
+    role.value_map["bind_handle"] = 1.0f;
+    td.solver_role = role;
+    td.solver_owned_electrical = false;
     return td;
 }
 
@@ -101,6 +158,14 @@ inline TypeDefinition make_resistor_type() {
     td.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.params["conductance"] = "0.1";
+    SolverRole role;
+    role.kind = "ConductanceBranch";
+    role.port_map["a"] = "v_in";
+    role.port_map["b"] = "v_out";
+    role.param_map["g"] = "conductance";
+    td.solver_role = role;
+    td.solver_owned_electrical = true;
     return td;
 }
 

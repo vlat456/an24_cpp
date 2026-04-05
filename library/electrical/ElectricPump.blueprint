@@ -3,6 +3,8 @@
   "id": "ElectricPump",
   "display_name": "ElectricPump",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "p_in",

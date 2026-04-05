@@ -4,7 +4,6 @@
 #include "components/switch.h"
 #include "components/relay.h"
 #include "components/hold_button.h"
-#include "components/load.h"
 #include "components/ref_node.h"
 #include "components/generator.h"
 #include "components/bus.h"
@@ -58,7 +57,6 @@
 #include "components/fuel_tank.h"
 #include "components/gidro_accumulator.h"
 #include "components/gyroscope.h"
-#include "components/high_power_load.h"
 #include "components/inertia_node.h"
 #include "components/inverter.h"
 #include "components/radiator.h"
@@ -190,14 +188,6 @@ void build_and_register_components(
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
-        }
-        else if (dev.classname == "Load") {
-            Load<JitProvider> comp;
-            comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<Load<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "Bus") {
             Bus<JitProvider> comp;

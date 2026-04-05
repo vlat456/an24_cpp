@@ -3,6 +3,8 @@
   "id": "GreaterEq",
   "display_name": "GreaterEq",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "A",

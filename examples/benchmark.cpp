@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
                 break;
             }
         }
-        (void)state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        (void)state.allocate_signal(0.0f);
     }
 
     // Resize convergence buffer

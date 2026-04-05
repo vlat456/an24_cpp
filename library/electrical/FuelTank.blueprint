@@ -3,6 +3,8 @@
   "id": "FuelTank",
   "display_name": "FuelTank",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "flow_out",

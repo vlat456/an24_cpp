@@ -3,6 +3,7 @@
   "id": "RefNode",
   "display_name": "RefNode",
   "scheduler_source": true,
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "v",

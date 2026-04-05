@@ -3,6 +3,8 @@
   "id": "SlewRate",
   "display_name": "SlewRate",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "in",

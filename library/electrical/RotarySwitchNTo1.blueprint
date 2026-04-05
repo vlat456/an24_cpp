@@ -3,6 +3,7 @@
   "id": "RotarySwitchNTo1",
   "display_name": "Rotary Switch (N to 1)",
   "scheduler_source": false,
+  "solver_owned_electrical": true,
   "interface": [
     {
       "name": "wiper",

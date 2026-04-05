@@ -3,6 +3,8 @@
   "id": "BlueprintOutput",
   "display_name": "BlueprintOutput",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "ext",

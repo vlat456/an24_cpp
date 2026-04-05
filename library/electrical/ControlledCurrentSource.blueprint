@@ -3,6 +3,8 @@
   "id": "ControlledCurrentSource",
   "display_name": "ControlledCurrentSource",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "v_pos",

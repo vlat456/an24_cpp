@@ -3,6 +3,8 @@
   "id": "Transformer",
   "display_name": "Transformer",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "primary",

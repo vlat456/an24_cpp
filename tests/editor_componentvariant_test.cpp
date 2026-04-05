@@ -4,8 +4,8 @@
 
 
 /// Test that Editor can build a simple circuit with ComponentVariant
-TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
-    // Simple JSON with Battery + Load
+TEST(EditorComponentVariant, BuildSimpleBatteryResistorCircuit) {
+    // Simple JSON with ElectricalSource + Resistor
     const char* json = R"({
         "devices": [
             {
@@ -29,9 +29,10 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
             },
             {
                 "name": "load1",
-                "classname": "Load",
+                "classname": "Resistor",
                 "ports": {
-                    "input": {"direction": "In", "type": "V"}
+                    "v_in": {"direction": "In", "type": "V"},
+                    "v_out": {"direction": "Out", "type": "V"}
                 },
                 "params": {
                     "conductance": "0.1"
@@ -40,7 +41,8 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
         ],
         "connections": [
             {"from": "gnd.v", "to": "bat1.v_in"},
-            {"from": "bat1.v_out", "to": "load1.input"}
+            {"from": "bat1.v_out", "to": "load1.v_in"},
+            {"from": "load1.v_out", "to": "gnd.v"}
         ]
     })";
 
@@ -61,7 +63,7 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
 
     // Check port mapping
     EXPECT_NE(build_result.port_to_signal.find("bat1.v_out"), build_result.port_to_signal.end());
-    EXPECT_NE(build_result.port_to_signal.find("load1.input"), build_result.port_to_signal.end());
+    EXPECT_NE(build_result.port_to_signal.find("load1.v_in"), build_result.port_to_signal.end());
 }
 
 /// Test that multi-domain components work correctly
@@ -151,8 +153,8 @@ TEST(EditorComponentVariant, AllComponentTypes) {
         const char* component_types[] = {
             "ElectricalSource", "Bus", "Comparator",
             "ElectricHeater", "ElectricPump", "Generator", "Gyroscope",
-            "HighPowerLoad", "HoldButton", "IndicatorLight", "InertiaNode", "Inverter",
-            "LerpNode", "Load", "Radiator",
+            "HoldButton", "IndicatorLight", "InertiaNode", "Inverter",
+            "LerpNode", "Radiator",
             "RefNode", "Relay", "Resistor", "SolenoidValve", "Splitter",
             "Switch", "TempSensor", "Transformer", "Voltmeter"
         };

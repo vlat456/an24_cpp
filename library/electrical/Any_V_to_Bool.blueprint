@@ -3,6 +3,8 @@
   "id": "Any_V_to_Bool",
   "display_name": "Any_V_to_Bool",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "Vin",

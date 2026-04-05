@@ -3,6 +3,8 @@
   "id": "SolenoidValve",
   "display_name": "SolenoidValve",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "ctrl",

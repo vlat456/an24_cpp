@@ -136,6 +136,18 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
     }
     def.scheduler_source = j["scheduler_source"].get<bool>();
 
+    if (def.cpp_class) {
+        if (!j.contains("solver_owned_electrical") || !j["solver_owned_electrical"].is_boolean()) {
+            throw std::runtime_error("Missing required boolean 'solver_owned_electrical' for component '" + def.classname + "'");
+        }
+        def.solver_owned_electrical = j["solver_owned_electrical"].get<bool>();
+    } else if (j.contains("solver_owned_electrical")) {
+        if (!j["solver_owned_electrical"].is_boolean()) {
+            throw std::runtime_error("'solver_owned_electrical' must be boolean for component '" + def.classname + "'");
+        }
+        def.solver_owned_electrical = j["solver_owned_electrical"].get<bool>();
+    }
+
     if (!j.contains("domains") || !j["domains"].is_array()) {
         throw std::runtime_error("Missing required 'domains' array for component '" + def.classname + "'");
     }

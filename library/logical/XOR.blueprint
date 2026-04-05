@@ -3,6 +3,8 @@
   "id": "XOR",
   "display_name": "XOR",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "A",

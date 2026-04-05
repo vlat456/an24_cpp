@@ -3,6 +3,8 @@
   "id": "Accumulator",
   "display_name": "Accumulator",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "in",

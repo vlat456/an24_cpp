@@ -3,6 +3,8 @@
   "id": "Inverter",
   "display_name": "Inverter",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "ac_out",

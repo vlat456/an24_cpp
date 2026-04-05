@@ -18,21 +18,12 @@ bool is_scheduler_source_component_class(std::string_view classname) {
     return is_scheduler_source_component(metadata_classname_for(classname));
 }
 
-/// Returns true for components that are solver-owned for electrical propagation.
-/// These components run inside the electrical solver, NOT the push scheduler.
-/// RefNode remains scheduled as a source (it writes constant reference values).
-/// Guard: prevents accidental reintroduction of push scheduling for these classes.
 bool is_solver_owned_electrical_propagator(std::string_view classname) {
-    return classname == "Generator" ||
-           classname == "Resistor" ||
-           classname == "ElectricalConductance" ||
-           classname == "ElectricalSource" ||
-           classname == "ControlledVoltageSource" ||
-           classname == "AZS" ||
-           classname == "HoldButton" ||
-           classname == "Relay" ||
-           is_knob_switch_family(classname) ||
-           classname == "VariableConductance";
+    return is_solver_owned_electrical_component(metadata_classname_for(classname));
+}
+
+bool requires_solver_role(std::string_view classname) {
+    return requires_solver_role_component(metadata_classname_for(classname));
 }
 
 std::vector<std::string> active_source_writer_ports_for(std::string_view classname) {

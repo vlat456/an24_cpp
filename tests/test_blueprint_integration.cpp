@@ -41,7 +41,7 @@ static SimulationState run_simulation(
     for (uint32_t i = 0; i < result.signal_count; ++i) {
         bool is_fixed = std::binary_search(
             result.fixed_signals.begin(), result.fixed_signals.end(), i);
-        state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        state.allocate_signal(0.0f);
     }
 
     // Set fixed signal values from RefNode devices

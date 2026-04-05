@@ -53,7 +53,7 @@ int main() {
 
     SimulationState st;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
-        (void)st.allocate_signal(0.0f, {Domain::Electrical, true});
+        (void)st.allocate_signal(0.0f);
     }
 
     for (int i = 0; i < warmup_steps; ++i) {

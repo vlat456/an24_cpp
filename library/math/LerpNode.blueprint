@@ -3,6 +3,8 @@
   "id": "LerpNode",
   "display_name": "LerpNode",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "input",

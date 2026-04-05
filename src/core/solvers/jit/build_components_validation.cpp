@@ -195,13 +195,13 @@ void topological_sort_consumers(
 
     result.scheduler.clear_consumers();
     for (const auto& name : sorted) {
-        auto it_var = result.devices.find(name);
-        if (it_var == result.devices.end()) {
+        ComponentVariant* variant = result.devices.find_mutable(name);
+        if (variant == nullptr) {
             continue;
         }
         std::visit([&](auto& comp) {
             result.scheduler.add_consumer(&comp);
-        }, it_var->second);
+        }, *variant);
     }
 }
 

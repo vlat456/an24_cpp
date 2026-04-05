@@ -3,6 +3,7 @@
   "id": "CurrentSense",
   "display_name": "CurrentSense",
   "scheduler_source": false,
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "i_out",

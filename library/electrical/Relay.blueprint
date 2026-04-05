@@ -3,6 +3,7 @@
   "id": "Relay",
   "display_name": "Relay",
   "scheduler_source": false,
+  "solver_owned_electrical": true,
   "interface": [
     {
       "name": "control",

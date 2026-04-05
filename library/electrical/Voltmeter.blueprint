@@ -3,6 +3,8 @@
   "id": "Voltmeter",
   "display_name": "Voltmeter",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "v_in",

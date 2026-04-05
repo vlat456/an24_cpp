@@ -3,6 +3,8 @@
   "id": "SampleHold",
   "display_name": "SampleHold",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "in",

@@ -65,7 +65,7 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     for (uint32_t i = 0; i < result.signal_count; ++i) {
         bool is_fixed = std::binary_search(
             result.fixed_signals.begin(), result.fixed_signals.end(), i);
-        state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        state.allocate_signal(0.0f);
     }
 
     // Initialize RefNodes

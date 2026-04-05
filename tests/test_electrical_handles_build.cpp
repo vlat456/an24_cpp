@@ -7,6 +7,11 @@
 
 namespace {
 
+const TypeRegistry& test_registry() {
+    static const TypeRegistry registry = load_type_registry("library/");
+    return registry;
+}
+
 // Helper to create a basic device instance with explicit ports
 DeviceInstance make_device(const std::string& name, const std::string& classname,
                           const std::unordered_map<std::string, std::string>& params = {},
@@ -25,6 +30,19 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     }
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+    }
+
+    if (const TypeDefinition* def = test_registry().get(classname)) {
+        for (const auto& [param_name, param_value] : def->params) {
+            auto schema_it = def->param_schema.find(param_name);
+            if (schema_it != def->param_schema.end() && schema_it->second.visual_only) {
+                continue;
+            }
+            if (!dev.params.count(param_name)) {
+                dev.params[param_name] = param_value;
+            }
+        }
+        dev.solver_role = def->solver_role;
     }
     return dev;
 }

@@ -144,6 +144,7 @@ struct TypeDefinition {
     std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
     std::optional<ExecutionPhases> execution;      // Explicit execution-phase metadata
     bool scheduler_source = false;                 // Explicit scheduler source classification
+    bool solver_owned_electrical = false;           // Explicit solver ownership for electrical propagation
     std::optional<SolverRole> solver_role;          // Subsolver role metadata (primitives only)
     // For blueprints only: internal devices and connections
     std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
@@ -216,6 +217,7 @@ struct DeviceInstance {
     std::optional<std::pair<float,float>> size;  // Editor layout size (optional)
     std::optional<ExecutionPhases> execution;    // Copied from type definition
     bool scheduler_source = false;               // Copied from type definition
+    bool solver_owned_electrical = false;        // Copied from type definition
     std::optional<SolverRole> solver_role;        // Copied from type definition
 
     // Default constructor

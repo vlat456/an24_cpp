@@ -55,7 +55,7 @@ static SimState build_state(
     // Allocate signals
     for (size_t i = 0; i < next; ++i) {
         bool is_fixed = fixed.count(i) > 0;
-        sim.state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        sim.state.allocate_signal(0.0f);
     }
 
     // Set fixed voltages

@@ -9,9 +9,15 @@
 
 namespace {
 
+const TypeRegistry& test_registry() {
+    static const TypeRegistry registry = load_type_registry("library/");
+    return registry;
+}
+
 // Helper to create a basic device instance
 DeviceInstance make_device(const std::string& name, const std::string& classname,
-                          const std::unordered_map<std::string, std::string>& params = {}) {
+                          const std::unordered_map<std::string, std::string>& params = {},
+                          bool merge_defaults = true) {
     DeviceInstance dev;
     dev.name = name;
     dev.classname = classname;
@@ -21,6 +27,21 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     auto ports = get_component_ports(classname);
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+    }
+
+    if (const TypeDefinition* def = test_registry().get(classname)) {
+        if (merge_defaults) {
+            for (const auto& [param_name, param_value] : def->params) {
+                auto schema_it = def->param_schema.find(param_name);
+                if (schema_it != def->param_schema.end() && schema_it->second.visual_only) {
+                    continue;
+                }
+                if (!dev.params.count(param_name)) {
+                    dev.params[param_name] = param_value;
+                }
+            }
+        }
+        dev.solver_role = def->solver_role;
     }
     return dev;
 }
@@ -33,16 +54,17 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
 // ============================================================================
 
 TEST(PushBuildValidation, SingleSourcePerWireOK) {
-    // Single ElectricalSource driving a Load - should succeed
+    // Single ElectricalSource driving a Resistor - should succeed
     std::vector<DeviceInstance> devices = {
         make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
-        make_device("load", "Load", {{"conductance", "0.1"}}),
+        make_device("load", "Resistor", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "load.input"},
-        {"battery.v_out", "gnd.v"}
+        {"battery.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"battery.v_in", "gnd.v"}
     };
     
     // Should not throw - single source per wire
@@ -57,14 +79,15 @@ TEST(PushBuildValidation, MultipleSourcesSameWireErrors) {
     std::vector<DeviceInstance> devices = {
         make_device("battery1", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("battery2", "ElectricalSource", {{"voltage", "27.0"}}),
-        make_device("load", "Load", {{"conductance", "0.1"}}),
+        make_device("load", "Resistor", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"battery1.v_out", "battery2.v_out"},  // Both batteries on same wire
-        {"battery1.v_out", "load.input"},
-        {"battery2.v_out", "gnd.v"}
+        {"battery1.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"battery2.v_in", "gnd.v"}
     };
     
     // Should throw - multiple voltage sources on same wire
@@ -76,14 +99,15 @@ TEST(PushBuildValidation, MultipleSourceLikeComponentsConflict) {
     std::vector<DeviceInstance> devices = {
         make_device("gen", "Generator", {{"v_nominal", "28.5"}}),
         make_device("cvs", "ControlledVoltageSource"),
-        make_device("load", "Load", {{"conductance", "0.1"}}),
+        make_device("load", "Resistor", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}}),
         make_device("cvs_gain", "Value", {{"value", "1.0"}})
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"gen.v_out", "cvs.v_pos"},  // Both writing to same wire
-        {"gen.v_out", "load.input"},
+        {"gen.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
         {"cvs.v_neg", "gnd.v"},
         {"cvs_gain.o", "cvs.gain"}
     };
@@ -97,14 +121,15 @@ TEST(PushBuildValidation, BatteryAndGeneratorOnSameWire) {
     std::vector<DeviceInstance> devices = {
         make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("generator", "Generator", {{"v_nominal", "28.5"}}),
-        make_device("load", "Load", {{"conductance", "0.1"}}),
+        make_device("load", "Resistor", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"battery.v_out", "generator.v_out"},  // Both on same wire
-        {"battery.v_out", "load.input"},
-        {"generator.v_out", "gnd.v"}
+        {"battery.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"generator.v_in", "gnd.v"}
     };
     
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
@@ -116,12 +141,13 @@ TEST(PushBuildValidation, BatteryAndRefNodeOnSameWire) {
     std::vector<DeviceInstance> devices = {
         make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("ref", "RefNode", {{"value", "5.0"}}),  // 5V reference
-        make_device("load", "Load", {{"conductance", "0.1"}})
+        make_device("load", "Resistor", {{"conductance", "0.1"}})
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "ref.v"},  // Battery connected to reference node
-        {"battery.v_out", "load.input"}
+        {"battery.v_out", "load.v_in"},
+        {"load.v_out", "ref.v"},
+        {"battery.v_in", "ref.v"}
     };
     
     // RefNode is a reference point, not an active source - allowed
@@ -136,14 +162,16 @@ TEST(PushBuildValidation, ControlledCurrentSourceConflict) {
     std::vector<DeviceInstance> devices = {
         make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
         make_device("ccs", "ControlledCurrentSource", {{"gain", "1.0"}}),
-        make_device("load", "Load", {{"conductance", "0.1"}}),
+        make_device("load", "Resistor", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"battery.v_out", "ccs.v_pos"},  // Both writing voltage
-        {"battery.v_out", "load.input"},
-        {"ccs.v_neg", "gnd.v"}
+        {"battery.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"ccs.v_neg", "gnd.v"},
+        {"battery.v_in", "gnd.v"}
     };
     
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
@@ -198,19 +226,21 @@ TEST(PushBuildValidation, ControlledVoltageSourcesShareVPos_Throws) {
 
 
 
-TEST(PushBuildValidation, MultipleLoadsOK) {
-    // Multiple loads on same wire - should succeed (loads are not sources)
+TEST(PushBuildValidation, MultipleResistorsOK) {
+    // Multiple resistors on same wire - should succeed (passive branches)
     std::vector<DeviceInstance> devices = {
         make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
-        make_device("load1", "Load", {{"conductance", "0.1"}}),
-        make_device("load2", "Load", {{"conductance", "0.2"}}),
+        make_device("load1", "Resistor", {{"conductance", "0.1"}}),
+        make_device("load2", "Resistor", {{"conductance", "0.2"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "load1.input"},
-        {"battery.v_out", "load2.input"},
-        {"battery.v_out", "gnd.v"}
+        {"battery.v_out", "load1.v_in"},
+        {"battery.v_out", "load2.v_in"},
+        {"load1.v_out", "gnd.v"},
+        {"load2.v_out", "gnd.v"},
+        {"battery.v_in", "gnd.v"}
     };
     
     EXPECT_NO_THROW({
@@ -223,18 +253,20 @@ TEST(PushBuildValidation, SeparateWiresOK) {
     // Two separate circuits - should succeed
     std::vector<DeviceInstance> devices = {
         make_device("battery1", "ElectricalSource", {{"voltage", "28.0"}}),
-        make_device("load1", "Load", {{"conductance", "0.1"}}),
+        make_device("load1", "Resistor", {{"conductance", "0.1"}}),
         make_device("gnd1", "RefNode", {{"value", "0"}}),
         make_device("battery2", "ElectricalSource", {{"voltage", "12.0"}}),
-        make_device("load2", "Load", {{"conductance", "0.1"}}),
+        make_device("load2", "Resistor", {{"conductance", "0.1"}}),
         make_device("gnd2", "RefNode", {{"value", "0"}})
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery1.v_out", "load1.input"},
-        {"battery1.v_out", "gnd1.v"},
-        {"battery2.v_out", "load2.input"},
-        {"battery2.v_out", "gnd2.v"}
+        {"battery1.v_out", "load1.v_in"},
+        {"load1.v_out", "gnd1.v"},
+        {"battery1.v_in", "gnd1.v"},
+        {"battery2.v_out", "load2.v_in"},
+        {"load2.v_out", "gnd2.v"},
+        {"battery2.v_in", "gnd2.v"}
     };
     
     EXPECT_NO_THROW({
@@ -391,6 +423,26 @@ TEST(PushBuildValidation, RotarySwitchAliasesAreNotInPushScheduler) {
         << "RotarySwitch1ToN should not appear in the push scheduler consumer list";
 }
 
+TEST(PushBuildValidation, SolverOwnedElectricalClassification_MetadataDrivenCoverage) {
+    // Regression coverage: solver-owned electrical classification must be driven
+    // by generated metadata for all currently expected classes/aliases.
+    EXPECT_TRUE(is_solver_owned_electrical_component("Generator"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("Resistor"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("ElectricalConductance"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("ElectricalSource"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("ControlledVoltageSource"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("VariableConductance"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("AZS"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("HoldButton"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("Relay"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("KnobSwitch"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("RotarySwitch1ToN"));
+    EXPECT_TRUE(is_solver_owned_electrical_component("RotarySwitchNTo1"));
+
+    // A non-solver-owned electrical observer should stay false.
+    EXPECT_FALSE(is_solver_owned_electrical_component("CurrentSense"));
+}
+
 TEST(PushBuildValidation, RotarySwitchAliasesInstantiateDistinctVariantTypes) {
     std::vector<DeviceInstance> devices = {
         make_device("rs_a", "RotarySwitch1ToN", {{"positions", "3"}}),
@@ -476,7 +528,7 @@ TEST(PushBuildValidation, TopologicalOrder_LinearChain) {
 
     SimulationState st;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
-        st.allocate_signal(0.0f, {Domain::Electrical, true});
+        st.allocate_signal(0.0f);
     }
 
     result.scheduler.step(st, 1.0f / 60.0f);
@@ -507,7 +559,7 @@ TEST(PushBuildValidation, TopologicalOrder_CycleFallsBackNoThrow) {
 
         SimulationState st;
         for (uint32_t i = 0; i < result.signal_count; ++i) {
-            st.allocate_signal(0.0f, {Domain::Electrical, true});
+            st.allocate_signal(0.0f);
         }
 
         EXPECT_NO_THROW(result.scheduler.step(st, 1.0f / 60.0f));
@@ -591,7 +643,7 @@ TEST(PushBuildValidation, MaxSelectsHigherInput) {
 
     SimulationState st;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
-        (void)st.allocate_signal(0.0f, {Domain::Electrical, true});
+        (void)st.allocate_signal(0.0f);
     }
 
     result.scheduler.step(st, 1.0f / 60.0f);
@@ -619,7 +671,7 @@ TEST(PushBuildValidation, MaxAvoidsSourceConflict) {
 
         SimulationState st;
         for (uint32_t i = 0; i < result.signal_count; ++i) {
-            (void)st.allocate_signal(0.0f, {Domain::Electrical, true});
+            (void)st.allocate_signal(0.0f);
         }
 
         // Battery and Generator are solver-owned; their execute() does not run
@@ -647,6 +699,36 @@ TEST(PushBuildValidation, UnknownClassnameThrows) {
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
 }
 
+TEST(PushBuildValidation, MetadataHelpersUnknownClassFailFast) {
+    EXPECT_THROW(
+        {
+            (void)is_scheduler_source_component("NoSuchComponent");
+        },
+        std::runtime_error
+    );
+
+    EXPECT_THROW(
+        {
+            (void)is_solver_owned_electrical_component("NoSuchComponent");
+        },
+        std::runtime_error
+    );
+
+    EXPECT_THROW(
+        {
+            (void)get_output_ports("NoSuchComponent");
+        },
+        std::runtime_error
+    );
+
+    EXPECT_THROW(
+        {
+            (void)get_source_writer_ports("NoSuchComponent", static_cast<uint8_t>(Domain::Electrical));
+        },
+        std::runtime_error
+    );
+}
+
 TEST(PushBuildValidation, WhitelistParamsRejected) {
     std::vector<DeviceInstance> devices = {
         make_device("bat", "ElectricalSource", {
@@ -665,7 +747,7 @@ TEST(PushBuildValidation, WhitelistParamsRejected) {
 
 TEST(PushBuildValidation, UnknownParamThrows) {
     std::vector<DeviceInstance> devices = {
-        make_device("load", "Load", {
+        make_device("load", "Resistor", {
             {"conductance", "0.1"},
             {"bogus_param", "42"}
         }),
@@ -673,7 +755,7 @@ TEST(PushBuildValidation, UnknownParamThrows) {
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"load.input", "gnd.v"}
+        {"load.v_out", "gnd.v"}
     };
 
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
@@ -684,7 +766,7 @@ TEST(PushBuildValidation, MissingRequiredParamThrows) {
         make_device("p", "P", {
             {"output_min", "-10.0"},
             {"output_max", "10.0"}
-        }),
+        }, false),
         make_device("ref", "RefNode", {{"value", "1.0"}})
     };
 
@@ -779,24 +861,25 @@ TEST(PushBuildValidation, ParamSchemaVisualOnlyFlag) {
 TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
     std::vector<DeviceInstance> devices = {
         make_device("battery", "ElectricalSource", {{"voltage", "28.0"}}),
-        make_device("load", "Load", {{"conductance", "0.1"}}),
+        make_device("load", "Resistor", {{"conductance", "0.1"}}),
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "load.input"},
-        {"battery.v_out", "gnd.v"}
+        {"battery.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"battery.v_in", "gnd.v"}
     };
 
     auto result = build_systems_dev(devices, connections);
 
     EXPECT_FALSE(is_scheduler_source_component("ElectricalSource"));
     EXPECT_TRUE(is_scheduler_source_component("RefNode"));
-    EXPECT_FALSE(is_scheduler_source_component("Load"));
+    EXPECT_FALSE(is_scheduler_source_component("Resistor"));
 
     SimulationState st;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
-        st.allocate_signal(0.0f, {Domain::Electrical, true});
+        st.allocate_signal(0.0f);
     }
     EXPECT_NO_THROW(result.scheduler.step(st, 1.0f / 60.0f));
 }
@@ -858,7 +941,6 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
 
 // Regression: sentinel signal must be included in fixed_signals.
 // Sentinel is conceptually fixed — always allocated at end, never changes.
-// Previously it was counted as dynamic, making dynamic_signals_count imprecise.
 TEST(PushBuildValidation, SentinelIsFixedSignal) {
     std::vector<DeviceInstance> devices = {
         make_device("ref", "RefNode", {{"value", "0.0"}})

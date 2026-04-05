@@ -3,6 +3,8 @@
   "id": "OR",
   "display_name": "OR",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "A",

@@ -3,6 +3,7 @@
   "id": "Resistor",
   "display_name": "Resistor",
   "scheduler_source": false,
+  "solver_owned_electrical": true,
   "interface": [
     {
       "name": "v_in",

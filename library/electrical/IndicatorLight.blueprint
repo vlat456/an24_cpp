@@ -3,6 +3,7 @@
   "id": "IndicatorLight",
   "display_name": "IndicatorLight",
   "scheduler_source": false,
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "brightness",

@@ -81,10 +81,6 @@ These provide electrical elements to the subsolver; they do not push-write elect
 - `IndicatorLight`: brightness from solved `v_in`
 - `CurrentSense`: `i_out` from solved branch current handle
 
-### Stub/unsupported electrical load
-
-- `HighPowerLoad` is currently a no-op stub and does not affect circuit solve
-
 ### Widget-interactive components
 
 These components expose interactive widgets (knobs, sliders, toggles) in the visual editor:

@@ -8,7 +8,7 @@
 namespace test_exec {
 
 // ---- Pure electrical passive ----
-// RefNode, Battery, Resistor, Load, IndicatorLight (Lamp)
+// RefNode, Battery, Resistor, IndicatorLight (Lamp)
 inline ExecutionPhases electrical_passive() {
     ExecutionPhases p;
     p.electrical_passive = true;
@@ -91,7 +91,6 @@ inline ExecutionPhases for_class(const std::string& classname) {
     if (classname == "RefNode")              return electrical_passive();
     if (classname == "Battery")              return electrical_passive();
     if (classname == "Resistor")             return electrical_passive();
-    if (classname == "Load")                 return electrical_passive();
     if (classname == "IndicatorLight")        return electrical_passive();
     if (classname == "Lamp")                 return electrical_passive();  // alias
     if (classname == "Bus")                  return bus();

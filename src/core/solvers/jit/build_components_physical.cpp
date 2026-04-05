@@ -50,14 +50,6 @@ bool try_build_physical_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "HighPowerLoad") {
-        HighPowerLoad<JitProvider> comp;
-        comp.power_draw = param_reader.consume_float_optional("power_draw", 500.0f);
-        comp.min_voltage_diff = param_reader.consume_float_optional("min_voltage_diff", 0.01f);
-        setup_component_ports(result, dev, comp);
-        register_component_consumer(result, dev, param_reader, std::move(comp));
-        return true;
-    }
     if (dev.classname == "InertiaNode") {
         InertiaNode<JitProvider> comp;
         comp.initial_rpm = param_reader.consume_float_optional("initial_rpm", 1.0f);

@@ -117,7 +117,7 @@ int main() {
     // Allocate signals
     for (size_t i = 0; i < next_idx; ++i) {
         bool is_fixed = fixed_set.count(i) > 0;
-        state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        state.allocate_signal(0.0f);
     }
 
     // Set fixed voltages

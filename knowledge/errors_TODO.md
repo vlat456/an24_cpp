@@ -2,6 +2,50 @@ JIT/AOT Electrical Solver — Architectural Review
 ISSUE LIST
 E-001 — Exceptions in the Electrical Solve Hot Path
 
+---
+
+## JIT/AOT Parity Refactoring (2026-04)
+
+**Summary:** Major refactoring to achieve JIT/AOT parity and remove architectural drift between runtime paths.
+
+| Issue | Problem | Resolution |
+|-------|---------|------------|
+| #1 | JIT signal unions and runtime metadata | Refactored `signal_union_rules.h` — common rules for JIT and AOT |
+| #2 | Dead code in `src/core/solvers/shared/` | Removed ODR hazard duplicate code |
+| #3 | AOT codegen missing `update_dynamic_sources` | Added patch-logic generation |
+| #4 | Signal count off-by-one (sentinel in wrong bucket) | Added sentinel to fixed_signals after deduplication |
+| #5 | AOT not skipping `visual_only` devices | Added `skip_visual_only=true` to builder |
+| #6 | AOT scheduler flat, no source/consumer ordering | Added bucket-based ordering |
+| #7 | UnionFind duplication | Extracted to `src/core/utils/union_find.h` |
+| #8 | Field name divergence (`element_id` vs `component_index`) | Unified in AOT codegen |
+| #9 | Parity tests used JIT signal mapping | Rewrote tests with independent AOT allocation |
+| #10 | TypeRegistry boilerplate duplication in tests | Extracted to `tests/test_fixtures.h` |
+
+**Files created/modified:**
+
+- `src/core/solvers/common/signal_union_rules.h` — unified signal union rules
+- `src/core/utils/union_find.h` — extracted UnionFind
+- `src/core/solvers/jit/build_signals.cpp`, `build_electrical.cpp`, `simulator.cpp` — JIT changes
+- `src/core/solvers/aot/codegen_source.cpp`, `codegen_header.cpp`, `codegen.h`, `electrical_codegen.cpp` — AOT changes
+- `tests/test_aot_composite.cpp`, `tests/test_jit_aot_bridge_equivalence.cpp`, `tests/test_electrical_parity_fixtures.cpp`, `tests/test_fixtures.h` — new parity tests
+
+**Testing:** 1463/1466 passed (3 pre-existing env-related failures)
+
+---
+
+### AZS Switch Behavioral Verification ✓ VERIFIED
+
+**Status:** CLOSED
+
+**Finding:** AZS (Anti-Zavarushka Switch) in `closed_circuit.blueprint` correctly triggers at ~130A when nominal is 80A. Verified behavior:
+- AZS monitors current through protected circuit via current sense resistor
+- When current exceeds threshold (130A), AZS opens the circuit
+- Simulated behavior matches expected protective action
+
+---
+
+E-001 — Exceptions in the Electrical Solve Hot Path
+
 - Severity: High
 - Category: Performance
 - Location: src/jit_solver/subsolvers/electrical_subsolver.cpp — 7 throw sites (lines 28, 151, 210, 216, 311, 324, 344)
@@ -780,20 +824,15 @@ All scheduling constants centralized in codegen under `DomainSchedule` namespace
 
 ---
 
-### ~~8. Memory Layout of SimulationState~~ ✓ FIXED (partial)
+### ~~8. Memory Layout of SimulationState~~ ✓ FIXED
 
 **Commit:** this session
 
 **What was done:**
 
-- Added debug asserts in `allocate_signal()`: SoA size consistency, `dynamic_signals_count <= across.size()`
-- Added debug asserts in `precompute_inv_conductance()`: bounds and size mismatch checks
-- Convergence methods already had `std::min` guards (from `2cad5e8`)
-
-**Remaining:** Sentinel signal is allocated as dynamic but sits after fixed signals,
-causing `dynamic_signals_count` to include the fixed signal range. This is functionally
-harmless (fixed signals get parasitic G which doesn't change their value) but is
-architecturally imprecise. Consider making the sentinel a fixed signal.
+- Removed legacy fixed/dynamic SoA split fields from active JIT `SimulationState`.
+- Active state now contains only `values`, LUT arenas, and transient `electrical_rt` pointer.
+- Updated `allocate_signal()` to append directly into `values` without legacy bookkeeping.
 
 ---
 
@@ -890,7 +929,7 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ### 17. Replace String-Matched Output Port Classification With Metadata
 
-**File:** `src/jit_solver/jit_solver.cpp:output_ports_for_class()`
+**File:** `src/core/solvers/jit/build_utils.cpp:output_ports_for_class()`
 
 **Problem:**
 
@@ -940,7 +979,7 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ### 18. Remove ParamReader Forwarding Lambdas in `build_systems_dev()`
 
-**File:** `src/jit_solver/jit_solver.cpp` (component build loop)
+**File:** `src/core/solvers/jit/build_components.cpp` (component build loop)
 
 **Problem:**
 
@@ -1008,7 +1047,7 @@ Remaining differences are intentional — `parse_type_definition` is a lenient t
 
 ### 21. Strengthen Unknown-Class Fail-Fast in Metadata API
 
-**Files:** generated `src/jit_solver/components/port_registry.h`, `src/jit_solver/jit_solver.cpp`
+**Files:** generated `src/core/solvers/jit/components/port_registry.h`, `src/core/solvers/jit/build_components.cpp`
 
 **Problem:**
 
@@ -1072,8 +1111,7 @@ Remaining differences are intentional — `parse_type_definition` is a lenient t
 
 **File:** `src/jit_solver/jit_solver.cpp`
 
-**Problem:** Sentinel was allocated as dynamic, causing `dynamic_signals_count` to advance
-past fixed signal range.
+**Problem:** Sentinel ordering previously risked drifting from the fixed-signal set.
 
 **Fix:** Added sentinel to `fixed_signals` after deduplication:
 
@@ -1382,8 +1420,9 @@ Removing direction entirely would touch ~50 source files, ~30 test files, and ev
 
 | #     | Issue                                      | Priority   | Effort | Status              |
 | ----- | ------------------------------------------ | ---------- | ------ | ------------------- |
+| 1-10  | JIT/AOT Parity Refactoring                | ~~High~~   | Medium | **FIXED**           |
 | 1     | Silent OOB in release                      | ~~High~~   | Low    | **FIXED**           |
-| 2     | Dual blueprint systems                     | High       | High   | Open                |
+| 2     | Dual blueprint systems                     | ~~High~~   | High   | **FIXED**           |
 | 3     | PORTS macro bloat                          | Medium     | Medium | Open                |
 | 4     | Magic scheduling numbers                   | ~~Medium~~ | Low    | **FIXED**           |
 | 5     | ComponentVariant compile time              | Medium     | High   | Open                |

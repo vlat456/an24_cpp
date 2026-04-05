@@ -29,6 +29,11 @@
 
 namespace {
 
+const TypeRegistry& test_registry() {
+    static const TypeRegistry registry = load_type_registry("library/");
+    return registry;
+}
+
 /// Helper to build a DeviceInstance with auto-populated ports from registry.
 /// Avoids ambiguous constructor overloads when ports param is {}.
 DeviceInstance make_device(const std::string& name,
@@ -43,6 +48,19 @@ DeviceInstance make_device(const std::string& name,
     auto ports = get_component_ports(classname);
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+    }
+
+    if (const TypeDefinition* def = test_registry().get(classname)) {
+        for (const auto& [param_name, param_value] : def->params) {
+            auto schema_it = def->param_schema.find(param_name);
+            if (schema_it != def->param_schema.end() && schema_it->second.visual_only) {
+                continue;
+            }
+            if (!dev.params.count(param_name)) {
+                dev.params[param_name] = param_value;
+            }
+        }
+        dev.solver_role = def->solver_role;
     }
     return dev;
 }
@@ -173,9 +191,30 @@ TEST(E002_SolverOwnedRefs, PointersMatchDeviceMap) {
      auto it = br.devices.find("bat1");
      ASSERT_NE(it, br.devices.end());
 
-     ElectricalSource<JitProvider>* from_map = std::get_if<ElectricalSource<JitProvider>>(&it->second);
+     const ElectricalSource<JitProvider>* from_map = std::get_if<ElectricalSource<JitProvider>>(&it->second);
      ASSERT_NE(from_map, nullptr);
      EXPECT_EQ(br.solver_owned.electrical_sources[0], from_map);
+}
+
+TEST(E002_SolverOwnedRefs, DeviceStoreSealedAfterBuild) {
+     std::vector<DeviceInstance> devices = {
+         make_device("ref_gnd", "RefNode", {{"value", "0"}}),
+         make_device("src", "ElectricalSource", {{"voltage", "28"}, {"resistance", "0.01"}}),
+     };
+     std::vector<std::pair<std::string, std::string>> connections = {
+         {"src.v_out", "ref_gnd.v"},
+         {"src.v_in", "ref_gnd.v"},
+     };
+
+     auto br = build_systems_dev(devices, connections);
+     EXPECT_TRUE(br.devices.sealed());
+
+     EXPECT_THROW(
+         {
+             br.devices["late_component"] = RefNode<JitProvider>{};
+         },
+         std::logic_error
+     );
 }
 
 TEST(E002_SolverOwnedRefs, EmptyCircuitHasEmptyRefs) {

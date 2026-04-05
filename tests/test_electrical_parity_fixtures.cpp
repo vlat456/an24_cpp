@@ -289,7 +289,7 @@ static void run_aot_electrical(
 
     // Allocate signals from AOT's own allocation path.
     for (uint32_t i = 0; i < signal_count; ++i) {
-        (void)out_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)out_state.allocate_signal(0.0f);
     }
 
     // Pre-allocate scratch buffers (reserve to avoid reallocation)
@@ -372,7 +372,7 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
@@ -429,7 +429,7 @@ TEST(ElectricalAotParity, SeriesChainTwoResistors) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
@@ -483,7 +483,7 @@ TEST(ElectricalAotParity, ParallelBranchSplit) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
@@ -535,7 +535,7 @@ TEST(ElectricalAotParity, MultiIsland) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
@@ -583,7 +583,7 @@ TEST(ElectricalAotParity, NearShortHighConductance) {
     auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
-        (void)jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+        (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);

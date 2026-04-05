@@ -10,7 +10,6 @@
 // Per-component headers
 #include "hold_button.h"
 #include "resistor.h"
-#include "load.h"
 #include "ref_node.h"
 #include "bus.h"
 #include "blueprint_input.h"
@@ -27,7 +26,6 @@
 #include "merger.h"
 #include "current_sense.h"
 #include "indicator_light.h"
-#include "high_power_load.h"
 #include "voltmeter.h"
 #include "voltage_sense.h"
 #include "controlled_voltage_source.h"

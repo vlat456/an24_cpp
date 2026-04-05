@@ -3,6 +3,8 @@
   "id": "Comparator",
   "display_name": "Comparator",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "Va",

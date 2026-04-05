@@ -3,6 +3,7 @@
   "id": "Generator",
   "display_name": "Generator",
   "scheduler_source": true,
+  "solver_owned_electrical": true,
   "interface": [
     {
       "name": "v_in",

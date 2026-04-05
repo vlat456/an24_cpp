@@ -3,6 +3,8 @@
   "id": "PID",
   "display_name": "PID",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "feedback",

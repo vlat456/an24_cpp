@@ -568,7 +568,7 @@ static const char* minimal_blueprint_v2(const char* classname) {
     // Returns a static buffer — only safe for one call at a time
     static char buf[1400];
     snprintf(buf, sizeof(buf),
-        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": [], "cpp_class": true, "scheduler_source": false, "domains": ["Electrical"], "execution": {"electrical_passive": true, "electrical_observer": false, "logical": false, "control_commit": false, "electrical_actuator": false, "finalize": false, "mechanical": false, "hydraulic": false, "thermal": false}})",
+        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": [], "cpp_class": true, "scheduler_source": false, "solver_owned_electrical": false, "domains": ["Electrical"], "execution": {"electrical_passive": true, "electrical_observer": false, "logical": false, "control_commit": false, "electrical_actuator": false, "finalize": false, "mechanical": false, "hydraulic": false, "thermal": false}})",
         classname, classname);
     return buf;
 }
@@ -867,6 +867,27 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
 
      TypeDefinition def = parse_type_definition(j);
      EXPECT_FALSE(def.scheduler_source);
+}
+
+TEST(TypeRegistry, MissingSolverOwnedElectricalInV3BlueprintThrows) {
+    namespace fs = std::filesystem;
+    auto tmp = fs::temp_directory_path() / "test_missing_solver_owned";
+    fs::remove_all(tmp);
+    fs::create_directories(tmp);
+
+    std::ofstream(tmp / "Bad.blueprint") << R"({
+        "version": "3.0",
+        "id": "Bad",
+        "display_name": "Bad",
+        "cpp_class": true,
+        "scheduler_source": false,
+        "domains": ["Electrical"],
+        "interface": []
+    })";
+
+    EXPECT_THROW(load_type_registry(tmp.string()), std::runtime_error);
+
+    fs::remove_all(tmp);
 }
 
 // === PARITY HARDENING: Rewrite Contract Tests ===

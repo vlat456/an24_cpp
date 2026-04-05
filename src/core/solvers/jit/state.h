@@ -5,12 +5,6 @@
 #include <cstdint>
 #include <vector>
 
-/// Legacy allocation tag kept only for API compatibility.
-struct SignalType {
-    Domain domain;
-    bool is_fixed;
-};
-
 /// Simulation state for push propagation.
 /// Single values[] array stores all signal values.
 ///
@@ -37,11 +31,6 @@ struct SimulationState {
         const uint32_t idx = static_cast<uint32_t>(values.size());
         values.push_back(initial_value);
         return idx;
-    }
-
-    // Legacy compatibility overload used by existing call sites.
-    [[nodiscard]] uint32_t allocate_signal(float initial_value, SignalType /*type*/) {
-        return allocate_signal(initial_value);
     }
 
 };

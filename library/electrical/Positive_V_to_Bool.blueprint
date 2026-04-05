@@ -3,6 +3,8 @@
   "id": "Positive_V_to_Bool",
   "display_name": "Positive_V_to_Bool",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "Vin",

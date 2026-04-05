@@ -3,6 +3,8 @@
   "id": "Switch",
   "display_name": "Switch",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "control",

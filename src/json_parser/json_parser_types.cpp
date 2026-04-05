@@ -443,6 +443,7 @@ DeviceInstance merge_device_instance(
 
     merged.execution = definition.execution;
     merged.scheduler_source = definition.scheduler_source;
+    merged.solver_owned_electrical = definition.solver_owned_electrical;
     merged.solver_role = definition.solver_role;
 
     if (!definition.param_schema.empty()) {

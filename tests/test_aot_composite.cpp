@@ -864,13 +864,13 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
     battery_type.domains = {{Domain::Electrical}};
     registry.types["ElectricalSource"] = battery_type;
 
-    TypeDefinition load_type;
-    load_type.classname = "Load";
-    load_type.cpp_class = true;
-    load_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    load_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    load_type.domains = {{Domain::Electrical}};
-    registry.types["Load"] = load_type;
+    TypeDefinition resistor_type;
+    resistor_type.classname = "Resistor";
+    resistor_type.cpp_class = true;
+    resistor_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    resistor_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    resistor_type.domains = {{Domain::Electrical}};
+    registry.types["Resistor"] = resistor_type;
 
     TypeDefinition ref_type;
     ref_type.classname = "RefNode";
@@ -891,7 +891,7 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
 
     DeviceInstance d_load;
     d_load.name = "load";
-    d_load.classname = "Load";
+    d_load.classname = "Resistor";
     d_load.ports = {{"v_in", Port{}}, {"v_out", Port{}}};
 
     DeviceInstance d_ref;

@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
     std::string library_dir = "library";
     if (argc >= 2) library_dir = argv[1];
 
-    std::string port_registry_path = "src/jit_solver/components/port_registry.h";
+    std::string port_registry_path = "src/core/solvers/jit/components/port_registry.h";
 
     auto registry = load_type_registry(library_dir);
     std::cout << "Loaded " << registry.types.size() << " types from " << library_dir << "/\n";

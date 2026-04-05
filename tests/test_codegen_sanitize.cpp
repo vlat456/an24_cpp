@@ -8,6 +8,15 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "test_execution_phases.h"
 
+namespace {
+
+const TypeRegistry& test_registry() {
+    static const TypeRegistry registry = load_type_registry("library/");
+    return registry;
+}
+
+} // namespace
+
 
 // Helper: build a minimal circuit with blueprint-expanded device names
 // (names like "simple_battery_1:bat" come from hierarchical blueprint expansion)
@@ -30,6 +39,9 @@ static auto make_colon_circuit() {
     ref.ports["v"] = {PortDirection::Out};
     ref.domains = {Domain::Electrical};
     ref.execution = test_exec::electrical_passive();
+    if (const TypeDefinition* def = test_registry().get("RefNode")) {
+        ref = merge_device_instance(ref, *def);
+    }
     devices.push_back(ref);
 
     DeviceInstance bat;
@@ -40,6 +52,9 @@ static auto make_colon_circuit() {
     bat.ports["v_in"] = {PortDirection::In};
     bat.domains = {Domain::Electrical};
     bat.execution = test_exec::electrical_passive();
+    if (const TypeDefinition* def = test_registry().get("ElectricalSource")) {
+        bat = merge_device_instance(bat, *def);
+    }
     devices.push_back(bat);
 
     DeviceInstance bus;
@@ -48,16 +63,22 @@ static auto make_colon_circuit() {
     bus.ports["v"] = {PortDirection::InOut};
     bus.domains = {Domain::Electrical};
     bus.execution = test_exec::bus();
+    if (const TypeDefinition* def = test_registry().get("Bus")) {
+        bus = merge_device_instance(bus, *def);
+    }
     devices.push_back(bus);
 
     DeviceInstance load;
     load.name = "bp_1:load.1";  // also has a dot
-    load.classname = "Load";
+    load.classname = "Resistor";
     load.params = {{"conductance", "0.1"}};
     load.ports["v_in"] = {PortDirection::In};
     load.ports["v_out"] = {PortDirection::Out};
     load.domains = {Domain::Electrical};
     load.execution = test_exec::electrical_passive();
+    if (const TypeDefinition* def = test_registry().get("Resistor")) {
+        load = merge_device_instance(load, *def);
+    }
     devices.push_back(load);
 
     conn_pairs.push_back({"bp_1:bat.v_in", "bp_1:gnd.v"});

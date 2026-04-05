@@ -3,6 +3,7 @@
   "id": "AZS",
   "display_name": "AZS",
   "scheduler_source": false,
+  "solver_owned_electrical": true,
   "interface": [
     {
       "name": "control",

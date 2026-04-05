@@ -49,15 +49,6 @@ void build_electrical_islands(
         return it->second;
     };
 
-    // Helper to read a single float param by name, with default.
-    auto read_param_float = [](const DeviceInstance& dev, const std::string& key, float default_val) -> float {
-        auto it = dev.params.find(key);
-        if (it != dev.params.end()) {
-            return locale_safe::parse_float_or(it->second, default_val);
-        }
-        return default_val;
-    };
-
     auto read_param_float_required = [&](const DeviceInstance& dev, const std::string& param_key,
                                          const std::string& role_key) -> float {
         auto it = dev.params.find(param_key);
@@ -104,94 +95,27 @@ void build_electrical_islands(
             continue;
         }
 
-        // == Path 1: Metadata-driven extraction ==
-        if (dev.solver_role.has_value()) {
-            const auto& role = *dev.solver_role;
+        const bool needs_solver_role = requires_solver_role(dev.classname);
 
-            const bool bind_handle = [&]() {
-                auto it_bind = role.value_map.find("bind_handle");
-                return it_bind != role.value_map.end() && it_bind->second > 0.5f;
-            }();
-
-            if (role.kind == "FixedVoltageNode") {
-                float value = read_role_param_required(dev, role, "voltage");
-                uint32_t node_a = resolve_role_port(dev, role, "node");
-                raw_elements.push_back({
-                    ElectricalElementKind::FixedVoltageNode,
-                    node_a,
-                    UINT32_MAX,
-                    value,
-                    0.0f,
-                    element_idx++,
-                    bind_handle ? dev.name : std::string{}
-                });
+        if (!dev.solver_role.has_value()) {
+            if (needs_solver_role) {
+                throw std::runtime_error(
+                    "Missing required solver_role metadata for electrical component '" +
+                    dev.name + "' (classname: " + dev.classname + ")");
             }
-            else if (role.kind == "TheveninSource") {
-                float voltage = read_role_param_required(dev, role, "voltage");
-                float resistance = read_role_param_required(dev, role, "resistance");
-                uint32_t node_pos = resolve_role_port(dev, role, "pos");
-                uint32_t node_neg = resolve_role_port(dev, role, "neg");
-                raw_elements.push_back({
-                    ElectricalElementKind::TheveninSource,
-                    node_pos,
-                    node_neg,
-                    voltage,
-                    resistance,
-                    element_idx++,
-                    bind_handle ? dev.name : std::string{}
-                });
-            }
-            else if (role.kind == "ConductanceBranch") {
-                float conductance = read_role_param_required(dev, role, "g");
-                uint32_t node_a = resolve_role_port(dev, role, "a");
-                uint32_t node_b = resolve_role_port(dev, role, "b");
-                raw_elements.push_back({
-                    ElectricalElementKind::ConductanceBranch,
-                    node_a,
-                    node_b,
-                    conductance,
-                    0.0f,
-                    element_idx++,
-                    bind_handle ? dev.name : std::string{}
-                });
-            }
-            else if (role.kind == "KnobSwitchBranches") {
-                int positions = static_cast<int>(read_role_param_required(dev, role, "positions"));
-                positions = std::clamp(positions, 2, KnobSwitch<JitProvider>::MAX_POSITIONS);
-                int initial_pos = static_cast<int>(read_role_param_required(dev, role, "initial_position"));
-                initial_pos = std::clamp(initial_pos, 0, positions - 1);
-                float g_open_val = read_role_param_required(dev, role, "g_open");
-                float g_closed_val = read_role_param_required(dev, role, "g_closed");
-                uint32_t node_wiper = resolve_role_port(dev, role, "wiper");
-                static_assert(KnobSwitch<JitProvider>::MAX_POSITIONS <= 5,
-                              "KnobSwitch terminal list in build_electrical.cpp supports up to 5 throws");
-                const char* terminal_names[] = {"throw1", "throw2", "throw3", "throw4", "throw5"};
-                for (int i = 0; i < positions; ++i) {
-                    uint32_t node_t = resolve_role_port(dev, role, terminal_names[i]);
-                    float initial_g = (i == initial_pos) ? g_closed_val : g_open_val;
-                    raw_elements.push_back({
-                        ElectricalElementKind::ConductanceBranch,
-                        node_wiper,
-                        node_t,
-                        initial_g,
-                        0.0f,
-                        element_idx++,
-                        bind_handle ? dev.name : std::string{}
-                    });
-                }
-            }
-            else {
-                throw std::runtime_error("Unsupported solver_role kind '" + role.kind +
-                    "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
-            }
-            continue;  // Metadata handled; skip classname fallback
+            continue;
         }
 
-        // Compatibility fallback for manually constructed DeviceInstance entries
-        // that don't carry merged solver_role metadata (primarily unit tests).
-        if (dev.classname == "RefNode") {
-            float value = read_param_float(dev, "value", 0.0f);
-            uint32_t node_a = resolve_port(dev, "v");
+        const auto& role = *dev.solver_role;
+
+        const bool bind_handle = [&]() {
+            auto it_bind = role.value_map.find("bind_handle");
+            return it_bind != role.value_map.end() && it_bind->second > 0.5f;
+        }();
+
+        if (role.kind == "FixedVoltageNode") {
+            float value = read_role_param_required(dev, role, "voltage");
+            uint32_t node_a = resolve_role_port(dev, role, "node");
             raw_elements.push_back({
                 ElectricalElementKind::FixedVoltageNode,
                 node_a,
@@ -199,14 +123,14 @@ void build_electrical_islands(
                 value,
                 0.0f,
                 element_idx++,
-                dev.name
+                bind_handle ? dev.name : std::string{}
             });
         }
-        else if (dev.classname == "ElectricalSource") {
-            float voltage = read_param_float(dev, "voltage", 28.0f);
-            float resistance = read_param_float(dev, "resistance", 0.01f);
-            uint32_t node_pos = resolve_port(dev, "v_out");
-            uint32_t node_neg = resolve_port(dev, "v_in");
+        else if (role.kind == "TheveninSource") {
+            float voltage = read_role_param_required(dev, role, "voltage");
+            float resistance = read_role_param_required(dev, role, "resistance");
+            uint32_t node_pos = resolve_role_port(dev, role, "pos");
+            uint32_t node_neg = resolve_role_port(dev, role, "neg");
             raw_elements.push_back({
                 ElectricalElementKind::TheveninSource,
                 node_pos,
@@ -214,28 +138,13 @@ void build_electrical_islands(
                 voltage,
                 resistance,
                 element_idx++,
-                dev.name
+                bind_handle ? dev.name : std::string{}
             });
         }
-        else if (dev.classname == "Generator") {
-            float v_nominal = read_param_float(dev, "v_nominal", 28.5f);
-            float internal_r = read_param_float(dev, "internal_r", 0.005f);
-            uint32_t node_pos = resolve_port(dev, "v_out");
-            uint32_t node_neg = resolve_port(dev, "v_in");
-            raw_elements.push_back({
-                ElectricalElementKind::TheveninSource,
-                node_pos,
-                node_neg,
-                v_nominal,
-                internal_r,
-                element_idx++,
-                dev.name
-            });
-        }
-        else if (dev.classname == "IndicatorLight") {
-            float conductance = read_param_float(dev, "conductance", 1.0f);
-            uint32_t node_a = resolve_port(dev, "v_in");
-            uint32_t node_b = resolve_port(dev, "v_out");
+        else if (role.kind == "ConductanceBranch") {
+            float conductance = read_role_param_required(dev, role, "g");
+            uint32_t node_a = resolve_role_port(dev, role, "a");
+            uint32_t node_b = resolve_role_port(dev, role, "b");
             raw_elements.push_back({
                 ElectricalElementKind::ConductanceBranch,
                 node_a,
@@ -243,135 +152,22 @@ void build_electrical_islands(
                 conductance,
                 0.0f,
                 element_idx++,
-                dev.name
+                bind_handle ? dev.name : std::string{}
             });
         }
-        else if (dev.classname == "CurrentSense") {
-            float conductance = read_param_float(dev, "conductance", 1000.0f);
-            uint32_t node_a = resolve_port(dev, "v_in");
-            uint32_t node_b = resolve_port(dev, "v_out");
-            raw_elements.push_back({
-                ElectricalElementKind::ConductanceBranch,
-                node_a,
-                node_b,
-                conductance,
-                0.0f,
-                element_idx++,
-                dev.name
-            });
-        }
-        else if (dev.classname == "Resistor") {
-            float conductance = read_param_float(dev, "conductance", 0.1f);
-            uint32_t node_a = resolve_port(dev, "v_in");
-            uint32_t node_b = resolve_port(dev, "v_out");
-            raw_elements.push_back({
-                ElectricalElementKind::ConductanceBranch,
-                node_a,
-                node_b,
-                conductance,
-                0.0f,
-                element_idx++,
-                std::string{}
-            });
-        }
-        else if (dev.classname == "ElectricalConductance") {
-            float conductance = read_param_float(dev, "conductance", 0.1f);
-            uint32_t node_a = resolve_port(dev, "v_in");
-            uint32_t node_b = resolve_port(dev, "v_out");
-            raw_elements.push_back({
-                ElectricalElementKind::ConductanceBranch,
-                node_a,
-                node_b,
-                conductance,
-                0.0f,
-                element_idx++,
-                dev.name
-            });
-        }
-        else if (dev.classname == "ControlledVoltageSource") {
-            float r_internal_val = read_param_float(dev, "r_internal", 0.1f);
-            float initial_voltage = 0.0f;
-            uint32_t node_pos = resolve_port(dev, "v_pos");
-            uint32_t node_neg = resolve_port(dev, "v_neg");
-            raw_elements.push_back({
-                ElectricalElementKind::TheveninSource,
-                node_pos,
-                node_neg,
-                initial_voltage,
-                r_internal_val,
-                element_idx++,
-                dev.name
-            });
-        }
-        else if (dev.classname == "VariableConductance") {
-            float initial_g = 0.001f;
-            uint32_t node_a = resolve_port(dev, "v_in");
-            uint32_t node_b = resolve_port(dev, "v_out");
-            raw_elements.push_back({
-                ElectricalElementKind::ConductanceBranch,
-                node_a,
-                node_b,
-                initial_g,
-                0.0f,
-                element_idx++,
-                dev.name
-            });
-        }
-        else if (dev.classname == "AZS") {
-            float g_open_val = read_param_float(dev, "g_open", 1e-6f);
-            uint32_t node_a = resolve_port(dev, "v_in");
-            uint32_t node_b = resolve_port(dev, "v_out");
-            raw_elements.push_back({
-                ElectricalElementKind::ConductanceBranch,
-                node_a,
-                node_b,
-                g_open_val,
-                0.0f,
-                element_idx++,
-                dev.name
-            });
-        }
-        else if (dev.classname == "HoldButton") {
-            float g_open_val = read_param_float(dev, "g_open", 1e-6f);
-            uint32_t node_a = resolve_port(dev, "v_in");
-            uint32_t node_b = resolve_port(dev, "v_out");
-            raw_elements.push_back({
-                ElectricalElementKind::ConductanceBranch,
-                node_a,
-                node_b,
-                g_open_val,
-                0.0f,
-                element_idx++,
-                dev.name
-            });
-        }
-        else if (dev.classname == "Relay") {
-            float g_open_val = read_param_float(dev, "g_open", 1e-6f);
-            uint32_t node_a = resolve_port(dev, "v_in");
-            uint32_t node_b = resolve_port(dev, "v_out");
-            raw_elements.push_back({
-                ElectricalElementKind::ConductanceBranch,
-                node_a,
-                node_b,
-                g_open_val,
-                0.0f,
-                element_idx++,
-                dev.name
-            });
-        }
-        else if (is_knob_switch_family(dev.classname)) {
-            int positions = static_cast<int>(read_param_float(dev, "positions", 2.0f));
+        else if (role.kind == "KnobSwitchBranches") {
+            int positions = static_cast<int>(read_role_param_required(dev, role, "positions"));
             positions = std::clamp(positions, 2, KnobSwitch<JitProvider>::MAX_POSITIONS);
-            int initial_pos = static_cast<int>(read_param_float(dev, "initial_position", 0.0f));
+            int initial_pos = static_cast<int>(read_role_param_required(dev, role, "initial_position"));
             initial_pos = std::clamp(initial_pos, 0, positions - 1);
-            float g_open_val = read_param_float(dev, "g_open", 1e-6f);
-            float g_closed_val = read_param_float(dev, "g_closed", 1000.0f);
-            uint32_t node_wiper = resolve_port(dev, "wiper");
+            float g_open_val = read_role_param_required(dev, role, "g_open");
+            float g_closed_val = read_role_param_required(dev, role, "g_closed");
+            uint32_t node_wiper = resolve_role_port(dev, role, "wiper");
             static_assert(KnobSwitch<JitProvider>::MAX_POSITIONS <= 5,
                           "KnobSwitch terminal list in build_electrical.cpp supports up to 5 throws");
             const char* terminal_names[] = {"throw1", "throw2", "throw3", "throw4", "throw5"};
             for (int i = 0; i < positions; ++i) {
-                uint32_t node_t = resolve_port(dev, terminal_names[i]);
+                uint32_t node_t = resolve_role_port(dev, role, terminal_names[i]);
                 float initial_g = (i == initial_pos) ? g_closed_val : g_open_val;
                 raw_elements.push_back({
                     ElectricalElementKind::ConductanceBranch,
@@ -380,9 +176,13 @@ void build_electrical_islands(
                     initial_g,
                     0.0f,
                     element_idx++,
-                    dev.name
+                    bind_handle ? dev.name : std::string{}
                 });
             }
+        }
+        else {
+            throw std::runtime_error("Unsupported solver_role kind '" + role.kind +
+                "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
         }
     }
 
@@ -509,8 +309,8 @@ void build_electrical_islands(
                 continue;  // Element without handle (e.g. Resistor)
             }
             const std::string& device_name = it_name->second;
-            auto it = result.devices.find(device_name);
-            if (it == result.devices.end()) {
+            ComponentVariant* variant = result.devices.find_mutable(device_name);
+            if (variant == nullptr) {
                 throw std::runtime_error("Handle assignment failed: device '" +
                     device_name + "' not found in result.devices");
             }
@@ -539,7 +339,7 @@ void build_electrical_islands(
                               std::is_same_v<CompType, Relay<JitProvider>>) {
                     comp.electrical_handle = handle;
                 }
-            }, it->second);
+            }, *variant);
         }
     }
 }
@@ -631,8 +431,7 @@ void populate_solver_owned_refs(BuildResult& result)
 {
     // == E-002: Populate solver-owned typed pointer lists ==
     // Pre-build typed pointers at build time to eliminate per-frame std::visit
-    for (auto& [name, variant] : result.devices) {
-        (void)name;
+    result.devices.for_each_mutable([&](const std::string&, ComponentVariant& variant) {
         std::visit([&](auto& comp) {
             using T = std::decay_t<decltype(comp)>;
             if constexpr (std::is_same_v<T, ControlledVoltageSource<JitProvider>>) {
@@ -659,7 +458,7 @@ void populate_solver_owned_refs(BuildResult& result)
                 result.solver_owned.electrical_sources.push_back(&comp);
             }
         }, variant);
-    }
+    });
 }
 
 void build_solver_step_ops(BuildResult& result)

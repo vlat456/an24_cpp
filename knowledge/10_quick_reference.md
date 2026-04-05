@@ -25,6 +25,8 @@ cd build && ctest
 | Provider Pattern | `src/core/solvers/jit/components/provider.h` |
 | All Components | `src/core/solvers/jit/components/all.h` |
 | JIT Solver | `src/core/solvers/jit/jit_solver.h` |
+| JIT signal building | `src/core/solvers/jit/build_signals.cpp` |
+| JIT electrical building | `src/core/solvers/jit/build_electrical.cpp` |
 | JIT component dispatcher | `src/core/solvers/jit/build_components.cpp` |
 | JIT component categories | `src/core/solvers/jit/build_components_*.cpp` |
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |
@@ -33,6 +35,8 @@ cd build && ctest
 | Type Registry | `src/blueprint_v2/registry/type_registry.h` |
 | Flattener | `src/blueprint_v2/flattener/flattener.h` |
 | Code Generator | `src/core/solvers/aot/codegen.h` |
+| AOT common utilities | `src/core/solvers/common/signal_union_rules.h` |
+| UnionFind (shared) | `src/core/utils/union_find.h` |
 | Document | `src/editor/document.h` |
 | Document I/O | `src/editor/document_io.cpp` |
 | Document simulation | `src/editor/document_simulation.cpp` |
@@ -112,7 +116,7 @@ Note: for passive-contact electrical parts (for example `KnobSwitch` terminals `
 
 | Category | Components |
 |----------|------------|
-| Electrical | Battery, Generator, Switch, Relay, AZS, Resistor, Load, Voltmeter, CurrentSense, VoltageSense, IndicatorLight, ElectricalSource, ElectricalConductance, ControlledVoltageSource, ControlledCurrentSource, Inverter, ElectricPump, ElectricHeater, SolenoidValve, Radiator, FuelTank, GidroAccumulator, Transformer, VariableConductance, GroundPower, Gyroscope, HighPowerLoad, HoldButton, Positive_V_to_Bool, Any_V_to_Bool, KnobSwitch, RotarySwitch1ToN, RotarySwitchNTo1, Slider |
+| Electrical | Battery, Generator, Switch, Relay, AZS, Resistor, Voltmeter, CurrentSense, VoltageSense, IndicatorLight, ElectricalSource, ElectricalConductance, ControlledVoltageSource, ControlledCurrentSource, Inverter, ElectricPump, ElectricHeater, SolenoidValve, Radiator, FuelTank, GidroAccumulator, Transformer, VariableConductance, GroundPower, Gyroscope, HoldButton, Positive_V_to_Bool, Any_V_to_Bool, KnobSwitch, RotarySwitch1ToN, RotarySwitchNTo1, Slider |
 | Logical | AND, OR, NOT, XOR, NAND, Comparator, Greater, Lesser, GreaterEq, LesserEq, PID, PI, PD, P, LUT |
 | Math | Add, Subtract, Multiply, Divide, Clamp, Normalize, Min, Max, SlewRate, AsymSlewRate, FastTMO, AsymTMO, Integrator, Accumulator, SampleHold, TimeDelay, Monostable, LerpNode, FirstOrderLag |
 | Thermal | TempSensor |

@@ -61,7 +61,7 @@ static SimulationState run_simulation(
             result.fixed_signals.end(),
             i
         );
-        (void)state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        (void)state.allocate_signal(0.0f);
     }
 
     // Set fixed signal values from RefNode devices

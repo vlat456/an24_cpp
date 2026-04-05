@@ -55,7 +55,7 @@ int main() {
                 break;
             }
         }
-        state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+        state.allocate_signal(0.0f);
     }
 
     // Set fixed signal values

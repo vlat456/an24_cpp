@@ -7,6 +7,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 // DeviceInstance is defined in json_parser/json_parser.h
@@ -27,6 +28,72 @@ struct SimulationState;
 
 /// Port-to-signal mapping
 using PortToSignal = std::unordered_map<std::string, uint32_t>;
+
+/// Guarded component storage.
+///
+/// Build-time code uses mutable APIs (`operator[]`, `find_mutable`,
+/// `for_each_mutable`) to populate components and wire typed pointers.
+/// Once `seal()` is called, all mutable APIs throw, so post-build structural
+/// mutation cannot silently invalidate cached scheduler/solver pointers.
+class BuildDeviceStore {
+public:
+    using Storage = std::unordered_map<std::string, ComponentVariant>;
+    using const_iterator = Storage::const_iterator;
+
+    ComponentVariant& operator[](const std::string& key) {
+        ensure_mutable("operator[]");
+        return devices_[key];
+    }
+
+    size_t size() const { return devices_.size(); }
+    size_t count(const std::string& key) const { return devices_.count(key); }
+
+    const_iterator begin() const { return devices_.begin(); }
+    const_iterator end() const { return devices_.end(); }
+
+    const_iterator find(const std::string& key) const {
+        return devices_.find(key);
+    }
+
+    const_iterator cbegin() const { return devices_.cbegin(); }
+    const_iterator cend() const { return devices_.cend(); }
+
+    const ComponentVariant& at(const std::string& key) const {
+        return devices_.at(key);
+    }
+
+    ComponentVariant* find_mutable(const std::string& key) {
+        ensure_mutable("find_mutable");
+        auto it = devices_.find(key);
+        if (it == devices_.end()) {
+            return nullptr;
+        }
+        return &it->second;
+    }
+
+    template <typename Fn>
+    void for_each_mutable(Fn&& fn) {
+        ensure_mutable("for_each_mutable");
+        for (auto& [name, variant] : devices_) {
+            fn(name, variant);
+        }
+    }
+
+    void seal() { sealed_ = true; }
+    bool sealed() const { return sealed_; }
+
+private:
+    void ensure_mutable(const char* op) const {
+        if (sealed_) {
+            throw std::logic_error(
+                std::string("BuildDeviceStore is sealed; mutable operation '") + op +
+                "' is not allowed after build");
+        }
+    }
+
+    Storage devices_;
+    bool sealed_ = false;
+};
 
 /// Get domain bitmask from component (reads static constexpr Domain field)
 inline Domain get_component_domain_mask(const ComponentVariant& variant) {
@@ -98,14 +165,11 @@ struct BuildResult {
     PortToSignal port_to_signal;
 
     /// Dynamic components for JIT mode (Editor).
-    /// Map: device name -> ComponentVariant (type-safe storage container).
-    /// NOTE: This is storage only — all per-frame dispatch uses PushScheduler
-    /// (type-erased fn ptrs) or SolverOwnedRefs (typed pointer lists).
-    /// std::visit on this map only happens at build time.
-    /// INVARIANT: After `build_systems_dev()` completes pointer extraction
-    /// (scheduler + solver_owned), this map must not be structurally modified
-    /// (insert/erase/rehash), otherwise stored pointers become dangling.
-    std::unordered_map<std::string, ComponentVariant> devices;
+    /// Storage: device name -> ComponentVariant (type-safe storage container).
+    /// Mutable APIs are build-only; `build_systems_dev()` seals storage before
+    /// return, preventing post-build mutation that could invalidate cached
+    /// scheduler/solver pointers.
+    BuildDeviceStore devices;
 
     /// Push scheduler populated at build time.
     PushScheduler scheduler;

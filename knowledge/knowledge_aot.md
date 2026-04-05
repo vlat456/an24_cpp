@@ -270,7 +270,6 @@ struct Systems {
     
     // Signal arrays (SoA layout)
     float values[16];
-    SignalType signal_types[16];
     
     // Pre-built electrical islands
     static constexpr ElectricalIsland islands[2] = {...};
@@ -380,4 +379,4 @@ cmake --build build
 
 - `src/codegen/codegen.h` — API declarations
 - `src/codegen/codegen.cpp` — Implementation
-- `src/jit_solver/components/port_registry.h` — Auto-generated from library
+- `src/core/solvers/jit/components/port_registry.h` — Auto-generated from library

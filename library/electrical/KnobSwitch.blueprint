@@ -3,6 +3,7 @@
   "id": "KnobSwitch",
   "display_name": "Knob Switch",
   "scheduler_source": false,
+  "solver_owned_electrical": true,
   "interface": [
     {
       "name": "wiper",

@@ -131,6 +131,7 @@ bool try_build_control_component(
         AsymTMO<JitProvider> comp;
         comp.tau_up = param_reader.consume_float_required("tau_up");
         comp.tau_down = param_reader.consume_float_required("tau_down");
+        comp.deadzone = param_reader.consume_float_optional("deadzone", 0.001f);
         comp.pre_load();
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));

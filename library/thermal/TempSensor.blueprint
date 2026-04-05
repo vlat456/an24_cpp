@@ -3,6 +3,8 @@
   "id": "TempSensor",
   "display_name": "TempSensor",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "temp_in",

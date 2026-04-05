@@ -3,6 +3,8 @@
   "id": "Monostable",
   "display_name": "Monostable",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "in",

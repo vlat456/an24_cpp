@@ -3,6 +3,8 @@
   "id": "InertiaNode",
   "display_name": "InertiaNode",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "torque_in",

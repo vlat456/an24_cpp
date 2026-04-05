@@ -10,6 +10,11 @@
 
 namespace {
 
+const TypeRegistry& test_registry() {
+    static const TypeRegistry registry = load_type_registry("library/");
+    return registry;
+}
+
 ExecutionPhases make_execution_for_class(const std::string& classname) {
     ExecutionPhases phases;
 
@@ -116,6 +121,7 @@ BuildResult build_single_component(const std::string& classname,
     } else if (classname == "AsymTMO") {
         merged_params.try_emplace("tau_up", "0.1");
         merged_params.try_emplace("tau_down", "0.1");
+        merged_params.try_emplace("deadzone", "1e-6");
     } else if (classname == "LerpNode") {
         merged_params.try_emplace("factor", "0.5");
         merged_params.try_emplace("deadzone", "1e-6");
@@ -133,6 +139,9 @@ BuildResult build_single_component(const std::string& classname,
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
     }
+    if (const TypeDefinition* def = test_registry().get(classname)) {
+        dev = merge_device_instance(dev, *def);
+    }
 
     // Ground reference so the system has at least one fixed signal
     DeviceInstance gnd;
@@ -141,6 +150,9 @@ BuildResult build_single_component(const std::string& classname,
     gnd.params = {{"value", "0"}};
     gnd.execution = make_execution_for_class("RefNode");
     gnd.ports["v"] = Port{PortDirection::Out, PortType::V};
+    if (const TypeDefinition* def = test_registry().get("RefNode")) {
+        gnd = merge_device_instance(gnd, *def);
+    }
 
     std::vector<DeviceInstance> devices = {dev, gnd};
     std::vector<std::pair<std::string, std::string>> connections;
@@ -157,9 +169,9 @@ TEST(FactoryValidationTest, Factory_CreatesAllKnownComponents) {
     std::vector<std::string> component_types = {
         "ElectricalSource", "Switch", "HoldButton", "Relay", "Resistor",
         "RefNode", "Bus", "Generator", "Gyroscope", "Transformer", "Inverter",
-        "LerpNode", "IndicatorLight", "HighPowerLoad", "ElectricPump",
+        "LerpNode", "IndicatorLight", "ElectricPump",
         "SolenoidValve", "InertiaNode", "TempSensor", "ElectricHeater",
-        "Radiator", "Comparator", "Load", "AZS",
+        "Radiator", "Comparator", "AZS",
         "AND", "OR", "NOT", "NAND", "XOR",
         "Add", "Subtract", "Multiply", "Divide",
         "Splitter", "Merger",
@@ -198,7 +210,6 @@ TEST(FactoryValidationTest, PortRegistryConstants_AreCorrect) {
     EXPECT_EQ(Inverter_PORT_COUNT, get_component_ports("Inverter").size());
     EXPECT_EQ(LerpNode_PORT_COUNT, get_component_ports("LerpNode").size());
     EXPECT_EQ(IndicatorLight_PORT_COUNT, get_component_ports("IndicatorLight").size());
-    EXPECT_EQ(HighPowerLoad_PORT_COUNT, get_component_ports("HighPowerLoad").size());
     EXPECT_EQ(ElectricPump_PORT_COUNT, get_component_ports("ElectricPump").size());
     EXPECT_EQ(SolenoidValve_PORT_COUNT, get_component_ports("SolenoidValve").size());
     EXPECT_EQ(InertiaNode_PORT_COUNT, get_component_ports("InertiaNode").size());
@@ -221,9 +232,9 @@ TEST(FactoryValidationTest, AllRegistryPortsAreRecognized) {
     std::vector<std::string> types = {
         "ElectricalSource", "Switch", "HoldButton", "Relay", "Resistor",
         "RefNode", "Bus", "Generator", "Gyroscope", "Transformer", "Inverter",
-        "LerpNode", "IndicatorLight", "HighPowerLoad", "ElectricPump",
+        "LerpNode", "IndicatorLight", "ElectricPump",
         "SolenoidValve", "InertiaNode", "TempSensor", "ElectricHeater",
-        "Radiator", "Comparator", "Load", "AZS",
+        "Radiator", "Comparator", "AZS",
         "AND", "OR", "NOT", "NAND", "XOR",
         "Add", "Subtract", "Multiply", "Divide",
         "Splitter", "Merger",
@@ -259,6 +270,9 @@ TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
     bat.execution = make_execution_for_class("ElectricalSource");
     bat.ports["v_in"] = Port{PortDirection::In, PortType::V};
     bat.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+    if (const TypeDefinition* def = test_registry().get("ElectricalSource")) {
+        bat = merge_device_instance(bat, *def);
+    }
 
     std::vector<DeviceInstance> devices = {bat};
     std::vector<std::pair<std::string, std::string>> connections;

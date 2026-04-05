@@ -3,6 +3,8 @@
   "id": "Radiator",
   "display_name": "Radiator",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "heat_in",

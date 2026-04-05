@@ -3,6 +3,8 @@
   "id": "Add",
   "display_name": "Add",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "A",

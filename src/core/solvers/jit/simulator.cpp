@@ -137,7 +137,7 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
     // Dynamic/fixed partitioning is a Phase 2 concern when components
     // actually need the split layout.
     for (uint32_t i = 0; i < build_result_->signal_count; ++i) {
-        (void)state_.allocate_signal(0.0f, {Domain::Electrical, /*is_fixed=*/true});
+        (void)state_.allocate_signal(0.0f);
     }
 
     for (const auto& dev : ctx.devices) {

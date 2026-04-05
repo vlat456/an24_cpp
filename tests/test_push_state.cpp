@@ -21,16 +21,16 @@ TEST(push_state, ValuesArrayExists) {
 
 TEST(push_state, AllocateSignalWritesToValues) {
     SimulationState st;
-    const uint32_t idx = st.allocate_signal(28.0f, {Domain::Electrical, false});
+    const uint32_t idx = st.allocate_signal(28.0f);
     EXPECT_EQ(idx, 0u);
     EXPECT_FLOAT_EQ(st.values[idx], 28.0f);
 }
 
 TEST(push_state, AllocateMultipleSignals) {
     SimulationState st;
-    const uint32_t a = st.allocate_signal(28.0f, {Domain::Electrical, false});
-    const uint32_t b = st.allocate_signal(0.0f, {Domain::Electrical, false});
-    const uint32_t c = st.allocate_signal(115.0f, {Domain::Electrical, true});
+    const uint32_t a = st.allocate_signal(28.0f);
+    const uint32_t b = st.allocate_signal(0.0f);
+    const uint32_t c = st.allocate_signal(115.0f);
 
     EXPECT_EQ(a, 0u);
     EXPECT_EQ(b, 1u);
@@ -43,9 +43,9 @@ TEST(push_state, AllocateMultipleSignals) {
 
 TEST(push_state, DynamicInsertedBeforeFixed) {
     SimulationState st;
-    const uint32_t fixed0 = st.allocate_signal(115.0f, {Domain::Electrical, true});
-    const uint32_t dyn0 = st.allocate_signal(28.0f, {Domain::Electrical, false});
-    const uint32_t dyn1 = st.allocate_signal(12.0f, {Domain::Electrical, false});
+    const uint32_t fixed0 = st.allocate_signal(115.0f);
+    const uint32_t dyn0 = st.allocate_signal(28.0f);
+    const uint32_t dyn1 = st.allocate_signal(12.0f);
 
     EXPECT_EQ(fixed0, 0u);
     EXPECT_EQ(dyn0, 1u);

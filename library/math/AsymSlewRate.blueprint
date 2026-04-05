@@ -3,6 +3,8 @@
   "id": "AsymSlewRate",
   "display_name": "AsymSlewRate",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "in",

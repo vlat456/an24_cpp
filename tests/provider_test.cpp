@@ -66,9 +66,9 @@ void test_signal_allocation() {
     // Allocation behavior:
     // - All signals append at end (index = values.size() at allocation time)
     // - Returned indices are stable and never shift after allocation
-    uint32_t sig1 = st.allocate_signal(0.0f, {Domain::Electrical, true});
-    uint32_t sig2 = st.allocate_signal(24.0f, {Domain::Electrical, false});
-    uint32_t sig3 = st.allocate_signal(0.0f, {Domain::Logical, false});
+    uint32_t sig1 = st.allocate_signal(0.0f);
+    uint32_t sig2 = st.allocate_signal(24.0f);
+    uint32_t sig3 = st.allocate_signal(0.0f);
     
     std::cout << "  Allocated signal (electrical fixed): index=" << sig1 << "\n";
     std::cout << "  Allocated signal (electrical dynamic): index=" << sig2 << "\n";
@@ -97,9 +97,9 @@ void test_provider_value_access() {
     SimulationState st;
     
     // Allocate signals
-    uint32_t sig_v_bus = st.allocate_signal(24.0f, {Domain::Electrical, false});
-    uint32_t sig_v_gnd = st.allocate_signal(0.0f, {Domain::Electrical, false});
-    uint32_t sig_rpm = st.allocate_signal(0.0f, {Domain::Electrical, false});
+    uint32_t sig_v_bus = st.allocate_signal(24.0f);
+    uint32_t sig_v_gnd = st.allocate_signal(0.0f);
+    uint32_t sig_rpm = st.allocate_signal(0.0f);
     
     // Simulate a provider mapping
     JitProvider bat_provider;

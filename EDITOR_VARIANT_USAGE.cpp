@@ -28,7 +28,7 @@ public:
         // Allocate signals
         state = SimulationState();
         for (uint32_t i = 0; i < result.signal_count; ++i) {
-            state.allocate_signal(0.0f, {Domain::Electrical, false});
+            state.allocate_signal(0.0f);
         }
     }
 

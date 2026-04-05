@@ -3,6 +3,8 @@
   "id": "Merger",
   "display_name": "Merger",
   "scheduler_source": false,
+
+  "solver_owned_electrical": false,
   "interface": [
     {
       "name": "i1",

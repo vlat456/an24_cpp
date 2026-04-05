@@ -191,7 +191,6 @@ Visual annotation:
 | Relay | Electromechanical relay |
 | AZS | Automatic circuit breaker (zero-sequence) |
 | Resistor | Fixed resistance |
-| Load | Variable load |
 | Voltmeter | Voltage measurement |
 | VoltageSense | High-impedance voltage sensing |
 | CurrentSense | Current measurement |
@@ -211,7 +210,6 @@ Visual annotation:
 | VariableConductance | Variable resistance |
 | GroundPower | Ground reference node |
 | Gyroscope | Gyroscopic sensor |
-| HighPowerLoad | High power load stub |
 | HoldButton | Momentary hold button |
 | Positive_V_to_Bool | Voltage threshold to boolean |
 | Any_V_to_Bool | Any voltage to boolean |

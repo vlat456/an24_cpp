@@ -18,6 +18,7 @@ BuildResult build_systems_dev(
     if (result.signal_count <= 1) {
         // Empty system, sentinel only
         result.fixed_signals.push_back(0);
+        result.devices.seal();
         return result;
     }
 
@@ -35,6 +36,11 @@ BuildResult build_systems_dev(
 
     // Phase 6: Build compiled solver-owned step operations (execute + commit)
     build_solver_step_ops(result);
+
+    // Freeze component storage after all pointer extraction is complete.
+    // Prevents accidental post-build structural mutation that would invalidate
+    // cached scheduler/solver pointers.
+    result.devices.seal();
 
     return result;
 }
