@@ -553,38 +553,10 @@ TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
 TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     TypeRegistry registry;
 
-    TypeDefinition battery_type;
-    battery_type.classname = "Generator";
-    battery_type.cpp_class = true;
-    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    battery_type.domains = {{Domain::Electrical}};
-    registry.types["Generator"] = battery_type;
-
-    TypeDefinition sense_type;
-    sense_type.classname = "CurrentSense";
-    sense_type.cpp_class = true;
-    sense_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    sense_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    sense_type.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    sense_type.domains = {{Domain::Electrical}};
-    registry.types["CurrentSense"] = sense_type;
-
-    TypeDefinition light_type;
-    light_type.classname = "IndicatorLight";
-    light_type.cpp_class = true;
-    light_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    light_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    light_type.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    light_type.domains = {{Domain::Electrical}};
-    registry.types["IndicatorLight"] = light_type;
-
-    TypeDefinition refnode_type;
-    refnode_type.classname = "RefNode";
-    refnode_type.cpp_class = true;
-    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    refnode_type.domains = {{Domain::Electrical}};
-    registry.types["RefNode"] = refnode_type;
+    registry.types["Generator"] = make_generator_type();
+    registry.types["CurrentSense"] = make_currentsense_type();
+    registry.types["IndicatorLight"] = make_indicator_light_type();
+    registry.types["RefNode"] = make_refnode_type();
 
     TypeDefinition circuit;
     circuit.classname = "wrapper_binding_circuit";
@@ -631,30 +603,7 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
 
 TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
     TypeRegistry registry;
-
-    TypeDefinition battery_type;
-    battery_type.classname = "Generator";
-    battery_type.cpp_class = true;
-    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    battery_type.domains = {{Domain::Electrical}};
-    registry.types["Generator"] = battery_type;
-
-    TypeDefinition sense_type;
-    sense_type.classname = "CurrentSense";
-    sense_type.cpp_class = true;
-    sense_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    sense_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    sense_type.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    sense_type.domains = {{Domain::Electrical}};
-    registry.types["CurrentSense"] = sense_type;
-
-    TypeDefinition refnode_type;
-    refnode_type.classname = "RefNode";
-    refnode_type.cpp_class = true;
-    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    refnode_type.domains = {{Domain::Electrical}};
-    registry.types["RefNode"] = refnode_type;
+    register_generator_sense_ref_types(registry);
 
     auto make_circuit = [&](const std::vector<Connection>& conns, const std::string& name) {
         TypeDefinition td;
@@ -722,30 +671,7 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
 
 TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
     TypeRegistry registry;
-
-    TypeDefinition battery_type;
-    battery_type.classname = "Generator";
-    battery_type.cpp_class = true;
-    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    battery_type.domains = {{Domain::Electrical}};
-    registry.types["Generator"] = battery_type;
-
-    TypeDefinition sense_type;
-    sense_type.classname = "CurrentSense";
-    sense_type.cpp_class = true;
-    sense_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    sense_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    sense_type.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    sense_type.domains = {{Domain::Electrical}};
-    registry.types["CurrentSense"] = sense_type;
-
-    TypeDefinition refnode_type;
-    refnode_type.classname = "RefNode";
-    refnode_type.cpp_class = true;
-    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    refnode_type.domains = {{Domain::Electrical}};
-    registry.types["RefNode"] = refnode_type;
+    register_generator_sense_ref_types(registry);
 
     TypeDefinition circuit;
     circuit.classname = "binding_fields_circuit";
@@ -795,39 +721,13 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
 // binding construction must still map to the correct device name (not devices[element_idx]).
 TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
     TypeRegistry registry;
-
-    TypeDefinition battery_type;
-    battery_type.classname = "Generator";
-    battery_type.cpp_class = true;
-    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    battery_type.domains = {{Domain::Electrical}};
-    registry.types["Generator"] = battery_type;
+    registry.types["Generator"] = make_generator_type();
 
     // Non-electrical device that sits between electrical devices in the list
-    TypeDefinition logic_type;
-    logic_type.classname = "Any_V_to_Bool";
-    logic_type.cpp_class = true;
-    logic_type.ports["Vin"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    logic_type.ports["o"]   = Port{PortDirection::Out, PortType::Bool, std::nullopt};
-    logic_type.domains = {{Domain::Logical}};
-    registry.types["Any_V_to_Bool"] = logic_type;
+    registry.types["Any_V_to_Bool"] = make_any_v_to_bool_type();
 
-    TypeDefinition sense_type;
-    sense_type.classname = "CurrentSense";
-    sense_type.cpp_class = true;
-    sense_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    sense_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    sense_type.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
-    sense_type.domains = {{Domain::Electrical}};
-    registry.types["CurrentSense"] = sense_type;
-
-    TypeDefinition refnode_type;
-    refnode_type.classname = "RefNode";
-    refnode_type.cpp_class = true;
-    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    refnode_type.domains = {{Domain::Electrical}};
-    registry.types["RefNode"] = refnode_type;
+    registry.types["CurrentSense"] = make_currentsense_type();
+    registry.types["RefNode"] = make_refnode_type();
 
     TypeDefinition circuit;
     circuit.classname = "mixed_device_circuit";
