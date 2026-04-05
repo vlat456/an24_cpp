@@ -2401,7 +2401,7 @@
       },
       "position": {
         "x": 96.0,
-        "y": -368.0
+        "y": -408.0
       },
       "type": "LoadVoltageDrp",
       "width": 160.0
@@ -3034,6 +3034,42 @@
       "position": {
         "x": 96.0,
         "y": -544.0
+      },
+      "type": "IndicatorLight",
+      "width": 80.0
+    },
+    {
+      "content_label": "",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 7,
+      "content_unit": "",
+      "content_value": 0.0,
+      "height": 80.0,
+      "id": "indicatorlight_5",
+      "name": "indicatorlight_5",
+      "params": {
+        "conductance": 0.0020000000949949026
+      },
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 624.0,
+        "y": -128.0
       },
       "type": "IndicatorLight",
       "width": 80.0
@@ -4500,8 +4536,8 @@
       "type": "Voltmeter"
     }
   ],
-  "pan_x": -643.856201171875,
-  "pan_y": -913.7785034179688,
+  "pan_x": -179.82977294921875,
+  "pan_y": -617.0382080078125,
   "version": "3.0",
   "wires": [
     {
@@ -4759,33 +4795,6 @@
       ],
       "source": "/bus_2:v",
       "target": "/extract_inst_1:feedback"
-    },
-    {
-      "id": "wire_63",
-      "routing_points": [
-        [
-          672.0,
-          -288.0
-        ],
-        [
-          672.0,
-          -32.0
-        ],
-        [
-          912.0,
-          -32.0
-        ],
-        [
-          912.0,
-          272.0
-        ],
-        [
-          544.0,
-          272.0
-        ]
-      ],
-      "source": "/variableconductance_1:v_out",
-      "target": "/bus_1:v"
     },
     {
       "id": "wire_41",
@@ -5355,7 +5364,17 @@
       "id": "wire_163",
       "source": "/groundpower_1:v_out",
       "target": "/rotaryswitch1ton_1:wiper"
+    },
+    {
+      "id": "wire_164",
+      "source": "/variableconductance_1:v_out",
+      "target": "/indicatorlight_5:v_in"
+    },
+    {
+      "id": "wire_165",
+      "source": "/indicatorlight_5:v_out",
+      "target": "/bus_1:v"
     }
   ],
-  "zoom": 1.1244862079620361
+  "zoom": 0.572724461555481
 }
