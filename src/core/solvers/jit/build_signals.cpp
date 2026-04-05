@@ -1,5 +1,5 @@
 #include "jit_solver_internal.h"
-#include "../shared/signal_union_rules.h"
+#include "../common/signal_union_rules.h"
 #include <algorithm>
 #include <map>
 #include <spdlog/spdlog.h>

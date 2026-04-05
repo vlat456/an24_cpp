@@ -1,5 +1,5 @@
 #include "codegen_composite_helpers.h"
-#include "../shared/signal_union_rules.h"
+#include "../common/signal_union_rules.h"
 
 #include <map>
 

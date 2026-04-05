@@ -5,8 +5,6 @@ add_library(core
     solvers/jit/jit_solver_main.cpp
     
     # State and simulation
-    solvers/shared/state.cpp
-    solvers/shared/electrical_subsolver.cpp
     simulator.cpp
     
     # Components

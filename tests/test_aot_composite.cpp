@@ -1263,3 +1263,129 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     EXPECT_EQ(aot_signal_count + 1, jit_result.signal_count)
         << "AOT and JIT signal counts must match (JIT includes +1 sentinel)";
 }
+
+TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
+    TypeRegistry registry;
+
+    TypeDefinition cvs;
+    cvs.classname = "ControlledVoltageSource";
+    cvs.cpp_class = true;
+    cvs.ports["cmd"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    cvs.ports["gain"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    cvs.ports["offset"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    cvs.ports["min_v"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    cvs.ports["max_v"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    cvs.ports["v_pos"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    cvs.ports["v_neg"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    cvs.domains = {{Domain::Electrical}};
+    cvs.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    registry.types["ControlledVoltageSource"] = cvs;
+
+    TypeDefinition vc;
+    vc.classname = "VariableConductance";
+    vc.cpp_class = true;
+    vc.ports["cmd"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    vc.ports["g_min"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    vc.ports["g_max"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    vc.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    vc.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    vc.domains = {{Domain::Electrical}};
+    vc.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    registry.types["VariableConductance"] = vc;
+
+    TypeDefinition refnode_type;
+    refnode_type.classname = "RefNode";
+    refnode_type.cpp_class = true;
+    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    refnode_type.domains = {{Domain::Electrical}};
+    refnode_type.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    registry.types["RefNode"] = refnode_type;
+
+    TypeDefinition value_type;
+    value_type.classname = "Value";
+    value_type.cpp_class = true;
+    value_type.ports["o"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
+    value_type.domains = {{Domain::Logical}};
+    value_type.execution = make_execution(false, true, false, false, false, false, false, false, false);
+    registry.types["Value"] = value_type;
+
+    TypeDefinition circuit;
+    circuit.classname = "dynamic_patch_test";
+    circuit.cpp_class = false;
+
+    DeviceInstance d_ref;
+    d_ref.name = "gnd";
+    d_ref.classname = "RefNode";
+
+    DeviceInstance d_cvs;
+    d_cvs.name = "src";
+    d_cvs.classname = "ControlledVoltageSource";
+
+    DeviceInstance d_vc;
+    d_vc.name = "load";
+    d_vc.classname = "VariableConductance";
+
+    DeviceInstance d_cmd;
+    d_cmd.name = "cmd";
+    d_cmd.classname = "Value";
+    d_cmd.params["value"] = "0.5";
+
+    DeviceInstance d_gain;
+    d_gain.name = "gain";
+    d_gain.classname = "Value";
+    d_gain.params["value"] = "1.0";
+
+    DeviceInstance d_offset;
+    d_offset.name = "offset";
+    d_offset.classname = "Value";
+    d_offset.params["value"] = "0.0";
+
+    DeviceInstance d_min;
+    d_min.name = "minv";
+    d_min.classname = "Value";
+    d_min.params["value"] = "0.0";
+
+    DeviceInstance d_max;
+    d_max.name = "maxv";
+    d_max.classname = "Value";
+    d_max.params["value"] = "28.5";
+
+    DeviceInstance d_gmin;
+    d_gmin.name = "gmin";
+    d_gmin.classname = "Value";
+    d_gmin.params["value"] = "0.1";
+
+    DeviceInstance d_gmax;
+    d_gmax.name = "gmax";
+    d_gmax.classname = "Value";
+    d_gmax.params["value"] = "1.0";
+
+    circuit.devices = {d_ref, d_cvs, d_vc, d_cmd, d_gain, d_offset, d_min, d_max, d_gmin, d_gmax};
+    circuit.connections = {
+        {"src.v_pos", "load.v_in", {}},
+        {"load.v_out", "gnd.v", {}},
+        {"src.v_neg", "gnd.v", {}},
+        {"cmd.o", "src.cmd", {}},
+        {"gain.o", "src.gain", {}},
+        {"offset.o", "src.offset", {}},
+        {"minv.o", "src.min_v", {}},
+        {"maxv.o", "src.max_v", {}},
+        {"cmd.o", "load.cmd", {}},
+        {"gmin.o", "load.g_min", {}},
+        {"gmax.o", "load.g_max", {}},
+    };
+    registry.types[circuit.classname] = circuit;
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    EXPECT_NE(result.source.find("electrical_rt_.element_value_a"), std::string::npos)
+        << "AOT source should patch dynamic electrical element values before solve";
+    EXPECT_NE(result.source.find("src.electrical_handle.element_id"), std::string::npos)
+        << "CVS element_id patching should be generated";
+    EXPECT_NE(result.source.find("load.electrical_handle.element_id"), std::string::npos)
+        << "VariableConductance element_id patching should be generated";
+    EXPECT_NE(result.source.find("std::clamp(cmd * gain + offset, min_v, max_v)"), std::string::npos)
+        << "CVS affine clamp patch expression should be generated";
+    EXPECT_NE(result.source.find("g_min + (g_max - g_min) * t"), std::string::npos)
+        << "VariableConductance lerp patch expression should be generated";
+}

@@ -2,6 +2,7 @@
 
 #include "json_parser/json_parser.h"
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <utility>
