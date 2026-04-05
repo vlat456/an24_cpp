@@ -110,6 +110,13 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/app/editor_app.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_export.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_history.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_components.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_io.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_windows.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/oscilloscope.cpp

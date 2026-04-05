@@ -85,6 +85,17 @@ public:
 };
 ```
 
+Implementation is now split by concern:
+
+- `src/editor/document.cpp` — constructor/title + extraction glue
+- `src/editor/document_components.cpp` — component/blueprint authoring
+- `src/editor/document_export.cpp` — simulation JSON export helpers
+- `src/editor/document_input.cpp` — input result dispatch
+- `src/editor/document_history.cpp` — undo/redo orchestration
+- `src/editor/document_io.cpp` — save/load and wire-id sync
+- `src/editor/document_simulation.cpp` — simulation lifecycle, overrides, node-content updates, energized-wire readout
+- `src/editor/document_windows.cpp` — sub-window and external-reference window open logic
+
 ### WindowManager
 MDI window management - each sub-window or nested blueprint is a separate window:
 ```cpp

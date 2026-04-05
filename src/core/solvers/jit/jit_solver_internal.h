@@ -50,6 +50,26 @@ void build_and_register_components(
     BuildResult& result,
     const std::vector<DeviceInstance>& devices);
 
+bool try_build_logic_component(
+    BuildResult& result,
+    const DeviceInstance& dev,
+    ParamReader& param_reader);
+
+bool try_build_control_component(
+    BuildResult& result,
+    const DeviceInstance& dev,
+    ParamReader& param_reader);
+
+bool try_build_utility_component(
+    BuildResult& result,
+    const DeviceInstance& dev,
+    ParamReader& param_reader);
+
+bool try_build_physical_component(
+    BuildResult& result,
+    const DeviceInstance& dev,
+    ParamReader& param_reader);
+
 void validate_source_writer_conflicts(
     const BuildResult& result,
     const std::vector<DeviceInstance>& devices);

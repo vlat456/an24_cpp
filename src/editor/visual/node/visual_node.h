@@ -21,6 +21,22 @@
 
 namespace visual {
 
+enum class NodeInteractionType {
+    Toggle,
+    Slider,
+    Knob
+};
+
+struct NodeInteractionHit {
+    NodeInteractionType type = NodeInteractionType::Toggle;
+    float content_local_x = 0.0f;
+};
+
+struct NodeVisualState {
+    bool selected = false;
+    bool has_interactive_content = false;
+};
+
 /// Node widget in the new scene graph.
 /// Root widget added to Scene. Clickable (tracked in Grid for hit testing).
 /// Owns its layout tree: header, port rows, content area, type name footer.
@@ -56,6 +72,13 @@ public:
 
     /// Content widget (if any). nullptr for nodes without interactive content.
     Widget* contentWidget() const { return content_widget_; }
+
+    /// Query node-local interaction hit in content area.
+    /// Returns empty when no interactive content was hit.
+    std::optional<NodeInteractionHit> query_interaction(Pt world_pos) const;
+
+    /// Derive per-frame visual state for this node from render context.
+    NodeVisualState visual_state(const RenderContext& ctx) const;
 
     /// Custom fill color (nullopt = use theme default)
     void setCustomColor(std::optional<uint32_t> c) override { custom_fill_ = c; }

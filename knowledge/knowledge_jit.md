@@ -136,13 +136,19 @@ The build process is split into modular files, each ≤500 LOC:
 | `jit_solver_internal.h` | 70 | Internal API in `jit_solver_impl` namespace |
 | `build_utils.cpp` | 120 | Helper functions + ParamReader |
 | `build_signals.cpp` | 140 | Union-find + signal allocation |
-| `build_components.cpp` | 973 | Component factory (68+ types) |
+| `build_components.cpp` | 388 | Component dispatcher/orchestrator |
+| `build_components_common.h` | 57 | Shared registration helpers |
+| `build_components_logic.cpp` | 70 | Logic/math gate registrations |
+| `build_components_control.cpp` | 143 | PID/integrator/time constants |
+| `build_components_utility.cpp` | 101 | LUT/comparators/misc utilities |
+| `build_components_physical.cpp` | 126 | Mechanical/hydraulic/thermal registrations |
+| `build_components_validation.cpp` | 208 | Source conflict + consumer ordering validation |
 | `build_electrical.cpp` | 517 | Electrical islands + handle assignment |
 
 Pipeline:
 1. **Utils** — metadata helpers, ParamReader
 2. **Signals** — union-find, port unions
-3. **Components** — factory, scheduler, refs
+3. **Components** — dispatcher + category-specific factory files
 4. **Electrical** — islands, handle assignment
 
 ## Namespace Pattern
@@ -165,7 +171,8 @@ Internal implementation uses `jit_solver_impl` named namespace instead of anonym
 | `build_signals.cpp` (140 LOC) | ✓ Compliant | Main function 140 LOC but simple linear workflow: declare → iterate → union-find → sort |
 | `simulator.cpp` (352 LOC) | ✓ Compliant | Key functions: step() 70 LOC, start_from_json() 67 LOC, update_dynamic_sources() 64 LOC |
 | `build_electrical.cpp` (517 LOC) | ⚠ Exceeds | build_electrical_islands() is 470 LOC (3 coupled phases); populate_solver_owned_refs() is 33 LOC |
-| `build_components.cpp` (973 LOC) | ⚠ Exceeds | Intentional: component factory with 68+ type dispatches (>500 LOC acceptable as distinct case) |
+| `build_components.cpp` (388 LOC) | ✓ Compliant | Delegates to category split files |
+| `build_components_*.cpp` | ✓ Compliant | Component categories split into focused files |
 
 ### build_electrical.cpp Detailed Analysis
 
@@ -206,7 +213,13 @@ Main phases achieve complexity ~5-7 (acceptable for domain logic).
 - `src/core/solvers/jit/jit_solver_internal.h` — Internal API
 - `src/core/solvers/jit/build_utils.cpp` — Helpers + ParamReader
 - `src/core/solvers/jit/build_signals.cpp` — Signal allocation
-- `src/core/solvers/jit/build_components.cpp` — Component factory (intentional exception)
+- `src/core/solvers/jit/build_components.cpp` — Component dispatcher
+- `src/core/solvers/jit/build_components_common.h` — Shared registration helpers
+- `src/core/solvers/jit/build_components_logic.cpp` — Logic/math gate registration
+- `src/core/solvers/jit/build_components_control.cpp` — Control/filter components
+- `src/core/solvers/jit/build_components_utility.cpp` — Utility/logical helpers
+- `src/core/solvers/jit/build_components_physical.cpp` — Physical/non-electrical components
+- `src/core/solvers/jit/build_components_validation.cpp` — Build-time validation and consumer ordering
 - `src/core/solvers/jit/build_electrical.cpp` — Electrical islands (3-phase, tightly coupled)
 - `src/core/solvers/jit/jit_solver.h` — BuildResult, SolverOwnedRefs
 - `src/core/solvers/jit/scheduler.h` — PushScheduler

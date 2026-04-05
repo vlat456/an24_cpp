@@ -280,73 +280,72 @@ void CanvasInput::leave_state() {
     hovered_routing_point_ = nullptr;
 }
 
+bool CanvasInput::try_handle_node_interaction(visual::Widget* widget, Pt world, InputResult& result) {
+    auto* node_widget = dynamic_cast<visual::NodeWidget*>(widget);
+    if (!node_widget) {
+        return false;
+    }
+
+    const auto interaction = node_widget->query_interaction(world);
+    if (!interaction.has_value()) {
+        return false;
+    }
+
+    const std::string node_id(widget->id());
+    switch (interaction->type) {
+        case visual::NodeInteractionType::Slider: {
+            const Bounds cb = node_widget->contentBounds();
+            const Pt nw_pos = node_widget->worldPos();
+            const Pt slider_wpos(nw_pos.x + cb.x, nw_pos.y + cb.y);
+            enter_drag_slider(widget, slider_wpos, cb.w);
+
+            ui::InternedId nid_iid = interner_.lookup(node_id);
+            const bp2::Blueprint::Node* node = nid_iid.empty() ? nullptr
+                                                               : model_.current().find_node(nid_iid);
+            if (node) {
+                float pad = visual::SliderWidget::HANDLE_RADIUS;
+                float track_w = cb.w - 2.0f * pad;
+                float t = (track_w > 0.0f)
+                    ? std::clamp((interaction->content_local_x - pad) / track_w, 0.0f, 1.0f)
+                    : 0.0f;
+                float val = node->content_min + t * (node->content_max - node->content_min);
+                result.slider_node_id = node_id;
+                result.slider_value = val;
+            }
+            return true;
+        }
+        case visual::NodeInteractionType::Knob:
+            enter_drag_knob(widget, world);
+            result.knob_node_id = node_id;
+            result.knob_position = knob_drag_start_pos_;
+            return true;
+        case visual::NodeInteractionType::Toggle:
+            result.toggle_switch_node_id = node_id;
+            return true;
+    }
+
+    return false;
+}
+
+void CanvasInput::clear_selection_and_enter_panning() {
+    clear_selection();
+    enter_panning();
+}
+
+void CanvasInput::advance_world_cursor(Pt world_delta) {
+    last_world_pos_ = last_world_pos_ + world_delta;
+}
+
+void CanvasInput::snapshot_wire_routing_points(ui::InternedId wire_id,
+                                               std::vector<std::pair<float, float>> new_points) {
+    if (wire_id.empty()) {
+        return;
+    }
+    snapshot_and_execute(cmd_set_routing_points(wire_id, std::move(new_points)));
+}
+
 void CanvasInput::cancel_gesture() {
     leave_state();
-}
-
-// ============================================================================
-// Content toggle check
-// ============================================================================
-
-std::string CanvasInput::check_content_toggle(visual::Widget& widget, Pt world_pos) {
-    auto* nw = dynamic_cast<visual::NodeWidget*>(&widget);
-    if (!nw) return {};
-    auto* cw = nw->contentWidget();
-    if (!cw || !cw->isToggleable()) return {};
-
-    Bounds cb = nw->contentBounds();
-    Pt wpos = nw->worldPos();
-    float lx = world_pos.x - wpos.x;
-    float ly = world_pos.y - wpos.y;
-    if (cb.contains(lx, ly)) return std::string(widget.id());
-    return {};
-}
-
-// ============================================================================
-// Slider content hit check
-// ============================================================================
-
-std::string CanvasInput::check_slider_hit(visual::Widget& widget, Pt world_pos, float& out_local_x) {
-    std::string node_id(widget.id());
-    ui::InternedId node_iid = interner_.lookup(node_id);
-    const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : model_.current().find_node(node_iid);
-    if (!node) return {};
-    if (node->content_type != bp2::NodeContentType::Slider) return {};
-
-    if (auto* nw = dynamic_cast<visual::NodeWidget*>(&widget)) {
-        Bounds cb = nw->contentBounds();
-        Pt wpos = nw->worldPos();
-        float lx = world_pos.x - wpos.x;
-        float ly = world_pos.y - wpos.y;
-        if (cb.contains(lx, ly)) {
-            out_local_x = lx - cb.x;
-            return node_id;
-        }
-    }
-    return {};
-}
-
-// ============================================================================
-// Knob content hit check
-// ============================================================================
-
-std::string CanvasInput::check_knob_hit(visual::Widget& widget, Pt world_pos) {
-    std::string node_id(widget.id());
-    ui::InternedId node_iid = interner_.lookup(node_id);
-    const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : model_.current().find_node(node_iid);
-    if (!node) return {};
-    if (node->content_type != bp2::NodeContentType::Knob) return {};
-
-    if (auto* nw = dynamic_cast<visual::NodeWidget*>(&widget)) {
-        Bounds cb = nw->contentBounds();
-        Pt wpos = nw->worldPos();
-        float lx = world_pos.x - wpos.x;
-        float ly = world_pos.y - wpos.y;
-        if (cb.contains(lx, ly)) {
-            return node_id;
-        }
-    }
-    return {};
 }
 
 // ============================================================================

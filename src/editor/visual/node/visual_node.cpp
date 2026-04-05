@@ -355,6 +355,49 @@ void NodeWidget::updateContent(const ::NodeContent& content) {
     return { wp.x - np.x, wp.y - np.y, sz.x, sz.y };
 }
 
+std::optional<NodeInteractionHit> NodeWidget::query_interaction(Pt world_pos) const {
+    if (!content_widget_) {
+        return std::nullopt;
+    }
+
+    const Bounds cb = contentBounds();
+    const Pt pos = worldPos();
+    const float lx = world_pos.x - pos.x;
+    const float ly = world_pos.y - pos.y;
+    if (!cb.contains(lx, ly)) {
+        return std::nullopt;
+    }
+
+    if (dynamic_cast<const SliderWidget*>(content_widget_) != nullptr) {
+        NodeInteractionHit hit;
+        hit.type = NodeInteractionType::Slider;
+        hit.content_local_x = lx - cb.x;
+        return hit;
+    }
+    if (dynamic_cast<const KnobWidget*>(content_widget_) != nullptr) {
+        NodeInteractionHit hit;
+        hit.type = NodeInteractionType::Knob;
+        return hit;
+    }
+    if (content_widget_->isToggleable()) {
+        NodeInteractionHit hit;
+        hit.type = NodeInteractionType::Toggle;
+        return hit;
+    }
+
+    return std::nullopt;
+}
+
+NodeVisualState NodeWidget::visual_state(const RenderContext& ctx) const {
+    NodeVisualState state;
+    state.selected = ctx.isNodeSelected(this);
+    state.has_interactive_content =
+        dynamic_cast<const SliderWidget*>(content_widget_) != nullptr ||
+        dynamic_cast<const KnobWidget*>(content_widget_) != nullptr ||
+        (content_widget_ != nullptr && content_widget_->isToggleable());
+    return state;
+}
+
 Port* NodeWidget::port(std::string_view name) const {
     for (auto* p : ports_) {
         if (p->name() == name) return p;
@@ -443,6 +486,11 @@ void NodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
 void NodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
 
+    const NodeVisualState state = visual_state(ctx);
+    if (!state.selected) {
+        return;
+    }
+
     Pt pos = worldPos();
     Pt sz = size();
     Pt screen_min = ctx.world_to_screen(pos);
@@ -450,8 +498,23 @@ void NodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
     float rounding = editor_constants::NODE_ROUNDING * ctx.zoom;
 
     // Selection border drawn after children so it appears on top
-    handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);
-    handle_renderer::draw_resize_handles(*dl, ctx, *this);
+    dl->add_rect_with_rounding_corners(screen_min, screen_max,
+        render_theme::COLOR_SELECTED, rounding,
+        editor_constants::DRAW_CORNERS_ALL, 2.0f * ctx.zoom);
+
+    Pt mn = worldMin();
+    Pt mx = worldMax();
+    float r = editor_constants::RESIZE_HANDLE_SIZE * 0.5f * ctx.zoom;
+    uint32_t color = render_theme::COLOR_RESIZE_HANDLE;
+    Pt corners[] = {
+        ctx.world_to_screen(mn),
+        ctx.world_to_screen(Pt(mx.x, mn.y)),
+        ctx.world_to_screen(Pt(mn.x, mx.y)),
+        ctx.world_to_screen(mx),
+    };
+    for (const auto& c : corners) {
+        handle_renderer::draw_handle(*dl, c, r, color);
+    }
 }
 
 } // namespace visual

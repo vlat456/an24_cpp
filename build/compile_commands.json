@@ -97,6 +97,36 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/core/solvers/jit",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/build_components_logic.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_logic.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_logic.cpp",
+  "output": "src/core/solvers/jit/CMakeFiles/jit_solver.dir/build_components_logic.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/core/solvers/jit",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/build_components_control.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_control.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_control.cpp",
+  "output": "src/core/solvers/jit/CMakeFiles/jit_solver.dir/build_components_control.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/core/solvers/jit",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/build_components_utility.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_utility.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_utility.cpp",
+  "output": "src/core/solvers/jit/CMakeFiles/jit_solver.dir/build_components_utility.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/core/solvers/jit",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/build_components_physical.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_physical.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_physical.cpp",
+  "output": "src/core/solvers/jit/CMakeFiles/jit_solver.dir/build_components_physical.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/core/solvers/jit",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/build_components_validation.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_validation.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/core/solvers/jit/build_components_validation.cpp",
+  "output": "src/core/solvers/jit/CMakeFiles/jit_solver.dir/build_components_validation.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/core/solvers/jit",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/build_electrical.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/jit/build_electrical.cpp",
   "file": "/Users/vladimir/an24_cpp/src/core/solvers/jit/build_electrical.cpp",
   "output": "src/core/solvers/jit/CMakeFiles/jit_solver.dir/build_electrical.cpp.o"
@@ -564,6 +594,30 @@
   "output": "src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o"
 },
 {
+  "directory": "/Users/vladimir/an24_cpp/build/src/json_parser",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/json_parser.dir/json_parser_types.cpp.o -c /Users/vladimir/an24_cpp/src/json_parser/json_parser_types.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/json_parser/json_parser_types.cpp",
+  "output": "src/json_parser/CMakeFiles/json_parser.dir/json_parser_types.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/json_parser",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/json_parser.dir/json_parser_model.cpp.o -c /Users/vladimir/an24_cpp/src/json_parser/json_parser_model.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/json_parser/json_parser_model.cpp",
+  "output": "src/json_parser/CMakeFiles/json_parser.dir/json_parser_model.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/json_parser",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/json_parser.dir/json_parser_serialize.cpp.o -c /Users/vladimir/an24_cpp/src/json_parser/json_parser_serialize.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/json_parser/json_parser_serialize.cpp",
+  "output": "src/json_parser/CMakeFiles/json_parser.dir/json_parser_serialize.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/json_parser",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/json_parser.dir/json_parser_registry.cpp.o -c /Users/vladimir/an24_cpp/src/json_parser/json_parser_registry.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/json_parser/json_parser_registry.cpp",
+  "output": "src/json_parser/CMakeFiles/json_parser.dir/json_parser_registry.cpp.o"
+},
+{
   "directory": "/Users/vladimir/an24_cpp/build/src/blueprint_v2",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_v2.dir/path/path.cpp.o -c /Users/vladimir/an24_cpp/src/blueprint_v2/path/path.cpp",
   "file": "/Users/vladimir/an24_cpp/src/blueprint_v2/path/path.cpp",
@@ -676,6 +730,48 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/document.cpp.o -c /Users/vladimir/an24_cpp/src/editor/document.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/document.cpp",
   "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/document.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/document_export.cpp.o -c /Users/vladimir/an24_cpp/src/editor/document_export.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/document_export.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/document_export.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/document_input.cpp.o -c /Users/vladimir/an24_cpp/src/editor/document_input.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/document_input.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/document_input.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/document_history.cpp.o -c /Users/vladimir/an24_cpp/src/editor/document_history.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/document_history.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/document_history.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/document_components.cpp.o -c /Users/vladimir/an24_cpp/src/editor/document_components.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/document_components.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/document_components.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/document_io.cpp.o -c /Users/vladimir/an24_cpp/src/editor/document_io.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/document_io.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/document_io.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/document_simulation.cpp.o -c /Users/vladimir/an24_cpp/src/editor/document_simulation.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/document_simulation.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/document_simulation.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/document_windows.cpp.o -c /Users/vladimir/an24_cpp/src/editor/document_windows.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/document_windows.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/document_windows.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",

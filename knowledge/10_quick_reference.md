@@ -25,6 +25,8 @@ cd build && ctest
 | Provider Pattern | `src/core/solvers/jit/components/provider.h` |
 | All Components | `src/core/solvers/jit/components/all.h` |
 | JIT Solver | `src/core/solvers/jit/jit_solver.h` |
+| JIT component dispatcher | `src/core/solvers/jit/build_components.cpp` |
+| JIT component categories | `src/core/solvers/jit/build_components_*.cpp` |
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |
 | Simulator | `src/core/simulator.h` |
 | Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
@@ -32,6 +34,9 @@ cd build && ctest
 | Flattener | `src/blueprint_v2/flattener/flattener.h` |
 | Code Generator | `src/core/solvers/aot/codegen.h` |
 | Document | `src/editor/document.h` |
+| Document I/O | `src/editor/document_io.cpp` |
+| Document simulation | `src/editor/document_simulation.cpp` |
+| Document windows | `src/editor/document_windows.cpp` |
 | Scene | `src/editor/visual/scene.h` |
 | Port Registry | `src/core/solvers/jit/components/port_registry.h` |
 | Component Library | `library/**/*.blueprint` |

@@ -34,8 +34,7 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
                 if (!mods.ctrl) clear_selection();
                 add_node_selection(h->widget);
             } else {
-                clear_selection();
-                enter_panning();
+                clear_selection_and_enter_panning();
             }
             return result;
         }
@@ -43,47 +42,11 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         if (simulation_mode) {
             auto hit = visual::hit_test(scene_, world);
             if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-                float slider_local_x = 0.0f;
-                auto slider_id = check_slider_hit(*hn->widget, world, slider_local_x);
-                if (!slider_id.empty()) {
-                    auto* nw = dynamic_cast<visual::NodeWidget*>(hn->widget);
-                    if (nw) {
-                        Bounds cb = nw->contentBounds();
-                        Pt nw_pos = nw->worldPos();
-                        Pt slider_wpos(nw_pos.x + cb.x, nw_pos.y + cb.y);
-                        enter_drag_slider(hn->widget, slider_wpos, cb.w);
-
-                        ui::InternedId nid_iid = interner_.lookup(slider_id);
-                        const bp2::Blueprint::Node* node = nid_iid.empty() ? nullptr
-                                                                           : model_.current().find_node(nid_iid);
-                        if (node) {
-                            float pad = visual::SliderWidget::HANDLE_RADIUS;
-                            float track_w = cb.w - 2.0f * pad;
-                            float t = (track_w > 0.0f) ? std::clamp((slider_local_x - pad) / track_w, 0.0f, 1.0f) : 0.0f;
-                            float val = node->content_min + t * (node->content_max - node->content_min);
-                            result.slider_node_id = std::move(slider_id);
-                            result.slider_value = val;
-                        }
-                    }
-                    return result;
-                }
-
-                auto knob_id = check_knob_hit(*hn->widget, world);
-                if (!knob_id.empty()) {
-                    enter_drag_knob(hn->widget, world);
-                    result.knob_node_id = std::move(knob_id);
-                    result.knob_position = knob_drag_start_pos_;
-                    return result;
-                }
-
-                auto toggle_id = check_content_toggle(*hn->widget, world);
-                if (!toggle_id.empty()) {
-                    result.toggle_switch_node_id = std::move(toggle_id);
+                if (try_handle_node_interaction(hn->widget, world, result)) {
                     return result;
                 }
             }
-            clear_selection();
-            enter_panning();
+            clear_selection_and_enter_panning();
             return result;
         }
 
@@ -108,42 +71,7 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         } else if (auto* hrh = std::get_if<visual::HitResizeHandle>(&hit)) {
             enter_resize_node(hrh->widget, hrh->corner);
         } else if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-            float slider_local_x = 0.0f;
-            auto slider_id = check_slider_hit(*hn->widget, world, slider_local_x);
-            if (!slider_id.empty()) {
-                auto* nw = dynamic_cast<visual::NodeWidget*>(hn->widget);
-                if (nw) {
-                    Bounds cb = nw->contentBounds();
-                    Pt nw_pos = nw->worldPos();
-                    Pt slider_wpos(nw_pos.x + cb.x, nw_pos.y + cb.y);
-                    enter_drag_slider(hn->widget, slider_wpos, cb.w);
-
-                    ui::InternedId nid_iid = interner_.lookup(slider_id);
-                    const bp2::Blueprint::Node* node = nid_iid.empty() ? nullptr
-                                                                       : model_.current().find_node(nid_iid);
-                    if (node) {
-                        float pad = visual::SliderWidget::HANDLE_RADIUS;
-                        float track_w = cb.w - 2.0f * pad;
-                        float t = (track_w > 0.0f) ? std::clamp((slider_local_x - pad) / track_w, 0.0f, 1.0f) : 0.0f;
-                        float val = node->content_min + t * (node->content_max - node->content_min);
-                        result.slider_node_id = std::move(slider_id);
-                        result.slider_value = val;
-                    }
-                }
-                return result;
-            }
-
-            auto knob_id = check_knob_hit(*hn->widget, world);
-            if (!knob_id.empty()) {
-                enter_drag_knob(hn->widget, world);
-                result.knob_node_id = std::move(knob_id);
-                result.knob_position = knob_drag_start_pos_;
-                return result;
-            }
-
-            auto toggle_id = check_content_toggle(*hn->widget, world);
-            if (!toggle_id.empty()) {
-                result.toggle_switch_node_id = std::move(toggle_id);
+            if (try_handle_node_interaction(hn->widget, world, result)) {
                 return result;
             }
             enter_drag_node(hn->widget, false, mods.ctrl);
@@ -153,8 +81,7 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             clear_selection();
             selected_wire_id_ = interner_.intern(hw->wire->id());
         } else {
-            clear_selection();
-            enter_panning();
+            clear_selection_and_enter_panning();
         }
     } else if (btn == MouseButton::Right && !read_only && !simulation_mode) {
         auto hit = visual::hit_test(scene_, world);

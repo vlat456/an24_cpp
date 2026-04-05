@@ -581,6 +581,174 @@ __/src/editor/document.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document.cpp.s
 .PHONY : __/src/editor/document.cpp.s
 
+__/src/editor/document_components.o: __/src/editor/document_components.cpp.o
+.PHONY : __/src/editor/document_components.o
+
+# target to build an object file
+__/src/editor/document_components.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_components.cpp.o
+.PHONY : __/src/editor/document_components.cpp.o
+
+__/src/editor/document_components.i: __/src/editor/document_components.cpp.i
+.PHONY : __/src/editor/document_components.i
+
+# target to preprocess a source file
+__/src/editor/document_components.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_components.cpp.i
+.PHONY : __/src/editor/document_components.cpp.i
+
+__/src/editor/document_components.s: __/src/editor/document_components.cpp.s
+.PHONY : __/src/editor/document_components.s
+
+# target to generate assembly for a file
+__/src/editor/document_components.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_components.cpp.s
+.PHONY : __/src/editor/document_components.cpp.s
+
+__/src/editor/document_export.o: __/src/editor/document_export.cpp.o
+.PHONY : __/src/editor/document_export.o
+
+# target to build an object file
+__/src/editor/document_export.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_export.cpp.o
+.PHONY : __/src/editor/document_export.cpp.o
+
+__/src/editor/document_export.i: __/src/editor/document_export.cpp.i
+.PHONY : __/src/editor/document_export.i
+
+# target to preprocess a source file
+__/src/editor/document_export.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_export.cpp.i
+.PHONY : __/src/editor/document_export.cpp.i
+
+__/src/editor/document_export.s: __/src/editor/document_export.cpp.s
+.PHONY : __/src/editor/document_export.s
+
+# target to generate assembly for a file
+__/src/editor/document_export.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_export.cpp.s
+.PHONY : __/src/editor/document_export.cpp.s
+
+__/src/editor/document_history.o: __/src/editor/document_history.cpp.o
+.PHONY : __/src/editor/document_history.o
+
+# target to build an object file
+__/src/editor/document_history.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_history.cpp.o
+.PHONY : __/src/editor/document_history.cpp.o
+
+__/src/editor/document_history.i: __/src/editor/document_history.cpp.i
+.PHONY : __/src/editor/document_history.i
+
+# target to preprocess a source file
+__/src/editor/document_history.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_history.cpp.i
+.PHONY : __/src/editor/document_history.cpp.i
+
+__/src/editor/document_history.s: __/src/editor/document_history.cpp.s
+.PHONY : __/src/editor/document_history.s
+
+# target to generate assembly for a file
+__/src/editor/document_history.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_history.cpp.s
+.PHONY : __/src/editor/document_history.cpp.s
+
+__/src/editor/document_input.o: __/src/editor/document_input.cpp.o
+.PHONY : __/src/editor/document_input.o
+
+# target to build an object file
+__/src/editor/document_input.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_input.cpp.o
+.PHONY : __/src/editor/document_input.cpp.o
+
+__/src/editor/document_input.i: __/src/editor/document_input.cpp.i
+.PHONY : __/src/editor/document_input.i
+
+# target to preprocess a source file
+__/src/editor/document_input.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_input.cpp.i
+.PHONY : __/src/editor/document_input.cpp.i
+
+__/src/editor/document_input.s: __/src/editor/document_input.cpp.s
+.PHONY : __/src/editor/document_input.s
+
+# target to generate assembly for a file
+__/src/editor/document_input.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_input.cpp.s
+.PHONY : __/src/editor/document_input.cpp.s
+
+__/src/editor/document_io.o: __/src/editor/document_io.cpp.o
+.PHONY : __/src/editor/document_io.o
+
+# target to build an object file
+__/src/editor/document_io.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_io.cpp.o
+.PHONY : __/src/editor/document_io.cpp.o
+
+__/src/editor/document_io.i: __/src/editor/document_io.cpp.i
+.PHONY : __/src/editor/document_io.i
+
+# target to preprocess a source file
+__/src/editor/document_io.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_io.cpp.i
+.PHONY : __/src/editor/document_io.cpp.i
+
+__/src/editor/document_io.s: __/src/editor/document_io.cpp.s
+.PHONY : __/src/editor/document_io.s
+
+# target to generate assembly for a file
+__/src/editor/document_io.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_io.cpp.s
+.PHONY : __/src/editor/document_io.cpp.s
+
+__/src/editor/document_simulation.o: __/src/editor/document_simulation.cpp.o
+.PHONY : __/src/editor/document_simulation.o
+
+# target to build an object file
+__/src/editor/document_simulation.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_simulation.cpp.o
+.PHONY : __/src/editor/document_simulation.cpp.o
+
+__/src/editor/document_simulation.i: __/src/editor/document_simulation.cpp.i
+.PHONY : __/src/editor/document_simulation.i
+
+# target to preprocess a source file
+__/src/editor/document_simulation.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_simulation.cpp.i
+.PHONY : __/src/editor/document_simulation.cpp.i
+
+__/src/editor/document_simulation.s: __/src/editor/document_simulation.cpp.s
+.PHONY : __/src/editor/document_simulation.s
+
+# target to generate assembly for a file
+__/src/editor/document_simulation.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_simulation.cpp.s
+.PHONY : __/src/editor/document_simulation.cpp.s
+
+__/src/editor/document_windows.o: __/src/editor/document_windows.cpp.o
+.PHONY : __/src/editor/document_windows.o
+
+# target to build an object file
+__/src/editor/document_windows.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_windows.cpp.o
+.PHONY : __/src/editor/document_windows.cpp.o
+
+__/src/editor/document_windows.i: __/src/editor/document_windows.cpp.i
+.PHONY : __/src/editor/document_windows.i
+
+# target to preprocess a source file
+__/src/editor/document_windows.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_windows.cpp.i
+.PHONY : __/src/editor/document_windows.cpp.i
+
+__/src/editor/document_windows.s: __/src/editor/document_windows.cpp.s
+.PHONY : __/src/editor/document_windows.s
+
+# target to generate assembly for a file
+__/src/editor/document_windows.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document_windows.cpp.s
+.PHONY : __/src/editor/document_windows.cpp.s
+
 __/src/editor/editor_settings.o: __/src/editor/editor_settings.cpp.o
 .PHONY : __/src/editor/editor_settings.o
 
@@ -1840,6 +2008,27 @@ help:
 	@echo "... __/src/editor/document.o"
 	@echo "... __/src/editor/document.i"
 	@echo "... __/src/editor/document.s"
+	@echo "... __/src/editor/document_components.o"
+	@echo "... __/src/editor/document_components.i"
+	@echo "... __/src/editor/document_components.s"
+	@echo "... __/src/editor/document_export.o"
+	@echo "... __/src/editor/document_export.i"
+	@echo "... __/src/editor/document_export.s"
+	@echo "... __/src/editor/document_history.o"
+	@echo "... __/src/editor/document_history.i"
+	@echo "... __/src/editor/document_history.s"
+	@echo "... __/src/editor/document_input.o"
+	@echo "... __/src/editor/document_input.i"
+	@echo "... __/src/editor/document_input.s"
+	@echo "... __/src/editor/document_io.o"
+	@echo "... __/src/editor/document_io.i"
+	@echo "... __/src/editor/document_io.s"
+	@echo "... __/src/editor/document_simulation.o"
+	@echo "... __/src/editor/document_simulation.i"
+	@echo "... __/src/editor/document_simulation.s"
+	@echo "... __/src/editor/document_windows.o"
+	@echo "... __/src/editor/document_windows.i"
+	@echo "... __/src/editor/document_windows.s"
 	@echo "... __/src/editor/editor_settings.o"
 	@echo "... __/src/editor/editor_settings.i"
 	@echo "... __/src/editor/editor_settings.s"

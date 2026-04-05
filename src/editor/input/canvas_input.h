@@ -211,6 +211,11 @@ private:
     InputResult finish_wire_creation(Pt screen_pos, Pt canvas_min);
     InputResult finish_wire_reconnection(Pt screen_pos, Pt canvas_min);
     void finish_marquee();
+    bool try_handle_node_interaction(visual::Widget* widget, Pt world, InputResult& result);
+    void clear_selection_and_enter_panning();
+    void advance_world_cursor(Pt world_delta);
+    void snapshot_wire_routing_points(ui::InternedId wire_id,
+                                      std::vector<std::pair<float, float>> new_points);
 
     // ---- Drag sub-handlers (extracted from on_mouse_drag) ----
 
@@ -236,20 +241,6 @@ private:
 
     /// Commit resized node dimensions to the data layer via CmdResizeNode.
     void commit_resize_node();
-
-    /// Check if a click on a node widget hit a toggleable content area.
-    /// Uses the content widget's isToggleable() method — no hardcoded type checks.
-    /// Returns the node ID if toggled, empty string otherwise.
-    std::string check_content_toggle(visual::Widget& widget, Pt world_pos);
-
-    /// Check if a click on a node widget hit a Slider content area.
-    /// Returns the node ID if hit, empty string otherwise.
-    /// Sets out_local_x to the local X coordinate within the slider widget.
-    std::string check_slider_hit(visual::Widget& widget, Pt world_pos, float& out_local_x);
-
-    /// Check if a click on a node widget hit a Knob content area.
-    /// Returns the node ID if hit, empty string otherwise.
-    std::string check_knob_hit(visual::Widget& widget, Pt world_pos);
 
     // ---- Utility ----
 

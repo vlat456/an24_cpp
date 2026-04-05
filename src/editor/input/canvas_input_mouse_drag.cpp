@@ -127,7 +127,7 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
             case InputState::Panning:
                 viewport_.pan.x -= world_delta.x;
                 viewport_.pan.y -= world_delta.y;
-                last_world_pos_ = last_world_pos_ + world_delta;
+                advance_world_cursor(world_delta);
                 break;
 
             case InputState::DraggingNode:
@@ -154,7 +154,7 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
 
             case InputState::CreatingWire:
             case InputState::ReconnectingWire:
-                last_world_pos_ = last_world_pos_ + world_delta;
+                advance_world_cursor(world_delta);
                 break;
 
             case InputState::MarqueeSelect:
@@ -166,7 +166,7 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 break;
 
             case InputState::DraggingSlider: {
-                last_world_pos_ = last_world_pos_ + world_delta;
+                advance_world_cursor(world_delta);
                 float local_x = last_world_pos_.x - slider_widget_world_pos_.x;
                 float pad = visual::SliderWidget::HANDLE_RADIUS;
                 float track_w = slider_widget_width_ - 2.0f * pad;
@@ -182,7 +182,7 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
             }
 
             case InputState::DraggingKnob: {
-                last_world_pos_ = last_world_pos_ + world_delta;
+                advance_world_cursor(world_delta);
                 float dx = last_world_pos_.x - knob_drag_start_x_;
                 constexpr float PIXELS_PER_STEP = 30.0f;
                 int delta_steps = static_cast<int>(dx / PIXELS_PER_STEP);

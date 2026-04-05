@@ -1,5 +1,9 @@
 add_library(json_parser
     json_parser.cpp
+    json_parser_types.cpp
+    json_parser_model.cpp
+    json_parser_serialize.cpp
+    json_parser_registry.cpp
 )
 target_include_directories(json_parser PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
