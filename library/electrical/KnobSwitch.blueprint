@@ -90,5 +90,25 @@
       "type": "float"
     }
   },
+  "solver_role": {
+    "kind": "KnobSwitchBranches",
+    "ports": {
+      "wiper": "wiper",
+      "throw1": "throw1",
+      "throw2": "throw2",
+      "throw3": "throw3",
+      "throw4": "throw4",
+      "throw5": "throw5"
+    },
+    "params": {
+      "positions": "positions",
+      "initial_position": "initial_position",
+      "g_open": "g_open",
+      "g_closed": "g_closed"
+    },
+    "values": {
+      "bind_handle": 1.0
+    }
+  },
   "content_type": "Knob"
 }

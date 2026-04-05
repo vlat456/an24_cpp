@@ -256,7 +256,7 @@ TEST(ElectricalHandleBuild, CurrentSenseHandlePointsToConductanceBranch) {
     const auto& elem = result.electrical_plan.islands[cs->electrical_handle.island_index]
                               .elements[cs->electrical_handle.element_index];
     EXPECT_EQ(elem.kind, ElectricalElementKind::ConductanceBranch);
-    EXPECT_EQ(cs->electrical_handle.component_index, elem.component_index);
+    EXPECT_EQ(cs->electrical_handle.element_id, elem.element_id);
 }
 
 TEST(ElectricalHandleBuild, MultipleIslandsIndependentHandles) {
@@ -338,4 +338,100 @@ TEST(ElectricalHandleBuild, GeneratorWithParamsGetsValidHandle) {
     const Generator<JitProvider>* gen = std::get_if<Generator<JitProvider>>(&result.devices.at("gen"));
     ASSERT_NE(gen, nullptr);
     EXPECT_TRUE(is_valid(gen->electrical_handle));
+}
+
+// ============================================================================
+// Regression: KnobSwitch via solver_role metadata gets valid handles
+// ============================================================================
+// Verifies that when a KnobSwitch device uses the metadata-driven path
+// (solver_role.kind == "KnobSwitchBranches"), the bind_handle flag in
+// solver_role.values causes ElectricalPrimitiveHandle assignment.
+// Without bind_handle, elements are created with empty device_name and
+// handles are never assigned — breaking dynamic IndexSwitch patch ops.
+
+TEST(ElectricalHandleBuild, KnobSwitchMetadataGetsHandles) {
+    // Build a 3-position KnobSwitch using solver_role metadata (library-loaded path)
+    DeviceInstance knob = make_device("knob", "KnobSwitch", {
+        {"positions", "3"}, {"initial_position", "0"},
+        {"g_open", "1e-6"}, {"g_closed", "1000.0"}
+    }, {"wiper", "throw1", "throw2", "throw3", "throw4", "throw5", "control", "position"});
+    knob.solver_role = SolverRole{
+        "KnobSwitchBranches",
+        {{"wiper", "wiper"}, {"throw1", "throw1"}, {"throw2", "throw2"},
+         {"throw3", "throw3"}, {"throw4", "throw4"}, {"throw5", "throw5"}},
+        {{"positions", "positions"}, {"initial_position", "initial_position"},
+         {"g_open", "g_open"}, {"g_closed", "g_closed"}},
+        {{"bind_handle", 1.0f}}  // This is the key: enables handle assignment
+    };
+
+    DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
+    DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
+
+    std::vector<DeviceInstance> devices = {bat, knob, gnd};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "knob.wiper"},
+        {"knob.throw1", "gnd.v"},
+        {"knob.throw2", "gnd.v"},
+        {"knob.throw3", "gnd.v"},
+        {"bat.v_in", "gnd.v"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    const KnobSwitch<JitProvider>* ks = std::get_if<KnobSwitch<JitProvider>>(&result.devices.at("knob"));
+    ASSERT_NE(ks, nullptr);
+
+    // Must have exactly 3 valid handles (one per position)
+    EXPECT_EQ(ks->num_handles, 3);
+    for (int i = 0; i < ks->num_handles; ++i) {
+        EXPECT_TRUE(is_valid(ks->electrical_handles[i]))
+            << "Handle " << i << " should be valid";
+    }
+
+    // Each handle should point to a ConductanceBranch element
+    for (int i = 0; i < ks->num_handles; ++i) {
+        const auto& h = ks->electrical_handles[i];
+        ASSERT_LT(h.island_index, result.electrical_plan.islands.size());
+        const auto& island = result.electrical_plan.islands[h.island_index];
+        ASSERT_LT(h.element_index, island.elements.size());
+        EXPECT_EQ(island.elements[h.element_index].kind, ElectricalElementKind::ConductanceBranch)
+            << "Handle " << i << " should point to ConductanceBranch";
+    }
+}
+
+TEST(ElectricalHandleBuild, KnobSwitchMetadataWithoutBindHandleGetsNoHandles) {
+    // Same as above but WITHOUT bind_handle — handles should NOT be assigned.
+    // This is the regression case: if blueprints lack bind_handle, knob switches
+    // silently fail to get handles, breaking runtime conductance patching.
+    DeviceInstance knob = make_device("knob", "KnobSwitch", {
+        {"positions", "2"}, {"initial_position", "0"},
+        {"g_open", "1e-6"}, {"g_closed", "1000.0"}
+    }, {"wiper", "throw1", "throw2", "throw3", "throw4", "throw5", "control", "position"});
+    knob.solver_role = SolverRole{
+        "KnobSwitchBranches",
+        {{"wiper", "wiper"}, {"throw1", "throw1"}, {"throw2", "throw2"},
+         {"throw3", "throw3"}, {"throw4", "throw4"}, {"throw5", "throw5"}},
+        {{"positions", "positions"}, {"initial_position", "initial_position"},
+         {"g_open", "g_open"}, {"g_closed", "g_closed"}},
+        {}  // No bind_handle — should result in no handle assignment
+    };
+
+    DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
+    DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
+
+    std::vector<DeviceInstance> devices = {bat, knob, gnd};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "knob.wiper"},
+        {"knob.throw1", "gnd.v"},
+        {"knob.throw2", "gnd.v"},
+        {"bat.v_in", "gnd.v"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    const KnobSwitch<JitProvider>* ks = std::get_if<KnobSwitch<JitProvider>>(&result.devices.at("knob"));
+    ASSERT_NE(ks, nullptr);
+
+    // Without bind_handle, num_handles should be 0 (elements have empty device_name)
+    EXPECT_EQ(ks->num_handles, 0);
 }

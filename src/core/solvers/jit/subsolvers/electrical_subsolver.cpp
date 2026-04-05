@@ -104,24 +104,25 @@ void stamp_conductance(
 
 void solve_electrical(
     const ElectricalBuildPlan& plan,
+    const std::vector<float>& element_value_a,
     SimulationState& st,
     ElectricalRuntimeState& rt,
     double /*dt*/
 ) noexcept {
-    // Find max component_index across all islands to size branch_currents
-    uint32_t max_comp_idx = 0;
+    // Find max element_id across all islands to size branch_currents
+    uint32_t max_element_id = 0;
     bool has_elements = false;
     for (const auto& island : plan.islands) {
         for (const auto& elem : island.elements) {
             has_elements = true;
-            max_comp_idx = std::max(max_comp_idx, elem.component_index);
+            max_element_id = std::max(max_element_id, elem.element_id);
         }
     }
 
     // Reuse branch_currents capacity across frames: resize keeps old memory,
     // then zero-fill. Avoids reallocation when size is stable frame-to-frame.
     if (has_elements) {
-        size_t needed = max_comp_idx + 1;
+        size_t needed = max_element_id + 1;
         rt.branch_currents.resize(needed);
         std::memset(rt.branch_currents.data(), 0, needed * sizeof(float));
     } else {
@@ -135,13 +136,19 @@ void solve_electrical(
     // Process each island independently
     for (size_t island_idx = 0; island_idx < plan.islands.size(); ++island_idx) {
         const auto& island = plan.islands[island_idx];
+        auto value_a_for = [&](const ElectricalElement& elem) -> float {
+            if (elem.element_id < element_value_a.size()) {
+                return element_value_a[elem.element_id];
+            }
+            return elem.value_a;
+        };
 
         // Collect fixed nodes and validate no conflicts
         // Reuse scratch buffer for fixed_nodes — resize keeps capacity
         rt.fixed_nodes.clear();
         for (const auto& elem : island.elements) {
             if (elem.kind == ElectricalElementKind::FixedVoltageNode) {
-                rt.fixed_nodes.emplace_back(elem.node_a, elem.value_a);
+                rt.fixed_nodes.emplace_back(elem.node_a, value_a_for(elem));
             }
         }
 
@@ -213,7 +220,7 @@ void solve_electrical(
             }
 
             if (elem.kind == ElectricalElementKind::ConductanceBranch) {
-                float g = elem.value_a;
+                float g = value_a_for(elem);
                 if (g < 0.0f) {
                     assert(false && "Negative conductance");
                     g = 0.0f;  // Release: clamp to zero (open circuit)
@@ -223,7 +230,7 @@ void solve_electrical(
             }
             else if (elem.kind == ElectricalElementKind::TheveninSource) {
                 // Convert Thevenin to Norton: Vth, Rseries -> g=1/R, In=Vth/R
-                float Vth = elem.value_a;
+                float Vth = value_a_for(elem);
                 float Rseries = elem.value_b;
                 float safe_r = std::max(Rseries, 1e-6f);
                 float g = 1.0f / safe_r;
@@ -320,11 +327,11 @@ void solve_electrical(
         }
 
         // Compute branch currents
-        uint32_t worst_branch_component_index = UINT32_MAX;
+        uint32_t worst_branch_element_id = UINT32_MAX;
         float worst_branch_abs_current = -1.0f;
         for (const auto& elem : island.elements) {
             if (elem.kind == ElectricalElementKind::FixedVoltageNode) {
-                rt.branch_currents[elem.component_index] = 0.0f;
+                rt.branch_currents[elem.element_id] = 0.0f;
                 continue;
             }
 
@@ -340,11 +347,11 @@ void solve_electrical(
             float current = 0.0f;
             if (solve_ok) {
                 if (elem.kind == ElectricalElementKind::ConductanceBranch) {
-                    float g = elem.value_a;
+                    float g = value_a_for(elem);
                     current = g * (Va - Vb);
                 }
                 else if (elem.kind == ElectricalElementKind::TheveninSource) {
-                    float Vth = elem.value_a;
+                    float Vth = value_a_for(elem);
                     float Rseries = elem.value_b;
                     float safe_r = std::max(Rseries, 1e-6f);
                     float g = 1.0f / safe_r;
@@ -354,11 +361,11 @@ void solve_electrical(
                 }
             }
 
-            rt.branch_currents[elem.component_index] = current;
+            rt.branch_currents[elem.element_id] = current;
             float abs_i = std::abs(current);
             if (abs_i > worst_branch_abs_current) {
                 worst_branch_abs_current = abs_i;
-                worst_branch_component_index = elem.component_index;
+                worst_branch_element_id = elem.element_id;
             }
         }
 
@@ -381,10 +388,10 @@ void solve_electrical(
                 float Vb = rt.island_voltages[node_b_idx];
                 float i_ab = 0.0f;
                 if (elem.kind == ElectricalElementKind::ConductanceBranch) {
-                    float g = elem.value_a;
+                    float g = value_a_for(elem);
                     i_ab = g * (Va - Vb);
                 } else if (elem.kind == ElectricalElementKind::TheveninSource) {
-                    float Vth = elem.value_a;
+                    float Vth = value_a_for(elem);
                     float Rseries = elem.value_b;
                     float safe_r = std::max(Rseries, 1e-6f);
                     float g = 1.0f / safe_r;
@@ -415,8 +422,42 @@ void solve_electrical(
                 worst_signal,
                 worst_voltage,
                 max_abs_residual,
-                worst_branch_component_index
+                worst_branch_element_id
             });
         }
     }
+}
+
+void solve_electrical(
+    const ElectricalBuildPlan& plan,
+    SimulationState& st,
+    ElectricalRuntimeState& rt,
+    double dt
+) noexcept {
+    uint32_t max_element_id = 0;
+    bool has_elements = false;
+    for (const auto& island : plan.islands) {
+        for (const auto& elem : island.elements) {
+            has_elements = true;
+            max_element_id = std::max(max_element_id, elem.element_id);
+        }
+    }
+
+    if (has_elements) {
+        const size_t needed = static_cast<size_t>(max_element_id) + 1;
+        if (rt.element_value_a.size() < needed) {
+            rt.element_value_a.resize(needed, 0.0f);
+            for (const auto& island : plan.islands) {
+                for (const auto& elem : island.elements) {
+                    if (elem.element_id < rt.element_value_a.size()) {
+                        rt.element_value_a[elem.element_id] = elem.value_a;
+                    }
+                }
+            }
+        }
+    } else {
+        rt.element_value_a.clear();
+    }
+
+    solve_electrical(plan, rt.element_value_a, st, rt, dt);
 }
