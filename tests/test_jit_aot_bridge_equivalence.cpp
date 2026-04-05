@@ -247,5 +247,68 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     EXPECT_EQ(jit.port_to_signal.at("vout.ext"), jit.port_to_signal.at("vout.port"));
     EXPECT_EQ(jit.port_to_signal.at("vin.port"), jit.port_to_signal.at("pass.v_in"));
     EXPECT_EQ(jit.port_to_signal.at("pass.v_out"), jit.port_to_signal.at("vout.port"));
-    EXPECT_EQ(jit.signal_count, aot_signal_count + 1);
+    EXPECT_EQ(jit.signal_count, aot_signal_count);
+}
+
+TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
+    std::vector<DeviceInstance> devices;
+
+    DeviceInstance vin;
+    vin.name = "vin";
+    vin.classname = "BlueprintInput";
+    vin.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
+    vin.ports["ext"] = Port{PortDirection::In, PortType::Any, std::string("port")};
+    devices.push_back(vin);
+
+    DeviceInstance load;
+    load.name = "load";
+    load.classname = "Resistor";
+    load.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    load.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    load.params["conductance"] = "1.0";
+    devices.push_back(load);
+
+    DeviceInstance vout;
+    vout.name = "vout";
+    vout.classname = "BlueprintOutput";
+    vout.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    vout.ports["ext"] = Port{PortDirection::Out, PortType::Any, std::string("port")};
+    devices.push_back(vout);
+
+    DeviceInstance visual;
+    visual.name = "ui_only";
+    visual.classname = "Value";
+    visual.visual_only = true;
+    visual.ports["o"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
+    devices.push_back(visual);
+
+    std::vector<Connection> connections = {
+        {"vin.port", "load.v_in"},
+        {"load.v_out", "vout.port"},
+    };
+
+    std::vector<std::pair<std::string, std::string>> conn_pairs;
+    conn_pairs.reserve(connections.size());
+    for (const auto& c : connections) {
+        conn_pairs.emplace_back(c.from, c.to);
+    }
+
+    BuildResult jit = build_systems_dev(devices, conn_pairs);
+
+    std::vector<std::string> all_ports;
+    std::unordered_map<std::string, uint32_t> port_to_idx;
+    codegen_composite_detail::build_port_index_map(devices, all_ports, port_to_idx);
+
+    codegen_composite_detail::UnionFind uf(all_ports.size());
+    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, connections, port_to_idx);
+
+    uint32_t aot_signal_count = 0;
+    auto aot_port_to_signal =
+        codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, aot_signal_count);
+
+    EXPECT_EQ(jit.signal_count, aot_signal_count);
+    EXPECT_EQ(jit.port_to_signal.count("ui_only.o"), 0u)
+        << "JIT should ignore visual-only device ports";
+    EXPECT_EQ(aot_port_to_signal.count("ui_only.o"), 0u)
+        << "AOT should ignore visual-only device ports";
 }

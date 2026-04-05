@@ -1256,12 +1256,10 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     EXPECT_EQ(jit_sig("vout.ext"), jit_sig("vout.port"))
         << "JIT must unify BlueprintOutput ext↔port";
 
-    // AOT signal count must match JIT (ext↔port unification reduces signal count).
-    // JIT adds +1 for a sentinel signal at the end (see jit_solver.cpp line 317),
-    // so we compare aot_signal_count == jit_result.signal_count - 1.
-    // Without the bridge fix, AOT would allocate 2 extra signals (one for each bridge).
-    EXPECT_EQ(aot_signal_count + 1, jit_result.signal_count)
-        << "AOT and JIT signal counts must match (JIT includes +1 sentinel)";
+    // AOT signal count must match JIT exactly, including trailing sentinel slot.
+    // Without bridge unification, AOT would allocate 2 extra signals (one for each bridge).
+    EXPECT_EQ(aot_signal_count, jit_result.signal_count)
+        << "AOT and JIT signal counts must match exactly";
 }
 
 TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {

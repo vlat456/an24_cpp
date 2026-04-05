@@ -40,6 +40,9 @@ void build_port_index_map(
     std::unordered_map<std::string, uint32_t>& out_port_to_idx
 ) {
     for (const auto& dev : expanded_devices) {
+        if (dev.visual_only) {
+            continue;
+        }
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
             std::string full_port = dev.name + "." + port_name;
@@ -61,7 +64,7 @@ void apply_signal_allocation_rules(
         expanded_devices,
         expanded_connections,
         port_to_idx,
-        /*skip_visual_only=*/false,
+        /*skip_visual_only=*/true,
         [](const std::string&, const std::string&, bool, bool) {});
 }
 
@@ -93,7 +96,9 @@ std::unordered_map<std::string, uint32_t> finalize_signal_indices(
         (void)port;
         sig = root_to_signal[sig];
     }
-    out_signal_count = next_signal;
+    // Keep AOT signal count semantics aligned with JIT:
+    // reserve one trailing sentinel index used for unmapped/fallback bindings.
+    out_signal_count = next_signal + 1;
 
     return port_to_signal;
 }
