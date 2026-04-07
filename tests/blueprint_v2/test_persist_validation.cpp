@@ -4,7 +4,6 @@
 #include "json_parser/json_parser.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
-#include "blueprint_v2/registry/type_registry.h"
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -75,6 +74,7 @@ TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
+    TypeRegistry parser_registry = load_type_registry("library/");
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("persist_typed"));
@@ -90,7 +90,7 @@ TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
     bp = bp.with_node(std::move(n));
 
     fs::path tmp = fs::temp_directory_path() / "bp2_save_typed.blueprint";
-    ASSERT_TRUE(save_blueprint_to_file(bp, interner, arena, tmp.c_str()));
+    ASSERT_TRUE(save_blueprint_to_file(bp, interner, arena, parser_registry, tmp.c_str()));
 
     std::ifstream in(tmp);
     ASSERT_TRUE(in.is_open());
@@ -114,6 +114,7 @@ TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
 TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
+    TypeRegistry parser_registry = load_type_registry("library/");
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("integrity_ok"));
@@ -127,13 +128,14 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
     bp = bp.with_node(std::move(n));
 
     std::string err;
-    EXPECT_TRUE(validate_blueprint_integrity(bp, interner, arena, &err));
+    EXPECT_TRUE(validate_blueprint_integrity(bp, interner, arena, parser_registry, &err));
     EXPECT_TRUE(err.empty());
 }
 
 TEST(PersistValidation, WireDomainMismatchIsToleratedWithoutThrow) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
+    TypeRegistry parser_registry = load_type_registry("library/");
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("integrity_wire_domain_mismatch"));
@@ -161,7 +163,7 @@ TEST(PersistValidation, WireDomainMismatchIsToleratedWithoutThrow) {
 
     std::string err;
     EXPECT_NO_THROW({
-        const bool ok = validate_blueprint_integrity(bp, interner, arena, &err);
+        const bool ok = validate_blueprint_integrity(bp, interner, arena, parser_registry, &err);
         EXPECT_TRUE(ok);
     });
     EXPECT_TRUE(err.empty());
@@ -254,46 +256,14 @@ TEST(PersistValidation, ClosedCircuitBlueprintLoadsViaBp2Codec) {
     buf << file.rdbuf();
     std::string content = buf.str();
 
-    // Use a fresh interner and build a full registry from library/ to avoid
-    // stale static cache entries from earlier tests.
+    // Use a fresh interner and parser registry from library/.
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
-    TypeRegistry parsed = load_type_registry("library/");
-    bp2::TypeRegistry reg;
-    for (const auto& [classname, def] : parsed.types) {
-        std::vector<bp2::PortDescriptor> ports;
-        for (const auto& [pname, port] : def.ports) {
-            bp2::PortDescriptor pd;
-            pd.name = interner.intern(pname);
-            // Replicate the domain inference from port type
-            switch (port.type) {
-                case PortType::V: case PortType::I: case PortType::Any:
-                    pd.domain = Domain::Electrical; break;
-                case PortType::Bool:
-                    pd.domain = Domain::Logical; break;
-                case PortType::RPM: case PortType::Position:
-                    pd.domain = Domain::Mechanical; break;
-                case PortType::Pressure:
-                    pd.domain = Domain::Hydraulic; break;
-                case PortType::Temperature:
-                    pd.domain = Domain::Thermal; break;
-                default:
-                    pd.domain = Domain::Electrical; break;
-            }
-            switch (port.direction) {
-                case PortDirection::In:  pd.direction = bp2::Direction::Input; break;
-                case PortDirection::Out: pd.direction = bp2::Direction::Output; break;
-                case PortDirection::InOut: pd.direction = bp2::Direction::InOut; break;
-            }
-            ports.push_back(pd);
-        }
-        reg.register_component(interner.intern(classname),
-                               bp2::Interface(std::move(ports)), "");
-    }
+    TypeRegistry parser_registry = load_type_registry("library/");
 
     bp2::DecodeError err;
-    auto bp = bp2::BlueprintCodec::decode(content, interner, arena, reg, &err);
+    auto bp = bp2::BlueprintCodec::decode(content, interner, arena, parser_registry, &err);
     ASSERT_TRUE(bp.has_value())
         << "Failed to load closed_circuit.blueprint via bp2 codec: " << err.message;
 

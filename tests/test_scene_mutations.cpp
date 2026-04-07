@@ -4,6 +4,7 @@
 #include "visual/scene_mutations.h"
 #include "visual/scene.h"
 #include "visual/persist.h"
+#include "json_parser/json_parser.h"
 #include "visual/node/node_factory.h"
 #include "visual/node/visual_node.h"
 #include "visual/node/ref_node_widget.h"
@@ -283,7 +284,8 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
-    auto bp_opt = load_blueprint_from_file("/Users/vladimir/an24_cpp/GSC.blueprint", interner, arena);
+    TypeRegistry parser_registry = load_type_registry("library/");
+    auto bp_opt = load_blueprint_from_file("/Users/vladimir/an24_cpp/GSC.blueprint", interner, arena, parser_registry);
     ASSERT_TRUE(bp_opt.has_value());
 
     visual::Scene scene;

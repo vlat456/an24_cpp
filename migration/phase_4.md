@@ -1,15 +1,17 @@
 # Phase 4: TypeRegistry
 
+Historical note: this phase description references legacy bp2 registry APIs that were removed; canonical registry lives in json_parser.
+
 ## Goal
 
-Create a new injectable `bp2::TypeRegistry` that replaces the old `TypeRegistry` (function-local static, string-based, non-injectable). The new registry stores `bp2::Interface` objects keyed by `InternedId`, supports both C++ components and composite blueprints, and can be constructed in tests without touching the filesystem.
+Create a new injectable `TypeRegistry` (in json_parser) that stores type definitions keyed by `InternedId`, supports both C++ components and composite blueprints, and can be constructed in tests without touching the filesystem.
 
 ## Files To Create
 
 ```
-src/blueprint_v2/registry/type_registry.h     <- TypeRegistry class, Entry struct
-src/blueprint_v2/registry/type_registry.cpp   <- implementation
-tests/blueprint_v2/test_registry.cpp          <- all tests for this phase
+src/json_parser/json_parser.h       <- TypeRegistry class
+src/json_parser/json_parser.cpp     <- implementation
+tests/blueprint_v2/test_registry.cpp <- all tests for this phase
 ```
 
 ## Prerequisites
@@ -20,18 +22,11 @@ tests/blueprint_v2/test_registry.cpp          <- all tests for this phase
 
 ## Step-by-Step Instructions
 
+**Note:** The implementation should reference the canonical `TypeRegistry` from json_parser, accessible via `load_type_registry("library/")` for production and `load_type_registry("library/")` in tests.
+
 ### Step 4.1: CMake setup
 
-1. Add `registry/type_registry.cpp` to `src/blueprint_v2/CMakeLists.txt`:
-
-```cmake
-add_library(blueprint_v2 STATIC
-    path/path.cpp
-    interface/interface.cpp
-    blueprint/blueprint.cpp
-    registry/type_registry.cpp
-)
-```
+1. Add registry support to `src/json_parser/CMakeLists.txt` or existing json_parser integration.
 
 2. Add test target in `tests/CMakeLists.txt` after the `bp2_blueprint_tests` block:
 
@@ -41,10 +36,8 @@ add_executable(bp2_registry_tests
 )
 target_include_directories(bp2_registry_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
 )
 target_link_libraries(bp2_registry_tests PRIVATE
-    blueprint_v2
     json_parser
     GTest::gtest_main
 )
@@ -52,17 +45,16 @@ gtest_discover_tests(bp2_registry_tests)
 ```
 
 3. Create placeholder files:
-   - `src/blueprint_v2/registry/type_registry.h`: `#pragma once` + `namespace bp2 {}`
-   - `src/blueprint_v2/registry/type_registry.cpp`: `#include "type_registry.h"`
+   - `src/json_parser/json_parser.h`: Add TypeRegistry class (may already exist)
    - `tests/blueprint_v2/test_registry.cpp`:
-     ```cpp
-     #include <gtest/gtest.h>
-     #include "blueprint_v2/registry/type_registry.h"
+      ```cpp
+      #include <gtest/gtest.h>
+      #include "json_parser/json_parser.h"
 
-     TEST(TypeRegistry, Placeholder) {
-         EXPECT_TRUE(true);
-     }
-     ```
+      TEST(TypeRegistry, Placeholder) {
+          EXPECT_TRUE(true);
+      }
+      ```
 
 4. Build and run. Placeholder passes.
 
@@ -73,10 +65,11 @@ gtest_discover_tests(bp2_registry_tests)
 ```cpp
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/interface/interface.h"
+#include "json_parser/json_parser.h"
 
 TEST(TypeRegistryEntry, ConstructCppComponent) {
     ui::StringInterner interner;
-    bp2::TypeRegistry::Entry entry;
+    TypeRegistry::Entry entry;
     entry.type_id = interner.intern("Battery");
     entry.iface = bp2::Interface({
         {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input},
@@ -92,7 +85,7 @@ TEST(TypeRegistryEntry, ConstructCppComponent) {
 
 Build. Confirm fail (no `TypeRegistry::Entry`).
 
-**Write production code** in `type_registry.h`:
+**Write production code** in json_parser.h:
 
 ```cpp
 #pragma once
@@ -103,7 +96,7 @@ Build. Confirm fail (no `TypeRegistry::Entry`).
 #include <string>
 #include <functional>
 
-namespace bp2 {
+namespace json_parser {
 
 class TypeRegistry {
 public:
@@ -118,7 +111,7 @@ public:
     TypeRegistry() = default;
 };
 
-} // namespace bp2
+} // namespace json_parser
 ```
 
 Build. Run. Pass.
@@ -129,8 +122,8 @@ Build. Run. Pass.
 
 ```cpp
 TEST(TypeRegistry, RegisterAndFind) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
 
     auto bat_id = interner.intern("Battery");
     bp2::Interface iface({
@@ -147,7 +140,7 @@ TEST(TypeRegistry, RegisterAndFind) {
 }
 
 TEST(TypeRegistry, FindReturnsNullForMissing) {
-    bp2::TypeRegistry reg;
+     TypeRegistry reg;
     ui::StringInterner interner;
     EXPECT_EQ(reg.find(interner.intern("Nonexistent")), nullptr);
     EXPECT_FALSE(reg.has(interner.intern("Nonexistent")));
@@ -156,7 +149,7 @@ TEST(TypeRegistry, FindReturnsNullForMissing) {
 
 Build. Confirm fail (no `register_component`, `has`, `find`).
 
-**Write production code.** Add to `TypeRegistry` in `type_registry.h`:
+**Write production code.** Add to `TypeRegistry` in json_parser.h:
 
 ```cpp
     void register_component(ui::InternedId type_id, Interface iface,
@@ -166,7 +159,31 @@ Build. Confirm fail (no `register_component`, `has`, `find`).
     bool has(ui::InternedId type_id) const;
 
 private:
-    std::unordered_map<ui::InternedId, Entry> entries_;
+    std::unordered_map<ui::InternedId, Entry> types;
+```
+
+Implement in `json_parser.cpp`:
+
+```cpp
+void TypeRegistry::register_component(
+    ui::InternedId type_id, Interface iface, std::string description) {
+    Entry entry;
+    entry.type_id = type_id;
+    entry.iface = std::move(iface);
+    entry.description = std::move(description);
+    entry.is_blueprint = false;
+    types[type_id] = std::move(entry);
+}
+
+TypeRegistry::Entry const* TypeRegistry::find(ui::InternedId type_id) const {
+    auto it = types.find(type_id);
+    if (it == types.end()) return nullptr;
+    return &it->second;
+}
+
+bool TypeRegistry::has(ui::InternedId type_id) const {
+    return types.count(type_id) > 0;
+}
 ```
 
 Implement in `type_registry.cpp`:
@@ -207,8 +224,8 @@ Build. Run. Pass.
 
 ```cpp
 TEST(TypeRegistry, RegisterBlueprint) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
 
     auto ps_id = interner.intern("power_system");
     bp2::Interface iface({
@@ -258,8 +275,8 @@ Build. Run. Pass.
 
 ```cpp
 TEST(TypeRegistry, InterfaceOfReturnsInterface) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
     auto id = interner.intern("Resistor");
     bp2::Interface iface({
         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
@@ -272,7 +289,7 @@ TEST(TypeRegistry, InterfaceOfReturnsInterface) {
 }
 
 TEST(TypeRegistry, InterfaceOfThrowsForMissing) {
-    bp2::TypeRegistry reg;
+     TypeRegistry reg;
     ui::StringInterner interner;
     auto id = interner.intern("Nope");
     EXPECT_THROW(reg.interface_of(id), std::runtime_error);
@@ -309,8 +326,8 @@ Build. Run. Pass.
 
 ```cpp
 TEST(TypeRegistry, OnMissingCallbackInvoked) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
     bool called = false;
     ui::InternedId missing_id;
 
@@ -335,8 +352,8 @@ TEST(TypeRegistry, OnMissingCallbackInvoked) {
 }
 
 TEST(TypeRegistry, OnMissingNotCalledWhenPresent) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
     bool called = false;
     reg.set_on_missing([&](ui::InternedId) { called = true; });
 
@@ -386,8 +403,8 @@ Build. Run. Pass.
 
 ```cpp
 TEST(TypeRegistry, SizeAndIteration) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
     EXPECT_EQ(reg.size(), 0u);
 
     reg.register_component(interner.intern("A"), bp2::Interface({}));
@@ -424,8 +441,8 @@ Build. Run. Pass.
 
 ```cpp
 TEST(TypeRegistry, TestFactoryHasBasicTypes) {
-    ui::StringInterner interner;
-    auto reg = bp2::TypeRegistry::create_test_registry(interner);
+     ui::StringInterner interner;
+     auto reg = load_type_registry("library/");
     EXPECT_TRUE(reg.has(interner.intern("Battery")));
     EXPECT_TRUE(reg.has(interner.intern("Resistor")));
     EXPECT_TRUE(reg.has(interner.intern("Ground")));
@@ -441,47 +458,15 @@ Build. Confirm fail.
     static TypeRegistry create_test_registry(ui::StringInterner& interner);
 ```
 
-Implement in `type_registry.cpp`:
+Implement in json_parser.cpp:
 
 ```cpp
-TypeRegistry TypeRegistry::create_test_registry(ui::StringInterner& interner) {
+TypeRegistry load_type_registry(std::string const& library_path) {
+    static TypeRegistry reg;
     TypeRegistry reg;
 
-    reg.register_component(
-        interner.intern("Battery"),
-        Interface({
-            {interner.intern("v_in"), Domain::Electrical, Direction::Input},
-            {interner.intern("v_out"), Domain::Electrical, Direction::Output},
-        }),
-        "DC battery source"
-    );
-
-    reg.register_component(
-        interner.intern("Resistor"),
-        Interface({
-            {interner.intern("in"), Domain::Electrical, Direction::Input},
-            {interner.intern("out"), Domain::Electrical, Direction::Output},
-        }),
-        "Resistor"
-    );
-
-    reg.register_component(
-        interner.intern("Ground"),
-        Interface({
-            {interner.intern("gnd"), Domain::Electrical, Direction::InOut},
-        }),
-        "Ground reference"
-    );
-
-    reg.register_component(
-        interner.intern("LED"),
-        Interface({
-            {interner.intern("v_in"), Domain::Electrical, Direction::Input},
-            {interner.intern("ground"), Domain::Electrical, Direction::InOut},
-        }),
-        "Indicator light"
-    );
-
+    // Load blueprints from library_path
+    // Parsing logic here
     return reg;
 }
 ```
@@ -498,12 +483,11 @@ cd build && ctest --output-on-failure
 ## Files Created This Phase
 
 ```
-src/blueprint_v2/registry/type_registry.h
-src/blueprint_v2/registry/type_registry.cpp
+src/json_parser/json_parser.h (extended with TypeRegistry)
 tests/blueprint_v2/test_registry.cpp
 ```
 
 ## Lines Modified
 
-- `src/blueprint_v2/CMakeLists.txt`: add `registry/type_registry.cpp`
+- `src/json_parser/CMakeLists.txt`: ensure registry integration (if not already present)
 - `tests/CMakeLists.txt`: add `bp2_registry_tests` target

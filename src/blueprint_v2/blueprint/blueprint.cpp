@@ -1,9 +1,7 @@
 #include "blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "ui/core/interned_id.h"
 #include <algorithm>
-#include <unordered_set>
 
 namespace bp2 {
 
@@ -298,58 +296,18 @@ std::vector<std::pair<Path, PortDescriptor>> Blueprint::all_ports(PathArena& are
     return result;
 }
 
-void Blueprint::validate(TypeRegistry const& registry) const {
-    // NOTE: Path values are arena-relative. Full wire endpoint validation
-    // requires the caller to provide the arena that created wire/source/target
-    // paths. This overload performs structural/type checks only.
-    std::unordered_set<ui::InternedId> node_ids;
-    for (auto const& n : nodes_) {
-        if (!node_ids.insert(n.id).second) {
-            throw std::runtime_error("Blueprint validation: duplicate node ID");
-        }
-    }
-
-    std::unordered_set<ui::InternedId> wire_ids;
-    for (auto const& w : wires_) {
-        if (!wire_ids.insert(w.id).second) {
-            throw std::runtime_error("Blueprint validation: duplicate wire ID");
-        }
-    }
-
-    std::unordered_set<ui::InternedId> nested_ids;
-    for (auto const& n : nested_) {
-        if (!nested_ids.insert(n.id).second) {
-            throw std::runtime_error("Blueprint validation: duplicate nested ID");
-        }
-    }
-
-    for (auto const& node : nodes_) {
-        if (!registry.has(node.type)) {
-            // Embedded blueprint proxy nodes carry a user-given type name
-            // that won't be in the library registry.
-            if (node.expandable) {
-                const auto* nested = find_nested(node.id);
-                if (nested && nested->embedded) continue;
-            }
-            throw std::runtime_error("Blueprint validation: unknown node type");
-        }
-    }
-
-    for (auto const& n : nested_) {
-        if (n.embedded && !n.inline_def) {
-            throw std::runtime_error("Blueprint validation: embedded nested missing inline_def");
-        }
-        if (!n.embedded && n.blueprint_id.empty()) {
-            throw std::runtime_error("Blueprint validation: non-embedded nested missing blueprint_id");
-        }
-        if (!n.embedded && !n.blueprint_id.empty() && !registry.has(n.blueprint_id)) {
-            throw std::runtime_error("Blueprint validation: unknown nested blueprint");
-        }
+void Blueprint::validate(::TypeRegistry const& parser_registry, ui::StringInterner& interner) const {
+    PathArena arena(interner);
+    auto r = InvariantChecker::validate(*this, arena, parser_registry, interner);
+    if (!r.valid) {
+        throw std::runtime_error(std::string("Blueprint validation: ") + r.error);
     }
 }
 
-void Blueprint::validate(TypeRegistry const& registry, PathArena const& arena) const {
-    auto r = InvariantChecker::validate(*this, arena, registry);
+void Blueprint::validate(::TypeRegistry const& parser_registry,
+                        ui::StringInterner& interner,
+                        PathArena const& arena) const {
+    auto r = InvariantChecker::validate(*this, arena, parser_registry, interner);
     if (!r.valid) {
         throw std::runtime_error(std::string("Blueprint validation: ") + r.error);
     }

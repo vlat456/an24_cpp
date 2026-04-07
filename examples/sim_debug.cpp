@@ -22,7 +22,6 @@
 #include "core/solvers/jit/simulator.h"
 #include "json_parser/json_parser.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
-#include "blueprint_v2/registry/type_registry.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include <spdlog/spdlog.h>
@@ -42,15 +41,6 @@
 // pulling in the entire editor + ImGui dependency chain.
 // ============================================================================
 
-static bp2::Direction to_bp2_direction(PortDirection dir) {
-    switch (dir) {
-        case PortDirection::In:    return bp2::Direction::Input;
-        case PortDirection::Out:   return bp2::Direction::Output;
-        case PortDirection::InOut: return bp2::Direction::InOut;
-    }
-    return bp2::Direction::Output;
-}
-
 static Domain port_type_to_domain(PortType t) {
     switch (t) {
         case PortType::V:
@@ -63,40 +53,6 @@ static Domain port_type_to_domain(PortType t) {
         case PortType::Temperature: return Domain::Thermal;
     }
     return Domain::Electrical;
-}
-
-static bp2::TypeRegistry build_bp2_registry(ui::StringInterner& interner) {
-    bp2::TypeRegistry out;
-    TypeRegistry parsed = load_type_registry("library/");
-
-    for (const auto& [classname, def] : parsed.types) {
-        std::vector<bp2::PortDescriptor> ports;
-        ports.reserve(def.ports.size());
-
-        Domain inferred_domain = Domain::Electrical;
-        if (def.domains.has_value() && !def.domains->empty())
-            inferred_domain = (*def.domains)[0];
-
-        for (const auto& [name, port] : def.ports) {
-            bp2::PortDescriptor pd;
-            pd.name      = interner.intern(name);
-            pd.domain    = port_type_to_domain(port.type);
-            pd.direction = to_bp2_direction(port.direction);
-            ports.push_back(pd);
-        }
-
-        bp2::Interface iface(std::move(ports));
-        ui::InternedId type_id = interner.intern(classname);
-        if (def.cpp_class)
-            out.register_component(type_id, iface, def.description);
-        else
-            out.register_blueprint(type_id, iface, def.description, nullptr);
-
-        if (auto* entry = const_cast<bp2::TypeRegistry::Entry*>(out.find(type_id))) {
-            entry->param_defaults = def.params;
-        }
-    }
-    return out;
 }
 
 static const char* sim_port_type_str(PortType t) {
@@ -340,7 +296,7 @@ int main(int argc, char* argv[]) {
         // Blueprint file — decode and convert
         ui::StringInterner interner;
         bp2::PathArena arena(interner);
-        bp2::TypeRegistry registry = build_bp2_registry(interner);
+        TypeRegistry registry = load_type_registry("library/");
 
         bp2::DecodeError err;
         auto bp = bp2::BlueprintCodec::decode(raw_json, interner, arena, registry, &err);

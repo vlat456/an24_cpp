@@ -85,7 +85,10 @@ public:
 
     /// Set the type registry used to filter visual-only params from simulation JSON.
     /// Must be called before startSimulation(). Pointer must outlive the Document.
-    void setTypeRegistry(const TypeRegistry* reg) { type_registry_ = reg; }
+    void setTypeRegistry(const TypeRegistry* reg) {
+        type_registry_ = reg;
+        window_manager_.set_parser_registry(reg);
+    }
 
     void startSimulation();
     void stopSimulation();

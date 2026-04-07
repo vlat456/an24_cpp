@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+struct TypeRegistry;
+
 namespace editor::commands {
 
 struct ExtractToBlueprintPreview {
@@ -38,6 +40,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const std::string& group_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
+    const TypeRegistry& parser_registry,
     std::string* error_out = nullptr,
     bool allow_nonembedded_descendant_refs = false);
 

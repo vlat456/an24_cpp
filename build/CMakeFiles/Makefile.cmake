@@ -238,7 +238,6 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/bp2_path_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_interface_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_blueprint_tests.dir/DependInfo.cmake"
-  "tests/CMakeFiles/bp2_registry_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_codec_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_flattener_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_editor_model_tests.dir/DependInfo.cmake"

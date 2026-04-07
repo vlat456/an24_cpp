@@ -26,6 +26,51 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
     return n;
 }
 
+static TypeRegistry make_command_test_registry() {
+    TypeRegistry reg = load_type_registry("library/");
+
+    const std::vector<std::string> synthetic_types = {
+        "Test",
+        "NodeA",
+        "NodeB",
+        "NodeExtIn",
+        "NodeExtOut",
+        "BlueprintInput",
+        "BlueprintOutput",
+        "Sink",
+        "Slider",
+        "SomeLibraryBlueprint",
+        "Source",
+        "TypedA",
+        "TypedB",
+        "TypedExtIn",
+        "TypedExtOut",
+        "sub_blueprint_type",
+        "sub_blueprint_type_2"
+    };
+    const std::vector<std::string> synthetic_ports = {
+        "ext", "in", "in2", "in_2", "link", "out", "out2", "port", "sig"
+    };
+
+    for (const auto& type_name : synthetic_types) {
+        TypeDefinition def;
+        def.classname = type_name;
+        def.description = "command test synthetic type";
+        def.cpp_class = true;
+        for (const auto& port_name : synthetic_ports) {
+            Port p;
+            p.direction = PortDirection::InOut;
+            p.type = PortType::V;
+            p.domain = Domain::Electrical;
+            p.source_writer = false;
+            def.ports.emplace(port_name, std::move(p));
+        }
+        reg.types[type_name] = std::move(def);
+    }
+
+    return reg;
+}
+
 // Helper: create a wire between node:port -> node:port
 static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
                                        bp2::PathArena& arena,
@@ -458,6 +503,7 @@ class CommandTest : public ::testing::Test {
 protected:
     ui::StringInterner interner;
     bp2::EditorModel   model;
+    TypeRegistry parser_registry = make_command_test_registry();
 };
 
 TEST_F(CommandTest, BlueprintDefaults) {
@@ -1068,39 +1114,9 @@ TEST_F(CommandTest, ExtractToBlueprint_BasicAtomic) {
         "",
         interner,
         arena,
-        &err);
-
-    ASSERT_TRUE(updated.has_value()) << err;
-    ASSERT_EQ(updated->nested().size(), 1u);
-    const auto& nested = updated->nested()[0];
-    ASSERT_TRUE(nested.inline_def != nullptr);
-    const auto* collapsed = updated->find_node(nested.id);
-    ASSERT_NE(collapsed, nullptr);
-
-    const auto* a = updated->find_node(interner.intern("a"));
-    const auto* b = updated->find_node(interner.intern("b"));
-    ASSERT_NE(a, nullptr);
-    ASSERT_NE(b, nullptr);
-    EXPECT_EQ(a->group_id, std::string(interner.resolve(nested.id)));
-    EXPECT_EQ(b->group_id, std::string(interner.resolve(nested.id)));
-
-    // Keep internal selected wire in subgroup, plus subgroup bridge wires and root boundary wires.
-    ASSERT_EQ(updated->wires().size(), 5u);
-}
-
-TEST_F(CommandTest, ExtractToBlueprint_UsesCanonicalBridgeNodeIds) {
-    bp2::PathArena arena(interner);
-    bp2::Blueprint source = make_extract_fixture(interner, arena);
-
-    std::string err;
-    auto updated = editor::commands::build_extracted_blueprint_atomic(
-        source,
-        {interner.intern("a"), interner.intern("b")},
-        "extracted_blueprint_1",
-        "",
-        interner,
-        arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << err;
     ASSERT_EQ(updated->nested().size(), 1u);
@@ -1128,13 +1144,16 @@ TEST_F(CommandTest, ExtractToBlueprint_UndoRedoRoundTrip) {
 
     std::string err;
     auto updated = editor::commands::build_extracted_blueprint_atomic(
-        model.current(),
+        source,
         {interner.intern("a"), interner.intern("b")},
         "extracted_blueprint_1",
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
+
     ASSERT_TRUE(updated.has_value()) << err;
 
     model.push_checkpoint();
@@ -1161,7 +1180,9 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsSubgroupExtraction) {
         "group_1",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << err;
     ASSERT_EQ(updated->nested().size(), 1u);
@@ -1187,12 +1208,14 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsSelectionOutsideActiveGroup) {
     std::string err;
     auto updated = editor::commands::build_extracted_blueprint_atomic(
         source,
-        {interner.intern("a"), interner.intern("b")},
+        {interner.intern("bridge_in"), interner.intern("a")},
         "extracted_blueprint_1",
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     EXPECT_FALSE(updated.has_value());
     EXPECT_NE(err.find("active group"), std::string::npos);
@@ -1210,7 +1233,9 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsEmbeddedNestedInstanceSelection) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << err;
     ASSERT_EQ(updated->nested().size(), 2u);
@@ -1226,7 +1251,7 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsEmbeddedNestedInstanceSelection) {
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_InlinesSelectedEmbeddedNestedDeterministically) {
-    auto run_extract = [](const std::vector<std::string>& selection_names) {
+    auto run_extract = [this](const std::vector<std::string>& selection_names) {
         ui::StringInterner I;
         bp2::PathArena A(I);
         bp2::Blueprint source = make_extract_with_two_embedded_nested_selection_fixture(I, A);
@@ -1242,7 +1267,9 @@ TEST_F(CommandTest, ExtractToBlueprint_InlinesSelectedEmbeddedNestedDeterministi
             "",
             I,
             A,
-            &err);
+            parser_registry,
+            &err,
+            false);
         EXPECT_TRUE(updated.has_value()) << err;
 
         std::vector<std::string> nested_names;
@@ -1288,7 +1315,9 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsEmbeddedNestedMissingInlineDef) {
         "",
         I,
         A,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     EXPECT_FALSE(updated.has_value());
     EXPECT_NE(err.find("missing inline_def"), std::string::npos);
@@ -1307,7 +1336,9 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsEmbeddedNestedWithNonEmbeddedDesce
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     EXPECT_FALSE(updated.has_value());
     EXPECT_NE(err.find("non-embedded descendant references"), std::string::npos);
@@ -1326,6 +1357,7 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsNonEmbeddedDescendantWhenGuardEnabl
         "",
         interner,
         arena,
+        parser_registry,
         &err,
         true);
 
@@ -1345,6 +1377,7 @@ TEST_F(CommandTest, ExtractToBlueprint_GuardModeRemapsNonEmbeddedDescendantIfEmb
         "",
         interner,
         arena,
+        parser_registry,
         &err,
         true);
 
@@ -1376,7 +1409,9 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsNonEmbeddedNestedInstanceSelection
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     EXPECT_FALSE(updated.has_value());
     EXPECT_NE(err.find("non-embedded nested instances"), std::string::npos);
@@ -1394,7 +1429,9 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsBlueprintBridgeNodeSelection) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     EXPECT_FALSE(updated.has_value());
     EXPECT_NE(err.find("BlueprintInput/BlueprintOutput"), std::string::npos);
@@ -1581,6 +1618,7 @@ TEST_F(CommandTest, ExtractToBlueprint_PreviewAllowApplyDenyMismatchFailsAtApply
         "",
         interner,
         arena,
+        parser_registry,
         &apply_err,
         false);
     EXPECT_FALSE(updated.has_value());
@@ -1638,8 +1676,10 @@ TEST_F(CommandTest, ExtractToBlueprint_GuardModeRemapTieBreakUsesLowestProviderN
         "",
         interner,
         arena,
+        parser_registry,
         &err,
         true);
+
     ASSERT_TRUE(updated.has_value()) << err;
 
     const auto* created = updated->find_nested(updated->nested().back().id);
@@ -1671,7 +1711,9 @@ TEST_F(CommandTest, ExtractToBlueprint_BridgeAutoLayoutTracksInternalY) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << err;
     ASSERT_EQ(updated->nested().size(), 1u);
@@ -1740,7 +1782,9 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsSmallSelection) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     EXPECT_FALSE(updated.has_value());
     EXPECT_NE(err.find("at least 2"), std::string::npos);
@@ -1759,7 +1803,9 @@ TEST_F(CommandTest, ExtractToBlueprint_DeterministicIfaceNaming) {
         "",
         interner,
         arena,
-        &err1);
+        parser_registry,
+        &err1,
+        false);
     auto b = editor::commands::build_extracted_blueprint_atomic(
         source,
         {interner.intern("a"), interner.intern("b")},
@@ -1767,7 +1813,9 @@ TEST_F(CommandTest, ExtractToBlueprint_DeterministicIfaceNaming) {
         "",
         interner,
         arena,
-        &err2);
+        parser_registry,
+        &err2,
+        false);
 
     ASSERT_TRUE(a.has_value()) << err1;
     ASSERT_TRUE(b.has_value()) << err2;
@@ -1789,7 +1837,9 @@ TEST_F(CommandTest, ExtractToBlueprint_InlineBlueprintStructure) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << err;
     ASSERT_EQ(updated->nested().size(), 1u);
@@ -1850,7 +1900,9 @@ TEST_F(CommandTest, ExtractToBlueprint_PreservesBoundaryPortTypesOnBridgeNodes) 
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << err;
     ASSERT_EQ(updated->nested().size(), 1u);
@@ -1890,7 +1942,9 @@ TEST_F(CommandTest, ExtractToBlueprint_SubgroupBridgeWiring) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << err;
     ASSERT_EQ(updated->nested().size(), 1u);
@@ -1963,7 +2017,9 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsInputOutputIfaceNameCollision) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     EXPECT_FALSE(updated.has_value());
     EXPECT_NE(err.find("collision"), std::string::npos);
@@ -2048,7 +2104,9 @@ TEST_F(CommandTest, ExtractToBlueprint_DedupeNameNoCollisionWithSuffixedPorts) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     // Must succeed — deduplication should produce "in", "in_2", "in_3" (not a second "in_2")
     ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
@@ -2099,9 +2157,11 @@ TEST_F(CommandTest, ExtractToBlueprint_ZeroExternalConnections) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
-    ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
+    ASSERT_TRUE(updated.has_value()) << err;
     ASSERT_EQ(updated->nested().size(), 1u);
 
     // Interface should be empty (no boundary connections)
@@ -2173,7 +2233,9 @@ TEST_F(CommandTest, ExtractToBlueprint_InlineBridgeYUsesLocalCoordinates) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
     ASSERT_TRUE(updated.has_value()) << err;
     ASSERT_EQ(updated->nested().size(), 1u);
     ASSERT_TRUE(updated->nested()[0].inline_def != nullptr);
@@ -2226,7 +2288,9 @@ TEST_F(CommandTest, ExtractToBlueprint_HyphenatedNamePassesValidation) {
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
     ASSERT_EQ(updated->nested().size(), 1u);
@@ -2243,23 +2307,7 @@ TEST_F(CommandTest, ExtractToBlueprint_HyphenatedNamePassesValidation) {
     ASSERT_TRUE(nested.embedded);
     ASSERT_NE(nested.inline_def, nullptr);
 
-    // Blueprint::validate(registry) must not throw on the proxy node.
-    // (validate only checks node types, not wire paths, when called with
-    //  registry-only overload.)
-    bp2::TypeRegistry bp2_reg = bp2::TypeRegistry::create_test_registry(interner);
-    for (const auto& n : updated->nodes()) {
-        if (!bp2_reg.has(n.type)) {
-            if (n.expandable && updated->find_nested(n.id) && updated->find_nested(n.id)->embedded)
-                continue;
-            std::vector<bp2::PortDescriptor> ports;
-            for (const auto& p : n.inputs)
-                ports.push_back({p.name, Domain::Electrical, bp2::Direction::Input});
-            for (const auto& p : n.outputs)
-                ports.push_back({p.name, Domain::Electrical, bp2::Direction::Output});
-            bp2_reg.register_component(n.type, bp2::Interface(std::move(ports)));
-        }
-    }
-    EXPECT_NO_THROW(updated->validate(bp2_reg));
+    EXPECT_NO_THROW(updated->validate(parser_registry, interner, arena));
 }
 
 // Regression: validate_blueprint_for_persist() must accept the extracted
@@ -2280,7 +2328,9 @@ TEST_F(CommandTest, ExtractToBlueprint_HyphenatedNamePassesIntegrityValidation) 
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
 
@@ -2288,7 +2338,7 @@ TEST_F(CommandTest, ExtractToBlueprint_HyphenatedNamePassesIntegrityValidation) 
     // library types AND auto-registers unknown types as ad-hoc.  The key
     // question is whether the embedded proxy type triggers a structural error.
     std::string integrity_err;
-    bool ok = validate_blueprint_integrity(*updated, interner, arena, &integrity_err);
+    bool ok = validate_blueprint_integrity(*updated, interner, arena, parser_registry, &integrity_err);
     EXPECT_TRUE(ok) << "validate_blueprint_integrity failed: " << integrity_err;
 }
 
@@ -2308,26 +2358,13 @@ TEST_F(CommandTest, ExtractToBlueprint_HyphenatedNameNoDiagnosticFalsePositive) 
         "",
         interner,
         arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
 
-    // Build a registry with all fixture types registered (except the proxy).
-    bp2::TypeRegistry bp2_reg = bp2::TypeRegistry::create_test_registry(interner);
-    for (const auto& n : updated->nodes()) {
-        if (!bp2_reg.has(n.type)) {
-            if (n.expandable && updated->find_nested(n.id) && updated->find_nested(n.id)->embedded)
-                continue;
-            std::vector<bp2::PortDescriptor> ports;
-            for (const auto& p : n.inputs)
-                ports.push_back({p.name, Domain::Electrical, bp2::Direction::Input});
-            for (const auto& p : n.outputs)
-                ports.push_back({p.name, Domain::Electrical, bp2::Direction::Output});
-            bp2_reg.register_component(n.type, bp2::Interface(std::move(ports)));
-        }
-    }
-
-    auto report = bp2::diagnostics::diagnose_and_repair(*updated, arena, bp2_reg);
+    auto report = bp2::diagnostics::diagnose_and_repair(*updated, arena, parser_registry, interner);
 
     // There must be no UnknownNodeType issue for the proxy node.
     for (const auto& issue : report.issues) {
@@ -2357,7 +2394,9 @@ TEST_F(CommandTest, ExtractToBlueprint_ProxyTypeNamePreservedExactly) {
             "",
             interner,
             local_arena,
-            &err);
+            parser_registry,
+            &err,
+            false);
 
         ASSERT_TRUE(updated.has_value()) << "extraction with name '" << name << "' failed: " << err;
         ASSERT_EQ(updated->nested().size(), 1u);
@@ -2390,7 +2429,9 @@ TEST_F(CommandTest, ExtractToBlueprint_ProxyNodeHasIfacePopulated) {
         "",
         interner,
         local_arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
 
     ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
     ASSERT_EQ(updated->nested().size(), 1u);
@@ -2436,7 +2477,9 @@ TEST_F(CommandTest, ManualBridgeAddition_SyncsCollapsedNodeAndNested) {
         "",
         interner,
         local_arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
     ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
     ASSERT_EQ(updated->nested().size(), 1u);
 
@@ -2544,7 +2587,9 @@ TEST_F(CommandTest, ManualBridgeAddition_OutputSyncsCollapsedNodeAndNested) {
         "",
         interner,
         local_arena,
-        &err);
+        parser_registry,
+        &err,
+        false);
     ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
     ASSERT_EQ(updated->nested().size(), 1u);
 

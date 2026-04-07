@@ -1,5 +1,7 @@
 # Phase 6: Flattener (Hierarchy -> Flat Netlist)
 
+Historical note: this phase description references legacy bp2 registry APIs that were removed; canonical registry lives in json_parser.
+
 ## Goal
 
 Create a pure-function `Flattener` that takes a `bp2::Blueprint` tree and produces a `FlatNetlist`: a flat list of components with signal indices, ready for the JIT solver or AOT codegen. This replaces the old `to_simulator_json()` + `parse_json()` pipeline and the `expand_sub_blueprint_references()` in `json_parser.h`.
@@ -24,7 +26,7 @@ tests/blueprint_v2/test_flattener.cpp         <- all tests for this phase
 - Phase 1 complete (Path, PathArena)
 - Phase 2 complete (Interface, PortDescriptor)
 - Phase 3 complete (Blueprint)
-- Phase 4 complete (TypeRegistry)
+- Phase 4 complete (TypeRegistry in json_parser)
 
 ## Step-by-Step Instructions
 
@@ -51,7 +53,6 @@ add_executable(bp2_flattener_tests
 )
 target_include_directories(bp2_flattener_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(bp2_flattener_tests PRIVATE
@@ -75,30 +76,29 @@ gtest_discover_tests(bp2_flattener_tests)
 **Write test first** in `test_flattener.cpp`:
 
 ```cpp
-#include <gtest/gtest.h>
-#include "ui/core/interned_id.h"
-#include "blueprint_v2/flattener/flat_netlist.h"
-#include "blueprint_v2/path/path.h"
+#include "blueprint_v2/flattener/flattener.h"
+#include "blueprint_v2/blueprint/blueprint.h"
+#include "json_parser/json_parser.h"
 
-TEST(FlatNetlist, EmptyByDefault) {
-    bp2::FlatNetlist netlist;
-    EXPECT_TRUE(netlist.components.empty());
-    EXPECT_EQ(netlist.signal_count, 0u);
-}
+TEST(Flattener, SingleNodeNoWires) {
+     ui::StringInterner interner;
+     auto reg = load_type_registry("library/");
 
-TEST(FlatNetlist, ComponentStruct) {
-    ui::StringInterner interner;
-    bp2::PathArena arena(interner);
+     bp2::Blueprint bp;
+    bp2::Blueprint::Node node;
+    node.id = interner.intern("bat1");
+    node.type = interner.intern("Battery");
+    node.iface = reg.interface_of(interner.intern("Battery"));
+    bp = bp.with_node(std::move(node));
 
-    bp2::FlatNetlist::Component comp;
-    comp.path = arena.make_node(arena.root(), interner.intern("bat1"));
-    comp.type = interner.intern("Battery");
-    comp.port_signals.push_back({interner.intern("v_out"), 0});
-    comp.port_signals.push_back({interner.intern("v_in"), 1});
+    bp2::Flattener flattener(reg);
+    bp2::FlatNetlist netlist = flattener.flatten(bp, interner);
 
-    EXPECT_EQ(interner.resolve(comp.type), "Battery");
-    EXPECT_EQ(comp.port_signals.size(), 2u);
-    EXPECT_EQ(comp.port_signals[0].second, 0u);
+    EXPECT_EQ(netlist.components.size(), 1u);
+    EXPECT_EQ(interner.resolve(netlist.components[0].type), "Battery");
+    // Each port gets its own signal (no wires to merge them)
+    EXPECT_EQ(netlist.components[0].port_signals.size(), 2u);
+    EXPECT_GE(netlist.signal_count, 2u);
 }
 ```
 
@@ -150,27 +150,27 @@ Build. Run. Pass.
 ```cpp
 #include "blueprint_v2/flattener/flattener.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "json_parser/json_parser.h"
 
 TEST(Flattener, SingleNodeNoWires) {
-    ui::StringInterner interner;
-    auto reg = bp2::TypeRegistry::create_test_registry(interner);
+     ui::StringInterner interner;
+     auto reg = load_type_registry("library/");
 
-    bp2::Blueprint bp;
-    bp2::Blueprint::Node node;
-    node.id = interner.intern("bat1");
-    node.type = interner.intern("Battery");
-    node.iface = reg.interface_of(interner.intern("Battery"));
-    bp = bp.with_node(std::move(node));
+     bp2::Blueprint bp;
+     bp2::Blueprint::Node node;
+     node.id = interner.intern("bat1");
+     node.type = interner.intern("Battery");
+     node.iface = reg.interface_of(interner.intern("Battery"));
+     bp = bp.with_node(std::move(node));
 
-    bp2::Flattener flattener(reg);
-    bp2::FlatNetlist netlist = flattener.flatten(bp, interner);
+     bp2::Flattener flattener(reg);
+     bp2::FlatNetlist netlist = flattener.flatten(bp, interner);
 
-    EXPECT_EQ(netlist.components.size(), 1u);
-    EXPECT_EQ(interner.resolve(netlist.components[0].type), "Battery");
-    // Each port gets its own signal (no wires to merge them)
-    EXPECT_EQ(netlist.components[0].port_signals.size(), 2u);
-    EXPECT_GE(netlist.signal_count, 2u);
+     EXPECT_EQ(netlist.components.size(), 1u);
+     EXPECT_EQ(interner.resolve(netlist.components[0].type), "Battery");
+     // Each port gets its own signal (no wires to merge them)
+     EXPECT_EQ(netlist.components[0].port_signals.size(), 2u);
+     EXPECT_GE(netlist.signal_count, 2u);
 }
 ```
 
@@ -182,21 +182,21 @@ Build. Confirm fail (no `Flattener` class).
 #pragma once
 #include "flat_netlist.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "json_parser/json_parser.h"
 #include "blueprint_v2/path/path.h"
 
 namespace bp2 {
 
 class Flattener {
 public:
-    explicit Flattener(TypeRegistry const& registry);
+     explicit Flattener(TypeRegistry const& registry);
 
     FlatNetlist flatten(Blueprint const& root,
                         ui::StringInterner& interner);
 
 private:
-    TypeRegistry const& registry_;
-    PathArena arena_;
+     TypeRegistry const& registry_;
+    std::optional<PathArena> arena_;
 
     void visit_blueprint(
         Blueprint const& bp,
@@ -244,123 +244,19 @@ Implement in `flattener.cpp`:
 namespace bp2 {
 
 Flattener::Flattener(TypeRegistry const& registry)
-    : registry_(registry)
-    , arena_(*static_cast<ui::StringInterner*>(nullptr)) {
-    // arena_ must be properly initialized -- see flatten()
-}
+     : registry_(registry) {}
 
 FlatNetlist Flattener::flatten(Blueprint const& root,
                                 ui::StringInterner& interner) {
-    arena_ = PathArena(interner);
+    arena_.emplace(interner);
     FlatNetlist out;
     std::unordered_map<Path, SignalIndex> signals;
 
-    process_wires(root, arena_.root(), signals, out, interner);
-    visit_blueprint(root, arena_.root(), signals, out, interner);
+    process_wires(root, arena_->root(), signals, out, interner);
+    visit_blueprint(root, arena_->root(), signals, out, interner);
 
     return out;
 }
-
-void Flattener::visit_blueprint(
-    Blueprint const& bp,
-    Path prefix,
-    std::unordered_map<Path, SignalIndex>& signals,
-    FlatNetlist& out,
-    ui::StringInterner& interner) {
-
-    for (auto const& node : bp.nodes()) {
-        emit_component(node, prefix, signals, out, interner);
-    }
-
-    // Visit nested instances -- handled in Step 6.6
-}
-
-void Flattener::emit_component(
-    Blueprint::Node const& node,
-    Path prefix,
-    std::unordered_map<Path, SignalIndex>& signals,
-    FlatNetlist& out,
-    ui::StringInterner& interner) {
-
-    Path node_path = arena_.make_node(prefix, node.id);
-
-    FlatNetlist::Component comp;
-    comp.path = node_path;
-    comp.type = node.type;
-    comp.params = node.params;
-
-    for (auto const& port : node.iface) {
-        Path port_path = arena_.make_port(node_path, port.name);
-        SignalIndex sig = get_or_create_signal(
-            port_path, port.domain, signals, out);
-        comp.port_signals.push_back({port.name, sig});
-    }
-
-    out.components.push_back(std::move(comp));
-}
-
-SignalIndex Flattener::get_or_create_signal(
-    Path port_path,
-    Domain domain,
-    std::unordered_map<Path, SignalIndex>& signals,
-    FlatNetlist& out) {
-
-    auto it = signals.find(port_path);
-    if (it != signals.end()) return it->second;
-
-    SignalIndex idx = out.signal_count++;
-    signals[port_path] = idx;
-
-    FlatNetlist::Signal sig;
-    sig.index = idx;
-    sig.domain = domain;
-    sig.connected_ports.push_back(port_path);
-    out.signals.push_back(sig);
-
-    return idx;
-}
-
-void Flattener::process_wires(
-    Blueprint const& bp,
-    Path prefix,
-    std::unordered_map<Path, SignalIndex>& signals,
-    FlatNetlist& out,
-    ui::StringInterner& interner) {
-
-    for (auto const& wire : bp.wires()) {
-        // Wire source and target are already resolved paths
-        SignalIndex src_sig = get_or_create_signal(
-            wire.source, wire.domain, signals, out);
-        SignalIndex tgt_sig = get_or_create_signal(
-            wire.target, wire.domain, signals, out);
-
-        if (src_sig != tgt_sig) {
-            merge_signals(src_sig, tgt_sig, signals, out);
-        }
-    }
-}
-
-void Flattener::merge_signals(
-    SignalIndex keep,
-    SignalIndex remove,
-    std::unordered_map<Path, SignalIndex>& signals,
-    FlatNetlist& out) {
-
-    // Rewrite all paths pointing to 'remove' to point to 'keep'
-    for (auto& [path, sig] : signals) {
-        if (sig == remove) sig = keep;
-    }
-
-    // Merge connected_ports lists
-    auto& keep_sig = out.signals[keep];
-    auto& remove_sig = out.signals[remove];
-    for (auto& p : remove_sig.connected_ports) {
-        keep_sig.connected_ports.push_back(p);
-    }
-    remove_sig.connected_ports.clear();
-}
-
-} // namespace bp2
 ```
 
 **Note on construction:** The `Flattener` constructor above has an issue -- storing a reference to `PathArena` before `flatten()` provides the interner. Fix: have `PathArena` be constructed inside `flatten()` and stored via `std::optional<PathArena>`:
@@ -381,8 +277,8 @@ Build. Run. Pass.
 
 ```cpp
 TEST(Flattener, TwoNodesOneWire) {
-    ui::StringInterner interner;
-    auto reg = bp2::TypeRegistry::create_test_registry(interner);
+     ui::StringInterner interner;
+     auto reg = load_type_registry("library/");
     bp2::PathArena arena(interner);
 
     bp2::Blueprint bp;
@@ -447,8 +343,8 @@ Build. Run. Pass (the wire processing in Step 6.3 merges the signals).
 
 ```cpp
 TEST(Flattener, ThreeNodesChainedSignalCount) {
-    ui::StringInterner interner;
-    auto reg = bp2::TypeRegistry::create_test_registry(interner);
+     ui::StringInterner interner;
+     auto reg = load_type_registry("library/");
     bp2::PathArena arena(interner);
 
     // Battery -> Resistor -> LED (chain)
@@ -522,48 +418,48 @@ Build. Run. Pass.
 
 ```cpp
 TEST(Flattener, NestedBlueprintExpands) {
-    ui::StringInterner interner;
-    bp2::PathArena arena(interner);
+     ui::StringInterner interner;
+     bp2::PathArena arena(interner);
 
-    // Create a sub-blueprint with 1 resistor, interface: in, out
-    bp2::Blueprint inner;
-    inner = inner.with_id(interner.intern("sub_type"));
-    inner = inner.with_interface(bp2::Interface({
-        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
-        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
-    }));
+     // Create a sub-blueprint with 1 resistor, interface: in, out
+     bp2::Blueprint inner;
+     inner = inner.with_id(interner.intern("sub_type"));
+     inner = inner.with_interface(bp2::Interface({
+         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+         {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+     }));
 
-    bp2::Blueprint::Node r1;
-    r1.id = interner.intern("r1");
-    r1.type = interner.intern("Resistor");
-    r1.iface = bp2::Interface({
-        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
-        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
-    });
-    inner = inner.with_node(std::move(r1));
+     bp2::Blueprint::Node r1;
+     r1.id = interner.intern("r1");
+     r1.type = interner.intern("Resistor");
+     r1.iface = bp2::Interface({
+         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+         {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+     });
+     inner = inner.with_node(std::move(r1));
 
-    // Wires inside sub-blueprint: interface:in -> r1:in, r1:out -> interface:out
-    bp2::PathArena inner_arena(interner);
-    bp2::Blueprint::Wire iw1;
-    iw1.id = interner.intern("iw1");
-    iw1.source = inner_arena.make_port(inner_arena.root(), interner.intern("in"));
-    iw1.target = inner_arena.make_port(
-        inner_arena.make_node(inner_arena.root(), interner.intern("r1")),
-        interner.intern("in"));
-    iw1.domain = Domain::Electrical;
-    inner = inner.with_wire(std::move(iw1));
+     // Wires inside sub-blueprint: interface:in -> r1:in, r1:out -> interface:out
+     bp2::PathArena inner_arena(interner);
+     bp2::Blueprint::Wire iw1;
+     iw1.id = interner.intern("iw1");
+     iw1.source = inner_arena.make_port(inner_arena.root(), interner.intern("in"));
+     iw1.target = inner_arena.make_port(
+         inner_arena.make_node(inner_arena.root(), interner.intern("r1")),
+         interner.intern("in"));
+     iw1.domain = Domain::Electrical;
+     inner = inner.with_wire(std::move(iw1));
 
-    bp2::Blueprint::Wire iw2;
-    iw2.id = interner.intern("iw2");
-    iw2.source = inner_arena.make_port(
-        inner_arena.make_node(inner_arena.root(), interner.intern("r1")),
-        interner.intern("out"));
-    iw2.target = inner_arena.make_port(inner_arena.root(), interner.intern("out"));
-    iw2.domain = Domain::Electrical;
-    inner = inner.with_wire(std::move(iw2));
+     bp2::Blueprint::Wire iw2;
+     iw2.id = interner.intern("iw2");
+     iw2.source = inner_arena.make_port(
+         inner_arena.make_node(inner_arena.root(), interner.intern("r1")),
+         interner.intern("out"));
+     iw2.target = inner_arena.make_port(inner_arena.root(), interner.intern("out"));
+     iw2.domain = Domain::Electrical;
+     inner = inner.with_wire(std::move(iw2));
 
-    // Register it
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
+     // Register it
+     TypeRegistry reg = load_type_registry("library/");
     reg.register_blueprint(interner.intern("sub_type"), inner.iface());
 
     // Root blueprint: Battery -> sub1:in, sub1:out -> LED
@@ -795,9 +691,9 @@ Build. Run. Pass.
 
 ```cpp
 TEST(Flattener, TwoLevelNesting) {
-    ui::StringInterner interner;
-    bp2::PathArena arena(interner);
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
+     ui::StringInterner interner;
+     bp2::PathArena arena(interner);
+     TypeRegistry reg = load_type_registry("library/");
 
     // Inner-most blueprint: single resistor with interface {in, out}
     bp2::Blueprint inner = make_resistor_sub(interner, reg);
@@ -841,8 +737,8 @@ Build. Run. Pass (the recursive visit_nested handles this).
 
 ```cpp
 TEST(Flattener, ParamsPreserved) {
-    ui::StringInterner interner;
-    auto reg = bp2::TypeRegistry::create_test_registry(interner);
+     ui::StringInterner interner;
+     auto reg = load_type_registry("library/");
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node bat;

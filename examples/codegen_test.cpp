@@ -33,9 +33,7 @@ ParserContext parse_blueprint_v3(std::string const& content,
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    bp2::TypeRegistry bp2_registry;
-
-    auto bp_opt = bp2::BlueprintCodec::decode(content, interner, arena, bp2_registry);
+    auto bp_opt = bp2::BlueprintCodec::decode(content, interner, arena, registry);
     if (!bp_opt.has_value()) {
         return ctx;
     }

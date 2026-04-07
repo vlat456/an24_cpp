@@ -1,5 +1,7 @@
 # Phase 7: EditorModel and Bridge Layer
 
+Historical note: this phase description references legacy bp2 registry APIs that were removed; canonical registry lives in json_parser.
+
 ## Goal
 
 Create `bp2::EditorModel` which wraps a `Blueprint` with undo/redo support and derived indices. Also create the temporary `BlueprintBridge` that converts between old types (`FlatBlueprint`, `TypeDefinition`) and new `bp2::Blueprint` for gradual migration.
@@ -56,7 +58,6 @@ add_executable(bp2_editor_model_tests
 )
 target_include_directories(bp2_editor_model_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
 )
 target_link_libraries(bp2_editor_model_tests PRIVATE
     blueprint_v2
@@ -70,7 +71,6 @@ add_executable(bp2_bridge_tests
 )
 target_include_directories(bp2_bridge_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/src/editor/data
 )
 target_link_libraries(bp2_bridge_tests PRIVATE
@@ -445,8 +445,8 @@ The architecture (Part VII) defines `bake_nested()` and `bake_all()`. Implement 
 
 ```cpp
 TEST(EditorModel, BakeNestedConvertsReferenceToEmbedded) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
+     ui::StringInterner interner;
+     TypeRegistry reg = load_type_registry("library/");
 
     // Create a blueprint to use as the nested type
     bp2::Blueprint inner;
@@ -481,8 +481,8 @@ Build. Confirm fail.
 **Write production code.** Add to `EditorModel`:
 
 ```cpp
-    bool bake_nested(ui::InternedId id, TypeRegistry const& registry,
-                     ui::StringInterner& interner);
+     bool bake_nested(ui::InternedId id, TypeRegistry const& registry,
+                      ui::StringInterner& interner);
 ```
 
 Implement:
@@ -572,9 +572,9 @@ public:
                                  ui::StringInterner& interner);
 
     /// Convert old TypeDefinition to new Blueprint
-    static Blueprint from_type_def(TypeDefinition const& td,
-                                   ui::StringInterner& interner,
-                                   class TypeRegistry& registry);
+     static Blueprint from_type_def(TypeDefinition const& td,
+                                    ui::StringInterner& interner,
+                                    class TypeRegistry& registry);
 
     /// Convert new Blueprint to old TypeDefinition
     static TypeDefinition to_type_def(Blueprint const& bp,
@@ -782,20 +782,20 @@ These convert between `TypeDefinition` (the old blueprint type used by the simul
 
 ```cpp
 TEST(BlueprintBridge, IntegrationLoadFlatten) {
-    ui::StringInterner interner;
+     ui::StringInterner interner;
 
-    // Load an existing blueprint file from library/
-    std::filesystem::path bp_path = "library/GSI.blueprint";
-    ASSERT_TRUE(std::filesystem::exists(bp_path));
+     // Load an existing blueprint file from library/
+     std::filesystem::path bp_path = "library/GSI.blueprint";
+     ASSERT_TRUE(std::filesystem::exists(bp_path));
 
-    // Parse with old parser
-    auto flat = parse_flat_blueprint(bp_path);  // Old function
+     // Parse with old parser
+     auto flat = parse_flat_blueprint(bp_path);  // Old function
 
-    // Convert to new
-    bp2::Blueprint bp = bp2::BlueprintBridge::from_flat(flat, interner);
+     // Convert to new
+     bp2::Blueprint bp = bp2::BlueprintBridge::from_flat(flat, interner);
 
-    // Resolve interfaces from registry
-    bp2::TypeRegistry reg = load_component_registry(interner);
+     // Resolve interfaces from registry
+     TypeRegistry reg = load_type_registry("library/");
 
     // Flatten
     bp2::Flattener flattener(reg);

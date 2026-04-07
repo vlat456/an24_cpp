@@ -1485,19 +1485,6 @@ bp2_blueprint_tests/fast:
 .PHONY : bp2_blueprint_tests/fast
 
 #=============================================================================
-# Target rules for targets named bp2_registry_tests
-
-# Build rule for target.
-bp2_registry_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_registry_tests
-.PHONY : bp2_registry_tests
-
-# fast build rule for target.
-bp2_registry_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/build
-.PHONY : bp2_registry_tests/fast
-
-#=============================================================================
 # Target rules for targets named bp2_codec_tests
 
 # Build rule for target.
@@ -1664,7 +1651,6 @@ help:
 	@echo "... bp2_flattener_tests"
 	@echo "... bp2_interface_tests"
 	@echo "... bp2_path_tests"
-	@echo "... bp2_registry_tests"
 	@echo "... bp2_validation_tests"
 	@echo "... bug_hunt_regression_tests"
 	@echo "... canvas_input_tests"

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "editor/window_system.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "editor/visual/persist.h"
+#include "blueprint_v2/library/blueprint_library.h"
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
@@ -26,16 +27,11 @@ public:
                     ui::InternedId nested_iid =
                         bake_doc->interner().lookup(ws.pendingBakeIn.sub_blueprint_id);
                     if (!nested_iid.empty()) {
-                        // NOTE: bake_nested() requires a populated bp2::TypeRegistry to look
-                        // up the library blueprint by ID. If the registry is empty this call
-                        // returns false for reference-type nested blueprints. Embedded
-                        // (inline_def) nesteds are unaffected.
-                        bp2::TypeRegistry bp2_registry;
+                        bp2::BlueprintLibrary library;
                         bool ok = bake_doc->model().bake_nested(
-                            nested_iid, bp2_registry, bake_doc->interner());
+                            nested_iid, library, bake_doc->interner());
                         if (!ok) {
-                            spdlog::warn("[bake-in] bake_nested failed for '{}' – "
-                                         "bp2::TypeRegistry not populated",
+                            spdlog::warn("[bake-in] bake_nested failed for '{}'",
                                          ws.pendingBakeIn.sub_blueprint_id);
                         }
                     }

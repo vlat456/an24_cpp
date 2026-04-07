@@ -1,27 +1,15 @@
 #pragma once
 
+#include "../../blueprint_v2/blueprint/node_content_type.h"
 #include "../../ui/math/pt.h"
 #include "port.h"
 #include <string>
 #include <optional>
 #include <cstdint>
 
-/// Тип содержимого узла (пока простой enum)
-enum class NodeContentType {
-    None,
-    Gauge,           ///< Измерительный прибор
-    Switch,          ///< Кнопка-переключатель
-    VerticalToggle,  ///< Вертикальный тумблер (слайдер)
-    Value,           ///< Отображаемое значение
-    Text,            ///< Текст
-    Slider,          ///< Интерактивный слайдер с min/max
-    Indicator,       ///< Индикатор (лампочка) - круг с яркостью
-    Knob             ///< Поворотный переключатель (2-5 позиций)
-};
-
 /// Содержимое узла (пока placeholder)
 struct NodeContent {
-    NodeContentType type = NodeContentType::None;
+    bp2::NodeContentType type = bp2::NodeContentType::None;
     std::string label;
     float value = 0.0f;
     float min = 0.0f;
@@ -92,12 +80,12 @@ inline ui::Pt get_default_node_size(const std::string& type_name, const TypeRegi
 /// Create default NodeContent from a TypeDefinition (single source of truth)
 inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
     NodeContent content;
-    content.type = NodeContentType::None;
+    content.type = bp2::NodeContentType::None;
     if (!def) return content;
 
     const std::string& ct = def->content_type;
     if (ct == "Gauge") {
-        content.type = NodeContentType::Gauge;
+        content.type = bp2::NodeContentType::Gauge;
         content.label = "V";
         content.value = 0.0f;
         auto min_it = def->params.find("min");
@@ -106,34 +94,34 @@ inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
         content.max = (max_it != def->params.end()) ? std::stof(max_it->second) : 28.0f;
         content.unit = "V";
     } else if (ct == "Switch") {
-        content.type = NodeContentType::Switch;
+        content.type = bp2::NodeContentType::Switch;
         content.label = "ON";
         auto it = def->params.find("closed");
         content.state = (it != def->params.end() && it->second == "true");
     } else if (ct == "VerticalToggle") {
-        content.type = NodeContentType::VerticalToggle;
+        content.type = bp2::NodeContentType::VerticalToggle;
         content.label = "";
         auto it = def->params.find("closed");
         content.state = (it != def->params.end() && it->second == "true");
     } else if (ct == "HoldButton") {
-        content.type = NodeContentType::Switch;
+        content.type = bp2::NodeContentType::Switch;
         content.label = "RELEASED";
         content.state = false;
     } else if (ct == "Text") {
-        content.type = NodeContentType::Text;
+        content.type = bp2::NodeContentType::Text;
         content.label = "OFF";
     } else if (ct == "Slider") {
-        content.type = NodeContentType::Slider;
+        content.type = bp2::NodeContentType::Slider;
         content.value = 0.0f;
         auto min_it = def->params.find("min");
         content.min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
         auto max_it = def->params.find("max");
         content.max = (max_it != def->params.end()) ? std::stof(max_it->second) : 1.0f;
     } else if (ct == "Indicator") {
-        content.type = NodeContentType::Indicator;
+        content.type = bp2::NodeContentType::Indicator;
         content.value = 0.0f;  // normalized brightness (0-1)
     } else if (ct == "Knob") {
-        content.type = NodeContentType::Knob;
+        content.type = bp2::NodeContentType::Knob;
         content.value = 0.0f;  // current position (0-based)
         auto pos_it = def->params.find("positions");
         content.max = (pos_it != def->params.end()) ? std::stof(pos_it->second) : 2.0f;

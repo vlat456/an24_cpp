@@ -1,4 +1,4 @@
-/// Architecture regression tests for E-001 through E-009.
+/// Architecture regression tests for E-001 through E-010.
 ///
 /// E-001: electrical_subsolver hot path must be exception-free (noexcept).
 ///        Graceful fallback on singular matrices, deduplication on conflicting
@@ -11,6 +11,7 @@
 /// E-006: SimulationState must NOT use misleading alignas(64) on vector members.
 /// E-008: dt clamped to MAX_DT (0.1s) to prevent physics explosions.
 /// E-009: Single-solve pipeline with one-frame delay is correct for a game.
+/// E-010: Single canonical TypeRegistry from json_parser — no bp2::TypeRegistry.
 
 #include <gtest/gtest.h>
 #include "core/solvers/jit/simulator.h"
@@ -683,4 +684,62 @@ TEST(E009_SingleSolve, StepCountAndTimeConsistent) {
      EXPECT_EQ(sim.get_step_count(), 100u);
      EXPECT_NEAR(sim.get_time(), 100.0 * dt, 1e-4)
          << "Time should equal step_count * dt (single-solve, one pass per step)";
+}
+
+// =============================================================================
+// E-010 Regression: single canonical TypeRegistry (issue #24)
+//
+// The project must have exactly ONE TypeRegistry type — the parser's
+// `struct TypeRegistry` from `json_parser/json_parser.h`. There must be
+// no `bp2::TypeRegistry` class. All subsystems (codec, validation,
+// flattener, bake, editor) must consume `const TypeRegistry&` from the
+// parser module.
+// =============================================================================
+
+TEST(E010_SingleRegistry, CanonicalRegistryLoadsFromLibrary) {
+    // The canonical load path must succeed and contain known types.
+    TypeRegistry reg = load_type_registry("library/");
+    EXPECT_GT(reg.types.size(), 50u)
+        << "Canonical TypeRegistry should have 50+ types from library/";
+    EXPECT_TRUE(reg.has("ElectricalSource"))
+        << "TypeRegistry must contain ElectricalSource";
+    EXPECT_TRUE(reg.has("AZS"))
+        << "TypeRegistry must contain AZS";
+    EXPECT_TRUE(reg.has("Resistor"))
+        << "TypeRegistry must contain Resistor";
+}
+
+TEST(E010_SingleRegistry, RegistryHasPortDefinitions) {
+    // Verify the canonical registry provides port data (not just stubs).
+    TypeRegistry reg = load_type_registry("library/");
+    const TypeDefinition* src = reg.get("ElectricalSource");
+    ASSERT_NE(src, nullptr);
+    EXPECT_FALSE(src->ports.empty())
+        << "ElectricalSource type definition must have port entries";
+}
+
+TEST(E010_SingleRegistry, RegistryHasCategoryMapping) {
+    // The categories map is used for library path lookup (e.g. "electrical").
+    TypeRegistry reg = load_type_registry("library/");
+    EXPECT_FALSE(reg.categories.empty())
+        << "TypeRegistry must populate categories for menu/path lookup";
+
+    // AZS should be in an "electrical" category subdirectory
+    auto it = reg.categories.find("AZS");
+    ASSERT_NE(it, reg.categories.end());
+    EXPECT_FALSE(it->second.empty());
+}
+
+TEST(E010_SingleRegistry, NoSecondRegistryInBp2Namespace) {
+    // Compile-time structural check: bp2:: should not define a TypeRegistry.
+    // This test passes as long as no bp2::TypeRegistry class exists.
+    // If someone reintroduces bp2::TypeRegistry, adding the include for it
+    // would be needed here, and this static_assert would need to be updated.
+    // The real enforcement is that this test file includes json_parser.h
+    // and uses TypeRegistry unqualified — if a bp2::TypeRegistry existed,
+    // it would cause ambiguity errors in bp2-using translation units.
+    static_assert(
+        std::is_same_v<decltype(TypeRegistry::types), std::unordered_map<std::string, TypeDefinition>>,
+        "TypeRegistry must be the parser struct with types map (not a bp2:: class)"
+    );
 }

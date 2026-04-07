@@ -12,6 +12,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const std::string& group_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
+    const TypeRegistry& parser_registry,
     std::string* error_out,
     bool allow_nonembedded_descendant_refs) {
     ui::InternedId blueprint_iid;
@@ -49,7 +50,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     bp2::Blueprint out = std::move(*out_opt);
 
     std::string integrity_err;
-    if (!validate_blueprint_integrity(out, interner, arena, &integrity_err)) {
+    if (!validate_blueprint_integrity(out, interner, arena, parser_registry, &integrity_err)) {
         if (error_out) {
             *error_out = integrity_err;
         }

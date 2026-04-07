@@ -1,13 +1,13 @@
 #pragma once
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "blueprint_v2/library/blueprint_library.h"
 
 namespace bp2 {
 
 Blueprint bake_nested(Blueprint const& bp,
                       ui::InternedId nested_id,
-                      TypeRegistry const& registry);
+                      BlueprintLibrary const& library);
 
 struct UnbakeResult {
     Blueprint blueprint;
@@ -16,9 +16,9 @@ struct UnbakeResult {
 
 std::optional<UnbakeResult> try_unbake(Blueprint const& bp,
                                        ui::InternedId nested_id,
-                                       TypeRegistry const& registry);
+                                       BlueprintLibrary const& library);
 
 Blueprint bake_all(Blueprint const& bp,
-                   TypeRegistry const& registry);
+                   BlueprintLibrary const& library);
 
 } // namespace bp2

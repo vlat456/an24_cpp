@@ -8,7 +8,7 @@ namespace bp2 {
 namespace {
 
 Blueprint bake_all_impl(Blueprint const& bp,
-                        TypeRegistry const& registry,
+                        BlueprintLibrary const& library,
                         std::unordered_set<ui::InternedId>& active_refs) {
     Blueprint result = bp;
 
@@ -24,12 +24,12 @@ Blueprint bake_all_impl(Blueprint const& bp,
             active_refs.insert(ref_id);
             inserted_ref = true;
 
-            result = bake_nested(result, nested.id, registry);
+            result = bake_nested(result, nested.id, library);
         }
 
         auto const* current_nested = result.find_nested(nested.id);
         if (current_nested && current_nested->embedded && current_nested->inline_def) {
-            Blueprint baked_child = bake_all_impl(*current_nested->inline_def, registry, active_refs);
+            Blueprint baked_child = bake_all_impl(*current_nested->inline_def, library, active_refs);
 
             Blueprint::Nested updated;
             updated.id = current_nested->id;
@@ -55,7 +55,7 @@ Blueprint bake_all_impl(Blueprint const& bp,
 
 Blueprint bake_nested(Blueprint const& bp,
                       ui::InternedId nested_id,
-                      TypeRegistry const& registry) {
+                      BlueprintLibrary const& library) {
     auto const* nested = bp.find_nested(nested_id);
     if (!nested) {
         throw std::runtime_error("Nested not found");
@@ -64,8 +64,8 @@ Blueprint bake_nested(Blueprint const& bp,
         throw std::runtime_error("Already embedded");
     }
 
-    auto const* entry = registry.find(nested->blueprint_id);
-    if (!entry || !entry->blueprint) {
+    auto const* referenced = library.find(nested->blueprint_id);
+    if (!referenced) {
         throw std::runtime_error("Unknown blueprint reference");
     }
 
@@ -73,7 +73,7 @@ Blueprint bake_nested(Blueprint const& bp,
     baked.id = nested->id;
     baked.blueprint_id = {};
     baked.embedded = true;
-    baked.inline_def = std::make_unique<Blueprint>(entry->blueprint->clone(nested->id));
+    baked.inline_def = std::make_unique<Blueprint>(referenced->clone(nested->id));
     baked.iface = nested->iface;
     baked.x = nested->x;
     baked.y = nested->y;
@@ -83,20 +83,16 @@ Blueprint bake_nested(Blueprint const& bp,
 
 std::optional<UnbakeResult> try_unbake(Blueprint const& bp,
                                        ui::InternedId nested_id,
-                                       TypeRegistry const& registry) {
+                                       BlueprintLibrary const& library) {
     auto const* nested = bp.find_nested(nested_id);
     if (!nested || !nested->embedded || !nested->inline_def) {
         return std::nullopt;
     }
 
-    for (auto const& kv : registry) {
+    for (auto const& kv : library) {
         auto const& id = kv.first;
-        auto const& entry = kv.second;
-        if (!entry.is_blueprint || !entry.blueprint) {
-            continue;
-        }
-
-        if (*entry.blueprint == *nested->inline_def) {
+        auto const& referenced = kv.second;
+        if (referenced == *nested->inline_def) {
             Blueprint::Nested ref;
             ref.id = nested->id;
             ref.blueprint_id = id;
@@ -116,9 +112,9 @@ std::optional<UnbakeResult> try_unbake(Blueprint const& bp,
 }
 
 Blueprint bake_all(Blueprint const& bp,
-                   TypeRegistry const& registry) {
+                   BlueprintLibrary const& library) {
     std::unordered_set<ui::InternedId> active_refs;
-    return bake_all_impl(bp, registry, active_refs);
+    return bake_all_impl(bp, library, active_refs);
 }
 
 } // namespace bp2

@@ -1,5 +1,7 @@
 # Phase 5: BlueprintCodec (JSON Serialization)
 
+Historical note: this phase description references legacy bp2 registry APIs that were removed; canonical registry lives in json_parser.
+
 ## Goal
 
 Create a single, bidirectional JSON codec for `bp2::Blueprint`. This replaces three old paths: `to_flat()`, `serialize_flat_blueprint()`, and `to_simulator_json()`. One codec. One format. Round-trip tested.
@@ -17,7 +19,7 @@ tests/blueprint_v2/test_codec.cpp             <- all tests for this phase
 ## Prerequisites
 
 - Phase 3 complete (Blueprint, Node, Wire, Nested)
-- Phase 4 complete (TypeRegistry)
+- Phase 4 complete (TypeRegistry in json_parser)
 - `nlohmann/json` available (already a project dependency)
 
 ## Step-by-Step Instructions
@@ -44,7 +46,6 @@ add_executable(bp2_codec_tests
 )
 target_include_directories(bp2_codec_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(bp2_codec_tests PRIVATE
@@ -96,7 +97,7 @@ Build. Confirm fail (no `BlueprintCodec`).
 ```cpp
 #pragma once
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "json_parser/json_parser.h"
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/path/path.h"
 #include <string>
@@ -115,12 +116,12 @@ public:
     static std::string encode(Blueprint const& bp,
                               ui::StringInterner const& interner);
 
-    /// Deserialize JSON string -> Blueprint
-    static std::optional<Blueprint> decode(
-        std::string_view json,
-        ui::StringInterner& interner,
-        TypeRegistry const& registry,
-        DecodeError* error_out = nullptr);
+     /// Deserialize JSON string -> Blueprint
+     static std::optional<Blueprint> decode(
+         std::string_view json,
+         ui::StringInterner& interner,
+         TypeRegistry const& registry,
+         DecodeError* error_out = nullptr);
 };
 
 } // namespace bp2
@@ -447,8 +448,8 @@ Build. Run. Should pass if step 5.5 handled the `inline_def` path.
 
 ```cpp
 TEST(BlueprintCodec, DecodeEmptyBlueprint) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
 
     std::string json = R"({
         "version": "3.0",
@@ -475,10 +476,10 @@ Build. Confirm fail (no `decode` implementation).
 
 ```cpp
 std::optional<Blueprint> BlueprintCodec::decode(
-    std::string_view json_str,
-    ui::StringInterner& interner,
-    TypeRegistry const& registry,
-    DecodeError* error_out) {
+     std::string_view json_str,
+     ui::StringInterner& interner,
+     TypeRegistry const& registry,
+     DecodeError* error_out) {
     try {
         auto j = nlohmann::json::parse(json_str);
         return decode_blueprint(j, interner, registry);
@@ -493,8 +494,8 @@ Add `decode_blueprint` to the anonymous namespace:
 
 ```cpp
 Blueprint decode_blueprint(nlohmann::json const& j,
-                            ui::StringInterner& interner,
-                            TypeRegistry const& registry) {
+                             ui::StringInterner& interner,
+                             TypeRegistry const& registry) {
     Blueprint bp;
     if (j.contains("id") && j["id"].is_string()) {
         bp = bp.with_id(interner.intern(j["id"].get<std::string>()));
@@ -627,8 +628,8 @@ Build. Run. Pass.
 
 ```cpp
 TEST(BlueprintCodec, DecodeNodesWithParams) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
 
     std::string json = R"({
         "version": "3.0",
@@ -664,8 +665,8 @@ Build. Run. Should pass from Step 5.7's `decode_nodes`.
 
 ```cpp
 TEST(BlueprintCodec, DecodeWires) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
 
     std::string json = R"({
         "version": "3.0",
@@ -695,9 +696,9 @@ Build. Run. Pass (from Step 5.7's decode_wires).
 
 ```cpp
 TEST(BlueprintCodec, RoundTripSimpleBlueprint) {
-    ui::StringInterner interner;
-    bp2::PathArena arena(interner);
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
+     ui::StringInterner interner;
+     bp2::PathArena arena(interner);
+     TypeRegistry reg = load_type_registry("library/");
 
     // Build a blueprint
     bp2::Blueprint bp;
@@ -759,8 +760,8 @@ Build. Run. Pass.
 
 ```cpp
 TEST(BlueprintCodec, DecodeInvalidJsonReturnsNullopt) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
     bp2::DecodeError err;
 
     auto result = bp2::BlueprintCodec::decode("not json", interner, reg, &err);
@@ -769,8 +770,8 @@ TEST(BlueprintCodec, DecodeInvalidJsonReturnsNullopt) {
 }
 
 TEST(BlueprintCodec, DecodeMissingIdStillWorks) {
-    ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     TypeRegistry reg;
 
     std::string json = R"({"version": "3.0", "nodes": [], "wires": [], "nested": []})";
     auto result = bp2::BlueprintCodec::decode(json, interner, reg);
@@ -787,9 +788,9 @@ Build. Run. Pass (the `decode` already handles missing fields gracefully via `j.
 
 ```cpp
 TEST(BlueprintCodec, RoundTripInterface) {
-    ui::StringInterner interner;
-    bp2::PathArena arena(interner);
-    bp2::TypeRegistry reg;
+     ui::StringInterner interner;
+     bp2::PathArena arena(interner);
+     TypeRegistry reg;
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("iface_test"))

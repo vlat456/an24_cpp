@@ -10,6 +10,8 @@
 #include <string>
 #include <optional>
 
+struct TypeRegistry;
+
 /// Rendering mode for a BlueprintWindow.
 enum class BlueprintWindowMode {
     RootDocument,       ///< Main document canvas (group_id is empty)
@@ -57,7 +59,8 @@ struct BlueprintWindow {
     BlueprintWindow(bp2::EditorModel& model_, ui::StringInterner& interner_,
                     bp2::PathArena& arena_,
                     const std::string& group_id_,
-                    const std::string& title_)
+                    const std::string& title_,
+                    const TypeRegistry* parser_registry = nullptr)
         : title(title_)
         , group_id(group_id_)
         , model(model_)
@@ -65,7 +68,7 @@ struct BlueprintWindow {
         , arena(arena_)
         , scene()
         , viewport()
-        , input(scene, viewport, model_, interner_, arena_, group_id)
+        , input(scene, viewport, model_, interner_, arena_, group_id_, parser_registry)
     {
         viewport.grid_step = model_.current().grid_step();
         visual::mutations::rebuild(scene, model_.current(), interner_, arena_, group_id_);

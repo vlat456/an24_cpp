@@ -70,7 +70,7 @@ void CanvasInput::commit_drag_node() {
         }
     }
 
-    debug_validate_command_boundary(model_, interner_, arena_);
+    debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
 }
 
 bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedId connected_id) {
@@ -135,7 +135,7 @@ void CanvasInput::commit_drag_routing_point() {
 
     if (!changed || rp_wire_id_.empty()) return;
     execute(model_, interner_, cmd_set_routing_points(rp_wire_id_, std::move(new_points)));
-    debug_validate_command_boundary(model_, interner_, arena_);
+    debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
 }
 
 void CanvasInput::commit_resize_node() {
@@ -146,7 +146,7 @@ void CanvasInput::commit_resize_node() {
     ui::InternedId node_iid = resize_widget_id_;
     if ((new_pos == resize_original_pos_ && new_size == resize_original_size_) || node_iid.empty()) return;
     execute(model_, interner_, cmd_resize_node(node_iid, new_pos.x, new_pos.y, new_size.x, new_size.y));
-    debug_validate_command_boundary(model_, interner_, arena_);
+    debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
 }
 
 InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_min) {
@@ -293,7 +293,7 @@ InputResult CanvasInput::on_key(Key key) {
                     execute(model_, interner_, cmd_remove_node(nid, std::move(connected_wires)));
                 }
             }
-            debug_validate_command_boundary(model_, interner_, arena_);
+            debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
             hovered_routing_point_ = nullptr;
             visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
             clear_selection();

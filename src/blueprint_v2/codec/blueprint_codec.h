@@ -1,11 +1,12 @@
 #pragma once
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/path/path.h"
 #include <string>
 #include <optional>
+
+struct TypeRegistry;
 
 namespace bp2 {
 
@@ -17,15 +18,15 @@ struct DecodeError {
 class BlueprintCodec {
 public:
     static std::string encode(Blueprint const& bp,
-                              ui::StringInterner const& interner,
+                              ui::StringInterner& interner,
                               PathArena const& arena,
-                              TypeRegistry const* registry = nullptr);
+                              const ::TypeRegistry* parser_registry = nullptr);
 
     static std::optional<Blueprint> decode(
         std::string_view json,
         ui::StringInterner& interner,
         PathArena& arena,
-        TypeRegistry const& registry,
+        const ::TypeRegistry& parser_registry,
         DecodeError* error_out = nullptr);
 };
 

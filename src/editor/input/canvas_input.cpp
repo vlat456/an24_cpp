@@ -33,9 +33,11 @@ using namespace canvas_input_impl;
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
                          bp2::EditorModel& model, ui::StringInterner& interner,
-                         bp2::PathArena& arena, const std::string& group_id)
+                         bp2::PathArena& arena, const std::string& group_id,
+                         const TypeRegistry* parser_registry)
     : scene_(scene), viewport_(viewport), model_(model),
       interner_(interner), arena_(arena),
+      parser_registry_(parser_registry),
       group_iid_(interner.intern(group_id)),
       group_id_(interner.resolve(group_iid_))
 {
@@ -48,7 +50,7 @@ CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
 void CanvasInput::snapshot_and_execute(Command cmd) {
     model_.push_checkpoint();
     execute(model_, interner_, std::move(cmd));
-    debug_validate_command_boundary(model_, interner_, arena_);
+    debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
 }
 
 // ============================================================================

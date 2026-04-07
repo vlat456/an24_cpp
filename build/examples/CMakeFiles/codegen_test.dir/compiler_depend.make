@@ -521,11 +521,11 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   /Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/blueprint.h \
+  /Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/node_content_type.h \
   /Users/vladimir/an24_cpp/src/blueprint_v2/codec/blueprint_codec.h \
   /Users/vladimir/an24_cpp/src/blueprint_v2/interface/interface.h \
   /Users/vladimir/an24_cpp/src/blueprint_v2/interface/port_descriptor.h \
   /Users/vladimir/an24_cpp/src/blueprint_v2/path/path.h \
-  /Users/vladimir/an24_cpp/src/blueprint_v2/registry/type_registry.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
@@ -1115,8 +1115,6 @@ _deps/json-src/include/nlohmann/detail/meta/std_fs.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shuffle.h:
 
-/Users/vladimir/an24_cpp/src/blueprint_v2/registry/type_registry.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/istream_iterator.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shift_right.h:
@@ -1468,6 +1466,8 @@ _deps/json-src/include/nlohmann/detail/meta/identity_tag.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/resource.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_mach_port_t.h:
+
+/Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/node_content_type.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/compressed_pair.h:
 

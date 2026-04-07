@@ -3,6 +3,7 @@
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/path/path.h"
+#include "blueprint_v2/blueprint/node_content_type.h"
 #include "editor/data/port.h"
 #include <vector>
 #include <unordered_map>
@@ -12,22 +13,9 @@
 #include <stdexcept>
 #include <utility>
 
+struct TypeRegistry;
+
 namespace bp2 {
-
-class TypeRegistry;  // forward declaration
-
-/// Node content type for simulation readout / interactive widgets
-enum class NodeContentType {
-    None,
-    Gauge,
-    Switch,
-    VerticalToggle,
-    Value,
-    Text,
-    Slider,
-    Indicator,
-    Knob
-};
 
 class Blueprint {
 public:
@@ -160,8 +148,10 @@ public:
     std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena) const;
 
     /// Validates all invariants. Throws std::runtime_error on failure.
-    void validate(TypeRegistry const& registry) const;
-    void validate(TypeRegistry const& registry, PathArena const& arena) const;
+    void validate(::TypeRegistry const& parser_registry, ui::StringInterner& interner) const;
+    void validate(::TypeRegistry const& parser_registry,
+                  ui::StringInterner& interner,
+                  PathArena const& arena) const;
 
     bool operator==(Blueprint const& other) const;
     bool operator!=(Blueprint const& other) const { return !(*this == other); }

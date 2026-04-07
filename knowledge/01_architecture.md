@@ -85,7 +85,7 @@ src/
 │   └── simulator.cpp
 ├── blueprint_v2/            # Modern blueprint data model
 │   ├── blueprint/           # Core Blueprint class
-│   ├── registry/            # TypeRegistry
+│   ├── library/             # BlueprintLibrary (loaded blueprint instances)
 │   ├── flattener/           # Blueprint flattening
 │   ├── interface/           # Port descriptors
 │   └── validation/          # Invariant checking
@@ -126,7 +126,7 @@ The electrical subsolver handles closed electrical networks while the push sched
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |
 | Simulator | `src/core/simulator.h` |
 | Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
-| Type Registry | `src/blueprint_v2/registry/type_registry.h` |
+| Canonical Type Registry (parser) | `src/json_parser/json_parser.h` |
 | Code Generator | `src/core/solvers/aot/codegen.h` |
 | JSON Parser | `src/json_parser/json_parser.h` |
 

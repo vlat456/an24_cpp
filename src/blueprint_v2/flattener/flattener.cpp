@@ -2,8 +2,8 @@
 
 namespace bp2 {
 
-Flattener::Flattener(TypeRegistry const& registry)
-    : registry_(registry) {}
+Flattener::Flattener(BlueprintLibrary const& library)
+    : library_(library) {}
 
 FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
     arena_ = &arena;
@@ -100,10 +100,7 @@ void Flattener::visit_nested(
     if (nested.embedded && nested.inline_def) {
         inner = nested.inline_def.get();
     } else {
-        auto const* entry = registry_.find(nested.blueprint_id);
-        if (entry && entry->blueprint) {
-            inner = entry->blueprint;
-        }
+        inner = library_.find(nested.blueprint_id);
     }
     if (!inner) return;
 

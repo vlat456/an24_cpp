@@ -32,7 +32,7 @@ cd build && ctest
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |
 | Simulator | `src/core/simulator.h` |
 | Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
-| Type Registry | `src/blueprint_v2/registry/type_registry.h` |
+| Canonical Type Registry (parser) | `src/json_parser/json_parser.h` |
 | Flattener | `src/blueprint_v2/flattener/flattener.h` |
 | Code Generator | `src/core/solvers/aot/codegen.h` |
 | AOT common utilities | `src/core/solvers/common/signal_union_rules.h` |
@@ -260,7 +260,7 @@ Current high-current warning bands:
 | `AotProvider` | Compile-time port lookup |
 | `ComponentVariant` | Type-safe component union |
 | `Blueprint` | Immutable circuit definition |
-| `TypeRegistry` | Component type database |
+| `TypeRegistry` | Component type database (in json_parser) |
 | `Flattener` | Hierarchy → flat netlist |
 | `EditorModel` | Undo/redo + dirty tracking |
 | `Document` | Open file + simulator |

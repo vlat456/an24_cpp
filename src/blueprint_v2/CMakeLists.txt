@@ -2,7 +2,7 @@ add_library(blueprint_v2 STATIC
     path/path.cpp
     interface/interface.cpp
     blueprint/blueprint.cpp
-    registry/type_registry.cpp
+    library/blueprint_library.cpp
     codec/blueprint_codec.cpp
     codec/blueprint_codec_common.cpp
     codec/blueprint_codec_encode.cpp

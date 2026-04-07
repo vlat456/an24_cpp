@@ -1450,20 +1450,6 @@ target_link_libraries(bp2_blueprint_tests PRIVATE
 )
 gtest_discover_tests(bp2_blueprint_tests)
 
-# Registry v2 tests (Phase 4)
-add_executable(bp2_registry_tests
-    blueprint_v2/test_registry.cpp
-)
-target_include_directories(bp2_registry_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-)
-target_link_libraries(bp2_registry_tests PRIVATE
-    blueprint_v2
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(bp2_registry_tests)
-
 # Codec v2 tests (Phase 5)
 add_executable(bp2_codec_tests
     blueprint_v2/test_codec.cpp

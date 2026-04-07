@@ -59,7 +59,7 @@ nlohmann::json encode_node_ports(const Blueprint::Node& node,
 
 nlohmann::json encode_interface(Interface const& iface,
                                 ui::StringInterner const& interner,
-                                TypeRegistry::Entry const* type_entry) {
+                                TypeDefinition const* type_def) {
     std::vector<PortDescriptor> sorted = iface.ports();
     std::sort(sorted.begin(), sorted.end(), [&](const PortDescriptor& a, const PortDescriptor& b) {
         std::string_view na = interner.resolve(a.name);
@@ -74,12 +74,11 @@ nlohmann::json encode_interface(Interface const& iface,
         p["name"] = name;
         p["domain"] = static_cast<int>(port.domain);
         p["direction"] = static_cast<int>(port.direction);
-        if (type_entry) {
-            auto it = type_entry->port_meta.find(name);
-            if (it != type_entry->port_meta.end()) {
-                const auto& meta = it->second;
-                p["type"] = port_type_to_string(meta.type);
-                p["source_writer"] = meta.source_writer;
+        if (type_def) {
+            auto it = type_def->ports.find(name);
+            if (it != type_def->ports.end()) {
+                p["type"] = port_type_to_string(it->second.type);
+                p["source_writer"] = it->second.source_writer;
             }
         }
         arr.push_back(p);
@@ -89,7 +88,7 @@ nlohmann::json encode_interface(Interface const& iface,
 
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                             ui::StringInterner const& interner,
-                            TypeRegistry const* registry) {
+                            ::TypeRegistry const* parser_registry) {
     std::vector<Blueprint::Node const*> sorted;
     sorted.reserve(nodes.size());
     for (auto const& node : nodes) {
@@ -123,17 +122,21 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         nlohmann::json params = nlohmann::json::object();
         nlohmann::json sparams = nlohmann::json::object();
         std::unordered_set<std::string> descriptor_keys;
-        const TypeRegistry::Entry* entry = registry ? registry->find(node.type) : nullptr;
+        const TypeDefinition* def = nullptr;
+        if (parser_registry) {
+            def = parser_registry->get(std::string(interner.resolve(node.type)));
+        }
 
-        if (entry) {
-            for (const auto& [key, desc] : entry->param_descriptors) {
+        if (def) {
+            for (const auto& [key, schema] : def->param_schema) {
                 descriptor_keys.insert(key);
                 ui::InternedId key_iid = interner.lookup(key);
                 const auto pit = key_iid.empty() ? node.params.end() : node.params.find(key_iid);
                 const auto sit = node.string_params.find(key);
 
-                switch (desc.kind) {
-                    case TypeRegistry::ParamKind::Number: {
+                switch (schema.type) {
+                    case ParamSchemaType::Float:
+                    case ParamSchemaType::Int: {
                         if (pit != node.params.end()) {
                             params[key] = pit->second;
                         } else if (sit != node.string_params.end()) {
@@ -144,7 +147,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                         }
                         break;
                     }
-                    case TypeRegistry::ParamKind::Bool: {
+                    case ParamSchemaType::Bool: {
                         if (sit != node.string_params.end()) {
                             std::string normalized;
                             if (parse_bool_string(sit->second, normalized)) {
@@ -155,24 +158,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                         }
                         break;
                     }
-                    case TypeRegistry::ParamKind::Enum: {
-                        if (sit != node.string_params.end()) {
-                            const bool allowed = std::find(desc.enum_values.begin(), desc.enum_values.end(), sit->second)
-                                != desc.enum_values.end();
-                            if (allowed) {
-                                params[key] = sit->second;
-                            }
-                        }
-                        break;
-                    }
-                    case TypeRegistry::ParamKind::Vec2: {
-                        if (sit != node.string_params.end() && parse_vec2_string(sit->second)) {
-                            params[key] = sit->second;
-                        }
-                        break;
-                    }
-                    case TypeRegistry::ParamKind::Table:
-                    case TypeRegistry::ParamKind::String: {
+                    case ParamSchemaType::String: {
                         if (sit != node.string_params.end()) {
                             params[key] = sit->second;
                         } else if (pit != node.params.end()) {
@@ -262,7 +248,7 @@ nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
 nlohmann::json encode_nested(std::vector<Blueprint::Nested> const& nested_vec,
                              ui::StringInterner const& interner,
                              PathArena const& arena,
-                             TypeRegistry const* registry) {
+                             ::TypeRegistry const* parser_registry) {
     std::vector<Blueprint::Nested const*> sorted;
     sorted.reserve(nested_vec.size());
     for (auto const& nested : nested_vec) {
@@ -283,8 +269,22 @@ nlohmann::json encode_nested(std::vector<Blueprint::Nested> const& nested_vec,
         n["embedded"] = nested.embedded;
         n["position"] = {{"x", nested.x}, {"y", nested.y}};
         if (nested.embedded && nested.inline_def) {
+            std::string encoded;
+            if (parser_registry) {
+                encoded = BlueprintCodec::encode(
+                    *nested.inline_def,
+                    const_cast<ui::StringInterner&>(interner),
+                    arena,
+                    parser_registry);
+            } else {
+                encoded = BlueprintCodec::encode(
+                    *nested.inline_def,
+                    const_cast<ui::StringInterner&>(interner),
+                    arena,
+                    nullptr);
+            }
             n["definition"] = nlohmann::json::parse(
-                BlueprintCodec::encode(*nested.inline_def, interner, arena, registry)
+                encoded
             );
         }
         arr.push_back(n);

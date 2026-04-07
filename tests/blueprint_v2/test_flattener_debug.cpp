@@ -5,8 +5,45 @@
 #include "blueprint_v2/flattener/flat_netlist.h"
 #include "blueprint_v2/flattener/flattener.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/path/path.h"
+
+// ==================================================================
+// Helper: Create test library with standard components
+// ==================================================================
+
+static bp2::BlueprintLibrary make_test_library(ui::StringInterner& interner) {
+    bp2::BlueprintLibrary library;
+    
+    bp2::Blueprint bat;
+    bat = bat.with_interface(bp2::Interface({
+        {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
+    }));
+    library.add(interner.intern("Battery"), bat);
+    
+    bp2::Blueprint res;
+    res = res.with_interface(bp2::Interface({
+        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    }));
+    library.add(interner.intern("Resistor"), res);
+    
+    bp2::Blueprint gnd;
+    gnd = gnd.with_interface(bp2::Interface({
+        {interner.intern("gnd"), Domain::Electrical, bp2::Direction::InOut},
+    }));
+    library.add(interner.intern("Ground"), gnd);
+    
+    bp2::Blueprint led;
+    led = led.with_interface(bp2::Interface({
+        {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("ground"), Domain::Electrical, bp2::Direction::InOut},
+    }));
+    library.add(interner.intern("LED"), led);
+    
+    return library;
+}
 
 TEST(Flattener, NestedDebug) {
     ui::StringInterner interner;
@@ -46,15 +83,15 @@ TEST(Flattener, NestedDebug) {
     iw2.domain = Domain::Electrical;
     inner = inner.with_wire(std::move(iw2));
 
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
-    reg.register_blueprint(interner.intern("sub_type"), inner.iface());
+    auto library = make_test_library(interner);
+    library.add(interner.intern("sub_type"), inner);
 
     bp2::Blueprint root;
 
     bp2::Blueprint::Node bat;
     bat.id = interner.intern("bat1");
     bat.type = interner.intern("Battery");
-    bat.iface = reg.interface_of(interner.intern("Battery"));
+    bat.iface = library.find(interner.intern("Battery"))->iface();
     root = root.with_node(std::move(bat));
 
     bp2::Blueprint::Nested nested;
@@ -67,7 +104,7 @@ TEST(Flattener, NestedDebug) {
     bp2::Blueprint::Node lnode;
     lnode.id = interner.intern("led1");
     lnode.type = interner.intern("LED");
-    lnode.iface = reg.interface_of(interner.intern("LED"));
+    lnode.iface = library.find(interner.intern("LED"))->iface();
     root = root.with_node(std::move(lnode));
 
     bp2::Blueprint::Wire w1;
@@ -92,7 +129,7 @@ TEST(Flattener, NestedDebug) {
     w2.domain = Domain::Electrical;
     root = root.with_wire(std::move(w2));
 
-    bp2::Flattener flattener(reg);
+    bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
 
     std::cerr << "=== Components ===" << std::endl;

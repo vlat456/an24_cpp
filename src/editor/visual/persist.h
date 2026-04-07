@@ -12,14 +12,16 @@ struct TypeRegistry;
 /// Save blueprint to file using bp2 codec.
 [[nodiscard]] bool save_blueprint_to_file(const bp2::Blueprint& bp,
                                            ui::StringInterner& interner,
-                                            bp2::PathArena const& arena,
-                                            const char* path);
+                                           bp2::PathArena const& arena,
+                                           const TypeRegistry& parser_registry,
+                                           const char* path);
 
 /// Load blueprint from file using bp2 codec.
 [[nodiscard]] std::optional<bp2::Blueprint> load_blueprint_from_file(
     const char* path,
     ui::StringInterner& interner,
-    bp2::PathArena& arena);
+    bp2::PathArena& arena,
+    const TypeRegistry& parser_registry);
 
 /// Strict load variant: additionally validates loaded blueprint invariants.
 [[nodiscard]] std::optional<bp2::Blueprint> load_blueprint_from_file_validated(
@@ -33,6 +35,7 @@ struct TypeRegistry;
     const bp2::Blueprint& bp,
     ui::StringInterner& interner,
     const bp2::PathArena& arena,
+    const TypeRegistry& parser_registry,
     std::string* error_out = nullptr);
 
 /// Validate a blueprint with bp2 invariants and parser type registry checks.

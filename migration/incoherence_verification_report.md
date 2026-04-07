@@ -364,31 +364,22 @@ TEST(BakeAll, PreservesInterface) {
 
 ---
 
-### 10. TypeRegistry Entry Structure Mismatch
+### 10. TypeRegistry Entry Structure Mismatch (RESOLVED)
 
-**Architecture:** `Entry` doesn't show `Blueprint` storage, but Part IV implies `entry->blueprint`
+**Architecture:** legacy bp2 registry `Entry` mismatch is obsolete after registry consolidation.
 
-**Phase 4:** Needs clarification on Blueprint storage
-
-**Actual Implementation:**
-- File: `src/blueprint_v2/registry/type_registry.h` (lines 15-21)
-- Entry struct includes:
-```cpp
-struct Entry {
-    ui::InternedId type_id;
-    Interface iface;
-    std::string description;
-    bool is_blueprint = false;
-    Blueprint const* blueprint = nullptr;  // ← THIS IS NOW PRESENT
-};
-```
+**Current Implementation:**
+- Canonical registry is `TypeRegistry` in `src/json_parser/json_parser.h`.
+- Registry storage is `TypeRegistry::types` (`std::unordered_map<std::string, TypeDefinition>`).
+- Type metadata (ports, params, param schema, domains) is represented by `TypeDefinition`.
+- Nested blueprint lookup for flatten/bake uses `BlueprintLibrary`, not a bp2 registry entry pointer model.
 
 **Status:** FIXED ✓
-- `Blueprint const* blueprint` member is present in Entry
-- incoherences.md line 193 fix: "Add Blueprint const* blueprint to Entry struct" - DONE
-- register_blueprint() accepts optional Blueprint pointer
+- No separate blueprint_v2 registry type remains.
+- No `Entry::blueprint` pointer model is used in runtime code paths.
+- Parser `TypeRegistry` + `BlueprintLibrary` are the single source of truth.
 
-**Priority:** N/A (resolved)
+**Priority:** N/A (resolved, migration completed)
 
 ---
 

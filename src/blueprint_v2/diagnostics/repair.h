@@ -2,9 +2,10 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
-#include "blueprint_v2/registry/type_registry.h"
 #include <string>
 #include <vector>
+
+struct TypeRegistry;
 
 namespace bp2::diagnostics {
 
@@ -31,6 +32,7 @@ struct RepairReport {
 
 RepairReport diagnose_and_repair(Blueprint& bp,
                                  PathArena& arena,
-                                 TypeRegistry const& registry);
+                                 const ::TypeRegistry& parser_registry,
+                                 ui::StringInterner& interner);
 
 } // namespace bp2::diagnostics

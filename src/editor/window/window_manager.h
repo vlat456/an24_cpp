@@ -10,14 +10,24 @@
 #include <vector>
 #include <unordered_set>
 
+struct TypeRegistry;
+
 class WindowManager {
 public:
     explicit WindowManager(bp2::EditorModel& model, ui::StringInterner& interner,
-                           bp2::PathArena& arena)
-        : model_(model), interner_(interner), arena_(arena)
+                           bp2::PathArena& arena,
+                           const TypeRegistry* parser_registry = nullptr)
+        : model_(model), interner_(interner), arena_(arena), parser_registry_(parser_registry)
     {
         windows_.push_back(std::make_unique<BlueprintWindow>(
-            model_, interner_, arena_, "", "Root"));
+            model_, interner_, arena_, "", "Root", parser_registry_));
+    }
+
+    void set_parser_registry(const TypeRegistry* parser_registry) {
+        parser_registry_ = parser_registry;
+        for (auto& w : windows_) {
+            w->input.set_parser_registry(parser_registry_);
+        }
     }
 
     BlueprintWindow& root() { return *windows_[0]; }
@@ -33,7 +43,7 @@ public:
             }
         }
         windows_.push_back(std::make_unique<BlueprintWindow>(
-            model_, interner_, arena_, group_id, title));
+            model_, interner_, arena_, group_id, title, parser_registry_));
         return {windows_.back().get(), true};
     }
 
@@ -101,7 +111,7 @@ public:
         // The "extref:" prefix ensures no collision with regular group_id values.
         std::string synthetic_group_id = "extref:" + parent_instance_id;
         windows_.push_back(std::make_unique<BlueprintWindow>(
-            model_, interner_, arena_, synthetic_group_id, title));
+            model_, interner_, arena_, synthetic_group_id, title, parser_registry_));
         auto* win = windows_.back().get();
         win->mode = BlueprintWindowMode::ExternalReference;
         win->parent_instance_id = parent_instance_id;
@@ -119,5 +129,6 @@ private:
     bp2::EditorModel& model_;
     ui::StringInterner& interner_;
     bp2::PathArena& arena_;
+    const TypeRegistry* parser_registry_ = nullptr;
     std::vector<std::unique_ptr<BlueprintWindow>> windows_;
 };

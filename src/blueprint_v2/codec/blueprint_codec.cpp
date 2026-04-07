@@ -10,37 +10,37 @@
 namespace bp2 {
 
 std::string BlueprintCodec::encode(Blueprint const& bp,
-                                   ui::StringInterner const& interner,
+                                   ui::StringInterner& interner,
                                    PathArena const& arena,
-                                   TypeRegistry const* registry) {
+                                   const ::TypeRegistry* parser_registry) {
     nlohmann::json j;
-    const TypeRegistry::Entry* type_entry = nullptr;
-    if (registry) {
-        type_entry = registry->find(bp.id());
+    const TypeDefinition* type_def = nullptr;
+    if (parser_registry && !bp.id().empty()) {
+        type_def = parser_registry->get(std::string(interner.resolve(bp.id())));
     }
 
     j["version"] = "3.0";
     j["id"] = std::string(interner.resolve(bp.id()));
     j["display_name"] = bp.display_name();
-    j["interface"] = codec_detail::encode_interface(bp.iface(), interner, type_entry);
-    j["nodes"] = codec_detail::encode_nodes(bp.nodes(), interner, registry);
+    j["interface"] = codec_detail::encode_interface(bp.iface(), interner, type_def);
+    j["nodes"] = codec_detail::encode_nodes(bp.nodes(), interner, parser_registry);
     j["wires"] = codec_detail::encode_wires(bp.wires(), interner, arena);
-    j["nested"] = codec_detail::encode_nested(bp.nested(), interner, arena, registry);
+    j["nested"] = codec_detail::encode_nested(bp.nested(), interner, arena, parser_registry);
 
-    if (type_entry) {
-        j["cpp_class"] = !type_entry->is_blueprint;
-        j["description"] = type_entry->description;
-        j["scheduler_source"] = type_entry->scheduler_source;
+    if (type_def) {
+        j["cpp_class"] = type_def->cpp_class;
+        j["description"] = type_def->description;
+        j["scheduler_source"] = type_def->scheduler_source;
 
         nlohmann::json domains = nlohmann::json::array();
-        for (Domain d : type_entry->domains) {
+        for (Domain d : type_def->domains.value_or(std::vector<Domain>{})) {
             domains.push_back(codec_detail::domain_to_string(d));
         }
         j["domains"] = std::move(domains);
 
-        if (!type_entry->param_defaults.empty()) {
+        if (!type_def->params.empty()) {
             nlohmann::json params = nlohmann::json::object();
-            for (const auto& [k, v] : type_entry->param_defaults) {
+            for (const auto& [k, v] : type_def->params) {
                 params[k] = v;
             }
             j["param_defaults"] = std::move(params);
@@ -61,7 +61,7 @@ std::optional<Blueprint> BlueprintCodec::decode(
     std::string_view json_str,
     ui::StringInterner& interner,
     PathArena& arena,
-    TypeRegistry const& registry,
+    const ::TypeRegistry& parser_registry,
     DecodeError* error_out) {
     try {
         auto j = nlohmann::json::parse(json_str);
@@ -132,11 +132,11 @@ std::optional<Blueprint> BlueprintCodec::decode(
         }
 
         bp = bp.with_interface(codec_detail::decode_interface(j["interface"], interner));
-        bp = codec_detail::decode_nodes(std::move(bp), j["nodes"], interner, registry);
+        bp = codec_detail::decode_nodes(std::move(bp), j["nodes"], interner, parser_registry);
         bp = codec_detail::decode_wires(std::move(bp), j["wires"], interner, arena);
-        bp = codec_detail::decode_nested(std::move(bp), j["nested"], interner, registry, arena);
+        bp = codec_detail::decode_nested(std::move(bp), j["nested"], interner, parser_registry, arena);
 
-        auto inv = InvariantChecker::validate(bp, arena, registry);
+        auto inv = InvariantChecker::validate(bp, arena, parser_registry, interner);
         if (!inv.valid) {
             if (error_out) {
                 error_out->message = inv.error;

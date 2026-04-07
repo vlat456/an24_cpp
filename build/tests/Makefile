@@ -1334,20 +1334,6 @@ bp2_blueprint_tests/fast:
 .PHONY : bp2_blueprint_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/bp2_registry_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_registry_tests.dir/rule
-.PHONY : tests/CMakeFiles/bp2_registry_tests.dir/rule
-
-# Convenience name for target.
-bp2_registry_tests: tests/CMakeFiles/bp2_registry_tests.dir/rule
-.PHONY : bp2_registry_tests
-
-# fast build rule for target.
-bp2_registry_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/build
-.PHONY : bp2_registry_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/bp2_codec_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_codec_tests.dir/rule
 .PHONY : tests/CMakeFiles/bp2_codec_tests.dir/rule
@@ -2560,30 +2546,6 @@ blueprint_v2/test_persist_validation.s: blueprint_v2/test_persist_validation.cpp
 blueprint_v2/test_persist_validation.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_persist_validation.cpp.s
 .PHONY : blueprint_v2/test_persist_validation.cpp.s
-
-blueprint_v2/test_registry.o: blueprint_v2/test_registry.cpp.o
-.PHONY : blueprint_v2/test_registry.o
-
-# target to build an object file
-blueprint_v2/test_registry.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.o
-.PHONY : blueprint_v2/test_registry.cpp.o
-
-blueprint_v2/test_registry.i: blueprint_v2/test_registry.cpp.i
-.PHONY : blueprint_v2/test_registry.i
-
-# target to preprocess a source file
-blueprint_v2/test_registry.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.i
-.PHONY : blueprint_v2/test_registry.cpp.i
-
-blueprint_v2/test_registry.s: blueprint_v2/test_registry.cpp.s
-.PHONY : blueprint_v2/test_registry.s
-
-# target to generate assembly for a file
-blueprint_v2/test_registry.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.s
-.PHONY : blueprint_v2/test_registry.cpp.s
 
 blueprint_v2/test_subwindow_open_target.o: blueprint_v2/test_subwindow_open_target.cpp.o
 .PHONY : blueprint_v2/test_subwindow_open_target.o
@@ -4704,7 +4666,6 @@ help:
 	@echo "... bp2_flattener_tests"
 	@echo "... bp2_interface_tests"
 	@echo "... bp2_path_tests"
-	@echo "... bp2_registry_tests"
 	@echo "... bp2_validation_tests"
 	@echo "... bug_hunt_regression_tests"
 	@echo "... canvas_input_tests"
@@ -4900,9 +4861,6 @@ help:
 	@echo "... blueprint_v2/test_persist_validation.o"
 	@echo "... blueprint_v2/test_persist_validation.i"
 	@echo "... blueprint_v2/test_persist_validation.s"
-	@echo "... blueprint_v2/test_registry.o"
-	@echo "... blueprint_v2/test_registry.i"
-	@echo "... blueprint_v2/test_registry.s"
 	@echo "... blueprint_v2/test_subwindow_open_target.o"
 	@echo "... blueprint_v2/test_subwindow_open_target.i"
 	@echo "... blueprint_v2/test_subwindow_open_target.s"

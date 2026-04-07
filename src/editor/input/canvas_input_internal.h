@@ -41,10 +41,15 @@ inline PortType resolve_port_type_from_model(const bp2::EditorModel& model,
 
 inline void debug_validate_command_boundary(bp2::EditorModel const& model,
                                             ui::StringInterner& interner,
-                                            bp2::PathArena const& arena) {
+                                            bp2::PathArena const& arena,
+                                            const TypeRegistry* parser_registry = nullptr) {
 #ifndef NDEBUG
+    if (!parser_registry) {
+        return;
+    }
+
     std::string err;
-    const bool ok = validate_blueprint_integrity(model.current(), interner, arena, &err);
+    const bool ok = validate_blueprint_integrity(model.current(), interner, arena, *parser_registry, &err);
     if (!ok) {
         if (err.find("wire domain differs from endpoint domain") != std::string::npos
             || err.find("wire direction incompatible") != std::string::npos

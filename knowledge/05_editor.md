@@ -499,11 +499,8 @@ Content widgets are visual representations of component state (gauges, switches,
 
 ### Adding a New Content Type
 
-**Step 1: Add the enum value** in both mirror enums:
-- `src/editor/data/node_content.h` → `enum class NodeContentType`
-- `src/blueprint_v2/blueprint/blueprint.h` → `enum class bp2::NodeContentType`
-
-Both enums must have identical values (they're cast via `static_cast`).
+**Step 1: Add the enum value** in the canonical enum:
+- `src/blueprint_v2/blueprint/node_content_type.h` → `enum class bp2::NodeContentType`
 
 **Step 2: Create the widget class** in `content_widgets.h/cpp`:
 - Extend `Widget`

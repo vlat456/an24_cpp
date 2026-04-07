@@ -83,11 +83,6 @@ static std::vector<PortLayoutOverride> resolve_bp2_layout_overrides(
     return result;
 }
 
-/// Helper: get NodeContentType from bp2 enum
-static NodeContentType to_node_content_type(bp2::NodeContentType t) {
-    return static_cast<NodeContentType>(t);
-}
-
 void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     layout_ = emplaceChild<Column>();
 
@@ -95,11 +90,11 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringI
     layout_->emplaceChild<HeaderWidget>(
         name_, render_theme::COLOR_HEADER_FILL, editor_constants::NODE_ROUNDING);
 
-    NodeContentType content_type = to_node_content_type(data.content_type);
+    bp2::NodeContentType content_type = data.content_type;
 
     // -- Port rows / Content --
     // VerticalToggle uses special layout, but falls back to standard when overrides present
-    if (content_type == NodeContentType::VerticalToggle && data.layout_overrides.empty()) {
+    if (content_type == bp2::NodeContentType::VerticalToggle && data.layout_overrides.empty()) {
         buildVerticalToggleLayout(data, interner);
     } else {
         buildStandardLayout(data, interner);
@@ -117,7 +112,7 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringI
 }
 
 void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
-    NodeContentType content_type = to_node_content_type(data.content_type);
+    bp2::NodeContentType content_type = data.content_type;
 
     // Fast path: no overrides — use existing paired-row layout
     if (data.layout_overrides.empty()) {
@@ -147,11 +142,11 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
         }
 
         // Content area (appended below port rows in the root Column)
-        if (content_type == NodeContentType::Gauge) {
+        if (content_type == bp2::NodeContentType::Gauge) {
             content_widget_ = layout_->emplaceChild<VoltmeterWidget>(
                 data.content_value, data.content_min,
                 data.content_max, data.content_unit);
-        } else if (content_type == NodeContentType::Switch) {
+        } else if (content_type == bp2::NodeContentType::Switch) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             float v_pad = 2.0f;
             auto* container = layout_->emplaceChild<Container>(
@@ -159,14 +154,14 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<SwitchWidget>(
                 data.content_state, data.content_tripped);
-        } else if (content_type == NodeContentType::VerticalToggle) {
+        } else if (content_type == bp2::NodeContentType::VerticalToggle) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 5.0f, margin, 5.0f});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<VerticalToggleWidget>(
                 data.content_state, data.content_tripped);
-        } else if (content_type == NodeContentType::Slider) {
+        } else if (content_type == bp2::NodeContentType::Slider) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             float v_pad = 2.0f;
             auto* container = layout_->emplaceChild<Container>(
@@ -175,13 +170,13 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
             content_widget_ = container->emplaceChild<SliderWidget>(
                 data.content_value, data.content_min,
                 data.content_max);
-        } else if (content_type == NodeContentType::Indicator) {
+        } else if (content_type == bp2::NodeContentType::Indicator) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 2.0f, margin, 2.0f});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<IndicatorWidget>(data.content_value);
-        } else if (content_type == NodeContentType::Knob) {
+        } else if (content_type == bp2::NodeContentType::Knob) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 2.0f, margin, 2.0f});
@@ -190,7 +185,7 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
             int num = static_cast<int>(data.content_max);
             if (num < 2) num = 2;
             content_widget_ = container->emplaceChild<KnobWidget>(pos, num);
-        } else if (content_type != NodeContentType::None) {
+        } else if (content_type != bp2::NodeContentType::None) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 0, margin, 0});
@@ -256,7 +251,7 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui
     ResolvedLayout layout = resolve_port_layout(data.inputs, data.outputs,
                                                  overrides, interner);
     
-    NodeContentType content_type = to_node_content_type(data.content_type);
+    bp2::NodeContentType content_type = data.content_type;
 
     // Top port strip
     if (!layout.top.empty()) {
@@ -278,33 +273,33 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui
     auto* center = body_row->emplaceChild<Container>(Edges{4, 0, 4, 0});
     center->setFlexGrow(1.0f);
 
-    if (content_type == NodeContentType::Gauge) {
+    if (content_type == bp2::NodeContentType::Gauge) {
         content_widget_ = center->emplaceChild<VoltmeterWidget>(
             data.content_value, data.content_min,
             data.content_max, data.content_unit);
-    } else if (content_type == NodeContentType::Switch) {
+    } else if (content_type == bp2::NodeContentType::Switch) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<SwitchWidget>(
             data.content_state, data.content_tripped);
-    } else if (content_type == NodeContentType::VerticalToggle) {
+    } else if (content_type == bp2::NodeContentType::VerticalToggle) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 5.0f, 0, 5.0f});
         content_widget_ = inner->emplaceChild<VerticalToggleWidget>(
             data.content_state, data.content_tripped);
-    } else if (content_type == NodeContentType::Slider) {
+    } else if (content_type == bp2::NodeContentType::Slider) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<SliderWidget>(
             data.content_value, data.content_min,
             data.content_max);
-    } else if (content_type == NodeContentType::Indicator) {
+    } else if (content_type == bp2::NodeContentType::Indicator) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<IndicatorWidget>(data.content_value);
-    } else if (content_type == NodeContentType::Knob) {
+    } else if (content_type == bp2::NodeContentType::Knob) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         int pos = static_cast<int>(data.content_value);
         int num = static_cast<int>(data.content_max);
         if (num < 2) num = 2;
         content_widget_ = inner->emplaceChild<KnobWidget>(pos, num);
-    } else if (content_type != NodeContentType::None) {
+    } else if (content_type != bp2::NodeContentType::None) {
         if (!data.content_label.empty()) {
             content_widget_ = center->emplaceChild<Label>(
                 data.content_label, 10.0f, (uint32_t)0x00000000);

@@ -10,8 +10,7 @@
 
 namespace bp2 {
 
-// Forward declaration for registry
-class TypeRegistry;
+class BlueprintLibrary;
 
 struct Rect {
     float x_min = 0.0f;
@@ -82,7 +81,7 @@ public:
     void replace_current(Blueprint bp) { current_ = std::move(bp); invalidate_indices(); }
 
     // === Bake/Unbake ===
-    bool bake_nested(ui::InternedId id, TypeRegistry const& registry,
+    bool bake_nested(ui::InternedId id, BlueprintLibrary const& library,
                      ui::StringInterner& interner);
 
     // === Derived queries ===

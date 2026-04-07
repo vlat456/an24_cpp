@@ -5,7 +5,8 @@ namespace bp2 {
 WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
                                               Blueprint const& bp,
                                               PathArena const& arena,
-                                              TypeRegistry const& registry) {
+                                              const ::TypeRegistry& parser_registry,
+                                              ui::StringInterner& interner) {
     Result out;
     out.valid = false;
     out.resolved_domain = wire.domain;
@@ -16,8 +17,8 @@ WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
     }
 
     PathResolver resolver;
-    auto src = resolver.resolve(wire.source, bp, arena, registry);
-    auto tgt = resolver.resolve(wire.target, bp, arena, registry);
+    auto src = resolver.resolve(wire.source, bp, arena, parser_registry, interner);
+    auto tgt = resolver.resolve(wire.target, bp, arena, parser_registry, interner);
     if (!src || !tgt) {
         out.error = "wire endpoint path unresolved";
         return out;
@@ -30,13 +31,11 @@ WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
 
     out.resolved_domain = src->port.domain;
     if (wire.domain != src->port.domain) {
-        // Legacy/editor tolerance: wire.domain can be stale after domain-aware
-        // endpoint edits. Endpoint domains are source-of-truth.
         out.valid = true;
         return out;
     }
 
-    if (!resolver.can_connect(wire.source, wire.target, bp, arena, registry)) {
+    if (!resolver.can_connect(wire.source, wire.target, bp, arena, parser_registry, interner)) {
         out.error = "wire direction/domain invalid";
         return out;
     }

@@ -127,11 +127,11 @@ void remove_node(bp2::EditorModel& model, ui::InternedId id);
 // ...
 ```
 
-Update implementations in `commands.cpp` to call `model.add_node()` etc.
+Update implementations in `commands.cpp` to call `model.add_node()` with the decoded registry signature, consistent with the canonical `TypeRegistry const& registry` interface:
 
 **Key insight:** Commands now automatically support undo/redo because `EditorModel` manages history.
 
-### Step 8.4: Replace persistence with bp2::BlueprintCodec
+### Step 8.4: Replace persistence with bp2::BlueprintCodec (strict no-fallback)
 
 **Before** (in `src/editor/visual/persist.cpp`):
 
@@ -159,23 +159,18 @@ std::string save_blueprint(bp2::Blueprint const& bp,
 }
 
 bp2::Blueprint load_blueprint(std::string const& json,
-                              ui::StringInterner& interner,
-                              bp2::TypeRegistry& registry) {
-    bp2::DecodeError err;
-    auto bp = bp2::BlueprintCodec::decode(json, interner, registry, &err);
-    if (!bp) {
-        // Try old format via bridge
-        auto flat = parse_flat_blueprint(json);
-        if (flat) {
-            return bp2::BlueprintBridge::from_flat(*flat, interner);
-        }
-        throw std::runtime_error("Failed to parse blueprint: " + err.message);
-    }
-    return *bp;
+                                ui::StringInterner& interner,
+                                TypeRegistry const& registry) {
+     bp2::DecodeError err;
+     auto bp = bp2::BlueprintCodec::decode(json, interner, registry, &err);
+     if (!bp) {
+         throw std::runtime_error("Failed to parse blueprint: " + err.message);
+     }
+     return *bp;
 }
 ```
 
-**Backwards compatibility note:** The loader attempts new format first, falls back to old format via bridge. After Phase 8 is complete, all saved files should be in new format, so the fallback can be removed in a future cleanup.
+**Note:** After Phase 8, fallback to old format is removed. All blueprints must use new JSON format (version 3.0).
 
 ### Step 8.5: Update scene_mutations to use bp2 types
 
@@ -287,7 +282,7 @@ All blueprint manipulation uses `bp2::` namespace types:
 - `bp2::EditorModel` - Editor wrapper with undo/redo
 - `bp2::Path` / `bp2::PathArena` - Typed hierarchical paths
 - `bp2::Interface` / `bp2::PortDescriptor` - Port definitions
-- `bp2::TypeRegistry` - Injectable component registry
+- `TypeRegistry` - Canonical parser type registry (json_parser)
 - `bp2::BlueprintCodec` - JSON serialization
 - `bp2::Flattener` - Hierarchy to flat netlist
 

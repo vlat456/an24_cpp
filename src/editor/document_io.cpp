@@ -7,18 +7,22 @@
 #include <spdlog/spdlog.h>
 
 bool Document::save(const std::string& path) {
+    if (!type_registry_) {
+        spdlog::error("[persist] TypeRegistry is not configured on Document::save");
+        return false;
+    }
+
     const auto& vp = viewport();
     auto updated = model_.current().with_viewport(vp.pan.x, vp.pan.y, vp.zoom, vp.grid_step);
     model_.replace_current(std::move(updated));
 
-    TypeRegistry parser_registry = load_type_registry("library/");
     std::string validation_error;
-    if (!validate_blueprint_for_persist(model_.current(), interner_, arena_, parser_registry, &validation_error)) {
+    if (!validate_blueprint_for_persist(model_.current(), interner_, arena_, *type_registry_, &validation_error)) {
         spdlog::error("[persist] Refusing to save invalid blueprint '{}': {}", path, validation_error);
         return false;
     }
 
-    if (!save_blueprint_to_file(model_.current(), interner_, arena_, path.c_str())) {
+    if (!save_blueprint_to_file(model_.current(), interner_, arena_, *type_registry_, path.c_str())) {
         return false;
     }
 
@@ -30,8 +34,12 @@ bool Document::save(const std::string& path) {
 }
 
 bool Document::load(const std::string& path) {
-    TypeRegistry parser_registry = load_type_registry("library/");
-    auto bp = load_blueprint_from_file_validated(path.c_str(), interner_, arena_, parser_registry);
+    if (!type_registry_) {
+        spdlog::error("[persist] TypeRegistry is not configured on Document::load");
+        return false;
+    }
+
+    auto bp = load_blueprint_from_file_validated(path.c_str(), interner_, arena_, *type_registry_);
     if (!bp.has_value()) {
         return false;
     }

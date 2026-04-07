@@ -1,136 +1,43 @@
 #include "path_resolver.h"
 
+#include "json_parser/json_parser.h"
+
 #include <algorithm>
 
 namespace bp2 {
 
-Blueprint const* PathResolver::descend_nested(Blueprint::Nested const& nested,
-                                              TypeRegistry const& registry) const {
-    if (nested.embedded && nested.inline_def) {
-        return nested.inline_def.get();
-    }
-    if (!nested.embedded) {
-        auto* entry = registry.find(nested.blueprint_id);
-        if (entry && entry->blueprint) {
-            return entry->blueprint;
-        }
-    }
-    return nullptr;
-}
-
-Interface const* PathResolver::node_interface(Blueprint::Node const& node,
-                                              TypeRegistry const& registry) const {
-    if (!node.iface.empty()) {
-        return &node.iface;
-    }
-    auto* entry = registry.find(node.type);
-    if (!entry) {
-        return nullptr;
-    }
-    return &entry->iface;
-}
-
-std::optional<PathResolver::NestedContext> PathResolver::resolve_nested_context(
-    Path nested_path,
-    Blueprint const& root,
-    PathArena const& arena,
-    TypeRegistry const& registry) const {
-    if (nested_path.kind() != PathKind::Nested) {
-        return std::nullopt;
-    }
-
-    std::vector<Path> chain;
-    Path cur = nested_path;
-    while (cur.kind() != PathKind::Root) {
-        chain.push_back(cur);
-        cur = arena.parent(cur);
-    }
-    std::reverse(chain.begin(), chain.end());
-
-    Blueprint const* current_bp = &root;
-    Path current_bp_path = arena.root();
-    Blueprint const* parent_bp = nullptr;
-    Blueprint::Nested const* current_nested = nullptr;
-
-    for (Path seg : chain) {
-        if (seg.kind() != PathKind::Nested) {
-            return std::nullopt;
-        }
-        parent_bp = current_bp;
-        current_nested = current_bp->find_nested(seg.segment());
-        if (!current_nested) {
-            return std::nullopt;
-        }
-        current_bp_path = seg;
-        current_bp = descend_nested(*current_nested, registry);
-        if (!current_bp) {
-            return std::nullopt;
-        }
-    }
-
-    NestedContext ctx;
-    ctx.parent_blueprint = parent_bp;
-    ctx.nested = current_nested;
-    ctx.nested_path = nested_path;
-    return ctx;
-}
-
-std::optional<PathResolver::NodeContext> PathResolver::resolve_node_context(
-    Path node_path,
-    Blueprint const& root,
-    PathArena const& arena,
-    TypeRegistry const& registry) const {
-    if (node_path.kind() != PathKind::Node) {
-        return std::nullopt;
-    }
-
-    std::vector<Path> chain;
-    Path cur = node_path;
-    while (cur.kind() != PathKind::Root) {
-        chain.push_back(cur);
-        cur = arena.parent(cur);
-    }
-    std::reverse(chain.begin(), chain.end());
-
-    Blueprint const* current_bp = &root;
-    Path current_bp_path = arena.root();
-
-    for (size_t i = 0; i < chain.size(); ++i) {
-        Path seg = chain[i];
-        bool is_last = (i + 1 == chain.size());
-        if (seg.kind() == PathKind::Nested) {
-            auto const* nested = current_bp->find_nested(seg.segment());
-            if (!nested) {
-                return std::nullopt;
-            }
-            current_bp = descend_nested(*nested, registry);
-            if (!current_bp) {
-                return std::nullopt;
-            }
-            current_bp_path = seg;
-            continue;
-        }
-        if (seg.kind() == PathKind::Node && is_last) {
-            auto const* node = current_bp->find_node(seg.segment());
-            if (!node) {
-                return std::nullopt;
-            }
-            NodeContext ctx;
-            ctx.blueprint = current_bp;
-            ctx.node = node;
-            ctx.blueprint_path = current_bp_path;
-            return ctx;
-        }
-        return std::nullopt;
-    }
-
-    return std::nullopt;
-}
-
 std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
                                                   Blueprint const& root,
                                                   PathArena const& arena,
-                                                  TypeRegistry const& registry) const {
+                                                  const ::TypeRegistry& parser_registry,
+                                                  ui::StringInterner& interner) const {
+    auto to_direction = [](PortDirection d) {
+        switch (d) {
+            case PortDirection::In: return Direction::Input;
+            case PortDirection::Out: return Direction::Output;
+            case PortDirection::InOut: return Direction::InOut;
+        }
+        return Direction::InOut;
+    };
+    auto to_domain = [](PortType t) {
+        switch (t) {
+            case PortType::V:
+            case PortType::I:
+            case PortType::Any:
+                return Domain::Electrical;
+            case PortType::Bool:
+                return Domain::Logical;
+            case PortType::RPM:
+            case PortType::Position:
+                return Domain::Mechanical;
+            case PortType::Pressure:
+                return Domain::Hydraulic;
+            case PortType::Temperature:
+                return Domain::Thermal;
+        }
+        return Domain::Electrical;
+    };
+
     if (path.kind() != PathKind::Port) {
         return std::nullopt;
     }
@@ -143,47 +50,107 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
         if (!maybe.has_value()) {
             return std::nullopt;
         }
-        ResolvedPort rp;
-        rp.port = *maybe;
-        rp.blueprint_path = arena.root();
-        rp.is_boundary = true;
-        return rp;
+        return ResolvedPort{*maybe, arena.root(), true};
     }
 
     if (parent.kind() == PathKind::Nested) {
-        auto nctx = resolve_nested_context(parent, root, arena, registry);
-        if (!nctx) {
+        std::vector<Path> chain;
+        Path cur = parent;
+        while (cur.kind() != PathKind::Root) {
+            chain.push_back(cur);
+            cur = arena.parent(cur);
+        }
+        std::reverse(chain.begin(), chain.end());
+
+        const Blueprint* current_bp = &root;
+        const Blueprint::Nested* current_nested = nullptr;
+        for (Path seg : chain) {
+            if (seg.kind() != PathKind::Nested) {
+                return std::nullopt;
+            }
+            current_nested = current_bp->find_nested(seg.segment());
+            if (!current_nested) {
+                return std::nullopt;
+            }
+            if (current_nested->embedded && current_nested->inline_def) {
+                current_bp = current_nested->inline_def.get();
+            } else {
+                return std::nullopt;
+            }
+        }
+
+        if (!current_nested) {
             return std::nullopt;
         }
-        auto maybe = nctx->nested->iface.find(port_name);
+        auto maybe = current_nested->iface.find(port_name);
         if (!maybe.has_value()) {
             return std::nullopt;
         }
-        ResolvedPort rp;
-        rp.port = *maybe;
-        rp.blueprint_path = arena.parent(parent);
-        rp.is_boundary = true;
-        return rp;
+        return ResolvedPort{*maybe, arena.parent(parent), true};
     }
 
     if (parent.kind() == PathKind::Node) {
-        auto ctx = resolve_node_context(parent, root, arena, registry);
-        if (!ctx) {
+        std::vector<Path> chain;
+        Path cur = parent;
+        while (cur.kind() != PathKind::Root) {
+            chain.push_back(cur);
+            cur = arena.parent(cur);
+        }
+        std::reverse(chain.begin(), chain.end());
+
+        const Blueprint* current_bp = &root;
+        Path current_bp_path = arena.root();
+        const Blueprint::Node* node = nullptr;
+        for (size_t i = 0; i < chain.size(); ++i) {
+            Path seg = chain[i];
+            const bool is_last = (i + 1 == chain.size());
+            if (seg.kind() == PathKind::Nested) {
+                auto const* nested = current_bp->find_nested(seg.segment());
+                if (!nested || !nested->embedded || !nested->inline_def) {
+                    return std::nullopt;
+                }
+                current_bp = nested->inline_def.get();
+                current_bp_path = seg;
+                continue;
+            }
+            if (seg.kind() == PathKind::Node && is_last) {
+                node = current_bp->find_node(seg.segment());
+                if (!node) {
+                    return std::nullopt;
+                }
+                break;
+            }
             return std::nullopt;
         }
-        auto const* iface = node_interface(*ctx->node, registry);
-        if (!iface) {
+
+        if (!node) {
             return std::nullopt;
         }
-        auto maybe = iface->find(port_name);
-        if (!maybe.has_value()) {
+
+        if (!node->iface.empty()) {
+            auto maybe = node->iface.find(port_name);
+            if (!maybe.has_value()) {
+                return std::nullopt;
+            }
+            return ResolvedPort{*maybe, current_bp_path, false};
+        }
+
+        const std::string type_name(interner.resolve(node->type));
+        const auto* def = parser_registry.get(type_name);
+        if (!def) {
             return std::nullopt;
         }
-        ResolvedPort rp;
-        rp.port = *maybe;
-        rp.blueprint_path = ctx->blueprint_path;
-        rp.is_boundary = false;
-        return rp;
+        const std::string port_name_str(interner.resolve(port_name));
+        auto pit = def->ports.find(port_name_str);
+        if (pit == def->ports.end()) {
+            return std::nullopt;
+        }
+
+        PortDescriptor pd;
+        pd.name = port_name;
+        pd.domain = to_domain(pit->second.type);
+        pd.direction = to_direction(pit->second.direction);
+        return ResolvedPort{pd, current_bp_path, false};
     }
 
     return std::nullopt;
@@ -199,13 +166,14 @@ bool PathResolver::can_connect(Path const& source,
                                Path const& target,
                                Blueprint const& root,
                                PathArena const& arena,
-                               TypeRegistry const& registry) const {
+                               const ::TypeRegistry& parser_registry,
+                               ui::StringInterner& interner) const {
     if (source == target) {
         return false;
     }
 
-    auto src = resolve(source, root, arena, registry);
-    auto tgt = resolve(target, root, arena, registry);
+    auto src = resolve(source, root, arena, parser_registry, interner);
+    auto tgt = resolve(target, root, arena, parser_registry, interner);
     if (!src || !tgt) {
         return false;
     }
@@ -218,17 +186,11 @@ bool PathResolver::can_connect(Path const& source,
         return false;
     }
 
-    // Boundary rule: cannot connect directly across two different internal
-    // blueprint scopes. Crossing must go through an interface boundary port.
-    if (!src->is_boundary && !tgt->is_boundary
-        && src->blueprint_path != tgt->blueprint_path) {
+    if (!src->is_boundary && !tgt->is_boundary && src->blueprint_path != tgt->blueprint_path) {
         return false;
     }
 
-    // If one side is a boundary port and the other is internal, they must
-    // belong to the same blueprint scope.
-    if (src->is_boundary != tgt->is_boundary
-        && src->blueprint_path != tgt->blueprint_path) {
+    if (src->is_boundary != tgt->is_boundary && src->blueprint_path != tgt->blueprint_path) {
         return false;
     }
 

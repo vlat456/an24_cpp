@@ -34,9 +34,14 @@ bool Document::performUndo() {
     const bp2::Blueprint before_undo = model_.current();
     model_.undo();
 #ifndef NDEBUG
+    if (!type_registry_) {
+        spdlog::error("[editor] TypeRegistry is not configured on Document::performUndo");
+        return false;
+    }
+    const TypeRegistry& parser_registry = *type_registry_;
     {
         std::string err;
-        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, parser_registry, &err)) {
             model_.replace_current(before_undo);
             spdlog::error("[editor] undo rejected by integrity check: {}", err);
             return false;
@@ -60,9 +65,14 @@ bool Document::performRedo() {
     const bp2::Blueprint before_redo = model_.current();
     model_.redo();
 #ifndef NDEBUG
+    if (!type_registry_) {
+        spdlog::error("[editor] TypeRegistry is not configured on Document::performRedo");
+        return false;
+    }
+    const TypeRegistry& parser_registry = *type_registry_;
     {
         std::string err;
-        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, parser_registry, &err)) {
             model_.replace_current(before_redo);
             spdlog::error("[editor] redo rejected by integrity check: {}", err);
             return false;

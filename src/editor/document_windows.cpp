@@ -1,6 +1,5 @@
 #include "document.h"
 
-#include "json_parser/json_parser.h"
 #include "visual/persist.h"
 #include "subwindow_open_target.h"
 #include "visual/scene_mutations.h"
@@ -28,9 +27,13 @@ void Document::openExternalRefWindow(const std::string& instance_id,
 
     auto ext_interner = std::make_unique<ui::StringInterner>();
     auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
-    TypeRegistry parser_registry = load_type_registry("library/");
+    if (!type_registry_) {
+        spdlog::error("[editor] Cannot open external ref window: TypeRegistry is not configured");
+        return;
+    }
+
     auto bp = load_blueprint_from_file_validated(
-        blueprint_file_path.c_str(), *ext_interner, *ext_arena, parser_registry);
+        blueprint_file_path.c_str(), *ext_interner, *ext_arena, *type_registry_);
     if (!bp.has_value()) {
         spdlog::error("[editor] Failed to load external blueprint '{}' for instance '{}'",
                       blueprint_file_path, instance_id);

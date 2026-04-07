@@ -42,9 +42,16 @@ bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_no
                                   const std::string& group_id,
                                   std::string* error_out,
                                   bool allow_nonembedded_descendant_refs) {
+    if (!type_registry_) {
+        if (error_out) {
+            *error_out = "TypeRegistry is not configured on Document::extractToBlueprint";
+        }
+        return false;
+    }
+
     auto updated = editor::commands::build_extracted_blueprint_atomic(
         model_.current(), selected_node_ids, blueprint_name, group_id,
-        interner_, arena_, error_out, allow_nonembedded_descendant_refs);
+        interner_, arena_, *type_registry_, error_out, allow_nonembedded_descendant_refs);
     if (!updated) {
         return false;
     }

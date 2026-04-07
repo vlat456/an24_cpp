@@ -85,7 +85,6 @@ include("/Users/vladimir/an24_cpp/build/tests/v3_migration_tests[1]_include.cmak
 include("/Users/vladimir/an24_cpp/build/tests/bp2_path_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/bp2_interface_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/bp2_blueprint_tests[1]_include.cmake")
-include("/Users/vladimir/an24_cpp/build/tests/bp2_registry_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/bp2_codec_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/bp2_flattener_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/bp2_editor_model_tests[1]_include.cmake")

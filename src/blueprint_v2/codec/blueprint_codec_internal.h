@@ -1,6 +1,7 @@
 #pragma once
 
 #include "blueprint_codec.h"
+#include "json_parser/json_parser.h"
 
 #include <nlohmann/json.hpp>
 #include <initializer_list>
@@ -26,7 +27,8 @@ void assign_param_by_descriptor(Blueprint::Node& node,
                                 ui::StringInterner& interner,
                                 std::string const& key,
                                 nlohmann::json const& val,
-                                TypeRegistry::ParamDescriptor const& desc);
+                                ParamSchemaEntry const& schema,
+                                TypeDefinition const* type_def);
 
 bool is_known_port_type_value(int v);
 
@@ -78,11 +80,11 @@ std::optional<float> read_optional_float(nlohmann::json const& obj,
 
 nlohmann::json encode_interface(Interface const& iface,
                                 ui::StringInterner const& interner,
-                                TypeRegistry::Entry const* type_entry);
+                                TypeDefinition const* type_def);
 
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                             ui::StringInterner const& interner,
-                            TypeRegistry const* registry);
+                            ::TypeRegistry const* parser_registry);
 
 nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
                             ui::StringInterner const& interner,
@@ -91,7 +93,7 @@ nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
 nlohmann::json encode_nested(std::vector<Blueprint::Nested> const& nested_vec,
                              ui::StringInterner const& interner,
                              PathArena const& arena,
-                             TypeRegistry const* registry);
+                             ::TypeRegistry const* parser_registry);
 
 Interface decode_interface(nlohmann::json const& arr,
                            ui::StringInterner& interner);
@@ -99,7 +101,7 @@ Interface decode_interface(nlohmann::json const& arr,
 Blueprint decode_nodes(Blueprint bp,
                        nlohmann::json const& arr,
                        ui::StringInterner& interner,
-                       TypeRegistry const& registry);
+                       ::TypeRegistry const& parser_registry);
 
 Blueprint decode_wires(Blueprint bp,
                        nlohmann::json const& arr,
@@ -109,7 +111,7 @@ Blueprint decode_wires(Blueprint bp,
 Blueprint decode_nested(Blueprint bp,
                         nlohmann::json const& arr,
                         ui::StringInterner& interner,
-                        TypeRegistry const& registry,
+                        ::TypeRegistry const& parser_registry,
                         PathArena& arena);
 
 } // namespace bp2::codec_detail

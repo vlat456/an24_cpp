@@ -14,7 +14,8 @@ namespace bp2 {
 
 InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                                                     PathArena const& arena,
-                                                    TypeRegistry const& registry) {
+                                                    const ::TypeRegistry& parser_registry,
+                                                    ui::StringInterner& interner) {
     Result out;
     out.valid = false;
 
@@ -43,7 +44,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     }
 
     for (auto const& node : bp.nodes()) {
-        if (!registry.has(node.type)) {
+        if (!parser_registry.has(std::string(interner.resolve(node.type)))) {
             // Embedded blueprint proxy nodes carry a user-given type name
             // that won't be in the library registry.  They are valid as long
             // as a matching embedded nested definition exists.
@@ -66,7 +67,8 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             out.error = "non-embedded nested missing blueprint_id id=" + iid_to_string(n.id);
             return out;
         }
-        if (!n.embedded && !n.blueprint_id.empty() && !registry.has(n.blueprint_id)) {
+        if (!n.embedded && !n.blueprint_id.empty()
+            && !parser_registry.has(std::string(interner.resolve(n.blueprint_id)))) {
             out.error = "unknown nested blueprint id=" + iid_to_string(n.id)
                 + " blueprint_id=" + iid_to_string(n.blueprint_id);
             return out;
@@ -74,7 +76,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     }
 
     for (auto const& w : bp.wires()) {
-        auto wr = WireValidator::validate(w, bp, arena, registry);
+        auto wr = WireValidator::validate(w, bp, arena, parser_registry, interner);
         if (!wr.valid) {
             out.error = "wire id=" + iid_to_string(w.id) + ": " + wr.error;
             return out;

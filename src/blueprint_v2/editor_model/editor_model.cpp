@@ -1,5 +1,5 @@
 #include "editor_model.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "blueprint_v2/library/blueprint_library.h"
 
 namespace bp2 {
 
@@ -209,15 +209,15 @@ void EditorModel::redo() {
 }
 
 bool EditorModel::bake_nested(ui::InternedId id,
-                               TypeRegistry const& registry,
+                               BlueprintLibrary const& library,
                                ui::StringInterner& interner) {
     (void)interner;
     auto const* nested = current_.find_nested(id);
     if (!nested) return false;
     if (nested->embedded) return false;
 
-    auto* entry = registry.find(nested->blueprint_id);
-    if (!entry || !entry->blueprint) return false;
+    auto const* referenced = library.find(nested->blueprint_id);
+    if (!referenced) return false;
 
     push_checkpoint();
 
@@ -225,7 +225,7 @@ bool EditorModel::bake_nested(ui::InternedId id,
     baked.id = nested->id;
     baked.blueprint_id = {};
     baked.embedded = true;
-    baked.inline_def = std::make_unique<Blueprint>(*entry->blueprint);
+    baked.inline_def = std::make_unique<Blueprint>(*referenced);
     baked.iface = nested->iface;
     baked.x = nested->x;
     baked.y = nested->y;

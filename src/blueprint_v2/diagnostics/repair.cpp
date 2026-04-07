@@ -15,7 +15,8 @@ static std::string iid(ui::InternedId id) {
 
 RepairReport diagnose_and_repair(Blueprint& bp,
                                  PathArena& arena,
-                                 TypeRegistry const& registry) {
+                                 const ::TypeRegistry& parser_registry,
+                                 ui::StringInterner& interner) {
     RepairReport report;
 
     std::unordered_set<ui::InternedId> seen_nodes;
@@ -26,7 +27,7 @@ RepairReport diagnose_and_repair(Blueprint& bp,
                 "duplicate node id=" + iid(n.id)
             });
         }
-        if (!registry.has(n.type)) {
+        if (!parser_registry.has(std::string(interner.resolve(n.type)))) {
             // Skip embedded blueprint proxy nodes — their user-given type
             // is not in the library registry by design.
             const bool is_embedded_proxy = n.expandable
@@ -55,7 +56,8 @@ RepairReport diagnose_and_repair(Blueprint& bp,
                 "embedded nested missing definition id=" + iid(n.id)
             });
         }
-        if (!n.embedded && !n.blueprint_id.empty() && !registry.has(n.blueprint_id)) {
+        if (!n.embedded && !n.blueprint_id.empty()
+            && !parser_registry.has(std::string(interner.resolve(n.blueprint_id)))) {
             report.issues.push_back({
                 IntegrityIssue::Kind::UnknownNestedBlueprint,
                 "unknown nested blueprint id=" + iid(n.id)
@@ -74,8 +76,8 @@ RepairReport diagnose_and_repair(Blueprint& bp,
             });
         }
 
-        const auto src = resolver.resolve(w.source, bp, arena, registry);
-        const auto tgt = resolver.resolve(w.target, bp, arena, registry);
+        const auto src = resolver.resolve(w.source, bp, arena, parser_registry, interner);
+        const auto tgt = resolver.resolve(w.target, bp, arena, parser_registry, interner);
         if (!src || !tgt) {
             report.issues.push_back({
                 IntegrityIssue::Kind::InvalidWireEndpoint,

@@ -84,7 +84,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
 
         bool added = model_.add_wire(std::move(w));
         if (added) {
-            debug_validate_command_boundary(model_, interner_, arena_);
+            debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
             visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
             result.rebuild_simulation = true;
         }
@@ -143,7 +143,7 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
                     model_.push_checkpoint();
                     model_.replace_current(std::move(updated_bp));
-                    debug_validate_command_boundary(model_, interner_, arena_);
+                    debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
                     visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
                     result.rebuild_simulation = true;
                     reconnected = true;
@@ -171,7 +171,7 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
             });
 
             if (updated_ok) {
-                debug_validate_command_boundary(model_, interner_, arena_);
+                debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
                 visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
                 result.rebuild_simulation = true;
                 reconnected = true;

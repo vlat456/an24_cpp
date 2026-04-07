@@ -2,7 +2,7 @@
 
 #include "flat_netlist.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/path/path.h"
 #include <unordered_map>
 
@@ -10,12 +10,12 @@ namespace bp2 {
 
 class Flattener {
 public:
-    explicit Flattener(TypeRegistry const& registry);
+    explicit Flattener(BlueprintLibrary const& library);
 
     FlatNetlist flatten(Blueprint const& root, PathArena& arena);
 
 private:
-    TypeRegistry const& registry_;
+    BlueprintLibrary const& library_;
     PathArena* arena_ = nullptr;
 
     void visit_blueprint(

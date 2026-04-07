@@ -4,8 +4,45 @@
 #include "blueprint_v2/flattener/flat_netlist.h"
 #include "blueprint_v2/flattener/flattener.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/path/path.h"
+
+// ==================================================================
+// Helper: Create test library with standard components
+// ==================================================================
+
+static bp2::BlueprintLibrary make_test_library(ui::StringInterner& interner) {
+    bp2::BlueprintLibrary library;
+    
+    bp2::Blueprint bat;
+    bat = bat.with_interface(bp2::Interface({
+        {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
+    }));
+    library.add(interner.intern("Battery"), bat);
+    
+    bp2::Blueprint res;
+    res = res.with_interface(bp2::Interface({
+        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    }));
+    library.add(interner.intern("Resistor"), res);
+    
+    bp2::Blueprint gnd;
+    gnd = gnd.with_interface(bp2::Interface({
+        {interner.intern("gnd"), Domain::Electrical, bp2::Direction::InOut},
+    }));
+    library.add(interner.intern("Ground"), gnd);
+    
+    bp2::Blueprint led;
+    led = led.with_interface(bp2::Interface({
+        {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("ground"), Domain::Electrical, bp2::Direction::InOut},
+    }));
+    library.add(interner.intern("LED"), led);
+    
+    return library;
+}
 
 // ==================================================================
 // Step 6.2: FlatNetlist data structures
@@ -38,17 +75,17 @@ TEST(FlatNetlist, ComponentStruct) {
 
 TEST(Flattener, SingleNodeNoWires) {
     ui::StringInterner interner;
-    auto reg = bp2::TypeRegistry::create_test_registry(interner);
+    auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node node;
     node.id = interner.intern("bat1");
     node.type = interner.intern("Battery");
-    node.iface = reg.interface_of(interner.intern("Battery"));
+    node.iface = library.find(interner.intern("Battery"))->iface();
     bp = bp.with_node(std::move(node));
 
-    bp2::Flattener flattener(reg);
+    bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(bp, arena);
 
     EXPECT_EQ(netlist.components.size(), 1u);
@@ -63,7 +100,7 @@ TEST(Flattener, SingleNodeNoWires) {
 
 TEST(Flattener, TwoNodesOneWire) {
     ui::StringInterner interner;
-    auto reg = bp2::TypeRegistry::create_test_registry(interner);
+    auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
     bp2::Blueprint bp;
@@ -71,13 +108,13 @@ TEST(Flattener, TwoNodesOneWire) {
     bp2::Blueprint::Node bat;
     bat.id = interner.intern("bat1");
     bat.type = interner.intern("Battery");
-    bat.iface = reg.interface_of(interner.intern("Battery"));
+    bat.iface = library.find(interner.intern("Battery"))->iface();
     bp = bp.with_node(std::move(bat));
 
     bp2::Blueprint::Node res;
     res.id = interner.intern("r1");
     res.type = interner.intern("Resistor");
-    res.iface = reg.interface_of(interner.intern("Resistor"));
+    res.iface = library.find(interner.intern("Resistor"))->iface();
     bp = bp.with_node(std::move(res));
 
     bp2::Blueprint::Wire w;
@@ -91,7 +128,7 @@ TEST(Flattener, TwoNodesOneWire) {
     w.domain = Domain::Electrical;
     bp = bp.with_wire(std::move(w));
 
-    bp2::Flattener flattener(reg);
+    bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(bp, arena);
 
     EXPECT_EQ(netlist.components.size(), 2u);
@@ -120,7 +157,7 @@ TEST(Flattener, TwoNodesOneWire) {
 
 TEST(Flattener, ThreeNodesChainedSignalCount) {
     ui::StringInterner interner;
-    auto reg = bp2::TypeRegistry::create_test_registry(interner);
+    auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
     bp2::Blueprint bp;
@@ -128,19 +165,19 @@ TEST(Flattener, ThreeNodesChainedSignalCount) {
     bp2::Blueprint::Node bat;
     bat.id = interner.intern("bat1");
     bat.type = interner.intern("Battery");
-    bat.iface = reg.interface_of(interner.intern("Battery"));
+    bat.iface = library.find(interner.intern("Battery"))->iface();
     bp = bp.with_node(std::move(bat));
 
     bp2::Blueprint::Node res;
     res.id = interner.intern("r1");
     res.type = interner.intern("Resistor");
-    res.iface = reg.interface_of(interner.intern("Resistor"));
+    res.iface = library.find(interner.intern("Resistor"))->iface();
     bp = bp.with_node(std::move(res));
 
     bp2::Blueprint::Node led;
     led.id = interner.intern("led1");
     led.type = interner.intern("LED");
-    led.iface = reg.interface_of(interner.intern("LED"));
+    led.iface = library.find(interner.intern("LED"))->iface();
     bp = bp.with_node(std::move(led));
 
     bp2::Blueprint::Wire w1;
@@ -165,7 +202,7 @@ TEST(Flattener, ThreeNodesChainedSignalCount) {
     w2.domain = Domain::Electrical;
     bp = bp.with_wire(std::move(w2));
 
-    bp2::Flattener flattener(reg);
+    bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(bp, arena);
 
     EXPECT_EQ(netlist.components.size(), 3u);
@@ -223,9 +260,9 @@ TEST(Flattener, NestedBlueprintExpands) {
     iw2.domain = Domain::Electrical;
     inner = inner.with_wire(std::move(iw2));
 
-    // Registry
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
-    reg.register_blueprint(interner.intern("sub_type"), inner.iface());
+    // Library
+    auto library = make_test_library(interner);
+    library.add(interner.intern("sub_type"), inner);
 
     // Root blueprint: Battery -> sub1 -> LED
     bp2::Blueprint root;
@@ -233,7 +270,7 @@ TEST(Flattener, NestedBlueprintExpands) {
     bp2::Blueprint::Node bat;
     bat.id = interner.intern("bat1");
     bat.type = interner.intern("Battery");
-    bat.iface = reg.interface_of(interner.intern("Battery"));
+    bat.iface = library.find(interner.intern("Battery"))->iface();
     root = root.with_node(std::move(bat));
 
     bp2::Blueprint::Nested nested;
@@ -246,7 +283,7 @@ TEST(Flattener, NestedBlueprintExpands) {
     bp2::Blueprint::Node lnode;
     lnode.id = interner.intern("led1");
     lnode.type = interner.intern("LED");
-    lnode.iface = reg.interface_of(interner.intern("LED"));
+    lnode.iface = library.find(interner.intern("LED"))->iface();
     root = root.with_node(std::move(lnode));
 
     // Wire: bat1:v_out -> sub1:in
@@ -274,7 +311,7 @@ TEST(Flattener, NestedBlueprintExpands) {
     root = root.with_wire(std::move(w2));
 
     // Flatten
-    bp2::Flattener flattener(reg);
+    bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
 
     // Expect 3 leaf components: bat1, sub1/r1, led1
@@ -308,19 +345,19 @@ TEST(Flattener, NestedBlueprintExpands) {
 
 TEST(Flattener, ParamsPreserved) {
     ui::StringInterner interner;
-    auto reg = bp2::TypeRegistry::create_test_registry(interner);
+    auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node bat;
     bat.id = interner.intern("bat1");
     bat.type = interner.intern("Battery");
-    bat.iface = reg.interface_of(interner.intern("Battery"));
+    bat.iface = library.find(interner.intern("Battery"))->iface();
     bat.params[interner.intern("v_nominal")] = 28.0f;
     bat.params[interner.intern("capacity")] = 24.0f;
     bp = bp.with_node(std::move(bat));
 
-    bp2::Flattener flattener(reg);
+    bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(bp, arena);
 
     ASSERT_EQ(netlist.components.size(), 1u);
@@ -336,13 +373,13 @@ TEST(Flattener, ParamsPreserved) {
 
 TEST(Flattener, FlattenEmptyBlueprint) {
     ui::StringInterner interner;
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
+    auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("empty"));
 
-    bp2::Flattener flattener(reg);
+    bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(bp, arena);
 
     EXPECT_TRUE(netlist.components.empty());

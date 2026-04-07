@@ -126,10 +126,12 @@ void assign_param_by_descriptor(Blueprint::Node& node,
                                 ui::StringInterner& interner,
                                 std::string const& key,
                                 nlohmann::json const& val,
-                                TypeRegistry::ParamDescriptor const& desc) {
+                                ParamSchemaEntry const& schema,
+                                TypeDefinition const* type_def) {
     const auto key_iid = interner.intern(key);
-    switch (desc.kind) {
-        case TypeRegistry::ParamKind::Number: {
+    switch (schema.type) {
+        case ParamSchemaType::Float:
+        case ParamSchemaType::Int: {
             if (val.is_number()) {
                 node.params[key_iid] = parse_finite_float(val, "params." + key);
                 return;
@@ -144,7 +146,7 @@ void assign_param_by_descriptor(Blueprint::Node& node,
             }
             throw std::runtime_error("invalid node entry: param '" + key + "' must be number");
         }
-        case TypeRegistry::ParamKind::Bool: {
+        case ParamSchemaType::Bool: {
             if (val.is_boolean()) {
                 node.string_params[key] = val.get<bool>() ? "true" : "false";
                 return;
@@ -159,39 +161,16 @@ void assign_param_by_descriptor(Blueprint::Node& node,
             }
             throw std::runtime_error("invalid node entry: param '" + key + "' must be bool");
         }
-        case TypeRegistry::ParamKind::Enum: {
-            if (!val.is_string()) {
-                throw std::runtime_error("invalid node entry: enum param '" + key + "' must be string");
-            }
-            const std::string enum_v = val.get<std::string>();
-            const bool allowed = std::find(desc.enum_values.begin(), desc.enum_values.end(), enum_v)
-                != desc.enum_values.end();
-            if (!allowed) {
-                throw std::runtime_error("invalid node entry: enum param '" + key + "' value not allowed");
-            }
-            node.string_params[key] = enum_v;
-            return;
-        }
-        case TypeRegistry::ParamKind::Table:
-        case TypeRegistry::ParamKind::String: {
+        case ParamSchemaType::String: {
             if (!val.is_string()) {
                 throw std::runtime_error("invalid node entry: param '" + key + "' must be string");
             }
             node.string_params[key] = val.get<std::string>();
             return;
         }
-        case TypeRegistry::ParamKind::Vec2: {
-            if (!val.is_string()) {
-                throw std::runtime_error("invalid node entry: vec2 param '" + key + "' must be string");
-            }
-            const std::string vec = val.get<std::string>();
-            if (!parse_vec2_string(vec)) {
-                throw std::runtime_error("invalid node entry: vec2 param '" + key + "' format invalid");
-            }
-            node.string_params[key] = vec;
-            return;
-        }
     }
+
+    (void)type_def;
 }
 
 // ============================================================

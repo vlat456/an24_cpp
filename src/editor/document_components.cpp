@@ -149,7 +149,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
     {
         NodeContent nc = create_node_content_from_def(def);
-        node.content_type = static_cast<bp2::NodeContentType>(nc.type);
+        node.content_type = nc.type;
         node.content_label = nc.label;
         node.content_value = nc.value;
         node.content_min = nc.min;
@@ -172,8 +172,13 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     const bp2::Blueprint before_add = model_.current();
 #ifndef NDEBUG
     std::string before_integrity_err;
+    if (!type_registry_) {
+        spdlog::error("[editor] TypeRegistry is not configured on Document::addComponent");
+        return;
+    }
+    const TypeRegistry& parser_registry = *type_registry_;
     const bool before_integrity_ok =
-        validate_blueprint_integrity(before_add, interner_, arena_, &before_integrity_err);
+        validate_blueprint_integrity(before_add, interner_, arena_, parser_registry, &before_integrity_err);
 #endif
     bool checkpoint_pushed = false;
     try {
@@ -190,7 +195,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 #ifndef NDEBUG
         {
             std::string err;
-            if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+            if (!validate_blueprint_integrity(model_.current(), interner_, arena_, parser_registry, &err)) {
 #ifndef NDEBUG
                 if (!before_integrity_ok) {
                     spdlog::warn(
@@ -280,7 +285,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
     {
         NodeContent nc = create_node_content_from_def(def);
-        collapsed.content_type = static_cast<bp2::NodeContentType>(nc.type);
+        collapsed.content_type = nc.type;
         collapsed.content_label = nc.label;
         collapsed.content_value = nc.value;
         collapsed.content_min = nc.min;

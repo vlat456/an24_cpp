@@ -2,6 +2,8 @@
 
 #include "blueprint_v2/validation/wire_validator.h"
 
+struct TypeRegistry;
+
 namespace bp2 {
 
 class InvariantChecker {
@@ -13,7 +15,8 @@ public:
 
     static Result validate(Blueprint const& bp,
                            PathArena const& arena,
-                           TypeRegistry const& registry);
+                           const ::TypeRegistry& parser_registry,
+                           ui::StringInterner& interner);
 };
 
 } // namespace bp2

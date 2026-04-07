@@ -21,6 +21,7 @@ class RoutingPoint;
 } // namespace visual
 
 struct Viewport;
+struct TypeRegistry;
 
 /// Unified canvas input handler — one per editor window.
 /// Owns selection + FSM state, processes raw mouse/key events.
@@ -41,7 +42,12 @@ class CanvasInput {
 public:
     CanvasInput(visual::Scene& scene, Viewport& viewport,
                 bp2::EditorModel& model, ui::StringInterner& interner,
-                bp2::PathArena& arena, const std::string& group_id);
+                bp2::PathArena& arena, const std::string& group_id,
+                const TypeRegistry* parser_registry = nullptr);
+
+    void set_parser_registry(const TypeRegistry* parser_registry) {
+        parser_registry_ = parser_registry;
+    }
 
     /// When true, the FSM suppresses all editing gestures.
     bool read_only = false;
@@ -118,6 +124,7 @@ private:
     bp2::EditorModel& model_;
     ui::StringInterner& interner_;
     bp2::PathArena& arena_;
+    const TypeRegistry* parser_registry_ = nullptr;
     ui::InternedId group_iid_;  // interned handle for O(1) comparisons
     std::string_view group_id_;  // resolved from interner (stable storage)
     

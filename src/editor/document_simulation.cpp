@@ -86,7 +86,7 @@ void Document::updateNodeContentFromSimulation() {
         const std::string type_name = std::string(interner_.resolve(n.type));
 
         NodeContent content;
-        content.type    = static_cast<NodeContentType>(n.content_type);
+        content.type    = n.content_type;
         content.label   = n.content_label;
         content.value   = n.content_value;
         content.min     = n.content_min;
@@ -247,7 +247,7 @@ void Document::setSliderValue(const std::string& node_id, float value) {
     if (!n) return;
 
     NodeContent content;
-    content.type  = static_cast<NodeContentType>(n->content_type);
+    content.type  = n->content_type;
     content.value = value;
     content.min   = n->content_min;
     content.max   = n->content_max;
@@ -271,7 +271,7 @@ void Document::setKnobPosition(const std::string& node_id, int position) {
     if (!n) return;
 
     NodeContent content;
-    content.type  = static_cast<NodeContentType>(n->content_type);
+    content.type  = n->content_type;
     content.value = static_cast<float>(position);
     content.max   = n->content_max;
     content.min   = n->content_min;

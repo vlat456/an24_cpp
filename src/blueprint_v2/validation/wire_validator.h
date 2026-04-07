@@ -2,6 +2,8 @@
 
 #include "blueprint_v2/validation/path_resolver.h"
 
+struct TypeRegistry;
+
 namespace bp2 {
 
 class WireValidator {
@@ -15,7 +17,8 @@ public:
     static Result validate(Blueprint::Wire const& wire,
                            Blueprint const& bp,
                            PathArena const& arena,
-                           TypeRegistry const& registry);
+                           const ::TypeRegistry& parser_registry,
+                           ui::StringInterner& interner);
 };
 
 } // namespace bp2

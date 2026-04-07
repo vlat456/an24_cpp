@@ -2,8 +2,9 @@
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/registry/type_registry.h"
+#include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/validation/invariant_checker.h"
+#include "json_parser/json_parser.h"
 #include "editor/subwindow_open_target.h"
 #include <random>
 
@@ -245,7 +246,7 @@ TEST(EditorModel, UpdateNodePositionCreatesCheckpoint) {
 
 TEST(EditorModel, BakeNestedConvertsReferenceToEmbedded) {
     ui::StringInterner interner;
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
+    bp2::BlueprintLibrary library;
 
     bp2::Blueprint inner;
     inner = inner.with_id(interner.intern("sub_type"));
@@ -253,7 +254,7 @@ TEST(EditorModel, BakeNestedConvertsReferenceToEmbedded) {
         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
         {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
     }));
-    reg.register_blueprint(interner.intern("sub_type"), inner.iface(), "test", &inner);
+    library.add(interner.intern("sub_type"), inner);
 
     bp2::EditorModel model;
     bp2::Blueprint::Nested nested;
@@ -263,7 +264,7 @@ TEST(EditorModel, BakeNestedConvertsReferenceToEmbedded) {
     nested.iface = inner.iface();
     model.add_nested(std::move(nested));
 
-    EXPECT_TRUE(model.bake_nested(interner.intern("sub1"), reg, interner));
+    EXPECT_TRUE(model.bake_nested(interner.intern("sub1"), library, interner));
 
     auto* baked = model.current().find_nested(interner.intern("sub1"));
     ASSERT_NE(baked, nullptr);
@@ -273,7 +274,7 @@ TEST(EditorModel, BakeNestedConvertsReferenceToEmbedded) {
 
 TEST(EditorModel, BakeNestedIsUndoable) {
     ui::StringInterner interner;
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
+    bp2::BlueprintLibrary library;
 
     bp2::Blueprint inner;
     inner = inner.with_id(interner.intern("sub_type"));
@@ -281,7 +282,7 @@ TEST(EditorModel, BakeNestedIsUndoable) {
         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
         {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
     }));
-    reg.register_blueprint(interner.intern("sub_type"), inner.iface(), "test", &inner);
+    library.add(interner.intern("sub_type"), inner);
 
     bp2::EditorModel model;
     bp2::Blueprint::Nested nested;
@@ -292,7 +293,7 @@ TEST(EditorModel, BakeNestedIsUndoable) {
     model.add_nested(std::move(nested));
 
     size_t depth_before_bake = model.undo_depth();
-    EXPECT_TRUE(model.bake_nested(interner.intern("sub1"), reg, interner));
+    EXPECT_TRUE(model.bake_nested(interner.intern("sub1"), library, interner));
 
     // Bake must push a checkpoint so it's undoable
     EXPECT_EQ(model.undo_depth(), depth_before_bake + 1);
@@ -311,15 +312,15 @@ TEST(EditorModel, BakeNestedIsUndoable) {
 
 TEST(EditorModel, BakeNestedFailsForNonExistent) {
     ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+    bp2::BlueprintLibrary library;
     bp2::EditorModel model;
 
-    EXPECT_FALSE(model.bake_nested(interner.intern("nope"), reg, interner));
+    EXPECT_FALSE(model.bake_nested(interner.intern("nope"), library, interner));
 }
 
 TEST(EditorModel, BakeNestedFailsForAlreadyEmbedded) {
     ui::StringInterner interner;
-    bp2::TypeRegistry reg;
+    bp2::BlueprintLibrary library;
     bp2::EditorModel model;
 
     bp2::Blueprint::Nested nested;
@@ -328,12 +329,12 @@ TEST(EditorModel, BakeNestedFailsForAlreadyEmbedded) {
     nested.inline_def = std::make_unique<bp2::Blueprint>();
     model.add_nested(std::move(nested));
 
-    EXPECT_FALSE(model.bake_nested(interner.intern("sub1"), reg, interner));
+    EXPECT_FALSE(model.bake_nested(interner.intern("sub1"), library, interner));
 }
 
 TEST(EditorModel, BakeNestedFailsForUnknownBlueprintId) {
     ui::StringInterner interner;
-    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
+    bp2::BlueprintLibrary library;
     bp2::EditorModel model;
 
     bp2::Blueprint::Nested nested;
@@ -342,7 +343,7 @@ TEST(EditorModel, BakeNestedFailsForUnknownBlueprintId) {
     nested.embedded = false;
     model.add_nested(std::move(nested));
 
-    EXPECT_FALSE(model.bake_nested(interner.intern("sub1"), reg, interner));
+    EXPECT_FALSE(model.bake_nested(interner.intern("sub1"), library, interner));
 }
 
 TEST(EditorModel, CanUndoInitiallyFalse) {
@@ -492,7 +493,13 @@ TEST(EditorModel, IsDirtyAfterUndoStackTruncation) {
 TEST(EditorModel, RandomizedEditsMaintainInvariants) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    bp2::TypeRegistry registry = bp2::TypeRegistry::create_test_registry(interner);
+    TypeRegistry registry = load_type_registry("library/");
+    TypeDefinition battery;
+    battery.classname = "Battery";
+    battery.cpp_class = true;
+    battery.ports["v_out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
+    battery.ports["v_in"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
+    registry.types["Battery"] = std::move(battery);
     bp2::EditorModel model;
 
     std::mt19937 rng(1337u);
@@ -500,7 +507,7 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
     int next_wire = 0;
 
     auto validate_now = [&]() {
-        auto r = bp2::InvariantChecker::validate(model.current(), arena, registry);
+        auto r = bp2::InvariantChecker::validate(model.current(), arena, registry, interner);
         ASSERT_TRUE(r.valid) << r.error;
     };
 

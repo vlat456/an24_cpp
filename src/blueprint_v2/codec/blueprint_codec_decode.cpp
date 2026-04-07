@@ -221,7 +221,7 @@ Interface decode_interface(nlohmann::json const& arr,
 Blueprint decode_nodes(Blueprint bp,
                        nlohmann::json const& arr,
                        ui::StringInterner& interner,
-                       TypeRegistry const& registry) {
+                       ::TypeRegistry const& parser_registry) {
     static constexpr auto ctx = "invalid node entry";
 
     for (auto const& n : arr) {
@@ -269,13 +269,13 @@ Blueprint decode_nodes(Blueprint bp,
         if (auto v = read_optional_float(n, "height", ctx)) node.height = *v;
 
         // Params
-        const TypeRegistry::Entry* type_entry = registry.find(node.type);
+        const TypeDefinition* type_def = parser_registry.get(std::string(interner.resolve(node.type)));
         if (n.contains("params") && n["params"].is_object()) {
             for (auto& [key, val] : n["params"].items()) {
-                if (type_entry) {
-                    auto dit = type_entry->param_descriptors.find(key);
-                    if (dit != type_entry->param_descriptors.end()) {
-                        assign_param_by_descriptor(node, interner, key, val, dit->second);
+                if (type_def) {
+                    auto sit = type_def->param_schema.find(key);
+                    if (sit != type_def->param_schema.end()) {
+                        assign_param_by_descriptor(node, interner, key, val, sit->second, type_def);
                         continue;
                     }
                 }
@@ -313,8 +313,8 @@ Blueprint decode_nodes(Blueprint bp,
         }
 
         // Backfill defaults from registry
-        if (type_entry) {
-            for (const auto& [k, v] : type_entry->param_defaults) {
+        if (type_def) {
+            for (const auto& [k, v] : type_def->params) {
                 const auto key_iid = interner.intern(k);
                 if (node.params.find(key_iid) != node.params.end()) {
                     continue;
@@ -323,11 +323,12 @@ Blueprint decode_nodes(Blueprint bp,
                     continue;
                 }
 
-                auto dit = type_entry->param_descriptors.find(k);
-                if (dit != type_entry->param_descriptors.end()) {
-                    const auto& desc = dit->second;
-                    switch (desc.kind) {
-                        case TypeRegistry::ParamKind::Number: {
+                auto sit = type_def->param_schema.find(k);
+                if (sit != type_def->param_schema.end()) {
+                    const auto& schema = sit->second;
+                    switch (schema.type) {
+                        case ParamSchemaType::Float:
+                        case ParamSchemaType::Int: {
                             float parsed = 0.0f;
                             if (parse_number_string(v, parsed)) {
                                 node.params[key_iid] = parsed;
@@ -336,7 +337,7 @@ Blueprint decode_nodes(Blueprint bp,
                             }
                             break;
                         }
-                        case TypeRegistry::ParamKind::Bool: {
+                        case ParamSchemaType::Bool: {
                             std::string normalized;
                             if (parse_bool_string(v, normalized)) {
                                 node.string_params[k] = std::move(normalized);
@@ -345,24 +346,7 @@ Blueprint decode_nodes(Blueprint bp,
                             }
                             break;
                         }
-                        case TypeRegistry::ParamKind::Enum: {
-                            const bool allowed = std::find(desc.enum_values.begin(), desc.enum_values.end(), v)
-                                != desc.enum_values.end();
-                            if (!allowed) {
-                                throw std::runtime_error("invalid default for enum param '" + k + "'");
-                            }
-                            node.string_params[k] = v;
-                            break;
-                        }
-                        case TypeRegistry::ParamKind::Vec2: {
-                            if (!parse_vec2_string(v)) {
-                                throw std::runtime_error("invalid default for vec2 param '" + k + "'");
-                            }
-                            node.string_params[k] = v;
-                            break;
-                        }
-                        case TypeRegistry::ParamKind::Table:
-                        case TypeRegistry::ParamKind::String:
+                        case ParamSchemaType::String:
                             node.string_params[k] = v;
                             break;
                     }
@@ -384,10 +368,11 @@ Blueprint decode_nodes(Blueprint bp,
                 throw std::runtime_error("invalid node entry: content_type must be integer");
             }
             int ct = n["content_type"].get<int>();
-            if (ct < 0 || ct > static_cast<int>(NodeContentType::Knob)) {
+            auto parsed_content_type = ::bp2::node_content_type_from_int(ct);
+            if (!parsed_content_type.has_value()) {
                 throw std::runtime_error("invalid node entry: content_type out of range");
             }
-            node.content_type = static_cast<NodeContentType>(ct);
+            node.content_type = *parsed_content_type;
         }
         if (auto v = read_optional_string(n, "content_label", ctx)) node.content_label = std::move(*v);
         if (auto v = read_optional_float(n, "content_value", ctx))  node.content_value = *v;
@@ -537,7 +522,7 @@ Blueprint decode_wires(Blueprint bp,
 Blueprint decode_nested(Blueprint bp,
                         nlohmann::json const& arr,
                         ui::StringInterner& interner,
-                        TypeRegistry const& registry,
+                        ::TypeRegistry const& parser_registry,
                         PathArena& arena) {
     for (auto const& n : arr) {
         if (!n.is_object()) {
@@ -562,9 +547,9 @@ Blueprint decode_nested(Blueprint bp,
             throw std::runtime_error("invalid nested entry: non-embedded nested must not contain definition");
         }
         if (nested.embedded && n.contains("definition")) {
-            DecodeError inner_err;
-            auto inner = BlueprintCodec::decode(
-                n["definition"].dump(), interner, arena, registry, &inner_err);
+                DecodeError inner_err;
+                auto inner = BlueprintCodec::decode(
+                n["definition"].dump(), interner, arena, parser_registry, &inner_err);
             if (inner) {
                 nested.inline_def = std::make_unique<Blueprint>(std::move(*inner));
                 nested.iface = nested.inline_def->iface();
@@ -578,12 +563,44 @@ Blueprint decode_nested(Blueprint bp,
             }
         }
         if (!nested.embedded && !nested.blueprint_id.empty()) {
-            auto* entry = registry.find(nested.blueprint_id);
-            if (entry) {
-                nested.iface = entry->iface;
-            } else {
+            const auto* def = parser_registry.get(std::string(interner.resolve(nested.blueprint_id)));
+            if (!def) {
                 throw std::runtime_error("unknown nested blueprint");
             }
+
+            std::vector<PortDescriptor> iface_ports;
+            iface_ports.reserve(def->ports.size());
+            for (const auto& [name, port] : def->ports) {
+                Domain d = Domain::Electrical;
+                switch (port.type) {
+                    case PortType::V:
+                    case PortType::I:
+                    case PortType::Any:
+                        d = Domain::Electrical;
+                        break;
+                    case PortType::Bool:
+                        d = Domain::Logical;
+                        break;
+                    case PortType::RPM:
+                    case PortType::Position:
+                        d = Domain::Mechanical;
+                        break;
+                    case PortType::Pressure:
+                        d = Domain::Hydraulic;
+                        break;
+                    case PortType::Temperature:
+                        d = Domain::Thermal;
+                        break;
+                }
+                Direction dir = Direction::Output;
+                switch (port.direction) {
+                    case PortDirection::In: dir = Direction::Input; break;
+                    case PortDirection::Out: dir = Direction::Output; break;
+                    case PortDirection::InOut: dir = Direction::InOut; break;
+                }
+                iface_ports.push_back({interner.intern(name), d, dir});
+            }
+            nested.iface = Interface(std::move(iface_ports));
         }
         bp = bp.with_nested(std::move(nested));
     }
