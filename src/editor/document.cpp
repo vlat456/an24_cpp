@@ -39,7 +39,7 @@ std::string Document::title() const {
 
 bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
                                   const std::string& blueprint_name,
-                                  const std::string& group_id,
+                                  const std::string& scope_id,
                                   std::string* error_out,
                                   bool allow_nonembedded_descendant_refs) {
     if (!type_registry_) {
@@ -50,7 +50,7 @@ bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_no
     }
 
     auto updated = editor::commands::build_extracted_blueprint_atomic(
-        model_.current(), selected_node_ids, blueprint_name, group_id,
+        model_.current(), selected_node_ids, blueprint_name, scope_id,
         interner_, arena_, *type_registry_, error_out, allow_nonembedded_descendant_refs);
     if (!updated) {
         return false;

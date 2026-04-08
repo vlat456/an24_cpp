@@ -109,7 +109,7 @@ public:
     /// Build a set of wire IDs that are energized (have non-zero voltage).
     void buildEnergizedWireSet(
         std::unordered_set<std::string_view, visual::StringViewHash>& out,
-        const std::string& group_id) const;
+        const std::string& scope_id) const;
 
     /// Build energized wire set for an external-reference window.
     /// Iterates external blueprint wires and maps signal keys through parent_instance_id.
@@ -125,24 +125,24 @@ public:
     std::unordered_map<std::string, float>& signalOverrides() { return signal_overrides_; }
     std::unordered_set<std::string>& heldButtons() { return held_buttons_; }
 
-    void triggerSwitch(const std::string& node_id, const std::string& group_id = "");
-    void setSliderValue(const std::string& node_id, float value, const std::string& group_id = "");
-    void setKnobPosition(const std::string& node_id, int position, const std::string& group_id = "");
-    void holdButtonPress(const std::string& node_id, const std::string& group_id = "");
-    void holdButtonRelease(const std::string& node_id, const std::string& group_id = "");
+    void triggerSwitch(const std::string& node_id, const std::string& scope_id = "");
+    void setSliderValue(const std::string& node_id, float value, const std::string& scope_id = "");
+    void setKnobPosition(const std::string& node_id, int position, const std::string& scope_id = "");
+    void holdButtonPress(const std::string& node_id, const std::string& scope_id = "");
+    void holdButtonRelease(const std::string& node_id, const std::string& scope_id = "");
 
     // ── Component/blueprint addition ──
 
     void addComponent(const std::string& classname, Pt world_pos,
-                      const std::string& group_id,
+                      const std::string& scope_id,
                       TypeRegistry& registry);
     void addBlueprint(const std::string& blueprint_name, Pt world_pos,
-                      const std::string& group_id,
+                      const std::string& scope_id,
                       TypeRegistry& registry);
 
     bool extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
                            const std::string& blueprint_name,
-                           const std::string& group_id,
+                           const std::string& scope_id,
                            std::string* error_out = nullptr,
                            bool allow_nonembedded_descendant_refs = false);
 
@@ -161,14 +161,14 @@ public:
     struct InputResultAction {
         bool show_context_menu = false;
         Pt context_menu_pos;
-        std::string context_menu_group_id;
+        std::string context_menu_scope_id;
 
         bool show_node_context_menu = false;
         std::string context_menu_node_id;
-        std::string node_context_menu_group_id;
+        std::string node_context_menu_scope_id;
 
         std::string toggle_probe_wire_id;
-        std::string toggle_probe_group_id;
+        std::string toggle_probe_scope_id;
         bool has_toggle_probe_world_pos = false;
         Pt toggle_probe_world_pos;
 
@@ -177,13 +177,13 @@ public:
         bool has_inline_value_editor_screen_pos = false;
         Pt inline_value_editor_screen_pos;
     };
-    InputResultAction applyInputResult(const InputResult& r, const std::string& group_id = "");
+    InputResultAction applyInputResult(const InputResult& r, const std::string& scope_id = "");
 
 private:
     // ── Private helpers ──
 
     /// Build simulator JSON from current bp2 model.
-    std::string build_simulation_json() const;
+    std::string build_simulation_json();
 
     /// Extract (node_id, port_name) InternedId pair from a bp2::Path
     /// (expects PathKind::Port with Node parent). Returns empty pair on error.

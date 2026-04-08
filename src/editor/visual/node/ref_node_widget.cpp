@@ -6,6 +6,7 @@
 #include "editor/layout_constants.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/interface/node_port_projection.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -66,12 +67,14 @@ void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::Stri
     std::string_view port_name = "v";
     PortType port_type = PortType::V;
 
-    if (!data.view.outputs.empty()) {
-        port_name = interner.resolve(data.view.outputs[0].name);
-        port_type = data.view.outputs[0].type;
-    } else if (!data.view.inputs.empty()) {
-        port_name = interner.resolve(data.view.inputs[0].name);
-        port_type = data.view.inputs[0].type;
+    const auto out_ports = bp2::derive_output_ports(data.semantic.iface);
+    const auto in_ports = bp2::derive_input_ports(data.semantic.iface);
+    if (!out_ports.empty()) {
+        port_name = interner.resolve(out_ports[0].name);
+        port_type = out_ports[0].type;
+    } else if (!in_ports.empty()) {
+        port_name = interner.resolve(in_ports[0].name);
+        port_type = in_ports[0].type;
     }
 
     // Single port, centered on top edge

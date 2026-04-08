@@ -9,14 +9,9 @@ PortType find_port_type(const bp2::Blueprint::Node* node, ui::InternedId port_na
     if (!node) {
         return PortType::Any;
     }
-    for (const auto& p : node->view.inputs) {
+    for (const auto& p : node->semantic.iface.ports()) {
         if (p.name == port_name) {
-            return p.type;
-        }
-    }
-    for (const auto& p : node->view.outputs) {
-        if (p.name == port_name) {
-            return p.type;
+            return p.port_type;
         }
     }
     return PortType::Any;

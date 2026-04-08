@@ -3,24 +3,30 @@
 #include "editor/visual/scene_mutations.h"
 #include "editor/visual/scene.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/interface/interface.h"
+#include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 
 namespace {
 
+// Helper to make a PortDescriptor for a semantic interface
+// Shared bp2 test helpers (make_port, set_iface)
+#include "../bp2_test_helpers.h"
+
 /// Build a simple node with standard ports
 static bp2::Blueprint::Node make_node(ui::StringInterner& interner,
                                       const char* id,
                                       const char* type = "Battery",
-                                      const char* group_id = "") {
+                                      const char* layout_group = "") {
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern(id);
     n.semantic.type = interner.intern(type);
-    n.layout.group_id = group_id;
-    n.view.inputs.push_back(
-        bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
-    n.view.outputs.push_back(
-        bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    n.layout.layout_group = layout_group;
+    set_iface(n, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
+    });
     return n;
 }
 
@@ -69,7 +75,7 @@ TEST(EmbeddedSubwindowScene, RebuildFromInlineDefIndependent) {
     EXPECT_NE(scene.find("inner_wire_0"), nullptr);
 }
 
-/// Verify that even if root blueprint has shadow nodes with a specific group_id,
+/// Verify that even if root blueprint has shadow nodes with a specific layout_group,
 /// inline_def still renders independently when used directly.
 TEST(EmbeddedSubwindowScene, InlineDefIndependentOfRootShadows) {
     ui::StringInterner interner;
@@ -85,7 +91,7 @@ TEST(EmbeddedSubwindowScene, InlineDefIndependentOfRootShadows) {
     inline_bp = inline_bp.with_node(std::move(in2));
     inline_bp = inline_bp.with_wire(std::move(in_wire));
 
-    // Create root blueprint with DIFFERENT shadow copies (same IDs, but different group_id)
+    // Create root blueprint with DIFFERENT shadow copies (same IDs, but different layout_group)
     // This simulates the old addBlueprint behavior
     bp2::Blueprint root_bp;
     auto shadow_n1 = make_node(interner, "nested_bat", "Battery", "composite_1");
@@ -101,7 +107,7 @@ TEST(EmbeddedSubwindowScene, InlineDefIndependentOfRootShadows) {
     visual::mutations::rebuild(inline_scene, inline_bp, interner, arena, "");
     EXPECT_EQ(inline_scene.roots().size(), 3u);
 
-    // Rebuild scene from root_bp with group_id filter (old approach, for comparison)
+    // Rebuild scene from root_bp with layout_group filter (old approach, for comparison)
     visual::Scene root_scene_filtered;
     visual::mutations::rebuild(root_scene_filtered, root_bp, interner, arena, "composite_1");
     EXPECT_EQ(root_scene_filtered.roots().size(), 3u);
@@ -116,7 +122,7 @@ TEST(EmbeddedSubwindowScene, InlineDefIndependentOfRootShadows) {
     EXPECT_NE(root_scene_filtered.find("nested_wire"), nullptr);
 }
 
-/// Verify that root-level nodes with empty group_id are still rendered
+/// Verify that root-level nodes with empty layout_group are still rendered
 /// when rebuilding root window.
 TEST(EmbeddedSubwindowScene, RootWindowStillShowsRootNodes) {
     ui::StringInterner interner;
@@ -133,7 +139,7 @@ TEST(EmbeddedSubwindowScene, RootWindowStillShowsRootNodes) {
     bp = bp.with_node(std::move(group_node));
     bp = bp.with_wire(std::move(wire));
 
-    // Rebuild root window (empty group_id)
+    // Rebuild root window (empty layout_group)
     visual::Scene root_scene;
     visual::mutations::rebuild(root_scene, bp, interner, arena, "");
 
@@ -142,7 +148,7 @@ TEST(EmbeddedSubwindowScene, RootWindowStillShowsRootNodes) {
     EXPECT_NE(root_scene.find("root_bat"), nullptr);
     EXPECT_EQ(root_scene.find("composite_bat"), nullptr);
 
-    // Rebuild subwindow (group_id = "composite_1")
+    // Rebuild subwindow (layout_group = "composite_1")
     visual::Scene sub_scene;
     visual::mutations::rebuild(sub_scene, bp, interner, arena, "composite_1");
 

@@ -4,7 +4,7 @@
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/blueprint/node_content_type.h"
-#include "blueprint_v2/blueprint/node_port.h"
+#include <variant>
 #include <vector>
 #include <unordered_map>
 #include <optional>
@@ -51,14 +51,14 @@ public:
             float x = 0.0f;
             float y = 0.0f;
             bool collapsed = true;
-            std::string group_id;
+            std::string layout_group;
             std::optional<float> width;
             std::optional<float> height;
             std::vector<PortLayoutOverride> layout_overrides;
 
             bool operator==(LayoutData const& o) const {
                 return x == o.x && y == o.y && collapsed == o.collapsed
-                    && group_id == o.group_id && width == o.width && height == o.height
+                    && layout_group == o.layout_group && width == o.width && height == o.height
                     && layout_overrides == o.layout_overrides;
             }
         };
@@ -84,10 +84,6 @@ public:
             bool has_color = false;
             float color_r = 0.5f, color_g = 0.5f, color_b = 0.5f, color_a = 1.0f;
 
-            // === Visual-layer port lists (editor only) ===
-            std::vector<bp2::NodePort> inputs;
-            std::vector<bp2::NodePort> outputs;
-
             bool operator==(ViewData const& o) const {
                 return name == o.name && render_hint == o.render_hint
                     && expandable == o.expandable && blueprint_path == o.blueprint_path
@@ -96,8 +92,7 @@ public:
                     && content_max == o.content_max && content_unit == o.content_unit
                     && content_state == o.content_state && content_tripped == o.content_tripped
                     && has_color == o.has_color && color_r == o.color_r && color_g == o.color_g
-                    && color_b == o.color_b && color_a == o.color_a
-                    && inputs == o.inputs && outputs == o.outputs;
+                    && color_b == o.color_b && color_a == o.color_a;
             }
         };
 
@@ -125,14 +120,112 @@ public:
 
     struct Nested {
         ui::InternedId id;
-        ui::InternedId blueprint_id;
-        bool embedded = false;
-        std::unique_ptr<Blueprint> inline_def;
-        Interface iface;
         float x = 0.0f;
         float y = 0.0f;
 
-        Nested() = default;
+        /// Embedded mode: owned inline blueprint definition.
+        struct Embedded {
+            ui::InternedId blueprint_id;
+            std::unique_ptr<Blueprint> inline_def;  // always non-null
+
+            Embedded() = delete;
+            Embedded(ui::InternedId bp_id, std::unique_ptr<Blueprint> def)
+                : blueprint_id(bp_id), inline_def(std::move(def)) {}
+            Embedded(const Embedded& other);
+            Embedded(Embedded&&) noexcept = default;
+            Embedded& operator=(const Embedded& other);
+            Embedded& operator=(Embedded&&) noexcept = default;
+        };
+
+        /// Reference mode: external blueprint by ID with resolved interface cache.
+        struct Reference {
+            ui::InternedId blueprint_id;  // always non-empty
+            Interface resolved_iface;     // always populated
+        };
+
+    private:
+        std::variant<Embedded, Reference> content_;
+
+        Nested(ui::InternedId nid, float px, float py, std::variant<Embedded, Reference> c)
+            : id(nid), x(px), y(py), content_(std::move(c)) {}
+
+    public:
+
+        // ── Factory methods ──
+
+        static Nested make_embedded(ui::InternedId id,
+                                    ui::InternedId blueprint_id,
+                                    std::unique_ptr<Blueprint> inline_def,
+                                    float x = 0.0f, float y = 0.0f) {
+            if (!inline_def) {
+                throw std::logic_error("Nested::make_embedded requires non-null inline_def");
+            }
+            return Nested{id, x, y, Embedded{blueprint_id, std::move(inline_def)}};
+        }
+
+        static Nested make_reference(ui::InternedId id,
+                                     ui::InternedId blueprint_id,
+                                     Interface resolved_iface,
+                                     float x = 0.0f, float y = 0.0f) {
+            if (blueprint_id.empty()) {
+                throw std::logic_error("Nested::make_reference requires non-empty blueprint_id");
+            }
+            return Nested{id, x, y, Reference{blueprint_id, std::move(resolved_iface)}};
+        }
+
+        // ── Accessors ──
+
+        bool is_embedded() const { return std::holds_alternative<Embedded>(content_); }
+        bool is_reference() const { return std::holds_alternative<Reference>(content_); }
+
+        Interface const& resolved_iface() const {
+            if (auto* e = std::get_if<Embedded>(&content_)) {
+                return e->inline_def->iface();
+            }
+            return std::get<Reference>(content_).resolved_iface;
+        }
+
+        ui::InternedId blueprint_id() const {
+            if (auto* e = std::get_if<Embedded>(&content_)) {
+                return e->blueprint_id;
+            }
+            return std::get<Reference>(content_).blueprint_id;
+        }
+
+        Blueprint const* inline_def() const {
+            if (auto* e = std::get_if<Embedded>(&content_)) {
+                return e->inline_def.get();
+            }
+            return nullptr;
+        }
+
+        Blueprint* inline_def_mut() {
+            if (auto* e = std::get_if<Embedded>(&content_)) {
+                return e->inline_def.get();
+            }
+            return nullptr;
+        }
+
+        // ── Mutators ──
+
+        /// Replace the inline definition of an Embedded nested.
+        /// Throws if this nested is not Embedded or if def is null.
+        void set_inline_def(std::unique_ptr<Blueprint> def) {
+            if (!def) {
+                throw std::logic_error("set_inline_def requires non-null def");
+            }
+            std::get<Embedded>(content_).inline_def = std::move(def);
+        }
+
+        /// Convert this nested to Embedded mode with the given definition.
+        void convert_to_embedded(ui::InternedId bp_id, std::unique_ptr<Blueprint> def) {
+            if (!def) {
+                throw std::logic_error("convert_to_embedded requires non-null def");
+            }
+            content_ = Embedded{bp_id, std::move(def)};
+        }
+
+        Nested() = delete;
         Nested(const Nested& other);
         Nested(Nested&& other) noexcept = default;
         Nested& operator=(const Nested& other);

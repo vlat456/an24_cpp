@@ -23,33 +23,13 @@ nlohmann::json encode_node_ports(const Blueprint::Node& node,
                                  ui::StringInterner const& interner) {
     nlohmann::json ports = nlohmann::json::object();
 
-    std::unordered_map<ui::InternedId, Direction> dirs;
-    std::unordered_map<ui::InternedId, PortType> types;
-
-    for (auto const& p : node.view.inputs) {
-        auto it = dirs.find(p.name);
-        if (it == dirs.end()) {
-            dirs[p.name] = Direction::Input;
-            types[p.name] = p.type;
-        } else if (it->second == Direction::Output) {
-            it->second = Direction::InOut;
-        }
-    }
-    for (auto const& p : node.view.outputs) {
-        auto it = dirs.find(p.name);
-        if (it == dirs.end()) {
-            dirs[p.name] = Direction::Output;
-            types[p.name] = p.type;
-        } else if (it->second == Direction::Input) {
-            it->second = Direction::InOut;
-        }
-    }
-
-    for (auto const& [name, dir] : dirs) {
+    for (auto const& pdesc : node.semantic.iface.ports()) {
         nlohmann::json p;
-        p["direction"] = (dir == Direction::Input) ? "In" : (dir == Direction::Output ? "Out" : "InOut");
-        p["type"] = static_cast<int>(types[name]);
-        ports[std::string(interner.resolve(name))] = std::move(p);
+        p["direction"] = (pdesc.direction == Direction::Input)
+            ? "In"
+            : (pdesc.direction == Direction::Output ? "Out" : "InOut");
+        p["type"] = static_cast<int>(pdesc.port_type);
+        ports[std::string(interner.resolve(pdesc.name))] = std::move(p);
     }
 
     return ports;
@@ -74,16 +54,14 @@ nlohmann::json encode_interface(Interface const& iface,
         p["name"] = name;
         p["domain"] = static_cast<int>(port.domain);
         p["direction"] = static_cast<int>(port.direction);
-        PortType serialized_type = PortType::Any;
         bool serialized_source_writer = false;
         if (type_def) {
             auto it = type_def->ports.find(name);
             if (it != type_def->ports.end()) {
-                serialized_type = it->second.type;
                 serialized_source_writer = it->second.source_writer;
             }
         }
-        p["type"] = port_type_to_string(serialized_type);
+        p["type"] = port_type_to_string(port.port_type);
         p["source_writer"] = serialized_source_writer;
         arr.push_back(p);
     }
@@ -115,7 +93,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         n["type"] = std::string(interner.resolve(node.semantic.type));
         if (!node.view.name.empty()) n["name"] = node.view.name;
         if (!node.view.render_hint.empty()) n["render_hint"] = node.view.render_hint;
-        if (!node.layout.group_id.empty()) n["group_id"] = node.layout.group_id;
+        if (!node.layout.layout_group.empty()) n["group_id"] = node.layout.layout_group;
         if (node.view.expandable) n["expandable"] = true;
         if (!node.layout.collapsed) n["collapsed"] = false;
         if (!node.view.blueprint_path.empty()) n["blueprint_path"] = node.view.blueprint_path;
@@ -190,7 +168,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
 
         if (!params.empty()) n["params"] = params;
         if (!sparams.empty()) n["string_params"] = sparams;
-        if (!node.view.inputs.empty() || !node.view.outputs.empty()) n["ports"] = encode_node_ports(node, interner);
+        if (!node.semantic.iface.empty()) n["ports"] = encode_node_ports(node, interner);
 
         if (!node.layout.layout_overrides.empty()) {
             nlohmann::json los = nlohmann::json::array();
@@ -269,12 +247,12 @@ nlohmann::json encode_nested(std::vector<Blueprint::Nested> const& nested_vec,
         auto const& nested = *nested_ptr;
         nlohmann::json n;
         n["id"] = std::string(interner.resolve(nested.id));
-        n["blueprint"] = std::string(interner.resolve(nested.blueprint_id));
-        n["embedded"] = nested.embedded;
+        n["blueprint"] = std::string(interner.resolve(nested.blueprint_id()));
+        n["embedded"] = nested.is_embedded();
         n["position"] = {{"x", nested.x}, {"y", nested.y}};
-        if (nested.embedded && nested.inline_def) {
+        if (auto* def = nested.inline_def()) {
             const std::string encoded = BlueprintCodec::encode(
-                *nested.inline_def,
+                *def,
                 interner,
                 arena,
                 parser_registry);

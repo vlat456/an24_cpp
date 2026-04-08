@@ -48,7 +48,7 @@ std::string resolve_runtime_signal_key(
             // For embedded blueprints with materialized children, the bridge
             // node ID may differ from the default colon convention.
             const auto* nested = bp.find_nested(endpoint.node_iid);
-            if (nested && nested->embedded) {
+            if (nested && nested->is_embedded()) {
                 std::string bridge_id = find_embedded_bridge_node(bp, interner, node_sv, port_sv);
                 if (!bridge_id.empty()) {
                     std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(bridge_id);

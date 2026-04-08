@@ -27,6 +27,9 @@ void Flattener::visit_blueprint(
     FlatNetlist& out) {
 
     for (auto const& node : bp.nodes()) {
+        if (node.view.expandable && bp.find_nested(node.semantic.id)) {
+            continue;
+        }
         emit_component(node, prefix, signals, out);
     }
 
@@ -51,11 +54,14 @@ void Flattener::emit_component(
     comp.path = node_path;
     comp.type = node.semantic.type;
     comp.params = node.semantic.params;
+    comp.string_params = node.semantic.string_params;
+    comp.render_hint = node.view.render_hint;
 
     for (auto const& port : node.semantic.iface) {
         Path port_path = arena_->make_port(node_path, port.name);
         SignalIndex sig = get_or_create_signal(
             port_path, port.domain, signals, out);
+        comp.ports.push_back(port);
         comp.port_signals.push_back({port.name, sig});
     }
 
@@ -97,17 +103,17 @@ void Flattener::visit_nested(
     Path nested_path = arena_->make_nested(prefix, nested.id);
 
     Blueprint const* inner = nullptr;
-    if (nested.embedded && nested.inline_def) {
-        inner = nested.inline_def.get();
+    if (auto* def = nested.inline_def()) {
+        inner = def;
     } else {
-        inner = library_.find(nested.blueprint_id);
+        inner = library_.find(nested.blueprint_id());
     }
     if (!inner) return;
 
     // Seed boundary signals: map outer port path to parent signal index
     std::unordered_map<Path, SignalIndex> nested_signals;
     std::unordered_map<Path, SignalIndex> seeded_boundary;
-    for (auto const& port : nested.iface) {
+    for (auto const& port : nested.resolved_iface()) {
         Path outer_port = arena_->make_port(nested_path, port.name);
         auto it = signals.find(outer_port);
         if (it != signals.end()) {

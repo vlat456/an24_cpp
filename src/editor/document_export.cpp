@@ -1,347 +1,73 @@
 #include "document.h"
 
-#include "signal_key_resolver.h"
-#include "core/solvers/common/signal_key.h"
+#include "blueprint_v2/elaboration/sim_export.h"
+#include "blueprint_v2/flattener/flattener.h"
+#include "blueprint_v2/library/blueprint_library.h"
+#include "editor/visual/persist.h"
 
 #include <nlohmann/json.hpp>
-#include <map>
-#include <set>
 #include <spdlog/spdlog.h>
+#include <filesystem>
+#include <vector>
 
 using json = nlohmann::json;
 
-namespace {
-
-const char* sim_port_type_str(PortType t) {
-    switch (t) {
-        case PortType::V: return "V";
-        case PortType::I: return "I";
-        case PortType::Bool: return "Bool";
-        case PortType::RPM: return "RPM";
-        case PortType::Temperature: return "Temperature";
-        case PortType::Pressure: return "Pressure";
-        case PortType::Position: return "Position";
-        case PortType::Any:
-        default: return "Any";
-    }
-}
-
-void collect_nested_devices_recursive(
-    const bp2::Blueprint& inline_bp,
-    const TypeRegistry* type_registry,
-    const ui::StringInterner& interner,
-    std::set<std::string>& emitted_ids,
-    json& devices,
-    std::map<std::string, std::string>& proxy_port_to_bridge,
-     const std::string& parent_collapsed_id) {
-     for (const bp2::Blueprint::Node& in : inline_bp.nodes()) {
-         const std::string local_id = std::string(interner.resolve(in.semantic.id));
-         const std::string exported_id = signal_key::make_child_scope_key(parent_collapsed_id, local_id);
-         if (!emitted_ids.insert(exported_id).second) {
-             spdlog::warn("[dedup] Duplicate node '{}' in nested expansion", exported_id);
-             continue;
-         }
-
-        json device = json::object();
-        device["name"] = exported_id;
-        device["template_name"] = "";
-        device["classname"] = std::string(interner.resolve(in.semantic.type));
-        if (!in.view.render_hint.empty()) {
-            device["render_hint"] = in.view.render_hint;
-        }
-        device["priority"] = "med";
-        device["bucket"] = nullptr;
-        device["critical"] = false;
-
-        json ports = json::object();
-        for (const auto& p : in.view.inputs) {
-            ports[std::string(interner.resolve(p.name))] = {
-                {"direction", "In"},
-                {"type", sim_port_type_str(p.type)}
-            };
-        }
-        for (const auto& p : in.view.outputs) {
-            ports[std::string(interner.resolve(p.name))] = {
-                {"direction", "Out"},
-                {"type", sim_port_type_str(p.type)}
-            };
-        }
-        device["ports"] = std::move(ports);
-
-        const TypeDefinition* type_def = nullptr;
-        std::string classname = std::string(interner.resolve(in.semantic.type));
-        if (type_registry) {
-            type_def = type_registry->get(classname);
-        }
-        auto is_visual_only = [&](const std::string& key) -> bool {
-            if (!type_def) return false;
-            auto it = type_def->param_schema.find(key);
-            return it != type_def->param_schema.end() && it->second.visual_only;
-        };
-        auto is_int_param = [&](const std::string& key) -> bool {
-            if (!type_def) return false;
-            auto it = type_def->param_schema.find(key);
-            return it != type_def->param_schema.end() && it->second.type == ParamSchemaType::Int;
-        };
-
-        json params = json::object();
-        for (const auto& [k, v] : in.semantic.params) {
-            std::string key = std::string(interner.resolve(k));
-            if (is_visual_only(key)) continue;
-            if (is_int_param(key)) {
-                params[key] = std::to_string(static_cast<long long>(v));
-            } else {
-                params[key] = std::to_string(v);
-            }
-        }
-        for (const auto& [k, v] : in.semantic.string_params) {
-            if (is_visual_only(k)) continue;
-            params[k] = v;
-        }
-        if (!params.empty()) {
-            device["params"] = std::move(params);
-        }
-
-        devices.push_back(std::move(device));
-    }
-
-     const auto bp_input_iid = interner.lookup("BlueprintInput");
-     const auto bp_output_iid = interner.lookup("BlueprintOutput");
-     for (const bp2::Blueprint::Node& in : inline_bp.nodes()) {
-         if (!bp_input_iid.empty() && in.semantic.type == bp_input_iid) {
-             const std::string bridge_local_id = std::string(interner.resolve(in.semantic.id));
-             const std::string collapsed_port = signal_key::make_node_port_key(parent_collapsed_id, bridge_local_id);
-             const std::string child_scope = signal_key::make_child_scope_key(parent_collapsed_id, bridge_local_id);
-             proxy_port_to_bridge[collapsed_port] = child_scope;
-         } else if (!bp_output_iid.empty() && in.semantic.type == bp_output_iid) {
-             const std::string bridge_local_id = std::string(interner.resolve(in.semantic.id));
-             const std::string collapsed_port = signal_key::make_node_port_key(parent_collapsed_id, bridge_local_id);
-             const std::string child_scope = signal_key::make_child_scope_key(parent_collapsed_id, bridge_local_id);
-             proxy_port_to_bridge[collapsed_port] = child_scope;
-         }
-     }
-
-     for (const auto& nested_child : inline_bp.nested()) {
-         if (nested_child.embedded && nested_child.inline_def) {
-             collect_nested_devices_recursive(
-                 *nested_child.inline_def,
-                 type_registry,
-                 interner,
-                 emitted_ids,
-                 devices,
-                 proxy_port_to_bridge,
-                 signal_key::make_child_scope_key(parent_collapsed_id, std::string(interner.resolve(nested_child.id))));
-         }
-     }
-}
-
-void collect_nested_connections_recursive(
-    const bp2::Blueprint& inline_bp,
-    const bp2::PathArena& arena,
-    const ui::StringInterner& interner,
-    std::set<std::string>& emitted_conn_keys,
-    json& connections,
-    const std::string& parent_collapsed_id) {
-    for (const bp2::Blueprint::Wire& w : inline_bp.wires()) {
-        if (w.source.kind() != bp2::PathKind::Port || w.target.kind() != bp2::PathKind::Port) {
-            continue;
-        }
-        const bp2::Path src_parent = arena.parent(w.source);
-        const bp2::Path tgt_parent = arena.parent(w.target);
-         if (src_parent.kind() != bp2::PathKind::Node || tgt_parent.kind() != bp2::PathKind::Node) {
-             continue;
-         }
-
-         std::string src_node_s = signal_key::make_child_scope_key(parent_collapsed_id, std::string(interner.resolve(src_parent.segment())));
-         std::string src_port_s = std::string(interner.resolve(w.source.segment()));
-         std::string tgt_node_s = signal_key::make_child_scope_key(parent_collapsed_id, std::string(interner.resolve(tgt_parent.segment())));
-         std::string tgt_port_s = std::string(interner.resolve(w.target.segment()));
-
-         const std::string key = signal_key::make_node_port_key(src_node_s, src_port_s) + "->" + signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
-         if (!emitted_conn_keys.insert(key).second) {
-             spdlog::warn("[dedup] Duplicate connection on sim export: {}", key);
-             continue;
-         }
-
-         json conn = json::object();
-         conn["from"] = signal_key::make_node_port_key(src_node_s, src_port_s);
-         conn["to"] = signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
-         connections.push_back(std::move(conn));
-     }
-
-     for (const auto& nested_child : inline_bp.nested()) {
-         if (nested_child.embedded && nested_child.inline_def) {
-             collect_nested_connections_recursive(
-                 *nested_child.inline_def,
-                 arena,
-                 interner,
-                 emitted_conn_keys,
-                 connections,
-                 signal_key::make_child_scope_key(parent_collapsed_id, std::string(interner.resolve(nested_child.id))));
-         }
-     }
-}
-
-} // namespace
-
-std::string Document::build_simulation_json() const {
+std::string Document::build_simulation_json() {
     const bp2::Blueprint& bp = model_.current();
     json out = json::object();
     out["templates"] = json::object();
 
-    json devices = json::array();
-    std::set<std::string> emitted_ids;
-    std::map<std::string, std::string> proxy_port_to_bridge;
+    bp2::BlueprintLibrary library;
 
-    for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        if (n.view.expandable) {
-            const auto* nested = bp.find_nested(n.semantic.id);
-            if (nested && nested->embedded && nested->inline_def) {
-                std::string parent_id = std::string(interner_.resolve(n.semantic.id));
-                collect_nested_devices_recursive(
-                    *nested->inline_def,
-                    type_registry_,
-                    interner_,
-                    emitted_ids,
-                    devices,
-                    proxy_port_to_bridge,
-                    parent_id);
+    if (type_registry_) {
+        std::string library_path = "library/";
+        {
+            std::filesystem::path lp(library_path);
+            if (!std::filesystem::exists(lp) && lp.is_relative()) {
+                std::vector<std::filesystem::path> try_paths = {
+                    lp, "../" / lp, "../../" / lp, "../../../" / lp,
+                };
+                for (const auto& p : try_paths) {
+                    if (std::filesystem::exists(p)) {
+                        library_path = p.string();
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (const auto& [classname, def] : type_registry_->types) {
+            if (def.cpp_class) {
                 continue;
             }
-        }
 
-        std::string nid = std::string(interner_.resolve(n.semantic.id));
-        if (!emitted_ids.insert(nid).second) {
-            spdlog::warn("[dedup] Duplicate node '{}' on sim export", nid);
-            continue;
-        }
-
-        json device = json::object();
-        device["name"] = nid;
-        device["template_name"] = "";
-        device["classname"] = std::string(interner_.resolve(n.semantic.type));
-        if (!n.view.render_hint.empty()) {
-            device["render_hint"] = n.view.render_hint;
-        }
-        device["priority"] = "med";
-        device["bucket"] = nullptr;
-        device["critical"] = false;
-
-        json ports = json::object();
-        for (const auto& p : n.view.inputs) {
-            ports[std::string(interner_.resolve(p.name))] = {
-                {"direction", "In"},
-                {"type", sim_port_type_str(p.type)}
-            };
-        }
-        for (const auto& p : n.view.outputs) {
-            ports[std::string(interner_.resolve(p.name))] = {
-                {"direction", "Out"},
-                {"type", sim_port_type_str(p.type)}
-            };
-        }
-        device["ports"] = std::move(ports);
-
-        const TypeDefinition* type_def = nullptr;
-        std::string classname = std::string(interner_.resolve(n.semantic.type));
-        if (type_registry_) {
-            type_def = type_registry_->get(classname);
-        }
-        auto is_visual_only = [&](const std::string& key) -> bool {
-            if (!type_def) return false;
-            auto it = type_def->param_schema.find(key);
-            return it != type_def->param_schema.end() && it->second.visual_only;
-        };
-
-        auto is_int_param = [&](const std::string& key) -> bool {
-            if (!type_def) return false;
-            auto it = type_def->param_schema.find(key);
-            return it != type_def->param_schema.end() && it->second.type == ParamSchemaType::Int;
-        };
-
-        json params = json::object();
-        for (const auto& [k, v] : n.semantic.params) {
-            std::string key = std::string(interner_.resolve(k));
-            if (is_visual_only(key)) continue;
-            if (is_int_param(key)) {
-                params[key] = std::to_string(static_cast<long long>(v));
-            } else {
-                params[key] = std::to_string(v);
+            std::filesystem::path blueprint_file = std::filesystem::path(library_path);
+            auto cat_it = type_registry_->categories.find(classname);
+            if (cat_it != type_registry_->categories.end() && !cat_it->second.empty()) {
+                blueprint_file /= cat_it->second;
             }
-        }
-        for (const auto& [k, v] : n.semantic.string_params) {
-            if (is_visual_only(k)) continue;
-            params[k] = v;
-        }
-        if (!params.empty()) {
-            device["params"] = std::move(params);
-        }
+            blueprint_file /= (classname + ".blueprint");
 
-        devices.push_back(std::move(device));
-    }
-    out["devices"] = std::move(devices);
-
-    json connections = json::array();
-    std::set<std::string> emitted_conn_keys;
-
-    for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        if (n.view.expandable) {
-            const auto* nested = bp.find_nested(n.semantic.id);
-            if (nested && nested->embedded && nested->inline_def) {
-                collect_nested_connections_recursive(
-                    *nested->inline_def,
-                    arena_,
-                    interner_,
-                    emitted_conn_keys,
-                    connections,
-                    std::string(interner_.resolve(n.semantic.id)));
+            auto loaded = load_blueprint_from_file_validated(
+                blueprint_file.string().c_str(),
+                interner_,
+                arena_,
+                *type_registry_);
+            if (!loaded) {
+                spdlog::warn("[editor] export flatten: failed to load reference blueprint '{}' from '{}'",
+                             classname,
+                             blueprint_file.string());
                 continue;
             }
+            library.add(interner_.intern(classname), std::move(*loaded));
         }
     }
 
-    for (const bp2::Blueprint::Wire& w : bp.wires()) {
-        auto [src_node, src_port] = bp2_path_to_node_port(w.source);
-        auto [tgt_node, tgt_port] = bp2_path_to_node_port(w.target);
-        if (src_node.empty() || src_port.empty() || tgt_node.empty() || tgt_port.empty()) {
-            continue;
-        }
-
-         std::string src_node_s = std::string(interner_.resolve(src_node));
-         std::string src_port_s = std::string(interner_.resolve(src_port));
-         std::string tgt_node_s = std::string(interner_.resolve(tgt_node));
-         std::string tgt_port_s = std::string(interner_.resolve(tgt_port));
-
-         std::string src_key = signal_key::make_node_port_key(src_node_s, src_port_s);
-         {
-             auto it = proxy_port_to_bridge.find(src_key);
-             if (it != proxy_port_to_bridge.end()) {
-                 src_node_s = it->second;
-                 src_port_s = "ext";
-             }
-         }
-         std::string tgt_key = signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
-         {
-             auto it = proxy_port_to_bridge.find(tgt_key);
-             if (it != proxy_port_to_bridge.end()) {
-                 tgt_node_s = it->second;
-                 tgt_port_s = "ext";
-             }
-         }
-
-         const std::string key = signal_key::make_node_port_key(src_node_s, src_port_s) + "->" + signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
-        if (!emitted_conn_keys.insert(key).second) {
-            spdlog::warn("[dedup] Duplicate connection on sim export: {}", key);
-            continue;
-        }
-
-         json conn = json::object();
-         conn["from"] = signal_key::make_node_port_key(src_node_s, src_port_s);
-         conn["to"] = signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
-        connections.push_back(std::move(conn));
-    }
-    out["connections"] = std::move(connections);
-
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(bp, arena_);
+    auto exported = bp2::elaboration::to_simulation_export(netlist, arena_, interner_, type_registry_);
+    out["devices"] = std::move(exported.devices);
+    out["connections"] = std::move(exported.connections);
     return out.dump(2);
 }
 

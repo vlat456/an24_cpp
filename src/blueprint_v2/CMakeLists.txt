@@ -1,6 +1,7 @@
 add_library(blueprint_v2 STATIC
     path/path.cpp
     interface/interface.cpp
+    interface/node_port_projection.cpp
     blueprint/blueprint.cpp
     library/blueprint_library.cpp
     codec/blueprint_codec.cpp
@@ -8,6 +9,7 @@ add_library(blueprint_v2 STATIC
     codec/blueprint_codec_encode.cpp
     codec/blueprint_codec_decode.cpp
     flattener/flattener.cpp
+    elaboration/sim_export.cpp
     editor_model/editor_model.cpp
     validation/path_resolver.cpp
     validation/wire_validator.cpp

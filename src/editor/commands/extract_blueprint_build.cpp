@@ -11,27 +11,22 @@ namespace {
 // Local helpers
 // ========================================================================
 
-/// Build proxy ports (collapsed node inputs/outputs) and iface from a
-/// sorted list of external connections.  Used once in build_parent_blueprint_from_plan
-/// to populate both the visual port lists and the structural Interface.
-void append_proxy_ports(bp2::Blueprint::Node& collapsed,
-                        const std::vector<ExternalConnection>& conns,
+/// Build proxy iface ports from sorted external connections.
+void append_proxy_ports(const std::vector<ExternalConnection>& conns,
                         bool is_input,
                         ui::StringInterner& interner,
                         std::vector<bp2::PortDescriptor>& proxy_ports_out) {
-    const bp2::PortSide side = is_input ? bp2::PortSide::Input : bp2::PortSide::Output;
     const bp2::Direction dir = is_input ? bp2::Direction::Input : bp2::Direction::Output;
-     auto& port_list = is_input ? collapsed.view.inputs : collapsed.view.outputs;
-     for (const auto& ec : conns) {
-         const PortType pt = resolve_port_type(ec);
-         const ui::InternedId iface_iid = interner.intern(ec.iface_name);
-         port_list.emplace_back(iface_iid, side, pt);
-         bp2::PortDescriptor pd;
-         pd.name = iface_iid;
-         pd.domain = ec.domain;
-         pd.direction = dir;
-         proxy_ports_out.push_back(std::move(pd));
-     }
+    for (const auto& ec : conns) {
+        const PortType pt = resolve_port_type(ec);
+        const ui::InternedId iface_iid = interner.intern(ec.iface_name);
+        bp2::PortDescriptor pd;
+        pd.name = iface_iid;
+        pd.domain = ec.domain;
+        pd.direction = dir;
+        pd.port_type = pt;
+        proxy_ports_out.push_back(std::move(pd));
+    }
 }
 
 /// Build interface port descriptors from inputs + outputs.  Shared between
@@ -42,19 +37,21 @@ std::vector<bp2::PortDescriptor> build_iface_ports(
     ui::StringInterner& interner) {
     std::vector<bp2::PortDescriptor> ports;
     ports.reserve(inputs.size() + outputs.size());
-     for (const auto& ec : inputs) {
-         bp2::PortDescriptor pd;
-         pd.name = interner.intern(ec.iface_name);
-         pd.domain = ec.domain;
-         pd.direction = bp2::Direction::Input;
-         ports.push_back(std::move(pd));
-     }
-     for (const auto& ec : outputs) {
-         bp2::PortDescriptor pd;
-         pd.name = interner.intern(ec.iface_name);
-         pd.domain = ec.domain;
-         pd.direction = bp2::Direction::Output;
-         ports.push_back(std::move(pd));
+    for (const auto& ec : inputs) {
+        bp2::PortDescriptor pd;
+        pd.name = interner.intern(ec.iface_name);
+        pd.domain = ec.domain;
+        pd.direction = bp2::Direction::Input;
+        pd.port_type = resolve_port_type(ec);
+        ports.push_back(std::move(pd));
+    }
+    for (const auto& ec : outputs) {
+        bp2::PortDescriptor pd;
+        pd.name = interner.intern(ec.iface_name);
+        pd.domain = ec.domain;
+        pd.direction = bp2::Direction::Output;
+        pd.port_type = resolve_port_type(ec);
+        ports.push_back(std::move(pd));
     }
     return ports;
 }
@@ -69,7 +66,7 @@ bool create_bridge_pair(
     float input_x,
     float output_x,
     float fallback_y_origin,
-    const std::string& group_id,
+    const std::string& scope_id,
     const char* input_prefix,
     const char* output_prefix,
     const ui::InternedId* canonical_nested_instance_id,
@@ -79,14 +76,14 @@ bool create_bridge_pair(
     std::unordered_map<std::string, ui::InternedId>& output_bridge_ids,
     std::string* error_out) {
     BridgeSideBuildParams in_params{inputs, true, node_center_y,
-                                    input_x, fallback_y_origin, group_id,
+                                    input_x, fallback_y_origin, scope_id,
                                     input_prefix, canonical_nested_instance_id};
     if (!create_bridge_nodes_for_side(out, in_params, interner,
                                       used_node_ids, input_bridge_ids, error_out)) {
         return false;
     }
     BridgeSideBuildParams out_params{outputs, false, node_center_y,
-                                     output_x, fallback_y_origin, group_id,
+                                     output_x, fallback_y_origin, scope_id,
                                      output_prefix, canonical_nested_instance_id};
     if (!create_bridge_nodes_for_side(out, out_params, interner,
                                       used_node_ids, output_bridge_ids, error_out)) {
@@ -138,34 +135,36 @@ bool append_selected_embedded_nested_for_inline(
     std::string* error_out) {
     std::unordered_map<ui::InternedId, const bp2::Blueprint::Nested*> embedded_by_blueprint_id;
     for (const auto& n : source.nested()) {
-        if (!n.embedded || !n.inline_def) {
+        if (!n.is_embedded() || !n.inline_def()) {
             continue;
         }
-        auto it = embedded_by_blueprint_id.find(n.blueprint_id);
+        auto it = embedded_by_blueprint_id.find(n.blueprint_id());
         if (it == embedded_by_blueprint_id.end() || n.id.raw() < it->second->id.raw()) {
-            embedded_by_blueprint_id[n.blueprint_id] = &n;
+            embedded_by_blueprint_id[n.blueprint_id()] = &n;
         }
     }
 
     std::function<bool(bp2::Blueprint::Nested&)> remap_descendants;
     remap_descendants = [&](bp2::Blueprint::Nested& owner) -> bool {
-        if (!owner.inline_def) {
+        if (!owner.inline_def()) {
             return true;
         }
 
         std::vector<bp2::Blueprint::Nested> remapped;
-        remapped.reserve(owner.inline_def->nested().size());
-        for (const auto& child_src : owner.inline_def->nested()) {
+        remapped.reserve(owner.inline_def()->nested().size());
+        for (const auto& child_src : owner.inline_def()->nested()) {
             bp2::Blueprint::Nested child = child_src;
-            if (!child.embedded) {
-                auto it = embedded_by_blueprint_id.find(child.blueprint_id);
+            if (!child.is_embedded()) {
+                auto it = embedded_by_blueprint_id.find(child.blueprint_id());
                 if (it != embedded_by_blueprint_id.end()) {
                     const bp2::Blueprint::Nested* resolved = it->second;
-                    child.embedded = true;
-                    child.iface = resolved->iface;
-                    if (resolved->inline_def) {
-                        child.inline_def = std::make_unique<bp2::Blueprint>(*resolved->inline_def);
-                    }
+                    // Convert reference to embedded by creating new Embedded content
+                    child.convert_to_embedded(
+                        child.blueprint_id(),
+                        resolved->inline_def()
+                            ? std::make_unique<bp2::Blueprint>(*resolved->inline_def())
+                            : std::make_unique<bp2::Blueprint>()
+                    );
                 } else if (!allow_nonembedded_descendant_refs) {
                     return set_error(error_out, "selected embedded nested contains non-embedded descendant references");
                 }
@@ -177,14 +176,14 @@ bool append_selected_embedded_nested_for_inline(
             remapped.push_back(std::move(child));
         }
 
-        bp2::Blueprint rebuilt = *owner.inline_def;
-        for (const auto& existing : owner.inline_def->nested()) {
+        bp2::Blueprint rebuilt = *owner.inline_def();
+        for (const auto& existing : owner.inline_def()->nested()) {
             rebuilt = rebuilt.without_nested(existing.id);
         }
         for (auto& child : remapped) {
             rebuilt = rebuilt.with_nested(std::move(child));
         }
-        owner.inline_def = std::make_unique<bp2::Blueprint>(std::move(rebuilt));
+        owner.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(rebuilt)));
         return true;
     };
 
@@ -202,10 +201,10 @@ bool append_selected_embedded_nested_for_inline(
     });
 
     for (const auto* n : selected_nested) {
-        if (!n->embedded) {
+        if (!n->is_embedded()) {
             return set_error(error_out, "selected non-embedded nested instance cannot be inlined");
         }
-        if (!n->inline_def) {
+        if (!n->inline_def()) {
             return set_error(error_out, "selected embedded nested instance missing inline_def");
         }
         if (inline_bp.find_nested(n->id) != nullptr) {
@@ -243,7 +242,7 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
     for (auto node : plan.internal_nodes) {
         node.layout.x = (node.layout.x - min_x) + left_margin;
         node.layout.y = (node.layout.y - min_y);
-        node.layout.group_id.clear();
+        node.layout.layout_group.clear();
         max_internal_right = std::max(max_internal_right, node.layout.x + node.layout.width.value_or(kDefaultNodeWidth));
         translated_nodes.push_back(node);
         out = out.with_node(std::move(node));
@@ -311,7 +310,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     const ExtractionPlan& plan,
     ui::InternedId blueprint_iid,
     const std::string& blueprint_name,
-    const std::string& group_id,
+    const std::string& scope_id,
     bool allow_nonembedded_descendant_refs,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
@@ -331,12 +330,12 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
         return std::nullopt;
     }
     used_node_ids.insert(nested_instance_id);
-    const std::string nested_group_id = std::string(interner.resolve(nested_instance_id));
+    const std::string nested_scope_id = std::string(interner.resolve(nested_instance_id));
 
      for (const auto& nsrc : source.nodes()) {
          auto n = nsrc;
          if (plan.selected_set.find(n.semantic.id) != plan.selected_set.end()) {
-             n.layout.group_id = nested_group_id;
+             n.layout.layout_group = nested_scope_id;
          }
          out = out.with_node(std::move(n));
      }
@@ -374,14 +373,10 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     }
     bp2::Blueprint inline_bp = std::move(*inline_bp_opt);
 
-    bp2::Blueprint::Nested nested;
-    nested.id = nested_instance_id;
-    nested.blueprint_id = blueprint_iid;
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>(std::move(inline_bp));
-    nested.iface = nested.inline_def->iface();
-    nested.x = plan.center_x;
-    nested.y = plan.center_y;
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        nested_instance_id, blueprint_iid,
+        std::make_unique<bp2::Blueprint>(std::move(inline_bp)),
+        plan.center_x, plan.center_y);
     out = out.with_nested(std::move(nested));
 
     // -- Build collapsed proxy node ------------------------------------------
@@ -392,7 +387,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     collapsed.view.expandable = true;
     collapsed.layout.collapsed = true;
     collapsed.view.blueprint_path = blueprint_name;
-    collapsed.layout.group_id = group_id;
+    collapsed.layout.layout_group = scope_id;
     collapsed.layout.x = plan.center_x;
     collapsed.layout.y = plan.center_y;
     collapsed.layout.width = 160.0f;
@@ -403,8 +398,8 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     std::sort(sorted_outputs.begin(), sorted_outputs.end(), compare_external);
     std::vector<bp2::PortDescriptor> proxy_ports;
     proxy_ports.reserve(sorted_inputs.size() + sorted_outputs.size());
-    append_proxy_ports(collapsed, sorted_inputs, true, interner, proxy_ports);
-    append_proxy_ports(collapsed, sorted_outputs, false, interner, proxy_ports);
+    append_proxy_ports(sorted_inputs, true, interner, proxy_ports);
+    append_proxy_ports(sorted_outputs, false, interner, proxy_ports);
     collapsed.semantic.iface = bp2::Interface(std::move(proxy_ports));
     out = out.with_node(std::move(collapsed));
 
@@ -431,7 +426,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
                             plan.min_x - 160.0f,
                             plan.max_x + 160.0f,
                             plan.min_y,
-                            nested_group_id,
+                            nested_scope_id,
                             "", "",
                             &nested_instance_id,
                             interner, used_node_ids,

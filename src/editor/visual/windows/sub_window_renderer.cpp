@@ -11,9 +11,9 @@ void SubWindowRenderer::renderAll(::WindowSystem& ws) {
         doc->windowManager().remove_closed_windows();
         for (auto& win_ptr : doc->windowManager().windows()) {
             auto& win = *win_ptr;
-            // Show sub-windows: either embedded groups (non-empty group_id)
+            // Show sub-windows: either embedded groups (non-empty scope_id)
             // or external-reference windows
-            if (!win.is_external_ref() && win.group_id.empty()) continue;
+            if (!win.is_external_ref() && win.scope_id.empty()) continue;
             if (!win.open) continue;
             renderWindow(*doc, win, ws);
         }
@@ -25,7 +25,11 @@ void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, ::Wind
     
     std::string win_title = win.title;
     if (win.read_only) win_title += " [Read Only]";
-    win_title += " [" + doc.displayName() + "]###" + doc.id() + ":" + win.group_id;
+    // External-ref windows use parent_instance_id for unique ImGui hash
+    // (scope_id is empty for external refs, which would cause ID collisions).
+    const std::string& win_hash_key = win.is_external_ref()
+        ? win.parent_instance_id : win.scope_id;
+    win_title += " [" + doc.displayName() + "]###" + doc.id() + ":" + win_hash_key;
     
     if (!ImGui::Begin(win_title.c_str(), &win.open,
             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
@@ -59,7 +63,7 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
         const bp2::Blueprint& rebuild_bp = win.rendered_blueprint();
         ui::StringInterner& rebuild_interner = win.rendered_interner();
         bp2::PathArena& rebuild_arena = win.rendered_arena();
-        const std::string& rebuild_group = win.is_external_ref() ? "" : win.group_id;
+        const std::string& rebuild_group = win.is_external_ref() ? "" : win.scope_id;
         visual::mutations::rebuild(win.scene, rebuild_bp,
                                    rebuild_interner, rebuild_arena, rebuild_group);
         fitViewToContent(doc, win);
@@ -70,7 +74,7 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
     bool has_sel = !win.input.selected_nodes().empty();
     if (!has_sel) ImGui::BeginDisabled();
     if (ImGui::Button("Delete")) {
-        auto action = doc.applyInputResult(win.input.on_key(Key::Delete), win.group_id);
+        auto action = doc.applyInputResult(win.input.on_key(Key::Delete), win.scope_id);
         ws.handleInputAction(action, doc);
     }
     if (!has_sel) ImGui::EndDisabled();
@@ -80,7 +84,9 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
 
 void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, ::WindowSystem& ws) {
     ImVec2 content_size = ImGui::GetContentRegionAvail();
-    ImGui::InvisibleButton(("##canvas_" + doc.id() + "_" + win.group_id).c_str(), content_size);
+    const std::string& canvas_key = win.is_external_ref()
+        ? win.parent_instance_id : win.scope_id;
+    ImGui::InvisibleButton(("##canvas_" + doc.id() + "_" + canvas_key).c_str(), content_size);
     bool hovered = ImGui::IsItemHovered();
     
     auto cmin_region = ImGui::GetWindowContentRegionMin();
@@ -95,13 +101,8 @@ void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
     Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
     // For external-ref windows, iterate the external blueprint's nodes (root scope)
     const bp2::Blueprint& bp = win.rendered_blueprint();
-    // For embedded subwindows with embedded_model, nodes have empty group_id
-    // (the inline_def is already scoped to the composite). For external-ref, same.
-    const std::string filter_group =
-        (win.is_external_ref() || win.embedded_model) ? "" : win.group_id;
-    // Use string comparison — group_id is a std::string, not InternedId
     for (const bp2::Blueprint::Node& node : bp.nodes()) {
-        if (node.layout.group_id != filter_group) continue;
+        if (win.scope_id.empty() && !node.layout.layout_group.empty()) continue;
         bmin.x = std::min(bmin.x, node.layout.x);
         bmin.y = std::min(bmin.y, node.layout.y);
         float w = node.layout.width.value_or(120.0f);

@@ -1,5 +1,6 @@
 #include "path_resolver.h"
 
+#include "blueprint_v2/interface/type_definition_interface.h"
 #include "json_parser/json_parser.h"
 
 #include <algorithm>
@@ -11,33 +12,6 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
                                                   PathArena const& arena,
                                                   const ::TypeRegistry& parser_registry,
                                                   ui::StringInterner& interner) const {
-    auto to_direction = [](PortDirection d) {
-        switch (d) {
-            case PortDirection::In: return Direction::Input;
-            case PortDirection::Out: return Direction::Output;
-            case PortDirection::InOut: return Direction::InOut;
-        }
-        return Direction::InOut;
-    };
-    auto to_domain = [](PortType t) {
-        switch (t) {
-            case PortType::V:
-            case PortType::I:
-            case PortType::Any:
-                return Domain::Electrical;
-            case PortType::Bool:
-                return Domain::Logical;
-            case PortType::RPM:
-            case PortType::Position:
-                return Domain::Mechanical;
-            case PortType::Pressure:
-                return Domain::Hydraulic;
-            case PortType::Temperature:
-                return Domain::Thermal;
-        }
-        return Domain::Electrical;
-    };
-
     if (path.kind() != PathKind::Port) {
         return std::nullopt;
     }
@@ -72,8 +46,8 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
             if (!current_nested) {
                 return std::nullopt;
             }
-            if (current_nested->embedded && current_nested->inline_def) {
-                current_bp = current_nested->inline_def.get();
+            if (auto* def = current_nested->inline_def()) {
+                current_bp = def;
             } else {
                 return std::nullopt;
             }
@@ -82,7 +56,7 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
         if (!current_nested) {
             return std::nullopt;
         }
-        auto maybe = current_nested->iface.find(port_name);
+        auto maybe = current_nested->resolved_iface().find(port_name);
         if (!maybe.has_value()) {
             return std::nullopt;
         }
@@ -106,10 +80,10 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
             const bool is_last = (i + 1 == chain.size());
             if (seg.kind() == PathKind::Nested) {
                 auto const* nested = current_bp->find_nested(seg.segment());
-                if (!nested || !nested->embedded || !nested->inline_def) {
+                if (!nested || !nested->inline_def()) {
                     return std::nullopt;
                 }
-                current_bp = nested->inline_def.get();
+                current_bp = nested->inline_def();
                 current_bp_path = seg;
                 continue;
             }
@@ -146,11 +120,7 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
             return std::nullopt;
         }
 
-        PortDescriptor pd;
-        pd.name = port_name;
-        pd.domain = to_domain(pit->second.type);
-        pd.direction = to_direction(pit->second.direction);
-        return ResolvedPort{pd, current_bp_path, false};
+        return ResolvedPort{port_descriptor_from_type_port(port_name, pit->second), current_bp_path, false};
     }
 
     return std::nullopt;

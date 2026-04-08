@@ -7,6 +7,7 @@
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
+#include <cassert>
 #include <string>
 #include <optional>
 
@@ -14,14 +15,14 @@ struct TypeRegistry;
 
 /// Rendering mode for a BlueprintWindow.
 enum class BlueprintWindowMode {
-    RootDocument,       ///< Main document canvas (group_id is empty)
-    EmbeddedGroup,      ///< Embedded sub-blueprint filtered by group_id
+    RootDocument,       ///< Main document canvas (scope_id is empty)
+    EmbeddedGroup,      ///< Embedded sub-blueprint filtered by layout_group
     ExternalReference,  ///< Read-only view of external blueprint, signals mapped through parent
 };
 
 struct BlueprintWindow {
     std::string title;
-    std::string group_id;
+    std::string scope_id;
     bool open = true;
 
     std::unique_ptr<bp2::EditorModel> embedded_model;
@@ -60,42 +61,44 @@ struct BlueprintWindow {
     static std::unique_ptr<bp2::EditorModel> make_embedded_model(
         bp2::EditorModel& root_model,
         ui::StringInterner& interner,
-        const std::string& group_id) {
-        if (group_id.empty()) {
+        const std::string& scope_id) {
+        if (scope_id.empty()) {
             return nullptr;
         }
-        const ui::InternedId group_iid = interner.lookup(group_id);
+        const ui::InternedId group_iid = interner.lookup(scope_id);
         const bp2::Blueprint::Nested* nested = group_iid.empty()
             ? nullptr
             : root_model.current().find_nested(group_iid);
-        if (!nested || !nested->inline_def) {
-            return nullptr;
+        if (!nested) {
+            assert(false && "Embedded window construction requires existing nested instance");
+            throw std::logic_error("Embedded window construction failed: nested instance not found");
         }
-        return std::make_unique<bp2::EditorModel>(*nested->inline_def);
+        if (!nested->is_embedded() || !nested->inline_def()) {
+            assert(false && "Embedded window construction requires embedded nested with inline_def");
+            throw std::logic_error("Embedded window construction failed: nested instance missing inline_def");
+        }
+        return std::make_unique<bp2::EditorModel>(*nested->inline_def());
     }
 
     BlueprintWindow(bp2::EditorModel& model_, ui::StringInterner& interner_,
                     bp2::PathArena& arena_,
-                    const std::string& group_id_,
+                    const std::string& scope_id_,
                     const std::string& title_,
                     const TypeRegistry* parser_registry = nullptr)
         : title(title_)
-        , group_id(group_id_)
-        , embedded_model(make_embedded_model(model_, interner_, group_id_))
+        , scope_id(scope_id_)
+        , embedded_model(make_embedded_model(model_, interner_, scope_id_))
         , model(embedded_model ? *embedded_model : model_)
         , interner(interner_)
         , arena(arena_)
         , scene()
         , viewport()
-        , input(scene, viewport, model, interner_, arena_, embedded_model ? "" : group_id_, parser_registry)
+        , input(scene, viewport, model, interner_, arena_, "", parser_registry)
     {
         viewport.grid_step = model_.current().grid_step();
 
         if (embedded_model) {
             visual::mutations::rebuild(scene, embedded_model->current(), interner_, arena_, "");
-            mode = BlueprintWindowMode::EmbeddedGroup;
-        } else if (!group_id_.empty()) {
-            visual::mutations::rebuild(scene, model_.current(), interner_, arena_, group_id_);
             mode = BlueprintWindowMode::EmbeddedGroup;
         } else {
             visual::mutations::rebuild(scene, model_.current(), interner_, arena_, "");
@@ -110,12 +113,20 @@ struct BlueprintWindow {
     /// Check if this window is in external reference mode.
     bool is_external_ref() const { return mode == BlueprintWindowMode::ExternalReference; }
 
-    /// Get the blueprint to render (external or parent's filtered by group_id).
+    /// Get the blueprint to render (external or parent's filtered by layout_group).
     const bp2::Blueprint& rendered_blueprint() const {
-        if (mode == BlueprintWindowMode::ExternalReference && external_blueprint.has_value()) {
-            return *external_blueprint;
+        if (mode == BlueprintWindowMode::ExternalReference) {
+            if (external_blueprint.has_value()) {
+                return *external_blueprint;
+            }
+            assert(false && "ExternalReference window missing external_blueprint");
+            throw std::logic_error("ExternalReference window missing external_blueprint");
         }
-        if (mode == BlueprintWindowMode::EmbeddedGroup && embedded_model) {
+        if (mode == BlueprintWindowMode::EmbeddedGroup) {
+            assert(embedded_model && "EmbeddedGroup window must have embedded_model");
+            if (!embedded_model) {
+                throw std::logic_error("EmbeddedGroup window missing embedded_model");
+            }
             return embedded_model->current();
         }
         return model.current();

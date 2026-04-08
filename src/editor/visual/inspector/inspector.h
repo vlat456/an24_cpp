@@ -2,6 +2,7 @@
 
 #include "visual/inspector/display_tree.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/blueprint/node_port.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include <string>
@@ -25,16 +26,16 @@ public:
 
     /// Constructor with blueprint pointer and group filter
     Inspector(const bp2::Blueprint* bp, const bp2::PathArena* arena,
-              const ui::StringInterner* interner, const std::string& group_id = "");
+              const ui::StringInterner* interner, const std::string& scope_id = "");
 
     /// Set the blueprint to inspect (for switching between documents)
     void setBlueprint(const bp2::Blueprint& bp, const bp2::PathArena& arena,
                       const ui::StringInterner& interner,
-                      const std::string& group_id = "") {
+                      const std::string& scope_id = "") {
         bp_ = &bp;
         arena_ = &arena;
         interner_ = &interner;
-        group_id_ = group_id;
+        scope_id_ = scope_id;
         markDirty();
     }
 
@@ -64,7 +65,7 @@ private:
     const bp2::Blueprint*    bp_       = nullptr;
     const bp2::PathArena*    arena_    = nullptr;
     const ui::StringInterner* interner_ = nullptr;
-    std::string group_id_;
+    std::string scope_id_;
     std::vector<DisplayNode> display_tree_;
 
     // Dirty tracking
@@ -73,7 +74,7 @@ private:
     size_t last_wire_count_ = 0;
 
      /// Check whether a node belongs to this inspector's group
-     bool ownsNode(const bp2::Blueprint::Node& n) const { return n.layout.group_id == group_id_; }
+     bool ownsNode(const bp2::Blueprint::Node& n) const { return n.layout.layout_group == scope_id_; }
     /// Check whether a wire belongs to this inspector's group (both endpoints)
     bool ownsWire(const bp2::Blueprint::Wire& w) const;
 

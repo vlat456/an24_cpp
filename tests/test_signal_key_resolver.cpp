@@ -3,7 +3,13 @@
 #include "editor/signal_key_resolver.h"
 #include "editor/external_ref_mapping.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/interface/interface.h"
+#include "blueprint_v2/interface/port_descriptor.h"
 #include "ui/core/interned_id.h"
+
+// Helper to make a PortDescriptor for a semantic interface
+// Shared bp2 test helpers (make_port, set_iface)
+#include "bp2_test_helpers.h"
 
 // =============================================================================
 // Unit tests: signal key resolver
@@ -258,7 +264,7 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_ColonConvention_Found) {
     bridge_node.semantic.id = interner.intern("gp_1:v_in");
     bridge_node.semantic.type = interner.intern("BlueprintInput");
     bridge_node.view.name = "v_in";
-    bridge_node.layout.group_id = "gp_1";
+    bridge_node.layout.layout_group = "gp_1";
     bp = bp.with_node(std::move(bridge_node));
 
     // Create expandable proxy node
@@ -267,13 +273,15 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_ColonConvention_Found) {
     proxy_node.semantic.type = interner.intern("GroundPower");
     proxy_node.view.expandable = true;
     proxy_node.view.blueprint_path = "electrical/GroundPower.blueprint";
-    proxy_node.view.outputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
+    set_iface(proxy_node, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
     // Create nested entry
-    bp2::Blueprint::Nested nested;
-    nested.id = proxy_node.semantic.id;
-    nested.blueprint_id = interner.intern("GroundPower");
-    nested.embedded = true;
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        proxy_node.semantic.id,
+        interner.intern("GroundPower"),
+        std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
     bp = bp.with_node(std::move(proxy_node));
 
@@ -304,7 +312,7 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_UnderscoreConvention_NotFound) {
     bad_bridge.semantic.id = interner.intern("gp_1_v_in");
     bad_bridge.semantic.type = interner.intern("BlueprintInput");
     bad_bridge.view.name = "v_in";
-    bad_bridge.layout.group_id = "gp_1";
+    bad_bridge.layout.layout_group = "gp_1";
     bp = bp.with_node(std::move(bad_bridge));
 
     // Create expandable proxy node
@@ -313,12 +321,14 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_UnderscoreConvention_NotFound) {
     proxy_node.semantic.type = interner.intern("GroundPower");
     proxy_node.view.expandable = true;
     proxy_node.view.blueprint_path = "electrical/GroundPower.blueprint";
-    proxy_node.view.outputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
+    set_iface(proxy_node, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
-    bp2::Blueprint::Nested nested;
-    nested.id = proxy_node.semantic.id;
-    nested.blueprint_id = interner.intern("GroundPower");
-    nested.embedded = true;
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        proxy_node.semantic.id,
+        interner.intern("GroundPower"),
+        std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
     bp = bp.with_node(std::move(proxy_node));
 
@@ -373,21 +383,21 @@ TEST(SignalKeyResolver, MultipleBridgeNodes_ResolveIndependently) {
     bridge_in.semantic.id = interner.intern("gp_1:v_in");
     bridge_in.semantic.type = interner.intern("BlueprintInput");
     bridge_in.view.name = "v_in";
-    bridge_in.layout.group_id = "gp_1";
+    bridge_in.layout.layout_group = "gp_1";
     bp = bp.with_node(std::move(bridge_in));
 
     bp2::Blueprint::Node bridge_out;
     bridge_out.semantic.id = interner.intern("gp_1:v_out");
     bridge_out.semantic.type = interner.intern("BlueprintOutput");
     bridge_out.view.name = "v_out";
-    bridge_out.layout.group_id = "gp_1";
+    bridge_out.layout.layout_group = "gp_1";
     bp = bp.with_node(std::move(bridge_out));
 
     bp2::Blueprint::Node internal;
     internal.semantic.id = interner.intern("gp_1_src");
     internal.semantic.type = interner.intern("ControlledVoltageSource");
     internal.view.name = "src";
-    internal.layout.group_id = "gp_1";
+    internal.layout.layout_group = "gp_1";
     bp = bp.with_node(std::move(internal));
 
     // Create expandable proxy
@@ -396,13 +406,15 @@ TEST(SignalKeyResolver, MultipleBridgeNodes_ResolveIndependently) {
     proxy.semantic.type = interner.intern("GroundPower");
     proxy.view.expandable = true;
     proxy.view.blueprint_path = "electrical/GroundPower.blueprint";
-    proxy.view.outputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
-    proxy.view.outputs.emplace_back(interner.intern("v_out"), bp2::PortSide::Output, PortType::V);
+    set_iface(proxy, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
-    bp2::Blueprint::Nested nested;
-    nested.id = proxy.semantic.id;
-    nested.blueprint_id = interner.intern("GroundPower");
-    nested.embedded = true;
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        proxy.semantic.id,
+        interner.intern("GroundPower"),
+        std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
     bp = bp.with_node(std::move(proxy));
 
@@ -454,7 +466,7 @@ TEST(SignalKeyResolver, BridgeNode_ProxyIdWithUnderscores_ColonStillWorks) {
     bridge.semantic.id = interner.intern("ground_power_1:v_in");
     bridge.semantic.type = interner.intern("BlueprintInput");
     bridge.view.name = "v_in";
-    bridge.layout.group_id = "ground_power_1";
+    bridge.layout.layout_group = "ground_power_1";
     bp = bp.with_node(std::move(bridge));
 
     bp2::Blueprint::Node proxy;
@@ -462,12 +474,14 @@ TEST(SignalKeyResolver, BridgeNode_ProxyIdWithUnderscores_ColonStillWorks) {
     proxy.semantic.type = interner.intern("GroundPower");
     proxy.view.expandable = true;
     proxy.view.blueprint_path = "electrical/GroundPower.blueprint";
-    proxy.view.outputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
+    set_iface(proxy, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
-    bp2::Blueprint::Nested nested;
-    nested.id = proxy.semantic.id;
-    nested.blueprint_id = interner.intern("GroundPower");
-    nested.embedded = true;
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        proxy.semantic.id,
+        interner.intern("GroundPower"),
+        std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
     bp = bp.with_node(std::move(proxy));
 

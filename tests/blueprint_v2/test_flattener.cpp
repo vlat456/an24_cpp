@@ -273,11 +273,10 @@ TEST(Flattener, NestedBlueprintExpands) {
     bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
     root = root.with_node(std::move(bat));
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("sub1");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>(inner);
-    nested.iface = inner.iface();
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("sub1"),
+        ui::InternedId{},
+        std::make_unique<bp2::Blueprint>(inner));
     root = root.with_nested(std::move(nested));
 
     bp2::Blueprint::Node lnode;

@@ -30,7 +30,7 @@ TEST(Issue23NestedInlineOnly, NoRootShadowNodesByDesign) {
     bp2::Blueprint::Node collapsed;
     collapsed.semantic.id = interner.intern("comp_1");
     collapsed.semantic.type = interner.intern("FirstOrderLag");
-    collapsed.layout.group_id = "";
+    collapsed.layout.layout_group = "";
     collapsed.view.expandable = true;
     root = root.with_node(collapsed);
 
@@ -38,24 +38,23 @@ TEST(Issue23NestedInlineOnly, NoRootShadowNodesByDesign) {
     bp2::Blueprint::Node inner;
     inner.semantic.id = interner.intern("inner_node");
     inner.semantic.type = interner.intern("Battery");
-    inner.layout.group_id = "";
+    inner.layout.layout_group = "";
     inline_bp = inline_bp.with_node(inner);
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("comp_1");
-    nested.blueprint_id = interner.intern("FirstOrderLag");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>(inline_bp);
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("comp_1"),
+        interner.intern("FirstOrderLag"),
+        std::make_unique<bp2::Blueprint>(inline_bp));
     root = root.with_nested(std::move(nested));
 
     ASSERT_EQ(root.nodes().size(), 1u);
     ASSERT_EQ(root.nested().size(), 1u);
-    ASSERT_NE(root.nested()[0].inline_def, nullptr);
-    ASSERT_EQ(root.nested()[0].inline_def->nodes().size(), 1u);
+    ASSERT_NE(root.nested()[0].inline_def(), nullptr);
+    ASSERT_EQ(root.nested()[0].inline_def()->nodes().size(), 1u);
 
     const std::string nested_id = std::string(interner.resolve(root.nested()[0].id));
     for (const auto& n : root.nodes()) {
-        EXPECT_NE(n.layout.group_id, nested_id);
+        EXPECT_NE(n.layout.layout_group, nested_id);
     }
 }
 
@@ -79,12 +78,10 @@ TEST(Issue23NestedInlineOnly, PersistRoundTripKeepsInlineDef) {
     collapsed.semantic.iface = loaded_src->iface();
     root = root.with_node(collapsed);
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("comp_1");
-    nested.blueprint_id = interner.intern("FirstOrderLag");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>(*loaded_src);
-    nested.iface = collapsed.semantic.iface;
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("comp_1"),
+        interner.intern("FirstOrderLag"),
+        std::make_unique<bp2::Blueprint>(*loaded_src));
     root = root.with_nested(std::move(nested));
 
     fs::path tmp = fs::temp_directory_path();
@@ -98,8 +95,8 @@ TEST(Issue23NestedInlineOnly, PersistRoundTripKeepsInlineDef) {
 
     ASSERT_EQ(loaded->nodes().size(), 1u);
     ASSERT_EQ(loaded->nested().size(), 1u);
-    ASSERT_NE(loaded->nested()[0].inline_def, nullptr);
-    ASSERT_GT(loaded->nested()[0].inline_def->nodes().size(), 0u);
+    ASSERT_NE(loaded->nested()[0].inline_def(), nullptr);
+    ASSERT_GT(loaded->nested()[0].inline_def()->nodes().size(), 0u);
 
     fs::remove(tmp);
 }
@@ -132,20 +129,16 @@ TEST(Issue23NestedInlineOnly, PersistRoundTripKeepsNestedOfNestedInlineDefs) {
     nested_collapsed.semantic.iface = loaded_src->iface();
     child_inline = child_inline.with_node(nested_collapsed);
 
-    bp2::Blueprint::Nested child_nested;
-    child_nested.id = interner.intern("child_comp");
-    child_nested.blueprint_id = interner.intern("FirstOrderLag");
-    child_nested.embedded = true;
-    child_nested.inline_def = std::make_unique<bp2::Blueprint>(*loaded_src);
-    child_nested.iface = nested_collapsed.semantic.iface;
+    auto child_nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("child_comp"),
+        interner.intern("FirstOrderLag"),
+        std::make_unique<bp2::Blueprint>(*loaded_src));
     child_inline = child_inline.with_nested(std::move(child_nested));
 
-    bp2::Blueprint::Nested parent_nested;
-    parent_nested.id = interner.intern("parent_comp");
-    parent_nested.blueprint_id = interner.intern("FirstOrderLag");
-    parent_nested.embedded = true;
-    parent_nested.inline_def = std::make_unique<bp2::Blueprint>(std::move(child_inline));
-    parent_nested.iface = parent_collapsed.semantic.iface;
+    auto parent_nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("parent_comp"),
+        interner.intern("FirstOrderLag"),
+        std::make_unique<bp2::Blueprint>(std::move(child_inline)));
     root = root.with_nested(std::move(parent_nested));
 
     fs::path tmp = fs::temp_directory_path();
@@ -159,12 +152,12 @@ TEST(Issue23NestedInlineOnly, PersistRoundTripKeepsNestedOfNestedInlineDefs) {
 
     ASSERT_EQ(loaded->nested().size(), 1u);
     const auto& loaded_parent_nested = loaded->nested()[0];
-    ASSERT_NE(loaded_parent_nested.inline_def, nullptr);
-    ASSERT_EQ(loaded_parent_nested.inline_def->nested().size(), 1u);
+    ASSERT_NE(loaded_parent_nested.inline_def(), nullptr);
+    ASSERT_EQ(loaded_parent_nested.inline_def()->nested().size(), 1u);
 
-    const auto& loaded_child_nested = loaded_parent_nested.inline_def->nested()[0];
-    ASSERT_NE(loaded_child_nested.inline_def, nullptr);
-    ASSERT_GT(loaded_child_nested.inline_def->nodes().size(), 0u);
+    const auto& loaded_child_nested = loaded_parent_nested.inline_def()->nested()[0];
+    ASSERT_NE(loaded_child_nested.inline_def(), nullptr);
+    ASSERT_GT(loaded_child_nested.inline_def()->nodes().size(), 0u);
 
     fs::remove(tmp);
 }

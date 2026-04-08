@@ -5,30 +5,37 @@
 
 namespace bp2 {
 
-Blueprint::Nested::Nested(const Blueprint::Nested& other)
-    : id(other.id)
-    , blueprint_id(other.blueprint_id)
-    , embedded(other.embedded)
-    , iface(other.iface)
-    , x(other.x)
-    , y(other.y) {
+Blueprint::Nested::Embedded::Embedded(const Embedded& other)
+    : blueprint_id(other.blueprint_id) {
     if (other.inline_def) {
         inline_def = std::make_unique<Blueprint>(*other.inline_def);
     }
 }
 
-Blueprint::Nested& Blueprint::Nested::operator=(const Blueprint::Nested& other) {
+Blueprint::Nested::Embedded& Blueprint::Nested::Embedded::operator=(const Embedded& other) {
     if (this != &other) {
-        id = other.id;
         blueprint_id = other.blueprint_id;
-        embedded = other.embedded;
-        iface = other.iface;
-        x = other.x;
-        y = other.y;
         inline_def.reset();
         if (other.inline_def) {
             inline_def = std::make_unique<Blueprint>(*other.inline_def);
         }
+    }
+    return *this;
+}
+
+Blueprint::Nested::Nested(const Blueprint::Nested& other)
+    : id(other.id)
+    , x(other.x)
+    , y(other.y)
+    , content_(other.content_) {
+}
+
+Blueprint::Nested& Blueprint::Nested::operator=(const Blueprint::Nested& other) {
+    if (this != &other) {
+        id = other.id;
+        x = other.x;
+        y = other.y;
+        content_ = other.content_;
     }
     return *this;
 }
@@ -254,18 +261,21 @@ Blueprint Blueprint::with_name(std::string n) const {
 
 bool Blueprint::nested_equals(Nested const& a, Nested const& b) {
     if (a.id != b.id) return false;
-    if (a.blueprint_id != b.blueprint_id) return false;
-    if (a.embedded != b.embedded) return false;
-    if (a.iface != b.iface) return false;
     if (a.x != b.x) return false;
     if (a.y != b.y) return false;
-    
-    bool a_has = (a.inline_def != nullptr);
-    bool b_has = (b.inline_def != nullptr);
-    if (a_has != b_has) return false;
-    
-    if (a_has && b_has && *a.inline_def != *b.inline_def) return false;
-    
+
+    if (a.is_embedded() != b.is_embedded()) return false;
+    if (a.is_embedded()) {
+        if (a.blueprint_id() != b.blueprint_id()) return false;
+        bool a_has = (a.inline_def() != nullptr);
+        bool b_has = (b.inline_def() != nullptr);
+        if (a_has != b_has) return false;
+        if (a_has && b_has && *a.inline_def() != *b.inline_def()) return false;
+    } else {
+        if (a.blueprint_id() != b.blueprint_id()) return false;
+        if (a.resolved_iface() != b.resolved_iface()) return false;
+    }
+
     return true;
 }
 
@@ -333,11 +343,10 @@ void Blueprint::collect_ports_recursive(
     // Nested instance ports (recursively)
     for (auto const& nested : nested_) {
         Path nested_path = arena.make_nested(prefix, nested.id);
-        if (nested.embedded && nested.inline_def) {
-            nested.inline_def->collect_ports_recursive(result, arena, nested_path);
+        if (auto* def = nested.inline_def()) {
+            def->collect_ports_recursive(result, arena, nested_path);
         } else {
-            // For reference-mode, expose the cached interface ports
-            for (auto const& port : nested.iface) {
+            for (auto const& port : nested.resolved_iface()) {
                 Path port_path = arena.make_port(nested_path, port.name);
                 result.push_back({port_path, port});
             }

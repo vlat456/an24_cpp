@@ -57,9 +57,9 @@ TEST(Flattener, NestedDebug) {
     }));
 
     bp2::Blueprint::Node r1;
-    r1.id = interner.intern("r1");
-    r1.type = interner.intern("Resistor");
-    r1.iface = bp2::Interface({
+    r1.semantic.id = interner.intern("r1");
+    r1.semantic.type = interner.intern("Resistor");
+    r1.semantic.iface = bp2::Interface({
         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
         {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
     });
@@ -89,22 +89,21 @@ TEST(Flattener, NestedDebug) {
     bp2::Blueprint root;
 
     bp2::Blueprint::Node bat;
-    bat.id = interner.intern("bat1");
-    bat.type = interner.intern("Battery");
-    bat.iface = library.find(interner.intern("Battery"))->iface();
+    bat.semantic.id = interner.intern("bat1");
+    bat.semantic.type = interner.intern("Battery");
+    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
     root = root.with_node(std::move(bat));
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("sub1");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>(inner);
-    nested.iface = inner.iface();
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("sub1"),
+        ui::InternedId{},
+        std::make_unique<bp2::Blueprint>(inner));
     root = root.with_nested(std::move(nested));
 
     bp2::Blueprint::Node lnode;
-    lnode.id = interner.intern("led1");
-    lnode.type = interner.intern("LED");
-    lnode.iface = library.find(interner.intern("LED"))->iface();
+    lnode.semantic.id = interner.intern("led1");
+    lnode.semantic.type = interner.intern("LED");
+    lnode.semantic.iface = library.find(interner.intern("LED"))->iface();
     root = root.with_node(std::move(lnode));
 
     bp2::Blueprint::Wire w1;

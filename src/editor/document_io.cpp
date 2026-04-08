@@ -68,7 +68,7 @@ bool Document::load(const std::string& path) {
     vp.grid_step = model_.current().grid_step();
     vp.clamp_zoom();
 
-    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().group_id);
+    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().scope_id);
 
     filepath_ = path;
     auto pos = path.find_last_of("/\\");

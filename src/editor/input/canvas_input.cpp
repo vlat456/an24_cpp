@@ -33,13 +33,13 @@ using namespace canvas_input_impl;
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
                          bp2::EditorModel& model, ui::StringInterner& interner,
-                         bp2::PathArena& arena, const std::string& group_id,
+                         bp2::PathArena& arena, const std::string& scope_id,
                          const TypeRegistry* parser_registry)
     : scene_(scene), viewport_(viewport), model_(model),
       interner_(interner), arena_(arena),
       parser_registry_(parser_registry),
-      group_iid_(interner.intern(group_id)),
-      group_id_(interner.resolve(group_iid_))
+      group_iid_(interner.intern(scope_id)),
+      scope_id_(interner.resolve(group_iid_))
 {
 }
 

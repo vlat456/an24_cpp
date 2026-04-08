@@ -2,6 +2,7 @@
 
 #include "commands/commands.h"
 #include "common/port_type_utils.h"
+#include "blueprint_v2/interface/type_definition_interface.h"
 #include "core/solvers/common/signal_key.h"
 #include "data/node_content.h"
 #include "debug.h"
@@ -32,12 +33,12 @@ PortType parse_exposed_port_type(const std::string& s) {
 void add_bridge_port_to_composite(
     bp2::EditorModel& model,
     ui::StringInterner& interner,
-    const std::string& group_id,
+    const std::string& scope_id,
     const std::string& iface_name,
     bool is_input_bridge,
     PortType port_type)
 {
-    const ui::InternedId group_iid = interner.intern(group_id);
+    const ui::InternedId group_iid = interner.intern(scope_id);
     const ui::InternedId iface_iid = interner.intern(iface_name);
     const Domain domain = editor::common::domain_for_port_type(port_type);
 
@@ -45,22 +46,18 @@ void add_bridge_port_to_composite(
     pd.name = iface_iid;
     pd.domain = domain;
     pd.direction = is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output;
+    pd.port_type = port_type;
 
     bp2::Blueprint bp = model.current();
 
     // Update collapsed node interface
     const auto* collapsed = bp.find_node(group_iid);
     if (!collapsed) {
-        spdlog::warn("[editor] add_bridge_port: collapsed node '{}' not found", group_id);
+        spdlog::warn("[editor] add_bridge_port: collapsed node '{}' not found", scope_id);
         return;
     }
 
     bp2::Blueprint::Node cn = *collapsed;
-    if (is_input_bridge) {
-        cn.view.inputs.emplace_back(iface_iid, bp2::PortSide::Input, port_type);
-    } else {
-        cn.view.outputs.emplace_back(iface_iid, bp2::PortSide::Output, port_type);
-    }
     {
         std::vector<bp2::PortDescriptor> ports = cn.semantic.iface.ports();
         ports.push_back(pd);
@@ -68,13 +65,14 @@ void add_bridge_port_to_composite(
     }
     bp = bp2::replace_node_preserve_order(bp, std::move(cn));
 
-    // Update nested record interface (same port descriptor — single source)
+    // Update embedded nested inline interface (authoritative source for nested iface)
     const auto* nested = bp.find_nested(group_iid);
-    if (nested) {
+    if (nested && nested->is_embedded() && nested->inline_def()) {
         bp2::Blueprint::Nested n = *nested;
-        std::vector<bp2::PortDescriptor> ports = n.iface.ports();
+        std::vector<bp2::PortDescriptor> ports = n.inline_def()->iface().ports();
         ports.push_back(pd);
-        n.iface = bp2::Interface(std::move(ports));
+        bp2::Blueprint updated_inline = n.inline_def()->with_interface(bp2::Interface(std::move(ports)));
+        n.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
         bp = bp2::replace_nested_preserve_order(bp, std::move(n));
     }
 
@@ -84,7 +82,7 @@ void add_bridge_port_to_composite(
 } // namespace
 
 void Document::addComponent(const std::string& classname, Pt world_pos,
-                            const std::string& group_id,
+                            const std::string& scope_id,
                             TypeRegistry& registry)
 {
     if (!registry.has(classname)) {
@@ -99,7 +97,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     if (!def->cpp_class && !def->devices.empty()) {
-        addBlueprint(classname, world_pos, group_id, registry);
+        addBlueprint(classname, world_pos, scope_id, registry);
         return;
     }
 
@@ -112,21 +110,28 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     node.view.name = unique_id;
     node.layout.x = snapped_pos.x;
     node.layout.y = snapped_pos.y;
-    node.layout.group_id = group_id;
+    node.layout.layout_group = scope_id;
     node.view.render_hint = def->render_hint;
     node.view.expandable = !def->cpp_class && !def->devices.empty();
 
+    std::vector<bp2::PortDescriptor> iface_ports;
+    iface_ports.reserve(def->ports.size());
     for (const auto& [port_name, port_def] : def->ports) {
         auto pid = interner_.intern(port_name);
+        bp2::PortDescriptor pd;
+        pd.name = pid;
+        pd.domain = port_def.domain;
         if (port_def.direction == PortDirection::In) {
-            node.view.inputs.emplace_back(pid, bp2::PortSide::Input, port_def.type);
+            pd.direction = bp2::Direction::Input;
         } else if (port_def.direction == PortDirection::Out) {
-            node.view.outputs.emplace_back(pid, bp2::PortSide::Output, port_def.type);
-        } else if (port_def.direction == PortDirection::InOut) {
-            node.view.inputs.emplace_back(pid, bp2::PortSide::InOut, port_def.type);
-            node.view.outputs.emplace_back(pid, bp2::PortSide::InOut, port_def.type);
+            pd.direction = bp2::Direction::Output;
+        } else {
+            pd.direction = bp2::Direction::InOut;
         }
+        pd.port_type = port_def.type;
+        iface_ports.push_back(std::move(pd));
     }
+    node.semantic.iface = bp2::Interface(std::move(iface_ports));
 
     for (const auto& [k, v] : def->params) {
         float parsed = 0.0f;
@@ -138,11 +143,11 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     const bool is_bridge = (classname == "BlueprintInput" || classname == "BlueprintOutput");
-    const bool bridge_in_group = is_bridge && !group_id.empty()
-        && model_.current().find_node(interner_.intern(group_id)) != nullptr;
+    const bool bridge_in_group = is_bridge && !scope_id.empty()
+        && model_.current().find_node(interner_.intern(scope_id)) != nullptr;
 
     if (bridge_in_group) {
-        std::string canonical_id = signal_key::make_child_scope_key(group_id, node.view.name);
+        std::string canonical_id = signal_key::make_child_scope_key(scope_id, node.view.name);
         node.semantic.id = interner_.intern(canonical_id);
         unique_id = canonical_id;
 
@@ -151,8 +156,12 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         if (et_it != node.semantic.string_params.end()) {
             pt = parse_exposed_port_type(et_it->second);
         }
-        for (auto& p : node.view.inputs) p.type = pt;
-        for (auto& p : node.view.outputs) p.type = pt;
+        std::vector<bp2::PortDescriptor> ports = node.semantic.iface.ports();
+        for (auto& pd : ports) {
+            pd.port_type = pt;
+            pd.domain = editor::common::domain_for_port_type(pt);
+        }
+        node.semantic.iface = bp2::Interface(std::move(ports));
     }
 
     {
@@ -196,7 +205,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
         if (bridge_in_group) {
             add_bridge_port_to_composite(
-                model_, interner_, group_id,
+                model_, interner_, scope_id,
                 bridge_iface_name, bridge_is_input, bridge_port_type);
         }
 
@@ -229,7 +238,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
         spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) group={}",
             classname, unique_id, snapped_pos.x, snapped_pos.y,
-            group_id.empty() ? "root" : group_id);
+            scope_id.empty() ? "root" : scope_id);
     } catch (const std::exception& e) {
         model_.replace_current(before_add);
         if (checkpoint_pushed) {
@@ -241,7 +250,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 }
 
 void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
-                            const std::string& group_id,
+                            const std::string& scope_id,
                             TypeRegistry& registry)
 {
     if (!registry.has(blueprint_name)) {
@@ -262,7 +271,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     collapsed.semantic.id = interner_.intern(unique_id);
     collapsed.semantic.type = interner_.intern(blueprint_name);
     collapsed.view.name = unique_id;
-    collapsed.layout.group_id = group_id;
+    collapsed.layout.layout_group = scope_id;
     collapsed.layout.x = snapped_pos.x;
     collapsed.layout.y = snapped_pos.y;
     collapsed.layout.width = 160.0f;
@@ -277,29 +286,9 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
     for (const auto& [port_name, port_def] : def->ports) {
         const ui::InternedId pid = interner_.intern(port_name);
-        if (port_def.direction == PortDirection::In) {
-            collapsed.view.inputs.emplace_back(pid, bp2::PortSide::Input, port_def.type);
-            bp2::PortDescriptor pd;
-            pd.name = pid;
-            pd.domain = port_def.domain;
-            pd.direction = bp2::Direction::Input;
-            iface_ports.push_back(std::move(pd));
-        } else if (port_def.direction == PortDirection::Out) {
-            collapsed.view.outputs.emplace_back(pid, bp2::PortSide::Output, port_def.type);
-            bp2::PortDescriptor pd;
-            pd.name = pid;
-            pd.domain = port_def.domain;
-            pd.direction = bp2::Direction::Output;
-            iface_ports.push_back(std::move(pd));
-        } else {
-            collapsed.view.inputs.emplace_back(pid, bp2::PortSide::InOut, port_def.type);
-            collapsed.view.outputs.emplace_back(pid, bp2::PortSide::InOut, port_def.type);
-            bp2::PortDescriptor pd;
-            pd.name = pid;
-            pd.domain = port_def.domain;
-            pd.direction = bp2::Direction::InOut;
-            iface_ports.push_back(std::move(pd));
-        }
+        bp2::PortDescriptor pd = bp2::port_descriptor_from_type_port(pid, port_def);
+        pd.domain = port_def.domain;
+        iface_ports.push_back(std::move(pd));
     }
     collapsed.semantic.iface = bp2::Interface(std::move(iface_ports));
 
@@ -367,14 +356,11 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         model_.push_checkpoint();
         checkpoint_pushed = true;
 
-        bp2::Blueprint::Nested nested;
-        nested.id = collapsed.semantic.id;
-        nested.blueprint_id = interner_.intern(blueprint_name);
-        nested.embedded = true;
-        nested.inline_def = std::make_unique<bp2::Blueprint>(std::move(inline_bp));
-        nested.iface = collapsed.semantic.iface;
-        nested.x = collapsed.layout.x;
-        nested.y = collapsed.layout.y;
+        auto nested = bp2::Blueprint::Nested::make_embedded(
+            collapsed.semantic.id,
+            interner_.intern(blueprint_name),
+            std::make_unique<bp2::Blueprint>(std::move(inline_bp)),
+            collapsed.layout.x, collapsed.layout.y);
 
         execute(model_, interner_, cmd_add_nested(std::move(nested)));
         execute(model_, interner_, cmd_add_node(std::move(collapsed)));
@@ -382,7 +368,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         rebuildAllWindows();
         spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) group={}",
             blueprint_name, unique_id, snapped_pos.x, snapped_pos.y,
-            group_id.empty() ? "root" : group_id);
+            scope_id.empty() ? "root" : scope_id);
     } catch (const std::exception& e) {
         model_.replace_current(before_add);
         if (checkpoint_pushed) {

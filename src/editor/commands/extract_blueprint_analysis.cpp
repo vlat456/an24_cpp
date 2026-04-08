@@ -10,10 +10,10 @@ namespace {
 
 bool contains_nonembedded_descendant_nested(const bp2::Blueprint& bp) {
     for (const auto& n : bp.nested()) {
-        if (!n.embedded) {
+        if (!n.is_embedded()) {
             return true;
         }
-        if (n.inline_def && contains_nonembedded_descendant_nested(*n.inline_def)) {
+        if (auto* def = n.inline_def(); def && contains_nonembedded_descendant_nested(*def)) {
             return true;
         }
     }
@@ -31,10 +31,10 @@ bool validate_selected_embedded_nested_merge_safety(const bp2::Blueprint& source
         if (selected_set.find(n.id) == selected_set.end()) {
             continue;
         }
-        if (!n.embedded || !n.inline_def) {
+        if (!n.is_embedded() || !n.inline_def()) {
             continue;
         }
-        if (contains_nonembedded_descendant_nested(*n.inline_def)) {
+        if (contains_nonembedded_descendant_nested(*n.inline_def())) {
             return set_error(error_out, "selected embedded nested contains non-embedded descendant references");
         }
     }
@@ -57,8 +57,8 @@ bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
         : interner.lookup(blueprint_name);
     for (const auto& n : source.nested()) {
         const bool matches = !blueprint_iid.empty()
-            ? (n.blueprint_id == blueprint_iid)
-            : (interner.resolve(n.blueprint_id) == blueprint_name);
+            ? (n.blueprint_id() == blueprint_iid)
+            : (interner.resolve(n.blueprint_id()) == blueprint_name);
         if (matches) {
             return set_error(error_out, "blueprint name already exists in nested definitions");
         }
@@ -83,23 +83,23 @@ DescendantRemapStats collect_descendant_remap_stats(
 
     std::unordered_map<ui::InternedId, const bp2::Blueprint::Nested*> embedded_by_blueprint_id;
     for (const auto& n : source.nested()) {
-        if (!n.embedded || !n.inline_def) {
+        if (!n.is_embedded() || !n.inline_def()) {
             continue;
         }
-        auto it = embedded_by_blueprint_id.find(n.blueprint_id);
+        auto it = embedded_by_blueprint_id.find(n.blueprint_id());
         if (it == embedded_by_blueprint_id.end() || n.id.raw() < it->second->id.raw()) {
-            embedded_by_blueprint_id[n.blueprint_id] = &n;
+            embedded_by_blueprint_id[n.blueprint_id()] = &n;
         }
     }
 
     std::function<void(const bp2::Blueprint::Nested&)> visit_nested;
     visit_nested = [&](const bp2::Blueprint::Nested& owner) {
-        if (!owner.inline_def) {
+        if (!owner.inline_def()) {
             return;
         }
-        for (const auto& child : owner.inline_def->nested()) {
-            if (!child.embedded) {
-                if (embedded_by_blueprint_id.find(child.blueprint_id) != embedded_by_blueprint_id.end()) {
+        for (const auto& child : owner.inline_def()->nested()) {
+            if (!child.is_embedded()) {
+                if (embedded_by_blueprint_id.find(child.blueprint_id()) != embedded_by_blueprint_id.end()) {
                     ++stats.remapped;
                 } else if (allow_nonembedded_descendant_refs) {
                     ++stats.passthrough;
@@ -113,7 +113,7 @@ DescendantRemapStats collect_descendant_remap_stats(
         if (selected_set.find(n.id) == selected_set.end()) {
             continue;
         }
-        if (!n.embedded || !n.inline_def) {
+        if (!n.is_embedded() || !n.inline_def()) {
             continue;
         }
         visit_nested(n);
@@ -124,7 +124,7 @@ DescendantRemapStats collect_descendant_remap_stats(
 
 std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
                                                 const std::vector<ui::InternedId>& selected_ids,
-                                                const std::string& group_id,
+                                                const std::string& scope_id,
                                                 bool allow_nonembedded_descendant_refs,
                                                 ui::StringInterner& interner,
                                                 const bp2::PathArena& arena,
@@ -145,7 +145,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         if (plan.selected_set.find(node.semantic.id) == plan.selected_set.end()) {
             continue;
         }
-        if (node.layout.group_id != group_id) {
+        if (node.layout.layout_group != scope_id) {
             set_error(error_out, "selected nodes must belong to active group");
             return std::nullopt;
         }
@@ -156,7 +156,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         }
         const bp2::Blueprint::Nested* nested = bp.find_nested(node.semantic.id);
         if (nested) {
-            if (!nested->embedded) {
+            if (!nested->is_embedded()) {
                 set_error(error_out, "extract does not support selecting non-embedded nested instances");
                 return std::nullopt;
             }

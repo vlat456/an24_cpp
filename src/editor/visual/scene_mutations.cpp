@@ -99,7 +99,7 @@ static void orient_ref_node_ports(Scene& scene,
                                   const bp2::Blueprint& bp,
                                   const bp2::PathArena& arena,
                                   const ui::StringInterner& interner,
-                                  std::string_view group_id) {
+                                  std::string_view scope_id) {
     std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
 
     for (const bp2::Blueprint::Wire& w : bp.wires()) {
@@ -110,7 +110,7 @@ static void orient_ref_node_ports(Scene& scene,
          const bp2::Blueprint::Node* src_node = bp.find_node(src_node_id);
          const bp2::Blueprint::Node* tgt_node = bp.find_node(tgt_node_id);
          if (!src_node || !tgt_node) continue;
-         if (src_node->layout.group_id != group_id || tgt_node->layout.group_id != group_id) continue;
+         if (src_node->layout.layout_group != scope_id || tgt_node->layout.layout_group != scope_id) continue;
 
          if (src_node->view.render_hint == "ref" && ref_to_connected.count(src_node_id) == 0) {
              ref_to_connected.emplace(src_node_id, tgt_node_id);
@@ -149,7 +149,7 @@ void rebuild(Scene& scene,
              const bp2::Blueprint& bp,
              ui::StringInterner& interner,
              bp2::PathArena& arena,
-             std::string_view group_id) {
+             std::string_view scope_id) {
     auto guard = scene.flushGuard();
     scene.clear();
 
@@ -163,13 +163,13 @@ void rebuild(Scene& scene,
 
     // 1) Create node widgets for all nodes in this group
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        if (n.layout.group_id != group_id) continue;
+        if (n.layout.layout_group != scope_id) continue;
         std::unique_ptr<Widget> widget = NodeFactory::create(n, interner, bus_wires);
         scene.add(std::move(widget));
     }
 
     // Orient single-port ref/value nodes toward their connected node.
-    orient_ref_node_ports(scene, bp, arena, interner, group_id);
+    orient_ref_node_ports(scene, bp, arena, interner, scope_id);
 
     // 2) Create wire widgets for wires whose both endpoints are in this group
     for (const bp2::Blueprint::Wire& w : bp.wires()) {
@@ -180,7 +180,7 @@ void rebuild(Scene& scene,
          const bp2::Blueprint::Node* sn = bp.find_node(src_node_id);
          const bp2::Blueprint::Node* en = bp.find_node(tgt_node_id);
          if (!sn || !en) continue;
-         if (sn->layout.group_id != group_id || en->layout.group_id != group_id) continue;
+         if (sn->layout.layout_group != scope_id || en->layout.layout_group != scope_id) continue;
 
         create_wire_widget(scene, w, arena, interner);
     }

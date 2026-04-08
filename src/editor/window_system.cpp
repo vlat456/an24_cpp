@@ -235,14 +235,14 @@ void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& d
         });
 }
 
-void WindowSystem::openColorPickerForNode(const std::string& node_id, const std::string& group_id, Document& doc) {
+void WindowSystem::openColorPickerForNode(const std::string& node_id, const std::string& scope_id, Document& doc) {
     ui::InternedId iid = doc.interner().lookup(node_id);
     if (iid.empty()) return;
     const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
     if (!node) return;
 
     colorPicker.node_id = node_id;
-    colorPicker.group_id = group_id;
+    colorPicker.scope_id = scope_id;
     colorPicker.source_doc_id = doc.id();
     colorPicker.show = true;
 
@@ -291,18 +291,18 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
     if (action.show_context_menu) {
         contextMenu.show = true;
         contextMenu.position = action.context_menu_pos;
-        contextMenu.group_id = action.context_menu_group_id;
+        contextMenu.scope_id = action.context_menu_scope_id;
         contextMenu.source_doc_id = doc.id();
     }
     if (action.show_node_context_menu) {
         nodeContextMenu.show = true;
         nodeContextMenu.node_id = action.context_menu_node_id;
-        nodeContextMenu.group_id = action.node_context_menu_group_id;
+        nodeContextMenu.scope_id = action.node_context_menu_scope_id;
         nodeContextMenu.source_doc_id = doc.id();
     }
     if (!action.toggle_probe_wire_id.empty()) {
         const ui::Pt* click = action.has_toggle_probe_world_pos ? &action.toggle_probe_world_pos : nullptr;
-        oscilloscope.toggle_probe(doc, action.toggle_probe_group_id, action.toggle_probe_wire_id, click);
+        oscilloscope.toggle_probe(doc, action.toggle_probe_scope_id, action.toggle_probe_wire_id, click);
     }
     if (action.open_inline_value_editor && !action.inline_value_editor_node_id.empty()) {
         const ui::Pt* anchor = action.has_inline_value_editor_screen_pos

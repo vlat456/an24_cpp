@@ -194,11 +194,12 @@ TEST(PersistValidation, ValidatePersistAcceptsEmbeddedProxyNode) {
     proxy.view.expandable = true;
     bp = bp.with_node(std::move(proxy));
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("exciter_inst");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>();
-    *nested.inline_def = nested.inline_def->with_id(interner.intern("RN-180-Exciter"));
+    auto inner_bp = std::make_unique<bp2::Blueprint>();
+    *inner_bp = inner_bp->with_id(interner.intern("RN-180-Exciter"));
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("exciter_inst"),
+        interner.intern("RN-180-Exciter"),
+        std::move(inner_bp));
     bp = bp.with_nested(std::move(nested));
 
     std::string err;

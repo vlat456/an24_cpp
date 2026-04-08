@@ -61,21 +61,21 @@ public:
     struct ContextMenuState {
         bool show = false;
         Pt position;
-        std::string group_id;
+        std::string scope_id;
         std::string source_doc_id;  ///< Resolved via findDocumentById()
     } contextMenu;
 
     struct NodeContextMenuState {
         bool show = false;
         std::string node_id;
-        std::string group_id;
+        std::string scope_id;
         std::string source_doc_id;  ///< Resolved via findDocumentById()
     } nodeContextMenu;
 
     struct ColorPickerState {
         bool show = false;
         std::string node_id;
-        std::string group_id;
+        std::string scope_id;
         std::string source_doc_id;  ///< Resolved via findDocumentById()
         float rgba[4] = {0.5f, 0.5f, 0.5f, 1.0f};
     } colorPicker;
@@ -96,7 +96,7 @@ public:
     struct PendingExtractToBlueprint {
         bool show_dialog = false;
         std::string doc_id;
-        std::string group_id;
+        std::string scope_id;
         std::vector<ui::InternedId> selected_node_ids;
         char name_buf[128] = {};
         bool has_preview = false;
@@ -109,7 +109,7 @@ public:
         void reset() {
             show_dialog = false;
             doc_id.clear();
-            group_id.clear();
+            scope_id.clear();
             selected_node_ids.clear();
             std::memset(name_buf, 0, sizeof(name_buf));
             has_preview = false;
@@ -167,7 +167,7 @@ public:
     void openPropertiesForNode(const std::string& node_id, Document& doc);
 
     /// Open color picker for a node
-    void openColorPickerForNode(const std::string& node_id, const std::string& group_id, Document& doc);
+    void openColorPickerForNode(const std::string& node_id, const std::string& scope_id, Document& doc);
 
     /// Open inline value editor for a Value node
     void openInlineValueEditorForNode(const std::string& node_id, Document& doc,

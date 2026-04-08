@@ -22,6 +22,7 @@
 #include "core/solvers/jit/simulator.h"
 #include "json_parser/json_parser.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
+#include "blueprint_v2/interface/node_port_projection.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include <spdlog/spdlog.h>
@@ -40,20 +41,6 @@
 // Helpers duplicated from editor (persist.cpp / document.cpp) to avoid
 // pulling in the entire editor + ImGui dependency chain.
 // ============================================================================
-
-static Domain port_type_to_domain(PortType t) {
-    switch (t) {
-        case PortType::V:
-        case PortType::I:
-        case PortType::Any:         return Domain::Electrical;
-        case PortType::Bool:        return Domain::Logical;
-        case PortType::RPM:
-        case PortType::Position:    return Domain::Mechanical;
-        case PortType::Pressure:    return Domain::Hydraulic;
-        case PortType::Temperature: return Domain::Thermal;
-    }
-    return Domain::Electrical;
-}
 
 static const char* sim_port_type_str(PortType t) {
     switch (t) {
@@ -89,11 +76,11 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
         // proxy (its internal nodes are already flattened into the blueprint).
         if (n.view.expandable) {
             const auto* nested = bp.find_nested(n.semantic.id);
-            if (nested && nested->embedded) {
+            if (nested && nested->is_embedded()) {
                 bool has_materialized_children = false;
                 const std::string parent_id(interner.resolve(n.semantic.id));
                 for (const auto& child : bp.nodes()) {
-                    if (child.layout.group_id == parent_id) {
+                    if (child.layout.layout_group == parent_id) {
                         has_materialized_children = true;
                         break;
                     }
@@ -122,13 +109,13 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
         device["critical"]  = false;
 
         json ports = json::object();
-        for (const auto& p : n.view.inputs) {
+        for (const auto& p : bp2::derive_input_ports(n.semantic.iface)) {
             ports[std::string(interner.resolve(p.name))] = {
                 {"direction", "In"},
                 {"type", sim_port_type_str(p.type)}
             };
         }
-        for (const auto& p : n.view.outputs) {
+        for (const auto& p : bp2::derive_output_ports(n.semantic.iface)) {
             ports[std::string(interner.resolve(p.name))] = {
                 {"direction", "Out"},
                 {"type", sim_port_type_str(p.type)}

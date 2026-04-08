@@ -8,6 +8,7 @@
 #include "visual/snap.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/interface/node_port_projection.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
@@ -114,6 +115,8 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringI
 
 void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     bp2::NodeContentType content_type = data.view.content_type;
+    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(data.semantic.iface);
+    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(data.semantic.iface);
 
     // Fast path: no overrides — use existing paired-row layout
     if (data.layout.layout_overrides.empty()) {
@@ -121,20 +124,20 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
         // [BUG-2] InOut ports appear in BOTH inputs and outputs arrays;
         // filter duplicates from outputs so they only render on the left side.
         std::vector<bp2::NodePort> right_ports;
-        right_ports.reserve(data.view.outputs.size());
-        for (const auto& p : data.view.outputs) {
+        right_ports.reserve(output_ports.size());
+        for (const auto& p : output_ports) {
             if (p.side == bp2::PortSide::InOut) continue;  // already in inputs
             right_ports.push_back(p);
         }
 
-        size_t max_ports = std::max(data.view.inputs.size(), right_ports.size());
+        size_t max_ports = std::max(input_ports.size(), right_ports.size());
         for (size_t i = 0; i < max_ports; i++) {
             std::string_view left_name;
             std::string_view right_name;
-            if (i < data.view.inputs.size()) {
-                left_name = interner.resolve(data.view.inputs[i].name);
+            if (i < input_ports.size()) {
+                left_name = interner.resolve(input_ports[i].name);
             }
-            PortType left_type = (i < data.view.inputs.size()) ? data.view.inputs[i].type : PortType::Any;
+            PortType left_type = (i < input_ports.size()) ? input_ports[i].type : PortType::Any;
             if (i < right_ports.size()) {
                 right_name = interner.resolve(right_ports[i].name);
             }
@@ -207,10 +210,12 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
 
 void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     auto* main_row = layout_->emplaceChild<Row>();
+    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(data.semantic.iface);
+    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(data.semantic.iface);
 
     // Left column (input ports)
     auto* left_col = main_row->emplaceChild<Column>();
-    for (const auto& p : data.view.inputs) {
+    for (const auto& p : input_ports) {
         std::string_view name_sv = interner.resolve(p.name);
         buildPortInColumn(left_col, name_sv, p.type, bp2::PortSide::Input, bp2::PortLayoutSide::Left);
     }
@@ -225,7 +230,7 @@ void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data, con
 
     // Right column (output ports)
     auto* right_col = main_row->emplaceChild<Column>();
-    for (const auto& p : data.view.outputs) {
+    for (const auto& p : output_ports) {
         std::string_view name_sv = interner.resolve(p.name);
         buildPortInColumn(right_col, name_sv, p.type, bp2::PortSide::Output, bp2::PortLayoutSide::Right);
     }
@@ -249,8 +254,10 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui
     using namespace editor_constants;
 
     auto overrides = resolve_bp2_layout_overrides(data.layout.layout_overrides);
-    ResolvedLayout layout = resolve_port_layout(data.view.inputs, data.view.outputs,
-                                                 overrides, interner);
+    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(data.semantic.iface);
+    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(data.semantic.iface);
+    ResolvedLayout layout = resolve_port_layout(input_ports, output_ports,
+                                                overrides, interner);
     
     bp2::NodeContentType content_type = data.view.content_type;
 

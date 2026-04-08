@@ -37,7 +37,7 @@ public:
                 doc_for_preview->blueprint(),
                 ws.pendingExtract.selected_node_ids,
                 current_name,
-                ws.pendingExtract.group_id,
+                ws.pendingExtract.scope_id,
                 doc_for_preview->interner(),
                 doc_for_preview->arena(),
                 &ws.pendingExtract.preview_error,
@@ -110,7 +110,7 @@ public:
                 const bool ok = doc->extractToBlueprint(
                     ws.pendingExtract.selected_node_ids,
                     std::string(ws.pendingExtract.name_buf),
-                    ws.pendingExtract.group_id,
+                    ws.pendingExtract.scope_id,
                     &err,
                     ws.pendingExtract.allow_nonembedded_descendant_refs);
                 if (!ok) {

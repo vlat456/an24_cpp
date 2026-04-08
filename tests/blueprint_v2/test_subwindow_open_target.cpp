@@ -7,9 +7,10 @@ TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("n1");
-    nested.blueprint_id = interner.intern("math/FirstOrderLag");
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("n1"),
+        interner.intern("math/FirstOrderLag"),
+        bp2::Interface{});
     bp = bp.with_nested(std::move(nested));
 
     bp2::Blueprint::Node node;
@@ -27,11 +28,10 @@ TEST(SubWindowOpenTarget, ResolvesEmbeddedNestedKind) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("n2");
-    nested.blueprint_id = interner.intern("math/FirstOrderLag");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("n2"),
+        interner.intern("math/FirstOrderLag"),
+        std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
 
     const auto target = editor::resolve_subwindow_open_target(bp, interner, "n2");
@@ -63,29 +63,26 @@ TEST(SubWindowOpenTarget, MissingForUnknownNode) {
     EXPECT_TRUE(target.path.empty());
 }
 
-// Regression: embedded nested with embedded=true but null inline_def.
-// resolve_subwindow_open_target must still return EmbeddedNested (based on
-// the embedded flag), and callers must null-check inline_def before
-// dereferencing for viewport data.
-TEST(SubWindowOpenTarget, EmbeddedNestedWithNullInlineDefStillResolvesEmbedded) {
+// With the variant design, an Embedded always has a non-null inline_def.
+// The old "embedded=true but null inline_def" state is now structurally impossible.
+// This test verifies that an embedded nested with an empty inline_def still resolves.
+TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("broken_embedded");
-    nested.blueprint_id = interner.intern("some/Type");
-    nested.embedded = true;
-    // intentionally leave inline_def as nullptr (corrupt data)
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("broken_embedded"),
+        interner.intern("some/Type"),
+        std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
 
     const auto target = editor::resolve_subwindow_open_target(bp, interner, "broken_embedded");
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::EmbeddedNested);
 
-    // Caller must guard: inline_def can be null even when embedded=true
     const auto* found = bp.find_nested(interner.intern("broken_embedded"));
     ASSERT_NE(found, nullptr);
-    EXPECT_TRUE(found->embedded);
-    EXPECT_EQ(found->inline_def, nullptr);
+    EXPECT_TRUE(found->is_embedded());
+    EXPECT_NE(found->inline_def(), nullptr);  // always non-null with variant design
 }
 
 // Verify nested priority: nested lookup takes precedence over node lookup
@@ -94,11 +91,10 @@ TEST(SubWindowOpenTarget, EmbeddedNestedTakesPriorityOverExpandableNode) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("shared_id");
-    nested.blueprint_id = interner.intern("math/Adder");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("shared_id"),
+        interner.intern("math/Adder"),
+        std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
 
     bp2::Blueprint::Node node;

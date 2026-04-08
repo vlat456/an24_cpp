@@ -214,21 +214,17 @@ bool EditorModel::bake_nested(ui::InternedId id,
     (void)interner;
     auto const* nested = current_.find_nested(id);
     if (!nested) return false;
-    if (nested->embedded) return false;
+    if (nested->is_embedded()) return false;
 
-    auto const* referenced = library.find(nested->blueprint_id);
+    auto const* referenced = library.find(nested->blueprint_id());
     if (!referenced) return false;
 
     push_checkpoint();
 
-    Blueprint::Nested baked;
-    baked.id = nested->id;
-    baked.blueprint_id = {};
-    baked.embedded = true;
-    baked.inline_def = std::make_unique<Blueprint>(*referenced);
-    baked.iface = nested->iface;
-    baked.x = nested->x;
-    baked.y = nested->y;
+    auto baked = Blueprint::Nested::make_embedded(
+        nested->id, {},
+        std::make_unique<Blueprint>(*referenced),
+        nested->x, nested->y);
 
     current_ = current_.without_nested(id).with_nested(std::move(baked));
     invalidate_indices();

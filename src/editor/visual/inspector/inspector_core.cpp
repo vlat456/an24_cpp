@@ -1,13 +1,14 @@
 #include "inspector.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/interface/node_port_projection.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include <algorithm>
 #include <cctype>
 
 Inspector::Inspector(const bp2::Blueprint* bp, const bp2::PathArena* arena,
-                     const ui::StringInterner* interner, const std::string& group_id)
-    : bp_(bp), arena_(arena), interner_(interner), group_id_(group_id) {}
+                     const ui::StringInterner* interner, const std::string& scope_id)
+    : bp_(bp), arena_(arena), interner_(interner), scope_id_(scope_id) {}
 
 std::string Inspector::consumeSelection() {
     std::string result;
@@ -62,7 +63,7 @@ bool Inspector::ownsWire(const bp2::Blueprint::Wire& w) const {
     if (src_node.empty() || tgt_node.empty()) return false;
     const auto* n1 = bp_->find_node(src_node);
     const auto* n2 = bp_->find_node(tgt_node);
-     return n1 && n2 && n1->layout.group_id == group_id_ && n2->layout.group_id == group_id_;
+      return n1 && n2 && n1->layout.layout_group == scope_id_ && n2->layout.layout_group == scope_id_;
 }
 
 void Inspector::buildDisplayTree() {
@@ -91,14 +92,16 @@ void Inspector::buildDisplayTree() {
          dn.connection_count = conn_count;
 
          // Collect ports (inputs then outputs)
-         for (const auto& port : node.view.inputs) {
+         const auto inputs = bp2::derive_input_ports(node.semantic.iface);
+         const auto outputs = bp2::derive_output_ports(node.semantic.iface);
+         for (const auto& port : inputs) {
              DisplayPort dp;
              dp.name = std::string(interner_->resolve(port.name));
              dp.side = bp2::PortSide::Input;
              dp.connection = findConnectionFor(node, port, bp2::PortSide::Input);
              dn.ports.push_back(std::move(dp));
          }
-         for (const auto& port : node.view.outputs) {
+         for (const auto& port : outputs) {
              DisplayPort dp;
              dp.name = std::string(interner_->resolve(port.name));
              dp.side = bp2::PortSide::Output;

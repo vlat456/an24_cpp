@@ -32,10 +32,10 @@ static bool decode_source_key(const bp2::Blueprint::Wire& w,
 
 static bool resolve_probe_anchor(Document& doc,
                                  const bp2::Blueprint::Wire& w,
-                                 const std::string& group_id,
+                                 const std::string& scope_id,
                                  const ui::Pt* preferred_world,
                                  ui::Pt& out_world) {
-    auto* win = doc.windowManager().find(group_id);
+    auto* win = doc.windowManager().find(scope_id);
     if (!win) return false;
     auto* vw = dynamic_cast<visual::Wire*>(win->scene.find(doc.interner().resolve(w.id)));
     if (!vw) return false;
@@ -94,7 +94,7 @@ uint32_t OscilloscopeModel::color_for_index(size_t i) {
 }
 
 void OscilloscopeModel::toggle_probe(Document& doc,
-                                     const std::string& group_id,
+                                     const std::string& scope_id,
                                      const std::string& wire_id,
                                      const ui::Pt* click_world) {
     if (wire_id.empty()) return;
@@ -113,9 +113,9 @@ void OscilloscopeModel::toggle_probe(Document& doc,
     OscilloscopeProbe p;
     p.wire_id = wire_id;
     p.doc_id = doc.id();
-    p.group_id = group_id;
+    p.scope_id = scope_id;
     if (!decode_source_key(*w, doc.arena(), doc.interner(), p.signal_key, p.label)) return;
-    if (!resolve_probe_anchor(doc, *w, group_id, click_world, p.world_pos)) return;
+    if (!resolve_probe_anchor(doc, *w, scope_id, click_world, p.world_pos)) return;
     p.color = color_for_index(probes_.size());
 
     probes_[wire_id] = p;
@@ -153,7 +153,7 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
             continue;
         }
 
-        if (!resolve_probe_anchor(doc, *w, p.group_id, &p.world_pos, updated.world_pos)) {
+        if (!resolve_probe_anchor(doc, *w, p.scope_id, &p.world_pos, updated.world_pos)) {
             to_remove.push_back(wire_id);
             continue;
         }

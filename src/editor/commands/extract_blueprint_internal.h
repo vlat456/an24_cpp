@@ -119,7 +119,7 @@ struct BridgeSideBuildParams {
     const std::unordered_map<ui::InternedId, float>& node_center_y;
     float x = 0.0f;
     float fallback_y_origin = 0.0f;
-    std::string group_id;
+    std::string scope_id;
     const char* unique_prefix = "";
     const ui::InternedId* canonical_nested_instance_id = nullptr;
 };
@@ -150,7 +150,7 @@ bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
 
 std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
                                                 const std::vector<ui::InternedId>& selected_ids,
-                                                const std::string& group_id,
+                                                const std::string& scope_id,
                                                 bool allow_nonembedded_descendant_refs,
                                                 ui::StringInterner& interner,
                                                 const bp2::PathArena& arena,
@@ -166,7 +166,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     const ExtractionPlan& plan,
     ui::InternedId blueprint_iid,
     const std::string& blueprint_name,
-    const std::string& group_id,
+    const std::string& scope_id,
     bool allow_nonembedded_descendant_refs,
     ui::StringInterner& interner,
     bp2::PathArena& arena,

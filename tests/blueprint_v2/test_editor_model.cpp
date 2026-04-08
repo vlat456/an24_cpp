@@ -121,10 +121,8 @@ TEST(EditorModel, AddNested) {
     ui::StringInterner interner;
     bp2::EditorModel model;
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("sub1");
-    nested.blueprint_id = interner.intern("power_system");
-    nested.embedded = false;
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub1"), interner.intern("power_system"), bp2::Interface());
 
     EXPECT_TRUE(model.add_nested(std::move(nested)));
     EXPECT_EQ(model.current().nested().size(), 1u);
@@ -134,11 +132,10 @@ TEST(EditorModel, DuplicateNestedRejected) {
     ui::StringInterner interner;
     bp2::EditorModel model;
 
-    bp2::Blueprint::Nested n1, n2;
-    n1.id = interner.intern("same_id");
-    n1.blueprint_id = interner.intern("bp1");
-    n2.id = interner.intern("same_id");
-    n2.blueprint_id = interner.intern("bp2");
+    auto n1 = bp2::Blueprint::Nested::make_reference(
+        interner.intern("same_id"), interner.intern("bp1"), bp2::Interface());
+    auto n2 = bp2::Blueprint::Nested::make_reference(
+        interner.intern("same_id"), interner.intern("bp2"), bp2::Interface());
 
     EXPECT_TRUE(model.add_nested(std::move(n1)));
     EXPECT_FALSE(model.add_nested(std::move(n2)));
@@ -148,9 +145,8 @@ TEST(EditorModel, RemoveNested) {
     ui::StringInterner interner;
     bp2::EditorModel model;
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("sub1");
-    nested.blueprint_id = interner.intern("power_system");
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub1"), interner.intern("power_system"), bp2::Interface());
     model.add_nested(std::move(nested));
 
     EXPECT_TRUE(model.remove_nested(interner.intern("sub1")));
@@ -257,19 +253,16 @@ TEST(EditorModel, BakeNestedConvertsReferenceToEmbedded) {
     library.add(interner.intern("sub_type"), inner);
 
     bp2::EditorModel model;
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("sub1");
-    nested.blueprint_id = interner.intern("sub_type");
-    nested.embedded = false;
-    nested.iface = inner.iface();
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub1"), interner.intern("sub_type"), inner.iface());
     model.add_nested(std::move(nested));
 
     EXPECT_TRUE(model.bake_nested(interner.intern("sub1"), library, interner));
 
     auto* baked = model.current().find_nested(interner.intern("sub1"));
     ASSERT_NE(baked, nullptr);
-    EXPECT_TRUE(baked->embedded);
-    EXPECT_NE(baked->inline_def, nullptr);
+    EXPECT_TRUE(baked->is_embedded());
+    EXPECT_NE(baked->inline_def(), nullptr);
 }
 
 TEST(EditorModel, BakeNestedIsUndoable) {
@@ -285,11 +278,8 @@ TEST(EditorModel, BakeNestedIsUndoable) {
     library.add(interner.intern("sub_type"), inner);
 
     bp2::EditorModel model;
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("sub1");
-    nested.blueprint_id = interner.intern("sub_type");
-    nested.embedded = false;
-    nested.iface = inner.iface();
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub1"), interner.intern("sub_type"), inner.iface());
     model.add_nested(std::move(nested));
 
     size_t depth_before_bake = model.undo_depth();
@@ -300,14 +290,14 @@ TEST(EditorModel, BakeNestedIsUndoable) {
 
     auto* baked = model.current().find_nested(interner.intern("sub1"));
     ASSERT_NE(baked, nullptr);
-    EXPECT_TRUE(baked->embedded);
+    EXPECT_TRUE(baked->is_embedded());
 
     // Undo should restore the reference-mode nested
     model.undo();
     auto* restored = model.current().find_nested(interner.intern("sub1"));
     ASSERT_NE(restored, nullptr);
-    EXPECT_FALSE(restored->embedded);
-    EXPECT_EQ(restored->blueprint_id, interner.intern("sub_type"));
+    EXPECT_FALSE(restored->is_embedded());
+    EXPECT_EQ(restored->blueprint_id(), interner.intern("sub_type"));
 }
 
 TEST(EditorModel, BakeNestedFailsForNonExistent) {
@@ -323,10 +313,9 @@ TEST(EditorModel, BakeNestedFailsForAlreadyEmbedded) {
     bp2::BlueprintLibrary library;
     bp2::EditorModel model;
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("sub1");
-    nested.embedded = true;  // Already embedded
-    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("sub1"), ui::InternedId{},
+        std::make_unique<bp2::Blueprint>());
     model.add_nested(std::move(nested));
 
     EXPECT_FALSE(model.bake_nested(interner.intern("sub1"), library, interner));
@@ -337,10 +326,8 @@ TEST(EditorModel, BakeNestedFailsForUnknownBlueprintId) {
     bp2::BlueprintLibrary library;
     bp2::EditorModel model;
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("sub1");
-    nested.blueprint_id = interner.intern("unknown_type");
-    nested.embedded = false;
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub1"), interner.intern("unknown_type"), bp2::Interface());
     model.add_nested(std::move(nested));
 
     EXPECT_FALSE(model.bake_nested(interner.intern("sub1"), library, interner));
@@ -687,23 +674,17 @@ TEST(ReplacePreserveOrder, NestedReplacementKeepsInsertionOrder) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
 
-    bp2::Blueprint::Nested a;
-    a.id = interner.intern("sub_a");
-    a.blueprint_id = interner.intern("bp_a");
-
-    bp2::Blueprint::Nested b;
-    b.id = interner.intern("sub_b");
-    b.blueprint_id = interner.intern("bp_b");
-
-    bp2::Blueprint::Nested c;
-    c.id = interner.intern("sub_c");
-    c.blueprint_id = interner.intern("bp_c");
+    auto a = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub_a"), interner.intern("bp_a"), bp2::Interface());
+    auto b = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub_b"), interner.intern("bp_b"), bp2::Interface());
+    auto c = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub_c"), interner.intern("bp_c"), bp2::Interface());
 
     bp = bp.with_nested(std::move(a)).with_nested(std::move(b)).with_nested(std::move(c));
 
-    bp2::Blueprint::Nested updated;
-    updated.id = interner.intern("sub_b");
-    updated.blueprint_id = interner.intern("bp_b_v2");
+    auto updated = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub_b"), interner.intern("bp_b_v2"), bp2::Interface());
 
     bp2::Blueprint result = bp2::replace_nested_preserve_order(bp, std::move(updated));
 
@@ -711,7 +692,7 @@ TEST(ReplacePreserveOrder, NestedReplacementKeepsInsertionOrder) {
     EXPECT_EQ(result.nested()[0].id, interner.intern("sub_a"));
     EXPECT_EQ(result.nested()[1].id, interner.intern("sub_b"));
     EXPECT_EQ(result.nested()[2].id, interner.intern("sub_c"));
-    EXPECT_EQ(result.nested()[1].blueprint_id, interner.intern("bp_b_v2"));
+    EXPECT_EQ(result.nested()[1].blueprint_id(), interner.intern("bp_b_v2"));
 }
 
 TEST(ReplacePreserveOrder, ReplacementPreservesViewportAndMetadata) {
@@ -787,14 +768,12 @@ TEST(ReplacePreserveOrder, NestedReplacementPreservesViewportAndMetadata) {
         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
     }));
 
-    bp2::Blueprint::Nested n;
-    n.id = interner.intern("sub1");
-    n.blueprint_id = interner.intern("bp_sub");
+    auto n = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub1"), interner.intern("bp_sub"), bp2::Interface());
     bp = bp.with_nested(std::move(n));
 
-    bp2::Blueprint::Nested updated;
-    updated.id = interner.intern("sub1");
-    updated.blueprint_id = interner.intern("bp_sub_v2");
+    auto updated = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub1"), interner.intern("bp_sub_v2"), bp2::Interface());
     bp2::Blueprint result = bp2::replace_nested_preserve_order(bp, std::move(updated));
 
     EXPECT_EQ(result.id(), interner.intern("test_bp3"));
@@ -816,12 +795,10 @@ TEST(SubWindowOpenTargetRegression, NonEmbeddedNestedHasNullInlineDef) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("sub1");
-    nested.blueprint_id = interner.intern("math/FirstOrderLag");
-    nested.embedded = false;
-    // inline_def is nullptr by default for non-embedded
-    EXPECT_EQ(nested.inline_def, nullptr);
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub1"), interner.intern("math/FirstOrderLag"), bp2::Interface());
+    // inline_def() is nullptr for reference-mode nested
+    EXPECT_EQ(nested.inline_def(), nullptr);
 
     bp = bp.with_nested(std::move(nested));
 
@@ -831,6 +808,6 @@ TEST(SubWindowOpenTargetRegression, NonEmbeddedNestedHasNullInlineDef) {
     // After resolution, caller must check inline_def before dereferencing.
     const auto* found = bp.find_nested(interner.intern("sub1"));
     ASSERT_NE(found, nullptr);
-    EXPECT_FALSE(found->embedded);
-    EXPECT_EQ(found->inline_def, nullptr);  // This is the crash scenario
+    EXPECT_FALSE(found->is_embedded());
+    EXPECT_EQ(found->inline_def(), nullptr);  // This is the crash scenario
 }

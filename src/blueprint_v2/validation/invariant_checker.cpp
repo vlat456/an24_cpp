@@ -50,7 +50,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             // as a matching embedded nested definition exists.
             if (node.view.expandable) {
                 const auto* nested = bp.find_nested(node.semantic.id);
-                if (nested && nested->embedded) continue;
+                if (nested && nested->is_embedded()) continue;
             }
             out.error = "unknown node type at node id=" + iid_to_string(node.semantic.id)
                 + " type=" + iid_to_string(node.semantic.type);
@@ -59,18 +59,10 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     }
 
     for (auto const& n : bp.nested()) {
-        if (n.embedded && !n.inline_def) {
-            out.error = "embedded nested missing inline_def id=" + iid_to_string(n.id);
-            return out;
-        }
-        if (!n.embedded && n.blueprint_id.empty()) {
-            out.error = "non-embedded nested missing blueprint_id id=" + iid_to_string(n.id);
-            return out;
-        }
-        if (!n.embedded && !n.blueprint_id.empty()
-            && !parser_registry.has(std::string(interner.resolve(n.blueprint_id)))) {
+        if (n.is_reference()
+            && !parser_registry.has(std::string(interner.resolve(n.blueprint_id())))) {
             out.error = "unknown nested blueprint id=" + iid_to_string(n.id)
-                + " blueprint_id=" + iid_to_string(n.blueprint_id);
+                + " blueprint_id=" + iid_to_string(n.blueprint_id());
             return out;
         }
     }

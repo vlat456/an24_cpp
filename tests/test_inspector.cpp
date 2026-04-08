@@ -2,7 +2,12 @@
 #include "editor/visual/inspector/inspector.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
+#include "blueprint_v2/interface/interface.h"
+#include "blueprint_v2/interface/port_descriptor.h"
 #include "ui/core/interned_id.h"
+
+// Shared bp2 test helpers (make_port, set_iface)
+#include "bp2_test_helpers.h"
 
 // Helper to create a simple test scene using bp2::Blueprint
 struct InspectorTestScene {
@@ -12,30 +17,38 @@ struct InspectorTestScene {
 
     InspectorTestScene() : arena(interner) {}
 
-    /// Add a node to the blueprint with optional group_id.
+    /// Add a node to the blueprint with optional layout_group.
     bp2::Blueprint::Node& addNode(const std::string& id,
                                    const std::string& type,
-                                   const std::string& group_id = "") {
+                                   const std::string& layout_group = "") {
         bp2::Blueprint::Node n;
          n.semantic.id = interner.intern(id);
          n.semantic.type = interner.intern(type);
          n.view.name = id;
-         n.layout.group_id = group_id;
+         n.layout.layout_group = layout_group;
 
         if (type == "Battery") {
-            n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
-            n.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
+            set_iface(n, {
+                make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+                make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
+            });
         } else if (type == "Lamp") {
-            n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
-            n.view.outputs.push_back(bp2::NodePort(interner.intern("light"), bp2::PortSide::Output, PortType::Bool));
+            set_iface(n, {
+                make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+                make_port(interner, "light", Domain::Logical, bp2::Direction::Output, PortType::Bool)
+            });
         } else if (type == "Switch") {
-            n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
-            n.view.inputs.push_back(bp2::NodePort(interner.intern("control"), bp2::PortSide::Input, PortType::Bool));
-            n.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
+            set_iface(n, {
+                make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+                make_port(interner, "control", Domain::Logical, bp2::Direction::Input, PortType::Bool),
+                make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
+            });
         } else {
             // Generic: in + out
-            n.view.inputs.push_back(bp2::NodePort(interner.intern("in"), bp2::PortSide::Input,  PortType::V));
-            n.view.outputs.push_back(bp2::NodePort(interner.intern("out"), bp2::PortSide::Output, PortType::V));
+            set_iface(n, {
+                make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+                make_port(interner, "out", Domain::Electrical, bp2::Direction::Output, PortType::V)
+            });
         }
 
          bp = bp.with_node(n);
@@ -244,33 +257,37 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
     InspectorTestScene ts;
 
     {
-        bp2::Blueprint::Node root_node;
-        root_node.semantic.id = ts.interner.intern("battery1");
-        root_node.semantic.type = ts.interner.intern("Battery");
-        root_node.view.name = "battery1";
-        root_node.layout.group_id = "";
-        root_node.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
-        root_node.view.outputs.push_back(bp2::NodePort(ts.interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
-        ts.addNodeRaw(std::move(root_node));
-    }
-    {
-        bp2::Blueprint::Node bp_node;
-        bp_node.semantic.id = ts.interner.intern("lamp1");
-        bp_node.semantic.type = ts.interner.intern("LampBlueprint");
-        bp_node.view.name = "lamp1";
-        bp_node.view.expandable = true;
-        bp_node.layout.group_id = "";
-        ts.addNodeRaw(std::move(bp_node));
-    }
-    {
-        bp2::Blueprint::Node internal;
-        internal.semantic.id = ts.interner.intern("lamp1:led");
-        internal.semantic.type = ts.interner.intern("LED");
-        internal.view.name = "lamp1:led";
-        internal.layout.group_id = "lamp1";
-        internal.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
-        ts.addNodeRaw(std::move(internal));
-    }
+         bp2::Blueprint::Node root_node;
+         root_node.semantic.id = ts.interner.intern("battery1");
+         root_node.semantic.type = ts.interner.intern("Battery");
+         root_node.view.name = "battery1";
+         root_node.layout.layout_group = "";
+         set_iface(root_node, {
+             make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+             make_port(ts.interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
+         });
+         ts.addNodeRaw(std::move(root_node));
+     }
+     {
+         bp2::Blueprint::Node bp_node;
+         bp_node.semantic.id = ts.interner.intern("lamp1");
+         bp_node.semantic.type = ts.interner.intern("LampBlueprint");
+         bp_node.view.name = "lamp1";
+         bp_node.view.expandable = true;
+         bp_node.layout.layout_group = "";
+         ts.addNodeRaw(std::move(bp_node));
+     }
+     {
+         bp2::Blueprint::Node internal;
+         internal.semantic.id = ts.interner.intern("lamp1:led");
+         internal.semantic.type = ts.interner.intern("LED");
+         internal.view.name = "lamp1:led";
+         internal.layout.layout_group = "lamp1";
+         set_iface(internal, {
+             make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V)
+         });
+         ts.addNodeRaw(std::move(internal));
+     }
 
     Inspector inspector(&ts.bp, &ts.arena, &ts.interner, "");
     inspector.buildDisplayTree();
@@ -285,32 +302,36 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
     InspectorTestScene ts;
 
     {
-        bp2::Blueprint::Node root_node;
-        root_node.semantic.id = ts.interner.intern("battery1");
-        root_node.semantic.type = ts.interner.intern("Battery");
-        root_node.view.name = "battery1";
-        root_node.layout.group_id = "";
-        ts.addNodeRaw(std::move(root_node));
-    }
-    {
-        bp2::Blueprint::Node led;
-        led.semantic.id = ts.interner.intern("lamp1:led");
-        led.semantic.type = ts.interner.intern("LED");
-        led.view.name = "lamp1:led";
-        led.layout.group_id = "lamp1";
-        led.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
-        ts.addNodeRaw(std::move(led));
-    }
-    {
-        bp2::Blueprint::Node res;
-        res.semantic.id = ts.interner.intern("lamp1:res");
-        res.semantic.type = ts.interner.intern("Resistor");
-        res.view.name = "lamp1:res";
-        res.layout.group_id = "lamp1";
-        res.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
-        res.view.outputs.push_back(bp2::NodePort(ts.interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
-        ts.addNodeRaw(std::move(res));
-    }
+         bp2::Blueprint::Node root_node;
+         root_node.semantic.id = ts.interner.intern("battery1");
+         root_node.semantic.type = ts.interner.intern("Battery");
+         root_node.view.name = "battery1";
+         root_node.layout.layout_group = "";
+         ts.addNodeRaw(std::move(root_node));
+     }
+     {
+         bp2::Blueprint::Node led;
+         led.semantic.id = ts.interner.intern("lamp1:led");
+         led.semantic.type = ts.interner.intern("LED");
+         led.view.name = "lamp1:led";
+         led.layout.layout_group = "lamp1";
+         set_iface(led, {
+             make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V)
+         });
+         ts.addNodeRaw(std::move(led));
+     }
+     {
+         bp2::Blueprint::Node res;
+         res.semantic.id = ts.interner.intern("lamp1:res");
+         res.semantic.type = ts.interner.intern("Resistor");
+         res.view.name = "lamp1:res";
+         res.layout.layout_group = "lamp1";
+         set_iface(res, {
+             make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+             make_port(ts.interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
+         });
+         ts.addNodeRaw(std::move(res));
+     }
 
     Inspector sub_inspector(&ts.bp, &ts.arena, &ts.interner, "lamp1");
     sub_inspector.buildDisplayTree();
@@ -325,46 +346,54 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     InspectorTestScene ts;
 
     // Root bat
-    {
-        bp2::Blueprint::Node bat;
-        bat.semantic.id = ts.interner.intern("bat");
-        bat.semantic.type = ts.interner.intern("Battery");
-        bat.view.name = "bat";
-        bat.layout.group_id = "";
-        bat.view.outputs.push_back(bp2::NodePort(ts.interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
-        ts.addNodeRaw(std::move(bat));
-    }
-    // Root lamp1 (collapsed)
-    {
-        bp2::Blueprint::Node lamp;
-        lamp.semantic.id = ts.interner.intern("lamp1");
-        lamp.semantic.type = ts.interner.intern("Lamp");
-         lamp.view.name = "lamp1";
-        lamp.view.expandable = true;
-        lamp.layout.group_id = "";
-        lamp.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
-        ts.addNodeRaw(std::move(lamp));
-    }
-    // Internal nodes
-    {
-        bp2::Blueprint::Node iled;
-        iled.semantic.id = ts.interner.intern("lamp1:led");
-        iled.semantic.type = ts.interner.intern("LED");
-        iled.view.name = "lamp1:led";
-        iled.layout.group_id = "lamp1";
-        iled.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
-        iled.view.outputs.push_back(bp2::NodePort(ts.interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
-        ts.addNodeRaw(std::move(iled));
-    }
-    {
-        bp2::Blueprint::Node ires;
-        ires.semantic.id = ts.interner.intern("lamp1:res");
-        ires.semantic.type = ts.interner.intern("Resistor");
-        ires.view.name = "lamp1:res";
-        ires.layout.group_id = "lamp1";
-        ires.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
-        ts.addNodeRaw(std::move(ires));
-    }
+     {
+         bp2::Blueprint::Node bat;
+         bat.semantic.id = ts.interner.intern("bat");
+         bat.semantic.type = ts.interner.intern("Battery");
+         bat.view.name = "bat";
+         bat.layout.layout_group = "";
+         set_iface(bat, {
+             make_port(ts.interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
+         });
+         ts.addNodeRaw(std::move(bat));
+     }
+     // Root lamp1 (collapsed)
+     {
+         bp2::Blueprint::Node lamp;
+         lamp.semantic.id = ts.interner.intern("lamp1");
+         lamp.semantic.type = ts.interner.intern("Lamp");
+          lamp.view.name = "lamp1";
+         lamp.view.expandable = true;
+         lamp.layout.layout_group = "";
+         set_iface(lamp, {
+             make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V)
+         });
+         ts.addNodeRaw(std::move(lamp));
+     }
+     // Internal nodes
+     {
+         bp2::Blueprint::Node iled;
+         iled.semantic.id = ts.interner.intern("lamp1:led");
+         iled.semantic.type = ts.interner.intern("LED");
+         iled.view.name = "lamp1:led";
+         iled.layout.layout_group = "lamp1";
+         set_iface(iled, {
+             make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+             make_port(ts.interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
+         });
+         ts.addNodeRaw(std::move(iled));
+     }
+     {
+         bp2::Blueprint::Node ires;
+         ires.semantic.id = ts.interner.intern("lamp1:res");
+         ires.semantic.type = ts.interner.intern("Resistor");
+         ires.view.name = "lamp1:res";
+         ires.layout.layout_group = "lamp1";
+         set_iface(ires, {
+             make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V)
+         });
+         ts.addNodeRaw(std::move(ires));
+     }
 
     // Root wire: bat:v_out -> lamp1:v_in
     ts.addWire("bat", "v_out", "lamp1", "v_in");

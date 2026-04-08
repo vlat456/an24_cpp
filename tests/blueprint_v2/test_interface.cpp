@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/interface/interface.h"
+#include "blueprint_v2/interface/type_definition_interface.h"
 #include "ui/core/interned_id.h"
 
 TEST(Direction, HasThreeValues) {
@@ -118,4 +119,64 @@ TEST(Interface, UnequalInterfaces) {
     bp2::Interface i1({{a, Domain::Electrical, bp2::Direction::Input}});
     bp2::Interface i2({{b, Domain::Electrical, bp2::Direction::Input}});
     EXPECT_NE(i1, i2);
+}
+
+TEST(TypeDefinitionInterface, DirectionFromPortDirectionMapping) {
+    EXPECT_EQ(bp2::direction_from_port_direction(PortDirection::In), bp2::Direction::Input);
+    EXPECT_EQ(bp2::direction_from_port_direction(PortDirection::Out), bp2::Direction::Output);
+    EXPECT_EQ(bp2::direction_from_port_direction(PortDirection::InOut), bp2::Direction::InOut);
+}
+
+TEST(TypeDefinitionInterface, InterfaceFromTypeDefinitionCoversAllPortTypes) {
+    ui::StringInterner interner;
+
+    TypeDefinition def;
+    def.classname = "AllPortTypes";
+    def.ports["v"] = Port{PortDirection::In, PortType::V};
+    def.ports["i"] = Port{PortDirection::Out, PortType::I};
+    def.ports["b"] = Port{PortDirection::In, PortType::Bool};
+    def.ports["rpm"] = Port{PortDirection::Out, PortType::RPM};
+    def.ports["tmp"] = Port{PortDirection::InOut, PortType::Temperature};
+    def.ports["prs"] = Port{PortDirection::InOut, PortType::Pressure};
+    def.ports["pos"] = Port{PortDirection::In, PortType::Position};
+    def.ports["any"] = Port{PortDirection::Out, PortType::Any};
+
+    bp2::Interface iface = bp2::interface_from_type_definition(def, interner);
+
+    ASSERT_EQ(iface.size(), 8u);
+
+    auto v = iface.find(interner.intern("v"));
+    ASSERT_TRUE(v.has_value());
+    EXPECT_EQ(v->domain, Domain::Electrical);
+    EXPECT_EQ(v->direction, bp2::Direction::Input);
+
+    auto i = iface.find(interner.intern("i"));
+    ASSERT_TRUE(i.has_value());
+    EXPECT_EQ(i->domain, Domain::Electrical);
+    EXPECT_EQ(i->direction, bp2::Direction::Output);
+
+    auto b = iface.find(interner.intern("b"));
+    ASSERT_TRUE(b.has_value());
+    EXPECT_EQ(b->domain, Domain::Logical);
+
+    auto rpm = iface.find(interner.intern("rpm"));
+    ASSERT_TRUE(rpm.has_value());
+    EXPECT_EQ(rpm->domain, Domain::Mechanical);
+
+    auto tmp = iface.find(interner.intern("tmp"));
+    ASSERT_TRUE(tmp.has_value());
+    EXPECT_EQ(tmp->domain, Domain::Thermal);
+    EXPECT_EQ(tmp->direction, bp2::Direction::InOut);
+
+    auto prs = iface.find(interner.intern("prs"));
+    ASSERT_TRUE(prs.has_value());
+    EXPECT_EQ(prs->domain, Domain::Hydraulic);
+
+    auto pos = iface.find(interner.intern("pos"));
+    ASSERT_TRUE(pos.has_value());
+    EXPECT_EQ(pos->domain, Domain::Mechanical);
+
+    auto any = iface.find(interner.intern("any"));
+    ASSERT_TRUE(any.has_value());
+    EXPECT_EQ(any->domain, Domain::Electrical);
 }

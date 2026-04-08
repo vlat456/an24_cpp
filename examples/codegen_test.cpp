@@ -91,12 +91,12 @@ ParserContext parse_blueprint_v3(std::string const& content,
     root_def.connections = ctx.connections;
 
     for (auto const& n : bp.nested()) {
-        if (n.blueprint_id.empty()) {
+        if (n.blueprint_id().empty()) {
             continue;
         }
         SubBlueprintRef ref;
         ref.id = std::string(interner.resolve(n.id));
-        ref.type_name = std::string(interner.resolve(n.blueprint_id));
+        ref.type_name = std::string(interner.resolve(n.blueprint_id()));
         ref.blueprint_path = ref.type_name;
         root_def.sub_blueprints.push_back(std::move(ref));
     }

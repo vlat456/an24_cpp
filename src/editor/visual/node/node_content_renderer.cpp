@@ -13,13 +13,8 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
     const bp2::Blueprint& bp = win.rendered_blueprint();
 
     for (const auto& node : bp.nodes()) {
-        // For embedded subwindows, inline_def nodes have no group_id filter needed
-        // (the window already scoped to the composite). For root windows, filter normally.
-        if (!win.group_id.empty() && !win.embedded_model) {
-            // Root-level group filtering (subwindow scope without embedded model)
-            if (node.layout.group_id != win.group_id) continue;
-        } else if (win.group_id.empty()) {
-            if (!node.layout.group_id.empty()) continue;
+        if (win.scope_id.empty()) {
+            if (!node.layout.layout_group.empty()) continue;
         }
 
         // Find the corresponding widget in the scene tree
@@ -43,7 +38,7 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
 
         switch (node.view.content_type) {
             case bp2::NodeContentType::Switch:
-                renderSwitch(node, aw, win.read_only, doc, win.group_id);
+                renderSwitch(node, aw, win.read_only, doc, win.scope_id);
                 break;
             case bp2::NodeContentType::Value:
                 renderValue(node, aw, win.read_only);
@@ -62,7 +57,7 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
 
 void NodeContentRenderer::renderSwitch(const bp2::Blueprint::Node& node,
                                         float width, bool readOnly,
-                                        Document& doc, const std::string& group_id) {
+                                        Document& doc, const std::string& scope_id) {
     if (readOnly) return;
     
     if (isHoldButton(node, doc.interner())) {
@@ -74,8 +69,8 @@ void NodeContentRenderer::renderSwitch(const bp2::Blueprint::Node& node,
             if (holdButtonCallback_) {
                 holdButtonCallback_(node_id_str, checked);
             } else {
-                if (checked) doc.holdButtonPress(node_id_str, group_id);
-                else doc.holdButtonRelease(node_id_str, group_id);
+                if (checked) doc.holdButtonPress(node_id_str, scope_id);
+                else doc.holdButtonRelease(node_id_str, scope_id);
             }
         }
     }

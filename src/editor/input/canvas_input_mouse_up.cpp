@@ -94,7 +94,7 @@ bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedI
 void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) {
     if (ref_node_id.empty()) return;
     const bp2::Blueprint::Node* ref_node = model_.current().find_node(ref_node_id);
-    if (!ref_node || ref_node->layout.group_id != group_id_ || ref_node->view.render_hint != "ref") return;
+    if (!ref_node || ref_node->layout.layout_group != scope_id_ || ref_node->view.render_hint != "ref") return;
 
     ui::InternedId connected_node_id;
     for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
@@ -268,7 +268,7 @@ InputResult CanvasInput::on_key(Key key) {
                     state_ == InputState::ResizingNode;
                 cancel_gesture();
                 if (needs_rebuild) {
-                    visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
+                    visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, scope_id_);
                 }
             }
             clear_selection();
@@ -295,7 +295,7 @@ InputResult CanvasInput::on_key(Key key) {
             }
             debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
             hovered_routing_point_ = nullptr;
-            visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
+            visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, scope_id_);
             clear_selection();
             result.rebuild_simulation = true;
             break;
@@ -334,7 +334,7 @@ void CanvasInput::finish_marquee() {
 
          ui::InternedId node_iid = interner_.lookup(std::string_view(vroot->id()));
          const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : model_.current().find_node(node_iid);
-         if (!node || node->layout.group_id != group_id_) continue;
+         if (!node || node->layout.layout_group != scope_id_) continue;
 
         Pt pos = vroot->worldPos();
         Pt sz = vroot->size();

@@ -54,7 +54,7 @@ bool create_bridge_nodes_for_side(
          n.semantic.id = id;
          n.semantic.type = interner.intern(p.is_input_side ? "BlueprintInput" : "BlueprintOutput");
          n.view.name = ec.iface_name;
-         n.layout.group_id = p.group_id;
+         n.layout.layout_group = p.scope_id;
          n.layout.x = p.x;
 
          float base_y = p.fallback_y_origin + fallback_lane_y(rank);
@@ -64,31 +64,31 @@ bool create_bridge_nodes_for_side(
          }
          n.layout.y = base_y;
 
-        const PortType pt = resolve_port_type(ec);
+         const PortType pt = resolve_port_type(ec);
          const Domain pd = editor::common::domain_for_port_type(pt);
          if (p.is_input_side) {
-             n.view.inputs.emplace_back(interner.intern("ext"), bp2::PortSide::Input, pt);
-             n.view.outputs.emplace_back(interner.intern("port"), bp2::PortSide::Output, pt);
              bp2::PortDescriptor ext_pd;
              ext_pd.name = interner.intern("ext");
              ext_pd.domain = pd;
              ext_pd.direction = bp2::Direction::Input;
+             ext_pd.port_type = pt;
              bp2::PortDescriptor port_pd;
              port_pd.name = interner.intern("port");
              port_pd.domain = pd;
              port_pd.direction = bp2::Direction::Output;
+             port_pd.port_type = pt;
              n.semantic.iface = bp2::Interface({ext_pd, port_pd});
          } else {
-             n.view.inputs.emplace_back(interner.intern("port"), bp2::PortSide::Input, pt);
-             n.view.outputs.emplace_back(interner.intern("ext"), bp2::PortSide::Output, pt);
              bp2::PortDescriptor ext_pd;
              ext_pd.name = interner.intern("ext");
              ext_pd.domain = pd;
              ext_pd.direction = bp2::Direction::Output;
+             ext_pd.port_type = pt;
              bp2::PortDescriptor port_pd;
              port_pd.name = interner.intern("port");
              port_pd.domain = pd;
              port_pd.direction = bp2::Direction::Input;
+             port_pd.port_type = pt;
              n.semantic.iface = bp2::Interface({ext_pd, port_pd});
          }
         out = out.with_node(std::move(n));

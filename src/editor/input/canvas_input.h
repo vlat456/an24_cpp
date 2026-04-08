@@ -43,7 +43,7 @@ class CanvasInput {
 public:
     CanvasInput(visual::Scene& scene, Viewport& viewport,
                 bp2::EditorModel& model, ui::StringInterner& interner,
-                bp2::PathArena& arena, const std::string& group_id,
+                bp2::PathArena& arena, const std::string& scope_id,
                 const TypeRegistry* parser_registry = nullptr);
 
     void set_parser_registry(const TypeRegistry* parser_registry) {
@@ -127,7 +127,7 @@ private:
     bp2::PathArena& arena_;
     const TypeRegistry* parser_registry_ = nullptr;
     ui::InternedId group_iid_;  // interned handle for O(1) comparisons
-    std::string_view group_id_;  // resolved from interner (stable storage)
+    std::string_view scope_id_;  // resolved from interner (stable storage)
     
     // Initial positions for drag-to-command commit
     std::vector<Pt> drag_initial_positions_;
@@ -209,6 +209,8 @@ private:
     void leave_state();  // return to Idle (clean up transient data)
 
 public:
+    std::string_view scope_id_for_test() const { return scope_id_; }
+
     /// Cancel any in-flight gesture, clearing all transient pointers.
     /// Call this BEFORE any scene rebuild (undo/redo, node deletion, etc.)
     /// to prevent dangling pointers to destroyed widgets.

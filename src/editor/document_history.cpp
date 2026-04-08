@@ -15,21 +15,21 @@ void rebuild_windows_after_history_change(Document& doc) {
             && win->external_interner && win->external_arena) {
             visual::mutations::rebuild(win->scene, *win->external_blueprint,
                                        *win->external_interner, *win->external_arena, "");
-        } else if (!win->group_id.empty()) {
+        } else if (!win->scope_id.empty()) {
             // Sync embedded_model from the authoritative nested.inline_def
-            const ui::InternedId group_iid = doc.interner().lookup(win->group_id);
+            const ui::InternedId group_iid = doc.interner().lookup(win->scope_id);
             const bp2::Blueprint::Nested* nested = group_iid.empty()
                 ? nullptr
                 : doc.model().current().find_nested(group_iid);
-            if (nested && nested->inline_def) {
+            if (nested && nested->inline_def()) {
                 if (win->embedded_model) {
-                    win->embedded_model->replace_current(*nested->inline_def);
+                    win->embedded_model->replace_current(*nested->inline_def());
                 }
-                visual::mutations::rebuild(win->scene, *nested->inline_def,
+                visual::mutations::rebuild(win->scene, *nested->inline_def(),
                                            doc.interner(), doc.arena(), "");
             } else {
-                visual::mutations::rebuild(win->scene, doc.model().current(),
-                                           doc.interner(), doc.arena(), win->group_id);
+                spdlog::error("[editor] Embedded window '{}' missing nested inline_def after history change", win->scope_id);
+                continue;
             }
         } else {
             visual::mutations::rebuild(win->scene, doc.model().current(),

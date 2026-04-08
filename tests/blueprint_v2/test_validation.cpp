@@ -94,11 +94,9 @@ TEST(PathResolver, ResolveNestedInterfacePort) {
         {I.intern("out"), Domain::Electrical, Direction::Output},
     }));
 
-     bp2::Blueprint::Nested n;
-     n.id = I.intern("sub1");
-     n.embedded = true;
-     n.inline_def = std::make_unique<bp2::Blueprint>(inner);
-     n.iface = inner.iface();
+     auto n = bp2::Blueprint::Nested::make_embedded(
+         I.intern("sub1"), ui::InternedId{},
+         std::make_unique<bp2::Blueprint>(inner));
 
     bp2::Blueprint root;
     root = root.with_nested(std::move(n));
@@ -121,10 +119,9 @@ TEST(PathResolver, CanConnectRejectsBoundarySkipAcrossNestedScopes) {
     bp2::Blueprint inner;
      inner = inner.with_node(make_node(I, "r1", "Resistor"));
 
-     bp2::Blueprint::Nested n;
-     n.id = I.intern("sub1");
-     n.embedded = true;
-     n.inline_def = std::make_unique<bp2::Blueprint>(inner);
+     auto n = bp2::Blueprint::Nested::make_embedded(
+         I.intern("sub1"), ui::InternedId{},
+         std::make_unique<bp2::Blueprint>(inner));
 
     bp2::Blueprint root;
     root = root.with_node(make_node(I, "bat1", "Battery"));
@@ -323,10 +320,8 @@ TEST(BlueprintValidate, InvalidNestedReferenceFails) {
     ui::StringInterner I;
      TypeRegistry reg = make_validation_registry();
 
-     bp2::Blueprint::Nested n;
-     n.id = I.intern("sub1");
-     n.embedded = false;
-     n.blueprint_id = I.intern("NoSuchBlueprint");
+     auto n = bp2::Blueprint::Nested::make_reference(
+         I.intern("sub1"), I.intern("NoSuchBlueprint"), bp2::Interface());
 
     bp2::Blueprint bp;
     bp = bp.with_nested(std::move(n));
@@ -453,11 +448,11 @@ TEST(BlueprintValidate, EmbeddedProxyNodePassesInvariantChecker) {
     bp = bp.with_node(std::move(proxy));
 
     // Add matching embedded nested definition.
-    bp2::Blueprint::Nested nested;
-    nested.id = I.intern("rn180_inst");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>();
-    *nested.inline_def = nested.inline_def->with_id(I.intern("RN-180-Exciter"));
+    auto inline_bp = std::make_unique<bp2::Blueprint>();
+    *inline_bp = inline_bp->with_id(I.intern("RN-180-Exciter"));
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        I.intern("rn180_inst"), I.intern("RN-180-Exciter"),
+        std::move(inline_bp));
     bp = bp.with_nested(std::move(nested));
 
     auto r = bp2::InvariantChecker::validate(bp, arena, reg, I);
@@ -497,10 +492,9 @@ TEST(BlueprintRepair, DiagnoseSkipsEmbeddedProxyNodes) {
     proxy.view.expandable = true;
     bp = bp.with_node(std::move(proxy));
 
-    bp2::Blueprint::Nested nested;
-    nested.id = I.intern("gen_inst");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        I.intern("gen_inst"), I.intern("GSC-18-Starter"),
+        std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
 
     auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg, I);
@@ -561,10 +555,9 @@ TEST(BlueprintRepair, ParserRegistryOverloadSkipsEmbeddedProxyNodes) {
     proxy.view.expandable = true;
     bp = bp.with_node(std::move(proxy));
 
-    bp2::Blueprint::Nested nested;
-    nested.id = I.intern("gen_inst");
-    nested.embedded = true;
-    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        I.intern("gen_inst"), I.intern("GSC-18-Starter"),
+        std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
 
     auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, parser_registry, I);

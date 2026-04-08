@@ -91,7 +91,7 @@ bool validate_blueprint_for_persist(
         // already validated as individual nodes, so skip the proxy.
         if (node.view.expandable) {
             const auto* nested = bp.find_nested(node.semantic.id);
-            if (nested && nested->embedded) continue;
+            if (nested && nested->is_embedded()) continue;
         }
         std::string type_name(interner.resolve(node.semantic.type));
         if (!parser_registry.has(type_name)) {

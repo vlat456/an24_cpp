@@ -2,6 +2,7 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/interface/node_port_projection.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
@@ -29,11 +30,8 @@ inline PortType resolve_port_type_from_model(const bp2::EditorModel& model,
                                                ui::InternedId port_name) {
      const bp2::Blueprint::Node* node = model.current().find_node(node_id);
      if (!node) return PortType::Any;
-     for (const auto& p : node->view.inputs) {
-         if (p.name == port_name) return p.type;
-     }
-     for (const auto& p : node->view.outputs) {
-         if (p.name == port_name) return p.type;
+     for (const auto& p : node->semantic.iface.ports()) {
+         if (p.name == port_name) return p.port_type;
      }
      return PortType::Any;
 }

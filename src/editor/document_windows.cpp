@@ -77,30 +77,32 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
     if ((target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested
          || target.kind == editor::SubWindowOpenTargetKind::ReferencedNested)
         && nested) {
-        std::string type_name = std::string(interner_.resolve(nested->blueprint_id));
+        std::string type_name = std::string(interner_.resolve(nested->blueprint_id()));
         auto [win, created] = window_manager_.open(sub_blueprint_id,
                                                    type_name + " [" + sub_blueprint_id + "]");
+        if (!win) {
+            spdlog::error("[editor] Failed to open sub-window '{}'", sub_blueprint_id);
+            return;
+        }
         if (!created) {
             spdlog::info("[editor] Reactivated sub-window for '{}'", sub_blueprint_id);
             return;
         }
 
-        if (win) {
-            win->set_read_only(!nested->embedded);
+        win->set_read_only(!nested->is_embedded());
 
-            if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && nested->inline_def) {
-                if (has_default_pan_zoom(*nested->inline_def)) {
-                    win->pending_auto_fit = true;
-                } else {
-                    win->viewport.pan.x = nested->inline_def->pan_x();
-                    win->viewport.pan.y = nested->inline_def->pan_y();
-                    win->viewport.zoom = nested->inline_def->zoom();
-                    win->viewport.grid_step = nested->inline_def->grid_step();
-                    win->viewport.clamp_zoom();
-                }
-            } else {
+        if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && nested->inline_def()) {
+            if (has_default_pan_zoom(*nested->inline_def())) {
                 win->pending_auto_fit = true;
+            } else {
+                win->viewport.pan.x = nested->inline_def()->pan_x();
+                win->viewport.pan.y = nested->inline_def()->pan_y();
+                win->viewport.zoom = nested->inline_def()->zoom();
+                win->viewport.grid_step = nested->inline_def()->grid_step();
+                win->viewport.clamp_zoom();
             }
+        } else {
+            win->pending_auto_fit = true;
         }
 
         spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);

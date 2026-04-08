@@ -14,6 +14,8 @@
 #include "visual/wire/routing_point.h"
 #include "visual/node/bus_node_widget.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/interface/interface.h"
+#include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 
@@ -21,17 +23,20 @@
 // Helpers
 // ============================================================================
 
-/// Build a bp2::Blueprint::Node with the given id, type, and group_id.
+// Shared bp2 test helpers (make_port, set_iface)
+#include "bp2_test_helpers.h"
+
+/// Build a bp2::Blueprint::Node with the given id, type, and layout_group.
 static bp2::Blueprint::Node make_bp2_node(ui::StringInterner& I,
                                            const char* id,
                                            const char* type = "Battery",
-                                           const char* group_id = "") {
-    bp2::Blueprint::Node n;
-    n.semantic.id = I.intern(id);
-    n.semantic.type = I.intern(type);
-    n.layout.group_id = group_id;
-    return n;
-}
+                                           const char* layout_group = "") {
+     bp2::Blueprint::Node n;
+     n.semantic.id = I.intern(id);
+     n.semantic.type = I.intern(type);
+     n.layout.layout_group = layout_group;
+     return n;
+ }
 
 /// Build a bp2::Blueprint::Wire connecting src_node:src_port -> dst_node:dst_port.
 static bp2::Blueprint::Wire make_bp2_wire(ui::StringInterner& I,
@@ -57,11 +62,15 @@ TEST(SceneMutations, RebuildCreatesNodeWidgets) {
     bp2::PathArena arena(interner);
 
     auto n1 = make_bp2_node(interner, "bat1", "Battery");
-    n1.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
-    n1.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    set_iface(n1, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     auto n2 = make_bp2_node(interner, "lamp1", "Lamp");
-    n2.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(n1));
@@ -100,10 +109,14 @@ TEST(SceneMutations, RebuildCreatesWireWidgets) {
     bp2::PathArena arena(interner);
 
     auto n1 = make_bp2_node(interner, "bat1", "Battery");
-    n1.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    set_iface(n1, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     auto n2 = make_bp2_node(interner, "lamp1", "Lamp");
-    n2.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
     auto wire = make_bp2_wire(interner, arena, "wire_0",
                                "bat1", "v_out", "lamp1", "v_in");
@@ -152,10 +165,14 @@ TEST(SceneMutations, RebuildWithBusNodeCreatesAliasPortWires) {
     bus.view.render_hint = "bus";
     bus.layout.width = 200.0f;
     bus.layout.height = 40.0f;
-    bus.view.inputs.push_back(bp2::NodePort(interner.intern("v"), bp2::PortSide::Input, PortType::V));
+    set_iface(bus, {
+        make_port(interner, "v", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
     auto bat = make_bp2_node(interner, "bat1", "Battery");
-    bat.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    set_iface(bat, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     auto wire = make_bp2_wire(interner, arena, "wire_0",
                                "bat1", "v_out", "bus1", "v");
@@ -246,13 +263,19 @@ TEST(SceneMutations, RebuildMultipleBusWires) {
     auto bus = make_bp2_node(interner, "bus1", "Bus");
     bus.view.render_hint = "bus";
     bus.layout.width = 200.0f; bus.layout.height = 40.0f;
-    bus.view.inputs.push_back(bp2::NodePort(interner.intern("v"), bp2::PortSide::Input, PortType::V));
+    set_iface(bus, {
+        make_port(interner, "v", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
     auto bat = make_bp2_node(interner, "bat1", "Battery");
-    bat.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    set_iface(bat, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     auto lamp = make_bp2_node(interner, "lamp1", "Lamp");
-    lamp.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    set_iface(lamp, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
     auto w0 = make_bp2_wire(interner, arena, "w0", "bat1",  "v_out", "bus1",  "v");
     auto w1 = make_bp2_wire(interner, arena, "w1", "bus1",  "v",     "lamp1", "v_in");
@@ -313,7 +336,9 @@ TEST(SceneMutations, RefNodePortCenteredOnNodeWidth) {
 
     auto ref = make_bp2_node(interner, "ref1", "RefNode");
     ref.view.render_hint = "ref";
-    ref.view.outputs.push_back(bp2::NodePort(interner.intern("v"), bp2::PortSide::Output, PortType::V));
+    set_iface(ref, {
+        make_port(interner, "v", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(ref));
@@ -345,11 +370,15 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Right) {
     auto ref = make_bp2_node(interner, "ref1", "RefNode");
     ref.view.render_hint = "ref";
     ref.layout.x = 0; ref.layout.y = 0;
-    ref.view.outputs.push_back(bp2::NodePort(interner.intern("v"), bp2::PortSide::Output, PortType::V));
+    set_iface(ref, {
+        make_port(interner, "v", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     auto bat = make_bp2_node(interner, "bat1", "Battery");
     bat.layout.x = 200; bat.layout.y = 0;
-    bat.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    set_iface(bat, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
     auto wire = make_bp2_wire(interner, arena, "w1", "ref1", "v", "bat1", "v_in");
 
@@ -379,11 +408,15 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Left) {
     auto ref = make_bp2_node(interner, "ref1", "RefNode");
     ref.view.render_hint = "ref";
     ref.layout.x = 200; ref.layout.y = 0;
-    ref.view.outputs.push_back(bp2::NodePort(interner.intern("v"), bp2::PortSide::Output, PortType::V));
+    set_iface(ref, {
+        make_port(interner, "v", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     auto bat = make_bp2_node(interner, "bat1", "Battery");
     bat.layout.x = 0; bat.layout.y = 0;
-    bat.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    set_iface(bat, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
     auto wire = make_bp2_wire(interner, arena, "w1", "ref1", "v", "bat1", "v_in");
 
@@ -413,11 +446,15 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Bottom) {
     auto ref = make_bp2_node(interner, "ref1", "RefNode");
     ref.view.render_hint = "ref";
     ref.layout.x = 0; ref.layout.y = 0;
-    ref.view.outputs.push_back(bp2::NodePort(interner.intern("v"), bp2::PortSide::Output, PortType::V));
+    set_iface(ref, {
+        make_port(interner, "v", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     auto bat = make_bp2_node(interner, "bat1", "Battery");
     bat.layout.x = 0; bat.layout.y = 200;
-    bat.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    set_iface(bat, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
 
     auto wire = make_bp2_wire(interner, arena, "w1", "ref1", "v", "bat1", "v_in");
 
@@ -445,7 +482,9 @@ TEST(SceneMutations, RefNodeWithoutWireKeepsDefaultTopOrientation) {
 
     auto ref = make_bp2_node(interner, "ref1", "RefNode");
     ref.view.render_hint = "ref";
-    ref.view.outputs.push_back(bp2::NodePort(interner.intern("v"), bp2::PortSide::Output, PortType::V));
+    set_iface(ref, {
+        make_port(interner, "v", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(ref));
@@ -523,24 +562,20 @@ TEST(SnapMath, SideFromRelativePosition) {
 }
 
 // =============================================================================
-// Bug 2 regression: InOut ports must not appear on both sides of a node
+// Bug 2 regression: InOut ports render once (left side only)
 // =============================================================================
 
 TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
-    // When a node has InOut ports (e.g. KnobSwitch throw1..throw5), they appear in
-    // BOTH inputs[] and outputs[] arrays.  buildStandardLayout() must filter
-    // them from the outputs list so they only render on the left side.
+    // InOut ports are represented once in semantic iface and should render once.
     ui::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_bp2_node(I, "knob_1", "KnobSwitch");
-    // InOut ports: appear in both inputs and outputs
-    knob.view.inputs.push_back(bp2::NodePort(I.intern("throw1"), bp2::PortSide::InOut, PortType::V));
-    knob.view.inputs.push_back(bp2::NodePort(I.intern("throw2"), bp2::PortSide::InOut, PortType::V));
-    knob.view.inputs.push_back(bp2::NodePort(I.intern("throw3"), bp2::PortSide::InOut, PortType::V));
-     knob.view.outputs.push_back(bp2::NodePort(I.intern("throw1"), bp2::PortSide::InOut, PortType::V));
-     knob.view.outputs.push_back(bp2::NodePort(I.intern("throw2"), bp2::PortSide::InOut, PortType::V));
-     knob.view.outputs.push_back(bp2::NodePort(I.intern("throw3"), bp2::PortSide::InOut, PortType::V));
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw3", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
      knob.view.content_type = bp2::NodeContentType::Knob;
 
     bp2::Blueprint bp;
@@ -572,13 +607,11 @@ TEST(SceneMutations, InOutPortsMixedWithRegularPorts) {
     bp2::PathArena arena(I);
 
     auto node = make_bp2_node(I, "mixed_1", "MixedComponent");
-    // Regular input
-    node.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
-    // InOut ports in both arrays
-    node.view.inputs.push_back(bp2::NodePort(I.intern("bus"), bp2::PortSide::InOut, PortType::V));
-    node.view.outputs.push_back(bp2::NodePort(I.intern("bus"), bp2::PortSide::InOut, PortType::V));
-    // Regular output
-    node.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    set_iface(node, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "bus", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(node));
@@ -607,12 +640,11 @@ TEST(SceneMutations, KnobSwitchUsesWiperThrowNamesAndNoDuplication) {
     bp2::PathArena arena(I);
 
     auto knob = make_bp2_node(I, "knob_1", "KnobSwitch");
-    knob.view.inputs.push_back(bp2::NodePort(I.intern("wiper"), bp2::PortSide::InOut, PortType::V));
-    knob.view.inputs.push_back(bp2::NodePort(I.intern("throw1"), bp2::PortSide::InOut, PortType::V));
-    knob.view.inputs.push_back(bp2::NodePort(I.intern("throw2"), bp2::PortSide::InOut, PortType::V));
-     knob.view.outputs.push_back(bp2::NodePort(I.intern("wiper"), bp2::PortSide::InOut, PortType::V));
-     knob.view.outputs.push_back(bp2::NodePort(I.intern("throw1"), bp2::PortSide::InOut, PortType::V));
-     knob.view.outputs.push_back(bp2::NodePort(I.intern("throw2"), bp2::PortSide::InOut, PortType::V));
+    set_iface(knob, {
+        make_port(I, "wiper", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
      knob.view.content_type = bp2::NodeContentType::Knob;
 
     bp2::Blueprint bp;

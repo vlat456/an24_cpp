@@ -2,7 +2,9 @@
 
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/path/path.h"
+#include "blueprint_v2/interface/port_descriptor.h"
 #include "json_parser/json_parser.h"
+#include <string>
 #include <vector>
 #include <unordered_map>
 
@@ -15,6 +17,9 @@ struct FlatNetlist {
         Path path;
         ui::InternedId type;
         std::unordered_map<ui::InternedId, float> params;
+        std::unordered_map<std::string, std::string> string_params;
+        std::string render_hint;
+        std::vector<PortDescriptor> ports;
         std::vector<std::pair<ui::InternedId, SignalIndex>> port_signals;
     };
 

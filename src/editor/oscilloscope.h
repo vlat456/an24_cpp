@@ -15,7 +15,7 @@ struct OscilloscopeProbe {
     std::string doc_id;
     std::string signal_key;
     std::string label;
-    std::string group_id;
+    std::string scope_id;
     ui::Pt world_pos;
     uint32_t color = 0;
 };
@@ -23,7 +23,7 @@ struct OscilloscopeProbe {
 class OscilloscopeModel {
 public:
     void toggle_probe(Document& doc,
-                      const std::string& group_id,
+                      const std::string& scope_id,
                       const std::string& wire_id,
                       const ui::Pt* click_world = nullptr);
     void remove_probe(const std::string& wire_id);

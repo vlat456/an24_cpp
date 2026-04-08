@@ -1,5 +1,6 @@
 #include "properties_window.h"
 #include "editor/common/port_type_utils.h"
+#include "blueprint_v2/interface/node_port_projection.h"
 #include "parse_number.h"
 
 #ifndef EDITOR_TESTING
@@ -124,12 +125,14 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     snapshot_bridge_port_type_.reset();
     pending_bridge_port_type_.reset();
     if (is_bridge_node_type(*interner_, node.semantic.type)) {
-        if (!node.view.inputs.empty()) {
-            snapshot_bridge_port_type_ = node.view.inputs.front().type;
-            pending_bridge_port_type_ = node.view.inputs.front().type;
-        } else if (!node.view.outputs.empty()) {
-            snapshot_bridge_port_type_ = node.view.outputs.front().type;
-            pending_bridge_port_type_ = node.view.outputs.front().type;
+        const auto in_ports = bp2::derive_input_ports(node.semantic.iface);
+        const auto out_ports = bp2::derive_output_ports(node.semantic.iface);
+        if (!in_ports.empty()) {
+            snapshot_bridge_port_type_ = in_ports.front().type;
+            pending_bridge_port_type_ = in_ports.front().type;
+        } else if (!out_ports.empty()) {
+            snapshot_bridge_port_type_ = out_ports.front().type;
+            pending_bridge_port_type_ = out_ports.front().type;
         }
     }
 
@@ -471,7 +474,9 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
     if (node.view.render_hint == "bus") return;
 
     // Skip if node has no ports
-    if (node.view.inputs.empty() && node.view.outputs.empty()) return;
+    const auto in_ports = bp2::derive_input_ports(node.semantic.iface);
+    const auto out_ports = bp2::derive_output_ports(node.semantic.iface);
+    if (in_ports.empty() && out_ports.empty()) return;
 
     ImGui::Separator();
     ImGui::Text("Port Layout");
@@ -479,10 +484,10 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
 
     // Collect all port names
     std::vector<std::string> all_ports;
-    for (const auto& p : node.view.inputs) {
+    for (const auto& p : in_ports) {
         all_ports.push_back(std::string(interner_->resolve(p.name)));
     }
-    for (const auto& p : node.view.outputs) {
+    for (const auto& p : out_ports) {
         all_ports.push_back(std::string(interner_->resolve(p.name)));
     }
 
@@ -617,8 +622,12 @@ void PropertiesWindow::apply() {
 
         // Apply bridge PortType change to all ports (ext/port share semantics).
         if (pending_bridge_port_type_.has_value() && is_bridge_node_type(*interner_, updated.semantic.type)) {
-            for (auto& p : updated.view.inputs) p.type = *pending_bridge_port_type_;
-            for (auto& p : updated.view.outputs) p.type = *pending_bridge_port_type_;
+            std::vector<bp2::PortDescriptor> ports = updated.semantic.iface.ports();
+            for (auto& pd : ports) {
+                pd.port_type = *pending_bridge_port_type_;
+                pd.domain = editor::common::domain_for_port_type(*pending_bridge_port_type_);
+            }
+            updated.semantic.iface = bp2::Interface(std::move(ports));
         }
 
         // Single atomic checkpoint + replace
@@ -640,27 +649,34 @@ void PropertiesWindow::apply() {
                     // Update parent collapsed node port types
                     if (const auto* collapsed = next_bp.find_node(nested_iid)) {
                         bp2::Blueprint::Node n = *collapsed;
-                        for (auto& p : n.view.inputs) {
-                            if (p.name == iface_iid) p.type = *pending_bridge_port_type_;
+                        std::vector<bp2::PortDescriptor> ports = n.semantic.iface.ports();
+                        const Domain d = editor::common::domain_for_port_type(*pending_bridge_port_type_);
+                        for (auto& pd : ports) {
+                            if (pd.name == iface_iid) {
+                                pd.port_type = *pending_bridge_port_type_;
+                                pd.domain = d;
+                            }
                         }
-                        for (auto& p : n.view.outputs) {
-                            if (p.name == iface_iid) p.type = *pending_bridge_port_type_;
-                        }
+                        n.semantic.iface = bp2::Interface(std::move(ports));
                         next_bp = bp2::replace_node_preserve_order(next_bp, std::move(n));
                     }
 
                     // Update nested iface domain for the corresponding boundary port
                     if (const auto* nested = next_bp.find_nested(nested_iid)) {
                         bp2::Blueprint::Nested n = *nested;
-                        std::vector<bp2::PortDescriptor> ports = n.iface.ports();
-                        const Domain d = editor::common::domain_for_port_type(*pending_bridge_port_type_);
-                        for (auto& pd : ports) {
-                            if (pd.name == iface_iid) {
-                                pd.domain = d;
+                        if (n.is_embedded() && n.inline_def()) {
+                            std::vector<bp2::PortDescriptor> ports = n.inline_def()->iface().ports();
+                            const Domain d = editor::common::domain_for_port_type(*pending_bridge_port_type_);
+                            for (auto& pd : ports) {
+                                if (pd.name == iface_iid) {
+                                    pd.domain = d;
+                                    pd.port_type = *pending_bridge_port_type_;
+                                }
                             }
+                            bp2::Blueprint updated_inline = n.inline_def()->with_interface(bp2::Interface(std::move(ports)));
+                            n.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
+                            next_bp = bp2::replace_nested_preserve_order(next_bp, std::move(n));
                         }
-                        n.iface = bp2::Interface(std::move(ports));
-                        next_bp = bp2::replace_nested_preserve_order(next_bp, std::move(n));
                     }
                 }
             }

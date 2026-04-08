@@ -27,7 +27,7 @@ inline SubWindowOpenTarget resolve_subwindow_open_target(const bp2::Blueprint& b
     }
 
     if (const auto* nested = bp.find_nested(lookup_id)) {
-        return {nested->embedded ? SubWindowOpenTargetKind::EmbeddedNested
+        return {nested->is_embedded() ? SubWindowOpenTargetKind::EmbeddedNested
                                  : SubWindowOpenTargetKind::ReferencedNested,
                 {}};
     }

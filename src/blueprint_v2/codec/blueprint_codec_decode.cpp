@@ -1,4 +1,5 @@
 #include "blueprint_codec_internal.h"
+#include "blueprint_v2/interface/type_definition_interface.h"
 
 #include <algorithm>
 #include <unordered_map>
@@ -59,38 +60,6 @@ const std::unordered_set<std::string>& allowed_port_fields() {
 }
 
 // ============================================================
-// Port type/domain/direction helpers
-// ============================================================
-
-Domain domain_from_port_type(PortType t) {
-    switch (t) {
-        case PortType::V:
-        case PortType::I:
-        case PortType::Any:
-            return Domain::Electrical;
-        case PortType::Bool:
-            return Domain::Logical;
-        case PortType::RPM:
-        case PortType::Position:
-            return Domain::Mechanical;
-        case PortType::Pressure:
-            return Domain::Hydraulic;
-        case PortType::Temperature:
-            return Domain::Thermal;
-    }
-    return Domain::Electrical;
-}
-
-Direction direction_from_port_side(PortSide s) {
-    switch (s) {
-        case PortSide::Input: return Direction::Input;
-        case PortSide::Output: return Direction::Output;
-        case PortSide::InOut: return Direction::InOut;
-    }
-    return Direction::Output;
-}
-
-// ============================================================
 // Position parsing helper (shared by nodes and nested)
 // ============================================================
 
@@ -134,38 +103,6 @@ PortType parse_port_type(nlohmann::json const& val) {
         return *pt;
     }
     throw std::runtime_error("invalid node entry: port type must be int or string");
-}
-
-// ============================================================
-// Node iface builder from inputs/outputs
-// ============================================================
-
-void build_node_iface(Blueprint::Node& node) {
-    std::unordered_map<ui::InternedId, PortDescriptor> merged;
-    for (auto const& ep : node.view.inputs) {
-        auto it = merged.find(ep.name);
-        if (it == merged.end()) {
-            merged[ep.name] = {ep.name, domain_from_port_type(ep.type),
-                               direction_from_port_side(ep.side)};
-        } else if (it->second.direction != Direction::InOut) {
-            it->second.direction = Direction::InOut;
-        }
-    }
-    for (auto const& ep : node.view.outputs) {
-        auto it = merged.find(ep.name);
-        if (it == merged.end()) {
-            merged[ep.name] = {ep.name, domain_from_port_type(ep.type),
-                               direction_from_port_side(ep.side)};
-        } else if (it->second.direction != Direction::InOut) {
-            it->second.direction = Direction::InOut;
-        }
-    }
-    std::vector<PortDescriptor> iface_ports;
-    iface_ports.reserve(merged.size());
-    for (auto& [_, pd] : merged) {
-        iface_ports.push_back(std::move(pd));
-    }
-    node.semantic.iface = Interface(std::move(iface_ports));
 }
 
 } // namespace
@@ -218,6 +155,7 @@ Interface decode_interface(nlohmann::json const& arr,
         if (!type) {
             throw std::runtime_error("invalid interface entry: unknown port type string");
         }
+        pd.port_type = *type;
 
         if (p.contains("alias") && !p["alias"].is_string()) {
             throw std::runtime_error("invalid interface entry: alias must be string");
@@ -253,7 +191,7 @@ Blueprint decode_nodes(Blueprint bp,
         // Optional string fields
         if (auto v = read_optional_string(n, "name", ctx))            node.view.name = std::move(*v);
         if (auto v = read_optional_string(n, "render_hint", ctx))     node.view.render_hint = std::move(*v);
-        if (auto v = read_optional_string(n, "group_id", ctx))        node.layout.group_id = std::move(*v);
+        if (auto v = read_optional_string(n, "group_id", ctx))        node.layout.layout_group = std::move(*v);
         if (auto v = read_optional_string(n, "blueprint_path", ctx))  node.view.blueprint_path = std::move(*v);
 
         // Optional bool fields
@@ -440,6 +378,8 @@ Blueprint decode_nodes(Blueprint bp,
 
         // Ports
         if (n.contains("ports") && n["ports"].is_object()) {
+            std::vector<PortDescriptor> node_ports;
+            node_ports.reserve(n["ports"].size());
             for (auto const& [port_name, p] : n["ports"].items()) {
                 if (!p.is_object()) {
                     throw std::runtime_error("invalid node entry: port descriptor must be an object");
@@ -460,23 +400,28 @@ Blueprint decode_nodes(Blueprint bp,
                     }
                     dir = p["direction"].get<std::string>();
                 }
+                Direction direction = Direction::Output;
                 if (dir == "In") {
-                    node.view.inputs.emplace_back(pid, PortSide::Input, ptype);
+                    direction = Direction::Input;
                 } else if (dir == "Out") {
-                    node.view.outputs.emplace_back(pid, PortSide::Output, ptype);
+                    direction = Direction::Output;
                 } else if (dir == "InOut") {
-                    node.view.inputs.emplace_back(pid, PortSide::InOut, ptype);
-                    node.view.outputs.emplace_back(pid, PortSide::InOut, ptype);
+                    direction = Direction::InOut;
                 } else {
                     throw std::runtime_error("invalid node entry: unknown port direction");
                 }
+
+                PortDescriptor pd;
+                pd.name = pid;
+                pd.domain = ::domain_for_port_type(ptype);
+                pd.direction = direction;
+                pd.port_type = ptype;
+                node_ports.push_back(std::move(pd));
             }
+            node.semantic.iface = Interface(std::move(node_ports));
         } else if (n.contains("ports") && !n["ports"].is_object()) {
             throw std::runtime_error("invalid node entry: ports must be an object");
         }
-
-        // Build node.semantic.iface from decoded ports
-        build_node_iface(node);
 
         bp = bp.with_node(std::move(node));
     }
@@ -546,27 +491,33 @@ Blueprint decode_nested(Blueprint bp,
         require_field(n, "blueprint", &nlohmann::json::is_string, "invalid nested entry", "string");
         check_allowed_fields(n, allowed_nested_fields(), "nested");
 
-        Blueprint::Nested nested;
-        nested.id = interner.intern(n["id"].get<std::string>());
-        nested.blueprint_id = interner.intern(n["blueprint"].get<std::string>());
-        nested.embedded = n.value("embedded", false);
+        const ui::InternedId nested_id = interner.intern(n["id"].get<std::string>());
+        const ui::InternedId bp_id = interner.intern(n["blueprint"].get<std::string>());
+        const bool is_embedded = n.value("embedded", false);
+        float nested_x = 0.0f;
+        float nested_y = 0.0f;
 
         // Position (required for nested)
-        parse_required_position(n, "invalid nested entry", nested.x, nested.y);
+        parse_required_position(n, "invalid nested entry", nested_x, nested_y);
 
-        if (nested.embedded && !n.contains("definition")) {
+        if (is_embedded && !n.contains("definition")) {
             throw std::runtime_error("invalid nested entry: embedded nested requires definition");
         }
-        if (!nested.embedded && n.contains("definition")) {
+        if (!is_embedded && n.contains("definition")) {
             throw std::runtime_error("invalid nested entry: non-embedded nested must not contain definition");
         }
-        if (nested.embedded && n.contains("definition")) {
+        if (is_embedded && n.contains("definition")) {
                 DecodeError inner_err;
                 auto inner = BlueprintCodec::decode(
                 n["definition"].dump(), interner, arena, parser_registry, &inner_err);
             if (inner) {
-                nested.inline_def = std::make_unique<Blueprint>(std::move(*inner));
-                nested.iface = nested.inline_def->iface();
+                auto nested = Blueprint::Nested::make_embedded(
+                    nested_id,
+                    bp_id,
+                    std::make_unique<Blueprint>(std::move(*inner)),
+                    nested_x,
+                    nested_y);
+                bp = bp.with_nested(std::move(nested));
             } else {
                 if (!inner_err.message.empty()) {
                     throw std::runtime_error(
@@ -576,47 +527,19 @@ Blueprint decode_nested(Blueprint bp,
                 throw std::runtime_error("invalid nested entry: failed to decode embedded definition");
             }
         }
-        if (!nested.embedded && !nested.blueprint_id.empty()) {
-            const auto* def = parser_registry.get(std::string(interner.resolve(nested.blueprint_id)));
+        if (!is_embedded && !bp_id.empty()) {
+            const auto* def = parser_registry.get(std::string(interner.resolve(bp_id)));
             if (!def) {
                 throw std::runtime_error("unknown nested blueprint");
             }
-
-            std::vector<PortDescriptor> iface_ports;
-            iface_ports.reserve(def->ports.size());
-            for (const auto& [name, port] : def->ports) {
-                Domain d = Domain::Electrical;
-                switch (port.type) {
-                    case PortType::V:
-                    case PortType::I:
-                    case PortType::Any:
-                        d = Domain::Electrical;
-                        break;
-                    case PortType::Bool:
-                        d = Domain::Logical;
-                        break;
-                    case PortType::RPM:
-                    case PortType::Position:
-                        d = Domain::Mechanical;
-                        break;
-                    case PortType::Pressure:
-                        d = Domain::Hydraulic;
-                        break;
-                    case PortType::Temperature:
-                        d = Domain::Thermal;
-                        break;
-                }
-                Direction dir = Direction::Output;
-                switch (port.direction) {
-                    case PortDirection::In: dir = Direction::Input; break;
-                    case PortDirection::Out: dir = Direction::Output; break;
-                    case PortDirection::InOut: dir = Direction::InOut; break;
-                }
-                iface_ports.push_back({interner.intern(name), d, dir});
-            }
-            nested.iface = Interface(std::move(iface_ports));
+            auto nested = Blueprint::Nested::make_reference(
+                nested_id,
+                bp_id,
+                interface_from_type_definition(*def, interner),
+                nested_x,
+                nested_y);
+            bp = bp.with_nested(std::move(nested));
         }
-        bp = bp.with_nested(std::move(nested));
     }
     return bp;
 }

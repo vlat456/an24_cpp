@@ -673,6 +673,47 @@ target_link_libraries(canvas_input_tests PRIVATE
 )
 gtest_discover_tests(canvas_input_tests)
 
+add_executable(window_invariants_tests
+    test_window_invariants.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_down.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+)
+target_compile_definitions(window_invariants_tests PRIVATE EDITOR_TESTING)
+target_include_directories(window_invariants_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(window_invariants_tests PRIVATE
+    blueprint_v2
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(window_invariants_tests)
+
 add_executable(oscilloscope_stats_tests
     test_oscilloscope_stats.cpp
 )
@@ -1611,3 +1652,19 @@ target_link_libraries(knob_switch_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(knob_switch_tests)
+
+# Export parity tests (Issue #38: unified elaboration via flattener)
+add_executable(export_module_tests
+    blueprint_v2/test_export_flattener_parity.cpp
+)
+target_include_directories(export_module_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(export_module_tests PRIVATE
+    blueprint_v2
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(export_module_tests)

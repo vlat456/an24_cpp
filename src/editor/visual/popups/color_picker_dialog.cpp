@@ -9,8 +9,8 @@
 /// Look up the visual widget for a node in the correct window's scene.
 static visual::Widget* find_visual_widget(Document& doc,
                                           const std::string& node_id,
-                                          const std::string& group_id) {
-    BlueprintWindow* win = doc.windowManager().find(group_id);
+                                          const std::string& scope_id) {
+    BlueprintWindow* win = doc.windowManager().find(scope_id);
     if (!win) return nullptr;
     return win->scene.find(node_id);
 }
@@ -66,7 +66,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
                 // Update visual widget immediately so the color change is
                 // visible without requiring a blueprint reload.
                 if (auto* w = find_visual_widget(*doc, ws.colorPicker.node_id,
-                                                  ws.colorPicker.group_id)) {
+                                                  ws.colorPicker.scope_id)) {
                     w->setCustomColor(pack_color(r, g, b, a));
                 }
                 ImGui::CloseCurrentPopup();
@@ -79,7 +79,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
 
                 // Clear custom color on the visual widget immediately.
                 if (auto* w = find_visual_widget(*doc, ws.colorPicker.node_id,
-                                                  ws.colorPicker.group_id)) {
+                                                  ws.colorPicker.scope_id)) {
                     w->setCustomColor(std::nullopt);
                 }
                 ImGui::CloseCurrentPopup();

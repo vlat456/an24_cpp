@@ -5,10 +5,12 @@
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 #include <unordered_set>
+#include <spdlog/spdlog.h>
 
 struct TypeRegistry;
 
@@ -35,24 +37,30 @@ public:
     const std::vector<std::unique_ptr<BlueprintWindow>>& windows() const { return windows_; }
     std::vector<std::unique_ptr<BlueprintWindow>>& windows() { return windows_; }
 
-    std::pair<BlueprintWindow*, bool> open(const std::string& group_id, const std::string& title) {
+    std::pair<BlueprintWindow*, bool> open(const std::string& scope_id, const std::string& title) {
         for (auto& w : windows_) {
-            if (w->group_id == group_id) {
+            if (w->scope_id == scope_id) {
                 w->open = true;
                 return {w.get(), false};
             }
         }
-        windows_.push_back(std::make_unique<BlueprintWindow>(
-            model_, interner_, arena_, group_id, title, parser_registry_));
+        try {
+            windows_.push_back(std::make_unique<BlueprintWindow>(
+                model_, interner_, arena_, scope_id, title, parser_registry_));
+        } catch (const std::logic_error& e) {
+            spdlog::error("[editor] Failed to open window '{}' (group '{}'): {}",
+                          title, scope_id, e.what());
+            return {nullptr, false};
+        }
         return {windows_.back().get(), true};
     }
 
-    void close(const std::string& group_id) {
-        if (group_id.empty()) return;
+    void close(const std::string& scope_id) {
+        if (scope_id.empty()) return;
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
                 [&](const std::unique_ptr<BlueprintWindow>& w) {
-                    return w->group_id == group_id;
+                    return w->scope_id == scope_id;
                 }),
             windows_.end());
     }
@@ -61,7 +69,7 @@ public:
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
                 [](const std::unique_ptr<BlueprintWindow>& w) {
-                    return !w->open && !w->group_id.empty();
+                    return !w->open && !w->scope_id.empty();
                 }),
             windows_.end());
     }
@@ -75,14 +83,14 @@ public:
                 [&](const std::unique_ptr<BlueprintWindow>& w) {
                     // External-ref windows are kept alive (not tied to nested groups)
                     if (w->mode == BlueprintWindowMode::ExternalReference) return false;
-                    return !w->group_id.empty() && !live.count(w->group_id);
+                    return !w->scope_id.empty() && !live.count(w->scope_id);
                 }),
             windows_.end());
     }
 
-    BlueprintWindow* find(const std::string& group_id) {
+    BlueprintWindow* find(const std::string& scope_id) {
         for (auto& w : windows_)
-            if (w->group_id == group_id) return w.get();
+            if (w->scope_id == scope_id) return w.get();
         return nullptr;
     }
 
@@ -107,11 +115,10 @@ public:
             existing->open = true;
             return existing;
         }
-        // Use a synthetic group_id that won't collide with real nested group IDs.
-        // The "extref:" prefix ensures no collision with regular group_id values.
-        std::string synthetic_group_id = "extref:" + parent_instance_id;
+        // External-ref windows use mode and parent_instance_id for identity (not scope_id).
+        // scope_id remains empty to avoid collision with nested group identities.
         windows_.push_back(std::make_unique<BlueprintWindow>(
-            model_, interner_, arena_, synthetic_group_id, title, parser_registry_));
+            model_, interner_, arena_, "", title, parser_registry_));
         auto* win = windows_.back().get();
         win->mode = BlueprintWindowMode::ExternalReference;
         win->parent_instance_id = parent_instance_id;

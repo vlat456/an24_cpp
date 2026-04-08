@@ -2,8 +2,15 @@
 #include "editor/window/properties_window.h"
 #include "editor/commands/commands.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/interface/interface.h"
+#include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "ui/core/interned_id.h"
+
+// Shared bp2 test helpers (make_port, set_iface, count_inputs, count_outputs)
+#include "bp2_test_helpers.h"
+
+
 
 // Allow gtest to print InternedId values on assertion failure
 namespace ui {
@@ -34,17 +41,21 @@ static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
                                              bool input_bridge,
                                              PortType t) {
     bp2::Blueprint::Node n;
-    n.semantic.id = I.intern(id);
-    n.semantic.type = I.intern(input_bridge ? "BlueprintInput" : "BlueprintOutput");
-    n.view.name = id;
-    if (input_bridge) {
-        n.view.inputs.emplace_back(I.intern("ext"), bp2::PortSide::Input, t);
-        n.view.outputs.emplace_back(I.intern("port"), bp2::PortSide::Output, t);
-    } else {
-        n.view.inputs.emplace_back(I.intern("port"), bp2::PortSide::Input, t);
-        n.view.outputs.emplace_back(I.intern("ext"), bp2::PortSide::Output, t);
-    }
-    return n;
+     n.semantic.id = I.intern(id);
+     n.semantic.type = I.intern(input_bridge ? "BlueprintInput" : "BlueprintOutput");
+     n.view.name = id;
+     if (input_bridge) {
+         set_iface(n, {
+             make_port(I, "ext", Domain::Electrical, bp2::Direction::Input, t),
+             make_port(I, "port", Domain::Electrical, bp2::Direction::Output, t),
+         });
+     } else {
+         set_iface(n, {
+             make_port(I, "port", Domain::Electrical, bp2::Direction::Input, t),
+             make_port(I, "ext", Domain::Electrical, bp2::Direction::Output, t),
+         });
+     }
+     return n;
 }
 
 // =============================================================================
@@ -269,17 +280,17 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores)
 
     node_ptr = model.current().find_node(interner.intern("bp_in_1"));
     ASSERT_NE(node_ptr, nullptr);
-    ASSERT_EQ(node_ptr->view.inputs.size(), 1u);
-    ASSERT_EQ(node_ptr->view.outputs.size(), 1u);
-    EXPECT_EQ(node_ptr->view.inputs[0].type, PortType::RPM);
-    EXPECT_EQ(node_ptr->view.outputs[0].type, PortType::RPM);
+    ASSERT_EQ(count_inputs(node_ptr->semantic.iface), 1u);
+    ASSERT_EQ(count_outputs(node_ptr->semantic.iface), 1u);
+    EXPECT_EQ(get_input_type(node_ptr->semantic.iface, 0), PortType::RPM);
+    EXPECT_EQ(get_output_type(node_ptr->semantic.iface, 0), PortType::RPM);
 
     ASSERT_TRUE(model.can_undo());
     model.undo();
     node_ptr = model.current().find_node(interner.intern("bp_in_1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(node_ptr->view.inputs[0].type, PortType::V);
-    EXPECT_EQ(node_ptr->view.outputs[0].type, PortType::V);
+    EXPECT_EQ(get_input_type(node_ptr->semantic.iface, 0), PortType::V);
+    EXPECT_EQ(get_output_type(node_ptr->semantic.iface, 0), PortType::V);
 }
 
 TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNestedIface) {
@@ -287,21 +298,24 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     bp = bp.with_id(interner.intern("bp"));
 
     bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:in", true, PortType::V);
-    bridge.layout.group_id = "inst1";
+    bridge.layout.layout_group = "inst1";
 
-    bp2::Blueprint::Node collapsed;
-    collapsed.semantic.id = interner.intern("inst1");
-    collapsed.semantic.type = interner.intern("bp_type");
-    collapsed.view.name = "inst1";
-    collapsed.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
+     bp2::Blueprint::Node collapsed;
+     collapsed.semantic.id = interner.intern("inst1");
+     collapsed.semantic.type = interner.intern("bp_type");
+     collapsed.view.name = "inst1";
+     set_iface(collapsed, {
+         make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+     });
 
-    bp2::Blueprint::Nested nested;
-    nested.id = interner.intern("inst1");
-    nested.blueprint_id = interner.intern("bp_type");
-    nested.embedded = true;
-    nested.iface = bp2::Interface({
+    auto inner_bp = std::make_unique<bp2::Blueprint>();
+    *inner_bp = inner_bp->with_interface(bp2::Interface({
         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
-    });
+    }));
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("inst1"),
+        interner.intern("bp_type"),
+        std::move(inner_bp));
 
     bp = bp.with_node(std::move(bridge));
     bp = bp.with_node(std::move(collapsed));
@@ -318,12 +332,12 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
 
     const auto* collapsed_after = model.current().find_node(interner.intern("inst1"));
     ASSERT_NE(collapsed_after, nullptr);
-    ASSERT_EQ(collapsed_after->view.inputs.size(), 1u);
-    EXPECT_EQ(collapsed_after->view.inputs[0].type, PortType::RPM);
+    ASSERT_EQ(count_inputs(collapsed_after->semantic.iface), 1u);
+    EXPECT_EQ(get_input_type(collapsed_after->semantic.iface, 0), PortType::RPM);
 
     const auto* nested_after = model.current().find_nested(interner.intern("inst1"));
     ASSERT_NE(nested_after, nullptr);
-    auto pd = nested_after->iface.find(interner.intern("in"));
+    auto pd = nested_after->resolved_iface().find(interner.intern("in"));
     ASSERT_TRUE(pd.has_value());
     EXPECT_EQ(pd->domain, Domain::Mechanical);
 }
@@ -452,25 +466,31 @@ TEST_F(PropertiesWindowTest, NameChangeUndoRestoresOldName) {
 TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
     bp2::Blueprint bp;
 
-    bp2::Blueprint::Node src;
-    src.semantic.id = interner.intern("src");
-    src.semantic.type = interner.intern("Battery");
-    src.view.name = "src";
-    src.view.outputs.emplace_back(interner.intern("v_out"), bp2::PortSide::Output, PortType::V);
+     bp2::Blueprint::Node src;
+     src.semantic.id = interner.intern("src");
+     src.semantic.type = interner.intern("Battery");
+     src.view.name = "src";
+     set_iface(src, {
+         make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+     });
 
-    bp2::Blueprint::Node bus;
-    bus.semantic.id = interner.intern("bus");
-    bus.semantic.type = interner.intern("Bus");
-    bus.view.name = "bus";
-    bus.view.render_hint = "bus";
-    bus.view.inputs.emplace_back(interner.intern("v"), bp2::PortSide::InOut, PortType::V);
-    bus.view.outputs.emplace_back(interner.intern("v"), bp2::PortSide::InOut, PortType::V);
+     bp2::Blueprint::Node bus;
+     bus.semantic.id = interner.intern("bus");
+     bus.semantic.type = interner.intern("Bus");
+     bus.view.name = "bus";
+     bus.view.render_hint = "bus";
+     set_iface(bus, {
+         make_port(interner, "v", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+         make_port(interner, "v", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+     });
 
-    bp2::Blueprint::Node load;
-    load.semantic.id = interner.intern("load");
-    load.semantic.type = interner.intern("Lamp");
-    load.view.name = "load";
-    load.view.inputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
+     bp2::Blueprint::Node load;
+     load.semantic.id = interner.intern("load");
+     load.semantic.type = interner.intern("Lamp");
+     load.view.name = "load";
+     set_iface(load, {
+         make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+     });
 
     bp = bp.with_node(src);
     bp = bp.with_node(bus);
@@ -618,9 +638,11 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_ApplyChanges) {
     n.semantic.id = interner.intern("azs1");
     n.semantic.type = interner.intern("AZS");
     n.view.name = "AZS";
-    n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"),  bp2::PortSide::Input,  PortType::V));
-    n.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
-    n.view.outputs.push_back(bp2::NodePort(interner.intern("state"), bp2::PortSide::Output, PortType::Bool));
+    set_iface(n, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+        make_port(interner, "state", Domain::Logical, bp2::Direction::Output, PortType::Bool),
+    });
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("azs1"));
@@ -653,8 +675,10 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_UndoRestoresOriginal) {
     n.semantic.id = interner.intern("azs1");
     n.semantic.type = interner.intern("AZS");
     n.view.name = "AZS";
-    n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"),  bp2::PortSide::Input,  PortType::V));
-    n.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    set_iface(n, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("azs1"));
@@ -689,7 +713,9 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_NoChangesDoesNotPushUndo) {
     n.semantic.id = interner.intern("azs1");
     n.semantic.type = interner.intern("AZS");
     n.view.name = "AZS";
-    n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    set_iface(n, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
     model.add_node(std::move(n));
     model.clear_history(); // setup only — not part of undo test
 
@@ -761,18 +787,18 @@ TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
 
     // Change port type from V to Bool via the dropdown mechanism
     win.set_pending_bridge_port_type(PortType::Bool);
-    win.apply();
+     win.apply();
 
-    // Verify the port type was updated on the node
-    node_ptr = model.current().find_node(interner.intern("inst:my_output"));
-    ASSERT_NE(node_ptr, nullptr);
-    ASSERT_FALSE(node_ptr->view.inputs.empty());
-    EXPECT_EQ(node_ptr->view.inputs.front().type, PortType::Bool);
+     // Verify the port type was updated on the node
+     node_ptr = model.current().find_node(interner.intern("inst:my_output"));
+     ASSERT_NE(node_ptr, nullptr);
+     ASSERT_GT(count_inputs(node_ptr->semantic.iface), 0u);
+     EXPECT_EQ(get_input_type(node_ptr->semantic.iface, 0), PortType::Bool);
 
-    // String params should still carry the original exposed_type (not auto-updated
-    // from the dropdown — that's a separate serialization concern)
-    EXPECT_EQ(node_ptr->semantic.string_params.at("exposed_type"), "V");
-}
+     // String params should still carry the original exposed_type (not auto-updated
+     // from the dropdown — that's a separate serialization concern)
+     EXPECT_EQ(node_ptr->semantic.string_params.at("exposed_type"), "V");
+ }
 
 // =============================================================================
 // Bug 1 regression: Apply syncs content_max/min from params

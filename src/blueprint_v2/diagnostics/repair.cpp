@@ -32,7 +32,7 @@ RepairReport diagnose_and_repair(Blueprint& bp,
             // is not in the library registry by design.
             const bool is_embedded_proxy = n.view.expandable
                 && bp.find_nested(n.semantic.id) != nullptr
-                && bp.find_nested(n.semantic.id)->embedded;
+                && bp.find_nested(n.semantic.id)->is_embedded();
             if (!is_embedded_proxy) {
                 report.issues.push_back({
                     IntegrityIssue::Kind::UnknownNodeType,
@@ -50,14 +50,8 @@ RepairReport diagnose_and_repair(Blueprint& bp,
                 "duplicate nested id=" + iid(n.id)
             });
         }
-        if (n.embedded && !n.inline_def) {
-            report.issues.push_back({
-                IntegrityIssue::Kind::EmbeddedNestedMissingDefinition,
-                "embedded nested missing definition id=" + iid(n.id)
-            });
-        }
-        if (!n.embedded && !n.blueprint_id.empty()
-            && !parser_registry.has(std::string(interner.resolve(n.blueprint_id)))) {
+        if (n.is_reference()
+            && !parser_registry.has(std::string(interner.resolve(n.blueprint_id())))) {
             report.issues.push_back({
                 IntegrityIssue::Kind::UnknownNestedBlueprint,
                 "unknown nested blueprint id=" + iid(n.id)

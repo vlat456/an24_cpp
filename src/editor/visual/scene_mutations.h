@@ -18,6 +18,6 @@ namespace visual::mutations {
 void rebuild(Scene& scene, const bp2::Blueprint& bp,
              ui::StringInterner& interner,
              bp2::PathArena& arena,
-             std::string_view group_id);
+             std::string_view scope_id);
 
 } // namespace visual::mutations

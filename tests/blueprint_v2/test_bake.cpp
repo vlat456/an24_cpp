@@ -28,11 +28,8 @@ TEST(BakeOps, BakeNestedReferenceToEmbedded) {
     }));
     library.add(I.intern("sub_type"), lib);
 
-    bp2::Blueprint::Nested n;
-    n.id = I.intern("sub1");
-    n.blueprint_id = I.intern("sub_type");
-    n.embedded = false;
-    n.iface = lib.iface();
+    auto n = bp2::Blueprint::Nested::make_reference(
+        I.intern("sub1"), I.intern("sub_type"), lib.iface());
 
     bp2::Blueprint root;
     root = root.with_nested(std::move(n));
@@ -40,8 +37,8 @@ TEST(BakeOps, BakeNestedReferenceToEmbedded) {
     bp2::Blueprint baked = bp2::bake_nested(root, I.intern("sub1"), library);
     auto const* got = baked.find_nested(I.intern("sub1"));
     ASSERT_NE(got, nullptr);
-    EXPECT_TRUE(got->embedded);
-    EXPECT_NE(got->inline_def, nullptr);
+    EXPECT_TRUE(got->is_embedded());
+    EXPECT_NE(got->inline_def(), nullptr);
 }
 
 TEST(BakeOps, TryUnbakeReturnsReferenceWhenExactMatchFound) {
@@ -53,10 +50,9 @@ TEST(BakeOps, TryUnbakeReturnsReferenceWhenExactMatchFound) {
     lib = lib.with_node(make_node(I, "r1", "Resistor"));
     library.add(I.intern("sub_type"), lib);
 
-    bp2::Blueprint::Nested n;
-    n.id = I.intern("sub1");
-    n.embedded = true;
-    n.inline_def = std::make_unique<bp2::Blueprint>(lib);
+    auto n = bp2::Blueprint::Nested::make_embedded(
+        I.intern("sub1"), I.intern("sub_type"),
+        std::make_unique<bp2::Blueprint>(lib));
 
     bp2::Blueprint root;
     root = root.with_nested(std::move(n));
@@ -67,8 +63,8 @@ TEST(BakeOps, TryUnbakeReturnsReferenceWhenExactMatchFound) {
 
     auto const* got = unbaked->blueprint.find_nested(I.intern("sub1"));
     ASSERT_NE(got, nullptr);
-    EXPECT_FALSE(got->embedded);
-    EXPECT_EQ(got->blueprint_id, I.intern("sub_type"));
+    EXPECT_FALSE(got->is_embedded());
+    EXPECT_EQ(got->blueprint_id(), I.intern("sub_type"));
 }
 
 TEST(BakeOps, BakeAllRecursivelyEmbedsReferences) {
@@ -82,17 +78,13 @@ TEST(BakeOps, BakeAllRecursivelyEmbedsReferences) {
 
     bp2::Blueprint child;
     child = child.with_id(I.intern("child_type"));
-    bp2::Blueprint::Nested child_nested;
-    child_nested.id = I.intern("g1");
-    child_nested.blueprint_id = I.intern("grand_type");
-    child_nested.embedded = false;
+    auto child_nested = bp2::Blueprint::Nested::make_reference(
+        I.intern("g1"), I.intern("grand_type"), bp2::Interface());
     child = child.with_nested(std::move(child_nested));
     library.add(I.intern("child_type"), child);
 
-    bp2::Blueprint::Nested root_nested;
-    root_nested.id = I.intern("c1");
-    root_nested.blueprint_id = I.intern("child_type");
-    root_nested.embedded = false;
+    auto root_nested = bp2::Blueprint::Nested::make_reference(
+        I.intern("c1"), I.intern("child_type"), bp2::Interface());
 
     bp2::Blueprint root;
     root = root.with_nested(std::move(root_nested));
@@ -100,12 +92,12 @@ TEST(BakeOps, BakeAllRecursivelyEmbedsReferences) {
     bp2::Blueprint baked = bp2::bake_all(root, library);
     auto const* c1 = baked.find_nested(I.intern("c1"));
     ASSERT_NE(c1, nullptr);
-    EXPECT_TRUE(c1->embedded);
-    ASSERT_NE(c1->inline_def, nullptr);
+    EXPECT_TRUE(c1->is_embedded());
+    ASSERT_NE(c1->inline_def(), nullptr);
 
-    auto const* g1 = c1->inline_def->find_nested(I.intern("g1"));
+    auto const* g1 = c1->inline_def()->find_nested(I.intern("g1"));
     ASSERT_NE(g1, nullptr);
-    EXPECT_TRUE(g1->embedded);
+    EXPECT_TRUE(g1->is_embedded());
 }
 
 TEST(BakeOps, BakeAllDetectsCyclicReferenceGraph) {
@@ -114,28 +106,22 @@ TEST(BakeOps, BakeAllDetectsCyclicReferenceGraph) {
 
     bp2::Blueprint a;
     a = a.with_id(I.intern("A"));
-    bp2::Blueprint::Nested a_to_b;
-    a_to_b.id = I.intern("to_b");
-    a_to_b.blueprint_id = I.intern("B");
-    a_to_b.embedded = false;
+    auto a_to_b = bp2::Blueprint::Nested::make_reference(
+        I.intern("to_b"), I.intern("B"), bp2::Interface());
     a = a.with_nested(std::move(a_to_b));
 
     bp2::Blueprint b;
     b = b.with_id(I.intern("B"));
-    bp2::Blueprint::Nested b_to_a;
-    b_to_a.id = I.intern("to_a");
-    b_to_a.blueprint_id = I.intern("A");
-    b_to_a.embedded = false;
+    auto b_to_a = bp2::Blueprint::Nested::make_reference(
+        I.intern("to_a"), I.intern("A"), bp2::Interface());
     b = b.with_nested(std::move(b_to_a));
 
     library.add(I.intern("A"), a);
     library.add(I.intern("B"), b);
 
     bp2::Blueprint root;
-    bp2::Blueprint::Nested root_to_a;
-    root_to_a.id = I.intern("root_to_a");
-    root_to_a.blueprint_id = I.intern("A");
-    root_to_a.embedded = false;
+    auto root_to_a = bp2::Blueprint::Nested::make_reference(
+        I.intern("root_to_a"), I.intern("A"), bp2::Interface());
     root = root.with_nested(std::move(root_to_a));
 
     EXPECT_THROW(bp2::bake_all(root, library), std::runtime_error);
