@@ -273,20 +273,11 @@ nlohmann::json encode_nested(std::vector<Blueprint::Nested> const& nested_vec,
         n["embedded"] = nested.embedded;
         n["position"] = {{"x", nested.x}, {"y", nested.y}};
         if (nested.embedded && nested.inline_def) {
-            std::string encoded;
-            if (parser_registry) {
-                encoded = BlueprintCodec::encode(
-                    *nested.inline_def,
-                    const_cast<ui::StringInterner&>(interner),
-                    arena,
-                    parser_registry);
-            } else {
-                encoded = BlueprintCodec::encode(
-                    *nested.inline_def,
-                    const_cast<ui::StringInterner&>(interner),
-                    arena,
-                    nullptr);
-            }
+            const std::string encoded = BlueprintCodec::encode(
+                *nested.inline_def,
+                interner,
+                arena,
+                parser_registry);
             n["definition"] = nlohmann::json::parse(
                 encoded
             );

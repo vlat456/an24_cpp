@@ -10,7 +10,7 @@
 namespace bp2 {
 
 std::string BlueprintCodec::encode(Blueprint const& bp,
-                                   ui::StringInterner& interner,
+                                   ui::StringInterner const& interner,
                                    PathArena const& arena,
                                    const ::TypeRegistry* parser_registry) {
     nlohmann::json j;

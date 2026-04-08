@@ -18,7 +18,7 @@ struct DecodeError {
 class BlueprintCodec {
 public:
     static std::string encode(Blueprint const& bp,
-                              ui::StringInterner& interner,
+                              ui::StringInterner const& interner,
                               PathArena const& arena,
                               const ::TypeRegistry* parser_registry = nullptr);
 

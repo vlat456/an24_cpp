@@ -7,11 +7,20 @@
 #include "blueprint_v2/validation/wire_validator.h"
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
+#include <type_traits>
 
 // ==============================================================================
 // Helper: register a lightweight type stub in the parser TypeRegistry
 // ==============================================================================
 namespace {
+
+template <typename T>
+struct second_arg;
+
+template <typename R, typename A0, typename A1, typename A2, typename A3>
+struct second_arg<R (*)(A0, A1, A2, A3)> {
+    using type = A1;
+};
 
 /// Convert bp2::Direction to PortDirection
 PortDirection to_port_direction(bp2::Direction dir) {
@@ -61,6 +70,40 @@ TypeRegistry make_test_registry() {
 
 TEST(BlueprintCodec, Placeholder) {
     EXPECT_TRUE(true);
+}
+
+TEST(BlueprintCodec, EncodeSignatureUsesConstInterner) {
+    using EncodeFn = decltype(&bp2::BlueprintCodec::encode);
+    using InternerArg = typename second_arg<EncodeFn>::type;
+
+    static_assert(std::is_reference_v<InternerArg>,
+                  "BlueprintCodec::encode interner argument must be a reference");
+    static_assert(std::is_const_v<std::remove_reference_t<InternerArg>>,
+                  "BlueprintCodec::encode must accept const StringInterner&");
+    EXPECT_TRUE(true);
+}
+
+TEST(BlueprintCodec, EncodeDoesNotMutateInterner) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("const_safe_encode"));
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("Resistor");
+    node.layout.x = 1.0f;
+    node.layout.y = 2.0f;
+    node.semantic.params[interner.intern("r_ohm")] = 42.0f;
+    bp = bp.with_node(std::move(node));
+
+    const size_t before = interner.size();
+    const std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
+    const size_t after = interner.size();
+
+    EXPECT_FALSE(encoded.empty());
+    EXPECT_EQ(after, before) << "encode path should not intern new strings";
 }
 
 TEST(BlueprintCodec, EncodeEmptyBlueprint) {
