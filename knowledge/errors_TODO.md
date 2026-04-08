@@ -1521,3 +1521,45 @@ Wire visualization is **domain-agnostic** — wires carry all signal types (volt
 - `PushBuildValidation.RotarySwitchAliasesInstantiateDistinctVariantTypes`
 - Existing alias build/scheduler tests remain green
 | 16    | Runtime API simplification (commit_control removal) | ~~Medium~~ | Low | **COMPLETED** |
+
+---
+
+## Issue #23 — Single-Source Composite Instances (COMPLETED)
+
+**Problem:** Composite blueprint instances were stored in three redundant representations: (1) collapsed visual node, (2) nested blueprint record with `inline_def`, (3) promoted shadow copies of internal nodes/wires at root level with `group_id` filtering. This caused synchronization bugs, stale data, and forced repair code.
+
+**Resolution (single-source model):**
+
+1. **Removed root shadow promotion** from `addBlueprint()` — internal nodes/wires now exist only inside `nested.inline_def`
+
+2. **Replaced `sync_bridge_to_collapsed_and_nested()`** with `add_bridge_port_to_composite()` — builds one `PortDescriptor`, applies to both collapsed node and nested record in a single mutation
+
+3. **Subwindow rendering** now reads from `inline_def` directly:
+   - `rebuildAllWindows()` and `rebuild_windows_after_history_change()` sync `embedded_model` from `nested.inline_def`
+   - `BlueprintWindow` has `embedded_model` (dedicated `EditorModel`) so `CanvasInput` operates on the inner blueprint
+   - `applyInputResult()` syncs changes back to authoritative `nested.inline_def`
+
+4. **Simulation integration** updated for embedded nodes:
+   - `updateNodeContentFromSimulation()` iterates both root nodes and `inline_def` nodes
+   - `buildEnergizedWireSet()` handles embedded composite wires via `inline_def`
+   - `triggerSwitch`/`setSliderValue`/`setKnobPosition`/`holdButton*` accept `group_id` to build prefixed simulation keys
+   - `NodeContentRenderer::render()` uses `win.rendered_blueprint()` for correct node source
+   - `fitViewToContent()` accounts for `embedded_model` (nodes have empty `group_id`)
+
+5. **Export** uses `collect_nested_devices_recursive` / `collect_nested_connections_recursive` to walk `inline_def` trees
+
+**Files changed:**
+- `src/editor/document_components.cpp` — removed shadow promotion, renamed sync function
+- `src/editor/document_simulation.cpp` — added `make_sim_id()`, `find_node_in_scope()` helpers; fixed all interaction functions
+- `src/editor/document_history.cpp` — undo/redo with `inline_def` sync
+- `src/editor/document_input.cpp` — `applyInputResult()` syncs embedded_model back
+- `src/editor/document_export.cpp` — recursive inline_def traversal
+- `src/editor/window/blueprint_window.h` — `embedded_model`, `make_embedded_model()`
+- `src/editor/visual/node/node_content_renderer.{h,cpp}` — render from `rendered_blueprint()`
+- `src/editor/visual/windows/sub_window_renderer.cpp` — fit-to-content fix
+- `knowledge/05_editor.md` — updated documentation
+
+**Tests:** All 1427 pass, including 3 new test files:
+- `test_issue_23_nested_inline_only.cpp` — no shadow nodes, persistence roundtrip, nested-of-nested
+- `test_embedded_editing_undo.cpp` — undo/redo of inline_def edits
+- `test_embedded_subwindow_scene.cpp` — scene rebuild from inline_def

@@ -24,7 +24,8 @@ private:
     
     HoldButtonCallback holdButtonCallback_;
     
-    void renderSwitch(const bp2::Blueprint::Node& node, float width, bool readOnly, Document& doc);
+    void renderSwitch(const bp2::Blueprint::Node& node, float width, bool readOnly,
+                      Document& doc, const std::string& group_id);
     void renderValue(const bp2::Blueprint::Node& node, float width, bool readOnly);
     void renderGauge(const bp2::Blueprint::Node& node, float width);
     void renderText(const bp2::Blueprint::Node& node);

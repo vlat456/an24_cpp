@@ -8,9 +8,19 @@
 void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
     float zoom = win.viewport.zoom;
     const auto& interner = doc.interner();
-    
-    for (const auto& node : doc.blueprint().nodes()) {
-        if (node.layout.group_id != win.group_id) continue;
+
+    // Choose the correct blueprint source: inline_def for embedded, root for others
+    const bp2::Blueprint& bp = win.rendered_blueprint();
+
+    for (const auto& node : bp.nodes()) {
+        // For embedded subwindows, inline_def nodes have no group_id filter needed
+        // (the window already scoped to the composite). For root windows, filter normally.
+        if (!win.group_id.empty() && !win.embedded_model) {
+            // Legacy fallback: root-level group filtering
+            if (node.layout.group_id != win.group_id) continue;
+        } else if (win.group_id.empty()) {
+            if (!node.layout.group_id.empty()) continue;
+        }
 
         // Find the corresponding widget in the scene tree
         std::string_view node_id_sv = interner.resolve(node.semantic.id);
@@ -33,7 +43,7 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
 
         switch (node.view.content_type) {
             case bp2::NodeContentType::Switch:
-                renderSwitch(node, aw, win.read_only, doc);
+                renderSwitch(node, aw, win.read_only, doc, win.group_id);
                 break;
             case bp2::NodeContentType::Value:
                 renderValue(node, aw, win.read_only);
@@ -51,7 +61,8 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
 }
 
 void NodeContentRenderer::renderSwitch(const bp2::Blueprint::Node& node,
-                                        float width, bool readOnly, Document& doc) {
+                                        float width, bool readOnly,
+                                        Document& doc, const std::string& group_id) {
     if (readOnly) return;
     
     if (isHoldButton(node, doc.interner())) {
@@ -63,8 +74,8 @@ void NodeContentRenderer::renderSwitch(const bp2::Blueprint::Node& node,
             if (holdButtonCallback_) {
                 holdButtonCallback_(node_id_str, checked);
             } else {
-                if (checked) doc.holdButtonPress(node_id_str);
-                else doc.holdButtonRelease(node_id_str);
+                if (checked) doc.holdButtonPress(node_id_str, group_id);
+                else doc.holdButtonRelease(node_id_str, group_id);
             }
         }
     }

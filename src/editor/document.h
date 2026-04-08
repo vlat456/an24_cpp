@@ -125,11 +125,11 @@ public:
     std::unordered_map<std::string, float>& signalOverrides() { return signal_overrides_; }
     std::unordered_set<std::string>& heldButtons() { return held_buttons_; }
 
-    void triggerSwitch(const std::string& node_id);
-    void setSliderValue(const std::string& node_id, float value);
-    void setKnobPosition(const std::string& node_id, int position);
-    void holdButtonPress(const std::string& node_id);
-    void holdButtonRelease(const std::string& node_id);
+    void triggerSwitch(const std::string& node_id, const std::string& group_id = "");
+    void setSliderValue(const std::string& node_id, float value, const std::string& group_id = "");
+    void setKnobPosition(const std::string& node_id, int position, const std::string& group_id = "");
+    void holdButtonPress(const std::string& node_id, const std::string& group_id = "");
+    void holdButtonRelease(const std::string& node_id, const std::string& group_id = "");
 
     // ── Component/blueprint addition ──
 

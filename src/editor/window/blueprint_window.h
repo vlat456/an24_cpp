@@ -24,6 +24,7 @@ struct BlueprintWindow {
     std::string group_id;
     bool open = true;
 
+    std::unique_ptr<bp2::EditorModel> embedded_model;
     bp2::EditorModel& model;
     ui::StringInterner& interner;
     bp2::PathArena& arena;
@@ -56,6 +57,23 @@ struct BlueprintWindow {
     /// Signal keys are mapped: child "node.port" → parent "parent_instance_id:node.port".
     std::string parent_instance_id;
 
+    static std::unique_ptr<bp2::EditorModel> make_embedded_model(
+        bp2::EditorModel& root_model,
+        ui::StringInterner& interner,
+        const std::string& group_id) {
+        if (group_id.empty()) {
+            return nullptr;
+        }
+        const ui::InternedId group_iid = interner.lookup(group_id);
+        const bp2::Blueprint::Nested* nested = group_iid.empty()
+            ? nullptr
+            : root_model.current().find_nested(group_iid);
+        if (!nested || !nested->inline_def) {
+            return nullptr;
+        }
+        return std::make_unique<bp2::EditorModel>(*nested->inline_def);
+    }
+
     BlueprintWindow(bp2::EditorModel& model_, ui::StringInterner& interner_,
                     bp2::PathArena& arena_,
                     const std::string& group_id_,
@@ -63,17 +81,24 @@ struct BlueprintWindow {
                     const TypeRegistry* parser_registry = nullptr)
         : title(title_)
         , group_id(group_id_)
-        , model(model_)
+        , embedded_model(make_embedded_model(model_, interner_, group_id_))
+        , model(embedded_model ? *embedded_model : model_)
         , interner(interner_)
         , arena(arena_)
         , scene()
         , viewport()
-        , input(scene, viewport, model_, interner_, arena_, group_id_, parser_registry)
+        , input(scene, viewport, model, interner_, arena_, embedded_model ? "" : group_id_, parser_registry)
     {
         viewport.grid_step = model_.current().grid_step();
-        visual::mutations::rebuild(scene, model_.current(), interner_, arena_, group_id_);
-        if (!group_id_.empty()) {
+
+        if (embedded_model) {
+            visual::mutations::rebuild(scene, embedded_model->current(), interner_, arena_, "");
             mode = BlueprintWindowMode::EmbeddedGroup;
+        } else if (!group_id_.empty()) {
+            visual::mutations::rebuild(scene, model_.current(), interner_, arena_, group_id_);
+            mode = BlueprintWindowMode::EmbeddedGroup;
+        } else {
+            visual::mutations::rebuild(scene, model_.current(), interner_, arena_, "");
         }
     }
 
@@ -89,6 +114,9 @@ struct BlueprintWindow {
     const bp2::Blueprint& rendered_blueprint() const {
         if (mode == BlueprintWindowMode::ExternalReference && external_blueprint.has_value()) {
             return *external_blueprint;
+        }
+        if (mode == BlueprintWindowMode::EmbeddedGroup && embedded_model) {
+            return embedded_model->current();
         }
         return model.current();
     }

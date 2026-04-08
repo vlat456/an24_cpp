@@ -25,7 +25,10 @@ PortType parse_exposed_port_type(const std::string& s) {
     return PortType::V;
 }
 
-void sync_bridge_to_collapsed_and_nested(
+/// Update the collapsed node's and nested record's interface to include a new bridge port.
+/// This is the single mutation path: both the collapsed node's visual/semantic iface
+/// and the nested record's iface are updated from the same port descriptor.
+void add_bridge_port_to_composite(
     bp2::EditorModel& model,
     ui::StringInterner& interner,
     const std::string& group_id,
@@ -35,12 +38,19 @@ void sync_bridge_to_collapsed_and_nested(
 {
     const ui::InternedId group_iid = interner.intern(group_id);
     const ui::InternedId iface_iid = interner.intern(iface_name);
+    const Domain domain = editor::common::domain_for_port_type(port_type);
+
+    bp2::PortDescriptor pd;
+    pd.name = iface_iid;
+    pd.domain = domain;
+    pd.direction = is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output;
 
     bp2::Blueprint bp = model.current();
 
+    // Update collapsed node interface
     const auto* collapsed = bp.find_node(group_iid);
     if (!collapsed) {
-        spdlog::warn("[editor] sync_bridge: collapsed node '{}' not found", group_id);
+        spdlog::warn("[editor] add_bridge_port: collapsed node '{}' not found", group_id);
         return;
     }
 
@@ -52,26 +62,17 @@ void sync_bridge_to_collapsed_and_nested(
     }
     {
         std::vector<bp2::PortDescriptor> ports = cn.semantic.iface.ports();
-        const Domain d = editor::common::domain_for_port_type(port_type);
-        bp2::PortDescriptor pd;
-        pd.name = iface_iid;
-        pd.domain = d;
-        pd.direction = is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output;
-        ports.push_back(std::move(pd));
+        ports.push_back(pd);
         cn.semantic.iface = bp2::Interface(std::move(ports));
     }
     bp = bp2::replace_node_preserve_order(bp, std::move(cn));
 
+    // Update nested record interface (same port descriptor — single source)
     const auto* nested = bp.find_nested(group_iid);
     if (nested) {
         bp2::Blueprint::Nested n = *nested;
         std::vector<bp2::PortDescriptor> ports = n.iface.ports();
-        const Domain d = editor::common::domain_for_port_type(port_type);
-        bp2::PortDescriptor pd;
-        pd.name = iface_iid;
-        pd.domain = d;
-        pd.direction = is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output;
-        ports.push_back(std::move(pd));
+        ports.push_back(pd);
         n.iface = bp2::Interface(std::move(ports));
         bp = bp2::replace_nested_preserve_order(bp, std::move(n));
     }
@@ -193,7 +194,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         execute(model_, interner_, cmd_add_node(std::move(node)));
 
         if (bridge_in_group) {
-            sync_bridge_to_collapsed_and_nested(
+            add_bridge_port_to_composite(
                 model_, interner_, group_id,
                 bridge_iface_name, bridge_is_input, bridge_port_type);
         }
@@ -356,75 +357,14 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     bp2::Blueprint inline_bp = loaded.with_interface(collapsed.semantic.iface);
     inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
     inline_bp = inline_bp.with_display_name(def->classname);
-
-    bp2::Blueprint remapped_bp;
-    remapped_bp = remapped_bp.with_id(inline_bp.id());
-    remapped_bp = remapped_bp.with_display_name(inline_bp.display_name());
-    remapped_bp = remapped_bp.with_interface(collapsed.semantic.iface);
-    remapped_bp = remapped_bp.with_viewport(
+    inline_bp = inline_bp.with_viewport(
         inline_bp.pan_x(), inline_bp.pan_y(), inline_bp.zoom(), inline_bp.grid_step());
 
-    std::vector<bp2::Blueprint::Node> root_internal_nodes;
-    std::vector<bp2::Blueprint::Wire> root_internal_wires;
-
-    const auto bp_input_iid = interner_.intern("BlueprintInput");
-    const auto bp_output_iid = interner_.intern("BlueprintOutput");
-    std::unordered_map<ui::InternedId, ui::InternedId> id_remap;
-
-    for (bp2::Blueprint::Node n : inline_bp.nodes()) {
-        std::string original_name(interner_.resolve(n.semantic.id));
-        const bool is_bridge = (n.semantic.type == bp_input_iid || n.semantic.type == bp_output_iid);
-        std::string ns_id = is_bridge
-            ? (unique_id + ":" + original_name)
-            : (unique_id + "_" + original_name);
-        ui::InternedId old_id = n.semantic.id;
-        n.semantic.id = interner_.intern(ns_id);
-        n.layout.group_id = unique_id;
-        id_remap[old_id] = n.semantic.id;
-
-        bp2::Blueprint::Node n_remapped = n;
-        remapped_bp = remapped_bp.with_node(std::move(n_remapped));
-        root_internal_nodes.push_back(std::move(n));
-    }
-
-    for (bp2::Blueprint::Wire w : inline_bp.wires()) {
-        ui::InternedId src_node_id = arena_.parent(w.source).segment();
-        ui::InternedId src_port_id = w.source.segment();
-        ui::InternedId tgt_node_id = arena_.parent(w.target).segment();
-        ui::InternedId tgt_port_id = w.target.segment();
-
-        auto src_it = id_remap.find(src_node_id);
-        auto tgt_it = id_remap.find(tgt_node_id);
-        ui::InternedId ns_src = (src_it != id_remap.end()) ? src_it->second : interner_.intern(unique_id + "_" + std::string(interner_.resolve(src_node_id)));
-        ui::InternedId ns_tgt = (tgt_it != id_remap.end()) ? tgt_it->second : interner_.intern(unique_id + "_" + std::string(interner_.resolve(tgt_node_id)));
-
-        bp2::Blueprint::Wire w_remapped;
-        w_remapped.id = interner_.intern("wire_" + unique_id + "_" + std::string(interner_.resolve(w.id)));
-        w_remapped.source = arena_.make_port(
-            arena_.make_node(arena_.root(), ns_src), src_port_id);
-        w_remapped.target = arena_.make_port(
-            arena_.make_node(arena_.root(), ns_tgt), tgt_port_id);
-        w_remapped.domain = w.domain;
-        w_remapped.routing_points = std::move(w.routing_points);
-
-        bp2::Blueprint::Wire w_for_doc = w_remapped;
-        remapped_bp = remapped_bp.with_wire(std::move(w_remapped));
-        root_internal_wires.push_back(std::move(w_for_doc));
-    }
-
-    inline_bp = std::move(remapped_bp);
-
-    const bp2::Blueprint before_add = model_.current();
+     const bp2::Blueprint before_add = model_.current();
     bool checkpoint_pushed = false;
     try {
         model_.push_checkpoint();
         checkpoint_pushed = true;
-        for (auto& n : root_internal_nodes) {
-            execute(model_, interner_, cmd_add_node(std::move(n)));
-        }
-        for (auto& w : root_internal_wires) {
-            execute(model_, interner_, cmd_add_wire(std::move(w)));
-        }
 
         bp2::Blueprint::Nested nested;
         nested.id = collapsed.semantic.id;

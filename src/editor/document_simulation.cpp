@@ -7,6 +7,37 @@
 #include <cmath>
 #include <spdlog/spdlog.h>
 
+namespace {
+
+/// Build the simulation-level node ID: "group_id:node_id" for embedded, or "node_id" for root.
+std::string make_sim_id(const std::string& node_id, const std::string& group_id) {
+    return group_id.empty() ? node_id : (group_id + ":" + node_id);
+}
+
+/// Find a node either in the root blueprint (when group_id is empty) or inside
+/// the nested.inline_def for the given composite group.
+const bp2::Blueprint::Node* find_node_in_scope(
+    const bp2::EditorModel& model,
+    ui::StringInterner& interner,
+    const std::string& node_id,
+    const std::string& group_id) {
+    const ui::InternedId node_iid = interner.lookup(node_id);
+    if (node_iid.empty()) return nullptr;
+
+    if (group_id.empty()) {
+        return model.current().find_node(node_iid);
+    }
+    const ui::InternedId group_iid = interner.lookup(group_id);
+    const bp2::Blueprint::Nested* nested = group_iid.empty()
+        ? nullptr : model.current().find_nested(group_iid);
+    if (nested && nested->inline_def) {
+        return nested->inline_def->find_node(node_iid);
+    }
+    return nullptr;
+}
+
+} // namespace
+
 void Document::startSimulation() {
     if (!simulation_running_) {
         try {
@@ -55,10 +86,30 @@ void Document::rebuildAllWindows() {
             && win->external_interner && win->external_arena) {
             visual::mutations::rebuild(win->scene, *win->external_blueprint,
                                        *win->external_interner, *win->external_arena, "");
-         } else {
-             visual::mutations::rebuild(win->scene, model_.current(),
-                                        interner_, arena_, win->group_id);
-         }
+        } else if (!win->group_id.empty()) {
+            // For embedded subwindows, use nested.inline_def directly
+            const ui::InternedId group_iid = interner_.lookup(win->group_id);
+            const bp2::Blueprint::Nested* nested = group_iid.empty() ? nullptr 
+                : model_.current().find_nested(group_iid);
+            
+            if (nested && nested->inline_def) {
+                // Sync embedded_model from authoritative nested.inline_def
+                if (win->embedded_model) {
+                    win->embedded_model->replace_current(*nested->inline_def);
+                }
+                // Rebuild from inline_def (independent of root shadow nodes)
+                visual::mutations::rebuild(win->scene, *nested->inline_def,
+                                           interner_, arena_, "");
+            } else {
+                // Fallback to root filtering (for consistency if inline_def is missing)
+                visual::mutations::rebuild(win->scene, model_.current(),
+                                           interner_, arena_, win->group_id);
+            }
+        } else {
+            // Root window: filter by empty group_id
+            visual::mutations::rebuild(win->scene, model_.current(),
+                                       interner_, arena_, "");
+        }
     }
     rebuildSimulation();
 }
@@ -79,10 +130,13 @@ void Document::updateSimulationStep(double dt) {
 void Document::updateNodeContentFromSimulation() {
     if (!simulation_running_) return;
 
-    for (const bp2::Blueprint::Node& n : model_.current().nodes()) {
-        if (n.view.content_type == bp2::NodeContentType::None) continue;
+    // Helper: given a node, type name, and simulation ID prefix, update the content
+    auto update_node_content = [&](const bp2::Blueprint::Node& n,
+                                   const std::string& sim_id_prefix) {
+        if (n.view.content_type == bp2::NodeContentType::None) return;
 
-        const std::string nid = std::string(interner_.resolve(n.semantic.id));
+        const std::string local_id = std::string(interner_.resolve(n.semantic.id));
+        const std::string nid = sim_id_prefix.empty() ? local_id : (sim_id_prefix + ":" + local_id);
         const std::string type_name = std::string(interner_.resolve(n.semantic.type));
 
         NodeContent content;
@@ -156,13 +210,34 @@ void Document::updateNodeContentFromSimulation() {
             }
         }
 
+        // Find the widget: for root nodes, look in root window; for nested, look in subwindow
+        std::string_view node_sv = interner_.resolve(n.semantic.id);
         for (const auto& win : window_manager_.windows()) {
-            if (n.layout.group_id != win->group_id) continue;
-            std::string_view node_sv = interner_.resolve(n.semantic.id);
+            if (sim_id_prefix.empty()) {
+                // Root node: only update in root/matching group window
+                if (n.layout.group_id != win->group_id) continue;
+            } else {
+                // Embedded node: only update in the subwindow for this composite
+                if (win->group_id != sim_id_prefix) continue;
+            }
             auto* widget = win->scene.find(node_sv);
             if (!widget) continue;
             auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
             if (nw) nw->updateContent(content);
+        }
+    };
+
+    // Update root-level nodes
+    for (const bp2::Blueprint::Node& n : model_.current().nodes()) {
+        update_node_content(n, "");
+    }
+
+    // Update nodes inside embedded composites
+    for (const bp2::Blueprint::Nested& nested : model_.current().nested()) {
+        if (!nested.embedded || !nested.inline_def) continue;
+        const std::string parent_id = std::string(interner_.resolve(nested.id));
+        for (const bp2::Blueprint::Node& inner : nested.inline_def->nodes()) {
+            update_node_content(inner, parent_id);
         }
     }
 }
@@ -179,6 +254,34 @@ void Document::buildEnergizedWireSet(
 
     const bp2::Blueprint& bp = model_.current();
 
+    // For embedded subwindows, check if group_id matches a nested composite
+    if (!group_id.empty()) {
+        const ui::InternedId group_iid = interner_.lookup(group_id);
+        const bp2::Blueprint::Nested* nested = group_iid.empty()
+            ? nullptr : bp.find_nested(group_iid);
+        if (nested && nested->embedded && nested->inline_def) {
+            // Use inline_def wires with parent-prefixed signal keys
+            for (const bp2::Blueprint::Wire& w : nested->inline_def->wires()) {
+                if (w.source.kind() != bp2::PathKind::Port) continue;
+                ui::InternedId src_port_iid = w.source.segment();
+                bp2::Path src_parent = arena_.parent(w.source);
+                if (src_parent.kind() != bp2::PathKind::Node) continue;
+                ui::InternedId src_node_iid = src_parent.segment();
+
+                // Build runtime key: "parent_id:local_node.port"
+                std::string_view local_node = interner_.resolve(src_node_iid);
+                std::string_view local_port = interner_.resolve(src_port_iid);
+                std::string port_key = group_id + ":" + std::string(local_node) + "." + std::string(local_port);
+
+                if (simulation_.wire_is_energized(port_key)) {
+                    out.insert(interner_.resolve(w.id));
+                }
+            }
+            return;
+        }
+    }
+
+    // Root-level wires
     for (const bp2::Blueprint::Wire& w : bp.wires()) {
         if (!group_id.empty()) {
             auto [src_node_id, src_port] = bp2_path_to_node_port(w.source);
@@ -231,19 +334,18 @@ void Document::buildEnergizedWireSetExternal(
     }
 }
 
-void Document::triggerSwitch(const std::string& node_id) {
-    float current = simulation_.get_port_value(node_id, "control");
+void Document::triggerSwitch(const std::string& node_id, const std::string& group_id) {
+    const std::string sim_id = make_sim_id(node_id, group_id);
+    float current = simulation_.get_port_value(sim_id, "control");
     float next = (current < 0.5f) ? 1.0f : 0.0f;
-    signal_overrides_[node_id + ".control"] = next;
+    signal_overrides_[sim_id + ".control"] = next;
 }
 
-void Document::setSliderValue(const std::string& node_id, float value) {
-    signal_overrides_[node_id + ".control"] = value;
+void Document::setSliderValue(const std::string& node_id, float value, const std::string& group_id) {
+    const std::string sim_id = make_sim_id(node_id, group_id);
+    signal_overrides_[sim_id + ".control"] = value;
 
-    auto node_iid = interner_.lookup(node_id);
-    if (node_iid.empty()) return;
-
-    const bp2::Blueprint::Node* n = model_.current().find_node(node_iid);
+    const bp2::Blueprint::Node* n = find_node_in_scope(model_, interner_, node_id, group_id);
     if (!n) return;
 
     NodeContent content;
@@ -252,8 +354,13 @@ void Document::setSliderValue(const std::string& node_id, float value) {
     content.min   = n->view.content_min;
     content.max   = n->view.content_max;
 
+    const ui::InternedId node_iid = interner_.lookup(node_id);
     for (const auto& win : window_manager_.windows()) {
-        if (n->layout.group_id != win->group_id) continue;
+        if (group_id.empty()) {
+            if (n->layout.group_id != win->group_id) continue;
+        } else {
+            if (win->group_id != group_id) continue;
+        }
         auto* widget = win->scene.find(interner_.resolve(node_iid));
         if (!widget) continue;
         auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
@@ -261,13 +368,11 @@ void Document::setSliderValue(const std::string& node_id, float value) {
     }
 }
 
-void Document::setKnobPosition(const std::string& node_id, int position) {
-    signal_overrides_[node_id + ".control"] = static_cast<float>(position);
+void Document::setKnobPosition(const std::string& node_id, int position, const std::string& group_id) {
+    const std::string sim_id = make_sim_id(node_id, group_id);
+    signal_overrides_[sim_id + ".control"] = static_cast<float>(position);
 
-    auto node_iid = interner_.lookup(node_id);
-    if (node_iid.empty()) return;
-
-    const bp2::Blueprint::Node* n = model_.current().find_node(node_iid);
+    const bp2::Blueprint::Node* n = find_node_in_scope(model_, interner_, node_id, group_id);
     if (!n) return;
 
     NodeContent content;
@@ -276,8 +381,13 @@ void Document::setKnobPosition(const std::string& node_id, int position) {
     content.max   = n->view.content_max;
     content.min   = n->view.content_min;
 
+    const ui::InternedId node_iid = interner_.lookup(node_id);
     for (const auto& win : window_manager_.windows()) {
-        if (n->layout.group_id != win->group_id) continue;
+        if (group_id.empty()) {
+            if (n->layout.group_id != win->group_id) continue;
+        } else {
+            if (win->group_id != group_id) continue;
+        }
         auto* widget = win->scene.find(interner_.resolve(node_iid));
         if (!widget) continue;
         auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
@@ -285,11 +395,12 @@ void Document::setKnobPosition(const std::string& node_id, int position) {
     }
 }
 
-void Document::holdButtonPress(const std::string& node_id) {
-    held_buttons_.insert(node_id);
+void Document::holdButtonPress(const std::string& node_id, const std::string& group_id) {
+    held_buttons_.insert(make_sim_id(node_id, group_id));
 }
 
-void Document::holdButtonRelease(const std::string& node_id) {
-    held_buttons_.erase(node_id);
-    signal_overrides_[node_id + ".control"] = 2.0f;
+void Document::holdButtonRelease(const std::string& node_id, const std::string& group_id) {
+    const std::string sim_id = make_sim_id(node_id, group_id);
+    held_buttons_.erase(sim_id);
+    signal_overrides_[sim_id + ".control"] = 2.0f;
 }

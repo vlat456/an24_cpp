@@ -433,59 +433,63 @@ Port is placed at the **exact geometric center** of the selected edge:
 
 When a user right-clicks → "Insert Blueprint" in the editor, the composite is inserted via `Document::addBlueprint()`.
 
-### How It Works
+### How It Works (Single-Source Model — Issue #23)
 
 1. **Load from `.blueprint` file** — uses `load_blueprint_from_file_validated()` with library path lookup via `registry.categories[blueprint_name]` (e.g., `"systems"` → `library/systems/12SAM28.blueprint`)
 
-2. **Namespace-remap IDs** — node IDs are remapped to avoid collisions when inserting the same blueprint multiple times. Two conventions are used:
-   - **Bridge nodes** (BlueprintInput/BlueprintOutput) use **colon convention**: `unique_id:original_name` (e.g., `"GroundPower_1:v_in"`)
-   - **Internal nodes** use **underscore convention**: `unique_id_original_name` (e.g., `"GroundPower_1_src"`)
+2. **Create collapsed node + nested record** — only TWO objects are created:
+   - A **collapsed visual node** at root level (expandable, with interface ports matching the blueprint's ports)
+   - A **`bp2::Blueprint::Nested` record** with `embedded = true` and `inline_def` containing the loaded blueprint
    
-   The colon convention is canonical for bridge nodes across all code paths (`addBlueprint`, `extractToBlueprint`, `addComponent`). This ensures `build_simulation_json()` and `signal_key_resolver` can reliably identify bridge nodes by looking for `proxy_id:port_name`.
+   Internal nodes and wires live **exclusively** inside `nested.inline_def`. No shadow copies are promoted to the root blueprint.
 
-3. **Promote to root blueprint** — internal nodes AND wires are added to the root blueprint (not just `inline_def`) with `group_id = unique_id`. This is critical: `rebuild()` iterates `bp.nodes()` filtered by `group_id`, so nodes must be in the root blueprint to appear in the sub-window.
+3. **Bridge nodes** (BlueprintInput/BlueprintOutput) use **colon convention** for IDs: `unique_id:original_name` (e.g., `"GroundPower_1:v_in"`). This ensures `build_simulation_json()` and `signal_key_resolver` can reliably identify bridge nodes.
 
-4. **Viewport from saved blueprint** — `openSubWindow()` applies saved viewport from `nested.inline_def` directly to the window (pan, zoom, grid_step)
+4. **Interface edits** — `add_bridge_port_to_composite()` builds a single `PortDescriptor` and applies it to both the collapsed node's visual/semantic interface and the nested record's interface in one mutation path.
 
-### Sub-Window Rendering
+5. **Viewport from saved blueprint** — `openSubWindow()` applies saved viewport from `nested.inline_def` directly to the window (pan, zoom, grid_step)
 
-Sub-windows display the contents of a nested composite blueprint when double-clicked. The rendering uses the existing `rebuild()` function:
+### Sub-Window Rendering (Single-Source)
+
+Sub-windows display the contents of a nested composite blueprint when double-clicked. The rendering uses `nested.inline_def` directly:
 
 ```cpp
-// rebuild() filters nodes by group_id — critical that internal nodes are in root blueprint
-for (const bp2::Blueprint::Node& n : bp.nodes()) {
-    if (n.group_id != group_id) continue;
-    scene.add(NodeFactory::create(n, interner, bus_wires));
-}
-
-// Wire routing points are preserved and applied to wire widgets
-for (size_t i = 0; i < w.routing_points.size(); ++i) {
-    wire_widget->addRoutingPoint(ui::Pt(w.routing_points[i].first, w.routing_points[i].second), i);
+// For embedded subwindows, rebuild from inline_def (no group_id filtering needed)
+const bp2::Blueprint::Nested* nested = bp.find_nested(group_iid);
+if (nested && nested->inline_def) {
+    visual::mutations::rebuild(win->scene, *nested->inline_def, interner, arena, "");
 }
 ```
+
+Each subwindow has an `embedded_model` (a dedicated `EditorModel` initialized from `inline_def`) so that `CanvasInput` can operate on the embedded blueprint independently. Changes flow back to the authoritative `nested.inline_def` via `applyInputResult()`.
+
+### Simulation Integration
+
+- **Signal keys** for embedded nodes use prefix: `"parent_id:local_node_id.port"` (e.g., `"GroundPower_1:src.v_out"`)
+- **`triggerSwitch`/`setSliderValue`/`setKnobPosition`/`holdButton*`** accept an optional `group_id` parameter to build the prefixed simulation key
+- **`updateNodeContentFromSimulation()`** iterates both root nodes and `inline_def` nodes
+- **`buildEnergizedWireSet()`** handles embedded composite wires via `inline_def`
 
 ### Key Files
 
 | File | Role |
 |------|------|
-| `document.cpp` | `addBlueprint()` — load, namespace-remap, promote to root; `openSubWindow()` — apply viewport |
+| `document_components.cpp` | `addBlueprint()` — load, create collapsed+nested; `add_bridge_port_to_composite()` — single interface mutation |
+| `document_simulation.cpp` | Simulation content updates, energized wires, signal interaction for both root and embedded nodes |
+| `document_history.cpp` | Undo/redo with `inline_def` sync to `embedded_model` |
+| `document_input.cpp` | `applyInputResult()` — syncs `embedded_model` changes back to `nested.inline_def` |
 | `persist.cpp` | `load_blueprint_from_file_validated()` — JSON parsing with positions, routing points, viewport |
 | `scene_mutations.cpp` | `rebuild()` — creates node/wire widgets from blueprint data |
-| `blueprint_window.h` | `BlueprintWindow` — holds `external_blueprint`, `external_interner`, `external_arena` |
+| `blueprint_window.h` | `BlueprintWindow` — holds `embedded_model`, `external_blueprint`, etc. |
 | `sub_window_renderer.cpp` | Sub-window viewport auto-fit logic |
 
 ### Common Pitfalls
 
-1. **Don't move the same object twice** — when remapping wires, copy before first move:
-   ```cpp
-   bp2::Blueprint::Wire w_for_doc = w_remapped;  // copy first
-   remapped_bp = remapped_bp.with_wire(std::move(w_remapped));
-   root_internal_wires.push_back(std::move(w_for_doc));  // use copy
-   ```
+1. **Library path lookup** — blueprints live in subdirectories (e.g., `library/systems/`). Use `registry.categories[blueprint_name]` to get the correct path.
 
-2. **Library path lookup** — blueprints live in subdirectories (e.g., `library/systems/`). Use `registry.categories[blueprint_name]` to get the correct path.
+2. **Viewport default check** — only auto-fit if viewport is at default (near-zero pan, zoom=1). Otherwise apply saved viewport directly to window.
 
-3. **Viewport default check** — only auto-fit if viewport is at default (near-zero pan, zoom=1). Otherwise apply saved viewport directly to window.
+3. **Node lookup scope** — when looking up a node for an embedded composite, search `inline_def` (not the root blueprint). Use `find_node_in_scope()` helper in `document_simulation.cpp`.
 
 ## Content Types and Widget Pipeline
 

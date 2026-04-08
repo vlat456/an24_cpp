@@ -95,7 +95,10 @@ void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
     Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
     // For external-ref windows, iterate the external blueprint's nodes (root scope)
     const bp2::Blueprint& bp = win.rendered_blueprint();
-    const std::string& filter_group = win.is_external_ref() ? "" : win.group_id;
+    // For embedded subwindows with embedded_model, nodes have empty group_id
+    // (the inline_def is already scoped to the composite). For external-ref, same.
+    const std::string filter_group =
+        (win.is_external_ref() || win.embedded_model) ? "" : win.group_id;
     // Use string comparison — group_id is a std::string, not InternedId
     for (const bp2::Blueprint::Node& node : bp.nodes()) {
         if (node.layout.group_id != filter_group) continue;

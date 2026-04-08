@@ -252,22 +252,22 @@ target_link_libraries(logical_solver_tests PRIVATE
 )
 gtest_discover_tests(logical_solver_tests)
 
-# Blueprint ports tests (TDD - BlueprintInput/BlueprintOutput for hierarchical blueprints)
-add_executable(blueprint_ports_tests
-    test_blueprint_ports.cpp
+# Bridge lowering tests (issue #28)
+add_executable(bridge_lowering_tests
+    test_bridge_lowering.cpp
 )
-target_include_directories(blueprint_ports_tests PRIVATE
+target_include_directories(bridge_lowering_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
-target_link_libraries(blueprint_ports_tests PRIVATE
+target_link_libraries(bridge_lowering_tests PRIVATE
     jit_solver
     json_parser
     GTest::gtest_main
 )
-gtest_discover_tests(blueprint_ports_tests)
+gtest_discover_tests(bridge_lowering_tests)
 
 # CurrentSense (ammeter) component tests
 add_executable(current_sense_tests
@@ -602,6 +602,7 @@ gtest_discover_tests(visual_content_widgets_tests)
 # Scene mutations tests (Phase 10: Blueprint <-> visual::Scene sync)
 add_executable(scene_mutations_tests
     test_scene_mutations.cpp
+    blueprint_v2/test_embedded_subwindow_scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
@@ -1484,6 +1485,7 @@ gtest_discover_tests(bp2_flattener_tests)
 # EditorModel v2 tests (Phase 7)
 add_executable(bp2_editor_model_tests
     blueprint_v2/test_editor_model.cpp
+    blueprint_v2/test_embedded_editing_undo.cpp
 )
 target_include_directories(bp2_editor_model_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1511,6 +1513,7 @@ gtest_discover_tests(bp2_bake_tests)
 add_executable(bp2_validation_tests
     blueprint_v2/test_validation.cpp
     blueprint_v2/test_persist_validation.cpp
+    blueprint_v2/test_issue_23_nested_inline_only.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_include_directories(bp2_validation_tests PRIVATE
