@@ -614,17 +614,17 @@ logical_solver_tests/fast:
 .PHONY : logical_solver_tests/fast
 
 #=============================================================================
-# Target rules for targets named blueprint_ports_tests
+# Target rules for targets named bridge_lowering_tests
 
 # Build rule for target.
-blueprint_ports_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blueprint_ports_tests
-.PHONY : blueprint_ports_tests
+bridge_lowering_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bridge_lowering_tests
+.PHONY : bridge_lowering_tests
 
 # fast build rule for target.
-blueprint_ports_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/build
-.PHONY : blueprint_ports_tests/fast
+bridge_lowering_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bridge_lowering_tests.dir/build.make tests/CMakeFiles/bridge_lowering_tests.dir/build
+.PHONY : bridge_lowering_tests/fast
 
 #=============================================================================
 # Target rules for targets named current_sense_tests
@@ -1642,7 +1642,6 @@ help:
 	@echo "... benchmark_push_scheduler"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
-	@echo "... blueprint_ports_tests"
 	@echo "... blueprint_v2"
 	@echo "... bp2_bake_tests"
 	@echo "... bp2_blueprint_tests"
@@ -1652,6 +1651,7 @@ help:
 	@echo "... bp2_interface_tests"
 	@echo "... bp2_path_tests"
 	@echo "... bp2_validation_tests"
+	@echo "... bridge_lowering_tests"
 	@echo "... bug_hunt_regression_tests"
 	@echo "... canvas_input_tests"
 	@echo "... clamp_normalize_tests"

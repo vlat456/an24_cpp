@@ -19,29 +19,29 @@ provider_pattern_tests_NOT_BUILT 0 0
 pid_tests_NOT_BUILT 0 0
 pd_tests_NOT_BUILT 0 0
 subtract_tests_NOT_BUILT 0 0
-AsymTMOTest.ColdStart_FirstFrame 30 0.000289106
-AsymTMOTest.AsymmetricResponse_RiseFastFallSlow 30 0.000202318
-AsymTMOTest.SymmetricBehavior_WhenTauEqual 30 0.000238581
-AsymTMOTest.Deadzone_PreventsMicroAdjustments 30 0.000225639
-AsymTMOTest.Deadzone_AllowsLargeChanges 30 0.000212457
-AsymTMOTest.SelectsTauUp_WhenDiffPositive 30 0.000200972
-AsymTMOTest.SelectsTauDown_WhenDiffNegative 30 0.000205553
-AsymTMOTest.PreLoad_ComputesInverseTaus 30 0.00020746
-AsymTMOTest.PreLoad_HandlesZeroTau 30 0.000211301
-AsymTMOTest.HandlesZeroDt_Pause 30 0.000213919
-AsymTMOTest.ExtremeValues_LargeTau 30 0.000193626
-AsymTMOTest.ExtremeValues_SmallTau 30 0.000193394
-FastTMOTest.ColdStart_FirstFrame 30 0.000182712
-FastTMOTest.BasicLowPassFiltering 30 0.000181265
-FastTMOTest.LargerTau_SlowerResponse 30 0.000183874
-FastTMOTest.Deadzone_PreventsMicroAdjustments 30 0.00021301
-FastTMOTest.HandlesZeroDt_Pause 30 0.000200825
-FastTMOTest.RationalApproximation_Stable 30 0.000191476
-FastTMOTest.PreLoad_ComputesInverseTau 30 0.000193968
-FastTMOTest.PreLoad_HandlesZeroTau 30 0.000189872
-FastTMOTest.StatePersistsBetweenFrames 30 0.00020046
-FastTMOTest.ZeroDeadzone_AllowsAllChanges 30 0.000171585
-TMOTest.AsymVsFast_WithSameParameters 30 0.000209233
+AsymTMOTest.ColdStart_FirstFrame 32 6.66224e-05
+AsymTMOTest.AsymmetricResponse_RiseFastFallSlow 32 5.60716e-05
+AsymTMOTest.SymmetricBehavior_WhenTauEqual 32 5.89258e-05
+AsymTMOTest.Deadzone_PreventsMicroAdjustments 32 5.81849e-05
+AsymTMOTest.Deadzone_AllowsLargeChanges 32 6.11797e-05
+AsymTMOTest.SelectsTauUp_WhenDiffPositive 32 5.70755e-05
+AsymTMOTest.SelectsTauDown_WhenDiffNegative 32 6.86393e-05
+AsymTMOTest.PreLoad_ComputesInverseTaus 32 6.56315e-05
+AsymTMOTest.PreLoad_HandlesZeroTau 32 6.25352e-05
+AsymTMOTest.HandlesZeroDt_Pause 32 6.72305e-05
+AsymTMOTest.ExtremeValues_LargeTau 32 6.06992e-05
+AsymTMOTest.ExtremeValues_SmallTau 32 5.71081e-05
+FastTMOTest.ColdStart_FirstFrame 32 5.99974e-05
+FastTMOTest.BasicLowPassFiltering 32 6.01445e-05
+FastTMOTest.LargerTau_SlowerResponse 32 5.84192e-05
+FastTMOTest.Deadzone_PreventsMicroAdjustments 32 5.65547e-05
+FastTMOTest.HandlesZeroDt_Pause 32 6.38503e-05
+FastTMOTest.RationalApproximation_Stable 32 6.86771e-05
+FastTMOTest.PreLoad_ComputesInverseTau 32 6.09727e-05
+FastTMOTest.PreLoad_HandlesZeroTau 32 5.92982e-05
+FastTMOTest.StatePersistsBetweenFrames 32 5.77253e-05
+FastTMOTest.ZeroDeadzone_AllowsAllChanges 32 6.58998e-05
+TMOTest.AsymVsFast_WithSameParameters 32 6.4043e-05
 logic_gates_tests_NOT_BUILT 0 0
 lut_tests_NOT_BUILT 0 0
 lut_codegen_tests_NOT_BUILT 0 0
@@ -72,37 +72,37 @@ PortRegistryTest.DMR400_Ports_Match_JsonRegistry 18 0
 PortRegistryTest.GeneratedPortRegistryExists 27 0
 PortRegistryTest.RU19A_PortOffsets_AreCorrect 27 0
 PortRegistryTest.AllTypesInRegistry 18 0
-PortMacroTest.ComponentHasCorrectFieldTypes 28 0.000188379
-PortMacroTest.ComponentFieldsAreZeroInitialized 28 0.00012749
-PortMacroTest.RU19A_PortCountIsSix 28 0.000132835
-PortMacroTest.RU19A_PortNamesAreCorrect 28 0.00014318
-PortMacroTest.DMR400_PortCountIsFour 28 0.000123021
-PortMacroTest.DMR400_PortNamesAreCorrect 28 0.000124342
-PortMacroTest.CompileTimePortCountValidation 28 0.000130643
-PortMacroTest.AllComponentsHavePortCounts 28 0.00014096
-PortMacroTest.GetPortNamesReturnsCorrectData 28 0.000144863
-PortMacroTest.RU19AMigrated_HasAllPortFields 28 0.000156644
-PortMacroTest.RU19AMigrated_FieldTypesAreCorrect 28 0.000132969
-PortMacroTest.RU19AMigrated_PortCountMatchesRegistry 28 0.000121076
-PortMacroTest.DMR400Migrated_HasAllPortFields 28 0.000123217
-PortMacroTest.DMR400Migrated_PortCountMatchesRegistry 28 0.000129314
-PortMacroTest.PORTS_Supports32Ports 28 0.000120707
+PortMacroTest.ComponentHasCorrectFieldTypes 30 7.27542e-05
+PortMacroTest.ComponentFieldsAreZeroInitialized 30 6.0675e-05
+PortMacroTest.RU19A_PortCountIsSix 30 6.33153e-05
+PortMacroTest.RU19A_PortNamesAreCorrect 30 6.29792e-05
+PortMacroTest.DMR400_PortCountIsFour 30 6.19736e-05
+PortMacroTest.DMR400_PortNamesAreCorrect 30 6.85764e-05
+PortMacroTest.CompileTimePortCountValidation 30 7.96667e-05
+PortMacroTest.AllComponentsHavePortCounts 30 7.13417e-05
+PortMacroTest.GetPortNamesReturnsCorrectData 30 6.70083e-05
+PortMacroTest.RU19AMigrated_HasAllPortFields 30 6.53069e-05
+PortMacroTest.RU19AMigrated_FieldTypesAreCorrect 30 6.41542e-05
+PortMacroTest.RU19AMigrated_PortCountMatchesRegistry 30 6.1782e-05
+PortMacroTest.DMR400Migrated_HasAllPortFields 30 6.41444e-05
+PortMacroTest.DMR400Migrated_PortCountMatchesRegistry 30 6.34014e-05
+PortMacroTest.PORTS_Supports32Ports 30 7.46528e-05
 EditorComponentVariant.BuildSimpleBatteryLoadCircuit 18 0
 EditorComponentVariant.MultiDomainComponents 18 0
 EditorComponentVariant.RefNodeFixedVoltage 18 0
 EditorComponentVariant.AllComponentTypes 18 0
 EditorComponentVariant.FactoryCreatesCorrectVariant 18 0
-PtTest.DefaultIsZero 28 0.000236894
-PtTest.Constructor 28 0.000148388
-PtTest.ZeroStatic 28 0.000136168
-PtTest.Addition 28 0.000142881
-PtTest.Subtraction 28 0.000153019
-PtTest.Multiplication 28 0.000151202
-PtTest.Equality 28 0.000137016
-BlueprintTest.DefaultIsEmpty 30 0.000121253
-BlueprintTest.AddNode 30 0.00014326
-BlueprintTest.AddWire 30 0.000137482
-BlueprintTest.FindNode 30 0.000127357
+PtTest.DefaultIsZero 30 9.02167e-05
+PtTest.Constructor 30 7.60278e-05
+PtTest.ZeroStatic 30 7.04528e-05
+PtTest.Addition 30 7.12625e-05
+PtTest.Subtraction 30 7.03639e-05
+PtTest.Multiplication 30 7.70986e-05
+PtTest.Equality 30 8.2307e-05
+BlueprintTest.DefaultIsEmpty 32 7.76836e-05
+BlueprintTest.AddNode 32 7.20886e-05
+BlueprintTest.AddWire 32 6.97253e-05
+BlueprintTest.FindNode 32 6.75586e-05
 PersistTest.ToJson_EmptyBlueprint 19 0.000771526
 PersistTest.ToJson_FromJson_Roundtrip 19 0.000559373
 PersistTest.DisplayName_Roundtrip_CustomName 19 0.000518461
@@ -177,17 +177,17 @@ BusInvariant.Construction_PortsEqualWiresPlusOne 19 0.000498656
 BusInvariant.ConnectWire_AddsPort 19 0.000494789
 BusInvariant.DisconnectWire_RemovesPort 19 0.000501362
 BusInvariant.Construction_FiltersUnrelatedWires 19 0.000487309
-ViewportTest.DefaultValues 28 0.000183579
-ViewportTest.ScreenToWorld_Identity 28 0.00014033
-ViewportTest.WorldToScreen_Identity 28 0.000129418
-ViewportTest.ScreenToWorld_WithPan 28 0.000121982
-ViewportTest.WorldToScreen_WithPan 28 0.000142342
-ViewportTest.ScreenToWorld_WithZoom 28 0.000122643
-ViewportTest.PanBy 28 0.000125859
-ViewportTest.ZoomAt 28 0.000127653
-ViewportTest.ZoomClamped 28 0.000127513
-ViewportTest.CenterOn_PanUpdated 28 0.000126336
-ViewportTest.CenterOn_WithZoom 28 0.000125127
+ViewportTest.DefaultValues 30 7.265e-05
+ViewportTest.ScreenToWorld_Identity 30 6.48569e-05
+ViewportTest.WorldToScreen_Identity 30 6.61347e-05
+ViewportTest.ScreenToWorld_WithPan 30 7.19792e-05
+ViewportTest.WorldToScreen_WithPan 30 6.59111e-05
+ViewportTest.ScreenToWorld_WithZoom 30 6.28431e-05
+ViewportTest.PanBy 30 6.3393e-05
+ViewportTest.ZoomAt 30 6.23472e-05
+ViewportTest.ZoomClamped 30 7.3282e-05
+ViewportTest.CenterOn_PanUpdated 30 6.69889e-05
+ViewportTest.CenterOn_WithZoom 30 6.505e-05
 RenderTest.EmptyBlueprint_DoesNotCrash 19 0.000778559
 RenderTest.Node_RendersRect 19 0.000498853
 RenderTest.Wire_RendersLine 19 0.000514897
@@ -336,16 +336,16 @@ TextHitTest.ContainsPoint_TopBorder_Hit 19 0.000472866
 TextHitTest.ContainsPoint_BottomBorder_Hit 19 0.000473759
 TextHitTest.ContainsPoint_Interior_Hit 19 0.000464136
 TextHitTest.ContainsPoint_Outside_Miss 19 0.000475884
-JsonParserTest.ParseEmptyContext 30 0.000285369
-JsonParserTest.ParseErrorOnInvalidJson 30 0.00018456
+JsonParserTest.ParseEmptyContext 32 9.52695e-05
+JsonParserTest.ParseErrorOnInvalidJson 32 8.74401e-05
 JsonParserTest.ParseAndSerializeRoundTrip 18 0
-JsonParserTest.RoundTripWithTemplates 30 0.000187307
+JsonParserTest.RoundTripWithTemplates 32 9.23542e-05
 JsonParserTest.ParseMultipleDomains 18 0
 JsonParserTest.ParseDevicesWithAllFields 18 0
-JsonParserTest.ParseConnectionFormats 30 0.000191614
+JsonParserTest.ParseConnectionFormats 32 8.66992e-05
 JsonParserTest.SerializePreservesData 18 0
 JsonParserTest.InOutPortDirection_Roundtrip_g7h8 18 0
-JsonParserTest.InOutEnumExists_g7h8 30 0.000174542
+JsonParserTest.InOutEnumExists_g7h8 32 8.78867e-05
 JsonParserTest.ParsePortType_FromJson 18 0
 JsonParserTest.ParsePortType_RPM_FromJson 18 0
 JsonParserTest.ValidateConnection_MismatchedTypes_ShouldFail 18 0
@@ -360,13 +360,13 @@ JsonParserTest.OneToOne_MultipleWiresToSamePort_IsValid 18 0
 JsonParserTest.OneToOne_MultipleWiresFromSamePort_IsValid 18 0
 JsonParserTest.OneToOne_BusAliasPorts_CanHaveMultipleWires 18 0
 JsonParserTest.OneToOne_RefNode_CanHaveMultipleWires 18 0
-TypeRegistry.LoadRecursive_SubdirSetsCategory 30 0.000259897
-TypeRegistry.LoadRecursive_DeepNesting 31 0.000260411
-TypeRegistry.BuildMenuTree_FlatLibrary 30 0.000225883
-TypeRegistry.BuildMenuTree_WithSubdirs 30 0.000225257
-TypeRegistry.BuildMenuTree_EntriesAreSorted 30 0.000226806
-TypeRegistry.BuildMenuTree_BlueprintsInSameTree 30 0.000188794
-TypeRegistry.ListClassnames_IncludesAllCategorized 30 0.000191563
+TypeRegistry.LoadRecursive_SubdirSetsCategory 32 9.88802e-05
+TypeRegistry.LoadRecursive_DeepNesting 33 9.66868e-05
+TypeRegistry.BuildMenuTree_FlatLibrary 32 8.29635e-05
+TypeRegistry.BuildMenuTree_WithSubdirs 32 7.54075e-05
+TypeRegistry.BuildMenuTree_EntriesAreSorted 32 7.06016e-05
+TypeRegistry.BuildMenuTree_BlueprintsInSameTree 32 6.95742e-05
+TypeRegistry.ListClassnames_IncludesAllCategorized 32 7.01328e-05
 RouterTest.GridConversion 19 0.000792307
 RouterTest.GridConversionNegative 19 0.000451064
 RouterTest.GridConversionZero 19 0.000456252
@@ -483,58 +483,58 @@ SimulationTest.GroundRemainsZero 18 0
 SimulationTest.GetPortValue 18 0
 SimulationTest.GetPortValue_UnknownReturnsZero 18 0
 SimulationTest.WireIsEnergized_ActiveCircuit 18 0
-SimulationTest.WireIsEnergized_NoSimulation 29 0.000420833
-SimulationTest.StepWithoutBuild_NoCrash 29 0.000420228
+SimulationTest.WireIsEnergized_NoSimulation 31 0.00018895
+SimulationTest.StepWithoutBuild_NoCrash 31 0.000193824
 SimulationTest.Merger_CircuitConverges 18 0
 SimulationTest.Merger_AllPortsSameSignal 18 0
 SimulationTest.NaN_Regression_FloatingChainDoesNotExplode 18 0
 SimulationTest.TwoRefNodes_CircuitStable 18 0
-SimulatorTest.StartsEmpty 28 0.000456348
+SimulatorTest.StartsEmpty 30 0.000203143
 SimulatorTest.StartBuildsComponents 18 0
 SimulatorTest.StopDestroysComponents 18 0
 SimulatorTest.MultipleStartStopCycles 18 0
 SimulatorTest.AfterStopGetVoltageReturnsZero 18 0
-SimulatorTest.StepDoesNothingIfNotRunning 28 0.000452585
-AZSTestFixture.HasElectricalAndThermalDomains 30 0.000212613
-AZSTestFixture.StartsOff 30 0.000140197
-AZSTestFixture.OpenCircuitWhenOff 30 0.000143197
-AZSTestFixture.StampsConductanceWhenClosed 30 0.000141894
-AZSTestFixture.PassesVoltageWhenClosed 30 0.000134504
-AZSTestFixture.ZerosVoltageWhenOpen 30 0.000136889
-AZSTestFixture.TogglesOnControlEdge 30 0.000153683
-AZSTestFixture.TogglesOffOnSecondEdge 30 0.000137922
-AZSTestFixture.NoToggleWithoutEdge 30 0.000133671
-AZSTestFixture.OutputsStateOn 30 0.000148181
-AZSTestFixture.OutputsStateOff 30 0.000138686
-AZSTestFixture.HeatsUpWithCurrent 30 0.000131057
-AZSTestFixture.CoolsDownWhenNoCurrent 30 0.000136835
-AZSTestFixture.TempNeverGoesNegative 30 0.000137196
-AZSTestFixture.OutputsTempPort 30 0.00014539
-AZSTestFixture.TripsWhenOverheated 30 0.000151838
-AZSTestFixture.DoesNotTripBelowThreshold 30 0.000149693
-AZSTestFixture.TrippedStaysOpenUntilManualReset 30 0.00013356
-AZSTestFixture.CanReenableAfterCooldown 30 0.000133172
-AZSTestFixture.RetripsIfStillHot 30 0.00013831
-AZSTestFixture.NominalCurrentReachesSteadyStateAtOne 30 0.000132143
-AZSTestFixture.DoubleNominalTripsQuickly 30 0.000126065
-AZSTestFixture.ThermalWorksWithVariableDt 30 0.000126567
-AZSTestFixture.RheatFromNominal 30 0.000158686
-LogicalSolverTest.LogicalDomain_ExistsInEnum 28 0.000667475
+SimulatorTest.StepDoesNothingIfNotRunning 30 0.000191
+AZSTestFixture.HasElectricalAndThermalDomains 32 7.95898e-05
+AZSTestFixture.StartsOff 32 6.68477e-05
+AZSTestFixture.OpenCircuitWhenOff 32 6.09596e-05
+AZSTestFixture.StampsConductanceWhenClosed 32 6.7487e-05
+AZSTestFixture.PassesVoltageWhenClosed 32 6.80495e-05
+AZSTestFixture.ZerosVoltageWhenOpen 32 6.43112e-05
+AZSTestFixture.TogglesOnControlEdge 32 5.74883e-05
+AZSTestFixture.TogglesOffOnSecondEdge 32 6.18581e-05
+AZSTestFixture.NoToggleWithoutEdge 32 5.97617e-05
+AZSTestFixture.OutputsStateOn 32 6.17761e-05
+AZSTestFixture.OutputsStateOff 32 6.04818e-05
+AZSTestFixture.HeatsUpWithCurrent 32 6.30456e-05
+AZSTestFixture.CoolsDownWhenNoCurrent 32 7.03594e-05
+AZSTestFixture.TempNeverGoesNegative 32 6.53255e-05
+AZSTestFixture.OutputsTempPort 32 5.8655e-05
+AZSTestFixture.TripsWhenOverheated 32 5.94323e-05
+AZSTestFixture.DoesNotTripBelowThreshold 32 5.7112e-05
+AZSTestFixture.TrippedStaysOpenUntilManualReset 32 6.47982e-05
+AZSTestFixture.CanReenableAfterCooldown 32 6.40456e-05
+AZSTestFixture.RetripsIfStillHot 32 6.21614e-05
+AZSTestFixture.NominalCurrentReachesSteadyStateAtOne 32 6.94805e-05
+AZSTestFixture.DoubleNominalTripsQuickly 32 6.35495e-05
+AZSTestFixture.ThermalWorksWithVariableDt 32 6.18971e-05
+AZSTestFixture.RheatFromNominal 32 6.33867e-05
+LogicalSolverTest.LogicalDomain_ExistsInEnum 30 0.000213258
 LogicalSolverTest.LogicalDomain_ParsesFromString 18 0
 LogicalSolverTest.Comparator_TypeDefinitionExists 18 0
 LogicalSolverTest.Comparator_InLogicalDomain 18 0
-LogicalSolverTest.LogicalSolver_HasLogicalVector 28 0.000424268
-LogicalSolverTest.Component_HasSolveLogicalMethod 28 0.000440612
+LogicalSolverTest.LogicalSolver_HasLogicalVector 30 0.000184567
+LogicalSolverTest.Component_HasSolveLogicalMethod 30 0.000190717
 LogicalSolverTest.Comparator_Hysteresis_BasicBehavior 18 0
 LogicalSolverTest.Comparator_Hysteresis_WithVbOffset 18 0
-BlueprintInput.PassThroughLikeBus 30 0.000222124
-BlueprintInput.ExposedPortParameters 30 0.000139649
-BlueprintOutput.PassThroughLikeBus 30 0.000134887
-BlueprintOutput.ExposedPortParameters 30 0.000135637
-BlueprintPorts.BasicBatteryCircuit 31 0.000383024
-BlueprintPorts.InputPassThroughToOutput 31 0.000217883
-BlueprintLoading.UnknownClassnameThrows 29 0.000437511
-BlueprintLoading.MissingBlueprintReturnsError 29 0.00026318
+BlueprintInput.PassThroughLikeBus 32 7.38333e-05
+BlueprintInput.ExposedPortParameters 32 6.07526e-05
+BlueprintOutput.PassThroughLikeBus 32 6.10964e-05
+BlueprintOutput.ExposedPortParameters 32 7.55143e-05
+BlueprintPorts.BasicBatteryCircuit 33 0.000123566
+BlueprintPorts.InputPassThroughToOutput 33 0.00010334
+BlueprintLoading.UnknownClassnameThrows 31 0.000121073
+BlueprintLoading.MissingBlueprintReturnsError 31 0.000111329
 BlueprintLoading.DirectBlueprintLoadWorks 18 0
 BlueprintLoading.Integration_NestedBlueprintRunsSimulation 18 0
 BlueprintLoading.ExpandBlueprintFromTypeRegistry 18 0
@@ -542,269 +542,269 @@ ExtractExposedPorts.SimpleBatteryBlueprint 18 0
 ExtractExposedPorts.MultipleBlueprints 18 0
 ExtractExposedPorts.EmptyBlueprint 18 0
 ExtractExposedPorts.DefaultValues 18 0
-BlueprintCycleDetection.DirectSelfReference_Throws 28 0.000288327
-BlueprintCycleDetection.IndirectCycle_Throws 28 0.000304368
+BlueprintCycleDetection.DirectSelfReference_Throws 30 0.000838199
+BlueprintCycleDetection.IndirectCycle_Throws 30 0.000335585
 BlueprintCycleDetection.ValidNesting_NoCycle 18 0
-Battery AOT test:.v_gnd = 0V 28 0.000151768
-Battery AOT test:.v_bus = 20V 28 0.000127619
-Battery AOT test:.i = 40A 28 0.00012407
-Battery AOT test:.Expected: I ≈ (24 + 0 - 20) / 0.1 = 40A 28 0.000125397
-Battery JIT test:.v_gnd = 0V 28 0.000110173
-Battery JIT test:.v_bus = 20V 28 0.000113405
-Battery JIT test:.i = 40A 28 0.000107743
-Battery JIT test:.Expected: I ≈ (24 + 0 - 20) / 0.1 = 40A 28 0.000106757
-Resistor AOT test:.v_in = 10V 28 0.000117104
-Resistor AOT test:.v_out = 5V 28 0.000119804
-Resistor AOT test:.i = 2.5A 28 0.000118039
-Resistor AOT test:.Expected: I = (10 - 5) * 0.5 = 2.5A 28 0.000129805
-Comparator AOT test:.Test 1: Va=5V, Vb=0V 28 0.00012689
-Comparator AOT test:.Output = 1V (expected 1.0V) 28 0.00014097
-Comparator AOT test:.Test 2: Va=0V, Vb=5V (after turn-on) 28 0.000117679
-Comparator AOT test:.Output = 0V (expected 0.0V — diff below Voff) 28 0.000123699
-Comparator AOT test:.Test 3: Va=0.05V, Vb=0V (hysteresis keep band) 28 0.00156468
-Comparator AOT test:.Output = 1V (expected 1.0V — in keep band) 28 0.00158402
-PIDTest.ProportionalOnly 28 0.000668304
-PIDTest.ProportionalSign 28 0.000205323
-PIDTest.IntegralAccumulatesOverOneSecond_60Hz 28 0.000145938
-PIDTest.IntegralTimeInvariance 28 0.000134957
-PIDTest.DerivativeFilterReducesNoise 28 0.000145695
-PIDTest.AntiWindupCapsOutput 28 0.000169432
-PIDTest.AntiWindupIntegralClamped 28 0.000158451
-PIDTest.SolveElectricalStampsConductance 28 0.00016754
-PIDTest.ZeroErrorProducesZeroPAndD 28 0.000170411
-PIDTest.AllGainsZero 28 0.000128613
-PIDTest.ExtremeDt_ClampedToMax 28 0.000147982
-PIDTest.TinyDt_ClampedToMin 28 0.000144601
-PIDTest.FilterAlphaZero_NoFiltering 28 0.000143149
-PIDTest.FilterAlphaOne_InstantTracking 28 0.000142713
-PIDTest.VeryLargeKd_WithSmallDt_Stability 28 0.000173065
-PIDTest.NegativeKp_InvertsControl 28 0.000182037
-PIDTest.BidirectionalOutputLimits 28 0.000136987
-PIDTest.AsymmetricOutputLimits 28 0.00013719
-PIDTest.IntegralDecay_WhenErrorSignChanges 28 0.000138958
-PIDTest.DerivativeZeroWhenErrorConstant 28 0.000135607
-PIDTest.FullPID_StepResponse 28 0.00014474
-PIDTest.MultipleResets_WithSameInitialState 28 0.000164592
-PTest.BasicProportional 28 0.000128348
-PTest.OutputClamped 28 0.000134141
-PTest.ZeroError 28 0.000137713
-PTest.SolveElectricalConductance 28 0.000140007
-PDTest.ProportionalTerm 28 0.000123932
-PDTest.DerivativeReducesOvershoot 28 0.000128324
-PDTest.NoIntegral 28 0.0001171
-PDTest.OutputClamped 28 0.000118564
-PITest.ProportionalTerm 28 0.000145783
-PITest.IntegralAccumulates 28 0.00014711
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.AntiWindup 28 0.000127748
-PITest.NoDerivative 28 0.000138915
-PDTest.ProportionalOnly_Basic 28 0.000220518
-PDTest.ProportionalOnly_NegativeError 28 0.000122146
-PDTest.ProportionalOnly_ZeroError 28 0.000122402
-PDTest.ProportionalOnly_HighGain 28 0.000150512
-PDTest.DerivativeOnly_PositiveRateOfChange 28 0.000155195
-PDTest.DerivativeOnly_NegativeRateOfChange 28 0.000134676
-PDTest.DerivativeOnly_ConstantError 28 0.000136774
-PDTest.DerivativeFilterReducesNoise 28 0.000128305
-PDTest.ProportionalAndDerivative_StepResponse 28 0.000153296
-PDTest.ProportionalAndDerivative_SteadyState 28 0.00016146
-PDTest.NegativeGains_InvertControl 28 0.000149189
-PDTest.OutputSaturation_PositiveClamp 28 0.000159963
-PDTest.OutputSaturation_NegativeClamp 28 0.000191545
-PDTest.OutputSaturation_AsymmetricLimits 28 0.000152159
-PDTest.OutputSaturation_WithDerivativeKick 28 0.000185533
-PDTest.TimeInvariance_DifferentDtSameOutput 28 0.000171899
-PDTest.ZeroGains_ZeroOutput 28 0.000155113
-PDTest.ExtremeDt_ClampedToMax 28 0.000147563
-PDTest.TinyDt_ClampedToMin 28 0.000624424
-PDTest.FilterAlphaZero_NoFiltering 28 0.000175216
-PDTest.FilterAlphaOne_InstantTracking 28 0.000161926
-PDTest.VeryLargeKd_WithSmallDt_Stability 28 0.000155487
-PDTest.MultipleInstances_IndependentState 28 0.000166219
-PDTest.SolveElectricalStampsConductance 28 0.000168874
-PDTest.ComparedToPID_NoIntegral 28 0.000172955
-SubtractTest.BasicSubtraction_Positive 28 0.00023776
-SubtractTest.BasicSubtraction_Negative 28 0.000168101
-SubtractTest.ZeroInput 28 0.000159506
-SubtractTest.EqualInputs 28 0.000176125
-SubtractTest.LargePositive 28 0.000164062
-SubtractTest.LargeNegative 28 0.000173433
-SubtractTest.SmallDifference 28 0.000178966
-SubtractTest.NegativeResult 28 0.000179693
-SubtractTest.MultipleSteps_Stability 28 0.000179296
-ANDTest.BothTrue_ReturnsTrue 28 0.000274887
-ANDTest.OneFalse_ReturnsFalse 28 0.000194363
-ANDTest.BothFalse_ReturnsFalse 28 0.000163753
-ANDTest.Threshold_0_5_IsTrue 28 0.000171988
-ANDTest.Threshold_0_4_IsFalse 28 0.000167191
-ORTest.BothTrue_ReturnsTrue 28 0.000182525
-ORTest.OneTrue_ReturnsTrue 28 0.000184253
-ORTest.BothFalse_ReturnsFalse 28 0.000166756
-ORTest.OtherInputTrue_ReturnsTrue 28 0.000176034
-XORTest.DifferentInputs_ReturnsTrue 28 0.000169112
-XORTest.SameInputs_BothTrue_ReturnsFalse 28 0.000160936
-XORTest.SameInputs_BothFalse_ReturnsFalse 28 0.000158204
-XORTest.OppositeInputs 28 0.00017896
-NOTTest.InvertTrueToFalse 28 0.000167894
-NOTTest.InvertFalseToTrue 28 0.000171704
-NOTTest.DoubleNegation 28 0.000186231
-NOTTest.Threshold_0_6_IsTrue_BecomesFalse 28 0.00016779
-NOTTest.Threshold_0_4_IsFalse_BecomesTrue 28 0.000187122
-NANDTest.BothTrue_ReturnsFalse 28 0.000170305
-NANDTest.OneFalse_ReturnsTrue 28 0.000171558
-NANDTest.BothFalse_ReturnsTrue 28 0.000169299
-NANDTest.TruthTable_Complete 28 0.000170609
-CombinedLogic.AND_OR_SameResult 28 0.000177835
-CombinedLogic.XOR_Equals_1_WhenInputsDiffer 28 0.000184265
-CombinedLogic.NOT_NAND_Equivalent 28 0.000155833
-LUTParseTest.BasicParse 28 0.000287304
-LUTParseTest.NegativeValues 28 0.000166158
-LUTParseTest.EmptyString 28 0.000164738
-LUTParseTest.SingleEntry 28 0.000171427
-LUTParseTest.ExtraWhitespace 28 0.000198634
-LUTSolveTest.ExactBreakpoint 28 0.000191765
-LUTSolveTest.LinearInterpolation_Midpoint 28 0.000168442
-LUTSolveTest.LinearInterpolation_Quarter 28 0.000188935
-LUTSolveTest.ClampBelow 28 0.000185384
-LUTSolveTest.ClampAbove 28 0.000164999
-LUTSolveTest.SingleBreakpoint_AlwaysReturnsValue 28 0.000165301
-LUTSolveTest.EmptyTable_ReturnsZero 28 0.000172774
-LUTSolveTest.RealisticEngineCurve 28 0.00016849
-LUTArenaTest.MultipleLUTs_ShareArena 28 0.000171501
-LUTParseEdge.TrailingSemicolon 28 0.000196996
-LUTParseEdge.LeadingSemicolons 28 0.000172012
-LUTParseEdge.MultipleSemicolonsBetweenEntries 28 0.000177205
-LUTParseEdge.NoColonReturnsEmpty 28 0.000167591
-LUTParseEdge.PartialParse_ValidBeforeGarbage 28 0.000175347
-LUTParseEdge.DecimalValues 28 0.000163067
-LUTParseEdge.ScientificNotation 28 0.000176469
-LUTParseEdge.VeryLargeTable 28 0.000190771
-LUTParseEdge.ZeroKeyAndZeroValue 28 0.000181792
-LUTParseEdge.NegativeOnlyKeys 28 0.000145719
-LUTInterpolationEdge.TwoEntryTable_AllPositions 28 0.000149784
-LUTInterpolationEdge.EveryBreakpointExact 28 0.000154393
-LUTInterpolationEdge.EverySegmentMidpoint 28 0.000162598
-LUTInterpolationEdge.NonMonotonicValues 28 0.000160775
-LUTInterpolationEdge.EqualAdjacentKeys 28 0.000171699
-LUTInterpolationEdge.VeryLargeInput 28 0.000169863
-LUTInterpolationEdge.ConstantValueTable 28 0.000157915
-LUTInterpolationEdge.DecreasingValues 28 0.000164966
-LUTInterpolationEdge.LargeTable_Accuracy 28 0.000173393
-LUTInterpolationEdge.NegativeKeysInterpolation 28 0.000180281
-LUTArenaStress.ManyLUTs_CorrectIsolation 28 0.000165869
-LUTArenaStress.ArenaOffsets_NoOverlap 28 0.000161866
-LUTArenaStress.LargeTableInArena 28 0.000165708
-LUTRegression.OutputNotStale 28 0.000153673
-LUTRegression.MultipleStepsStable 28 0.000168162
-LUTRegression.ZeroInputZeroTable 28 0.000172841
-LUTRegression.TableOffsetRespected 28 0.000164625
-LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString 28 0.00026235
-LUTCodegen.PreLoad_EmitsStaticArenaArrays 28 0.000154493
-LUTCodegen.MultipleLUTs_OffsetsIncrement 28 0.00014897
-LUTCodegen.NoLUTs_NoArenaCode 28 0.000162936
-LUTCodegen.EmptyTableParam_StillEmitsZeroSize 28 0.000155198
-LUTCodegen.ArenaComment_ShowsTotalFloats 28 0.000166149
-LUTCodegen.SingleEntryTable 28 0.000187619
-LUTCodegen.NegativeKeyValues_EncodedCorrectly 28 0.000153796
-LUTCodegen.GenericParamLoop_SkippedForLUT 28 0.000157908
-AOTCodegen.VisualOnly_FilteredFromHeader 28 0.000155818
-AOTCodegen.VisualOnly_FilteredFromSource 28 0.000161254
-AOTCodegen.Text_VisualOnly_FilteredFromHeader 28 0.000142629
-AOTCodegen.Text_VisualOnly_FilteredFromSource 28 0.00014049
-PortMapRegression.AllComponentPortsAreInStringToPortName 29 0.000369681
+Battery AOT test:.v_gnd = 0V 30 6.73555e-05
+Battery AOT test:.v_bus = 20V 30 5.05389e-05
+Battery AOT test:.i = 40A 30 4.615e-05
+Battery AOT test:.Expected: I ≈ (24 + 0 - 20) / 0.1 = 40A 30 4.70292e-05
+Battery JIT test:.v_gnd = 0V 30 4.80417e-05
+Battery JIT test:.v_bus = 20V 30 4.25875e-05
+Battery JIT test:.i = 40A 30 4.45778e-05
+Battery JIT test:.Expected: I ≈ (24 + 0 - 20) / 0.1 = 40A 30 4.33833e-05
+Resistor AOT test:.v_in = 10V 30 4.59847e-05
+Resistor AOT test:.v_out = 5V 30 4.44208e-05
+Resistor AOT test:.i = 2.5A 30 4.98125e-05
+Resistor AOT test:.Expected: I = (10 - 5) * 0.5 = 2.5A 30 4.62083e-05
+Comparator AOT test:.Test 1: Va=5V, Vb=0V 30 4.66097e-05
+Comparator AOT test:.Output = 1V (expected 1.0V) 30 4.40958e-05
+Comparator AOT test:.Test 2: Va=0V, Vb=5V (after turn-on) 30 4.17653e-05
+Comparator AOT test:.Output = 0V (expected 0.0V — diff below Voff) 30 5.25139e-05
+Comparator AOT test:.Test 3: Va=0.05V, Vb=0V (hysteresis keep band) 30 4.55042e-05
+Comparator AOT test:.Output = 1V (expected 1.0V — in keep band) 30 5.51361e-05
+PIDTest.ProportionalOnly 30 7.48111e-05
+PIDTest.ProportionalSign 30 6.60278e-05
+PIDTest.IntegralAccumulatesOverOneSecond_60Hz 30 6.39889e-05
+PIDTest.IntegralTimeInvariance 30 6.2618e-05
+PIDTest.DerivativeFilterReducesNoise 30 6.39806e-05
+PIDTest.AntiWindupCapsOutput 30 6.18736e-05
+PIDTest.AntiWindupIntegralClamped 30 6.36833e-05
+PIDTest.SolveElectricalStampsConductance 30 6.21972e-05
+PIDTest.ZeroErrorProducesZeroPAndD 30 7.57444e-05
+PIDTest.AllGainsZero 30 8.16722e-05
+PIDTest.ExtremeDt_ClampedToMax 30 6.60375e-05
+PIDTest.TinyDt_ClampedToMin 30 6.59875e-05
+PIDTest.FilterAlphaZero_NoFiltering 30 6.52903e-05
+PIDTest.FilterAlphaOne_InstantTracking 30 6.24097e-05
+PIDTest.VeryLargeKd_WithSmallDt_Stability 30 6.39111e-05
+PIDTest.NegativeKp_InvertsControl 30 6.79e-05
+PIDTest.BidirectionalOutputLimits 30 7.31972e-05
+PIDTest.AsymmetricOutputLimits 30 7.32514e-05
+PIDTest.IntegralDecay_WhenErrorSignChanges 30 6.42653e-05
+PIDTest.DerivativeZeroWhenErrorConstant 30 6.20986e-05
+PIDTest.FullPID_StepResponse 30 6.93236e-05
+PIDTest.MultipleResets_WithSameInitialState 30 7.17347e-05
+PTest.BasicProportional 30 6.94333e-05
+PTest.OutputClamped 30 6.63639e-05
+PTest.ZeroError 30 6.52847e-05
+PTest.SolveElectricalConductance 30 7.84514e-05
+PDTest.ProportionalTerm 30 7.0018e-05
+PDTest.DerivativeReducesOvershoot 30 6.50708e-05
+PDTest.NoIntegral 30 6.38181e-05
+PDTest.OutputClamped 30 6.49583e-05
+PITest.ProportionalTerm 30 7.53375e-05
+PITest.IntegralAccumulates 30 8.195e-05
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.AntiWindup 30 6.71792e-05
+PITest.NoDerivative 30 6.47181e-05
+PDTest.ProportionalOnly_Basic 30 6.92139e-05
+PDTest.ProportionalOnly_NegativeError 30 6.14153e-05
+PDTest.ProportionalOnly_ZeroError 30 6.72347e-05
+PDTest.ProportionalOnly_HighGain 30 7.03695e-05
+PDTest.DerivativeOnly_PositiveRateOfChange 30 7.22764e-05
+PDTest.DerivativeOnly_NegativeRateOfChange 30 6.25472e-05
+PDTest.DerivativeOnly_ConstantError 30 5.9818e-05
+PDTest.DerivativeFilterReducesNoise 30 6.225e-05
+PDTest.ProportionalAndDerivative_StepResponse 30 6.23472e-05
+PDTest.ProportionalAndDerivative_SteadyState 30 6.25444e-05
+PDTest.NegativeGains_InvertControl 30 6.12514e-05
+PDTest.OutputSaturation_PositiveClamp 30 6.91792e-05
+PDTest.OutputSaturation_NegativeClamp 30 6.28806e-05
+PDTest.OutputSaturation_AsymmetricLimits 30 6.25931e-05
+PDTest.OutputSaturation_WithDerivativeKick 30 6.09028e-05
+PDTest.TimeInvariance_DifferentDtSameOutput 30 6.47625e-05
+PDTest.ZeroGains_ZeroOutput 30 6.30472e-05
+PDTest.ExtremeDt_ClampedToMax 30 6.39042e-05
+PDTest.TinyDt_ClampedToMin 30 7.41445e-05
+PDTest.FilterAlphaZero_NoFiltering 30 7.04153e-05
+PDTest.FilterAlphaOne_InstantTracking 30 7.74389e-05
+PDTest.VeryLargeKd_WithSmallDt_Stability 30 6.93e-05
+PDTest.MultipleInstances_IndependentState 30 6.36333e-05
+PDTest.SolveElectricalStampsConductance 30 6.19194e-05
+PDTest.ComparedToPID_NoIntegral 30 6.26903e-05
+SubtractTest.BasicSubtraction_Positive 30 7.41514e-05
+SubtractTest.BasicSubtraction_Negative 30 6.92528e-05
+SubtractTest.ZeroInput 30 6.45625e-05
+SubtractTest.EqualInputs 30 6.54903e-05
+SubtractTest.LargePositive 30 7.27556e-05
+SubtractTest.LargeNegative 30 6.47347e-05
+SubtractTest.SmallDifference 30 6.27028e-05
+SubtractTest.NegativeResult 30 6.48028e-05
+SubtractTest.MultipleSteps_Stability 30 6.74111e-05
+ANDTest.BothTrue_ReturnsTrue 30 7.35722e-05
+ANDTest.OneFalse_ReturnsFalse 30 6.54e-05
+ANDTest.BothFalse_ReturnsFalse 30 6.55528e-05
+ANDTest.Threshold_0_5_IsTrue 30 7.03097e-05
+ANDTest.Threshold_0_4_IsFalse 30 7.00278e-05
+ORTest.BothTrue_ReturnsTrue 30 6.08806e-05
+ORTest.OneTrue_ReturnsTrue 30 6.23861e-05
+ORTest.BothFalse_ReturnsFalse 30 6.26681e-05
+ORTest.OtherInputTrue_ReturnsTrue 30 6.44278e-05
+XORTest.DifferentInputs_ReturnsTrue 30 7.46222e-05
+XORTest.SameInputs_BothTrue_ReturnsFalse 30 7.0875e-05
+XORTest.SameInputs_BothFalse_ReturnsFalse 30 6.50028e-05
+XORTest.OppositeInputs 30 6.36555e-05
+NOTTest.InvertTrueToFalse 30 6.31861e-05
+NOTTest.InvertFalseToTrue 30 6.16945e-05
+NOTTest.DoubleNegation 30 6.84514e-05
+NOTTest.Threshold_0_6_IsTrue_BecomesFalse 30 6.275e-05
+NOTTest.Threshold_0_4_IsFalse_BecomesTrue 30 7.37806e-05
+NANDTest.BothTrue_ReturnsFalse 30 8.10875e-05
+NANDTest.OneFalse_ReturnsTrue 30 6.89875e-05
+NANDTest.BothFalse_ReturnsTrue 30 6.44028e-05
+NANDTest.TruthTable_Complete 30 6.23653e-05
+CombinedLogic.AND_OR_SameResult 30 6.95125e-05
+CombinedLogic.XOR_Equals_1_WhenInputsDiffer 30 6.45445e-05
+CombinedLogic.NOT_NAND_Equivalent 30 6.78764e-05
+LUTParseTest.BasicParse 30 7.81153e-05
+LUTParseTest.NegativeValues 30 8.08055e-05
+LUTParseTest.EmptyString 30 6.85542e-05
+LUTParseTest.SingleEntry 30 6.39125e-05
+LUTParseTest.ExtraWhitespace 30 6.45569e-05
+LUTSolveTest.ExactBreakpoint 30 6.36125e-05
+LUTSolveTest.LinearInterpolation_Midpoint 30 6.46292e-05
+LUTSolveTest.LinearInterpolation_Quarter 30 6.42444e-05
+LUTSolveTest.ClampBelow 30 6.17389e-05
+LUTSolveTest.ClampAbove 30 6.73569e-05
+LUTSolveTest.SingleBreakpoint_AlwaysReturnsValue 30 7.52306e-05
+LUTSolveTest.EmptyTable_ReturnsZero 30 6.45528e-05
+LUTSolveTest.RealisticEngineCurve 30 6.27528e-05
+LUTArenaTest.MultipleLUTs_ShareArena 30 6.34444e-05
+LUTParseEdge.TrailingSemicolon 30 6.56569e-05
+LUTParseEdge.LeadingSemicolons 30 7.29958e-05
+LUTParseEdge.MultipleSemicolonsBetweenEntries 30 6.97694e-05
+LUTParseEdge.NoColonReturnsEmpty 30 6.66847e-05
+LUTParseEdge.PartialParse_ValidBeforeGarbage 30 6.71111e-05
+LUTParseEdge.DecimalValues 30 6.40611e-05
+LUTParseEdge.ScientificNotation 30 6.40806e-05
+LUTParseEdge.VeryLargeTable 30 6.80305e-05
+LUTParseEdge.ZeroKeyAndZeroValue 30 7.15903e-05
+LUTParseEdge.NegativeOnlyKeys 30 7.02805e-05
+LUTInterpolationEdge.TwoEntryTable_AllPositions 30 7.42264e-05
+LUTInterpolationEdge.EveryBreakpointExact 30 6.32486e-05
+LUTInterpolationEdge.EverySegmentMidpoint 30 6.43778e-05
+LUTInterpolationEdge.NonMonotonicValues 30 6.20639e-05
+LUTInterpolationEdge.EqualAdjacentKeys 30 7.16347e-05
+LUTInterpolationEdge.VeryLargeInput 30 6.54111e-05
+LUTInterpolationEdge.ConstantValueTable 30 6.20486e-05
+LUTInterpolationEdge.DecreasingValues 30 7.47667e-05
+LUTInterpolationEdge.LargeTable_Accuracy 30 7.90583e-05
+LUTInterpolationEdge.NegativeKeysInterpolation 30 7.23792e-05
+LUTArenaStress.ManyLUTs_CorrectIsolation 30 6.34278e-05
+LUTArenaStress.ArenaOffsets_NoOverlap 30 6.90944e-05
+LUTArenaStress.LargeTableInArena 30 7.67028e-05
+LUTRegression.OutputNotStale 30 6.2475e-05
+LUTRegression.MultipleStepsStable 30 6.29042e-05
+LUTRegression.ZeroInputZeroTable 30 6.08556e-05
+LUTRegression.TableOffsetRespected 30 6.80264e-05
+LUTCodegen.Constructor_EmitsOffsetAndSize_NotTableString 30 8.5668e-05
+LUTCodegen.PreLoad_EmitsStaticArenaArrays 30 6.95361e-05
+LUTCodegen.MultipleLUTs_OffsetsIncrement 30 7.515e-05
+LUTCodegen.NoLUTs_NoArenaCode 30 6.88347e-05
+LUTCodegen.EmptyTableParam_StillEmitsZeroSize 30 6.42361e-05
+LUTCodegen.ArenaComment_ShowsTotalFloats 30 6.88778e-05
+LUTCodegen.SingleEntryTable 30 6.95528e-05
+LUTCodegen.NegativeKeyValues_EncodedCorrectly 30 7.91708e-05
+LUTCodegen.GenericParamLoop_SkippedForLUT 30 6.96042e-05
+AOTCodegen.VisualOnly_FilteredFromHeader 30 6.21778e-05
+AOTCodegen.VisualOnly_FilteredFromSource 30 6.73139e-05
+AOTCodegen.Text_VisualOnly_FilteredFromHeader 30 6.4075e-05
+AOTCodegen.Text_VisualOnly_FilteredFromSource 30 7.15708e-05
+PortMapRegression.AllComponentPortsAreInStringToPortName 31 0.000110879
 PortMapRegression.AND_Gate_Reads_Correct_Signals 18 0
 PortMapRegression.NOT_Gate_Reads_Correct_Input 18 0
 PortMapRegression.Subtract_Reads_Both_Inputs 18 0
 ANDGateDebugTest.AND_With_Battery_VToBool_HoldButton 18 0
-CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers 29 0.000730634
-CodegenSanitize.SanitizeNameFunction 28 0.00022364
-Any_V_to_BoolTest.PositiveVoltageToTrue 28 0.000239112
-Any_V_to_BoolTest.NegativeVoltageToTrue 28 0.000144716
-Any_V_to_BoolTest.ZeroVoltageToFalse 28 0.000151781
-Any_V_to_BoolTest.SmallPositiveVoltageToTrue 28 0.000155643
-Any_V_to_BoolTest.SmallNegativeVoltageToTrue 28 0.000166009
-Any_V_to_BoolTest.LargePositiveVoltageToTrue 28 0.00016461
-Any_V_to_BoolTest.LargeNegativeVoltageToTrue 28 0.000170978
-Positive_V_to_BoolTest.PositiveVoltageToTrue 28 0.000148445
-Positive_V_to_BoolTest.NegativeVoltageToFalse 28 0.000137555
-Positive_V_to_BoolTest.ZeroVoltageToFalse 28 0.000143991
-Positive_V_to_BoolTest.SmallPositiveVoltageToTrue 28 0.00015728
-Positive_V_to_BoolTest.SmallNegativeVoltageToFalse 28 0.000138704
-Positive_V_to_BoolTest.LargePositiveVoltageToTrue 28 0.000147439
-Positive_V_to_BoolTest.LargeNegativeVoltageToFalse 28 0.000148818
-V_to_BoolComparisonTest.AnyVsPositiveOnNegativeVoltage 28 0.00015129
-V_to_BoolComparisonTest.AnyVsPositiveOnPositiveVoltage 28 0.000146567
-V_to_BoolComparisonTest.AnyVsPositiveOnZeroVoltage 28 0.000162804
-MultiplyTest.BasicMultiplication 28 0.000219769
-MultiplyTest.MultiplyByZero 28 0.000142015
-MultiplyTest.NegativeNumbers 28 0.000160799
-MultiplyTest.BothNegative 28 0.000142527
-MultiplyTest.LargeNumbers 28 0.000158656
-DivideTest.BasicDivision 28 0.00014969
-DivideTest.DivideByZero 28 0.000164918
-DivideTest.NegativeDivision 28 0.000162568
-DivideTest.DivideByNegative 28 0.000155585
-DivideTest.FractionalResult 28 0.000152985
-AddTest.BasicAddition 28 0.000144048
-AddTest.AddWithZero 28 0.000142909
-AddTest.AddNegativeNumbers 28 0.00014747
-AddTest.AddBothNegative 28 0.000150003
-AddTest.LargeNumbers 28 0.00016974
-ArithmeticTest.MultiplyThenAdd 28 0.000169723
-ArithmeticTest.SubtractThenDivide 28 0.000152981
-PITest.ProportionalOnly_Basic 28 0.000248737
-PITest.ProportionalOnly_NegativeError 28 0.000146885
-PITest.ProportionalOnly_ZeroError 28 0.000139659
-PITest.IntegralOnly_Accumulates 28 0.000140871
-PITest.IntegralOnly_DecreasesWhenErrorChangesSign 28 0.00014732
-PITest.ProportionalAndIntegral_StepResponse 28 0.000151917
-PITest.ProportionalAndIntegral_SteadyStateZeroError 28 0.000153985
-PITest.NegativeGains_InvertControl 28 0.000170879
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.AntiWindupCapsOutput 28 0.000169524
-PITest.AntiWindupIntegralClamped 28 0.000141985
-PITest.ZeroGains_ZeroOutput 28 0.000143732
-PITest.ExtremeDt_ClampedToMax 28 0.000188336
-PITest.TinyDt_ClampedToMin 28 0.000243299
-PITest.OutputSaturation_PositiveClamp 28 0.000253728
-PITest.OutputSaturation_NegativeClamp 28 0.000337878
-PITest.MultipleInstances_IndependentState 28 0.000222522
-PITest.ComparedToPID_NoDerivative 28 0.000209996
-PITest.SolveElectricalStampsConductance 28 0.000240993
-PTest.ProportionalOnly_Basic 28 0.00017633
-PTest.ProportionalOnly_NegativeError 28 0.000207375
-PTest.ProportionalOnly_ZeroError 28 0.000191403
-PTest.HighGain 28 0.000182643
-PTest.ZeroGain_ZeroOutput 28 0.000185396
-PTest.NegativeGain_InvertsControl 28 0.000174086
-PTest.OutputSaturation_PositiveClamp 28 0.000172025
-PTest.OutputSaturation_NegativeClamp 28 0.000181896
-PTest.OutputSaturation_AsymmetricLimits 28 0.000198652
-PTest.DtDoesNotAffectOutput 28 0.000169219
-PTest.Memoryless_NoStateAccumulation 28 0.000177467
-PTest.Memoryless_ErrorChangeImmediate 28 0.000176118
-PTest.ComparedToPI_KiZero 28 0.000160817
-PTest.ComparedToPID_KiKdZero 28 0.000160344
-PTest.SolveElectricalStampsConductance 28 0.00016872
-Inspector.BuildDisplayTree_SingleNode_CreatesEntry 28 0.000795618
-Inspector.BuildDisplayTree_WithConnection_ShowsConnection 28 0.000513778
-Inspector.BuildDisplayTree_UnconnectedPort_ShowsNotConnected 28 0.000545615
-Inspector.ConnectionCount_SingleWire_CountsBothNodes 28 0.000526589
-Inspector.ConnectionCount_MultipleWiresFromOneNode 28 0.000506866
-Inspector.SearchFilter_MatchesName 28 0.000503682
-Inspector.SearchFilter_MatchesType 28 0.000507999
-Inspector.MarkDirty_RebuildsOnChange 28 0.000493884
-Inspector.SortMode_ByName 28 0.00050553
-Inspector.SortMode_ByType 28 0.000473127
-Inspector.GroupFiltering_RootInspectorHidesSubBlueprintNodes 28 0.000433333
-Inspector.GroupFiltering_SubInspectorShowsOnlyOwnNodes 28 0.000434753
-Inspector.GroupFiltering_WiresOnlyCountOwnGroup 28 0.000435622
-Inspector.FanOut_OutputShowsMultipleConnections 28 0.000436196
-Inspector.DisplayNode_HasNodeId 28 0.000425013
-Inspector.ConsumeSelection_EmptyByDefault 28 0.000435442
-Inspector.ConsumeSelection_ClearsAfterRead 28 0.000416991
-Inspector.Regression_NameUpdateAfterMarkDirty 28 0.00042875
-Inspector.Regression_CyrillicNameInDisplayTree 28 0.000433744
+CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers 31 0.000268573
+CodegenSanitize.SanitizeNameFunction 30 9.73458e-05
+Any_V_to_BoolTest.PositiveVoltageToTrue 30 7.02514e-05
+Any_V_to_BoolTest.NegativeVoltageToTrue 30 6.08708e-05
+Any_V_to_BoolTest.ZeroVoltageToFalse 30 7.25792e-05
+Any_V_to_BoolTest.SmallPositiveVoltageToTrue 30 7.83528e-05
+Any_V_to_BoolTest.SmallNegativeVoltageToTrue 30 7.19556e-05
+Any_V_to_BoolTest.LargePositiveVoltageToTrue 30 6.78083e-05
+Any_V_to_BoolTest.LargeNegativeVoltageToTrue 30 6.13958e-05
+Positive_V_to_BoolTest.PositiveVoltageToTrue 30 6.23778e-05
+Positive_V_to_BoolTest.NegativeVoltageToFalse 30 6.16542e-05
+Positive_V_to_BoolTest.ZeroVoltageToFalse 30 7.20569e-05
+Positive_V_to_BoolTest.SmallPositiveVoltageToTrue 30 8.26111e-05
+Positive_V_to_BoolTest.SmallNegativeVoltageToFalse 30 6.74833e-05
+Positive_V_to_BoolTest.LargePositiveVoltageToTrue 30 6.03278e-05
+Positive_V_to_BoolTest.LargeNegativeVoltageToFalse 30 6.35778e-05
+V_to_BoolComparisonTest.AnyVsPositiveOnNegativeVoltage 30 6.56847e-05
+V_to_BoolComparisonTest.AnyVsPositiveOnPositiveVoltage 30 6.19542e-05
+V_to_BoolComparisonTest.AnyVsPositiveOnZeroVoltage 30 5.95167e-05
+MultiplyTest.BasicMultiplication 30 7.07875e-05
+MultiplyTest.MultiplyByZero 30 6.77361e-05
+MultiplyTest.NegativeNumbers 30 6.885e-05
+MultiplyTest.BothNegative 30 6.31194e-05
+MultiplyTest.LargeNumbers 30 6.01875e-05
+DivideTest.BasicDivision 30 6.22222e-05
+DivideTest.DivideByZero 30 6.12056e-05
+DivideTest.NegativeDivision 30 6.50042e-05
+DivideTest.DivideByNegative 30 7.27847e-05
+DivideTest.FractionalResult 30 6.64361e-05
+AddTest.BasicAddition 30 6.53125e-05
+AddTest.AddWithZero 30 6.16361e-05
+AddTest.AddNegativeNumbers 30 6.17556e-05
+AddTest.AddBothNegative 30 5.96722e-05
+AddTest.LargeNumbers 30 6.05319e-05
+ArithmeticTest.MultiplyThenAdd 30 6.11458e-05
+ArithmeticTest.SubtractThenDivide 30 6.66625e-05
+PITest.ProportionalOnly_Basic 30 8.30222e-05
+PITest.ProportionalOnly_NegativeError 30 6.73111e-05
+PITest.ProportionalOnly_ZeroError 30 6.93445e-05
+PITest.IntegralOnly_Accumulates 30 6.52306e-05
+PITest.IntegralOnly_DecreasesWhenErrorChangesSign 30 6.25639e-05
+PITest.ProportionalAndIntegral_StepResponse 30 6.1525e-05
+PITest.ProportionalAndIntegral_SteadyStateZeroError 30 7.07583e-05
+PITest.NegativeGains_InvertControl 30 7.60125e-05
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.AntiWindupCapsOutput 30 6.43695e-05
+PITest.AntiWindupIntegralClamped 30 6.89431e-05
+PITest.ZeroGains_ZeroOutput 30 6.45111e-05
+PITest.ExtremeDt_ClampedToMax 30 6.23236e-05
+PITest.TinyDt_ClampedToMin 30 6.94111e-05
+PITest.OutputSaturation_PositiveClamp 30 6.67917e-05
+PITest.OutputSaturation_NegativeClamp 30 8.03264e-05
+PITest.MultipleInstances_IndependentState 30 6.93167e-05
+PITest.ComparedToPID_NoDerivative 30 6.29931e-05
+PITest.SolveElectricalStampsConductance 30 6.12653e-05
+PTest.ProportionalOnly_Basic 30 6.11042e-05
+PTest.ProportionalOnly_NegativeError 30 6.31319e-05
+PTest.ProportionalOnly_ZeroError 30 6.12931e-05
+PTest.HighGain 30 6.38222e-05
+PTest.ZeroGain_ZeroOutput 30 7.72778e-05
+PTest.NegativeGain_InvertsControl 30 6.73333e-05
+PTest.OutputSaturation_PositiveClamp 30 6.23055e-05
+PTest.OutputSaturation_NegativeClamp 30 6.04153e-05
+PTest.OutputSaturation_AsymmetricLimits 30 6.55306e-05
+PTest.DtDoesNotAffectOutput 30 6.52028e-05
+PTest.Memoryless_NoStateAccumulation 30 6.28486e-05
+PTest.Memoryless_ErrorChangeImmediate 30 6.08639e-05
+PTest.ComparedToPI_KiZero 30 6.75472e-05
+PTest.ComparedToPID_KiKdZero 30 6.28458e-05
+PTest.SolveElectricalStampsConductance 30 6.31625e-05
+Inspector.BuildDisplayTree_SingleNode_CreatesEntry 30 0.000205193
+Inspector.BuildDisplayTree_WithConnection_ShowsConnection 30 0.000190904
+Inspector.BuildDisplayTree_UnconnectedPort_ShowsNotConnected 30 0.000199546
+Inspector.ConnectionCount_SingleWire_CountsBothNodes 30 0.000199286
+Inspector.ConnectionCount_MultipleWiresFromOneNode 30 0.000186793
+Inspector.SearchFilter_MatchesName 30 0.000193974
+Inspector.SearchFilter_MatchesType 30 0.000190586
+Inspector.MarkDirty_RebuildsOnChange 30 0.000188906
+Inspector.SortMode_ByName 30 0.000194078
+Inspector.SortMode_ByType 30 0.000195828
+Inspector.GroupFiltering_RootInspectorHidesSubBlueprintNodes 30 0.000186668
+Inspector.GroupFiltering_SubInspectorShowsOnlyOwnNodes 30 0.000188599
+Inspector.GroupFiltering_WiresOnlyCountOwnGroup 30 0.000192536
+Inspector.FanOut_OutputShowsMultipleConnections 30 0.000200643
+Inspector.DisplayNode_HasNodeId 30 0.000192431
+Inspector.ConsumeSelection_EmptyByDefault 30 0.000187513
+Inspector.ConsumeSelection_ClearsAfterRead 30 0.000204936
+Inspector.Regression_NameUpdateAfterMarkDirty 30 0.00019645
+Inspector.Regression_CyrillicNameInDisplayTree 30 0.000188971
 JITIntegration.LampPassThrough_Blueprint_VoltageFlow 18 0
 CollapsedNode.RendersAsSingleNode 19 0.000813425
 CollapsedNode.ExposedPorts_RenderOnBoundary 19 0.000481684
@@ -932,19 +932,19 @@ ParamsIntegrity.AddComponent_CppClassTrue_GetsInternalCPP 18 0
 ParamsIntegrity.AddComponent_CppClassFalse_GetsBlueprint 18 0
 ParamsIntegrity.AddComponent_BusStillGetsBusKind 18 0
 ParamsIntegrity.AddComponent_RefNodeStillGetsRefKind 18 0
-ExpandTypeDef.EmptyDef_ProducesEmptyBlueprint 28 0.000281915
-ExpandTypeDef.SimpleBattery_NodeAndWireCount 28 0.000213655
-ExpandTypeDef.NodeIds_MatchDeviceNames 28 0.00019228
+ExpandTypeDef.EmptyDef_ProducesEmptyBlueprint 30 8.0475e-05
+ExpandTypeDef.SimpleBattery_NodeAndWireCount 30 9.36194e-05
+ExpandTypeDef.NodeIds_MatchDeviceNames 30 8.74181e-05
 ExpandTypeDef.PortsFallbackToRegistry 18 0
-ExpandTypeDef.Params_RegistryDefaultsMergedWithOverrides 28 0.000206012
+ExpandTypeDef.Params_RegistryDefaultsMergedWithOverrides 30 8.52236e-05
 ExpandTypeDef.RenderHint_FromRegistry 18 0
-ExpandTypeDef.WireEndpoints_Correct 28 0.000194713
-ExpandTypeDef.Positions_PreservedFromDevices 28 0.000216007
-ExpandTypeDef.Size_FallbackToRegistry 28 0.0002104
-ExpandTypeDef.RoutingPoints_Preserved 28 0.000209232
-ExpandTypeDef.ParseTypeDefinition_WiresFormat 29 0.000213385
-ExpandTypeDef.ParseTypeDefinition_DevicePosSize 29 0.000228859
-ExpandTypeDef.InlinePorts_PreferredOverRegistry 28 0.000202835
+ExpandTypeDef.WireEndpoints_Correct 30 9.11278e-05
+ExpandTypeDef.Positions_PreservedFromDevices 30 9.67708e-05
+ExpandTypeDef.Size_FallbackToRegistry 30 9.61181e-05
+ExpandTypeDef.RoutingPoints_Preserved 30 8.55222e-05
+ExpandTypeDef.ParseTypeDefinition_WiresFormat 31 9.28306e-05
+ExpandTypeDef.ParseTypeDefinition_DevicePosSize 31 9.05645e-05
+ExpandTypeDef.InlinePorts_PreferredOverRegistry 30 8.81736e-05
 ExpandTypeDef.RealLibrary_SimpleBattery 18 0
 ContextMenu.RightClickOnNode_SetsNodeContextMenu 19 0.000782018
 ContextMenu.RightClickOnEmpty_StillShowsAddMenu 19 0.000477419
@@ -955,12 +955,12 @@ SelectNodeById.ClearsPreviousSelection 19 0.000460596
 SwapWirePortsOnBus.SwapSucceeds_PortPositionsExchanged 19 0.00050245
 SwapWirePortsOnBus.PassingLogicalPortName_ReturnsFalse 19 0.000492732
 SwapWirePortsOnBus.AfterSwap_RoutingPointsPreserved 19 0.000481794
-PropertiesWindow.OpenSetsTarget 28 0.000220729
-PropertiesWindow.CancelRevertsParams 28 0.000148259
-PropertiesWindow.CancelRevertsAddedParam 28 0.000139436
-PropertiesWindow.OpenTwiceOverwritesSnapshot 28 0.000132214
-PropertiesWindow.ClosedWindowIsNotOpen 28 0.00014258
-DtRegression.SOR_OmegaIsCanonical 31 0.000673789
+PropertiesWindow.OpenSetsTarget 30 7.16778e-05
+PropertiesWindow.CancelRevertsParams 30 6.31625e-05
+PropertiesWindow.CancelRevertsAddedParam 30 6.72208e-05
+PropertiesWindow.OpenTwiceOverwritesSnapshot 30 6.85278e-05
+PropertiesWindow.ClosedWindowIsNotOpen 30 6.72583e-05
+DtRegression.SOR_OmegaIsCanonical 33 0.000169129
 DtRegression.Simulator_TimeAccumulatesVariableDt 18 0
 DtRegression.SimController_TimeAccumulatesVariableDt 18 0
 DtRegression.Simulator_ElectricalSolvesEveryStep 18 0
@@ -968,14 +968,14 @@ DtRegression.Simulator_SteadyStateIsDtIndependent 18 0
 DtRegression.Simulator_StepCounterResetsOnStart 18 0
 DtRegression.Simulator_UsesDtParameterNotConstant 18 0
 DtRegression.Comparator_HysteresisCorrectBehavior 18 0
-CodegenAccumulator.HeaderContainsAccumulatorFields 31 0.000239106
-CodegenAccumulator.SolveStepAccumulatesDt 31 0.000153762
-CodegenAccumulator.NoDtMultiplyPatternInGenerated 31 0.000154042
-CodegenAccumulator.MechanicalUsesAccumulatorAndResets 31 0.000141809
-CodegenAccumulator.HydraulicUsesAccumulatorAndResets 31 0.000139324
-CodegenAccumulator.ThermalUsesAccumulatorAndResets 31 0.000153019
-CodegenAccumulator.DomainScheduleConstantsAreCanonical 31 0.000149153
-CodegenAccumulator.DispatchTableSizeMatchesCycleLength 31 0.000155173
+CodegenAccumulator.HeaderContainsAccumulatorFields 33 6.36502e-05
+CodegenAccumulator.SolveStepAccumulatesDt 33 7.58902e-05
+CodegenAccumulator.NoDtMultiplyPatternInGenerated 33 6.82323e-05
+CodegenAccumulator.MechanicalUsesAccumulatorAndResets 33 6.59861e-05
+CodegenAccumulator.HydraulicUsesAccumulatorAndResets 33 6.30038e-05
+CodegenAccumulator.ThermalUsesAccumulatorAndResets 33 6.42803e-05
+CodegenAccumulator.DomainScheduleConstantsAreCanonical 33 5.65088e-05
+CodegenAccumulator.DispatchTableSizeMatchesCycleLength 33 6.19318e-05
 NodeColor.DefaultColor_IsNullopt 19 0.000796094
 NodeColor.SetColor 19 0.000458996
 NodeColor.ToUint32_ABGR 19 0.000451386
@@ -1077,135 +1077,135 @@ SpacerTest.Render_NoCrash 19 0.0001425
 NestingTest.RowInsideColumn 19 0.000145794
 NestingTest.ContainerWithNegativeMarginInRow 19 0.000143697
 NestingTest.DeepNesting_ColumnRowColumn 19 0.000142364
-PITest.IntegralTimeInvariance 2 0.00239506
-SlewRateTest.ColdStart_FirstFrame 27 0.000313921
-SlewRateTest.LimitsRiseRate 27 0.000215106
-SlewRateTest.LimitsFallRate 27 0.000189352
-SlewRateTest.AsymmetricLimits_SameRate 27 0.000168207
-SlewRateTest.ApproachesTargetOverTime 27 0.000173187
-SlewRateTest.HandlesZeroDt_Pause 27 0.000184375
-SlewRateTest.Deadzone_PreventsMicroAdjustments 27 0.000193617
-SlewRateTest.Deadzone_AllowsLargeChanges 27 0.000183829
-SlewRateTest.ZeroRate_NoChange 27 0.000182457
-SlewRateTest.InfiniteRate_InstantTracking 27 0.000176136
-SlewRateTest.PreservesStateBetweenFrames 27 0.000175998
-SlewRateTest.VariableDt_AdaptsStepSize 27 0.000176299
-SlewRateTest.NegativeInput_HandlesCorrectly 27 0.000171239
-SlewRateTest.CrossingZero_WorksCorrectly 27 0.000163696
-SlewRateTest.ZeroDeadzone_AllowsAllChanges 27 0.000180665
-SlewRateTest.ConstantInput_OutputStaysConstant 27 0.000201043
-SlewRateTest.StepChange_CorrectTotalTime 27 0.000165469
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-AsymSlewRateTest.ColdStart_FirstFrame 20 0.000329625
-AsymSlewRateTest.AsymmetricRates_RiseFasterThanFall 20 0.000217952
-AsymSlewRateTest.AsymmetricRates_RiseSlowerThanFall 20 0.000243025
-AsymSlewRateTest.SymmetricRates_EqualChange 20 0.000240262
+PITest.IntegralTimeInvariance 2 0.00113144
+SlewRateTest.ColdStart_FirstFrame 29 7.58563e-05
+SlewRateTest.LimitsRiseRate 29 7.52701e-05
+SlewRateTest.LimitsFallRate 29 7.36537e-05
+SlewRateTest.AsymmetricLimits_SameRate 29 6.28621e-05
+SlewRateTest.ApproachesTargetOverTime 29 6.4431e-05
+SlewRateTest.HandlesZeroDt_Pause 29 7.13204e-05
+SlewRateTest.Deadzone_PreventsMicroAdjustments 29 6.90302e-05
+SlewRateTest.Deadzone_AllowsLargeChanges 29 6.34095e-05
+SlewRateTest.ZeroRate_NoChange 29 6.68908e-05
+SlewRateTest.InfiniteRate_InstantTracking 29 6.65661e-05
+SlewRateTest.PreservesStateBetweenFrames 29 7.8046e-05
+SlewRateTest.VariableDt_AdaptsStepSize 29 6.99899e-05
+SlewRateTest.NegativeInput_HandlesCorrectly 29 6.5352e-05
+SlewRateTest.CrossingZero_WorksCorrectly 29 6.34397e-05
+SlewRateTest.ZeroDeadzone_AllowsAllChanges 29 6.55862e-05
+SlewRateTest.ConstantInput_OutputStaysConstant 29 6.58305e-05
+SlewRateTest.StepChange_CorrectTotalTime 29 6.24253e-05
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+AsymSlewRateTest.ColdStart_FirstFrame 22 8.86477e-05
+AsymSlewRateTest.AsymmetricRates_RiseFasterThanFall 22 9.62064e-05
+AsymSlewRateTest.AsymmetricRates_RiseSlowerThanFall 22 0.000100608
+AsymSlewRateTest.SymmetricRates_EqualChange 22 8.77349e-05
 AsymSlewRateTest.RapidRiseSlowFall_RealisticBehavior 0 0
 AsymSlewRateTest.SlowRiseRapidFall_RealisticBehavior 0 0
-AsymSlewRateTest.HandlesZeroDt_Pause 20 0.00020586
-AsymSlewRateTest.Deadzone_PreventsMicroAdjustments 20 0.000203923
+AsymSlewRateTest.HandlesZeroDt_Pause 22 9.17652e-05
+AsymSlewRateTest.Deadzone_PreventsMicroAdjustments 22 9.04773e-05
 AsymSlewRateTest.Deadzone_AllowsLargeChanges 0 0
-AsymSlewRateTest.ZeroRates_NoChange 20 0.000215825
-AsymSlewRateTest.ApproachesTargetOverTime_Rise 20 0.000257002
-AsymSlewRateTest.ApproachesTargetOverTime_Fall 20 0.000246258
-AsymSlewRateTest.VariableDt_AdaptsStepSize 20 0.000197227
-AsymSlewRateTest.NegativeInput_Rise 20 0.00019849
-AsymSlewRateTest.NegativeInput_Fall 20 0.000276115
-AsymSlewRateTest.ConstantInput_OutputStaysConstant 20 0.000298044
+AsymSlewRateTest.ZeroRates_NoChange 22 8.54867e-05
+AsymSlewRateTest.ApproachesTargetOverTime_Rise 22 8.51326e-05
+AsymSlewRateTest.ApproachesTargetOverTime_Fall 22 8.86193e-05
+AsymSlewRateTest.VariableDt_AdaptsStepSize 22 9.06496e-05
+AsymSlewRateTest.NegativeInput_Rise 22 9.92424e-05
+AsymSlewRateTest.NegativeInput_Fall 22 8.7286e-05
+AsymSlewRateTest.ConstantInput_OutputStaysConstant 22 8.58825e-05
 AsymSlewRateTest.OscillatingInput_FollowsAsymmetricRates 0 0
-TimeDelayTest.ColdStart_OutMatchesIn 20 0.000496673
-TimeDelayTest.TurnOn_DelayOn 20 0.000269152
-TimeDelayTest.TurnOff_DelayOff 20 0.000258594
+TimeDelayTest.ColdStart_OutMatchesIn 22 9.75132e-05
+TimeDelayTest.TurnOn_DelayOn 22 9.49867e-05
+TimeDelayTest.TurnOff_DelayOff 22 8.4733e-05
 TimeDelayTest.InputChanges_ResetsAccumulator 0 0
-TimeDelayTest.RapidToggling_NoOutputChange 20 0.000229856
-TimeDelayTest.SymmetricDelays 20 0.000247946
-TimeDelayTest.AsymmetricDelays 20 0.000255435
-TimeDelayTest.ZeroDelay_InstantResponse 20 0.000261202
-TimeDelayTest.LongDelay_TakesFullTime 20 0.000244413
+TimeDelayTest.RapidToggling_NoOutputChange 22 0.000101392
+TimeDelayTest.SymmetricDelays 22 9.26288e-05
+TimeDelayTest.AsymmetricDelays 22 8.99527e-05
+TimeDelayTest.ZeroDelay_InstantResponse 22 9.51117e-05
+TimeDelayTest.LongDelay_TakesFullTime 22 9.5089e-05
 TimeDelayTest.VariableDt_AdaptsAccumulation 0 0
-TimeDelayTest.HandlesZeroDt_Pause 20 0.000233506
+TimeDelayTest.HandlesZeroDt_Pause 22 8.707e-05
 TimeDelayTest.InputGlitch_Ignored 0 0
-TimeDelayTest.AlreadyOn_DelayOffWorks 20 0.000230756
-TimeDelayTest.AlreadyOff_DelayOnWorks 20 0.000233944
-TimeDelayTest.OutputStableWhenInputStable 20 0.000229798
-TimeDelayTest.BooleanThreshold_0_5 20 0.000235125
-MonostableTest.InitiallyOff 20 0.00039824
-MonostableTest.RisingEdge_TriggersPulse 20 0.000240196
+TimeDelayTest.AlreadyOn_DelayOffWorks 22 8.06004e-05
+TimeDelayTest.AlreadyOff_DelayOnWorks 22 8.31041e-05
+TimeDelayTest.OutputStableWhenInputStable 22 8.6786e-05
+TimeDelayTest.BooleanThreshold_0_5 22 9.07652e-05
+MonostableTest.InitiallyOff 22 9.88504e-05
+MonostableTest.RisingEdge_TriggersPulse 22 8.99015e-05
 MonostableTest.Pulse_ExpiresAfterDuration 0 0
-MonostableTest.FallingEdge_DoesNotRetrigger 12 0.000418493
-MonostableTest.HighInput_DoesNotRetrigger 20 0.000246444
-MonostableTest.RetriggerOnNewPulse 20 0.00023869
-MonostableTest.VariableDt_TimerTicksCorrectly 20 0.000240142
-MonostableTest.ZeroDt_PausesTimer 20 0.000248208
-MonostableTest.ShortPulse 15 0.000319814
-MonostableTest.LongPulse 20 0.000225927
-MonostableTest.BooleanThreshold_0_5 20 0.000201104
-MonostableTest.NegativeInput_Ignored 20 0.000198771
-MonostableTest.MultiplePulses_Sequential 14 0.000309521
-MonostableTest.RapidRetrigger_ExtendsPulse 20 0.0001903
-MonostableTest.ZeroDuration_InstantPulse 20 0.000189542
-MonostableTest.TimerClampedAtZero 20 0.00019966
-MonostableTest.InputHighDuringPulse_NoEffect 20 0.000213827
-MonostableTest.EngineStartCycle_RealisticUseCase 20 0.000261798
-SampleHoldTest.InitiallyZero 20 0.000381227
-SampleHoldTest.RisingEdge_SamplesInput 20 0.000218092
-SampleHoldTest.NoTrigger_HoldsValue 20 0.000235142
-SampleHoldTest.HighTrigger_DoesNotResample 20 0.000228533
-SampleHoldTest.FallingEdge_DoesNotResample 18 0.000240053
-SampleHoldTest.MultipleTriggers_ResamplesEachTime 20 0.000228785
-SampleHoldTest.NegativeInput_SamplesCorrectly 20 0.000224867
-SampleHoldTest.ZeroInput_SamplesCorrectly 20 0.000221075
-SampleHoldTest.LargeInput_SamplesCorrectly 20 0.000230575
-SampleHoldTest.BooleanThreshold_Trigger 20 0.000238715
-SampleHoldTest.ContinuousTrigger_SamplesOnlyOnEdge 20 0.000235217
-SampleHoldTest.RapidTriggering_ResamplesOnEachEdge 20 0.000232077
-SampleHoldTest.VariableDt_NoEffectOnSampling 20 0.000253596
-SampleHoldTest.IndependentOfDt 20 0.00021339
-SampleHoldTest.PressureCapture_RealisticUseCase 20 0.000205881
-SampleHoldTest.MaxValueCapture_WithComparator 20 0.000212317
-SampleHoldTest.TriggerAtZero_DoesNotSample 20 0.000207981
-SampleHoldTest.TriggerStaysHigh_NoMoreSamples 20 0.00022009
-SampleHoldTest.InputPrecision_Maintained 20 0.000214502
-SampleHoldTest.SequentialSamples_LastOneWins 20 0.000263083
-IntegratorTest.ColdStart_StartsAtInitialValue 20 0.000368948
-IntegratorTest.Integration_AccumulatesPositiveInput 19 0.00021523
-IntegratorTest.Integration_AccumulatesNegativeInput 20 0.000214585
-IntegratorTest.Reset_ZerosAccumulator 20 0.00023361
-IntegratorTest.ResetWhileHigh_StaysZero 20 0.000221979
-IntegratorTest.ResetReleased_ResumesIntegration 19 0.000249515
-IntegratorTest.Gain_ScalesIntegration 19 0.000249895
-IntegratorTest.NegativeGain_InvertsIntegration 19 0.000253735
-IntegratorTest.ZeroGain_NoAccumulation 20 0.000219744
-IntegratorTest.VariableDt_AdaptsIntegration 19 0.00021089
-IntegratorTest.ZeroDt_NoAccumulation 20 0.000220454
-IntegratorTest.ZeroInput_NoAccumulation 20 0.000235544
-IntegratorTest.Precision_MaintainedOverTime 20 0.000250015
-IntegratorTest.FuelConsumption_RealisticUseCase 17 0.000238206
-IntegratorTest.BatteryCharge_RealisticUseCase 16 0.000283862
-IntegratorTest.WearAccumulation_RealisticUseCase 16 0.00028275
-IntegratorTest.BooleanThreshold_Reset 20 0.00021799
-IntegratorTest.LargeDt_Clip 20 0.000228523
-IntegratorTest.MultipleResets 20 0.000227606
-IntegratorTest.NegativeInputCrossesZero 20 0.000239204
-IntegratorTest.AlternatingInput_CorrectIntegration 20 0.000228465
-IntegratorTest.ResetDoesNotAffectFirstFrameMask 19 0.0002365
-IntegratorTest.IntegrationContinuesAfterReset 20 0.000221944
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
+MonostableTest.FallingEdge_DoesNotRetrigger 14 0.000132625
+MonostableTest.HighInput_DoesNotRetrigger 22 8.1642e-05
+MonostableTest.RetriggerOnNewPulse 22 8.4464e-05
+MonostableTest.VariableDt_TimerTicksCorrectly 22 8.42292e-05
+MonostableTest.ZeroDt_PausesTimer 22 8.5572e-05
+MonostableTest.ShortPulse 17 0.000108255
+MonostableTest.LongPulse 22 0.000116682
+MonostableTest.BooleanThreshold_0_5 22 9.91307e-05
+MonostableTest.NegativeInput_Ignored 22 8.84261e-05
+MonostableTest.MultiplePulses_Sequential 16 0.000115924
+MonostableTest.RapidRetrigger_ExtendsPulse 22 8.43428e-05
+MonostableTest.ZeroDuration_InstantPulse 22 8.18201e-05
+MonostableTest.TimerClampedAtZero 22 9.53125e-05
+MonostableTest.InputHighDuringPulse_NoEffect 22 9.3839e-05
+MonostableTest.EngineStartCycle_RealisticUseCase 22 9.07784e-05
+SampleHoldTest.InitiallyZero 22 9.76193e-05
+SampleHoldTest.RisingEdge_SamplesInput 22 8.91951e-05
+SampleHoldTest.NoTrigger_HoldsValue 22 0.000129087
+SampleHoldTest.HighTrigger_DoesNotResample 22 9.35208e-05
+SampleHoldTest.FallingEdge_DoesNotResample 20 0.000100281
+SampleHoldTest.MultipleTriggers_ResamplesEachTime 22 8.81345e-05
+SampleHoldTest.NegativeInput_SamplesCorrectly 22 8.66099e-05
+SampleHoldTest.ZeroInput_SamplesCorrectly 22 8.39602e-05
+SampleHoldTest.LargeInput_SamplesCorrectly 22 8.9161e-05
+SampleHoldTest.BooleanThreshold_Trigger 22 9.71799e-05
+SampleHoldTest.ContinuousTrigger_SamplesOnlyOnEdge 22 9.36818e-05
+SampleHoldTest.RapidTriggering_ResamplesOnEachEdge 22 8.89924e-05
+SampleHoldTest.VariableDt_NoEffectOnSampling 22 9.53163e-05
+SampleHoldTest.IndependentOfDt 22 8.36458e-05
+SampleHoldTest.PressureCapture_RealisticUseCase 22 8.24602e-05
+SampleHoldTest.MaxValueCapture_WithComparator 22 8.46061e-05
+SampleHoldTest.TriggerAtZero_DoesNotSample 22 8.24716e-05
+SampleHoldTest.TriggerStaysHigh_NoMoreSamples 22 8.55284e-05
+SampleHoldTest.InputPrecision_Maintained 22 9.35455e-05
+SampleHoldTest.SequentialSamples_LastOneWins 22 9.36118e-05
+IntegratorTest.ColdStart_StartsAtInitialValue 22 9.54091e-05
+IntegratorTest.Integration_AccumulatesPositiveInput 21 0.000106308
+IntegratorTest.Integration_AccumulatesNegativeInput 22 8.87519e-05
+IntegratorTest.Reset_ZerosAccumulator 22 8.8089e-05
+IntegratorTest.ResetWhileHigh_StaysZero 22 8.58996e-05
+IntegratorTest.ResetReleased_ResumesIntegration 21 8.67917e-05
+IntegratorTest.Gain_ScalesIntegration 21 8.5375e-05
+IntegratorTest.NegativeGain_InvertsIntegration 21 9.49444e-05
+IntegratorTest.ZeroGain_NoAccumulation 22 9.05625e-05
+IntegratorTest.VariableDt_AdaptsIntegration 21 0.000105649
+IntegratorTest.ZeroDt_NoAccumulation 22 8.98617e-05
+IntegratorTest.ZeroInput_NoAccumulation 22 8.19545e-05
+IntegratorTest.Precision_MaintainedOverTime 22 9.37235e-05
+IntegratorTest.FuelConsumption_RealisticUseCase 19 0.000102454
+IntegratorTest.BatteryCharge_RealisticUseCase 18 0.000118861
+IntegratorTest.WearAccumulation_RealisticUseCase 18 0.000115236
+IntegratorTest.BooleanThreshold_Reset 22 9.11913e-05
+IntegratorTest.LargeDt_Clip 22 8.25436e-05
+IntegratorTest.MultipleResets 22 8.49716e-05
+IntegratorTest.NegativeInputCrossesZero 22 8.44962e-05
+IntegratorTest.AlternatingInput_CorrectIntegration 22 9.24962e-05
+IntegratorTest.ResetDoesNotAffectFirstFrameMask 21 0.000109149
+IntegratorTest.IntegrationContinuesAfterReset 22 9.18239e-05
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
 aot_composite_tests_NOT_BUILT 0 0
 bake_in_tests_NOT_BUILT 0 0
 clamp_normalize_tests_NOT_BUILT 0 0
@@ -1268,14 +1268,14 @@ visual_primitives_tests_NOT_BUILT 0 0
 visual_node_widget_tests_NOT_BUILT 0 0
 specialized_node_widget_tests_NOT_BUILT 0 0
 scene_mutations_tests_NOT_BUILT 0 0
-PITest.IntegralTimeInvariance 2 0.00239506
+PITest.IntegralTimeInvariance 2 0.00113144
 recent_files_tests_NOT_BUILT 0 0
 flat_blueprint_tests_NOT_BUILT 0 0
 ui_interning_tests_NOT_BUILT 0 0
 editor_data_interning_tests_NOT_BUILT 0 0
 port_layout_resolver_tests_NOT_BUILT 0 0
 factory_validation_tests_NOT_BUILT 0 0
-PITest.IntegralTimeInvariance 2 0.00239506
+PITest.IntegralTimeInvariance 2 0.00113144
 multi_domain_tests_NOT_BUILT 0 0
 command_tests_NOT_BUILT 0 0
 transformer_tests_NOT_BUILT 0 0
@@ -1297,7 +1297,7 @@ canvas_input_tests_NOT_BUILT 0 0
 oscilloscope_stats_tests_NOT_BUILT 0 0
 pi_zn_tuner_tests_NOT_BUILT 0 0
 editor_settings_tests_NOT_BUILT 0 0
-PITest.IntegralTimeInvariance 2 0.00239506
+PITest.IntegralTimeInvariance 2 0.00113144
 closed_loop_latency_regression_tests_NOT_BUILT 0 0
 sor_regression_tests_NOT_BUILT 0 0
 jit_aot_bridge_equivalence_tests_NOT_BUILT 0 0
@@ -1313,156 +1313,12 @@ bp2_editor_model_tests_NOT_BUILT 0 0
 bp2_bake_tests_NOT_BUILT 0 0
 bp2_validation_tests_NOT_BUILT 0 0
 bug_hunt_regression_tests_NOT_BUILT 0 0
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 2 0.00239506
-PITest.IntegralTimeInvariance 1 0.00352013
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 2 0.00113144
+PITest.IntegralTimeInvariance 1 0.00212617
 ---
-ui_math_tests_NOT_BUILT
-ui_layout_tests_NOT_BUILT
-ui_renderer_tests_NOT_BUILT
-ui_widget_purity_tests_NOT_BUILT
-ui_scene_tests_NOT_BUILT
-ui_interning_tests_NOT_BUILT
-ui_grid_tests_NOT_BUILT
-ui_render_context_tests_NOT_BUILT
-ui_linear_layout_tests_NOT_BUILT
-visual_widget_tests_NOT_BUILT
-visual_grid_tests_NOT_BUILT
-visual_scene_v2_tests_NOT_BUILT
-visual_wire_tests_NOT_BUILT
-visual_hittest_tests_NOT_BUILT
-visual_container_tests_NOT_BUILT
-visual_primitives_tests_NOT_BUILT
-visual_node_widget_tests_NOT_BUILT
-specialized_node_widget_tests_NOT_BUILT
-scene_mutations_tests_NOT_BUILT
-canvas_input_tests_NOT_BUILT
-oscilloscope_stats_tests_NOT_BUILT
-pi_zn_tuner_tests_NOT_BUILT
-PortRegistryTest.RU19A_Ports_Match_JsonRegistry
-PortRegistryTest.DMR400_Ports_Match_JsonRegistry
-PortRegistryTest.GeneratedPortRegistryExists
-PortRegistryTest.RU19A_PortOffsets_AreCorrect
-PortRegistryTest.AllTypesInRegistry
-EditorComponentVariant.BuildSimpleBatteryLoadCircuit
-EditorComponentVariant.MultiDomainComponents
-EditorComponentVariant.RefNodeFixedVoltage
-EditorComponentVariant.AllComponentTypes
-EditorComponentVariant.FactoryCreatesCorrectVariant
-editor_settings_tests_NOT_BUILT
-editor_data_interning_tests_NOT_BUILT
-port_layout_resolver_tests_NOT_BUILT
-JsonParserTest.ParseAndSerializeRoundTrip
-JsonParserTest.ParseMultipleDomains
-JsonParserTest.ParseDevicesWithAllFields
-JsonParserTest.SerializePreservesData
-JsonParserTest.InOutPortDirection_Roundtrip_g7h8
-JsonParserTest.ParsePortType_FromJson
-JsonParserTest.ParsePortType_RPM_FromJson
-JsonParserTest.ValidateConnection_MismatchedTypes_ShouldFail
-JsonParserTest.ValidateConnection_MatchingTypes_ShouldPass
-JsonParserTest.ValidateConnection_BoolToV_ShouldFail
-JsonParserTest.ValidateConnection_AnyType_ShouldPass
-JsonParserTest.PortTypeSerialization_RoundTrip
-JsonParserTest.Regression_PortTypeMerge_TypeDefinitionTypesCopied
-JsonParserTest.Regression_PortTypeMerge_InlinePortWithType
-JsonParserTest.Regression_LerpNodeAnyType_CanConnectToAnything
-JsonParserTest.OneToOne_MultipleWiresToSamePort_IsValid
-JsonParserTest.OneToOne_MultipleWiresFromSamePort_IsValid
-JsonParserTest.OneToOne_BusAliasPorts_CanHaveMultipleWires
-JsonParserTest.OneToOne_RefNode_CanHaveMultipleWires
-SimulationTest.BuildsFromBlueprint
-SimulationTest.StepCounterIncrements
-SimulationTest.RunningFlag
-SimulationTest.ResetClearsState
-SimulationTest.RebuildResetsState
-SimulationTest.BatteryVoltageConverges
-SimulationTest.GroundRemainsZero
-SimulationTest.GetPortValue
-SimulationTest.GetPortValue_UnknownReturnsZero
-SimulationTest.WireIsEnergized_ActiveCircuit
-SimulationTest.Merger_CircuitConverges
-SimulationTest.Merger_AllPortsSameSignal
-SimulationTest.NaN_Regression_FloatingChainDoesNotExplode
-SimulationTest.TwoRefNodes_CircuitStable
-SimulatorTest.StartBuildsComponents
-SimulatorTest.StopDestroysComponents
-SimulatorTest.MultipleStartStopCycles
-SimulatorTest.AfterStopGetVoltageReturnsZero
-factory_validation_tests_NOT_BUILT
-LogicalSolverTest.LogicalDomain_ParsesFromString
-LogicalSolverTest.Comparator_TypeDefinitionExists
-LogicalSolverTest.Comparator_InLogicalDomain
-LogicalSolverTest.Comparator_Hysteresis_BasicBehavior
-LogicalSolverTest.Comparator_Hysteresis_WithVbOffset
-BlueprintLoading.DirectBlueprintLoadWorks
-BlueprintLoading.Integration_NestedBlueprintRunsSimulation
-BlueprintLoading.ExpandBlueprintFromTypeRegistry
-ExtractExposedPorts.SimpleBatteryBlueprint
-ExtractExposedPorts.MultipleBlueprints
-ExtractExposedPorts.EmptyBlueprint
-ExtractExposedPorts.DefaultValues
-BlueprintCycleDetection.ValidNesting_NoCycle
-PortMapRegression.AND_Gate_Reads_Correct_Signals
-PortMapRegression.NOT_Gate_Reads_Correct_Input
-PortMapRegression.Subtract_Reads_Both_Inputs
-ANDGateDebugTest.AND_With_Battery_VToBool_HoldButton
-JITIntegration.LampPassThrough_Blueprint_VoltageFlow
-ExpandTypeDef.PortsFallbackToRegistry
-ExpandTypeDef.RenderHint_FromRegistry
-DtRegression.Simulator_TimeAccumulatesVariableDt
-DtRegression.SimController_TimeAccumulatesVariableDt
-DtRegression.Simulator_ElectricalSolvesEveryStep
-DtRegression.Simulator_SteadyStateIsDtIndependent
-DtRegression.Simulator_StepCounterResetsOnStart
-DtRegression.Simulator_UsesDtParameterNotConstant
-DtRegression.Comparator_HysteresisCorrectBehavior
-closed_loop_latency_regression_tests_NOT_BUILT
-sor_regression_tests_NOT_BUILT
-aot_composite_tests_NOT_BUILT
-jit_aot_bridge_equivalence_tests_NOT_BUILT
-bake_in_tests_NOT_BUILT
-AsymSlewRateTest.RapidRiseSlowFall_RealisticBehavior
-AsymSlewRateTest.SlowRiseRapidFall_RealisticBehavior
-AsymSlewRateTest.Deadzone_AllowsLargeChanges
-AsymSlewRateTest.OscillatingInput_FollowsAsymmetricRates
-TimeDelayTest.InputChanges_ResetsAccumulator
-TimeDelayTest.VariableDt_AdaptsAccumulation
-TimeDelayTest.InputGlitch_Ignored
-MonostableTest.Pulse_ExpiresAfterDuration
-clamp_normalize_tests_NOT_BUILT
-comparison_components_tests_NOT_BUILT
-spring_tests_NOT_BUILT
-sub_blueprint_ref_tests_NOT_BUILT
-v3_migration_tests_NOT_BUILT
-multi_domain_tests_NOT_BUILT
-command_tests_NOT_BUILT
-transformer_tests_NOT_BUILT
-generator_tests_NOT_BUILT
-apu_mechanical_tests_NOT_BUILT
-gs24_regression_tests_NOT_BUILT
-radiator_regression_tests_NOT_BUILT
-inverter_regression_tests_NOT_BUILT
-unmapped_port_regression_tests_NOT_BUILT
-electric_pump_regression_tests_NOT_BUILT
-electric_heater_regression_tests_NOT_BUILT
-switch_regression_tests_NOT_BUILT
-gidro_accumulator_regression_tests_NOT_BUILT
-fuel_tank_regression_tests_NOT_BUILT
-refnode_regression_tests_NOT_BUILT
-rug82_regression_tests_NOT_BUILT
-solenoid_valve_regression_tests_NOT_BUILT
-bp2_path_tests_NOT_BUILT
-bp2_interface_tests_NOT_BUILT
-bp2_blueprint_tests_NOT_BUILT
-bp2_registry_tests_NOT_BUILT
-bp2_codec_tests_NOT_BUILT
-bp2_flattener_tests_NOT_BUILT
-bp2_editor_model_tests_NOT_BUILT
-bp2_bake_tests_NOT_BUILT
-bp2_validation_tests_NOT_BUILT
-current_sense_tests_NOT_BUILT
-bug_hunt_regression_tests_NOT_BUILT

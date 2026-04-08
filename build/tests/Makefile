@@ -396,18 +396,18 @@ logical_solver_tests/fast:
 .PHONY : logical_solver_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/blueprint_ports_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/blueprint_ports_tests.dir/rule
-.PHONY : tests/CMakeFiles/blueprint_ports_tests.dir/rule
+tests/CMakeFiles/bridge_lowering_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bridge_lowering_tests.dir/rule
+.PHONY : tests/CMakeFiles/bridge_lowering_tests.dir/rule
 
 # Convenience name for target.
-blueprint_ports_tests: tests/CMakeFiles/blueprint_ports_tests.dir/rule
-.PHONY : blueprint_ports_tests
+bridge_lowering_tests: tests/CMakeFiles/bridge_lowering_tests.dir/rule
+.PHONY : bridge_lowering_tests
 
 # fast build rule for target.
-blueprint_ports_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/build
-.PHONY : blueprint_ports_tests/fast
+bridge_lowering_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bridge_lowering_tests.dir/build.make tests/CMakeFiles/bridge_lowering_tests.dir/build
+.PHONY : bridge_lowering_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/current_sense_tests.dir/rule:
@@ -2451,6 +2451,54 @@ blueprint_v2/test_editor_model.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_editor_model.cpp.s
 .PHONY : blueprint_v2/test_editor_model.cpp.s
 
+blueprint_v2/test_embedded_editing_undo.o: blueprint_v2/test_embedded_editing_undo.cpp.o
+.PHONY : blueprint_v2/test_embedded_editing_undo.o
+
+# target to build an object file
+blueprint_v2/test_embedded_editing_undo.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_embedded_editing_undo.cpp.o
+.PHONY : blueprint_v2/test_embedded_editing_undo.cpp.o
+
+blueprint_v2/test_embedded_editing_undo.i: blueprint_v2/test_embedded_editing_undo.cpp.i
+.PHONY : blueprint_v2/test_embedded_editing_undo.i
+
+# target to preprocess a source file
+blueprint_v2/test_embedded_editing_undo.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_embedded_editing_undo.cpp.i
+.PHONY : blueprint_v2/test_embedded_editing_undo.cpp.i
+
+blueprint_v2/test_embedded_editing_undo.s: blueprint_v2/test_embedded_editing_undo.cpp.s
+.PHONY : blueprint_v2/test_embedded_editing_undo.s
+
+# target to generate assembly for a file
+blueprint_v2/test_embedded_editing_undo.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_embedded_editing_undo.cpp.s
+.PHONY : blueprint_v2/test_embedded_editing_undo.cpp.s
+
+blueprint_v2/test_embedded_subwindow_scene.o: blueprint_v2/test_embedded_subwindow_scene.cpp.o
+.PHONY : blueprint_v2/test_embedded_subwindow_scene.o
+
+# target to build an object file
+blueprint_v2/test_embedded_subwindow_scene.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/blueprint_v2/test_embedded_subwindow_scene.cpp.o
+.PHONY : blueprint_v2/test_embedded_subwindow_scene.cpp.o
+
+blueprint_v2/test_embedded_subwindow_scene.i: blueprint_v2/test_embedded_subwindow_scene.cpp.i
+.PHONY : blueprint_v2/test_embedded_subwindow_scene.i
+
+# target to preprocess a source file
+blueprint_v2/test_embedded_subwindow_scene.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/blueprint_v2/test_embedded_subwindow_scene.cpp.i
+.PHONY : blueprint_v2/test_embedded_subwindow_scene.cpp.i
+
+blueprint_v2/test_embedded_subwindow_scene.s: blueprint_v2/test_embedded_subwindow_scene.cpp.s
+.PHONY : blueprint_v2/test_embedded_subwindow_scene.s
+
+# target to generate assembly for a file
+blueprint_v2/test_embedded_subwindow_scene.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/blueprint_v2/test_embedded_subwindow_scene.cpp.s
+.PHONY : blueprint_v2/test_embedded_subwindow_scene.cpp.s
+
 blueprint_v2/test_flattener.o: blueprint_v2/test_flattener.cpp.o
 .PHONY : blueprint_v2/test_flattener.o
 
@@ -2498,6 +2546,30 @@ blueprint_v2/test_interface.s: blueprint_v2/test_interface.cpp.s
 blueprint_v2/test_interface.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/blueprint_v2/test_interface.cpp.s
 .PHONY : blueprint_v2/test_interface.cpp.s
+
+blueprint_v2/test_issue_23_nested_inline_only.o: blueprint_v2/test_issue_23_nested_inline_only.cpp.o
+.PHONY : blueprint_v2/test_issue_23_nested_inline_only.o
+
+# target to build an object file
+blueprint_v2/test_issue_23_nested_inline_only.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_issue_23_nested_inline_only.cpp.o
+.PHONY : blueprint_v2/test_issue_23_nested_inline_only.cpp.o
+
+blueprint_v2/test_issue_23_nested_inline_only.i: blueprint_v2/test_issue_23_nested_inline_only.cpp.i
+.PHONY : blueprint_v2/test_issue_23_nested_inline_only.i
+
+# target to preprocess a source file
+blueprint_v2/test_issue_23_nested_inline_only.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_issue_23_nested_inline_only.cpp.i
+.PHONY : blueprint_v2/test_issue_23_nested_inline_only.cpp.i
+
+blueprint_v2/test_issue_23_nested_inline_only.s: blueprint_v2/test_issue_23_nested_inline_only.cpp.s
+.PHONY : blueprint_v2/test_issue_23_nested_inline_only.s
+
+# target to generate assembly for a file
+blueprint_v2/test_issue_23_nested_inline_only.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_issue_23_nested_inline_only.cpp.s
+.PHONY : blueprint_v2/test_issue_23_nested_inline_only.cpp.s
 
 blueprint_v2/test_path.o: blueprint_v2/test_path.cpp.o
 .PHONY : blueprint_v2/test_path.o
@@ -3003,29 +3075,29 @@ test_blueprint_loading.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_loading_tests.dir/build.make tests/CMakeFiles/blueprint_loading_tests.dir/test_blueprint_loading.cpp.s
 .PHONY : test_blueprint_loading.cpp.s
 
-test_blueprint_ports.o: test_blueprint_ports.cpp.o
-.PHONY : test_blueprint_ports.o
+test_bridge_lowering.o: test_bridge_lowering.cpp.o
+.PHONY : test_bridge_lowering.o
 
 # target to build an object file
-test_blueprint_ports.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.o
-.PHONY : test_blueprint_ports.cpp.o
+test_bridge_lowering.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bridge_lowering_tests.dir/build.make tests/CMakeFiles/bridge_lowering_tests.dir/test_bridge_lowering.cpp.o
+.PHONY : test_bridge_lowering.cpp.o
 
-test_blueprint_ports.i: test_blueprint_ports.cpp.i
-.PHONY : test_blueprint_ports.i
+test_bridge_lowering.i: test_bridge_lowering.cpp.i
+.PHONY : test_bridge_lowering.i
 
 # target to preprocess a source file
-test_blueprint_ports.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.i
-.PHONY : test_blueprint_ports.cpp.i
+test_bridge_lowering.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bridge_lowering_tests.dir/build.make tests/CMakeFiles/bridge_lowering_tests.dir/test_bridge_lowering.cpp.i
+.PHONY : test_bridge_lowering.cpp.i
 
-test_blueprint_ports.s: test_blueprint_ports.cpp.s
-.PHONY : test_blueprint_ports.s
+test_bridge_lowering.s: test_bridge_lowering.cpp.s
+.PHONY : test_bridge_lowering.s
 
 # target to generate assembly for a file
-test_blueprint_ports.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.s
-.PHONY : test_blueprint_ports.cpp.s
+test_bridge_lowering.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bridge_lowering_tests.dir/build.make tests/CMakeFiles/bridge_lowering_tests.dir/test_bridge_lowering.cpp.s
+.PHONY : test_bridge_lowering.cpp.s
 
 test_bug_hunt_regression.o: test_bug_hunt_regression.cpp.o
 .PHONY : test_bug_hunt_regression.o
@@ -4658,7 +4730,6 @@ help:
 	@echo "... azs_tests"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
-	@echo "... blueprint_ports_tests"
 	@echo "... bp2_bake_tests"
 	@echo "... bp2_blueprint_tests"
 	@echo "... bp2_codec_tests"
@@ -4667,6 +4738,7 @@ help:
 	@echo "... bp2_interface_tests"
 	@echo "... bp2_path_tests"
 	@echo "... bp2_validation_tests"
+	@echo "... bridge_lowering_tests"
 	@echo "... bug_hunt_regression_tests"
 	@echo "... canvas_input_tests"
 	@echo "... clamp_normalize_tests"
@@ -4849,12 +4921,21 @@ help:
 	@echo "... blueprint_v2/test_editor_model.o"
 	@echo "... blueprint_v2/test_editor_model.i"
 	@echo "... blueprint_v2/test_editor_model.s"
+	@echo "... blueprint_v2/test_embedded_editing_undo.o"
+	@echo "... blueprint_v2/test_embedded_editing_undo.i"
+	@echo "... blueprint_v2/test_embedded_editing_undo.s"
+	@echo "... blueprint_v2/test_embedded_subwindow_scene.o"
+	@echo "... blueprint_v2/test_embedded_subwindow_scene.i"
+	@echo "... blueprint_v2/test_embedded_subwindow_scene.s"
 	@echo "... blueprint_v2/test_flattener.o"
 	@echo "... blueprint_v2/test_flattener.i"
 	@echo "... blueprint_v2/test_flattener.s"
 	@echo "... blueprint_v2/test_interface.o"
 	@echo "... blueprint_v2/test_interface.i"
 	@echo "... blueprint_v2/test_interface.s"
+	@echo "... blueprint_v2/test_issue_23_nested_inline_only.o"
+	@echo "... blueprint_v2/test_issue_23_nested_inline_only.i"
+	@echo "... blueprint_v2/test_issue_23_nested_inline_only.s"
 	@echo "... blueprint_v2/test_path.o"
 	@echo "... blueprint_v2/test_path.i"
 	@echo "... blueprint_v2/test_path.s"
@@ -4918,9 +4999,9 @@ help:
 	@echo "... test_blueprint_loading.o"
 	@echo "... test_blueprint_loading.i"
 	@echo "... test_blueprint_loading.s"
-	@echo "... test_blueprint_ports.o"
-	@echo "... test_blueprint_ports.i"
-	@echo "... test_blueprint_ports.s"
+	@echo "... test_bridge_lowering.o"
+	@echo "... test_bridge_lowering.i"
+	@echo "... test_bridge_lowering.s"
 	@echo "... test_bug_hunt_regression.o"
 	@echo "... test_bug_hunt_regression.i"
 	@echo "... test_bug_hunt_regression.s"

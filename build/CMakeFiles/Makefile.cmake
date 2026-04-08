@@ -171,7 +171,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/splitter_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/azs_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/logical_solver_tests.dir/DependInfo.cmake"
-  "tests/CMakeFiles/blueprint_ports_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/bridge_lowering_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/current_sense_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bug_hunt_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/slew_rate_tests.dir/DependInfo.cmake"

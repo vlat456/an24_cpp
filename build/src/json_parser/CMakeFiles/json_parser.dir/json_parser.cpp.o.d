@@ -536,4 +536,5 @@ src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o: \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/synchronous_factory.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/fstream \
   /Users/vladimir/an24_cpp/src/json_parser/../parse_number.h \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/charconv
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/charconv \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h

@@ -518,6 +518,7 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen.cpp.o: /Use
   _deps/json-src/include/nlohmann/ordered_map.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_internal.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_utils.h \
@@ -1041,6 +1042,7 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite.c
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   /Users/vladimir/an24_cpp/src/core/utils/union_find.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_composite_helpers.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_internal.h \
@@ -1565,6 +1567,7 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_composite_h
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   /Users/vladimir/an24_cpp/src/core/utils/union_find.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h \
   /Users/vladimir/an24_cpp/src/core/solvers/common/signal_union_rules.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_composite_helpers.h \
@@ -2091,6 +2094,7 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_header.cpp.
   _deps/json-src/include/nlohmann/ordered_map.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_internal.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_utils.h \
@@ -2617,6 +2621,7 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_registry.cp
   _deps/json-src/include/nlohmann/ordered_map.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_internal.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_utils.h \
@@ -3140,6 +3145,7 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/codegen_source.cpp.
   _deps/json-src/include/nlohmann/ordered_map.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_internal.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_utils.h \
@@ -3682,6 +3688,7 @@ examples/CMakeFiles/an24_codegen.dir/__/src/core/solvers/aot/electrical_codegen.
   _deps/spdlog-src/include/spdlog/spdlog.h \
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h \
   /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_utils.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
@@ -3717,6 +3724,8 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen_internal.h:
 
 /Users/vladimir/an24_cpp/src/core/solvers/aot/codegen.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h:
 
 _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
 

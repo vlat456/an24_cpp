@@ -181,18 +181,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/core/solvers/jit",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/blueprint_input.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_input.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_input.cpp",
-  "output": "src/core/solvers/jit/CMakeFiles/jit_solver.dir/components/blueprint_input.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/src/core/solvers/jit",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/blueprint_output.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_output.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_output.cpp",
-  "output": "src/core/solvers/jit/CMakeFiles/jit_solver.dir/components/blueprint_output.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/src/core/solvers/jit",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/comparator.cpp.o -c /Users/vladimir/an24_cpp/src/core/solvers/jit/components/comparator.cpp",
   "file": "/Users/vladimir/an24_cpp/src/core/solvers/jit/components/comparator.cpp",
   "output": "src/core/solvers/jit/CMakeFiles/jit_solver.dir/components/comparator.cpp.o"
@@ -1267,9 +1255,9 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/core -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.o -c /Users/vladimir/an24_cpp/tests/test_blueprint_ports.cpp",
-  "file": "/Users/vladimir/an24_cpp/tests/test_blueprint_ports.cpp",
-  "output": "tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.o"
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/core -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/core/solvers/jit -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/bridge_lowering_tests.dir/test_bridge_lowering.cpp.o -c /Users/vladimir/an24_cpp/tests/test_bridge_lowering.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_bridge_lowering.cpp",
+  "output": "tests/CMakeFiles/bridge_lowering_tests.dir/test_bridge_lowering.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -1522,6 +1510,12 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/scene_mutations_tests.dir/test_scene_mutations.cpp.o -c /Users/vladimir/an24_cpp/tests/test_scene_mutations.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_scene_mutations.cpp",
   "output": "tests/CMakeFiles/scene_mutations_tests.dir/test_scene_mutations.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/scene_mutations_tests.dir/blueprint_v2/test_embedded_subwindow_scene.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_embedded_subwindow_scene.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_embedded_subwindow_scene.cpp",
+  "output": "tests/CMakeFiles/scene_mutations_tests.dir/blueprint_v2/test_embedded_subwindow_scene.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -2095,6 +2089,12 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_embedded_editing_undo.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_embedded_editing_undo.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_embedded_editing_undo.cpp",
+  "output": "tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_embedded_editing_undo.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_bake_tests.dir/blueprint_v2/test_bake.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_bake.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_bake.cpp",
   "output": "tests/CMakeFiles/bp2_bake_tests.dir/blueprint_v2/test_bake.cpp.o"
@@ -2110,6 +2110,12 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_persist_validation.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_persist_validation.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_persist_validation.cpp",
   "output": "tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_persist_validation.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_issue_23_nested_inline_only.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_issue_23_nested_inline_only.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_issue_23_nested_inline_only.cpp",
+  "output": "tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_issue_23_nested_inline_only.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",

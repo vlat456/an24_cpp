@@ -522,6 +522,7 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   /Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/blueprint.h \
   /Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/node_content_type.h \
+  /Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/node_port.h \
   /Users/vladimir/an24_cpp/src/blueprint_v2/codec/blueprint_codec.h \
   /Users/vladimir/an24_cpp/src/blueprint_v2/interface/interface.h \
   /Users/vladimir/an24_cpp/src/blueprint_v2/interface/port_descriptor.h \
@@ -539,8 +540,6 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   /Users/vladimir/an24_cpp/src/core/solvers/jit/components/asym_slew_rate.h \
   /Users/vladimir/an24_cpp/src/core/solvers/jit/components/asym_tmo.h \
   /Users/vladimir/an24_cpp/src/core/solvers/jit/components/azs.h \
-  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_input.h \
-  /Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_output.h \
   /Users/vladimir/an24_cpp/src/core/solvers/jit/components/bus.h \
   /Users/vladimir/an24_cpp/src/core/solvers/jit/components/clamp.h \
   /Users/vladimir/an24_cpp/src/core/solvers/jit/components/comparator.h \
@@ -610,8 +609,6 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   /Users/vladimir/an24_cpp/src/core/solvers/jit/jit_solver.h \
   /Users/vladimir/an24_cpp/src/core/solvers/jit/scheduler.h \
   /Users/vladimir/an24_cpp/src/core/solvers/jit/subsolvers/subsolver_types.h \
-  /Users/vladimir/an24_cpp/src/ui/core/interned_id.h \
-  /Users/vladimir/an24_cpp/src/editor/data/port.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/ui/core/interned_id.h
@@ -758,8 +755,6 @@ _deps/json-src/include/nlohmann/adl_serializer.hpp:
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h:
 
 /Users/vladimir/an24_cpp/src/core/solvers/jit/components/divide.h:
-
-/Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_input.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h:
 
@@ -1114,6 +1109,8 @@ _deps/json-src/include/nlohmann/detail/meta/std_fs.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shuffle.h:
+
+/Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/node_port.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/istream_iterator.h:
 
@@ -1633,8 +1630,6 @@ _deps/json-src/include/nlohmann/detail/meta/identity_tag.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__function_like.h:
 
-/Users/vladimir/an24_cpp/src/core/solvers/jit/components/blueprint_output.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/erase_if_container.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/arm/_OSByteOrder.h:
@@ -1760,8 +1755,6 @@ _deps/json-src/include/nlohmann/detail/iterators/iterator_traits.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/vector:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/concepts:
-
-/Users/vladimir/an24_cpp/src/editor/data/port.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int32_t.h:
 

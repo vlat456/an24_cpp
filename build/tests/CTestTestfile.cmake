@@ -20,7 +20,7 @@ include("/Users/vladimir/an24_cpp/build/tests/arithmetic_tests[1]_include.cmake"
 include("/Users/vladimir/an24_cpp/build/tests/splitter_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/azs_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/logical_solver_tests[1]_include.cmake")
-include("/Users/vladimir/an24_cpp/build/tests/blueprint_ports_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/bridge_lowering_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/current_sense_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/bug_hunt_regression_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/slew_rate_tests[1]_include.cmake")

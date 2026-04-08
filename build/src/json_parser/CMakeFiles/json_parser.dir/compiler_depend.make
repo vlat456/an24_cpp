@@ -537,6 +537,7 @@ src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o: /Users/vladimir/an
   _deps/spdlog-src/include/spdlog/spdlog.h \
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
+  /Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h \
   /Users/vladimir/an24_cpp/src/parse_number.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h
 
@@ -2641,6 +2642,8 @@ src/json_parser/CMakeFiles/json_parser.dir/json_parser_types.cpp.o: /Users/vladi
 /Users/vladimir/an24_cpp/src/json_parser/json_parser_serialize.cpp:
 
 /Users/vladimir/an24_cpp/src/parse_number.h:
+
+/Users/vladimir/an24_cpp/src/core/solvers/common/signal_key.h:
 
 _deps/spdlog-src/include/spdlog/version.h:
 
