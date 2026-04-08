@@ -104,32 +104,32 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     pending_params_.clear();
     snapshot_string_params_.clear();
     pending_string_params_.clear();
-    for (const auto& [key_iid, val] : node.params) {
+    for (const auto& [key_iid, val] : node.semantic.params) {
         std::string key_str = std::string(interner_->resolve(key_iid));
         snapshot_params_[key_str] = val;
         pending_params_[key_str]  = val;
     }
-    for (const auto& [key, val] : node.string_params) {
+    for (const auto& [key, val] : node.semantic.string_params) {
         snapshot_string_params_[key] = val;
         pending_string_params_[key] = val;
     }
 
     // Snapshot for diffing at apply() time
-    snapshot_name_ = node.name;
-    snapshot_layout_overrides_ = node.layout_overrides;
+    snapshot_name_ = node.view.name;
+    snapshot_layout_overrides_ = node.layout.layout_overrides;
 
     // Initialize pending copies from the live node
-    pending_name_ = node.name;
-    pending_layout_overrides_ = node.layout_overrides;
+    pending_name_ = node.view.name;
+    pending_layout_overrides_ = node.layout.layout_overrides;
     snapshot_bridge_port_type_.reset();
     pending_bridge_port_type_.reset();
-    if (is_bridge_node_type(*interner_, node.type)) {
-        if (!node.inputs.empty()) {
-            snapshot_bridge_port_type_ = node.inputs.front().type;
-            pending_bridge_port_type_ = node.inputs.front().type;
-        } else if (!node.outputs.empty()) {
-            snapshot_bridge_port_type_ = node.outputs.front().type;
-            pending_bridge_port_type_ = node.outputs.front().type;
+    if (is_bridge_node_type(*interner_, node.semantic.type)) {
+        if (!node.view.inputs.empty()) {
+            snapshot_bridge_port_type_ = node.view.inputs.front().type;
+            pending_bridge_port_type_ = node.view.inputs.front().type;
+        } else if (!node.view.outputs.empty()) {
+            snapshot_bridge_port_type_ = node.view.outputs.front().type;
+            pending_bridge_port_type_ = node.view.outputs.front().type;
         }
     }
 
@@ -157,12 +157,12 @@ void PropertiesWindow::render() {
         return;
     }
 
-#ifndef EDITOR_TESTING
+    #ifndef EDITOR_TESTING
     ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
     bool window_open = true;
     if (ImGui::Begin(("Properties: " + target_node_id_).c_str(), &window_open)) {
         // Header: resolve type name from InternedId
-        std::string type_str = std::string(interner_->resolve(target->type));
+        std::string type_str = std::string(interner_->resolve(target->semantic.type));
         ImGui::Text("%s (%s)", target_node_id_.c_str(), type_str.c_str());
         ImGui::Separator();
 
@@ -196,7 +196,7 @@ void PropertiesWindow::render() {
         // Determine if this is a bridge node so we can skip exposed_type/
         // exposed_direction — those are edited via the dedicated PortType
         // dropdown rendered by render_bridge_port_type_section() below.
-        const bool is_bridge = target && is_bridge_node_type(*interner_, target->type);
+        const bool is_bridge = target && is_bridge_node_type(*interner_, target->semantic.type);
 
         for (const auto& key : string_keys) {
             if (key == "table") {
@@ -468,10 +468,10 @@ void PropertiesWindow::render_port_layout_row(const std::string& port_name) {
 void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& node) {
 #ifndef EDITOR_TESTING
     // Skip for Bus nodes - they have their own port_edge mechanism
-    if (node.render_hint == "bus") return;
+    if (node.view.render_hint == "bus") return;
 
     // Skip if node has no ports
-    if (node.inputs.empty() && node.outputs.empty()) return;
+    if (node.view.inputs.empty() && node.view.outputs.empty()) return;
 
     ImGui::Separator();
     ImGui::Text("Port Layout");
@@ -479,10 +479,10 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
 
     // Collect all port names
     std::vector<std::string> all_ports;
-    for (const auto& p : node.inputs) {
+    for (const auto& p : node.view.inputs) {
         all_ports.push_back(std::string(interner_->resolve(p.name)));
     }
-    for (const auto& p : node.outputs) {
+    for (const auto& p : node.view.outputs) {
         all_ports.push_back(std::string(interner_->resolve(p.name)));
     }
 
@@ -580,45 +580,45 @@ void PropertiesWindow::apply() {
         bp2::Blueprint::Node updated = *target;
 
         // Apply all pending params
-        updated.params.clear();
+        updated.semantic.params.clear();
         for (const auto& [key, new_value] : pending_params_) {
             ui::InternedId key_iid = interner_->intern(key);
-            updated.params[key_iid] = new_value;
+            updated.semantic.params[key_iid] = new_value;
         }
 
-        updated.string_params = pending_string_params_;
+        updated.semantic.string_params = pending_string_params_;
 
         // Sync content_max / content_min from params for interactive widget types.
         // When the user changes e.g. "positions" in the inspector, the bp2 node's
         // content_max must be updated so visual widgets (KnobWidget tick marks,
         // SliderWidget range, VoltmeterWidget range) reflect the new value.
         // [BUG-1] Without this, changing positions 2→5 left ticks unchanged.
-        if (updated.content_type == bp2::NodeContentType::Knob) {
+        if (updated.view.content_type == bp2::NodeContentType::Knob) {
             auto pos_key = interner_->intern("positions");
-            auto it = updated.params.find(pos_key);
-            if (it != updated.params.end()) {
-                updated.content_max = it->second;
+            auto it = updated.semantic.params.find(pos_key);
+            if (it != updated.semantic.params.end()) {
+                updated.view.content_max = it->second;
             }
-        } else if (updated.content_type == bp2::NodeContentType::Slider
-                || updated.content_type == bp2::NodeContentType::Gauge) {
+        } else if (updated.view.content_type == bp2::NodeContentType::Slider
+                || updated.view.content_type == bp2::NodeContentType::Gauge) {
             auto min_key = interner_->intern("min");
             auto max_key = interner_->intern("max");
-            auto min_it = updated.params.find(min_key);
-            auto max_it = updated.params.find(max_key);
-            if (min_it != updated.params.end()) updated.content_min = min_it->second;
-            if (max_it != updated.params.end()) updated.content_max = max_it->second;
+            auto min_it = updated.semantic.params.find(min_key);
+            auto max_it = updated.semantic.params.find(max_key);
+            if (min_it != updated.semantic.params.end()) updated.view.content_min = min_it->second;
+            if (max_it != updated.semantic.params.end()) updated.view.content_max = max_it->second;
         }
 
         // Apply name change
-        updated.name = pending_name_;
+        updated.view.name = pending_name_;
 
         // Apply layout overrides change
-        updated.layout_overrides = pending_layout_overrides_;
+        updated.layout.layout_overrides = pending_layout_overrides_;
 
         // Apply bridge PortType change to all ports (ext/port share semantics).
-        if (pending_bridge_port_type_.has_value() && is_bridge_node_type(*interner_, updated.type)) {
-            for (auto& p : updated.inputs) p.type = *pending_bridge_port_type_;
-            for (auto& p : updated.outputs) p.type = *pending_bridge_port_type_;
+        if (pending_bridge_port_type_.has_value() && is_bridge_node_type(*interner_, updated.semantic.type)) {
+            for (auto& p : updated.view.inputs) p.type = *pending_bridge_port_type_;
+            for (auto& p : updated.view.outputs) p.type = *pending_bridge_port_type_;
         }
 
         // Single atomic checkpoint + replace
@@ -640,10 +640,10 @@ void PropertiesWindow::apply() {
                     // Update parent collapsed node port types
                     if (const auto* collapsed = next_bp.find_node(nested_iid)) {
                         bp2::Blueprint::Node n = *collapsed;
-                        for (auto& p : n.inputs) {
+                        for (auto& p : n.view.inputs) {
                             if (p.name == iface_iid) p.type = *pending_bridge_port_type_;
                         }
-                        for (auto& p : n.outputs) {
+                        for (auto& p : n.view.outputs) {
                             if (p.name == iface_iid) p.type = *pending_bridge_port_type_;
                         }
                         next_bp = bp2::replace_node_preserve_order(next_bp, std::move(n));
@@ -655,7 +655,9 @@ void PropertiesWindow::apply() {
                         std::vector<bp2::PortDescriptor> ports = n.iface.ports();
                         const Domain d = editor::common::domain_for_port_type(*pending_bridge_port_type_);
                         for (auto& pd : ports) {
-                            if (pd.name == iface_iid) pd.domain = d;
+                            if (pd.name == iface_iid) {
+                                pd.domain = d;
+                            }
                         }
                         n.iface = bp2::Interface(std::move(ports));
                         next_bp = bp2::replace_nested_preserve_order(next_bp, std::move(n));
@@ -684,7 +686,7 @@ void PropertiesWindow::render_bridge_port_type_section() {
 #ifndef EDITOR_TESTING
     const bp2::Blueprint::Node* target = resolve_target();
     if (!target || !interner_) return;
-    if (!is_bridge_node_type(*interner_, target->type)) return;
+    if (!is_bridge_node_type(*interner_, target->semantic.type)) return;
     if (!pending_bridge_port_type_.has_value()) return;
 
     ImGui::Separator();

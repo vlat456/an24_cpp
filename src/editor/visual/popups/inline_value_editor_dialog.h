@@ -80,7 +80,7 @@ public:
                 } else {
                     const ui::InternedId value_key = doc->interner().intern("value");
                     doc->model().update_node(node_iid, [&](bp2::Blueprint::Node& updated) {
-                        updated.params[value_key] = parsed;
+                        updated.semantic.params[value_key] = parsed;
                     });
                     doc->rebuildAllWindows();
                     ws.inspector().markDirty();

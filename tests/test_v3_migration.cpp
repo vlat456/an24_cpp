@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <fstream>
 #include <string>
 
@@ -39,7 +40,12 @@ TEST(V3Migration, CodecRejectsLegacyVersion2Json) {
 }
 
 TEST(V3Migration, GSCIsV3AndDecodes) {
-    std::string content = read_file("/Users/vladimir/an24_cpp/GSC.blueprint");
+    const std::string gsc_path = "/Users/vladimir/an24_cpp/GSC.blueprint";
+    if (!std::filesystem::exists(gsc_path)) {
+        GTEST_SKIP() << "GSC.blueprint not present (workspace save file, not source-controlled)";
+    }
+
+    std::string content = read_file(gsc_path);
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);

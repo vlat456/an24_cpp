@@ -47,7 +47,7 @@ std::string resolve_runtime_signal_key(
 
     if (context.mode == SignalKeyContextMode::Root) {
         // Root mode: check if node is expandable composite
-        if (endpoint.node && endpoint.node->expandable && !endpoint.node->blueprint_path.empty()) {
+        if (endpoint.node && endpoint.node->view.expandable && !endpoint.node->view.blueprint_path.empty()) {
             // For embedded blueprints with materialized children, the bridge
             // node ID may differ from the default colon convention.
             const auto* nested = bp.find_nested(endpoint.node_iid);

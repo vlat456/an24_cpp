@@ -19,15 +19,19 @@ void append_proxy_ports(bp2::Blueprint::Node& collapsed,
                         bool is_input,
                         ui::StringInterner& interner,
                         std::vector<bp2::PortDescriptor>& proxy_ports_out) {
-    const PortSide side = is_input ? PortSide::Input : PortSide::Output;
+    const bp2::PortSide side = is_input ? bp2::PortSide::Input : bp2::PortSide::Output;
     const bp2::Direction dir = is_input ? bp2::Direction::Input : bp2::Direction::Output;
-    auto& port_list = is_input ? collapsed.inputs : collapsed.outputs;
-    for (const auto& ec : conns) {
-        const PortType pt = resolve_port_type(ec);
-        const ui::InternedId iface_iid = interner.intern(ec.iface_name);
-        port_list.emplace_back(iface_iid, side, pt);
-        proxy_ports_out.push_back({iface_iid, ec.domain, dir});
-    }
+     auto& port_list = is_input ? collapsed.view.inputs : collapsed.view.outputs;
+     for (const auto& ec : conns) {
+         const PortType pt = resolve_port_type(ec);
+         const ui::InternedId iface_iid = interner.intern(ec.iface_name);
+         port_list.emplace_back(iface_iid, side, pt);
+         bp2::PortDescriptor pd;
+         pd.name = iface_iid;
+         pd.domain = ec.domain;
+         pd.direction = dir;
+         proxy_ports_out.push_back(std::move(pd));
+     }
 }
 
 /// Build interface port descriptors from inputs + outputs.  Shared between
@@ -38,11 +42,19 @@ std::vector<bp2::PortDescriptor> build_iface_ports(
     ui::StringInterner& interner) {
     std::vector<bp2::PortDescriptor> ports;
     ports.reserve(inputs.size() + outputs.size());
-    for (const auto& ec : inputs) {
-        ports.push_back({interner.intern(ec.iface_name), ec.domain, bp2::Direction::Input});
-    }
-    for (const auto& ec : outputs) {
-        ports.push_back({interner.intern(ec.iface_name), ec.domain, bp2::Direction::Output});
+     for (const auto& ec : inputs) {
+         bp2::PortDescriptor pd;
+         pd.name = interner.intern(ec.iface_name);
+         pd.domain = ec.domain;
+         pd.direction = bp2::Direction::Input;
+         ports.push_back(std::move(pd));
+     }
+     for (const auto& ec : outputs) {
+         bp2::PortDescriptor pd;
+         pd.name = interner.intern(ec.iface_name);
+         pd.domain = ec.domain;
+         pd.direction = bp2::Direction::Output;
+         ports.push_back(std::move(pd));
     }
     return ports;
 }
@@ -229,10 +241,10 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
     translated_nodes.reserve(plan.internal_nodes.size());
     float max_internal_right = 0.0f;
     for (auto node : plan.internal_nodes) {
-        node.x = (node.x - min_x) + left_margin;
-        node.y = (node.y - min_y);
-        node.group_id.clear();
-        max_internal_right = std::max(max_internal_right, node.x + node.width.value_or(kDefaultNodeWidth));
+        node.layout.x = (node.layout.x - min_x) + left_margin;
+        node.layout.y = (node.layout.y - min_y);
+        node.layout.group_id.clear();
+        max_internal_right = std::max(max_internal_right, node.layout.x + node.layout.width.value_or(kDefaultNodeWidth));
         translated_nodes.push_back(node);
         out = out.with_node(std::move(node));
     }
@@ -321,13 +333,13 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     used_node_ids.insert(nested_instance_id);
     const std::string nested_group_id = std::string(interner.resolve(nested_instance_id));
 
-    for (const auto& nsrc : source.nodes()) {
-        auto n = nsrc;
-        if (plan.selected_set.find(n.id) != plan.selected_set.end()) {
-            n.group_id = nested_group_id;
-        }
-        out = out.with_node(std::move(n));
-    }
+     for (const auto& nsrc : source.nodes()) {
+         auto n = nsrc;
+         if (plan.selected_set.find(n.semantic.id) != plan.selected_set.end()) {
+             n.layout.group_id = nested_group_id;
+         }
+         out = out.with_node(std::move(n));
+     }
 
     for (const auto& w : source.wires()) {
         ui::InternedId src_node;
@@ -374,17 +386,17 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
 
     // -- Build collapsed proxy node ------------------------------------------
     bp2::Blueprint::Node collapsed;
-    collapsed.id = nested_instance_id;
-    collapsed.type = blueprint_iid;
-    collapsed.name = blueprint_name;
-    collapsed.expandable = true;
-    collapsed.collapsed = true;
-    collapsed.blueprint_path = blueprint_name;
-    collapsed.group_id = group_id;
-    collapsed.x = plan.center_x;
-    collapsed.y = plan.center_y;
-    collapsed.width = 160.0f;
-    collapsed.height = 64.0f;
+    collapsed.semantic.id = nested_instance_id;
+    collapsed.semantic.type = blueprint_iid;
+    collapsed.view.name = blueprint_name;
+    collapsed.view.expandable = true;
+    collapsed.layout.collapsed = true;
+    collapsed.view.blueprint_path = blueprint_name;
+    collapsed.layout.group_id = group_id;
+    collapsed.layout.x = plan.center_x;
+    collapsed.layout.y = plan.center_y;
+    collapsed.layout.width = 160.0f;
+    collapsed.layout.height = 64.0f;
     std::vector<ExternalConnection> sorted_inputs = plan.inputs;
     std::vector<ExternalConnection> sorted_outputs = plan.outputs;
     std::sort(sorted_inputs.begin(), sorted_inputs.end(), compare_external);
@@ -393,7 +405,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     proxy_ports.reserve(sorted_inputs.size() + sorted_outputs.size());
     append_proxy_ports(collapsed, sorted_inputs, true, interner, proxy_ports);
     append_proxy_ports(collapsed, sorted_outputs, false, interner, proxy_ports);
-    collapsed.iface = bp2::Interface(std::move(proxy_ports));
+    collapsed.semantic.iface = bp2::Interface(std::move(proxy_ports));
     out = out.with_node(std::move(collapsed));
 
     // -- Iface collision check -----------------------------------------------

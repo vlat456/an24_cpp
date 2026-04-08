@@ -21,22 +21,22 @@ RepairReport diagnose_and_repair(Blueprint& bp,
 
     std::unordered_set<ui::InternedId> seen_nodes;
     for (const auto& n : bp.nodes()) {
-        if (!seen_nodes.insert(n.id).second) {
+        if (!seen_nodes.insert(n.semantic.id).second) {
             report.issues.push_back({
                 IntegrityIssue::Kind::DuplicateNodeId,
-                "duplicate node id=" + iid(n.id)
+                "duplicate node id=" + iid(n.semantic.id)
             });
         }
-        if (!parser_registry.has(std::string(interner.resolve(n.type)))) {
+        if (!parser_registry.has(std::string(interner.resolve(n.semantic.type)))) {
             // Skip embedded blueprint proxy nodes — their user-given type
             // is not in the library registry by design.
-            const bool is_embedded_proxy = n.expandable
-                && bp.find_nested(n.id) != nullptr
-                && bp.find_nested(n.id)->embedded;
+            const bool is_embedded_proxy = n.view.expandable
+                && bp.find_nested(n.semantic.id) != nullptr
+                && bp.find_nested(n.semantic.id)->embedded;
             if (!is_embedded_proxy) {
                 report.issues.push_back({
                     IntegrityIssue::Kind::UnknownNodeType,
-                    "unknown node type at node id=" + iid(n.id)
+                    "unknown node type at node id=" + iid(n.semantic.id)
                 });
             }
         }

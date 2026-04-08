@@ -1,7 +1,8 @@
 #pragma once
 #include "visual/widget.h"
 #include "visual/render_context.h"
-#include "data/port.h"
+#include "blueprint_v2/blueprint/node_port.h"
+#include "json_parser/json_parser.h"
 #include <string_view>
 #include <cstdint>
 
@@ -39,7 +40,7 @@ struct PortConstants {
 /// Renders as a filled circle with type-based color.
 class Port : public Widget {
 public:
-    Port(std::string_view name, PortSide side, PortType type, PortLayoutSide layout_side = PortLayoutSide::Left);
+    Port(std::string_view name, bp2::PortSide side, PortType type, bp2::PortLayoutSide layout_side = bp2::PortLayoutSide::Left);
 
     std::string_view id() const override { return name_; }
     bool isClickable() const override { return true; }
@@ -49,17 +50,17 @@ public:
     bool isIndexable() const override { return false; }
 
     std::string_view name() const { return name_; }
-    PortSide side() const { return side_; }
+    bp2::PortSide side() const { return side_; }
     PortType type() const { return type_; }
-    PortLayoutSide layoutSide() const { return layout_side_; }
+    bp2::PortLayoutSide layoutSide() const { return layout_side_; }
     
-    void setLayoutSide(PortLayoutSide side) { layout_side_ = side; }
+    void setLayoutSide(bp2::PortLayoutSide side) { layout_side_ = side; }
 
     uint32_t color() const;
 
     /// Check if port sides allow connection (Input <-> Output, InOut connects to anything)
-    static bool areSidesCompatible(PortSide a, PortSide b) {
-        if (a == PortSide::InOut || b == PortSide::InOut) return true;
+    static bool areSidesCompatible(bp2::PortSide a, bp2::PortSide b) {
+        if (a == bp2::PortSide::InOut || b == bp2::PortSide::InOut) return true;
         return a != b;
     }
 
@@ -74,9 +75,9 @@ public:
 
 private:
     std::string_view name_;
-    PortSide side_;
+    bp2::PortSide side_;
     PortType type_;
-    PortLayoutSide layout_side_;
+    bp2::PortLayoutSide layout_side_;
 };
 
 } // namespace visual

@@ -10,8 +10,8 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
                                       const char* id,
                                       const char* type) {
     bp2::Blueprint::Node n;
-    n.id = I.intern(id);
-    n.type = I.intern(type);
+    n.semantic.id = I.intern(id);
+    n.semantic.type = I.intern(type);
     return n;
 }
 

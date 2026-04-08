@@ -133,7 +133,7 @@ void assign_param_by_descriptor(Blueprint::Node& node,
         case ParamSchemaType::Float:
         case ParamSchemaType::Int: {
             if (val.is_number()) {
-                node.params[key_iid] = parse_finite_float(val, "params." + key);
+                node.semantic.params[key_iid] = parse_finite_float(val, "params." + key);
                 return;
             }
             if (val.is_string()) {
@@ -141,14 +141,14 @@ void assign_param_by_descriptor(Blueprint::Node& node,
                 if (!parse_number_string(val.get<std::string>(), parsed)) {
                     throw std::runtime_error("invalid node entry: param '" + key + "' must be number");
                 }
-                node.params[key_iid] = parsed;
+                node.semantic.params[key_iid] = parsed;
                 return;
             }
             throw std::runtime_error("invalid node entry: param '" + key + "' must be number");
         }
         case ParamSchemaType::Bool: {
             if (val.is_boolean()) {
-                node.string_params[key] = val.get<bool>() ? "true" : "false";
+                node.semantic.string_params[key] = val.get<bool>() ? "true" : "false";
                 return;
             }
             if (val.is_string()) {
@@ -156,7 +156,7 @@ void assign_param_by_descriptor(Blueprint::Node& node,
                 if (!parse_bool_string(val.get<std::string>(), normalized)) {
                     throw std::runtime_error("invalid node entry: param '" + key + "' must be bool");
                 }
-                node.string_params[key] = std::move(normalized);
+                node.semantic.string_params[key] = std::move(normalized);
                 return;
             }
             throw std::runtime_error("invalid node entry: param '" + key + "' must be bool");
@@ -165,7 +165,7 @@ void assign_param_by_descriptor(Blueprint::Node& node,
             if (!val.is_string()) {
                 throw std::runtime_error("invalid node entry: param '" + key + "' must be string");
             }
-            node.string_params[key] = val.get<std::string>();
+            node.semantic.string_params[key] = val.get<std::string>();
             return;
         }
     }

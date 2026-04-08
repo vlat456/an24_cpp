@@ -3,7 +3,6 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
-#include "editor/data/port.h"
 
 // Helper to create a simple test scene using bp2::Blueprint
 struct InspectorTestScene {
@@ -18,30 +17,30 @@ struct InspectorTestScene {
                                    const std::string& type,
                                    const std::string& group_id = "") {
         bp2::Blueprint::Node n;
-        n.id        = interner.intern(id);
-        n.type      = interner.intern(type);
-        n.name      = id;
-        n.group_id  = group_id;
+         n.semantic.id = interner.intern(id);
+         n.semantic.type = interner.intern(type);
+         n.view.name = id;
+         n.layout.group_id = group_id;
 
         if (type == "Battery") {
-            n.inputs.push_back(EditorPort(interner.intern("v_in"),  PortSide::Input,  PortType::V));
-            n.outputs.push_back(EditorPort(interner.intern("v_out"), PortSide::Output, PortType::V));
+            n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
+            n.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
         } else if (type == "Lamp") {
-            n.inputs.push_back(EditorPort(interner.intern("v_in"),  PortSide::Input,  PortType::V));
-            n.outputs.push_back(EditorPort(interner.intern("light"), PortSide::Output, PortType::Bool));
+            n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
+            n.view.outputs.push_back(bp2::NodePort(interner.intern("light"), bp2::PortSide::Output, PortType::Bool));
         } else if (type == "Switch") {
-            n.inputs.push_back(EditorPort(interner.intern("v_in"),    PortSide::Input, PortType::V));
-            n.inputs.push_back(EditorPort(interner.intern("control"), PortSide::Input, PortType::Bool));
-            n.outputs.push_back(EditorPort(interner.intern("v_out"),  PortSide::Output, PortType::V));
+            n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
+            n.view.inputs.push_back(bp2::NodePort(interner.intern("control"), bp2::PortSide::Input, PortType::Bool));
+            n.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
         } else {
             // Generic: in + out
-            n.inputs.push_back(EditorPort(interner.intern("in"),  PortSide::Input,  PortType::V));
-            n.outputs.push_back(EditorPort(interner.intern("out"), PortSide::Output, PortType::V));
+            n.view.inputs.push_back(bp2::NodePort(interner.intern("in"), bp2::PortSide::Input,  PortType::V));
+            n.view.outputs.push_back(bp2::NodePort(interner.intern("out"), bp2::PortSide::Output, PortType::V));
         }
 
-        bp = bp.with_node(n);
-        // Return a reference to the node just added
-        return const_cast<bp2::Blueprint::Node&>(*bp.find_node(n.id));
+         bp = bp.with_node(n);
+         // Return a reference to the node just added
+         return const_cast<bp2::Blueprint::Node&>(*bp.find_node(n.semantic.id));
     }
 
     /// Add a minimal node with explicit ports (for group-filtering tests).
@@ -57,9 +56,9 @@ struct InspectorTestScene {
 
     void addWire(const std::string& src_node, const std::string& src_port,
                  const std::string& dst_node, const std::string& dst_port) {
-        static int wire_counter = 0;
-        bp2::Blueprint::Wire w;
-        w.id     = interner.intern("wire_" + std::to_string(wire_counter++));
+         static int wire_counter = 0;
+         bp2::Blueprint::Wire w;
+         w.id = interner.intern("wire_" + std::to_string(wire_counter++));
         w.source = makePortPath(src_node, src_port);
         w.target = makePortPath(dst_node, dst_port);
         bp = bp.with_wire(w);
@@ -118,7 +117,7 @@ TEST(Inspector, BuildDisplayTree_UnconnectedPort_ShowsNotConnected) {
     ASSERT_EQ(tree.size(), 1u);
 
     auto input_it = std::find_if(tree[0].ports.begin(), tree[0].ports.end(),
-        [](const DisplayPort& p) { return p.side == PortSide::Input; });
+        [](const DisplayPort& p) { return p.side == bp2::PortSide::Input; });
     if (input_it != tree[0].ports.end()) {
         EXPECT_EQ(input_it->connection, "[not connected]");
     }
@@ -246,30 +245,30 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
 
     {
         bp2::Blueprint::Node root_node;
-        root_node.id       = ts.interner.intern("battery1");
-        root_node.type     = ts.interner.intern("Battery");
-        root_node.name     = "battery1";
-        root_node.group_id = "";
-        root_node.inputs.push_back(EditorPort(ts.interner.intern("v_in"),  PortSide::Input,  PortType::V));
-        root_node.outputs.push_back(EditorPort(ts.interner.intern("v_out"), PortSide::Output, PortType::V));
+        root_node.semantic.id = ts.interner.intern("battery1");
+        root_node.semantic.type = ts.interner.intern("Battery");
+        root_node.view.name = "battery1";
+        root_node.layout.group_id = "";
+        root_node.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
+        root_node.view.outputs.push_back(bp2::NodePort(ts.interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
         ts.addNodeRaw(std::move(root_node));
     }
     {
         bp2::Blueprint::Node bp_node;
-        bp_node.id         = ts.interner.intern("lamp1");
-        bp_node.type       = ts.interner.intern("LampBlueprint");
-        bp_node.name       = "lamp1";
-        bp_node.expandable = true;
-        bp_node.group_id   = "";
+        bp_node.semantic.id = ts.interner.intern("lamp1");
+        bp_node.semantic.type = ts.interner.intern("LampBlueprint");
+        bp_node.view.name = "lamp1";
+        bp_node.view.expandable = true;
+        bp_node.layout.group_id = "";
         ts.addNodeRaw(std::move(bp_node));
     }
     {
         bp2::Blueprint::Node internal;
-        internal.id       = ts.interner.intern("lamp1:led");
-        internal.type     = ts.interner.intern("LED");
-        internal.name     = "lamp1:led";
-        internal.group_id = "lamp1";
-        internal.inputs.push_back(EditorPort(ts.interner.intern("v_in"), PortSide::Input, PortType::V));
+        internal.semantic.id = ts.interner.intern("lamp1:led");
+        internal.semantic.type = ts.interner.intern("LED");
+        internal.view.name = "lamp1:led";
+        internal.layout.group_id = "lamp1";
+        internal.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
         ts.addNodeRaw(std::move(internal));
     }
 
@@ -287,29 +286,29 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
 
     {
         bp2::Blueprint::Node root_node;
-        root_node.id       = ts.interner.intern("battery1");
-        root_node.type     = ts.interner.intern("Battery");
-        root_node.name     = "battery1";
-        root_node.group_id = "";
+        root_node.semantic.id = ts.interner.intern("battery1");
+        root_node.semantic.type = ts.interner.intern("Battery");
+        root_node.view.name = "battery1";
+        root_node.layout.group_id = "";
         ts.addNodeRaw(std::move(root_node));
     }
     {
         bp2::Blueprint::Node led;
-        led.id       = ts.interner.intern("lamp1:led");
-        led.type     = ts.interner.intern("LED");
-        led.name     = "lamp1:led";
-        led.group_id = "lamp1";
-        led.inputs.push_back(EditorPort(ts.interner.intern("v_in"), PortSide::Input, PortType::V));
+        led.semantic.id = ts.interner.intern("lamp1:led");
+        led.semantic.type = ts.interner.intern("LED");
+        led.view.name = "lamp1:led";
+        led.layout.group_id = "lamp1";
+        led.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
         ts.addNodeRaw(std::move(led));
     }
     {
         bp2::Blueprint::Node res;
-        res.id       = ts.interner.intern("lamp1:res");
-        res.type     = ts.interner.intern("Resistor");
-        res.name     = "lamp1:res";
-        res.group_id = "lamp1";
-        res.inputs.push_back(EditorPort(ts.interner.intern("v_in"),  PortSide::Input,  PortType::V));
-        res.outputs.push_back(EditorPort(ts.interner.intern("v_out"), PortSide::Output, PortType::V));
+        res.semantic.id = ts.interner.intern("lamp1:res");
+        res.semantic.type = ts.interner.intern("Resistor");
+        res.view.name = "lamp1:res";
+        res.layout.group_id = "lamp1";
+        res.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
+        res.view.outputs.push_back(bp2::NodePort(ts.interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
         ts.addNodeRaw(std::move(res));
     }
 
@@ -328,42 +327,42 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     // Root bat
     {
         bp2::Blueprint::Node bat;
-        bat.id       = ts.interner.intern("bat");
-        bat.type     = ts.interner.intern("Battery");
-        bat.name     = "bat";
-        bat.group_id = "";
-        bat.outputs.push_back(EditorPort(ts.interner.intern("v_out"), PortSide::Output, PortType::V));
+        bat.semantic.id = ts.interner.intern("bat");
+        bat.semantic.type = ts.interner.intern("Battery");
+        bat.view.name = "bat";
+        bat.layout.group_id = "";
+        bat.view.outputs.push_back(bp2::NodePort(ts.interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
         ts.addNodeRaw(std::move(bat));
     }
     // Root lamp1 (collapsed)
     {
         bp2::Blueprint::Node lamp;
-        lamp.id         = ts.interner.intern("lamp1");
-        lamp.type       = ts.interner.intern("Lamp");
-        lamp.name       = "lamp1";
-        lamp.expandable = true;
-        lamp.group_id   = "";
-        lamp.inputs.push_back(EditorPort(ts.interner.intern("v_in"), PortSide::Input, PortType::V));
+        lamp.semantic.id = ts.interner.intern("lamp1");
+        lamp.semantic.type = ts.interner.intern("Lamp");
+         lamp.view.name = "lamp1";
+        lamp.view.expandable = true;
+        lamp.layout.group_id = "";
+        lamp.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
         ts.addNodeRaw(std::move(lamp));
     }
     // Internal nodes
     {
         bp2::Blueprint::Node iled;
-        iled.id       = ts.interner.intern("lamp1:led");
-        iled.type     = ts.interner.intern("LED");
-        iled.name     = "lamp1:led";
-        iled.group_id = "lamp1";
-        iled.inputs.push_back(EditorPort(ts.interner.intern("v_in"),  PortSide::Input,  PortType::V));
-        iled.outputs.push_back(EditorPort(ts.interner.intern("v_out"), PortSide::Output, PortType::V));
+        iled.semantic.id = ts.interner.intern("lamp1:led");
+        iled.semantic.type = ts.interner.intern("LED");
+        iled.view.name = "lamp1:led";
+        iled.layout.group_id = "lamp1";
+        iled.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input,  PortType::V));
+        iled.view.outputs.push_back(bp2::NodePort(ts.interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
         ts.addNodeRaw(std::move(iled));
     }
     {
         bp2::Blueprint::Node ires;
-        ires.id       = ts.interner.intern("lamp1:res");
-        ires.type     = ts.interner.intern("Resistor");
-        ires.name     = "lamp1:res";
-        ires.group_id = "lamp1";
-        ires.inputs.push_back(EditorPort(ts.interner.intern("v_in"), PortSide::Input, PortType::V));
+        ires.semantic.id = ts.interner.intern("lamp1:res");
+        ires.semantic.type = ts.interner.intern("Resistor");
+        ires.view.name = "lamp1:res";
+        ires.layout.group_id = "lamp1";
+        ires.view.inputs.push_back(bp2::NodePort(ts.interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
         ts.addNodeRaw(std::move(ires));
     }
 
@@ -470,7 +469,7 @@ TEST(Inspector, Regression_NameUpdateAfterMarkDirty) {
 
     // Mutate the blueprint: replace the node with a renamed version
     bp2::Blueprint::Node updated = *ts.bp.find_node(ts.interner.intern("bat1"));
-    updated.name = "Main Battery 28V";
+    updated.view.name = "Main Battery 28V";
     ts.bp = ts.bp.without_node(ts.interner.intern("bat1")).with_node(updated);
 
     inspector.setBlueprint(ts.bp, ts.arena, ts.interner);
@@ -488,7 +487,7 @@ TEST(Inspector, Regression_CyrillicNameInDisplayTree) {
 
     // Set a Cyrillic display name via bp mutation
     bp2::Blueprint::Node updated = *ts.bp.find_node(ts.interner.intern("azs_1"));
-    updated.name = "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8";  // "АЗС Батареи"
+    updated.view.name = "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8";  // "АЗС Батареи"
     ts.bp = ts.bp.without_node(ts.interner.intern("azs_1")).with_node(updated);
 
     Inspector inspector(&ts.bp, &ts.arena, &ts.interner);

@@ -10,16 +10,16 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
     const auto& interner = doc.interner();
     
     for (const auto& node : doc.blueprint().nodes()) {
-        if (node.group_id != win.group_id) continue;
+        if (node.layout.group_id != win.group_id) continue;
 
         // Find the corresponding widget in the scene tree
-        std::string_view node_id_sv = interner.resolve(node.id);
+        std::string_view node_id_sv = interner.resolve(node.semantic.id);
         auto* widget = win.scene.find(node_id_sv);
         if (!widget) continue;
         auto* node_widget = dynamic_cast<visual::NodeWidget*>(widget);
         if (!node_widget) continue;
 
-        bp2::NodeContentType ctype = node.content_type;
+        bp2::NodeContentType ctype = node.view.content_type;
         if (ctype == bp2::NodeContentType::None) continue;
 
         Pt screen_min = win.viewport.world_to_screen(node_widget->worldPos(), cmin);
@@ -31,7 +31,7 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
 
         ImGui::SetCursorScreenPos(ImVec2(cx, cy));
 
-        switch (node.content_type) {
+        switch (node.view.content_type) {
             case bp2::NodeContentType::Switch:
                 renderSwitch(node, aw, win.read_only, doc);
                 break;
@@ -55,9 +55,9 @@ void NodeContentRenderer::renderSwitch(const bp2::Blueprint::Node& node,
     if (readOnly) return;
     
     if (isHoldButton(node, doc.interner())) {
-        bool checked = node.content_state;
-        // Resolve node.id (InternedId) to string for ImGui ID and callbacks
-        std::string node_id_str(doc.interner().resolve(node.id));
+        bool checked = node.view.content_state;
+        // Resolve node.semantic.id (InternedId) to string for ImGui ID and callbacks
+        std::string node_id_str(doc.interner().resolve(node.semantic.id));
         std::string id = "##hold_" + node_id_str;
         if (ImGui::Checkbox(id.c_str(), &checked)) {
             if (holdButtonCallback_) {
@@ -73,12 +73,12 @@ void NodeContentRenderer::renderSwitch(const bp2::Blueprint::Node& node,
 void NodeContentRenderer::renderValue(const bp2::Blueprint::Node& node,
                                        float width, bool readOnly) {
     if (readOnly) return;
-    // node.content_value is const in the blueprint; this renderer is read-only display
+    // node.view.content_value is const in the blueprint; this renderer is read-only display
     // (mutations go through EditorModel). Just show the slider as read-only.
-    float val = node.content_value;
+    float val = node.view.content_value;
     ImGui::SetNextItemWidth(width);
-    std::string id = "##v_" + std::to_string(node.id.raw());
-    ImGui::SliderFloat(id.c_str(), &val, node.content_min, node.content_max, "%.2f");
+    std::string id = "##v_" + std::to_string(node.semantic.id.raw());
+    ImGui::SliderFloat(id.c_str(), &val, node.view.content_min, node.view.content_max, "%.2f");
 }
 
 void NodeContentRenderer::renderGauge(const bp2::Blueprint::Node& node, float width) {
@@ -90,11 +90,11 @@ void NodeContentRenderer::renderGauge(const bp2::Blueprint::Node& node, float wi
 }
 
 void NodeContentRenderer::renderText(const bp2::Blueprint::Node& node) {
-    ImGui::Text("%s", node.content_label.c_str());
+    ImGui::Text("%s", node.view.content_label.c_str());
 }
 
 bool NodeContentRenderer::isHoldButton(const bp2::Blueprint::Node& node,
                                         const ui::StringInterner& interner) const {
-    std::string_view type_sv = interner.resolve(node.type);
+    std::string_view type_sv = interner.resolve(node.semantic.type);
     return type_sv == "HoldButton";
 }

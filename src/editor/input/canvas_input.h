@@ -3,7 +3,8 @@
 #include "editor/input/input_types.h"
 #include "ui/math/pt.h"
 #include "ui/core/interned_id.h"
-#include "data/port.h"
+#include "blueprint_v2/blueprint/node_port.h"
+#include "json_parser/json_parser.h"
 #include "commands/commands.h"
 #include <optional>
 #include <string>
@@ -153,7 +154,7 @@ private:
     size_t reconnect_wire_idx_ = 0;
     bool reconnect_detach_start_ = false;
     Pt reconnect_anchor_pos_;
-    PortSide reconnect_fixed_side_ = PortSide::Input;
+    bp2::PortSide reconnect_fixed_side_ = bp2::PortSide::Input;
     PortType reconnect_fixed_type_ = PortType::Any;
 
     // Routing-point drag — transient (pointers valid only during DraggingRoutingPoint)
@@ -201,7 +202,7 @@ private:
     void enter_resize_node(visual::Widget* widget, ResizeCorner corner);
     void enter_create_wire(visual::Port* port, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
-                              Pt anchor_pos, PortSide fixed_side, PortType fixed_type);
+                              Pt anchor_pos, bp2::PortSide fixed_side, PortType fixed_type);
     void enter_marquee(Pt world_pos);
     void enter_drag_slider(visual::Widget* node_widget, Pt slider_world_pos, float slider_width);
     void enter_drag_knob(visual::Widget* node_widget, Pt world_pos);
@@ -262,7 +263,7 @@ private:
         size_t wire_index;
         bool detach_start;
         Pt anchor_pos;
-        PortSide fixed_side;
+        bp2::PortSide fixed_side;
         PortType fixed_type;
     };
     std::optional<WirePortMatch> find_wire_on_port(visual::Port* port) const;

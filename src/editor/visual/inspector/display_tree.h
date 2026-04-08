@@ -1,13 +1,13 @@
 #pragma once
 
-#include "data/port.h"
+#include "blueprint_v2/blueprint/node_port.h"
 #include <string>
 #include <vector>
 
 /// Cached port info for Inspector display
 struct DisplayPort {
     std::string name;
-    PortSide side;
+    bp2::PortSide side;
     std::string connection;  // "Battery.v_out" or "[not connected]"
 };
 

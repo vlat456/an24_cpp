@@ -17,24 +17,24 @@ namespace visual {
 // ============================================================================
 
 GroupNodeWidget::GroupNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
-    : node_iid_(data.id)
+    : node_iid_(data.semantic.id)
     , interner_(&interner)
-    , name_(data.name)
+    , name_(data.view.name)
 {
-    if (data.has_color) {
+    if (data.view.has_color) {
         NodeColor c;
-        c.r = data.color_r;
-        c.g = data.color_g;
-        c.b = data.color_b;
-        c.a = data.color_a;
+        c.r = data.view.color_r;
+        c.g = data.view.color_g;
+        c.b = data.view.color_b;
+        c.a = data.view.color_a;
         custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(Pt(data.x, data.y));
+    setLocalPos(Pt(data.layout.x, data.layout.y));
 
     // Snap size to grid, enforce minimums
-    float sw = data.width.has_value()  ? *data.width  : editor_constants::MIN_GROUP_WIDTH;
-    float sh = data.height.has_value() ? *data.height : editor_constants::MIN_GROUP_HEIGHT;
+    float sw = data.layout.width.has_value()  ? *data.layout.width  : editor_constants::MIN_GROUP_WIDTH;
+    float sh = data.layout.height.has_value() ? *data.layout.height : editor_constants::MIN_GROUP_HEIGHT;
     float w = editor_math::snap_size_to_layout_grid(std::max(sw, editor_constants::MIN_GROUP_WIDTH));
     float h = editor_math::snap_size_to_layout_grid(std::max(sh, editor_constants::MIN_GROUP_HEIGHT));
     setSize(Pt(w, h));

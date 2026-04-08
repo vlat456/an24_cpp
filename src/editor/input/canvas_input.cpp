@@ -234,7 +234,7 @@ void CanvasInput::enter_create_wire(visual::Port* port, Pt port_pos) {
 }
 
 void CanvasInput::enter_reconnect_wire(size_t wire_idx, bool detach_start,
-                                       Pt anchor_pos, PortSide fixed_side, PortType fixed_type) {
+                                       Pt anchor_pos, bp2::PortSide fixed_side, PortType fixed_type) {
     state_ = InputState::ReconnectingWire;
     reconnect_wire_idx_ = wire_idx;
     reconnect_detach_start_ = detach_start;
@@ -261,12 +261,12 @@ void CanvasInput::enter_drag_knob(visual::Widget* node_widget, Pt world_pos) {
     knob_node_id_ = interner_.intern(node_widget->id());
     knob_drag_start_x_ = world_pos.x;
 
-    const bp2::Blueprint::Node* node = model_.current().find_node(knob_node_id_);
-    if (node) {
-        knob_drag_start_pos_ = static_cast<int>(node->content_value);
-        knob_num_positions_ = static_cast<int>(node->content_max);
-        if (knob_num_positions_ < 2) knob_num_positions_ = 2;
-    } else {
+     const bp2::Blueprint::Node* node = model_.current().find_node(knob_node_id_);
+     if (node) {
+         knob_drag_start_pos_ = static_cast<int>(node->view.content_value);
+         knob_num_positions_ = static_cast<int>(node->view.content_max);
+         if (knob_num_positions_ < 2) knob_num_positions_ = 2;
+     } else {
         knob_drag_start_pos_ = 0;
         knob_num_positions_ = 2;
     }
@@ -307,12 +307,12 @@ bool CanvasInput::try_handle_node_interaction(visual::Widget* widget, Pt world, 
             if (node) {
                 float pad = visual::SliderWidget::HANDLE_RADIUS;
                 float track_w = cb.w - 2.0f * pad;
-                float t = (track_w > 0.0f)
-                    ? std::clamp((interaction->content_local_x - pad) / track_w, 0.0f, 1.0f)
-                    : 0.0f;
-                float val = node->content_min + t * (node->content_max - node->content_min);
-                result.slider_node_id = node_id;
-                result.slider_value = val;
+                 float t = (track_w > 0.0f)
+                     ? std::clamp((interaction->content_local_x - pad) / track_w, 0.0f, 1.0f)
+                     : 0.0f;
+                 float val = node->view.content_min + t * (node->view.content_max - node->view.content_min);
+                 result.slider_node_id = node_id;
+                 result.slider_value = val;
             }
             return true;
         }
@@ -376,7 +376,7 @@ size_t CanvasInput::find_node_index(ui::InternedId node_id) const {
     if (node_id.empty()) return SIZE_MAX;
     const auto& nodes = model_.current().nodes();
     for (size_t i = 0; i < nodes.size(); ++i) {
-        if (nodes[i].id == node_id) return i;
+        if (nodes[i].semantic.id == node_id) return i;
     }
     return SIZE_MAX;
 }

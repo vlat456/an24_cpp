@@ -119,7 +119,7 @@ void Blueprint::ensure_node_index() const {
     node_idx_.clear();
     node_idx_.reserve(nodes_.size());
     for (size_t i = 0; i < nodes_.size(); ++i) {
-        node_idx_[nodes_[i].id] = i;
+        node_idx_[nodes_[i].semantic.id] = i;
     }
     node_idx_valid_ = true;
 }
@@ -142,7 +142,7 @@ Blueprint Blueprint::without_node(ui::InternedId id) const {
     Blueprint copy = *this;
     copy.nodes_.erase(
         std::remove_if(copy.nodes_.begin(), copy.nodes_.end(),
-            [id](Node const& n) { return n.id == id; }),
+            [id](Node const& n) { return n.semantic.id == id; }),
         copy.nodes_.end()
     );
     copy.node_idx_valid_ = false;
@@ -324,8 +324,8 @@ void Blueprint::collect_ports_recursive(
     }
     // Node ports
     for (auto const& node : nodes_) {
-        Path node_path = arena.make_node(prefix, node.id);
-        for (auto const& port : node.iface) {
+        Path node_path = arena.make_node(prefix, node.semantic.id);
+        for (auto const& port : node.semantic.iface) {
             Path port_path = arena.make_port(node_path, port.name);
             result.push_back({port_path, port});
         }

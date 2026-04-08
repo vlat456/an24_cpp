@@ -45,14 +45,14 @@ void Flattener::emit_component(
     std::unordered_map<Path, SignalIndex>& signals,
     FlatNetlist& out) {
 
-    Path node_path = arena_->make_node(prefix, node.id);
+    Path node_path = arena_->make_node(prefix, node.semantic.id);
 
     FlatNetlist::Component comp;
     comp.path = node_path;
-    comp.type = node.type;
-    comp.params = node.params;
+    comp.type = node.semantic.type;
+    comp.params = node.semantic.params;
 
-    for (auto const& port : node.iface) {
+    for (auto const& port : node.semantic.iface) {
         Path port_path = arena_->make_port(node_path, port.name);
         SignalIndex sig = get_or_create_signal(
             port_path, port.domain, signals, out);

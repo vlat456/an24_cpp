@@ -98,13 +98,13 @@ void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
     const std::string& filter_group = win.is_external_ref() ? "" : win.group_id;
     // Use string comparison — group_id is a std::string, not InternedId
     for (const bp2::Blueprint::Node& node : bp.nodes()) {
-        if (node.group_id != filter_group) continue;
-        bmin.x = std::min(bmin.x, node.x);
-        bmin.y = std::min(bmin.y, node.y);
-        float w = node.width.value_or(120.0f);
-        float h = node.height.value_or(80.0f);
-        bmax.x = std::max(bmax.x, node.x + w);
-        bmax.y = std::max(bmax.y, node.y + h);
+        if (node.layout.group_id != filter_group) continue;
+        bmin.x = std::min(bmin.x, node.layout.x);
+        bmin.y = std::min(bmin.y, node.layout.y);
+        float w = node.layout.width.value_or(120.0f);
+        float h = node.layout.height.value_or(80.0f);
+        bmax.x = std::max(bmax.x, node.layout.x + w);
+        bmax.y = std::max(bmax.y, node.layout.y + h);
     }
     if (bmin.x < bmax.x && bmin.y < bmax.y) {
         ImVec2 ws = ImGui::GetContentRegionAvail();

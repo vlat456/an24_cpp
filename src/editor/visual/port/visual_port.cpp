@@ -5,7 +5,7 @@
 
 namespace visual {
 
-Port::Port(std::string_view name, PortSide side, PortType type, PortLayoutSide layout_side)
+Port::Port(std::string_view name, bp2::PortSide side, PortType type, bp2::PortLayoutSide layout_side)
     : name_(name), side_(side), type_(type), layout_side_(layout_side)
 {
     setSize(Pt(PortConstants::RADIUS * 2, PortConstants::RADIUS * 2));
@@ -28,15 +28,15 @@ void Port::render(IDrawList* dl, const RenderContext& ctx) const {
     Pt center(pos.x + r, pos.y + r);
     dl->add_circle_filled(center, r, color(), 8);
 
-    if (side_ == PortSide::InOut) return;
+    if (side_ == bp2::PortSide::InOut) return;
 
     // Arrow offset multiplier (relative to scaled radius)
     float arrow_offset_mult = 0;
     switch (layout_side_) {
-        case PortLayoutSide::Left:   arrow_offset_mult = PortConstants::LEFT_ARROW_OFFSET; break;
-        case PortLayoutSide::Right:  arrow_offset_mult = PortConstants::RIGHT_ARROW_OFFSET; break;
-        case PortLayoutSide::Top:    arrow_offset_mult = PortConstants::TOP_ARROW_OFFSET; break;
-        case PortLayoutSide::Bottom: arrow_offset_mult = PortConstants::BOTTOM_ARROW_OFFSET; break;
+        case bp2::PortLayoutSide::Left:   arrow_offset_mult = PortConstants::LEFT_ARROW_OFFSET; break;
+        case bp2::PortLayoutSide::Right:  arrow_offset_mult = PortConstants::RIGHT_ARROW_OFFSET; break;
+        case bp2::PortLayoutSide::Top:    arrow_offset_mult = PortConstants::TOP_ARROW_OFFSET; break;
+        case bp2::PortLayoutSide::Bottom: arrow_offset_mult = PortConstants::BOTTOM_ARROW_OFFSET; break;
     }
     
     float arrow_offset = r * arrow_offset_mult;
@@ -62,14 +62,14 @@ void Port::render(IDrawList* dl, const RenderContext& ctx) const {
     // If tip_dir < 0, backs are at tip + arrow_size (so tip is further in - direction).
     
     Pt tip, back1, back2;
-    bool is_output = (side_ == PortSide::Output);
+    bool is_output = (side_ == bp2::PortSide::Output);
     
-    bool horizontal = (layout_side_ == PortLayoutSide::Left || layout_side_ == PortLayoutSide::Right);
+    bool horizontal = (layout_side_ == bp2::PortLayoutSide::Left || layout_side_ == bp2::PortLayoutSide::Right);
     
     if (horizontal) {
         // Arrow is along x-axis, positioned on interior side
         // Interior direction: Left→+x, Right→-x
-        bool interior_is_positive = (layout_side_ == PortLayoutSide::Left);
+        bool interior_is_positive = (layout_side_ == bp2::PortLayoutSide::Left);
         float interior_sign = interior_is_positive ? 1.0f : -1.0f;
         
         // Arrow base position: offset from center toward interior
@@ -84,7 +84,7 @@ void Port::render(IDrawList* dl, const RenderContext& ctx) const {
     } else {
         // Arrow is along y-axis, positioned on interior side
         // Interior direction: Top→+y, Bottom→-y
-        bool interior_is_positive = (layout_side_ == PortLayoutSide::Top);
+        bool interior_is_positive = (layout_side_ == bp2::PortLayoutSide::Top);
         float interior_sign = interior_is_positive ? 1.0f : -1.0f;
         
         // Arrow base position: offset from center toward interior

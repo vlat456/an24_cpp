@@ -14,7 +14,7 @@ namespace {
 
 const std::unordered_set<std::string>& allowed_interface_fields() {
     static const std::unordered_set<std::string> s = {
-        "name", "domain", "direction", "type", "source_writer"
+        "name", "domain", "direction", "type", "source_writer", "alias"
     };
     return s;
 }
@@ -142,7 +142,7 @@ PortType parse_port_type(nlohmann::json const& val) {
 
 void build_node_iface(Blueprint::Node& node) {
     std::unordered_map<ui::InternedId, PortDescriptor> merged;
-    for (auto const& ep : node.inputs) {
+    for (auto const& ep : node.view.inputs) {
         auto it = merged.find(ep.name);
         if (it == merged.end()) {
             merged[ep.name] = {ep.name, domain_from_port_type(ep.type),
@@ -151,7 +151,7 @@ void build_node_iface(Blueprint::Node& node) {
             it->second.direction = Direction::InOut;
         }
     }
-    for (auto const& ep : node.outputs) {
+    for (auto const& ep : node.view.outputs) {
         auto it = merged.find(ep.name);
         if (it == merged.end()) {
             merged[ep.name] = {ep.name, domain_from_port_type(ep.type),
@@ -165,7 +165,7 @@ void build_node_iface(Blueprint::Node& node) {
     for (auto& [_, pd] : merged) {
         iface_ports.push_back(std::move(pd));
     }
-    node.iface = Interface(std::move(iface_ports));
+    node.semantic.iface = Interface(std::move(iface_ports));
 }
 
 } // namespace
@@ -188,6 +188,10 @@ Interface decode_interface(nlohmann::json const& arr,
                       "invalid interface entry", "integer");
         require_field(p, "direction", &nlohmann::json::is_number_integer,
                       "invalid interface entry", "integer");
+        require_field(p, "type", &nlohmann::json::is_string,
+                      "invalid interface entry", "string");
+        require_field(p, "source_writer", &nlohmann::json::is_boolean,
+                      "invalid interface entry", "boolean");
 
         const int domain_v = p["domain"].get<int>();
         if (domain_v != static_cast<int>(Domain::Electrical)
@@ -209,6 +213,16 @@ Interface decode_interface(nlohmann::json const& arr,
         pd.name = interner.intern(p["name"].get<std::string>());
         pd.domain = static_cast<Domain>(domain_v);
         pd.direction = static_cast<Direction>(direction_v);
+
+        auto type = port_type_from_name(p["type"].get<std::string>());
+        if (!type) {
+            throw std::runtime_error("invalid interface entry: unknown port type string");
+        }
+
+        if (p.contains("alias") && !p["alias"].is_string()) {
+            throw std::runtime_error("invalid interface entry: alias must be string");
+        }
+
         ports.push_back(pd);
     }
     return Interface(std::move(ports));
@@ -233,18 +247,18 @@ Blueprint decode_nodes(Blueprint bp,
         check_allowed_fields(n, allowed_node_fields(), "node");
 
         Blueprint::Node node;
-        node.id = interner.intern(n["id"].get<std::string>());
-        node.type = interner.intern(n["type"].get<std::string>());
+        node.semantic.id = interner.intern(n["id"].get<std::string>());
+        node.semantic.type = interner.intern(n["type"].get<std::string>());
 
         // Optional string fields
-        if (auto v = read_optional_string(n, "name", ctx))            node.name = std::move(*v);
-        if (auto v = read_optional_string(n, "render_hint", ctx))     node.render_hint = std::move(*v);
-        if (auto v = read_optional_string(n, "group_id", ctx))        node.group_id = std::move(*v);
-        if (auto v = read_optional_string(n, "blueprint_path", ctx))  node.blueprint_path = std::move(*v);
+        if (auto v = read_optional_string(n, "name", ctx))            node.view.name = std::move(*v);
+        if (auto v = read_optional_string(n, "render_hint", ctx))     node.view.render_hint = std::move(*v);
+        if (auto v = read_optional_string(n, "group_id", ctx))        node.layout.group_id = std::move(*v);
+        if (auto v = read_optional_string(n, "blueprint_path", ctx))  node.view.blueprint_path = std::move(*v);
 
         // Optional bool fields
-        if (auto v = read_optional_bool(n, "expandable", ctx))  node.expandable = *v;
-        if (auto v = read_optional_bool(n, "collapsed", ctx))   node.collapsed = *v;
+        if (auto v = read_optional_bool(n, "expandable", ctx))  node.view.expandable = *v;
+        if (auto v = read_optional_bool(n, "collapsed", ctx))   node.layout.collapsed = *v;
 
         // Position (optional, defaults to {0,0})
         if (n.contains("position")) {
@@ -257,19 +271,19 @@ Blueprint decode_nodes(Blueprint bp,
             if (!n["position"].contains("y") || !n["position"]["y"].is_number()) {
                 throw std::runtime_error("invalid node entry: missing numeric field 'position.y'");
             }
-            node.x = parse_finite_float(n["position"]["x"], "position.x");
-            node.y = parse_finite_float(n["position"]["y"], "position.y");
+            node.layout.x = parse_finite_float(n["position"]["x"], "position.x");
+            node.layout.y = parse_finite_float(n["position"]["y"], "position.y");
         } else {
-            node.x = 0.0f;
-            node.y = 0.0f;
+            node.layout.x = 0.0f;
+            node.layout.y = 0.0f;
         }
 
         // Optional numeric fields (width, height)
-        if (auto v = read_optional_float(n, "width", ctx))  node.width = *v;
-        if (auto v = read_optional_float(n, "height", ctx)) node.height = *v;
+        if (auto v = read_optional_float(n, "width", ctx))  node.layout.width = *v;
+        if (auto v = read_optional_float(n, "height", ctx)) node.layout.height = *v;
 
         // Params
-        const TypeDefinition* type_def = parser_registry.get(std::string(interner.resolve(node.type)));
+        const TypeDefinition* type_def = parser_registry.get(std::string(interner.resolve(node.semantic.type)));
         if (n.contains("params") && n["params"].is_object()) {
             for (auto& [key, val] : n["params"].items()) {
                 if (type_def) {
@@ -281,16 +295,16 @@ Blueprint decode_nodes(Blueprint bp,
                 }
 
                 if (val.is_number()) {
-                    node.params[interner.intern(key)] = parse_finite_float(val, "params." + key);
+                    node.semantic.params[interner.intern(key)] = parse_finite_float(val, "params." + key);
                     continue;
                 }
                 if (val.is_string()) {
                     const std::string s = val.get<std::string>();
                     float parsed = 0.0f;
                     if (parse_number_string(s, parsed)) {
-                        node.params[interner.intern(key)] = parsed;
+                        node.semantic.params[interner.intern(key)] = parsed;
                     } else {
-                        node.string_params[key] = s;
+                        node.semantic.string_params[key] = s;
                     }
                     continue;
                 }
@@ -306,7 +320,7 @@ Blueprint decode_nodes(Blueprint bp,
                 if (!val.is_string()) {
                     throw std::runtime_error("invalid node entry: string_params values must be string");
                 }
-                node.string_params[key] = val.get<std::string>();
+                node.semantic.string_params[key] = val.get<std::string>();
             }
         } else if (n.contains("string_params") && !n["string_params"].is_object()) {
             throw std::runtime_error("invalid node entry: string_params must be an object");
@@ -316,10 +330,10 @@ Blueprint decode_nodes(Blueprint bp,
         if (type_def) {
             for (const auto& [k, v] : type_def->params) {
                 const auto key_iid = interner.intern(k);
-                if (node.params.find(key_iid) != node.params.end()) {
+                if (node.semantic.params.find(key_iid) != node.semantic.params.end()) {
                     continue;
                 }
-                if (node.string_params.find(k) != node.string_params.end()) {
+                if (node.semantic.string_params.find(k) != node.semantic.string_params.end()) {
                     continue;
                 }
 
@@ -331,7 +345,7 @@ Blueprint decode_nodes(Blueprint bp,
                         case ParamSchemaType::Int: {
                             float parsed = 0.0f;
                             if (parse_number_string(v, parsed)) {
-                                node.params[key_iid] = parsed;
+                                node.semantic.params[key_iid] = parsed;
                             } else {
                                 throw std::runtime_error("invalid default for numeric param '" + k + "'");
                             }
@@ -340,14 +354,14 @@ Blueprint decode_nodes(Blueprint bp,
                         case ParamSchemaType::Bool: {
                             std::string normalized;
                             if (parse_bool_string(v, normalized)) {
-                                node.string_params[k] = std::move(normalized);
+                                node.semantic.string_params[k] = std::move(normalized);
                             } else {
                                 throw std::runtime_error("invalid default for bool param '" + k + "'");
                             }
                             break;
                         }
                         case ParamSchemaType::String:
-                            node.string_params[k] = v;
+                            node.semantic.string_params[k] = v;
                             break;
                     }
                     continue;
@@ -355,9 +369,9 @@ Blueprint decode_nodes(Blueprint bp,
 
                 float parsed = 0.0f;
                 if (parse_number_string(v, parsed)) {
-                    node.params[key_iid] = parsed;
+                    node.semantic.params[key_iid] = parsed;
                 } else {
-                    node.string_params[k] = v;
+                    node.semantic.string_params[k] = v;
                 }
             }
         }
@@ -372,27 +386,27 @@ Blueprint decode_nodes(Blueprint bp,
             if (!parsed_content_type.has_value()) {
                 throw std::runtime_error("invalid node entry: content_type out of range");
             }
-            node.content_type = *parsed_content_type;
+            node.view.content_type = *parsed_content_type;
         }
-        if (auto v = read_optional_string(n, "content_label", ctx)) node.content_label = std::move(*v);
-        if (auto v = read_optional_float(n, "content_value", ctx))  node.content_value = *v;
-        if (auto v = read_optional_float(n, "content_min", ctx))    node.content_min = *v;
-        if (auto v = read_optional_float(n, "content_max", ctx))    node.content_max = *v;
-        if (node.content_min > node.content_max) {
+        if (auto v = read_optional_string(n, "content_label", ctx)) node.view.content_label = std::move(*v);
+        if (auto v = read_optional_float(n, "content_value", ctx))  node.view.content_value = *v;
+        if (auto v = read_optional_float(n, "content_min", ctx))    node.view.content_min = *v;
+        if (auto v = read_optional_float(n, "content_max", ctx))    node.view.content_max = *v;
+        if (node.view.content_min > node.view.content_max) {
             throw std::runtime_error("invalid node entry: content_min must be <= content_max");
         }
-        if (auto v = read_optional_string(n, "content_unit", ctx))  node.content_unit = std::move(*v);
-        if (auto v = read_optional_bool(n, "content_state", ctx))   node.content_state = *v;
-        if (auto v = read_optional_bool(n, "content_tripped", ctx)) node.content_tripped = *v;
+        if (auto v = read_optional_string(n, "content_unit", ctx))  node.view.content_unit = std::move(*v);
+        if (auto v = read_optional_bool(n, "content_state", ctx))   node.view.content_state = *v;
+        if (auto v = read_optional_bool(n, "content_tripped", ctx)) node.view.content_tripped = *v;
 
         // Color
         if (auto v = read_optional_bool(n, "has_color", ctx)) {
-            node.has_color = *v;
-            if (node.has_color) {
-                if (auto c = read_optional_float(n, "color_r", ctx)) node.color_r = *c;
-                if (auto c = read_optional_float(n, "color_g", ctx)) node.color_g = *c;
-                if (auto c = read_optional_float(n, "color_b", ctx)) node.color_b = *c;
-                if (auto c = read_optional_float(n, "color_a", ctx)) node.color_a = *c;
+            node.view.has_color = *v;
+            if (node.view.has_color) {
+                if (auto c = read_optional_float(n, "color_r", ctx)) node.view.color_r = *c;
+                if (auto c = read_optional_float(n, "color_g", ctx)) node.view.color_g = *c;
+                if (auto c = read_optional_float(n, "color_b", ctx)) node.view.color_b = *c;
+                if (auto c = read_optional_float(n, "color_a", ctx)) node.view.color_a = *c;
             }
         }
 
@@ -420,7 +434,7 @@ Blueprint decode_nodes(Blueprint bp,
                 } else if (lo.contains("position") && !lo["position"].is_number_integer()) {
                     throw std::runtime_error("invalid node entry: layout_overrides.position must be integer");
                 }
-                node.layout_overrides.push_back(std::move(ov));
+                node.layout.layout_overrides.push_back(std::move(ov));
             }
         }
 
@@ -447,12 +461,12 @@ Blueprint decode_nodes(Blueprint bp,
                     dir = p["direction"].get<std::string>();
                 }
                 if (dir == "In") {
-                    node.inputs.emplace_back(pid, PortSide::Input, ptype);
+                    node.view.inputs.emplace_back(pid, PortSide::Input, ptype);
                 } else if (dir == "Out") {
-                    node.outputs.emplace_back(pid, PortSide::Output, ptype);
+                    node.view.outputs.emplace_back(pid, PortSide::Output, ptype);
                 } else if (dir == "InOut") {
-                    node.inputs.emplace_back(pid, PortSide::InOut, ptype);
-                    node.outputs.emplace_back(pid, PortSide::InOut, ptype);
+                    node.view.inputs.emplace_back(pid, PortSide::InOut, ptype);
+                    node.view.outputs.emplace_back(pid, PortSide::InOut, ptype);
                 } else {
                     throw std::runtime_error("invalid node entry: unknown port direction");
                 }
@@ -461,7 +475,7 @@ Blueprint decode_nodes(Blueprint bp,
             throw std::runtime_error("invalid node entry: ports must be an object");
         }
 
-        // Build node.iface from decoded ports
+        // Build node.semantic.iface from decoded ports
         build_node_iface(node);
 
         bp = bp.with_node(std::move(node));

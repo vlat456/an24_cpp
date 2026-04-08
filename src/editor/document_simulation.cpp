@@ -55,10 +55,10 @@ void Document::rebuildAllWindows() {
             && win->external_interner && win->external_arena) {
             visual::mutations::rebuild(win->scene, *win->external_blueprint,
                                        *win->external_interner, *win->external_arena, "");
-        } else {
-            visual::mutations::rebuild(win->scene, model_.current(),
-                                       interner_, arena_, win->group_id);
-        }
+         } else {
+             visual::mutations::rebuild(win->scene, model_.current(),
+                                        interner_, arena_, win->group_id);
+         }
     }
     rebuildSimulation();
 }
@@ -80,32 +80,32 @@ void Document::updateNodeContentFromSimulation() {
     if (!simulation_running_) return;
 
     for (const bp2::Blueprint::Node& n : model_.current().nodes()) {
-        if (n.content_type == bp2::NodeContentType::None) continue;
+        if (n.view.content_type == bp2::NodeContentType::None) continue;
 
-        const std::string nid = std::string(interner_.resolve(n.id));
-        const std::string type_name = std::string(interner_.resolve(n.type));
+        const std::string nid = std::string(interner_.resolve(n.semantic.id));
+        const std::string type_name = std::string(interner_.resolve(n.semantic.type));
 
         NodeContent content;
-        content.type    = n.content_type;
-        content.label   = n.content_label;
-        content.value   = n.content_value;
-        content.min     = n.content_min;
-        content.max     = n.content_max;
-        content.unit    = n.content_unit;
-        content.state   = n.content_state;
-        content.tripped = n.content_tripped;
+        content.type    = n.view.content_type;
+        content.label   = n.view.content_label;
+        content.value   = n.view.content_value;
+        content.min     = n.view.content_min;
+        content.max     = n.view.content_max;
+        content.unit    = n.view.content_unit;
+        content.state   = n.view.content_state;
+        content.tripped = n.view.content_tripped;
 
         if (type_name == "Voltmeter") {
             content.value = simulation_.get_port_value(nid, "v_in");
             auto min_key = interner_.lookup("min");
             auto max_key = interner_.lookup("max");
             if (!min_key.empty()) {
-                auto it = n.params.find(min_key);
-                if (it != n.params.end()) content.min = it->second;
+                auto it = n.semantic.params.find(min_key);
+                if (it != n.semantic.params.end()) content.min = it->second;
             }
             if (!max_key.empty()) {
-                auto it = n.params.find(max_key);
-                if (it != n.params.end()) content.max = it->second;
+                auto it = n.semantic.params.find(max_key);
+                if (it != n.semantic.params.end()) content.max = it->second;
             }
         } else if (type_name == "IndicatorLight") {
             float brightness = simulation_.get_port_value(nid, "brightness");
@@ -125,12 +125,12 @@ void Document::updateNodeContentFromSimulation() {
             auto min_key = interner_.lookup("min");
             auto max_key = interner_.lookup("max");
             if (!min_key.empty()) {
-                auto it = n.params.find(min_key);
-                if (it != n.params.end()) content.min = it->second;
+                auto it = n.semantic.params.find(min_key);
+                if (it != n.semantic.params.end()) content.min = it->second;
             }
             if (!max_key.empty()) {
-                auto it = n.params.find(max_key);
-                if (it != n.params.end()) content.max = it->second;
+                auto it = n.semantic.params.find(max_key);
+                if (it != n.semantic.params.end()) content.max = it->second;
             }
 
             float out_val = simulation_.get_port_value(nid, "out");
@@ -151,14 +151,14 @@ void Document::updateNodeContentFromSimulation() {
             }
             auto pos_key = interner_.lookup("positions");
             if (!pos_key.empty()) {
-                auto it = n.params.find(pos_key);
-                if (it != n.params.end()) content.max = it->second;
+                auto it = n.semantic.params.find(pos_key);
+                if (it != n.semantic.params.end()) content.max = it->second;
             }
         }
 
         for (const auto& win : window_manager_.windows()) {
-            if (n.group_id != win->group_id) continue;
-            std::string_view node_sv = interner_.resolve(n.id);
+            if (n.layout.group_id != win->group_id) continue;
+            std::string_view node_sv = interner_.resolve(n.semantic.id);
             auto* widget = win->scene.find(node_sv);
             if (!widget) continue;
             auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
@@ -184,7 +184,7 @@ void Document::buildEnergizedWireSet(
             auto [src_node_id, src_port] = bp2_path_to_node_port(w.source);
             if (!src_node_id.empty()) {
                 const bp2::Blueprint::Node* sn = bp.find_node(src_node_id);
-                if (!sn || sn->group_id != group_id) continue;
+                if (!sn || sn->layout.group_id != group_id) continue;
             }
         }
 
@@ -247,13 +247,13 @@ void Document::setSliderValue(const std::string& node_id, float value) {
     if (!n) return;
 
     NodeContent content;
-    content.type  = n->content_type;
+    content.type  = n->view.content_type;
     content.value = value;
-    content.min   = n->content_min;
-    content.max   = n->content_max;
+    content.min   = n->view.content_min;
+    content.max   = n->view.content_max;
 
     for (const auto& win : window_manager_.windows()) {
-        if (n->group_id != win->group_id) continue;
+        if (n->layout.group_id != win->group_id) continue;
         auto* widget = win->scene.find(interner_.resolve(node_iid));
         if (!widget) continue;
         auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
@@ -271,13 +271,13 @@ void Document::setKnobPosition(const std::string& node_id, int position) {
     if (!n) return;
 
     NodeContent content;
-    content.type  = n->content_type;
+    content.type  = n->view.content_type;
     content.value = static_cast<float>(position);
-    content.max   = n->content_max;
-    content.min   = n->content_min;
+    content.max   = n->view.content_max;
+    content.min   = n->view.content_min;
 
     for (const auto& win : window_manager_.windows()) {
-        if (n->group_id != win->group_id) continue;
+        if (n->layout.group_id != win->group_id) continue;
         auto* widget = win->scene.find(interner_.resolve(node_iid));
         if (!widget) continue;
         auto* nw = dynamic_cast<visual::NodeWidget*>(widget);

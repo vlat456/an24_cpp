@@ -121,12 +121,12 @@ TEST(SignalKeyResolver, ResolveRuntimeKey_RootNormalNode) {
     
     // Create a normal (non-expandable) node
     bp2::Blueprint::Node normal_node;
-    normal_node.id = interner.intern("battery_1");
-    normal_node.type = interner.intern("Battery");
-    normal_node.expandable = false;
-    normal_node.blueprint_path = "";
+    normal_node.semantic.id = interner.intern("battery_1");
+    normal_node.semantic.type = interner.intern("Battery");
+    normal_node.view.expandable = false;
+    normal_node.view.blueprint_path = "";
     
-    ui::InternedId battery_iid = normal_node.id;
+    ui::InternedId battery_iid = normal_node.semantic.id;
     ui::InternedId port_iid = interner.intern("V");
     
     editor::SignalEndpoint endpoint{&normal_node, battery_iid, port_iid};
@@ -143,12 +143,12 @@ TEST(SignalKeyResolver, ResolveRuntimeKey_RootExpandableNode) {
     
     // Create an expandable composite node
     bp2::Blueprint::Node composite_node;
-    composite_node.id = interner.intern("firstorderlag_1");
-    composite_node.type = interner.intern("FirstOrderLag");
-    composite_node.expandable = true;
-    composite_node.blueprint_path = "math/FirstOrderLag.blueprint";
+    composite_node.semantic.id = interner.intern("firstorderlag_1");
+    composite_node.semantic.type = interner.intern("FirstOrderLag");
+    composite_node.view.expandable = true;
+    composite_node.view.blueprint_path = "math/FirstOrderLag.blueprint";
     
-    ui::InternedId composite_iid = composite_node.id;
+    ui::InternedId composite_iid = composite_node.semantic.id;
     ui::InternedId port_iid = interner.intern("out");
     
     editor::SignalEndpoint endpoint{&composite_node, composite_iid, port_iid};
@@ -166,11 +166,11 @@ TEST(SignalKeyResolver, ResolveRuntimeKey_ExternalReferenceMode) {
     
     // Child blueprint node: e.g., "accumulator" inside the composite
     bp2::Blueprint::Node child_node;
-    child_node.id = interner.intern("accumulator");
-    child_node.type = interner.intern("Accumulator");
-    child_node.expandable = false;
+    child_node.semantic.id = interner.intern("accumulator");
+    child_node.semantic.type = interner.intern("Accumulator");
+    child_node.view.expandable = false;
     
-    ui::InternedId child_iid = child_node.id;
+    ui::InternedId child_iid = child_node.semantic.id;
     ui::InternedId port_iid = interner.intern("out");
     
     editor::SignalEndpoint endpoint{&child_node, child_iid, port_iid};
@@ -188,12 +188,12 @@ TEST(SignalKeyResolver, ExpandableRootNeverUsesRawNodeDotPort) {
     
     // Expandable node at root level
     bp2::Blueprint::Node composite_node;
-    composite_node.id = interner.intern("firstorderlag_1");
-    composite_node.type = interner.intern("FirstOrderLag");
-    composite_node.expandable = true;
-    composite_node.blueprint_path = "math/FirstOrderLag.blueprint";
+    composite_node.semantic.id = interner.intern("firstorderlag_1");
+    composite_node.semantic.type = interner.intern("FirstOrderLag");
+    composite_node.view.expandable = true;
+    composite_node.view.blueprint_path = "math/FirstOrderLag.blueprint";
     
-    ui::InternedId composite_iid = composite_node.id;
+    ui::InternedId composite_iid = composite_node.semantic.id;
     ui::InternedId port_iid = interner.intern("out");
     
     editor::SignalEndpoint endpoint{&composite_node, composite_iid, port_iid};
@@ -216,8 +216,8 @@ TEST(SignalKeyResolver, EmptyEndpointIds_ReturnsEmpty) {
     bp2::Blueprint bp;
     
     bp2::Blueprint::Node node;
-    node.id = interner.intern("battery_1");
-    node.type = interner.intern("Battery");
+    node.semantic.id = interner.intern("battery_1");
+    node.semantic.type = interner.intern("Battery");
     
     // Endpoint with empty node IID
     editor::SignalEndpoint endpoint_empty_node{&node, ui::InternedId(), interner.intern("V")};
@@ -228,7 +228,7 @@ TEST(SignalKeyResolver, EmptyEndpointIds_ReturnsEmpty) {
         << "Resolver MUST return empty string when node_iid is empty";
     
     // Endpoint with empty port IID
-    editor::SignalEndpoint endpoint_empty_port{&node, node.id, ui::InternedId()};
+    editor::SignalEndpoint endpoint_empty_port{&node, node.semantic.id, ui::InternedId()};
     std::string result_empty_port = editor::resolve_runtime_signal_key(bp, interner, endpoint_empty_port, context);
     EXPECT_EQ(result_empty_port, "")
         << "Resolver MUST return empty string when port_iid is empty";
@@ -259,23 +259,23 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_ColonConvention_Found) {
 
     // Simulate an embedded composite "gp_1" with a bridge node "gp_1:v_in"
     bp2::Blueprint::Node bridge_node;
-    bridge_node.id = interner.intern("gp_1:v_in");
-    bridge_node.type = interner.intern("BlueprintInput");
-    bridge_node.name = "v_in";
-    bridge_node.group_id = "gp_1";
+    bridge_node.semantic.id = interner.intern("gp_1:v_in");
+    bridge_node.semantic.type = interner.intern("BlueprintInput");
+    bridge_node.view.name = "v_in";
+    bridge_node.layout.group_id = "gp_1";
     bp = bp.with_node(std::move(bridge_node));
 
     // Create expandable proxy node
     bp2::Blueprint::Node proxy_node;
-    proxy_node.id = interner.intern("gp_1");
-    proxy_node.type = interner.intern("GroundPower");
-    proxy_node.expandable = true;
-    proxy_node.blueprint_path = "electrical/GroundPower.blueprint";
-    proxy_node.outputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
+    proxy_node.semantic.id = interner.intern("gp_1");
+    proxy_node.semantic.type = interner.intern("GroundPower");
+    proxy_node.view.expandable = true;
+    proxy_node.view.blueprint_path = "electrical/GroundPower.blueprint";
+    proxy_node.view.outputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
 
     // Create nested entry
     bp2::Blueprint::Nested nested;
-    nested.id = proxy_node.id;
+    nested.id = proxy_node.semantic.id;
     nested.blueprint_id = interner.intern("GroundPower");
     nested.embedded = true;
     bp = bp.with_nested(std::move(nested));
@@ -305,22 +305,22 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_UnderscoreConvention_NotFound) {
 
     // Create a bridge node with the OLD underscore convention
     bp2::Blueprint::Node bad_bridge;
-    bad_bridge.id = interner.intern("gp_1_v_in");
-    bad_bridge.type = interner.intern("BlueprintInput");
-    bad_bridge.name = "v_in";
-    bad_bridge.group_id = "gp_1";
+    bad_bridge.semantic.id = interner.intern("gp_1_v_in");
+    bad_bridge.semantic.type = interner.intern("BlueprintInput");
+    bad_bridge.view.name = "v_in";
+    bad_bridge.layout.group_id = "gp_1";
     bp = bp.with_node(std::move(bad_bridge));
 
     // Create expandable proxy node
     bp2::Blueprint::Node proxy_node;
-    proxy_node.id = interner.intern("gp_1");
-    proxy_node.type = interner.intern("GroundPower");
-    proxy_node.expandable = true;
-    proxy_node.blueprint_path = "electrical/GroundPower.blueprint";
-    proxy_node.outputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
+    proxy_node.semantic.id = interner.intern("gp_1");
+    proxy_node.semantic.type = interner.intern("GroundPower");
+    proxy_node.view.expandable = true;
+    proxy_node.view.blueprint_path = "electrical/GroundPower.blueprint";
+    proxy_node.view.outputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
 
     bp2::Blueprint::Nested nested;
-    nested.id = proxy_node.id;
+    nested.id = proxy_node.semantic.id;
     nested.blueprint_id = interner.intern("GroundPower");
     nested.embedded = true;
     bp = bp.with_nested(std::move(nested));
@@ -375,37 +375,37 @@ TEST(SignalKeyResolver, MultipleBridgeNodes_ResolveIndependently) {
     //   gp_1_src    → ControlledVoltageSource (underscore convention, internal)
 
     bp2::Blueprint::Node bridge_in;
-    bridge_in.id = interner.intern("gp_1:v_in");
-    bridge_in.type = interner.intern("BlueprintInput");
-    bridge_in.name = "v_in";
-    bridge_in.group_id = "gp_1";
+    bridge_in.semantic.id = interner.intern("gp_1:v_in");
+    bridge_in.semantic.type = interner.intern("BlueprintInput");
+    bridge_in.view.name = "v_in";
+    bridge_in.layout.group_id = "gp_1";
     bp = bp.with_node(std::move(bridge_in));
 
     bp2::Blueprint::Node bridge_out;
-    bridge_out.id = interner.intern("gp_1:v_out");
-    bridge_out.type = interner.intern("BlueprintOutput");
-    bridge_out.name = "v_out";
-    bridge_out.group_id = "gp_1";
+    bridge_out.semantic.id = interner.intern("gp_1:v_out");
+    bridge_out.semantic.type = interner.intern("BlueprintOutput");
+    bridge_out.view.name = "v_out";
+    bridge_out.layout.group_id = "gp_1";
     bp = bp.with_node(std::move(bridge_out));
 
     bp2::Blueprint::Node internal;
-    internal.id = interner.intern("gp_1_src");
-    internal.type = interner.intern("ControlledVoltageSource");
-    internal.name = "src";
-    internal.group_id = "gp_1";
+    internal.semantic.id = interner.intern("gp_1_src");
+    internal.semantic.type = interner.intern("ControlledVoltageSource");
+    internal.view.name = "src";
+    internal.layout.group_id = "gp_1";
     bp = bp.with_node(std::move(internal));
 
     // Create expandable proxy
     bp2::Blueprint::Node proxy;
-    proxy.id = interner.intern("gp_1");
-    proxy.type = interner.intern("GroundPower");
-    proxy.expandable = true;
-    proxy.blueprint_path = "electrical/GroundPower.blueprint";
-    proxy.outputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
-    proxy.outputs.emplace_back(interner.intern("v_out"), PortSide::Output, PortType::V);
+    proxy.semantic.id = interner.intern("gp_1");
+    proxy.semantic.type = interner.intern("GroundPower");
+    proxy.view.expandable = true;
+    proxy.view.blueprint_path = "electrical/GroundPower.blueprint";
+    proxy.view.outputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
+    proxy.view.outputs.emplace_back(interner.intern("v_out"), bp2::PortSide::Output, PortType::V);
 
     bp2::Blueprint::Nested nested;
-    nested.id = proxy.id;
+    nested.id = proxy.semantic.id;
     nested.blueprint_id = interner.intern("GroundPower");
     nested.embedded = true;
     bp = bp.with_nested(std::move(nested));
@@ -456,21 +456,21 @@ TEST(SignalKeyResolver, BridgeNode_ProxyIdWithUnderscores_ColonStillWorks) {
 
     // Proxy ID itself contains underscores
     bp2::Blueprint::Node bridge;
-    bridge.id = interner.intern("ground_power_1:v_in");
-    bridge.type = interner.intern("BlueprintInput");
-    bridge.name = "v_in";
-    bridge.group_id = "ground_power_1";
+    bridge.semantic.id = interner.intern("ground_power_1:v_in");
+    bridge.semantic.type = interner.intern("BlueprintInput");
+    bridge.view.name = "v_in";
+    bridge.layout.group_id = "ground_power_1";
     bp = bp.with_node(std::move(bridge));
 
     bp2::Blueprint::Node proxy;
-    proxy.id = interner.intern("ground_power_1");
-    proxy.type = interner.intern("GroundPower");
-    proxy.expandable = true;
-    proxy.blueprint_path = "electrical/GroundPower.blueprint";
-    proxy.outputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
+    proxy.semantic.id = interner.intern("ground_power_1");
+    proxy.semantic.type = interner.intern("GroundPower");
+    proxy.view.expandable = true;
+    proxy.view.blueprint_path = "electrical/GroundPower.blueprint";
+    proxy.view.outputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
 
     bp2::Blueprint::Nested nested;
-    nested.id = proxy.id;
+    nested.id = proxy.semantic.id;
     nested.blueprint_id = interner.intern("GroundPower");
     nested.embedded = true;
     bp = bp.with_nested(std::move(nested));

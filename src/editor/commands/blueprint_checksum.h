@@ -24,7 +24,7 @@ inline size_t blueprint_checksum(const bp2::Blueprint& bp) {
     g.hash_float(bp.grid_step());
     size_t ns = 0;
     for (auto& n : bp.nodes()) {
-        detail::Hasher h; h.hash_id(n.id); h.hash_float(n.x); h.hash_float(n.y);
+         detail::Hasher h; h.hash_id(n.semantic.id); h.hash_float(n.layout.x); h.hash_float(n.layout.y);
         ns += h.finish();
     }
     g.combine(ns);

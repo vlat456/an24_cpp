@@ -66,7 +66,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
 
     if (doc && node_ptr) {
         const bp2::Blueprint::Node& node = *node_ptr;
-        ImGui::Text("Node: %s", node.name.c_str());
+        ImGui::Text("Node: %s", node.view.name.c_str());
         ImGui::Separator();
         
         bool is_read_only = false;
@@ -116,14 +116,14 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                             }
                         }
                     }
-                    if (!used) {
-                        for (const auto& node_it : doc->blueprint().nodes()) {
-                            if (node_it.name == candidate) {
-                                used = true;
-                                break;
-                            }
-                        }
-                    }
+                     if (!used) {
+                         for (const auto& node_it : doc->blueprint().nodes()) {
+                             if (node_it.view.name == candidate) {
+                                 used = true;
+                                 break;
+                             }
+                         }
+                     }
                     if (!used) {
                         suggested = std::move(candidate);
                         break;
@@ -142,8 +142,8 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             }
         }
         
-        if (node.expandable && ImGui::MenuItem("Open in editor")) {
-            std::string node_id_str(doc->interner().resolve(node.id));
+        if (node.view.expandable && ImGui::MenuItem("Open in editor")) {
+            std::string node_id_str(doc->interner().resolve(node.semantic.id));
             const auto target = editor::resolve_subwindow_open_target(doc->blueprint(), doc->interner(), node_id_str);
             if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
                 ws.openDocument(target.path);

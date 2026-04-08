@@ -5,7 +5,6 @@
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
-#include "data/port.h"
 #include "debug.h"
 #include "visual/persist.h"
 #include "visual/snap.h"
@@ -18,7 +17,7 @@ namespace canvas_input_impl {
 inline bool is_bus_node(const bp2::EditorModel& model, ui::InternedId node_id) {
     const bp2::Blueprint::Node* node = model.current().find_node(node_id);
     if (!node) return false;
-    return node->render_hint == "bus";
+    return node->view.render_hint == "bus";
 }
 
 inline bool is_wire_alias_port_name(std::string_view port_name) {
@@ -26,17 +25,17 @@ inline bool is_wire_alias_port_name(std::string_view port_name) {
 }
 
 inline PortType resolve_port_type_from_model(const bp2::EditorModel& model,
-                                              ui::InternedId node_id,
-                                              ui::InternedId port_name) {
-    const bp2::Blueprint::Node* node = model.current().find_node(node_id);
-    if (!node) return PortType::Any;
-    for (const auto& p : node->inputs) {
-        if (p.name == port_name) return p.type;
-    }
-    for (const auto& p : node->outputs) {
-        if (p.name == port_name) return p.type;
-    }
-    return PortType::Any;
+                                               ui::InternedId node_id,
+                                               ui::InternedId port_name) {
+     const bp2::Blueprint::Node* node = model.current().find_node(node_id);
+     if (!node) return PortType::Any;
+     for (const auto& p : node->view.inputs) {
+         if (p.name == port_name) return p.type;
+     }
+     for (const auto& p : node->view.outputs) {
+         if (p.name == port_name) return p.type;
+     }
+     return PortType::Any;
 }
 
 inline void debug_validate_command_boundary(bp2::EditorModel const& model,

@@ -64,7 +64,7 @@ bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
         }
     }
     for (const auto& n : source.nodes()) {
-        if (n.name == blueprint_name) {
+        if (n.view.name == blueprint_name) {
             return set_error(error_out, "blueprint name already exists as node name");
         }
     }
@@ -142,33 +142,33 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
     float max_y = -std::numeric_limits<float>::max();
 
     for (const auto& node : bp.nodes()) {
-        if (plan.selected_set.find(node.id) == plan.selected_set.end()) {
+        if (plan.selected_set.find(node.semantic.id) == plan.selected_set.end()) {
             continue;
         }
-        if (node.group_id != group_id) {
+        if (node.layout.group_id != group_id) {
             set_error(error_out, "selected nodes must belong to active group");
             return std::nullopt;
         }
-        if (node.type == interner.intern("BlueprintInput")
-            || node.type == interner.intern("BlueprintOutput")) {
+        if (node.semantic.type == interner.intern("BlueprintInput")
+            || node.semantic.type == interner.intern("BlueprintOutput")) {
             set_error(error_out, "extract does not support selecting BlueprintInput/BlueprintOutput bridge nodes");
             return std::nullopt;
         }
-        const bp2::Blueprint::Nested* nested = bp.find_nested(node.id);
+        const bp2::Blueprint::Nested* nested = bp.find_nested(node.semantic.id);
         if (nested) {
             if (!nested->embedded) {
                 set_error(error_out, "extract does not support selecting non-embedded nested instances");
                 return std::nullopt;
             }
-        } else if (node.expandable) {
+        } else if (node.view.expandable) {
             set_error(error_out, "extract nested instance metadata missing");
             return std::nullopt;
         }
         plan.internal_nodes.push_back(node);
-        min_x = std::min(min_x, node.x);
-        min_y = std::min(min_y, node.y);
-        max_x = std::max(max_x, node.x + node.width.value_or(kDefaultNodeWidth));
-        max_y = std::max(max_y, node.y + node.height.value_or(kDefaultNodeHeight));
+        min_x = std::min(min_x, node.layout.x);
+        min_y = std::min(min_y, node.layout.y);
+        max_x = std::max(max_x, node.layout.x + node.layout.width.value_or(kDefaultNodeWidth));
+        max_y = std::max(max_y, node.layout.y + node.layout.height.value_or(kDefaultNodeHeight));
     }
 
     if (plan.internal_nodes.size() < 2) {

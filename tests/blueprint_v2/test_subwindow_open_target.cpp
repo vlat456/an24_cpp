@@ -13,9 +13,9 @@ TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
     bp = bp.with_nested(std::move(nested));
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("n1");
-    node.expandable = true;
-    node.blueprint_path = "math/FirstOrderLag";
+    node.semantic.id = interner.intern("n1");
+    node.view.expandable = true;
+    node.view.blueprint_path = "math/FirstOrderLag";
     bp = bp.with_node(std::move(node));
 
     const auto target = editor::resolve_subwindow_open_target(bp, interner, "n1");
@@ -44,9 +44,9 @@ TEST(SubWindowOpenTarget, ResolvesExternalBlueprintPath) {
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("firstorderlag_1");
-    node.expandable = true;
-    node.blueprint_path = "math/FirstOrderLag";
+    node.semantic.id = interner.intern("firstorderlag_1");
+    node.view.expandable = true;
+    node.view.blueprint_path = "math/FirstOrderLag";
     bp = bp.with_node(std::move(node));
 
     const auto target = editor::resolve_subwindow_open_target(bp, interner, "firstorderlag_1");
@@ -102,9 +102,9 @@ TEST(SubWindowOpenTarget, EmbeddedNestedTakesPriorityOverExpandableNode) {
     bp = bp.with_nested(std::move(nested));
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("shared_id");
-    node.expandable = true;
-    node.blueprint_path = "math/Adder";
+    node.semantic.id = interner.intern("shared_id");
+    node.view.expandable = true;
+    node.view.blueprint_path = "math/Adder";
     bp = bp.with_node(std::move(node));
 
     const auto target = editor::resolve_subwindow_open_target(bp, interner, "shared_id");

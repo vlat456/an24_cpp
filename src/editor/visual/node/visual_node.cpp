@@ -18,21 +18,21 @@ namespace visual {
 // ============================================================================
 
 NodeWidget::NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
-    : node_iid_(data.id)
+    : node_iid_(data.semantic.id)
     , interner_(&interner)
-    , name_(data.name)
-    , type_name_(std::string(interner.resolve(data.type)))
+    , name_(data.view.name)
+    , type_name_(std::string(interner.resolve(data.semantic.type)))
 {
-    if (data.has_color) {
+    if (data.view.has_color) {
         NodeColor c;
-        c.r = data.color_r;
-        c.g = data.color_g;
-        c.b = data.color_b;
-        c.a = data.color_a;
+        c.r = data.view.color_r;
+        c.g = data.view.color_g;
+        c.b = data.view.color_b;
+        c.a = data.view.color_a;
         custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(Pt(data.x, data.y));
+    setLocalPos(Pt(data.layout.x, data.layout.y));
     buildLayout(data, interner);
 
     // Auto-size: compute preferred, snap to grid
@@ -41,15 +41,15 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterne
     float w = preferred.x;
     float h = preferred.y;
 
-    bool has_explicit = data.width.has_value() && data.height.has_value();
+    bool has_explicit = data.layout.width.has_value() && data.layout.height.has_value();
     if (has_explicit) {
         // Trust the user's explicit size — only enforce a hard minimum
         // (PORT_LAYOUT_GRID) to prevent degenerate zero-area nodes.
-        if (*data.width >= editor_constants::PORT_LAYOUT_GRID) w = *data.width;
-        if (*data.height >= editor_constants::PORT_LAYOUT_GRID) h = *data.height;
+        if (*data.layout.width >= editor_constants::PORT_LAYOUT_GRID) w = *data.layout.width;
+        if (*data.layout.height >= editor_constants::PORT_LAYOUT_GRID) h = *data.layout.height;
     }
     spdlog::debug("[widget] NodeWidget layout: node='{}' type='{}' preferred=({},{}) explicit_size={} final=({},{})",
-                  data.name, type_name_, preferred.x, preferred.y,
+                  data.view.name, type_name_, preferred.x, preferred.y,
                   has_explicit, w, h);
 
     // Snap to layout grid (round up to nearest PORT_LAYOUT_GRID)
@@ -73,7 +73,8 @@ static std::vector<PortLayoutOverride> resolve_bp2_layout_overrides(
         PortLayoutOverride lo;
         lo.port_name = ov.port_name;
         if (ov.side.has_value()) {
-            lo.side = parse_port_layout_side(*ov.side);
+            // Parse string to bp2::PortLayoutSide
+            lo.side = bp2::parse_port_layout_side(*ov.side);
         }
         if (ov.position.has_value()) {
             lo.position = static_cast<uint8_t>(*ov.position);
@@ -90,11 +91,11 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringI
     layout_->emplaceChild<HeaderWidget>(
         name_, render_theme::COLOR_HEADER_FILL, editor_constants::NODE_ROUNDING);
 
-    bp2::NodeContentType content_type = data.content_type;
+    bp2::NodeContentType content_type = data.view.content_type;
 
     // -- Port rows / Content --
     // VerticalToggle uses special layout, but falls back to standard when overrides present
-    if (content_type == bp2::NodeContentType::VerticalToggle && data.layout_overrides.empty()) {
+    if (content_type == bp2::NodeContentType::VerticalToggle && data.layout.layout_overrides.empty()) {
         buildVerticalToggleLayout(data, interner);
     } else {
         buildStandardLayout(data, interner);
@@ -112,28 +113,28 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringI
 }
 
 void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
-    bp2::NodeContentType content_type = data.content_type;
+    bp2::NodeContentType content_type = data.view.content_type;
 
     // Fast path: no overrides — use existing paired-row layout
-    if (data.layout_overrides.empty()) {
+    if (data.layout.layout_overrides.empty()) {
         // Port rows: pair inputs and outputs.
         // [BUG-2] InOut ports appear in BOTH inputs and outputs arrays;
         // filter duplicates from outputs so they only render on the left side.
-        std::vector<EditorPort> right_ports;
-        right_ports.reserve(data.outputs.size());
-        for (const auto& p : data.outputs) {
-            if (p.side == PortSide::InOut) continue;  // already in inputs
+        std::vector<bp2::NodePort> right_ports;
+        right_ports.reserve(data.view.outputs.size());
+        for (const auto& p : data.view.outputs) {
+            if (p.side == bp2::PortSide::InOut) continue;  // already in inputs
             right_ports.push_back(p);
         }
 
-        size_t max_ports = std::max(data.inputs.size(), right_ports.size());
+        size_t max_ports = std::max(data.view.inputs.size(), right_ports.size());
         for (size_t i = 0; i < max_ports; i++) {
             std::string_view left_name;
             std::string_view right_name;
-            if (i < data.inputs.size()) {
-                left_name = interner.resolve(data.inputs[i].name);
+            if (i < data.view.inputs.size()) {
+                left_name = interner.resolve(data.view.inputs[i].name);
             }
-            PortType left_type = (i < data.inputs.size()) ? data.inputs[i].type : PortType::Any;
+            PortType left_type = (i < data.view.inputs.size()) ? data.view.inputs[i].type : PortType::Any;
             if (i < right_ports.size()) {
                 right_name = interner.resolve(right_ports[i].name);
             }
@@ -144,8 +145,8 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
         // Content area (appended below port rows in the root Column)
         if (content_type == bp2::NodeContentType::Gauge) {
             content_widget_ = layout_->emplaceChild<VoltmeterWidget>(
-                data.content_value, data.content_min,
-                data.content_max, data.content_unit);
+                data.view.content_value, data.view.content_min,
+                data.view.content_max, data.view.content_unit);
         } else if (content_type == bp2::NodeContentType::Switch) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             float v_pad = 2.0f;
@@ -153,14 +154,14 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
                 Edges{margin, v_pad, margin, v_pad});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<SwitchWidget>(
-                data.content_state, data.content_tripped);
+                data.view.content_state, data.view.content_tripped);
         } else if (content_type == bp2::NodeContentType::VerticalToggle) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 5.0f, margin, 5.0f});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<VerticalToggleWidget>(
-                data.content_state, data.content_tripped);
+                data.view.content_state, data.view.content_tripped);
         } else if (content_type == bp2::NodeContentType::Slider) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             float v_pad = 2.0f;
@@ -168,21 +169,21 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
                 Edges{margin, v_pad, margin, v_pad});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<SliderWidget>(
-                data.content_value, data.content_min,
-                data.content_max);
+                data.view.content_value, data.view.content_min,
+                data.view.content_max);
         } else if (content_type == bp2::NodeContentType::Indicator) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 2.0f, margin, 2.0f});
             container->setFlexGrow(1.0f);
-            content_widget_ = container->emplaceChild<IndicatorWidget>(data.content_value);
+            content_widget_ = container->emplaceChild<IndicatorWidget>(data.view.content_value);
         } else if (content_type == bp2::NodeContentType::Knob) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 2.0f, margin, 2.0f});
             container->setFlexGrow(1.0f);
-            int pos = static_cast<int>(data.content_value);
-            int num = static_cast<int>(data.content_max);
+            int pos = static_cast<int>(data.view.content_value);
+            int num = static_cast<int>(data.view.content_max);
             if (num < 2) num = 2;
             content_widget_ = container->emplaceChild<KnobWidget>(pos, num);
         } else if (content_type != bp2::NodeContentType::None) {
@@ -190,9 +191,9 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 0, margin, 0});
             container->setFlexGrow(1.0f);
-            if (!data.content_label.empty()) {
+            if (!data.view.content_label.empty()) {
                 content_widget_ = container->emplaceChild<Label>(
-                    data.content_label, 10.0f, (uint32_t)0x00000000);
+                    data.view.content_label, 10.0f, (uint32_t)0x00000000);
             } else {
                 content_widget_ = container->emplaceChild<Spacer>();
             }
@@ -209,9 +210,9 @@ void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data, con
 
     // Left column (input ports)
     auto* left_col = main_row->emplaceChild<Column>();
-    for (const auto& p : data.inputs) {
+    for (const auto& p : data.view.inputs) {
         std::string_view name_sv = interner.resolve(p.name);
-        buildPortInColumn(left_col, name_sv, p.type, PortSide::Input, PortLayoutSide::Left);
+        buildPortInColumn(left_col, name_sv, p.type, bp2::PortSide::Input, bp2::PortLayoutSide::Left);
     }
 
     // Center column (vertical toggle) — flex to push right column to the edge
@@ -220,13 +221,13 @@ void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data, con
     auto* toggle_container = center_col->emplaceChild<Container>(
         Edges{0, 5.0f, 0, 5.0f});
     content_widget_ = toggle_container->emplaceChild<VerticalToggleWidget>(
-        data.content_state, data.content_tripped);
+        data.view.content_state, data.view.content_tripped);
 
     // Right column (output ports)
     auto* right_col = main_row->emplaceChild<Column>();
-    for (const auto& p : data.outputs) {
+    for (const auto& p : data.view.outputs) {
         std::string_view name_sv = interner.resolve(p.name);
-        buildPortInColumn(right_col, name_sv, p.type, PortSide::Output, PortLayoutSide::Right);
+        buildPortInColumn(right_col, name_sv, p.type, bp2::PortSide::Output, bp2::PortLayoutSide::Right);
     }
 }
 
@@ -239,7 +240,7 @@ void NodeWidget::buildPortRow(std::string_view left_name, PortType left_type,
 }
 
 void NodeWidget::buildPortInColumn(Widget* col, std::string_view name,
-                                   PortType type, PortSide logical_side, PortLayoutSide layout_side) {
+                                   PortType type, bp2::PortSide logical_side, bp2::PortLayoutSide layout_side) {
     auto* row = col->emplaceChild<PortRow>(name, logical_side, type, layout_side, &layout_ctx_);
     if (row->port()) ports_.push_back(row->port());
 }
@@ -247,11 +248,11 @@ void NodeWidget::buildPortInColumn(Widget* col, std::string_view name,
 void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     using namespace editor_constants;
 
-    auto overrides = resolve_bp2_layout_overrides(data.layout_overrides);
-    ResolvedLayout layout = resolve_port_layout(data.inputs, data.outputs,
+    auto overrides = resolve_bp2_layout_overrides(data.layout.layout_overrides);
+    ResolvedLayout layout = resolve_port_layout(data.view.inputs, data.view.outputs,
                                                  overrides, interner);
     
-    bp2::NodeContentType content_type = data.content_type;
+    bp2::NodeContentType content_type = data.view.content_type;
 
     // Top port strip
     if (!layout.top.empty()) {
@@ -264,7 +265,7 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui
     // Left column (input ports that stay on left)
     auto* left_col = body_row->emplaceChild<Column>();
     for (const auto& rp : layout.left) {
-        buildPortInColumn(left_col, rp.port_name, rp.type, rp.logical_side, PortLayoutSide::Left);
+        buildPortInColumn(left_col, rp.port_name, rp.type, rp.logical_side, bp2::PortLayoutSide::Left);
     }
     
     // Center column: content widget or spacer.
@@ -275,34 +276,34 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui
 
     if (content_type == bp2::NodeContentType::Gauge) {
         content_widget_ = center->emplaceChild<VoltmeterWidget>(
-            data.content_value, data.content_min,
-            data.content_max, data.content_unit);
+            data.view.content_value, data.view.content_min,
+            data.view.content_max, data.view.content_unit);
     } else if (content_type == bp2::NodeContentType::Switch) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<SwitchWidget>(
-            data.content_state, data.content_tripped);
+            data.view.content_state, data.view.content_tripped);
     } else if (content_type == bp2::NodeContentType::VerticalToggle) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 5.0f, 0, 5.0f});
         content_widget_ = inner->emplaceChild<VerticalToggleWidget>(
-            data.content_state, data.content_tripped);
+            data.view.content_state, data.view.content_tripped);
     } else if (content_type == bp2::NodeContentType::Slider) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<SliderWidget>(
-            data.content_value, data.content_min,
-            data.content_max);
+            data.view.content_value, data.view.content_min,
+            data.view.content_max);
     } else if (content_type == bp2::NodeContentType::Indicator) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
-        content_widget_ = inner->emplaceChild<IndicatorWidget>(data.content_value);
+        content_widget_ = inner->emplaceChild<IndicatorWidget>(data.view.content_value);
     } else if (content_type == bp2::NodeContentType::Knob) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
-        int pos = static_cast<int>(data.content_value);
-        int num = static_cast<int>(data.content_max);
+        int pos = static_cast<int>(data.view.content_value);
+        int num = static_cast<int>(data.view.content_max);
         if (num < 2) num = 2;
         content_widget_ = inner->emplaceChild<KnobWidget>(pos, num);
     } else if (content_type != bp2::NodeContentType::None) {
-        if (!data.content_label.empty()) {
+        if (!data.view.content_label.empty()) {
             content_widget_ = center->emplaceChild<Label>(
-                data.content_label, 10.0f, (uint32_t)0x00000000);
+                data.view.content_label, 10.0f, (uint32_t)0x00000000);
         } else {
             center->emplaceChild<Spacer>();
         }
@@ -313,7 +314,7 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui
     // Right column (output ports that stay on right)
     auto* right_col = body_row->emplaceChild<Column>();
     for (const auto& rp : layout.right) {
-        buildPortInColumn(right_col, rp.port_name, rp.type, rp.logical_side, PortLayoutSide::Right);
+        buildPortInColumn(right_col, rp.port_name, rp.type, rp.logical_side, bp2::PortLayoutSide::Right);
     }
     
     // Bottom port strip
@@ -325,7 +326,7 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui
 void NodeWidget::buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports) {
     if (ports.empty()) return;
 
-    PortLayoutSide side = ports[0].layout_side;
+    bp2::PortLayoutSide side = ports[0].layout_side;
     auto* strip = layout_->emplaceChild<HorizontalPortStrip>(side, &layout_ctx_);
 
     for (const auto& rp : ports) {

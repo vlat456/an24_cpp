@@ -87,13 +87,13 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
         // Embedded blueprint proxy nodes with materialized children: skip the
         // proxy (its internal nodes are already flattened into the blueprint).
-        if (n.expandable) {
-            const auto* nested = bp.find_nested(n.id);
+        if (n.view.expandable) {
+            const auto* nested = bp.find_nested(n.semantic.id);
             if (nested && nested->embedded) {
                 bool has_materialized_children = false;
-                const std::string parent_id(interner.resolve(n.id));
+                const std::string parent_id(interner.resolve(n.semantic.id));
                 for (const auto& child : bp.nodes()) {
-                    if (child.group_id == parent_id) {
+                    if (child.layout.group_id == parent_id) {
                         has_materialized_children = true;
                         break;
                     }
@@ -108,27 +108,27 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
         // Non-embedded expandable (composite) nodes — emit them as regular
         // devices so that parse_json_impl() can expand them via TypeRegistry.
 
-        std::string nid(interner.resolve(n.id));
+        std::string nid(interner.resolve(n.semantic.id));
         if (!emitted_ids.insert(nid).second) continue;
 
         json device = json::object();
         device["name"]          = nid;
         device["template_name"] = "";
-        device["classname"]     = std::string(interner.resolve(n.type));
-        if (!n.render_hint.empty())
-            device["render_hint"] = n.render_hint;
+        device["classname"]     = std::string(interner.resolve(n.semantic.type));
+        if (!n.view.render_hint.empty())
+            device["render_hint"] = n.view.render_hint;
         device["priority"]  = "med";
         device["bucket"]    = nullptr;
         device["critical"]  = false;
 
         json ports = json::object();
-        for (const auto& p : n.inputs) {
+        for (const auto& p : n.view.inputs) {
             ports[std::string(interner.resolve(p.name))] = {
                 {"direction", "In"},
                 {"type", sim_port_type_str(p.type)}
             };
         }
-        for (const auto& p : n.outputs) {
+        for (const auto& p : n.view.outputs) {
             ports[std::string(interner.resolve(p.name))] = {
                 {"direction", "Out"},
                 {"type", sim_port_type_str(p.type)}
@@ -137,9 +137,9 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
         device["ports"] = std::move(ports);
 
         json params = json::object();
-        for (const auto& [k, v] : n.params)
+        for (const auto& [k, v] : n.semantic.params)
             params[std::string(interner.resolve(k))] = std::to_string(v);
-        for (const auto& [k, v] : n.string_params)
+        for (const auto& [k, v] : n.semantic.string_params)
             params[k] = v;
         if (!params.empty())
             device["params"] = std::move(params);
@@ -165,9 +165,9 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
     // the canonical colon convention: "proxy_id:port_name".
     // Key: "proxy_id.port_name" -> bridge node device id
     std::map<std::string, std::string> proxy_port_to_bridge;
-    if (!skipped_embedded_proxies.empty()) {
-        for (const bp2::Blueprint::Node& n : bp.nodes()) {
-            std::string nid(interner.resolve(n.id));
+     if (!skipped_embedded_proxies.empty()) {
+         for (const bp2::Blueprint::Node& n : bp.nodes()) {
+             std::string nid(interner.resolve(n.semantic.id));
             // Match colon-convention IDs: "proxy_id:port_name"
             for (const auto& proxy_id : skipped_embedded_proxies) {
                 if (nid.size() > proxy_id.size() + 1

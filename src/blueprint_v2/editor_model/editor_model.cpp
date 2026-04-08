@@ -22,7 +22,7 @@ Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updat
 
     bool replaced = false;
     for (const auto& n : bp.nodes()) {
-        if (n.id == updated.id) {
+        if (n.semantic.id == updated.semantic.id) {
             rebuilt = rebuilt.with_node(std::move(updated));
             replaced = true;
         } else {
@@ -100,7 +100,7 @@ EditorModel::EditorModel(Blueprint initial)
     : current_(std::move(initial)) {}
 
 bool EditorModel::add_node(Blueprint::Node node) {
-    if (current_.find_node(node.id)) return false;
+    if (current_.find_node(node.semantic.id)) return false;
     push_checkpoint();
     current_ = current_.with_node(std::move(node));
     invalidate_indices();
@@ -172,8 +172,8 @@ bool EditorModel::update_wire(ui::InternedId id, std::function<void(Blueprint::W
 
 bool EditorModel::update_node_position(ui::InternedId id, float x, float y) {
     return update_node(id, [x, y](Blueprint::Node& n) {
-        n.x = x;
-        n.y = y;
+        n.layout.x = x;
+        n.layout.y = y;
     });
 }
 
@@ -243,7 +243,7 @@ void EditorModel::ensure_indices() const {
 
     indices_.node_pos.reserve(current_.nodes().size());
     for (auto const& n : current_.nodes()) {
-        indices_.node_pos[n.id] = {n.x, n.y};
+        indices_.node_pos[n.semantic.id] = {n.layout.x, n.layout.y};
     }
 
     indices_.wire_set.reserve(current_.wires().size());

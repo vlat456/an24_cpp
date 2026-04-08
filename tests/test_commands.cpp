@@ -19,10 +19,10 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
                                        const char* id,
                                        float x = 0.0f, float y = 0.0f) {
     bp2::Blueprint::Node n;
-    n.id = I.intern(id);
-    n.type = I.intern("Test");
-    n.x = x;
-    n.y = y;
+    n.semantic.id = I.intern(id);
+    n.semantic.type = I.intern("Test");
+    n.layout.x = x;
+    n.layout.y = y;
     return n;
 }
 
@@ -92,22 +92,22 @@ static bp2::Blueprint make_extract_fixture(ui::StringInterner& I, bp2::PathArena
     bp = bp.with_display_name("ExtractFixture");
 
     auto ext_in = make_node(I, "ext_in");
-    ext_in.type = I.intern("NodeExtIn");
-    ext_in.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    ext_in.semantic.type = I.intern("NodeExtIn");
+    ext_in.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
 
     auto a = make_node(I, "a");
-    a.type = I.intern("NodeA");
-    a.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
-    a.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    a.semantic.type = I.intern("NodeA");
+    a.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
+    a.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
 
     auto b = make_node(I, "b");
-    b.type = I.intern("NodeB");
-    b.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
-    b.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    b.semantic.type = I.intern("NodeB");
+    b.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
+    b.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
 
     auto ext_out = make_node(I, "ext_out");
-    ext_out.type = I.intern("NodeExtOut");
-    ext_out.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+    ext_out.semantic.type = I.intern("NodeExtOut");
+    ext_out.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
 
     bp = bp.with_node(std::move(ext_in));
     bp = bp.with_node(std::move(a));
@@ -133,22 +133,22 @@ static bp2::Blueprint make_extract_iface_collision_fixture(ui::StringInterner& I
     bp = bp.with_display_name("ExtractIfaceCollision");
 
     auto ext_in = make_node(I, "ext_in");
-    ext_in.type = I.intern("Source");
-    ext_in.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    ext_in.semantic.type = I.intern("Source");
+    ext_in.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
 
     auto a = make_node(I, "a");
-    a.type = I.intern("NodeA");
-    a.inputs.emplace_back(I.intern("sig"), PortSide::Input, PortType::V);
-    a.outputs.emplace_back(I.intern("link"), PortSide::Output, PortType::V);
+    a.semantic.type = I.intern("NodeA");
+    a.view.inputs.emplace_back(I.intern("sig"), bp2::PortSide::Input, PortType::V);
+    a.view.outputs.emplace_back(I.intern("link"), bp2::PortSide::Output, PortType::V);
 
     auto b = make_node(I, "b");
-    b.type = I.intern("NodeB");
-    b.inputs.emplace_back(I.intern("link"), PortSide::Input, PortType::V);
-    b.outputs.emplace_back(I.intern("sig"), PortSide::Output, PortType::V);
+    b.semantic.type = I.intern("NodeB");
+    b.view.inputs.emplace_back(I.intern("link"), bp2::PortSide::Input, PortType::V);
+    b.view.outputs.emplace_back(I.intern("sig"), bp2::PortSide::Output, PortType::V);
 
     auto ext_out = make_node(I, "ext_out");
-    ext_out.type = I.intern("Sink");
-    ext_out.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+    ext_out.semantic.type = I.intern("Sink");
+    ext_out.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
 
     bp = bp.with_node(std::move(ext_in));
     bp = bp.with_node(std::move(a));
@@ -174,14 +174,14 @@ static bp2::Blueprint make_extract_subgroup_fixture(ui::StringInterner& I, bp2::
     const std::string subgroup = "group_1";
     if (const auto* a = bp.find_node(I.intern("a"))) {
         auto n = *a;
-        n.group_id = subgroup;
-        bp = bp.without_node(n.id);
+        n.layout.group_id = subgroup;
+        bp = bp.without_node(n.semantic.id);
         bp = bp.with_node(std::move(n));
     }
     if (const auto* b = bp.find_node(I.intern("b"))) {
         auto n = *b;
-        n.group_id = subgroup;
-        bp = bp.without_node(n.id);
+        n.layout.group_id = subgroup;
+        bp = bp.without_node(n.semantic.id);
         bp = bp.with_node(std::move(n));
     }
     return bp;
@@ -196,12 +196,12 @@ static bp2::Blueprint make_extract_with_embedded_nested_selection_fixture(ui::St
     bp = bp.without_wire(I.intern("w0"));
     bp = bp.without_wire(I.intern("w1"));
 
-    bp2::Blueprint::Node nested_node = make_node(I, "sub_inst_1");
-    nested_node.type = I.intern("sub_blueprint_type");
-    nested_node.expandable = true;
-    nested_node.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
-    nested_node.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
-    bp = bp.with_node(std::move(nested_node));
+     bp2::Blueprint::Node nested_node = make_node(I, "sub_inst_1");
+     nested_node.semantic.type = I.intern("sub_blueprint_type");
+     nested_node.view.expandable = true;
+     nested_node.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
+     nested_node.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
+     bp = bp.with_node(std::move(nested_node));
 
     bp2::Blueprint::Nested nested;
     nested.id = I.intern("sub_inst_1");
@@ -229,9 +229,9 @@ static bp2::Blueprint make_extract_with_nonembedded_nested_selection_fixture(ui:
                                                                              bp2::PathArena& arena) {
     bp2::Blueprint bp = make_extract_with_embedded_nested_selection_fixture(I, arena);
     bp = bp.without_nested(I.intern("sub_inst_1"));
-    bp2::Blueprint::Nested n;
-    n.id = I.intern("sub_inst_1");
-    n.embedded = false;
+     bp2::Blueprint::Nested n;
+     n.id = I.intern("sub_inst_1");
+     n.embedded = false;
     n.blueprint_id = I.intern("SomeLibraryBlueprint");
     bp = bp.with_nested(std::move(n));
     return bp;
@@ -241,12 +241,12 @@ static bp2::Blueprint make_extract_with_two_embedded_nested_selection_fixture(ui
                                                                               bp2::PathArena& arena) {
     bp2::Blueprint bp = make_extract_with_embedded_nested_selection_fixture(I, arena);
 
-    auto sub2 = make_node(I, "sub_inst_2");
-    sub2.type = I.intern("sub_blueprint_type_2");
-    sub2.expandable = true;
-    sub2.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
-    sub2.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
-    bp = bp.with_node(std::move(sub2));
+     auto sub2 = make_node(I, "sub_inst_2");
+     sub2.semantic.type = I.intern("sub_blueprint_type_2");
+     sub2.view.expandable = true;
+     sub2.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
+     sub2.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
+     bp = bp.with_node(std::move(sub2));
 
     bp2::Blueprint::Nested nested2;
     nested2.id = I.intern("sub_inst_2");
@@ -307,12 +307,12 @@ static bp2::Blueprint make_extract_with_remappable_nonembedded_descendant_fixtur
 
     // Provide an embedded nested definition in source with matching blueprint_id
     // so guarded mode can remap non-embedded descendant -> embedded inline copy.
-    auto provider = make_node(I, "provider_embed");
-    provider.type = I.intern("SomeLibraryBlueprint");
-    provider.expandable = true;
-    provider.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
-    provider.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
-    bp = bp.with_node(std::move(provider));
+     auto provider = make_node(I, "provider_embed");
+     provider.semantic.type = I.intern("SomeLibraryBlueprint");
+     provider.view.expandable = true;
+     provider.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
+     provider.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
+     bp = bp.with_node(std::move(provider));
 
     bp2::Blueprint::Nested provider_nested;
     provider_nested.id = I.intern("provider_embed");
@@ -334,13 +334,13 @@ static bp2::Blueprint make_extract_with_two_remap_providers_fixture(
     bp2::PathArena& arena) {
     bp2::Blueprint bp = make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(I, arena);
 
-    auto add_provider = [&](const char* node_id, const char* def_id) {
-        auto provider = make_node(I, node_id);
-        provider.type = I.intern("SomeLibraryBlueprint");
-        provider.expandable = true;
-        provider.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
-        provider.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
-        bp = bp.with_node(std::move(provider));
+     auto add_provider = [&](const char* node_id, const char* def_id) {
+         auto provider = make_node(I, node_id);
+         provider.semantic.type = I.intern("SomeLibraryBlueprint");
+         provider.view.expandable = true;
+         provider.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
+         provider.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
+         bp = bp.with_node(std::move(provider));
 
         bp2::Blueprint::Nested provider_nested;
         provider_nested.id = I.intern(node_id);
@@ -368,26 +368,26 @@ static bp2::Blueprint make_extract_layout_fixture(ui::StringInterner& I, bp2::Pa
     bp = bp.with_display_name("ExtractLayout");
 
     auto ext_in1 = make_node(I, "ext_in1");
-    ext_in1.type = I.intern("Source");
-    ext_in1.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    ext_in1.semantic.type = I.intern("Source");
+    ext_in1.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
 
     auto ext_in2 = make_node(I, "ext_in2");
-    ext_in2.type = I.intern("Source");
-    ext_in2.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    ext_in2.semantic.type = I.intern("Source");
+    ext_in2.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
 
     auto a = make_node(I, "a", 100.0f, 100.0f);
-    a.type = I.intern("NodeA");
-    a.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
-    a.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    a.semantic.type = I.intern("NodeA");
+    a.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
+    a.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
 
     auto b = make_node(I, "b", 120.0f, 300.0f);
-    b.type = I.intern("NodeB");
-    b.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
-    b.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    b.semantic.type = I.intern("NodeB");
+    b.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
+    b.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
 
     auto ext_out = make_node(I, "ext_out");
-    ext_out.type = I.intern("Sink");
-    ext_out.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+    ext_out.semantic.type = I.intern("Sink");
+    ext_out.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
 
     bp = bp.with_node(std::move(ext_in1));
     bp = bp.with_node(std::move(ext_in2));
@@ -417,18 +417,18 @@ static bp2::Blueprint make_extract_with_bridge_node_fixture(ui::StringInterner& 
     bp = bp.with_display_name("ExtractBridgeNode");
 
     auto bridge = make_node(I, "bridge_in");
-    bridge.type = I.intern("BlueprintInput");
-    bridge.inputs.emplace_back(I.intern("ext"), PortSide::Input, PortType::V);
-    bridge.outputs.emplace_back(I.intern("port"), PortSide::Output, PortType::V);
+    bridge.semantic.type = I.intern("BlueprintInput");
+    bridge.view.inputs.emplace_back(I.intern("ext"), bp2::PortSide::Input, PortType::V);
+    bridge.view.outputs.emplace_back(I.intern("port"), bp2::PortSide::Output, PortType::V);
 
     auto a = make_node(I, "a");
-    a.type = I.intern("NodeA");
-    a.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
-    a.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    a.semantic.type = I.intern("NodeA");
+    a.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
+    a.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::V);
 
     auto ext = make_node(I, "ext");
-    ext.type = I.intern("Sink");
-    ext.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+    ext.semantic.type = I.intern("Sink");
+    ext.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::V);
 
     bp = bp.with_node(std::move(bridge));
     bp = bp.with_node(std::move(a));
@@ -449,37 +449,37 @@ static bp2::Blueprint make_extract_typed_boundary_fixture(ui::StringInterner& I,
     bp = bp.with_id(I.intern("bp_extract_typed_boundary"));
     bp = bp.with_display_name("ExtractTypedBoundary");
 
-    auto ext_in = make_node(I, "ext_in");
-    ext_in.type = I.intern("TypedExtIn");
-    ext_in.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::I);
-    ext_in.iface = bp2::Interface({
-        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
-    });
+     auto ext_in = make_node(I, "ext_in");
+     ext_in.semantic.type = I.intern("TypedExtIn");
+     ext_in.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::I);
+     ext_in.semantic.iface = bp2::Interface({
+         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+     });
 
-    auto a = make_node(I, "a");
-    a.type = I.intern("TypedA");
-    a.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::I);
-    a.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::I);
-    a.iface = bp2::Interface({
-        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
-        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
-    });
+     auto a = make_node(I, "a");
+     a.semantic.type = I.intern("TypedA");
+     a.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::I);
+     a.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::I);
+     a.semantic.iface = bp2::Interface({
+         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+     });
 
-    auto b = make_node(I, "b");
-    b.type = I.intern("TypedB");
-    b.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::I);
-    b.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::I);
-    b.iface = bp2::Interface({
-        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
-        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
-    });
+     auto b = make_node(I, "b");
+     b.semantic.type = I.intern("TypedB");
+     b.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::I);
+     b.view.outputs.emplace_back(I.intern("out"), bp2::PortSide::Output, PortType::I);
+     b.semantic.iface = bp2::Interface({
+         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+     });
 
-    auto ext_out = make_node(I, "ext_out");
-    ext_out.type = I.intern("TypedExtOut");
-    ext_out.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::I);
-    ext_out.iface = bp2::Interface({
-        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
-    });
+     auto ext_out = make_node(I, "ext_out");
+     ext_out.semantic.type = I.intern("TypedExtOut");
+     ext_out.view.inputs.emplace_back(I.intern("in"), bp2::PortSide::Input, PortType::I);
+     ext_out.semantic.iface = bp2::Interface({
+         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+     });
 
     bp = bp.with_node(std::move(ext_in));
     bp = bp.with_node(std::move(a));
@@ -541,8 +541,8 @@ TEST_F(CommandTest, MoveNodeMutates) {
 
     auto* n = model.current().find_node(node_id);
     ASSERT_NE(n, nullptr);
-    EXPECT_FLOAT_EQ(n->x, 100.0f);
-    EXPECT_FLOAT_EQ(n->y, 200.0f);
+    EXPECT_FLOAT_EQ(n->layout.x, 100.0f);
+    EXPECT_FLOAT_EQ(n->layout.y, 200.0f);
 }
 
 // =============================================================================
@@ -552,7 +552,7 @@ TEST_F(CommandTest, MoveNodeMutates) {
 TEST_F(CommandTest, AddRemoveNode) {
     auto node_id = interner.intern("node1");
     auto node = make_node(interner, "node1");
-    node.type = interner.intern("Battery");
+    node.semantic.type = interner.intern("Battery");
 
     execute(model, interner, cmd_add_node(node));
     EXPECT_EQ(model.current().nodes().size(), 1u);
@@ -615,28 +615,28 @@ TEST_F(CommandTest, UndoRedoRoundTrip) {
 TEST_F(CommandTest, SetNameMutates) {
     auto node_id = interner.intern("node1");
     auto node = make_node(interner, "node1");
-    node.name = "OriginalName";
+    node.view.name = "OriginalName";
     model.add_node(std::move(node));
 
     execute(model, interner, cmd_set_name(node_id, "NewName"));
 
     auto* n = model.current().find_node(node_id);
     ASSERT_NE(n, nullptr);
-    EXPECT_EQ(n->name, "NewName");
+    EXPECT_EQ(n->view.name, "NewName");
 }
 
 TEST_F(CommandTest, SetNameUndoRedo) {
     auto node_id = interner.intern("node1");
     auto node = make_node(interner, "node1");
-    node.name = "OldName";
+    node.view.name = "OldName";
     model.add_node(std::move(node));
 
     model.push_checkpoint();
     execute(model, interner, cmd_set_name(node_id, "NewName"));
-    EXPECT_EQ(model.current().find_node(node_id)->name, "NewName");
+    EXPECT_EQ(model.current().find_node(node_id)->view.name, "NewName");
 
     model.undo();
-    EXPECT_EQ(model.current().find_node(node_id)->name, "OldName");
+    EXPECT_EQ(model.current().find_node(node_id)->view.name, "OldName");
 }
 
 // =============================================================================
@@ -664,16 +664,16 @@ TEST_F(CommandTest, MultipleCommandsUndoAsGroup) {
     execute(model, interner, cmd_move_node(id_a, 100.0f, 100.0f));
     execute(model, interner, cmd_move_node(id_b, 200.0f, 200.0f));
 
-    EXPECT_FLOAT_EQ(model.current().find_node(id_a)->x, 100.0f);
-    EXPECT_FLOAT_EQ(model.current().find_node(id_b)->x, 200.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id_a)->layout.x, 100.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id_b)->layout.x, 200.0f);
 
     // Undo last CmdMoveNode (id_b), then id_a
     model.undo();
     model.undo();
 
     // Now at the push_checkpoint state — both nodes at original positions
-    EXPECT_FLOAT_EQ(model.current().find_node(id_a)->x, 0.0f);
-    EXPECT_FLOAT_EQ(model.current().find_node(id_b)->x, 10.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id_a)->layout.x, 0.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id_b)->layout.x, 10.0f);
 }
 
 // =============================================================================
@@ -689,11 +689,11 @@ TEST_F(CommandTest, TransactionGuardSingleCommand) {
         txn.execute(cmd_move_node(id, 42.0f, 42.0f));
     }
 
-    EXPECT_FLOAT_EQ(model.current().find_node(id)->x, 42.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id)->layout.x, 42.0f);
     EXPECT_TRUE(model.can_undo());
 
     model.undo();
-    EXPECT_FLOAT_EQ(model.current().find_node(id)->x, 0.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id)->layout.x, 0.0f);
 }
 
 TEST_F(CommandTest, TransactionGuardMultipleCommands) {
@@ -709,8 +709,8 @@ TEST_F(CommandTest, TransactionGuardMultipleCommands) {
         txn.execute(cmd_move_node(id_b, 200.0f, 200.0f));
     }
 
-    EXPECT_FLOAT_EQ(model.current().find_node(id_a)->x, 100.0f);
-    EXPECT_FLOAT_EQ(model.current().find_node(id_b)->x, 200.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id_a)->layout.x, 100.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id_b)->layout.x, 200.0f);
     EXPECT_TRUE(model.can_undo());
 }
 
@@ -875,7 +875,7 @@ TEST_F(CommandTest, UndoRoundTripChecksumSetParam) {
     auto id = interner.intern("n");
     auto key = interner.intern("key");
     auto node = make_node(interner, "n");
-    node.params[key] = 1.0f;
+    node.semantic.params[key] = 1.0f;
     model.add_node(std::move(node));
 
     size_t before = blueprint_checksum(model.current());
@@ -912,8 +912,8 @@ TEST_F(CommandTest, UndoRoundTripChecksumMixedCommands) {
     auto id_a = interner.intern("a");
     auto id_b = interner.intern("b");
 
-    auto na = make_node(interner, "a", 0.0f, 0.0f); na.name = "aaa";
-    auto nb = make_node(interner, "b", 10.0f, 10.0f); nb.name = "bbb";
+    auto na = make_node(interner, "a", 0.0f, 0.0f); na.view.name = "aaa";
+    auto nb = make_node(interner, "b", 10.0f, 10.0f); nb.view.name = "bbb";
     model.add_node(std::move(na));
     model.add_node(std::move(nb));
 
@@ -977,8 +977,8 @@ TEST_F(CommandTest, TransactionGuardDiscardMultipleCommands) {
     auto id_a = interner.intern("a");
     auto id_b = interner.intern("b");
 
-    auto na = make_node(interner, "a", 0.0f, 0.0f); na.name = "aaa";
-    auto nb = make_node(interner, "b", 10.0f, 10.0f); nb.name = "bbb";
+    auto na = make_node(interner, "a", 0.0f, 0.0f); na.view.name = "aaa";
+    auto nb = make_node(interner, "b", 10.0f, 10.0f); nb.view.name = "bbb";
     model.add_node(std::move(na));
     model.add_node(std::move(nb));
     model.push_checkpoint();
@@ -997,7 +997,7 @@ TEST_F(CommandTest, TransactionGuardDiscardMultipleCommands) {
     // Note: discard() calls model.undo() once, reverting the last checkpoint
     // which was the push_checkpoint() inside TransactionGuard before cmd_move_node
     EXPECT_FLOAT_EQ(model.current().grid_step(), 16.0f);
-    EXPECT_FLOAT_EQ(model.current().find_node(id_a)->x, 0.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id_a)->layout.x, 0.0f);
 }
 
 TEST_F(CommandTest, UndoStackClearSimulatesDocumentLoad) {
@@ -1026,7 +1026,7 @@ TEST_F(CommandTest, SetPortLayout_Mutates) {
     auto node_id = interner.intern("node1");
     model.add_node(make_node(interner, "node1"));
 
-    EXPECT_TRUE(model.current().find_node(node_id)->layout_overrides.empty());
+    EXPECT_TRUE(model.current().find_node(node_id)->layout.layout_overrides.empty());
 
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> overrides;
     overrides.push_back({"v_in", std::string("Top"), std::nullopt});
@@ -1037,12 +1037,12 @@ TEST_F(CommandTest, SetPortLayout_Mutates) {
     // CmdSetPortLayout does remove_node + add_node, undo the add_node to see the result
     auto* result = model.current().find_node(node_id);
     ASSERT_NE(result, nullptr);
-    ASSERT_EQ(result->layout_overrides.size(), 2u);
-    EXPECT_EQ(result->layout_overrides[0].port_name, "v_in");
-    EXPECT_EQ(result->layout_overrides[0].side, std::optional<std::string>("Top"));
-    EXPECT_EQ(result->layout_overrides[1].port_name, "v_out");
-    EXPECT_EQ(result->layout_overrides[1].side, std::optional<std::string>("Bottom"));
-    EXPECT_EQ(result->layout_overrides[1].position, std::optional<int>(0));
+    ASSERT_EQ(result->layout.layout_overrides.size(), 2u);
+    EXPECT_EQ(result->layout.layout_overrides[0].port_name, "v_in");
+    EXPECT_EQ(result->layout.layout_overrides[0].side, std::optional<std::string>("Top"));
+    EXPECT_EQ(result->layout.layout_overrides[1].port_name, "v_out");
+    EXPECT_EQ(result->layout.layout_overrides[1].side, std::optional<std::string>("Bottom"));
+    EXPECT_EQ(result->layout.layout_overrides[1].position, std::optional<int>(0));
 }
 
 TEST_F(CommandTest, SetPortLayout_UndoRestoresOriginal) {
@@ -1055,24 +1055,24 @@ TEST_F(CommandTest, SetPortLayout_UndoRestoresOriginal) {
     model.push_checkpoint();
     execute(model, interner, cmd_set_port_layout(node_id, overrides));
 
-    ASSERT_EQ(model.current().find_node(node_id)->layout_overrides.size(), 1u);
+    ASSERT_EQ(model.current().find_node(node_id)->layout.layout_overrides.size(), 1u);
 
     model.undo();
-    EXPECT_TRUE(model.current().find_node(node_id)->layout_overrides.empty())
+    EXPECT_TRUE(model.current().find_node(node_id)->layout.layout_overrides.empty())
         << "Undo should restore original empty layout_overrides";
 }
 
 TEST_F(CommandTest, SetPortLayout_ClearOverrides) {
     auto node_id = interner.intern("node1");
     auto node = make_node(interner, "node1");
-    node.layout_overrides.push_back({"v_in", std::string("Top"), std::nullopt});
+    node.layout.layout_overrides.push_back({"v_in", std::string("Top"), std::nullopt});
     model.add_node(std::move(node));
 
-    ASSERT_EQ(model.current().find_node(node_id)->layout_overrides.size(), 1u);
+    ASSERT_EQ(model.current().find_node(node_id)->layout.layout_overrides.size(), 1u);
 
     execute(model, interner, cmd_set_port_layout(node_id, {}));
 
-    EXPECT_TRUE(model.current().find_node(node_id)->layout_overrides.empty());
+    EXPECT_TRUE(model.current().find_node(node_id)->layout.layout_overrides.empty());
 }
 
 // =============================================================================
@@ -1085,21 +1085,21 @@ TEST_F(CommandTest, REGRESSION_SetParamMutatesNodeParam) {
     auto key_min = interner.intern("min");
 
     auto node = make_node(interner, "slider1");
-    node.type = interner.intern("Slider");
-    node.content_type = bp2::NodeContentType::Slider;
-    node.content_min = 0.0f;
-    node.content_max = 100.0f;
-    node.params[key_max] = 100.0f;
-    node.params[key_min] = 0.0f;
+    node.semantic.type = interner.intern("Slider");
+    node.view.content_type = bp2::NodeContentType::Slider;
+    node.view.content_min = 0.0f;
+    node.view.content_max = 100.0f;
+    node.semantic.params[key_max] = 100.0f;
+    node.semantic.params[key_min] = 0.0f;
     model.add_node(std::move(node));
 
-    EXPECT_FLOAT_EQ(model.current().find_node(id)->content_max, 100.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(id)->view.content_max, 100.0f);
 
     execute(model, interner, cmd_set_param(id, key_max, 200.0f));
 
     auto* n = model.current().find_node(id);
     ASSERT_NE(n, nullptr);
-    EXPECT_FLOAT_EQ(n->params.at(key_max), 200.0f);
+    EXPECT_FLOAT_EQ(n->semantic.params.at(key_max), 200.0f);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_BasicAtomic) {
@@ -1129,10 +1129,10 @@ TEST_F(CommandTest, ExtractToBlueprint_BasicAtomic) {
 
     ASSERT_NE(in_bridge, nullptr);
     ASSERT_NE(out_bridge, nullptr);
-    EXPECT_EQ(in_bridge->type, interner.intern("BlueprintInput"));
-    EXPECT_EQ(out_bridge->type, interner.intern("BlueprintOutput"));
-    EXPECT_EQ(in_bridge->group_id, nested_sid);
-    EXPECT_EQ(out_bridge->group_id, nested_sid);
+    EXPECT_EQ(in_bridge->semantic.type, interner.intern("BlueprintInput"));
+    EXPECT_EQ(out_bridge->semantic.type, interner.intern("BlueprintOutput"));
+    EXPECT_EQ(in_bridge->layout.group_id, nested_sid);
+    EXPECT_EQ(out_bridge->layout.group_id, nested_sid);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_UndoRedoRoundTrip) {
@@ -1191,14 +1191,14 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsSubgroupExtraction) {
 
     const auto* collapsed = updated->find_node(nested_id);
     ASSERT_NE(collapsed, nullptr);
-    EXPECT_EQ(collapsed->group_id, "group_1");
+    EXPECT_EQ(collapsed->layout.group_id, "group_1");
 
     const auto* a = updated->find_node(interner.intern("a"));
     const auto* b = updated->find_node(interner.intern("b"));
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
-    EXPECT_EQ(a->group_id, nested_sid);
-    EXPECT_EQ(b->group_id, nested_sid);
+    EXPECT_EQ(a->layout.group_id, nested_sid);
+    EXPECT_EQ(b->layout.group_id, nested_sid);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_RejectsSelectionOutsideActiveGroup) {
@@ -1243,7 +1243,7 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsEmbeddedNestedInstanceSelection) {
 
     const auto* selected_nested_node = updated->find_node(interner.intern("sub_inst_1"));
     ASSERT_NE(selected_nested_node, nullptr);
-    EXPECT_EQ(selected_nested_node->group_id, new_nested_sid);
+    EXPECT_EQ(selected_nested_node->layout.group_id, new_nested_sid);
 
     const auto& created_nested = updated->nested().back();
     ASSERT_TRUE(created_nested.inline_def != nullptr);
@@ -1725,7 +1725,7 @@ TEST_F(CommandTest, ExtractToBlueprint_BridgeAutoLayoutTracksInternalY) {
     ASSERT_NE(in_2, nullptr);
 
     // a is above b, bridge for iface "in" should be above "in_2".
-    EXPECT_LT(in_1->y, in_2->y);
+    EXPECT_LT(in_1->layout.y, in_2->layout.y);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_PreviewRejectsEmptyName) {
@@ -1857,31 +1857,31 @@ TEST_F(CommandTest, ExtractToBlueprint_InlineBlueprintStructure) {
     EXPECT_EQ(pd_in->direction, bp2::Direction::Input);
     EXPECT_EQ(pd_out->direction, bp2::Direction::Output);
 
-    // Find the BlueprintInput node inside inline_def.
-    const bp2::Blueprint::Node* bp_in_node = nullptr;
-    const bp2::Blueprint::Node* bp_out_node = nullptr;
-    for (const auto& n : inner.nodes()) {
-        if (n.type == interner.intern("BlueprintInput")) bp_in_node = &n;
-        if (n.type == interner.intern("BlueprintOutput")) bp_out_node = &n;
-    }
-    ASSERT_NE(bp_in_node, nullptr);
-    ASSERT_NE(bp_out_node, nullptr);
+     // Find the BlueprintInput node inside inline_def.
+     const bp2::Blueprint::Node* bp_in_node = nullptr;
+     const bp2::Blueprint::Node* bp_out_node = nullptr;
+     for (const auto& n : inner.nodes()) {
+         if (n.semantic.type == interner.intern("BlueprintInput")) bp_in_node = &n;
+         if (n.semantic.type == interner.intern("BlueprintOutput")) bp_out_node = &n;
+     }
+     ASSERT_NE(bp_in_node, nullptr);
+     ASSERT_NE(bp_out_node, nullptr);
 
-    // BlueprintInput: ext=Input, port=Output
-    ASSERT_EQ(bp_in_node->inputs.size(), 1u);
-    ASSERT_EQ(bp_in_node->outputs.size(), 1u);
-    EXPECT_EQ(bp_in_node->inputs[0].name, interner.intern("ext"));
-    EXPECT_EQ(bp_in_node->inputs[0].side, PortSide::Input);
-    EXPECT_EQ(bp_in_node->outputs[0].name, interner.intern("port"));
-    EXPECT_EQ(bp_in_node->outputs[0].side, PortSide::Output);
+     // BlueprintInput: ext=Input, port=Output
+     ASSERT_EQ(bp_in_node->view.inputs.size(), 1u);
+     ASSERT_EQ(bp_in_node->view.outputs.size(), 1u);
+     EXPECT_EQ(bp_in_node->view.inputs[0].name, interner.intern("ext"));
+     EXPECT_EQ(bp_in_node->view.inputs[0].side, bp2::PortSide::Input);
+     EXPECT_EQ(bp_in_node->view.outputs[0].name, interner.intern("port"));
+     EXPECT_EQ(bp_in_node->view.outputs[0].side, bp2::PortSide::Output);
 
-    // BlueprintOutput: port=Input, ext=Output
-    ASSERT_EQ(bp_out_node->inputs.size(), 1u);
-    ASSERT_EQ(bp_out_node->outputs.size(), 1u);
-    EXPECT_EQ(bp_out_node->inputs[0].name, interner.intern("port"));
-    EXPECT_EQ(bp_out_node->inputs[0].side, PortSide::Input);
-    EXPECT_EQ(bp_out_node->outputs[0].name, interner.intern("ext"));
-    EXPECT_EQ(bp_out_node->outputs[0].side, PortSide::Output);
+     // BlueprintOutput: port=Input, ext=Output
+     ASSERT_EQ(bp_out_node->view.inputs.size(), 1u);
+     ASSERT_EQ(bp_out_node->view.outputs.size(), 1u);
+     EXPECT_EQ(bp_out_node->view.inputs[0].name, interner.intern("port"));
+     EXPECT_EQ(bp_out_node->view.inputs[0].side, bp2::PortSide::Input);
+     EXPECT_EQ(bp_out_node->view.outputs[0].name, interner.intern("ext"));
+     EXPECT_EQ(bp_out_node->view.outputs[0].side, bp2::PortSide::Output);
 
     // Inline blueprint must contain internal nodes a and b.
     EXPECT_NE(inner.find_node(interner.intern("a")), nullptr);
@@ -1909,25 +1909,25 @@ TEST_F(CommandTest, ExtractToBlueprint_PreservesBoundaryPortTypesOnBridgeNodes) 
     const auto nested_id = updated->nested()[0].id;
     const std::string nested_sid(interner.resolve(nested_id));
 
-    const auto* in_bridge = updated->find_node(interner.intern(nested_sid + ":in"));
-    const auto* out_bridge = updated->find_node(interner.intern(nested_sid + ":out"));
-    ASSERT_NE(in_bridge, nullptr);
-    ASSERT_NE(out_bridge, nullptr);
-    ASSERT_EQ(in_bridge->inputs.size(), 1u);
-    ASSERT_EQ(in_bridge->outputs.size(), 1u);
-    ASSERT_EQ(out_bridge->inputs.size(), 1u);
-    ASSERT_EQ(out_bridge->outputs.size(), 1u);
-    EXPECT_EQ(in_bridge->inputs[0].type, PortType::I);
-    EXPECT_EQ(in_bridge->outputs[0].type, PortType::I);
-    EXPECT_EQ(out_bridge->inputs[0].type, PortType::I);
-    EXPECT_EQ(out_bridge->outputs[0].type, PortType::I);
+     const auto* in_bridge = updated->find_node(interner.intern(nested_sid + ":in"));
+     const auto* out_bridge = updated->find_node(interner.intern(nested_sid + ":out"));
+     ASSERT_NE(in_bridge, nullptr);
+     ASSERT_NE(out_bridge, nullptr);
+     ASSERT_EQ(in_bridge->view.inputs.size(), 1u);
+     ASSERT_EQ(in_bridge->view.outputs.size(), 1u);
+     ASSERT_EQ(out_bridge->view.inputs.size(), 1u);
+     ASSERT_EQ(out_bridge->view.outputs.size(), 1u);
+     EXPECT_EQ(in_bridge->view.inputs[0].type, PortType::I);
+     EXPECT_EQ(in_bridge->view.outputs[0].type, PortType::I);
+     EXPECT_EQ(out_bridge->view.inputs[0].type, PortType::I);
+     EXPECT_EQ(out_bridge->view.outputs[0].type, PortType::I);
 
-    const auto* collapsed = updated->find_node(nested_id);
-    ASSERT_NE(collapsed, nullptr);
-    ASSERT_EQ(collapsed->inputs.size(), 1u);
-    ASSERT_EQ(collapsed->outputs.size(), 1u);
-    EXPECT_EQ(collapsed->inputs[0].type, PortType::I);
-    EXPECT_EQ(collapsed->outputs[0].type, PortType::I);
+     const auto* collapsed = updated->find_node(nested_id);
+     ASSERT_NE(collapsed, nullptr);
+     ASSERT_EQ(collapsed->view.inputs.size(), 1u);
+     ASSERT_EQ(collapsed->view.outputs.size(), 1u);
+     EXPECT_EQ(collapsed->view.inputs[0].type, PortType::I);
+     EXPECT_EQ(collapsed->view.outputs[0].type, PortType::I);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_SubgroupBridgeWiring) {
@@ -1961,8 +1961,8 @@ TEST_F(CommandTest, ExtractToBlueprint_SubgroupBridgeWiring) {
     ASSERT_NE(out_bridge, nullptr);
 
     // Bridge nodes must be in the subgroup.
-    EXPECT_EQ(in_bridge->group_id, nested_sid);
-    EXPECT_EQ(out_bridge->group_id, nested_sid);
+    EXPECT_EQ(in_bridge->layout.group_id, nested_sid);
+    EXPECT_EQ(out_bridge->layout.group_id, nested_sid);
 
     // Find subgroup bridge wires:
     // Input bridge: in_bridge.port -> a.in
@@ -2034,36 +2034,36 @@ TEST_F(CommandTest, ExtractToBlueprint_DedupeNameNoCollisionWithSuffixedPorts) {
     bp = bp.with_id(interner.intern("bp_dedupe_regression"));
     bp = bp.with_display_name("DedupeRegression");
 
-    // Three external sources
-    auto src1 = make_node(interner, "src1");
-    src1.type = interner.intern("Source");
-    src1.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
-    auto src2 = make_node(interner, "src2");
-    src2.type = interner.intern("Source");
-    src2.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
-    auto src3 = make_node(interner, "src3");
-    src3.type = interner.intern("Source");
-    src3.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+     // Three external sources
+     auto src1 = make_node(interner, "src1");
+     src1.semantic.type = interner.intern("Source");
+     src1.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
+     auto src2 = make_node(interner, "src2");
+     src2.semantic.type = interner.intern("Source");
+     src2.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
+     auto src3 = make_node(interner, "src3");
+     src3.semantic.type = interner.intern("Source");
+     src3.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
 
-    // Node a: two inputs with names "in" and "in_2"
-    auto a = make_node(interner, "a");
-    a.type = interner.intern("NodeA");
-    a.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
-    a.inputs.emplace_back(interner.intern("in_2"), PortSide::Input, PortType::V);
-    a.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+     // Node a: two inputs with names "in" and "in_2"
+     auto a = make_node(interner, "a");
+     a.semantic.type = interner.intern("NodeA");
+     a.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
+     a.view.inputs.emplace_back(interner.intern("in_2"), bp2::PortSide::Input, PortType::V);
+     a.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
 
-    // Node b: two inputs — "in" (external) and "link" (internal from a)
-    // After dedupe, the external wire targeting b.in would produce iface_name "in"
-    // which collides with the deduped "in_2" from old counter-based code.
-    auto b = make_node(interner, "b");
-    b.type = interner.intern("NodeB");
-    b.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
-    b.inputs.emplace_back(interner.intern("link"), PortSide::Input, PortType::V);
-    b.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+     // Node b: two inputs — "in" (external) and "link" (internal from a)
+     // After dedupe, the external wire targeting b.in would produce iface_name "in"
+     // which collides with the deduped "in_2" from old counter-based code.
+     auto b = make_node(interner, "b");
+     b.semantic.type = interner.intern("NodeB");
+     b.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
+     b.view.inputs.emplace_back(interner.intern("link"), bp2::PortSide::Input, PortType::V);
+     b.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
 
-    auto sink = make_node(interner, "sink");
-    sink.type = interner.intern("Sink");
-    sink.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+     auto sink = make_node(interner, "sink");
+     sink.semantic.type = interner.intern("Sink");
+     sink.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
 
     bp = bp.with_node(std::move(src1));
     bp = bp.with_node(std::move(src2));
@@ -2131,15 +2131,15 @@ TEST_F(CommandTest, ExtractToBlueprint_ZeroExternalConnections) {
     bp = bp.with_id(interner.intern("bp_zero_ext"));
     bp = bp.with_display_name("ZeroExternal");
 
-    auto a = make_node(interner, "a");
-    a.type = interner.intern("NodeA");
-    a.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
-    a.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+     auto a = make_node(interner, "a");
+     a.semantic.type = interner.intern("NodeA");
+     a.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
+     a.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
 
-    auto b = make_node(interner, "b");
-    b.type = interner.intern("NodeB");
-    b.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
-    b.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+     auto b = make_node(interner, "b");
+     b.semantic.type = interner.intern("NodeB");
+     b.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
+     b.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
 
     bp = bp.with_node(std::move(a));
     bp = bp.with_node(std::move(b));
@@ -2168,11 +2168,11 @@ TEST_F(CommandTest, ExtractToBlueprint_ZeroExternalConnections) {
     const auto& iface = updated->nested()[0].iface;
     EXPECT_EQ(iface.size(), 0u);
 
-    // Collapsed node should have no ports
-    const auto* collapsed = updated->find_node(updated->nested()[0].id);
-    ASSERT_NE(collapsed, nullptr);
-    EXPECT_TRUE(collapsed->inputs.empty());
-    EXPECT_TRUE(collapsed->outputs.empty());
+     // Collapsed node should have no ports
+     const auto* collapsed = updated->find_node(updated->nested()[0].id);
+     ASSERT_NE(collapsed, nullptr);
+     EXPECT_TRUE(collapsed->view.inputs.empty());
+     EXPECT_TRUE(collapsed->view.outputs.empty());
 
     // Internal wire should be preserved in parent (both endpoints are selected)
     // Plus the inline_def should contain the wire
@@ -2189,26 +2189,26 @@ TEST_F(CommandTest, ExtractToBlueprint_InlineBridgeYUsesLocalCoordinates) {
     bp = bp.with_id(interner.intern("bp_bridge_y_regression"));
     bp = bp.with_display_name("BridgeYRegression");
 
-    auto ext_in = make_node(interner, "ext_in");
-    ext_in.type = interner.intern("Source");
-    ext_in.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+     auto ext_in = make_node(interner, "ext_in");
+     ext_in.semantic.type = interner.intern("Source");
+     ext_in.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
 
-    // Place nodes far from origin to expose the pre-translation bug
-    auto a = make_node(interner, "a", 500.0f, 500.0f);
-    a.type = interner.intern("NodeA");
-    a.height = 64.0f;
-    a.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
-    a.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+     // Place nodes far from origin to expose the pre-translation bug
+     auto a = make_node(interner, "a", 500.0f, 500.0f);
+     a.semantic.type = interner.intern("NodeA");
+     a.layout.height = 64.0f;
+     a.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
+     a.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
 
-    auto b = make_node(interner, "b", 700.0f, 600.0f);
-    b.type = interner.intern("NodeB");
-    b.height = 64.0f;
-    b.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
-    b.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+     auto b = make_node(interner, "b", 700.0f, 600.0f);
+     b.semantic.type = interner.intern("NodeB");
+     b.layout.height = 64.0f;
+     b.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
+     b.view.outputs.emplace_back(interner.intern("out"), bp2::PortSide::Output, PortType::V);
 
-    auto ext_out = make_node(interner, "ext_out");
-    ext_out.type = interner.intern("Sink");
-    ext_out.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+     auto ext_out = make_node(interner, "ext_out");
+     ext_out.semantic.type = interner.intern("Sink");
+     ext_out.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
 
     bp = bp.with_node(std::move(ext_in));
     bp = bp.with_node(std::move(a));
@@ -2242,18 +2242,18 @@ TEST_F(CommandTest, ExtractToBlueprint_InlineBridgeYUsesLocalCoordinates) {
 
     const bp2::Blueprint& inner = *updated->nested()[0].inline_def;
 
-    // Find the BlueprintInput bridge inside inline_def
-    const bp2::Blueprint::Node* bp_in_node = nullptr;
-    for (const auto& n : inner.nodes()) {
-        if (n.type == interner.intern("BlueprintInput")) bp_in_node = &n;
-    }
-    ASSERT_NE(bp_in_node, nullptr);
+     // Find the BlueprintInput bridge inside inline_def
+     const bp2::Blueprint::Node* bp_in_node = nullptr;
+     for (const auto& n : inner.nodes()) {
+         if (n.semantic.type == interner.intern("BlueprintInput")) bp_in_node = &n;
+     }
+     ASSERT_NE(bp_in_node, nullptr);
 
     // The bridge Y should be near the translated node Y (0..100 range),
     // NOT near the original world Y (500+).
     // Node "a" at world Y=500 becomes local Y=0, center at 32.
-    EXPECT_LT(bp_in_node->y, 200.0f)
-        << "Bridge node Y=" << bp_in_node->y
+    EXPECT_LT(bp_in_node->layout.y, 200.0f)
+        << "Bridge node Y=" << bp_in_node->layout.y
         << " should use local coordinates (near 0..100), not world coordinates (near 500+)";
 }
 
@@ -2299,8 +2299,8 @@ TEST_F(CommandTest, ExtractToBlueprint_HyphenatedNamePassesValidation) {
     const auto& nested = updated->nested()[0];
     const auto* collapsed = updated->find_node(nested.id);
     ASSERT_NE(collapsed, nullptr);
-    EXPECT_TRUE(collapsed->expandable);
-    EXPECT_EQ(collapsed->type, interner.intern(blueprint_name));
+    EXPECT_TRUE(collapsed->view.expandable);
+    EXPECT_EQ(collapsed->semantic.type, interner.intern(blueprint_name));
 
     // The proxy type is not in any registry, but the embedded proxy skip
     // condition must hold: expandable + matching embedded nested entry.
@@ -2406,7 +2406,7 @@ TEST_F(CommandTest, ExtractToBlueprint_ProxyTypeNamePreservedExactly) {
         ASSERT_NE(collapsed, nullptr) << "collapsed proxy not found for name '" << name << "'";
 
         // The type stored on the proxy must resolve back to the exact input string.
-        std::string resolved_type(interner.resolve(collapsed->type));
+        std::string resolved_type(interner.resolve(collapsed->semantic.type));
         EXPECT_EQ(resolved_type, std::string(name))
             << "Type name mangled: expected '" << name << "', got '" << resolved_type << "'";
     }
@@ -2441,18 +2441,18 @@ TEST_F(CommandTest, ExtractToBlueprint_ProxyNodeHasIfacePopulated) {
     ASSERT_NE(proxy, nullptr);
 
     // THE REGRESSION: proxy.iface must be non-empty at creation time
-    EXPECT_FALSE(proxy->iface.empty())
+    EXPECT_FALSE(proxy->semantic.iface.empty())
         << "proxy node iface is empty — must be populated at extraction time";
 
-    // Every input/output port on the proxy must be findable in iface
-    for (const auto& ep : proxy->inputs) {
-        EXPECT_TRUE(proxy->iface.has(ep.name))
-            << "input port missing from proxy iface: " << interner.resolve(ep.name);
-    }
-    for (const auto& ep : proxy->outputs) {
-        EXPECT_TRUE(proxy->iface.has(ep.name))
-            << "output port missing from proxy iface: " << interner.resolve(ep.name);
-    }
+     // Every input/output port on the proxy must be findable in iface
+     for (const auto& ep : proxy->view.inputs) {
+         EXPECT_TRUE(proxy->semantic.iface.has(ep.name))
+             << "input port missing from proxy iface: " << interner.resolve(ep.name);
+     }
+     for (const auto& ep : proxy->view.outputs) {
+         EXPECT_TRUE(proxy->semantic.iface.has(ep.name))
+             << "output port missing from proxy iface: " << interner.resolve(ep.name);
+     }
 }
 
 // =============================================================================
@@ -2487,12 +2487,12 @@ TEST_F(CommandTest, ManualBridgeAddition_SyncsCollapsedNodeAndNested) {
     const ui::InternedId nested_id = nested_pre.id;
     const std::string nested_id_str(interner.resolve(nested_id));
 
-    // Record the initial port counts
-    const auto* collapsed_pre = updated->find_node(nested_id);
-    ASSERT_NE(collapsed_pre, nullptr);
-    const size_t initial_inputs  = collapsed_pre->inputs.size();
-    const size_t initial_outputs = collapsed_pre->outputs.size();
-    const size_t initial_iface_ports = nested_pre.iface.ports().size();
+     // Record the initial port counts
+     const auto* collapsed_pre = updated->find_node(nested_id);
+     ASSERT_NE(collapsed_pre, nullptr);
+     const size_t initial_inputs  = collapsed_pre->view.inputs.size();
+     const size_t initial_outputs = collapsed_pre->view.outputs.size();
+     const size_t initial_iface_ports = nested_pre.iface.ports().size();
 
     // Simulate what addComponent+sync does: add a BlueprintInput bridge node
     // inside the group, then update the collapsed node and nested iface.
@@ -2500,29 +2500,29 @@ TEST_F(CommandTest, ManualBridgeAddition_SyncsCollapsedNodeAndNested) {
     const std::string bridge_id_str = nested_id_str + ":" + iface_name;
     const PortType new_port_type = PortType::Bool;
 
-    bp2::Blueprint::Node bridge;
-    bridge.id = interner.intern(bridge_id_str);
-    bridge.type = interner.intern("BlueprintInput");
-    bridge.name = iface_name;
-    bridge.group_id = nested_id_str;
-    bridge.x = 0.0f;
-    bridge.y = 0.0f;
-    bridge.inputs.emplace_back(interner.intern("ext"), PortSide::Input, new_port_type);
-    bridge.outputs.emplace_back(interner.intern("port"), PortSide::Output, new_port_type);
-    bp2::Blueprint bp = updated->with_node(std::move(bridge));
+     bp2::Blueprint::Node bridge;
+     bridge.semantic.id = interner.intern(bridge_id_str);
+     bridge.semantic.type = interner.intern("BlueprintInput");
+     bridge.view.name = iface_name;
+     bridge.layout.group_id = nested_id_str;
+     bridge.layout.x = 0.0f;
+     bridge.layout.y = 0.0f;
+     bridge.view.inputs.emplace_back(interner.intern("ext"), bp2::PortSide::Input, new_port_type);
+     bridge.view.outputs.emplace_back(interner.intern("port"), bp2::PortSide::Output, new_port_type);
+     bp2::Blueprint bp = updated->with_node(std::move(bridge));
 
-    // Sync collapsed node: add input port
-    {
-        bp2::Blueprint::Node cn = *bp.find_node(nested_id);
-        const ui::InternedId iface_iid = interner.intern(iface_name);
-        cn.inputs.emplace_back(iface_iid, PortSide::Input, new_port_type);
+     // Sync collapsed node: add input port
+     {
+         bp2::Blueprint::Node cn = *bp.find_node(nested_id);
+         const ui::InternedId iface_iid = interner.intern(iface_name);
+         cn.view.inputs.emplace_back(iface_iid, bp2::PortSide::Input, new_port_type);
 
-        // Also update collapsed node iface
-        std::vector<bp2::PortDescriptor> ports = cn.iface.ports();
-        ports.push_back({iface_iid, Domain::Logical, bp2::Direction::Input});
-        cn.iface = bp2::Interface(std::move(ports));
-        bp = bp2::replace_node_preserve_order(bp, std::move(cn));
-    }
+         // Also update collapsed node iface
+         std::vector<bp2::PortDescriptor> ports = cn.semantic.iface.ports();
+         ports.push_back({iface_iid, Domain::Logical, bp2::Direction::Input});
+         cn.semantic.iface = bp2::Interface(std::move(ports));
+         bp = bp2::replace_node_preserve_order(bp, std::move(cn));
+     }
 
     // Sync nested iface: add port descriptor
     {
@@ -2539,39 +2539,39 @@ TEST_F(CommandTest, ManualBridgeAddition_SyncsCollapsedNodeAndNested) {
     // Verify: bridge node exists in the group
     const auto* bridge_node = bp.find_node(interner.intern(bridge_id_str));
     ASSERT_NE(bridge_node, nullptr) << "bridge node not found";
-    EXPECT_EQ(bridge_node->group_id, nested_id_str);
-    EXPECT_EQ(bridge_node->name, iface_name);
+     EXPECT_EQ(bridge_node->layout.group_id, nested_id_str);
+    EXPECT_EQ(bridge_node->view.name, iface_name);
 
     // Verify: collapsed node has the new input port
     const auto* collapsed_post = bp.find_node(nested_id);
     ASSERT_NE(collapsed_post, nullptr);
-    EXPECT_EQ(collapsed_post->inputs.size(), initial_inputs + 1)
-        << "collapsed node should have one additional input port";
+     EXPECT_EQ(collapsed_post->view.inputs.size(), initial_inputs + 1)
+         << "collapsed node should have one additional input port";
 
-    // The last input port should match the new bridge
-    bool found_port = false;
-    for (const auto& p : collapsed_post->inputs) {
-        if (interner.resolve(p.name) == iface_name) {
-            EXPECT_EQ(p.type, new_port_type);
-            found_port = true;
-        }
-    }
-    EXPECT_TRUE(found_port) << "new input port '" << iface_name << "' not found on collapsed node";
+     // The last input port should match the new bridge
+     bool found_port = false;
+     for (const auto& p : collapsed_post->view.inputs) {
+         if (interner.resolve(p.name) == iface_name) {
+             EXPECT_EQ(p.type, new_port_type);
+             found_port = true;
+         }
+     }
+     EXPECT_TRUE(found_port) << "new input port '" << iface_name << "' not found on collapsed node";
 
-    // Verify: collapsed node iface has the new port
-    EXPECT_TRUE(collapsed_post->iface.has(interner.intern(iface_name)))
-        << "collapsed node iface missing new port";
+     // Verify: collapsed node iface has the new port
+     EXPECT_TRUE(collapsed_post->semantic.iface.has(interner.intern(iface_name)))
+         << "collapsed node iface missing new port";
 
-    // Verify: nested iface has the new port descriptor
-    const auto* nested_post = bp.find_nested(nested_id);
-    ASSERT_NE(nested_post, nullptr);
-    EXPECT_EQ(nested_post->iface.ports().size(), initial_iface_ports + 1)
-        << "nested iface should have one additional port";
-    EXPECT_TRUE(nested_post->iface.has(interner.intern(iface_name)))
-        << "nested iface missing new port descriptor";
+     // Verify: nested iface has the new port descriptor
+     const auto* nested_post = bp.find_nested(nested_id);
+     ASSERT_NE(nested_post, nullptr);
+     EXPECT_EQ(nested_post->iface.ports().size(), initial_iface_ports + 1)
+         << "nested iface should have one additional port";
+     EXPECT_TRUE(nested_post->iface.has(interner.intern(iface_name)))
+         << "nested iface missing new port descriptor";
 
-    // Verify: output count unchanged
-    EXPECT_EQ(collapsed_post->outputs.size(), initial_outputs);
+     // Verify: output count unchanged
+     EXPECT_EQ(collapsed_post->view.outputs.size(), initial_outputs);
 }
 
 // Regression: same as above but for BlueprintOutput (adds output port)
@@ -2597,39 +2597,39 @@ TEST_F(CommandTest, ManualBridgeAddition_OutputSyncsCollapsedNodeAndNested) {
     const ui::InternedId nested_id = nested_pre.id;
     const std::string nested_id_str(interner.resolve(nested_id));
 
-    const auto* collapsed_pre = updated->find_node(nested_id);
-    ASSERT_NE(collapsed_pre, nullptr);
-    const size_t initial_inputs  = collapsed_pre->inputs.size();
-    const size_t initial_outputs = collapsed_pre->outputs.size();
-    const size_t initial_iface_ports = nested_pre.iface.ports().size();
+     const auto* collapsed_pre = updated->find_node(nested_id);
+     ASSERT_NE(collapsed_pre, nullptr);
+     const size_t initial_inputs  = collapsed_pre->view.inputs.size();
+     const size_t initial_outputs = collapsed_pre->view.outputs.size();
+     const size_t initial_iface_ports = nested_pre.iface.ports().size();
 
-    // Add BlueprintOutput bridge
-    const std::string iface_name = "temp_out";
-    const std::string bridge_id_str = nested_id_str + ":" + iface_name;
-    const PortType new_port_type = PortType::Temperature;
+     // Add BlueprintOutput bridge
+     const std::string iface_name = "temp_out";
+     const std::string bridge_id_str = nested_id_str + ":" + iface_name;
+     const PortType new_port_type = PortType::Temperature;
 
-    bp2::Blueprint::Node bridge;
-    bridge.id = interner.intern(bridge_id_str);
-    bridge.type = interner.intern("BlueprintOutput");
-    bridge.name = iface_name;
-    bridge.group_id = nested_id_str;
-    bridge.x = 0.0f;
-    bridge.y = 0.0f;
-    bridge.inputs.emplace_back(interner.intern("port"), PortSide::Input, new_port_type);
-    bridge.outputs.emplace_back(interner.intern("ext"), PortSide::Output, new_port_type);
-    bp2::Blueprint bp = updated->with_node(std::move(bridge));
+     bp2::Blueprint::Node bridge;
+     bridge.semantic.id = interner.intern(bridge_id_str);
+     bridge.semantic.type = interner.intern("BlueprintOutput");
+     bridge.view.name = iface_name;
+     bridge.layout.group_id = nested_id_str;
+     bridge.layout.x = 0.0f;
+     bridge.layout.y = 0.0f;
+     bridge.view.inputs.emplace_back(interner.intern("port"), bp2::PortSide::Input, new_port_type);
+     bridge.view.outputs.emplace_back(interner.intern("ext"), bp2::PortSide::Output, new_port_type);
+     bp2::Blueprint bp = updated->with_node(std::move(bridge));
 
-    // Sync collapsed node: add output port
-    {
-        bp2::Blueprint::Node cn = *bp.find_node(nested_id);
-        const ui::InternedId iface_iid = interner.intern(iface_name);
-        cn.outputs.emplace_back(iface_iid, PortSide::Output, new_port_type);
+     // Sync collapsed node: add output port
+     {
+         bp2::Blueprint::Node cn = *bp.find_node(nested_id);
+         const ui::InternedId iface_iid = interner.intern(iface_name);
+         cn.view.outputs.emplace_back(iface_iid, bp2::PortSide::Output, new_port_type);
 
-        std::vector<bp2::PortDescriptor> ports = cn.iface.ports();
-        ports.push_back({iface_iid, Domain::Thermal, bp2::Direction::Output});
-        cn.iface = bp2::Interface(std::move(ports));
-        bp = bp2::replace_node_preserve_order(bp, std::move(cn));
-    }
+         std::vector<bp2::PortDescriptor> ports = cn.semantic.iface.ports();
+         ports.push_back({iface_iid, Domain::Thermal, bp2::Direction::Output});
+         cn.semantic.iface = bp2::Interface(std::move(ports));
+         bp = bp2::replace_node_preserve_order(bp, std::move(cn));
+     }
 
     // Sync nested iface
     {
@@ -2643,25 +2643,25 @@ TEST_F(CommandTest, ManualBridgeAddition_OutputSyncsCollapsedNodeAndNested) {
         bp = bp2::replace_nested_preserve_order(bp, std::move(n));
     }
 
-    // Verify: collapsed node has the new output port
-    const auto* collapsed_post = bp.find_node(nested_id);
-    ASSERT_NE(collapsed_post, nullptr);
-    EXPECT_EQ(collapsed_post->outputs.size(), initial_outputs + 1);
+     // Verify: collapsed node has the new output port
+     const auto* collapsed_post = bp.find_node(nested_id);
+     ASSERT_NE(collapsed_post, nullptr);
+     EXPECT_EQ(collapsed_post->view.outputs.size(), initial_outputs + 1);
 
-    bool found_port = false;
-    for (const auto& p : collapsed_post->outputs) {
-        if (interner.resolve(p.name) == iface_name) {
-            EXPECT_EQ(p.type, new_port_type);
-            found_port = true;
-        }
-    }
-    EXPECT_TRUE(found_port) << "new output port 'temp_out' not found on collapsed node";
+     bool found_port = false;
+     for (const auto& p : collapsed_post->view.outputs) {
+         if (interner.resolve(p.name) == iface_name) {
+             EXPECT_EQ(p.type, new_port_type);
+             found_port = true;
+         }
+     }
+     EXPECT_TRUE(found_port) << "new output port 'temp_out' not found on collapsed node";
 
-    // Verify: nested iface has the new port
-    const auto* nested_post = bp.find_nested(nested_id);
-    ASSERT_NE(nested_post, nullptr);
-    EXPECT_TRUE(nested_post->iface.has(interner.intern(iface_name)));
+     // Verify: nested iface has the new port
+     const auto* nested_post = bp.find_nested(nested_id);
+     ASSERT_NE(nested_post, nullptr);
+     EXPECT_TRUE(nested_post->iface.has(interner.intern(iface_name)));
 
-    // Verify: input count unchanged
-    EXPECT_EQ(collapsed_post->inputs.size(), initial_inputs);
+     // Verify: input count unchanged
+     EXPECT_EQ(collapsed_post->view.inputs.size(), initial_inputs);
 }

@@ -32,11 +32,11 @@ inline SubWindowOpenTarget resolve_subwindow_open_target(const bp2::Blueprint& b
                 {}};
     }
 
-    const bp2::Blueprint::Node* node = bp.find_node(lookup_id);
-    if (node && node->expandable && !node->blueprint_path.empty()) {
-        return {SubWindowOpenTargetKind::ExternalReference,
-                "library/" + node->blueprint_path + ".blueprint"};
-    }
+     const bp2::Blueprint::Node* node = bp.find_node(lookup_id);
+     if (node && node->view.expandable && !node->view.blueprint_path.empty()) {
+         return {SubWindowOpenTargetKind::ExternalReference,
+                 "library/" + node->view.blueprint_path + ".blueprint"};
+     }
 
     return {};
 }

@@ -17,34 +17,34 @@ namespace visual {
 // ============================================================================
 
 TextNodeWidget::TextNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
-    : node_iid_(data.id)
+    : node_iid_(data.semantic.id)
     , interner_(&interner)
-    , name_(data.name)
+    , name_(data.view.name)
     , font_size_base_(editor_constants::Font::Large)
 {
-    if (data.has_color) {
+    if (data.view.has_color) {
         NodeColor c;
-        c.r = data.color_r;
-        c.g = data.color_g;
-        c.b = data.color_b;
-        c.a = data.color_a;
+        c.r = data.view.color_r;
+        c.g = data.view.color_g;
+        c.b = data.view.color_b;
+        c.a = data.view.color_a;
         custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(Pt(data.x, data.y));
+    setLocalPos(Pt(data.layout.x, data.layout.y));
 
     // Extract text from string_params
     {
-        auto it = data.string_params.find("text");
-        if (it != data.string_params.end()) {
+        auto it = data.semantic.string_params.find("text");
+        if (it != data.semantic.string_params.end()) {
             text_ = it->second;
         }
     }
 
     // Extract font size from string_params
     {
-        auto fs = data.string_params.find("font_size");
-        if (fs != data.string_params.end()) {
+        auto fs = data.semantic.string_params.find("font_size");
+        if (fs != data.semantic.string_params.end()) {
             if (fs->second == "small")       font_size_base_ = editor_constants::Font::Small;
             else if (fs->second == "medium") font_size_base_ = editor_constants::Font::Medium;
         }
@@ -52,8 +52,8 @@ TextNodeWidget::TextNodeWidget(const bp2::Blueprint::Node& data, const ui::Strin
 
     // Snap size to grid
     ui::Pt default_sz(128.0f, 48.0f);
-    float sw = data.width.has_value()  ? *data.width  : default_sz.x;
-    float sh = data.height.has_value() ? *data.height : default_sz.y;
+    float sw = data.layout.width.has_value()  ? *data.layout.width  : default_sz.x;
+    float sh = data.layout.height.has_value() ? *data.layout.height : default_sz.y;
     float w = editor_math::snap_size_to_layout_grid(std::max(sw, 64.0f));
     float h = editor_math::snap_size_to_layout_grid(std::max(sh, 32.0f));
     setSize(Pt(w, h));

@@ -246,11 +246,11 @@ void WindowSystem::openColorPickerForNode(const std::string& node_id, const std:
     colorPicker.source_doc_id = doc.id();
     colorPicker.show = true;
 
-    if (node->has_color) {
-        colorPicker.rgba[0] = node->color_r;
-        colorPicker.rgba[1] = node->color_g;
-        colorPicker.rgba[2] = node->color_b;
-        colorPicker.rgba[3] = node->color_a;
+    if (node->view.has_color) {
+        colorPicker.rgba[0] = node->view.color_r;
+        colorPicker.rgba[1] = node->view.color_g;
+        colorPicker.rgba[2] = node->view.color_b;
+        colorPicker.rgba[3] = node->view.color_a;
     } else {
         colorPicker.rgba[0] = 0.19f;
         colorPicker.rgba[1] = 0.19f;
@@ -265,12 +265,12 @@ void WindowSystem::openInlineValueEditorForNode(const std::string& node_id, Docu
     if (iid.empty()) return;
     const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
     if (!node) return;
-    if (std::string(doc.interner().resolve(node->type)) != "Value") return;
+    if (std::string(doc.interner().resolve(node->semantic.type)) != "Value") return;
 
     const ui::InternedId value_key = doc.interner().intern("value");
     float current = 0.0f;
-    auto it = node->params.find(value_key);
-    if (it != node->params.end()) {
+    auto it = node->semantic.params.find(value_key);
+    if (it != node->semantic.params.end()) {
         current = it->second;
     }
 

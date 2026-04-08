@@ -30,7 +30,7 @@ public:
                      std::string_view wire_id = {}) const override;
 
     /// Set which edge the single port is anchored to.
-    void setPortLayoutSide(PortLayoutSide side);
+    void setPortLayoutSide(bp2::PortLayoutSide side);
 
     void setCustomColor(std::optional<uint32_t> c) override { custom_fill_ = c; }
     std::optional<uint32_t> customColor() const override { return custom_fill_; }
@@ -52,7 +52,7 @@ private:
     void buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
     void positionPort();
 
-    PortLayoutSide port_layout_side_ = PortLayoutSide::Top;
+    bp2::PortLayoutSide port_layout_side_ = bp2::PortLayoutSide::Top;
 };
 
 } // namespace visual

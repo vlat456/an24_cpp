@@ -59,8 +59,8 @@ TEST(PersistValidation, ValidateBlueprintForPersistRejectsUnknownType) {
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node n;
-    n.id = interner.intern("n1");
-    n.type = interner.intern("DefinitelyUnknownType");
+    n.semantic.id = interner.intern("n1");
+    n.semantic.type = interner.intern("DefinitelyUnknownType");
     bp = bp.with_node(std::move(n));
 
     std::string err;
@@ -81,12 +81,12 @@ TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
     bp = bp.with_display_name("Persist Typed");
 
     bp2::Blueprint::Node n;
-    n.id = interner.intern("n1");
-    n.type = interner.intern("Text");
-    n.x = 0.0f;
-    n.y = 0.0f;
-    n.params[interner.intern("font_size")] = 16.0f;
-    n.string_params["table"] = "0:0;1:2";
+    n.semantic.id = interner.intern("n1");
+     n.semantic.type = interner.intern("Text");
+     n.layout.x = 0.0f;
+     n.layout.y = 0.0f;
+     n.semantic.params[interner.intern("font_size")] = 16.0f;
+     n.semantic.string_params["table"] = "0:0;1:2";
     bp = bp.with_node(std::move(n));
 
     fs::path tmp = fs::temp_directory_path() / "bp2_save_typed.blueprint";
@@ -121,10 +121,10 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
     bp = bp.with_display_name("Integrity OK");
 
     bp2::Blueprint::Node n;
-    n.id = interner.intern("bat1");
-    n.type = interner.intern("ElectricalSource");
-    n.x = 0.0f;
-    n.y = 0.0f;
+    n.semantic.id = interner.intern("bat1");
+    n.semantic.type = interner.intern("ElectricalSource");
+    n.layout.x = 0.0f;
+    n.layout.y = 0.0f;
     bp = bp.with_node(std::move(n));
 
     std::string err;
@@ -142,13 +142,13 @@ TEST(PersistValidation, WireDomainMismatchIsToleratedWithoutThrow) {
     bp = bp.with_display_name("Wire Domain Mismatch");
 
     bp2::Blueprint::Node a;
-    a.id = interner.intern("a");
-    a.type = interner.intern("ElectricalSource");
+    a.semantic.id = interner.intern("a");
+    a.semantic.type = interner.intern("ElectricalSource");
     bp = bp.with_node(std::move(a));
 
     bp2::Blueprint::Node b;
-    b.id = interner.intern("b");
-    b.type = interner.intern("Resistor");
+    b.semantic.id = interner.intern("b");
+    b.semantic.type = interner.intern("Resistor");
     bp = bp.with_node(std::move(b));
 
     bp2::Blueprint::Wire w;
@@ -183,15 +183,15 @@ TEST(PersistValidation, ValidatePersistAcceptsEmbeddedProxyNode) {
 
     // A regular known node to ensure the basic path works.
     bp2::Blueprint::Node bat;
-    bat.id = interner.intern("bat1");
-    bat.type = interner.intern("ElectricalSource");
+    bat.semantic.id = interner.intern("bat1");
+    bat.semantic.type = interner.intern("ElectricalSource");
     bp = bp.with_node(std::move(bat));
 
     // An embedded blueprint proxy node with a user-given type name.
     bp2::Blueprint::Node proxy;
-    proxy.id = interner.intern("exciter_inst");
-    proxy.type = interner.intern("RN-180-Exciter");
-    proxy.expandable = true;
+    proxy.semantic.id = interner.intern("exciter_inst");
+    proxy.semantic.type = interner.intern("RN-180-Exciter");
+    proxy.view.expandable = true;
     bp = bp.with_node(std::move(proxy));
 
     bp2::Blueprint::Nested nested;
@@ -215,9 +215,9 @@ TEST(PersistValidation, ValidatePersistStillRejectsNonProxyUnknownType) {
 
     // A node with unknown type that is NOT an embedded proxy.
     bp2::Blueprint::Node n;
-    n.id = interner.intern("n1");
-    n.type = interner.intern("TotallyFakeType");
-    n.expandable = false;
+    n.semantic.id = interner.intern("n1");
+    n.semantic.type = interner.intern("TotallyFakeType");
+    n.view.expandable = false;
     bp = bp.with_node(std::move(n));
 
     std::string err;
@@ -231,7 +231,7 @@ TEST(PersistValidation, ValidatePersistStillRejectsNonProxyUnknownType) {
 // wire domain mismatch errors, especially after InertiaNode port type changes.
 // ===========================================================================
 
-TEST(PersistValidation, ClosedCircuitBlueprintLoadsViaBp2Codec) {
+TEST(PersistValidation, ClosedCircuitLegacyBlueprintFailsFast) {
     // Try multiple paths to find closed_circuit.blueprint
     const char* candidates[] = {
         "../../closed_circuit.blueprint",
@@ -264,17 +264,6 @@ TEST(PersistValidation, ClosedCircuitBlueprintLoadsViaBp2Codec) {
 
     bp2::DecodeError err;
     auto bp = bp2::BlueprintCodec::decode(content, interner, arena, parser_registry, &err);
-    ASSERT_TRUE(bp.has_value())
-        << "Failed to load closed_circuit.blueprint via bp2 codec: " << err.message;
-
-    // Verify InertiaNode is present
-    bool found_inertia = false;
-    for (const auto& node : bp->nodes()) {
-        if (interner.resolve(node.type) == "InertiaNode") {
-            found_inertia = true;
-            break;
-        }
-    }
-    EXPECT_TRUE(found_inertia)
-        << "InertiaNode not found in loaded blueprint";
+    EXPECT_FALSE(bp.has_value());
+    EXPECT_FALSE(err.message.empty());
 }

@@ -24,26 +24,26 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
                                       float y,
                                       const char* render_hint = "") {
     bp2::Blueprint::Node n;
-    n.id = I.intern(id);
-    n.type = I.intern(type);
-    n.x = x;
-    n.y = y;
-    n.render_hint = render_hint;
+    n.semantic.id = I.intern(id);
+    n.semantic.type = I.intern(type);
+    n.layout.x = x;
+    n.layout.y = y;
+    n.view.render_hint = render_hint;
     return n;
 }
 
 static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
-                                      bp2::PathArena& arena,
-                                      const char* wire_id,
-                                      const char* src_node,
-                                      const char* src_port,
-                                      const char* dst_node,
-                                      const char* dst_port) {
-    bp2::Blueprint::Wire w;
-    w.id = I.intern(wire_id);
-    w.source = arena.make_port(arena.make_node(arena.root(), I.intern(src_node)), I.intern(src_port));
-    w.target = arena.make_port(arena.make_node(arena.root(), I.intern(dst_node)), I.intern(dst_port));
-    return w;
+                                       bp2::PathArena& arena,
+                                       const char* wire_id,
+                                       const char* src_node,
+                                       const char* src_port,
+                                       const char* dst_node,
+                                       const char* dst_port) {
+     bp2::Blueprint::Wire w;
+     w.id = I.intern(wire_id);
+     w.source = arena.make_port(arena.make_node(arena.root(), I.intern(src_node)), I.intern(src_port));
+     w.target = arena.make_port(arena.make_node(arena.root(), I.intern(dst_node)), I.intern(dst_port));
+     return w;
 }
 
 static ui::Pt port_center(visual::Port* p) {
@@ -67,13 +67,13 @@ TEST(CanvasInputBus, AliasReconnectUsesSelectedWireNotFirst) {
 
     auto bus = make_node(I, "bus", "Bus", 200.0f, 120.0f, "bus");
     auto bat1 = make_node(I, "bat1", "Battery", 40.0f, 40.0f);
-    bat1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    bat1.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
     auto bat2 = make_node(I, "bat2", "Battery", 40.0f, 180.0f);
-    bat2.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    bat2.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
     auto l1 = make_node(I, "l1", "Lamp", 420.0f, 80.0f);
-    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    l1.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
     auto l2 = make_node(I, "l2", "Lamp", 420.0f, 180.0f);
-    l2.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    l2.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(bus));
@@ -131,11 +131,11 @@ TEST(CanvasInputBus, AliasToAliasReconnectSwapsWireOrder) {
 
     auto bus = make_node(I, "bus", "Bus", 200.0f, 120.0f, "bus");
     auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
-    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    src.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
     auto l1 = make_node(I, "l1", "Lamp", 420.0f, 80.0f);
-    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    l1.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
     auto l2 = make_node(I, "l2", "Lamp", 420.0f, 180.0f);
-    l2.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    l2.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(bus));
@@ -178,9 +178,9 @@ TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
 
     auto bus = make_node(I, "bus", "Bus", 200.0f, 120.0f, "bus");
     auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
-    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    src.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
     auto l1 = make_node(I, "l1", "Lamp", 420.0f, 120.0f);
-    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    l1.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(bus));
@@ -239,14 +239,14 @@ TEST(CanvasInputValidation, RejectsIncompatiblePortTypesOnWireCreate) {
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
-    src.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::I));
-    src.iface = bp2::Interface({
+    src.view.outputs.push_back(bp2::NodePort(I.intern("out"), bp2::PortSide::Output, PortType::I));
+    src.semantic.iface = bp2::Interface({
         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
     });
 
     auto sink = make_node(I, "sink", "TypeSink", 260.0f, 120.0f);
-    sink.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::V));
-    sink.iface = bp2::Interface({
+    sink.view.inputs.push_back(bp2::NodePort(I.intern("in"), bp2::PortSide::Input, PortType::V));
+    sink.semantic.iface = bp2::Interface({
         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
     });
 
@@ -281,14 +281,14 @@ TEST(CanvasInputValidation, RejectsCrossDomainWireCreate) {
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
-    src.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::RPM));
-    src.iface = bp2::Interface({
+    src.view.outputs.push_back(bp2::NodePort(I.intern("out"), bp2::PortSide::Output, PortType::RPM));
+    src.semantic.iface = bp2::Interface({
         {I.intern("out"), Domain::Mechanical, bp2::Direction::Output},
     });
 
     auto sink = make_node(I, "sink", "TypeSink", 260.0f, 120.0f);
-    sink.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::V));
-    sink.iface = bp2::Interface({
+    sink.view.inputs.push_back(bp2::NodePort(I.intern("in"), bp2::PortSide::Input, PortType::V));
+    sink.semantic.iface = bp2::Interface({
         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
     });
 
@@ -323,13 +323,13 @@ TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
     bp2::PathArena arena(I);
 
     auto s1 = make_node(I, "s1", "Battery", 40.0f, 60.0f);
-    s1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    s1.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
     auto s2 = make_node(I, "s2", "Battery", 40.0f, 220.0f);
-    s2.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    s2.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
     auto l1 = make_node(I, "l1", "Lamp", 420.0f, 60.0f);
-    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    l1.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
     auto l2 = make_node(I, "l2", "Lamp", 420.0f, 220.0f);
-    l2.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    l2.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(s1));
@@ -385,9 +385,9 @@ TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
     bp2::PathArena arena(I);
 
     auto s1 = make_node(I, "s1", "Battery", 40.0f, 60.0f);
-    s1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    s1.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
     auto l1 = make_node(I, "l1", "Lamp", 420.0f, 60.0f);
-    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    l1.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(s1));
@@ -419,20 +419,20 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibilit
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
-    src.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::V));
-    src.iface = bp2::Interface({
+    src.view.outputs.push_back(bp2::NodePort(I.intern("out"), bp2::PortSide::Output, PortType::V));
+    src.semantic.iface = bp2::Interface({
         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
     });
 
     auto sink_ok = make_node(I, "sink_ok", "TypeSink", 420.0f, 120.0f);
-    sink_ok.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::V));
-    sink_ok.iface = bp2::Interface({
+    sink_ok.view.inputs.push_back(bp2::NodePort(I.intern("in"), bp2::PortSide::Input, PortType::V));
+    sink_ok.semantic.iface = bp2::Interface({
         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
     });
 
     auto sink_bad = make_node(I, "sink_bad", "TypeSink", 420.0f, 220.0f);
-    sink_bad.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::I));
-    sink_bad.iface = bp2::Interface({
+    sink_bad.view.inputs.push_back(bp2::NodePort(I.intern("in"), bp2::PortSide::Input, PortType::I));
+    sink_bad.semantic.iface = bp2::Interface({
         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
     });
 
@@ -481,14 +481,14 @@ TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
-    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    src.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
 
     auto split = make_node(I, "split", "Splitter", 220.0f, 120.0f);
-    split.inputs.push_back(EditorPort(I.intern("i"), PortSide::Input, PortType::Any));
-    split.outputs.push_back(EditorPort(I.intern("o1"), PortSide::Output, PortType::Any));
+    split.view.inputs.push_back(bp2::NodePort(I.intern("i"), bp2::PortSide::Input, PortType::Any));
+    split.view.outputs.push_back(bp2::NodePort(I.intern("o1"), bp2::PortSide::Output, PortType::Any));
 
     auto load = make_node(I, "load", "Lamp", 420.0f, 120.0f);
-    load.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    load.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(src));
@@ -511,12 +511,12 @@ TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
     EXPECT_TRUE(model.current().wires().empty());
 
     bp2::Blueprint::Node split2;
-    split2.id = I.intern("split");
-    split2.type = I.intern("Splitter");
-    split2.x = 220.0f;
-    split2.y = 120.0f;
-    split2.inputs.push_back(EditorPort(I.intern("i"), PortSide::Input, PortType::Any));
-    split2.outputs.push_back(EditorPort(I.intern("o1"), PortSide::Output, PortType::Any));
+    split2.semantic.id = I.intern("split");
+    split2.semantic.type = I.intern("Splitter");
+    split2.layout.x = 220.0f;
+    split2.layout.y = 120.0f;
+    split2.view.inputs.push_back(bp2::NodePort(I.intern("i"), bp2::PortSide::Input, PortType::Any));
+    split2.view.outputs.push_back(bp2::NodePort(I.intern("o1"), bp2::PortSide::Output, PortType::Any));
     EXPECT_TRUE(model.add_node(std::move(split2)));
 
     for (const auto& w : model.current().wires()) {
@@ -532,9 +532,9 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
-    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    src.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
     auto load = make_node(I, "load", "Lamp", 420.0f, 120.0f);
-    load.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    load.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(src));
@@ -645,7 +645,7 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
     bp2::PathArena arena(I);
 
     auto group = make_node(I, "grp1", "Composite", 120.0f, 80.0f);
-    group.expandable = true;
+    group.view.expandable = true;
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(group));
 
@@ -713,32 +713,32 @@ TEST(PathToNodePort, RootPath_ReturnsEmpty) {
 TEST(SideFromRelativePosition, NodeToTheRight_ReturnsRight) {
     ui::Pt from(100, 100);
     ui::Pt to(300, 100);
-    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Right);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), bp2::PortLayoutSide::Right);
 }
 
 TEST(SideFromRelativePosition, NodeToTheLeft_ReturnsLeft) {
     ui::Pt from(300, 100);
     ui::Pt to(100, 100);
-    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Left);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), bp2::PortLayoutSide::Left);
 }
 
 TEST(SideFromRelativePosition, NodeBelow_ReturnsBottom) {
     ui::Pt from(100, 100);
     ui::Pt to(100, 300);
-    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Bottom);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), bp2::PortLayoutSide::Bottom);
 }
 
 TEST(SideFromRelativePosition, NodeAbove_ReturnsTop) {
     ui::Pt from(100, 300);
     ui::Pt to(100, 100);
-    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Top);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), bp2::PortLayoutSide::Top);
 }
 
 TEST(SideFromRelativePosition, DiagonalTiesGoHorizontal) {
     // Equal |dx| and |dy| → horizontal wins → Right
     ui::Pt from(100, 100);
     ui::Pt to(200, 200);
-    EXPECT_EQ(editor_math::side_from_relative_position(from, to), PortLayoutSide::Right);
+    EXPECT_EQ(editor_math::side_from_relative_position(from, to), bp2::PortLayoutSide::Right);
 }
 
 // ============================================================================
@@ -753,15 +753,15 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
 
     // Create a normal node at (200, 200)
     auto bat = make_node(I, "bat", "Battery", 200.0f, 200.0f);
-    bat.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
-    bat.iface = bp2::Interface({
+    bat.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    bat.semantic.iface = bp2::Interface({
         {I.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
     });
 
     // Create a ref node to the right of the battery at (400, 200)
     auto ref = make_node(I, "gnd", "RefNode", 400.0f, 200.0f, "ref");
-    ref.inputs.push_back(EditorPort(I.intern("v"), PortSide::Input, PortType::V));
-    ref.iface = bp2::Interface({
+    ref.view.inputs.push_back(bp2::NodePort(I.intern("v"), bp2::PortSide::Input, PortType::V));
+    ref.semantic.iface = bp2::Interface({
         {I.intern("v"), Domain::Electrical, bp2::Direction::Input},
     });
 
@@ -808,11 +808,11 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
     ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("gnd"));
     ASSERT_NE(ref_widget, nullptr);
 
-    // Verify the data layer position was updated
-    const bp2::Blueprint::Node* ref_data = model.current().find_node(I.intern("gnd"));
-    ASSERT_NE(ref_data, nullptr);
-    // The node should have moved — not still at (400, 200)
-    EXPECT_NE(ref_data->x, 400.0f);
+     // Verify the data layer position was updated
+     const bp2::Blueprint::Node* ref_data = model.current().find_node(I.intern("gnd"));
+     ASSERT_NE(ref_data, nullptr);
+     // The node should have moved — not still at (400, 200)
+     EXPECT_NE(ref_data->layout.x, 400.0f);
 }
 
 // ============================================================================
@@ -828,10 +828,10 @@ TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
 
     // Create an AZS-like node with VerticalToggle content and left/right ports
     auto azs = make_node(I, "azs_1", "AZS", 0.0f, 0.0f);
-    azs.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.content_state = false;
-    azs.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
-    azs.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.view.content_state = false;
+    azs.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    azs.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(azs));
@@ -862,10 +862,10 @@ TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.content_state = false;
-    azs.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
-    azs.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.view.content_state = false;
+    azs.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    azs.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(azs));
@@ -941,7 +941,7 @@ TEST(CanvasInputSimMode, SimModeBlocksWireCreation) {
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
-    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    src.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(src));
@@ -999,10 +999,10 @@ TEST(CanvasInputSimMode, SimModeAllowsToggleInteraction) {
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.content_state = false;
-    azs.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
-    azs.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.view.content_state = false;
+    azs.view.inputs.push_back(bp2::NodePort(I.intern("v_in"), bp2::PortSide::Input, PortType::V));
+    azs.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(azs));
@@ -1038,10 +1038,10 @@ TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.content_type = bp2::NodeContentType::Knob;
-    knob.content_max = 5.0f;
-    knob.inputs.push_back(EditorPort(I.intern("throw1"), PortSide::InOut, PortType::V));
-    knob.outputs.push_back(EditorPort(I.intern("throw1"), PortSide::InOut, PortType::V));
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 5.0f;
+    knob.view.inputs.push_back(bp2::NodePort(I.intern("throw1"), bp2::PortSide::InOut, PortType::V));
+    knob.view.outputs.push_back(bp2::NodePort(I.intern("throw1"), bp2::PortSide::InOut, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(knob));
@@ -1079,11 +1079,11 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.content_type = bp2::NodeContentType::Slider;
-    slider.content_min = 0.0f;
-    slider.content_max = 100.0f;
-    slider.inputs.push_back(EditorPort(I.intern("ctrl"), PortSide::Input, PortType::V));
-    slider.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::V));
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    slider.view.inputs.push_back(bp2::NodePort(I.intern("ctrl"), bp2::PortSide::Input, PortType::V));
+    slider.view.outputs.push_back(bp2::NodePort(I.intern("out"), bp2::PortSide::Output, PortType::V));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(slider));
@@ -1246,8 +1246,8 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
 
     // Create a Battery as a reference
     auto bat = make_node(I, "bat", "Battery", 200.0f, 200.0f);
-    bat.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
-    bat.iface = bp2::Interface({
+    bat.view.outputs.push_back(bp2::NodePort(I.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    bat.semantic.iface = bp2::Interface({
         {I.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
     });
     
@@ -1257,8 +1257,8 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
     
     // Create a RefNode (for comparison) also with render_hint="ref" at (113, 113)
     auto ref_node = make_node(I, "ref1", "RefNode", 113.0f, 113.0f, "ref");
-    ref_node.inputs.push_back(EditorPort(I.intern("v"), PortSide::Input, PortType::V));
-    ref_node.iface = bp2::Interface({
+    ref_node.view.inputs.push_back(bp2::NodePort(I.intern("v"), bp2::PortSide::Input, PortType::V));
+    ref_node.semantic.iface = bp2::Interface({
         {I.intern("v"), Domain::Electrical, bp2::Direction::Input},
     });
     

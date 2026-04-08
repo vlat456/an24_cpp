@@ -5,7 +5,6 @@
 #include "visual/node/group_node_widget.h"
 #include "visual/node/bus_node_widget.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "data/port.h"
 #include "ui/core/interned_id.h"
 #include <memory>
 #include <vector>
@@ -22,23 +21,23 @@ struct NodeFactory {
     static std::unique_ptr<Widget> create(const bp2::Blueprint::Node& node,
                                             const ui::StringInterner& interner,
                                             const std::vector<BusWireRef>& wires = {}) {
-        if (node.render_hint == "bus") {
+        if (node.view.render_hint == "bus") {
             PortEdge edge = PortEdge::Bottom;
-            auto it = node.string_params.find("port_edge");
-            if (it != node.string_params.end()) {
+            auto it = node.semantic.string_params.find("port_edge");
+            if (it != node.semantic.string_params.end()) {
                 if (it->second == "top")         edge = PortEdge::Top;
                 else if (it->second == "left")   edge = PortEdge::Left;
                 else if (it->second == "right")  edge = PortEdge::Right;
             }
             return std::make_unique<BusNodeWidget>(node, interner, edge, wires);
         }
-        if (node.render_hint == "ref") {
+        if (node.view.render_hint == "ref") {
             return std::make_unique<RefNodeWidget>(node, interner);
         }
-        if (node.render_hint == "group") {
+        if (node.view.render_hint == "group") {
             return std::make_unique<GroupNodeWidget>(node, interner);
         }
-        if (node.render_hint == "text") {
+        if (node.view.render_hint == "text") {
             return std::make_unique<TextNodeWidget>(node, interner);
         }
         // Default: standard component node

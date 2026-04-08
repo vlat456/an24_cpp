@@ -23,22 +23,22 @@ BusNodeWidget::BusNodeWidget(const bp2::Blueprint::Node& data,
                              const ui::StringInterner& interner,
                              PortEdge port_edge,
                              const std::vector<BusWireRef>& wires)
-    : node_iid_(data.id)
+    : node_iid_(data.semantic.id)
     , interner_(&interner)
-    , name_(data.name)
-    , type_name_(std::string(interner.resolve(data.type)))
+    , name_(data.view.name)
+    , type_name_(std::string(interner.resolve(data.semantic.type)))
     , port_edge_(port_edge)
 {
-    if (data.has_color) {
+    if (data.view.has_color) {
         NodeColor c;
-        c.r = data.color_r;
-        c.g = data.color_g;
-        c.b = data.color_b;
-        c.a = data.color_a;
+        c.r = data.view.color_r;
+        c.g = data.view.color_g;
+        c.b = data.view.color_b;
+        c.a = data.view.color_a;
         custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(Pt(data.x, data.y));
+    setLocalPos(Pt(data.layout.x, data.layout.y));
 
     // Collect wires connected to this node
     for (const auto& w : wires) {
@@ -49,12 +49,12 @@ BusNodeWidget::BusNodeWidget(const bp2::Blueprint::Node& data,
 
     // Carry the explicit-size flag from the data layer so rebuildPorts()
     // keeps the user's custom size instead of auto-calculating it.
-    size_explicitly_set_ = data.width.has_value() && data.height.has_value();
+    size_explicitly_set_ = data.layout.width.has_value() && data.layout.height.has_value();
 
     // Initial size from data (will be recalculated in rebuildPorts if not explicit)
     Pt default_size(120.0f, 80.0f);
     if (size_explicitly_set_) {
-        default_size = Pt(*data.width, *data.height);
+        default_size = Pt(*data.layout.width, *data.layout.height);
     }
     Pt snapped = editor_math::snap_size_to_layout_grid(default_size);
     setSize(snapped);
@@ -92,12 +92,12 @@ void BusNodeWidget::rebuildPorts() {
     // (the interner) — never to a local std::string.
     for (const auto& w : wires_) {
         std::string_view wire_id = interner_->resolve(w.id);
-        auto* p = emplaceChild<Port>(wire_id, PortSide::InOut, PortType::V);
+        auto* p = emplaceChild<Port>(wire_id, bp2::PortSide::InOut, PortType::V);
         ports_.push_back(p);
     }
 
     // Base "v" port (always present)
-    auto* base = emplaceChild<Port>("v", PortSide::InOut, PortType::V);
+    auto* base = emplaceChild<Port>("v", bp2::PortSide::InOut, PortType::V);
     ports_.push_back(base);
 
     // Recalculate size based on port count — but respect user's explicit size.

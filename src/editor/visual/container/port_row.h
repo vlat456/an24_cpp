@@ -5,7 +5,7 @@
 #include "visual/container/container.h"
 #include "visual/container/linear_layout.h"
 #include "visual/node/layout_context.h"
-#include "data/port.h"
+#include "blueprint_v2/blueprint/node_port.h"
 #include <cmath>
 #include <vector>
 
@@ -25,14 +25,14 @@ class PortRow : public Widget {
 public:
     /// Construct a port row for a Left/Right side port.
     /// If port_name is empty, no port is created on that side.
-    PortRow(std::string_view port_name, PortSide logical_side, PortType type,
-            PortLayoutSide layout_side, const LayoutContext* ctx)
+    PortRow(std::string_view port_name, bp2::PortSide logical_side, PortType type,
+            bp2::PortLayoutSide layout_side, const LayoutContext* ctx)
         : layout_side_(layout_side)
         , ctx_(ctx)
     {
         // Create the label
         if (!port_name.empty()) {
-            TextAlign align = (layout_side == PortLayoutSide::Right) ? TextAlign::Right : TextAlign::Left;
+            TextAlign align = (layout_side == bp2::PortLayoutSide::Right) ? TextAlign::Right : TextAlign::Left;
             label_ = emplaceChild<Label>(port_name, PortConstants::LABEL_FONT_SIZE,
                                          PortConstants::LABEL_COLOR, align);
         }
@@ -70,9 +70,9 @@ public:
             label_w = lps.x;
             float label_h = lps.y;
 
-            if (layout_side_ == PortLayoutSide::Left) {
+            if (layout_side_ == bp2::PortLayoutSide::Left) {
                 label_x = indent;
-            } else if (layout_side_ == PortLayoutSide::Right) {
+            } else if (layout_side_ == bp2::PortLayoutSide::Right) {
                 label_x = w - indent - label_w;
             }
 
@@ -90,17 +90,17 @@ public:
     void render(IDrawList* dl, const RenderContext& ctx) const override {}
 
 private:
-    PortLayoutSide layout_side_;
+    bp2::PortLayoutSide layout_side_;
     const LayoutContext* ctx_ = nullptr;
     Port* port_ = nullptr;
     Label* label_ = nullptr;
 
     float labelOffset() const {
         switch (layout_side_) {
-            case PortLayoutSide::Left:   return PortConstants::LEFT_LABEL_OFFSET;
-            case PortLayoutSide::Right:  return PortConstants::RIGHT_LABEL_OFFSET;
-            case PortLayoutSide::Top:    return PortConstants::TOP_LABEL_OFFSET;
-            case PortLayoutSide::Bottom: return PortConstants::BOTTOM_LABEL_OFFSET;
+            case bp2::PortLayoutSide::Left:   return PortConstants::LEFT_LABEL_OFFSET;
+            case bp2::PortLayoutSide::Right:  return PortConstants::RIGHT_LABEL_OFFSET;
+            case bp2::PortLayoutSide::Top:    return PortConstants::TOP_LABEL_OFFSET;
+            case bp2::PortLayoutSide::Bottom: return PortConstants::BOTTOM_LABEL_OFFSET;
         }
         return PortConstants::LEFT_LABEL_OFFSET;
     }
@@ -124,19 +124,19 @@ private:
         float port_lx = 0;
         float port_ly = (row_h - PortConstants::RADIUS * 2) / 2.0f;
 
-        if (layout_side_ == PortLayoutSide::Left) {
+        if (layout_side_ == bp2::PortLayoutSide::Left) {
             // Port center at node x=0: port_world_x + RADIUS = node_x
             // port_local_x = -offset_x - RADIUS
             port_lx = -offset_x - PortConstants::RADIUS;
-        } else if (layout_side_ == PortLayoutSide::Right) {
+        } else if (layout_side_ == bp2::PortLayoutSide::Right) {
             // Port center at node x=node_width: port_world_x + RADIUS = node_x + node_width
             // port_local_x = node_width - offset_x - RADIUS
             port_lx = ctx_->node_width - offset_x - PortConstants::RADIUS;
-        } else if (layout_side_ == PortLayoutSide::Top) {
+        } else if (layout_side_ == bp2::PortLayoutSide::Top) {
             // Port center at node y=0
             port_ly = -offset_y - PortConstants::RADIUS;
             port_lx = (row_w - PortConstants::RADIUS * 2) / 2.0f;
-        } else if (layout_side_ == PortLayoutSide::Bottom) {
+        } else if (layout_side_ == bp2::PortLayoutSide::Bottom) {
             // Port center at node y=node_height
             port_ly = ctx_->node_height - offset_y - PortConstants::RADIUS;
             port_lx = (row_w - PortConstants::RADIUS * 2) / 2.0f;
@@ -173,10 +173,10 @@ public:
 
         // Ports (created after labels so they render on top)
         if (!left_name.empty()) {
-            left_port_ = emplaceChild<Port>(left_name, PortSide::Input, left_type, PortLayoutSide::Left);
+            left_port_ = emplaceChild<Port>(left_name, bp2::PortSide::Input, left_type, bp2::PortLayoutSide::Left);
         }
         if (!right_name.empty()) {
-            right_port_ = emplaceChild<Port>(right_name, PortSide::Output, right_type, PortLayoutSide::Right);
+            right_port_ = emplaceChild<Port>(right_name, bp2::PortSide::Output, right_type, bp2::PortLayoutSide::Right);
         }
     }
 
@@ -272,13 +272,13 @@ private:
 /// This eliminates the positionHorizontalPorts() post-layout fixup.
 class HorizontalPortStrip : public Widget {
 public:
-    HorizontalPortStrip(PortLayoutSide side, const LayoutContext* ctx)
+    HorizontalPortStrip(bp2::PortLayoutSide side, const LayoutContext* ctx)
         : side_(side)
         , ctx_(ctx)
     {}
 
     /// Add a port+label pair. Returns the Port* so the caller can track it.
-    Port* addPort(std::string_view port_name, PortSide logical_side, PortType type) {
+    Port* addPort(std::string_view port_name, bp2::PortSide logical_side, PortType type) {
         auto* port_w = emplaceChild<Port>(port_name, logical_side, type, side_);
         auto* label_w = emplaceChild<Label>(port_name, PortConstants::LABEL_FONT_SIZE,
                                              PortConstants::LABEL_COLOR);
@@ -340,7 +340,7 @@ public:
 
             // Vertical: snap port center to the node edge
             float lp_y;
-            if (side_ == PortLayoutSide::Top) {
+            if (side_ == bp2::PortLayoutSide::Top) {
                 lp_y = -offset_y - PortConstants::RADIUS;
             } else {
                 float node_h = ctx_->node_height;
@@ -355,9 +355,9 @@ public:
                 float label_w = label_ps.x;
                 float label_x = lp_x + PortConstants::RADIUS - label_w / 2.0f;
                 float label_y;
-                float label_offset = (side_ == PortLayoutSide::Top) ?
+                float label_offset = (side_ == bp2::PortLayoutSide::Top) ?
                     PortConstants::TOP_LABEL_OFFSET : PortConstants::BOTTOM_LABEL_OFFSET;
-                if (side_ == PortLayoutSide::Top) {
+                if (side_ == bp2::PortLayoutSide::Top) {
                     label_y = lp_y + PortConstants::RADIUS * 2 + label_offset;
                 } else {
                     label_y = lp_y - PortConstants::LABEL_FONT_SIZE - label_offset;
@@ -376,7 +376,7 @@ private:
         Label* label = nullptr;
     };
 
-    PortLayoutSide side_;
+    bp2::PortLayoutSide side_;
     const LayoutContext* ctx_ = nullptr;
     std::vector<Entry> entries_;
 };

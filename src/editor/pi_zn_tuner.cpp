@@ -17,8 +17,8 @@ static std::vector<float> run_closed_loop(Document& doc,
                                           float run_time_sec,
                                           float settle_time_sec) {
     doc.model().update_node(node_id, [&](bp2::Blueprint::Node& n) {
-        n.params[kp_key] = kp;
-        n.params[ki_key] = 0.0f;
+        n.semantic.params[kp_key] = kp;
+        n.semantic.params[ki_key] = 0.0f;
     });
 
     doc.stopSimulation();
@@ -64,8 +64,8 @@ ZNTuneResult tune_pi_ziegler_nichols(Document& doc, const ZNTuneConfig& cfg, boo
     }
     float original_kp = 0.0f;
     float original_ki = 0.0f;
-    if (auto it = pi_node->params.find(kp_key); it != pi_node->params.end()) original_kp = it->second;
-    if (auto it = pi_node->params.find(ki_key); it != pi_node->params.end()) original_ki = it->second;
+    if (auto it = pi_node->semantic.params.find(kp_key); it != pi_node->semantic.params.end()) original_kp = it->second;
+    if (auto it = pi_node->semantic.params.find(ki_key); it != pi_node->semantic.params.end()) original_ki = it->second;
 
     const bool was_running = doc.isSimulationRunning();
 

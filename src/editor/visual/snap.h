@@ -2,7 +2,7 @@
 
 #include "ui/math/pt.h"
 #include "ui/core/interned_id.h"
-#include "data/port.h"
+#include "blueprint_v2/blueprint/node_port.h"
 #include "editor/layout_constants.h"
 #include "blueprint_v2/path/path.h"
 #include <cmath>
@@ -29,13 +29,13 @@ using ui::Pt;
 
 /// Given two center positions, determine which edge of `from_center` faces
 /// `to_center` (the dominant axis wins; ties go to horizontal).
-inline PortLayoutSide side_from_relative_position(Pt from_center, Pt to_center) {
+inline bp2::PortLayoutSide side_from_relative_position(Pt from_center, Pt to_center) {
     const float dx = to_center.x - from_center.x;
     const float dy = to_center.y - from_center.y;
     if (std::abs(dx) >= std::abs(dy)) {
-        return (dx >= 0.0f) ? PortLayoutSide::Right : PortLayoutSide::Left;
+        return (dx >= 0.0f) ? bp2::PortLayoutSide::Right : bp2::PortLayoutSide::Left;
     }
-    return (dy >= 0.0f) ? PortLayoutSide::Bottom : PortLayoutSide::Top;
+    return (dy >= 0.0f) ? bp2::PortLayoutSide::Bottom : bp2::PortLayoutSide::Top;
 }
 
 /// Snap a position to the user-facing grid (round to nearest).

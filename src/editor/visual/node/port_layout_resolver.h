@@ -1,7 +1,7 @@
 #pragma once
 
 #include "editor/data/node_content.h"
-#include "editor/data/port.h"
+#include "blueprint_v2/blueprint/node_port.h"
 #include "ui/core/interned_id.h"
 #include <array>
 #include <vector>
@@ -12,8 +12,8 @@
 struct ResolvedPort {
     std::string_view port_name;
     PortType type;
-    PortSide logical_side;
-    PortLayoutSide layout_side;
+    bp2::PortSide logical_side;
+    bp2::PortLayoutSide layout_side;
     uint8_t final_position = 0;
     
     /// Position hint from override (255 = auto, no hint).
@@ -28,22 +28,22 @@ struct ResolvedLayout {
     std::vector<ResolvedPort> top;
     std::vector<ResolvedPort> bottom;
     
-    std::vector<ResolvedPort>& operator[](PortLayoutSide side) {
+    std::vector<ResolvedPort>& operator[](bp2::PortLayoutSide side) {
         switch (side) {
-            case PortLayoutSide::Left:   return left;
-            case PortLayoutSide::Right:  return right;
-            case PortLayoutSide::Top:    return top;
-            case PortLayoutSide::Bottom: return bottom;
+            case bp2::PortLayoutSide::Left:   return left;
+            case bp2::PortLayoutSide::Right:  return right;
+            case bp2::PortLayoutSide::Top:    return top;
+            case bp2::PortLayoutSide::Bottom: return bottom;
         }
         return left;
     }
     
-    const std::vector<ResolvedPort>& operator[](PortLayoutSide side) const {
+    const std::vector<ResolvedPort>& operator[](bp2::PortLayoutSide side) const {
         switch (side) {
-            case PortLayoutSide::Left:   return left;
-            case PortLayoutSide::Right:  return right;
-            case PortLayoutSide::Top:    return top;
-            case PortLayoutSide::Bottom: return bottom;
+            case bp2::PortLayoutSide::Left:   return left;
+            case bp2::PortLayoutSide::Right:  return right;
+            case bp2::PortLayoutSide::Top:    return top;
+            case bp2::PortLayoutSide::Bottom: return bottom;
         }
         return left;
     }
@@ -59,8 +59,8 @@ struct ResolvedLayout {
 /// 4. Within each side: sort by position hint (overridden first), then append auto ports
 /// 5. Assign sequential final_position values
 inline ResolvedLayout resolve_port_layout(
-    const std::vector<EditorPort>& inputs,
-    const std::vector<EditorPort>& outputs,
+    const std::vector<bp2::NodePort>& inputs,
+    const std::vector<bp2::NodePort>& outputs,
     const std::vector<PortLayoutOverride>& overrides,
     const ui::StringInterner& interner)
 {
@@ -74,7 +74,7 @@ inline ResolvedLayout resolve_port_layout(
         rp.port_name = interner.resolve(p.name);
         rp.type = p.type;
         rp.logical_side = p.side;
-        rp.layout_side = default_layout_side(p.side);
+        rp.layout_side = bp2::default_layout_side(p.side);
         rp.final_position = 255;  // Will be assigned later
         all_ports.push_back(rp);
     }
@@ -92,7 +92,7 @@ inline ResolvedLayout resolve_port_layout(
         rp.port_name = name;
         rp.type = p.type;
         rp.logical_side = p.side;
-        rp.layout_side = default_layout_side(p.side);
+        rp.layout_side = bp2::default_layout_side(p.side);
         rp.final_position = 255;
         all_ports.push_back(rp);
     }
@@ -118,8 +118,8 @@ inline ResolvedLayout resolve_port_layout(
     }
     
     // Step 4: Sort each side - hinted ports first (by hint), then auto ports
-    for (auto side : {PortLayoutSide::Left, PortLayoutSide::Right, 
-                      PortLayoutSide::Top, PortLayoutSide::Bottom}) {
+    for (auto side : {bp2::PortLayoutSide::Left, bp2::PortLayoutSide::Right, 
+                      bp2::PortLayoutSide::Top, bp2::PortLayoutSide::Bottom}) {
         auto& side_ports = layout[side];
         // Partition: hinted (position_hint != 255) vs auto (position_hint == 255)
         auto hinted_end = std::stable_partition(side_ports.begin(), side_ports.end(),

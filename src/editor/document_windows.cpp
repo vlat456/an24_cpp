@@ -44,8 +44,8 @@ void Document::openExternalRefWindow(const std::string& instance_id,
     auto lookup_id = interner_.lookup(instance_id);
     if (!lookup_id.empty()) {
         const bp2::Blueprint::Node* node = model_.current().find_node(lookup_id);
-        if (node && !node->name.empty()) {
-            title = node->name + " [" + instance_id + "]";
+        if (node && !node->view.name.empty()) {
+            title = node->view.name + " [" + instance_id + "]";
         }
     }
 

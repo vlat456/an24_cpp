@@ -9,14 +9,14 @@ namespace bp2::codec_detail {
 namespace {
 
 bool is_default_node_content(const Blueprint::Node& node) {
-    return node.content_type == NodeContentType::None
-        && node.content_label.empty()
-        && node.content_value == 0.0f
-        && node.content_min == 0.0f
-        && node.content_max == 1.0f
-        && node.content_unit.empty()
-        && !node.content_state
-        && !node.content_tripped;
+    return node.view.content_type == NodeContentType::None
+        && node.view.content_label.empty()
+        && node.view.content_value == 0.0f
+        && node.view.content_min == 0.0f
+        && node.view.content_max == 1.0f
+        && node.view.content_unit.empty()
+        && !node.view.content_state
+        && !node.view.content_tripped;
 }
 
 nlohmann::json encode_node_ports(const Blueprint::Node& node,
@@ -26,7 +26,7 @@ nlohmann::json encode_node_ports(const Blueprint::Node& node,
     std::unordered_map<ui::InternedId, Direction> dirs;
     std::unordered_map<ui::InternedId, PortType> types;
 
-    for (auto const& p : node.inputs) {
+    for (auto const& p : node.view.inputs) {
         auto it = dirs.find(p.name);
         if (it == dirs.end()) {
             dirs[p.name] = Direction::Input;
@@ -35,7 +35,7 @@ nlohmann::json encode_node_ports(const Blueprint::Node& node,
             it->second = Direction::InOut;
         }
     }
-    for (auto const& p : node.outputs) {
+    for (auto const& p : node.view.outputs) {
         auto it = dirs.find(p.name);
         if (it == dirs.end()) {
             dirs[p.name] = Direction::Output;
@@ -74,13 +74,17 @@ nlohmann::json encode_interface(Interface const& iface,
         p["name"] = name;
         p["domain"] = static_cast<int>(port.domain);
         p["direction"] = static_cast<int>(port.direction);
+        PortType serialized_type = PortType::Any;
+        bool serialized_source_writer = false;
         if (type_def) {
             auto it = type_def->ports.find(name);
             if (it != type_def->ports.end()) {
-                p["type"] = port_type_to_string(it->second.type);
-                p["source_writer"] = it->second.source_writer;
+                serialized_type = it->second.type;
+                serialized_source_writer = it->second.source_writer;
             }
         }
+        p["type"] = port_type_to_string(serialized_type);
+        p["source_writer"] = serialized_source_writer;
         arr.push_back(p);
     }
     return arr;
@@ -95,10 +99,10 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         sorted.push_back(&node);
     }
     std::sort(sorted.begin(), sorted.end(), [&](Blueprint::Node const* a, Blueprint::Node const* b) {
-        std::string_view ida = interner.resolve(a->id);
-        std::string_view idb = interner.resolve(b->id);
+        std::string_view ida = interner.resolve(a->semantic.id);
+        std::string_view idb = interner.resolve(b->semantic.id);
         if (ida == idb) {
-            return interner.resolve(a->type) < interner.resolve(b->type);
+            return interner.resolve(a->semantic.type) < interner.resolve(b->semantic.type);
         }
         return ida < idb;
     });
@@ -107,39 +111,39 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
     for (auto const* node_ptr : sorted) {
         auto const& node = *node_ptr;
         nlohmann::json n;
-        n["id"] = std::string(interner.resolve(node.id));
-        n["type"] = std::string(interner.resolve(node.type));
-        if (!node.name.empty()) n["name"] = node.name;
-        if (!node.render_hint.empty()) n["render_hint"] = node.render_hint;
-        if (!node.group_id.empty()) n["group_id"] = node.group_id;
-        if (node.expandable) n["expandable"] = true;
-        if (!node.collapsed) n["collapsed"] = false;
-        if (!node.blueprint_path.empty()) n["blueprint_path"] = node.blueprint_path;
-        n["position"] = {{"x", node.x}, {"y", node.y}};
-        if (node.width.has_value()) n["width"] = *node.width;
-        if (node.height.has_value()) n["height"] = *node.height;
+        n["id"] = std::string(interner.resolve(node.semantic.id));
+        n["type"] = std::string(interner.resolve(node.semantic.type));
+        if (!node.view.name.empty()) n["name"] = node.view.name;
+        if (!node.view.render_hint.empty()) n["render_hint"] = node.view.render_hint;
+        if (!node.layout.group_id.empty()) n["group_id"] = node.layout.group_id;
+        if (node.view.expandable) n["expandable"] = true;
+        if (!node.layout.collapsed) n["collapsed"] = false;
+        if (!node.view.blueprint_path.empty()) n["blueprint_path"] = node.view.blueprint_path;
+        n["position"] = {{"x", node.layout.x}, {"y", node.layout.y}};
+        if (node.layout.width.has_value()) n["width"] = *node.layout.width;
+        if (node.layout.height.has_value()) n["height"] = *node.layout.height;
 
         nlohmann::json params = nlohmann::json::object();
         nlohmann::json sparams = nlohmann::json::object();
         std::unordered_set<std::string> descriptor_keys;
         const TypeDefinition* def = nullptr;
         if (parser_registry) {
-            def = parser_registry->get(std::string(interner.resolve(node.type)));
+            def = parser_registry->get(std::string(interner.resolve(node.semantic.type)));
         }
 
         if (def) {
             for (const auto& [key, schema] : def->param_schema) {
                 descriptor_keys.insert(key);
                 ui::InternedId key_iid = interner.lookup(key);
-                const auto pit = key_iid.empty() ? node.params.end() : node.params.find(key_iid);
-                const auto sit = node.string_params.find(key);
+                const auto pit = key_iid.empty() ? node.semantic.params.end() : node.semantic.params.find(key_iid);
+                const auto sit = node.semantic.string_params.find(key);
 
                 switch (schema.type) {
                     case ParamSchemaType::Float:
                     case ParamSchemaType::Int: {
-                        if (pit != node.params.end()) {
+                        if (pit != node.semantic.params.end()) {
                             params[key] = pit->second;
-                        } else if (sit != node.string_params.end()) {
+                        } else if (sit != node.semantic.string_params.end()) {
                             float parsed = 0.0f;
                             if (parse_number_string(sit->second, parsed)) {
                                 params[key] = parsed;
@@ -148,20 +152,20 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                         break;
                     }
                     case ParamSchemaType::Bool: {
-                        if (sit != node.string_params.end()) {
+                        if (sit != node.semantic.string_params.end()) {
                             std::string normalized;
                             if (parse_bool_string(sit->second, normalized)) {
                                 params[key] = (normalized == "true");
                             }
-                        } else if (pit != node.params.end()) {
+                        } else if (pit != node.semantic.params.end()) {
                             params[key] = (pit->second != 0.0f);
                         }
                         break;
                     }
                     case ParamSchemaType::String: {
-                        if (sit != node.string_params.end()) {
+                        if (sit != node.semantic.string_params.end()) {
                             params[key] = sit->second;
-                        } else if (pit != node.params.end()) {
+                        } else if (pit != node.semantic.params.end()) {
                             params[key] = float_to_string(pit->second);
                         }
                         break;
@@ -170,14 +174,14 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
             }
         }
 
-        for (auto const& [k, v] : node.params) {
+        for (auto const& [k, v] : node.semantic.params) {
             std::string key = std::string(interner.resolve(k));
             if (descriptor_keys.find(key) != descriptor_keys.end()) {
                 continue;
             }
             params[key] = v;
         }
-        for (auto const& [k, v] : node.string_params) {
+        for (auto const& [k, v] : node.semantic.string_params) {
             if (descriptor_keys.find(k) != descriptor_keys.end()) {
                 continue;
             }
@@ -186,11 +190,11 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
 
         if (!params.empty()) n["params"] = params;
         if (!sparams.empty()) n["string_params"] = sparams;
-        if (!node.inputs.empty() || !node.outputs.empty()) n["ports"] = encode_node_ports(node, interner);
+        if (!node.view.inputs.empty() || !node.view.outputs.empty()) n["ports"] = encode_node_ports(node, interner);
 
-        if (!node.layout_overrides.empty()) {
+        if (!node.layout.layout_overrides.empty()) {
             nlohmann::json los = nlohmann::json::array();
-            for (auto const& lo : node.layout_overrides) {
+            for (auto const& lo : node.layout.layout_overrides) {
                 nlohmann::json jlo;
                 jlo["port_name"] = lo.port_name;
                 if (lo.side.has_value()) jlo["side"] = *lo.side;
@@ -201,22 +205,22 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         }
 
         if (!is_default_node_content(node)) {
-            n["content_type"] = static_cast<int>(node.content_type);
-            n["content_label"] = node.content_label;
-            n["content_value"] = node.content_value;
-            n["content_min"] = node.content_min;
-            n["content_max"] = node.content_max;
-            n["content_unit"] = node.content_unit;
-            n["content_state"] = node.content_state;
-            n["content_tripped"] = node.content_tripped;
+            n["content_type"] = static_cast<int>(node.view.content_type);
+            n["content_label"] = node.view.content_label;
+            n["content_value"] = node.view.content_value;
+            n["content_min"] = node.view.content_min;
+            n["content_max"] = node.view.content_max;
+            n["content_unit"] = node.view.content_unit;
+            n["content_state"] = node.view.content_state;
+            n["content_tripped"] = node.view.content_tripped;
         }
 
-        if (node.has_color) {
+        if (node.view.has_color) {
             n["has_color"] = true;
-            n["color_r"] = node.color_r;
-            n["color_g"] = node.color_g;
-            n["color_b"] = node.color_b;
-            n["color_a"] = node.color_a;
+            n["color_r"] = node.view.color_r;
+            n["color_g"] = node.view.color_g;
+            n["color_b"] = node.view.color_b;
+            n["color_a"] = node.view.color_a;
         }
 
         arr.push_back(n);

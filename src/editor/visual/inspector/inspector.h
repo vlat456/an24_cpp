@@ -72,8 +72,8 @@ private:
     size_t last_node_count_ = 0;
     size_t last_wire_count_ = 0;
 
-    /// Check whether a node belongs to this inspector's group
-    bool ownsNode(const bp2::Blueprint::Node& n) const { return n.group_id == group_id_; }
+     /// Check whether a node belongs to this inspector's group
+     bool ownsNode(const bp2::Blueprint::Node& n) const { return n.layout.group_id == group_id_; }
     /// Check whether a wire belongs to this inspector's group (both endpoints)
     bool ownsWire(const bp2::Blueprint::Wire& w) const;
 
@@ -91,7 +91,7 @@ private:
 
     // Data model helpers (inspector_core.cpp)
     std::string findConnectionFor(const bp2::Blueprint::Node& node,
-                                  const EditorPort& port, PortSide side) const;
+                                  const bp2::NodePort& port, bp2::PortSide side) const;
     void sortDisplayTree();
     bool passesFilter(const bp2::Blueprint::Node& node) const;
 

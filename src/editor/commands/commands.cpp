@@ -18,15 +18,15 @@ void execute(bp2::EditorModel& model, ui::StringInterner& interner, Command cmd)
             model.add_wire(std::move(c.wire));
         } else if constexpr (std::is_same_v<T, CmdRemoveWire>) {
             model.remove_wire(c.wire_id);
-        } else if constexpr (std::is_same_v<T, CmdSetParam>) {
-            if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
-                n.params[c.key] = c.value;
+         } else if constexpr (std::is_same_v<T, CmdSetParam>) {
+             if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
+                 n.semantic.params[c.key] = c.value;
             })) {
                 spdlog::warn("[cmd] node {} not found", c.node_id.raw());
             }
-        } else if constexpr (std::is_same_v<T, CmdResizeNode>) {
-            if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
-                n.x = c.x; n.y = c.y; n.width = c.w; n.height = c.h;
+         } else if constexpr (std::is_same_v<T, CmdResizeNode>) {
+             if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
+                 n.layout.x = c.x; n.layout.y = c.y; n.layout.width = c.w; n.layout.height = c.h;
             })) {
                 spdlog::warn("[cmd] node {} not found", c.node_id.raw());
             }
@@ -35,9 +35,9 @@ void execute(bp2::EditorModel& model, ui::StringInterner& interner, Command cmd)
                 model.current().pan_x(), model.current().pan_y(),
                 model.current().zoom(), c.new_step);
             model.replace_current(std::move(updated));
-        } else if constexpr (std::is_same_v<T, CmdSetName>) {
-            if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
-                n.name = std::move(c.new_name);
+         } else if constexpr (std::is_same_v<T, CmdSetName>) {
+             if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
+                 n.view.name = std::move(c.new_name);
             })) {
                 spdlog::warn("[cmd] node {} not found", c.node_id.raw());
             }
@@ -51,19 +51,19 @@ void execute(bp2::EditorModel& model, ui::StringInterner& interner, Command cmd)
             })) {
                 spdlog::warn("[cmd] wire {} not found", c.wire_id.raw());
             }
-        } else if constexpr (std::is_same_v<T, CmdSetPortLayout>) {
-            if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
-                n.layout_overrides = std::move(c.overrides);
+         } else if constexpr (std::is_same_v<T, CmdSetPortLayout>) {
+             if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
+                 n.layout.layout_overrides = std::move(c.overrides);
             })) {
                 spdlog::warn("[cmd] node {} not found", c.node_id.raw());
             }
-        } else if constexpr (std::is_same_v<T, CmdSetColor>) {
-            if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
-                n.has_color = c.has_color;
-                n.color_r = c.r;
-                n.color_g = c.g;
-                n.color_b = c.b;
-                n.color_a = c.a;
+         } else if constexpr (std::is_same_v<T, CmdSetColor>) {
+             if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
+                 n.view.has_color = c.has_color;
+                 n.view.color_r = c.r;
+                 n.view.color_g = c.g;
+                 n.view.color_b = c.b;
+                 n.view.color_a = c.a;
             })) {
                 spdlog::warn("[cmd] node {} not found", c.node_id.raw());
             }

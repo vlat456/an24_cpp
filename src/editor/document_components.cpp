@@ -46,16 +46,19 @@ void sync_bridge_to_collapsed_and_nested(
 
     bp2::Blueprint::Node cn = *collapsed;
     if (is_input_bridge) {
-        cn.inputs.emplace_back(iface_iid, PortSide::Input, port_type);
+        cn.view.inputs.emplace_back(iface_iid, bp2::PortSide::Input, port_type);
     } else {
-        cn.outputs.emplace_back(iface_iid, PortSide::Output, port_type);
+        cn.view.outputs.emplace_back(iface_iid, bp2::PortSide::Output, port_type);
     }
     {
-        std::vector<bp2::PortDescriptor> ports = cn.iface.ports();
+        std::vector<bp2::PortDescriptor> ports = cn.semantic.iface.ports();
         const Domain d = editor::common::domain_for_port_type(port_type);
-        ports.push_back({iface_iid, d,
-                         is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output});
-        cn.iface = bp2::Interface(std::move(ports));
+        bp2::PortDescriptor pd;
+        pd.name = iface_iid;
+        pd.domain = d;
+        pd.direction = is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output;
+        ports.push_back(std::move(pd));
+        cn.semantic.iface = bp2::Interface(std::move(ports));
     }
     bp = bp2::replace_node_preserve_order(bp, std::move(cn));
 
@@ -64,8 +67,11 @@ void sync_bridge_to_collapsed_and_nested(
         bp2::Blueprint::Nested n = *nested;
         std::vector<bp2::PortDescriptor> ports = n.iface.ports();
         const Domain d = editor::common::domain_for_port_type(port_type);
-        ports.push_back({iface_iid, d,
-                         is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output});
+        bp2::PortDescriptor pd;
+        pd.name = iface_iid;
+        pd.domain = d;
+        pd.direction = is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output;
+        ports.push_back(std::move(pd));
         n.iface = bp2::Interface(std::move(ports));
         bp = bp2::replace_nested_preserve_order(bp, std::move(n));
     }
@@ -99,33 +105,33 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     Pt snapped_pos = editor_math::snap_to_grid(world_pos, model_.current().grid_step());
 
     bp2::Blueprint::Node node;
-    node.id = interner_.intern(unique_id);
-    node.type = interner_.intern(classname);
-    node.name = unique_id;
-    node.x = snapped_pos.x;
-    node.y = snapped_pos.y;
-    node.group_id = group_id;
-    node.render_hint = def->render_hint;
-    node.expandable = !def->cpp_class && !def->devices.empty();
+    node.semantic.id = interner_.intern(unique_id);
+    node.semantic.type = interner_.intern(classname);
+    node.view.name = unique_id;
+    node.layout.x = snapped_pos.x;
+    node.layout.y = snapped_pos.y;
+    node.layout.group_id = group_id;
+    node.view.render_hint = def->render_hint;
+    node.view.expandable = !def->cpp_class && !def->devices.empty();
 
     for (const auto& [port_name, port_def] : def->ports) {
         auto pid = interner_.intern(port_name);
         if (port_def.direction == PortDirection::In) {
-            node.inputs.emplace_back(pid, PortSide::Input, port_def.type);
+            node.view.inputs.emplace_back(pid, bp2::PortSide::Input, port_def.type);
         } else if (port_def.direction == PortDirection::Out) {
-            node.outputs.emplace_back(pid, PortSide::Output, port_def.type);
+            node.view.outputs.emplace_back(pid, bp2::PortSide::Output, port_def.type);
         } else if (port_def.direction == PortDirection::InOut) {
-            node.inputs.emplace_back(pid, PortSide::InOut, port_def.type);
-            node.outputs.emplace_back(pid, PortSide::InOut, port_def.type);
+            node.view.inputs.emplace_back(pid, bp2::PortSide::InOut, port_def.type);
+            node.view.outputs.emplace_back(pid, bp2::PortSide::InOut, port_def.type);
         }
     }
 
     for (const auto& [k, v] : def->params) {
         float parsed = 0.0f;
         if (locale_safe::parse_float(v, parsed)) {
-            node.params[interner_.intern(k)] = parsed;
+            node.semantic.params[interner_.intern(k)] = parsed;
         } else {
-            node.string_params[k] = v;
+            node.semantic.string_params[k] = v;
         }
     }
 
@@ -134,37 +140,37 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         && model_.current().find_node(interner_.intern(group_id)) != nullptr;
 
     if (bridge_in_group) {
-        std::string canonical_id = group_id + ":" + node.name;
-        node.id = interner_.intern(canonical_id);
+        std::string canonical_id = group_id + ":" + node.view.name;
+        node.semantic.id = interner_.intern(canonical_id);
         unique_id = canonical_id;
 
         PortType pt = PortType::V;
-        auto et_it = node.string_params.find("exposed_type");
-        if (et_it != node.string_params.end()) {
+        auto et_it = node.semantic.string_params.find("exposed_type");
+        if (et_it != node.semantic.string_params.end()) {
             pt = parse_exposed_port_type(et_it->second);
         }
-        for (auto& p : node.inputs) p.type = pt;
-        for (auto& p : node.outputs) p.type = pt;
+        for (auto& p : node.view.inputs) p.type = pt;
+        for (auto& p : node.view.outputs) p.type = pt;
     }
 
     {
         NodeContent nc = create_node_content_from_def(def);
-        node.content_type = nc.type;
-        node.content_label = nc.label;
-        node.content_value = nc.value;
-        node.content_min = nc.min;
-        node.content_max = nc.max;
-        node.content_unit = nc.unit;
-        node.content_state = nc.state;
-        node.content_tripped = nc.tripped;
+        node.view.content_type = nc.type;
+        node.view.content_label = nc.label;
+        node.view.content_value = nc.value;
+        node.view.content_min = nc.min;
+        node.view.content_max = nc.max;
+        node.view.content_unit = nc.unit;
+        node.view.content_state = nc.state;
+        node.view.content_tripped = nc.tripped;
     }
 
-    const std::string bridge_iface_name = bridge_in_group ? node.name : "";
+    const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
     const bool bridge_is_input = (classname == "BlueprintInput");
     PortType bridge_port_type = PortType::V;
     if (bridge_in_group) {
-        auto et_it = node.string_params.find("exposed_type");
-        if (et_it != node.string_params.end()) {
+        auto et_it = node.semantic.string_params.find("exposed_type");
+        if (et_it != node.semantic.string_params.end()) {
             bridge_port_type = parse_exposed_port_type(et_it->second);
         }
     }
@@ -251,18 +257,18 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     const Pt snapped_pos = editor_math::snap_to_grid(world_pos, model_.current().grid_step());
 
     bp2::Blueprint::Node collapsed;
-    collapsed.id = interner_.intern(unique_id);
-    collapsed.type = interner_.intern(blueprint_name);
-    collapsed.name = unique_id;
-    collapsed.group_id = group_id;
-    collapsed.x = snapped_pos.x;
-    collapsed.y = snapped_pos.y;
-    collapsed.width = 160.0f;
-    collapsed.height = 64.0f;
-    collapsed.expandable = true;
-    collapsed.collapsed = true;
-    collapsed.blueprint_path = blueprint_name;
-    collapsed.render_hint = def->render_hint;
+    collapsed.semantic.id = interner_.intern(unique_id);
+    collapsed.semantic.type = interner_.intern(blueprint_name);
+    collapsed.view.name = unique_id;
+    collapsed.layout.group_id = group_id;
+    collapsed.layout.x = snapped_pos.x;
+    collapsed.layout.y = snapped_pos.y;
+    collapsed.layout.width = 160.0f;
+    collapsed.layout.height = 64.0f;
+    collapsed.view.expandable = true;
+    collapsed.layout.collapsed = true;
+    collapsed.view.blueprint_path = blueprint_name;
+    collapsed.view.render_hint = def->render_hint;
 
     std::vector<bp2::PortDescriptor> iface_ports;
     iface_ports.reserve(def->ports.size());
@@ -270,29 +276,41 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     for (const auto& [port_name, port_def] : def->ports) {
         const ui::InternedId pid = interner_.intern(port_name);
         if (port_def.direction == PortDirection::In) {
-            collapsed.inputs.emplace_back(pid, PortSide::Input, port_def.type);
-            iface_ports.push_back({pid, port_def.domain, bp2::Direction::Input});
+            collapsed.view.inputs.emplace_back(pid, bp2::PortSide::Input, port_def.type);
+            bp2::PortDescriptor pd;
+            pd.name = pid;
+            pd.domain = port_def.domain;
+            pd.direction = bp2::Direction::Input;
+            iface_ports.push_back(std::move(pd));
         } else if (port_def.direction == PortDirection::Out) {
-            collapsed.outputs.emplace_back(pid, PortSide::Output, port_def.type);
-            iface_ports.push_back({pid, port_def.domain, bp2::Direction::Output});
+            collapsed.view.outputs.emplace_back(pid, bp2::PortSide::Output, port_def.type);
+            bp2::PortDescriptor pd;
+            pd.name = pid;
+            pd.domain = port_def.domain;
+            pd.direction = bp2::Direction::Output;
+            iface_ports.push_back(std::move(pd));
         } else {
-            collapsed.inputs.emplace_back(pid, PortSide::InOut, port_def.type);
-            collapsed.outputs.emplace_back(pid, PortSide::InOut, port_def.type);
-            iface_ports.push_back({pid, port_def.domain, bp2::Direction::InOut});
+            collapsed.view.inputs.emplace_back(pid, bp2::PortSide::InOut, port_def.type);
+            collapsed.view.outputs.emplace_back(pid, bp2::PortSide::InOut, port_def.type);
+            bp2::PortDescriptor pd;
+            pd.name = pid;
+            pd.domain = port_def.domain;
+            pd.direction = bp2::Direction::InOut;
+            iface_ports.push_back(std::move(pd));
         }
     }
-    collapsed.iface = bp2::Interface(std::move(iface_ports));
+    collapsed.semantic.iface = bp2::Interface(std::move(iface_ports));
 
     {
         NodeContent nc = create_node_content_from_def(def);
-        collapsed.content_type = nc.type;
-        collapsed.content_label = nc.label;
-        collapsed.content_value = nc.value;
-        collapsed.content_min = nc.min;
-        collapsed.content_max = nc.max;
-        collapsed.content_unit = nc.unit;
-        collapsed.content_state = nc.state;
-        collapsed.content_tripped = nc.tripped;
+        collapsed.view.content_type = nc.type;
+        collapsed.view.content_label = nc.label;
+        collapsed.view.content_value = nc.value;
+        collapsed.view.content_min = nc.min;
+        collapsed.view.content_max = nc.max;
+        collapsed.view.content_unit = nc.unit;
+        collapsed.view.content_state = nc.state;
+        collapsed.view.content_tripped = nc.tripped;
     }
 
     std::string library_path = "library/";
@@ -335,14 +353,14 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         blueprint_file.string());
 
     bp2::Blueprint loaded = std::move(*loaded_opt);
-    bp2::Blueprint inline_bp = loaded.with_interface(collapsed.iface);
+    bp2::Blueprint inline_bp = loaded.with_interface(collapsed.semantic.iface);
     inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
     inline_bp = inline_bp.with_display_name(def->classname);
 
     bp2::Blueprint remapped_bp;
     remapped_bp = remapped_bp.with_id(inline_bp.id());
     remapped_bp = remapped_bp.with_display_name(inline_bp.display_name());
-    remapped_bp = remapped_bp.with_interface(collapsed.iface);
+    remapped_bp = remapped_bp.with_interface(collapsed.semantic.iface);
     remapped_bp = remapped_bp.with_viewport(
         inline_bp.pan_x(), inline_bp.pan_y(), inline_bp.zoom(), inline_bp.grid_step());
 
@@ -354,15 +372,15 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     std::unordered_map<ui::InternedId, ui::InternedId> id_remap;
 
     for (bp2::Blueprint::Node n : inline_bp.nodes()) {
-        std::string original_name(interner_.resolve(n.id));
-        const bool is_bridge = (n.type == bp_input_iid || n.type == bp_output_iid);
+        std::string original_name(interner_.resolve(n.semantic.id));
+        const bool is_bridge = (n.semantic.type == bp_input_iid || n.semantic.type == bp_output_iid);
         std::string ns_id = is_bridge
             ? (unique_id + ":" + original_name)
             : (unique_id + "_" + original_name);
-        ui::InternedId old_id = n.id;
-        n.id = interner_.intern(ns_id);
-        n.group_id = unique_id;
-        id_remap[old_id] = n.id;
+        ui::InternedId old_id = n.semantic.id;
+        n.semantic.id = interner_.intern(ns_id);
+        n.layout.group_id = unique_id;
+        id_remap[old_id] = n.semantic.id;
 
         bp2::Blueprint::Node n_remapped = n;
         remapped_bp = remapped_bp.with_node(std::move(n_remapped));
@@ -409,13 +427,13 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         }
 
         bp2::Blueprint::Nested nested;
-        nested.id = collapsed.id;
+        nested.id = collapsed.semantic.id;
         nested.blueprint_id = interner_.intern(blueprint_name);
         nested.embedded = true;
         nested.inline_def = std::make_unique<bp2::Blueprint>(std::move(inline_bp));
-        nested.iface = collapsed.iface;
-        nested.x = collapsed.x;
-        nested.y = collapsed.y;
+        nested.iface = collapsed.semantic.iface;
+        nested.x = collapsed.layout.x;
+        nested.y = collapsed.layout.y;
 
         execute(model_, interner_, cmd_add_nested(std::move(nested)));
         execute(model_, interner_, cmd_add_node(std::move(collapsed)));

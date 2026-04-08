@@ -80,9 +80,9 @@ TEST(Flattener, SingleNodeNoWires) {
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node node;
-    node.id = interner.intern("bat1");
-    node.type = interner.intern("Battery");
-    node.iface = library.find(interner.intern("Battery"))->iface();
+    node.semantic.id = interner.intern("bat1");
+    node.semantic.type = interner.intern("Battery");
+    node.semantic.iface = library.find(interner.intern("Battery"))->iface();
     bp = bp.with_node(std::move(node));
 
     bp2::Flattener flattener(library);
@@ -106,15 +106,15 @@ TEST(Flattener, TwoNodesOneWire) {
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node bat;
-    bat.id = interner.intern("bat1");
-    bat.type = interner.intern("Battery");
-    bat.iface = library.find(interner.intern("Battery"))->iface();
+    bat.semantic.id = interner.intern("bat1");
+    bat.semantic.type = interner.intern("Battery");
+    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
     bp = bp.with_node(std::move(bat));
 
     bp2::Blueprint::Node res;
-    res.id = interner.intern("r1");
-    res.type = interner.intern("Resistor");
-    res.iface = library.find(interner.intern("Resistor"))->iface();
+    res.semantic.id = interner.intern("r1");
+    res.semantic.type = interner.intern("Resistor");
+    res.semantic.iface = library.find(interner.intern("Resistor"))->iface();
     bp = bp.with_node(std::move(res));
 
     bp2::Blueprint::Wire w;
@@ -163,21 +163,21 @@ TEST(Flattener, ThreeNodesChainedSignalCount) {
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node bat;
-    bat.id = interner.intern("bat1");
-    bat.type = interner.intern("Battery");
-    bat.iface = library.find(interner.intern("Battery"))->iface();
+    bat.semantic.id = interner.intern("bat1");
+    bat.semantic.type = interner.intern("Battery");
+    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
     bp = bp.with_node(std::move(bat));
 
     bp2::Blueprint::Node res;
-    res.id = interner.intern("r1");
-    res.type = interner.intern("Resistor");
-    res.iface = library.find(interner.intern("Resistor"))->iface();
+    res.semantic.id = interner.intern("r1");
+    res.semantic.type = interner.intern("Resistor");
+    res.semantic.iface = library.find(interner.intern("Resistor"))->iface();
     bp = bp.with_node(std::move(res));
 
     bp2::Blueprint::Node led;
-    led.id = interner.intern("led1");
-    led.type = interner.intern("LED");
-    led.iface = library.find(interner.intern("LED"))->iface();
+    led.semantic.id = interner.intern("led1");
+    led.semantic.type = interner.intern("LED");
+    led.semantic.iface = library.find(interner.intern("LED"))->iface();
     bp = bp.with_node(std::move(led));
 
     bp2::Blueprint::Wire w1;
@@ -233,9 +233,9 @@ TEST(Flattener, NestedBlueprintExpands) {
     }));
 
     bp2::Blueprint::Node r1;
-    r1.id = interner.intern("r1");
-    r1.type = interner.intern("Resistor");
-    r1.iface = bp2::Interface({
+    r1.semantic.id = interner.intern("r1");
+    r1.semantic.type = interner.intern("Resistor");
+    r1.semantic.iface = bp2::Interface({
         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
         {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
     });
@@ -268,9 +268,9 @@ TEST(Flattener, NestedBlueprintExpands) {
     bp2::Blueprint root;
 
     bp2::Blueprint::Node bat;
-    bat.id = interner.intern("bat1");
-    bat.type = interner.intern("Battery");
-    bat.iface = library.find(interner.intern("Battery"))->iface();
+    bat.semantic.id = interner.intern("bat1");
+    bat.semantic.type = interner.intern("Battery");
+    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
     root = root.with_node(std::move(bat));
 
     bp2::Blueprint::Nested nested;
@@ -281,9 +281,9 @@ TEST(Flattener, NestedBlueprintExpands) {
     root = root.with_nested(std::move(nested));
 
     bp2::Blueprint::Node lnode;
-    lnode.id = interner.intern("led1");
-    lnode.type = interner.intern("LED");
-    lnode.iface = library.find(interner.intern("LED"))->iface();
+    lnode.semantic.id = interner.intern("led1");
+    lnode.semantic.type = interner.intern("LED");
+    lnode.semantic.iface = library.find(interner.intern("LED"))->iface();
     root = root.with_node(std::move(lnode));
 
     // Wire: bat1:v_out -> sub1:in
@@ -350,11 +350,11 @@ TEST(Flattener, ParamsPreserved) {
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node bat;
-    bat.id = interner.intern("bat1");
-    bat.type = interner.intern("Battery");
-    bat.iface = library.find(interner.intern("Battery"))->iface();
-    bat.params[interner.intern("v_nominal")] = 28.0f;
-    bat.params[interner.intern("capacity")] = 24.0f;
+    bat.semantic.id = interner.intern("bat1");
+    bat.semantic.type = interner.intern("Battery");
+    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
+    bat.semantic.params[interner.intern("v_nominal")] = 28.0f;
+    bat.semantic.params[interner.intern("capacity")] = 24.0f;
     bp = bp.with_node(std::move(bat));
 
     bp2::Flattener flattener(library);

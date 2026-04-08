@@ -28,8 +28,8 @@ TEST(EditorModel, AddNode) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("n1");
-    node.type = interner.intern("Battery");
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("Battery");
 
     EXPECT_TRUE(model.add_node(std::move(node)));
     EXPECT_EQ(model.current().nodes().size(), 1u);
@@ -40,10 +40,10 @@ TEST(EditorModel, DuplicateNodeRejected) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1, n2;
-    n1.id = interner.intern("same_id");
-    n1.type = interner.intern("Battery");
-    n2.id = interner.intern("same_id");
-    n2.type = interner.intern("Resistor");
+    n1.semantic.id = interner.intern("same_id");
+    n1.semantic.type = interner.intern("Battery");
+    n2.semantic.id = interner.intern("same_id");
+    n2.semantic.type = interner.intern("Resistor");
 
     EXPECT_TRUE(model.add_node(std::move(n1)));
     EXPECT_FALSE(model.add_node(std::move(n2)));
@@ -56,8 +56,8 @@ TEST(EditorModel, RemoveNode) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("n1");
-    node.type = interner.intern("Battery");
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("Battery");
     model.add_node(std::move(node));
 
     EXPECT_TRUE(model.remove_node(interner.intern("n1")));
@@ -76,10 +76,10 @@ TEST(EditorModel, AddWire) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1, n2;
-    n1.id = interner.intern("b1");
-    n1.type = interner.intern("Battery");
-    n2.id = interner.intern("r1");
-    n2.type = interner.intern("Resistor");
+    n1.semantic.id = interner.intern("b1");
+    n1.semantic.type = interner.intern("Battery");
+    n2.semantic.id = interner.intern("r1");
+    n2.semantic.type = interner.intern("Resistor");
     model.add_node(std::move(n1));
     model.add_node(std::move(n2));
 
@@ -102,8 +102,8 @@ TEST(EditorModel, RejectsSelfLoopWire) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1;
-    n1.id = interner.intern("n1");
-    n1.type = interner.intern("Battery");
+    n1.semantic.id = interner.intern("n1");
+    n1.semantic.type = interner.intern("Battery");
     model.add_node(std::move(n1));
 
     bp2::Blueprint::Wire w;
@@ -162,8 +162,8 @@ TEST(EditorModel, UndoRestoresPreviousState) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("n1");
-    node.type = interner.intern("Battery");
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("Battery");
 
     model.add_node(std::move(node));
     EXPECT_EQ(model.current().nodes().size(), 1u);
@@ -177,8 +177,8 @@ TEST(EditorModel, RedoAfterUndo) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("n1");
-    node.type = interner.intern("Battery");
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("Battery");
 
     model.add_node(std::move(node));
     model.undo();
@@ -194,10 +194,10 @@ TEST(EditorModel, NewActionClearsRedoStack) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1, n2;
-    n1.id = interner.intern("n1");
-    n1.type = interner.intern("Battery");
-    n2.id = interner.intern("n2");
-    n2.type = interner.intern("Resistor");
+    n1.semantic.id = interner.intern("n1");
+    n1.semantic.type = interner.intern("Battery");
+    n2.semantic.id = interner.intern("n2");
+    n2.semantic.type = interner.intern("Resistor");
 
     model.add_node(std::move(n1));
     model.undo();
@@ -211,18 +211,18 @@ TEST(EditorModel, UpdateNodePosition) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("n1");
-    node.type = interner.intern("Battery");
-    node.x = 100.0f;
-    node.y = 200.0f;
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("Battery");
+    node.layout.x = 100.0f;
+    node.layout.y = 200.0f;
     model.add_node(std::move(node));
 
     model.update_node_position(interner.intern("n1"), 300.0f, 400.0f);
 
     auto* found = model.current().find_node(interner.intern("n1"));
     ASSERT_NE(found, nullptr);
-    EXPECT_FLOAT_EQ(found->x, 300.0f);
-    EXPECT_FLOAT_EQ(found->y, 400.0f);
+    EXPECT_FLOAT_EQ(found->layout.x, 300.0f);
+    EXPECT_FLOAT_EQ(found->layout.y, 400.0f);
 }
 
 TEST(EditorModel, UpdateNodePositionCreatesCheckpoint) {
@@ -230,8 +230,8 @@ TEST(EditorModel, UpdateNodePositionCreatesCheckpoint) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("n1");
-    node.type = interner.intern("Battery");
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("Battery");
     model.add_node(std::move(node));
 
     EXPECT_EQ(model.undo_depth(), 1u);  // add_node checkpoint
@@ -241,7 +241,7 @@ TEST(EditorModel, UpdateNodePositionCreatesCheckpoint) {
     model.undo();
     auto* found = model.current().find_node(interner.intern("n1"));
     ASSERT_NE(found, nullptr);
-    EXPECT_FLOAT_EQ(found->x, 0.0f);  // Original position
+    EXPECT_FLOAT_EQ(found->layout.x, 0.0f);  // Original position
 }
 
 TEST(EditorModel, BakeNestedConvertsReferenceToEmbedded) {
@@ -373,16 +373,16 @@ TEST(EditorModel, NodesInRectReturnsOnlyContainedNodes) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1;
-    n1.id = interner.intern("n1");
-    n1.type = interner.intern("Battery");
-    n1.x = 10.0f;
-    n1.y = 10.0f;
+    n1.semantic.id = interner.intern("n1");
+    n1.semantic.type = interner.intern("Battery");
+    n1.layout.x = 10.0f;
+    n1.layout.y = 10.0f;
 
     bp2::Blueprint::Node n2;
-    n2.id = interner.intern("n2");
-    n2.type = interner.intern("Resistor");
-    n2.x = 100.0f;
-    n2.y = 100.0f;
+    n2.semantic.id = interner.intern("n2");
+    n2.semantic.type = interner.intern("Resistor");
+    n2.layout.x = 100.0f;
+    n2.layout.y = 100.0f;
 
     model.add_node(std::move(n1));
     model.add_node(std::move(n2));
@@ -403,10 +403,10 @@ TEST(EditorModel, NodesInRectReflectsNodeMovement) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1;
-    n1.id = interner.intern("n1");
-    n1.type = interner.intern("Battery");
-    n1.x = 10.0f;
-    n1.y = 10.0f;
+    n1.semantic.id = interner.intern("n1");
+    n1.semantic.type = interner.intern("Battery");
+    n1.layout.x = 10.0f;
+    n1.layout.y = 10.0f;
     model.add_node(std::move(n1));
 
     bp2::Rect rect;
@@ -429,12 +429,12 @@ TEST(EditorModel, WireExistsTracksAddAndRemove) {
     bp2::EditorModel model;
 
     bp2::Blueprint::Node src;
-    src.id = interner.intern("b1");
-    src.type = interner.intern("Battery");
+    src.semantic.id = interner.intern("b1");
+    src.semantic.type = interner.intern("Battery");
 
     bp2::Blueprint::Node dst;
-    dst.id = interner.intern("r1");
-    dst.type = interner.intern("Resistor");
+    dst.semantic.id = interner.intern("r1");
+    dst.semantic.type = interner.intern("Resistor");
 
     model.add_node(std::move(src));
     model.add_node(std::move(dst));
@@ -468,8 +468,8 @@ TEST(EditorModel, IsDirtyAfterUndoStackTruncation) {
     // Fill undo stack to exactly max_history_ (100)
     for (int i = 0; i < 100; ++i) {
         bp2::Blueprint::Node node;
-        node.id = interner.intern(("a_" + std::to_string(i)).c_str());
-        node.type = interner.intern("Battery");
+        node.semantic.id = interner.intern(("a_" + std::to_string(i)).c_str());
+        node.semantic.type = interner.intern("Battery");
         model.add_node(std::move(node));
     }
 
@@ -481,8 +481,8 @@ TEST(EditorModel, IsDirtyAfterUndoStackTruncation) {
     // Stack size goes 100 -> 99 -> 100. save_depth_ stays 100.
     // is_dirty() = (100 != 100) = false — BUG: saved state was evicted!
     bp2::Blueprint::Node extra;
-    extra.id = interner.intern("extra");
-    extra.type = interner.intern("Battery");
+    extra.semantic.id = interner.intern("extra");
+    extra.semantic.type = interner.intern("Battery");
     model.add_node(std::move(extra));
 
     // The saved state (was at undo_stack_[0]) has been evicted.
@@ -522,11 +522,11 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
 
         if (op == 0) {
             bp2::Blueprint::Node n;
-            n.id = interner.intern("n_" + std::to_string(next_node++));
-            n.type = interner.intern("Battery");
+            n.semantic.id = interner.intern("n_" + std::to_string(next_node++));
+            n.semantic.type = interner.intern("Battery");
             std::uniform_real_distribution<float> pos(-500.0f, 500.0f);
-            n.x = pos(rng);
-            n.y = pos(rng);
+            n.layout.x = pos(rng);
+            n.layout.y = pos(rng);
             EXPECT_TRUE(model.add_node(std::move(n)));
         } else if (op == 1) {
             const auto& nodes = model.current().nodes();
@@ -539,12 +539,12 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
 
                 bp2::Blueprint::Wire w;
                 w.id = interner.intern("w_" + std::to_string(next_wire++));
-                w.source = arena.make_port(
-                    arena.make_node(arena.root(), nodes[src_i].id),
-                    interner.intern("v_out"));
-                w.target = arena.make_port(
-                    arena.make_node(arena.root(), nodes[dst_i].id),
-                    interner.intern("v_in"));
+                 w.source = arena.make_port(
+                     arena.make_node(arena.root(), nodes[src_i].semantic.id),
+                     interner.intern("v_out"));
+                 w.target = arena.make_port(
+                     arena.make_node(arena.root(), nodes[dst_i].semantic.id),
+                     interner.intern("v_in"));
                 EXPECT_TRUE(model.add_wire(std::move(w)));
             }
         } else if (op == 2) {
@@ -556,7 +556,7 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
         } else if (op == 3) {
             const auto& nodes = model.current().nodes();
             if (!nodes.empty()) {
-                const auto node_id = nodes[choose_index(nodes.size())].id;
+                const auto node_id = nodes[choose_index(nodes.size())].semantic.id;
 
                 std::vector<ui::InternedId> incident;
                 for (const auto& w : model.current().wires()) {
@@ -578,7 +578,7 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
         } else if (op == 4) {
             const auto& nodes = model.current().nodes();
             if (!nodes.empty()) {
-                const auto node_id = nodes[choose_index(nodes.size())].id;
+                const auto node_id = nodes[choose_index(nodes.size())].semantic.id;
                 std::uniform_real_distribution<float> pos(-1000.0f, 1000.0f);
                 EXPECT_TRUE(model.update_node_position(node_id, pos(rng), pos(rng)));
             }
@@ -605,31 +605,31 @@ TEST(ReplacePreserveOrder, NodeReplacementKeepsInsertionOrder) {
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node n1;
-    n1.id = interner.intern("a");
-    n1.type = interner.intern("Battery");
-    n1.x = 10.0f;
+    n1.semantic.id = interner.intern("a");
+    n1.semantic.type = interner.intern("Battery");
+    n1.layout.x = 10.0f;
 
     bp2::Blueprint::Node n2;
-    n2.id = interner.intern("b");
-    n2.type = interner.intern("Resistor");
+    n2.semantic.id = interner.intern("b");
+    n2.semantic.type = interner.intern("Resistor");
 
     bp2::Blueprint::Node n3;
-    n3.id = interner.intern("c");
-    n3.type = interner.intern("Lamp");
+    n3.semantic.id = interner.intern("c");
+    n3.semantic.type = interner.intern("Lamp");
 
     bp = bp.with_node(n1).with_node(n2).with_node(n3);
 
     // Update n2's position
     bp2::Blueprint::Node updated = n2;
-    updated.x = 99.0f;
+    updated.layout.x = 99.0f;
 
     bp2::Blueprint result = bp2::replace_node_preserve_order(bp, std::move(updated));
 
     ASSERT_EQ(result.nodes().size(), 3u);
-    EXPECT_EQ(result.nodes()[0].id, interner.intern("a"));
-    EXPECT_EQ(result.nodes()[1].id, interner.intern("b"));
-    EXPECT_EQ(result.nodes()[2].id, interner.intern("c"));
-    EXPECT_FLOAT_EQ(result.nodes()[1].x, 99.0f);
+    EXPECT_EQ(result.nodes()[0].semantic.id, interner.intern("a"));
+    EXPECT_EQ(result.nodes()[1].semantic.id, interner.intern("b"));
+    EXPECT_EQ(result.nodes()[2].semantic.id, interner.intern("c"));
+    EXPECT_FLOAT_EQ(result.nodes()[1].layout.x, 99.0f);
 }
 
 TEST(ReplacePreserveOrder, NodeAppendsIfNotFound) {
@@ -637,19 +637,19 @@ TEST(ReplacePreserveOrder, NodeAppendsIfNotFound) {
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node n1;
-    n1.id = interner.intern("a");
-    n1.type = interner.intern("Battery");
+    n1.semantic.id = interner.intern("a");
+    n1.semantic.type = interner.intern("Battery");
     bp = bp.with_node(n1);
 
     bp2::Blueprint::Node new_node;
-    new_node.id = interner.intern("z");
-    new_node.type = interner.intern("Resistor");
+    new_node.semantic.id = interner.intern("z");
+    new_node.semantic.type = interner.intern("Resistor");
 
     bp2::Blueprint result = bp2::replace_node_preserve_order(bp, std::move(new_node));
 
     ASSERT_EQ(result.nodes().size(), 2u);
-    EXPECT_EQ(result.nodes()[0].id, interner.intern("a"));
-    EXPECT_EQ(result.nodes()[1].id, interner.intern("z"));
+    EXPECT_EQ(result.nodes()[0].semantic.id, interner.intern("a"));
+    EXPECT_EQ(result.nodes()[1].semantic.id, interner.intern("z"));
 }
 
 TEST(ReplacePreserveOrder, WireReplacementKeepsInsertionOrder) {
@@ -726,8 +726,8 @@ TEST(ReplacePreserveOrder, ReplacementPreservesViewportAndMetadata) {
     }));
 
     bp2::Blueprint::Node n;
-    n.id = interner.intern("n1");
-    n.type = interner.intern("Battery");
+    n.semantic.id = interner.intern("n1");
+    n.semantic.type = interner.intern("Battery");
     bp = bp.with_node(n);
 
     bp2::Blueprint result = bp2::replace_node_preserve_order(bp, std::move(n));

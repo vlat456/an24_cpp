@@ -21,8 +21,8 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
                                       const char* id,
                                       const char* type) {
     bp2::Blueprint::Node n;
-    n.id = I.intern(id);
-    n.type = I.intern(type);
+    n.semantic.id = I.intern(id);
+    n.semantic.type = I.intern(type);
     return n;
 }
 
@@ -94,11 +94,11 @@ TEST(PathResolver, ResolveNestedInterfacePort) {
         {I.intern("out"), Domain::Electrical, Direction::Output},
     }));
 
-    bp2::Blueprint::Nested n;
-    n.id = I.intern("sub1");
-    n.embedded = true;
-    n.inline_def = std::make_unique<bp2::Blueprint>(inner);
-    n.iface = inner.iface();
+     bp2::Blueprint::Nested n;
+     n.id = I.intern("sub1");
+     n.embedded = true;
+     n.inline_def = std::make_unique<bp2::Blueprint>(inner);
+     n.iface = inner.iface();
 
     bp2::Blueprint root;
     root = root.with_nested(std::move(n));
@@ -119,12 +119,12 @@ TEST(PathResolver, CanConnectRejectsBoundarySkipAcrossNestedScopes) {
     PathArena arena(I);
 
     bp2::Blueprint inner;
-    inner = inner.with_node(make_node(I, "r1", "Resistor"));
+     inner = inner.with_node(make_node(I, "r1", "Resistor"));
 
-    bp2::Blueprint::Nested n;
-    n.id = I.intern("sub1");
-    n.embedded = true;
-    n.inline_def = std::make_unique<bp2::Blueprint>(inner);
+     bp2::Blueprint::Nested n;
+     n.id = I.intern("sub1");
+     n.embedded = true;
+     n.inline_def = std::make_unique<bp2::Blueprint>(inner);
 
     bp2::Blueprint root;
     root = root.with_node(make_node(I, "bat1", "Battery"));
@@ -321,12 +321,12 @@ TEST(BlueprintValidate, UnknownNodeTypeFails) {
 
 TEST(BlueprintValidate, InvalidNestedReferenceFails) {
     ui::StringInterner I;
-    TypeRegistry reg = make_validation_registry();
+     TypeRegistry reg = make_validation_registry();
 
-    bp2::Blueprint::Nested n;
-    n.id = I.intern("sub1");
-    n.embedded = false;
-    n.blueprint_id = I.intern("NoSuchBlueprint");
+     bp2::Blueprint::Nested n;
+     n.id = I.intern("sub1");
+     n.embedded = false;
+     n.blueprint_id = I.intern("NoSuchBlueprint");
 
     bp2::Blueprint bp;
     bp = bp.with_nested(std::move(n));
@@ -434,7 +434,7 @@ TEST(BlueprintRepair, DiagnoseReportsUnknownNodeType) {
 // ===========================================================================
 // Regression: Embedded blueprint proxy nodes must be skipped during type checks.
 //
-// An embedded blueprint proxy has:  node.expandable=true, a matching nested
+// An embedded blueprint proxy has:  node.view.expandable =true, a matching nested
 // entry with embedded=true, and a user-given type that is NOT in any registry.
 // All validation paths must accept this pattern.
 // ===========================================================================
@@ -447,9 +447,9 @@ TEST(BlueprintValidate, EmbeddedProxyNodePassesInvariantChecker) {
     // Build a blueprint with an embedded proxy node whose type is unknown.
     bp2::Blueprint bp;
     bp2::Blueprint::Node proxy;
-    proxy.id = I.intern("rn180_inst");
-    proxy.type = I.intern("RN-180-Exciter");   // not in any registry
-    proxy.expandable = true;
+    proxy.semantic.id = I.intern("rn180_inst");
+    proxy.semantic.type = I.intern("RN-180-Exciter");   // not in any registry
+    proxy.view.expandable = true;
     bp = bp.with_node(std::move(proxy));
 
     // Add matching embedded nested definition.
@@ -473,9 +473,9 @@ TEST(BlueprintValidate, NonEmbeddedExpandableNodeStillFailsTypeCheck) {
     // An expandable node WITHOUT a matching embedded nested must still fail.
     bp2::Blueprint bp;
     bp2::Blueprint::Node proxy;
-    proxy.id = I.intern("bad_proxy");
-    proxy.type = I.intern("NonExistentType");
-    proxy.expandable = true;
+    proxy.semantic.id = I.intern("bad_proxy");
+    proxy.semantic.type = I.intern("NonExistentType");
+    proxy.view.expandable = true;
     bp = bp.with_node(std::move(proxy));
 
     // No nested entry at all.
@@ -492,9 +492,9 @@ TEST(BlueprintRepair, DiagnoseSkipsEmbeddedProxyNodes) {
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node proxy;
-    proxy.id = I.intern("gen_inst");
-    proxy.type = I.intern("GSC-18-Starter");
-    proxy.expandable = true;
+    proxy.semantic.id = I.intern("gen_inst");
+    proxy.semantic.type = I.intern("GSC-18-Starter");
+    proxy.view.expandable = true;
     bp = bp.with_node(std::move(proxy));
 
     bp2::Blueprint::Nested nested;
@@ -519,9 +519,9 @@ TEST(BlueprintRepair, DiagnoseStillReportsNonProxyUnknownType) {
     // An expandable node with no matching embedded nested → should still report.
     bp2::Blueprint bp;
     bp2::Blueprint::Node bad;
-    bad.id = I.intern("orphan");
-    bad.type = I.intern("MadeUpType");
-    bad.expandable = true;
+    bad.semantic.id = I.intern("orphan");
+    bad.semantic.type = I.intern("MadeUpType");
+    bad.view.expandable = true;
     bp = bp.with_node(std::move(bad));
 
     auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg, I);
@@ -556,9 +556,9 @@ TEST(BlueprintRepair, ParserRegistryOverloadSkipsEmbeddedProxyNodes) {
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node proxy;
-    proxy.id = I.intern("gen_inst");
-    proxy.type = I.intern("GSC-18-Starter");
-    proxy.expandable = true;
+    proxy.semantic.id = I.intern("gen_inst");
+    proxy.semantic.type = I.intern("GSC-18-Starter");
+    proxy.view.expandable = true;
     bp = bp.with_node(std::move(proxy));
 
     bp2::Blueprint::Nested nested;
@@ -582,9 +582,9 @@ TEST(PathResolver, ParserRegistryOverloadResolveUsesCanonicalRegistryInput) {
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node n;
-    n.id = I.intern("n1");
-    n.type = I.intern("AnyType");
-    n.iface = bp2::Interface({
+    n.semantic.id = I.intern("n1");
+    n.semantic.type = I.intern("AnyType");
+    n.semantic.iface = bp2::Interface({
         {I.intern("p"), Domain::Electrical, bp2::Direction::Output},
     });
     bp = bp.with_node(std::move(n));
@@ -607,17 +607,17 @@ TEST(WireValidator, ParserRegistryOverloadValidateWire) {
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node a;
-    a.id = I.intern("a");
-    a.type = I.intern(known_type);
-    a.iface = bp2::Interface({
+    a.semantic.id = I.intern("a");
+    a.semantic.type = I.intern(known_type);
+    a.semantic.iface = bp2::Interface({
         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
     });
     bp = bp.with_node(std::move(a));
 
     bp2::Blueprint::Node b;
-    b.id = I.intern("b");
-    b.type = I.intern(known_type);
-    b.iface = bp2::Interface({
+    b.semantic.id = I.intern("b");
+    b.semantic.type = I.intern(known_type);
+    b.semantic.iface = bp2::Interface({
         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
     });
     bp = bp.with_node(std::move(b));

@@ -9,12 +9,12 @@ PortType find_port_type(const bp2::Blueprint::Node* node, ui::InternedId port_na
     if (!node) {
         return PortType::Any;
     }
-    for (const auto& p : node->inputs) {
+    for (const auto& p : node->view.inputs) {
         if (p.name == port_name) {
             return p.type;
         }
     }
-    for (const auto& p : node->outputs) {
+    for (const auto& p : node->view.outputs) {
         if (p.name == port_name) {
             return p.type;
         }
@@ -71,7 +71,7 @@ std::unordered_set<ui::InternedId> collect_used_node_ids(const bp2::Blueprint& b
     std::unordered_set<ui::InternedId> out;
     out.reserve(bp.nodes().size() + bp.nested().size());
     for (const auto& n : bp.nodes()) {
-        out.insert(n.id);
+        out.insert(n.semantic.id);
     }
     for (const auto& n : bp.nested()) {
         out.insert(n.id);
@@ -102,8 +102,8 @@ std::unordered_map<ui::InternedId, float> build_node_center_y_map(
     std::unordered_map<ui::InternedId, float> out;
     out.reserve(nodes.size());
     for (const auto& n : nodes) {
-        const float h = n.height.value_or(kDefaultNodeHeight);
-        out[n.id] = n.y + (h * 0.5f);
+        const float h = n.layout.height.value_or(kDefaultNodeHeight);
+        out[n.semantic.id] = n.layout.y + (h * 0.5f);
     }
     return out;
 }

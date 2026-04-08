@@ -8,13 +8,13 @@
 TEST(BlueprintNode, ConstructAndAccess) {
     ui::StringInterner interner;
     bp2::Blueprint::Node node;
-    node.id = interner.intern("bat1");
-    node.type = interner.intern("Battery");
-    node.x = 100.0f;
-    node.y = 200.0f;
-    EXPECT_EQ(interner.resolve(node.id), "bat1");
-    EXPECT_EQ(interner.resolve(node.type), "Battery");
-    EXPECT_FLOAT_EQ(node.x, 100.0f);
+    node.semantic.id = interner.intern("bat1");
+    node.semantic.type = interner.intern("Battery");
+    node.layout.x = 100.0f;
+    node.layout.y = 200.0f;
+    EXPECT_EQ(interner.resolve(node.semantic.id), "bat1");
+    EXPECT_EQ(interner.resolve(node.semantic.type), "Battery");
+    EXPECT_FLOAT_EQ(node.layout.x, 100.0f);
 }
 
 TEST(BlueprintWire, ConstructAndAccess) {
@@ -73,15 +73,15 @@ TEST(Blueprint, AddNodeAndFind) {
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("bat1");
-    node.type = interner.intern("Battery");
+    node.semantic.id = interner.intern("bat1");
+    node.semantic.type = interner.intern("Battery");
 
     bp2::Blueprint bp2_val = bp.with_node(std::move(node));
     EXPECT_EQ(bp2_val.nodes().size(), 1u);
 
     auto* found = bp2_val.find_node(interner.intern("bat1"));
     ASSERT_NE(found, nullptr);
-    EXPECT_EQ(interner.resolve(found->type), "Battery");
+    EXPECT_EQ(interner.resolve(found->semantic.type), "Battery");
 }
 
 TEST(Blueprint, FindNodeNotFound) {
@@ -95,8 +95,8 @@ TEST(Blueprint, WithNodeDoesNotMutateOriginal) {
     bp2::Blueprint original;
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("x");
-    node.type = interner.intern("T");
+    node.semantic.id = interner.intern("x");
+    node.semantic.type = interner.intern("T");
 
     bp2::Blueprint modified = original.with_node(std::move(node));
     EXPECT_EQ(original.nodes().size(), 0u);
@@ -220,10 +220,91 @@ TEST(Blueprint, UnequalById) {
 TEST(Blueprint, UnequalByNodes) {
     ui::StringInterner interner;
     bp2::Blueprint::Node node;
-    node.id = interner.intern("n1");
-    node.type = interner.intern("T");
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("T");
 
     auto bp_a = bp2::Blueprint().with_node(node);
     auto bp_b = bp2::Blueprint();
     EXPECT_NE(bp_a, bp_b);
+}
+
+// ============================================================================
+// Node sub-struct split: field isolation & equality
+// ============================================================================
+
+TEST(NodeSplit, SemanticFieldsAreIsolatedFromLayout) {
+    ui::StringInterner interner;
+    bp2::Blueprint::Node a, b;
+    a.semantic.id = interner.intern("n1");
+    a.semantic.type = interner.intern("Battery");
+    a.layout.x = 100.0f;
+    a.layout.y = 200.0f;
+
+    b = a;
+    b.layout.x = 999.0f;  // change layout only
+
+    // Semantic sub-structs should still be equal
+    EXPECT_EQ(a.semantic, b.semantic);
+    // Layout sub-structs should differ
+    EXPECT_NE(a.layout, b.layout);
+    // Whole nodes should differ
+    EXPECT_NE(a, b);
+}
+
+TEST(NodeSplit, ViewFieldsAreIsolatedFromSemantic) {
+    ui::StringInterner interner;
+    bp2::Blueprint::Node a, b;
+    a.semantic.id = interner.intern("n1");
+    a.semantic.type = interner.intern("Resistor");
+    a.view.name = "My Resistor";
+    a.view.render_hint = "default";
+
+    b = a;
+    b.view.name = "Renamed Resistor";
+
+    EXPECT_EQ(a.semantic, b.semantic);
+    EXPECT_EQ(a.layout, b.layout);
+    EXPECT_NE(a.view, b.view);
+    EXPECT_NE(a, b);
+}
+
+TEST(NodeSplit, EqualityRequiresAllThreeSubStructs) {
+    ui::StringInterner interner;
+    bp2::Blueprint::Node a, b;
+    a.semantic.id = interner.intern("n1");
+    a.semantic.type = interner.intern("Battery");
+    a.layout.x = 10.0f;
+    a.view.name = "bat";
+
+    b = a;  // exact copy
+    EXPECT_EQ(a, b);
+
+    // Mutate each sub-struct and verify inequality
+    auto c = a; c.semantic.params[interner.intern("r")] = 0.5f;
+    EXPECT_NE(a, c);
+
+    auto d = a; d.layout.collapsed = !a.layout.collapsed;
+    EXPECT_NE(a, d);
+
+    auto e = a; e.view.expandable = true;
+    EXPECT_NE(a, e);
+}
+
+TEST(NodeSplit, PortListsLiveInViewData) {
+    ui::StringInterner interner;
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("n1");
+    node.view.inputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
+    node.view.outputs.emplace_back(interner.intern("v_out"), bp2::PortSide::Output, PortType::V);
+
+    // Verify ports are in view, not semantic or layout
+    EXPECT_EQ(node.view.inputs.size(), 1u);
+    EXPECT_EQ(node.view.outputs.size(), 1u);
+
+    // A copy with different ports in view should differ
+    auto other = node;
+    other.view.inputs.clear();
+    EXPECT_EQ(node.semantic, other.semantic);
+    EXPECT_EQ(node.layout, other.layout);
+    EXPECT_NE(node.view, other.view);
 }

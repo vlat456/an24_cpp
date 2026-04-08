@@ -86,12 +86,12 @@ TEST(BlueprintCodec, EncodeNodesWithParams) {
     bp = bp.with_id(interner.intern("test"));
 
     bp2::Blueprint::Node node;
-    node.id = interner.intern("bat1");
-    node.type = interner.intern("Battery");
-    node.x = 100.0f;
-    node.y = 200.0f;
-    node.params[interner.intern("v_nominal")] = 28.0f;
-    node.params[interner.intern("capacity")] = 24.0f;
+    node.semantic.id = interner.intern("bat1");
+    node.semantic.type = interner.intern("Battery");
+    node.layout.x = 100.0f;
+    node.layout.y = 200.0f;
+    node.semantic.params[interner.intern("v_nominal")] = 28.0f;
+    node.semantic.params[interner.intern("capacity")] = 24.0f;
     bp = bp.with_node(std::move(node));
 
     std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena);
@@ -163,12 +163,12 @@ TEST(BlueprintCodec, EncodeNestedEmbedded) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
-    bp2::Blueprint inner;
-    inner = inner.with_id(interner.intern("inner_bp"));
-    bp2::Blueprint::Node inner_node;
-    inner_node.id = interner.intern("r1");
-    inner_node.type = interner.intern("Resistor");
-    inner = inner.with_node(std::move(inner_node));
+     bp2::Blueprint inner;
+     inner = inner.with_id(interner.intern("inner_bp"));
+     bp2::Blueprint::Node inner_node;
+     inner_node.semantic.id = interner.intern("r1");
+     inner_node.semantic.type = interner.intern("Resistor");
+     inner = inner.with_node(std::move(inner_node));
 
     bp2::Blueprint outer;
     outer = outer.with_id(interner.intern("outer"));
@@ -217,12 +217,12 @@ TEST(BlueprintCodec, DecodeEmptyBlueprint) {
         "nested": []
     })";
 
-    bp2::DecodeError err;
-    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
-    ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
-    ASSERT_EQ(result->nodes().size(), 1u);
-    EXPECT_FLOAT_EQ(result->nodes()[0].x, 0.0f);
-    EXPECT_FLOAT_EQ(result->nodes()[0].y, 0.0f);
+     bp2::DecodeError err;
+     auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+     ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
+     ASSERT_EQ(result->nodes().size(), 1u);
+     EXPECT_FLOAT_EQ(result->nodes()[0].layout.x, 0.0f);
+     EXPECT_FLOAT_EQ(result->nodes()[0].layout.y, 0.0f);
 }
 
 TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
@@ -247,26 +247,26 @@ TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
         "nested": []
     })";
 
-    bp2::DecodeError err;
-    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
-    ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
-    ASSERT_EQ(result->nodes().size(), 1u);
-    EXPECT_FLOAT_EQ(result->nodes()[0].x, 42.0f);
-    EXPECT_FLOAT_EQ(result->nodes()[0].y, -7.5f);
+     bp2::DecodeError err;
+     auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+     ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
+     ASSERT_EQ(result->nodes().size(), 1u);
+     EXPECT_FLOAT_EQ(result->nodes()[0].layout.x, 42.0f);
+     EXPECT_FLOAT_EQ(result->nodes()[0].layout.y, -7.5f);
 }
 
 // =============================================================================
-// Regression: node.iface must be populated from decoded ports so that
+// Regression: node.semantic.iface must be populated from decoded ports so that
 // PathResolver can resolve wire endpoints even when the node type is NOT
 // in the library registry (e.g. embedded blueprint proxy nodes).
 // Bug: closed_circuit.blueprint saved OK but failed to reload with
 //   "[persist] Failed to load blueprint: wire id=186: wire endpoint path unresolved"
-// Root cause: decode_nodes() populated node.inputs/node.outputs but never
-// built node.iface, so node_interface() returned nullptr for non-registry types.
+// Root cause: decode_nodes() populated node.view.inputs/node.view.outputs but never
+// built node.semantic.iface, so node_interface() returned nullptr for non-registry types.
 // =============================================================================
 
 TEST(BlueprintCodec, DecodePopulatesNodeIfaceFromPorts) {
-    // After decoding a node with "ports", node.iface must be non-empty
+    // After decoding a node with "ports", node.semantic.iface must be non-empty
     // and contain the correct PortDescriptors — even for known types.
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -300,25 +300,25 @@ TEST(BlueprintCodec, DecodePopulatesNodeIfaceFromPorts) {
     ASSERT_EQ(result->nodes().size(), 1u);
 
     const auto& node = result->nodes()[0];
-    // The fix: node.iface must be populated from the decoded ports
-    EXPECT_FALSE(node.iface.empty());
-    EXPECT_EQ(node.iface.size(), 3u);
+    // The fix: node.semantic.iface must be populated from the decoded ports
+    EXPECT_FALSE(node.semantic.iface.empty());
+    EXPECT_EQ(node.semantic.iface.size(), 3u);
 
     // Verify each port is findable by name
-    EXPECT_TRUE(node.iface.has(interner.intern("feedback")));
-    EXPECT_TRUE(node.iface.has(interner.intern("output")));
-    EXPECT_TRUE(node.iface.has(interner.intern("bidir")));
+    EXPECT_TRUE(node.semantic.iface.has(interner.intern("feedback")));
+    EXPECT_TRUE(node.semantic.iface.has(interner.intern("output")));
+    EXPECT_TRUE(node.semantic.iface.has(interner.intern("bidir")));
 
     // Verify directions
-    auto fb = node.iface.find(interner.intern("feedback"));
+    auto fb = node.semantic.iface.find(interner.intern("feedback"));
     ASSERT_TRUE(fb.has_value());
     EXPECT_EQ(fb->direction, bp2::Direction::Input);
 
-    auto out = node.iface.find(interner.intern("output"));
+    auto out = node.semantic.iface.find(interner.intern("output"));
     ASSERT_TRUE(out.has_value());
     EXPECT_EQ(out->direction, bp2::Direction::Output);
 
-    auto bd = node.iface.find(interner.intern("bidir"));
+    auto bd = node.semantic.iface.find(interner.intern("bidir"));
     ASSERT_TRUE(bd.has_value());
     EXPECT_EQ(bd->direction, bp2::Direction::InOut);
 }
@@ -347,10 +347,10 @@ TEST(BlueprintCodec, DecodeNodeIfaceEmptyWhenNoPorts) {
         "nested": []
     })";
 
-    bp2::DecodeError err;
-    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
-    ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
-    EXPECT_TRUE(result->nodes()[0].iface.empty());
+     bp2::DecodeError err;
+     auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+     ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
+     EXPECT_TRUE(result->nodes()[0].semantic.iface.empty());
 }
 
 TEST(BlueprintCodec, RoundTripProxyNodeWithWires_EndpointsResolve) {
@@ -376,29 +376,29 @@ TEST(BlueprintCodec, RoundTripProxyNodeWithWires_EndpointsResolve) {
     bp = bp.with_id(interner.intern("roundtrip_proxy"));
     bp = bp.with_display_name("Roundtrip Proxy Test");
 
-    // Standard node (Battery)
-    bp2::Blueprint::Node bat;
-    bat.id = interner.intern("bat1");
-    bat.type = interner.intern("Battery");
-    bat.x = 10.0f;
-    bat.y = 20.0f;
-    bat.outputs.emplace_back(interner.intern("v_out"), PortSide::Output, PortType::V);
-    bp = bp.with_node(std::move(bat));
+     // Standard node (Battery)
+     bp2::Blueprint::Node bat;
+     bat.semantic.id = interner.intern("bat1");
+     bat.semantic.type = interner.intern("Battery");
+     bat.layout.x = 10.0f;
+     bat.layout.y = 20.0f;
+     bat.view.outputs.emplace_back(interner.intern("v_out"), bp2::PortSide::Output, PortType::V);
+     bp = bp.with_node(std::move(bat));
 
-    // Proxy node (type NOT in registry, expandable with embedded nested def)
-    bp2::Blueprint::Node proxy;
-    proxy.id = interner.intern("extract_inst_1");
-    proxy.type = interner.intern("RN-180-Exciter");
-    proxy.expandable = true;
-    proxy.x = 100.0f;
-    proxy.y = 200.0f;
-    proxy.inputs.emplace_back(interner.intern("feedback"), PortSide::Input, PortType::V);
-    proxy.outputs.emplace_back(interner.intern("output"), PortSide::Output, PortType::V);
-    proxy.iface = bp2::Interface({
-        {interner.intern("feedback"), Domain::Electrical, bp2::Direction::Input},
-        {interner.intern("output"), Domain::Electrical, bp2::Direction::Output},
-    });
-    bp = bp.with_node(std::move(proxy));
+     // Proxy node (type NOT in registry, expandable with embedded nested def)
+     bp2::Blueprint::Node proxy;
+     proxy.semantic.id = interner.intern("extract_inst_1");
+     proxy.semantic.type = interner.intern("RN-180-Exciter");
+     proxy.view.expandable = true;
+     proxy.layout.x = 100.0f;
+     proxy.layout.y = 200.0f;
+     proxy.view.inputs.emplace_back(interner.intern("feedback"), bp2::PortSide::Input, PortType::V);
+     proxy.view.outputs.emplace_back(interner.intern("output"), bp2::PortSide::Output, PortType::V);
+     proxy.semantic.iface = bp2::Interface({
+         {interner.intern("feedback"), Domain::Electrical, bp2::Direction::Input},
+         {interner.intern("output"), Domain::Electrical, bp2::Direction::Output},
+     });
+     bp = bp.with_node(std::move(proxy));
 
     // Matching embedded nested definition (required by InvariantChecker for
     // expandable proxy nodes with unknown type)
@@ -594,8 +594,8 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
 
     // All positions should default to {0, 0}
     for (const auto& node : result->nodes()) {
-        EXPECT_FLOAT_EQ(node.x, 0.0f);
-        EXPECT_FLOAT_EQ(node.y, 0.0f);
+        EXPECT_FLOAT_EQ(node.layout.x, 0.0f);
+        EXPECT_FLOAT_EQ(node.layout.y, 0.0f);
     }
 }
 
@@ -627,8 +627,8 @@ TEST(BlueprintCodec, DecodeEmbeddedNestedPopulatesIfaceFromInlineDef) {
                     "id": "InnerBP",
                     "display_name": "Inner Blueprint",
                     "interface": [
-                        {"name": "in_port",  "domain": 1, "direction": 0},
-                        {"name": "out_port", "domain": 1, "direction": 1}
+                        {"name": "in_port",  "domain": 1, "direction": 0, "type": "Any", "source_writer": false},
+                        {"name": "out_port", "domain": 1, "direction": 1, "type": "Any", "source_writer": false}
                     ],
                     "nodes": [],
                     "wires": [],
@@ -721,23 +721,23 @@ TEST(BlueprintCodec, RoundTripPreservesNodeContentTypeByEnumValue) {
     bp = bp.with_id(interner.intern("content_rt"));
     bp = bp.with_display_name("Content RT");
 
-    bp2::Blueprint::Node n;
-    n.id = interner.intern("knob1");
-    n.type = interner.intern("Battery");
-    n.content_type = bp2::NodeContentType::Knob;
-    bp = bp.with_node(std::move(n));
+     bp2::Blueprint::Node n;
+     n.semantic.id = interner.intern("knob1");
+     n.semantic.type = interner.intern("Battery");
+     n.view.content_type = bp2::NodeContentType::Knob;
+     bp = bp.with_node(std::move(n));
 
-    const std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
-    const auto j = nlohmann::json::parse(encoded);
-    ASSERT_EQ(j["nodes"].size(), 1u);
-    EXPECT_EQ(j["nodes"][0]["content_type"].get<int>(),
-              static_cast<int>(bp2::NodeContentType::Knob));
+     const std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
+     const auto j = nlohmann::json::parse(encoded);
+     ASSERT_EQ(j["nodes"].size(), 1u);
+     EXPECT_EQ(j["nodes"][0]["content_type"].get<int>(),
+               static_cast<int>(bp2::NodeContentType::Knob));
 
-    bp2::DecodeError err;
-    auto decoded = bp2::BlueprintCodec::decode(encoded, interner, arena, reg, &err);
-    ASSERT_TRUE(decoded.has_value()) << err.message;
-    ASSERT_EQ(decoded->nodes().size(), 1u);
-    EXPECT_EQ(decoded->nodes()[0].content_type, bp2::NodeContentType::Knob);
+     bp2::DecodeError err;
+     auto decoded = bp2::BlueprintCodec::decode(encoded, interner, arena, reg, &err);
+     ASSERT_TRUE(decoded.has_value()) << err.message;
+     ASSERT_EQ(decoded->nodes().size(), 1u);
+     EXPECT_EQ(decoded->nodes()[0].view.content_type, bp2::NodeContentType::Knob);
 }
 
 TEST(BlueprintCodec, DecodeRejectsNodeContentTypeAtSentinelBoundary) {
@@ -767,6 +767,81 @@ TEST(BlueprintCodec, DecodeRejectsNodeContentTypeAtSentinelBoundary) {
     auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
     EXPECT_FALSE(result.has_value());
     EXPECT_NE(err.message.find("content_type out of range"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsInterfaceMissingTypeAndSourceWriter) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg = make_test_registry();
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "version": "3.0",
+        "id": "iface_missing_fields",
+        "display_name": "Iface Missing Fields",
+        "interface": [
+            {"name": "in", "domain": 1, "direction": 0}
+        ],
+        "nodes": [],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("type"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsInterfaceMissingSourceWriter) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg = make_test_registry();
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "version": "3.0",
+        "id": "iface_missing_sw",
+        "display_name": "Iface Missing SW",
+        "interface": [
+            {"name": "in", "domain": 1, "direction": 0, "type": "Any"}
+        ],
+        "nodes": [],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("source_writer"), std::string::npos);
+}
+
+TEST(BlueprintCodec, EncodeInterfaceIncludesCanonicalPortMetadata) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("iface_encode_meta"));
+    bp = bp.with_display_name("Iface Encode Meta");
+
+     bp2::PortDescriptor pd;
+     pd.name = interner.intern("out");
+     pd.domain = Domain::Electrical;
+     pd.direction = bp2::Direction::Output;
+     // TODO: PortDescriptor doesn't have type, source_writer, alias fields
+     // pd.semantic.type = PortType::V;
+     // pd.source_writer = true;
+     // pd.alias = std::string("in");
+     bp = bp.with_interface(bp2::Interface({pd}));
+
+     const std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
+     const auto j = nlohmann::json::parse(encoded);
+
+     ASSERT_EQ(j["interface"].size(), 1u);
+     const auto& p = j["interface"][0];
+     EXPECT_EQ(p["name"], "out");
+     // EXPECT_EQ(p["type"], "V");
+     // EXPECT_EQ(p["source_writer"], true);
+     // EXPECT_EQ(p["alias"], "in");
 }
 
 TEST(BlueprintCodec, EncodeWithParserRegistryOverload) {

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../../blueprint_v2/blueprint/node_content_type.h"
+#include "../../blueprint_v2/blueprint/node_port.h"
 #include "../../ui/math/pt.h"
-#include "port.h"
 #include <string>
 #include <optional>
 #include <cstdint>
@@ -39,7 +39,7 @@ struct NodeColor {
 /// Per-port layout override at the blueprint (instance) level.
 struct PortLayoutOverride {
     std::string port_name;                    ///< Match by name (survives reordering)
-    std::optional<PortLayoutSide> side;       ///< Override side (nullopt = use default)
+    std::optional<bp2::PortLayoutSide> side;  ///< Override side (nullopt = use default)
     std::optional<uint8_t> position;          ///< Position hint within side (nullopt = auto-append)
     
     bool operator==(const PortLayoutOverride& other) const {

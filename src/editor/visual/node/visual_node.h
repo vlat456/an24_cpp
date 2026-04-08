@@ -106,7 +106,7 @@ private:
     void buildVerticalToggleLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
     void buildPortRow(std::string_view left_name, PortType left_type,
                       std::string_view right_name, PortType right_type);
-    void buildPortInColumn(Widget* col, std::string_view name, PortType type, PortSide logical_side, PortLayoutSide layout_side);
+    void buildPortInColumn(Widget* col, std::string_view name, PortType type, bp2::PortSide logical_side, bp2::PortLayoutSide layout_side);
     void buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
 
     void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);

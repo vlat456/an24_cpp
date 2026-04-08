@@ -21,11 +21,11 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
                                        const char* id,
                                        std::initializer_list<std::pair<const char*, float>> params = {}) {
     bp2::Blueprint::Node n;
-    n.id   = I.intern(id);
-    n.type = I.intern("Battery");
-    n.name = id;
+    n.semantic.id   = I.intern(id);
+    n.semantic.type = I.intern("Battery");
+    n.view.name = id;
     for (auto& [k, v] : params)
-        n.params[I.intern(k)] = v;
+        n.semantic.params[I.intern(k)] = v;
     return n;
 }
 
@@ -34,15 +34,15 @@ static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
                                              bool input_bridge,
                                              PortType t) {
     bp2::Blueprint::Node n;
-    n.id = I.intern(id);
-    n.type = I.intern(input_bridge ? "BlueprintInput" : "BlueprintOutput");
-    n.name = id;
+    n.semantic.id = I.intern(id);
+    n.semantic.type = I.intern(input_bridge ? "BlueprintInput" : "BlueprintOutput");
+    n.view.name = id;
     if (input_bridge) {
-        n.inputs.emplace_back(I.intern("ext"), PortSide::Input, t);
-        n.outputs.emplace_back(I.intern("port"), PortSide::Output, t);
+        n.view.inputs.emplace_back(I.intern("ext"), bp2::PortSide::Input, t);
+        n.view.outputs.emplace_back(I.intern("port"), bp2::PortSide::Output, t);
     } else {
-        n.inputs.emplace_back(I.intern("port"), PortSide::Input, t);
-        n.outputs.emplace_back(I.intern("ext"), PortSide::Output, t);
+        n.view.inputs.emplace_back(I.intern("port"), bp2::PortSide::Input, t);
+        n.view.outputs.emplace_back(I.intern("ext"), bp2::PortSide::Output, t);
     }
     return n;
 }
@@ -92,10 +92,10 @@ TEST_F(PropertiesWindowTest, OpenInitializesPendingState) {
 
 TEST_F(PropertiesWindowTest, OpenKeepsLutTableAsStringParam) {
     bp2::Blueprint::Node lut;
-    lut.id = interner.intern("lut_1");
-    lut.type = interner.intern("LUT");
-    lut.name = "lut_1";
-    lut.string_params["table"] = "0:0; 100:100";
+    lut.semantic.id = interner.intern("lut_1");
+    lut.semantic.type = interner.intern("LUT");
+    lut.view.name = "lut_1";
+    lut.semantic.string_params["table"] = "0:0; 100:100";
     model.add_node(std::move(lut));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("lut_1"));
@@ -142,13 +142,13 @@ TEST_F(PropertiesWindowTest, CancelDoesNotMutateLiveNode) {
 
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    auto v_it = node_ptr->params.find(interner.intern("v"));
-    auto r_it = node_ptr->params.find(interner.intern("r"));
-    ASSERT_NE(v_it, node_ptr->params.end());
-    ASSERT_NE(r_it, node_ptr->params.end());
+    auto v_it = node_ptr->semantic.params.find(interner.intern("v"));
+    auto r_it = node_ptr->semantic.params.find(interner.intern("r"));
+    ASSERT_NE(v_it, node_ptr->semantic.params.end());
+    ASSERT_NE(r_it, node_ptr->semantic.params.end());
     EXPECT_FLOAT_EQ(v_it->second, 28.0f) << "Cancel must not mutate live node";
     EXPECT_FLOAT_EQ(r_it->second, 0.01f) << "Untouched params preserved";
-    EXPECT_EQ(node_ptr->name, "bat1") << "Cancel must not mutate live name";
+    EXPECT_EQ(node_ptr->view.name, "bat1") << "Cancel must not mutate live name";
     EXPECT_FALSE(win.is_open());
 }
 
@@ -168,10 +168,10 @@ TEST_F(PropertiesWindowTest, LiveNodeUntouchedDuringEditing) {
     // Live node must remain untouched while editing is in progress
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    auto v_it = node_ptr->params.find(interner.intern("v"));
-    ASSERT_NE(v_it, node_ptr->params.end());
+    auto v_it = node_ptr->semantic.params.find(interner.intern("v"));
+    ASSERT_NE(v_it, node_ptr->semantic.params.end());
     EXPECT_FLOAT_EQ(v_it->second, 28.0f) << "Live node must not change during editing";
-    EXPECT_EQ(node_ptr->name, "bat1") << "Live name must not change during editing";
+    EXPECT_EQ(node_ptr->view.name, "bat1") << "Live name must not change during editing";
 }
 
 TEST_F(PropertiesWindowTest, OpenTwiceDiscardsFirstSession) {
@@ -194,8 +194,8 @@ TEST_F(PropertiesWindowTest, OpenTwiceDiscardsFirstSession) {
     // Live node was never mutated
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    auto v_it = node_ptr->params.find(interner.intern("v"));
-    ASSERT_NE(v_it, node_ptr->params.end());
+    auto v_it = node_ptr->semantic.params.find(interner.intern("v"));
+    ASSERT_NE(v_it, node_ptr->semantic.params.end());
     EXPECT_FLOAT_EQ(v_it->second, 28.0f) << "Live node must not have been mutated by first session";
 
     // Pending state should be fresh from the live node
@@ -206,8 +206,8 @@ TEST_F(PropertiesWindowTest, OpenTwiceDiscardsFirstSession) {
     win.close();
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    v_it = node_ptr->params.find(interner.intern("v"));
-    ASSERT_NE(v_it, node_ptr->params.end());
+    v_it = node_ptr->semantic.params.find(interner.intern("v"));
+    ASSERT_NE(v_it, node_ptr->semantic.params.end());
     EXPECT_FLOAT_EQ(v_it->second, 28.0f);
 }
 
@@ -247,10 +247,10 @@ TEST_F(PropertiesWindowTest, ApplyEmitsCmdSetParam) {
     EXPECT_FALSE(win.is_open());
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    auto v_it = node_ptr->params.find(interner.intern("v"));
-    auto r_it = node_ptr->params.find(interner.intern("r"));
-    ASSERT_NE(v_it, node_ptr->params.end());
-    ASSERT_NE(r_it, node_ptr->params.end());
+    auto v_it = node_ptr->semantic.params.find(interner.intern("v"));
+    auto r_it = node_ptr->semantic.params.find(interner.intern("r"));
+    ASSERT_NE(v_it, node_ptr->semantic.params.end());
+    ASSERT_NE(r_it, node_ptr->semantic.params.end());
     EXPECT_FLOAT_EQ(v_it->second, 14.0f) << "Applied value must persist";
     EXPECT_FLOAT_EQ(r_it->second, 0.01f) << "Untouched param preserved";
     EXPECT_TRUE(model.can_undo()) << "Undo stack must have an entry";
@@ -269,17 +269,17 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores)
 
     node_ptr = model.current().find_node(interner.intern("bp_in_1"));
     ASSERT_NE(node_ptr, nullptr);
-    ASSERT_EQ(node_ptr->inputs.size(), 1u);
-    ASSERT_EQ(node_ptr->outputs.size(), 1u);
-    EXPECT_EQ(node_ptr->inputs[0].type, PortType::RPM);
-    EXPECT_EQ(node_ptr->outputs[0].type, PortType::RPM);
+    ASSERT_EQ(node_ptr->view.inputs.size(), 1u);
+    ASSERT_EQ(node_ptr->view.outputs.size(), 1u);
+    EXPECT_EQ(node_ptr->view.inputs[0].type, PortType::RPM);
+    EXPECT_EQ(node_ptr->view.outputs[0].type, PortType::RPM);
 
     ASSERT_TRUE(model.can_undo());
     model.undo();
     node_ptr = model.current().find_node(interner.intern("bp_in_1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(node_ptr->inputs[0].type, PortType::V);
-    EXPECT_EQ(node_ptr->outputs[0].type, PortType::V);
+    EXPECT_EQ(node_ptr->view.inputs[0].type, PortType::V);
+    EXPECT_EQ(node_ptr->view.outputs[0].type, PortType::V);
 }
 
 TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNestedIface) {
@@ -287,13 +287,13 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     bp = bp.with_id(interner.intern("bp"));
 
     bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:in", true, PortType::V);
-    bridge.group_id = "inst1";
+    bridge.layout.group_id = "inst1";
 
     bp2::Blueprint::Node collapsed;
-    collapsed.id = interner.intern("inst1");
-    collapsed.type = interner.intern("bp_type");
-    collapsed.name = "inst1";
-    collapsed.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+    collapsed.semantic.id = interner.intern("inst1");
+    collapsed.semantic.type = interner.intern("bp_type");
+    collapsed.view.name = "inst1";
+    collapsed.view.inputs.emplace_back(interner.intern("in"), bp2::PortSide::Input, PortType::V);
 
     bp2::Blueprint::Nested nested;
     nested.id = interner.intern("inst1");
@@ -318,8 +318,8 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
 
     const auto* collapsed_after = model.current().find_node(interner.intern("inst1"));
     ASSERT_NE(collapsed_after, nullptr);
-    ASSERT_EQ(collapsed_after->inputs.size(), 1u);
-    EXPECT_EQ(collapsed_after->inputs[0].type, PortType::RPM);
+    ASSERT_EQ(collapsed_after->view.inputs.size(), 1u);
+    EXPECT_EQ(collapsed_after->view.inputs[0].type, PortType::RPM);
 
     const auto* nested_after = model.current().find_nested(interner.intern("inst1"));
     ASSERT_NE(nested_after, nullptr);
@@ -343,8 +343,8 @@ TEST_F(PropertiesWindowTest, ApplyThenUndoRevertsParam) {
 
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("v")), 14.0f);
-    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("r")), 0.05f);
+    EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("v")), 14.0f);
+    EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("r")), 0.05f);
 
     // Undo
     ASSERT_TRUE(model.can_undo());
@@ -352,15 +352,15 @@ TEST_F(PropertiesWindowTest, ApplyThenUndoRevertsParam) {
 
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("v")), 28.0f) << "Undo must revert v";
-    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("r")), 0.01f) << "Undo must revert r";
+    EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("v")), 28.0f) << "Undo must revert v";
+    EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("r")), 0.01f) << "Undo must revert r";
 
     // Redo
     model.redo();
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("v")), 14.0f) << "Redo must restore v";
-    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("r")), 0.05f) << "Redo must restore r";
+    EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("v")), 14.0f) << "Redo must restore v";
+    EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("r")), 0.05f) << "Redo must restore r";
 }
 
 TEST_F(PropertiesWindowTest, ApplyNoChangesDoesNotPushUndo) {
@@ -405,7 +405,7 @@ TEST_F(PropertiesWindowTest, ApplyInvokesCallback) {
 
 TEST_F(PropertiesWindowTest, NameChangePushesUndo) {
     auto n = make_node(interner, "bat1", {{"v", 28.0f}});
-    n.name = "OriginalName";
+    n.view.name = "OriginalName";
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bat1"));
@@ -420,12 +420,12 @@ TEST_F(PropertiesWindowTest, NameChangePushesUndo) {
     EXPECT_TRUE(model.can_undo()) << "Name change should push to undo stack";
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(node_ptr->name, "NewName");
+    EXPECT_EQ(node_ptr->view.name, "NewName");
 }
 
 TEST_F(PropertiesWindowTest, NameChangeUndoRestoresOldName) {
     auto n = make_node(interner, "bat1", {{"v", 28.0f}});
-    n.name = "OriginalName";
+    n.view.name = "OriginalName";
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bat1"));
@@ -439,38 +439,38 @@ TEST_F(PropertiesWindowTest, NameChangeUndoRestoresOldName) {
 
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(node_ptr->name, "NewName");
+    EXPECT_EQ(node_ptr->view.name, "NewName");
 
     // Undo
     model.undo();
 
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(node_ptr->name, "OriginalName") << "Undo should restore original name";
+    EXPECT_EQ(node_ptr->view.name, "OriginalName") << "Undo should restore original name";
 }
 
 TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node src;
-    src.id = interner.intern("src");
-    src.type = interner.intern("Battery");
-    src.name = "src";
-    src.outputs.emplace_back(interner.intern("v_out"), PortSide::Output, PortType::V);
+    src.semantic.id = interner.intern("src");
+    src.semantic.type = interner.intern("Battery");
+    src.view.name = "src";
+    src.view.outputs.emplace_back(interner.intern("v_out"), bp2::PortSide::Output, PortType::V);
 
     bp2::Blueprint::Node bus;
-    bus.id = interner.intern("bus");
-    bus.type = interner.intern("Bus");
-    bus.name = "bus";
-    bus.render_hint = "bus";
-    bus.inputs.emplace_back(interner.intern("v"), PortSide::InOut, PortType::V);
-    bus.outputs.emplace_back(interner.intern("v"), PortSide::InOut, PortType::V);
+    bus.semantic.id = interner.intern("bus");
+    bus.semantic.type = interner.intern("Bus");
+    bus.view.name = "bus";
+    bus.view.render_hint = "bus";
+    bus.view.inputs.emplace_back(interner.intern("v"), bp2::PortSide::InOut, PortType::V);
+    bus.view.outputs.emplace_back(interner.intern("v"), bp2::PortSide::InOut, PortType::V);
 
     bp2::Blueprint::Node load;
-    load.id = interner.intern("load");
-    load.type = interner.intern("Lamp");
-    load.name = "load";
-    load.inputs.emplace_back(interner.intern("v_in"), PortSide::Input, PortType::V);
+    load.semantic.id = interner.intern("load");
+    load.semantic.type = interner.intern("Lamp");
+    load.view.name = "load";
+    load.view.inputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
 
     bp = bp.with_node(src);
     bp = bp.with_node(bus);
@@ -491,7 +491,7 @@ TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
     model.replace_current(std::move(bp));
 
     std::vector<ui::InternedId> node_order_before;
-    for (const auto& n : model.current().nodes()) node_order_before.push_back(n.id);
+    for (const auto& n : model.current().nodes()) node_order_before.push_back(n.semantic.id);
 
     std::vector<ui::InternedId> wire_order_before;
     for (const auto& w : model.current().wires()) wire_order_before.push_back(w.id);
@@ -505,7 +505,7 @@ TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
     win.apply();
 
     std::vector<ui::InternedId> node_order_after;
-    for (const auto& n : model.current().nodes()) node_order_after.push_back(n.id);
+    for (const auto& n : model.current().nodes()) node_order_after.push_back(n.semantic.id);
 
     std::vector<ui::InternedId> wire_order_after;
     for (const auto& w : model.current().wires()) wire_order_after.push_back(w.id);
@@ -516,7 +516,7 @@ TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
 
 TEST_F(PropertiesWindowTest, ParamAndNameChangeSingleUndo) {
     auto n = make_node(interner, "bat1", {{"v", 28.0f}});
-    n.name = "OriginalName";
+    n.view.name = "OriginalName";
     model.add_node(std::move(n));
     model.clear_history(); // setup only — not part of undo test
 
@@ -533,8 +533,8 @@ TEST_F(PropertiesWindowTest, ParamAndNameChangeSingleUndo) {
 
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("v")), 14.0f);
-    EXPECT_EQ(node_ptr->name, "NewName");
+    EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("v")), 14.0f);
+    EXPECT_EQ(node_ptr->view.name, "NewName");
 
     // A single Ctrl+Z should revert BOTH changes
     ASSERT_TRUE(model.can_undo());
@@ -542,8 +542,8 @@ TEST_F(PropertiesWindowTest, ParamAndNameChangeSingleUndo) {
 
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("v")), 28.0f) << "Single undo must revert param";
-    EXPECT_EQ(node_ptr->name, "OriginalName") << "Single undo must revert name";
+    EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("v")), 28.0f) << "Single undo must revert param";
+    EXPECT_EQ(node_ptr->view.name, "OriginalName") << "Single undo must revert name";
     EXPECT_FALSE(model.can_undo()) << "Only one undo entry should have been pushed";
 }
 
@@ -615,12 +615,12 @@ TEST_F(PropertiesWindowTest, CancelGracefullyWhenNodeRemoved) {
 
 TEST_F(PropertiesWindowTest, PortLayoutOverride_ApplyChanges) {
     bp2::Blueprint::Node n;
-    n.id   = interner.intern("azs1");
-    n.type = interner.intern("AZS");
-    n.name = "AZS";
-    n.inputs.push_back(EditorPort(interner.intern("v_in"),  PortSide::Input,  PortType::V));
-    n.outputs.push_back(EditorPort(interner.intern("v_out"), PortSide::Output, PortType::V));
-    n.outputs.push_back(EditorPort(interner.intern("state"), PortSide::Output, PortType::Bool));
+    n.semantic.id = interner.intern("azs1");
+    n.semantic.type = interner.intern("AZS");
+    n.view.name = "AZS";
+    n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"),  bp2::PortSide::Input,  PortType::V));
+    n.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
+    n.view.outputs.push_back(bp2::NodePort(interner.intern("state"), bp2::PortSide::Output, PortType::Bool));
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("azs1"));
@@ -640,26 +640,26 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_ApplyChanges) {
     // Verify the node's layout_overrides were updated
     node_ptr = model.current().find_node(interner.intern("azs1"));
     ASSERT_NE(node_ptr, nullptr);
-    ASSERT_EQ(node_ptr->layout_overrides.size(), 2u);
-    EXPECT_EQ(node_ptr->layout_overrides[0].port_name, "v_in");
-    EXPECT_EQ(node_ptr->layout_overrides[0].side, std::string("top"));
-    EXPECT_EQ(node_ptr->layout_overrides[1].port_name, "v_out");
-    EXPECT_EQ(node_ptr->layout_overrides[1].side, std::string("right"));
-    EXPECT_EQ(node_ptr->layout_overrides[1].position, 0);
+    ASSERT_EQ(node_ptr->layout.layout_overrides.size(), 2u);
+    EXPECT_EQ(node_ptr->layout.layout_overrides[0].port_name, "v_in");
+    EXPECT_EQ(node_ptr->layout.layout_overrides[0].side, std::string("top"));
+    EXPECT_EQ(node_ptr->layout.layout_overrides[1].port_name, "v_out");
+    EXPECT_EQ(node_ptr->layout.layout_overrides[1].side, std::string("right"));
+    EXPECT_EQ(node_ptr->layout.layout_overrides[1].position, 0);
 }
 
 TEST_F(PropertiesWindowTest, PortLayoutOverride_UndoRestoresOriginal) {
     bp2::Blueprint::Node n;
-    n.id   = interner.intern("azs1");
-    n.type = interner.intern("AZS");
-    n.name = "AZS";
-    n.inputs.push_back(EditorPort(interner.intern("v_in"),  PortSide::Input,  PortType::V));
-    n.outputs.push_back(EditorPort(interner.intern("v_out"), PortSide::Output, PortType::V));
+    n.semantic.id = interner.intern("azs1");
+    n.semantic.type = interner.intern("AZS");
+    n.view.name = "AZS";
+    n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"),  bp2::PortSide::Input,  PortType::V));
+    n.view.outputs.push_back(bp2::NodePort(interner.intern("v_out"), bp2::PortSide::Output, PortType::V));
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("azs1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_TRUE(node_ptr->layout_overrides.empty()) << "Initial layout_overrides should be empty";
+    EXPECT_TRUE(node_ptr->layout.layout_overrides.empty()) << "Initial layout_overrides should be empty";
 
     PropertiesWindow win;
     win.open(*node_ptr, "azs1", model, interner, [](const std::string&) {});
@@ -673,7 +673,7 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_UndoRestoresOriginal) {
 
     node_ptr = model.current().find_node(interner.intern("azs1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(node_ptr->layout_overrides.size(), 1u);
+    EXPECT_EQ(node_ptr->layout.layout_overrides.size(), 1u);
 
     // Undo should restore empty layout_overrides
     ASSERT_TRUE(model.can_undo());
@@ -681,15 +681,15 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_UndoRestoresOriginal) {
 
     node_ptr = model.current().find_node(interner.intern("azs1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_TRUE(node_ptr->layout_overrides.empty()) << "Undo should restore empty layout_overrides";
+    EXPECT_TRUE(node_ptr->layout.layout_overrides.empty()) << "Undo should restore empty layout_overrides";
 }
 
 TEST_F(PropertiesWindowTest, PortLayoutOverride_NoChangesDoesNotPushUndo) {
     bp2::Blueprint::Node n;
-    n.id   = interner.intern("azs1");
-    n.type = interner.intern("AZS");
-    n.name = "AZS";
-    n.inputs.push_back(EditorPort(interner.intern("v_in"), PortSide::Input, PortType::V));
+    n.semantic.id = interner.intern("azs1");
+    n.semantic.type = interner.intern("AZS");
+    n.view.name = "AZS";
+    n.view.inputs.push_back(bp2::NodePort(interner.intern("v_in"), bp2::PortSide::Input, PortType::V));
     model.add_node(std::move(n));
     model.clear_history(); // setup only — not part of undo test
 
@@ -719,8 +719,8 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_NoChangesDoesNotPushUndo) {
 // EDITOR_TESTING render() path (see properties_window.cpp line ~210).
 TEST_F(PropertiesWindowTest, BridgeNode_ExposedParamsInStringParams) {
     auto n = make_bridge_node(interner, "inst:my_input", true, PortType::V);
-    n.string_params["exposed_type"]      = "V";
-    n.string_params["exposed_direction"] = "In";
+    n.semantic.string_params["exposed_type"]      = "V";
+    n.semantic.string_params["exposed_direction"] = "In";
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst:my_input"));
@@ -749,8 +749,8 @@ TEST_F(PropertiesWindowTest, BridgeNode_ExposedParamsInStringParams) {
 // round-trips cleanly.
 TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
     auto n = make_bridge_node(interner, "inst:my_output", false, PortType::V);
-    n.string_params["exposed_type"]      = "V";
-    n.string_params["exposed_direction"] = "Out";
+    n.semantic.string_params["exposed_type"]      = "V";
+    n.semantic.string_params["exposed_direction"] = "Out";
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst:my_output"));
@@ -766,12 +766,12 @@ TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
     // Verify the port type was updated on the node
     node_ptr = model.current().find_node(interner.intern("inst:my_output"));
     ASSERT_NE(node_ptr, nullptr);
-    ASSERT_FALSE(node_ptr->inputs.empty());
-    EXPECT_EQ(node_ptr->inputs.front().type, PortType::Bool);
+    ASSERT_FALSE(node_ptr->view.inputs.empty());
+    EXPECT_EQ(node_ptr->view.inputs.front().type, PortType::Bool);
 
     // String params should still carry the original exposed_type (not auto-updated
     // from the dropdown — that's a separate serialization concern)
-    EXPECT_EQ(node_ptr->string_params.at("exposed_type"), "V");
+    EXPECT_EQ(node_ptr->semantic.string_params.at("exposed_type"), "V");
 }
 
 // =============================================================================
@@ -783,17 +783,17 @@ TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
 // the correct number of tick marks.
 TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax) {
     bp2::Blueprint::Node n;
-    n.id = interner.intern("knob1");
-    n.type = interner.intern("KnobSwitch");
-    n.name = "knob1";
-    n.content_type = bp2::NodeContentType::Knob;
-    n.content_max = 2.0f;  // Initial: 2 positions
-    n.params[interner.intern("positions")] = 2.0f;
+    n.semantic.id = interner.intern("knob1");
+    n.semantic.type = interner.intern("KnobSwitch");
+    n.view.name = "knob1";
+    n.view.content_type = bp2::NodeContentType::Knob;
+    n.view.content_max = 2.0f;  // Initial: 2 positions
+    n.semantic.params[interner.intern("positions")] = 2.0f;
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("knob1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->content_max, 2.0f);
+    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 2.0f);
 
     PropertiesWindow win;
     win.open(*node_ptr, "knob1", model, interner, [](const std::string&) {});
@@ -804,8 +804,8 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax) {
 
     node_ptr = model.current().find_node(interner.intern("knob1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->params.at(interner.intern("positions")), 5.0f);
-    EXPECT_FLOAT_EQ(node_ptr->content_max, 5.0f)
+    EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("positions")), 5.0f);
+    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 5.0f)
         << "content_max must be synced from 'positions' param for Knob nodes";
 }
 
@@ -813,12 +813,12 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax) {
 // revert to the original value.
 TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax_UndoReverts) {
     bp2::Blueprint::Node n;
-    n.id = interner.intern("knob1");
-    n.type = interner.intern("KnobSwitch");
-    n.name = "knob1";
-    n.content_type = bp2::NodeContentType::Knob;
-    n.content_max = 2.0f;
-    n.params[interner.intern("positions")] = 2.0f;
+    n.semantic.id = interner.intern("knob1");
+    n.semantic.type = interner.intern("KnobSwitch");
+    n.view.name = "knob1";
+    n.view.content_type = bp2::NodeContentType::Knob;
+    n.view.content_max = 2.0f;
+    n.semantic.params[interner.intern("positions")] = 2.0f;
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("knob1"));
@@ -834,7 +834,7 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax_UndoReverts) {
 
     node_ptr = model.current().find_node(interner.intern("knob1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->content_max, 2.0f)
+    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 2.0f)
         << "Undo must revert content_max for Knob nodes";
 }
 
@@ -842,14 +842,14 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax_UndoReverts) {
 // apply() must sync content_min / content_max.
 TEST_F(PropertiesWindowTest, ApplySliderMinMaxSyncsContentRange) {
     bp2::Blueprint::Node n;
-    n.id = interner.intern("slider1");
-    n.type = interner.intern("Slider");
-    n.name = "slider1";
-    n.content_type = bp2::NodeContentType::Slider;
-    n.content_min = 0.0f;
-    n.content_max = 100.0f;
-    n.params[interner.intern("min")] = 0.0f;
-    n.params[interner.intern("max")] = 100.0f;
+    n.semantic.id = interner.intern("slider1");
+    n.semantic.type = interner.intern("Slider");
+    n.view.name = "slider1";
+    n.view.content_type = bp2::NodeContentType::Slider;
+    n.view.content_min = 0.0f;
+    n.view.content_max = 100.0f;
+    n.semantic.params[interner.intern("min")] = 0.0f;
+    n.semantic.params[interner.intern("max")] = 100.0f;
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("slider1"));
@@ -863,9 +863,9 @@ TEST_F(PropertiesWindowTest, ApplySliderMinMaxSyncsContentRange) {
 
     node_ptr = model.current().find_node(interner.intern("slider1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->content_min, -10.0f)
+    EXPECT_FLOAT_EQ(node_ptr->view.content_min, -10.0f)
         << "content_min must be synced from 'min' param for Slider nodes";
-    EXPECT_FLOAT_EQ(node_ptr->content_max, 200.0f)
+    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 200.0f)
         << "content_max must be synced from 'max' param for Slider nodes";
 }
 
@@ -873,14 +873,14 @@ TEST_F(PropertiesWindowTest, ApplySliderMinMaxSyncsContentRange) {
 // apply() must sync content_min / content_max.
 TEST_F(PropertiesWindowTest, ApplyGaugeMinMaxSyncsContentRange) {
     bp2::Blueprint::Node n;
-    n.id = interner.intern("gauge1");
-    n.type = interner.intern("Voltmeter");
-    n.name = "gauge1";
-    n.content_type = bp2::NodeContentType::Gauge;
-    n.content_min = 0.0f;
-    n.content_max = 30.0f;
-    n.params[interner.intern("min")] = 0.0f;
-    n.params[interner.intern("max")] = 30.0f;
+    n.semantic.id = interner.intern("gauge1");
+    n.semantic.type = interner.intern("Voltmeter");
+    n.view.name = "gauge1";
+    n.view.content_type = bp2::NodeContentType::Gauge;
+    n.view.content_min = 0.0f;
+    n.view.content_max = 30.0f;
+    n.semantic.params[interner.intern("min")] = 0.0f;
+    n.semantic.params[interner.intern("max")] = 30.0f;
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("gauge1"));
@@ -893,8 +893,8 @@ TEST_F(PropertiesWindowTest, ApplyGaugeMinMaxSyncsContentRange) {
 
     node_ptr = model.current().find_node(interner.intern("gauge1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->content_min, 0.0f)
+    EXPECT_FLOAT_EQ(node_ptr->view.content_min, 0.0f)
         << "content_min unchanged for Gauge nodes";
-    EXPECT_FLOAT_EQ(node_ptr->content_max, 60.0f)
+    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 60.0f)
         << "content_max must be synced from 'max' param for Gauge nodes";
 }

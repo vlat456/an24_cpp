@@ -52,12 +52,12 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
             end_port_iid = interner_.intern("v");
         }
 
-        auto can_drive = [](PortSide s) {
-            return s == PortSide::Output || s == PortSide::InOut;
-        };
-        auto can_receive = [](PortSide s) {
-            return s == PortSide::Input || s == PortSide::InOut;
-        };
+         auto can_drive = [](bp2::PortSide s) {
+             return s == bp2::PortSide::Output || s == bp2::PortSide::InOut;
+         };
+         auto can_receive = [](bp2::PortSide s) {
+             return s == bp2::PortSide::Input || s == bp2::PortSide::InOut;
+         };
 
         const bool forward_ok = can_drive(start_port->side()) && can_receive(end_port->side());
         const bool reverse_ok = can_drive(end_port->side()) && can_receive(start_port->side());
@@ -119,9 +119,9 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
         bool same_as_original = (port_node_iid == detached_node && hit_port_iid == detached_port);
         if (same_as_original) return result;
 
-        bool same_as_fixed = (port_node_iid == fixed_node && hit_port_iid == fixed_port);
-        bool compatible = !same_as_fixed &&
-            visual::Port::areSidesCompatible(ph->port->side(), reconnect_fixed_side_);
+         bool same_as_fixed = (port_node_iid == fixed_node && hit_port_iid == fixed_port);
+         bool compatible = !same_as_fixed &&
+             visual::Port::areSidesCompatible(ph->port->side(), reconnect_fixed_side_);
         if (compatible && !visual::Port::areTypesCompatible(ph->port->type(), reconnect_fixed_type_)) {
             compatible = false;
         }
@@ -236,10 +236,10 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
 CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
     size_t wire_index, bool detach_start, const bp2::Blueprint::Wire& w) const {
     Pt anchor_pos;
-    PortSide fixed_side;
+    bp2::PortSide fixed_side;
     PortType fixed_type = PortType::Any;
     if (detach_start) {
-        fixed_side = PortSide::Input;
+        fixed_side = bp2::PortSide::Input;
         auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
         fixed_type = resolve_port_type_from_model(model_, tgt_node, tgt_port);
         if (!w.routing_points.empty()) {
@@ -255,7 +255,7 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
             }
         }
     } else {
-        fixed_side = PortSide::Output;
+        fixed_side = bp2::PortSide::Output;
         auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
         fixed_type = resolve_port_type_from_model(model_, src_node, src_port);
         if (!w.routing_points.empty()) {

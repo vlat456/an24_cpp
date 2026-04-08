@@ -52,14 +52,14 @@ struct WireTestFixture {
     void setup(Pt pos_a, Pt port_a_local,
                Pt pos_b, Pt port_b_local) {
         auto node_a = std::make_unique<FakeNode>("a", pos_a);
-        auto port_a = std::make_unique<visual::Port>("out", PortSide::Output, PortType::V);
+        auto port_a = std::make_unique<visual::Port>("out", bp2::PortSide::Output, PortType::V);
         port_a->setLocalPos(port_a_local);
         pa_ptr = port_a.get();
         node_a->addChild(std::move(port_a));
         scene.add(std::move(node_a));
 
         auto node_b = std::make_unique<FakeNode>("b", pos_b);
-        auto port_b = std::make_unique<visual::Port>("in", PortSide::Input, PortType::V);
+        auto port_b = std::make_unique<visual::Port>("in", bp2::PortSide::Input, PortType::V);
         port_b->setLocalPos(port_b_local);
         pb_ptr = port_b.get();
         node_b->addChild(std::move(port_b));
@@ -157,7 +157,7 @@ TEST(WireTest, PolylineOneEndResolvable) {
     visual::Scene scene;
 
     auto node_a = std::make_unique<FakeNode>("a", Pt(0, 0));
-    auto port_a = std::make_unique<visual::Port>("out", PortSide::Output, PortType::V);
+    auto port_a = std::make_unique<visual::Port>("out", bp2::PortSide::Output, PortType::V);
     port_a->setLocalPos(Pt(100, 30));
     node_a->addChild(std::move(port_a));
     scene.add(std::move(node_a));

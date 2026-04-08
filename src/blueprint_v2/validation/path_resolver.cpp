@@ -127,15 +127,15 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
             return std::nullopt;
         }
 
-        if (!node->iface.empty()) {
-            auto maybe = node->iface.find(port_name);
+        if (!node->semantic.iface.empty()) {
+            auto maybe = node->semantic.iface.find(port_name);
             if (!maybe.has_value()) {
                 return std::nullopt;
             }
             return ResolvedPort{*maybe, current_bp_path, false};
         }
 
-        const std::string type_name(interner.resolve(node->type));
+        const std::string type_name(interner.resolve(node->semantic.type));
         const auto* def = parser_registry.get(type_name);
         if (!def) {
             return std::nullopt;

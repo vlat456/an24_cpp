@@ -50,8 +50,8 @@ ParserContext parse_blueprint_v3(std::string const& content,
     }
 
     for (auto const& n : bp.nodes()) {
-        std::string node_id = std::string(interner.resolve(n.id));
-        std::string node_type = std::string(interner.resolve(n.type));
+        std::string node_id = std::string(interner.resolve(n.semantic.id));
+        std::string node_type = std::string(interner.resolve(n.semantic.type));
 
         if (explicit_nested_ids.count(node_id) > 0) {
             continue;
@@ -69,7 +69,7 @@ ParserContext parse_blueprint_v3(std::string const& content,
         DeviceInstance dev;
         dev.name = node_id;
         dev.classname = node_type;
-        for (auto const& [k, v] : n.params) {
+        for (auto const& [k, v] : n.semantic.params) {
             dev.params[std::string(interner.resolve(k))] = std::to_string(v);
         }
         if (auto td = registry.get(dev.classname)) {

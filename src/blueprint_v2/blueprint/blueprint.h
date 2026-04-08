@@ -4,7 +4,7 @@
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/blueprint/node_content_type.h"
-#include "editor/data/port.h"
+#include "blueprint_v2/blueprint/node_port.h"
 #include <vector>
 #include <unordered_map>
 #include <optional>
@@ -20,45 +20,7 @@ namespace bp2 {
 class Blueprint {
 public:
     struct Node {
-        ui::InternedId id;
-        ui::InternedId type;
-        Interface iface;
-        std::unordered_map<ui::InternedId, float> params;
-        /// String-valued parameters (e.g. font_size, text content).
-        /// Kept separate from numeric params to avoid stof() failures.
-        std::unordered_map<std::string, std::string> string_params;
-        float x = 0.0f;
-        float y = 0.0f;
-
-        // === Editor-only fields ===
-        std::string name;
-        std::string render_hint;
-        bool expandable = false;
-        bool collapsed = true;
-        std::string blueprint_path;
-        std::string group_id;
-        std::optional<float> width;
-        std::optional<float> height;
-
-        // Node content (simulation readout / interactive widget)
-        NodeContentType content_type = NodeContentType::None;
-        std::string content_label;
-        float content_value = 0.0f;
-        float content_min = 0.0f;
-        float content_max = 1.0f;
-        std::string content_unit;
-        bool content_state = false;
-        bool content_tripped = false;
-
-        // Per-node custom color (has_color=false means use theme default)
-        bool has_color = false;
-        float color_r = 0.5f, color_g = 0.5f, color_b = 0.5f, color_a = 1.0f;
-
-        // === Visual-layer port lists (editor only) ===
-        std::vector<EditorPort> inputs;
-        std::vector<EditorPort> outputs;
-
-        // Per-port layout overrides
+        // Per-port layout overrides (used by LayoutData)
         struct PortLayoutOverride {
             std::string port_name;
             std::optional<std::string> side;
@@ -67,12 +29,84 @@ public:
                 return port_name == o.port_name && side == o.side && position == o.position;
             }
         };
-        std::vector<PortLayoutOverride> layout_overrides;
+
+        // === Semantic/behavioral data ===
+        struct SemanticData {
+            ui::InternedId id;
+            ui::InternedId type;
+            Interface iface;
+            std::unordered_map<ui::InternedId, float> params;
+            /// String-valued parameters (e.g. font_size, text content).
+            /// Kept separate from numeric params to avoid stof() failures.
+            std::unordered_map<std::string, std::string> string_params;
+
+            bool operator==(SemanticData const& o) const {
+                return id == o.id && type == o.type && iface == o.iface
+                    && params == o.params && string_params == o.string_params;
+            }
+        };
+
+        // === Layout/positioning data ===
+        struct LayoutData {
+            float x = 0.0f;
+            float y = 0.0f;
+            bool collapsed = true;
+            std::string group_id;
+            std::optional<float> width;
+            std::optional<float> height;
+            std::vector<PortLayoutOverride> layout_overrides;
+
+            bool operator==(LayoutData const& o) const {
+                return x == o.x && y == o.y && collapsed == o.collapsed
+                    && group_id == o.group_id && width == o.width && height == o.height
+                    && layout_overrides == o.layout_overrides;
+            }
+        };
+
+        // === View/presentation data ===
+        struct ViewData {
+            std::string name;
+            std::string render_hint;
+            bool expandable = false;
+            std::string blueprint_path;
+
+            // Node content (simulation readout / interactive widget)
+            NodeContentType content_type = NodeContentType::None;
+            std::string content_label;
+            float content_value = 0.0f;
+            float content_min = 0.0f;
+            float content_max = 1.0f;
+            std::string content_unit;
+            bool content_state = false;
+            bool content_tripped = false;
+
+            // Per-node custom color (has_color=false means use theme default)
+            bool has_color = false;
+            float color_r = 0.5f, color_g = 0.5f, color_b = 0.5f, color_a = 1.0f;
+
+            // === Visual-layer port lists (editor only) ===
+            std::vector<bp2::NodePort> inputs;
+            std::vector<bp2::NodePort> outputs;
+
+            bool operator==(ViewData const& o) const {
+                return name == o.name && render_hint == o.render_hint
+                    && expandable == o.expandable && blueprint_path == o.blueprint_path
+                    && content_type == o.content_type && content_label == o.content_label
+                    && content_value == o.content_value && content_min == o.content_min
+                    && content_max == o.content_max && content_unit == o.content_unit
+                    && content_state == o.content_state && content_tripped == o.content_tripped
+                    && has_color == o.has_color && color_r == o.color_r && color_g == o.color_g
+                    && color_b == o.color_b && color_a == o.color_a
+                    && inputs == o.inputs && outputs == o.outputs;
+            }
+        };
+
+        SemanticData semantic;
+        LayoutData layout;
+        ViewData view;
 
         bool operator==(Node const& o) const {
-            return id == o.id && type == o.type && params == o.params
-                && string_params == o.string_params
-                && x == o.x && y == o.y && group_id == o.group_id;
+            return semantic == o.semantic && layout == o.layout && view == o.view;
         }
     };
 

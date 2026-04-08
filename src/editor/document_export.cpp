@@ -47,13 +47,13 @@ std::string Document::build_simulation_json() const {
     std::set<std::string> skipped_embedded_proxies;
 
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        if (n.expandable) {
-            const auto* nested = bp.find_nested(n.id);
+        if (n.view.expandable) {
+            const auto* nested = bp.find_nested(n.semantic.id);
             if (nested && nested->embedded) {
                 bool has_materialized_children = false;
-                const std::string parent_id = std::string(interner_.resolve(n.id));
+                const std::string parent_id = std::string(interner_.resolve(n.semantic.id));
                 for (const auto& child : bp.nodes()) {
-                    if (child.group_id == parent_id) {
+                    if (child.layout.group_id == parent_id) {
                         has_materialized_children = true;
                         break;
                     }
@@ -65,7 +65,7 @@ std::string Document::build_simulation_json() const {
             }
         }
 
-        std::string nid = std::string(interner_.resolve(n.id));
+        std::string nid = std::string(interner_.resolve(n.semantic.id));
         if (!emitted_ids.insert(nid).second) {
             spdlog::warn("[dedup] Duplicate node '{}' on sim export", nid);
             continue;
@@ -74,22 +74,22 @@ std::string Document::build_simulation_json() const {
         json device = json::object();
         device["name"] = nid;
         device["template_name"] = "";
-        device["classname"] = std::string(interner_.resolve(n.type));
-        if (!n.render_hint.empty()) {
-            device["render_hint"] = n.render_hint;
+        device["classname"] = std::string(interner_.resolve(n.semantic.type));
+        if (!n.view.render_hint.empty()) {
+            device["render_hint"] = n.view.render_hint;
         }
         device["priority"] = "med";
         device["bucket"] = nullptr;
         device["critical"] = false;
 
         json ports = json::object();
-        for (const auto& p : n.inputs) {
+        for (const auto& p : n.view.inputs) {
             ports[std::string(interner_.resolve(p.name))] = {
                 {"direction", "In"},
                 {"type", sim_port_type_str(p.type)}
             };
         }
-        for (const auto& p : n.outputs) {
+        for (const auto& p : n.view.outputs) {
             ports[std::string(interner_.resolve(p.name))] = {
                 {"direction", "Out"},
                 {"type", sim_port_type_str(p.type)}
@@ -98,7 +98,7 @@ std::string Document::build_simulation_json() const {
         device["ports"] = std::move(ports);
 
         const TypeDefinition* type_def = nullptr;
-        std::string classname = std::string(interner_.resolve(n.type));
+        std::string classname = std::string(interner_.resolve(n.semantic.type));
         if (type_registry_) {
             type_def = type_registry_->get(classname);
         }
@@ -115,7 +115,7 @@ std::string Document::build_simulation_json() const {
         };
 
         json params = json::object();
-        for (const auto& [k, v] : n.params) {
+        for (const auto& [k, v] : n.semantic.params) {
             std::string key = std::string(interner_.resolve(k));
             if (is_visual_only(key)) continue;
             if (is_int_param(key)) {
@@ -124,7 +124,7 @@ std::string Document::build_simulation_json() const {
                 params[key] = std::to_string(v);
             }
         }
-        for (const auto& [k, v] : n.string_params) {
+        for (const auto& [k, v] : n.semantic.string_params) {
             if (is_visual_only(k)) continue;
             params[k] = v;
         }
@@ -139,7 +139,7 @@ std::string Document::build_simulation_json() const {
     std::map<std::string, std::string> proxy_port_to_bridge;
     if (!skipped_embedded_proxies.empty()) {
         for (const bp2::Blueprint::Node& n : bp.nodes()) {
-            std::string nid = std::string(interner_.resolve(n.id));
+            std::string nid = std::string(interner_.resolve(n.semantic.id));
             for (const auto& proxy_id : skipped_embedded_proxies) {
                 if (nid.size() > proxy_id.size() + 1
                     && nid.compare(0, proxy_id.size(), proxy_id) == 0

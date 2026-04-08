@@ -45,16 +45,16 @@ void CanvasInput::commit_drag_node() {
         auto [tgt_node, _tp] = editor_math::path_to_node_port(w.target, arena_);
         if (src_node.empty() || tgt_node.empty()) continue;
 
-        const bp2::Blueprint::Node* src_n = model_.current().find_node(src_node);
-        const bp2::Blueprint::Node* tgt_n = model_.current().find_node(tgt_node);
-        if (!src_n || !tgt_n) continue;
+         const bp2::Blueprint::Node* src_n = model_.current().find_node(src_node);
+         const bp2::Blueprint::Node* tgt_n = model_.current().find_node(tgt_node);
+         if (!src_n || !tgt_n) continue;
 
-        if (src_n->render_hint == "ref" && ref_to_connected.count(src_node) == 0) {
-            ref_to_connected.emplace(src_node, tgt_node);
-        }
-        if (tgt_n->render_hint == "ref" && ref_to_connected.count(tgt_node) == 0) {
-            ref_to_connected.emplace(tgt_node, src_node);
-        }
+         if (src_n->view.render_hint == "ref" && ref_to_connected.count(src_node) == 0) {
+             ref_to_connected.emplace(src_node, tgt_node);
+         }
+         if (tgt_n->view.render_hint == "ref" && ref_to_connected.count(tgt_node) == 0) {
+             ref_to_connected.emplace(tgt_node, src_node);
+         }
 
         if (nodes_to_orient.count(src_node)) nodes_to_orient.insert(tgt_node);
         if (nodes_to_orient.count(tgt_node)) nodes_to_orient.insert(src_node);
@@ -65,7 +65,7 @@ void CanvasInput::commit_drag_node() {
     }
     for (ui::InternedId id : moved_node_ids) {
         const bp2::Blueprint::Node* n = model_.current().find_node(id);
-        if (n && n->render_hint == "ref" && ref_to_connected.count(id) == 0) {
+        if (n && n->view.render_hint == "ref" && ref_to_connected.count(id) == 0) {
             orient_ref_node_port_by_wire_scan(id);
         }
     }
@@ -94,7 +94,7 @@ bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedI
 void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) {
     if (ref_node_id.empty()) return;
     const bp2::Blueprint::Node* ref_node = model_.current().find_node(ref_node_id);
-    if (!ref_node || ref_node->group_id != group_id_ || ref_node->render_hint != "ref") return;
+    if (!ref_node || ref_node->layout.group_id != group_id_ || ref_node->view.render_hint != "ref") return;
 
     ui::InternedId connected_node_id;
     for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
@@ -212,20 +212,20 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     }
 
     if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-        std::string node_id(hn->widget->id());
-        ui::InternedId node_iid = interner_.lookup(node_id);
-        const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : model_.current().find_node(node_iid);
-        if (!read_only && !simulation_mode && node && std::string(interner_.resolve(node->type)) == "Value") {
-            result.open_inline_value_editor = true;
-            result.inline_value_editor_node_id = node_id;
-            result.has_inline_value_editor_screen_pos = true;
-            result.inline_value_editor_screen_pos = screen_pos;
-            return result;
-        }
-        if (node && node->expandable) {
-            result.open_sub_window = node_id;
-            return result;
-        }
+         std::string node_id(hn->widget->id());
+         ui::InternedId node_iid = interner_.lookup(node_id);
+         const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : model_.current().find_node(node_iid);
+         if (!read_only && !simulation_mode && node && std::string(interner_.resolve(node->semantic.type)) == "Value") {
+             result.open_inline_value_editor = true;
+             result.inline_value_editor_node_id = node_id;
+             result.has_inline_value_editor_screen_pos = true;
+             result.inline_value_editor_screen_pos = screen_pos;
+             return result;
+         }
+         if (node && node->view.expandable) {
+             result.open_sub_window = node_id;
+             return result;
+         }
     }
 
     if (!read_only && !simulation_mode) {
@@ -332,9 +332,9 @@ void CanvasInput::finish_marquee() {
         if (vroot->renderLayer() == visual::RenderLayer::Wire) continue;
         if (vroot->id().empty()) continue;
 
-        ui::InternedId node_iid = interner_.lookup(std::string_view(vroot->id()));
-        const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : model_.current().find_node(node_iid);
-        if (!node || node->group_id != group_id_) continue;
+         ui::InternedId node_iid = interner_.lookup(std::string_view(vroot->id()));
+         const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : model_.current().find_node(node_iid);
+         if (!node || node->layout.group_id != group_id_) continue;
 
         Pt pos = vroot->worldPos();
         Pt sz = vroot->size();

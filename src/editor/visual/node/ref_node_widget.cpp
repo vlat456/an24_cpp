@@ -25,25 +25,25 @@ static std::string format_value(float v) {
 }
 
 RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
-    : node_iid_(data.id)
+    : node_iid_(data.semantic.id)
     , interner_(&interner)
-    , name_(data.name)
-    , type_name_(std::string(interner.resolve(data.type)))
+    , name_(data.view.name)
+    , type_name_(std::string(interner.resolve(data.semantic.type)))
 {
     // For Value nodes, display the numeric value instead of the name
-    if (type_name_ == "Value" && !data.params.empty()) {
-        name_ = format_value(data.params.begin()->second);
+    if (type_name_ == "Value" && !data.semantic.params.empty()) {
+        name_ = format_value(data.semantic.params.begin()->second);
     }
-    if (data.has_color) {
+    if (data.view.has_color) {
         NodeColor c;
-        c.r = data.color_r;
-        c.g = data.color_g;
-        c.b = data.color_b;
-        c.a = data.color_a;
+        c.r = data.view.color_r;
+        c.g = data.view.color_g;
+        c.b = data.view.color_b;
+        c.a = data.view.color_a;
         custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(Pt(data.x, data.y));
+    setLocalPos(Pt(data.layout.x, data.layout.y));
     buildLayout(data, interner);
 
     // Size based on text width + horizontal padding
@@ -66,16 +66,16 @@ void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::Stri
     std::string_view port_name = "v";
     PortType port_type = PortType::V;
 
-    if (!data.outputs.empty()) {
-        port_name = interner.resolve(data.outputs[0].name);
-        port_type = data.outputs[0].type;
-    } else if (!data.inputs.empty()) {
-        port_name = interner.resolve(data.inputs[0].name);
-        port_type = data.inputs[0].type;
+    if (!data.view.outputs.empty()) {
+        port_name = interner.resolve(data.view.outputs[0].name);
+        port_type = data.view.outputs[0].type;
+    } else if (!data.view.inputs.empty()) {
+        port_name = interner.resolve(data.view.inputs[0].name);
+        port_type = data.view.inputs[0].type;
     }
 
     // Single port, centered on top edge
-    port_ = emplaceChild<Port>(port_name, PortSide::Output, port_type);
+    port_ = emplaceChild<Port>(port_name, bp2::PortSide::Output, port_type);
 }
 
 void RefNodeWidget::positionPort() {
@@ -90,32 +90,32 @@ void RefNodeWidget::positionPort() {
                                               PortConstants::RADIUS,
                                               size().y - PortConstants::RADIUS);
 
-    Pt local_pos;
-    switch (port_layout_side_) {
-        case PortLayoutSide::Left:
-            local_pos = Pt(-PortConstants::RADIUS,
-                           clamped_center_y - PortConstants::RADIUS);
-            break;
-        case PortLayoutSide::Right:
-            local_pos = Pt(size().x - PortConstants::RADIUS,
-                           clamped_center_y - PortConstants::RADIUS);
-            break;
-        case PortLayoutSide::Bottom:
-            local_pos = Pt(clamped_center_x - PortConstants::RADIUS,
-                           size().y - PortConstants::RADIUS);
-            break;
-        case PortLayoutSide::Top:
-        default:
-            local_pos = Pt(clamped_center_x - PortConstants::RADIUS,
-                           -PortConstants::RADIUS);
-            break;
-    }
+     Pt local_pos;
+     switch (port_layout_side_) {
+         case bp2::PortLayoutSide::Left:
+             local_pos = Pt(-PortConstants::RADIUS,
+                            clamped_center_y - PortConstants::RADIUS);
+             break;
+         case bp2::PortLayoutSide::Right:
+             local_pos = Pt(size().x - PortConstants::RADIUS,
+                            clamped_center_y - PortConstants::RADIUS);
+             break;
+         case bp2::PortLayoutSide::Bottom:
+             local_pos = Pt(clamped_center_x - PortConstants::RADIUS,
+                            size().y - PortConstants::RADIUS);
+             break;
+         case bp2::PortLayoutSide::Top:
+         default:
+             local_pos = Pt(clamped_center_x - PortConstants::RADIUS,
+                            -PortConstants::RADIUS);
+             break;
+     }
 
     port_->setLayoutSide(port_layout_side_);
     port_->setLocalPos(local_pos);
 }
 
-void RefNodeWidget::setPortLayoutSide(PortLayoutSide side) {
+void RefNodeWidget::setPortLayoutSide(bp2::PortLayoutSide side) {
     if (port_layout_side_ == side) return;
     port_layout_side_ = side;
     positionPort();
