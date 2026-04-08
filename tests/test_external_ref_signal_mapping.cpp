@@ -233,6 +233,12 @@ TEST(ExternalRefIntegration, ClosedCircuitFirstOrderLagSignalsNonZero) {
     EXPECT_GT(std::abs(acc_out_v), 0.01f)
         << "Accumulator output is near zero — FirstOrderLag not integrating properly.\n"
         << "  accumulator.out=" << acc_out_v;
+
+    // Canonical root endpoint should mirror bridge external value.
+    std::string canonical_in_key = editor::map_composite_port_key("firstorderlag_1", "in");
+    float canonical_in_v = sim.get_wire_voltage(canonical_in_key);
+    EXPECT_NEAR(canonical_in_v, in_ext_v, 1e-5f)
+        << "Canonical root endpoint must alias bridge external endpoint";
 }
 
 TEST(ExternalRefIntegration, WireIsEnergizedMappedKey) {
@@ -270,22 +276,22 @@ TEST(ExternalRefIntegration, WireIsEnergizedMappedKey) {
 
 TEST(CompositePortMapping, BasicMapping) {
     auto key = editor::map_composite_port_key("firstorderlag_1", "out");
-    EXPECT_EQ(key, "firstorderlag_1:out.ext");
+    EXPECT_EQ(key, "firstorderlag_1.out");
 }
 
 TEST(CompositePortMapping, InputPort) {
     auto key = editor::map_composite_port_key("firstorderlag_1", "in");
-    EXPECT_EQ(key, "firstorderlag_1:in.ext");
+    EXPECT_EQ(key, "firstorderlag_1.in");
 }
 
 TEST(CompositePortMapping, RatePort) {
     auto key = editor::map_composite_port_key("firstorderlag_1", "rate");
-    EXPECT_EQ(key, "firstorderlag_1:rate.ext");
+    EXPECT_EQ(key, "firstorderlag_1.rate");
 }
 
 TEST(CompositePortMapping, DifferentInstance) {
     auto key = editor::map_composite_port_key("my_filter_2", "output");
-    EXPECT_EQ(key, "my_filter_2:output.ext");
+    EXPECT_EQ(key, "my_filter_2.output");
 }
 
 // =============================================================================
@@ -293,13 +299,7 @@ TEST(CompositePortMapping, DifferentInstance) {
 // =============================================================================
 
 TEST(CompositePortMapping, RootLevelOutputResolves) {
-    // This test proves the ROOT-LEVEL bug:
-    // - The naive key "firstorderlag_1.out" does NOT exist in port_to_signal
-    //   (returns 0) because the parser expanded it.
-    // - The mapped key "firstorderlag_1:out.ext" DOES exist and is non-zero.
-    //
-    // Before the fix, the UI used "firstorderlag_1.out" → showed 0V.
-    // After the fix, the UI uses "firstorderlag_1:out.ext" → shows correct value.
+    // Root-level composite signal keys resolve via canonical node.port identity.
 
     std::string bp_path;
     ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint());
@@ -314,29 +314,24 @@ TEST(CompositePortMapping, RootLevelOutputResolves) {
         sim.step(dt);
     }
 
-    // The WRONG key that the old root-level code was using:
     float naive_value = sim.get_wire_voltage("firstorderlag_1.out");
-    EXPECT_FLOAT_EQ(naive_value, 0.0f)
-        << "Naive key 'firstorderlag_1.out' should NOT exist in port_to_signal "
-        << "(parser rewrites it to 'firstorderlag_1:out.ext')";
-
-    // The CORRECT key that the fixed code now uses:
     std::string mapped_key = editor::map_composite_port_key("firstorderlag_1", "out");
-    EXPECT_EQ(mapped_key, "firstorderlag_1:out.ext");
+    EXPECT_EQ(mapped_key, "firstorderlag_1.out");
+    EXPECT_NEAR(naive_value, sim.get_wire_voltage(mapped_key), 1e-6f)
+        << "Direct node.port and resolver key must match for canonical identity";
 
     float mapped_value = sim.get_wire_voltage(mapped_key);
-    printf("[DIAG] naive 'firstorderlag_1.out' = %f\n", naive_value);
-    printf("[DIAG] mapped 'firstorderlag_1:out.ext' = %f\n", mapped_value);
+    printf("[DIAG] canonical 'firstorderlag_1.out' = %f\n", mapped_value);
 
     EXPECT_GT(std::abs(mapped_value), 0.01f)
-        << "Mapped key 'firstorderlag_1:out.ext' should be non-zero after 120 steps.\n"
+        << "Mapped key 'firstorderlag_1.out' should be non-zero after 120 steps.\n"
         << "  mapped_value=" << mapped_value;
 
     // Also verify the input port mapping
     std::string in_mapped = editor::map_composite_port_key("firstorderlag_1", "in");
-    EXPECT_EQ(in_mapped, "firstorderlag_1:in.ext");
+    EXPECT_EQ(in_mapped, "firstorderlag_1.in");
     float in_value = sim.get_wire_voltage(in_mapped);
-    printf("[DIAG] mapped 'firstorderlag_1:in.ext' = %f\n", in_value);
+    printf("[DIAG] mapped 'firstorderlag_1.in' = %f\n", in_value);
     EXPECT_GT(std::abs(in_value), 0.01f)
         << "Mapped input key should be non-zero (parent circuit feeds it)";
 }
@@ -358,18 +353,12 @@ TEST(CompositePortMapping, RootLevelWireEnergizedWithMapping) {
         sim.step(dt);
     }
 
-    // Wire "wire_23" connects /firstorderlag_1:out → /multiply_1:B
-    // The source is an expandable node, so the wire energized check should
-    // use the mapped key "firstorderlag_1:out.ext".
-
-    // Old code would check: "firstorderlag_1.out" → always false (key doesn't exist)
-    EXPECT_FALSE(sim.wire_is_energized("firstorderlag_1.out"))
-        << "Naive key should NOT show energized (doesn't exist in simulation)";
-
-    // Fixed code checks: "firstorderlag_1:out.ext" → true (value is non-zero)
+    // Wire "wire_23" connects /firstorderlag_1:out → /multiply_1:B.
+    // Canonical key is node.port.
     std::string mapped = editor::map_composite_port_key("firstorderlag_1", "out");
+    EXPECT_EQ(mapped, "firstorderlag_1.out");
     EXPECT_TRUE(sim.wire_is_energized(mapped))
-        << "Mapped key 'firstorderlag_1:out.ext' should be energized.\n"
+        << "Mapped key 'firstorderlag_1.out' should be energized.\n"
         << "  value=" << sim.get_wire_voltage(mapped);
 }
 
@@ -378,9 +367,7 @@ TEST(CompositePortMapping, RootLevelWireEnergizedWithMapping) {
 // ===========================================================================
 
 TEST(ExternalRefIntegration, RootExpandableRawVsMappedKey) {
-    // Explicit regression test demonstrating the bug fix:
-    // Raw key (firstorderlag_1.out) reads 0 in simulation
-    // Mapped key (firstorderlag_1:out.ext) is non-zero after warmup
+    // Root expandables resolve through canonical node.port identity.
     
     std::string bp_path;
     ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint());
@@ -395,26 +382,20 @@ TEST(ExternalRefIntegration, RootExpandableRawVsMappedKey) {
         sim.step(dt);
     }
 
-    // Raw key that does NOT exist in expanded simulation
-     float raw_value = sim.get_wire_voltage("firstorderlag_1.out");
-     EXPECT_FLOAT_EQ(raw_value, 0.0f)
-         << "Raw key 'firstorderlag_1.out' should NOT exist (returns 0)";
-
-     // Mapped key that DOES exist and has correct value
-     std::string mapped_key = editor::map_composite_port_key("firstorderlag_1", "out");
-     float mapped_value = sim.get_wire_voltage(mapped_key);
-     EXPECT_GT(std::abs(mapped_value), 0.01f)
-         << "Mapped key 'firstorderlag_1:out.ext' must be non-zero after warmup.\n"
-         << "  This proves the resolver is handling root-level expandables correctly.";
+    float raw_value = sim.get_wire_voltage("firstorderlag_1.out");
+    std::string mapped_key = editor::map_composite_port_key("firstorderlag_1", "out");
+    float mapped_value = sim.get_wire_voltage(mapped_key);
+    EXPECT_NEAR(raw_value, mapped_value, 1e-6f)
+        << "Raw node.port and mapped key must resolve to the same canonical signal";
+    EXPECT_GT(std::abs(mapped_value), 0.01f)
+        << "Mapped key 'firstorderlag_1.out' must be non-zero after warmup.";
 }
 
 // === PARITY HARDENING: Resolver/Parser Contract ===
-// INVARIANT: Root expandable resolved keys must match parser rewrite contract
+// INVARIANT: Root expandable resolved keys must be canonical node.port
 TEST(ExternalRefIntegration, RootExpandableResolvedKeyMatchesParserRewriteContract) {
-    // This test locks the contract between:
-    // 1. json_parser.cpp rewrite: instance.port -> instance:port.ext for expanded blueprints
-    // 2. signal_key_resolver.cpp: map_composite_port_key() -> instance:port.ext format
-    // 3. jit_solver.cpp bridge unification: .ext and .port unified in signal resolution
+    // This test locks the contract between parser output and resolver output:
+    // root expandable ports are queried via canonical node.port identity.
     
     std::string bp_path;
     ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint());
@@ -429,32 +410,18 @@ TEST(ExternalRefIntegration, RootExpandableResolvedKeyMatchesParserRewriteContra
         sim.step(dt);
     }
 
-    // === CONTRACT CHECK 1: Mapped key format matches parser rewrite ===
-    // Parser rewrites parent connections to instance:port.ext
-    // Resolver must return the same format for root expandables
+    // === CONTRACT CHECK 1: mapped key is canonical node.port ===
     std::string mapped_key = editor::map_composite_port_key("firstorderlag_1", "out");
-    
-    // Contract: format MUST be "instance:port.ext" or "instance:port.port"
-    // NOT "instance.port" (raw format)
-    ASSERT_GT(mapped_key.find(':'), 0) 
-        << "Mapped key must contain ':' (composite instance separator): " << mapped_key;
-    ASSERT_NE(mapped_key.find('.'), std::string::npos)
-        << "Mapped key must contain '.' (port suffix): " << mapped_key;
-    
-    // === CONTRACT CHECK 2: Resolver maps to .ext for parent-level connections ===
-    // For root expandables accessed from editor, resolver should use .ext (parent-facing)
-    ASSERT_NE(mapped_key.find(".ext"), std::string::npos)
-        << "Resolver must map root expandable to .ext format (parent-facing): " << mapped_key
-        << "\n  This ensures parser rewrite contract is honored in simulation state.";
+    ASSERT_EQ(mapped_key, "firstorderlag_1.out")
+        << "Resolver must map root expandable to canonical node.port format";
 
-    // === CONTRACT CHECK 3: Resolved signal must exist and be non-zero ===
+    // === CONTRACT CHECK 2: resolved signal must exist and be non-zero ===
     float mapped_value = sim.get_wire_voltage(mapped_key);
     EXPECT_GT(std::abs(mapped_value), 0.01f)
         << "Mapped key from resolver contract must reference active signal: " << mapped_key;
 
-    // === CONTRACT CHECK 4: Raw key (pre-rewrite format) must NOT exist ===
+    // === CONTRACT CHECK 3: direct node.port query is identical ===
     float raw_value = sim.get_wire_voltage("firstorderlag_1.out");
-    EXPECT_FLOAT_EQ(raw_value, 0.0f)
-        << "Raw key 'firstorderlag_1.out' must NOT exist (parser should have rewritten it).\n"
-        << "  This validates that parser rewrite contract is consistently applied.";
+    EXPECT_NEAR(raw_value, mapped_value, 1e-6f)
+        << "Direct node.port and resolver mapped key must be identical";
 }

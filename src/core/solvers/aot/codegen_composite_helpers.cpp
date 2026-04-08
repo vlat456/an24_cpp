@@ -16,7 +16,7 @@ void build_port_index_map(
         }
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
-            std::string full_port = dev.name + "." + port_name;
+            std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
             uint32_t idx = static_cast<uint32_t>(out_all_ports.size());
             out_all_ports.push_back(full_port);
             out_port_to_idx[full_port] = idx;

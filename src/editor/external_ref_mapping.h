@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/solvers/common/signal_key.h"
+
 #include <string>
 #include <string_view>
 
@@ -21,12 +23,7 @@ namespace editor {
 inline std::string resolve_external_ref_signal_key(
     std::string_view parent_instance_id,
     std::string_view child_signal_key) {
-    std::string result;
-    result.reserve(parent_instance_id.size() + 1 + child_signal_key.size());
-    result.append(parent_instance_id);
-    result.push_back(':');
-    result.append(child_signal_key);
-    return result;
+    return signal_key::make_child_scope_key(parent_instance_id, child_signal_key);
 }
 
 /// Build a child-local signal key from node_id and port_name.
@@ -34,38 +31,22 @@ inline std::string resolve_external_ref_signal_key(
 inline std::string build_signal_key(
     std::string_view node_id,
     std::string_view port_name) {
-    std::string result;
-    result.reserve(node_id.size() + 1 + port_name.size());
-    result.append(node_id);
-    result.push_back('.');
-    result.append(port_name);
-    return result;
+    return signal_key::make_node_port_key(node_id, port_name);
 }
 
-/// Map a root-level composite node's port signal key to the expanded runtime key.
+/// Map a root-level composite node's port to canonical runtime key.
 ///
 /// When the parser expands a composite blueprint instance (e.g. "firstorderlag_1"),
-/// parent-facing connections are rewritten:
-///   "firstorderlag_1.out" → "firstorderlag_1:out.ext"
-///
-/// The root-level UI still sees node_id="firstorderlag_1" and port="out",
-/// building key "firstorderlag_1.out" — which doesn't exist at runtime.
-/// This function rewrites to the correct expanded key.
+/// parent-facing connections may be rewritten internally during expansion,
+/// but public runtime lookup uses canonical "node.port" identity.
 ///
 /// @param node_id   The expandable composite node id (e.g. "firstorderlag_1")
 /// @param port_name The port name on the composite (e.g. "out")
-/// @return          The runtime signal key (e.g. "firstorderlag_1:out.ext")
+/// @return          The canonical runtime signal key (e.g. "firstorderlag_1.out")
 inline std::string map_composite_port_key(
     std::string_view node_id,
     std::string_view port_name) {
-    // Pattern: "node_id:port_name.ext"
-    std::string result;
-    result.reserve(node_id.size() + 1 + port_name.size() + 4);
-    result.append(node_id);
-    result.push_back(':');
-    result.append(port_name);
-    result.append(".ext");
-    return result;
+    return signal_key::make_node_port_key(node_id, port_name);
 }
 
 } // namespace editor

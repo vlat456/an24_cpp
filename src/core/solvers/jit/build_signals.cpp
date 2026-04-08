@@ -1,5 +1,6 @@
 #include "jit_solver_internal.h"
 #include "../common/signal_union_rules.h"
+#include "../common/signal_key.h"
 #include "../../utils/union_find.h"
 #include <algorithm>
 #include <map>
@@ -16,18 +17,27 @@ void process_port_unions(
     std::unordered_map<std::string, uint32_t> port_to_idx;
 
     for (const auto& dev : devices) {
-        if (dev.visual_only) {
-            continue;
-        }
+         if (dev.visual_only) {
+             continue;
+         }
 
-        for (const auto& [port_name, port] : dev.ports) {
-            (void)port;
-            const std::string full_port = dev.name + "." + port_name;
-            const uint32_t idx = static_cast<uint32_t>(all_ports.size());
-            all_ports.push_back(full_port);
-            port_to_idx[full_port] = idx;
-        }
-    }
+         for (const auto& [port_name, port] : dev.ports) {
+             (void)port;
+             const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
+             const uint32_t idx = static_cast<uint32_t>(all_ports.size());
+             all_ports.push_back(full_port);
+             port_to_idx[full_port] = idx;
+         }
+
+         if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
+             const std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(dev.name);
+             if (!exposed_key.empty() && port_to_idx.count(exposed_key) == 0) {
+                 const uint32_t idx = static_cast<uint32_t>(all_ports.size());
+                 all_ports.push_back(exposed_key);
+                 port_to_idx[exposed_key] = idx;
+             }
+         }
+     }
 
     if (all_ports.empty()) {
         result.signal_count = 1; // sentinel

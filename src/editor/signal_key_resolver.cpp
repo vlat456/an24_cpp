@@ -1,5 +1,6 @@
 #include "signal_key_resolver.h"
 #include "external_ref_mapping.h"
+#include "core/solvers/common/signal_key.h"
 
 namespace editor {
 
@@ -14,11 +15,7 @@ static std::string find_embedded_bridge_node(
     std::string_view port_name) {
 
     // Canonical colon-convention node: proxy_id:port_name
-    std::string colon_id;
-    colon_id.reserve(proxy_id.size() + 1 + port_name.size());
-    colon_id.append(proxy_id);
-    colon_id.push_back(':');
-    colon_id.append(port_name);
+    std::string colon_id = signal_key::make_child_scope_key(proxy_id, port_name);
 
     auto colon_iid = interner.lookup(colon_id);
     if (!colon_iid.empty()) {
@@ -54,7 +51,10 @@ std::string resolve_runtime_signal_key(
             if (nested && nested->embedded) {
                 std::string bridge_id = find_embedded_bridge_node(bp, interner, node_sv, port_sv);
                 if (!bridge_id.empty()) {
-                    return bridge_id + ".ext";
+                    std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(bridge_id);
+                    if (!exposed_key.empty()) {
+                        return exposed_key;
+                    }
                 }
             }
             return map_composite_port_key(node_sv, port_sv);

@@ -1,4 +1,5 @@
 #include "jit_solver_internal.h"
+#include "../common/signal_key.h"
 #include <algorithm>
 #include <map>
 #include <queue>
@@ -40,7 +41,7 @@ void build_electrical_islands(
 
     // Helper to resolve port to signal index with fail-fast on missing mapping
     auto resolve_port = [&](const DeviceInstance& dev, const std::string& port_name) -> uint32_t {
-        const std::string full_port = dev.name + "." + port_name;
+        const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
         auto it = result.port_to_signal.find(full_port);
         if (it == result.port_to_signal.end()) {
             throw std::runtime_error("Missing required port mapping '" + full_port +

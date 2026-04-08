@@ -1,4 +1,5 @@
 #include "jit_solver_internal.h"
+#include "../common/signal_key.h"
 
 #include <algorithm>
 #include <queue>
@@ -19,7 +20,7 @@ void validate_source_writer_conflicts(
 
         const auto sw_ports = active_source_writer_ports_for(dev.classname);
         for (const auto& port_name : sw_ports) {
-            const std::string full_port = dev.name + "." + port_name;
+            const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
             auto it = result.port_to_signal.find(full_port);
             if (it == result.port_to_signal.end()) {
                 continue;
@@ -98,7 +99,7 @@ void topological_sort_consumers(
 
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
-            const std::string full_port = dev.name + "." + port_name;
+            const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
             auto it_sig = result.port_to_signal.find(full_port);
             if (it_sig == result.port_to_signal.end()) {
                 continue;

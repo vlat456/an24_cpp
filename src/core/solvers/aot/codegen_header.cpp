@@ -76,7 +76,7 @@ void emit_systems_class_declaration(
             if (port.second.alias.has_value() && !port.second.alias.value().empty()) {
                 continue;
             }
-            std::string port_key = dev.name + "." + port_name;
+            std::string port_key = signal_key::make_node_port_key(dev.name, port_name);
             uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
             oss << "    static constexpr uint32_t " << codegen_detail::sanitize_name(dev.name) << "_" << port_name << "_idx = " << sig << ";\n";
         }

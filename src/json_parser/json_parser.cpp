@@ -5,6 +5,7 @@
 #include <fstream>
 #include <set>
 #include "../parse_number.h"
+#include "core/solvers/common/signal_key.h"
 
 using json = nlohmann::json;
 
@@ -175,15 +176,15 @@ static void merge_nested_blueprint(
     // Prefix all nested device names: "bat" -> "battery_module:bat"
     for (const auto& dev : nested.devices) {
         DeviceInstance prefixed = dev;
-        prefixed.name = prefix + ":" + dev.name;
+        prefixed.name = signal_key::make_child_scope_key(prefix, dev.name);
         parent.devices.push_back(prefixed);
     }
 
     // Rewrite connections with prefix: "vin.port" -> "battery_module:vin.port"
     for (const auto& conn : nested.connections) {
         Connection rewritten = conn;
-        rewritten.from = prefix + ":" + conn.from;
-        rewritten.to = prefix + ":" + conn.to;
+        rewritten.from = signal_key::make_child_scope_key(prefix, conn.from);
+        rewritten.to = signal_key::make_child_scope_key(prefix, conn.to);
         parent.connections.push_back(rewritten);
     }
 }
@@ -234,8 +235,6 @@ static ParserContext parse_json_impl(const std::string& json_text,
                                      TypeRegistry& registry,
                                      std::set<std::string> expanding) {
     spdlog::debug("[json_parser] Parsing JSON text");
-    const bool is_top_level = expanding.empty();
-
     auto j = json::parse(json_text);
     ParserContext ctx;
 
@@ -253,7 +252,6 @@ static ParserContext parse_json_impl(const std::string& json_text,
 
     // Parse devices (also accepts "top_level_devices")
     std::vector<DeviceInstance> raw_devices;
-    std::set<std::string> expanded_instance_names;
     if (j.contains("devices")) {
         for (const auto& dev_j : j["devices"]) {
             raw_devices.push_back(json_parser_detail::parse_device_for_parser(dev_j));
@@ -314,7 +312,6 @@ static ParserContext parse_json_impl(const std::string& json_text,
             expanding.insert(raw_dev.classname);
             ParserContext nested = parse_json_impl(nested_json.dump(), registry, expanding);
             merge_nested_blueprint(ctx, nested, raw_dev.name);
-            expanded_instance_names.insert(raw_dev.name);
 
             spdlog::info("[json_parser] Expanded blueprint '{}' as device '{}' ({} devices)",
                         raw_dev.classname, raw_dev.name, nested.devices.size());
@@ -354,88 +351,6 @@ static ParserContext parse_json_impl(const std::string& json_text,
                 throw std::runtime_error("initial_values entry '" + port_ref + "' must be numeric");
             }
             ctx.initial_values[port_ref] = val.get<float>();
-        }
-    }
-
-    // Rewrite connections that point to expanded nested blueprints
-    // When a blueprint "lamp_bp" is expanded, its exposed ports become "lamp_bp:vin.port"
-    // So we need to rewrite "lamp_bp.vin" -> "lamp_bp:vin.port"
-    // But we must NOT rewrite internal connections that already have the prefix
-    // Skip this for recursive blueprint loading (only process at top level).
-    if (is_top_level) {
-        std::set<std::string> expanded_blueprint_names;
-        expanded_blueprint_names.insert(expanded_instance_names.begin(), expanded_instance_names.end());
-        // Find all expanded blueprints by looking for BlueprintInput/BlueprintOutput devices
-        // These have names like "lamp_bp:vin" and "lamp_bp:vout"
-        // The blueprint name is everything before the first colon
-        for (const auto& dev : ctx.devices) {
-            if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
-                // Extract blueprint name (everything before the colon)
-                size_t colon_pos = dev.name.find(':');
-                if (colon_pos != std::string::npos) {
-                    std::string blueprint_name = dev.name.substr(0, colon_pos);
-                    expanded_blueprint_names.insert(blueprint_name);
-                    spdlog::debug("[json_parser] Found expanded blueprint from {}: blueprint '{}'",
-                                dev.classname, blueprint_name);
-                }
-            }
-        }
-
-        if (!expanded_blueprint_names.empty()) {
-            spdlog::info("[json_parser] Found {} expanded blueprints: [{}]",
-                         expanded_blueprint_names.size(),
-                         fmt::join(expanded_blueprint_names, ", "));
-
-            // === PARITY GUARD: Parent Connection Rewrite ===
-            // INVARIANT: This rewrite is CANONICAL for parent-facing composite ports.
-            // - Blueprint expanded from TypeRegistry: device_name + ":" + port_name becomes exposed.
-            // - Parent connections (editor/root) use format: instance:port.ext (expanded side).
-            // - Internal connections (within expanded blueprint) use format: instance:port.port.
-            // - Root/editor resolver must map expandable root endpoints to :instance:port.ext format.
-            // - AOT and JIT solvers must agree on bridge semantics (.ext vs .port union).
-            for (auto& conn : ctx.connections) {
-                // Helper to rewrite one side of a connection
-                auto rewrite_port = [&](std::string& port_ref) {
-                    size_t dot_pos = port_ref.find('.');
-                    if (dot_pos == std::string::npos) return;  // No port specified
-
-                    std::string device_name = port_ref.substr(0, dot_pos);
-                    std::string port_name = port_ref.substr(dot_pos + 1);
-
-                    // INVARIANT: port_name must be non-empty after extraction.
-                    // If port_name is empty (malformed endpoint like "instance."),
-                    // skip rewrite and let downstream validation catch it.
-                    if (port_name.empty()) {
-                        spdlog::warn("[json_parser] Malformed endpoint (empty port): '{}' - skipping rewrite",
-                                    port_ref);
-                        return;
-                    }
-
-                    // Skip if already has prefix (internal connection, already processed)
-                    if (device_name.find(':') != std::string::npos) {
-                        return;
-                    }
-
-                    // Check if this device is an expanded blueprint
-                    if (expanded_blueprint_names.count(device_name)) {
-                        // Rewrite parent-facing composite ports to the bridge node's
-                        // external side: "lamp_bp.vin" -> "lamp_bp:vin.ext".
-                        // The internal ".port" endpoint stays for connections inside
-                        // the expanded blueprint only.
-                        // [PARITY] This contract must be mirrored in:
-                        //   - signal_key_resolver.cpp (root/external signal mapping)
-                        //   - jit_solver.cpp (BlueprintInput/BlueprintOutput bridge union)
-                        //   - codegen.cpp (AOT equivalent bridge union)
-                        std::string old_ref = port_ref;
-                        port_ref = device_name + ":" + port_name + ".ext";
-                        spdlog::info("[json_parser] Rewrote parent connection: '{}' -> '{}'",
-                                    old_ref, port_ref);
-                    }
-                };
-
-                rewrite_port(conn.from);
-                rewrite_port(conn.to);
-            }
         }
     }
 

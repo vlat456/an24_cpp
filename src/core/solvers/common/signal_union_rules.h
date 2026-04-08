@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json_parser/json_parser.h"
+#include "signal_key.h"
 
 #include <cstdint>
 #include <string>
@@ -42,18 +43,25 @@ void apply_bridge_unions(
     bool skip_visual_only
 ) {
     for (const auto& dev : devices) {
-        if (should_skip_device(dev, skip_visual_only) || !is_bridge_node(dev)) {
-            continue;
-        }
+         if (should_skip_device(dev, skip_visual_only) || !is_bridge_node(dev)) {
+             continue;
+         }
 
-        const std::string ext_key = dev.name + ".ext";
-        const std::string port_key = dev.name + ".port";
-        auto it_ext = port_to_idx.find(ext_key);
-        auto it_port = port_to_idx.find(port_key);
-        if (it_ext != port_to_idx.end() && it_port != port_to_idx.end()) {
-            uf.unite(it_ext->second, it_port->second);
-        }
-    }
+         const std::string ext_key = signal_key::make_bridge_external_key(dev.name);
+         const std::string port_key = signal_key::make_bridge_internal_key(dev.name);
+         const std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(dev.name);
+         auto it_ext = port_to_idx.find(ext_key);
+         auto it_port = port_to_idx.find(port_key);
+         if (it_ext != port_to_idx.end() && it_port != port_to_idx.end()) {
+             uf.unite(it_ext->second, it_port->second);
+         }
+         if (!exposed_key.empty()) {
+             auto it_exposed = port_to_idx.find(exposed_key);
+             if (it_exposed != port_to_idx.end() && it_ext != port_to_idx.end()) {
+                 uf.unite(it_exposed->second, it_ext->second);
+             }
+         }
+     }
 }
 
 template <typename UnionFindT, typename ConnectionT, typename OnMissingFn>
@@ -91,18 +99,18 @@ void apply_alias_unions(
         }
 
         for (const auto& [port_name, port] : dev.ports) {
-            if (!port.alias.has_value() || port.alias->empty()) {
-                continue;
-            }
+             if (!port.alias.has_value() || port.alias->empty()) {
+                 continue;
+             }
 
-            const std::string full_port = dev.name + "." + port_name;
-            const std::string full_alias = dev.name + "." + *port.alias;
-            auto it_port = port_to_idx.find(full_port);
-            auto it_alias = port_to_idx.find(full_alias);
-            if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
-                uf.unite(it_port->second, it_alias->second);
-            }
-        }
+             const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
+             const std::string full_alias = signal_key::make_node_port_key(dev.name, *port.alias);
+             auto it_port = port_to_idx.find(full_port);
+             auto it_alias = port_to_idx.find(full_alias);
+             if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
+                 uf.unite(it_port->second, it_alias->second);
+             }
+         }
     }
 }
 

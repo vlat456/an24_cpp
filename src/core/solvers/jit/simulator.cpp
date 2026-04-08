@@ -1,5 +1,6 @@
 #include "simulator.h"
 #include "components/port_registry.h"
+#include "core/solvers/common/signal_key.h"
 #include "../../../json_parser/json_parser.h"
 #include "../../../parse_number.h"
 #include <algorithm>
@@ -148,7 +149,7 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
                 value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
 
-            auto it_sig = build_result_->port_to_signal.find(dev.name + ".v");
+            auto it_sig = build_result_->port_to_signal.find(signal_key::make_node_port_key(dev.name, "v"));
             if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
                 state_.values[it_sig->second] = value;
             }
@@ -160,7 +161,7 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
                 value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
 
-            auto it_sig = build_result_->port_to_signal.find(dev.name + ".o");
+            auto it_sig = build_result_->port_to_signal.find(signal_key::make_node_port_key(dev.name, "o"));
             if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
                 state_.values[it_sig->second] = value;
             }
@@ -304,17 +305,8 @@ float Simulator<SolverTag>::get_port_value(const std::string& node_id, const std
         return 0.0f;
     }
 
-    // Try flat device first: "node_id.port_name"
-    const std::string flat_key = node_id + "." + port_name;
-    auto it = build_result_->port_to_signal.find(flat_key);
-    if (it != build_result_->port_to_signal.end() && it->second < state_.values.size()) {
-        return state_.values[it->second];
-    }
-
-    // Composite blueprints: BlueprintInput/BlueprintOutput bridge nodes
-    // are stored as "node_id:port_name.ext" in port_to_signal after expansion.
-    const std::string composite_key = node_id + ":" + port_name + ".ext";
-    it = build_result_->port_to_signal.find(composite_key);
+    const std::string key = signal_key::make_node_port_key(node_id, port_name);
+    auto it = build_result_->port_to_signal.find(key);
     if (it != build_result_->port_to_signal.end() && it->second < state_.values.size()) {
         return state_.values[it->second];
     }
@@ -348,7 +340,7 @@ bool Simulator<SolverTag>::get_boolean_output(const std::string& port_name) cons
 
 template <typename SolverTag>
 bool Simulator<SolverTag>::get_component_state_as_bool(const std::string& node_id, const std::string& port_name) const {
-    return get_boolean_output(node_id + "." + port_name);
+    return get_boolean_output(signal_key::make_node_port_key(node_id, port_name));
 }
 
 template class Simulator<JIT_Solver>;

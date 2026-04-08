@@ -892,8 +892,8 @@ TEST(TypeRegistry, MissingSolverOwnedElectricalInV3BlueprintThrows) {
 
 // === PARITY HARDENING: Rewrite Contract Tests ===
 
-// Test 1: Composite parent port rewrite to .ext format
-// INVARIANT: Parent connections to expanded blueprint ports must rewrite to instance:port.ext format
+// Test 1: Composite parent endpoints keep canonical node.port format
+// INVARIANT: Parent connections to expanded blueprint ports remain instance.port.
 TEST(JsonParserTest, CompositeParentPortRewrite_ToExt) {
     std::string json = R"({
         "templates": {},
@@ -909,44 +909,37 @@ TEST(JsonParserTest, CompositeParentPortRewrite_ToExt) {
 
     auto ctx = parse_json(json);
 
-    // After rewrite, expanded blueprint connections should have .ext suffix
-    // because FirstOrderLag is an expandable composite blueprint in TypeRegistry
-    // The expansion adds internal connections, so total count > 2
+    // FirstOrderLag is an expandable composite blueprint in TypeRegistry.
+    // The expansion adds internal connections, so total count > 2.
     ASSERT_GT(ctx.connections.size(), 2);
     
-    // Key invariant: parent connections to lag1 must be rewritten to lag1:port.ext format
-    bool found_lag1_in_ext = false;
-    bool found_lag1_out_ext = false;
+    // Key invariant: parent connections remain canonical lag1.port format.
+    bool found_lag1_in = false;
+    bool found_lag1_out = false;
     
     for (const auto& conn : ctx.connections) {
-        if (conn.to.find("lag1:in.ext") != std::string::npos) found_lag1_in_ext = true;
-        if (conn.from.find("lag1:out.ext") != std::string::npos) found_lag1_out_ext = true;
+        if (conn.to == "lag1.in") found_lag1_in = true;
+        if (conn.from == "lag1.out") found_lag1_out = true;
     }
 
-    ASSERT_TRUE(found_lag1_in_ext) 
-        << "Parent connection 'lag1.in' must be rewritten to 'lag1:in.ext' format";
-    ASSERT_TRUE(found_lag1_out_ext)
-        << "Parent connection 'lag1.out' must be rewritten to 'lag1:out.ext' format";
+    ASSERT_TRUE(found_lag1_in)
+        << "Parent connection must keep canonical endpoint 'lag1.in'";
+    ASSERT_TRUE(found_lag1_out)
+        << "Parent connection must keep canonical endpoint 'lag1.out'";
 
-    // Final check: no raw "lag1.out" or "lag1.in" should exist in parent connections
-    // (they should all be rewritten to .ext format)
+    // Final check: parser should not leak internal bridge endpoints in parent links.
     for (const auto& conn : ctx.connections) {
-        if (conn.to.find("lag1") != std::string::npos && conn.to.find(":") == std::string::npos) {
-            // Skip if it's internal (has colon already processed)
-            if (conn.to.find(':') == std::string::npos && conn.to.find("lag1.") != std::string::npos) {
-                FAIL() << "Found unrewritten parent connection: " << conn.to;
-            }
+        if (conn.to.rfind("lag1:", 0) == 0 && conn.to.find(".ext") != std::string::npos) {
+            FAIL() << "Parent connection leaked bridge endpoint: " << conn.to;
         }
-        if (conn.from.find("lag1") != std::string::npos && conn.from.find(":") == std::string::npos) {
-            if (conn.from.find(':') == std::string::npos && conn.from.find("lag1.") != std::string::npos) {
-                FAIL() << "Found unrewritten parent connection: " << conn.from;
-            }
+        if (conn.from.rfind("lag1:", 0) == 0 && conn.from.find(".ext") != std::string::npos) {
+            FAIL() << "Parent connection leaked bridge endpoint: " << conn.from;
         }
     }
 }
 
-// Test 2: Malformed endpoint (empty port) is skipped safely without crash
-// INVARIANT: Parser must not crash on malformed endpoints, must skip rewrite gracefully
+// Test 2: Malformed endpoint (empty port) is handled safely without crash
+// INVARIANT: Parser must not crash on malformed endpoints.
 TEST(JsonParserTest, CompositeParentPortRewrite_EmptyPortIsSkippedWithWarning) {
     std::string json = R"({
         "templates": {},

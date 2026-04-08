@@ -2,6 +2,7 @@
 
 #include "codegen.h"
 #include "codegen_utils.h"
+#include "../common/signal_key.h"
 
 #include <algorithm>
 #include <cctype>
@@ -34,7 +35,7 @@ inline std::string generate_aot_provider_type(
         if (port.second.alias.has_value() && !port.second.alias.value().empty()) {
             continue;
         }
-        std::string port_key = dev.name + "." + port_name;
+        std::string port_key = signal_key::make_node_port_key(dev.name, port_name);
         uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
         if (!first) {
             oss << ", ";
@@ -53,7 +54,8 @@ inline std::vector<DeviceInstance> filter_simulation_devices(
     std::vector<DeviceInstance> devices;
     devices.reserve(devices_unfiltered.size());
     for (const auto& d : devices_unfiltered) {
-        if (!d.visual_only) {
+        const bool is_bridge = d.classname == "BlueprintInput" || d.classname == "BlueprintOutput";
+        if (!d.visual_only && !is_bridge) {
             devices.push_back(d);
         }
     }

@@ -1,5 +1,6 @@
 #include "codegen.h"
 #include "codegen_utils.h"
+#include "../common/signal_key.h"
 #include "../parse_number.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -89,7 +90,7 @@ std::optional<RawElement> extract_solver_role_element(
     const auto& role = *dev.solver_role;
 
     auto resolve_port = [&](const std::string& port_name) -> std::optional<uint32_t> {
-        const std::string full_port = dev.name + "." + port_name;
+        const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
         auto it = port_to_signal.find(full_port);
         if (it == port_to_signal.end()) {
             if (options.strict_port_resolution) {
@@ -190,7 +191,7 @@ std::optional<RawElement> extract_classname_rule_element(
     size_t& element_idx
 ) {
     auto resolve_port = [&](const std::string& port_name) -> std::optional<uint32_t> {
-        const std::string full_port = dev.name + "." + port_name;
+        const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
         auto it = port_to_signal.find(full_port);
         if (it == port_to_signal.end()) {
             if (options.strict_port_resolution) {
@@ -498,7 +499,7 @@ ElectricalPlanCodegen extract_electrical_plan(
 
     auto device_has_any_ports = [&](const DeviceInstance& dev) -> bool {
         for (const auto& [port_name, _port] : dev.ports) {
-            std::string full_port = dev.name + "." + port_name;
+            std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
             if (port_to_signal.find(full_port) != port_to_signal.end()) {
                 return true;
             }

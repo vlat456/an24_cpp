@@ -3,6 +3,7 @@
 #include "document.h"
 #include "editor/visual/wire/wire.h"
 #include "blueprint_v2/path/path.h"
+#include "core/solvers/common/signal_key.h"
 
 #include <algorithm>
 #include <cmath>
@@ -24,7 +25,7 @@ static bool decode_source_key(const bp2::Blueprint::Wire& w,
     const std::string node = std::string(interner.resolve(node_iid));
     const std::string port = std::string(interner.resolve(port_iid));
     if (node.empty() || port.empty()) return false;
-    out_key = node + "." + port;
+    out_key = signal_key::make_node_port_key(node, port);
     out_label = out_key;
     return true;
 }

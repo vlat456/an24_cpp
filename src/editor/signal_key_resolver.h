@@ -39,7 +39,7 @@ struct SignalEndpoint {
 /// This is the canonical resolver for all UI signal key lookups.
 /// It handles:
 /// - Root mode normal nodes → "node.port"
-/// - Root mode expandable composites → "node:port.ext"
+/// - Root mode expandable composites → "node.port"
 /// - External reference mode (child blueprint) → "parent:child_node.port"
 ///
 /// Returns empty string if endpoint node_iid or port_iid is empty (defensive).

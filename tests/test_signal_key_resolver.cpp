@@ -27,7 +27,7 @@ TEST(SignalKeyResolver, ResolveExternalRefSignalKey) {
 // Test 3: Helper function map_composite_port_key
 TEST(SignalKeyResolver, MapCompositePortKey) {
     std::string result = editor::map_composite_port_key("firstorderlag_1", "out");
-    EXPECT_EQ(result, "firstorderlag_1:out.ext");
+    EXPECT_EQ(result, "firstorderlag_1.out");
 }
 
 // Test 4: build_signal_key with various inputs
@@ -47,10 +47,10 @@ TEST(SignalKeyResolver, ResolveExternalRefNested) {
 
 // Test 6: map_composite_port_key with different ports
 TEST(SignalKeyResolver, MapCompositePortKeyVariants) {
-    EXPECT_EQ(editor::map_composite_port_key("firstorderlag_1", "in"), "firstorderlag_1:in.ext");
-    EXPECT_EQ(editor::map_composite_port_key("firstorderlag_1", "out"), "firstorderlag_1:out.ext");
-    EXPECT_EQ(editor::map_composite_port_key("firstorderlag_1", "rate"), "firstorderlag_1:rate.ext");
-    EXPECT_EQ(editor::map_composite_port_key("my_filter_2", "output"), "my_filter_2:output.ext");
+    EXPECT_EQ(editor::map_composite_port_key("firstorderlag_1", "in"), "firstorderlag_1.in");
+    EXPECT_EQ(editor::map_composite_port_key("firstorderlag_1", "out"), "firstorderlag_1.out");
+    EXPECT_EQ(editor::map_composite_port_key("firstorderlag_1", "rate"), "firstorderlag_1.rate");
+    EXPECT_EQ(editor::map_composite_port_key("my_filter_2", "output"), "my_filter_2.output");
 }
 
 // Test 7: Round-trip: build + resolve_external_ref
@@ -66,8 +66,8 @@ TEST(SignalKeyResolver, EmptyComponents) {
     EXPECT_EQ(editor::build_signal_key("node", ""), "node.");
     EXPECT_EQ(editor::resolve_external_ref_signal_key("", "node.port"), ":node.port");
     EXPECT_EQ(editor::resolve_external_ref_signal_key("parent", ""), "parent:");
-    EXPECT_EQ(editor::map_composite_port_key("", "port"), ":port.ext");
-    EXPECT_EQ(editor::map_composite_port_key("node", ""), "node:.ext");
+    EXPECT_EQ(editor::map_composite_port_key("", "port"), ".port");
+    EXPECT_EQ(editor::map_composite_port_key("node", ""), "node.");
 }
 
 // Test 9: Signature of resolve_runtime_signal_key (compile check)
@@ -155,8 +155,8 @@ TEST(SignalKeyResolver, ResolveRuntimeKey_RootExpandableNode) {
     editor::SignalKeyContext context = editor::root_signal_context();
     
     std::string result = editor::resolve_runtime_signal_key(bp, interner, endpoint, context);
-    // Root-level expandable: "firstorderlag_1:out.ext"
-    EXPECT_EQ(result, "firstorderlag_1:out.ext");
+    // Root-level expandable resolves to canonical "node.port"
+    EXPECT_EQ(result, "firstorderlag_1.out");
 }
 
 // Test 13: Table-driven resolver coverage for ExternalReference mode
@@ -181,7 +181,7 @@ TEST(SignalKeyResolver, ResolveRuntimeKey_ExternalReferenceMode) {
     EXPECT_EQ(result, "firstorderlag_1:accumulator.out");
 }
 
-// Test 14: Regression test guarding expandable root path
+// Test 14: Regression test guarding expandable root canonical path
 TEST(SignalKeyResolver, ExpandableRootNeverUsesRawNodeDotPort) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
@@ -201,13 +201,9 @@ TEST(SignalKeyResolver, ExpandableRootNeverUsesRawNodeDotPort) {
     
     std::string result = editor::resolve_runtime_signal_key(bp, interner, endpoint, context);
     
-    // MUST NOT be the raw "node.port" form
-    EXPECT_NE(result, "firstorderlag_1.out")
-        << "Expandable root output MUST use ':' expansion, not '.' form";
-    
-    // MUST be the expanded form
-    EXPECT_EQ(result, "firstorderlag_1:out.ext")
-        << "Expandable root output MUST resolve to expanded form";
+    // Expandable root output must resolve to canonical node.port form.
+    EXPECT_EQ(result, "firstorderlag_1.out")
+        << "Expandable root output MUST resolve to canonical node.port form";
 }
 
 // Test 15: Empty endpoint IDs are rejected by resolver (defensive check)
@@ -291,8 +287,8 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_ColonConvention_Found) {
     editor::SignalKeyContext context = editor::root_signal_context();
 
     std::string result = editor::resolve_runtime_signal_key(bp, interner, endpoint, context);
-    // Must resolve via bridge node "gp_1:v_in" → "gp_1:v_in.ext"
-    EXPECT_EQ(result, "gp_1:v_in.ext")
+    // Must resolve via bridge node "gp_1:v_in" → canonical "gp_1.v_in"
+    EXPECT_EQ(result, "gp_1.v_in")
         << "Embedded proxy port must resolve to colon-convention bridge node";
 }
 
@@ -340,23 +336,22 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_UnderscoreConvention_NotFound) {
     // It should fall through to the map_composite_port_key fallback.
     EXPECT_NE(result, "gp_1_v_in.ext")
         << "Resolver must NOT find underscore-convention bridge nodes";
-    EXPECT_EQ(result, "gp_1:v_in.ext")
-        << "Resolver should fall back to composite port key format";
+    EXPECT_EQ(result, "gp_1.v_in")
+        << "Resolver should fall back to canonical composite port key format";
 }
 
-// Test 19: Bridge node naming - colon convention is canonical for composites
-// When get_port_value() looks up a composite port, it uses the colon convention.
+// Test 19: Composite key resolver returns canonical node.port identity
 TEST(SignalKeyResolver, CompositePortKey_UsesColonConvention) {
-    // Verify that map_composite_port_key always uses colon
+    // Verify that map_composite_port_key uses canonical node.port
     std::string key1 = editor::map_composite_port_key("GroundPower_1", "v_in");
-    EXPECT_EQ(key1, "GroundPower_1:v_in.ext");
-    EXPECT_NE(key1.find(':'), std::string::npos)
-        << "Composite port key MUST contain colon separator";
+    EXPECT_EQ(key1, "GroundPower_1.v_in");
+    EXPECT_EQ(key1.find(':'), std::string::npos)
+        << "Canonical composite port key must not contain ':'";
     EXPECT_EQ(key1.find('_'), std::string("GroundPower").size())
         << "Only the instance suffix underscore should exist, not a port separator underscore";
 
     std::string key2 = editor::map_composite_port_key("12SAM28_1", "v_out");
-    EXPECT_EQ(key2, "12SAM28_1:v_out.ext");
+    EXPECT_EQ(key2, "12SAM28_1.v_out");
 }
 
 // ===========================================================================
@@ -418,7 +413,7 @@ TEST(SignalKeyResolver, MultipleBridgeNodes_ResolveIndependently) {
         editor::SignalEndpoint ep{p, interner.intern("gp_1"), interner.intern("v_in")};
         std::string key = editor::resolve_runtime_signal_key(
             bp, interner, ep, editor::root_signal_context());
-        EXPECT_EQ(key, "gp_1:v_in.ext");
+        EXPECT_EQ(key, "gp_1.v_in");
     }
 
     // Resolve v_out port → must find gp_1:v_out bridge
@@ -428,7 +423,7 @@ TEST(SignalKeyResolver, MultipleBridgeNodes_ResolveIndependently) {
         editor::SignalEndpoint ep{p, interner.intern("gp_1"), interner.intern("v_out")};
         std::string key = editor::resolve_runtime_signal_key(
             bp, interner, ep, editor::root_signal_context());
-        EXPECT_EQ(key, "gp_1:v_out.ext");
+        EXPECT_EQ(key, "gp_1.v_out");
     }
 
     // Internal node "gp_1_src" should NOT be found as a bridge for any port
@@ -439,7 +434,7 @@ TEST(SignalKeyResolver, MultipleBridgeNodes_ResolveIndependently) {
         std::string key = editor::resolve_runtime_signal_key(
             bp, interner, ep, editor::root_signal_context());
         // "src" is not a bridge port, so resolver falls through to composite key
-        EXPECT_EQ(key, "gp_1:src.ext");
+        EXPECT_EQ(key, "gp_1.src");
         // Critically, it must NOT resolve to "gp_1_src.ext" (underscore)
         EXPECT_NE(key, "gp_1_src.ext");
     }
@@ -481,7 +476,6 @@ TEST(SignalKeyResolver, BridgeNode_ProxyIdWithUnderscores_ColonStillWorks) {
     editor::SignalEndpoint ep{p, interner.intern("ground_power_1"), interner.intern("v_in")};
     std::string key = editor::resolve_runtime_signal_key(
         bp, interner, ep, editor::root_signal_context());
-    EXPECT_EQ(key, "ground_power_1:v_in.ext")
+    EXPECT_EQ(key, "ground_power_1.v_in")
         << "Colon convention must work even when proxy ID contains underscores";
 }
-
