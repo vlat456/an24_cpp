@@ -1,6 +1,7 @@
 #include "document.h"
 
 #include "signal_key_resolver.h"
+#include "core/solvers/common/signal_key.h"
 
 #include <nlohmann/json.hpp>
 #include <map>
@@ -10,16 +11,6 @@
 using json = nlohmann::json;
 
 namespace {
-
-bool split_endpoint(const std::string& endpoint, std::string& node, std::string& port) {
-    const size_t dot = endpoint.rfind('.');
-    if (dot == std::string::npos || dot == 0 || dot + 1 >= endpoint.size()) {
-        return false;
-    }
-    node = endpoint.substr(0, dot);
-    port = endpoint.substr(dot + 1);
-    return true;
-}
 
 const char* sim_port_type_str(PortType t) {
     switch (t) {
@@ -42,14 +33,14 @@ void collect_nested_devices_recursive(
     std::set<std::string>& emitted_ids,
     json& devices,
     std::map<std::string, std::string>& proxy_port_to_bridge,
-    const std::string& parent_collapsed_id) {
-    for (const bp2::Blueprint::Node& in : inline_bp.nodes()) {
-        const std::string local_id = std::string(interner.resolve(in.semantic.id));
-        const std::string exported_id = parent_collapsed_id + ":" + local_id;
-        if (!emitted_ids.insert(exported_id).second) {
-            spdlog::warn("[dedup] Duplicate node '{}' in nested expansion", exported_id);
-            continue;
-        }
+     const std::string& parent_collapsed_id) {
+     for (const bp2::Blueprint::Node& in : inline_bp.nodes()) {
+         const std::string local_id = std::string(interner.resolve(in.semantic.id));
+         const std::string exported_id = signal_key::make_child_scope_key(parent_collapsed_id, local_id);
+         if (!emitted_ids.insert(exported_id).second) {
+             spdlog::warn("[dedup] Duplicate node '{}' in nested expansion", exported_id);
+             continue;
+         }
 
         json device = json::object();
         device["name"] = exported_id;
@@ -114,30 +105,34 @@ void collect_nested_devices_recursive(
         devices.push_back(std::move(device));
     }
 
-    const auto bp_input_iid = interner.lookup("BlueprintInput");
-    const auto bp_output_iid = interner.lookup("BlueprintOutput");
-    for (const bp2::Blueprint::Node& in : inline_bp.nodes()) {
-        if (!bp_input_iid.empty() && in.semantic.type == bp_input_iid) {
-            const std::string bridge_local_id = std::string(interner.resolve(in.semantic.id));
-            proxy_port_to_bridge[parent_collapsed_id + "." + bridge_local_id] = parent_collapsed_id + ":" + bridge_local_id;
-        } else if (!bp_output_iid.empty() && in.semantic.type == bp_output_iid) {
-            const std::string bridge_local_id = std::string(interner.resolve(in.semantic.id));
-            proxy_port_to_bridge[parent_collapsed_id + "." + bridge_local_id] = parent_collapsed_id + ":" + bridge_local_id;
-        }
-    }
+     const auto bp_input_iid = interner.lookup("BlueprintInput");
+     const auto bp_output_iid = interner.lookup("BlueprintOutput");
+     for (const bp2::Blueprint::Node& in : inline_bp.nodes()) {
+         if (!bp_input_iid.empty() && in.semantic.type == bp_input_iid) {
+             const std::string bridge_local_id = std::string(interner.resolve(in.semantic.id));
+             const std::string collapsed_port = signal_key::make_node_port_key(parent_collapsed_id, bridge_local_id);
+             const std::string child_scope = signal_key::make_child_scope_key(parent_collapsed_id, bridge_local_id);
+             proxy_port_to_bridge[collapsed_port] = child_scope;
+         } else if (!bp_output_iid.empty() && in.semantic.type == bp_output_iid) {
+             const std::string bridge_local_id = std::string(interner.resolve(in.semantic.id));
+             const std::string collapsed_port = signal_key::make_node_port_key(parent_collapsed_id, bridge_local_id);
+             const std::string child_scope = signal_key::make_child_scope_key(parent_collapsed_id, bridge_local_id);
+             proxy_port_to_bridge[collapsed_port] = child_scope;
+         }
+     }
 
-    for (const auto& nested_child : inline_bp.nested()) {
-        if (nested_child.embedded && nested_child.inline_def) {
-            collect_nested_devices_recursive(
-                *nested_child.inline_def,
-                type_registry,
-                interner,
-                emitted_ids,
-                devices,
-                proxy_port_to_bridge,
-                parent_collapsed_id + ":" + std::string(interner.resolve(nested_child.id)));
-        }
-    }
+     for (const auto& nested_child : inline_bp.nested()) {
+         if (nested_child.embedded && nested_child.inline_def) {
+             collect_nested_devices_recursive(
+                 *nested_child.inline_def,
+                 type_registry,
+                 interner,
+                 emitted_ids,
+                 devices,
+                 proxy_port_to_bridge,
+                 signal_key::make_child_scope_key(parent_collapsed_id, std::string(interner.resolve(nested_child.id))));
+         }
+     }
 }
 
 void collect_nested_connections_recursive(
@@ -153,38 +148,38 @@ void collect_nested_connections_recursive(
         }
         const bp2::Path src_parent = arena.parent(w.source);
         const bp2::Path tgt_parent = arena.parent(w.target);
-        if (src_parent.kind() != bp2::PathKind::Node || tgt_parent.kind() != bp2::PathKind::Node) {
-            continue;
-        }
+         if (src_parent.kind() != bp2::PathKind::Node || tgt_parent.kind() != bp2::PathKind::Node) {
+             continue;
+         }
 
-        std::string src_node_s = parent_collapsed_id + ":" + std::string(interner.resolve(src_parent.segment()));
-        std::string src_port_s = std::string(interner.resolve(w.source.segment()));
-        std::string tgt_node_s = parent_collapsed_id + ":" + std::string(interner.resolve(tgt_parent.segment()));
-        std::string tgt_port_s = std::string(interner.resolve(w.target.segment()));
+         std::string src_node_s = signal_key::make_child_scope_key(parent_collapsed_id, std::string(interner.resolve(src_parent.segment())));
+         std::string src_port_s = std::string(interner.resolve(w.source.segment()));
+         std::string tgt_node_s = signal_key::make_child_scope_key(parent_collapsed_id, std::string(interner.resolve(tgt_parent.segment())));
+         std::string tgt_port_s = std::string(interner.resolve(w.target.segment()));
 
-        const std::string key = src_node_s + "." + src_port_s + "->" + tgt_node_s + "." + tgt_port_s;
-        if (!emitted_conn_keys.insert(key).second) {
-            spdlog::warn("[dedup] Duplicate connection on sim export: {}", key);
-            continue;
-        }
+         const std::string key = signal_key::make_node_port_key(src_node_s, src_port_s) + "->" + signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
+         if (!emitted_conn_keys.insert(key).second) {
+             spdlog::warn("[dedup] Duplicate connection on sim export: {}", key);
+             continue;
+         }
 
-        json conn = json::object();
-        conn["from"] = src_node_s + "." + src_port_s;
-        conn["to"] = tgt_node_s + "." + tgt_port_s;
-        connections.push_back(std::move(conn));
-    }
+         json conn = json::object();
+         conn["from"] = signal_key::make_node_port_key(src_node_s, src_port_s);
+         conn["to"] = signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
+         connections.push_back(std::move(conn));
+     }
 
-    for (const auto& nested_child : inline_bp.nested()) {
-        if (nested_child.embedded && nested_child.inline_def) {
-            collect_nested_connections_recursive(
-                *nested_child.inline_def,
-                arena,
-                interner,
-                emitted_conn_keys,
-                connections,
-                parent_collapsed_id + ":" + std::string(interner.resolve(nested_child.id)));
-        }
-    }
+     for (const auto& nested_child : inline_bp.nested()) {
+         if (nested_child.embedded && nested_child.inline_def) {
+             collect_nested_connections_recursive(
+                 *nested_child.inline_def,
+                 arena,
+                 interner,
+                 emitted_conn_keys,
+                 connections,
+                 signal_key::make_child_scope_key(parent_collapsed_id, std::string(interner.resolve(nested_child.id))));
+         }
+     }
 }
 
 } // namespace
@@ -312,42 +307,37 @@ std::string Document::build_simulation_json() const {
             continue;
         }
 
-        std::string src_node_s = std::string(interner_.resolve(src_node));
-        std::string src_port_s = std::string(interner_.resolve(src_port));
-        std::string tgt_node_s = std::string(interner_.resolve(tgt_node));
-        std::string tgt_port_s = std::string(interner_.resolve(tgt_port));
+         std::string src_node_s = std::string(interner_.resolve(src_node));
+         std::string src_port_s = std::string(interner_.resolve(src_port));
+         std::string tgt_node_s = std::string(interner_.resolve(tgt_node));
+         std::string tgt_port_s = std::string(interner_.resolve(tgt_port));
 
-        if (proxy_port_to_bridge.count(src_node_s + "." + src_port_s)) {
-            auto it = proxy_port_to_bridge.find(src_node_s + "." + src_port_s);
-            if (it != proxy_port_to_bridge.end()) {
-                src_node_s = it->second;
-                src_port_s = "ext";
-            }
-        }
-        if (proxy_port_to_bridge.count(tgt_node_s + "." + tgt_port_s)) {
-            auto it = proxy_port_to_bridge.find(tgt_node_s + "." + tgt_port_s);
-            if (it != proxy_port_to_bridge.end()) {
-                tgt_node_s = it->second;
-                tgt_port_s = "ext";
-            }
-        }
+         std::string src_key = signal_key::make_node_port_key(src_node_s, src_port_s);
+         {
+             auto it = proxy_port_to_bridge.find(src_key);
+             if (it != proxy_port_to_bridge.end()) {
+                 src_node_s = it->second;
+                 src_port_s = "ext";
+             }
+         }
+         std::string tgt_key = signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
+         {
+             auto it = proxy_port_to_bridge.find(tgt_key);
+             if (it != proxy_port_to_bridge.end()) {
+                 tgt_node_s = it->second;
+                 tgt_port_s = "ext";
+             }
+         }
 
-        const std::string key = src_node_s + "." + src_port_s + "->" + tgt_node_s + "." + tgt_port_s;
+         const std::string key = signal_key::make_node_port_key(src_node_s, src_port_s) + "->" + signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
         if (!emitted_conn_keys.insert(key).second) {
             spdlog::warn("[dedup] Duplicate connection on sim export: {}", key);
             continue;
         }
 
-        if (!split_endpoint(src_node_s + "." + src_port_s, src_node_s, src_port_s)) {
-            continue;
-        }
-        if (!split_endpoint(tgt_node_s + "." + tgt_port_s, tgt_node_s, tgt_port_s)) {
-            continue;
-        }
-
-        json conn = json::object();
-        conn["from"] = src_node_s + "." + src_port_s;
-        conn["to"] = tgt_node_s + "." + tgt_port_s;
+         json conn = json::object();
+         conn["from"] = signal_key::make_node_port_key(src_node_s, src_port_s);
+         conn["to"] = signal_key::make_node_port_key(tgt_node_s, tgt_port_s);
         connections.push_back(std::move(conn));
     }
     out["connections"] = std::move(connections);

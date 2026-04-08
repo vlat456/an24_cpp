@@ -7,8 +7,6 @@
 #include "components/ref_node.h"
 #include "components/generator.h"
 #include "components/bus.h"
-#include "components/blueprint_input.h"
-#include "components/blueprint_output.h"
 #include "components/comparator.h"
 #include "components/current_sense.h"
 #include "components/azs.h"
@@ -86,6 +84,10 @@ void build_and_register_components(
     // Phase 2 Slice 1: Create and register migrated components
     for (const auto& dev : devices) {
         if (dev.visual_only) {
+            continue;
+        }
+
+        if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
             continue;
         }
 
@@ -195,24 +197,6 @@ void build_and_register_components(
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Bus<JitProvider>>(result.devices[dev.name]));
-        }
-        else if (dev.classname == "BlueprintInput") {
-            BlueprintInput<JitProvider> comp;
-            param_reader.consume_string_optional("exposed_direction", "In");
-            param_reader.consume_string_optional("exposed_type", "V");
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<BlueprintInput<JitProvider>>(result.devices[dev.name]));
-        }
-        else if (dev.classname == "BlueprintOutput") {
-            BlueprintOutput<JitProvider> comp;
-            param_reader.consume_string_optional("exposed_direction", "Out");
-            param_reader.consume_string_optional("exposed_type", "V");
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<BlueprintOutput<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "Comparator") {
             Comparator<JitProvider> comp;

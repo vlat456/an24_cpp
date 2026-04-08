@@ -12,8 +12,6 @@
 #include "resistor.h"
 #include "ref_node.h"
 #include "bus.h"
-#include "blueprint_input.h"
-#include "blueprint_output.h"
 #include "generator.h"
 #include "transformer.h"
 #include "inverter.h"

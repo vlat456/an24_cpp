@@ -2,6 +2,7 @@
 
 #include "commands/commands.h"
 #include "common/port_type_utils.h"
+#include "core/solvers/common/signal_key.h"
 #include "data/node_content.h"
 #include "debug.h"
 #include "visual/persist.h"
@@ -141,7 +142,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         && model_.current().find_node(interner_.intern(group_id)) != nullptr;
 
     if (bridge_in_group) {
-        std::string canonical_id = group_id + ":" + node.view.name;
+        std::string canonical_id = signal_key::make_child_scope_key(group_id, node.view.name);
         node.semantic.id = interner_.intern(canonical_id);
         unique_id = canonical_id;
 

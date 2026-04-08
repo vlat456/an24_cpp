@@ -1344,7 +1344,7 @@ TEST(PushRuntime, ClosedCircuitBlueprint_NoRunawayVoltage) {
     for (int i = 0; i < 600; ++i) {
         sim.step(dt);
 
-        float gen_vpos = sim.get_port_value("GEN", "v_pos");
+        float gen_vpos = sim.get_port_value("controlledvoltagesource_1", "v_pos");
         float bus_2_v = sim.get_port_value("bus_2", "v");
         float cs_vin = sim.get_port_value("currentsense_1", "v_in");
         float cs_vout = sim.get_port_value("currentsense_1", "v_out");
@@ -1667,11 +1667,10 @@ TEST(PushRuntime, ClosedCircuit_EditorIdBasedLookup_NonZeroVoltage) {
     EXPECT_GT(std::fabs(cs_iout), 1e-3f)
         << "CurrentSense i_out should be non-zero when queried by node id";
 
-    // Query by display name should return 0 (device "GEN" does not exist
-    // in the id-keyed simulation)
+    // Canonical identity uses only node_id.port lookup. Display-name alias lookup is removed.
     float gen_vpos = sim.get_port_value("GEN", "v_pos");
     EXPECT_FLOAT_EQ(gen_vpos, 0.0f)
-        << "Querying by display name 'GEN' should return 0 (device keyed by id)";
+        << "Querying by non-canonical node id must return 0";
 }
 
 TEST(PushRuntime, AZS_ElectricalSolverPath_ClosedProducesSag) {

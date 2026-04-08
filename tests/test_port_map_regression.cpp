@@ -26,7 +26,6 @@ TEST(PortMapRegression, AllComponentPortsAreInStringToPortName) {
         "LerpNode", "InertiaNode", "Gyroscope",
         "ElectricHeater", "ElectricPump", "Radiator",
         "SolenoidValve", "TempSensor",
-        "BlueprintInput", "BlueprintOutput",
         "P", "PI", "PD", "PID"
     };
 
@@ -232,4 +231,3 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
     EXPECT_GT(get("sub.o"), 20.0f)
         << "Subtract(28, 0) must output ~28! (port A/B mapping regression)";
 }
-

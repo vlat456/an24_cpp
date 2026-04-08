@@ -1,6 +1,7 @@
 #include "document.h"
 
 #include "signal_key_resolver.h"
+#include "core/solvers/common/signal_key.h"
 #include "visual/node/visual_node.h"
 #include "visual/scene_mutations.h"
 #include <algorithm>
@@ -11,7 +12,7 @@ namespace {
 
 /// Build the simulation-level node ID: "group_id:node_id" for embedded, or "node_id" for root.
 std::string make_sim_id(const std::string& node_id, const std::string& group_id) {
-    return group_id.empty() ? node_id : (group_id + ":" + node_id);
+    return group_id.empty() ? node_id : signal_key::make_child_scope_key(group_id, node_id);
 }
 
 /// Find a node either in the root blueprint (when group_id is empty) or inside
@@ -118,9 +119,9 @@ void Document::updateSimulationStep(double dt) {
     if (!simulation_running_) return;
 
     for (const auto& node_id : held_buttons_) {
-        std::string control_port = node_id + ".control";
-        signal_overrides_[control_port] = 1.0f;
-    }
+         std::string control_port = signal_key::make_node_port_key(node_id, "control");
+         signal_overrides_[control_port] = 1.0f;
+     }
 
     simulation_.apply_overrides(signal_overrides_);
     simulation_.step(dt);
@@ -136,7 +137,7 @@ void Document::updateNodeContentFromSimulation() {
         if (n.view.content_type == bp2::NodeContentType::None) return;
 
         const std::string local_id = std::string(interner_.resolve(n.semantic.id));
-        const std::string nid = sim_id_prefix.empty() ? local_id : (sim_id_prefix + ":" + local_id);
+        const std::string nid = sim_id_prefix.empty() ? local_id : signal_key::make_child_scope_key(sim_id_prefix, local_id);
         const std::string type_name = std::string(interner_.resolve(n.semantic.type));
 
         NodeContent content;
@@ -271,7 +272,8 @@ void Document::buildEnergizedWireSet(
                 // Build runtime key: "parent_id:local_node.port"
                 std::string_view local_node = interner_.resolve(src_node_iid);
                 std::string_view local_port = interner_.resolve(src_port_iid);
-                std::string port_key = group_id + ":" + std::string(local_node) + "." + std::string(local_port);
+                std::string port_key = signal_key::make_child_scope_key(group_id, 
+                    signal_key::make_node_port_key(local_node, local_port));
 
                 if (simulation_.wire_is_energized(port_key)) {
                     out.insert(interner_.resolve(w.id));
@@ -335,15 +337,15 @@ void Document::buildEnergizedWireSetExternal(
 }
 
 void Document::triggerSwitch(const std::string& node_id, const std::string& group_id) {
-    const std::string sim_id = make_sim_id(node_id, group_id);
-    float current = simulation_.get_port_value(sim_id, "control");
-    float next = (current < 0.5f) ? 1.0f : 0.0f;
-    signal_overrides_[sim_id + ".control"] = next;
-}
+     const std::string sim_id = make_sim_id(node_id, group_id);
+     float current = simulation_.get_port_value(sim_id, "control");
+     float next = (current < 0.5f) ? 1.0f : 0.0f;
+     signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = next;
+ }
 
 void Document::setSliderValue(const std::string& node_id, float value, const std::string& group_id) {
-    const std::string sim_id = make_sim_id(node_id, group_id);
-    signal_overrides_[sim_id + ".control"] = value;
+     const std::string sim_id = make_sim_id(node_id, group_id);
+     signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = value;
 
     const bp2::Blueprint::Node* n = find_node_in_scope(model_, interner_, node_id, group_id);
     if (!n) return;
@@ -369,8 +371,8 @@ void Document::setSliderValue(const std::string& node_id, float value, const std
 }
 
 void Document::setKnobPosition(const std::string& node_id, int position, const std::string& group_id) {
-    const std::string sim_id = make_sim_id(node_id, group_id);
-    signal_overrides_[sim_id + ".control"] = static_cast<float>(position);
+     const std::string sim_id = make_sim_id(node_id, group_id);
+     signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = static_cast<float>(position);
 
     const bp2::Blueprint::Node* n = find_node_in_scope(model_, interner_, node_id, group_id);
     if (!n) return;
@@ -400,7 +402,7 @@ void Document::holdButtonPress(const std::string& node_id, const std::string& gr
 }
 
 void Document::holdButtonRelease(const std::string& node_id, const std::string& group_id) {
-    const std::string sim_id = make_sim_id(node_id, group_id);
-    held_buttons_.erase(sim_id);
-    signal_overrides_[sim_id + ".control"] = 2.0f;
-}
+     const std::string sim_id = make_sim_id(node_id, group_id);
+     held_buttons_.erase(sim_id);
+     signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = 2.0f;
+ }

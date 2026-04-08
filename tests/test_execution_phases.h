@@ -20,17 +20,6 @@ inline ExecutionPhases bus() {
     return ExecutionPhases{};
 }
 
-// ---- BlueprintInput / BlueprintOutput ----
-inline ExecutionPhases blueprint_port() {
-    ExecutionPhases p;
-    p.electrical_passive = true;
-    p.logical = true;
-    p.mechanical = true;
-    p.hydraulic = true;
-    p.thermal = true;
-    return p;
-}
-
 // ---- LUT: logical only ----
 inline ExecutionPhases lut() {
     ExecutionPhases p;
@@ -94,8 +83,6 @@ inline ExecutionPhases for_class(const std::string& classname) {
     if (classname == "IndicatorLight")        return electrical_passive();
     if (classname == "Lamp")                 return electrical_passive();  // alias
     if (classname == "Bus")                  return bus();
-    if (classname == "BlueprintInput")        return blueprint_port();
-    if (classname == "BlueprintOutput")       return blueprint_port();
     if (classname == "LUT")                  return lut();
     if (classname == "Switch")               return switch_exec();
     if (classname == "GidroAccumulator")     return gidro_accumulator();

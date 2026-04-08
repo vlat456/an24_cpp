@@ -18,8 +18,6 @@ add_library(jit_solver
     components/ref_node.cpp
     components/generator.cpp
     components/bus.cpp
-    components/blueprint_input.cpp
-    components/blueprint_output.cpp
     # Phase 2 Slice 2: Migrated push-style components
     components/comparator.cpp
     components/current_sense.cpp

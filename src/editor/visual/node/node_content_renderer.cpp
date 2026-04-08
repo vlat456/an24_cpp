@@ -16,7 +16,7 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
         // For embedded subwindows, inline_def nodes have no group_id filter needed
         // (the window already scoped to the composite). For root windows, filter normally.
         if (!win.group_id.empty() && !win.embedded_model) {
-            // Legacy fallback: root-level group filtering
+            // Root-level group filtering (subwindow scope without embedded model)
             if (node.layout.group_id != win.group_id) continue;
         } else if (win.group_id.empty()) {
             if (!node.layout.group_id.empty()) continue;

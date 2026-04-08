@@ -45,7 +45,7 @@ ExecutionPhases make_execution_for_class(const std::string& classname) {
         classname == "PID" || classname == "PI" || classname == "PD" || classname == "P" ||
         classname == "Comparator" || classname == "LUT" || classname == "Monostable" || classname == "TimeDelay" ||
         classname == "SampleHold" || classname == "GreaterEq" || classname == "LesserEq" || classname == "Greater" ||
-        classname == "Lesser" || classname == "Bus" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
+        classname == "Lesser" || classname == "Bus") {
         phases.logical = true;
     }
 
@@ -58,17 +58,17 @@ ExecutionPhases make_execution_for_class(const std::string& classname) {
     }
 
     if (classname == "InertiaNode" || classname == "Spring" ||
-        classname == "ElectricPump" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
+        classname == "ElectricPump") {
         phases.mechanical = true;
     }
 
     if (classname == "SolenoidValve" || classname == "GidroAccumulator" || classname == "FuelTank" ||
-        classname == "ElectricPump" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
+        classname == "ElectricPump") {
         phases.hydraulic = true;
     }
 
     if (classname == "TempSensor" || classname == "ElectricHeater" || classname == "Radiator" ||
-        classname == "FuelTank" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
+        classname == "FuelTank") {
         phases.thermal = true;
     }
 
@@ -175,7 +175,6 @@ TEST(FactoryValidationTest, Factory_CreatesAllKnownComponents) {
         "AND", "OR", "NOT", "NAND", "XOR",
         "Add", "Subtract", "Multiply", "Divide",
         "Splitter", "Merger",
-        "BlueprintInput", "BlueprintOutput",
         "Integrator", "SlewRate", "AsymSlewRate",
         "FastTMO", "AsymTMO", "TimeDelay", "Monostable", "SampleHold",
         "LUT", "Voltmeter",
@@ -238,7 +237,6 @@ TEST(FactoryValidationTest, AllRegistryPortsAreRecognized) {
         "AND", "OR", "NOT", "NAND", "XOR",
         "Add", "Subtract", "Multiply", "Divide",
         "Splitter", "Merger",
-        "BlueprintInput", "BlueprintOutput",
         "Integrator", "SlewRate", "AsymSlewRate",
         "FastTMO", "AsymTMO", "TimeDelay", "Monostable", "SampleHold",
         "LUT", "Voltmeter",

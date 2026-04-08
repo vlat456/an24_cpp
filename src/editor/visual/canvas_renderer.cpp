@@ -209,7 +209,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
                                                   node_iid,
                                                   port_iid,
                                                   editor::external_ref_signal_context(win.parent_instance_id));
-                // If resolver returns empty, use fallback
+                // Defensive: if resolver returns empty (unresolvable IDs), build canonical key directly
                 if (signal_key.empty()) {
                     signal_key = editor::build_signal_key(node_id, port_name);
                 }
@@ -227,7 +227,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
                                                   node_iid,
                                                   port_iid,
                                                   editor::root_signal_context());
-                // If resolver returns empty, use fallback
+                // Defensive: if resolver returns empty (unresolvable IDs), build canonical key directly
                 if (signal_key.empty()) {
                     signal_key = editor::build_signal_key(node_id, port_name);
                 }

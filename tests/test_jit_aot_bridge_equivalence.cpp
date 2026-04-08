@@ -315,9 +315,19 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     auto aot_port_to_signal =
         codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, aot_signal_count);
 
+    // Bridges are elaboration-only for runtime component execution and AOT codegen,
+    // but their ports remain part of signal allocation in both paths.
     EXPECT_EQ(jit.signal_count, aot_signal_count);
     EXPECT_EQ(jit.port_to_signal.count("ui_only.o"), 0u)
         << "JIT should ignore visual-only device ports";
     EXPECT_EQ(aot_port_to_signal.count("ui_only.o"), 0u)
         << "AOT should ignore visual-only device ports";
+
+    EXPECT_EQ(jit.port_to_signal.at("vin.ext"), jit.port_to_signal.at("vin.port"));
+    EXPECT_EQ(jit.port_to_signal.at("vout.ext"), jit.port_to_signal.at("vout.port"));
+    EXPECT_EQ(aot_port_to_signal.at("vin.ext"), aot_port_to_signal.at("vin.port"));
+    EXPECT_EQ(aot_port_to_signal.at("vout.ext"), aot_port_to_signal.at("vout.port"));
+
+    EXPECT_EQ(jit.devices.count("vin"), 0u);
+    EXPECT_EQ(jit.devices.count("vout"), 0u);
 }

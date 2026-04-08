@@ -24,8 +24,6 @@ enum class ComponentType {
     Any_V_to_Bool,
     AsymSlewRate,
     AsymTMO,
-    BlueprintInput,
-    BlueprintOutput,
     Bus,
     Clamp,
     Comparator,
@@ -100,8 +98,6 @@ constexpr size_t Add_PORT_COUNT = 3;
 constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t AsymSlewRate_PORT_COUNT = 2;
 constexpr size_t AsymTMO_PORT_COUNT = 2;
-constexpr size_t BlueprintInput_PORT_COUNT = 2;
-constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
 constexpr size_t Clamp_PORT_COUNT = 4;
 constexpr size_t Comparator_PORT_COUNT = 3;
@@ -200,14 +196,6 @@ constexpr const char* AsymSlewRate_PORTS[] = {
 constexpr const char* AsymTMO_PORTS[] = {
     "in",
     "out"
-};
-constexpr const char* BlueprintInput_PORTS[] = {
-    "ext",
-    "port"
-};
-constexpr const char* BlueprintOutput_PORTS[] = {
-    "ext",
-    "port"
 };
 constexpr const char* Bus_PORTS[] = {
     "v"
@@ -668,38 +656,6 @@ constexpr bool AsymTMO_PORT_SOURCE_WRITER[] = {
 constexpr bool AsymTMO_SCHEDULER_SOURCE = false;
 
 constexpr bool AsymTMO_SOLVER_OWNED_ELECTRICAL = false;
-
-constexpr RegistryPortDirection BlueprintInput_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
-};
-constexpr uint8_t BlueprintInput_PORT_DOMAINS[] = {
-    1,
-    1
-};
-constexpr bool BlueprintInput_PORT_SOURCE_WRITER[] = {
-    false,
-    false
-};
-constexpr bool BlueprintInput_SCHEDULER_SOURCE = false;
-
-constexpr bool BlueprintInput_SOLVER_OWNED_ELECTRICAL = false;
-
-constexpr RegistryPortDirection BlueprintOutput_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
-};
-constexpr uint8_t BlueprintOutput_PORT_DOMAINS[] = {
-    1,
-    1
-};
-constexpr bool BlueprintOutput_PORT_SOURCE_WRITER[] = {
-    false,
-    false
-};
-constexpr bool BlueprintOutput_SCHEDULER_SOURCE = false;
-
-constexpr bool BlueprintOutput_SOLVER_OWNED_ELECTRICAL = false;
 
 constexpr RegistryPortDirection Bus_PORT_DIRECTIONS[] = {
     RegistryPortDirection::InOut
@@ -1954,7 +1910,6 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"ctrl", PortNames::ctrl},
         {"damping", PortNames::damping},
         {"dc_in", PortNames::dc_in},
-        {"ext", PortNames::ext},
         {"feedback", PortNames::feedback},
         {"flow_in", PortNames::flow_in},
         {"flow_out", PortNames::flow_out},
@@ -1988,7 +1943,6 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"output_min", PortNames::output_min},
         {"p_in", PortNames::p_in},
         {"p_out", PortNames::p_out},
-        {"port", PortNames::port},
         {"pos_a", PortNames::pos_a},
         {"pos_b", PortNames::pos_b},
         {"position", PortNames::position},
@@ -2032,8 +1986,6 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Any_V_to_Bool", {"Vin", "o"}},
         {"AsymSlewRate", {"in", "out"}},
         {"AsymTMO", {"in", "out"}},
-        {"BlueprintInput", {"ext", "port"}},
-        {"BlueprintOutput", {"ext", "port"}},
         {"Bus", {"v"}},
         {"Clamp", {"in", "max", "min", "out"}},
         {"Comparator", {"Va", "Vb", "o"}},
@@ -2113,8 +2065,6 @@ inline bool has_component_metadata(const std::string& classname) {
         "Any_V_to_Bool",
         "AsymSlewRate",
         "AsymTMO",
-        "BlueprintInput",
-        "BlueprintOutput",
         "Bus",
         "Clamp",
         "Comparator",
@@ -2199,8 +2149,6 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"Any_V_to_Bool", false},
         {"AsymSlewRate", false},
         {"AsymTMO", false},
-        {"BlueprintInput", false},
-        {"BlueprintOutput", false},
         {"Bus", false},
         {"Clamp", false},
         {"Comparator", false},
@@ -2281,8 +2229,6 @@ inline bool is_solver_owned_electrical_component(const std::string& classname) {
         {"Any_V_to_Bool", false},
         {"AsymSlewRate", false},
         {"AsymTMO", false},
-        {"BlueprintInput", false},
-        {"BlueprintOutput", false},
         {"Bus", false},
         {"Clamp", false},
         {"Comparator", false},
@@ -2363,8 +2309,6 @@ inline bool requires_solver_role_component(const std::string& classname) {
         {"Any_V_to_Bool", false},
         {"AsymSlewRate", false},
         {"AsymTMO", false},
-        {"BlueprintInput", false},
-        {"BlueprintOutput", false},
         {"Bus", false},
         {"Clamp", false},
         {"Comparator", false},
@@ -2477,18 +2421,6 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
     if (classname == "AsymTMO") {
         for (size_t i = 0; i < AsymTMO_PORT_COUNT; ++i) {
             if (AsymTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AsymTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(AsymTMO_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "BlueprintInput") {
-        for (size_t i = 0; i < BlueprintInput_PORT_COUNT; ++i) {
-            if (BlueprintInput_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || BlueprintInput_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(BlueprintInput_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "BlueprintOutput") {
-        for (size_t i = 0; i < BlueprintOutput_PORT_COUNT; ++i) {
-            if (BlueprintOutput_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || BlueprintOutput_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(BlueprintOutput_PORTS[i]);
         }
         return result;
     }
@@ -2924,18 +2856,6 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         }
         return result;
     }
-    if (classname == "BlueprintInput") {
-        for (size_t i = 0; i < BlueprintInput_PORT_COUNT; ++i) {
-            if (BlueprintInput_PORT_SOURCE_WRITER[i] && ((BlueprintInput_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(BlueprintInput_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "BlueprintOutput") {
-        for (size_t i = 0; i < BlueprintOutput_PORT_COUNT; ++i) {
-            if (BlueprintOutput_PORT_SOURCE_WRITER[i] && ((BlueprintOutput_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(BlueprintOutput_PORTS[i]);
-        }
-        return result;
-    }
     if (classname == "Bus") {
         for (size_t i = 0; i < Bus_PORT_COUNT; ++i) {
             if (Bus_PORT_SOURCE_WRITER[i] && ((Bus_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Bus_PORTS[i]);
@@ -3331,8 +3251,6 @@ using ComponentVariant = std::variant<
     Any_V_to_Bool<JitProvider>,
     AsymSlewRate<JitProvider>,
     AsymTMO<JitProvider>,
-    BlueprintInput<JitProvider>,
-    BlueprintOutput<JitProvider>,
     Bus<JitProvider>,
     Clamp<JitProvider>,
     Comparator<JitProvider>,

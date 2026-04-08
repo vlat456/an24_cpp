@@ -24,7 +24,7 @@
   "nodes": [],
   "wires": [],
   "nested": [],
-  "cpp_class": true,
+  "cpp_class": false,
   "description": "Output port marker for nested blueprints - exposes internal signal to parent blueprint as output port. Works as pass-through junction (union-find collapses port to connected signal).",
   "domains": [
     "Electrical",

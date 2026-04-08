@@ -45,10 +45,11 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
     // Header should contain class name
     EXPECT_NE(result.header.find("voltage_indicator_Systems"), std::string::npos);
 
-    // Should contain device fields (primitive devices as AotProvider fields)
-    EXPECT_NE(result.header.find("BlueprintInput"), std::string::npos);
+    // Bridge nodes are elaboration-only and must be lowered before runtime codegen.
+    // AOT runtime fields should contain only simulation components.
+    EXPECT_EQ(result.header.find("BlueprintInput"), std::string::npos);
     EXPECT_NE(result.header.find("IndicatorLight"), std::string::npos);
-    EXPECT_NE(result.header.find("BlueprintOutput"), std::string::npos);
+    EXPECT_EQ(result.header.find("BlueprintOutput"), std::string::npos);
 
     // Should have solve_step and pre_load
     EXPECT_NE(result.header.find("solve_step"), std::string::npos);
@@ -297,10 +298,14 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     EXPECT_GE(jit_signal_count, aot_signal_count)
         << "JIT signal count should be at least AOT signal count";
 
-    // Both should have the same expanded device names
+    // Runtime build/codegen lower bridge nodes before component instantiation.
+    // Compare runtime-visible device sets (bridges excluded).
     std::set<std::string> aot_device_names;
     for (const auto& dev : expanded.devices) {
-        aot_device_names.insert(dev.name);
+        const bool is_bridge = dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput";
+        if (!is_bridge) {
+            aot_device_names.insert(dev.name);
+        }
     }
     std::set<std::string> jit_device_names;
     for (const auto& [name, _] : jit_result.devices) {
@@ -342,21 +347,21 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     EXPECT_NE(jit_sig("lamp.brightness"), jit_sig("lamp.v_out"))
         << "Disconnected port lamp.brightness should NOT share signal with lamp.v_out";
 
-    // Verify the AOT generated code references the same device names
-    EXPECT_NE(aot_result.header.find("vin"), std::string::npos)
-        << "AOT header should reference device 'vin'";
+    // Verify runtime codegen references simulation devices and omits bridge devices.
+    EXPECT_EQ(aot_result.header.find("vin"), std::string::npos)
+        << "AOT header should not reference lowered bridge device 'vin'";
     EXPECT_NE(aot_result.header.find("lamp"), std::string::npos)
         << "AOT header should reference device 'lamp'";
-    EXPECT_NE(aot_result.header.find("vout"), std::string::npos)
-        << "AOT header should reference device 'vout'";
+    EXPECT_EQ(aot_result.header.find("vout"), std::string::npos)
+        << "AOT header should not reference lowered bridge device 'vout'";
 
-    // Verify AOT source contains push execution calls for all three devices
-    EXPECT_NE(aot_result.source.find("vin.execute"), std::string::npos)
-        << "AOT source should contain vin.execute call";
+    // Verify AOT source contains execute calls only for runtime devices.
+    EXPECT_EQ(aot_result.source.find("vin.execute"), std::string::npos)
+        << "AOT source should not contain vin.execute call";
     EXPECT_NE(aot_result.source.find("lamp.execute"), std::string::npos)
         << "AOT source should contain lamp.execute call";
-    EXPECT_NE(aot_result.source.find("vout.execute"), std::string::npos)
-        << "AOT source should contain vout.execute call";
+    EXPECT_EQ(aot_result.source.find("vout.execute"), std::string::npos)
+        << "AOT source should not contain vout.execute call";
 }
 
 // ============================================================
