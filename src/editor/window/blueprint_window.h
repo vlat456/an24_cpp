@@ -1,5 +1,6 @@
 #pragma once
 
+#include "window/window_scope_id.h"
 #include "visual/scene.h"
 #include "visual/scene_mutations.h"
 #include "viewport/viewport.h"
@@ -12,13 +13,6 @@
 #include <optional>
 
 struct TypeRegistry;
-
-/// Rendering mode for a BlueprintWindow.
-enum class BlueprintWindowMode {
-    RootDocument,       ///< Main document canvas (scope_id is empty)
-    EmbeddedGroup,      ///< Embedded sub-blueprint filtered by layout_group
-    ExternalReference,  ///< Read-only view of external blueprint, signals mapped through parent
-};
 
 struct BlueprintWindow {
     std::string title;
@@ -70,11 +64,9 @@ struct BlueprintWindow {
             ? nullptr
             : root_model.current().find_nested(group_iid);
         if (!nested) {
-            assert(false && "Embedded window construction requires existing nested instance");
             throw std::logic_error("Embedded window construction failed: nested instance not found");
         }
         if (!nested->is_embedded() || !nested->inline_def()) {
-            assert(false && "Embedded window construction requires embedded nested with inline_def");
             throw std::logic_error("Embedded window construction failed: nested instance missing inline_def");
         }
         return std::make_unique<bp2::EditorModel>(*nested->inline_def());
