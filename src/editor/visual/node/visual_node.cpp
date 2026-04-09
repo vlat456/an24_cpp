@@ -18,7 +18,9 @@ namespace visual {
 // Construction
 // ============================================================================
 
-NodeWidget::NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
+NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
+                       const bp2::Interface& render_iface,
+                       const ui::StringInterner& interner)
     : node_iid_(data.semantic.id)
     , interner_(&interner)
     , name_(data.view.name)
@@ -34,7 +36,7 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterne
     }
 
     setLocalPos(Pt(data.layout.x, data.layout.y));
-    buildLayout(data, interner);
+    buildLayout(data, render_iface, interner);
 
     // Auto-size: compute preferred, snap to grid
     Pt preferred = preferredSize(nullptr);
@@ -85,7 +87,9 @@ static std::vector<PortLayoutOverride> resolve_bp2_layout_overrides(
     return result;
 }
 
-void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
+void NodeWidget::buildLayout(const bp2::Blueprint::Node& data,
+                             const bp2::Interface& render_iface,
+                             const ui::StringInterner& interner) {
     layout_ = emplaceChild<Column>();
 
     // -- Header --
@@ -97,9 +101,9 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringI
     // -- Port rows / Content --
     // VerticalToggle uses special layout, but falls back to standard when overrides present
     if (content_type == bp2::NodeContentType::VerticalToggle && data.layout.layout_overrides.empty()) {
-        buildVerticalToggleLayout(data, interner);
+        buildVerticalToggleLayout(data, render_iface, interner);
     } else {
-        buildStandardLayout(data, interner);
+        buildStandardLayout(data, render_iface, interner);
     }
 
     // -- Flex spacer pushes footer to bottom when node is resized taller.
@@ -113,10 +117,12 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringI
     layout_->emplaceChild<TypeNameWidget>(type_name_);
 }
 
-void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
+void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
+                                     const bp2::Interface& render_iface,
+                                     const ui::StringInterner& interner) {
     bp2::NodeContentType content_type = data.view.content_type;
-    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(data.semantic.iface);
-    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(data.semantic.iface);
+    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(render_iface);
+    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(render_iface);
 
     // Fast path: no overrides — use existing paired-row layout
     if (data.layout.layout_overrides.empty()) {
@@ -204,14 +210,16 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui:
     } else {
         // Slow path: four-sided layout with overrides.
         // Content is placed inside the center column of the body row.
-        buildFourSidedLayout(data, interner);
+        buildFourSidedLayout(data, render_iface, interner);
     }
 }
 
-void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
+void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data,
+                                           const bp2::Interface& render_iface,
+                                           const ui::StringInterner& interner) {
     auto* main_row = layout_->emplaceChild<Row>();
-    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(data.semantic.iface);
-    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(data.semantic.iface);
+    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(render_iface);
+    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(render_iface);
 
     // Left column (input ports)
     auto* left_col = main_row->emplaceChild<Column>();
@@ -250,12 +258,14 @@ void NodeWidget::buildPortInColumn(Widget* col, std::string_view name,
     if (row->port()) ports_.push_back(row->port());
 }
 
-void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
+void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data,
+                                      const bp2::Interface& render_iface,
+                                      const ui::StringInterner& interner) {
     using namespace editor_constants;
 
     auto overrides = resolve_bp2_layout_overrides(data.layout.layout_overrides);
-    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(data.semantic.iface);
-    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(data.semantic.iface);
+    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(render_iface);
+    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(render_iface);
     ResolvedLayout layout = resolve_port_layout(input_ports, output_ports,
                                                 overrides, interner);
     

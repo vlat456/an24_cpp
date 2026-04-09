@@ -452,6 +452,10 @@ TEST(BlueprintCodec, RoundTripProxyNodeWithWires_EndpointsResolve) {
     bp2::Blueprint inner;
     inner = inner.with_id(interner.intern("RN-180-Exciter"));
     inner = inner.with_display_name("RN-180 Exciter");
+    inner = inner.with_interface(bp2::Interface({
+        {interner.intern("feedback"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+        {interner.intern("output"), Domain::Electrical, bp2::Direction::Output, PortType::V},
+    }));
     auto nested = bp2::Blueprint::Nested::make_embedded(
         interner.intern("extract_inst_1"),
         interner.intern("RN-180-Exciter"),
@@ -553,7 +557,10 @@ TEST(BlueprintCodec, RoundTripProxyNodeWithWires_DoubleRoundTrip) {
                     "version": "3.0",
                     "id": "CustomSubsystem",
                     "display_name": "Custom Subsystem",
-                    "interface": [],
+                    "interface": [
+                        {"name": "input",  "domain": 1, "direction": 0, "type": "V", "source_writer": false},
+                        {"name": "output", "domain": 1, "direction": 1, "type": "V", "source_writer": false}
+                    ],
                     "nodes": [],
                     "wires": [],
                     "nested": []

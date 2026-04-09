@@ -78,7 +78,9 @@ inline bool set_error(std::string* error_out, const char* msg) {
 // Function declarations
 // ========================================================================
 
-PortType find_port_type(const bp2::Blueprint::Node* node, ui::InternedId port_name);
+PortType find_port_type(const bp2::Blueprint& bp,
+                        const bp2::Blueprint::Node* node,
+                        ui::InternedId port_name);
 
 bool path_to_node_port(const bp2::Path& path,
                        const bp2::PathArena& arena,

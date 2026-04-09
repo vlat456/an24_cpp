@@ -25,9 +25,11 @@ void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, ::Wind
     
     std::string win_title = win.title;
     if (win.read_only) win_title += " [Read Only]";
-    // Scope key is always canonical: root="", embedded=group_id, external=parent_instance_id.
+    // Include mode prefix in ImGui hash to prevent ID collision between
+    // embedded and external windows that share the same scope key string.
+    const char* mode_prefix = win.is_external_ref() ? "ext:" : "emb:";
     const std::string& win_hash_key = win.resolved_scope_id().key();
-    win_title += " [" + doc.displayName() + "]###" + doc.id() + ":" + win_hash_key;
+    win_title += " [" + doc.displayName() + "]###" + doc.id() + ":" + mode_prefix + win_hash_key;
     
     if (!ImGui::Begin(win_title.c_str(), &win.open,
             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
@@ -82,8 +84,9 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
 
 void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, ::WindowSystem& ws) {
     ImVec2 content_size = ImGui::GetContentRegionAvail();
+    const char* mode_prefix = win.is_external_ref() ? "ext:" : "emb:";
     const std::string& canvas_key = win.resolved_scope_id().key();
-    ImGui::InvisibleButton(("##canvas_" + doc.id() + "_" + canvas_key).c_str(), content_size);
+    ImGui::InvisibleButton(("##canvas_" + doc.id() + "_" + mode_prefix + canvas_key).c_str(), content_size);
     bool hovered = ImGui::IsItemHovered();
     
     auto cmin_region = ImGui::GetWindowContentRegionMin();

@@ -16,7 +16,9 @@ namespace visual {
 /// Single centered port, minimal box + text rendering.
 class RefNodeWidget : public Widget {
 public:
-    explicit RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    RefNodeWidget(const bp2::Blueprint::Node& data,
+                  const bp2::Interface& render_iface,
+                  const ui::StringInterner& interner);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
@@ -49,7 +51,9 @@ private:
     Port* port_ = nullptr;
     std::optional<uint32_t> custom_fill_;
 
-    void buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    void buildLayout(const bp2::Blueprint::Node& data,
+                     const bp2::Interface& render_iface,
+                     const ui::StringInterner& interner);
     void positionPort();
 
     bp2::PortLayoutSide port_layout_side_ = bp2::PortLayoutSide::Top;

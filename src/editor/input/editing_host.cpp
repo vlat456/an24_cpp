@@ -34,6 +34,10 @@ public:
         model_.push_checkpoint();
     }
 
+    bool mutate_atomically(const std::function<void()>& fn) override {
+        return model_.mutate_atomically(fn);
+    }
+
     void replace_current(bp2::Blueprint bp) override {
         model_.replace_current(std::move(bp));
     }
@@ -62,19 +66,25 @@ public:
 
     bool remove_node(ui::InternedId id,
                      std::vector<ui::InternedId> connected_wire_ids) override {
-        for (ui::InternedId wid : connected_wire_ids) {
-            model_.remove_wire(wid);
-        }
-        return model_.remove_node(id);
+        return model_.mutate_atomically([&] {
+            for (ui::InternedId wid : connected_wire_ids) {
+                model_.remove_wire(wid);
+            }
+            if (!model_.remove_node(id)) {
+                throw std::logic_error("EditorModelHost::remove_node target not found");
+            }
+        });
     }
 
     void set_grid_step(float new_step) override {
-        auto updated = model_.current().with_viewport(
-            model_.current().pan_x(),
-            model_.current().pan_y(),
-            model_.current().zoom(),
-            new_step);
-        model_.replace_current(std::move(updated));
+        model_.mutate_atomically([&] {
+            auto updated = model_.current().with_viewport(
+                model_.current().pan_x(),
+                model_.current().pan_y(),
+                model_.current().zoom(),
+                new_step);
+            model_.replace_current(std::move(updated));
+        });
     }
 
     std::string allocate_wire_id() override {
@@ -114,23 +124,31 @@ public:
         root_model_.push_checkpoint();
     }
 
+    bool mutate_atomically(const std::function<void()>& fn) override {
+        return root_model_.mutate_atomically(fn);
+    }
+
     void replace_current(bp2::Blueprint bp) override {
-        replace_inline_def(std::move(bp));
+        root_model_.mutate_atomically([&] {
+            replace_inline_def(std::move(bp));
+        });
     }
 
     bool add_wire(bp2::Blueprint::Wire wire) override {
-        auto next = current_blueprint().with_wire(std::move(wire));
-        replace_inline_def(std::move(next));
-        return true;
+        return root_model_.mutate_atomically([&] {
+            auto next = current_blueprint().with_wire(std::move(wire));
+            replace_inline_def(std::move(next));
+        });
     }
 
     bool remove_wire(ui::InternedId id) override {
         if (!current_blueprint().find_wire(id)) {
             return false;
         }
-        auto next = current_blueprint().without_wire(id);
-        replace_inline_def(std::move(next));
-        return true;
+        return root_model_.mutate_atomically([&] {
+            auto next = current_blueprint().without_wire(id);
+            replace_inline_def(std::move(next));
+        });
     }
 
     bool update_wire(ui::InternedId id,
@@ -141,9 +159,10 @@ public:
         }
         bp2::Blueprint::Wire updated = *existing;
         fn(updated);
-        auto next = bp2::replace_wire_preserve_order(current_blueprint(), std::move(updated));
-        replace_inline_def(std::move(next));
-        return true;
+        return root_model_.mutate_atomically([&] {
+            auto next = bp2::replace_wire_preserve_order(current_blueprint(), std::move(updated));
+            replace_inline_def(std::move(next));
+        });
     }
 
     bool update_node_position(ui::InternedId id, float x, float y) override {
@@ -161,9 +180,10 @@ public:
         }
         bp2::Blueprint::Node updated = *existing;
         fn(updated);
-        auto next = bp2::replace_node_preserve_order(current_blueprint(), std::move(updated));
-        replace_inline_def(std::move(next));
-        return true;
+        return root_model_.mutate_atomically([&] {
+            auto next = bp2::replace_node_preserve_order(current_blueprint(), std::move(updated));
+            replace_inline_def(std::move(next));
+        });
     }
 
     bool remove_node(ui::InternedId id,
@@ -171,22 +191,25 @@ public:
         if (!current_blueprint().find_node(id)) {
             return false;
         }
-        bp2::Blueprint next = current_blueprint();
-        for (ui::InternedId wid : connected_wire_ids) {
-            next = next.without_wire(wid);
-        }
-        next = next.without_node(id);
-        replace_inline_def(std::move(next));
-        return true;
+        return root_model_.mutate_atomically([&] {
+            bp2::Blueprint next = current_blueprint();
+            for (ui::InternedId wid : connected_wire_ids) {
+                next = next.without_wire(wid);
+            }
+            next = next.without_node(id);
+            replace_inline_def(std::move(next));
+        });
     }
 
     void set_grid_step(float new_step) override {
-        auto next = current_blueprint().with_viewport(
-            current_blueprint().pan_x(),
-            current_blueprint().pan_y(),
-            current_blueprint().zoom(),
-            new_step);
-        replace_inline_def(std::move(next));
+        root_model_.mutate_atomically([&] {
+            auto next = current_blueprint().with_viewport(
+                current_blueprint().pan_x(),
+                current_blueprint().pan_y(),
+                current_blueprint().zoom(),
+                new_step);
+            replace_inline_def(std::move(next));
+        });
     }
 
     std::string allocate_wire_id() override {

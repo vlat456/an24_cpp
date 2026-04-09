@@ -16,6 +16,7 @@ struct TypeRegistry;
 
 struct RootWindowTag {};
 struct EmbeddedWindowTag {};
+struct ExternalWindowTag {};
 
 struct BlueprintWindow {
     static const bp2::Blueprint& require_external_blueprint(const std::optional<bp2::Blueprint>& bp) {
@@ -78,16 +79,9 @@ struct BlueprintWindow {
 
     bool pending_auto_fit = false;
 
-    BlueprintWindowMode mode = BlueprintWindowMode::RootDocument;
-
     std::optional<bp2::Blueprint> external_blueprint;
     std::unique_ptr<ui::StringInterner> external_interner;
     std::unique_ptr<bp2::PathArena> external_arena;
-
-    void set_external_identity(const std::string& instance_id) {
-        scope = WindowScopeId::external(instance_id);
-        mode = BlueprintWindowMode::ExternalReference;
-    }
 
     BlueprintWindow(RootWindowTag,
                     bp2::EditorModel& model_,
@@ -123,11 +117,30 @@ struct BlueprintWindow {
         , scene()
         , viewport()
         , host(make_embedded_host(root_model, interner_, embedded_scope_id))
-        , input(scene, viewport, *host, interner_, arena_, "", parser_registry)
-        , mode(BlueprintWindowMode::EmbeddedGroup) {
+        , input(scene, viewport, *host, interner_, arena_, "", parser_registry) {
         const auto& nested = require_embedded_nested(root_model, require_nested_id(interner_, embedded_scope_id));
         viewport.grid_step = nested.inline_def()->grid_step();
         visual::mutations::rebuild(scene, *nested.inline_def(), interner_, arena_, "");
+    }
+
+    BlueprintWindow(ExternalWindowTag,
+                    bp2::EditorModel& model_,
+                    ui::StringInterner& interner_,
+                    bp2::PathArena& arena_,
+                    const std::string& parent_instance_id,
+                    const std::string& title_,
+                    const TypeRegistry* parser_registry = nullptr)
+        : title(title_)
+        , scope(WindowScopeId::external(parent_instance_id))
+        , root_model(model_)
+        , interner(interner_)
+        , arena(arena_)
+        , scene()
+        , viewport()
+        , host(create_editor_model_host(root_model))
+        , input(scene, viewport, *host, interner_, arena_, "", parser_registry)
+        , read_only(true) {
+        input.read_only = true;
     }
 
     BlueprintWindow(const BlueprintWindow&) = delete;
@@ -135,34 +148,26 @@ struct BlueprintWindow {
     BlueprintWindow(BlueprintWindow&&) = delete;
     BlueprintWindow& operator=(BlueprintWindow&&) = delete;
 
-    bool is_external_ref() const { return mode == BlueprintWindowMode::ExternalReference; }
+    bool is_external_ref() const { return scope.is_external(); }
 
-    /// For external use only: returns scope key as string.
-    /// Internal WindowManager comparisons use typed WindowScopeId.
-    std::string scope_id_str() const {
-        return scope.key();
-    }
-
-    WindowScopeId resolved_scope_id() const {
-        return scope;
-    }
+    const WindowScopeId& resolved_scope_id() const { return scope; }
 
     const bp2::Blueprint& rendered_blueprint() const {
-        if (mode == BlueprintWindowMode::ExternalReference) {
+        if (scope.is_external()) {
             return require_external_blueprint(external_blueprint);
         }
         return require_host(host).current_blueprint();
     }
 
     ui::StringInterner& rendered_interner() {
-        if (mode == BlueprintWindowMode::ExternalReference && external_interner) {
+        if (scope.is_external() && external_interner) {
             return *external_interner;
         }
         return interner;
     }
 
     bp2::PathArena& rendered_arena() {
-        if (mode == BlueprintWindowMode::ExternalReference && external_arena) {
+        if (scope.is_external() && external_arena) {
             return *external_arena;
         }
         return arena;

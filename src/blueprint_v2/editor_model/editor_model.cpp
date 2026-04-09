@@ -17,6 +17,34 @@ Blueprint clone_metadata(const Blueprint& bp) {
 
 } // namespace
 
+Blueprint::Node EditorModel::canonicalize_composite_host_iface(const Blueprint& bp, Blueprint::Node node) {
+    const auto* nested = bp.find_hosted_nested(node);
+    if (!nested) {
+        return node;
+    }
+    node.semantic.iface = nested->resolved_iface();
+    return node;
+}
+
+Blueprint EditorModel::canonicalize_composite_host_ifaces(Blueprint bp) {
+    bool changed = false;
+    Blueprint rebuilt = clone_metadata(bp);
+
+    for (const auto& node : bp.nodes()) {
+        Blueprint::Node normalized = canonicalize_composite_host_iface(bp, node);
+        changed = changed || !(normalized.semantic.iface == node.semantic.iface);
+        rebuilt = rebuilt.with_node(std::move(normalized));
+    }
+    for (const auto& wire : bp.wires()) {
+        rebuilt = rebuilt.with_wire(wire);
+    }
+    for (const auto& nested : bp.nested()) {
+        rebuilt = rebuilt.with_nested(nested);
+    }
+
+    return changed ? rebuilt : bp;
+}
+
 Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updated) {
     Blueprint rebuilt = clone_metadata(bp);
 
@@ -121,19 +149,61 @@ bool composite_iface_matches_nested(const Blueprint& bp, ui::InternedId nested_i
 }
 
 EditorModel::EditorModel(Blueprint initial)
-    : current_(std::move(initial)) {}
+    : current_(canonicalize_composite_host_ifaces(std::move(initial))) {}
+
+void EditorModel::push_checkpoint_if_enabled() {
+    if (checkpoint_suppression_depth_ == 0) {
+        push_checkpoint();
+    }
+}
+
+bool EditorModel::mutate_atomically(const std::function<void()>& fn) {
+    const bool is_outermost = (checkpoint_suppression_depth_ == 0);
+
+    const Blueprint before = current_;
+    const size_t undo_before = undo_stack_.size();
+    const size_t redo_before = redo_stack_.size();
+
+    if (is_outermost) {
+        push_checkpoint();
+    }
+    ++checkpoint_suppression_depth_;
+    try {
+        fn();
+        --checkpoint_suppression_depth_;
+    } catch (...) {
+        --checkpoint_suppression_depth_;
+        if (is_outermost) {
+            current_ = before;
+            undo_stack_.resize(undo_before);
+            redo_stack_.resize(redo_before);
+            invalidate_indices();
+        }
+        throw;
+    }
+
+    if (is_outermost && current_ == before) {
+        undo_stack_.resize(undo_before);
+        redo_stack_.resize(redo_before);
+        invalidate_indices();
+        return false;
+    }
+
+    invalidate_indices();
+    return is_outermost ? true : (current_ != before);
+}
 
 bool EditorModel::add_node(Blueprint::Node node) {
     if (current_.find_node(node.semantic.id)) return false;
-    push_checkpoint();
-    current_ = current_.with_node(std::move(node));
+    push_checkpoint_if_enabled();
+    current_ = current_.with_node(canonicalize_composite_host_iface(current_, std::move(node)));
     invalidate_indices();
     return true;
 }
 
 bool EditorModel::remove_node(ui::InternedId id) {
     if (!current_.find_node(id)) return false;
-    push_checkpoint();
+    push_checkpoint_if_enabled();
     current_ = current_.without_node(id);
     invalidate_indices();
     return true;
@@ -142,7 +212,7 @@ bool EditorModel::remove_node(ui::InternedId id) {
 bool EditorModel::add_wire(Blueprint::Wire wire) {
     if (current_.find_wire(wire.id)) return false;
     if (wire.source == wire.target) return false;
-    push_checkpoint();
+    push_checkpoint_if_enabled();
     current_ = current_.with_wire(std::move(wire));
     invalidate_indices();
     return true;
@@ -150,7 +220,7 @@ bool EditorModel::add_wire(Blueprint::Wire wire) {
 
 bool EditorModel::remove_wire(ui::InternedId id) {
     if (!current_.find_wire(id)) return false;
-    push_checkpoint();
+    push_checkpoint_if_enabled();
     current_ = current_.without_wire(id);
     invalidate_indices();
     return true;
@@ -158,15 +228,15 @@ bool EditorModel::remove_wire(ui::InternedId id) {
 
 bool EditorModel::add_nested(Blueprint::Nested nested) {
     if (current_.find_nested(nested.id)) return false;
-    push_checkpoint();
-    current_ = current_.with_nested(std::move(nested));
+    push_checkpoint_if_enabled();
+    current_ = canonicalize_composite_host_ifaces(current_.with_nested(std::move(nested)));
     invalidate_indices();
     return true;
 }
 
 bool EditorModel::remove_nested(ui::InternedId id) {
     if (!current_.find_nested(id)) return false;
-    push_checkpoint();
+    push_checkpoint_if_enabled();
     current_ = current_.without_nested(id);
     invalidate_indices();
     return true;
@@ -177,7 +247,8 @@ bool EditorModel::update_node(ui::InternedId id, std::function<void(Blueprint::N
     if (!existing) return false;
     Blueprint::Node updated = *existing;
     fn(updated);
-    push_checkpoint();
+    updated = canonicalize_composite_host_iface(current_, std::move(updated));
+    push_checkpoint_if_enabled();
     current_ = replace_node_preserve_order(current_, std::move(updated));
     invalidate_indices();
     return true;
@@ -188,7 +259,7 @@ bool EditorModel::update_wire(ui::InternedId id, std::function<void(Blueprint::W
     if (!existing) return false;
     Blueprint::Wire updated = *existing;
     fn(updated);
-    push_checkpoint();
+    push_checkpoint_if_enabled();
     current_ = replace_wire_preserve_order(current_, std::move(updated));
     invalidate_indices();
     return true;
@@ -243,22 +314,17 @@ bool EditorModel::bake_nested(ui::InternedId id,
     auto const* referenced = library.find(nested->blueprint_id());
     if (!referenced) return false;
 
-    push_checkpoint();
+    push_checkpoint_if_enabled();
 
     auto baked = Blueprint::Nested::make_embedded(
         nested->id, {},
         std::make_unique<Blueprint>(*referenced),
         nested->x, nested->y);
 
-    current_ = current_.without_nested(id).with_nested(std::move(baked));
+    current_ = canonicalize_composite_host_ifaces(current_.without_nested(id).with_nested(std::move(baked)));
 
-    // Sync collapsed node interface from the freshly-baked embedded nested.
-    // The collapsed node may exist (composite workflow) or not (nested-only tests).
-    if (current_.find_node(id)) {
-        current_ = sync_collapsed_node_iface_from_nested(current_, id);
-        if (!composite_iface_matches_nested(current_, id)) {
-            throw std::logic_error("bake_nested: collapsed iface desynced from nested authority");
-        }
+    if (current_.find_node(id) && !composite_iface_matches_nested(current_, id)) {
+        throw std::logic_error("bake_nested: collapsed iface desynced from nested authority");
     }
 
     invalidate_indices();

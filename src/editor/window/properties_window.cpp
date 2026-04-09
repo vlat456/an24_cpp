@@ -126,8 +126,9 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     snapshot_bridge_port_type_.reset();
     pending_bridge_port_type_.reset();
     if (is_bridge_node_type(*interner_, node.semantic.type)) {
-        const auto in_ports = bp2::derive_input_ports(node.semantic.iface);
-        const auto out_ports = bp2::derive_output_ports(node.semantic.iface);
+        const bp2::Interface& iface = model_->current().effective_node_iface(node);
+        const auto in_ports = bp2::derive_input_ports(iface);
+        const auto out_ports = bp2::derive_output_ports(iface);
         if (!in_ports.empty()) {
             snapshot_bridge_port_type_ = in_ports.front().type;
             pending_bridge_port_type_ = in_ports.front().type;
@@ -475,8 +476,9 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
     if (node.view.render_hint == "bus") return;
 
     // Skip if node has no ports
-    const auto in_ports = bp2::derive_input_ports(node.semantic.iface);
-    const auto out_ports = bp2::derive_output_ports(node.semantic.iface);
+    const bp2::Interface& iface = model_->current().effective_node_iface(node);
+    const auto in_ports = bp2::derive_input_ports(iface);
+    const auto out_ports = bp2::derive_output_ports(iface);
     if (in_ports.empty() && out_ports.empty()) return;
 
     ImGui::Separator();

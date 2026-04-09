@@ -425,3 +425,187 @@ TEST(Flattener, UnresolvedNestedBlueprintThrows) {
             << "Error should include blueprint type name; got: " << msg;
     }
 }
+
+TEST(Flattener, CompositeHostUsesNestedAuthorityNotCollapsedCache) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(bp2::Interface({
+        {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+    }));
+
+    bp2::Blueprint::Node bridge;
+    bridge.semantic.id = interner.intern("bin");
+    bridge.semantic.type = interner.intern("BlueprintInput");
+    bridge.semantic.iface = bp2::Interface({
+        {interner.intern("ext"), Domain::Electrical, bp2::Direction::Output, PortType::V},
+    });
+    inner = inner.with_node(std::move(bridge));
+
+    bp2::Blueprint::Node collapsed;
+    collapsed.semantic.id = interner.intern("comp1");
+    collapsed.semantic.type = interner.intern("Composite");
+    collapsed.view.expandable = true;
+    collapsed.semantic.iface = bp2::Interface({
+        {interner.intern("stale_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+    });
+
+    bp2::Blueprint root;
+    root = root.with_node(std::move(collapsed));
+    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("comp1"), interner.intern("Composite"), std::make_unique<bp2::Blueprint>(inner)));
+
+    bp2::BlueprintLibrary library;
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(root, arena);
+
+    ASSERT_EQ(netlist.components.size(), 1u);
+    const auto& comp = netlist.components[0];
+    ASSERT_EQ(interner.resolve(comp.type), "BlueprintInput");
+    ASSERT_EQ(comp.ports.size(), 1u);
+    EXPECT_EQ(comp.ports[0].name, interner.intern("ext"));
+}
+
+// ==================================================================
+// Regression: composite-within-composite must not emit host as leaf
+// ==================================================================
+
+TEST(Flattener, NestedCompositeHostNodeIsNotEmittedAsLeaf) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    // Build a 2-level nesting: root -> outer_comp -> inner_comp -> leaf_r1
+    // Each composite host node has expandable=true and a matching Nested entry.
+    // The flattener must skip composite host nodes and only emit the leaf.
+
+    // Innermost blueprint: single Resistor
+    bp2::Blueprint inner_bp;
+    inner_bp = inner_bp.with_id(interner.intern("inner_type"));
+    inner_bp = inner_bp.with_interface(bp2::Interface({
+        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    }));
+    bp2::Blueprint::Node r1;
+    r1.semantic.id = interner.intern("r1");
+    r1.semantic.type = interner.intern("Resistor");
+    r1.semantic.iface = bp2::Interface({
+        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+    inner_bp = inner_bp.with_node(std::move(r1));
+
+    // Middle blueprint: contains a composite host node "inner_host"
+    // which maps to a Nested entry pointing at inner_bp
+    bp2::Blueprint mid_bp;
+    mid_bp = mid_bp.with_id(interner.intern("mid_type"));
+    mid_bp = mid_bp.with_interface(bp2::Interface({
+        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    }));
+
+    bp2::Blueprint::Node inner_host;
+    inner_host.semantic.id = interner.intern("inner_host");
+    inner_host.semantic.type = interner.intern("inner_type");
+    inner_host.view.expandable = true;
+    inner_host.semantic.iface = bp2::Interface({
+        {interner.intern("stale"), Domain::Electrical, bp2::Direction::Input},
+    });
+    mid_bp = mid_bp.with_node(std::move(inner_host));
+    mid_bp = mid_bp.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("inner_host"),
+        interner.intern("inner_type"),
+        std::make_unique<bp2::Blueprint>(inner_bp)));
+
+    // Wire inner boundary: interface:in -> inner_host:in, inner_host:out -> interface:out
+    bp2::Blueprint::Wire mw1;
+    mw1.id = interner.intern("mw1");
+    mw1.source = arena.make_port(arena.root(), interner.intern("in"));
+    mw1.target = arena.make_port(
+        arena.make_nested(arena.root(), interner.intern("inner_host")),
+        interner.intern("in"));
+    mw1.domain = Domain::Electrical;
+    mid_bp = mid_bp.with_wire(std::move(mw1));
+
+    bp2::Blueprint::Wire mw2;
+    mw2.id = interner.intern("mw2");
+    mw2.source = arena.make_port(
+        arena.make_nested(arena.root(), interner.intern("inner_host")),
+        interner.intern("out"));
+    mw2.target = arena.make_port(arena.root(), interner.intern("out"));
+    mw2.domain = Domain::Electrical;
+    mid_bp = mid_bp.with_wire(std::move(mw2));
+
+    // Root blueprint: Battery -> outer_host (composite) -> LED
+    bp2::Blueprint root;
+
+    bp2::BlueprintLibrary library = make_test_library(interner);
+
+    bp2::Blueprint::Node bat;
+    bat.semantic.id = interner.intern("bat1");
+    bat.semantic.type = interner.intern("Battery");
+    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
+    root = root.with_node(std::move(bat));
+
+    bp2::Blueprint::Node outer_host;
+    outer_host.semantic.id = interner.intern("outer_host");
+    outer_host.semantic.type = interner.intern("mid_type");
+    outer_host.view.expandable = true;
+    outer_host.semantic.iface = bp2::Interface({
+        {interner.intern("stale"), Domain::Electrical, bp2::Direction::Input},
+    });
+    root = root.with_node(std::move(outer_host));
+    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("outer_host"),
+        interner.intern("mid_type"),
+        std::make_unique<bp2::Blueprint>(mid_bp)));
+
+    bp2::Blueprint::Node led;
+    led.semantic.id = interner.intern("led1");
+    led.semantic.type = interner.intern("LED");
+    led.semantic.iface = library.find(interner.intern("LED"))->iface();
+    root = root.with_node(std::move(led));
+
+    // Wire root: bat1:v_out -> outer_host:in
+    bp2::Blueprint::Wire rw1;
+    rw1.id = interner.intern("rw1");
+    rw1.source = arena.make_port(
+        arena.make_node(arena.root(), interner.intern("bat1")),
+        interner.intern("v_out"));
+    rw1.target = arena.make_port(
+        arena.make_nested(arena.root(), interner.intern("outer_host")),
+        interner.intern("in"));
+    rw1.domain = Domain::Electrical;
+    root = root.with_wire(std::move(rw1));
+
+    // Wire root: outer_host:out -> led1:v_in
+    bp2::Blueprint::Wire rw2;
+    rw2.id = interner.intern("rw2");
+    rw2.source = arena.make_port(
+        arena.make_nested(arena.root(), interner.intern("outer_host")),
+        interner.intern("out"));
+    rw2.target = arena.make_port(
+        arena.make_node(arena.root(), interner.intern("led1")),
+        interner.intern("v_in"));
+    rw2.domain = Domain::Electrical;
+    root = root.with_wire(std::move(rw2));
+
+    // Flatten
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(root, arena);
+
+    // Expect exactly 3 leaf components: bat1, outer_host/inner_host/r1, led1
+    // The composite host nodes "outer_host" and "inner_host" must NOT appear.
+    EXPECT_EQ(netlist.components.size(), 3u);
+
+    std::set<std::string> types;
+    for (const auto& comp : netlist.components) {
+        types.insert(std::string(interner.resolve(comp.type)));
+    }
+    EXPECT_TRUE(types.count("Battery"));
+    EXPECT_TRUE(types.count("Resistor"));
+    EXPECT_TRUE(types.count("LED"));
+    // Composite types must not appear as leaf components
+    EXPECT_FALSE(types.count("mid_type"));
+    EXPECT_FALSE(types.count("inner_type"));
+}

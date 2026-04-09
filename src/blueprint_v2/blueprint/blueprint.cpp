@@ -208,6 +208,31 @@ Blueprint::Nested const* Blueprint::find_nested(ui::InternedId id) const {
     return &nested_[it->second];
 }
 
+Blueprint::Nested const* Blueprint::find_hosted_nested(Node const& node) const {
+    return find_nested(node.semantic.id);
+}
+
+bool Blueprint::is_embedded_proxy_node(Node const& node) const {
+    const Nested* nested = find_hosted_nested(node);
+    return node.view.expandable && nested && nested->is_embedded();
+}
+
+Interface const& Blueprint::effective_node_iface(ui::InternedId node_id) const {
+    const Node* node = find_node(node_id);
+    if (!node) {
+        throw std::logic_error("Blueprint::effective_node_iface: node not found");
+    }
+    return effective_node_iface(*node);
+}
+
+Interface const& Blueprint::effective_node_iface(Node const& node) const {
+    const Nested* nested = find_hosted_nested(node);
+    if (nested) {
+        return nested->resolved_iface();
+    }
+    return node.semantic.iface;
+}
+
 Blueprint Blueprint::with_nested(Nested n) const {
     Blueprint copy = *this;
     copy.nested_.push_back(std::move(n));
@@ -282,7 +307,12 @@ bool Blueprint::nested_equals(Nested const& a, Nested const& b) {
 bool Blueprint::operator==(Blueprint const& other) const {
     if (id_ != other.id_) return false;
     if (display_name_ != other.display_name_) return false;
+    if (name_ != other.name_) return false;
     if (iface_ != other.iface_) return false;
+    if (pan_x_ != other.pan_x_) return false;
+    if (pan_y_ != other.pan_y_) return false;
+    if (zoom_ != other.zoom_) return false;
+    if (grid_step_ != other.grid_step_) return false;
     if (nodes_ != other.nodes_) return false;
     if (wires_ != other.wires_) return false;
     if (nested_.size() != other.nested_.size()) return false;
@@ -335,7 +365,7 @@ void Blueprint::collect_ports_recursive(
     // Node ports
     for (auto const& node : nodes_) {
         Path node_path = arena.make_node(prefix, node.semantic.id);
-        for (auto const& port : node.semantic.iface) {
+        for (auto const& port : effective_node_iface(node)) {
             Path port_path = arena.make_port(node_path, port.name);
             result.push_back({port_path, port});
         }

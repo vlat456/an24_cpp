@@ -154,7 +154,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
             set_error(error_out, "extract does not support selecting BlueprintInput/BlueprintOutput bridge nodes");
             return std::nullopt;
         }
-        const bp2::Blueprint::Nested* nested = bp.find_nested(node.semantic.id);
+        const bp2::Blueprint::Nested* nested = bp.find_hosted_nested(node);
         if (nested) {
             if (!nested->is_embedded()) {
                 set_error(error_out, "extract does not support selecting non-embedded nested instances");
@@ -218,7 +218,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
             ec.internal_node_id = tgt_node;
             ec.internal_port = tgt_port;
             ec.iface_name = std::string(interner.resolve(tgt_port));
-            ec.port_type = find_port_type(tgt_node_ptr, tgt_port);
+            ec.port_type = find_port_type(bp, tgt_node_ptr, tgt_port);
             plan.inputs.push_back(std::move(ec));
         } else {
             ec.is_input = false;
@@ -227,7 +227,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
             ec.internal_node_id = src_node;
             ec.internal_port = src_port;
             ec.iface_name = std::string(interner.resolve(src_port));
-            ec.port_type = find_port_type(src_node_ptr, src_port);
+            ec.port_type = find_port_type(bp, src_node_ptr, src_port);
             plan.outputs.push_back(std::move(ec));
         }
     }

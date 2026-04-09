@@ -141,8 +141,9 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                          updated_bp = updated_bp.with_wire(new_wire);
                      }
 
-                     host_.push_checkpoint();
-                     host_.replace_current(std::move(updated_bp));
+                      host_.mutate_atomically([&] {
+                          host_.replace_current(std::move(updated_bp));
+                      });
                      debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
                      visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
                      result.rebuild_simulation = true;

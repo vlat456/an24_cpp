@@ -101,8 +101,9 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
             return std::nullopt;
         }
 
-        if (!node->semantic.iface.empty()) {
-            auto maybe = node->semantic.iface.find(port_name);
+        const Interface& node_iface = current_bp->effective_node_iface(*node);
+        if (!node_iface.empty()) {
+            auto maybe = node_iface.find(port_name);
             if (!maybe.has_value()) {
                 return std::nullopt;
             }

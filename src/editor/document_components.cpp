@@ -189,17 +189,16 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     const bool before_integrity_ok =
         validate_blueprint_integrity(before_add, interner_, arena_, parser_registry, &before_integrity_err);
 #endif
-    bool checkpoint_pushed = false;
     try {
-        model_.push_checkpoint();
-        checkpoint_pushed = true;
-        execute(model_, interner_, cmd_add_node(std::move(node)));
+        model_.mutate_atomically([&] {
+            execute(model_, interner_, cmd_add_node(std::move(node)));
 
-        if (bridge_in_group) {
-            add_bridge_port_to_composite(
-                model_, interner_, scope_id,
-                bridge_iface_name, bridge_is_input, bridge_port_type);
-        }
+            if (bridge_in_group) {
+                add_bridge_port_to_composite(
+                    model_, interner_, scope_id,
+                    bridge_iface_name, bridge_is_input, bridge_port_type);
+            }
+        });
 
 #ifndef NDEBUG
         {
@@ -216,9 +215,6 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 #endif
                 {
                     model_.replace_current(before_add);
-                    if (checkpoint_pushed) {
-                        model_.discard_last_checkpoint();
-                    }
                     spdlog::error("[editor] addComponent('{}') rolled back due to integrity failure: {}", classname, err);
                     return;
                 }
@@ -233,9 +229,6 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
             scope_id.empty() ? "root" : scope_id);
     } catch (const std::exception& e) {
         model_.replace_current(before_add);
-        if (checkpoint_pushed) {
-            model_.discard_last_checkpoint();
-        }
         spdlog::error("[editor] addComponent('{}') failed safely: {}", classname, e.what());
         return;
     }
@@ -343,21 +336,19 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         inline_bp.pan_x(), inline_bp.pan_y(), inline_bp.zoom(), inline_bp.grid_step());
 
      const bp2::Blueprint before_add = model_.current();
-    bool checkpoint_pushed = false;
     try {
-        model_.push_checkpoint();
-        checkpoint_pushed = true;
+        model_.mutate_atomically([&] {
+            auto nested = bp2::Blueprint::Nested::make_embedded(
+                collapsed.semantic.id,
+                interner_.intern(blueprint_name),
+                std::make_unique<bp2::Blueprint>(std::move(inline_bp)),
+                collapsed.layout.x, collapsed.layout.y);
 
-        auto nested = bp2::Blueprint::Nested::make_embedded(
-            collapsed.semantic.id,
-            interner_.intern(blueprint_name),
-            std::make_unique<bp2::Blueprint>(std::move(inline_bp)),
-            collapsed.layout.x, collapsed.layout.y);
-
-        execute(model_, interner_, cmd_add_nested(std::move(nested)));
-        execute(model_, interner_, cmd_add_node(std::move(collapsed)));
-        model_.replace_current(
-            bp2::sync_collapsed_node_iface_from_nested(model_.current(), interner_.lookup(unique_id)));
+            execute(model_, interner_, cmd_add_nested(std::move(nested)));
+            execute(model_, interner_, cmd_add_node(std::move(collapsed)));
+            model_.replace_current(
+                bp2::sync_collapsed_node_iface_from_nested(model_.current(), interner_.lookup(unique_id)));
+        });
 
         if (!bp2::composite_iface_matches_nested(model_.current(), interner_.lookup(unique_id))) {
             throw std::logic_error("addBlueprint: collapsed iface desynced from nested authority");
@@ -369,9 +360,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
             scope_id.empty() ? "root" : scope_id);
     } catch (const std::exception& e) {
         model_.replace_current(before_add);
-        if (checkpoint_pushed) {
-            model_.discard_last_checkpoint();
-        }
         spdlog::error("[editor] addBlueprint('{}') failed safely: {}", blueprint_name, e.what());
     }
 }

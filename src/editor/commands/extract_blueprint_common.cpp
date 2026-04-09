@@ -5,11 +5,13 @@
 
 namespace editor::commands::extract_detail {
 
-PortType find_port_type(const bp2::Blueprint::Node* node, ui::InternedId port_name) {
+PortType find_port_type(const bp2::Blueprint& bp,
+                        const bp2::Blueprint::Node* node,
+                        ui::InternedId port_name) {
     if (!node) {
         return PortType::Any;
     }
-    for (const auto& p : node->semantic.iface.ports()) {
+    for (const auto& p : bp.effective_node_iface(*node).ports()) {
         if (p.name == port_name) {
             return p.port_type;
         }

@@ -47,7 +47,7 @@ std::string resolve_runtime_signal_key(
         if (endpoint.node && endpoint.node->view.expandable && !endpoint.node->view.blueprint_path.empty()) {
             // For embedded blueprints with materialized children, the bridge
             // node ID may differ from the default colon convention.
-            const auto* nested = bp.find_nested(endpoint.node_iid);
+            const auto* nested = bp.find_hosted_nested(*endpoint.node);
             if (nested && nested->is_embedded()) {
                 std::string bridge_id = find_embedded_bridge_node(bp, interner, node_sv, port_sv);
                 if (!bridge_id.empty()) {

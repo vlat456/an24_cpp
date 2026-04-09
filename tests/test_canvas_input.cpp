@@ -679,6 +679,253 @@ TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
     EXPECT_FALSE(model.is_dirty());
 }
 
+TEST(CanvasInputDelete, DeleteNodeWithConnectedWiresIsSingleUndoStep) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bat = make_node(I, "bat1", "Battery", 120.0f, 80.0f);
+    set_iface(bat, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+    auto lamp = make_node(I, "lamp1", "Lamp", 320.0f, 80.0f);
+    set_iface(lamp, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bat));
+    bp = bp.with_node(std::move(lamp));
+    bp = bp.with_wire(make_wire(I, arena, "wire_1", "bat1", "v_out", "lamp1", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("bat1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    const size_t undo_before = model.undo_depth();
+    const ui::Pt click_pos = widget->worldPos() + ui::Pt(10.0f, 10.0f);
+    input.on_mouse_down(click_pos, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, click_pos, canvas_min);
+    input.on_key(Key::Delete);
+
+    ASSERT_EQ(model.undo_depth(), undo_before + 1);
+    EXPECT_EQ(model.current().find_node(I.intern("bat1")), nullptr);
+    EXPECT_EQ(model.current().find_wire(I.intern("wire_1")), nullptr);
+
+    model.undo();
+    EXPECT_NE(model.current().find_node(I.intern("bat1")), nullptr);
+    EXPECT_NE(model.current().find_wire(I.intern("wire_1")), nullptr);
+}
+
+TEST(CanvasInputDelete, MultiNodeDeleteIsSingleUndoStep) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n1 = make_node(I, "n1", "Battery", 120.0f, 80.0f);
+    set_iface(n1, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+    auto n2 = make_node(I, "n2", "Lamp", 320.0f, 80.0f);
+    set_iface(n2, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+    auto n3 = make_node(I, "n3", "Lamp", 320.0f, 200.0f);
+    set_iface(n3, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+    bp = bp.with_node(std::move(n3));
+    bp = bp.with_wire(make_wire(I, arena, "w1", "n1", "v_out", "n2", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    // Select both n1 and n2 (n1 has a connected wire)
+    auto* w1 = dynamic_cast<visual::Widget*>(scene.find("n1"));
+    auto* w2 = dynamic_cast<visual::Widget*>(scene.find("n2"));
+    ASSERT_NE(w1, nullptr);
+    ASSERT_NE(w2, nullptr);
+
+    ui::Pt p1 = w1->worldPos() + ui::Pt(10.0f, 10.0f);
+    ui::Pt p2 = w2->worldPos() + ui::Pt(10.0f, 10.0f);
+    input.on_mouse_down(p1, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, p1, canvas_min);
+    input.on_mouse_down(p2, MouseButton::Left, canvas_min, Modifiers{.ctrl = true});
+    input.on_mouse_up(MouseButton::Left, p2, canvas_min);
+    ASSERT_EQ(input.selected_nodes().size(), 2u);
+
+    const size_t undo_before = model.undo_depth();
+    input.on_key(Key::Delete);
+
+    // Deleting 2 nodes (plus connected wire) must be a single undo step
+    ASSERT_EQ(model.undo_depth(), undo_before + 1)
+        << "Multi-node delete must produce a single undo checkpoint";
+    EXPECT_EQ(model.current().find_node(I.intern("n1")), nullptr);
+    EXPECT_EQ(model.current().find_node(I.intern("n2")), nullptr);
+    EXPECT_NE(model.current().find_node(I.intern("n3")), nullptr);
+    EXPECT_TRUE(model.current().wires().empty());
+
+    // Single undo restores all
+    model.undo();
+    EXPECT_NE(model.current().find_node(I.intern("n1")), nullptr);
+    EXPECT_NE(model.current().find_node(I.intern("n2")), nullptr);
+    EXPECT_NE(model.current().find_wire(I.intern("w1")), nullptr);
+}
+
+TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n1 = make_node(I, "n1", "Battery", 120.0f, 80.0f);
+    auto n2 = make_node(I, "n2", "Lamp", 220.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* w1 = dynamic_cast<visual::Widget*>(scene.find("n1"));
+    auto* w2 = dynamic_cast<visual::Widget*>(scene.find("n2"));
+    ASSERT_NE(w1, nullptr);
+    ASSERT_NE(w2, nullptr);
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    const size_t undo_before = model.undo_depth();
+
+    // Select first node, then ctrl-add second node.
+    ui::Pt p1 = w1->worldPos() + ui::Pt(10.0f, 10.0f);
+    ui::Pt p2 = w2->worldPos() + ui::Pt(10.0f, 10.0f);
+    input.on_mouse_down(p1, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, p1, canvas_min);
+    input.on_mouse_down(p2, MouseButton::Left, canvas_min, Modifiers{.ctrl = true});
+    input.on_mouse_up(MouseButton::Left, p2, canvas_min);
+    ASSERT_EQ(input.selected_nodes().size(), 2u);
+
+    // Drag both nodes together.
+    input.on_mouse_down(p1, MouseButton::Left, canvas_min);
+    input.on_mouse_drag(MouseButton::Left, ui::Pt(40.0f, 20.0f), canvas_min);
+    input.on_mouse_up(MouseButton::Left, p1 + ui::Pt(40.0f, 20.0f), canvas_min);
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    ASSERT_EQ(model.undo_depth(), undo_before + 1);
+    ASSERT_NE(model.current().find_node(I.intern("n1")), nullptr);
+    ASSERT_NE(model.current().find_node(I.intern("n2")), nullptr);
+    EXPECT_FLOAT_EQ(model.current().find_node(I.intern("n1"))->layout.x, 160.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(I.intern("n2"))->layout.x, 260.0f);
+
+    model.undo();
+    EXPECT_FLOAT_EQ(model.current().find_node(I.intern("n1"))->layout.x, 120.0f);
+    EXPECT_FLOAT_EQ(model.current().find_node(I.intern("n2"))->layout.x, 220.0f);
+}
+
+TEST(CanvasInputGridStep, GridStepChangeIsSingleUndoStep) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp = bp.with_viewport(0.0f, 0.0f, 1.0f, 16.0f);
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.grid_step = 16.0f;
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    const size_t undo_before = model.undo_depth();
+
+    // Simulate pressing ']' to increase grid step
+    vp.grid_step_up();
+    float new_step = vp.grid_step;
+    input.snapshot_and_execute(cmd_set_grid_step(new_step));
+
+    // Must produce exactly one undo step, not two
+    ASSERT_EQ(model.undo_depth(), undo_before + 1)
+        << "Grid step change must produce a single undo checkpoint";
+
+    EXPECT_FLOAT_EQ(model.current().grid_step(), new_step);
+
+    model.undo();
+    EXPECT_FLOAT_EQ(model.current().grid_step(), 16.0f);
+}
+
+TEST(CanvasInputRoutingPoints, RoutingPointChangeIsSingleUndoStep) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n1 = make_node(I, "n1", "Battery", 0.0f, 0.0f);
+    set_iface(n1, {make_port(I, "v_out", bp2::Direction::Output, PortType::V)});
+    auto n2 = make_node(I, "n2", "Lamp", 200.0f, 0.0f);
+    set_iface(n2, {make_port(I, "v_in", bp2::Direction::Input, PortType::V)});
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1)).with_node(std::move(n2));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w1");
+    auto src_node = arena.make_node(arena.root(), I.intern("n1"));
+    w.source = arena.make_port(src_node, I.intern("v_out"));
+    auto tgt_node = arena.make_node(arena.root(), I.intern("n2"));
+    w.target = arena.make_port(tgt_node, I.intern("v_in"));
+    w.routing_points = {{100.0f, 50.0f}};
+    bp = bp.with_wire(std::move(w));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    const size_t undo_before = model.undo_depth();
+
+    // Move the routing point
+    std::vector<std::pair<float, float>> new_points = {{120.0f, 60.0f}};
+    input.snapshot_and_execute(cmd_set_routing_points(I.intern("w1"), std::move(new_points)));
+
+    // Must produce exactly one undo step, not two
+    ASSERT_EQ(model.undo_depth(), undo_before + 1)
+        << "Routing point change must produce a single undo checkpoint";
+
+    const auto* wire_after = model.current().find_wire(I.intern("w1"));
+    ASSERT_NE(wire_after, nullptr);
+    ASSERT_EQ(wire_after->routing_points.size(), 1u);
+    EXPECT_FLOAT_EQ(wire_after->routing_points[0].first, 120.0f);
+    EXPECT_FLOAT_EQ(wire_after->routing_points[0].second, 60.0f);
+
+    model.undo();
+    const auto* wire_undone = model.current().find_wire(I.intern("w1"));
+    ASSERT_NE(wire_undone, nullptr);
+    ASSERT_EQ(wire_undone->routing_points.size(), 1u);
+    EXPECT_FLOAT_EQ(wire_undone->routing_points[0].first, 100.0f);
+    EXPECT_FLOAT_EQ(wire_undone->routing_points[0].second, 50.0f);
+}
+
 TEST(CanvasInputDoubleClick, ValueNodeOpensInlineValueEditor) {
     ui::StringInterner I;
     bp2::PathArena arena(I);

@@ -25,7 +25,9 @@ static std::string format_value(float v) {
     return std::string(buf);
 }
 
-RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
+RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data,
+                             const bp2::Interface& render_iface,
+                             const ui::StringInterner& interner)
     : node_iid_(data.semantic.id)
     , interner_(&interner)
     , name_(data.view.name)
@@ -45,7 +47,7 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringI
     }
 
     setLocalPos(Pt(data.layout.x, data.layout.y));
-    buildLayout(data, interner);
+    buildLayout(data, render_iface, interner);
 
     // Size based on text width + horizontal padding
     float text_w = name_.empty() ? 0.0f : name_.length() * PortConstants::LABEL_FONT_SIZE * 0.8f;
@@ -60,15 +62,17 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringI
 // Layout
 // ============================================================================
 
-void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
+void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data,
+                                const bp2::Interface& render_iface,
+                                const ui::StringInterner& interner) {
     // Determine the single port from node data.
     // Port stores a string_view, so the name must point to stable storage
     // (the interner) — never to a local std::string.
     std::string_view port_name = "v";
     PortType port_type = PortType::V;
 
-    const auto out_ports = bp2::derive_output_ports(data.semantic.iface);
-    const auto in_ports = bp2::derive_input_ports(data.semantic.iface);
+    const auto out_ports = bp2::derive_output_ports(render_iface);
+    const auto in_ports = bp2::derive_input_ports(render_iface);
     if (!out_ports.empty()) {
         port_name = interner.resolve(out_ports[0].name);
         port_type = out_ports[0].type;

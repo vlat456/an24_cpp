@@ -90,7 +90,7 @@ struct UndoStack {
     /// Restore the most recent snapshot into `bp` and remove it from the
     /// undo stack, WITHOUT pushing the current state onto the redo stack.
     /// Use this to silently revert mutations that should not leave a redo
-    /// entry (e.g. TransactionGuard::discard()).
+    /// entry.
     bool restore_last_snapshot(bp2::Blueprint& bp) {
         if (undo_stack_.empty()) return false;
         bp = std::move(undo_stack_.back());

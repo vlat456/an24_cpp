@@ -265,6 +265,102 @@ TEST(EditorModel, BakeNestedConvertsReferenceToEmbedded) {
     EXPECT_NE(baked->inline_def(), nullptr);
 }
 
+TEST(EditorModel, UpdateNodeCannotOverrideEmbeddedCompositeIfaceAuthority) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(bp2::Interface({
+        {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+    }));
+
+    bp2::Blueprint::Node collapsed;
+    collapsed.semantic.id = interner.intern("sub1");
+    collapsed.semantic.type = interner.intern("CompositeType");
+    collapsed.semantic.iface = bp2::Interface({
+        {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+    });
+
+    bp2::Blueprint root;
+    root = root.with_node(collapsed);
+    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("sub1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
+
+    bp2::EditorModel model(root);
+    ASSERT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
+
+    ASSERT_TRUE(model.update_node(interner.intern("sub1"), [&](bp2::Blueprint::Node& node) {
+        node.semantic.iface = bp2::Interface({
+            {interner.intern("stale_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+        });
+    }));
+
+    const auto* updated = model.current().find_node(interner.intern("sub1"));
+    ASSERT_NE(updated, nullptr);
+    EXPECT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
+    EXPECT_TRUE(updated->semantic.iface.find(interner.intern("inner_only")).has_value());
+    EXPECT_FALSE(updated->semantic.iface.find(interner.intern("stale_only")).has_value());
+}
+
+// Regression: constructor must canonicalize stale composite host iface.
+TEST(EditorModel, ConstructorCanonicalizesStaleCompositeHostIface) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(bp2::Interface({
+        {interner.intern("authoritative_port"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+    }));
+
+    bp2::Blueprint::Node collapsed;
+    collapsed.semantic.id = interner.intern("sub1");
+    collapsed.semantic.type = interner.intern("CompositeType");
+    collapsed.semantic.iface = bp2::Interface({
+        {interner.intern("stale_port"), Domain::Electrical, bp2::Direction::Output, PortType::V},
+    });
+
+    bp2::Blueprint root;
+    root = root.with_node(std::move(collapsed));
+    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("sub1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
+
+    bp2::EditorModel model(root);
+
+    const auto* node = model.current().find_node(interner.intern("sub1"));
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
+    EXPECT_TRUE(node->semantic.iface.find(interner.intern("authoritative_port")).has_value());
+    EXPECT_FALSE(node->semantic.iface.find(interner.intern("stale_port")).has_value());
+}
+
+TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(bp2::Interface({
+        {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+    }));
+
+    bp2::Blueprint::Node collapsed;
+    collapsed.semantic.id = interner.intern("sub1");
+    collapsed.semantic.type = interner.intern("CompositeType");
+    collapsed.semantic.iface = bp2::Interface({
+        {interner.intern("stale_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+    });
+
+    bp2::Blueprint root;
+    root = root.with_node(std::move(collapsed));
+    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("sub1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
+
+    bp2::EditorModel model;
+    model.replace_current(std::move(root));
+
+    const auto* updated = model.current().find_node(interner.intern("sub1"));
+    ASSERT_NE(updated, nullptr);
+    EXPECT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
+    EXPECT_TRUE(updated->semantic.iface.find(interner.intern("inner_only")).has_value());
+    EXPECT_FALSE(updated->semantic.iface.find(interner.intern("stale_only")).has_value());
+}
+
 TEST(EditorModel, BakeNestedIsUndoable) {
     ui::StringInterner interner;
     bp2::BlueprintLibrary library;

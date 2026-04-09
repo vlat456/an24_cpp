@@ -40,6 +40,9 @@ public:
     /// Save current state as undo checkpoint.
     virtual void push_checkpoint() = 0;
 
+    /// Execute a batch of mutations as one undoable operation.
+    virtual bool mutate_atomically(const std::function<void()>& fn) = 0;
+
     /// Replace entire blueprint with new one.
     virtual void replace_current(bp2::Blueprint bp) = 0;
 

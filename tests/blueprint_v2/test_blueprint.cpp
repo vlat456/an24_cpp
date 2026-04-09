@@ -236,6 +236,134 @@ TEST(Blueprint, FindNodeNotFound) {
     EXPECT_EQ(bp.find_node(interner.intern("nope")), nullptr);
 }
 
+TEST(Blueprint, FindHostedNestedForCompositeHost) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("comp1");
+    host.semantic.type = interner.intern("CompositeType");
+    host.view.expandable = true;
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(host);
+    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("comp1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>()));
+
+    const auto* found_host = bp.find_node(interner.intern("comp1"));
+    ASSERT_NE(found_host, nullptr);
+    const auto* nested = bp.find_hosted_nested(*found_host);
+    ASSERT_NE(nested, nullptr);
+    EXPECT_EQ(nested->id, interner.intern("comp1"));
+}
+
+TEST(Blueprint, EmbeddedProxyNodeDetectionRequiresEmbeddedNestedAndExpandable) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("comp1");
+    host.semantic.type = interner.intern("CompositeType");
+    host.view.expandable = true;
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(host);
+    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("comp1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>()));
+
+    const auto* found_host = bp.find_node(interner.intern("comp1"));
+    ASSERT_NE(found_host, nullptr);
+    EXPECT_TRUE(bp.is_embedded_proxy_node(*found_host));
+}
+
+TEST(Blueprint, EmbeddedProxyNodeDetectionDoesNotTriggerForSameIdNonExpandableNode) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("comp1");
+    node.semantic.type = interner.intern("OrdinaryType");
+    node.view.expandable = false;
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(node);
+    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("comp1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>()));
+
+    const auto* found = bp.find_node(interner.intern("comp1"));
+    ASSERT_NE(found, nullptr);
+    EXPECT_FALSE(bp.is_embedded_proxy_node(*found));
+}
+
+TEST(Blueprint, EmbeddedProxyNodeDetectionDoesNotTriggerForReferenceNested) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("comp1");
+    node.semantic.type = interner.intern("ReferenceType");
+    node.view.expandable = true;
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(node);
+    bp = bp.with_nested(bp2::Blueprint::Nested::make_reference(
+        interner.intern("comp1"), interner.intern("ReferenceType"), bp2::Interface{}));
+
+    const auto* found = bp.find_node(interner.intern("comp1"));
+    ASSERT_NE(found, nullptr);
+    EXPECT_FALSE(bp.is_embedded_proxy_node(*found));
+}
+
+TEST(Blueprint, EffectiveNodeIfaceUsesHostedNestedAuthorityWhenPresent) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(bp2::Interface({
+        {interner.intern("authoritative"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+    }));
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("comp1");
+    host.semantic.type = interner.intern("CompositeType");
+    host.view.expandable = true;
+    host.semantic.iface = bp2::Interface({
+        {interner.intern("stale"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(host);
+    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
+        interner.intern("comp1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
+
+    const auto* found = bp.find_node(interner.intern("comp1"));
+    ASSERT_NE(found, nullptr);
+    const auto& iface = bp.effective_node_iface(*found);
+    EXPECT_TRUE(iface.find(interner.intern("authoritative")).has_value());
+    EXPECT_FALSE(iface.find(interner.intern("stale")).has_value());
+}
+
+TEST(Blueprint, EffectiveNodeIfaceFallsBackToNodeIfaceWithoutHostedNested) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("Battery");
+    node.semantic.iface = bp2::Interface({
+        {interner.intern("local"), Domain::Electrical, bp2::Direction::Output, PortType::V},
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(node);
+
+    const auto* found = bp.find_node(interner.intern("n1"));
+    ASSERT_NE(found, nullptr);
+    const auto& iface = bp.effective_node_iface(*found);
+    EXPECT_TRUE(iface.find(interner.intern("local")).has_value());
+}
+
+TEST(Blueprint, EffectiveNodeIfaceThrowsForMissingNodeId) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    EXPECT_THROW(bp.effective_node_iface(interner.intern("missing")), std::logic_error);
+}
+
 TEST(Blueprint, WithNodeDoesNotMutateOriginal) {
     ui::StringInterner interner;
     bp2::Blueprint original;

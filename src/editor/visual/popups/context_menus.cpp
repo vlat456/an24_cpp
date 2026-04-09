@@ -71,7 +71,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         
         bool is_read_only = false;
         if (!ws.nodeContextMenu.scope_id.empty()) {
-            BlueprintWindow* win = doc->windowManager().find(ws.nodeContextMenu.scope_id);
+            BlueprintWindow* win = doc->windowManager().find(WindowScopeId::embedded(ws.nodeContextMenu.scope_id));
             is_read_only = win && win->read_only;
         }
         
@@ -84,7 +84,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             }
             const CanvasInput* source_input = &doc->input();
             if (!ws.nodeContextMenu.scope_id.empty()) {
-                if (BlueprintWindow* win = doc->windowManager().find(ws.nodeContextMenu.scope_id)) {
+                if (BlueprintWindow* win = doc->windowManager().find(WindowScopeId::embedded(ws.nodeContextMenu.scope_id))) {
                     source_input = &win->input;
                 }
             }

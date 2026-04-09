@@ -7,6 +7,7 @@
 #include <functional>
 #include <unordered_map>
 #include <unordered_set>
+#include <stdexcept>
 
 namespace bp2 {
 
@@ -47,6 +48,7 @@ public:
     void undo();
     void redo();
     void push_checkpoint();
+    bool mutate_atomically(const std::function<void()>& fn);
 
     size_t undo_depth() const { return undo_stack_.size(); }
     size_t redo_depth() const { return redo_stack_.size(); }
@@ -54,11 +56,6 @@ public:
     // === Dirty tracking ===
     void mark_saved() { save_depth_ = undo_stack_.size(); }
     bool is_dirty() const { return undo_stack_.size() != save_depth_; }
-
-    // === Checkpoint management ===
-    void discard_last_checkpoint() {
-        if (!undo_stack_.empty()) undo_stack_.pop_back();
-    }
 
     /// Clear undo/redo history (useful after loading a file or for test setup).
     void clear_history() {
@@ -78,7 +75,10 @@ public:
                                        ui::StringInterner const& interner) const;
 
     // === Direct blueprint replacement ===
-    void replace_current(Blueprint bp) { current_ = std::move(bp); invalidate_indices(); }
+    void replace_current(Blueprint bp) {
+        current_ = canonicalize_composite_host_ifaces(std::move(bp));
+        invalidate_indices();
+    }
 
     // === Bake/Unbake ===
     bool bake_nested(ui::InternedId id, BlueprintLibrary const& library,
@@ -105,6 +105,9 @@ private:
 
     void invalidate_indices() { indices_.valid = false; }
     void ensure_indices() const;
+    static Blueprint canonicalize_composite_host_ifaces(Blueprint bp);
+    static Blueprint::Node canonicalize_composite_host_iface(const Blueprint& bp, Blueprint::Node node);
+    void push_checkpoint_if_enabled();
 
     Blueprint current_;
     std::vector<Blueprint> undo_stack_;
@@ -112,6 +115,7 @@ private:
     size_t max_history_ = 100;
     size_t save_depth_ = 0;
     mutable Indices indices_;
+    int checkpoint_suppression_depth_ = 0;
 };
 
 // === Order-preserving blueprint replacement helpers ===
@@ -122,6 +126,8 @@ Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updat
 Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated);
 Blueprint replace_nested_preserve_order(const Blueprint& bp, Blueprint::Nested updated);
 
+/// For composite host nodes, semantic.iface is a derived cache mirrored from
+/// nested authority so legacy serialization/editor surfaces stay stable.
 Blueprint sync_collapsed_node_iface_from_nested(const Blueprint& bp, ui::InternedId nested_id);
 bool composite_iface_matches_nested(const Blueprint& bp, ui::InternedId nested_id);
 

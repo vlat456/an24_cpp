@@ -48,9 +48,8 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             // Embedded blueprint proxy nodes carry a user-given type name
             // that won't be in the library registry.  They are valid as long
             // as a matching embedded nested definition exists.
-            if (node.view.expandable) {
-                const auto* nested = bp.find_nested(node.semantic.id);
-                if (nested && nested->is_embedded()) continue;
+            if (bp.is_embedded_proxy_node(node)) {
+                continue;
             }
             out.error = "unknown node type at node id=" + iid_to_string(node.semantic.id)
                 + " type=" + iid_to_string(node.semantic.type);
@@ -63,6 +62,18 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             && !parser_registry.has(std::string(interner.resolve(n.blueprint_id())))) {
             out.error = "unknown nested blueprint id=" + iid_to_string(n.id)
                 + " blueprint_id=" + iid_to_string(n.blueprint_id());
+            return out;
+        }
+    }
+
+    for (auto const& node : bp.nodes()) {
+        const auto* nested = bp.find_hosted_nested(node);
+        if (!nested) {
+            continue;
+        }
+        if (node.semantic.iface != nested->resolved_iface()) {
+            out.error = "composite host iface desynced from nested authority at node id="
+                + iid_to_string(node.semantic.id);
             return out;
         }
     }

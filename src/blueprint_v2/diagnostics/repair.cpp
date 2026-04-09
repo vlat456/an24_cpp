@@ -30,9 +30,7 @@ RepairReport diagnose_and_repair(Blueprint& bp,
         if (!parser_registry.has(std::string(interner.resolve(n.semantic.type)))) {
             // Skip embedded blueprint proxy nodes — their user-given type
             // is not in the library registry by design.
-            const bool is_embedded_proxy = n.view.expandable
-                && bp.find_nested(n.semantic.id) != nullptr
-                && bp.find_nested(n.semantic.id)->is_embedded();
+            const bool is_embedded_proxy = bp.is_embedded_proxy_node(n);
             if (!is_embedded_proxy) {
                 report.issues.push_back({
                     IntegrityIssue::Kind::UnknownNodeType,

@@ -43,10 +43,10 @@ void Flattener::visit_blueprint(
     FlatNetlist& out) {
 
     for (auto const& node : bp.nodes()) {
-        if (node.view.expandable && bp.find_nested(node.semantic.id)) {
+        if (bp.find_hosted_nested(node)) {
             continue;
         }
-        emit_component(node, prefix, signals, out);
+        emit_component(bp, node, prefix, signals, out);
     }
 
     for (auto const& nested : bp.nested()) {
@@ -59,6 +59,7 @@ void Flattener::visit_blueprint(
 // ==================================================================
 
 void Flattener::emit_component(
+    Blueprint const& bp,
     Blueprint::Node const& node,
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
@@ -73,7 +74,7 @@ void Flattener::emit_component(
     comp.string_params = node.semantic.string_params;
     comp.render_hint = node.view.render_hint;
 
-    for (auto const& port : node.semantic.iface) {
+    for (auto const& port : bp.effective_node_iface(node)) {
         Path port_path = arena_->make_port(node_path, port.name);
         SignalIndex sig = get_or_create_signal(
             port_path, port.domain, signals, out);
@@ -170,9 +171,12 @@ void Flattener::visit_nested(
         signals[path] = sig;
     }
 
-    // Emit inner leaf nodes
+    // Emit inner leaf nodes (skip composite hosts — they expand via nested)
     for (auto const& node : inner->nodes()) {
-        emit_component(node, nested_path, nested_signals, out);
+        if (inner->find_hosted_nested(node)) {
+            continue;
+        }
+        emit_component(*inner, node, nested_path, nested_signals, out);
     }
 
     // Recurse into nested-of-nested

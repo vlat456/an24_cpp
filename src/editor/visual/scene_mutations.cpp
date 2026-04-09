@@ -164,7 +164,8 @@ void rebuild(Scene& scene,
     // 1) Create node widgets for all nodes in this group
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
         if (n.layout.layout_group != scope_id) continue;
-        std::unique_ptr<Widget> widget = NodeFactory::create(n, interner, bus_wires);
+        const bp2::Interface& render_iface = bp.effective_node_iface(n);
+        std::unique_ptr<Widget> widget = NodeFactory::create(n, render_iface, interner, bus_wires);
         scene.add(std::move(widget));
     }
 

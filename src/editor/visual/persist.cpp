@@ -89,9 +89,8 @@ bool validate_blueprint_for_persist(
         // Embedded blueprint proxy nodes carry a user-given type name that
         // won't exist in the library TypeRegistry.  Their internals are
         // already validated as individual nodes, so skip the proxy.
-        if (node.view.expandable) {
-            const auto* nested = bp.find_nested(node.semantic.id);
-            if (nested && nested->is_embedded()) continue;
+        if (bp.is_embedded_proxy_node(node)) {
+            continue;
         }
         std::string type_name(interner.resolve(node.semantic.type));
         if (!parser_registry.has(type_name)) {

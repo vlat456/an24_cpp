@@ -42,7 +42,9 @@ struct NodeVisualState {
 /// Owns its layout tree: header, port rows, content area, type name footer.
 class NodeWidget : public Widget {
 public:
-    explicit NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    NodeWidget(const bp2::Blueprint::Node& data,
+               const bp2::Interface& render_iface,
+               const ui::StringInterner& interner);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
@@ -101,13 +103,21 @@ private:
 
     std::optional<uint32_t> custom_fill_;
 
-    void buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
-    void buildStandardLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
-    void buildVerticalToggleLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    void buildLayout(const bp2::Blueprint::Node& data,
+                     const bp2::Interface& render_iface,
+                     const ui::StringInterner& interner);
+    void buildStandardLayout(const bp2::Blueprint::Node& data,
+                             const bp2::Interface& render_iface,
+                             const ui::StringInterner& interner);
+    void buildVerticalToggleLayout(const bp2::Blueprint::Node& data,
+                                   const bp2::Interface& render_iface,
+                                   const ui::StringInterner& interner);
     void buildPortRow(std::string_view left_name, PortType left_type,
                       std::string_view right_name, PortType right_type);
     void buildPortInColumn(Widget* col, std::string_view name, PortType type, bp2::PortSide logical_side, bp2::PortLayoutSide layout_side);
-    void buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    void buildFourSidedLayout(const bp2::Blueprint::Node& data,
+                              const bp2::Interface& render_iface,
+                              const ui::StringInterner& interner);
 
     void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);
 };

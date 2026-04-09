@@ -2,7 +2,6 @@
 #include <set>
 #include "editor/commands/commands.h"
 #include "editor/commands/extract_blueprint.h"
-#include "editor/commands/transaction_guard.h"
 #include "editor/commands/blueprint_checksum.h"
 #include "editor/visual/persist.h"
 #include "json_parser/json_parser.h"
@@ -708,17 +707,16 @@ TEST_F(CommandTest, MultipleCommandsUndoAsGroup) {
 }
 
 // =============================================================================
-// TransactionGuard tests
+// Atomic mutation tests
 // =============================================================================
 
-TEST_F(CommandTest, TransactionGuardSingleCommand) {
+TEST_F(CommandTest, MutateAtomicallySingleCommand) {
     auto id = interner.intern("n");
     model.add_node(make_node(interner, "n", 0.0f, 0.0f));
 
-    {
-        TransactionGuard txn(model, interner);
-        txn.execute(cmd_move_node(id, 42.0f, 42.0f));
-    }
+    EXPECT_TRUE(model.mutate_atomically([&] {
+        execute(model, interner, cmd_move_node(id, 42.0f, 42.0f));
+    }));
 
     EXPECT_FLOAT_EQ(model.current().find_node(id)->layout.x, 42.0f);
     EXPECT_TRUE(model.can_undo());
@@ -727,56 +725,50 @@ TEST_F(CommandTest, TransactionGuardSingleCommand) {
     EXPECT_FLOAT_EQ(model.current().find_node(id)->layout.x, 0.0f);
 }
 
-TEST_F(CommandTest, TransactionGuardMultipleCommands) {
+TEST_F(CommandTest, MutateAtomicallyMultipleCommands) {
     auto id_a = interner.intern("a");
     auto id_b = interner.intern("b");
 
     model.add_node(make_node(interner, "a", 0.0f, 0.0f));
     model.add_node(make_node(interner, "b", 10.0f, 10.0f));
 
-    {
-        TransactionGuard txn(model, interner);
-        txn.execute(cmd_move_node(id_a, 100.0f, 100.0f));
-        txn.execute(cmd_move_node(id_b, 200.0f, 200.0f));
-    }
+    EXPECT_TRUE(model.mutate_atomically([&] {
+        execute(model, interner, cmd_move_node(id_a, 100.0f, 100.0f));
+        execute(model, interner, cmd_move_node(id_b, 200.0f, 200.0f));
+    }));
 
     EXPECT_FLOAT_EQ(model.current().find_node(id_a)->layout.x, 100.0f);
     EXPECT_FLOAT_EQ(model.current().find_node(id_b)->layout.x, 200.0f);
     EXPECT_TRUE(model.can_undo());
 }
 
-TEST_F(CommandTest, TransactionGuardEmpty) {
-    {
-        TransactionGuard txn(model, interner);
+TEST_F(CommandTest, MutateAtomicallyEmptyReturnsFalse) {
+    EXPECT_FALSE(model.mutate_atomically([&] {
         // No commands
-    }
+    }));
     EXPECT_FALSE(model.can_undo());
     EXPECT_FALSE(model.can_redo());
 }
 
-TEST_F(CommandTest, TransactionGuardDiscard) {
+TEST_F(CommandTest, MutateAtomicallyExceptionRollsBack) {
     model.push_checkpoint();
     execute(model, interner, cmd_set_grid_step(16.0f));
 
-    {
-        TransactionGuard txn(model, interner);
-        txn.execute(cmd_set_grid_step(64.0f));
-        txn.discard();
-    }
+    EXPECT_THROW(model.mutate_atomically([&] {
+        execute(model, interner, cmd_set_grid_step(64.0f));
+        throw std::runtime_error("rollback");
+    }), std::runtime_error);
 
-    // discard() undoes the checkpoint taken by the TransactionGuard
     EXPECT_FLOAT_EQ(model.current().grid_step(), 16.0f);
 }
 
-TEST_F(CommandTest, TransactionGuardManualCommit) {
+TEST_F(CommandTest, MutateAtomicallySingleCommitIsUndoable) {
     model.push_checkpoint();
     execute(model, interner, cmd_set_grid_step(16.0f));
 
-    {
-        TransactionGuard txn(model, interner);
-        txn.execute(cmd_set_grid_step(32.0f));
-        txn.commit();  // Explicit commit; destructor should be idempotent
-    }
+    EXPECT_TRUE(model.mutate_atomically([&] {
+        execute(model, interner, cmd_set_grid_step(32.0f));
+    }));
 
     EXPECT_FLOAT_EQ(model.current().grid_step(), 32.0f);
     EXPECT_TRUE(model.can_undo());
@@ -1004,7 +996,7 @@ TEST_F(CommandTest, UndoRedoWithEmptyBlueprint) {
     EXPECT_FLOAT_EQ(model.current().grid_step(), 32.0f);
 }
 
-TEST_F(CommandTest, TransactionGuardDiscardMultipleCommands) {
+TEST_F(CommandTest, MutateAtomicallyExceptionRollsBackMultipleCommands) {
     auto id_a = interner.intern("a");
     auto id_b = interner.intern("b");
 
@@ -1015,18 +1007,12 @@ TEST_F(CommandTest, TransactionGuardDiscardMultipleCommands) {
     model.push_checkpoint();
     execute(model, interner, cmd_set_grid_step(16.0f));
 
-    size_t before = blueprint_checksum(model.current());
+    EXPECT_THROW(model.mutate_atomically([&] {
+        execute(model, interner, cmd_move_node(id_a, 100.0f, 100.0f));
+        execute(model, interner, cmd_set_grid_step(64.0f));
+        throw std::runtime_error("rollback");
+    }), std::runtime_error);
 
-    {
-        TransactionGuard txn(model, interner);
-        txn.execute(cmd_move_node(id_a, 100.0f, 100.0f));
-        txn.execute(cmd_set_grid_step(64.0f));
-        txn.discard();
-    }
-
-    // After discard: position and grid_step should be reverted
-    // Note: discard() calls model.undo() once, reverting the last checkpoint
-    // which was the push_checkpoint() inside TransactionGuard before cmd_move_node
     EXPECT_FLOAT_EQ(model.current().grid_step(), 16.0f);
     EXPECT_FLOAT_EQ(model.current().find_node(id_a)->layout.x, 0.0f);
 }

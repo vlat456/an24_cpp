@@ -111,6 +111,42 @@ TEST(PathResolver, ResolveNestedInterfacePort) {
     EXPECT_EQ(rp->port.direction, Direction::Input);
 }
 
+TEST(PathResolver, CompositeHostNodePortUsesNestedAuthorityNotCollapsedCache) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    PathArena arena(I);
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(Interface({
+        {I.intern("inner_only"), Domain::Electrical, Direction::Input},
+    }));
+
+    bp2::Blueprint::Node collapsed = make_node(I, "sub1", "CompositeType");
+    collapsed.semantic.iface = Interface({
+        {I.intern("stale_only"), Domain::Electrical, Direction::Input},
+    });
+
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        I.intern("sub1"), I.intern("CompositeType"),
+        std::make_unique<bp2::Blueprint>(inner));
+
+    bp2::Blueprint root;
+    root = root.with_node(std::move(collapsed));
+    root = root.with_nested(std::move(nested));
+
+    Path node = arena.make_node(arena.root(), I.intern("sub1"));
+    Path good_port = arena.make_port(node, I.intern("inner_only"));
+    Path stale_port = arena.make_port(node, I.intern("stale_only"));
+
+    PathResolver resolver;
+    auto resolved_good = resolver.resolve(good_port, root, arena, reg, I);
+    ASSERT_TRUE(resolved_good.has_value());
+    EXPECT_EQ(resolved_good->port.name, I.intern("inner_only"));
+
+    auto resolved_stale = resolver.resolve(stale_port, root, arena, reg, I);
+    EXPECT_FALSE(resolved_stale.has_value());
+}
+
 TEST(PathResolver, CanConnectRejectsBoundarySkipAcrossNestedScopes) {
     ui::StringInterner I;
     TypeRegistry reg = make_validation_registry();
@@ -300,6 +336,34 @@ TEST(BlueprintValidate, DuplicateWireIdsFail) {
     EXPECT_FALSE(r.valid);
     EXPECT_NE(r.error.find("dup"), std::string::npos);
     EXPECT_THROW(bp.validate(reg, I), std::runtime_error);
+}
+
+TEST(BlueprintValidate, CompositeHostIfaceDesyncFails) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    PathArena arena(I);
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(Interface({
+        {I.intern("inner_only"), Domain::Electrical, Direction::Input},
+    }));
+
+    bp2::Blueprint::Node collapsed = make_node(I, "sub1", "CompositeType");
+    collapsed.view.expandable = true;
+    collapsed.semantic.iface = Interface({
+        {I.intern("stale_only"), Domain::Electrical, Direction::Input},
+    });
+
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        I.intern("sub1"), I.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner));
+
+    bp2::Blueprint root;
+    root = root.with_node(std::move(collapsed));
+    root = root.with_nested(std::move(nested));
+
+    auto r = bp2::InvariantChecker::validate(root, arena, reg, I);
+    EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("desynced"), std::string::npos);
 }
 
 TEST(BlueprintValidate, UnknownNodeTypeFails) {

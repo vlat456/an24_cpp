@@ -27,6 +27,7 @@ private:
         FlatNetlist& out);
 
     void emit_component(
+        Blueprint const& bp,
         Blueprint::Node const& node,
         Path prefix,
         std::unordered_map<Path, SignalIndex>& signals,

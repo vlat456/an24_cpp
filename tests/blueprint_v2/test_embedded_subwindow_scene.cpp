@@ -7,12 +7,9 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
+#include "../bp2_test_helpers.h"
 
 namespace {
-
-// Helper to make a PortDescriptor for a semantic interface
-// Shared bp2 test helpers (make_port, set_iface)
-#include "../bp2_test_helpers.h"
 
 /// Build a simple node with standard ports
 static bp2::Blueprint::Node make_node(ui::StringInterner& interner,
@@ -156,4 +153,45 @@ TEST(EmbeddedSubwindowScene, RootWindowStillShowsRootNodes) {
     EXPECT_EQ(sub_scene.roots().size(), 1u);
     EXPECT_EQ(sub_scene.find("root_bat"), nullptr);
     EXPECT_NE(sub_scene.find("composite_bat"), nullptr);
+}
+
+TEST(EmbeddedSubwindowScene, CompositeHostPortsUseNestedAuthorityNotCollapsedCache) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint inline_bp;
+    inline_bp = inline_bp.with_interface(bp2::Interface({
+        make_port(interner, "inner_only", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    }));
+
+    bp2::Blueprint::Node collapsed;
+    collapsed.semantic.id = interner.intern("composite_1");
+    collapsed.semantic.type = interner.intern("CompositeType");
+    collapsed.view.name = "composite_1";
+    collapsed.view.expandable = true;
+    collapsed.layout.layout_group = "";
+    set_iface(collapsed, {
+        make_port(interner, "stale_only", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("composite_1"), interner.intern("CompositeType"),
+        std::make_unique<bp2::Blueprint>(inline_bp));
+
+    bp2::Blueprint root;
+    root = root.with_node(std::move(collapsed));
+    root = root.with_nested(std::move(nested));
+
+    visual::Scene root_scene;
+    visual::mutations::rebuild(root_scene, root, interner, arena, "");
+
+    auto* composite_widget = root_scene.find("composite_1");
+    ASSERT_NE(composite_widget, nullptr);
+    EXPECT_NE(composite_widget->portByName("inner_only"), nullptr);
+    EXPECT_EQ(composite_widget->portByName("stale_only"), nullptr);
+
+    auto* collapsed_node = root.find_node(interner.intern("composite_1"));
+    ASSERT_NE(collapsed_node, nullptr);
+    EXPECT_TRUE(collapsed_node->semantic.iface.has(interner.intern("stale_only")));
+    EXPECT_FALSE(collapsed_node->semantic.iface.has(interner.intern("inner_only")));
 }

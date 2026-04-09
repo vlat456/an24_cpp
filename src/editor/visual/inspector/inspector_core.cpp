@@ -103,8 +103,9 @@ void Inspector::buildDisplayTree() {
         dn.connection_count = conn_count;
 
         // Collect ports (inputs then outputs)
-        const auto inputs = bp2::derive_input_ports(node.semantic.iface);
-        const auto outputs = bp2::derive_output_ports(node.semantic.iface);
+        const bp2::Interface& iface = bp_->effective_node_iface(node);
+        const auto inputs = bp2::derive_input_ports(iface);
+        const auto outputs = bp2::derive_output_ports(iface);
         for (const auto& port : inputs) {
             DisplayPort dp;
             dp.name = std::string(interner_->resolve(port.name));

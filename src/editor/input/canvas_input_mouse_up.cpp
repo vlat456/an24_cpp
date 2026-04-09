@@ -27,12 +27,14 @@ void CanvasInput::commit_drag_node() {
          }
      }
      if (!any_moved) return;
-     for (auto* widget : nodes) {
-         ui::InternedId node_iid = interner_.intern(widget->id());
-         if (!node_iid.empty()) {
-             host_.update_node_position(node_iid, widget->worldPos().x, widget->worldPos().y);
+     host_.mutate_atomically([&] {
+         for (auto* widget : nodes) {
+             ui::InternedId node_iid = interner_.intern(widget->id());
+             if (!node_iid.empty()) {
+                 host_.update_node_position(node_iid, widget->worldPos().x, widget->worldPos().y);
+             }
          }
-     }
+     });
 
      std::unordered_set<ui::InternedId> nodes_to_orient;
      for (ui::InternedId id : moved_node_ids) {
@@ -281,21 +283,22 @@ InputResult CanvasInput::on_key(Key key) {
          case Key::Backspace: {
              if (selected_node_ids_.empty()) break;
 
-             host_.push_checkpoint();
-             for (const auto& nid : selected_node_ids_) {
-                 if (!nid.empty()) {
-                     std::vector<ui::InternedId> connected_wires;
-                     connected_wires.reserve(host_.wires().size());
-                     for (const auto& w : host_.wires()) {
-                         auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, arena_);
-                         auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, arena_);
-                         if (src_node == nid || tgt_node == nid) {
-                             connected_wires.push_back(w.id);
+             host_.mutate_atomically([&] {
+                 for (const auto& nid : selected_node_ids_) {
+                     if (!nid.empty()) {
+                         std::vector<ui::InternedId> connected_wires;
+                         connected_wires.reserve(host_.wires().size());
+                         for (const auto& w : host_.wires()) {
+                             auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, arena_);
+                             auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, arena_);
+                             if (src_node == nid || tgt_node == nid) {
+                                 connected_wires.push_back(w.id);
+                             }
                          }
+                         host_.remove_node(nid, std::move(connected_wires));
                      }
-                     host_.remove_node(nid, std::move(connected_wires));
                  }
-             }
+             });
              debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
              hovered_routing_point_ = nullptr;
              visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);

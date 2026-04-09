@@ -19,7 +19,10 @@ bool has_default_pan_zoom(const bp2::Blueprint& bp) {
 
 void Document::openExternalRefWindow(const std::string& instance_id,
                                       const std::string& blueprint_file_path) {
-    if (auto* existing = window_manager_.find_external(instance_id)) {
+    // Fast path: reactivate existing window without re-loading the blueprint file.
+    // This duplicates the find-and-reactivate logic in WindowManager::open intentionally
+    // to avoid expensive file I/O for the already-loaded case.
+    if (auto* existing = window_manager_.find(WindowScopeId::external(instance_id))) {
         existing->open = true;
         spdlog::info("[editor] Reactivated external-ref window for '{}'", instance_id);
         return;
@@ -49,9 +52,13 @@ void Document::openExternalRefWindow(const std::string& instance_id,
         }
     }
 
-    auto* win = window_manager_.open_external_stub(instance_id, title);
+    auto [win, created] = window_manager_.open(WindowScopeId::external(instance_id), title);
     if (!win) {
         spdlog::error("[editor] Failed to create external-ref window for '{}'", instance_id);
+        return;
+    }
+    if (!created) {
+        spdlog::info("[editor] Reactivated external-ref window for '{}'", instance_id);
         return;
     }
 
@@ -77,7 +84,7 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
          || target.kind == editor::SubWindowOpenTargetKind::ReferencedNested)
         && nested) {
         std::string type_name = std::string(interner_.resolve(nested->blueprint_id()));
-        auto [win, created] = window_manager_.open(sub_blueprint_id,
+        auto [win, created] = window_manager_.open(WindowScopeId::embedded(sub_blueprint_id),
                                                    type_name + " [" + sub_blueprint_id + "]");
         if (!win) {
             spdlog::error("[editor] Failed to open sub-window '{}'", sub_blueprint_id);

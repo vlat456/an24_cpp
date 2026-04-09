@@ -10,7 +10,9 @@
 static visual::Widget* find_visual_widget(Document& doc,
                                           const std::string& node_id,
                                           const std::string& scope_id) {
-    BlueprintWindow* win = doc.windowManager().find(scope_id);
+    BlueprintWindow* win = scope_id.empty()
+        ? &doc.windowManager().root()
+        : doc.windowManager().find(WindowScopeId::embedded(scope_id));
     if (!win) return nullptr;
     return win->scene.find(node_id);
 }

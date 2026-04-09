@@ -47,7 +47,6 @@ CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
 // ============================================================================
 
 void CanvasInput::snapshot_and_execute(Command cmd) {
-    host_.push_checkpoint();
     std::visit([&](auto c) {
         using T = std::decay_t<decltype(c)>;
         if constexpr (std::is_same_v<T, CmdSetRoutingPoints>) {
@@ -190,7 +189,7 @@ void CanvasInput::enter_panning() {
 }
 
 void CanvasInput::enter_drag_node(visual::Widget* widget, bool add_to_selection, bool ctrl) {
-    if (!ctrl) clear_selection();
+    if (!ctrl && !is_node_selected(widget)) clear_selection();
     add_node_selection(widget);
 
     Pt primary_pos = widget->worldPos();

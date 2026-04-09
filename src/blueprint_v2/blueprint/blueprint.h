@@ -34,6 +34,9 @@ public:
         struct SemanticData {
             ui::InternedId id;
             ui::InternedId type;
+            /// For composite host nodes this is a derived cache that must mirror
+            /// the hosted nested resolved interface. Use effective_node_iface()
+            /// for authoritative reads.
             Interface iface;
             std::unordered_map<ui::InternedId, float> params;
             /// String-valued parameters (e.g. font_size, text content).
@@ -249,6 +252,16 @@ public:
     Node const* find_node(ui::InternedId id) const;
     Wire const* find_wire(ui::InternedId id) const;
     Nested const* find_nested(ui::InternedId id) const;
+
+    /// Return the nested instance hosted by this node when it is a composite host.
+    /// The current canonical relation is host node id == nested instance id.
+    Nested const* find_hosted_nested(Node const& node) const;
+    bool is_embedded_proxy_node(Node const& node) const;
+
+    /// Return the authoritative interface for a node.
+    /// For composite host nodes, embedded nested authority wins.
+    Interface const& effective_node_iface(ui::InternedId node_id) const;
+    Interface const& effective_node_iface(Node const& node) const;
 
     Blueprint with_node(Node n) const;
     Blueprint without_node(ui::InternedId id) const;

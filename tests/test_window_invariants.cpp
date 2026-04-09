@@ -46,7 +46,7 @@ TEST(WindowInvariants, OpenEmbeddedWindowWithoutInlineDefIsRejected) {
     bp2::EditorModel model(root);
     WindowManager windows(model, interner, arena, nullptr);
 
-    auto [win, created] = windows.open("nested_1", "Nested 1");
+    auto [win, created] = windows.open(WindowScopeId::embedded("nested_1"), "Nested 1");
     // Note: with the variant design an embedded always has inline_def (non-null),
     // so the window CAN now open. This test documents the new behavior.
     // If the intent is to reject "empty" inline_defs, a different validation is needed.
@@ -74,10 +74,10 @@ TEST(WindowInvariants, EmbeddedWindowUsesAuthoritativeInlineBlueprint) {
     bp2::EditorModel model(root);
     WindowManager windows(model, interner, arena, nullptr);
 
-    auto [win, created] = windows.open("nested_ok", "Nested OK");
+    auto [win, created] = windows.open(WindowScopeId::embedded("nested_ok"), "Nested OK");
     ASSERT_NE(win, nullptr);
     ASSERT_TRUE(created);
-    EXPECT_EQ(win->mode, BlueprintWindowMode::EmbeddedGroup);
+    EXPECT_TRUE(win->resolved_scope_id().is_embedded());
     const auto* nested_after_open = model.current().find_nested(interner.lookup("nested_ok"));
     ASSERT_NE(nested_after_open, nullptr);
     ASSERT_NE(nested_after_open->inline_def(), nullptr);
@@ -101,7 +101,7 @@ TEST(WindowInvariants, OpenWindowWithUnknownScopeIdDoesNotCrash) {
 
     // "bogus_scope" was never interned — lookup returns empty InternedId.
     // This must not crash; it should return nullptr (construction fails safely).
-    auto [win, created] = windows.open("bogus_scope", "Bogus");
+    auto [win, created] = windows.open(WindowScopeId::embedded("bogus_scope"), "Bogus");
     EXPECT_EQ(win, nullptr);
     EXPECT_FALSE(created);
 }
@@ -119,7 +119,7 @@ TEST(WindowInvariants, OpenWindowWithInternedButOrphanedScopeIdDoesNotCrash) {
     bp2::EditorModel model(root);
     WindowManager windows(model, interner, arena, nullptr);
 
-    auto [win, created] = windows.open("orphaned_scope", "Orphaned");
+    auto [win, created] = windows.open(WindowScopeId::embedded("orphaned_scope"), "Orphaned");
     EXPECT_EQ(win, nullptr);
     EXPECT_FALSE(created);
 }
@@ -141,7 +141,7 @@ TEST(WindowInvariants, EmbeddedWindowCanvasInputUsesEmptyGroupFilter) {
     bp2::EditorModel model(root);
     WindowManager windows(model, interner, arena, nullptr);
 
-    auto [win, created] = windows.open("nested_input", "Nested Input");
+    auto [win, created] = windows.open(WindowScopeId::embedded("nested_input"), "Nested Input");
     ASSERT_NE(win, nullptr);
     ASSERT_TRUE(created);
     EXPECT_EQ(win->input.scope_id_for_test(), "");
@@ -164,7 +164,7 @@ TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
     bp2::EditorModel model(root);
     WindowManager windows(model, interner, arena, nullptr);
 
-    auto [win, created] = windows.open("nested_edit", "Nested Edit");
+    auto [win, created] = windows.open(WindowScopeId::embedded("nested_edit"), "Nested Edit");
     ASSERT_NE(win, nullptr);
     ASSERT_TRUE(created);
 
@@ -278,7 +278,7 @@ TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
 
     // Re-create manager after model change (WindowManager holds model ref)
     WindowManager windows2(model, interner, arena, nullptr);
-    auto [emb_win, created] = windows2.open("emb_group", "Embedded");
+    auto [emb_win, created] = windows2.open(WindowScopeId::embedded("emb_group"), "Embedded");
     ASSERT_NE(emb_win, nullptr);
     EXPECT_EQ(emb_win->resolved_scope_id(), WindowScopeId::embedded("emb_group"));
     EXPECT_TRUE(emb_win->resolved_scope_id().is_embedded());
@@ -312,10 +312,8 @@ TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingExternalBlueprint) {
     bp2::Blueprint root_bp;
     bp2::EditorModel model(root_bp);
 
-    // Create a root window and corrupt its state to ExternalReference mode
-    // without setting external_blueprint.
-    auto win = std::make_unique<BlueprintWindow>(RootWindowTag{}, model, interner, arena, "Test");
-    win->mode = BlueprintWindowMode::ExternalReference;
+    // Create an external window without loading an external blueprint.
+    auto win = std::make_unique<BlueprintWindow>(ExternalWindowTag{}, model, interner, arena, "ext_1", "Test");
     // external_blueprint is std::nullopt by default — invariant violation
 
     EXPECT_THROW(win->rendered_blueprint(), std::logic_error);
@@ -343,16 +341,16 @@ TEST(WindowInvariants, ExternalWindowScopeCarriesParentInstanceId) {
     bp2::EditorModel model(root_bp);
 
     WindowManager wm(model, interner, arena, nullptr);
-    auto* win = wm.open_external_stub("fol_1", "External Test");
+    auto [win, created] = wm.open(WindowScopeId::external("fol_1"), "External Test");
     ASSERT_NE(win, nullptr);
+    ASSERT_TRUE(created);
 
     // The canonical scope must be external mode with the instance id as key.
     EXPECT_EQ(win->resolved_scope_id(), WindowScopeId::external("fol_1"));
     EXPECT_TRUE(win->resolved_scope_id().is_external());
     EXPECT_EQ(win->resolved_scope_id().key(), "fol_1");
 
-    // find_external must locate the same window via typed scope lookup.
-    EXPECT_EQ(wm.find_external("fol_1"), win);
+    EXPECT_EQ(wm.find(WindowScopeId::external("fol_1")), win);
 }
 
 /// Regression test for #56: An embedded and external window with the same underlying
@@ -372,13 +370,14 @@ TEST(WindowInvariants, EmbeddedAndExternalWithSameKeyDoNotCollide) {
     WindowManager wm(model, interner, arena, nullptr);
 
     // Open embedded window for "shared_key"
-    auto [emb, created] = wm.open("shared_key", "Embedded");
+    auto [emb, created] = wm.open(WindowScopeId::embedded("shared_key"), "Embedded");
     ASSERT_NE(emb, nullptr);
     ASSERT_TRUE(created);
 
     // Open external window for the same key
-    auto* ext = wm.open_external_stub("shared_key", "External");
+    auto [ext, ext_created] = wm.open(WindowScopeId::external("shared_key"), "External");
     ASSERT_NE(ext, nullptr);
+    ASSERT_TRUE(ext_created);
 
     // They are different windows
     EXPECT_NE(emb, ext);
@@ -386,8 +385,8 @@ TEST(WindowInvariants, EmbeddedAndExternalWithSameKeyDoNotCollide) {
     EXPECT_EQ(ext->resolved_scope_id(), WindowScopeId::external("shared_key"));
 
     // Lookups return the correct window by type
-    EXPECT_EQ(wm.find("shared_key"), emb);
-    EXPECT_EQ(wm.find_external("shared_key"), ext);
+    EXPECT_EQ(wm.find(WindowScopeId::embedded("shared_key")), emb);
+    EXPECT_EQ(wm.find(WindowScopeId::external("shared_key")), ext);
 
     // Total: root + embedded + external = 3
     EXPECT_EQ(wm.count(), 3u);
