@@ -16,6 +16,7 @@ add_library(blueprint_v2 STATIC
     validation/path_resolver.cpp
     validation/wire_validator.cpp
     validation/invariant_checker.cpp
+    validation/owner_scope.cpp
     diagnostics/repair.cpp
     bake/bake_ops.cpp
 )

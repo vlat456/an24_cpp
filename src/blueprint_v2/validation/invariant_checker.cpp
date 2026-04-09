@@ -1,5 +1,6 @@
 #include "invariant_checker.h"
 
+#include "owner_scope.h"
 #include "blueprint_v2/library/library_path.h"
 #include <unordered_set>
 
@@ -80,6 +81,11 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     for (auto const& node : bp.nodes()) {
         const auto* nested = bp.find_hosted_nested(node);
         if (!nested) {
+            if (auto owner_scope_err = validate_owner_scope_reference(bp, node, interner)) {
+                out.error = "invalid owner_scope at node id=" + iid_to_string(node.semantic.id)
+                    + ": " + *owner_scope_err;
+                return out;
+            }
             continue;
         }
         if (node.semantic.iface != nested->resolved_iface()) {
@@ -108,6 +114,12 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                     + " got=" + node.view.blueprint_path;
                 return out;
             }
+        }
+
+        if (auto owner_scope_err = validate_owner_scope_reference(bp, node, interner)) {
+            out.error = "invalid owner_scope at node id=" + iid_to_string(node.semantic.id)
+                + ": " + *owner_scope_err;
+            return out;
         }
     }
 

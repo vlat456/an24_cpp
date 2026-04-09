@@ -470,6 +470,126 @@ TEST(BlueprintValidate, UnknownNodeTypeFails) {
     EXPECT_THROW(bp.validate(reg, I), std::runtime_error);
 }
 
+TEST(InvariantChecker, OwnerScopeReferencingMissingNodeFails) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    auto child = make_node(I, "child1", "Battery");
+    child.structure.owner_scope = "missing_host";
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(child));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("invalid owner_scope"), std::string::npos);
+    EXPECT_NE(result.error.find("unknown node id"), std::string::npos);
+}
+
+TEST(InvariantChecker, OwnerScopeReferencingNonExpandableNodeFails) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    auto host = make_node(I, "host1", "Battery");
+    host.view.expandable = false;
+
+    auto child = make_node(I, "child1", "Battery");
+    child.structure.owner_scope = "host1";
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(host));
+    bp = bp.with_node(std::move(child));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("non-expandable node"), std::string::npos);
+}
+
+TEST(InvariantChecker, OwnerScopeReferencingExpandableNodeWithoutNestedFails) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    auto host = make_node(I, "host1", "Battery");
+    host.view.expandable = true;
+
+    auto child = make_node(I, "child1", "Battery");
+    child.structure.owner_scope = "host1";
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(host));
+    bp = bp.with_node(std::move(child));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("without hosted nested"), std::string::npos);
+}
+
+TEST(InvariantChecker, OwnerScopeReferencingReferenceNestedHostFails) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    auto host = make_node(I, "host1", "CompositeType");
+    host.view.expandable = true;
+    host.semantic.iface = bp2::Interface{};
+
+    auto child = make_node(I, "child1", "Battery");
+    child.structure.owner_scope = "host1";
+
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        I.intern("host1"), I.intern("CompositeType"), bp2::Interface{});
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(host));
+    bp = bp.with_node(std::move(child));
+    bp = bp.with_nested(std::move(nested));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("non-embedded nested host"), std::string::npos);
+}
+
+TEST(InvariantChecker, OwnerScopeReferencingValidEmbeddedHostPasses) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    auto host = make_node(I, "host1", "CompositeType");
+    host.view.expandable = true;
+    host.semantic.iface = bp2::Interface{};
+
+    auto child = make_node(I, "child1", "Battery");
+    child.structure.owner_scope = "host1";
+
+    auto inline_bp = std::make_unique<bp2::Blueprint>();
+    *inline_bp = inline_bp->with_id(I.intern("CompositeType"));
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        I.intern("host1"), I.intern("CompositeType"), std::move(inline_bp));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(host));
+    bp = bp.with_node(std::move(child));
+    bp = bp.with_nested(std::move(nested));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_TRUE(result.valid) << result.error;
+}
+
+TEST(InvariantChecker, EmptyOwnerScopePasses) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "child1", "Battery"));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_TRUE(result.valid) << result.error;
+}
+
 TEST(BlueprintValidate, InvalidNestedReferenceFails) {
     ui::StringInterner I;
      TypeRegistry reg = make_validation_registry();
@@ -681,6 +801,29 @@ TEST(BlueprintRepair, DiagnoseStillReportsNonProxyUnknownType) {
         }
     }
     EXPECT_TRUE(found);
+}
+
+TEST(BlueprintRepair, DiagnoseReportsInvalidOwnerScope) {
+    ui::StringInterner I;
+    TypeRegistry reg = load_type_registry("library/");
+    PathArena arena(I);
+
+    auto child = make_node(I, "child1", "Battery");
+    child.structure.owner_scope = "missing_host";
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(child));
+
+    auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg, I);
+    bool found = false;
+    for (const auto& issue : report.issues) {
+        if (issue.kind == bp2::diagnostics::IntegrityIssue::Kind::InvalidOwnerScope) {
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found);
+    EXPECT_FALSE(report.changed);
 }
 
 TEST(BlueprintValidate, ParserRegistryOverloadAcceptsKnownType) {

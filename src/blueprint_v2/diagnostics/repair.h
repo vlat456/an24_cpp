@@ -17,6 +17,7 @@ struct IntegrityIssue {
         DuplicateNodeId,
         DuplicateWireId,
         DuplicateNestedId,
+        InvalidOwnerScope,
         InvalidWireEndpoint,
     };
 

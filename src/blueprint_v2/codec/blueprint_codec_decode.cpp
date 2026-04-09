@@ -507,9 +507,22 @@ Blueprint decode_nested(Blueprint bp,
             throw std::runtime_error("invalid nested entry: non-embedded nested must not contain definition");
         }
         if (is_embedded && n.contains("definition")) {
+                // Strip stale owner_scope (group_id) from inner nodes.
+                // When a user extracts nodes into an embedded nested, the
+                // build step clears owner_scope (the scope is now implicit).
+                // Legacy files saved before that fix may still carry the
+                // parent-context scope string, which would fail validation
+                // inside the inner blueprint where the host node doesn't exist.
+                nlohmann::json inner_json = n["definition"];
+                if (inner_json.contains("nodes") && inner_json["nodes"].is_array()) {
+                    for (auto& node_json : inner_json["nodes"]) {
+                        node_json.erase("group_id");
+                    }
+                }
+
                 DecodeError inner_err;
                 auto inner = BlueprintCodec::decode(
-                n["definition"].dump(), interner, arena, parser_registry, &inner_err);
+                inner_json.dump(), interner, arena, parser_registry, &inner_err);
             if (inner) {
                 auto nested = Blueprint::Nested::make_embedded(
                     nested_id,

@@ -241,10 +241,28 @@ TEST(BlueprintCodec, RoundTripPreservesOwnerScopeViaGroupId) {
     bp2::PathArena arena(interner);
     TypeRegistry reg;
     register_type(reg, interner, "Battery");
+    register_type(reg, interner, "HostType");
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("group_scope_rt"));
 
+    // Create the scope host: an expandable node with a matching embedded nested.
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("group_alpha");
+    host.semantic.type = interner.intern("HostType");
+    host.view.expandable = true;
+    bp = bp.with_node(std::move(host));
+
+    auto inner_def = std::make_unique<bp2::Blueprint>();
+    *inner_def = inner_def->with_id(interner.intern("HostType"));
+    *inner_def = inner_def->with_interface(bp2::Interface());
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("group_alpha"),
+        interner.intern("HostType"),
+        std::move(inner_def));
+    bp = bp.with_nested(std::move(nested));
+
+    // A regular node scoped to the host.
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("bat1");
     node.semantic.type = interner.intern("Battery");
@@ -255,14 +273,23 @@ TEST(BlueprintCodec, RoundTripPreservesOwnerScopeViaGroupId) {
 
     const std::string json = bp2::BlueprintCodec::encode(bp, interner, arena, &reg);
     const auto encoded = nlohmann::json::parse(json);
-    ASSERT_EQ(encoded["nodes"].size(), 1u);
-    EXPECT_EQ(encoded["nodes"][0]["group_id"], "group_alpha");
+    // Find the scoped node (not the host) in the encoded JSON
+    bool found_scoped_node = false;
+    for (const auto& nj : encoded["nodes"]) {
+        if (nj["id"] == "bat1") {
+            EXPECT_EQ(nj["group_id"], "group_alpha");
+            found_scoped_node = true;
+        }
+    }
+    EXPECT_TRUE(found_scoped_node);
 
     bp2::DecodeError err;
     auto round_tripped = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
     ASSERT_TRUE(round_tripped.has_value()) << err.message;
-    ASSERT_EQ(round_tripped->nodes().size(), 1u);
-    EXPECT_EQ(round_tripped->nodes()[0].structure.owner_scope, "group_alpha");
+
+    const auto* bat1 = round_tripped->find_node(interner.intern("bat1"));
+    ASSERT_NE(bat1, nullptr);
+    EXPECT_EQ(bat1->structure.owner_scope, "group_alpha");
 }
 
 TEST(BlueprintCodec, DecodeEmptyBlueprint) {

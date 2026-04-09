@@ -192,6 +192,22 @@ static bp2::Blueprint make_extract_iface_collision_fixture(ui::StringInterner& I
 static bp2::Blueprint make_extract_subgroup_fixture(ui::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp = make_extract_fixture(I, arena);
 
+    // Create a proper scope host: an expandable node with an embedded nested.
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("group_1");
+    host.semantic.type = I.intern("GroupHost");
+    host.view.expandable = true;
+    bp = bp.with_node(std::move(host));
+
+    auto inner_def = std::make_unique<bp2::Blueprint>();
+    *inner_def = inner_def->with_id(I.intern("GroupHost"));
+    *inner_def = inner_def->with_interface(bp2::Interface());
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        I.intern("group_1"),
+        I.intern("GroupHost"),
+        std::move(inner_def));
+    bp = bp.with_nested(std::move(nested));
+
     const std::string subgroup = "group_1";
     if (const auto* a = bp.find_node(I.intern("a"))) {
         auto n = *a;
@@ -1202,8 +1218,19 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsSubgroupExtraction) {
         false);
 
     ASSERT_TRUE(updated.has_value()) << err;
-    ASSERT_EQ(updated->nested().size(), 1u);
-    const ui::InternedId nested_id = updated->nested()[0].id;
+    // 2 nested: the pre-existing scope host ("group_1") + the newly extracted one.
+    ASSERT_EQ(updated->nested().size(), 2u);
+
+    // Find the newly-created nested (not the pre-existing scope host "group_1").
+    const bp2::Blueprint::Nested* extracted_nested = nullptr;
+    for (const auto& n : updated->nested()) {
+        if (n.id != interner.intern("group_1")) {
+            extracted_nested = &n;
+            break;
+        }
+    }
+    ASSERT_NE(extracted_nested, nullptr);
+    const ui::InternedId nested_id = extracted_nested->id;
     const std::string nested_sid(interner.resolve(nested_id));
 
     const auto* collapsed = updated->find_node(nested_id);
@@ -1216,6 +1243,29 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsSubgroupExtraction) {
     ASSERT_NE(b, nullptr);
     EXPECT_EQ(a->structure.owner_scope, nested_sid);
     EXPECT_EQ(b->structure.owner_scope, nested_sid);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_ResultPassesStrictOwnerScopeValidation) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        WindowScopeId::root(),
+        interner,
+        arena,
+        parser_registry,
+        &err,
+        false);
+
+    ASSERT_TRUE(updated.has_value()) << err;
+
+    std::string integrity_err;
+    EXPECT_TRUE(validate_blueprint_integrity(*updated, interner, arena, parser_registry, &integrity_err))
+        << integrity_err;
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_RejectsSelectionOutsideActiveGroup) {

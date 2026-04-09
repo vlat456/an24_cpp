@@ -1,5 +1,6 @@
 #include "repair.h"
 
+#include "blueprint_v2/validation/owner_scope.h"
 #include "blueprint_v2/validation/path_resolver.h"
 #include <unordered_set>
 
@@ -37,6 +38,13 @@ RepairReport diagnose_and_repair(Blueprint& bp,
                     "unknown node type at node id=" + iid(n.semantic.id)
                 });
             }
+        }
+
+        if (auto owner_scope_err = validate_owner_scope_reference(bp, n, interner)) {
+            report.issues.push_back({
+                IntegrityIssue::Kind::InvalidOwnerScope,
+                "invalid owner_scope at node id=" + iid(n.semantic.id) + ": " + *owner_scope_err
+            });
         }
     }
 

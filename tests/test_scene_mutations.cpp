@@ -89,18 +89,37 @@ TEST(SceneMutations, RebuildFiltersGroupId) {
     bp2::PathArena arena(interner);
 
     auto n1 = make_bp2_node(interner, "bat1", "Battery", "");
+
+    // Create scope host: expandable node with embedded nested.
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("group_A");
+    host.semantic.type = interner.intern("HostType");
+    host.view.expandable = true;
+
     auto n2 = make_bp2_node(interner, "inner1", "Lamp", "group_A");
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(host));
     bp = bp.with_node(std::move(n2));
+
+    auto inner_def = std::make_unique<bp2::Blueprint>();
+    *inner_def = inner_def->with_id(interner.intern("HostType"));
+    *inner_def = inner_def->with_interface(bp2::Interface());
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("group_A"),
+        interner.intern("HostType"),
+        std::move(inner_def));
+    bp = bp.with_nested(std::move(nested));
 
     visual::Scene scene;
     visual::mutations::rebuild(scene, bp, interner, arena, "");
 
-    // Only the root-level node should appear
-    EXPECT_EQ(scene.roots().size(), 1u);
+    // Only the root-level nodes should appear (bat1 + group_A host),
+    // inner1 is filtered out because it belongs to group_A scope.
+    EXPECT_EQ(scene.roots().size(), 2u);
     EXPECT_NE(scene.find("bat1"), nullptr);
+    EXPECT_NE(scene.find("group_A"), nullptr);
     EXPECT_EQ(scene.find("inner1"), nullptr);
 }
 
