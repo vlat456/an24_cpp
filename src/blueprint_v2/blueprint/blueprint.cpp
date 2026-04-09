@@ -153,6 +153,12 @@ Blueprint Blueprint::without_node(ui::InternedId id) const {
         copy.nodes_.end()
     );
     copy.node_idx_valid_ = false;
+    copy.nested_.erase(
+        std::remove_if(copy.nested_.begin(), copy.nested_.end(),
+            [id](Nested const& n) { return n.id == id; }),
+        copy.nested_.end()
+    );
+    copy.nested_idx_valid_ = false;
     return copy;
 }
 

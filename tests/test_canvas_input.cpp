@@ -788,6 +788,41 @@ TEST(CanvasInputDelete, MultiNodeDeleteIsSingleUndoStep) {
     EXPECT_NE(model.current().find_wire(I.intern("w1")), nullptr);
 }
 
+TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto host_node = make_node(I, "host1", "CompositeType", 120.0f, 80.0f);
+    host_node.view.expandable = true;
+    host_node.semantic.iface = bp2::Interface{};
+
+    auto inner_def = std::make_unique<bp2::Blueprint>();
+    *inner_def = inner_def->with_id(I.intern("CompositeType"));
+    *inner_def = inner_def->with_interface(bp2::Interface{});
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        I.intern("host1"),
+        I.intern("CompositeType"),
+        std::move(inner_def));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(host_node));
+    bp = bp.with_nested(std::move(nested));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    ASSERT_TRUE(input.select_node_by_id("host1"));
+    input.on_key(Key::Delete);
+
+    EXPECT_EQ(model.current().find_node(I.intern("host1")), nullptr);
+    EXPECT_EQ(model.current().find_nested(I.intern("host1")), nullptr);
+}
+
 TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
     ui::StringInterner I;
     bp2::PathArena arena(I);

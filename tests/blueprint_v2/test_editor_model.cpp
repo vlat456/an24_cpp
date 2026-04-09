@@ -70,6 +70,32 @@ TEST(EditorModel, RemoveNonexistentNode) {
     EXPECT_FALSE(model.remove_node(interner.intern("nope")));
 }
 
+TEST(EditorModel, RemoveHostNodeAlsoRemovesHostedNested) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("host1");
+    host.semantic.type = interner.intern("CompositeType");
+    host.view.expandable = true;
+
+    auto inline_bp = std::make_unique<bp2::Blueprint>();
+    *inline_bp = inline_bp->with_id(interner.intern("CompositeType"));
+
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("host1"),
+        interner.intern("CompositeType"),
+        std::move(inline_bp));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(host));
+    bp = bp.with_nested(std::move(nested));
+
+    bp2::EditorModel model(bp);
+    EXPECT_TRUE(model.remove_node(interner.intern("host1")));
+    EXPECT_EQ(model.current().find_node(interner.intern("host1")), nullptr);
+    EXPECT_EQ(model.current().find_nested(interner.intern("host1")), nullptr);
+}
+
 TEST(EditorModel, AddWire) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
