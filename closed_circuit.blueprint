@@ -249,12 +249,6 @@
           },
           {
             "id": "wire_42",
-            "routing_points": [
-              [
-                880.0,
-                -352.0
-              ]
-            ],
             "source": "/value_1:o",
             "target": "/pi_1:setpoint"
           },
@@ -1982,6 +1976,7 @@
       "id": "azs_1",
       "name": "azs_1",
       "params": {
+        "closed": false,
         "g_closed": 1000.0,
         "g_open": 9.999999974752427e-07,
         "i_nominal": 20.0
@@ -2016,15 +2011,15 @@
         "x": 272.0,
         "y": -320.0
       },
-      "string_params": {
-        "closed": "false"
-      },
       "type": "AZS"
     },
     {
       "height": 32.0,
       "id": "bus_1",
       "name": "GND",
+      "params": {
+        "port_edge": "top"
+      },
       "ports": {
         "v": {
           "direction": "InOut",
@@ -2036,15 +2031,15 @@
         "y": 352.0
       },
       "render_hint": "bus",
-      "string_params": {
-        "port_edge": "top"
-      },
       "type": "Bus",
       "width": 128.0
     },
     {
       "id": "bus_2",
       "name": "+28V",
+      "params": {
+        "port_edge": "bottom"
+      },
       "ports": {
         "v": {
           "direction": "InOut",
@@ -2056,14 +2051,14 @@
         "y": -608.0
       },
       "render_hint": "bus",
-      "string_params": {
-        "port_edge": "bottom"
-      },
       "type": "Bus"
     },
     {
       "id": "bus_3",
       "name": "bus_3",
+      "params": {
+        "port_edge": "bottom"
+      },
       "ports": {
         "v": {
           "direction": "InOut",
@@ -2075,9 +2070,6 @@
         "y": -656.0
       },
       "render_hint": "bus",
-      "string_params": {
-        "port_edge": "bottom"
-      },
       "type": "Bus"
     },
     {
@@ -2501,6 +2493,37 @@
       "type": "BlueprintInput"
     },
     {
+      "blueprint_path": "DerateCtrl",
+      "expandable": true,
+      "height": 64.0,
+      "id": "extract_inst_3",
+      "name": "DerateCtrl",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 0
+        },
+        "A_2": {
+          "direction": "In",
+          "type": 0
+        },
+        "B": {
+          "direction": "In",
+          "type": 0
+        },
+        "o": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 656.0,
+        "y": -544.0
+      },
+      "type": "DerateCtrl",
+      "width": 160.0
+    },
+    {
       "group_id": "extract_inst_3",
       "id": "extract_inst_3:A",
       "name": "A",
@@ -2595,37 +2618,6 @@
         "exposed_type": "V"
       },
       "type": "BlueprintOutput"
-    },
-    {
-      "blueprint_path": "DerateCtrl",
-      "expandable": true,
-      "height": 64.0,
-      "id": "extract_inst_3",
-      "name": "DerateCtrl",
-      "ports": {
-        "A": {
-          "direction": "In",
-          "type": 0
-        },
-        "A_2": {
-          "direction": "In",
-          "type": 0
-        },
-        "B": {
-          "direction": "In",
-          "type": 0
-        },
-        "o": {
-          "direction": "Out",
-          "type": 0
-        }
-      },
-      "position": {
-        "x": 656.0,
-        "y": -544.0
-      },
-      "type": "DerateCtrl",
-      "width": 160.0
     },
     {
       "blueprint_path": "RPMIntertial",
@@ -3497,6 +3489,7 @@
       "id": "relay_1",
       "name": "relay_1",
       "params": {
+        "closed": false,
         "g_closed": 1000.0,
         "g_open": 9.999999974752427e-07
       },
@@ -3525,9 +3518,6 @@
       "position": {
         "x": 1104.0,
         "y": -720.0
-      },
-      "string_params": {
-        "closed": "false"
       },
       "type": "Relay"
     },
@@ -3589,8 +3579,8 @@
       "params": {
         "g_closed": 1000.0,
         "g_open": 9.999999974752427e-07,
-        "initial_position": 0,
-        "positions": 5
+        "initial_position": 0.0,
+        "positions": 5.0
       },
       "ports": {
         "control": {
@@ -4591,8 +4581,8 @@
       "type": "Voltmeter"
     }
   ],
-  "pan_x": 87.10983276367188,
-  "pan_y": -438.66387939453125,
+  "pan_x": -425.75750732421875,
+  "pan_y": -709.88818359375,
   "version": "3.0",
   "wires": [
     {
@@ -5431,5 +5421,5 @@
       "target": "/bus_1:v"
     }
   ],
-  "zoom": 0.9751498699188232
+  "zoom": 0.5942192077636719
 }
