@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/slew_rate_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_fulltests/tests/slew_rate_tests[1]_tests.cmake")
-else()
-  add_test(slew_rate_tests_NOT_BUILT slew_rate_tests_NOT_BUILT)
-endif()

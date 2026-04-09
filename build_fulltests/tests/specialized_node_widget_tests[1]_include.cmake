@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/specialized_node_widget_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_fulltests/tests/specialized_node_widget_tests[1]_tests.cmake")
-else()
-  add_test(specialized_node_widget_tests_NOT_BUILT specialized_node_widget_tests_NOT_BUILT)
-endif()

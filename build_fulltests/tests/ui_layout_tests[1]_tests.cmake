@@ -1,7 +1,0 @@
-add_test([=[UILayout.EdgesExists]=]  /Users/vladimir/an24_cpp/build_fulltests/tests/ui_layout_tests [==[--gtest_filter=UILayout.EdgesExists]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[UILayout.EdgesExists]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_ui_layout.cpp:4 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_fulltests/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-add_test([=[UILayout.EdgesAll]=]  /Users/vladimir/an24_cpp/build_fulltests/tests/ui_layout_tests [==[--gtest_filter=UILayout.EdgesAll]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[UILayout.EdgesAll]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_ui_layout.cpp:12 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_fulltests/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-add_test([=[UILayout.EdgesSymmetric]=]  /Users/vladimir/an24_cpp/build_fulltests/tests/ui_layout_tests [==[--gtest_filter=UILayout.EdgesSymmetric]==] --gtest_also_run_disabled_tests)
-set_tests_properties([=[UILayout.EdgesSymmetric]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_ui_layout.cpp:20 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build_fulltests/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-set(  ui_layout_tests_TESTS UILayout.EdgesExists UILayout.EdgesAll UILayout.EdgesSymmetric)

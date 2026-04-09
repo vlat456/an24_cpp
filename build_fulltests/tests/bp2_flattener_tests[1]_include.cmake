@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/bp2_flattener_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_fulltests/tests/bp2_flattener_tests[1]_tests.cmake")
-else()
-  add_test(bp2_flattener_tests_NOT_BUILT bp2_flattener_tests_NOT_BUILT)
-endif()

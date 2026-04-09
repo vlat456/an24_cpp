@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/gidro_accumulator_regression_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/build_fulltests/tests/gidro_accumulator_regression_tests[1]_tests.cmake")
-else()
-  add_test(gidro_accumulator_regression_tests_NOT_BUILT gidro_accumulator_regression_tests_NOT_BUILT)
-endif()
