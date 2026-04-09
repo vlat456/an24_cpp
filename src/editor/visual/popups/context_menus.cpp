@@ -58,7 +58,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     // Resolve the node
     const bp2::Blueprint::Node* node_ptr = nullptr;
     if (doc) {
-        ui::InternedId node_iid = doc->interner().lookup(ws.nodeContextMenu.node_id);
+        ui::InternedId node_iid = doc->interner().lookup(ws.nodeContextMenu.node_id.str());
         if (!node_iid.empty()) {
             node_ptr = doc->blueprint().find_node(node_iid);
         }
@@ -93,7 +93,12 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             if (ImGui::MenuItem("Extract to Blueprint...", nullptr, false, can_extract)) {
                 ws.pendingExtract.show_dialog = true;
                 ws.pendingExtract.doc_id = doc->id();
-                ws.pendingExtract.scope_id = ws.nodeContextMenu.scope_id;
+                // Convert scope_id string to WindowScopeId
+                if (ws.nodeContextMenu.scope_id.empty()) {
+                    ws.pendingExtract.scope_id = WindowScopeId::root();
+                } else {
+                    ws.pendingExtract.scope_id = WindowScopeId::embedded(ws.nodeContextMenu.scope_id);
+                }
                 ws.pendingExtract.selected_node_ids = selected;
                 ws.pendingExtract.has_preview = false;
                 ws.pendingExtract.preview = {};
@@ -116,14 +121,14 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                             }
                         }
                     }
-                     if (!used) {
-                         for (const auto& node_it : doc->blueprint().nodes()) {
-                             if (node_it.view.name == candidate) {
-                                 used = true;
-                                 break;
-                             }
-                         }
-                     }
+                    if (!used) {
+                        for (const auto& node_it : doc->blueprint().nodes()) {
+                            if (node_it.view.name == candidate) {
+                                used = true;
+                                break;
+                            }
+                        }
+                    }
                     if (!used) {
                         suggested = std::move(candidate);
                         break;
@@ -153,8 +158,8 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         }
         
         // Check for a nested (sub-blueprint) reference that can be baked in
-        const std::string& sbi_id = !ws.nodeContextMenu.scope_id.empty()
-            ? ws.nodeContextMenu.scope_id : ws.nodeContextMenu.node_id;
+        const std::string sbi_id = !ws.nodeContextMenu.scope_id.empty()
+            ? ws.nodeContextMenu.scope_id : ws.nodeContextMenu.node_id.str();
         ui::InternedId sbi_iid = doc->interner().lookup(sbi_id);
         const bp2::Blueprint::Nested* nested = sbi_iid.empty()
             ? nullptr : doc->blueprint().find_nested(sbi_iid);

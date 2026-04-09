@@ -5,6 +5,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
+#include "editor/window/window_scope_id.h"
 
 #include "editor/common/port_type_utils.h"
 
@@ -119,7 +120,7 @@ struct BridgeSideBuildParams {
     const std::unordered_map<ui::InternedId, float>& node_center_y;
     float x = 0.0f;
     float fallback_y_origin = 0.0f;
-    std::string scope_id;
+    WindowScopeId scope_id;
     const char* unique_prefix = "";
     const ui::InternedId* canonical_nested_instance_id = nullptr;
 };
@@ -149,12 +150,12 @@ bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
                                          std::string* error_out);
 
 std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
-                                                const std::vector<ui::InternedId>& selected_ids,
-                                                const std::string& scope_id,
-                                                bool allow_nonembedded_descendant_refs,
-                                                ui::StringInterner& interner,
-                                                const bp2::PathArena& arena,
-                                                std::string* error_out);
+                                                 const std::vector<ui::InternedId>& selected_ids,
+                                                 const WindowScopeId& scope_id,
+                                                 bool allow_nonembedded_descendant_refs,
+                                                 ui::StringInterner& interner,
+                                                 const bp2::PathArena& arena,
+                                                 std::string* error_out);
 
 DescendantRemapStats collect_descendant_remap_stats(
     const bp2::Blueprint& source,
@@ -166,7 +167,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     const ExtractionPlan& plan,
     ui::InternedId blueprint_iid,
     const std::string& blueprint_name,
-    const std::string& scope_id,
+    const WindowScopeId& scope_id,
     bool allow_nonembedded_descendant_refs,
     ui::StringInterner& interner,
     bp2::PathArena& arena,

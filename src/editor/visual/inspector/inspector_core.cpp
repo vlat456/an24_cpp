@@ -3,11 +3,12 @@
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
+#include "window/window_scope_id.h"
 #include <algorithm>
 #include <cctype>
 
 Inspector::Inspector(const bp2::Blueprint* bp, const bp2::PathArena* arena,
-                     const ui::StringInterner* interner, const std::string& scope_id)
+                     const ui::StringInterner* interner, const WindowScopeId& scope_id)
     : bp_(bp), arena_(arena), interner_(interner), scope_id_(scope_id) {}
 
 std::string Inspector::consumeSelection() {
@@ -63,7 +64,7 @@ bool Inspector::ownsWire(const bp2::Blueprint::Wire& w) const {
     if (src_node.empty() || tgt_node.empty()) return false;
     const auto* n1 = bp_->find_node(src_node);
     const auto* n2 = bp_->find_node(tgt_node);
-      return n1 && n2 && n1->layout.layout_group == scope_id_ && n2->layout.layout_group == scope_id_;
+    return n1 && n2 && n1->layout.layout_group == scope_id_.key() && n2->layout.layout_group == scope_id_.key();
 }
 
 void Inspector::buildDisplayTree() {

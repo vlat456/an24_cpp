@@ -1,5 +1,6 @@
 #pragma once
 
+#include "window/window_scope_id.h"
 #include "ui/math/pt.h"
 #include <algorithm>
 #include <cmath>
@@ -15,7 +16,7 @@ struct OscilloscopeProbe {
     std::string doc_id;
     std::string signal_key;
     std::string label;
-    std::string scope_id;
+    WindowScopeId scope_id = WindowScopeId::root();
     ui::Pt world_pos;
     uint32_t color = 0;
 };
@@ -23,7 +24,7 @@ struct OscilloscopeProbe {
 class OscilloscopeModel {
 public:
     void toggle_probe(Document& doc,
-                      const std::string& scope_id,
+                      const WindowScopeId& scope_id,
                       const std::string& wire_id,
                       const ui::Pt* click_world = nullptr);
     void remove_probe(const std::string& wire_id);

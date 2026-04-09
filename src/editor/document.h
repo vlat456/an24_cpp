@@ -1,6 +1,7 @@
 #pragma once
 
 #include "window/window_manager.h"
+#include "window/window_scope_id.h"
 #include "visual/scene.h"
 #include "input/canvas_input.h"
 #include "core/solvers/jit/simulator.h"
@@ -9,6 +10,7 @@
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
+#include "identity.h"
 #include <string>
 #include <string_view>
 #include <vector>
@@ -125,11 +127,11 @@ public:
     std::unordered_map<std::string, float>& signalOverrides() { return signal_overrides_; }
     std::unordered_set<std::string>& heldButtons() { return held_buttons_; }
 
-    void triggerSwitch(const std::string& node_id, const std::string& scope_id = "");
-    void setSliderValue(const std::string& node_id, float value, const std::string& scope_id = "");
-    void setKnobPosition(const std::string& node_id, int position, const std::string& scope_id = "");
-    void holdButtonPress(const std::string& node_id, const std::string& scope_id = "");
-    void holdButtonRelease(const std::string& node_id, const std::string& scope_id = "");
+    void triggerSwitch(const editor::NodeId& node_id, const std::string& scope_id = "");
+    void setSliderValue(const editor::NodeId& node_id, float value, const std::string& scope_id = "");
+    void setKnobPosition(const editor::NodeId& node_id, int position, const std::string& scope_id = "");
+    void holdButtonPress(const editor::NodeId& node_id, const std::string& scope_id = "");
+    void holdButtonRelease(const editor::NodeId& node_id, const std::string& scope_id = "");
 
     // ── Component/blueprint addition ──
 
@@ -142,7 +144,7 @@ public:
 
     bool extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
                            const std::string& blueprint_name,
-                           const std::string& scope_id,
+                           const WindowScopeId& scope_id,
                            std::string* error_out = nullptr,
                            bool allow_nonembedded_descendant_refs = false);
 
@@ -164,20 +166,21 @@ public:
         std::string context_menu_scope_id;
 
         bool show_node_context_menu = false;
-        std::string context_menu_node_id;
+        editor::NodeId context_menu_node_id;
         std::string node_context_menu_scope_id;
 
         std::string toggle_probe_wire_id;
-        std::string toggle_probe_scope_id;
+        WindowScopeId toggle_probe_scope_id = WindowScopeId::root();
         bool has_toggle_probe_world_pos = false;
         Pt toggle_probe_world_pos;
 
         bool open_inline_value_editor = false;
-        std::string inline_value_editor_node_id;
+        editor::NodeId inline_value_editor_node_id;
         bool has_inline_value_editor_screen_pos = false;
         Pt inline_value_editor_screen_pos;
     };
     InputResultAction applyInputResult(const InputResult& r, const std::string& scope_id = "");
+    InputResultAction applyInputResult(const InputResult& r, const WindowScopeId& scope_id);
 
 private:
     // ── Private helpers ──

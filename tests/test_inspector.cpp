@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "editor/visual/inspector/inspector.h"
+#include "editor/window/window_scope_id.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/interface/interface.h"
@@ -289,7 +290,7 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
          ts.addNodeRaw(std::move(internal));
      }
 
-    Inspector inspector(&ts.bp, &ts.arena, &ts.interner, "");
+    Inspector inspector(&ts.bp, &ts.arena, &ts.interner, WindowScopeId::root());
     inspector.buildDisplayTree();
 
     ASSERT_EQ(inspector.displayTree().size(), 2u);
@@ -333,7 +334,7 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
          ts.addNodeRaw(std::move(res));
      }
 
-    Inspector sub_inspector(&ts.bp, &ts.arena, &ts.interner, "lamp1");
+    Inspector sub_inspector(&ts.bp, &ts.arena, &ts.interner, WindowScopeId::embedded("lamp1"));
     sub_inspector.buildDisplayTree();
 
     ASSERT_EQ(sub_inspector.displayTree().size(), 2u);
@@ -401,7 +402,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     ts.addWire("lamp1:led", "v_out", "lamp1:res", "v_in");
 
     // Root inspector
-    Inspector root_inspector(&ts.bp, &ts.arena, &ts.interner, "");
+    Inspector root_inspector(&ts.bp, &ts.arena, &ts.interner, WindowScopeId::root());
     root_inspector.buildDisplayTree();
 
     const auto& root_tree = root_inspector.displayTree();
@@ -411,7 +412,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     EXPECT_EQ(bat_it->connection_count, 1u) << "Root wire count contaminated by internal wires";
 
     // Sub inspector
-    Inspector sub_inspector(&ts.bp, &ts.arena, &ts.interner, "lamp1");
+    Inspector sub_inspector(&ts.bp, &ts.arena, &ts.interner, WindowScopeId::embedded("lamp1"));
     sub_inspector.buildDisplayTree();
 
     const auto& sub_tree = sub_inspector.displayTree();

@@ -21,7 +21,7 @@ public:
             return;
         }
 
-        const ui::InternedId node_iid = doc->interner().lookup(ws.inlineValueEditor.node_id);
+        const ui::InternedId node_iid = doc->interner().lookup(ws.inlineValueEditor.node_id.str());
         if (node_iid.empty()) {
             ws.inlineValueEditor.open = false;
             return;
@@ -42,7 +42,7 @@ public:
             );
         }
 
-        const std::string title = "Value##inline_" + ws.inlineValueEditor.node_id;
+        const std::string title = "Value##inline_" + ws.inlineValueEditor.node_id.str();
         bool open = true;
         if (ImGui::Begin(title.c_str(), &open,
                          ImGuiWindowFlags_AlwaysAutoResize |

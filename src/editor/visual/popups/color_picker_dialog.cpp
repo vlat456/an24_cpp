@@ -38,7 +38,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
         if (!doc) doc = ws.activeDocument();
 
         ui::InternedId node_iid = doc
-            ? doc->interner().lookup(ws.colorPicker.node_id)
+            ? doc->interner().lookup(ws.colorPicker.node_id.str())
             : ui::InternedId{};
         const bp2::Blueprint::Node* node_ptr = (doc && !node_iid.empty())
             ? doc->blueprint().find_node(node_iid)
@@ -65,7 +65,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
 
                 // Update visual widget immediately so the color change is
                 // visible without requiring a blueprint reload.
-                if (auto* w = find_visual_widget(*doc, ws.colorPicker.node_id,
+                if (auto* w = find_visual_widget(*doc, ws.colorPicker.node_id.str(),
                                                   ws.colorPicker.scope_id)) {
                     w->setCustomColor(pack_color(r, g, b, a));
                 }
@@ -78,7 +78,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
                         cmd_set_color(node_iid, false, 0.5f, 0.5f, 0.5f, 1.0f));
 
                 // Clear custom color on the visual widget immediately.
-                if (auto* w = find_visual_widget(*doc, ws.colorPicker.node_id,
+                if (auto* w = find_visual_widget(*doc, ws.colorPicker.node_id.str(),
                                                   ws.colorPicker.scope_id)) {
                     w->setCustomColor(std::nullopt);
                 }

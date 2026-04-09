@@ -123,12 +123,12 @@ DescendantRemapStats collect_descendant_remap_stats(
 }
 
 std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
-                                                const std::vector<ui::InternedId>& selected_ids,
-                                                const std::string& scope_id,
-                                                bool allow_nonembedded_descendant_refs,
-                                                ui::StringInterner& interner,
-                                                const bp2::PathArena& arena,
-                                                std::string* error_out) {
+                                                 const std::vector<ui::InternedId>& selected_ids,
+                                                 const WindowScopeId& scope_id,
+                                                 bool allow_nonembedded_descendant_refs,
+                                                 ui::StringInterner& interner,
+                                                 const bp2::PathArena& arena,
+                                                 std::string* error_out) {
     ExtractionPlan plan;
     plan.selected_set.insert(selected_ids.begin(), selected_ids.end());
     if (plan.selected_set.size() < 2) {
@@ -145,7 +145,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         if (plan.selected_set.find(node.semantic.id) == plan.selected_set.end()) {
             continue;
         }
-        if (node.layout.layout_group != scope_id) {
+        if (node.layout.layout_group != scope_id.sim_scope_prefix()) {
             set_error(error_out, "selected nodes must belong to active group");
             return std::nullopt;
         }

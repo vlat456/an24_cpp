@@ -1,5 +1,6 @@
 #include "node_content_renderer.h"
 #include "editor/document.h"
+#include "editor/identity.h"
 #include "editor/window/blueprint_window.h"
 #include "editor/visual/node/visual_node.h"
 #include <imgui.h>
@@ -66,11 +67,12 @@ void NodeContentRenderer::renderSwitch(const bp2::Blueprint::Node& node,
         std::string node_id_str(doc.interner().resolve(node.semantic.id));
         std::string id = "##hold_" + node_id_str;
         if (ImGui::Checkbox(id.c_str(), &checked)) {
+            auto typed_nid = editor::NodeId::from_string(node_id_str);
             if (holdButtonCallback_) {
                 holdButtonCallback_(node_id_str, checked);
             } else {
-                if (checked) doc.holdButtonPress(node_id_str, scope_id);
-                else doc.holdButtonRelease(node_id_str, scope_id);
+                if (checked) doc.holdButtonPress(typed_nid, scope_id);
+                else doc.holdButtonRelease(typed_nid, scope_id);
             }
         }
     }

@@ -3,6 +3,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
+#include "editor/window/window_scope_id.h"
 #include <optional>
 #include <string>
 #include <vector>
@@ -27,7 +28,7 @@ std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     const bp2::Blueprint& source,
     const std::vector<ui::InternedId>& selected_node_ids,
     const std::string& blueprint_name,
-    const std::string& scope_id,
+    const WindowScopeId& scope_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
     std::string* error_out = nullptr,
@@ -37,7 +38,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const bp2::Blueprint& source,
     const std::vector<ui::InternedId>& selected_node_ids,
     const std::string& blueprint_name,
-    const std::string& scope_id,
+    const WindowScopeId& scope_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
     const TypeRegistry& parser_registry,

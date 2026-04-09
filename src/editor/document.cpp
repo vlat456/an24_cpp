@@ -39,7 +39,7 @@ std::string Document::title() const {
 
 bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
                                   const std::string& blueprint_name,
-                                  const std::string& scope_id,
+                                  const WindowScopeId& scope_id,
                                   std::string* error_out,
                                   bool allow_nonembedded_descendant_refs) {
     if (!type_registry_) {

@@ -212,14 +212,14 @@ void WindowSystem::removeClosedDocuments() {
     // This method exists for future deferred removal if needed
 }
 
-void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& doc) {
-    ui::InternedId iid = doc.interner().lookup(node_id);
+void WindowSystem::openPropertiesForNode(const editor::NodeId& node_id, Document& doc) {
+    ui::InternedId iid = doc.interner().lookup(node_id.str());
     if (iid.empty()) return;
     const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
     if (!node) return;
 
     Document* doc_ptr = &doc;
-    properties_window_.open(*node, node_id, doc.model(), doc.interner(),
+    properties_window_.open(*node, node_id.str(), doc.model(), doc.interner(),
         [this, doc_ptr](const std::string& nid) {
             // Verify document still exists before using the pointer
             for (const auto& d : documents_) {
@@ -235,8 +235,8 @@ void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& d
         });
 }
 
-void WindowSystem::openColorPickerForNode(const std::string& node_id, const std::string& scope_id, Document& doc) {
-    ui::InternedId iid = doc.interner().lookup(node_id);
+void WindowSystem::openColorPickerForNode(const editor::NodeId& node_id, const std::string& scope_id, Document& doc) {
+    ui::InternedId iid = doc.interner().lookup(node_id.str());
     if (iid.empty()) return;
     const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
     if (!node) return;
@@ -259,9 +259,9 @@ void WindowSystem::openColorPickerForNode(const std::string& node_id, const std:
     }
 }
 
-void WindowSystem::openInlineValueEditorForNode(const std::string& node_id, Document& doc,
+void WindowSystem::openInlineValueEditorForNode(const editor::NodeId& node_id, Document& doc,
                                                 const ui::Pt* anchor_screen) {
-    ui::InternedId iid = doc.interner().lookup(node_id);
+    ui::InternedId iid = doc.interner().lookup(node_id.str());
     if (iid.empty()) return;
     const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
     if (!node) return;

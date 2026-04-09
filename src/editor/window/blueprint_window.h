@@ -105,6 +105,17 @@ struct BlueprintWindow {
     /// Check if this window is in external reference mode.
     bool is_external_ref() const { return mode == BlueprintWindowMode::ExternalReference; }
 
+    /// Typed scope identity for this window.
+    WindowScopeId resolved_scope_id() const {
+        if (mode == BlueprintWindowMode::ExternalReference) {
+            return WindowScopeId::external(parent_instance_id);
+        }
+        if (!scope_id.empty()) {
+            return WindowScopeId::embedded(scope_id);
+        }
+        return WindowScopeId::root();
+    }
+
     /// Get the blueprint to render (external or parent's filtered by layout_group).
     const bp2::Blueprint& rendered_blueprint() const {
         if (mode == BlueprintWindowMode::ExternalReference) {

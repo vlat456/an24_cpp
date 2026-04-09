@@ -144,3 +144,82 @@ TEST(WindowInvariants, EmbeddedWindowCanvasInputUsesEmptyGroupFilter) {
     ASSERT_TRUE(created);
     EXPECT_EQ(win->input.scope_id_for_test(), "");
 }
+
+TEST(WindowInvariants, WindowScopeIdDisambiguatesScopeModesWithSameKey) {
+    const auto embedded = WindowScopeId::embedded("same_key");
+    const auto external = WindowScopeId::external("same_key");
+    const auto root = WindowScopeId::root();
+
+    EXPECT_NE(embedded, external);
+    EXPECT_NE(root, embedded);
+    EXPECT_NE(root, external);
+}
+
+TEST(WindowInvariants, WindowScopeIdEqualityAndModeQueries) {
+    // Equality: same mode + same key
+    EXPECT_EQ(WindowScopeId::root(), WindowScopeId::root());
+    EXPECT_EQ(WindowScopeId::embedded("g1"), WindowScopeId::embedded("g1"));
+    EXPECT_EQ(WindowScopeId::external("x1"), WindowScopeId::external("x1"));
+
+    // Inequality: same mode, different key
+    EXPECT_NE(WindowScopeId::embedded("g1"), WindowScopeId::embedded("g2"));
+    EXPECT_NE(WindowScopeId::external("x1"), WindowScopeId::external("x2"));
+
+    // Mode queries
+    EXPECT_TRUE(WindowScopeId::root().is_root());
+    EXPECT_FALSE(WindowScopeId::root().is_embedded());
+    EXPECT_FALSE(WindowScopeId::root().is_external());
+
+    EXPECT_FALSE(WindowScopeId::embedded("e").is_root());
+    EXPECT_TRUE(WindowScopeId::embedded("e").is_embedded());
+    EXPECT_FALSE(WindowScopeId::embedded("e").is_external());
+
+    EXPECT_FALSE(WindowScopeId::external("x").is_root());
+    EXPECT_FALSE(WindowScopeId::external("x").is_embedded());
+    EXPECT_TRUE(WindowScopeId::external("x").is_external());
+}
+
+TEST(WindowInvariants, WindowScopeIdSimScopePrefix) {
+    // Root: empty prefix
+    EXPECT_EQ(WindowScopeId::root().sim_scope_prefix(), "");
+
+    // Embedded: prefix is group_id
+    EXPECT_EQ(WindowScopeId::embedded("nested_1").sim_scope_prefix(), "nested_1");
+
+    // External: prefix is parent_instance_id
+    EXPECT_EQ(WindowScopeId::external("fol_1").sim_scope_prefix(), "fol_1");
+}
+
+/// Regression: resolved_scope_id on BlueprintWindow must return correct typed scope
+/// for root, embedded, and external windows. This catches if the typed scope flow
+/// regresses back to stringly-typed comparison.
+TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    // Create a root window via WindowManager and verify its resolved scope
+    bp2::Blueprint root_bp;
+    bp2::EditorModel model(root_bp);
+    WindowManager windows(model, interner, arena, nullptr);
+
+    // Root window
+    const auto& root_win = windows.root();
+    EXPECT_EQ(root_win.resolved_scope_id(), WindowScopeId::root());
+    EXPECT_TRUE(root_win.resolved_scope_id().is_root());
+
+    // Embedded window (needs a nested with inline_def)
+    bp2::Blueprint inline_bp;
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("emb_group"),
+        interner.intern("SomeType"),
+        std::make_unique<bp2::Blueprint>(inline_bp));
+    bp2::Blueprint with_nested = root_bp.with_nested(std::move(nested));
+    model.replace_current(std::move(with_nested));
+
+    // Re-create manager after model change (WindowManager holds model ref)
+    WindowManager windows2(model, interner, arena, nullptr);
+    auto [emb_win, created] = windows2.open("emb_group", "Embedded");
+    ASSERT_NE(emb_win, nullptr);
+    EXPECT_EQ(emb_win->resolved_scope_id(), WindowScopeId::embedded("emb_group"));
+    EXPECT_TRUE(emb_win->resolved_scope_id().is_embedded());
+}

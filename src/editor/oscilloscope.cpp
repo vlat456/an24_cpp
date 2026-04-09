@@ -32,10 +32,16 @@ static bool decode_source_key(const bp2::Blueprint::Wire& w,
 
 static bool resolve_probe_anchor(Document& doc,
                                  const bp2::Blueprint::Wire& w,
-                                 const std::string& scope_id,
+                                 const WindowScopeId& scope_id,
                                  const ui::Pt* preferred_world,
                                  ui::Pt& out_world) {
-    auto* win = doc.windowManager().find(scope_id);
+    BlueprintWindow* win = nullptr;
+    for (auto& wptr : doc.windowManager().windows()) {
+        if (wptr && wptr->resolved_scope_id() == scope_id) {
+            win = wptr.get();
+            break;
+        }
+    }
     if (!win) return false;
     auto* vw = dynamic_cast<visual::Wire*>(win->scene.find(doc.interner().resolve(w.id)));
     if (!vw) return false;
@@ -94,7 +100,7 @@ uint32_t OscilloscopeModel::color_for_index(size_t i) {
 }
 
 void OscilloscopeModel::toggle_probe(Document& doc,
-                                     const std::string& scope_id,
+                                     const WindowScopeId& scope_id,
                                      const std::string& wire_id,
                                      const ui::Pt* click_world) {
     if (wire_id.empty()) return;

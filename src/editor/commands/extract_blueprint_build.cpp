@@ -66,7 +66,7 @@ bool create_bridge_pair(
     float input_x,
     float output_x,
     float fallback_y_origin,
-    const std::string& scope_id,
+    const WindowScopeId& scope_id,
     const char* input_prefix,
     const char* output_prefix,
     const ui::InternedId* canonical_nested_instance_id,
@@ -263,7 +263,7 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
                             0.0f,
                             max_internal_right + kBridgeMarginX,
                             0.0f,
-                            "",
+                            WindowScopeId::root(),
                             "bp_in_", "bp_out_",
                             nullptr,
                             interner, used_node_ids,
@@ -310,7 +310,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     const ExtractionPlan& plan,
     ui::InternedId blueprint_iid,
     const std::string& blueprint_name,
-    const std::string& scope_id,
+    const WindowScopeId& scope_id,
     bool allow_nonembedded_descendant_refs,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
@@ -330,15 +330,16 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
         return std::nullopt;
     }
     used_node_ids.insert(nested_instance_id);
-    const std::string nested_scope_id = std::string(interner.resolve(nested_instance_id));
+    const std::string nested_scope_key = std::string(interner.resolve(nested_instance_id));
+    const WindowScopeId nested_scope_id = WindowScopeId::embedded(nested_scope_key);
 
-     for (const auto& nsrc : source.nodes()) {
-         auto n = nsrc;
-         if (plan.selected_set.find(n.semantic.id) != plan.selected_set.end()) {
-             n.layout.layout_group = nested_scope_id;
-         }
-         out = out.with_node(std::move(n));
-     }
+    for (const auto& nsrc : source.nodes()) {
+        auto n = nsrc;
+        if (plan.selected_set.find(n.semantic.id) != plan.selected_set.end()) {
+            n.layout.layout_group = nested_scope_key;
+        }
+        out = out.with_node(std::move(n));
+    }
 
     for (const auto& w : source.wires()) {
         ui::InternedId src_node;
@@ -387,7 +388,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     collapsed.view.expandable = true;
     collapsed.layout.collapsed = true;
     collapsed.view.blueprint_path = blueprint_name;
-    collapsed.layout.layout_group = scope_id;
+    collapsed.layout.layout_group = scope_id.sim_scope_prefix();
     collapsed.layout.x = plan.center_x;
     collapsed.layout.y = plan.center_y;
     collapsed.layout.width = 160.0f;

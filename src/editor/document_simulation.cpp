@@ -4,6 +4,7 @@
 #include "core/solvers/common/signal_key.h"
 #include "visual/node/visual_node.h"
 #include "visual/scene_mutations.h"
+#include "identity.h"
 #include <algorithm>
 #include <cmath>
 #include <spdlog/spdlog.h>
@@ -11,8 +12,8 @@
 namespace {
 
 /// Build the simulation-level node ID: "scope_id:node_id" for embedded, or "node_id" for root.
-std::string make_sim_id(const std::string& node_id, const std::string& scope_id) {
-    return scope_id.empty() ? node_id : signal_key::make_child_scope_key(scope_id, node_id);
+std::string make_sim_id(const editor::NodeId& node_id, const std::string& scope_id) {
+    return scope_id.empty() ? node_id.str() : signal_key::make_child_scope_key(scope_id, node_id.str());
 }
 
 /// Find a node either in the root blueprint (when scope_id is empty) or inside
@@ -20,9 +21,9 @@ std::string make_sim_id(const std::string& node_id, const std::string& scope_id)
 const bp2::Blueprint::Node* find_node_in_scope(
     const bp2::EditorModel& model,
     ui::StringInterner& interner,
-    const std::string& node_id,
+    const editor::NodeId& node_id,
     const std::string& scope_id) {
-    const ui::InternedId node_iid = interner.lookup(node_id);
+    const ui::InternedId node_iid = interner.lookup(node_id.str());
     if (node_iid.empty()) return nullptr;
 
     if (scope_id.empty()) {
@@ -326,14 +327,14 @@ void Document::buildEnergizedWireSetExternal(
     }
 }
 
-void Document::triggerSwitch(const std::string& node_id, const std::string& scope_id) {
+void Document::triggerSwitch(const editor::NodeId& node_id, const std::string& scope_id) {
      const std::string sim_id = make_sim_id(node_id, scope_id);
      float current = simulation_.get_port_value(sim_id, "control");
      float next = (current < 0.5f) ? 1.0f : 0.0f;
      signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = next;
  }
 
-void Document::setSliderValue(const std::string& node_id, float value, const std::string& scope_id) {
+void Document::setSliderValue(const editor::NodeId& node_id, float value, const std::string& scope_id) {
      const std::string sim_id = make_sim_id(node_id, scope_id);
      signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = value;
 
@@ -346,7 +347,7 @@ void Document::setSliderValue(const std::string& node_id, float value, const std
     content.min   = n->view.content_min;
     content.max   = n->view.content_max;
 
-    const ui::InternedId node_iid = interner_.lookup(node_id);
+    const ui::InternedId node_iid = interner_.lookup(node_id.str());
     for (const auto& win : window_manager_.windows()) {
         if (scope_id.empty()) {
             if (!win->scope_id.empty()) continue;
@@ -360,7 +361,7 @@ void Document::setSliderValue(const std::string& node_id, float value, const std
     }
 }
 
-void Document::setKnobPosition(const std::string& node_id, int position, const std::string& scope_id) {
+void Document::setKnobPosition(const editor::NodeId& node_id, int position, const std::string& scope_id) {
      const std::string sim_id = make_sim_id(node_id, scope_id);
      signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = static_cast<float>(position);
 
@@ -373,7 +374,7 @@ void Document::setKnobPosition(const std::string& node_id, int position, const s
     content.max   = n->view.content_max;
     content.min   = n->view.content_min;
 
-    const ui::InternedId node_iid = interner_.lookup(node_id);
+    const ui::InternedId node_iid = interner_.lookup(node_id.str());
     for (const auto& win : window_manager_.windows()) {
         if (scope_id.empty()) {
             if (!win->scope_id.empty()) continue;
@@ -387,11 +388,11 @@ void Document::setKnobPosition(const std::string& node_id, int position, const s
     }
 }
 
-void Document::holdButtonPress(const std::string& node_id, const std::string& scope_id) {
+void Document::holdButtonPress(const editor::NodeId& node_id, const std::string& scope_id) {
     held_buttons_.insert(make_sim_id(node_id, scope_id));
 }
 
-void Document::holdButtonRelease(const std::string& node_id, const std::string& scope_id) {
+void Document::holdButtonRelease(const editor::NodeId& node_id, const std::string& scope_id) {
      const std::string sim_id = make_sim_id(node_id, scope_id);
      held_buttons_.erase(sim_id);
      signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = 2.0f;

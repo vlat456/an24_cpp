@@ -49,7 +49,7 @@ static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSyst
     if (!ws.showOscilloscope) return;
     for (const auto& [wire_id, probe] : ws.oscilloscope.probes()) {
         if (probe.doc_id != doc.id()) continue;
-        if (probe.scope_id != win.scope_id) continue;
+        if (probe.scope_id != win.resolved_scope_id()) continue;
 
         Pt sp = win.viewport.world_to_screen(probe.world_pos, cmin);
         visual::osc::draw_probe_marker(draw_list, sp, probe.color);
@@ -353,7 +353,7 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
 
     // Dispatch helper: apply input result to document, then let WindowSystem handle the action.
     auto dispatch = [&](InputResult result) {
-        auto action = doc.applyInputResult(result, win.scope_id);
+        auto action = doc.applyInputResult(result, win.resolved_scope_id());
         ws.handleInputAction(action, doc);
     };
 
