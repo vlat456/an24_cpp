@@ -1,6 +1,7 @@
 #include "document.h"
 
 #include "commands/commands.h"
+#include "blueprint_v2/editor_model/editor_model.h"
 #include "common/port_type_utils.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "core/solvers/common/signal_key.h"
@@ -27,9 +28,8 @@ PortType parse_exposed_port_type(const std::string& s) {
     return PortType::V;
 }
 
-/// Update the collapsed node's and nested record's interface to include a new bridge port.
-/// This is the single mutation path: both the collapsed node's visual/semantic iface
-/// and the nested record's iface are updated from the same port descriptor.
+/// Update the embedded nested interface to include a new bridge port, then derive
+/// the collapsed node interface from that authoritative nested iface.
 void add_bridge_port_to_composite(
     bp2::EditorModel& model,
     ui::StringInterner& interner,
@@ -50,30 +50,22 @@ void add_bridge_port_to_composite(
 
     bp2::Blueprint bp = model.current();
 
-    // Update collapsed node interface
-    const auto* collapsed = bp.find_node(group_iid);
-    if (!collapsed) {
-        spdlog::warn("[editor] add_bridge_port: collapsed node '{}' not found", scope_id);
+    const auto* nested = bp.find_nested(group_iid);
+    if (!nested || !nested->is_embedded() || !nested->inline_def()) {
+        spdlog::warn("[editor] add_bridge_port: embedded nested '{}' not found", scope_id);
         return;
     }
 
-    bp2::Blueprint::Node cn = *collapsed;
-    {
-        std::vector<bp2::PortDescriptor> ports = cn.semantic.iface.ports();
-        ports.push_back(pd);
-        cn.semantic.iface = bp2::Interface(std::move(ports));
-    }
-    bp = bp2::replace_node_preserve_order(bp, std::move(cn));
+    bp2::Blueprint::Nested n = *nested;
+    std::vector<bp2::PortDescriptor> ports = n.inline_def()->iface().ports();
+    ports.push_back(pd);
+    bp2::Blueprint updated_inline = n.inline_def()->with_interface(bp2::Interface(std::move(ports)));
+    n.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
+    bp = bp2::replace_nested_preserve_order(bp, std::move(n));
+    bp = bp2::sync_collapsed_node_iface_from_nested(bp, group_iid);
 
-    // Update embedded nested inline interface (authoritative source for nested iface)
-    const auto* nested = bp.find_nested(group_iid);
-    if (nested && nested->is_embedded() && nested->inline_def()) {
-        bp2::Blueprint::Nested n = *nested;
-        std::vector<bp2::PortDescriptor> ports = n.inline_def()->iface().ports();
-        ports.push_back(pd);
-        bp2::Blueprint updated_inline = n.inline_def()->with_interface(bp2::Interface(std::move(ports)));
-        n.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
-        bp = bp2::replace_nested_preserve_order(bp, std::move(n));
+    if (!bp2::composite_iface_matches_nested(bp, group_iid)) {
+        throw std::logic_error("add_bridge_port_to_composite: collapsed iface desynced from nested authority");
     }
 
     model.replace_current(std::move(bp));
@@ -364,6 +356,12 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
         execute(model_, interner_, cmd_add_nested(std::move(nested)));
         execute(model_, interner_, cmd_add_node(std::move(collapsed)));
+        model_.replace_current(
+            bp2::sync_collapsed_node_iface_from_nested(model_.current(), interner_.lookup(unique_id)));
+
+        if (!bp2::composite_iface_matches_nested(model_.current(), interner_.lookup(unique_id))) {
+            throw std::logic_error("addBlueprint: collapsed iface desynced from nested authority");
+        }
 
         rebuildAllWindows();
         spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) group={}",

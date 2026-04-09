@@ -333,6 +333,52 @@ TEST(EditorModel, BakeNestedFailsForUnknownBlueprintId) {
     EXPECT_FALSE(model.bake_nested(interner.intern("sub1"), library, interner));
 }
 
+// Regression: bake_nested must sync collapsed node interface from nested authority.
+// Before the fix, bake_nested would leave the collapsed node's iface stale.
+TEST(EditorModel, BakeNestedSyncsCollapsedNodeInterface) {
+    ui::StringInterner interner;
+    bp2::BlueprintLibrary library;
+
+    // Library blueprint with 2 ports.
+    bp2::Blueprint inner;
+    inner = inner.with_id(interner.intern("sub_type"));
+    inner = inner.with_interface(bp2::Interface({
+        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    }));
+    library.add(interner.intern("sub_type"), inner);
+
+    // Create reference nested with only 1 port (simulates stale cached iface).
+    bp2::Interface stale_iface({
+        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    bp2::EditorModel model;
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("sub1"), interner.intern("sub_type"), stale_iface);
+    model.add_nested(std::move(nested));
+
+    // Add a collapsed node with the stale 1-port interface.
+    bp2::Blueprint::Node collapsed;
+    collapsed.semantic.id = interner.intern("sub1");
+    collapsed.semantic.type = interner.intern("sub_type");
+    collapsed.semantic.iface = stale_iface;
+    model.add_node(std::move(collapsed));
+
+    // Pre-condition: collapsed has 1 port, library has 2.
+    ASSERT_EQ(model.current().find_node(interner.intern("sub1"))->semantic.iface.ports().size(), 1u);
+
+    // Bake should embed the library blueprint AND sync collapsed node to 2 ports.
+    EXPECT_TRUE(model.bake_nested(interner.intern("sub1"), library, interner));
+
+    const auto* baked_node = model.current().find_node(interner.intern("sub1"));
+    ASSERT_NE(baked_node, nullptr);
+    EXPECT_EQ(baked_node->semantic.iface.ports().size(), 2u);
+
+    // The invariant must hold after bake.
+    EXPECT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
+}
+
 TEST(EditorModel, CanUndoInitiallyFalse) {
     bp2::EditorModel model;
     EXPECT_FALSE(model.can_undo());

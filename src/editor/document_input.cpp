@@ -14,23 +14,6 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r,
     InputResultAction action;
     const std::string legacy_scope_id = scope_id.is_embedded() ? scope_id.key() : "";
 
-    if (scope_id.is_embedded()) {
-        BlueprintWindow* win = window_manager_.find(scope_id.key());
-        if (win && win->embedded_model) {
-            const ui::InternedId nested_iid = interner_.lookup(scope_id.key());
-            const bp2::Blueprint::Nested* nested = nested_iid.empty()
-                ? nullptr
-                : model_.current().find_nested(nested_iid);
-            if (nested && nested->inline_def()
-                && *nested->inline_def() != win->embedded_model->current()) {
-                bp2::Blueprint::Nested updated = *nested;
-                updated.set_inline_def(std::make_unique<bp2::Blueprint>(win->embedded_model->current()));
-                model_.push_checkpoint();
-                model_.replace_current(bp2::replace_nested_preserve_order(model_.current(), std::move(updated)));
-            }
-        }
-    }
-
     if (r.rebuild_simulation) {
         rebuildSimulation();
         window_manager_.remove_orphaned_windows();

@@ -122,4 +122,7 @@ Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updat
 Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated);
 Blueprint replace_nested_preserve_order(const Blueprint& bp, Blueprint::Nested updated);
 
+Blueprint sync_collapsed_node_iface_from_nested(const Blueprint& bp, ui::InternedId nested_id);
+bool composite_iface_matches_nested(const Blueprint& bp, ui::InternedId nested_id);
+
 } // namespace bp2

@@ -18,6 +18,8 @@ private:
     BlueprintLibrary const& library_;
     PathArena* arena_ = nullptr;
 
+    [[noreturn]] void throw_unresolved_nested(Blueprint::Nested const& nested, Path prefix) const;
+
     void visit_blueprint(
         Blueprint const& bp,
         Path prefix,

@@ -22,7 +22,7 @@ public:
         : model_(model), interner_(interner), arena_(arena), parser_registry_(parser_registry)
     {
         windows_.push_back(std::make_unique<BlueprintWindow>(
-            model_, interner_, arena_, "", "Root", parser_registry_));
+            RootWindowTag{}, model_, interner_, arena_, "Root", parser_registry_));
     }
 
     void set_parser_registry(const TypeRegistry* parser_registry) {
@@ -38,15 +38,16 @@ public:
     std::vector<std::unique_ptr<BlueprintWindow>>& windows() { return windows_; }
 
     std::pair<BlueprintWindow*, bool> open(const std::string& scope_id, const std::string& title) {
+        const auto typed_scope = WindowScopeId::embedded(scope_id);
         for (auto& w : windows_) {
-            if (w->scope_id == scope_id) {
+            if (w->resolved_scope_id() == typed_scope) {
                 w->open = true;
                 return {w.get(), false};
             }
         }
         try {
             windows_.push_back(std::make_unique<BlueprintWindow>(
-                model_, interner_, arena_, scope_id, title, parser_registry_));
+                EmbeddedWindowTag{}, model_, interner_, arena_, scope_id, title, parser_registry_));
         } catch (const std::logic_error& e) {
             spdlog::error("[editor] Failed to open window '{}' (group '{}'): {}",
                           title, scope_id, e.what());
@@ -57,10 +58,11 @@ public:
 
     void close(const std::string& scope_id) {
         if (scope_id.empty()) return;
+        const auto typed_scope = WindowScopeId::embedded(scope_id);
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
                 [&](const std::unique_ptr<BlueprintWindow>& w) {
-                    return w->scope_id == scope_id;
+                    return w->resolved_scope_id() == typed_scope;
                 }),
             windows_.end());
     }
@@ -69,7 +71,7 @@ public:
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
                 [](const std::unique_ptr<BlueprintWindow>& w) {
-                    return !w->open && !w->scope_id.empty();
+                    return !w->open && !w->resolved_scope_id().is_root();
                 }),
             windows_.end());
     }
@@ -83,22 +85,25 @@ public:
                 [&](const std::unique_ptr<BlueprintWindow>& w) {
                     // External-ref windows are kept alive (not tied to nested groups)
                     if (w->mode == BlueprintWindowMode::ExternalReference) return false;
-                    return !w->scope_id.empty() && !live.count(w->scope_id);
+                    const auto& typed_scope = w->resolved_scope_id();
+                    return typed_scope.is_embedded() && !live.count(typed_scope.key());
                 }),
             windows_.end());
     }
 
     BlueprintWindow* find(const std::string& scope_id) {
+        if (scope_id.empty()) return nullptr;
+        const auto typed_scope = WindowScopeId::embedded(scope_id);
         for (auto& w : windows_)
-            if (w->scope_id == scope_id) return w.get();
+            if (w->resolved_scope_id() == typed_scope) return w.get();
         return nullptr;
     }
 
     /// Find an external-reference window by parent_instance_id.
     BlueprintWindow* find_external(const std::string& parent_instance_id) {
+        const auto typed_scope = WindowScopeId::external(parent_instance_id);
         for (auto& w : windows_) {
-            if (w->mode == BlueprintWindowMode::ExternalReference
-                && w->parent_instance_id == parent_instance_id) {
+            if (w->resolved_scope_id() == typed_scope) {
                 return w.get();
             }
         }
@@ -106,8 +111,8 @@ public:
     }
 
     /// Open an external reference sub-window.
-    /// The caller must fill in external_blueprint, external_interner, external_arena,
-    /// and parent_instance_id on the returned window, then call rebuild on the scene.
+    /// The caller must fill in external_blueprint, external_interner, external_arena
+    /// on the returned window, then call rebuild on the scene.
     BlueprintWindow* open_external_stub(const std::string& parent_instance_id,
                                         const std::string& title) {
         // Reuse existing window for the same parent instance
@@ -115,13 +120,12 @@ public:
             existing->open = true;
             return existing;
         }
-        // External-ref windows use mode and parent_instance_id for identity (not scope_id).
+        // External-ref windows use typed WindowScopeId for identity.
         // scope_id remains empty to avoid collision with nested group identities.
         windows_.push_back(std::make_unique<BlueprintWindow>(
-            model_, interner_, arena_, "", title, parser_registry_));
+            RootWindowTag{}, model_, interner_, arena_, title, parser_registry_));
         auto* win = windows_.back().get();
-        win->mode = BlueprintWindowMode::ExternalReference;
-        win->parent_instance_id = parent_instance_id;
+        win->set_external_identity(parent_instance_id);
         return win;
     }
 

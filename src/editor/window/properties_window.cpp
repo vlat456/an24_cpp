@@ -1,4 +1,5 @@
 #include "properties_window.h"
+#include "blueprint_v2/editor_model/editor_model.h"
 #include "editor/common/port_type_utils.h"
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "parse_number.h"
@@ -646,22 +647,6 @@ void PropertiesWindow::apply() {
                 const ui::InternedId iface_iid = interner_->lookup(iface_name);
 
                 if (!nested_iid.empty() && !iface_iid.empty()) {
-                    // Update parent collapsed node port types
-                    if (const auto* collapsed = next_bp.find_node(nested_iid)) {
-                        bp2::Blueprint::Node n = *collapsed;
-                        std::vector<bp2::PortDescriptor> ports = n.semantic.iface.ports();
-                        const Domain d = editor::common::domain_for_port_type(*pending_bridge_port_type_);
-                        for (auto& pd : ports) {
-                            if (pd.name == iface_iid) {
-                                pd.port_type = *pending_bridge_port_type_;
-                                pd.domain = d;
-                            }
-                        }
-                        n.semantic.iface = bp2::Interface(std::move(ports));
-                        next_bp = bp2::replace_node_preserve_order(next_bp, std::move(n));
-                    }
-
-                    // Update nested iface domain for the corresponding boundary port
                     if (const auto* nested = next_bp.find_nested(nested_iid)) {
                         bp2::Blueprint::Nested n = *nested;
                         if (n.is_embedded() && n.inline_def()) {
@@ -676,6 +661,10 @@ void PropertiesWindow::apply() {
                             bp2::Blueprint updated_inline = n.inline_def()->with_interface(bp2::Interface(std::move(ports)));
                             n.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
                             next_bp = bp2::replace_nested_preserve_order(next_bp, std::move(n));
+                            next_bp = bp2::sync_collapsed_node_iface_from_nested(next_bp, nested_iid);
+                            if (!bp2::composite_iface_matches_nested(next_bp, nested_iid)) {
+                                throw std::logic_error("PropertiesWindow: collapsed iface desynced from nested authority");
+                            }
                         }
                     }
                 }

@@ -41,6 +41,34 @@ const bp2::Blueprint::Node* find_node_in_scope(
 
 } // namespace
 
+void Document::rebuild_window_scenes() {
+    for (auto& win : window_manager_.windows()) {
+        win->viewport.grid_step = model_.current().grid_step();
+        if (win->is_external_ref() && win->external_blueprint
+            && win->external_interner && win->external_arena) {
+            visual::mutations::rebuild(win->scene, *win->external_blueprint,
+                                       *win->external_interner, *win->external_arena, "");
+        } else if (win->resolved_scope_id().is_embedded()) {
+            const std::string scope_key = win->resolved_scope_id().key();
+            const ui::InternedId group_iid = interner_.lookup(scope_key);
+            const bp2::Blueprint::Nested* nested = group_iid.empty()
+                ? nullptr
+                : model_.current().find_nested(group_iid);
+
+            if (nested && nested->inline_def()) {
+                visual::mutations::rebuild(win->scene, *nested->inline_def(),
+                                           interner_, arena_, "");
+            } else {
+                spdlog::error("[editor] Embedded window '{}' missing nested inline_def during rebuild", scope_key);
+                continue;
+            }
+        } else {
+            visual::mutations::rebuild(win->scene, model_.current(),
+                                       interner_, arena_, "");
+        }
+    }
+}
+
 void Document::startSimulation() {
     if (!simulation_running_) {
         try {
@@ -83,36 +111,7 @@ void Document::rebuildAllWindows() {
     for (auto& win : window_manager_.windows()) {
         win->input.cancel_gesture();
     }
-    for (auto& win : window_manager_.windows()) {
-        win->viewport.grid_step = model_.current().grid_step();
-        if (win->is_external_ref() && win->external_blueprint
-            && win->external_interner && win->external_arena) {
-            visual::mutations::rebuild(win->scene, *win->external_blueprint,
-                                       *win->external_interner, *win->external_arena, "");
-        } else if (!win->scope_id.empty()) {
-            // For embedded subwindows, use nested.inline_def directly
-            const ui::InternedId group_iid = interner_.lookup(win->scope_id);
-            const bp2::Blueprint::Nested* nested = group_iid.empty() ? nullptr 
-                : model_.current().find_nested(group_iid);
-            
-            if (nested && nested->inline_def()) {
-                // Sync embedded_model from authoritative nested.inline_def
-                if (win->embedded_model) {
-                    win->embedded_model->replace_current(*nested->inline_def());
-                }
-                // Rebuild from inline_def (independent of root shadow nodes)
-                visual::mutations::rebuild(win->scene, *nested->inline_def(),
-                                           interner_, arena_, "");
-            } else {
-                spdlog::error("[editor] Embedded window '{}' missing nested inline_def during rebuild", win->scope_id);
-                continue;
-            }
-        } else {
-            // Root window: filter by empty scope_id
-            visual::mutations::rebuild(win->scene, model_.current(),
-                                       interner_, arena_, "");
-        }
-    }
+    rebuild_window_scenes();
     rebuildSimulation();
 }
 
@@ -215,10 +214,11 @@ void Document::updateNodeContentFromSimulation() {
         // Find the widget: for root nodes, look in root window; for nested, look in subwindow
         std::string_view node_sv = interner_.resolve(n.semantic.id);
         for (const auto& win : window_manager_.windows()) {
+            const std::string scope_key = win->resolved_scope_id().key();
             if (sim_id_prefix.empty()) {
-                if (!win->scope_id.empty()) continue;
+                if (!scope_key.empty()) continue;
             } else {
-                if (win->scope_id != sim_id_prefix) continue;
+                if (scope_key != sim_id_prefix) continue;
             }
             auto* widget = win->scene.find(node_sv);
             if (!widget) continue;
@@ -349,10 +349,11 @@ void Document::setSliderValue(const editor::NodeId& node_id, float value, const 
 
     const ui::InternedId node_iid = interner_.lookup(node_id.str());
     for (const auto& win : window_manager_.windows()) {
+        const std::string scope_key = win->resolved_scope_id().key();
         if (scope_id.empty()) {
-            if (!win->scope_id.empty()) continue;
+            if (!scope_key.empty()) continue;
         } else {
-            if (win->scope_id != scope_id) continue;
+            if (scope_key != scope_id) continue;
         }
         auto* widget = win->scene.find(interner_.resolve(node_iid));
         if (!widget) continue;
@@ -376,10 +377,11 @@ void Document::setKnobPosition(const editor::NodeId& node_id, int position, cons
 
     const ui::InternedId node_iid = interner_.lookup(node_id.str());
     for (const auto& win : window_manager_.windows()) {
+        const std::string scope_key = win->resolved_scope_id().key();
         if (scope_id.empty()) {
-            if (!win->scope_id.empty()) continue;
+            if (!scope_key.empty()) continue;
         } else {
-            if (win->scope_id != scope_id) continue;
+            if (scope_key != scope_id) continue;
         }
         auto* widget = win->scene.find(interner_.resolve(node_iid));
         if (!widget) continue;

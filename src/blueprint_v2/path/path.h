@@ -74,6 +74,10 @@ public:
     std::string to_string(Path p) const;
     std::optional<Path> parse(std::string_view s);
 
+    /// Resolve an InternedId back to its string representation.
+    /// Returns empty string_view for the empty ID.
+    std::string_view resolve_id(ui::InternedId id) const { return interner_.resolve(id); }
+
 private:
     ui::StringInterner& interner_;
     std::vector<Path> paths_;

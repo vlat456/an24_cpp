@@ -14,7 +14,7 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
     const bp2::Blueprint& bp = win.rendered_blueprint();
 
     for (const auto& node : bp.nodes()) {
-        if (win.scope_id.empty()) {
+        if (win.resolved_scope_id().is_embedded()) {
             if (!node.layout.layout_group.empty()) continue;
         }
 
@@ -39,7 +39,7 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
 
         switch (node.view.content_type) {
             case bp2::NodeContentType::Switch:
-                renderSwitch(node, aw, win.read_only, doc, win.scope_id);
+                renderSwitch(node, aw, win.read_only, doc, win.resolved_scope_id().key());
                 break;
             case bp2::NodeContentType::Value:
                 renderValue(node, aw, win.read_only);

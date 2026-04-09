@@ -461,7 +461,7 @@ if (nested && nested->inline_def) {
 }
 ```
 
-Each subwindow has an `embedded_model` (a dedicated `EditorModel` initialized from `inline_def`) so that `CanvasInput` can operate on the embedded blueprint independently. Changes flow back to the authoritative `nested.inline_def` via `applyInputResult()`.
+Each subwindow uses an `EmbeddedInlineHost` that reads/writes the authoritative `nested.inline_def` directly through the root `EditorModel`. There is no shadow copy — all mutations write through immediately via `replace_nested_preserve_order`.
 
 ### Simulation Integration
 
@@ -476,11 +476,11 @@ Each subwindow has an `embedded_model` (a dedicated `EditorModel` initialized fr
 |------|------|
 | `document_components.cpp` | `addBlueprint()` — load, create collapsed+nested; `add_bridge_port_to_composite()` — single interface mutation |
 | `document_simulation.cpp` | Simulation content updates, energized wires, signal interaction for both root and embedded nodes |
-| `document_history.cpp` | Undo/redo with `inline_def` sync to `embedded_model` |
-| `document_input.cpp` | `applyInputResult()` — syncs `embedded_model` changes back to `nested.inline_def` |
+| `document_history.cpp` | Undo/redo — rebuilds window scenes from authoritative `inline_def` |
+| `document_input.cpp` | `applyInputResult()` — dispatches input results (context menus, sim interactions) |
 | `persist.cpp` | `load_blueprint_from_file_validated()` — JSON parsing with positions, routing points, viewport |
 | `scene_mutations.cpp` | `rebuild()` — creates node/wire widgets from blueprint data |
-| `blueprint_window.h` | `BlueprintWindow` — holds `embedded_model`, `external_blueprint`, etc. |
+| `blueprint_window.h` | `BlueprintWindow` — holds `EditingHost`, `external_blueprint`, etc. |
 | `sub_window_renderer.cpp` | Sub-window viewport auto-fit logic |
 
 ### Common Pitfalls

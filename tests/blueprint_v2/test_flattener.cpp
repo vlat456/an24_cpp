@@ -384,3 +384,44 @@ TEST(Flattener, FlattenEmptyBlueprint) {
     EXPECT_TRUE(netlist.components.empty());
     EXPECT_EQ(netlist.signal_count, 0u);
 }
+
+// ==================================================================
+// Regression test for #57: unresolved nested blueprint must throw
+// ==================================================================
+
+TEST(Flattener, UnresolvedNestedBlueprintThrows) {
+    ui::StringInterner interner;
+    auto library = make_test_library(interner);
+    bp2::PathArena arena(interner);
+
+    // Create root with a nested reference to a blueprint that doesn't exist in library
+    bp2::Blueprint root;
+
+    bp2::Blueprint::Node bat;
+    bat.semantic.id = interner.intern("bat1");
+    bat.semantic.type = interner.intern("Battery");
+    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
+    root = root.with_node(std::move(bat));
+
+    // Create a nested reference to a non-existent blueprint type
+    auto missing_nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("missing_sub"),
+        interner.intern("NonExistentType"),
+        bp2::Interface(std::vector<bp2::PortDescriptor>{}));  // empty interface
+    root = root.with_nested(std::move(missing_nested));
+
+    bp2::Flattener flattener(library);
+    // Should throw std::logic_error with useful diagnostic info
+    try {
+        flattener.flatten(root, arena);
+        FAIL() << "Expected std::logic_error for unresolved nested blueprint";
+    } catch (std::logic_error const& e) {
+        std::string msg = e.what();
+        // Error must include the instance path for traceability
+        EXPECT_NE(msg.find("missing_sub"), std::string::npos)
+            << "Error should include instance id; got: " << msg;
+        // Error must include the human-readable blueprint type name
+        EXPECT_NE(msg.find("NonExistentType"), std::string::npos)
+            << "Error should include blueprint type name; got: " << msg;
+    }
+}

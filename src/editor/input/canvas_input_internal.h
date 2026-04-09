@@ -1,9 +1,9 @@
 #pragma once
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "blueprint_v2/path/path.h"
+#include "editor/input/editing_host.h"
 #include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
 #include "debug.h"
@@ -15,8 +15,8 @@
 
 namespace canvas_input_impl {
 
-inline bool is_bus_node(const bp2::EditorModel& model, ui::InternedId node_id) {
-    const bp2::Blueprint::Node* node = model.current().find_node(node_id);
+inline bool is_bus_node(const bp2::Blueprint& bp, ui::InternedId node_id) {
+    const bp2::Blueprint::Node* node = bp.find_node(node_id);
     if (!node) return false;
     return node->view.render_hint == "bus";
 }
@@ -25,10 +25,10 @@ inline bool is_wire_alias_port_name(std::string_view port_name) {
     return !port_name.empty() && port_name != "v";
 }
 
-inline PortType resolve_port_type_from_model(const bp2::EditorModel& model,
+inline PortType resolve_port_type_from_model(const bp2::Blueprint& bp,
                                                ui::InternedId node_id,
                                                ui::InternedId port_name) {
-     const bp2::Blueprint::Node* node = model.current().find_node(node_id);
+     const bp2::Blueprint::Node* node = bp.find_node(node_id);
      if (!node) return PortType::Any;
      for (const auto& p : node->semantic.iface.ports()) {
          if (p.name == port_name) return p.port_type;
@@ -36,7 +36,7 @@ inline PortType resolve_port_type_from_model(const bp2::EditorModel& model,
      return PortType::Any;
 }
 
-inline void debug_validate_command_boundary(bp2::EditorModel const& model,
+inline void debug_validate_command_boundary(const bp2::Blueprint& bp,
                                             ui::StringInterner& interner,
                                             bp2::PathArena const& arena,
                                             const TypeRegistry* parser_registry = nullptr) {
@@ -46,7 +46,7 @@ inline void debug_validate_command_boundary(bp2::EditorModel const& model,
     }
 
     std::string err;
-    const bool ok = validate_blueprint_integrity(model.current(), interner, arena, *parser_registry, &err);
+    const bool ok = validate_blueprint_integrity(bp, interner, arena, *parser_registry, &err);
     if (!ok) {
         if (err.find("wire domain differs from endpoint domain") != std::string::npos
             || err.find("wire direction incompatible") != std::string::npos
@@ -58,7 +58,7 @@ inline void debug_validate_command_boundary(bp2::EditorModel const& model,
         assert(false && "bp2 integrity violation at command boundary");
     }
 #else
-    (void)model;
+    (void)bp;
     (void)interner;
     (void)arena;
 #endif

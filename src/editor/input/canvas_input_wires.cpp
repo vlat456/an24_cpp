@@ -45,12 +45,12 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         ui::InternedId end_node_iid   = interner_.intern(end_node_sv);
         ui::InternedId end_port_iid   = interner_.intern(end_port->name());
 
-        if (is_bus_node(model_, start_node_iid) && start_port_iid != interner_.intern("v")) {
-            start_port_iid = interner_.intern("v");
-        }
-        if (is_bus_node(model_, end_node_iid) && end_port_iid != interner_.intern("v")) {
-            end_port_iid = interner_.intern("v");
-        }
+         if (is_bus_node(host_.current_blueprint(), start_node_iid) && start_port_iid != interner_.intern("v")) {
+             start_port_iid = interner_.intern("v");
+         }
+         if (is_bus_node(host_.current_blueprint(), end_node_iid) && end_port_iid != interner_.intern("v")) {
+             end_port_iid = interner_.intern("v");
+         }
 
          auto can_drive = [](bp2::PortSide s) {
              return s == bp2::PortSide::Output || s == bp2::PortSide::InOut;
@@ -69,207 +69,207 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
             std::swap(start_port_iid, end_port_iid);
         }
 
-        std::string wire_id_str = model_.allocate_wire_id();
-        ui::InternedId wire_iid = interner_.intern(wire_id_str);
+         std::string wire_id_str = host_.allocate_wire_id();
+         ui::InternedId wire_iid = interner_.intern(wire_id_str);
 
-        bp2::Path node_path = arena_.make_node(arena_.root(), start_node_iid);
-        bp2::Path source    = arena_.make_port(node_path, start_port_iid);
-        bp2::Path tgt_node  = arena_.make_node(arena_.root(), end_node_iid);
-        bp2::Path target    = arena_.make_port(tgt_node, end_port_iid);
+         bp2::Path node_path = arena_.make_node(arena_.root(), start_node_iid);
+         bp2::Path source    = arena_.make_port(node_path, start_port_iid);
+         bp2::Path tgt_node  = arena_.make_node(arena_.root(), end_node_iid);
+         bp2::Path target    = arena_.make_port(tgt_node, end_port_iid);
 
-        bp2::Blueprint::Wire w;
-        w.id     = wire_iid;
-        w.source = source;
-        w.target = target;
+         bp2::Blueprint::Wire w;
+         w.id     = wire_iid;
+         w.source = source;
+         w.target = target;
 
-        bool added = model_.add_wire(std::move(w));
-        if (added) {
-            debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
-            visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, scope_id_);
-            result.rebuild_simulation = true;
-        }
+         bool added = host_.add_wire(std::move(w));
+         if (added) {
+             debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
+             visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
+             result.rebuild_simulation = true;
+         }
     }
     return result;
 }
 
 InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) {
-    InputResult result;
-    Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
-    auto port_hit = visual::hit_test_ports(scene_, world);
+     InputResult result;
+     Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
+     auto port_hit = visual::hit_test_ports(scene_, world);
 
-    bool reconnected = false;
+     bool reconnected = false;
 
-    const auto& wires = model_.current().wires();
-    if (reconnect_wire_idx_ >= wires.size()) return result;
+     const auto& wires = host_.wires();
+     if (reconnect_wire_idx_ >= wires.size()) return result;
 
-    const bp2::Blueprint::Wire& wire = wires[reconnect_wire_idx_];
-    auto [wire_src_node, wire_src_port] = editor_math::path_to_node_port(wire.source, arena_);
-    auto [wire_tgt_node, wire_tgt_port] = editor_math::path_to_node_port(wire.target, arena_);
+     const bp2::Blueprint::Wire& wire = wires[reconnect_wire_idx_];
+     auto [wire_src_node, wire_src_port] = editor_math::path_to_node_port(wire.source, arena_);
+     auto [wire_tgt_node, wire_tgt_port] = editor_math::path_to_node_port(wire.target, arena_);
 
-    if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
-        std::string_view port_node_sv = ph->port->rootAncestorId();
-        ui::InternedId port_node_iid  = interner_.intern(port_node_sv);
-        ui::InternedId hit_port_iid   = interner_.intern(ph->port->name());
+     if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
+         std::string_view port_node_sv = ph->port->rootAncestorId();
+         ui::InternedId port_node_iid  = interner_.intern(port_node_sv);
+         ui::InternedId hit_port_iid   = interner_.intern(ph->port->name());
 
-        ui::InternedId detached_node = reconnect_detach_start_ ? wire_src_node : wire_tgt_node;
-        ui::InternedId detached_port = reconnect_detach_start_ ? wire_src_port : wire_tgt_port;
-        ui::InternedId fixed_node    = reconnect_detach_start_ ? wire_tgt_node : wire_src_node;
-        ui::InternedId fixed_port    = reconnect_detach_start_ ? wire_tgt_port : wire_src_port;
+         ui::InternedId detached_node = reconnect_detach_start_ ? wire_src_node : wire_tgt_node;
+         ui::InternedId detached_port = reconnect_detach_start_ ? wire_src_port : wire_tgt_port;
+         ui::InternedId fixed_node    = reconnect_detach_start_ ? wire_tgt_node : wire_src_node;
+         ui::InternedId fixed_port    = reconnect_detach_start_ ? wire_tgt_port : wire_src_port;
 
-        bool same_as_original = (port_node_iid == detached_node && hit_port_iid == detached_port);
-        if (same_as_original) return result;
+         bool same_as_original = (port_node_iid == detached_node && hit_port_iid == detached_port);
+         if (same_as_original) return result;
 
-         bool same_as_fixed = (port_node_iid == fixed_node && hit_port_iid == fixed_port);
-         bool compatible = !same_as_fixed &&
-             visual::Port::areSidesCompatible(ph->port->side(), reconnect_fixed_side_);
-        if (compatible && !visual::Port::areTypesCompatible(ph->port->type(), reconnect_fixed_type_)) {
-            compatible = false;
-        }
+          bool same_as_fixed = (port_node_iid == fixed_node && hit_port_iid == fixed_port);
+          bool compatible = !same_as_fixed &&
+              visual::Port::areSidesCompatible(ph->port->side(), reconnect_fixed_side_);
+         if (compatible && !visual::Port::areTypesCompatible(ph->port->type(), reconnect_fixed_type_)) {
+             compatible = false;
+         }
 
-        if (is_bus_node(model_, port_node_iid) && is_wire_alias_port_name(ph->port->name())) {
-            size_t target_wire_idx = find_wire_index(hit_port_iid);
-            if (target_wire_idx != SIZE_MAX && target_wire_idx < wires.size()) {
-                if (target_wire_idx != reconnect_wire_idx_) {
-                    auto reordered = wires;
-                    std::swap(reordered[reconnect_wire_idx_], reordered[target_wire_idx]);
+         if (is_bus_node(host_.current_blueprint(), port_node_iid) && is_wire_alias_port_name(ph->port->name())) {
+             size_t target_wire_idx = find_wire_index(hit_port_iid);
+             if (target_wire_idx != SIZE_MAX && target_wire_idx < wires.size()) {
+                 if (target_wire_idx != reconnect_wire_idx_) {
+                     auto reordered = wires;
+                     std::swap(reordered[reconnect_wire_idx_], reordered[target_wire_idx]);
 
-                    bp2::Blueprint updated_bp = model_.current();
-                    for (const auto& old_wire : model_.current().wires()) {
-                        updated_bp = updated_bp.without_wire(old_wire.id);
-                    }
-                    for (const auto& new_wire : reordered) {
-                        updated_bp = updated_bp.with_wire(new_wire);
-                    }
+                     bp2::Blueprint updated_bp = host_.current_blueprint();
+                     for (const auto& old_wire : host_.current_blueprint().wires()) {
+                         updated_bp = updated_bp.without_wire(old_wire.id);
+                     }
+                     for (const auto& new_wire : reordered) {
+                         updated_bp = updated_bp.with_wire(new_wire);
+                     }
 
-                    model_.push_checkpoint();
-                    model_.replace_current(std::move(updated_bp));
-                    debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
-                    visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, scope_id_);
-                    result.rebuild_simulation = true;
-                    reconnected = true;
-                } else {
-                    reconnected = true;
-                }
-            }
-        } else if (compatible) {
-            ui::InternedId new_node_iid = interner_.intern(port_node_sv);
-            ui::InternedId new_port_iid = interner_.intern(ph->port->name());
+                     host_.push_checkpoint();
+                     host_.replace_current(std::move(updated_bp));
+                     debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
+                     visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
+                     result.rebuild_simulation = true;
+                     reconnected = true;
+                 } else {
+                     reconnected = true;
+                 }
+             }
+         } else if (compatible) {
+             ui::InternedId new_node_iid = interner_.intern(port_node_sv);
+             ui::InternedId new_port_iid = interner_.intern(ph->port->name());
 
-            if (is_bus_node(model_, new_node_iid) && new_port_iid != interner_.intern("v")) {
-                new_port_iid = interner_.intern("v");
-            }
+             if (is_bus_node(host_.current_blueprint(), new_node_iid) && new_port_iid != interner_.intern("v")) {
+                 new_port_iid = interner_.intern("v");
+             }
 
-            bp2::Path new_node_path = arena_.make_node(arena_.root(), new_node_iid);
-            bp2::Path new_port_path = arena_.make_port(new_node_path, new_port_iid);
+             bp2::Path new_node_path = arena_.make_node(arena_.root(), new_node_iid);
+             bp2::Path new_port_path = arena_.make_port(new_node_path, new_port_iid);
 
-            bool updated_ok = model_.update_wire(wire.id, [&](bp2::Blueprint::Wire& wr) {
-                if (reconnect_detach_start_) {
-                    wr.source = new_port_path;
-                } else {
-                    wr.target = new_port_path;
-                }
-            });
+             bool updated_ok = host_.update_wire(wire.id, [&](bp2::Blueprint::Wire& wr) {
+                 if (reconnect_detach_start_) {
+                     wr.source = new_port_path;
+                 } else {
+                     wr.target = new_port_path;
+                 }
+             });
 
-            if (updated_ok) {
-                debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
-                visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, scope_id_);
-                result.rebuild_simulation = true;
-                reconnected = true;
-            }
-        }
-    }
+             if (updated_ok) {
+                 debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
+                 visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
+                 result.rebuild_simulation = true;
+                 reconnected = true;
+             }
+         }
+     }
 
-    if (!reconnected && reconnect_wire_idx_ < model_.current().wires().size()) {
-        if (model_.remove_wire(wire.id)) {
-            visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, scope_id_);
-            result.rebuild_simulation = true;
-        }
-    }
+     if (!reconnected && reconnect_wire_idx_ < host_.wires().size()) {
+         if (host_.remove_wire(wire.id)) {
+             visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
+             result.rebuild_simulation = true;
+         }
+     }
 
-    return result;
+     return result;
 }
 
 std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual::Port* port) const {
-    if (!port) return std::nullopt;
+     if (!port) return std::nullopt;
 
-    std::string_view port_node_sv = port->rootAncestorId();
-    std::string_view port_name_sv = port->name();
+     std::string_view port_node_sv = port->rootAncestorId();
+     std::string_view port_name_sv = port->name();
 
-    ui::InternedId port_node_iid = interner_.intern(port_node_sv);
-    ui::InternedId port_name_iid = interner_.intern(port_name_sv);
+     ui::InternedId port_node_iid = interner_.intern(port_node_sv);
+     ui::InternedId port_name_iid = interner_.intern(port_name_sv);
 
-    if (is_bus_node(model_, port_node_iid)) {
-        if (port_name_sv == "v") {
-            return std::nullopt;
-        }
+     if (is_bus_node(host_.current_blueprint(), port_node_iid)) {
+         if (port_name_sv == "v") {
+             return std::nullopt;
+         }
 
-        if (is_wire_alias_port_name(port_name_sv)) {
-            size_t wi = find_wire_index(port_name_iid);
-            if (wi == SIZE_MAX) return std::nullopt;
-            const bp2::Blueprint::Wire& w = model_.current().wires()[wi];
+         if (is_wire_alias_port_name(port_name_sv)) {
+             size_t wi = find_wire_index(port_name_iid);
+             if (wi == SIZE_MAX) return std::nullopt;
+             const bp2::Blueprint::Wire& w = host_.wires()[wi];
 
-            auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, arena_);
-            auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, arena_);
-            if (src_node == port_node_iid) return build_wire_port_match(wi, true, w);
-            if (tgt_node == port_node_iid) return build_wire_port_match(wi, false, w);
-        }
-        return std::nullopt;
-    }
+             auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, arena_);
+             auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, arena_);
+             if (src_node == port_node_iid) return build_wire_port_match(wi, true, w);
+             if (tgt_node == port_node_iid) return build_wire_port_match(wi, false, w);
+         }
+         return std::nullopt;
+     }
 
-    const auto& wires = model_.current().wires();
-    for (size_t wi = 0; wi < wires.size(); ++wi) {
-        const bp2::Blueprint::Wire& w = wires[wi];
-        auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
-        auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
+     const auto& wires = host_.wires();
+     for (size_t wi = 0; wi < wires.size(); ++wi) {
+         const bp2::Blueprint::Wire& w = wires[wi];
+         auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
+         auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
 
-        if (src_node == port_node_iid && src_port == port_name_iid) {
-            return build_wire_port_match(wi, true, w);
-        }
-        if (tgt_node == port_node_iid && tgt_port == port_name_iid) {
-            return build_wire_port_match(wi, false, w);
-        }
-    }
+         if (src_node == port_node_iid && src_port == port_name_iid) {
+             return build_wire_port_match(wi, true, w);
+         }
+         if (tgt_node == port_node_iid && tgt_port == port_name_iid) {
+             return build_wire_port_match(wi, false, w);
+         }
+     }
 
-    return std::nullopt;
+     return std::nullopt;
 }
 
 CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
-    size_t wire_index, bool detach_start, const bp2::Blueprint::Wire& w) const {
-    Pt anchor_pos;
-    bp2::PortSide fixed_side;
-    PortType fixed_type = PortType::Any;
-    if (detach_start) {
-        fixed_side = bp2::PortSide::Input;
-        auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
-        fixed_type = resolve_port_type_from_model(model_, tgt_node, tgt_port);
-        if (!w.routing_points.empty()) {
-            anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
-        } else {
-            auto* end_widget = scene_.find(interner_.resolve(tgt_node));
-            if (end_widget) {
-                auto* end_port = end_widget->portByName(interner_.resolve(tgt_port), interner_.resolve(w.id));
-                if (end_port) {
-                    anchor_pos = end_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
-                    fixed_type = end_port->type();
-                }
-            }
-        }
-    } else {
-        fixed_side = bp2::PortSide::Output;
-        auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
-        fixed_type = resolve_port_type_from_model(model_, src_node, src_port);
-        if (!w.routing_points.empty()) {
-            anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);
-        } else {
-            auto* start_widget = scene_.find(interner_.resolve(src_node));
-            if (start_widget) {
-                auto* start_port = start_widget->portByName(interner_.resolve(src_port), interner_.resolve(w.id));
-                if (start_port) {
-                    anchor_pos = start_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
-                    fixed_type = start_port->type();
-                }
-            }
-        }
-    }
-    return WirePortMatch{wire_index, detach_start, anchor_pos, fixed_side, fixed_type};
+     size_t wire_index, bool detach_start, const bp2::Blueprint::Wire& w) const {
+     Pt anchor_pos;
+     bp2::PortSide fixed_side;
+     PortType fixed_type = PortType::Any;
+     if (detach_start) {
+         fixed_side = bp2::PortSide::Input;
+         auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
+         fixed_type = resolve_port_type_from_model(host_.current_blueprint(), tgt_node, tgt_port);
+         if (!w.routing_points.empty()) {
+             anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
+         } else {
+             auto* end_widget = scene_.find(interner_.resolve(tgt_node));
+             if (end_widget) {
+                 auto* end_port = end_widget->portByName(interner_.resolve(tgt_port), interner_.resolve(w.id));
+                 if (end_port) {
+                     anchor_pos = end_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+                     fixed_type = end_port->type();
+                 }
+             }
+         }
+     } else {
+         fixed_side = bp2::PortSide::Output;
+         auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
+         fixed_type = resolve_port_type_from_model(host_.current_blueprint(), src_node, src_port);
+         if (!w.routing_points.empty()) {
+             anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);
+         } else {
+             auto* start_widget = scene_.find(interner_.resolve(src_node));
+             if (start_widget) {
+                 auto* start_port = start_widget->portByName(interner_.resolve(src_port), interner_.resolve(w.id));
+                 if (start_port) {
+                     anchor_pos = start_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+                     fixed_type = start_port->type();
+                 }
+             }
+         }
+     }
+     return WirePortMatch{wire_index, detach_start, anchor_pos, fixed_side, fixed_type};
 }

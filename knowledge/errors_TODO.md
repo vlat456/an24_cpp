@@ -1535,16 +1535,16 @@ Wire visualization is **domain-agnostic** — wires carry all signal types (volt
 2. **Replaced `sync_bridge_to_collapsed_and_nested()`** with `add_bridge_port_to_composite()` — builds one `PortDescriptor`, applies to both collapsed node and nested record in a single mutation
 
 3. **Subwindow rendering** now reads from `inline_def` directly:
-   - `rebuildAllWindows()` and `rebuild_windows_after_history_change()` sync `embedded_model` from `nested.inline_def`
-   - `BlueprintWindow` has `embedded_model` (dedicated `EditorModel`) so `CanvasInput` operates on the inner blueprint
-   - `applyInputResult()` syncs changes back to authoritative `nested.inline_def`
+   - `rebuildAllWindows()` and `rebuild_windows_after_history_change()` rebuild scenes from `nested.inline_def`
+   - `BlueprintWindow` uses `EmbeddedInlineHost` to read/write `inline_def` through the root `EditorModel`
+   - No shadow state or manual sync exists
 
 4. **Simulation integration** updated for embedded nodes:
    - `updateNodeContentFromSimulation()` iterates both root nodes and `inline_def` nodes
    - `buildEnergizedWireSet()` handles embedded composite wires via `inline_def`
    - `triggerSwitch`/`setSliderValue`/`setKnobPosition`/`holdButton*` accept `group_id` to build prefixed simulation keys
    - `NodeContentRenderer::render()` uses `win.rendered_blueprint()` for correct node source
-   - `fitViewToContent()` accounts for `embedded_model` (nodes have empty `group_id`)
+   - `fitViewToContent()` accounts for embedded scope (nodes have empty `group_id`)
 
 5. **Export** uses `collect_nested_devices_recursive` / `collect_nested_connections_recursive` to walk `inline_def` trees
 
@@ -1552,9 +1552,9 @@ Wire visualization is **domain-agnostic** — wires carry all signal types (volt
 - `src/editor/document_components.cpp` — removed shadow promotion, renamed sync function
 - `src/editor/document_simulation.cpp` — added `make_sim_id()`, `find_node_in_scope()` helpers; fixed all interaction functions
 - `src/editor/document_history.cpp` — undo/redo with `inline_def` sync
-- `src/editor/document_input.cpp` — `applyInputResult()` syncs embedded_model back
+- `src/editor/document_input.cpp` — `applyInputResult()` dispatches input results
 - `src/editor/document_export.cpp` — recursive inline_def traversal
-- `src/editor/window/blueprint_window.h` — `embedded_model`, `make_embedded_model()`
+- `src/editor/window/blueprint_window.h` — `BlueprintWindow` with `EditingHost`, no shadow state
 - `src/editor/visual/node/node_content_renderer.{h,cpp}` — render from `rendered_blueprint()`
 - `src/editor/visual/windows/sub_window_renderer.cpp` — fit-to-content fix
 - `knowledge/05_editor.md` — updated documentation

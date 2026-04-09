@@ -1,5 +1,7 @@
 #include "extract_blueprint_internal.h"
 
+#include "blueprint_v2/editor_model/editor_model.h"
+
 #include <algorithm>
 #include <functional>
 
@@ -397,12 +399,13 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     std::vector<ExternalConnection> sorted_outputs = plan.outputs;
     std::sort(sorted_inputs.begin(), sorted_inputs.end(), compare_external);
     std::sort(sorted_outputs.begin(), sorted_outputs.end(), compare_external);
-    std::vector<bp2::PortDescriptor> proxy_ports;
-    proxy_ports.reserve(sorted_inputs.size() + sorted_outputs.size());
-    append_proxy_ports(sorted_inputs, true, interner, proxy_ports);
-    append_proxy_ports(sorted_outputs, false, interner, proxy_ports);
-    collapsed.semantic.iface = bp2::Interface(std::move(proxy_ports));
+    // collapsed iface is derived from nested authority — do not seed from inline_bp (moved-from).
     out = out.with_node(std::move(collapsed));
+    out = bp2::sync_collapsed_node_iface_from_nested(out, nested_instance_id);
+
+    if (!bp2::composite_iface_matches_nested(out, nested_instance_id)) {
+        throw std::logic_error("build_parent_blueprint_from_plan: collapsed iface desynced from nested authority");
+    }
 
     // -- Iface collision check -----------------------------------------------
     std::unordered_set<std::string> input_iface_names;

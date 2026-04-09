@@ -128,12 +128,13 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/pi_zn_tuner.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/pi_zn_math.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_down.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_down.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp

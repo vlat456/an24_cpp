@@ -58,7 +58,6 @@ void Document::openExternalRefWindow(const std::string& instance_id,
     win->external_blueprint = std::move(*bp);
     win->external_interner = std::move(ext_interner);
     win->external_arena = std::move(ext_arena);
-    win->parent_instance_id = instance_id;
     win->set_read_only(true);
     win->pending_auto_fit = has_default_pan_zoom(*win->external_blueprint);
 

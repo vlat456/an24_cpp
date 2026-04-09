@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "editor/window/window_manager.h"
+#include "editor/window/blueprint_window.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/interface/interface.h"
@@ -54,7 +55,7 @@ TEST(WindowInvariants, OpenEmbeddedWindowWithoutInlineDefIsRejected) {
     EXPECT_TRUE(created);
 }
 
-TEST(WindowInvariants, EmbeddedWindowUsesEmbeddedModelAndRenderedBlueprintMatches) {
+TEST(WindowInvariants, EmbeddedWindowUsesAuthoritativeInlineBlueprint) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
@@ -76,17 +77,18 @@ TEST(WindowInvariants, EmbeddedWindowUsesEmbeddedModelAndRenderedBlueprintMatche
     auto [win, created] = windows.open("nested_ok", "Nested OK");
     ASSERT_NE(win, nullptr);
     ASSERT_TRUE(created);
-    ASSERT_TRUE(win->embedded_model);
     EXPECT_EQ(win->mode, BlueprintWindowMode::EmbeddedGroup);
-    EXPECT_EQ(&win->rendered_blueprint(), &win->embedded_model->current());
+    const auto* nested_after_open = model.current().find_nested(interner.lookup("nested_ok"));
+    ASSERT_NE(nested_after_open, nullptr);
+    ASSERT_NE(nested_after_open->inline_def(), nullptr);
+    EXPECT_EQ(&win->rendered_blueprint(), nested_after_open->inline_def());
     EXPECT_NE(&win->rendered_blueprint(), &model.current());
 }
 
 /// Regression test: opening a window with a scope_id that is not interned
-/// must not crash (previously caused null pointer dereference in
-/// make_embedded_model when interner.lookup returned empty InternedId
-/// and find_nested was called on it, then the result was dereferenced
-/// without null check).
+/// must not crash (previously caused null pointer dereference when
+/// interner.lookup returned empty InternedId and find_nested was called
+/// on it, then the result was dereferenced without null check).
 TEST(WindowInvariants, OpenWindowWithUnknownScopeIdDoesNotCrash) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -143,6 +145,64 @@ TEST(WindowInvariants, EmbeddedWindowCanvasInputUsesEmptyGroupFilter) {
     ASSERT_NE(win, nullptr);
     ASSERT_TRUE(created);
     EXPECT_EQ(win->input.scope_id_for_test(), "");
+}
+
+TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint inline_bp;
+    inline_bp = inline_bp.with_node(make_node(interner, "inner_move", "Test", 10.0f, 20.0f));
+
+    bp2::Blueprint root;
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("nested_edit"),
+        interner.intern("NestedType"),
+        std::make_unique<bp2::Blueprint>(inline_bp));
+    root = root.with_nested(std::move(nested));
+
+    bp2::EditorModel model(root);
+    WindowManager windows(model, interner, arena, nullptr);
+
+    auto [win, created] = windows.open("nested_edit", "Nested Edit");
+    ASSERT_NE(win, nullptr);
+    ASSERT_TRUE(created);
+
+    const ui::InternedId node_id = interner.lookup("inner_move");
+    ASSERT_FALSE(node_id.empty());
+
+    win->host->push_checkpoint();
+    ASSERT_TRUE(win->host->update_node_position(node_id, 42.0f, 84.0f));
+
+    const auto* nested_after_edit = model.current().find_nested(interner.lookup("nested_edit"));
+    ASSERT_NE(nested_after_edit, nullptr);
+    ASSERT_NE(nested_after_edit->inline_def(), nullptr);
+    const auto* moved = nested_after_edit->inline_def()->find_node(node_id);
+    ASSERT_NE(moved, nullptr);
+    EXPECT_FLOAT_EQ(moved->layout.x, 42.0f);
+    EXPECT_FLOAT_EQ(moved->layout.y, 84.0f);
+
+    model.undo();
+    const auto* nested_after_undo = model.current().find_nested(interner.lookup("nested_edit"));
+    ASSERT_NE(nested_after_undo, nullptr);
+    ASSERT_NE(nested_after_undo->inline_def(), nullptr);
+    const auto* undone = nested_after_undo->inline_def()->find_node(node_id);
+    ASSERT_NE(undone, nullptr);
+    EXPECT_FLOAT_EQ(undone->layout.x, 10.0f);
+    EXPECT_FLOAT_EQ(undone->layout.y, 20.0f);
+    EXPECT_FLOAT_EQ(win->rendered_blueprint().find_node(node_id)->layout.x, 10.0f);
+    EXPECT_FLOAT_EQ(win->rendered_blueprint().find_node(node_id)->layout.y, 20.0f);
+
+    model.redo();
+    const auto* nested_after_redo = model.current().find_nested(interner.lookup("nested_edit"));
+    ASSERT_NE(nested_after_redo, nullptr);
+    ASSERT_NE(nested_after_redo->inline_def(), nullptr);
+    const auto* redone = nested_after_redo->inline_def()->find_node(node_id);
+    ASSERT_NE(redone, nullptr);
+    EXPECT_FLOAT_EQ(redone->layout.x, 42.0f);
+    EXPECT_FLOAT_EQ(redone->layout.y, 84.0f);
+    EXPECT_FLOAT_EQ(win->rendered_blueprint().find_node(node_id)->layout.x, 42.0f);
+    EXPECT_FLOAT_EQ(win->rendered_blueprint().find_node(node_id)->layout.y, 84.0f);
 }
 
 TEST(WindowInvariants, WindowScopeIdDisambiguatesScopeModesWithSameKey) {
@@ -224,23 +284,22 @@ TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
     EXPECT_TRUE(emb_win->resolved_scope_id().is_embedded());
 }
 
-/// Regression test for #58: rendered_blueprint() must throw std::logic_error
-/// when EmbeddedGroup mode has no embedded_model (invariant violation).
-TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingEmbeddedModel) {
+/// Regression test for #58/#55: rendered_blueprint() must throw std::logic_error
+/// when EmbeddedGroup mode has no editing host (invariant violation).
+TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingEmbeddedHost) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint root_bp;
-    bp2::EditorModel model(root_bp);
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("nested_for_throw"),
+        interner.intern("NestedType"),
+        std::make_unique<bp2::Blueprint>());
+    bp2::EditorModel model(root_bp.with_nested(std::move(nested)));
 
-    // Create a BlueprintWindow directly and corrupt its state
-    auto win = std::make_unique<BlueprintWindow>(model, interner, arena, "", "Test");
-    
-    // Manually set mode to EmbeddedGroup but ensure embedded_model is null (invariant violation)
-    win->mode = BlueprintWindowMode::EmbeddedGroup;
-    win->embedded_model.reset();
+    auto win = std::make_unique<BlueprintWindow>(EmbeddedWindowTag{}, model, interner, arena, "nested_for_throw", "Test");
+    win->host.reset();
 
-    // rendered_blueprint() must throw std::logic_error on this invariant violation
     EXPECT_THROW(win->rendered_blueprint(), std::logic_error);
 }
 
@@ -255,7 +314,7 @@ TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingExternalBlueprint) {
 
     // Create a root window and corrupt its state to ExternalReference mode
     // without setting external_blueprint.
-    auto win = std::make_unique<BlueprintWindow>(model, interner, arena, "", "Test");
+    auto win = std::make_unique<BlueprintWindow>(RootWindowTag{}, model, interner, arena, "Test");
     win->mode = BlueprintWindowMode::ExternalReference;
     // external_blueprint is std::nullopt by default — invariant violation
 
@@ -272,4 +331,64 @@ TEST(WindowInvariants, WindowScopeIdEmbeddedThrowsOnEmptyGroupId) {
 /// in both debug and release builds (not debug-only assert).
 TEST(WindowInvariants, WindowScopeIdExternalThrowsOnEmptyParentInstanceId) {
     EXPECT_THROW(WindowScopeId::external(""), std::logic_error);
+}
+
+/// Regression test for #56: External windows must store identity solely in WindowScopeId.
+/// The scope key for an external window must equal the parent_instance_id passed to
+/// set_external_identity, eliminating any dual canonical/derived identity.
+TEST(WindowInvariants, ExternalWindowScopeCarriesParentInstanceId) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::Blueprint root_bp;
+    bp2::EditorModel model(root_bp);
+
+    WindowManager wm(model, interner, arena, nullptr);
+    auto* win = wm.open_external_stub("fol_1", "External Test");
+    ASSERT_NE(win, nullptr);
+
+    // The canonical scope must be external mode with the instance id as key.
+    EXPECT_EQ(win->resolved_scope_id(), WindowScopeId::external("fol_1"));
+    EXPECT_TRUE(win->resolved_scope_id().is_external());
+    EXPECT_EQ(win->resolved_scope_id().key(), "fol_1");
+
+    // find_external must locate the same window via typed scope lookup.
+    EXPECT_EQ(wm.find_external("fol_1"), win);
+}
+
+/// Regression test for #56: An embedded and external window with the same underlying
+/// key string must never collide — typed WindowScopeId keeps them separate.
+TEST(WindowInvariants, EmbeddedAndExternalWithSameKeyDoNotCollide) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint inline_bp;
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        interner.intern("shared_key"),
+        interner.intern("SomeType"),
+        std::make_unique<bp2::Blueprint>(inline_bp));
+    bp2::Blueprint root_bp = bp2::Blueprint().with_nested(std::move(nested));
+    bp2::EditorModel model(root_bp);
+
+    WindowManager wm(model, interner, arena, nullptr);
+
+    // Open embedded window for "shared_key"
+    auto [emb, created] = wm.open("shared_key", "Embedded");
+    ASSERT_NE(emb, nullptr);
+    ASSERT_TRUE(created);
+
+    // Open external window for the same key
+    auto* ext = wm.open_external_stub("shared_key", "External");
+    ASSERT_NE(ext, nullptr);
+
+    // They are different windows
+    EXPECT_NE(emb, ext);
+    EXPECT_EQ(emb->resolved_scope_id(), WindowScopeId::embedded("shared_key"));
+    EXPECT_EQ(ext->resolved_scope_id(), WindowScopeId::external("shared_key"));
+
+    // Lookups return the correct window by type
+    EXPECT_EQ(wm.find("shared_key"), emb);
+    EXPECT_EQ(wm.find_external("shared_key"), ext);
+
+    // Total: root + embedded + external = 3
+    EXPECT_EQ(wm.count(), 3u);
 }

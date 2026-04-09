@@ -16,7 +16,6 @@
 #include "commands/commands.h"
 #include "visual/persist.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
 #include "debug.h"
 #include <imgui.h>
@@ -32,10 +31,10 @@ using namespace canvas_input_impl;
 // ============================================================================
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
-                         bp2::EditorModel& model, ui::StringInterner& interner,
+                         EditingHost& host, ui::StringInterner& interner,
                          bp2::PathArena& arena, const std::string& scope_id,
                          const TypeRegistry* parser_registry)
-    : scene_(scene), viewport_(viewport), model_(model),
+    : scene_(scene), viewport_(viewport), host_(host),
       interner_(interner), arena_(arena),
       parser_registry_(parser_registry),
       group_iid_(interner.intern(scope_id)),
@@ -48,9 +47,20 @@ CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
 // ============================================================================
 
 void CanvasInput::snapshot_and_execute(Command cmd) {
-    model_.push_checkpoint();
-    execute(model_, interner_, std::move(cmd));
-    debug_validate_command_boundary(model_, interner_, arena_, parser_registry_);
+    host_.push_checkpoint();
+    std::visit([&](auto c) {
+        using T = std::decay_t<decltype(c)>;
+        if constexpr (std::is_same_v<T, CmdSetRoutingPoints>) {
+            host_.update_wire(c.wire_id, [&](bp2::Blueprint::Wire& w) {
+                w.routing_points = std::move(c.points);
+            });
+        } else if constexpr (std::is_same_v<T, CmdSetGridStep>) {
+            host_.set_grid_step(c.new_step);
+        } else {
+            throw std::logic_error("CanvasInput::snapshot_and_execute received unsupported command");
+        }
+    }, std::move(cmd));
+    debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
 }
 
 // ============================================================================
@@ -205,7 +215,7 @@ void CanvasInput::enter_drag_routing_point(visual::Wire* wire, visual::RoutingPo
     rp_index_ = rp_idx;
     drag_anchor_ = rp->worldPos();
 
-    const bp2::Blueprint::Wire* bp2_wire = model_.current().find_wire(rp_wire_id_);
+    const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(rp_wire_id_);
     if (bp2_wire) {
         rp_initial_points_.clear();
         rp_initial_points_.reserve(bp2_wire->routing_points.size());
@@ -261,7 +271,7 @@ void CanvasInput::enter_drag_knob(visual::Widget* node_widget, Pt world_pos) {
     knob_node_id_ = interner_.intern(node_widget->id());
     knob_drag_start_x_ = world_pos.x;
 
-     const bp2::Blueprint::Node* node = model_.current().find_node(knob_node_id_);
+     const bp2::Blueprint::Node* node = host_.find_node(knob_node_id_);
      if (node) {
          knob_drag_start_pos_ = static_cast<int>(node->view.content_value);
          knob_num_positions_ = static_cast<int>(node->view.content_max);
@@ -303,7 +313,7 @@ bool CanvasInput::try_handle_node_interaction(visual::Widget* widget, Pt world, 
 
             ui::InternedId nid_iid = interner_.lookup(node_id);
             const bp2::Blueprint::Node* node = nid_iid.empty() ? nullptr
-                                                               : model_.current().find_node(nid_iid);
+                                                               : host_.find_node(nid_iid);
             if (node) {
                 float pad = visual::SliderWidget::HANDLE_RADIUS;
                 float track_w = cb.w - 2.0f * pad;
@@ -365,7 +375,7 @@ InputResult CanvasInput::on_scroll(float delta, Pt screen_pos, Pt canvas_min) {
 
 size_t CanvasInput::find_wire_index(ui::InternedId wire_id) const {
     if (wire_id.empty()) return SIZE_MAX;
-    const auto& wires = model_.current().wires();
+    const auto& wires = host_.wires();
     for (size_t i = 0; i < wires.size(); ++i) {
         if (wires[i].id == wire_id) return i;
     }
@@ -374,7 +384,7 @@ size_t CanvasInput::find_wire_index(ui::InternedId wire_id) const {
 
 size_t CanvasInput::find_node_index(ui::InternedId node_id) const {
     if (node_id.empty()) return SIZE_MAX;
-    const auto& nodes = model_.current().nodes();
+    const auto& nodes = host_.nodes();
     for (size_t i = 0; i < nodes.size(); ++i) {
         if (nodes[i].semantic.id == node_id) return i;
     }

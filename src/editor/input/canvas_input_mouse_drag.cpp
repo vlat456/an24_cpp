@@ -21,7 +21,7 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
     for (auto* w : selected_nodes()) {
         ui::InternedId nid = interner_.intern(w->id());
         if (nid.empty()) continue;
-        const bp2::Blueprint::Node* n = model_.current().find_node(nid);
+        const bp2::Blueprint::Node* n = host_.find_node(nid);
         if (!n || n->view.render_hint != "ref" || n->semantic.type == value_type) {
             all_ref_nodes = false;
             break;
@@ -44,7 +44,7 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
 
         ui::InternedId node_iid = interner_.intern(widget->id());
         if (!node_iid.empty()) {
-            for (const bp2::Blueprint::Wire& w : model_.current().wires()) {
+            for (const bp2::Blueprint::Wire& w : host_.wires()) {
                 auto [src_node, _sp] = editor_math::path_to_node_port(w.source, arena_);
                 auto [tgt_node, _tp] = editor_math::path_to_node_port(w.target, arena_);
                 if (src_node == node_iid || tgt_node == node_iid) {
@@ -173,7 +173,7 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 float track_w = slider_widget_width_ - 2.0f * pad;
                 float t = (track_w > 0.0f) ? std::clamp((local_x - pad) / track_w, 0.0f, 1.0f) : 0.0f;
 
-                const bp2::Blueprint::Node* node = model_.current().find_node(slider_node_id_);
+                const bp2::Blueprint::Node* node = host_.find_node(slider_node_id_);
                 if (node) {
                     float val = node->view.content_min + t * (node->view.content_max - node->view.content_min);
                     result.slider_node_id = std::string(interner_.resolve(slider_node_id_));

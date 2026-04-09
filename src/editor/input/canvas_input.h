@@ -1,6 +1,7 @@
 #pragma once
 
 #include "editor/input/input_types.h"
+#include "editor/input/editing_host.h"
 #include "ui/math/pt.h"
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/blueprint/node_port.h"
@@ -42,7 +43,7 @@ struct TypeRegistry;
 class CanvasInput {
 public:
     CanvasInput(visual::Scene& scene, Viewport& viewport,
-                bp2::EditorModel& model, ui::StringInterner& interner,
+                EditingHost& host, ui::StringInterner& interner,
                 bp2::PathArena& arena, const std::string& scope_id,
                 const TypeRegistry* parser_registry = nullptr);
 
@@ -122,7 +123,7 @@ public:
 private:
     visual::Scene& scene_;
     Viewport& viewport_;
-    bp2::EditorModel& model_;
+    EditingHost& host_;
     ui::StringInterner& interner_;
     bp2::PathArena& arena_;
     const TypeRegistry* parser_registry_ = nullptr;

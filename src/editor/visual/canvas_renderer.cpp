@@ -144,9 +144,9 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
                                           *win.external_blueprint,
                                           *win.external_interner,
                                           *win.external_arena,
-                                          win.parent_instance_id);
-    } else {
-        doc.buildEnergizedWireSet(energized_buf_, win.scope_id);
+                                           win.resolved_scope_id().key());
+     } else {
+        doc.buildEnergizedWireSet(energized_buf_, win.resolved_scope_id().key());
     }
 
     // Resolve selected node IDs → pointers for this frame.
@@ -198,7 +198,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         };
 
         // Use centralized resolver for signal key lookup
-        if (win.is_external_ref() && !win.parent_instance_id.empty()) {
+        if (win.is_external_ref() && !win.resolved_scope_id().key().empty()) {
             auto node_iid = win.external_interner ? win.external_interner->lookup(node_id) : ui::InternedId();
             auto port_iid = win.external_interner ? win.external_interner->lookup(port_name) : ui::InternedId();
             if (!node_iid.empty() && !port_iid.empty() && win.external_blueprint) {
@@ -208,7 +208,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
                                                   node,
                                                   node_iid,
                                                   port_iid,
-                                                  editor::external_ref_signal_context(win.parent_instance_id));
+                                                  editor::external_ref_signal_context(win.resolved_scope_id().key()));
                 // Defensive: if resolver returns empty (unresolvable IDs), build canonical key directly
                 if (signal_key.empty()) {
                     signal_key = editor::build_signal_key(node_id, port_name);
@@ -271,11 +271,11 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         std::string signal_key;
         // Use resolver for signal key lookup
         const bp2::Blueprint::Node* bp_node = bp_ref.find_node(node_iid);
-        if (win.is_external_ref() && !win.parent_instance_id.empty()) {
+        if (win.is_external_ref() && !win.resolved_scope_id().key().empty()) {
             editor::SignalEndpoint endpoint{bp_node, node_iid, port_iid};
             signal_key = editor::resolve_runtime_signal_key(
                 bp_ref, interner, endpoint,
-                editor::external_ref_signal_context(win.parent_instance_id));
+                editor::external_ref_signal_context(win.resolved_scope_id().key()));
         } else {
             editor::SignalEndpoint endpoint{bp_node, node_iid, port_iid};
             signal_key = editor::resolve_runtime_signal_key(

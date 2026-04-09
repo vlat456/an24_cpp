@@ -96,6 +96,30 @@ Blueprint replace_nested_preserve_order(const Blueprint& bp, Blueprint::Nested u
     return rebuilt;
 }
 
+Blueprint sync_collapsed_node_iface_from_nested(const Blueprint& bp, ui::InternedId nested_id) {
+    const auto* nested = bp.find_nested(nested_id);
+    if (!nested) {
+        throw std::logic_error("sync_collapsed_node_iface_from_nested: nested instance not found");
+    }
+    const auto* collapsed = bp.find_node(nested_id);
+    if (!collapsed) {
+        throw std::logic_error("sync_collapsed_node_iface_from_nested: collapsed node not found");
+    }
+
+    Blueprint::Node updated = *collapsed;
+    updated.semantic.iface = nested->resolved_iface();
+    return replace_node_preserve_order(bp, std::move(updated));
+}
+
+bool composite_iface_matches_nested(const Blueprint& bp, ui::InternedId nested_id) {
+    const auto* nested = bp.find_nested(nested_id);
+    const auto* collapsed = bp.find_node(nested_id);
+    if (!nested || !collapsed) {
+        return false;
+    }
+    return collapsed->semantic.iface == nested->resolved_iface();
+}
+
 EditorModel::EditorModel(Blueprint initial)
     : current_(std::move(initial)) {}
 
@@ -227,6 +251,16 @@ bool EditorModel::bake_nested(ui::InternedId id,
         nested->x, nested->y);
 
     current_ = current_.without_nested(id).with_nested(std::move(baked));
+
+    // Sync collapsed node interface from the freshly-baked embedded nested.
+    // The collapsed node may exist (composite workflow) or not (nested-only tests).
+    if (current_.find_node(id)) {
+        current_ = sync_collapsed_node_iface_from_nested(current_, id);
+        if (!composite_iface_matches_nested(current_, id)) {
+            throw std::logic_error("bake_nested: collapsed iface desynced from nested authority");
+        }
+    }
+
     invalidate_indices();
     return true;
 }

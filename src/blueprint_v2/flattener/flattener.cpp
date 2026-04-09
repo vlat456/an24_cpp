@@ -17,6 +17,22 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
 }
 
 // ==================================================================
+// throw_unresolved_nested — fail loudly on missing nested blueprint
+// ==================================================================
+
+[[noreturn]] void Flattener::throw_unresolved_nested(Blueprint::Nested const& nested, Path prefix) const {
+    const std::string instance_path = arena_->to_string(arena_->make_nested(prefix, nested.id));
+    const auto bp_id = nested.blueprint_id();
+    const auto bp_name = arena_->resolve_id(bp_id);
+    const std::string blueprint_id = bp_name.empty()
+        ? std::string{"<empty>"}
+        : std::string{bp_name};
+    throw std::logic_error(
+        "Flattener: unresolved nested blueprint for instance '" + instance_path
+        + "' (blueprint_id='" + blueprint_id + "')");
+}
+
+// ==================================================================
 // visit_blueprint — emit leaf nodes, recurse into nested instances
 // ==================================================================
 
@@ -108,7 +124,9 @@ void Flattener::visit_nested(
     } else {
         inner = library_.find(nested.blueprint_id());
     }
-    if (!inner) return;
+    if (!inner) {
+        throw_unresolved_nested(nested, prefix);
+    }
 
     // Seed boundary signals: map outer port path to parent signal index
     std::unordered_map<Path, SignalIndex> nested_signals;

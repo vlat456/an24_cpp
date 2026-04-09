@@ -185,6 +185,10 @@ public:
 private:
     // ── Private helpers ──
 
+    /// Rebuild every open window scene from its authoritative blueprint source.
+    /// Does not cancel gestures and does not rebuild the simulation.
+    void rebuild_window_scenes();
+
     /// Build simulator JSON from current bp2 model.
     std::string build_simulation_json();
 

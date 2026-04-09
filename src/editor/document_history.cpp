@@ -2,43 +2,6 @@
 
 #include "debug.h"
 #include "visual/persist.h"
-#include "visual/scene_mutations.h"
-
-#include <spdlog/spdlog.h>
-
-namespace {
-
-void rebuild_windows_after_history_change(Document& doc) {
-    for (auto& win : doc.windowManager().windows()) {
-        win->viewport.grid_step = doc.model().current().grid_step();
-        if (win->is_external_ref() && win->external_blueprint
-            && win->external_interner && win->external_arena) {
-            visual::mutations::rebuild(win->scene, *win->external_blueprint,
-                                       *win->external_interner, *win->external_arena, "");
-        } else if (!win->scope_id.empty()) {
-            // Sync embedded_model from the authoritative nested.inline_def
-            const ui::InternedId group_iid = doc.interner().lookup(win->scope_id);
-            const bp2::Blueprint::Nested* nested = group_iid.empty()
-                ? nullptr
-                : doc.model().current().find_nested(group_iid);
-            if (nested && nested->inline_def()) {
-                if (win->embedded_model) {
-                    win->embedded_model->replace_current(*nested->inline_def());
-                }
-                visual::mutations::rebuild(win->scene, *nested->inline_def(),
-                                           doc.interner(), doc.arena(), "");
-            } else {
-                spdlog::error("[editor] Embedded window '{}' missing nested inline_def after history change", win->scope_id);
-                continue;
-            }
-        } else {
-            visual::mutations::rebuild(win->scene, doc.model().current(),
-                                       doc.interner(), doc.arena(), "");
-        }
-    }
-}
-
-} // namespace
 
 bool Document::performUndo() {
     if (!model_.can_undo()) return false;
@@ -66,7 +29,7 @@ bool Document::performUndo() {
 #endif
 
     window_manager_.remove_orphaned_windows();
-    rebuild_windows_after_history_change(*this);
+    rebuild_window_scenes();
     rebuildSimulation();
     return true;
 }
@@ -97,7 +60,7 @@ bool Document::performRedo() {
 #endif
 
     window_manager_.remove_orphaned_windows();
-    rebuild_windows_after_history_change(*this);
+    rebuild_window_scenes();
     rebuildSimulation();
     return true;
 }

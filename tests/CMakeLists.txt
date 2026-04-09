@@ -639,6 +639,7 @@ add_executable(canvas_input_tests
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
@@ -680,6 +681,7 @@ add_executable(window_invariants_tests
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp

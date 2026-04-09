@@ -1,100 +1,133 @@
 #pragma once
 
-#include "window/window_scope_id.h"
+#include "input/canvas_input.h"
+#include "input/editing_host.h"
+#include "viewport/viewport.h"
 #include "visual/scene.h"
 #include "visual/scene_mutations.h"
-#include "viewport/viewport.h"
-#include "input/canvas_input.h"
+#include "window/window_scope_id.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
-#include "ui/core/interned_id.h"
-#include <cassert>
-#include <string>
+
 #include <optional>
+#include <string>
 
 struct TypeRegistry;
 
+struct RootWindowTag {};
+struct EmbeddedWindowTag {};
+
 struct BlueprintWindow {
-    std::string title;
-    std::string scope_id;
-    bool open = true;
-
-    std::unique_ptr<bp2::EditorModel> embedded_model;
-    bp2::EditorModel& model;
-    ui::StringInterner& interner;
-    bp2::PathArena& arena;
-    visual::Scene scene;
-    Viewport viewport;
-    CanvasInput input;
-
-    bool read_only = false;
-    void set_read_only(bool v) { read_only = v; input.read_only = v; }
-
-    /// Simulation-mode guard: blocks editing but allows widget interaction.
-    void set_simulation_mode(bool v) { input.simulation_mode = v; }
-
-    bool pending_auto_fit = false;
-
-    // ── External reference mode ──
-
-    BlueprintWindowMode mode = BlueprintWindowMode::RootDocument;
-
-    /// For ExternalReference mode: the loaded external blueprint snapshot.
-    /// Scene is rebuilt from this blueprint (root scope) instead of the parent's.
-    std::optional<bp2::Blueprint> external_blueprint;
-
-    /// For ExternalReference mode: dedicated interner/arena for the external blueprint.
-    /// These own the string storage for paths/IDs within the external blueprint.
-    std::unique_ptr<ui::StringInterner> external_interner;
-    std::unique_ptr<bp2::PathArena> external_arena;
-
-    /// For ExternalReference mode: the parent instance id (e.g. "firstorderlag_1").
-    /// Signal keys are mapped: child "node.port" → parent "parent_instance_id:node.port".
-    std::string parent_instance_id;
-
-    static std::unique_ptr<bp2::EditorModel> make_embedded_model(
-        bp2::EditorModel& root_model,
-        ui::StringInterner& interner,
-        const std::string& scope_id) {
-        if (scope_id.empty()) {
-            return nullptr;
+    static const bp2::Blueprint& require_external_blueprint(const std::optional<bp2::Blueprint>& bp) {
+        if (!bp.has_value()) {
+            throw std::logic_error("ExternalReference window missing external_blueprint");
         }
-        const ui::InternedId group_iid = interner.lookup(scope_id);
-        const bp2::Blueprint::Nested* nested = group_iid.empty()
-            ? nullptr
-            : root_model.current().find_nested(group_iid);
+        return *bp;
+    }
+
+    static const EditingHost& require_host(const std::unique_ptr<EditingHost>& host) {
+        if (!host) {
+            throw std::logic_error("BlueprintWindow missing editing host");
+        }
+        return *host;
+    }
+
+    static ui::InternedId require_nested_id(ui::StringInterner& interner, const std::string& scope_id) {
+        const ui::InternedId nested_id = interner.lookup(scope_id);
+        if (nested_id.empty()) {
+            throw std::logic_error("Embedded window construction failed: nested instance not found");
+        }
+        return nested_id;
+    }
+
+    static const bp2::Blueprint::Nested& require_embedded_nested(bp2::EditorModel& root_model,
+                                                                 ui::InternedId nested_id) {
+        const auto* nested = root_model.current().find_nested(nested_id);
         if (!nested) {
             throw std::logic_error("Embedded window construction failed: nested instance not found");
         }
         if (!nested->is_embedded() || !nested->inline_def()) {
             throw std::logic_error("Embedded window construction failed: nested instance missing inline_def");
         }
-        return std::make_unique<bp2::EditorModel>(*nested->inline_def());
+        return *nested;
     }
 
-    BlueprintWindow(bp2::EditorModel& model_, ui::StringInterner& interner_,
+    static std::unique_ptr<EditingHost> make_embedded_host(bp2::EditorModel& root_model,
+                                                           ui::StringInterner& interner,
+                                                           const std::string& embedded_scope_id) {
+        return create_embedded_inline_host(root_model,
+                                           require_nested_id(interner, embedded_scope_id));
+    }
+
+    std::string title;
+    WindowScopeId scope;
+    bool open = true;
+
+    bp2::EditorModel& root_model;
+    ui::StringInterner& interner;
+    bp2::PathArena& arena;
+    visual::Scene scene;
+    Viewport viewport;
+    std::unique_ptr<EditingHost> host;
+    CanvasInput input;
+
+    bool read_only = false;
+    void set_read_only(bool v) { read_only = v; input.read_only = v; }
+
+    void set_simulation_mode(bool v) { input.simulation_mode = v; }
+
+    bool pending_auto_fit = false;
+
+    BlueprintWindowMode mode = BlueprintWindowMode::RootDocument;
+
+    std::optional<bp2::Blueprint> external_blueprint;
+    std::unique_ptr<ui::StringInterner> external_interner;
+    std::unique_ptr<bp2::PathArena> external_arena;
+
+    void set_external_identity(const std::string& instance_id) {
+        scope = WindowScopeId::external(instance_id);
+        mode = BlueprintWindowMode::ExternalReference;
+    }
+
+    BlueprintWindow(RootWindowTag,
+                    bp2::EditorModel& model_,
+                    ui::StringInterner& interner_,
                     bp2::PathArena& arena_,
-                    const std::string& scope_id_,
                     const std::string& title_,
                     const TypeRegistry* parser_registry = nullptr)
         : title(title_)
-        , scope_id(scope_id_)
-        , embedded_model(make_embedded_model(model_, interner_, scope_id_))
-        , model(embedded_model ? *embedded_model : model_)
+        , scope(WindowScopeId::root())
+        , root_model(model_)
         , interner(interner_)
         , arena(arena_)
         , scene()
         , viewport()
-        , input(scene, viewport, model, interner_, arena_, "", parser_registry)
-    {
-        viewport.grid_step = model_.current().grid_step();
+        , host(create_editor_model_host(root_model))
+        , input(scene, viewport, *host, interner_, arena_, "", parser_registry) {
+        viewport.grid_step = root_model.current().grid_step();
+        visual::mutations::rebuild(scene, root_model.current(), interner_, arena_, "");
+    }
 
-        if (embedded_model) {
-            visual::mutations::rebuild(scene, embedded_model->current(), interner_, arena_, "");
-            mode = BlueprintWindowMode::EmbeddedGroup;
-        } else {
-            visual::mutations::rebuild(scene, model_.current(), interner_, arena_, "");
-        }
+    BlueprintWindow(EmbeddedWindowTag,
+                    bp2::EditorModel& model_,
+                    ui::StringInterner& interner_,
+                    bp2::PathArena& arena_,
+                    const std::string& embedded_scope_id,
+                    const std::string& title_,
+                    const TypeRegistry* parser_registry = nullptr)
+        : title(title_)
+        , scope(WindowScopeId::embedded(embedded_scope_id))
+        , root_model(model_)
+        , interner(interner_)
+        , arena(arena_)
+        , scene()
+        , viewport()
+        , host(make_embedded_host(root_model, interner_, embedded_scope_id))
+        , input(scene, viewport, *host, interner_, arena_, "", parser_registry)
+        , mode(BlueprintWindowMode::EmbeddedGroup) {
+        const auto& nested = require_embedded_nested(root_model, require_nested_id(interner_, embedded_scope_id));
+        viewport.grid_step = nested.inline_def()->grid_step();
+        visual::mutations::rebuild(scene, *nested.inline_def(), interner_, arena_, "");
     }
 
     BlueprintWindow(const BlueprintWindow&) = delete;
@@ -102,40 +135,25 @@ struct BlueprintWindow {
     BlueprintWindow(BlueprintWindow&&) = delete;
     BlueprintWindow& operator=(BlueprintWindow&&) = delete;
 
-    /// Check if this window is in external reference mode.
     bool is_external_ref() const { return mode == BlueprintWindowMode::ExternalReference; }
 
-    /// Typed scope identity for this window.
-    WindowScopeId resolved_scope_id() const {
-        if (mode == BlueprintWindowMode::ExternalReference) {
-            return WindowScopeId::external(parent_instance_id);
-        }
-        if (!scope_id.empty()) {
-            return WindowScopeId::embedded(scope_id);
-        }
-        return WindowScopeId::root();
+    /// For external use only: returns scope key as string.
+    /// Internal WindowManager comparisons use typed WindowScopeId.
+    std::string scope_id_str() const {
+        return scope.key();
     }
 
-    /// Get the blueprint to render (external or parent's filtered by layout_group).
+    WindowScopeId resolved_scope_id() const {
+        return scope;
+    }
+
     const bp2::Blueprint& rendered_blueprint() const {
         if (mode == BlueprintWindowMode::ExternalReference) {
-            if (external_blueprint.has_value()) {
-                return *external_blueprint;
-            }
-            assert(false && "ExternalReference window missing external_blueprint");
-            throw std::logic_error("ExternalReference window missing external_blueprint");
+            return require_external_blueprint(external_blueprint);
         }
-        if (mode == BlueprintWindowMode::EmbeddedGroup) {
-            assert(embedded_model && "EmbeddedGroup window must have embedded_model");
-            if (!embedded_model) {
-                throw std::logic_error("EmbeddedGroup window missing embedded_model");
-            }
-            return embedded_model->current();
-        }
-        return model.current();
+        return require_host(host).current_blueprint();
     }
 
-    /// Get the interner for the rendered blueprint.
     ui::StringInterner& rendered_interner() {
         if (mode == BlueprintWindowMode::ExternalReference && external_interner) {
             return *external_interner;
@@ -143,7 +161,6 @@ struct BlueprintWindow {
         return interner;
     }
 
-    /// Get the arena for the rendered blueprint.
     bp2::PathArena& rendered_arena() {
         if (mode == BlueprintWindowMode::ExternalReference && external_arena) {
             return *external_arena;
