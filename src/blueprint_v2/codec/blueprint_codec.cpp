@@ -24,7 +24,7 @@ std::string BlueprintCodec::encode(Blueprint const& bp,
     j["id"] = std::string(interner.resolve(bp.id()));
     j["display_name"] = bp.display_name();
     j["interface"] = codec_detail::encode_interface(bp.iface(), interner, type_def);
-    j["nodes"] = codec_detail::encode_nodes(bp.nodes(), interner, parser_registry);
+    j["nodes"] = codec_detail::encode_nodes(bp.nodes(), bp.nested(), interner, parser_registry);
     j["wires"] = codec_detail::encode_wires(bp.wires(), interner, arena);
     j["nested"] = codec_detail::encode_nested(bp.nested(), interner, arena, parser_registry);
 
@@ -137,6 +137,9 @@ std::optional<Blueprint> BlueprintCodec::decode(
         bp = codec_detail::decode_wires(std::move(bp), j["wires"], interner, arena);
         bp = codec_detail::decode_nested(std::move(bp), j["nested"], interner, parser_registry, arena);
 
+        // Referenced nested interfaces are re-derived from the current
+        // registry during decode. Canonicalize host iface caches after that
+        // derivation so composite hosts mirror the active boundary interface.
         bp = canonicalize_composite_host_ifaces(std::move(bp));
 
         auto inv = InvariantChecker::validate(bp, arena, parser_registry, interner);

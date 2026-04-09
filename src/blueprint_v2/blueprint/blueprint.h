@@ -81,6 +81,8 @@ public:
             std::string name;
             std::string render_hint;
             bool expandable = false;
+            /// External-reference routing path for non-nested expandable nodes.
+            /// Referenced nested hosts must not rely on this as authority.
             std::string blueprint_path;
 
             // Node content (simulation readout / interactive widget)
@@ -152,10 +154,12 @@ public:
             Embedded& operator=(Embedded&&) noexcept = default;
         };
 
-        /// Reference mode: external blueprint by ID with resolved interface cache.
+        /// Reference mode: external blueprint by ID with derived interface cache.
+        /// `blueprint_id` is authoritative; `resolved_iface` must mirror the
+        /// current registry/library definition for that id.
         struct Reference {
             ui::InternedId blueprint_id;  // always non-empty
-            Interface resolved_iface;     // always populated
+            Interface resolved_iface;     // derived cache, always populated
         };
 
     private:
@@ -270,6 +274,9 @@ public:
     Nested const* find_hosted_nested(Node const& node) const;
     Node const* find_host_node(Nested const& nested) const;
     bool is_embedded_proxy_node(Node const& node) const;
+    bool is_external_reference_node(Node const& node) const;
+    std::string const& external_reference_path(Node const& node) const;
+    std::string const& referenced_host_blueprint_path_mirror(Node const& node) const;
 
     /// Return the authoritative interface for a node.
     /// For composite host nodes, embedded nested authority wins.

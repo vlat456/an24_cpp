@@ -1,6 +1,7 @@
 #include "invariant_checker.h"
 
 #include "owner_scope.h"
+#include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/library/library_path.h"
 #include <unordered_set>
 
@@ -52,6 +53,20 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 + " blueprint_id=" + iid_to_string(n.blueprint_id());
             return out;
         }
+        if (n.is_reference()) {
+            const auto* def = parser_registry.get(std::string(interner.resolve(n.blueprint_id())));
+            if (!def) {
+                out.error = "unknown nested blueprint id=" + iid_to_string(n.id)
+                    + " blueprint_id=" + iid_to_string(n.blueprint_id());
+                return out;
+            }
+            Interface expected = interface_from_type_definition(*def, interner);
+            if (n.resolved_iface() != expected) {
+                out.error = "referenced nested resolved iface desynced from registry at nested id="
+                    + iid_to_string(n.id);
+                return out;
+            }
+        }
 
         const auto* host = bp.find_host_node(n);
         if (!host) {
@@ -94,8 +109,8 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             return out;
         }
 
-        // Single-authority check: if nested is reference-mode and host has blueprint_path,
-        // it must equal the canonical category-relative path from blueprint_id
+        // Reference-mode authority check: blueprint_id is authoritative.
+        // Host blueprint_path is only an optional checked mirror.
         if (nested->is_reference() && !node.view.blueprint_path.empty()) {
             auto canonical_path = bp2::resolve_category_relative_blueprint_path(
                 parser_registry,

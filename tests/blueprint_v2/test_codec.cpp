@@ -2,6 +2,7 @@
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/blueprint/canonicalize.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/interface/node_port_projection.h"
@@ -1061,6 +1062,120 @@ TEST(BlueprintCodec, ReferenceNestedIfaceCache_RoundTripParity) {
         ASSERT_TRUE(maybe.has_value());
         EXPECT_EQ(*maybe, pd);
     }
+}
+
+TEST(BlueprintCodec, ReferenceNestedDecodeReDerivesIfaceFromCurrentRegistry) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    TypeRegistry reg_v1;
+    register_type(reg_v1, interner, "RefNestedType", bp2::Interface({
+        make_port(interner, "vin", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    }));
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("ref_nested_registry_drift"));
+    bp = bp.with_display_name("Ref Nested Registry Drift");
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("inst1");
+    host.semantic.type = interner.intern("RefNestedType");
+    host.view.expandable = true;
+    set_iface(host, {
+        make_port(interner, "vin", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+    bp = bp.with_node(std::move(host));
+
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("inst1"),
+        interner.intern("RefNestedType"),
+        bp2::Interface({
+            make_port(interner, "stale_only", Domain::Logical, bp2::Direction::Output, PortType::Bool),
+        }));
+    bp = bp.with_nested(std::move(nested));
+
+    const std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
+    const auto json = nlohmann::json::parse(encoded);
+    ASSERT_EQ(json["nested"].size(), 1u);
+    EXPECT_FALSE(json["nested"][0].contains("interface"));
+    EXPECT_FALSE(json["nested"][0].contains("ports"));
+    EXPECT_FALSE(json["nested"][0].contains("resolved_iface"));
+
+    TypeRegistry reg_v2;
+    register_type(reg_v2, interner, "RefNestedType", bp2::Interface({
+        make_port(interner, "vin", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "rpm", Domain::Mechanical, bp2::Direction::Output, PortType::RPM),
+    }));
+
+    bp2::DecodeError err;
+    auto decoded = bp2::BlueprintCodec::decode(encoded, interner, arena, reg_v2, &err);
+    ASSERT_TRUE(decoded.has_value()) << err.message;
+    ASSERT_EQ(decoded->nested().size(), 1u);
+    const auto& decoded_nested = decoded->nested()[0];
+    EXPECT_TRUE(decoded_nested.is_reference());
+    EXPECT_TRUE(decoded_nested.resolved_iface().has(interner.intern("vin")));
+    EXPECT_TRUE(decoded_nested.resolved_iface().has(interner.intern("rpm")));
+    EXPECT_FALSE(decoded_nested.resolved_iface().has(interner.intern("stale_only")));
+
+    const auto* decoded_host = decoded->find_node(interner.intern("inst1"));
+    ASSERT_NE(decoded_host, nullptr);
+    EXPECT_EQ(decoded_host->semantic.iface, decoded_nested.resolved_iface());
+}
+
+TEST(BlueprintCodec, ReferencedNestedHostDoesNotPersistBlueprintPath) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    register_type(reg, interner, "RefNestedType", bp2::Interface({
+        make_port(interner, "vin", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    }));
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("ref_host_no_bp_path"));
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("inst1");
+    host.semantic.type = interner.intern("RefNestedType");
+    host.view.expandable = true;
+    host.view.blueprint_path = "math/RefNestedType";
+    set_iface(host, {
+        make_port(interner, "vin", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("inst1"),
+        interner.intern("RefNestedType"),
+        bp2::Interface({
+            make_port(interner, "vin", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        }));
+
+    bp = bp.with_node(std::move(host));
+    bp = bp.with_nested(std::move(nested));
+    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
+
+    const auto encoded = nlohmann::json::parse(bp2::BlueprintCodec::encode(bp, interner, arena, &reg));
+    ASSERT_EQ(encoded["nodes"].size(), 1u);
+    EXPECT_FALSE(encoded["nodes"][0].contains("blueprint_path"));
+}
+
+TEST(BlueprintCodec, ExternalReferenceNodePersistsBlueprintPath) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("external_ref_bp_path"));
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("firstorderlag_1");
+    node.semantic.type = interner.intern("FirstOrderLag");
+    node.view.expandable = true;
+    node.view.blueprint_path = "math/FirstOrderLag";
+    bp = bp.with_node(std::move(node));
+
+    const auto encoded = nlohmann::json::parse(bp2::BlueprintCodec::encode(bp, interner, arena, &reg));
+    ASSERT_EQ(encoded["nodes"].size(), 1u);
+    EXPECT_EQ(encoded["nodes"][0]["blueprint_path"], "math/FirstOrderLag");
 }
 
 // =============================================================================

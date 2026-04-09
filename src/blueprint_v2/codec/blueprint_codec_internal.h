@@ -83,6 +83,7 @@ nlohmann::json encode_interface(Interface const& iface,
                                 TypeDefinition const* type_def);
 
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
+                            std::vector<Blueprint::Nested> const& nested,
                             ui::StringInterner const& interner,
                             ::TypeRegistry const* parser_registry);
 

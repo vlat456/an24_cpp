@@ -221,6 +221,26 @@ bool Blueprint::is_embedded_proxy_node(Node const& node) const {
     return node.view.expandable && nested && nested->is_embedded();
 }
 
+bool Blueprint::is_external_reference_node(Node const& node) const {
+    return node.view.expandable && !find_hosted_nested(node) && !node.view.blueprint_path.empty();
+}
+
+std::string const& Blueprint::external_reference_path(Node const& node) const {
+    if (!is_external_reference_node(node)) {
+        throw std::logic_error("Blueprint::external_reference_path: node is not an external reference");
+    }
+    return node.view.blueprint_path;
+}
+
+std::string const& Blueprint::referenced_host_blueprint_path_mirror(Node const& node) const {
+    const Nested* nested = find_hosted_nested(node);
+    if (!nested || !nested->is_reference()) {
+        throw std::logic_error(
+            "Blueprint::referenced_host_blueprint_path_mirror: node is not a referenced nested host");
+    }
+    return node.view.blueprint_path;
+}
+
 Interface const& Blueprint::effective_node_iface(ui::InternedId node_id) const {
     const Node* node = find_node(node_id);
     if (!node) {

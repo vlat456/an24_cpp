@@ -2,6 +2,8 @@
 
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/blueprint/canonicalize.h"
+#include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/validation/path_resolver.h"
 #include "blueprint_v2/validation/wire_validator.h"
 #include "blueprint_v2/validation/invariant_checker.h"
@@ -534,18 +536,21 @@ TEST(InvariantChecker, OwnerScopeReferencingReferenceNestedHostFails) {
 
     auto host = make_node(I, "host1", "CompositeType");
     host.view.expandable = true;
-    host.semantic.iface = bp2::Interface{};
+    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
 
     auto child = make_node(I, "child1", "Battery");
     child.structure.owner_scope = "host1";
 
     auto nested = bp2::Blueprint::Nested::make_reference(
-        I.intern("host1"), I.intern("CompositeType"), bp2::Interface{});
+        I.intern("host1"),
+        I.intern("CompositeType"),
+        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(host));
     bp = bp.with_node(std::move(child));
     bp = bp.with_nested(std::move(nested));
+    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
 
     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
     EXPECT_FALSE(result.valid);
@@ -945,18 +950,20 @@ TEST(InvariantChecker, ReferencedNestedHostPathMismatchDetected) {
     auto nested = bp2::Blueprint::Nested::make_reference(
         I.intern("ref1"),
         I.intern("CompositeType"),
-        bp2::Interface{});
+        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
     
     // Create host node with mismatched blueprint_path
     bp2::Blueprint::Node host;
     host.semantic.id = I.intern("ref1");
     host.semantic.type = I.intern("CompositeType");
+    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
     host.view.expandable = true;
     host.view.blueprint_path = "wrong/path";  // This doesn't match CompositeType category
     
     bp2::Blueprint bp;
     bp = bp.with_nested(std::move(nested));
     bp = bp.with_node(std::move(host));
+    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
 
     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
     EXPECT_FALSE(result.valid);
@@ -973,17 +980,19 @@ TEST(InvariantChecker, ReferencedNestedCategorizedHostPathMismatchDetected) {
     auto nested = bp2::Blueprint::Nested::make_reference(
         I.intern("ref1"),
         I.intern("CompositeType"),
-        bp2::Interface{});
+        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
 
     bp2::Blueprint::Node host;
     host.semantic.id = I.intern("ref1");
     host.semantic.type = I.intern("CompositeType");
+    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
     host.view.expandable = true;
     host.view.blueprint_path = "CompositeType";
 
     bp2::Blueprint bp;
     bp = bp.with_nested(std::move(nested));
     bp = bp.with_node(std::move(host));
+    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
 
     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
     EXPECT_FALSE(result.valid);
@@ -1000,18 +1009,20 @@ TEST(InvariantChecker, ReferencedNestedWithCorrectHostPathPassesValidation) {
     auto nested = bp2::Blueprint::Nested::make_reference(
         I.intern("ref1"),
         I.intern("CompositeType"),
-        bp2::Interface{});
+        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
     
     // Create host node with matching blueprint_path (no category in this case)
     bp2::Blueprint::Node host;
     host.semantic.id = I.intern("ref1");
     host.semantic.type = I.intern("CompositeType");
+    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
     host.view.expandable = true;
     host.view.blueprint_path = "CompositeType";  // Matches blueprint_id with no category
     
     bp2::Blueprint bp;
     bp = bp.with_nested(std::move(nested));
     bp = bp.with_node(std::move(host));
+    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
 
     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
     EXPECT_TRUE(result.valid) << result.error;
@@ -1026,17 +1037,19 @@ TEST(InvariantChecker, ReferencedNestedWithCategorizedHostPathPassesValidation) 
     auto nested = bp2::Blueprint::Nested::make_reference(
         I.intern("ref1"),
         I.intern("CompositeType"),
-        bp2::Interface{});
+        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
 
     bp2::Blueprint::Node host;
     host.semantic.id = I.intern("ref1");
     host.semantic.type = I.intern("CompositeType");
+    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
     host.view.expandable = true;
     host.view.blueprint_path = "math/CompositeType";
 
     bp2::Blueprint bp;
     bp = bp.with_nested(std::move(nested));
     bp = bp.with_node(std::move(host));
+    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
 
     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
     EXPECT_TRUE(result.valid) << result.error;
@@ -1051,19 +1064,48 @@ TEST(InvariantChecker, ReferencedNestedWithEmptyHostPathAllowedUnderCurrentDesig
     auto nested = bp2::Blueprint::Nested::make_reference(
         I.intern("ref1"),
         I.intern("CompositeType"),
-        bp2::Interface{});
+        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
     
     // Create host node with empty blueprint_path
     bp2::Blueprint::Node host;
     host.semantic.id = I.intern("ref1");
     host.semantic.type = I.intern("CompositeType");
+    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
     host.view.expandable = true;
     host.view.blueprint_path = "";  // Empty path is allowed
     
     bp2::Blueprint bp;
     bp = bp.with_nested(std::move(nested));
     bp = bp.with_node(std::move(host));
+    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
 
     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
     EXPECT_TRUE(result.valid) << result.error;
+}
+
+TEST(InvariantChecker, ReferencedNestedResolvedIfaceDriftFailsValidation) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        I.intern("ref1"),
+        I.intern("CompositeType"),
+        bp2::Interface({
+            {I.intern("stale_only"), Domain::Electrical, Direction::Input},
+        }));
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("ref1");
+    host.semantic.type = I.intern("CompositeType");
+    host.view.expandable = true;
+    host.semantic.iface = nested.resolved_iface();
+
+    bp2::Blueprint bp;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(host));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("resolved iface desynced from registry"), std::string::npos);
 }

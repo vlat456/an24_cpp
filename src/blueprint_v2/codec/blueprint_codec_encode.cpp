@@ -69,8 +69,9 @@ nlohmann::json encode_interface(Interface const& iface,
 }
 
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
-                            ui::StringInterner const& interner,
-                            ::TypeRegistry const* parser_registry) {
+                           std::vector<Blueprint::Nested> const& nested_vec,
+                           ui::StringInterner const& interner,
+                           ::TypeRegistry const* parser_registry) {
     std::vector<Blueprint::Node const*> sorted;
     sorted.reserve(nodes.size());
     for (auto const& node : nodes) {
@@ -88,6 +89,9 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
     auto arr = nlohmann::json::array();
     for (auto const* node_ptr : sorted) {
         auto const& node = *node_ptr;
+        const bool is_hosted_nested = std::any_of(
+            nested_vec.begin(), nested_vec.end(),
+            [&](const Blueprint::Nested& nested) { return nested.id == node.semantic.id; });
         nlohmann::json n;
         n["id"] = std::string(interner.resolve(node.semantic.id));
         n["type"] = std::string(interner.resolve(node.semantic.type));
@@ -96,7 +100,11 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         if (!node.structure.owner_scope.empty()) n["group_id"] = node.structure.owner_scope;
         if (node.view.expandable) n["expandable"] = true;
         if (!node.layout.collapsed) n["collapsed"] = false;
-        if (!node.view.blueprint_path.empty()) n["blueprint_path"] = node.view.blueprint_path;
+        if (!node.view.blueprint_path.empty() && (!node.view.expandable || !is_hosted_nested)) {
+            // Persist blueprint_path for external-reference style nodes.
+            // Hosted nested instances do not use this field as authority.
+            n["blueprint_path"] = node.view.blueprint_path;
+        }
         n["position"] = {{"x", node.layout.x}, {"y", node.layout.y}};
         if (node.layout.width.has_value()) n["width"] = *node.layout.width;
         if (node.layout.height.has_value()) n["height"] = *node.layout.height;

@@ -1554,6 +1554,7 @@ gtest_discover_tests(bp2_blueprint_tests)
 add_executable(bp2_codec_tests
     blueprint_v2/test_codec.cpp
     blueprint_v2/test_subwindow_open_target.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/subwindow_open_target.cpp
 )
 target_include_directories(bp2_codec_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1585,6 +1586,7 @@ gtest_discover_tests(bp2_flattener_tests)
 add_executable(bp2_editor_model_tests
     blueprint_v2/test_editor_model.cpp
     blueprint_v2/test_embedded_editing_undo.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/subwindow_open_target.cpp
 )
 target_include_directories(bp2_editor_model_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
