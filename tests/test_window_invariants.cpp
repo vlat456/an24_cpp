@@ -243,7 +243,7 @@ TEST(WindowInvariants, WindowScopeIdSimScopePrefix) {
     // Root: empty prefix
     EXPECT_EQ(WindowScopeId::root().sim_scope_prefix(), "");
 
-    // Embedded: prefix is group_id
+    // Embedded: prefix is embedded host id
     EXPECT_EQ(WindowScopeId::embedded("nested_1").sim_scope_prefix(), "nested_1");
 
     // External: prefix is parent_instance_id
@@ -292,7 +292,7 @@ TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
 }
 
 /// Regression test for #58/#55: rendered_blueprint() must throw std::logic_error
-/// when EmbeddedGroup mode has no editing host (invariant violation).
+/// when EmbeddedScope mode has no editing host (invariant violation).
 TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingEmbeddedHost) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -326,9 +326,9 @@ TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingExternalBlueprint) {
     EXPECT_THROW(win->rendered_blueprint(), std::logic_error);
 }
 
-/// Regression test for #58: WindowScopeId::embedded() must throw on empty group_id
+/// Regression test for #58: WindowScopeId::embedded() must throw on empty scope host id
 /// in both debug and release builds (not debug-only assert).
-TEST(WindowInvariants, WindowScopeIdEmbeddedThrowsOnEmptyGroupId) {
+TEST(WindowInvariants, WindowScopeIdEmbeddedThrowsOnEmptyScopeHostId) {
     EXPECT_THROW(WindowScopeId::embedded(""), std::logic_error);
 }
 

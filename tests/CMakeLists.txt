@@ -647,6 +647,7 @@ add_executable(document_safety_tests
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/subwindow_open_target.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp

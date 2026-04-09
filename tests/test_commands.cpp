@@ -189,7 +189,7 @@ static bp2::Blueprint make_extract_iface_collision_fixture(ui::StringInterner& I
     return bp;
 }
 
-static bp2::Blueprint make_extract_subgroup_fixture(ui::StringInterner& I, bp2::PathArena& arena) {
+static bp2::Blueprint make_extract_embedded_scope_fixture(ui::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp = make_extract_fixture(I, arena);
 
     // Create a proper scope host: an expandable node with an embedded nested.
@@ -208,16 +208,16 @@ static bp2::Blueprint make_extract_subgroup_fixture(ui::StringInterner& I, bp2::
         std::move(inner_def));
     bp = bp.with_nested(std::move(nested));
 
-    const std::string subgroup = "group_1";
+    const std::string scope_host_id = "group_1";
     if (const auto* a = bp.find_node(I.intern("a"))) {
         auto n = *a;
-        n.structure.owner_scope = subgroup;
+        n.structure.owner_scope = scope_host_id;
         bp = bp.without_node(n.semantic.id);
         bp = bp.with_node(std::move(n));
     }
     if (const auto* b = bp.find_node(I.intern("b"))) {
         auto n = *b;
-        n.structure.owner_scope = subgroup;
+        n.structure.owner_scope = scope_host_id;
         bp = bp.without_node(n.semantic.id);
         bp = bp.with_node(std::move(n));
     }
@@ -1203,7 +1203,7 @@ TEST_F(CommandTest, ExtractToBlueprint_UndoRedoRoundTrip) {
 
 TEST_F(CommandTest, ExtractToBlueprint_AllowsSubgroupExtraction) {
     bp2::PathArena arena(interner);
-    bp2::Blueprint source = make_extract_subgroup_fixture(interner, arena);
+    bp2::Blueprint source = make_extract_embedded_scope_fixture(interner, arena);
 
     std::string err;
     auto updated = editor::commands::build_extracted_blueprint_atomic(
@@ -1270,7 +1270,7 @@ TEST_F(CommandTest, ExtractToBlueprint_ResultPassesStrictOwnerScopeValidation) {
 
 TEST_F(CommandTest, ExtractToBlueprint_RejectsSelectionOutsideActiveGroup) {
     bp2::PathArena arena(interner);
-    bp2::Blueprint source = make_extract_subgroup_fixture(interner, arena);
+    bp2::Blueprint source = make_extract_embedded_scope_fixture(interner, arena);
 
     std::string err;
     auto updated = editor::commands::build_extracted_blueprint_atomic(

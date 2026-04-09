@@ -6,7 +6,7 @@
 /// Rendering mode for a BlueprintWindow.
 enum class BlueprintWindowMode {
     RootDocument,       ///< Main document canvas
-    EmbeddedGroup,      ///< Embedded sub-blueprint filtered by layout_group
+    EmbeddedScope,      ///< Embedded sub-blueprint filtered by embedded host id
     ExternalReference,  ///< Read-only view of external blueprint, signals mapped through parent
 };
 
@@ -14,17 +14,17 @@ enum class BlueprintWindowMode {
 /// Avoids implicit coupling on empty string for external-ref mode.
 class WindowScopeId {
 public:
-    /// Construct a root window scope (no embedded group).
+    /// Construct a root window scope (no embedded host scope).
     static WindowScopeId root() {
         return WindowScopeId(BlueprintWindowMode::RootDocument, "");
     }
 
-    /// Construct an embedded group scope.
-    static WindowScopeId embedded(const std::string& group_id) {
-        if (group_id.empty()) {
-            throw std::logic_error("Embedded scope requires non-empty group_id");
+    /// Construct an embedded scope keyed by embedded host node id.
+    static WindowScopeId embedded(const std::string& scope_host_id) {
+        if (scope_host_id.empty()) {
+            throw std::logic_error("Embedded scope requires non-empty scope_host_id");
         }
-        return WindowScopeId(BlueprintWindowMode::EmbeddedGroup, group_id);
+        return WindowScopeId(BlueprintWindowMode::EmbeddedScope, scope_host_id);
     }
 
     /// Construct an external-reference scope by parent instance ID.
@@ -47,11 +47,12 @@ public:
     }
 
     bool is_root() const { return mode_ == BlueprintWindowMode::RootDocument; }
-    bool is_embedded() const { return mode_ == BlueprintWindowMode::EmbeddedGroup; }
+    bool is_embedded() const { return mode_ == BlueprintWindowMode::EmbeddedScope; }
     bool is_external() const { return mode_ == BlueprintWindowMode::ExternalReference; }
 
     /// Scope prefix for simulation signal routing.
-    /// Root returns "", Embedded returns group_id, External returns parent_instance_id.
+    /// Root returns "", Embedded returns embedded host id, External returns
+    /// parent_instance_id.
     const std::string& sim_scope_prefix() const { return key_; }
 
 private:

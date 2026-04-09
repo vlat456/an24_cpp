@@ -4,7 +4,7 @@ namespace bp2 {
 
 std::optional<std::string> validate_owner_scope_reference(const Blueprint& bp,
                                                           const Blueprint::Node& node,
-                                                          ui::StringInterner& interner) {
+                                                          const ui::StringInterner& interner) {
     if (node.structure.owner_scope.empty()) {
         return std::nullopt;
     }

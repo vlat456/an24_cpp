@@ -191,6 +191,7 @@ Blueprint decode_nodes(Blueprint bp,
         // Optional string fields
         if (auto v = read_optional_string(n, "name", ctx))            node.view.name = std::move(*v);
         if (auto v = read_optional_string(n, "render_hint", ctx))     node.view.render_hint = std::move(*v);
+        // JSON still uses legacy `group_id`; internally this is owner_scope.
         if (auto v = read_optional_string(n, "group_id", ctx))        node.structure.owner_scope = std::move(*v);
         if (auto v = read_optional_string(n, "blueprint_path", ctx))  node.view.blueprint_path = std::move(*v);
 
@@ -507,21 +508,19 @@ Blueprint decode_nested(Blueprint bp,
             throw std::runtime_error("invalid nested entry: non-embedded nested must not contain definition");
         }
         if (is_embedded && n.contains("definition")) {
-                // Strip stale owner_scope (group_id) from inner nodes.
-                // When a user extracts nodes into an embedded nested, the
-                // build step clears owner_scope (the scope is now implicit).
-                // Legacy files saved before that fix may still carry the
-                // parent-context scope string, which would fail validation
-                // inside the inner blueprint where the host node doesn't exist.
-                nlohmann::json inner_json = n["definition"];
-                if (inner_json.contains("nodes") && inner_json["nodes"].is_array()) {
-                    for (auto& node_json : inner_json["nodes"]) {
-                        node_json.erase("group_id");
-                    }
+            // Strip stale owner_scope (group_id) from inner nodes.
+            // Embedded inline definitions own their local root scope, so any
+            // legacy parent host id persisted inside the inner definition is
+            // invalid and must be normalized away during decode.
+            nlohmann::json inner_json = n["definition"];
+            if (inner_json.contains("nodes") && inner_json["nodes"].is_array()) {
+                for (auto& node_json : inner_json["nodes"]) {
+                    node_json.erase("group_id");
                 }
+            }
 
-                DecodeError inner_err;
-                auto inner = BlueprintCodec::decode(
+            DecodeError inner_err;
+            auto inner = BlueprintCodec::decode(
                 inner_json.dump(), interner, arena, parser_registry, &inner_err);
             if (inner) {
                 auto nested = Blueprint::Nested::make_embedded(

@@ -97,6 +97,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         n["type"] = std::string(interner.resolve(node.semantic.type));
         if (!node.view.name.empty()) n["name"] = node.view.name;
         if (!node.view.render_hint.empty()) n["render_hint"] = node.view.render_hint;
+        // JSON still uses legacy `group_id`; internally this is owner_scope.
         if (!node.structure.owner_scope.empty()) n["group_id"] = node.structure.owner_scope;
         if (node.view.expandable) n["expandable"] = true;
         if (!node.layout.collapsed) n["collapsed"] = false;

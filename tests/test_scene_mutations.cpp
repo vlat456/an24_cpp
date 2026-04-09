@@ -26,15 +26,15 @@
 // Shared bp2 test helpers (make_port, set_iface)
 #include "bp2_test_helpers.h"
 
-/// Build a bp2::Blueprint::Node with the given id, type, and layout_group.
+/// Build a bp2::Blueprint::Node with the given id, type, and owner_scope.
 static bp2::Blueprint::Node make_bp2_node(ui::StringInterner& I,
                                            const char* id,
                                            const char* type = "Battery",
-                                           const char* layout_group = "") {
+                                           const char* owner_scope = "") {
      bp2::Blueprint::Node n;
      n.semantic.id = I.intern(id);
      n.semantic.type = I.intern(type);
-     n.structure.owner_scope = layout_group;
+     n.structure.owner_scope = owner_scope;
      return n;
  }
 

@@ -18,15 +18,15 @@ struct InspectorTestScene {
 
     InspectorTestScene() : arena(interner) {}
 
-    /// Add a node to the blueprint with optional layout_group.
+    /// Add a node to the blueprint with optional owner_scope.
     bp2::Blueprint::Node& addNode(const std::string& id,
                                    const std::string& type,
-                                   const std::string& layout_group = "") {
+                                   const std::string& owner_scope = "") {
         bp2::Blueprint::Node n;
          n.semantic.id = interner.intern(id);
          n.semantic.type = interner.intern(type);
          n.view.name = id;
-         n.structure.owner_scope = layout_group;
+         n.structure.owner_scope = owner_scope;
 
         if (type == "Battery") {
             set_iface(n, {
@@ -252,7 +252,7 @@ TEST(Inspector, SortMode_ByType) {
 }
 
 // =============================================================================
-// Regression: Group filtering — inspector must only show nodes in its scene's group
+// Regression: scope filtering — inspector must only show nodes in its scene's embedded scope
 // =============================================================================
 
 TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {

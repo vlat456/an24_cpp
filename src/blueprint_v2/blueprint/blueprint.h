@@ -51,8 +51,10 @@ public:
 
         // === Structural/editor ownership data ===
         struct StructureData {
-            /// Editor ownership scope for subwindow/group routing.
+            /// Editor structural scope identity.
             /// Empty means root scope within the containing blueprint.
+            /// Non-empty means the id of an embedded host node in the same
+            /// blueprint; freeform subgroup labels are not valid here.
             std::string owner_scope;
 
             bool operator==(StructureData const& o) const {

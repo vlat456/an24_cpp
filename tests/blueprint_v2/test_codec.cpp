@@ -249,7 +249,7 @@ TEST(BlueprintCodec, RoundTripPreservesOwnerScopeViaGroupId) {
 
     // Create the scope host: an expandable node with a matching embedded nested.
     bp2::Blueprint::Node host;
-    host.semantic.id = interner.intern("group_alpha");
+    host.semantic.id = interner.intern("host_alpha");
     host.semantic.type = interner.intern("HostType");
     host.view.expandable = true;
     bp = bp.with_node(std::move(host));
@@ -258,7 +258,7 @@ TEST(BlueprintCodec, RoundTripPreservesOwnerScopeViaGroupId) {
     *inner_def = inner_def->with_id(interner.intern("HostType"));
     *inner_def = inner_def->with_interface(bp2::Interface());
     auto nested = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("group_alpha"),
+        interner.intern("host_alpha"),
         interner.intern("HostType"),
         std::move(inner_def));
     bp = bp.with_nested(std::move(nested));
@@ -267,7 +267,7 @@ TEST(BlueprintCodec, RoundTripPreservesOwnerScopeViaGroupId) {
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("bat1");
     node.semantic.type = interner.intern("Battery");
-    node.structure.owner_scope = "group_alpha";
+    node.structure.owner_scope = "host_alpha";
     node.layout.x = 10.0f;
     node.layout.y = 20.0f;
     bp = bp.with_node(std::move(node));
@@ -278,7 +278,7 @@ TEST(BlueprintCodec, RoundTripPreservesOwnerScopeViaGroupId) {
     bool found_scoped_node = false;
     for (const auto& nj : encoded["nodes"]) {
         if (nj["id"] == "bat1") {
-            EXPECT_EQ(nj["group_id"], "group_alpha");
+            EXPECT_EQ(nj["group_id"], "host_alpha");
             found_scoped_node = true;
         }
     }
@@ -290,7 +290,67 @@ TEST(BlueprintCodec, RoundTripPreservesOwnerScopeViaGroupId) {
 
     const auto* bat1 = round_tripped->find_node(interner.intern("bat1"));
     ASSERT_NE(bat1, nullptr);
-    EXPECT_EQ(bat1->structure.owner_scope, "group_alpha");
+    EXPECT_EQ(bat1->structure.owner_scope, "host_alpha");
+}
+
+TEST(BlueprintCodec, DecodeEmbeddedNestedStripsLegacyInnerGroupId) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    register_type(reg, interner, "Battery");
+
+    const std::string json = R"({
+        "version": "3.0",
+        "id": "outer_bp",
+        "display_name": "Outer",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "host1",
+                "type": "HostType",
+                "expandable": true,
+                "position": {"x": 0, "y": 0}
+            }
+        ],
+        "wires": [],
+        "nested": [
+            {
+                "id": "host1",
+                "blueprint": "HostType",
+                "embedded": true,
+                "position": {"x": 0, "y": 0},
+                "definition": {
+                    "version": "3.0",
+                    "id": "HostType",
+                    "display_name": "Host",
+                    "interface": [],
+                    "nodes": [
+                        {
+                            "id": "inner_bat",
+                            "type": "Battery",
+                            "group_id": "host1",
+                            "position": {"x": 1, "y": 2}
+                        }
+                    ],
+                    "wires": [],
+                    "nested": []
+                }
+            }
+        ]
+    })";
+
+    bp2::DecodeError err;
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(decoded.has_value()) << err.message;
+
+    const auto* nested = decoded->find_nested(interner.intern("host1"));
+    ASSERT_NE(nested, nullptr);
+    ASSERT_TRUE(nested->is_embedded());
+    const auto* inner = nested->inline_def();
+    ASSERT_NE(inner, nullptr);
+    const auto* inner_bat = inner->find_node(interner.intern("inner_bat"));
+    ASSERT_NE(inner_bat, nullptr);
+    EXPECT_TRUE(inner_bat->structure.owner_scope.empty());
 }
 
 TEST(BlueprintCodec, DecodeEmptyBlueprint) {
