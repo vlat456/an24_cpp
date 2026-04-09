@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cassert>
+#include <stdexcept>
 #include <string>
 
 /// Rendering mode for a BlueprintWindow.
@@ -21,13 +21,17 @@ public:
 
     /// Construct an embedded group scope.
     static WindowScopeId embedded(const std::string& group_id) {
-        assert(!group_id.empty() && "Embedded scope requires non-empty group_id");
+        if (group_id.empty()) {
+            throw std::logic_error("Embedded scope requires non-empty group_id");
+        }
         return WindowScopeId(BlueprintWindowMode::EmbeddedGroup, group_id);
     }
 
     /// Construct an external-reference scope by parent instance ID.
     static WindowScopeId external(const std::string& parent_instance_id) {
-        assert(!parent_instance_id.empty() && "External scope requires non-empty parent_instance_id");
+        if (parent_instance_id.empty()) {
+            throw std::logic_error("External scope requires non-empty parent_instance_id");
+        }
         return WindowScopeId(BlueprintWindowMode::ExternalReference, parent_instance_id);
     }
 

@@ -223,3 +223,53 @@ TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
     EXPECT_EQ(emb_win->resolved_scope_id(), WindowScopeId::embedded("emb_group"));
     EXPECT_TRUE(emb_win->resolved_scope_id().is_embedded());
 }
+
+/// Regression test for #58: rendered_blueprint() must throw std::logic_error
+/// when EmbeddedGroup mode has no embedded_model (invariant violation).
+TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingEmbeddedModel) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint root_bp;
+    bp2::EditorModel model(root_bp);
+
+    // Create a BlueprintWindow directly and corrupt its state
+    auto win = std::make_unique<BlueprintWindow>(model, interner, arena, "", "Test");
+    
+    // Manually set mode to EmbeddedGroup but ensure embedded_model is null (invariant violation)
+    win->mode = BlueprintWindowMode::EmbeddedGroup;
+    win->embedded_model.reset();
+
+    // rendered_blueprint() must throw std::logic_error on this invariant violation
+    EXPECT_THROW(win->rendered_blueprint(), std::logic_error);
+}
+
+/// Regression test for #58: rendered_blueprint() must throw std::logic_error
+/// when ExternalReference mode has no external_blueprint loaded.
+TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingExternalBlueprint) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint root_bp;
+    bp2::EditorModel model(root_bp);
+
+    // Create a root window and corrupt its state to ExternalReference mode
+    // without setting external_blueprint.
+    auto win = std::make_unique<BlueprintWindow>(model, interner, arena, "", "Test");
+    win->mode = BlueprintWindowMode::ExternalReference;
+    // external_blueprint is std::nullopt by default — invariant violation
+
+    EXPECT_THROW(win->rendered_blueprint(), std::logic_error);
+}
+
+/// Regression test for #58: WindowScopeId::embedded() must throw on empty group_id
+/// in both debug and release builds (not debug-only assert).
+TEST(WindowInvariants, WindowScopeIdEmbeddedThrowsOnEmptyGroupId) {
+    EXPECT_THROW(WindowScopeId::embedded(""), std::logic_error);
+}
+
+/// Regression test for #58: WindowScopeId::external() must throw on empty parent_instance_id
+/// in both debug and release builds (not debug-only assert).
+TEST(WindowInvariants, WindowScopeIdExternalThrowsOnEmptyParentInstanceId) {
+    EXPECT_THROW(WindowScopeId::external(""), std::logic_error);
+}
