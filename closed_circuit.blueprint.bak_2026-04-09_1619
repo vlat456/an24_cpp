@@ -15,16 +15,12 @@
           {
             "direction": 0,
             "domain": 1,
-            "name": "feedback",
-            "source_writer": false,
-            "type": "V"
+            "name": "feedback"
           },
           {
             "direction": 1,
             "domain": 1,
-            "name": "output",
-            "source_writer": false,
-            "type": "V"
+            "name": "output"
           }
         ],
         "name": "RN-180-Exciter",
@@ -302,24 +298,18 @@
         "interface": [
           {
             "direction": 1,
-            "domain": 1,
-            "name": "out",
-            "source_writer": false,
-            "type": "V"
+            "domain": 2,
+            "name": "out"
           },
           {
             "direction": 0,
             "domain": 1,
-            "name": "v_in",
-            "source_writer": false,
-            "type": "V"
+            "name": "v_in"
           },
           {
             "direction": 0,
             "domain": 1,
-            "name": "v_ref",
-            "source_writer": false,
-            "type": "V"
+            "name": "v_ref"
           }
         ],
         "name": "LoadVoltageDrp",
@@ -377,11 +367,11 @@
             "ports": {
               "ext": {
                 "direction": "Out",
-                "type": 0
+                "type": 7
               },
               "port": {
                 "direction": "In",
-                "type": 0
+                "type": 7
               }
             },
             "position": {
@@ -876,30 +866,22 @@
           {
             "direction": 0,
             "domain": 1,
-            "name": "A",
-            "source_writer": false,
-            "type": "V"
+            "name": "A"
           },
           {
             "direction": 0,
             "domain": 1,
-            "name": "A_2",
-            "source_writer": false,
-            "type": "V"
+            "name": "A_2"
           },
           {
             "direction": 0,
             "domain": 1,
-            "name": "B",
-            "source_writer": false,
-            "type": "V"
+            "name": "B"
           },
           {
             "direction": 1,
             "domain": 1,
-            "name": "o",
-            "source_writer": false,
-            "type": "V"
+            "name": "o"
           }
         ],
         "name": "DerateCtrl",
@@ -1501,16 +1483,12 @@
           {
             "direction": 0,
             "domain": 1,
-            "name": "Torque",
-            "source_writer": false,
-            "type": "Any"
+            "name": "Torque"
           },
           {
             "direction": 1,
             "domain": 1,
-            "name": "out",
-            "source_writer": false,
-            "type": "V"
+            "name": "out"
           }
         ],
         "name": "RPMIntertial",
@@ -1729,11 +1707,11 @@
             "ports": {
               "ext": {
                 "direction": "In",
-                "type": 0
+                "type": 7
               },
               "port": {
                 "direction": "Out",
-                "type": 0
+                "type": 7
               }
             },
             "position": {
@@ -1753,11 +1731,11 @@
             "ports": {
               "ext": {
                 "direction": "Out",
-                "type": 0
+                "type": 7
               },
               "port": {
                 "direction": "In",
-                "type": 0
+                "type": 7
               }
             },
             "position": {
@@ -2223,7 +2201,7 @@
           "type": 7
         },
         "v_neg": {
-          "direction": "In",
+          "direction": "Out",
           "type": 0
         },
         "v_pos": {
@@ -2343,7 +2321,7 @@
         },
         "output": {
           "direction": "Out",
-          "type": 0
+          "type": 7
         }
       },
       "position": {
@@ -2364,7 +2342,7 @@
         },
         "port": {
           "direction": "Out",
-          "type": 0
+          "type": 7
         }
       },
       "position": {
@@ -2384,11 +2362,11 @@
       "ports": {
         "ext": {
           "direction": "Out",
-          "type": 0
+          "type": 7
         },
         "port": {
           "direction": "In",
-          "type": 0
+          "type": 7
         }
       },
       "position": {
@@ -2410,7 +2388,7 @@
       "ports": {
         "out": {
           "direction": "Out",
-          "type": 0
+          "type": 7
         },
         "v_in": {
           "direction": "In",
@@ -2435,11 +2413,11 @@
       "ports": {
         "ext": {
           "direction": "Out",
-          "type": 0
+          "type": 7
         },
         "port": {
           "direction": "In",
-          "type": 0
+          "type": 7
         }
       },
       "position": {
@@ -2597,37 +2575,6 @@
       "type": "BlueprintOutput"
     },
     {
-      "blueprint_path": "DerateCtrl",
-      "expandable": true,
-      "height": 64.0,
-      "id": "extract_inst_3",
-      "name": "DerateCtrl",
-      "ports": {
-        "A": {
-          "direction": "In",
-          "type": 0
-        },
-        "A_2": {
-          "direction": "In",
-          "type": 0
-        },
-        "B": {
-          "direction": "In",
-          "type": 0
-        },
-        "o": {
-          "direction": "Out",
-          "type": 0
-        }
-      },
-      "position": {
-        "x": 656.0,
-        "y": -544.0
-      },
-      "type": "DerateCtrl",
-      "width": 160.0
-    },
-    {
       "blueprint_path": "RPMIntertial",
       "expandable": true,
       "height": 64.0,
@@ -2759,11 +2706,11 @@
       "ports": {
         "ext": {
           "direction": "In",
-          "type": 0
+          "type": 7
         },
         "port": {
           "direction": "Out",
-          "type": 0
+          "type": 7
         }
       },
       "position": {
@@ -2783,11 +2730,11 @@
       "ports": {
         "ext": {
           "direction": "Out",
-          "type": 0
+          "type": 7
         },
         "port": {
           "direction": "In",
-          "type": 0
+          "type": 7
         }
       },
       "position": {
@@ -3589,8 +3536,8 @@
       "params": {
         "g_closed": 1000.0,
         "g_open": 9.999999974752427e-07,
-        "initial_position": 0,
-        "positions": 5
+        "initial_position": 0.0,
+        "positions": 5.0
       },
       "ports": {
         "control": {
@@ -4829,8 +4776,8 @@
           256.0
         ]
       ],
-      "source": "/bus_1:v",
-      "target": "/controlledvoltagesource_2:v_neg"
+      "source": "/controlledvoltagesource_2:v_neg",
+      "target": "/bus_1:v"
     },
     {
       "id": "extract_wire_3",

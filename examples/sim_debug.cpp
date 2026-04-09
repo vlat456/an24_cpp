@@ -59,7 +59,8 @@ static const char* sim_port_type_str(PortType t) {
 /// Build simulation JSON from a bp2::Blueprint (mirrors Document::build_simulation_json).
 static std::string build_simulation_json(const bp2::Blueprint& bp,
                                           ui::StringInterner& interner,
-                                          const bp2::PathArena& arena) {
+                                          const bp2::PathArena& arena,
+                                          const TypeRegistry* reg_ptr) {
     using json = nlohmann::json;
 
     json out = json::object();
@@ -124,8 +125,24 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
         device["ports"] = std::move(ports);
 
         json params = json::object();
-        for (const auto& [k, v] : n.semantic.params)
-            params[std::string(interner.resolve(k))] = std::to_string(v);
+        const TypeDefinition* type_def = nullptr;
+        if (reg_ptr) {
+            type_def = reg_ptr->get(std::string(interner.resolve(n.semantic.type)));
+        }
+        auto is_int_param = [&](const std::string& key) -> bool {
+            if (!type_def) return false;
+            auto it = type_def->param_schema.find(key);
+            return it != type_def->param_schema.end() && it->second.type == ParamSchemaType::Int;
+        };
+
+        for (const auto& [k, v] : n.semantic.params) {
+            std::string key = std::string(interner.resolve(k));
+            if (is_int_param(key)) {
+                params[key] = std::to_string(static_cast<long long>(v));
+            } else {
+                params[key] = std::to_string(v);
+            }
+        }
         for (const auto& [k, v] : n.semantic.string_params)
             params[k] = v;
         if (!params.empty())
@@ -292,7 +309,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        sim_json = build_simulation_json(*bp, interner, arena);
+        sim_json = build_simulation_json(*bp, interner, arena, &registry);
     }
 
     if (dump_json) {

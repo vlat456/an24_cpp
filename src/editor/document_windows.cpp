@@ -76,7 +76,14 @@ void Document::openExternalRefWindow(const std::string& instance_id,
 }
 
 void Document::openSubWindow(const std::string& sub_blueprint_id) {
-    const auto target = editor::resolve_subwindow_open_target(model_.current(), interner_, sub_blueprint_id);
+    if (!type_registry_) {
+        spdlog::error("[editor] Cannot open sub-window '{}': TypeRegistry is not configured",
+                      sub_blueprint_id);
+        return;
+    }
+
+    const auto target = editor::resolve_subwindow_open_target(
+        model_.current(), interner_, *type_registry_, sub_blueprint_id);
     auto lookup_id = interner_.lookup(sub_blueprint_id);
     const bp2::Blueprint::Nested* nested = lookup_id.empty() ? nullptr : model_.current().find_nested(lookup_id);
 
