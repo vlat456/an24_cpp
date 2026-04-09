@@ -68,11 +68,12 @@ struct InspectorTestScene {
         return arena.make_port(node_path, interner.intern(port_name));
     }
 
+    int wire_counter_ = 0;
+
     void addWire(const std::string& src_node, const std::string& src_port,
                  const std::string& dst_node, const std::string& dst_port) {
-         static int wire_counter = 0;
-         bp2::Blueprint::Wire w;
-         w.id = interner.intern("wire_" + std::to_string(wire_counter++));
+        bp2::Blueprint::Wire w;
+        w.id = interner.intern("wire_" + std::to_string(wire_counter_++));
         w.source = makePortPath(src_node, src_port);
         w.target = makePortPath(dst_node, dst_port);
         bp = bp.with_wire(w);

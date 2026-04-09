@@ -71,44 +71,54 @@ void Inspector::buildDisplayTree() {
     display_tree_.clear();
     if (!bp_ || !arena_ || !interner_) return;
 
+    // Pre-decode owned wires once (avoids O(N*P*W) redundant decode_port_path calls).
+    std::vector<DecodedWire> owned_wires;
+    for (const auto& wire : bp_->wires()) {
+        auto [sn, sp] = decode_port_path(wire.source);
+        auto [tn, tp] = decode_port_path(wire.target);
+        if (sn.empty() || tn.empty()) continue;
+        const auto* n1 = bp_->find_node(sn);
+        const auto* n2 = bp_->find_node(tn);
+        if (!n1 || !n2) continue;
+        if (n1->layout.layout_group != scope_id_.key()) continue;
+        if (n2->layout.layout_group != scope_id_.key()) continue;
+        owned_wires.push_back({sn, sp, tn, tp});
+    }
+
     for (const auto& node : bp_->nodes()) {
         if (!ownsNode(node)) continue;
         if (!passesFilter(node)) continue;
 
-         DisplayNode dn;
-         dn.node_id = std::string(interner_->resolve(node.semantic.id));
-         dn.name = node.view.name;
-         // bp2::Blueprint::Node stores the type as an InternedId — resolve it
-         dn.type_name = std::string(interner_->resolve(node.semantic.type));
+        DisplayNode dn;
+        dn.node_id = std::string(interner_->resolve(node.semantic.id));
+        dn.name = node.view.name;
+        dn.type_name = std::string(interner_->resolve(node.semantic.type));
 
-         // Count connections (only wires owned by this group)
-         size_t conn_count = 0;
-         for (const auto& wire : bp_->wires()) {
-             if (!ownsWire(wire)) continue;
-             auto [src_node, src_port] = decode_port_path(wire.source);
-             auto [tgt_node, tgt_port] = decode_port_path(wire.target);
-             if (src_node == node.semantic.id || tgt_node == node.semantic.id)
-                 conn_count++;
-         }
-         dn.connection_count = conn_count;
+        // Count connections from pre-decoded wires
+        size_t conn_count = 0;
+        for (const auto& dw : owned_wires) {
+            if (dw.src_node == node.semantic.id || dw.tgt_node == node.semantic.id)
+                conn_count++;
+        }
+        dn.connection_count = conn_count;
 
-         // Collect ports (inputs then outputs)
-         const auto inputs = bp2::derive_input_ports(node.semantic.iface);
-         const auto outputs = bp2::derive_output_ports(node.semantic.iface);
-         for (const auto& port : inputs) {
-             DisplayPort dp;
-             dp.name = std::string(interner_->resolve(port.name));
-             dp.side = bp2::PortSide::Input;
-             dp.connection = findConnectionFor(node, port, bp2::PortSide::Input);
-             dn.ports.push_back(std::move(dp));
-         }
-         for (const auto& port : outputs) {
-             DisplayPort dp;
-             dp.name = std::string(interner_->resolve(port.name));
-             dp.side = bp2::PortSide::Output;
-             dp.connection = findConnectionFor(node, port, bp2::PortSide::Output);
-             dn.ports.push_back(std::move(dp));
-         }
+        // Collect ports (inputs then outputs)
+        const auto inputs = bp2::derive_input_ports(node.semantic.iface);
+        const auto outputs = bp2::derive_output_ports(node.semantic.iface);
+        for (const auto& port : inputs) {
+            DisplayPort dp;
+            dp.name = std::string(interner_->resolve(port.name));
+            dp.side = bp2::PortSide::Input;
+            dp.connection = findConnectionFor(node, port, bp2::PortSide::Input, owned_wires);
+            dn.ports.push_back(std::move(dp));
+        }
+        for (const auto& port : outputs) {
+            DisplayPort dp;
+            dp.name = std::string(interner_->resolve(port.name));
+            dp.side = bp2::PortSide::Output;
+            dp.connection = findConnectionFor(node, port, bp2::PortSide::Output, owned_wires);
+            dn.ports.push_back(std::move(dp));
+        }
 
         display_tree_.push_back(std::move(dn));
     }
@@ -117,26 +127,22 @@ void Inspector::buildDisplayTree() {
 }
 
 std::string Inspector::findConnectionFor(const bp2::Blueprint::Node& node,
-                                          const bp2::NodePort& port, bp2::PortSide side) const {
+                                          const bp2::NodePort& port, bp2::PortSide side,
+                                          const std::vector<DecodedWire>& wires) const {
     std::string result;
 
-    for (const auto& wire : bp_->wires()) {
-        if (!ownsWire(wire)) continue;
+    for (const auto& dw : wires) {
+        // Match the port's side: inputs match wire.target, outputs match wire.source
+        ui::InternedId local_node  = (side == bp2::PortSide::Input) ? dw.tgt_node : dw.src_node;
+        ui::InternedId local_port  = (side == bp2::PortSide::Input) ? dw.tgt_port : dw.src_port;
+        ui::InternedId remote_node = (side == bp2::PortSide::Input) ? dw.src_node : dw.tgt_node;
+        ui::InternedId remote_port = (side == bp2::PortSide::Input) ? dw.src_port : dw.tgt_port;
 
-        auto [src_node, src_port] = decode_port_path(wire.source);
-        auto [tgt_node, tgt_port] = decode_port_path(wire.target);
-
-         // Match the port's side: inputs match wire.target, outputs match wire.source
-         ui::InternedId local_node  = (side == bp2::PortSide::Input) ? tgt_node : src_node;
-         ui::InternedId local_port  = (side == bp2::PortSide::Input) ? tgt_port : src_port;
-         ui::InternedId remote_node = (side == bp2::PortSide::Input) ? src_node : tgt_node;
-         ui::InternedId remote_port = (side == bp2::PortSide::Input) ? src_port : tgt_port;
-
-         if (local_node == node.semantic.id && local_port == port.name) {
-             const auto* other = bp_->find_node(remote_node);
-             if (other) {
-                 if (!result.empty()) result += ", ";
-                 result += other->view.name + "." + std::string(interner_->resolve(remote_port));
+        if (local_node == node.semantic.id && local_port == port.name) {
+            const auto* other = bp_->find_node(remote_node);
+            if (other) {
+                if (!result.empty()) result += ", ";
+                result += other->view.name + "." + std::string(interner_->resolve(remote_port));
             }
         }
     }

@@ -74,8 +74,8 @@ private:
     size_t last_node_count_ = 0;
     size_t last_wire_count_ = 0;
 
-     /// Check whether a node belongs to this inspector's group
-     bool ownsNode(const bp2::Blueprint::Node& n) const { return n.layout.layout_group == scope_id_.key(); }
+    /// Check whether a node belongs to this inspector's group
+    bool ownsNode(const bp2::Blueprint::Node& n) const { return n.layout.layout_group == scope_id_.key(); }
     /// Check whether a wire belongs to this inspector's group (both endpoints)
     bool ownsWire(const bp2::Blueprint::Wire& w) const;
 
@@ -91,9 +91,15 @@ private:
     std::string search_;
     std::string search_lower_;  // precomputed lowercase of search_
 
+    /// Pre-decoded wire endpoints (built once per display tree rebuild).
+    struct DecodedWire {
+        ui::InternedId src_node, src_port, tgt_node, tgt_port;
+    };
+
     // Data model helpers (inspector_core.cpp)
     std::string findConnectionFor(const bp2::Blueprint::Node& node,
-                                  const bp2::NodePort& port, bp2::PortSide side) const;
+                                  const bp2::NodePort& port, bp2::PortSide side,
+                                  const std::vector<DecodedWire>& wires) const;
     void sortDisplayTree();
     bool passesFilter(const bp2::Blueprint::Node& node) const;
 

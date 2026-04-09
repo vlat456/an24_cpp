@@ -7,8 +7,10 @@ void Inspector::render() {
         return;
     }
 
-    // Lazy rebuild: check scene topology + dirty flag
-    if (detectSceneChange() || dirty_) {
+    // Lazy rebuild: detectSceneChange() returns dirty_ (which it may set
+    // internally when node/wire counts change), so this single call covers
+    // both topology-driven and explicit (search/sort/setBlueprint) dirtying.
+    if (detectSceneChange()) {
         buildDisplayTree();
         dirty_ = false;
     }

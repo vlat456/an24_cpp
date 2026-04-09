@@ -50,47 +50,47 @@ bool create_bridge_nodes_for_side(
         used_node_ids.insert(id);
         out_bridge_ids[ec.iface_name] = id;
 
-         bp2::Blueprint::Node n;
-         n.semantic.id = id;
-         n.semantic.type = interner.intern(p.is_input_side ? "BlueprintInput" : "BlueprintOutput");
-         n.view.name = ec.iface_name;
-         n.layout.layout_group = p.scope_id.sim_scope_prefix();
-         n.layout.x = p.x;
+        bp2::Blueprint::Node n;
+        n.semantic.id = id;
+        n.semantic.type = interner.intern(p.is_input_side ? "BlueprintInput" : "BlueprintOutput");
+        n.view.name = ec.iface_name;
+        n.layout.layout_group = p.scope_id.sim_scope_prefix();
+        n.layout.x = p.x;
 
-         float base_y = p.fallback_y_origin + fallback_lane_y(rank);
-         if (auto it = p.node_center_y.find(ec.internal_node_id); it != p.node_center_y.end()) {
-             const int lane = lane_counts[ec.internal_node_id]++;
-             base_y = it->second + static_cast<float>(lane) * kMultiLaneOffsetY;
-         }
-         n.layout.y = base_y;
+        float base_y = p.fallback_y_origin + fallback_lane_y(rank);
+        if (auto it = p.node_center_y.find(ec.internal_node_id); it != p.node_center_y.end()) {
+            const int lane = lane_counts[ec.internal_node_id]++;
+            base_y = it->second + static_cast<float>(lane) * kMultiLaneOffsetY;
+        }
+        n.layout.y = base_y;
 
-         const PortType pt = resolve_port_type(ec);
-         const Domain pd = editor::common::domain_for_port_type(pt);
-         if (p.is_input_side) {
-             bp2::PortDescriptor ext_pd;
-             ext_pd.name = interner.intern("ext");
-             ext_pd.domain = pd;
-             ext_pd.direction = bp2::Direction::Input;
-             ext_pd.port_type = pt;
-             bp2::PortDescriptor port_pd;
-             port_pd.name = interner.intern("port");
-             port_pd.domain = pd;
-             port_pd.direction = bp2::Direction::Output;
-             port_pd.port_type = pt;
-             n.semantic.iface = bp2::Interface({ext_pd, port_pd});
-         } else {
-             bp2::PortDescriptor ext_pd;
-             ext_pd.name = interner.intern("ext");
-             ext_pd.domain = pd;
-             ext_pd.direction = bp2::Direction::Output;
-             ext_pd.port_type = pt;
-             bp2::PortDescriptor port_pd;
-             port_pd.name = interner.intern("port");
-             port_pd.domain = pd;
-             port_pd.direction = bp2::Direction::Input;
-             port_pd.port_type = pt;
-             n.semantic.iface = bp2::Interface({ext_pd, port_pd});
-         }
+        const PortType pt = resolve_port_type(ec);
+        const Domain pd = editor::common::domain_for_port_type(pt);
+        if (p.is_input_side) {
+            bp2::PortDescriptor ext_pd;
+            ext_pd.name = interner.intern("ext");
+            ext_pd.domain = pd;
+            ext_pd.direction = bp2::Direction::Input;
+            ext_pd.port_type = pt;
+            bp2::PortDescriptor port_pd;
+            port_pd.name = interner.intern("port");
+            port_pd.domain = pd;
+            port_pd.direction = bp2::Direction::Output;
+            port_pd.port_type = pt;
+            n.semantic.iface = bp2::Interface({ext_pd, port_pd});
+        } else {
+            bp2::PortDescriptor ext_pd;
+            ext_pd.name = interner.intern("ext");
+            ext_pd.domain = pd;
+            ext_pd.direction = bp2::Direction::Output;
+            ext_pd.port_type = pt;
+            bp2::PortDescriptor port_pd;
+            port_pd.name = interner.intern("port");
+            port_pd.domain = pd;
+            port_pd.direction = bp2::Direction::Input;
+            port_pd.port_type = pt;
+            n.semantic.iface = bp2::Interface({ext_pd, port_pd});
+        }
         out = out.with_node(std::move(n));
     }
     return true;

@@ -486,45 +486,31 @@ static bp2::Blueprint make_extract_typed_boundary_fixture(ui::StringInterner& I,
     bp = bp.with_id(I.intern("bp_extract_typed_boundary"));
     bp = bp.with_display_name("ExtractTypedBoundary");
 
-     auto ext_in = make_node(I, "ext_in");
-     ext_in.semantic.type = I.intern("TypedExtIn");
+    auto ext_in = make_node(I, "ext_in");
+    ext_in.semantic.type = I.intern("TypedExtIn");
     set_iface(ext_in, {
         make_port(I.intern("out"), bp2::Direction::Output, PortType::I),
     });
-     ext_in.semantic.iface = bp2::Interface({
-         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
-     });
 
-     auto a = make_node(I, "a");
-     a.semantic.type = I.intern("TypedA");
+    auto a = make_node(I, "a");
+    a.semantic.type = I.intern("TypedA");
     set_iface(a, {
         make_port(I.intern("in"), bp2::Direction::Input, PortType::I),
         make_port(I.intern("out"), bp2::Direction::Output, PortType::I),
     });
-     a.semantic.iface = bp2::Interface({
-         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
-         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
-     });
 
-     auto b = make_node(I, "b");
-     b.semantic.type = I.intern("TypedB");
+    auto b = make_node(I, "b");
+    b.semantic.type = I.intern("TypedB");
     set_iface(b, {
         make_port(I.intern("in"), bp2::Direction::Input, PortType::I),
         make_port(I.intern("out"), bp2::Direction::Output, PortType::I),
     });
-     b.semantic.iface = bp2::Interface({
-         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
-         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
-     });
 
-     auto ext_out = make_node(I, "ext_out");
-     ext_out.semantic.type = I.intern("TypedExtOut");
+    auto ext_out = make_node(I, "ext_out");
+    ext_out.semantic.type = I.intern("TypedExtOut");
     set_iface(ext_out, {
         make_port(I.intern("in"), bp2::Direction::Input, PortType::I),
     });
-     ext_out.semantic.iface = bp2::Interface({
-         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
-     });
 
     bp = bp.with_node(std::move(ext_in));
     bp = bp.with_node(std::move(a));
@@ -1878,31 +1864,31 @@ TEST_F(CommandTest, ExtractToBlueprint_InlineBlueprintStructure) {
     EXPECT_EQ(pd_in->direction, bp2::Direction::Input);
     EXPECT_EQ(pd_out->direction, bp2::Direction::Output);
 
-     // Find the BlueprintInput node inside inline_def.
-     const bp2::Blueprint::Node* bp_in_node = nullptr;
-     const bp2::Blueprint::Node* bp_out_node = nullptr;
-     for (const auto& n : inner.nodes()) {
-         if (n.semantic.type == interner.intern("BlueprintInput")) bp_in_node = &n;
-         if (n.semantic.type == interner.intern("BlueprintOutput")) bp_out_node = &n;
-     }
-     ASSERT_NE(bp_in_node, nullptr);
-     ASSERT_NE(bp_out_node, nullptr);
+    // Find the BlueprintInput node inside inline_def.
+    const bp2::Blueprint::Node* bp_in_node = nullptr;
+    const bp2::Blueprint::Node* bp_out_node = nullptr;
+    for (const auto& n : inner.nodes()) {
+        if (n.semantic.type == interner.intern("BlueprintInput")) bp_in_node = &n;
+        if (n.semantic.type == interner.intern("BlueprintOutput")) bp_out_node = &n;
+    }
+    ASSERT_NE(bp_in_node, nullptr);
+    ASSERT_NE(bp_out_node, nullptr);
 
-     // BlueprintInput: ext=Input, port=Output
-     ASSERT_EQ(count_inputs(bp_in_node->semantic.iface), 1u);
-     ASSERT_EQ(count_outputs(bp_in_node->semantic.iface), 1u);
-     EXPECT_EQ(get_input_port(bp_in_node->semantic.iface, 0)->name, interner.intern("ext"));
-     EXPECT_EQ(get_input_port(bp_in_node->semantic.iface, 0)->direction, bp2::Direction::Input);
-     EXPECT_EQ(get_output_port(bp_in_node->semantic.iface, 0)->name, interner.intern("port"));
-     EXPECT_EQ(get_output_port(bp_in_node->semantic.iface, 0)->direction, bp2::Direction::Output);
+    // BlueprintInput: ext=Input, port=Output
+    ASSERT_EQ(count_inputs(bp_in_node->semantic.iface), 1u);
+    ASSERT_EQ(count_outputs(bp_in_node->semantic.iface), 1u);
+    EXPECT_EQ(get_input_port(bp_in_node->semantic.iface, 0)->name, interner.intern("ext"));
+    EXPECT_EQ(get_input_port(bp_in_node->semantic.iface, 0)->direction, bp2::Direction::Input);
+    EXPECT_EQ(get_output_port(bp_in_node->semantic.iface, 0)->name, interner.intern("port"));
+    EXPECT_EQ(get_output_port(bp_in_node->semantic.iface, 0)->direction, bp2::Direction::Output);
 
-     // BlueprintOutput: port=Input, ext=Output
-     ASSERT_EQ(count_inputs(bp_out_node->semantic.iface), 1u);
-     ASSERT_EQ(count_outputs(bp_out_node->semantic.iface), 1u);
-     EXPECT_EQ(get_input_port(bp_out_node->semantic.iface, 0)->name, interner.intern("port"));
-     EXPECT_EQ(get_input_port(bp_out_node->semantic.iface, 0)->direction, bp2::Direction::Input);
-     EXPECT_EQ(get_output_port(bp_out_node->semantic.iface, 0)->name, interner.intern("ext"));
-     EXPECT_EQ(get_output_port(bp_out_node->semantic.iface, 0)->direction, bp2::Direction::Output);
+    // BlueprintOutput: port=Input, ext=Output
+    ASSERT_EQ(count_inputs(bp_out_node->semantic.iface), 1u);
+    ASSERT_EQ(count_outputs(bp_out_node->semantic.iface), 1u);
+    EXPECT_EQ(get_input_port(bp_out_node->semantic.iface, 0)->name, interner.intern("port"));
+    EXPECT_EQ(get_input_port(bp_out_node->semantic.iface, 0)->direction, bp2::Direction::Input);
+    EXPECT_EQ(get_output_port(bp_out_node->semantic.iface, 0)->name, interner.intern("ext"));
+    EXPECT_EQ(get_output_port(bp_out_node->semantic.iface, 0)->direction, bp2::Direction::Output);
 
     // Inline blueprint must contain internal nodes a and b.
     EXPECT_NE(inner.find_node(interner.intern("a")), nullptr);
@@ -1930,25 +1916,25 @@ TEST_F(CommandTest, ExtractToBlueprint_PreservesBoundaryPortTypesOnBridgeNodes) 
     const auto nested_id = updated->nested()[0].id;
     const std::string nested_sid(interner.resolve(nested_id));
 
-     const auto* in_bridge = updated->find_node(interner.intern(nested_sid + ":in"));
-     const auto* out_bridge = updated->find_node(interner.intern(nested_sid + ":out"));
-     ASSERT_NE(in_bridge, nullptr);
-     ASSERT_NE(out_bridge, nullptr);
-     ASSERT_EQ(count_inputs(in_bridge->semantic.iface), 1u);
-     ASSERT_EQ(count_outputs(in_bridge->semantic.iface), 1u);
-     ASSERT_EQ(count_inputs(out_bridge->semantic.iface), 1u);
-     ASSERT_EQ(count_outputs(out_bridge->semantic.iface), 1u);
-     EXPECT_EQ(get_input_type(in_bridge->semantic.iface, 0), PortType::I);
-     EXPECT_EQ(get_output_type(in_bridge->semantic.iface, 0), PortType::I);
-     EXPECT_EQ(get_input_type(out_bridge->semantic.iface, 0), PortType::I);
-     EXPECT_EQ(get_output_type(out_bridge->semantic.iface, 0), PortType::I);
+    const auto* in_bridge = updated->find_node(interner.intern(nested_sid + ":in"));
+    const auto* out_bridge = updated->find_node(interner.intern(nested_sid + ":out"));
+    ASSERT_NE(in_bridge, nullptr);
+    ASSERT_NE(out_bridge, nullptr);
+    ASSERT_EQ(count_inputs(in_bridge->semantic.iface), 1u);
+    ASSERT_EQ(count_outputs(in_bridge->semantic.iface), 1u);
+    ASSERT_EQ(count_inputs(out_bridge->semantic.iface), 1u);
+    ASSERT_EQ(count_outputs(out_bridge->semantic.iface), 1u);
+    EXPECT_EQ(get_input_type(in_bridge->semantic.iface, 0), PortType::I);
+    EXPECT_EQ(get_output_type(in_bridge->semantic.iface, 0), PortType::I);
+    EXPECT_EQ(get_input_type(out_bridge->semantic.iface, 0), PortType::I);
+    EXPECT_EQ(get_output_type(out_bridge->semantic.iface, 0), PortType::I);
 
-     const auto* collapsed = updated->find_node(nested_id);
-     ASSERT_NE(collapsed, nullptr);
-     ASSERT_EQ(count_inputs(collapsed->semantic.iface), 1u);
-     ASSERT_EQ(count_outputs(collapsed->semantic.iface), 1u);
-     EXPECT_EQ(get_input_type(collapsed->semantic.iface, 0), PortType::I);
-     EXPECT_EQ(get_output_type(collapsed->semantic.iface, 0), PortType::I);
+    const auto* collapsed = updated->find_node(nested_id);
+    ASSERT_NE(collapsed, nullptr);
+    ASSERT_EQ(count_inputs(collapsed->semantic.iface), 1u);
+    ASSERT_EQ(count_outputs(collapsed->semantic.iface), 1u);
+    EXPECT_EQ(get_input_type(collapsed->semantic.iface, 0), PortType::I);
+    EXPECT_EQ(get_output_type(collapsed->semantic.iface, 0), PortType::I);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_SubgroupBridgeWiring) {
