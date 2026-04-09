@@ -14,6 +14,10 @@ std::optional<std::string> validate_owner_scope_reference(const Blueprint& bp,
         return "owner_scope references unknown node id='" + node.structure.owner_scope + "'";
     }
 
+    if (owner_id == node.semantic.id) {
+        return "owner_scope is self-referencing at node id='" + node.structure.owner_scope + "'";
+    }
+
     const auto* host = bp.find_node(owner_id);
     if (!host) {
         return "owner_scope references missing node id='" + node.structure.owner_scope + "'";

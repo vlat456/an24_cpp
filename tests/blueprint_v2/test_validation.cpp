@@ -583,6 +583,32 @@ TEST(InvariantChecker, OwnerScopeReferencingValidEmbeddedHostPasses) {
     EXPECT_TRUE(result.valid) << result.error;
 }
 
+TEST(InvariantChecker, OwnerScopeSelfReferencingFails) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    // A host node that sets owner_scope to its own id is a structural
+    // contradiction: a node cannot own itself.
+    auto host = make_node(I, "host1", "CompositeType");
+    host.view.expandable = true;
+    host.semantic.iface = bp2::Interface{};
+    host.structure.owner_scope = "host1";
+
+    auto inline_bp = std::make_unique<bp2::Blueprint>();
+    *inline_bp = inline_bp->with_id(I.intern("CompositeType"));
+    auto nested = bp2::Blueprint::Nested::make_embedded(
+        I.intern("host1"), I.intern("CompositeType"), std::move(inline_bp));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(host));
+    bp = bp.with_nested(std::move(nested));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("self-referencing"), std::string::npos);
+}
+
 TEST(InvariantChecker, EmptyOwnerScopePasses) {
     ui::StringInterner I;
     PathArena arena(I);
