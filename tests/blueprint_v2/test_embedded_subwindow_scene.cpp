@@ -19,7 +19,7 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& interner,
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern(id);
     n.semantic.type = interner.intern(type);
-    n.layout.layout_group = layout_group;
+    n.semantic.owner_scope = layout_group;
     set_iface(n, {
         make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
@@ -169,7 +169,7 @@ TEST(EmbeddedSubwindowScene, CompositeHostPortsUseNestedAuthorityNotCollapsedCac
     collapsed.semantic.type = interner.intern("CompositeType");
     collapsed.view.name = "composite_1";
     collapsed.view.expandable = true;
-    collapsed.layout.layout_group = "";
+    collapsed.semantic.owner_scope = "";
     set_iface(collapsed, {
         make_port(interner, "stale_only", Domain::Electrical, bp2::Direction::Input, PortType::V),
     });

@@ -191,7 +191,7 @@ Blueprint decode_nodes(Blueprint bp,
         // Optional string fields
         if (auto v = read_optional_string(n, "name", ctx))            node.view.name = std::move(*v);
         if (auto v = read_optional_string(n, "render_hint", ctx))     node.view.render_hint = std::move(*v);
-        if (auto v = read_optional_string(n, "group_id", ctx))        node.layout.layout_group = std::move(*v);
+        if (auto v = read_optional_string(n, "group_id", ctx))        node.semantic.owner_scope = std::move(*v);
         if (auto v = read_optional_string(n, "blueprint_path", ctx))  node.view.blueprint_path = std::move(*v);
 
         // Optional bool fields

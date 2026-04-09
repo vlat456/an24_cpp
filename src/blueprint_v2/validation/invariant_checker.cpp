@@ -64,6 +64,16 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 + " blueprint_id=" + iid_to_string(n.blueprint_id());
             return out;
         }
+
+        const auto* host = bp.find_host_node(n);
+        if (!host) {
+            out.error = "nested instance missing host node id=" + iid_to_string(n.id);
+            return out;
+        }
+        if (!host->view.expandable) {
+            out.error = "nested host node must be expandable id=" + iid_to_string(n.id);
+            return out;
+        }
     }
 
     for (auto const& node : bp.nodes()) {

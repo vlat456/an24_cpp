@@ -298,7 +298,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     bp = bp.with_id(interner.intern("bp"));
 
     bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:in", true, PortType::V);
-    bridge.layout.layout_group = "inst1";
+    bridge.semantic.owner_scope = "inst1";
 
      bp2::Blueprint::Node collapsed;
      collapsed.semantic.id = interner.intern("inst1");

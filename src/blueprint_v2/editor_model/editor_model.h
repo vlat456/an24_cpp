@@ -11,6 +11,8 @@
 
 namespace bp2 {
 
+Blueprint canonicalize_composite_host_ifaces(Blueprint bp);
+
 class BlueprintLibrary;
 
 struct Rect {
@@ -105,8 +107,6 @@ private:
 
     void invalidate_indices() { indices_.valid = false; }
     void ensure_indices() const;
-    static Blueprint canonicalize_composite_host_ifaces(Blueprint bp);
-    static Blueprint::Node canonicalize_composite_host_iface(const Blueprint& bp, Blueprint::Node node);
     void push_checkpoint_if_enabled();
 
     Blueprint current_;

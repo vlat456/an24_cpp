@@ -93,7 +93,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         n["type"] = std::string(interner.resolve(node.semantic.type));
         if (!node.view.name.empty()) n["name"] = node.view.name;
         if (!node.view.render_hint.empty()) n["render_hint"] = node.view.render_hint;
-        if (!node.layout.layout_group.empty()) n["group_id"] = node.layout.layout_group;
+        if (!node.semantic.owner_scope.empty()) n["group_id"] = node.semantic.owner_scope;
         if (node.view.expandable) n["expandable"] = true;
         if (!node.layout.collapsed) n["collapsed"] = false;
         if (!node.view.blueprint_path.empty()) n["blueprint_path"] = node.view.blueprint_path;

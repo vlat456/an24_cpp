@@ -30,7 +30,7 @@ TEST(Issue23NestedInlineOnly, NoRootShadowNodesByDesign) {
     bp2::Blueprint::Node collapsed;
     collapsed.semantic.id = interner.intern("comp_1");
     collapsed.semantic.type = interner.intern("FirstOrderLag");
-    collapsed.layout.layout_group = "";
+    collapsed.semantic.owner_scope = "";
     collapsed.view.expandable = true;
     root = root.with_node(collapsed);
 
@@ -38,7 +38,7 @@ TEST(Issue23NestedInlineOnly, NoRootShadowNodesByDesign) {
     bp2::Blueprint::Node inner;
     inner.semantic.id = interner.intern("inner_node");
     inner.semantic.type = interner.intern("Battery");
-    inner.layout.layout_group = "";
+    inner.semantic.owner_scope = "";
     inline_bp = inline_bp.with_node(inner);
 
     auto nested = bp2::Blueprint::Nested::make_embedded(
@@ -54,7 +54,7 @@ TEST(Issue23NestedInlineOnly, NoRootShadowNodesByDesign) {
 
     const std::string nested_id = std::string(interner.resolve(root.nested()[0].id));
     for (const auto& n : root.nodes()) {
-        EXPECT_NE(n.layout.layout_group, nested_id);
+        EXPECT_NE(n.semantic.owner_scope, nested_id);
     }
 }
 

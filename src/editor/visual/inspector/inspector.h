@@ -75,7 +75,7 @@ private:
     size_t last_wire_count_ = 0;
 
     /// Check whether a node belongs to this inspector's group
-    bool ownsNode(const bp2::Blueprint::Node& n) const { return n.layout.layout_group == scope_id_.key(); }
+    bool ownsNode(const bp2::Blueprint::Node& n) const { return n.semantic.owner_scope == scope_id_.key(); }
     /// Check whether a wire belongs to this inspector's group (both endpoints)
     bool ownsWire(const bp2::Blueprint::Wire& w) const;
 

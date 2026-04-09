@@ -212,6 +212,10 @@ Blueprint::Nested const* Blueprint::find_hosted_nested(Node const& node) const {
     return find_nested(node.semantic.id);
 }
 
+Blueprint::Node const* Blueprint::find_host_node(Nested const& nested) const {
+    return find_node(nested.id);
+}
+
 bool Blueprint::is_embedded_proxy_node(Node const& node) const {
     const Nested* nested = find_hosted_nested(node);
     return node.view.expandable && nested && nested->is_embedded();

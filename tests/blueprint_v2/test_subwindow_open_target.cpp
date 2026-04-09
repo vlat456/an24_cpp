@@ -21,6 +21,26 @@ TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
 
     const auto target = editor::resolve_subwindow_open_target(bp, interner, "n1");
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ReferencedNested);
+    EXPECT_EQ(target.path, "library/math/FirstOrderLag.blueprint");
+}
+
+TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathFailsLoudlyAsMissing) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("n_missing"),
+        interner.intern("math/FirstOrderLag"),
+        bp2::Interface{});
+    bp = bp.with_nested(std::move(nested));
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("n_missing");
+    node.view.expandable = true;
+    bp = bp.with_node(std::move(node));
+
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, "n_missing");
+    EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::Missing);
     EXPECT_TRUE(target.path.empty());
 }
 

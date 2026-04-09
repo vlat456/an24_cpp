@@ -54,7 +54,7 @@ bool create_bridge_nodes_for_side(
         n.semantic.id = id;
         n.semantic.type = interner.intern(p.is_input_side ? "BlueprintInput" : "BlueprintOutput");
         n.view.name = ec.iface_name;
-        n.layout.layout_group = p.scope_id.sim_scope_prefix();
+        n.semantic.owner_scope = p.scope_id.sim_scope_prefix();
         n.layout.x = p.x;
 
         float base_y = p.fallback_y_origin + fallback_lane_y(rank);

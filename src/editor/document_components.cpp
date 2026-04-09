@@ -102,7 +102,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     node.view.name = unique_id;
     node.layout.x = snapped_pos.x;
     node.layout.y = snapped_pos.y;
-    node.layout.layout_group = scope_id;
+    node.semantic.owner_scope = scope_id;
     node.view.render_hint = def->render_hint;
     node.view.expandable = !def->cpp_class && !def->devices.empty();
 
@@ -256,7 +256,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     collapsed.semantic.id = interner_.intern(unique_id);
     collapsed.semantic.type = interner_.intern(blueprint_name);
     collapsed.view.name = unique_id;
-    collapsed.layout.layout_group = scope_id;
+    collapsed.semantic.owner_scope = scope_id;
     collapsed.layout.x = snapped_pos.x;
     collapsed.layout.y = snapped_pos.y;
     collapsed.layout.width = 160.0f;

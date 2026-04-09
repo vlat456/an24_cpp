@@ -43,6 +43,12 @@ static TypeRegistry make_validation_registry() {
     resistor.ports["out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
     reg.types["Resistor"] = std::move(resistor);
 
+    TypeDefinition composite;
+    composite.classname = "CompositeType";
+    composite.cpp_class = true;
+    composite.ports["inner_only"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
+    reg.types["CompositeType"] = std::move(composite);
+
     return reg;
 }
 
@@ -364,6 +370,48 @@ TEST(BlueprintValidate, CompositeHostIfaceDesyncFails) {
     auto r = bp2::InvariantChecker::validate(root, arena, reg, I);
     EXPECT_FALSE(r.valid);
     EXPECT_NE(r.error.find("desynced"), std::string::npos);
+}
+
+TEST(BlueprintValidate, NestedInstanceMissingHostNodeFails) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    PathArena arena(I);
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(Interface({
+        {I.intern("inner_only"), Domain::Electrical, Direction::Input},
+    }));
+
+    bp2::Blueprint root;
+    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
+        I.intern("sub1"), I.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
+
+    auto r = bp2::InvariantChecker::validate(root, arena, reg, I);
+    EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("missing host node"), std::string::npos);
+}
+
+TEST(BlueprintValidate, NestedHostNodeMustBeExpandable) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    PathArena arena(I);
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(Interface({
+        {I.intern("inner_only"), Domain::Electrical, Direction::Input},
+    }));
+
+    bp2::Blueprint::Node host = make_node(I, "sub1", "CompositeType");
+    host.view.expandable = false;
+
+    bp2::Blueprint root;
+    root = root.with_node(std::move(host));
+    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
+        I.intern("sub1"), I.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
+
+    auto r = bp2::InvariantChecker::validate(root, arena, reg, I);
+    EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("must be expandable"), std::string::npos);
 }
 
 TEST(BlueprintValidate, UnknownNodeTypeFails) {

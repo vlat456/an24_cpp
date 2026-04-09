@@ -34,6 +34,9 @@ public:
         struct SemanticData {
             ui::InternedId id;
             ui::InternedId type;
+            /// Editor ownership scope for subwindow/group routing.
+            /// Empty means root scope within the containing blueprint.
+            std::string owner_scope;
             /// For composite host nodes this is a derived cache that must mirror
             /// the hosted nested resolved interface. Use effective_node_iface()
             /// for authoritative reads.
@@ -44,7 +47,7 @@ public:
             std::unordered_map<std::string, std::string> string_params;
 
             bool operator==(SemanticData const& o) const {
-                return id == o.id && type == o.type && iface == o.iface
+                return id == o.id && type == o.type && owner_scope == o.owner_scope && iface == o.iface
                     && params == o.params && string_params == o.string_params;
             }
         };
@@ -54,14 +57,13 @@ public:
             float x = 0.0f;
             float y = 0.0f;
             bool collapsed = true;
-            std::string layout_group;
             std::optional<float> width;
             std::optional<float> height;
             std::vector<PortLayoutOverride> layout_overrides;
 
             bool operator==(LayoutData const& o) const {
                 return x == o.x && y == o.y && collapsed == o.collapsed
-                    && layout_group == o.layout_group && width == o.width && height == o.height
+                    && width == o.width && height == o.height
                     && layout_overrides == o.layout_overrides;
             }
         };
@@ -253,9 +255,10 @@ public:
     Wire const* find_wire(ui::InternedId id) const;
     Nested const* find_nested(ui::InternedId id) const;
 
-    /// Return the nested instance hosted by this node when it is a composite host.
-    /// The current canonical relation is host node id == nested instance id.
+    /// Composite host linkage is canonicalized by shared identity:
+    /// host node id == nested instance id. Validation enforces this relation.
     Nested const* find_hosted_nested(Node const& node) const;
+    Node const* find_host_node(Nested const& nested) const;
     bool is_embedded_proxy_node(Node const& node) const;
 
     /// Return the authoritative interface for a node.

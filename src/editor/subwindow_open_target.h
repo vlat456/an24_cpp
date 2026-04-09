@@ -27,16 +27,24 @@ inline SubWindowOpenTarget resolve_subwindow_open_target(const bp2::Blueprint& b
     }
 
     if (const auto* nested = bp.find_nested(lookup_id)) {
-        return {nested->is_embedded() ? SubWindowOpenTargetKind::EmbeddedNested
-                                 : SubWindowOpenTargetKind::ReferencedNested,
-                {}};
+        if (nested->is_embedded()) {
+            return {SubWindowOpenTargetKind::EmbeddedNested, {}};
+        }
+
+        const bp2::Blueprint::Node* node = bp.find_node(lookup_id);
+        if (!node || node->view.blueprint_path.empty()) {
+            return {};
+        }
+
+        return {SubWindowOpenTargetKind::ReferencedNested,
+                "library/" + node->view.blueprint_path + ".blueprint"};
     }
 
-     const bp2::Blueprint::Node* node = bp.find_node(lookup_id);
-     if (node && node->view.expandable && !node->view.blueprint_path.empty()) {
-         return {SubWindowOpenTargetKind::ExternalReference,
-                 "library/" + node->view.blueprint_path + ".blueprint"};
-     }
+    const bp2::Blueprint::Node* node = bp.find_node(lookup_id);
+    if (node && node->view.expandable && !node->view.blueprint_path.empty()) {
+        return {SubWindowOpenTargetKind::ExternalReference,
+                "library/" + node->view.blueprint_path + ".blueprint"};
+    }
 
     return {};
 }

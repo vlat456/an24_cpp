@@ -1,6 +1,7 @@
 #include "extract_blueprint.h"
 
 #include "extract_blueprint_internal.h"
+#include "blueprint_v2/editor_model/editor_model.h"
 #include "editor/visual/persist.h"
 
 namespace editor::commands {
@@ -47,7 +48,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     if (!out_opt) {
         return std::nullopt;
     }
-    bp2::Blueprint out = std::move(*out_opt);
+    bp2::Blueprint out = bp2::canonicalize_composite_host_ifaces(std::move(*out_opt));
 
     std::string integrity_err;
     if (!validate_blueprint_integrity(out, interner, arena, parser_registry, &integrity_err)) {

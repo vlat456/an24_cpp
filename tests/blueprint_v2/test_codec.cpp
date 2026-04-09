@@ -666,7 +666,15 @@ TEST(BlueprintCodec, DecodeEmbeddedNestedPopulatesIfaceFromInlineDef) {
         "id": "nested_iface_test",
         "display_name": "Nested Iface Test",
         "interface": [],
-        "nodes": [],
+        "nodes": [
+            {
+                "id": "sub1",
+                "type": "InnerBP",
+                "name": "sub1",
+                "expandable": true,
+                "position": {"x": 10, "y": 20}
+            }
+        ],
         "wires": [],
         "nested": [
             {
@@ -741,6 +749,17 @@ TEST(BlueprintCodec, RoundTripEmbeddedNestedPreservesIface) {
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("roundtrip_nested_iface"));
     bp = bp.with_display_name("RT Nested Iface");
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("inst1");
+    host.semantic.type = interner.intern("SubSystem");
+    host.view.name = "inst1";
+    host.view.expandable = true;
+    set_iface(host, {
+        make_port(interner, "sig_in", Domain::Electrical, bp2::Direction::Input, PortType::Any),
+        make_port(interner, "sig_out", Domain::Electrical, bp2::Direction::Output, PortType::Any),
+    });
+    bp = bp.with_node(std::move(host));
     bp = bp.with_nested(std::move(nested));
 
     // Encode
@@ -944,6 +963,18 @@ TEST(BlueprintCodec, ReferenceNestedIfaceCache_RoundTripParity) {
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("ref_nested_roundtrip"));
     bp = bp.with_display_name("Ref Nested RoundTrip");
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("power_inst_1");
+    host.semantic.type = interner.intern("RefNestedType");
+    host.view.name = "power_inst_1";
+    host.view.expandable = true;
+    set_iface(host, {
+        make_port(interner, "vin", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "ctrl", Domain::Logical, bp2::Direction::InOut, PortType::Bool),
+        make_port(interner, "rpm", Domain::Mechanical, bp2::Direction::Output, PortType::RPM),
+    });
+    bp = bp.with_node(std::move(host));
 
     auto nested = bp2::Blueprint::Nested::make_reference(
         interner.intern("power_inst_1"),

@@ -217,6 +217,7 @@ bool append_selected_embedded_nested_for_inline(
             return false;
         }
         inline_bp = inline_bp.with_nested(std::move(copy));
+        inline_bp = bp2::sync_collapsed_node_iface_from_nested(inline_bp, n->id);
     }
     return true;
 }
@@ -244,7 +245,7 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
     for (auto node : plan.internal_nodes) {
         node.layout.x = (node.layout.x - min_x) + left_margin;
         node.layout.y = (node.layout.y - min_y);
-        node.layout.layout_group.clear();
+        node.semantic.owner_scope.clear();
         max_internal_right = std::max(max_internal_right, node.layout.x + node.layout.width.value_or(kDefaultNodeWidth));
         translated_nodes.push_back(node);
         out = out.with_node(std::move(node));
@@ -338,7 +339,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     for (const auto& nsrc : source.nodes()) {
         auto n = nsrc;
         if (plan.selected_set.find(n.semantic.id) != plan.selected_set.end()) {
-            n.layout.layout_group = nested_scope_key;
+            n.semantic.owner_scope = nested_scope_key;
         }
         out = out.with_node(std::move(n));
     }
@@ -390,7 +391,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     collapsed.view.expandable = true;
     collapsed.layout.collapsed = true;
     collapsed.view.blueprint_path = blueprint_name;
-    collapsed.layout.layout_group = scope_id.sim_scope_prefix();
+    collapsed.semantic.owner_scope = scope_id.sim_scope_prefix();
     collapsed.layout.x = plan.center_x;
     collapsed.layout.y = plan.center_y;
     collapsed.layout.width = 160.0f;

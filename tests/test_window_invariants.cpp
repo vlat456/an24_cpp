@@ -282,6 +282,13 @@ TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
     ASSERT_NE(emb_win, nullptr);
     EXPECT_EQ(emb_win->resolved_scope_id(), WindowScopeId::embedded("emb_group"));
     EXPECT_TRUE(emb_win->resolved_scope_id().is_embedded());
+
+    auto [ext_win, ext_created] = windows2.open(WindowScopeId::external("ref_group"), "External");
+    ASSERT_NE(ext_win, nullptr);
+    EXPECT_TRUE(ext_created);
+    EXPECT_EQ(ext_win->resolved_scope_id(), WindowScopeId::external("ref_group"));
+    EXPECT_TRUE(ext_win->resolved_scope_id().is_external());
+    EXPECT_TRUE(ext_win->read_only);
 }
 
 /// Regression test for #58/#55: rendered_blueprint() must throw std::logic_error

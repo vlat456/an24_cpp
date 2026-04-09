@@ -34,7 +34,7 @@ static bp2::Blueprint::Node make_bp2_node(ui::StringInterner& I,
      bp2::Blueprint::Node n;
      n.semantic.id = I.intern(id);
      n.semantic.type = I.intern(type);
-     n.layout.layout_group = layout_group;
+     n.semantic.owner_scope = layout_group;
      return n;
  }
 

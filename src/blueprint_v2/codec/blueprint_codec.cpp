@@ -1,5 +1,6 @@
 #include "blueprint_codec.h"
 #include "blueprint_codec_internal.h"
+#include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 
 #include <nlohmann/json.hpp>
@@ -135,6 +136,8 @@ std::optional<Blueprint> BlueprintCodec::decode(
         bp = codec_detail::decode_nodes(std::move(bp), j["nodes"], interner, parser_registry);
         bp = codec_detail::decode_wires(std::move(bp), j["wires"], interner, arena);
         bp = codec_detail::decode_nested(std::move(bp), j["nested"], interner, parser_registry, arena);
+
+        bp = canonicalize_composite_host_ifaces(std::move(bp));
 
         auto inv = InvariantChecker::validate(bp, arena, parser_registry, interner);
         if (!inv.valid) {

@@ -17,7 +17,9 @@ Blueprint clone_metadata(const Blueprint& bp) {
 
 } // namespace
 
-Blueprint::Node EditorModel::canonicalize_composite_host_iface(const Blueprint& bp, Blueprint::Node node) {
+namespace {
+
+Blueprint::Node canonicalize_composite_host_iface(const Blueprint& bp, Blueprint::Node node) {
     const auto* nested = bp.find_hosted_nested(node);
     if (!nested) {
         return node;
@@ -26,7 +28,9 @@ Blueprint::Node EditorModel::canonicalize_composite_host_iface(const Blueprint& 
     return node;
 }
 
-Blueprint EditorModel::canonicalize_composite_host_ifaces(Blueprint bp) {
+} // namespace
+
+Blueprint canonicalize_composite_host_ifaces(Blueprint bp) {
     bool changed = false;
     Blueprint rebuilt = clone_metadata(bp);
 

@@ -80,9 +80,7 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
     auto lookup_id = interner_.lookup(sub_blueprint_id);
     const bp2::Blueprint::Nested* nested = lookup_id.empty() ? nullptr : model_.current().find_nested(lookup_id);
 
-    if ((target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested
-         || target.kind == editor::SubWindowOpenTargetKind::ReferencedNested)
-        && nested) {
+    if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && nested) {
         std::string type_name = std::string(interner_.resolve(nested->blueprint_id()));
         auto [win, created] = window_manager_.open(WindowScopeId::embedded(sub_blueprint_id),
                                                    type_name + " [" + sub_blueprint_id + "]");
@@ -112,6 +110,16 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
         }
 
         spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);
+        return;
+    }
+
+    if (target.kind == editor::SubWindowOpenTargetKind::ReferencedNested) {
+        if (target.path.empty()) {
+            spdlog::error("[editor] Cannot open referenced nested sub-window '{}': missing blueprint path",
+                          sub_blueprint_id);
+            return;
+        }
+        openExternalRefWindow(sub_blueprint_id, target.path);
         return;
     }
 

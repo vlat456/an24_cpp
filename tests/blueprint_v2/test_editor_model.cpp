@@ -937,6 +937,13 @@ TEST(SubWindowOpenTargetRegression, NonEmbeddedNestedHasNullInlineDef) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
 
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("sub1");
+    host.semantic.type = interner.intern("math/FirstOrderLag");
+    host.view.expandable = true;
+    host.view.blueprint_path = "math/FirstOrderLag";
+    bp = bp.with_node(std::move(host));
+
     auto nested = bp2::Blueprint::Nested::make_reference(
         interner.intern("sub1"), interner.intern("math/FirstOrderLag"), bp2::Interface());
     // inline_def() is nullptr for reference-mode nested

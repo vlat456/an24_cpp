@@ -195,13 +195,13 @@ static bp2::Blueprint make_extract_subgroup_fixture(ui::StringInterner& I, bp2::
     const std::string subgroup = "group_1";
     if (const auto* a = bp.find_node(I.intern("a"))) {
         auto n = *a;
-        n.layout.layout_group = subgroup;
+        n.semantic.owner_scope = subgroup;
         bp = bp.without_node(n.semantic.id);
         bp = bp.with_node(std::move(n));
     }
     if (const auto* b = bp.find_node(I.intern("b"))) {
         auto n = *b;
-        n.layout.layout_group = subgroup;
+        n.semantic.owner_scope = subgroup;
         bp = bp.without_node(n.semantic.id);
         bp = bp.with_node(std::move(n));
     }
@@ -1148,8 +1148,8 @@ TEST_F(CommandTest, ExtractToBlueprint_BasicAtomic) {
     ASSERT_NE(out_bridge, nullptr);
     EXPECT_EQ(in_bridge->semantic.type, interner.intern("BlueprintInput"));
     EXPECT_EQ(out_bridge->semantic.type, interner.intern("BlueprintOutput"));
-    EXPECT_EQ(in_bridge->layout.layout_group, nested_sid);
-    EXPECT_EQ(out_bridge->layout.layout_group, nested_sid);
+    EXPECT_EQ(in_bridge->semantic.owner_scope, nested_sid);
+    EXPECT_EQ(out_bridge->semantic.owner_scope, nested_sid);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_UndoRedoRoundTrip) {
@@ -1208,14 +1208,14 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsSubgroupExtraction) {
 
     const auto* collapsed = updated->find_node(nested_id);
     ASSERT_NE(collapsed, nullptr);
-    EXPECT_EQ(collapsed->layout.layout_group, "group_1");
+    EXPECT_EQ(collapsed->semantic.owner_scope, "group_1");
 
     const auto* a = updated->find_node(interner.intern("a"));
     const auto* b = updated->find_node(interner.intern("b"));
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
-    EXPECT_EQ(a->layout.layout_group, nested_sid);
-    EXPECT_EQ(b->layout.layout_group, nested_sid);
+    EXPECT_EQ(a->semantic.owner_scope, nested_sid);
+    EXPECT_EQ(b->semantic.owner_scope, nested_sid);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_RejectsSelectionOutsideActiveGroup) {
@@ -1260,7 +1260,7 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsEmbeddedNestedInstanceSelection) {
 
     const auto* selected_nested_node = updated->find_node(interner.intern("sub_inst_1"));
     ASSERT_NE(selected_nested_node, nullptr);
-    EXPECT_EQ(selected_nested_node->layout.layout_group, new_nested_sid);
+    EXPECT_EQ(selected_nested_node->semantic.owner_scope, new_nested_sid);
 
     const auto& created_nested = updated->nested().back();
     ASSERT_TRUE(created_nested.inline_def() != nullptr);
@@ -1954,8 +1954,8 @@ TEST_F(CommandTest, ExtractToBlueprint_SubgroupBridgeWiring) {
     ASSERT_NE(out_bridge, nullptr);
 
     // Bridge nodes must be in the subgroup.
-    EXPECT_EQ(in_bridge->layout.layout_group, nested_sid);
-    EXPECT_EQ(out_bridge->layout.layout_group, nested_sid);
+    EXPECT_EQ(in_bridge->semantic.owner_scope, nested_sid);
+    EXPECT_EQ(out_bridge->semantic.owner_scope, nested_sid);
 
     // Find subgroup bridge wires:
     // Input bridge: in_bridge.port -> a.in
@@ -2527,7 +2527,7 @@ TEST_F(CommandTest, ManualBridgeAddition_SyncsCollapsedNodeAndNested) {
      bridge.semantic.id = interner.intern(bridge_id_str);
      bridge.semantic.type = interner.intern("BlueprintInput");
      bridge.view.name = iface_name;
-     bridge.layout.layout_group = nested_id_str;
+     bridge.semantic.owner_scope = nested_id_str;
      bridge.layout.x = 0.0f;
      bridge.layout.y = 0.0f;
     set_iface(bridge, {
@@ -2554,7 +2554,7 @@ TEST_F(CommandTest, ManualBridgeAddition_SyncsCollapsedNodeAndNested) {
     // Verify: bridge node exists in the group
     const auto* bridge_node = bp.find_node(interner.intern(bridge_id_str));
     ASSERT_NE(bridge_node, nullptr) << "bridge node not found";
-     EXPECT_EQ(bridge_node->layout.layout_group, nested_id_str);
+     EXPECT_EQ(bridge_node->semantic.owner_scope, nested_id_str);
     EXPECT_EQ(bridge_node->view.name, iface_name);
 
     // Verify: collapsed node has the new input port
@@ -2628,7 +2628,7 @@ TEST_F(CommandTest, ManualBridgeAddition_OutputSyncsCollapsedNodeAndNested) {
      bridge.semantic.id = interner.intern(bridge_id_str);
      bridge.semantic.type = interner.intern("BlueprintOutput");
      bridge.view.name = iface_name;
-     bridge.layout.layout_group = nested_id_str;
+     bridge.semantic.owner_scope = nested_id_str;
      bridge.layout.x = 0.0f;
      bridge.layout.y = 0.0f;
     set_iface(bridge, {

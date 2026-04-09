@@ -110,7 +110,7 @@ static void orient_ref_node_ports(Scene& scene,
          const bp2::Blueprint::Node* src_node = bp.find_node(src_node_id);
          const bp2::Blueprint::Node* tgt_node = bp.find_node(tgt_node_id);
          if (!src_node || !tgt_node) continue;
-         if (src_node->layout.layout_group != scope_id || tgt_node->layout.layout_group != scope_id) continue;
+         if (src_node->semantic.owner_scope != scope_id || tgt_node->semantic.owner_scope != scope_id) continue;
 
          if (src_node->view.render_hint == "ref" && ref_to_connected.count(src_node_id) == 0) {
              ref_to_connected.emplace(src_node_id, tgt_node_id);
@@ -163,7 +163,7 @@ void rebuild(Scene& scene,
 
     // 1) Create node widgets for all nodes in this group
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        if (n.layout.layout_group != scope_id) continue;
+        if (n.semantic.owner_scope != scope_id) continue;
         const bp2::Interface& render_iface = bp.effective_node_iface(n);
         std::unique_ptr<Widget> widget = NodeFactory::create(n, render_iface, interner, bus_wires);
         scene.add(std::move(widget));
@@ -181,7 +181,7 @@ void rebuild(Scene& scene,
          const bp2::Blueprint::Node* sn = bp.find_node(src_node_id);
          const bp2::Blueprint::Node* en = bp.find_node(tgt_node_id);
          if (!sn || !en) continue;
-         if (sn->layout.layout_group != scope_id || en->layout.layout_group != scope_id) continue;
+         if (sn->semantic.owner_scope != scope_id || en->semantic.owner_scope != scope_id) continue;
 
         create_wire_widget(scene, w, arena, interner);
     }

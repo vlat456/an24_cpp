@@ -14,9 +14,6 @@ void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
     const bp2::Blueprint& bp = win.rendered_blueprint();
 
     for (const auto& node : bp.nodes()) {
-        if (win.resolved_scope_id().is_embedded()) {
-            if (!node.layout.layout_group.empty()) continue;
-        }
 
         // Find the corresponding widget in the scene tree
         std::string_view node_id_sv = interner.resolve(node.semantic.id);

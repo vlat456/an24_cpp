@@ -145,7 +145,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         if (plan.selected_set.find(node.semantic.id) == plan.selected_set.end()) {
             continue;
         }
-        if (node.layout.layout_group != scope_id.sim_scope_prefix()) {
+        if (node.semantic.owner_scope != scope_id.sim_scope_prefix()) {
             set_error(error_out, "selected nodes must belong to active group");
             return std::nullopt;
         }

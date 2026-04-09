@@ -254,6 +254,10 @@ TEST(Blueprint, FindHostedNestedForCompositeHost) {
     const auto* nested = bp.find_hosted_nested(*found_host);
     ASSERT_NE(nested, nullptr);
     EXPECT_EQ(nested->id, interner.intern("comp1"));
+
+    const auto* host_node = bp.find_host_node(*nested);
+    ASSERT_NE(host_node, nullptr);
+    EXPECT_EQ(host_node->semantic.id, interner.intern("comp1"));
 }
 
 TEST(Blueprint, EmbeddedProxyNodeDetectionRequiresEmbeddedNestedAndExpandable) {
