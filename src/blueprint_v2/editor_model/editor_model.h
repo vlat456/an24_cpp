@@ -1,5 +1,6 @@
 #pragma once
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/blueprint/canonicalize.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include <vector>
@@ -10,8 +11,6 @@
 #include <stdexcept>
 
 namespace bp2 {
-
-Blueprint canonicalize_composite_host_ifaces(Blueprint bp);
 
 class BlueprintLibrary;
 

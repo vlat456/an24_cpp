@@ -92,6 +92,9 @@ public:
         window_manager_.set_parser_registry(reg);
     }
 
+    /// Get the type registry (may be nullptr if not yet set).
+    const TypeRegistry* type_registry() const { return type_registry_; }
+
     void startSimulation();
     void stopSimulation();
     void rebuildSimulation();

@@ -1,7 +1,7 @@
 #include "extract_blueprint.h"
 
 #include "extract_blueprint_internal.h"
-#include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/blueprint/canonicalize.h"
 #include "editor/visual/persist.h"
 
 namespace editor::commands {

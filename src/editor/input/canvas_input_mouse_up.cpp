@@ -96,7 +96,7 @@ bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedI
 void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) {
      if (ref_node_id.empty()) return;
      const bp2::Blueprint::Node* ref_node = host_.find_node(ref_node_id);
-     if (!ref_node || ref_node->semantic.owner_scope != scope_id_ || ref_node->view.render_hint != "ref") return;
+     if (!ref_node || ref_node->structure.owner_scope != scope_id_ || ref_node->view.render_hint != "ref") return;
 
      ui::InternedId connected_node_id;
      for (const bp2::Blueprint::Wire& w : host_.wires()) {
@@ -340,7 +340,7 @@ void CanvasInput::finish_marquee() {
 
           ui::InternedId node_iid = interner_.lookup(std::string_view(vroot->id()));
           const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : host_.find_node(node_iid);
-          if (!node || node->semantic.owner_scope != scope_id_) continue;
+          if (!node || node->structure.owner_scope != scope_id_) continue;
 
         Pt pos = vroot->worldPos();
         Pt sz = vroot->size();

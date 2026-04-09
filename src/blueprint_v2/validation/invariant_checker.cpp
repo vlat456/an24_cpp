@@ -1,5 +1,6 @@
 #include "invariant_checker.h"
 
+#include "blueprint_v2/library/library_path.h"
 #include <unordered_set>
 
 namespace {
@@ -43,20 +44,6 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
         }
     }
 
-    for (auto const& node : bp.nodes()) {
-        if (!parser_registry.has(std::string(interner.resolve(node.semantic.type)))) {
-            // Embedded blueprint proxy nodes carry a user-given type name
-            // that won't be in the library registry.  They are valid as long
-            // as a matching embedded nested definition exists.
-            if (bp.is_embedded_proxy_node(node)) {
-                continue;
-            }
-            out.error = "unknown node type at node id=" + iid_to_string(node.semantic.id)
-                + " type=" + iid_to_string(node.semantic.type);
-            return out;
-        }
-    }
-
     for (auto const& n : bp.nested()) {
         if (n.is_reference()
             && !parser_registry.has(std::string(interner.resolve(n.blueprint_id())))) {
@@ -77,6 +64,20 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     }
 
     for (auto const& node : bp.nodes()) {
+        if (!parser_registry.has(std::string(interner.resolve(node.semantic.type)))) {
+            // Embedded blueprint proxy nodes carry a user-given type name
+            // that won't be in the library registry. They are valid only when
+            // the host↔nested structural invariant has already been satisfied.
+            if (bp.is_embedded_proxy_node(node)) {
+                continue;
+            }
+            out.error = "unknown node type at node id=" + iid_to_string(node.semantic.id)
+                + " type=" + iid_to_string(node.semantic.type);
+            return out;
+        }
+    }
+
+    for (auto const& node : bp.nodes()) {
         const auto* nested = bp.find_hosted_nested(node);
         if (!nested) {
             continue;
@@ -85,6 +86,28 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             out.error = "composite host iface desynced from nested authority at node id="
                 + iid_to_string(node.semantic.id);
             return out;
+        }
+
+        // Single-authority check: if nested is reference-mode and host has blueprint_path,
+        // it must equal the canonical category-relative path from blueprint_id
+        if (nested->is_reference() && !node.view.blueprint_path.empty()) {
+            auto canonical_path = bp2::resolve_category_relative_blueprint_path(
+                parser_registry,
+                std::string(interner.resolve(nested->blueprint_id())));
+            if (!canonical_path.has_value()) {
+                out.error = "referenced nested blueprint not found in registry: id="
+                    + iid_to_string(nested->id)
+                    + " blueprint_id=" + iid_to_string(nested->blueprint_id());
+                return out;
+            }
+
+            if (node.view.blueprint_path != *canonical_path) {
+                out.error = "referenced nested host blueprint_path mismatch at node id="
+                    + iid_to_string(node.semantic.id)
+                    + " expected=" + *canonical_path
+                    + " got=" + node.view.blueprint_path;
+                return out;
+            }
         }
     }
 

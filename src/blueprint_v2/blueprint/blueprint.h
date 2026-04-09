@@ -34,9 +34,6 @@ public:
         struct SemanticData {
             ui::InternedId id;
             ui::InternedId type;
-            /// Editor ownership scope for subwindow/group routing.
-            /// Empty means root scope within the containing blueprint.
-            std::string owner_scope;
             /// For composite host nodes this is a derived cache that must mirror
             /// the hosted nested resolved interface. Use effective_node_iface()
             /// for authoritative reads.
@@ -47,8 +44,19 @@ public:
             std::unordered_map<std::string, std::string> string_params;
 
             bool operator==(SemanticData const& o) const {
-                return id == o.id && type == o.type && owner_scope == o.owner_scope && iface == o.iface
+                return id == o.id && type == o.type && iface == o.iface
                     && params == o.params && string_params == o.string_params;
+            }
+        };
+
+        // === Structural/editor ownership data ===
+        struct StructureData {
+            /// Editor ownership scope for subwindow/group routing.
+            /// Empty means root scope within the containing blueprint.
+            std::string owner_scope;
+
+            bool operator==(StructureData const& o) const {
+                return owner_scope == o.owner_scope;
             }
         };
 
@@ -102,11 +110,13 @@ public:
         };
 
         SemanticData semantic;
+        StructureData structure;
         LayoutData layout;
         ViewData view;
 
         bool operator==(Node const& o) const {
-            return semantic == o.semantic && layout == o.layout && view == o.view;
+            return semantic == o.semantic && structure == o.structure
+                && layout == o.layout && view == o.view;
         }
     };
 

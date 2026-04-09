@@ -26,7 +26,7 @@ struct InspectorTestScene {
          n.semantic.id = interner.intern(id);
          n.semantic.type = interner.intern(type);
          n.view.name = id;
-         n.semantic.owner_scope = layout_group;
+         n.structure.owner_scope = layout_group;
 
         if (type == "Battery") {
             set_iface(n, {
@@ -263,7 +263,7 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
          root_node.semantic.id = ts.interner.intern("battery1");
          root_node.semantic.type = ts.interner.intern("Battery");
          root_node.view.name = "battery1";
-         root_node.semantic.owner_scope = "";
+         root_node.structure.owner_scope = "";
          set_iface(root_node, {
              make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
              make_port(ts.interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
@@ -276,7 +276,7 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
          bp_node.semantic.type = ts.interner.intern("LampBlueprint");
          bp_node.view.name = "lamp1";
          bp_node.view.expandable = true;
-         bp_node.semantic.owner_scope = "";
+         bp_node.structure.owner_scope = "";
          ts.addNodeRaw(std::move(bp_node));
      }
      {
@@ -284,7 +284,7 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
          internal.semantic.id = ts.interner.intern("lamp1:led");
          internal.semantic.type = ts.interner.intern("LED");
          internal.view.name = "lamp1:led";
-         internal.semantic.owner_scope = "lamp1";
+         internal.structure.owner_scope = "lamp1";
          set_iface(internal, {
              make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V)
          });
@@ -308,7 +308,7 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
          root_node.semantic.id = ts.interner.intern("battery1");
          root_node.semantic.type = ts.interner.intern("Battery");
          root_node.view.name = "battery1";
-         root_node.semantic.owner_scope = "";
+         root_node.structure.owner_scope = "";
          ts.addNodeRaw(std::move(root_node));
      }
      {
@@ -316,7 +316,7 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
          led.semantic.id = ts.interner.intern("lamp1:led");
          led.semantic.type = ts.interner.intern("LED");
          led.view.name = "lamp1:led";
-         led.semantic.owner_scope = "lamp1";
+         led.structure.owner_scope = "lamp1";
          set_iface(led, {
              make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V)
          });
@@ -327,7 +327,7 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
          res.semantic.id = ts.interner.intern("lamp1:res");
          res.semantic.type = ts.interner.intern("Resistor");
          res.view.name = "lamp1:res";
-         res.semantic.owner_scope = "lamp1";
+         res.structure.owner_scope = "lamp1";
          set_iface(res, {
              make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
              make_port(ts.interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
@@ -353,7 +353,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
          bat.semantic.id = ts.interner.intern("bat");
          bat.semantic.type = ts.interner.intern("Battery");
          bat.view.name = "bat";
-         bat.semantic.owner_scope = "";
+         bat.structure.owner_scope = "";
          set_iface(bat, {
              make_port(ts.interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
          });
@@ -366,7 +366,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
          lamp.semantic.type = ts.interner.intern("Lamp");
           lamp.view.name = "lamp1";
          lamp.view.expandable = true;
-         lamp.semantic.owner_scope = "";
+         lamp.structure.owner_scope = "";
          set_iface(lamp, {
              make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V)
          });
@@ -378,7 +378,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
          iled.semantic.id = ts.interner.intern("lamp1:led");
          iled.semantic.type = ts.interner.intern("LED");
          iled.view.name = "lamp1:led";
-         iled.semantic.owner_scope = "lamp1";
+         iled.structure.owner_scope = "lamp1";
          set_iface(iled, {
              make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
              make_port(ts.interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
@@ -390,7 +390,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
          ires.semantic.id = ts.interner.intern("lamp1:res");
          ires.semantic.type = ts.interner.intern("Resistor");
          ires.view.name = "lamp1:res";
-         ires.semantic.owner_scope = "lamp1";
+         ires.structure.owner_scope = "lamp1";
          set_iface(ires, {
              make_port(ts.interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V)
          });

@@ -414,6 +414,48 @@ TEST(BlueprintValidate, NestedHostNodeMustBeExpandable) {
     EXPECT_NE(r.error.find("must be expandable"), std::string::npos);
 }
 
+TEST(BlueprintValidate, NestedMissingHostBeatsIncidentalUnknownNodeTypeDiagnostic) {
+    ui::StringInterner I;
+    TypeRegistry reg = load_type_registry("library/");
+    PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "ghost_unknown", "DefinitelyUnknownType"));
+
+    auto inline_bp = std::make_unique<bp2::Blueprint>();
+    *inline_bp = inline_bp->with_id(I.intern("RN-180-Exciter"));
+    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
+        I.intern("missing_host_inst"), I.intern("RN-180-Exciter"), std::move(inline_bp)));
+
+    auto r = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("missing host node"), std::string::npos);
+}
+
+TEST(BlueprintValidate, NestedNonExpandableHostBeatsIncidentalUnknownNodeTypeDiagnostic) {
+    ui::StringInterner I;
+    TypeRegistry reg = load_type_registry("library/");
+    PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "ghost_unknown", "DefinitelyUnknownType"));
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("embedded_inst");
+    host.semantic.type = I.intern("RN-180-Exciter");
+    host.view.expandable = false;
+    bp = bp.with_node(std::move(host));
+
+    auto inline_bp = std::make_unique<bp2::Blueprint>();
+    *inline_bp = inline_bp->with_id(I.intern("RN-180-Exciter"));
+    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
+        I.intern("embedded_inst"), I.intern("RN-180-Exciter"), std::move(inline_bp)));
+
+    auto r = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("must be expandable"), std::string::npos);
+}
+
 TEST(BlueprintValidate, UnknownNodeTypeFails) {
     ui::StringInterner I;
     TypeRegistry reg = make_validation_registry();
@@ -748,5 +790,137 @@ TEST(InvariantChecker, ParserRegistryOverloadValidateBlueprint) {
     bp = bp.with_node(make_node(I, "n1", known_type.c_str()));
 
     auto result = bp2::InvariantChecker::validate(bp, arena, parser_registry, I);
+    EXPECT_TRUE(result.valid) << result.error;
+}
+
+TEST(InvariantChecker, ReferencedNestedHostPathMismatchDetected) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    // Add a reference-mode nested
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        I.intern("ref1"),
+        I.intern("CompositeType"),
+        bp2::Interface{});
+    
+    // Create host node with mismatched blueprint_path
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("ref1");
+    host.semantic.type = I.intern("CompositeType");
+    host.view.expandable = true;
+    host.view.blueprint_path = "wrong/path";  // This doesn't match CompositeType category
+    
+    bp2::Blueprint bp;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(host));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_TRUE(result.error.find("blueprint_path mismatch") != std::string::npos)
+        << "Error message: " << result.error;
+}
+
+TEST(InvariantChecker, ReferencedNestedCategorizedHostPathMismatchDetected) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+    reg.categories["CompositeType"] = "math";
+
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        I.intern("ref1"),
+        I.intern("CompositeType"),
+        bp2::Interface{});
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("ref1");
+    host.semantic.type = I.intern("CompositeType");
+    host.view.expandable = true;
+    host.view.blueprint_path = "CompositeType";
+
+    bp2::Blueprint bp;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(host));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_TRUE(result.error.find("expected=math/CompositeType") != std::string::npos)
+        << "Error message: " << result.error;
+}
+
+TEST(InvariantChecker, ReferencedNestedWithCorrectHostPathPassesValidation) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    // Add a reference-mode nested
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        I.intern("ref1"),
+        I.intern("CompositeType"),
+        bp2::Interface{});
+    
+    // Create host node with matching blueprint_path (no category in this case)
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("ref1");
+    host.semantic.type = I.intern("CompositeType");
+    host.view.expandable = true;
+    host.view.blueprint_path = "CompositeType";  // Matches blueprint_id with no category
+    
+    bp2::Blueprint bp;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(host));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_TRUE(result.valid) << result.error;
+}
+
+TEST(InvariantChecker, ReferencedNestedWithCategorizedHostPathPassesValidation) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+    reg.categories["CompositeType"] = "math";
+
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        I.intern("ref1"),
+        I.intern("CompositeType"),
+        bp2::Interface{});
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("ref1");
+    host.semantic.type = I.intern("CompositeType");
+    host.view.expandable = true;
+    host.view.blueprint_path = "math/CompositeType";
+
+    bp2::Blueprint bp;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(host));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+    EXPECT_TRUE(result.valid) << result.error;
+}
+
+TEST(InvariantChecker, ReferencedNestedWithEmptyHostPathAllowedUnderCurrentDesign) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    // Add a reference-mode nested
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        I.intern("ref1"),
+        I.intern("CompositeType"),
+        bp2::Interface{});
+    
+    // Create host node with empty blueprint_path
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("ref1");
+    host.semantic.type = I.intern("CompositeType");
+    host.view.expandable = true;
+    host.view.blueprint_path = "";  // Empty path is allowed
+    
+    bp2::Blueprint bp;
+    bp = bp.with_nested(std::move(nested));
+    bp = bp.with_node(std::move(host));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
     EXPECT_TRUE(result.valid) << result.error;
 }

@@ -2,14 +2,24 @@
 
 #include "editor/subwindow_open_target.h"
 #include "ui/core/interned_id.h"
+#include "json_parser/json_parser.h"
+
+/// Create a minimal test TypeRegistry with math/FirstOrderLag for testing
+static TypeRegistry make_test_registry() {
+    TypeRegistry reg;
+    reg.types["FirstOrderLag"] = TypeDefinition{};
+    reg.categories["FirstOrderLag"] = "math";
+    return reg;
+}
 
 TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
+    auto reg = make_test_registry();
 
     auto nested = bp2::Blueprint::Nested::make_reference(
         interner.intern("n1"),
-        interner.intern("math/FirstOrderLag"),
+        interner.intern("FirstOrderLag"),
         bp2::Interface{});
     bp = bp.with_nested(std::move(nested));
 
@@ -19,18 +29,42 @@ TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
     node.view.blueprint_path = "math/FirstOrderLag";
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, "n1");
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, reg, "n1");
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ReferencedNested);
     EXPECT_EQ(target.path, "library/math/FirstOrderLag.blueprint");
 }
 
-TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathFailsLoudlyAsMissing) {
+TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathResolvesWithRegistry) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
+    auto reg = make_test_registry();
+
+    auto nested = bp2::Blueprint::Nested::make_reference(
+        interner.intern("n_resolved"),
+        interner.intern("FirstOrderLag"),
+        bp2::Interface{});
+    bp = bp.with_nested(std::move(nested));
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("n_resolved");
+    node.view.expandable = true;
+    // No blueprint_path set - should still resolve via TypeRegistry
+    bp = bp.with_node(std::move(node));
+
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, reg, "n_resolved");
+    // With TypeRegistry, path can be resolved from blueprint_id even without host.blueprint_path
+    EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ReferencedNested);
+    EXPECT_EQ(target.path, "library/math/FirstOrderLag.blueprint");
+}
+
+TEST(SubWindowOpenTarget, ReferencedNestedMissingRegistryPathReturnsMissing) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+    TypeRegistry reg;
 
     auto nested = bp2::Blueprint::Nested::make_reference(
         interner.intern("n_missing"),
-        interner.intern("math/FirstOrderLag"),
+        interner.intern("FirstOrderLag"),
         bp2::Interface{});
     bp = bp.with_nested(std::move(nested));
 
@@ -39,7 +73,7 @@ TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathFailsLoudlyAsMissi
     node.view.expandable = true;
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, "n_missing");
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, reg, "n_missing");
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::Missing);
     EXPECT_TRUE(target.path.empty());
 }
@@ -47,14 +81,15 @@ TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathFailsLoudlyAsMissi
 TEST(SubWindowOpenTarget, ResolvesEmbeddedNestedKind) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
+    auto reg = make_test_registry();
 
     auto nested = bp2::Blueprint::Nested::make_embedded(
         interner.intern("n2"),
-        interner.intern("math/FirstOrderLag"),
+        interner.intern("FirstOrderLag"),
         std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, "n2");
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, reg, "n2");
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::EmbeddedNested);
     EXPECT_TRUE(target.path.empty());
 }
@@ -62,6 +97,7 @@ TEST(SubWindowOpenTarget, ResolvesEmbeddedNestedKind) {
 TEST(SubWindowOpenTarget, ResolvesExternalBlueprintPath) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
+    auto reg = make_test_registry();
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("firstorderlag_1");
@@ -69,7 +105,7 @@ TEST(SubWindowOpenTarget, ResolvesExternalBlueprintPath) {
     node.view.blueprint_path = "math/FirstOrderLag";
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, "firstorderlag_1");
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, reg, "firstorderlag_1");
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ExternalReference);
     EXPECT_EQ(target.path, "library/math/FirstOrderLag.blueprint");
 }
@@ -77,8 +113,9 @@ TEST(SubWindowOpenTarget, ResolvesExternalBlueprintPath) {
 TEST(SubWindowOpenTarget, MissingForUnknownNode) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
+    auto reg = make_test_registry();
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, "missing");
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, reg, "missing");
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::Missing);
     EXPECT_TRUE(target.path.empty());
 }
@@ -89,6 +126,7 @@ TEST(SubWindowOpenTarget, MissingForUnknownNode) {
 TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
+    auto reg = make_test_registry();
 
     auto nested = bp2::Blueprint::Nested::make_embedded(
         interner.intern("broken_embedded"),
@@ -96,7 +134,7 @@ TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded)
         std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, "broken_embedded");
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, reg, "broken_embedded");
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::EmbeddedNested);
 
     const auto* found = bp.find_nested(interner.intern("broken_embedded"));
@@ -110,10 +148,11 @@ TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded)
 TEST(SubWindowOpenTarget, EmbeddedNestedTakesPriorityOverExpandableNode) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
+    auto reg = make_test_registry();
 
     auto nested = bp2::Blueprint::Nested::make_embedded(
         interner.intern("shared_id"),
-        interner.intern("math/Adder"),
+        interner.intern("Adder"),
         std::make_unique<bp2::Blueprint>());
     bp = bp.with_nested(std::move(nested));
 
@@ -123,7 +162,7 @@ TEST(SubWindowOpenTarget, EmbeddedNestedTakesPriorityOverExpandableNode) {
     node.view.blueprint_path = "math/Adder";
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, "shared_id");
+    const auto target = editor::resolve_subwindow_open_target(bp, interner, reg, "shared_id");
     // Nested is checked first, and it's embedded → EmbeddedNested
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::EmbeddedNested);
 }

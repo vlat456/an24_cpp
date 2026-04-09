@@ -236,6 +236,35 @@ TEST(BlueprintCodec, EncodeNestedEmbedded) {
     EXPECT_EQ(n["definition"]["nodes"].size(), 1u);
 }
 
+TEST(BlueprintCodec, RoundTripPreservesOwnerScopeViaGroupId) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    register_type(reg, interner, "Battery");
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("group_scope_rt"));
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("bat1");
+    node.semantic.type = interner.intern("Battery");
+    node.structure.owner_scope = "group_alpha";
+    node.layout.x = 10.0f;
+    node.layout.y = 20.0f;
+    bp = bp.with_node(std::move(node));
+
+    const std::string json = bp2::BlueprintCodec::encode(bp, interner, arena, &reg);
+    const auto encoded = nlohmann::json::parse(json);
+    ASSERT_EQ(encoded["nodes"].size(), 1u);
+    EXPECT_EQ(encoded["nodes"][0]["group_id"], "group_alpha");
+
+    bp2::DecodeError err;
+    auto round_tripped = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(round_tripped.has_value()) << err.message;
+    ASSERT_EQ(round_tripped->nodes().size(), 1u);
+    EXPECT_EQ(round_tripped->nodes()[0].structure.owner_scope, "group_alpha");
+}
+
 TEST(BlueprintCodec, DecodeEmptyBlueprint) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);

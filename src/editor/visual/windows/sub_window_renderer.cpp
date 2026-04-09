@@ -102,7 +102,7 @@ void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
     // For external-ref windows, iterate the external blueprint's nodes (root scope)
     const bp2::Blueprint& bp = win.rendered_blueprint();
     for (const bp2::Blueprint::Node& node : bp.nodes()) {
-        if (win.resolved_scope_id().is_root() && !node.semantic.owner_scope.empty()) continue;
+        if (win.resolved_scope_id().is_root() && !node.structure.owner_scope.empty()) continue;
         bmin.x = std::min(bmin.x, node.layout.x);
         bmin.y = std::min(bmin.y, node.layout.y);
         float w = node.layout.width.value_or(120.0f);

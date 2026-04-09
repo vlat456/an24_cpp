@@ -232,7 +232,7 @@ TEST(PersistValidation, ValidatePersistStillRejectsNonProxyUnknownType) {
 // wire domain mismatch errors, especially after InertiaNode port type changes.
 // ===========================================================================
 
-TEST(PersistValidation, ClosedCircuitLegacyBlueprintFailsFast) {
+TEST(PersistValidation, ClosedCircuitBlueprintLoadsSuccessfully) {
     // Try multiple paths to find closed_circuit.blueprint
     const char* candidates[] = {
         "../../closed_circuit.blueprint",
@@ -265,6 +265,6 @@ TEST(PersistValidation, ClosedCircuitLegacyBlueprintFailsFast) {
 
     bp2::DecodeError err;
     auto bp = bp2::BlueprintCodec::decode(content, interner, arena, parser_registry, &err);
-    EXPECT_FALSE(bp.has_value());
-    EXPECT_FALSE(err.message.empty());
+    ASSERT_TRUE(bp.has_value()) << err.message;
+    EXPECT_TRUE(err.message.empty());
 }

@@ -64,7 +64,7 @@ bool Inspector::ownsWire(const bp2::Blueprint::Wire& w) const {
     if (src_node.empty() || tgt_node.empty()) return false;
     const auto* n1 = bp_->find_node(src_node);
     const auto* n2 = bp_->find_node(tgt_node);
-    return n1 && n2 && n1->semantic.owner_scope == scope_id_.key() && n2->semantic.owner_scope == scope_id_.key();
+    return n1 && n2 && n1->structure.owner_scope == scope_id_.key() && n2->structure.owner_scope == scope_id_.key();
 }
 
 void Inspector::buildDisplayTree() {
@@ -80,8 +80,8 @@ void Inspector::buildDisplayTree() {
         const auto* n1 = bp_->find_node(sn);
         const auto* n2 = bp_->find_node(tn);
         if (!n1 || !n2) continue;
-        if (n1->semantic.owner_scope != scope_id_.key()) continue;
-        if (n2->semantic.owner_scope != scope_id_.key()) continue;
+        if (n1->structure.owner_scope != scope_id_.key()) continue;
+        if (n2->structure.owner_scope != scope_id_.key()) continue;
         owned_wires.push_back({sn, sp, tn, tp});
     }
 

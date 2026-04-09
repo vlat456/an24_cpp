@@ -148,12 +148,13 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         }
         
         if (node.view.expandable && ImGui::MenuItem("Open in editor")) {
-            std::string node_id_str(doc->interner().resolve(node.semantic.id));
-            if (!doc->type_registry()) {
+            const TypeRegistry* registry = doc->type_registry();
+            if (!registry) {
                 return;
             }
+            std::string node_id_str(doc->interner().resolve(node.semantic.id));
             const auto target = editor::resolve_subwindow_open_target(
-                doc->blueprint(), doc->interner(), *doc->type_registry(), node_id_str);
+                doc->blueprint(), doc->interner(), *registry, node_id_str);
             if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
                 ws.openDocument(target.path);
             } else {

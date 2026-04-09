@@ -3,7 +3,9 @@ add_library(blueprint_v2 STATIC
     interface/interface.cpp
     interface/node_port_projection.cpp
     blueprint/blueprint.cpp
+    blueprint/canonicalize.cpp
     library/blueprint_library.cpp
+    library/library_path.cpp
     codec/blueprint_codec.cpp
     codec/blueprint_codec_common.cpp
     codec/blueprint_codec_encode.cpp

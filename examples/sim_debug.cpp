@@ -81,7 +81,7 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
                 bool has_materialized_children = false;
                 const std::string parent_id(interner.resolve(n.semantic.id));
                 for (const auto& child : bp.nodes()) {
-                    if (child.semantic.owner_scope == parent_id) {
+                    if (child.structure.owner_scope == parent_id) {
                         has_materialized_children = true;
                         break;
                     }

@@ -1,6 +1,6 @@
 #include "blueprint_codec.h"
 #include "blueprint_codec_internal.h"
-#include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/blueprint/canonicalize.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 
 #include <nlohmann/json.hpp>

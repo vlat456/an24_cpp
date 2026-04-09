@@ -264,7 +264,7 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_ColonConvention_Found) {
     bridge_node.semantic.id = interner.intern("gp_1:v_in");
     bridge_node.semantic.type = interner.intern("BlueprintInput");
     bridge_node.view.name = "v_in";
-    bridge_node.semantic.owner_scope = "gp_1";
+    bridge_node.structure.owner_scope = "gp_1";
     bp = bp.with_node(std::move(bridge_node));
 
     // Create expandable proxy node
@@ -312,7 +312,7 @@ TEST(SignalKeyResolver, EmbeddedBridgeNode_UnderscoreConvention_NotFound) {
     bad_bridge.semantic.id = interner.intern("gp_1_v_in");
     bad_bridge.semantic.type = interner.intern("BlueprintInput");
     bad_bridge.view.name = "v_in";
-    bad_bridge.semantic.owner_scope = "gp_1";
+    bad_bridge.structure.owner_scope = "gp_1";
     bp = bp.with_node(std::move(bad_bridge));
 
     // Create expandable proxy node
@@ -383,21 +383,21 @@ TEST(SignalKeyResolver, MultipleBridgeNodes_ResolveIndependently) {
     bridge_in.semantic.id = interner.intern("gp_1:v_in");
     bridge_in.semantic.type = interner.intern("BlueprintInput");
     bridge_in.view.name = "v_in";
-    bridge_in.semantic.owner_scope = "gp_1";
+    bridge_in.structure.owner_scope = "gp_1";
     bp = bp.with_node(std::move(bridge_in));
 
     bp2::Blueprint::Node bridge_out;
     bridge_out.semantic.id = interner.intern("gp_1:v_out");
     bridge_out.semantic.type = interner.intern("BlueprintOutput");
     bridge_out.view.name = "v_out";
-    bridge_out.semantic.owner_scope = "gp_1";
+    bridge_out.structure.owner_scope = "gp_1";
     bp = bp.with_node(std::move(bridge_out));
 
     bp2::Blueprint::Node internal;
     internal.semantic.id = interner.intern("gp_1_src");
     internal.semantic.type = interner.intern("ControlledVoltageSource");
     internal.view.name = "src";
-    internal.semantic.owner_scope = "gp_1";
+    internal.structure.owner_scope = "gp_1";
     bp = bp.with_node(std::move(internal));
 
     // Create expandable proxy
@@ -466,7 +466,7 @@ TEST(SignalKeyResolver, BridgeNode_ProxyIdWithUnderscores_ColonStillWorks) {
     bridge.semantic.id = interner.intern("ground_power_1:v_in");
     bridge.semantic.type = interner.intern("BlueprintInput");
     bridge.view.name = "v_in";
-    bridge.semantic.owner_scope = "ground_power_1";
+    bridge.structure.owner_scope = "ground_power_1";
     bp = bp.with_node(std::move(bridge));
 
     bp2::Blueprint::Node proxy;
