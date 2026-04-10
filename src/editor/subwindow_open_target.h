@@ -4,6 +4,10 @@
 #include "ui/core/interned_id.h"
 #include <string>
 
+namespace bp2 {
+struct LibraryIndex;
+}
+
 namespace editor {
 
 enum class SubWindowOpenTargetKind {
@@ -20,7 +24,7 @@ struct SubWindowOpenTarget {
 
 SubWindowOpenTarget resolve_subwindow_open_target(const bp2::Blueprint& bp,
                                                   ui::StringInterner& interner,
-                                                  const TypeRegistry& registry,
+                                                  const bp2::LibraryIndex& library_index,
                                                   const std::string& sub_blueprint_id);
 
 } // namespace editor

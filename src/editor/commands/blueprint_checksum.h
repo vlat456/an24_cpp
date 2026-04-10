@@ -20,8 +20,8 @@ inline size_t blueprint_checksum(const bp2::Blueprint& bp) {
     detail::Hasher g;
     g.combine(bp.nodes().size());
     g.combine(bp.wires().size());
-    g.combine(bp.nested().size());
-    g.hash_float(bp.grid_step());
+    // Note: nested() API removed in blueprint-instance model;
+    // blueprint instances are nodes with embedded source.
     size_t ns = 0;
     for (auto& n : bp.nodes()) {
          detail::Hasher h; h.hash_id(n.semantic.id); h.hash_float(n.layout.x); h.hash_float(n.layout.y);

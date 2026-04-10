@@ -1,5 +1,6 @@
 #include "document.h"
 
+#include "blueprint_view_hydration.h"
 #include "json_parser/json_parser.h"
 #include "visual/persist.h"
 #include "visual/scene_mutations.h"
@@ -11,10 +12,6 @@ bool Document::save(const std::string& path) {
         spdlog::error("[persist] TypeRegistry is not configured on Document::save");
         return false;
     }
-
-    const auto& vp = viewport();
-    auto updated = model_.current().with_viewport(vp.pan.x, vp.pan.y, vp.zoom, vp.grid_step);
-    model_.replace_current(std::move(updated));
 
     std::string validation_error;
     if (!validate_blueprint_for_persist(model_.current(), interner_, arena_, *type_registry_, &validation_error)) {
@@ -52,21 +49,16 @@ bool Document::load(const std::string& path) {
         simulation_running_ = false;
     }
 
-    model_.replace_current(std::move(*bp));
+    bp = editor::hydrate_runtime_node_view_data(std::move(*bp), interner_, *type_registry_);
 
     {
-        bp2::EditorModel fresh(model_.current());
+        bp2::EditorModel fresh(std::move(*bp));
         model_ = std::move(fresh);
         sync_next_wire_id();
         model_.mark_saved();
     }
 
-    auto& vp = viewport();
-    vp.pan.x = model_.current().pan_x();
-    vp.pan.y = model_.current().pan_y();
-    vp.zoom = model_.current().zoom();
-    vp.grid_step = model_.current().grid_step();
-    vp.clamp_zoom();
+    viewport() = Viewport{};
 
     visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().resolved_scope_id().sim_scope_prefix());
 

@@ -4,7 +4,7 @@
 
 namespace editor {
 
-/// For an embedded expandable proxy node, find the actual bridge node ID
+/// For a blueprint-instance node with embedded children, find the actual bridge node ID
 /// for a given interface port. Bridge nodes use the canonical colon convention:
 ///   "proxy_id:port_name"
 /// Returns the bridge node ID if found, or empty string.
@@ -43,12 +43,11 @@ std::string resolve_runtime_signal_key(
     std::string_view port_sv = interner.resolve(endpoint.port_iid);
 
     if (context.mode == SignalKeyContextMode::Root) {
-        // Root mode: check if node is expandable composite
-        if (endpoint.node && endpoint.node->view.expandable) {
+        // Root mode: check if node is a blueprint instance
+        if (endpoint.node && endpoint.node->is_blueprint_instance()) {
             // For embedded blueprints with materialized children, the bridge
             // node ID may differ from the default colon convention.
-            const auto* nested = bp.find_hosted_nested(*endpoint.node);
-            if (nested && nested->is_embedded()) {
+            if (endpoint.node->has_embedded_blueprint()) {
                 std::string bridge_id = find_embedded_bridge_node(bp, interner, node_sv, port_sv);
                 if (!bridge_id.empty()) {
                     std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(bridge_id);
@@ -57,7 +56,7 @@ std::string resolve_runtime_signal_key(
                     }
                 }
             }
-            if (!nested && !bp.is_external_reference_node(*endpoint.node)) {
+            if (!endpoint.node->has_embedded_blueprint() && !endpoint.node->has_referenced_blueprint()) {
                 return build_signal_key(node_sv, port_sv);
             }
             return map_composite_port_key(node_sv, port_sv);

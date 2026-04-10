@@ -40,7 +40,7 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
 }
 
 static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
-                                       bp2::PathArena& arena,
+                                       bp2::PathArena& /*arena*/,
                                        const char* wire_id,
                                        const char* src_node,
                                        const char* src_port,
@@ -48,8 +48,8 @@ static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
                                        const char* dst_port) {
      bp2::Blueprint::Wire w;
      w.id = I.intern(wire_id);
-     w.source = arena.make_port(arena.make_node(arena.root(), I.intern(src_node)), I.intern(src_port));
-     w.target = arena.make_port(arena.make_node(arena.root(), I.intern(dst_node)), I.intern(dst_port));
+     w.source = bp2::WireEndpoint{I.intern(src_node), I.intern(src_port)};
+     w.target = bp2::WireEndpoint{I.intern(dst_node), I.intern(dst_port)};
      return w;
 }
 
@@ -64,6 +64,11 @@ static std::pair<ui::InternedId, ui::InternedId> endpoint_node_port(const bp2::P
     bp2::Path parent = arena.parent(path);
     if (parent.kind() != bp2::PathKind::Node) return {};
     return {parent.segment(), port};
+}
+
+static std::pair<ui::InternedId, ui::InternedId> endpoint_node_port(const bp2::WireEndpoint& ep,
+                                                                     const bp2::PathArena& /*arena*/) {
+    return {ep.node, ep.port};
 }
 
 } // namespace
@@ -793,20 +798,20 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
     bp2::PathArena arena(I);
 
     auto host_node = make_node(I, "host1", "CompositeType", 120.0f, 80.0f);
-    host_node.view.expandable = true;
+    host_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     host_node.semantic.iface = bp2::Interface{};
 
     auto inner_def = std::make_unique<bp2::Blueprint>();
     *inner_def = inner_def->with_id(I.intern("CompositeType"));
     *inner_def = inner_def->with_interface(bp2::Interface{});
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        I.intern("host1"),
+    
+    host_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("CompositeType"),
-        std::move(inner_def));
+        std::move(inner_def)
+    );
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(host_node));
-    bp = bp.with_nested(std::move(nested));
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
@@ -820,7 +825,6 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
     input.on_key(Key::Delete);
 
     EXPECT_EQ(model.current().find_node(I.intern("host1")), nullptr);
-    EXPECT_EQ(model.current().find_nested(I.intern("host1")), nullptr);
 }
 
 TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
@@ -875,12 +879,11 @@ TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
     EXPECT_FLOAT_EQ(model.current().find_node(I.intern("n2"))->layout.x, 220.0f);
 }
 
-TEST(CanvasInputGridStep, GridStepChangeIsSingleUndoStep) {
+TEST(CanvasInputGridStep, GridStepChangeDoesNotTouchBlueprintUndoHistory) {
     ui::StringInterner I;
     bp2::PathArena arena(I);
 
     bp2::Blueprint bp;
-    bp = bp.with_viewport(0.0f, 0.0f, 1.0f, 16.0f);
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
@@ -893,19 +896,10 @@ TEST(CanvasInputGridStep, GridStepChangeIsSingleUndoStep) {
     CanvasInput input(scene, vp, *host, I, arena, "");
     const size_t undo_before = model.undo_depth();
 
-    // Simulate pressing ']' to increase grid step
     vp.grid_step_up();
-    float new_step = vp.grid_step;
-    input.snapshot_and_execute(cmd_set_grid_step(new_step));
 
-    // Must produce exactly one undo step, not two
-    ASSERT_EQ(model.undo_depth(), undo_before + 1)
-        << "Grid step change must produce a single undo checkpoint";
-
-    EXPECT_FLOAT_EQ(model.current().grid_step(), new_step);
-
-    model.undo();
-    EXPECT_FLOAT_EQ(model.current().grid_step(), 16.0f);
+    EXPECT_EQ(model.undo_depth(), undo_before);
+    EXPECT_FLOAT_EQ(vp.grid_step, 24.0f);
 }
 
 TEST(CanvasInputRoutingPoints, RoutingPointChangeIsSingleUndoStep) {
@@ -922,10 +916,8 @@ TEST(CanvasInputRoutingPoints, RoutingPointChangeIsSingleUndoStep) {
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
-    auto src_node = arena.make_node(arena.root(), I.intern("n1"));
-    w.source = arena.make_port(src_node, I.intern("v_out"));
-    auto tgt_node = arena.make_node(arena.root(), I.intern("n2"));
-    w.target = arena.make_port(tgt_node, I.intern("v_in"));
+    w.source = bp2::WireEndpoint{I.intern("n1"), I.intern("v_out")};
+    w.target = bp2::WireEndpoint{I.intern("n2"), I.intern("v_in")};
     w.routing_points = {{100.0f, 50.0f}};
     bp = bp.with_wire(std::move(w));
 
@@ -993,7 +985,11 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
     bp2::PathArena arena(I);
 
     auto group = make_node(I, "grp1", "Composite", 120.0f, 80.0f);
-    group.view.expandable = true;
+    // Mark as blueprint instance (composite nodes can be expanded/opened)
+    group.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    group.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("Composite"),
+        std::make_unique<bp2::Blueprint>());
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(group));
 

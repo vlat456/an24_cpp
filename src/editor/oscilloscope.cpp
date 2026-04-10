@@ -13,17 +13,12 @@
 namespace {
 
 static bool decode_source_key(const bp2::Blueprint::Wire& w,
-                              const bp2::PathArena& arena,
+                              const bp2::PathArena& /*arena*/,
                               ui::StringInterner& interner,
                               std::string& out_key,
                               std::string& out_label) {
-    if (w.source.kind() != bp2::PathKind::Port) return false;
-    const ui::InternedId port_iid = w.source.segment();
-    const bp2::Path node_path = arena.parent(w.source);
-    if (node_path.kind() != bp2::PathKind::Node) return false;
-    const ui::InternedId node_iid = node_path.segment();
-    const std::string node = std::string(interner.resolve(node_iid));
-    const std::string port = std::string(interner.resolve(port_iid));
+    const std::string node = std::string(interner.resolve(w.source.node));
+    const std::string port = std::string(interner.resolve(w.source.port));
     if (node.empty() || port.empty()) return false;
     out_key = signal_key::make_node_port_key(node, port);
     out_label = out_key;

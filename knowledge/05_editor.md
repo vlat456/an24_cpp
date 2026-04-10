@@ -447,7 +447,7 @@ When a user right-clicks → "Insert Blueprint" in the editor, the composite is 
 
 4. **Interface edits** — `add_bridge_port_to_composite()` builds a single `PortDescriptor` and applies it to both the collapsed node's visual/semantic interface and the nested record's interface in one mutation path.
 
-5. **Viewport from saved blueprint** — `openSubWindow()` applies saved viewport from `nested.inline_def` directly to the window (pan, zoom, grid_step)
+5. **Sub-window viewport** — `openSubWindow()` initializes viewport to default (pan=0, zoom=1, auto-fit content). Viewport state is not persisted in canonical blueprints (post-#86).
 
 ### Sub-Window Rendering (Single-Source)
 
@@ -478,7 +478,7 @@ Each subwindow uses an `EmbeddedInlineHost` that reads/writes the authoritative 
 | `document_simulation.cpp` | Simulation content updates, energized wires, signal interaction for both root and embedded nodes |
 | `document_history.cpp` | Undo/redo — rebuilds window scenes from authoritative `inline_def` |
 | `document_input.cpp` | `applyInputResult()` — dispatches input results (context menus, sim interactions) |
-| `persist.cpp` | `load_blueprint_from_file_validated()` — JSON parsing with positions, routing points, viewport |
+| `persist.cpp` | `load_blueprint_from_file_validated()` — JSON parsing and blueprint schema validation |
 | `scene_mutations.cpp` | `rebuild()` — creates node/wire widgets from blueprint data |
 | `blueprint_window.h` | `BlueprintWindow` — holds `EditingHost`, `external_blueprint`, etc. |
 | `sub_window_renderer.cpp` | Sub-window viewport auto-fit logic |
@@ -487,7 +487,7 @@ Each subwindow uses an `EmbeddedInlineHost` that reads/writes the authoritative 
 
 1. **Library path lookup** — blueprints live in subdirectories (e.g., `library/systems/`). Use `registry.categories[blueprint_name]` to get the correct path.
 
-2. **Viewport default check** — only auto-fit if viewport is at default (near-zero pan, zoom=1). Otherwise apply saved viewport directly to window.
+2. **Blueprint loading** — blueprints are loaded in canonical v1 format; viewport state is not persisted (always resets to default when a blueprint is opened).
 
 3. **Node lookup scope** — when looking up a node for an embedded composite, search `inline_def` (not the root blueprint). Use `find_node_in_scope()` helper in `document_simulation.cpp`.
 

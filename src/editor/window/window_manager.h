@@ -94,12 +94,16 @@ public:
 
     void remove_orphaned_windows() {
         std::unordered_set<std::string> live;
-        for (auto const& n : model_.current().nested())
-            live.insert(std::string(interner_.resolve(n.id)));
+        // Collect all blueprint-instance node IDs
+        for (const auto& node : model_.current().nodes()) {
+            if (node.is_blueprint_instance()) {
+                live.insert(std::string(interner_.resolve(node.semantic.id)));
+            }
+        }
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
                 [&](const std::unique_ptr<BlueprintWindow>& w) {
-                    // External-ref windows are kept alive (not tied to nested groups)
+                    // External-ref windows are kept alive (not tied to blueprint instances)
                     if (w->resolved_scope_id().is_external()) return false;
                     const auto& typed_scope = w->resolved_scope_id();
                     return typed_scope.is_embedded() && !live.count(typed_scope.key());

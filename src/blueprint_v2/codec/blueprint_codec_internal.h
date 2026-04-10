@@ -83,18 +83,12 @@ nlohmann::json encode_interface(Interface const& iface,
                                 TypeDefinition const* type_def);
 
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
-                            std::vector<Blueprint::Nested> const& nested,
                             ui::StringInterner const& interner,
+                            PathArena const& arena,
                             ::TypeRegistry const* parser_registry);
 
 nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
-                            ui::StringInterner const& interner,
-                            PathArena const& path_arena);
-
-nlohmann::json encode_nested(std::vector<Blueprint::Nested> const& nested_vec,
-                             ui::StringInterner const& interner,
-                             PathArena const& arena,
-                             ::TypeRegistry const* parser_registry);
+                            ui::StringInterner const& interner);
 
 Interface decode_interface(nlohmann::json const& arr,
                            ui::StringInterner& interner);
@@ -106,13 +100,6 @@ Blueprint decode_nodes(Blueprint bp,
 
 Blueprint decode_wires(Blueprint bp,
                        nlohmann::json const& arr,
-                       ui::StringInterner& interner,
-                       PathArena& arena);
-
-Blueprint decode_nested(Blueprint bp,
-                        nlohmann::json const& arr,
-                        ui::StringInterner& interner,
-                        ::TypeRegistry const& parser_registry,
-                        PathArena& arena);
+                       ui::StringInterner& interner);
 
 } // namespace bp2::codec_detail

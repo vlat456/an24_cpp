@@ -24,14 +24,14 @@ public:
             if (ImGui::Button("Bake In")) {
                 Document* bake_doc = ws.findDocumentById(ws.pendingBakeIn.doc_id);
                 if (bake_doc) {
-                    ui::InternedId nested_iid =
+                    ui::InternedId node_iid =
                         bake_doc->interner().lookup(ws.pendingBakeIn.sub_blueprint_id);
-                    if (!nested_iid.empty()) {
+                    if (!node_iid.empty()) {
                         bp2::BlueprintLibrary library;
-                        bool ok = bake_doc->model().bake_nested(
-                            nested_iid, library, bake_doc->interner());
+                        bool ok = bake_doc->model().bake_blueprint_instance(
+                            node_iid, library, bake_doc->interner());
                         if (!ok) {
-                            spdlog::warn("[bake-in] bake_nested failed for '{}'",
+                            spdlog::warn("[bake-in] bake_blueprint_instance failed for '{}'",
                                          ws.pendingBakeIn.sub_blueprint_id);
                         }
                     }

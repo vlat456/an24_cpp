@@ -18,7 +18,6 @@ struct FlatNetlist {
         ui::InternedId type;
         std::unordered_map<ui::InternedId, float> params;
         std::unordered_map<std::string, std::string> string_params;
-        std::string render_hint;
         std::vector<PortDescriptor> ports;
         std::vector<std::pair<ui::InternedId, SignalIndex>> port_signals;
     };

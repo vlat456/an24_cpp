@@ -5,6 +5,8 @@
 namespace bp2 {
 
 Blueprint clone_metadata(const Blueprint& bp);
+/// Compute authoritative node interface from node.source for blueprint-instance nodes.
+/// For component nodes, returns node.semantic.iface unchanged.
 Blueprint::Node canonicalize_composite_host_iface(const Blueprint& bp, Blueprint::Node node);
 Blueprint canonicalize_composite_host_ifaces(Blueprint bp);
 

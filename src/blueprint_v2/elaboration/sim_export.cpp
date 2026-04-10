@@ -39,9 +39,6 @@ nlohmann::json emit_device_json(const bp2::Blueprint::Node& node,
     device["name"] = device_id;
     device["template_name"] = "";
     device["classname"] = classname;
-    if (!node.view.render_hint.empty()) {
-        device["render_hint"] = node.view.render_hint;
-    }
     device["priority"] = "med";
     device["bucket"] = nullptr;
     device["critical"] = false;
@@ -135,7 +132,6 @@ SimulationExport to_simulation_export(
         node.semantic.params = comp.params;
         node.semantic.string_params = comp.string_params;
         node.semantic.iface = bp2::Interface(comp.ports);
-        node.view.render_hint = comp.render_hint;
 
         const std::string dev_id = node_id_from_path(comp.path, arena, interner);
         if (!emitted_ids.insert(dev_id).second) {

@@ -367,6 +367,8 @@ TEST(BlueprintExtension, NoJsonFilesInLibrary) {
     std::vector<std::string> json_files;
     for (const auto& entry : fs::recursive_directory_iterator(library_path)) {
         if (entry.is_regular_file() && entry.path().extension() == ".json") {
+            // library_index.json is a legitimate metadata file, not a stray .json
+            if (entry.path().filename() == "library_index.json") continue;
             json_files.push_back(entry.path().string());
         }
     }
@@ -397,6 +399,8 @@ TEST(BlueprintExtension, AllLibraryFilesAreBlueprintExtension) {
         if (entry.is_regular_file()) {
             // Skip hidden files (.DS_Store, etc.)
             if (entry.path().filename().string()[0] == '.') continue;
+            // library_index.json is a legitimate metadata file
+            if (entry.path().filename() == "library_index.json") continue;
             if (entry.path().extension() == ".blueprint") {
                 blueprint_count++;
             } else {
@@ -461,7 +465,11 @@ TEST(BlueprintExtension, CodegenUsesBluprintExtension) {
 }
 
 // =============================================================================
-// Structural convention: all nodes must have name, Value nodes must have render_hint
+// Old library format conventions (pre-v1, not canonical persistence)
+// These tests check the OLD library blueprint format (pre-#86) from library/ files.
+// Old format includes render_hint and other fields forbidden in canonical v1.
+// In canonical v1 (blueprint v1 persistence spec), render_hint is not persisted.
+// These tests remain as regression checks for old-format library file structure.
 // =============================================================================
 
 /// Helper: find a .blueprint file by classname, searching library/ subdirectories

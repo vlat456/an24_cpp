@@ -35,6 +35,15 @@ bool path_to_node_port(const bp2::Path& path,
     return !out_node.empty() && !out_port.empty();
 }
 
+bool path_to_node_port(const bp2::WireEndpoint& ep,
+                       const bp2::PathArena& /*arena*/,
+                       ui::InternedId& out_node,
+                       ui::InternedId& out_port) {
+    out_node = ep.node;
+    out_port = ep.port;
+    return !out_node.empty() && !out_port.empty();
+}
+
 std::string dedupe_name(const std::string& base,
                         std::unordered_set<std::string>& used) {
     if (used.find(base) == used.end()) {
@@ -66,12 +75,9 @@ ui::InternedId next_unique_id(ui::StringInterner& interner,
 
 std::unordered_set<ui::InternedId> collect_used_node_ids(const bp2::Blueprint& bp) {
     std::unordered_set<ui::InternedId> out;
-    out.reserve(bp.nodes().size() + bp.nested().size());
+    out.reserve(bp.nodes().size());
     for (const auto& n : bp.nodes()) {
         out.insert(n.semantic.id);
-    }
-    for (const auto& n : bp.nested()) {
-        out.insert(n.id);
     }
     return out;
 }
@@ -107,10 +113,6 @@ std::unordered_map<ui::InternedId, float> build_node_center_y_map(
 
 float fallback_lane_y(size_t index) {
     return kFallbackLaneStartY + static_cast<float>(index) * kFallbackLaneStepY;
-}
-
-bp2::Blueprint::Nested clone_nested(const bp2::Blueprint::Nested& n) {
-    return bp2::Blueprint::Nested(n);
 }
 
 ui::InternedId make_iface_bridge_id(ui::StringInterner& interner,

@@ -74,14 +74,15 @@ private:
     size_t last_node_count_ = 0;
     size_t last_wire_count_ = 0;
 
-    /// Check whether a node belongs to this inspector's group
-    bool ownsNode(const bp2::Blueprint::Node& n) const { return n.structure.owner_scope == scope_id_.key(); }
+    /// Check whether a node belongs to this inspector's blueprint (implicit - all nodes in bp_ belong to this scope)
+    bool ownsNode(const bp2::Blueprint::Node& /* n */) const { return true; }
     /// Check whether a wire belongs to this inspector's group (both endpoints)
     bool ownsWire(const bp2::Blueprint::Wire& w) const;
 
     /// Decode a Port path: extract node_id and port_name.
     /// Returns {node_id, port_name} or empty InternedIds on failure.
     std::pair<ui::InternedId, ui::InternedId> decode_port_path(bp2::Path p) const;
+    std::pair<ui::InternedId, ui::InternedId> decode_port_path(bp2::WireEndpoint const& ep) const;
 
     /// Check scene topology and mark dirty if changed. Returns true if rebuild needed.
     bool detectSceneChange();

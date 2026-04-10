@@ -45,8 +45,8 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
         ui::InternedId node_iid = interner_.intern(widget->id());
         if (!node_iid.empty()) {
             for (const bp2::Blueprint::Wire& w : host_.wires()) {
-                auto [src_node, _sp] = editor_math::path_to_node_port(w.source, arena_);
-                auto [tgt_node, _tp] = editor_math::path_to_node_port(w.target, arena_);
+                auto src_node = w.source.node;
+                auto tgt_node = w.target.node;
                 if (src_node == node_iid || tgt_node == node_iid) {
                     connected_wire_ids.insert(w.id);
                 }

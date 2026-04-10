@@ -7,17 +7,16 @@ Blueprint clone_metadata(const Blueprint& bp) {
     rebuilt = rebuilt.with_id(bp.id());
     rebuilt = rebuilt.with_display_name(bp.display_name());
     rebuilt = rebuilt.with_interface(bp.iface());
-    rebuilt = rebuilt.with_viewport(bp.pan_x(), bp.pan_y(), bp.zoom(), bp.grid_step());
     rebuilt = rebuilt.with_name(bp.name());
     return rebuilt;
 }
 
 Blueprint::Node canonicalize_composite_host_iface(const Blueprint& bp, Blueprint::Node node) {
-    const auto* nested = bp.find_hosted_nested(node);
-    if (!nested) {
+    // For blueprint-instance nodes, derive interface from source authority
+    if (!node.is_blueprint_instance() || !node.source) {
         return node;
     }
-    node.semantic.iface = nested->resolved_iface();
+    node.semantic.iface = node.source->resolved_iface();
     return node;
 }
 
@@ -32,9 +31,6 @@ Blueprint canonicalize_composite_host_ifaces(Blueprint bp) {
     }
     for (const auto& wire : bp.wires()) {
         rebuilt = rebuilt.with_wire(wire);
-    }
-    for (const auto& nested : bp.nested()) {
-        rebuilt = rebuilt.with_nested(nested);
     }
 
     return changed ? rebuilt : bp;

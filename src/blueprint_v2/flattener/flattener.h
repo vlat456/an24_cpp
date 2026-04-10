@@ -18,7 +18,7 @@ private:
     BlueprintLibrary const& library_;
     PathArena* arena_ = nullptr;
 
-    [[noreturn]] void throw_unresolved_nested(Blueprint::Nested const& nested, Path prefix) const;
+    [[noreturn]] void throw_unresolved_blueprint_instance(Blueprint::Node const& node, Path prefix) const;
 
     void visit_blueprint(
         Blueprint const& bp,
@@ -39,13 +39,15 @@ private:
         std::unordered_map<Path, SignalIndex>& signals,
         FlatNetlist& out);
 
-    void visit_nested(
-        Blueprint::Nested const& nested,
+    void visit_blueprint_instance(
+        Blueprint::Node const& node,
         Path prefix,
         std::unordered_map<Path, SignalIndex>& signals,
         FlatNetlist& out);
 
     Path remap_path(Path inner_path, Path nested_prefix);
+
+    Path remap_endpoint(WireEndpoint const& ep, Path nested_prefix);
 
     SignalIndex get_or_create_signal(
         Path port_path,

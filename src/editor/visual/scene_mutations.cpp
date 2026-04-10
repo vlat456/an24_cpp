@@ -110,7 +110,6 @@ static void orient_ref_node_ports(Scene& scene,
          const bp2::Blueprint::Node* src_node = bp.find_node(src_node_id);
          const bp2::Blueprint::Node* tgt_node = bp.find_node(tgt_node_id);
          if (!src_node || !tgt_node) continue;
-         if (src_node->structure.owner_scope != scope_id || tgt_node->structure.owner_scope != scope_id) continue;
 
          if (src_node->view.render_hint == "ref" && ref_to_connected.count(src_node_id) == 0) {
              ref_to_connected.emplace(src_node_id, tgt_node_id);
@@ -161,13 +160,12 @@ void rebuild(Scene& scene,
         if (bw) bus_wires.push_back(*bw);
     }
 
-    // 1) Create node widgets for all nodes in this group
-    for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        if (n.structure.owner_scope != scope_id) continue;
-        const bp2::Interface& render_iface = bp.effective_node_iface(n);
-        std::unique_ptr<Widget> widget = NodeFactory::create(n, render_iface, interner, bus_wires);
-        scene.add(std::move(widget));
-    }
+     // 1) Create node widgets for all nodes in this group
+     for (const bp2::Blueprint::Node& n : bp.nodes()) {
+         const bp2::Interface& render_iface = bp.effective_node_iface(n);
+         std::unique_ptr<Widget> widget = NodeFactory::create(n, render_iface, interner, bus_wires);
+         scene.add(std::move(widget));
+     }
 
     // Orient single-port ref/value nodes toward their connected node.
     orient_ref_node_ports(scene, bp, arena, interner, scope_id);
@@ -181,7 +179,6 @@ void rebuild(Scene& scene,
          const bp2::Blueprint::Node* sn = bp.find_node(src_node_id);
          const bp2::Blueprint::Node* en = bp.find_node(tgt_node_id);
          if (!sn || !en) continue;
-         if (sn->structure.owner_scope != scope_id || en->structure.owner_scope != scope_id) continue;
 
         create_wire_widget(scene, w, arena, interner);
     }

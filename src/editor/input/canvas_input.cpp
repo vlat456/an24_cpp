@@ -53,8 +53,6 @@ void CanvasInput::snapshot_and_execute(Command cmd) {
             host_.update_wire(c.wire_id, [&](bp2::Blueprint::Wire& w) {
                 w.routing_points = std::move(c.points);
             });
-        } else if constexpr (std::is_same_v<T, CmdSetGridStep>) {
-            host_.set_grid_step(c.new_step);
         } else {
             throw std::logic_error("CanvasInput::snapshot_and_execute received unsupported command");
         }

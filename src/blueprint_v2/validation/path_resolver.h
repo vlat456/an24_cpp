@@ -20,10 +20,21 @@ public:
                                         const ::TypeRegistry& parser_registry,
                                         ui::StringInterner& interner) const;
 
+    std::optional<ResolvedPort> resolve(WireEndpoint const& ep,
+                                        Blueprint const& root,
+                                        const ::TypeRegistry& parser_registry,
+                                        ui::StringInterner& interner) const;
+
     bool can_connect(Path const& source,
                      Path const& target,
                      Blueprint const& root,
                      PathArena const& arena,
+                     const ::TypeRegistry& parser_registry,
+                     ui::StringInterner& interner) const;
+
+    bool can_connect(WireEndpoint const& source,
+                     WireEndpoint const& target,
+                     Blueprint const& root,
                      const ::TypeRegistry& parser_registry,
                      ui::StringInterner& interner) const;
 

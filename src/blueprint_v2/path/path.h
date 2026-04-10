@@ -97,7 +97,33 @@ private:
     }
 };
 
+/// Arena-independent wire endpoint: identifies a (node, port) pair
+/// without binding to any PathArena.
+struct WireEndpoint {
+    ui::InternedId node;
+    ui::InternedId port;
+
+    bool operator==(WireEndpoint const& o) const {
+        return node == o.node && port == o.port;
+    }
+    bool operator!=(WireEndpoint const& o) const { return !(*this == o); }
+
+    /// Materialize a Path in the given arena (Root → Node → Port).
+    Path to_path(PathArena& arena) const {
+        return arena.make_port(arena.make_node(arena.root(), node), port);
+    }
+};
+
 } // namespace bp2
+
+template <>
+struct std::hash<bp2::WireEndpoint> {
+    size_t operator()(bp2::WireEndpoint const& ep) const noexcept {
+        size_t h = std::hash<ui::InternedId>{}(ep.node);
+        h ^= std::hash<ui::InternedId>{}(ep.port) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        return h;
+    }
+};
 
 template <>
 struct std::hash<bp2::Path> {

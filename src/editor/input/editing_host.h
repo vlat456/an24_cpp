@@ -72,9 +72,6 @@ public:
     virtual bool remove_node(ui::InternedId id,
                              std::vector<ui::InternedId> connected_wire_ids) = 0;
 
-    /// Update viewport grid step on the current blueprint.
-    virtual void set_grid_step(float new_step) = 0;
-
     /// Allocate a unique wire ID.
     virtual std::string allocate_wire_id() = 0;
 };

@@ -17,7 +17,7 @@ std::string make_sim_id(const editor::NodeId& node_id, const std::string& scope_
 }
 
 /// Find a node either in the root blueprint (when scope_id is empty) or inside
-/// the nested.inline_def for the given composite scope.
+/// the embedded blueprint of the given blueprint-instance node.
 const bp2::Blueprint::Node* find_node_in_scope(
     const bp2::EditorModel& model,
     ui::StringInterner& interner,
@@ -30,10 +30,10 @@ const bp2::Blueprint::Node* find_node_in_scope(
         return model.current().find_node(node_iid);
     }
     const ui::InternedId group_iid = interner.lookup(scope_id);
-    const bp2::Blueprint::Nested* nested = group_iid.empty()
-        ? nullptr : model.current().find_nested(group_iid);
-    if (!nested) return nullptr;
-    if (auto* def = nested->inline_def()) {
+    const bp2::Blueprint::Node* group_node = group_iid.empty()
+        ? nullptr : model.current().find_node(group_iid);
+    if (!group_node || !group_node->has_embedded_blueprint()) return nullptr;
+    if (auto* def = group_node->source->inline_def()) {
         return def->find_node(node_iid);
     }
     return nullptr;
@@ -43,7 +43,6 @@ const bp2::Blueprint::Node* find_node_in_scope(
 
 void Document::rebuild_window_scenes() {
     for (auto& win : window_manager_.windows()) {
-        win->viewport.grid_step = model_.current().grid_step();
         if (win->is_external_ref() && win->external_blueprint
             && win->external_interner && win->external_arena) {
             visual::mutations::rebuild(win->scene, *win->external_blueprint,
@@ -51,15 +50,15 @@ void Document::rebuild_window_scenes() {
         } else if (win->resolved_scope_id().is_embedded()) {
             const std::string scope_key = win->resolved_scope_id().key();
             const ui::InternedId group_iid = interner_.lookup(scope_key);
-            const bp2::Blueprint::Nested* nested = group_iid.empty()
+            const bp2::Blueprint::Node* node = group_iid.empty()
                 ? nullptr
-                : model_.current().find_nested(group_iid);
+                : model_.current().find_node(group_iid);
 
-            if (nested && nested->inline_def()) {
-                visual::mutations::rebuild(win->scene, *nested->inline_def(),
+            if (node && node->has_embedded_blueprint() && node->source->inline_def()) {
+                visual::mutations::rebuild(win->scene, *node->source->inline_def(),
                                            interner_, arena_, "");
             } else {
-                spdlog::error("[editor] Embedded window '{}' missing nested inline_def during rebuild", scope_key);
+                spdlog::error("[editor] Embedded window '{}' missing embedded blueprint during rebuild", scope_key);
                 continue;
             }
         } else {
@@ -232,11 +231,11 @@ void Document::updateNodeContentFromSimulation() {
         update_node_content(n, "");
     }
 
-    // Update nodes inside embedded composites
-    for (const bp2::Blueprint::Nested& nested : model_.current().nested()) {
-        if (!nested.inline_def()) continue;
-        const std::string parent_id = std::string(interner_.resolve(nested.id));
-        for (const bp2::Blueprint::Node& inner : nested.inline_def()->nodes()) {
+    // Update nodes inside embedded blueprint instances
+    for (const bp2::Blueprint::Node& parent_node : model_.current().nodes()) {
+        if (!parent_node.has_embedded_blueprint() || !parent_node.source->inline_def()) continue;
+        const std::string parent_id = std::string(interner_.resolve(parent_node.semantic.id));
+        for (const bp2::Blueprint::Node& inner : parent_node.source->inline_def()->nodes()) {
             update_node_content(inner, parent_id);
         }
     }
@@ -254,23 +253,19 @@ void Document::buildEnergizedWireSet(
 
     const bp2::Blueprint& bp = model_.current();
 
-    // For embedded subwindows, check if scope_id matches a nested composite
+    // For embedded subwindows, check if scope_id matches a blueprint instance
     if (!scope_id.empty()) {
         const ui::InternedId group_iid = interner_.lookup(scope_id);
-        const bp2::Blueprint::Nested* nested = group_iid.empty()
-            ? nullptr : bp.find_nested(group_iid);
-        if (nested && nested->is_embedded() && nested->inline_def()) {
+        const bp2::Blueprint::Node* node = group_iid.empty()
+            ? nullptr : bp.find_node(group_iid);
+        if (node && node->has_embedded_blueprint() && node->source->inline_def()) {
             // Use inline_def wires with parent-prefixed signal keys
-            for (const bp2::Blueprint::Wire& w : nested->inline_def()->wires()) {
-                if (w.source.kind() != bp2::PathKind::Port) continue;
-                ui::InternedId src_port_iid = w.source.segment();
-                bp2::Path src_parent = arena_.parent(w.source);
-                if (src_parent.kind() != bp2::PathKind::Node) continue;
-                ui::InternedId src_node_iid = src_parent.segment();
+            for (const bp2::Blueprint::Wire& w : node->source->inline_def()->wires()) {
+                std::string_view local_node = interner_.resolve(w.source.node);
+                std::string_view local_port = interner_.resolve(w.source.port);
+                if (local_node.empty() || local_port.empty()) continue;
 
                 // Build runtime key: "parent_id:local_node.port"
-                std::string_view local_node = interner_.resolve(src_node_iid);
-                std::string_view local_port = interner_.resolve(src_port_iid);
                 std::string port_key = signal_key::make_child_scope_key(scope_id, 
                     signal_key::make_node_port_key(local_node, local_port));
 
@@ -309,11 +304,9 @@ void Document::buildEnergizedWireSetExternal(
     if (!simulation_running_) return;
 
     for (const bp2::Blueprint::Wire& w : external_bp.wires()) {
-        if (w.source.kind() != bp2::PathKind::Port) continue;
-        ui::InternedId src_port_iid = w.source.segment();
-        bp2::Path src_parent = external_arena.parent(w.source);
-        if (src_parent.kind() != bp2::PathKind::Node) continue;
-        ui::InternedId src_node_iid = src_parent.segment();
+        ui::InternedId src_node_iid = w.source.node;
+        ui::InternedId src_port_iid = w.source.port;
+        if (src_node_iid.empty() || src_port_iid.empty()) continue;
 
         const bp2::Blueprint::Node* node = external_bp.find_node(src_node_iid);
         editor::SignalEndpoint endpoint{node, src_node_iid, src_port_iid};

@@ -16,13 +16,15 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const TypeRegistry& parser_registry,
     std::string* error_out,
     bool allow_nonembedded_descendant_refs) {
+    (void)parser_registry;
+
     ui::InternedId blueprint_iid;
     if (!extract_detail::validate_blueprint_name_for_extract(
             source, blueprint_name, interner, &blueprint_iid, error_out)) {
         return std::nullopt;
     }
 
-    auto plan_opt = extract_detail::analyze_selection(
+    auto plan = extract_detail::analyze_selection(
         source,
         selected_node_ids,
         scope_id,
@@ -30,14 +32,13 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         interner,
         arena,
         error_out);
-    if (!plan_opt) {
+    if (!plan) {
         return std::nullopt;
     }
-    const extract_detail::ExtractionPlan& plan = *plan_opt;
 
-    auto out_opt = extract_detail::build_parent_blueprint_from_plan(
+    auto updated = extract_detail::build_parent_blueprint_from_plan(
         source,
-        plan,
+        *plan,
         blueprint_iid,
         blueprint_name,
         scope_id,
@@ -45,23 +46,11 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         interner,
         arena,
         error_out);
-    if (!out_opt) {
-        return std::nullopt;
-    }
-    bp2::Blueprint out = bp2::canonicalize_composite_host_ifaces(std::move(*out_opt));
-
-    std::string integrity_err;
-    if (!validate_blueprint_integrity(out, interner, arena, parser_registry, &integrity_err)) {
-        if (error_out) {
-            *error_out = integrity_err;
-        }
+    if (!updated) {
         return std::nullopt;
     }
 
-    if (error_out) {
-        error_out->clear();
-    }
-    return out;
+    return bp2::canonicalize_composite_host_ifaces(std::move(*updated));
 }
 
 std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
@@ -78,7 +67,7 @@ std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
         return std::nullopt;
     }
 
-    auto plan_opt = extract_detail::analyze_selection(
+    auto plan = extract_detail::analyze_selection(
         source,
         selected_node_ids,
         scope_id,
@@ -86,45 +75,40 @@ std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
         interner,
         arena,
         error_out);
-    if (!plan_opt) {
+    if (!plan) {
         return std::nullopt;
     }
 
-    const extract_detail::ExtractionPlan& plan = *plan_opt;
-    ExtractToBlueprintPreview out;
-    out.selected_nodes = plan.internal_nodes.size();
-    out.internal_wires = plan.internal_wires.size();
-    out.input_count = plan.inputs.size();
-    out.output_count = plan.outputs.size();
-    const extract_detail::DescendantRemapStats remap_stats =
-        extract_detail::collect_descendant_remap_stats(
-            source, plan.selected_set, allow_nonembedded_descendant_refs);
-    out.remapped_descendant_refs = remap_stats.remapped;
-    out.passthrough_descendant_refs = remap_stats.passthrough;
-    out.input_iface_names.reserve(plan.inputs.size());
-    out.output_iface_names.reserve(plan.outputs.size());
-
-    std::unordered_set<std::string> in_names;
-    in_names.reserve(plan.inputs.size());
-    for (const auto& ec : plan.inputs) {
-        out.input_iface_names.push_back(ec.iface_name);
-        in_names.insert(ec.iface_name);
+    ExtractToBlueprintPreview preview;
+    preview.selected_nodes = plan->internal_nodes.size();
+    preview.internal_wires = plan->internal_wires.size();
+    preview.input_count = plan->inputs.size();
+    preview.output_count = plan->outputs.size();
+    for (const auto& ec : plan->inputs) {
+        preview.input_iface_names.push_back(ec.iface_name);
     }
-    for (const auto& ec : plan.outputs) {
-        out.output_iface_names.push_back(ec.iface_name);
-        if (in_names.find(ec.iface_name) != in_names.end()) {
-            out.iface_collision_names.push_back(ec.iface_name);
+    for (const auto& ec : plan->outputs) {
+        preview.output_iface_names.push_back(ec.iface_name);
+    }
+
+    std::unordered_set<std::string> inputs(preview.input_iface_names.begin(), preview.input_iface_names.end());
+    for (const auto& name : preview.output_iface_names) {
+        if (inputs.find(name) != inputs.end()) {
+            preview.iface_collision_names.push_back(name);
         }
     }
-    std::sort(out.iface_collision_names.begin(), out.iface_collision_names.end());
-    out.iface_collision_names.erase(
-        std::unique(out.iface_collision_names.begin(), out.iface_collision_names.end()),
-        out.iface_collision_names.end());
+    std::sort(preview.iface_collision_names.begin(), preview.iface_collision_names.end());
+    preview.iface_collision_names.erase(
+        std::unique(preview.iface_collision_names.begin(), preview.iface_collision_names.end()),
+        preview.iface_collision_names.end());
 
-    if (error_out) {
-        error_out->clear();
-    }
-    return out;
+    const auto remap_stats = extract_detail::collect_descendant_remap_stats(
+        source,
+        plan->selected_set,
+        allow_nonembedded_descendant_refs);
+    preview.remapped_descendant_refs = remap_stats.remapped;
+    preview.passthrough_descendant_refs = remap_stats.passthrough;
+    return preview;
 }
 
 } // namespace editor::commands

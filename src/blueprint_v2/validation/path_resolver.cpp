@@ -28,6 +28,8 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
     }
 
     if (parent.kind() == PathKind::Nested) {
+        // In the new model, nested paths refer to blueprint-instance nodes.
+        // Walk up the path chain and resolve each blueprint-instance node.
         std::vector<Path> chain;
         Path cur = parent;
         while (cur.kind() != PathKind::Root) {
@@ -37,26 +39,24 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
         std::reverse(chain.begin(), chain.end());
 
         const Blueprint* current_bp = &root;
-        const Blueprint::Nested* current_nested = nullptr;
         for (Path seg : chain) {
-            if (seg.kind() != PathKind::Nested) {
+            if (seg.kind() != PathKind::Node) {
                 return std::nullopt;
             }
-            current_nested = current_bp->find_nested(seg.segment());
-            if (!current_nested) {
+            // Find the blueprint-instance node with this ID
+            const auto* bp_node = current_bp->find_blueprint_instance(seg.segment());
+            if (!bp_node || !bp_node->source) {
                 return std::nullopt;
             }
-            if (auto* def = current_nested->inline_def()) {
+            // Only inline definitions allow traversal through ports
+            if (auto* def = bp_node->source->inline_def()) {
                 current_bp = def;
             } else {
                 return std::nullopt;
             }
         }
 
-        if (!current_nested) {
-            return std::nullopt;
-        }
-        auto maybe = current_nested->resolved_iface().find(port_name);
+        auto maybe = current_bp->iface().find(port_name);
         if (!maybe.has_value()) {
             return std::nullopt;
         }
@@ -78,15 +78,7 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
         for (size_t i = 0; i < chain.size(); ++i) {
             Path seg = chain[i];
             const bool is_last = (i + 1 == chain.size());
-            if (seg.kind() == PathKind::Nested) {
-                auto const* nested = current_bp->find_nested(seg.segment());
-                if (!nested || !nested->inline_def()) {
-                    return std::nullopt;
-                }
-                current_bp = nested->inline_def();
-                current_bp_path = seg;
-                continue;
-            }
+            
             if (seg.kind() == PathKind::Node && is_last) {
                 node = current_bp->find_node(seg.segment());
                 if (!node) {
@@ -94,6 +86,7 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
                 }
                 break;
             }
+            
             return std::nullopt;
         }
 
@@ -131,6 +124,68 @@ bool PathResolver::direction_compatible(Direction source, Direction target) cons
     bool src_can_drive = (source == Direction::Output || source == Direction::InOut);
     bool tgt_can_receive = (target == Direction::Input || target == Direction::InOut);
     return src_can_drive && tgt_can_receive;
+}
+
+// ==================================================================
+// WireEndpoint overloads — wire endpoints are always Node→Port
+// ==================================================================
+
+std::optional<ResolvedPort> PathResolver::resolve(WireEndpoint const& ep,
+                                                  Blueprint const& root,
+                                                  const ::TypeRegistry& parser_registry,
+                                                  ui::StringInterner& interner) const {
+    const auto* node = root.find_node(ep.node);
+    if (!node) {
+        return std::nullopt;
+    }
+
+    const Interface& node_iface = root.effective_node_iface(*node);
+    if (!node_iface.empty()) {
+        auto maybe = node_iface.find(ep.port);
+        if (!maybe.has_value()) {
+            return std::nullopt;
+        }
+        return ResolvedPort{*maybe, Path{}, false};
+    }
+
+    const std::string type_name(interner.resolve(node->semantic.type));
+    const auto* def = parser_registry.get(type_name);
+    if (!def) {
+        return std::nullopt;
+    }
+    const std::string port_name_str(interner.resolve(ep.port));
+    auto pit = def->ports.find(port_name_str);
+    if (pit == def->ports.end()) {
+        return std::nullopt;
+    }
+
+    return ResolvedPort{port_descriptor_from_type_port(ep.port, pit->second), Path{}, false};
+}
+
+bool PathResolver::can_connect(WireEndpoint const& source,
+                               WireEndpoint const& target,
+                               Blueprint const& root,
+                               const ::TypeRegistry& parser_registry,
+                               ui::StringInterner& interner) const {
+    if (source == target) {
+        return false;
+    }
+
+    auto src = resolve(source, root, parser_registry, interner);
+    auto tgt = resolve(target, root, parser_registry, interner);
+    if (!src || !tgt) {
+        return false;
+    }
+
+    if (src->port.domain != tgt->port.domain) {
+        return false;
+    }
+
+    if (!direction_compatible(src->port.direction, tgt->port.direction)) {
+        return false;
+    }
+
+    return true;
 }
 
 bool PathResolver::can_connect(Path const& source,

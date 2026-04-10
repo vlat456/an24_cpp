@@ -10,20 +10,14 @@
 
 namespace {
 
-std::optional<std::string> endpoint_to_port_string(bp2::Path const& p,
-                                                   bp2::PathArena const& arena,
+std::optional<std::string> endpoint_to_port_string(bp2::WireEndpoint const& ep,
+                                                   bp2::PathArena const& /*arena*/,
                                                    ui::StringInterner const& interner) {
-    if (p.kind() != bp2::PathKind::Port) {
+    if (ep.node.empty() || ep.port.empty()) {
         return std::nullopt;
     }
-
-    bp2::Path parent = arena.parent(p);
-    if (parent.kind() != bp2::PathKind::Node && parent.kind() != bp2::PathKind::Nested) {
-        return std::nullopt;
-    }
-
-    std::string node = std::string(interner.resolve(parent.segment()));
-    std::string port = std::string(interner.resolve(p.segment()));
+    std::string node = std::string(interner.resolve(ep.node));
+    std::string port = std::string(interner.resolve(ep.port));
     return node + "." + port;
 }
 
@@ -44,10 +38,12 @@ ParserContext parse_blueprint_v3(std::string const& content,
     root_def.classname = "__root";
     root_def.cpp_class = false;
 
-    std::unordered_set<std::string> explicit_nested_ids;
-    for (auto const& n : bp.nested()) {
-        explicit_nested_ids.insert(std::string(interner.resolve(n.id)));
-    }
+     std::unordered_set<std::string> explicit_nested_ids;
+     for (auto const& n : bp.nodes()) {
+         if (n.is_blueprint_instance()) {
+             explicit_nested_ids.insert(std::string(interner.resolve(n.semantic.id)));
+         }
+     }
 
     for (auto const& n : bp.nodes()) {
         std::string node_id = std::string(interner.resolve(n.semantic.id));
@@ -87,19 +83,19 @@ ParserContext parse_blueprint_v3(std::string const& content,
         ctx.connections.push_back(Connection{*from, *to});
     }
 
-    root_def.devices = ctx.devices;
-    root_def.connections = ctx.connections;
+     root_def.devices = ctx.devices;
+     root_def.connections = ctx.connections;
 
-    for (auto const& n : bp.nested()) {
-        if (n.blueprint_id().empty()) {
-            continue;
-        }
-        SubBlueprintRef ref;
-        ref.id = std::string(interner.resolve(n.id));
-        ref.type_name = std::string(interner.resolve(n.blueprint_id()));
-        ref.blueprint_path = ref.type_name;
-        root_def.sub_blueprints.push_back(std::move(ref));
-    }
+     for (auto const& n : bp.nodes()) {
+         if (!n.is_blueprint_instance() || !n.source) {
+             continue;
+         }
+         SubBlueprintRef ref;
+         ref.id = std::string(interner.resolve(n.semantic.id));
+         ref.type_name = std::string(interner.resolve(n.source->blueprint_id()));
+         ref.blueprint_path = ref.type_name;
+         root_def.sub_blueprints.push_back(std::move(ref));
+     }
 
     std::set<std::string> loading_stack;
     TypeDefinition expanded = expand_sub_blueprint_references(root_def, registry, loading_stack);

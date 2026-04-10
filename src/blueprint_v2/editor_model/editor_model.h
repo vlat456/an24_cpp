@@ -37,8 +37,6 @@ public:
     bool remove_node(ui::InternedId id);
     bool add_wire(Blueprint::Wire wire);
     bool remove_wire(ui::InternedId id);
-    bool add_nested(Blueprint::Nested nested);
-    bool remove_nested(ui::InternedId id);
     bool update_node(ui::InternedId id, std::function<void(Blueprint::Node&)> fn);
     bool update_wire(ui::InternedId id, std::function<void(Blueprint::Wire&)> fn);
     bool update_node_position(ui::InternedId id, float x, float y);
@@ -81,26 +79,26 @@ public:
         invalidate_indices();
     }
 
-    // === Bake/Unbake ===
-    bool bake_nested(ui::InternedId id, BlueprintLibrary const& library,
-                     ui::StringInterner& interner);
+    /// Bake a referenced blueprint-instance node (convert to embedded).
+    bool bake_blueprint_instance(ui::InternedId node_id, BlueprintLibrary const& library,
+                                ui::StringInterner& interner);
 
     // === Derived queries ===
     std::vector<ui::InternedId> nodes_in_rect(Rect const& r) const;
-    bool wire_exists(Path source, Path target) const;
+    bool wire_exists(WireEndpoint const& source, WireEndpoint const& target) const;
 
 private:
-    struct PathPairHash {
-        size_t operator()(std::pair<Path, Path> const& p) const noexcept {
-            size_t h = std::hash<Path>{}(p.first);
-            h ^= std::hash<Path>{}(p.second) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    struct EndpointPairHash {
+        size_t operator()(std::pair<WireEndpoint, WireEndpoint> const& p) const noexcept {
+            size_t h = std::hash<WireEndpoint>{}(p.first);
+            h ^= std::hash<WireEndpoint>{}(p.second) + 0x9e3779b9 + (h << 6) + (h >> 2);
             return h;
         }
     };
 
     struct Indices {
         std::unordered_map<ui::InternedId, std::pair<float, float>> node_pos;
-        std::unordered_set<std::pair<Path, Path>, PathPairHash> wire_set;
+        std::unordered_set<std::pair<WireEndpoint, WireEndpoint>, EndpointPairHash> wire_set;
         bool valid = false;
     };
 
@@ -118,16 +116,10 @@ private:
 };
 
 // === Order-preserving blueprint replacement helpers ===
-// Rebuild a blueprint replacing (or appending) a single node/wire/nested
+// Rebuild a blueprint replacing (or appending) a single node/wire
 // while preserving the insertion order of all other elements.
 
 Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updated);
 Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated);
-Blueprint replace_nested_preserve_order(const Blueprint& bp, Blueprint::Nested updated);
-
-/// For composite host nodes, semantic.iface is a derived cache mirrored from
-/// nested authority so legacy serialization/editor surfaces stay stable.
-Blueprint sync_collapsed_node_iface_from_nested(const Blueprint& bp, ui::InternedId nested_id);
-bool composite_iface_matches_nested(const Blueprint& bp, ui::InternedId nested_id);
 
 } // namespace bp2

@@ -23,10 +23,7 @@ struct CmdAddWire       { bp2::Blueprint::Wire wire; };
 struct CmdRemoveWire    { ui::InternedId wire_id; };
 struct CmdSetParam      { ui::InternedId node_id; ui::InternedId key; float value; };
 struct CmdResizeNode    { ui::InternedId node_id; float x; float y; float w; float h; };
-struct CmdSetGridStep   { float new_step; };
 struct CmdSetName       { ui::InternedId node_id; std::string new_name; };
-struct CmdAddNested     { bp2::Blueprint::Nested nested; };
-struct CmdRemoveNested  { ui::InternedId nested_id; };
 struct CmdSetRoutingPoints {
     ui::InternedId wire_id;
     std::vector<std::pair<float,float>> points;
@@ -44,8 +41,8 @@ struct CmdSetColor {
 using Command = std::variant<
     CmdAddNode, CmdRemoveNode, CmdMoveNode,
     CmdAddWire, CmdRemoveWire,
-    CmdSetParam, CmdResizeNode, CmdSetGridStep, CmdSetName,
-    CmdAddNested, CmdRemoveNested, CmdSetRoutingPoints, CmdSetPortLayout,
+    CmdSetParam, CmdResizeNode, CmdSetName,
+    CmdSetRoutingPoints, CmdSetPortLayout,
     CmdSetColor
 >;
 
@@ -61,10 +58,7 @@ inline Command cmd_remove_node(ui::InternedId id,
 inline Command cmd_move_node(ui::InternedId id, float x, float y) { return CmdMoveNode{id,x,y}; }
 inline Command cmd_add_wire(bp2::Blueprint::Wire w)    { return CmdAddWire{std::move(w)}; }
 inline Command cmd_remove_wire(ui::InternedId id)       { return CmdRemoveWire{id}; }
-inline Command cmd_set_grid_step(float s)               { return CmdSetGridStep{s}; }
 inline Command cmd_set_name(ui::InternedId id, std::string nm) { return CmdSetName{id,std::move(nm)}; }
-inline Command cmd_add_nested(bp2::Blueprint::Nested n){ return CmdAddNested{std::move(n)}; }
-inline Command cmd_remove_nested(ui::InternedId id)     { return CmdRemoveNested{id}; }
 inline Command cmd_resize_node(ui::InternedId id, float x, float y, float w, float h) {
     return CmdResizeNode{id, x, y, w, h};
 }

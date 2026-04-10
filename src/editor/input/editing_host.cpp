@@ -76,17 +76,6 @@ public:
         });
     }
 
-    void set_grid_step(float new_step) override {
-        model_.mutate_atomically([&] {
-            auto updated = model_.current().with_viewport(
-                model_.current().pan_x(),
-                model_.current().pan_y(),
-                model_.current().zoom(),
-                new_step);
-            model_.replace_current(std::move(updated));
-        });
-    }
-
     std::string allocate_wire_id() override {
         return model_.allocate_wire_id();
     }
@@ -101,7 +90,7 @@ public:
         : root_model_(root_model), nested_id_(nested_id) {}
 
     const bp2::Blueprint& current_blueprint() const override {
-        return require_inline_blueprint(require_nested());
+        return require_inline_blueprint(require_node());
     }
 
     const bp2::Blueprint::Node* find_node(ui::InternedId id) const override {
@@ -201,17 +190,6 @@ public:
         });
     }
 
-    void set_grid_step(float new_step) override {
-        root_model_.mutate_atomically([&] {
-            auto next = current_blueprint().with_viewport(
-                current_blueprint().pan_x(),
-                current_blueprint().pan_y(),
-                current_blueprint().zoom(),
-                new_step);
-            replace_inline_def(std::move(next));
-        });
-    }
-
     std::string allocate_wire_id() override {
         return root_model_.allocate_wire_id();
     }
@@ -220,29 +198,35 @@ private:
     bp2::EditorModel& root_model_;
     ui::InternedId nested_id_;
 
-    static const bp2::Blueprint& require_inline_blueprint(const bp2::Blueprint::Nested& nested) {
-        const auto* inline_bp = nested.inline_def();
+    static const bp2::Blueprint& require_inline_blueprint(const bp2::Blueprint::Node& node) {
+        if (!node.is_blueprint_instance() || !node.source || !node.source->is_embedded()) {
+            throw std::logic_error("EmbeddedInlineHost requires embedded blueprint-instance node");
+        }
+        const auto* inline_bp = node.source->inline_def();
         if (!inline_bp) {
-            throw std::logic_error("EmbeddedInlineHost missing embedded inline_def");
+            throw std::logic_error("EmbeddedInlineHost missing embedded inline blueprint");
         }
         return *inline_bp;
     }
 
-    const bp2::Blueprint::Nested& require_nested() const {
-        const auto* nested = root_model_.current().find_nested(nested_id_);
-        if (!nested) {
-            throw std::logic_error("EmbeddedInlineHost missing nested instance");
+    const bp2::Blueprint::Node& require_node() const {
+        const auto* node = root_model_.current().find_node(nested_id_);
+        if (!node) {
+            throw std::logic_error("EmbeddedInlineHost missing blueprint-instance node");
         }
-        if (!nested->is_embedded()) {
-            throw std::logic_error("EmbeddedInlineHost requires embedded nested instance");
+        if (!node->is_blueprint_instance() || !node->source || !node->source->is_embedded()) {
+            throw std::logic_error("EmbeddedInlineHost requires embedded blueprint-instance node");
         }
-        return *nested;
+        return *node;
     }
 
     void replace_inline_def(bp2::Blueprint next_inline) {
-        bp2::Blueprint::Nested updated = require_nested();
-        updated.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(next_inline)));
-        root_model_.replace_current(bp2::replace_nested_preserve_order(root_model_.current(), std::move(updated)));
+        const bp2::Blueprint::Node& node = require_node();
+        auto updated = node;
+        if (updated.source) {
+            updated.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(next_inline)));
+            root_model_.replace_current(bp2::replace_node_preserve_order(root_model_.current(), std::move(updated)));
+        }
     }
 };
 

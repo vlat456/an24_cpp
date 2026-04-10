@@ -30,21 +30,12 @@ void execute(bp2::EditorModel& model, ui::StringInterner& interner, Command cmd)
             })) {
                 spdlog::warn("[cmd] node {} not found", c.node_id.raw());
             }
-        } else if constexpr (std::is_same_v<T, CmdSetGridStep>) {
-            auto updated = model.current().with_viewport(
-                model.current().pan_x(), model.current().pan_y(),
-                model.current().zoom(), c.new_step);
-            model.replace_current(std::move(updated));
          } else if constexpr (std::is_same_v<T, CmdSetName>) {
              if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
                  n.view.name = std::move(c.new_name);
-            })) {
-                spdlog::warn("[cmd] node {} not found", c.node_id.raw());
-            }
-        } else if constexpr (std::is_same_v<T, CmdAddNested>) {
-            model.add_nested(std::move(c.nested));
-        } else if constexpr (std::is_same_v<T, CmdRemoveNested>) {
-            model.remove_nested(c.nested_id);
+             })) {
+                 spdlog::warn("[cmd] node {} not found", c.node_id.raw());
+             }
         } else if constexpr (std::is_same_v<T, CmdSetRoutingPoints>) {
             if (!model.update_wire(c.wire_id, [&](bp2::Blueprint::Wire& w) {
                 w.routing_points = std::move(c.points);

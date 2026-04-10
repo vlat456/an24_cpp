@@ -24,15 +24,8 @@ TEST(BlueprintNode, ConstructAndAccess) {
 TEST(BlueprintWire, ConstructAndAccess) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    auto root = arena.root();
-    auto src = arena.make_port(
-        arena.make_node(root, interner.intern("b1")),
-        interner.intern("v_out")
-    );
-    auto tgt = arena.make_port(
-        arena.make_node(root, interner.intern("r1")),
-        interner.intern("in")
-    );
+    bp2::WireEndpoint src{interner.intern("b1"), interner.intern("v_out")};
+    bp2::WireEndpoint tgt{interner.intern("r1"), interner.intern("in")};
 
     bp2::Blueprint::Wire wire;
     wire.id = interner.intern("w1");
@@ -45,51 +38,53 @@ TEST(BlueprintWire, ConstructAndAccess) {
     EXPECT_EQ(wire.domain, Domain::Electrical);
 }
 
-TEST(BlueprintNested, ReferenceMode) {
+TEST(BlueprintNode, ReferenceInstanceMode) {
     ui::StringInterner interner;
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"),
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("sub1");
+    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
         bp2::Interface{});
-    EXPECT_TRUE(nested.is_reference());
-    EXPECT_EQ(nested.inline_def(), nullptr);
+    EXPECT_TRUE(node.source->is_reference());
+    EXPECT_EQ(node.source->inline_def(), nullptr);
 }
 
-TEST(BlueprintNested, EmbeddedMode) {
+TEST(BlueprintNode, EmbeddedInstanceMode) {
     ui::StringInterner interner;
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("sub1"),
-        ui::InternedId{},
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("sub1");
+    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("power_system"),
         std::make_unique<bp2::Blueprint>());
-    EXPECT_TRUE(nested.is_embedded());
-    EXPECT_NE(nested.inline_def(), nullptr);
+    EXPECT_TRUE(node.source->is_embedded());
+    EXPECT_NE(node.source->inline_def(), nullptr);
 }
 
 // ============================================================================
 // Issue #40 regression: construction invariant enforcement
 // ============================================================================
 
-TEST(BlueprintNested, MakeEmbeddedRejectsNullInlineDef) {
+TEST(BlueprintNodeSource, MakeEmbeddedRejectsNullInlineDef) {
     ui::StringInterner interner;
     EXPECT_THROW(
-        bp2::Blueprint::Nested::make_embedded(
-            interner.intern("sub1"),
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
             interner.intern("bp_type"),
             nullptr),
         std::logic_error);
 }
 
-TEST(BlueprintNested, MakeReferenceRejectsEmptyBlueprintId) {
+TEST(BlueprintNodeSource, MakeReferenceRejectsEmptyBlueprintId) {
     ui::StringInterner interner;
     EXPECT_THROW(
-        bp2::Blueprint::Nested::make_reference(
-            interner.intern("sub1"),
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
             ui::InternedId{},  // empty
             bp2::Interface{}),
         std::logic_error);
 }
 
-TEST(BlueprintNested, ResolvedIfaceNonThrowingEmbedded) {
+TEST(BlueprintNodeSource, ResolvedIfaceNonThrowingEmbedded) {
     ui::StringInterner interner;
     auto iface = bp2::Interface({
         {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input}
@@ -97,113 +92,102 @@ TEST(BlueprintNested, ResolvedIfaceNonThrowingEmbedded) {
     auto inner = std::make_unique<bp2::Blueprint>();
     *inner = inner->with_interface(iface);
 
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("sub1"),
+    auto source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("inner_bp"),
         std::move(inner));
 
-    EXPECT_NO_THROW(nested.resolved_iface());
-    EXPECT_EQ(nested.resolved_iface().size(), 1u);
+    EXPECT_NO_THROW(source.resolved_iface());
+    EXPECT_EQ(source.resolved_iface().size(), 1u);
 }
 
-TEST(BlueprintNested, ResolvedIfaceNonThrowingReference) {
+TEST(BlueprintNodeSource, ResolvedIfaceNonThrowingReference) {
     ui::StringInterner interner;
     auto iface = bp2::Interface({
         {interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output}
     });
 
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"),
+    auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
         iface);
 
-    EXPECT_NO_THROW(nested.resolved_iface());
-    EXPECT_EQ(nested.resolved_iface().size(), 1u);
+    EXPECT_NO_THROW(source.resolved_iface());
+    EXPECT_EQ(source.resolved_iface().size(), 1u);
 }
 
-TEST(BlueprintNested, CopyPreservesVariantMode) {
+TEST(BlueprintNodeSource, CopyPreservesVariantMode) {
     ui::StringInterner interner;
 
     // Embedded copy
-    auto embedded = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("e1"),
+    auto embedded = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("bp1"),
         std::make_unique<bp2::Blueprint>());
-    bp2::Blueprint::Nested embedded_copy = embedded;
+    auto embedded_copy = embedded;
     EXPECT_TRUE(embedded_copy.is_embedded());
     EXPECT_NE(embedded_copy.inline_def(), nullptr);
 
     // Reference copy
-    auto ref = bp2::Blueprint::Nested::make_reference(
-        interner.intern("r1"),
+    auto ref = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
         bp2::Interface{});
-    bp2::Blueprint::Nested ref_copy = ref;
+    auto ref_copy = ref;
     EXPECT_TRUE(ref_copy.is_reference());
     EXPECT_EQ(ref_copy.inline_def(), nullptr);
 }
 
-TEST(BlueprintNested, SetInlineDefReplacesDefinition) {
+TEST(BlueprintNodeSource, SetInlineDefReplacesDefinition) {
     ui::StringInterner interner;
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("e1"),
+    auto source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("bp1"),
         std::make_unique<bp2::Blueprint>());
 
     auto replacement = std::make_unique<bp2::Blueprint>();
     *replacement = replacement->with_display_name("replaced");
-    nested.set_inline_def(std::move(replacement));
+    source.set_inline_def(std::move(replacement));
 
-    ASSERT_NE(nested.inline_def(), nullptr);
-    EXPECT_EQ(nested.inline_def()->display_name(), "replaced");
+    ASSERT_NE(source.inline_def(), nullptr);
+    EXPECT_EQ(source.inline_def()->display_name(), "replaced");
 }
 
-TEST(BlueprintNested, SetInlineDefRejectsNull) {
+TEST(BlueprintNodeSource, SetInlineDefRejectsNull) {
     ui::StringInterner interner;
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("e1"),
+    auto source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("bp1"),
         std::make_unique<bp2::Blueprint>());
 
-    EXPECT_THROW(nested.set_inline_def(nullptr), std::logic_error);
+    EXPECT_THROW(source.set_inline_def(nullptr), std::logic_error);
 }
 
-TEST(BlueprintNested, SetInlineDefThrowsOnReference) {
+TEST(BlueprintNodeSource, SetInlineDefThrowsOnReference) {
     ui::StringInterner interner;
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("r1"),
+    auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
         bp2::Interface{});
 
     EXPECT_THROW(
-        nested.set_inline_def(std::make_unique<bp2::Blueprint>()),
-        std::bad_variant_access);
+        source.set_inline_def(std::make_unique<bp2::Blueprint>()),
+        std::logic_error);
 }
 
-TEST(BlueprintNested, ConvertToEmbedded) {
+TEST(BlueprintNodeSource, ConvertToEmbedded) {
     ui::StringInterner interner;
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("r1"),
+    auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
         bp2::Interface{});
 
-    EXPECT_TRUE(nested.is_reference());
-    nested.convert_to_embedded(
+    EXPECT_TRUE(source.is_reference());
+    // Note: BlueprintSource is a variant. To change modes, create a new one
+    auto embedded_source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("new_bp"),
         std::make_unique<bp2::Blueprint>());
-    EXPECT_TRUE(nested.is_embedded());
-    EXPECT_NE(nested.inline_def(), nullptr);
+    EXPECT_TRUE(embedded_source.is_embedded());
+    EXPECT_NE(embedded_source.inline_def(), nullptr);
 }
 
-TEST(BlueprintNested, ConvertToEmbeddedRejectsNull) {
+TEST(BlueprintNodeSource, ConvertToEmbeddedRejectsNull) {
     ui::StringInterner interner;
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("r1"),
-        interner.intern("power_system"),
-        bp2::Interface{});
-
     EXPECT_THROW(
-        nested.convert_to_embedded(interner.intern("bp"), nullptr),
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            interner.intern("bp"), nullptr),
         std::logic_error);
 }
 
@@ -211,7 +195,6 @@ TEST(Blueprint, EmptyByDefault) {
     bp2::Blueprint bp;
     EXPECT_TRUE(bp.nodes().empty());
     EXPECT_TRUE(bp.wires().empty());
-    EXPECT_TRUE(bp.nested().empty());
 }
 
 TEST(Blueprint, AddNodeAndFind) {
@@ -236,85 +219,64 @@ TEST(Blueprint, FindNodeNotFound) {
     EXPECT_EQ(bp.find_node(interner.intern("nope")), nullptr);
 }
 
-TEST(Blueprint, FindHostedNestedForCompositeHost) {
+TEST(Blueprint, FindBlueprintInstanceNode) {
     ui::StringInterner interner;
 
     bp2::Blueprint::Node host;
     host.semantic.id = interner.intern("comp1");
     host.semantic.type = interner.intern("CompositeType");
-    host.view.expandable = true;
+    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>());
 
     bp2::Blueprint bp;
     bp = bp.with_node(host);
-    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
-        interner.intern("comp1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>()));
 
-    const auto* found_host = bp.find_node(interner.intern("comp1"));
-    ASSERT_NE(found_host, nullptr);
-    const auto* nested = bp.find_hosted_nested(*found_host);
-    ASSERT_NE(nested, nullptr);
-    EXPECT_EQ(nested->id, interner.intern("comp1"));
-
-    const auto* host_node = bp.find_host_node(*nested);
-    ASSERT_NE(host_node, nullptr);
-    EXPECT_EQ(host_node->semantic.id, interner.intern("comp1"));
+    const auto* found = bp.find_blueprint_instance(interner.intern("comp1"));
+    ASSERT_NE(found, nullptr);
+    EXPECT_EQ(found->semantic.id, interner.intern("comp1"));
+    EXPECT_TRUE(found->source->is_embedded());
 }
 
-TEST(Blueprint, EmbeddedProxyNodeDetectionRequiresEmbeddedNestedAndExpandable) {
+TEST(Blueprint, BlueprintInstanceNodeWithEmbeddedSource) {
     ui::StringInterner interner;
 
     bp2::Blueprint::Node host;
     host.semantic.id = interner.intern("comp1");
     host.semantic.type = interner.intern("CompositeType");
-    host.view.expandable = true;
+    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>());
 
     bp2::Blueprint bp;
     bp = bp.with_node(host);
-    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
-        interner.intern("comp1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>()));
 
     const auto* found_host = bp.find_node(interner.intern("comp1"));
     ASSERT_NE(found_host, nullptr);
-    EXPECT_TRUE(bp.is_embedded_proxy_node(*found_host));
+    EXPECT_TRUE(found_host->kind == bp2::Blueprint::Node::Kind::BlueprintInstance);
+    EXPECT_TRUE(found_host->source->is_embedded());
 }
 
-TEST(Blueprint, EmbeddedProxyNodeDetectionDoesNotTriggerForSameIdNonExpandableNode) {
+TEST(Blueprint, BlueprintInstanceNodeWithReferenceSource) {
     ui::StringInterner interner;
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("comp1");
-    node.semantic.type = interner.intern("OrdinaryType");
-    node.view.expandable = false;
+    node.semantic.type = interner.intern("CompositeType");
+    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+        interner.intern("CompositeType"), bp2::Interface{});
 
     bp2::Blueprint bp;
     bp = bp.with_node(node);
-    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
-        interner.intern("comp1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>()));
 
     const auto* found = bp.find_node(interner.intern("comp1"));
     ASSERT_NE(found, nullptr);
-    EXPECT_FALSE(bp.is_embedded_proxy_node(*found));
+    EXPECT_TRUE(found->kind == bp2::Blueprint::Node::Kind::BlueprintInstance);
+    EXPECT_TRUE(found->source->is_reference());
 }
 
-TEST(Blueprint, EmbeddedProxyNodeDetectionDoesNotTriggerForReferenceNested) {
-    ui::StringInterner interner;
-
-    bp2::Blueprint::Node node;
-    node.semantic.id = interner.intern("comp1");
-    node.semantic.type = interner.intern("ReferenceType");
-    node.view.expandable = true;
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(node);
-    bp = bp.with_nested(bp2::Blueprint::Nested::make_reference(
-        interner.intern("comp1"), interner.intern("ReferenceType"), bp2::Interface{}));
-
-    const auto* found = bp.find_node(interner.intern("comp1"));
-    ASSERT_NE(found, nullptr);
-    EXPECT_FALSE(bp.is_embedded_proxy_node(*found));
-}
-
-TEST(Blueprint, EffectiveNodeIfaceUsesHostedNestedAuthorityWhenPresent) {
+TEST(Blueprint, EffectiveNodeIfaceUsesEmbeddedBlueprintWhenPresent) {
     ui::StringInterner interner;
 
     bp2::Blueprint inner;
@@ -325,15 +287,15 @@ TEST(Blueprint, EffectiveNodeIfaceUsesHostedNestedAuthorityWhenPresent) {
     bp2::Blueprint::Node host;
     host.semantic.id = interner.intern("comp1");
     host.semantic.type = interner.intern("CompositeType");
-    host.view.expandable = true;
+    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     host.semantic.iface = bp2::Interface({
         {interner.intern("stale"), Domain::Electrical, bp2::Direction::Input, PortType::V},
     });
+    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner));
 
     bp2::Blueprint bp;
     bp = bp.with_node(host);
-    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
-        interner.intern("comp1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
 
     const auto* found = bp.find_node(interner.intern("comp1"));
     ASSERT_NE(found, nullptr);
@@ -383,19 +345,12 @@ TEST(Blueprint, WithNodeDoesNotMutateOriginal) {
 
 TEST(Blueprint, AddWireAndFind) {
     ui::StringInterner interner;
-    bp2::PathArena arena(interner);
     bp2::Blueprint bp;
 
     bp2::Blueprint::Wire wire;
     wire.id = interner.intern("w1");
-    wire.source = arena.make_port(
-        arena.make_node(arena.root(), interner.intern("a")),
-        interner.intern("out")
-    );
-    wire.target = arena.make_port(
-        arena.make_node(arena.root(), interner.intern("b")),
-        interner.intern("in")
-    );
+    wire.source = bp2::WireEndpoint{interner.intern("a"), interner.intern("out")};
+    wire.target = bp2::WireEndpoint{interner.intern("b"), interner.intern("in")};
     wire.domain = Domain::Electrical;
 
     bp2::Blueprint bp2_val = bp.with_wire(std::move(wire));
@@ -407,19 +362,12 @@ TEST(Blueprint, AddWireAndFind) {
 
 TEST(Blueprint, WithoutWire) {
     ui::StringInterner interner;
-    bp2::PathArena arena(interner);
     bp2::Blueprint bp;
 
     bp2::Blueprint::Wire wire;
     wire.id = interner.intern("w1");
-    wire.source = arena.make_port(
-        arena.make_node(arena.root(), interner.intern("a")),
-        interner.intern("out")
-    );
-    wire.target = arena.make_port(
-        arena.make_node(arena.root(), interner.intern("b")),
-        interner.intern("in")
-    );
+    wire.source = bp2::WireEndpoint{interner.intern("a"), interner.intern("out")};
+    wire.target = bp2::WireEndpoint{interner.intern("b"), interner.intern("in")};
     wire.domain = Domain::Electrical;
 
     bp = bp.with_wire(std::move(wire));
@@ -429,35 +377,39 @@ TEST(Blueprint, WithoutWire) {
     EXPECT_EQ(bp.wires().size(), 0u);
 }
 
-TEST(Blueprint, AddNestedAndFind) {
+TEST(Blueprint, AddBlueprintInstanceNodeAndFind) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
 
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"),
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("sub1");
+    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
         bp2::Interface{});
 
-    bp = bp.with_nested(std::move(nested));
-    EXPECT_EQ(bp.nested().size(), 1u);
+    bp = bp.with_node(std::move(node));
+    EXPECT_EQ(bp.nodes().size(), 1u);
 
-    auto* found = bp.find_nested(interner.intern("sub1"));
+    auto* found = bp.find_blueprint_instance(interner.intern("sub1"));
     ASSERT_NE(found, nullptr);
-    EXPECT_TRUE(found->is_reference());
+    EXPECT_TRUE(found->source->is_reference());
 }
 
-TEST(Blueprint, WithoutNested) {
+TEST(Blueprint, WithoutNode) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
 
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"),
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("sub1");
+    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
         bp2::Interface{});
 
-    bp = bp.with_nested(std::move(nested));
-    bp = bp.without_nested(interner.intern("sub1"));
-    EXPECT_EQ(bp.nested().size(), 0u);
+    bp = bp.with_node(std::move(node));
+    bp = bp.without_node(interner.intern("sub1"));
+    EXPECT_EQ(bp.nodes().size(), 0u);
 }
 
 TEST(Blueprint, WithId) {
@@ -564,7 +516,7 @@ TEST(NodeSplit, EqualityRequiresAllThreeSubStructs) {
     auto d = a; d.layout.collapsed = !a.layout.collapsed;
     EXPECT_NE(a, d);
 
-    auto e = a; e.view.expandable = true;
+    auto e = a; e.view.name = "different";
     EXPECT_NE(a, e);
 }
 

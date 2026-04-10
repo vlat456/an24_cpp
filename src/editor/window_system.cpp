@@ -3,9 +3,30 @@
 #include "blueprint_v2/editor_model/editor_model.h"
 #include <spdlog/spdlog.h>
 #include <cstdio>
+#include <filesystem>
+
+namespace {
+
+std::string find_library_index_path() {
+    static const char* candidates[] = {
+        "library/library_index.json",
+        "../library/library_index.json",
+        "../../library/library_index.json",
+        "../../../library/library_index.json",
+    };
+    for (const char* p : candidates) {
+        if (std::filesystem::exists(p)) {
+            return p;
+        }
+    }
+    return "library/library_index.json";  // fallback (will produce a clear error)
+}
+
+} // namespace
 
 WindowSystem::WindowSystem()
     : type_registry_(load_type_registry())
+    , library_index_(bp2::load_library_index(find_library_index_path()))
     , inspector_()
 {
     createDocument();
@@ -15,6 +36,7 @@ Document& WindowSystem::createDocument() {
     auto doc = std::make_unique<Document>();
     Document* doc_ptr = doc.get();
     doc_ptr->setTypeRegistry(&type_registry_);
+    doc_ptr->setLibraryIndex(&library_index_);
 
     documents_.push_back(std::move(doc));
     setActiveDocument(doc_ptr);
@@ -51,6 +73,7 @@ Document* WindowSystem::openDocument(const std::string& path) {
 
     auto doc = std::make_unique<Document>();
     doc->setTypeRegistry(&type_registry_);
+    doc->setLibraryIndex(&library_index_);
     if (!doc->load(path)) {
         spdlog::error("[WindowSystem] Failed to load document: {}", path);
         return nullptr;

@@ -72,26 +72,30 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
     // Track skipped embedded proxy nodes for connection rewriting
     std::set<std::string> skipped_embedded_proxies;
 
-    for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        // Embedded blueprint proxy nodes with materialized children: skip the
-        // proxy (its internal nodes are already flattened into the blueprint).
-        if (n.view.expandable) {
-            const auto* nested = bp.find_nested(n.semantic.id);
-            if (nested && nested->is_embedded()) {
-                bool has_materialized_children = false;
-                const std::string parent_id(interner.resolve(n.semantic.id));
-                for (const auto& child : bp.nodes()) {
-                    if (child.structure.owner_scope == parent_id) {
-                        has_materialized_children = true;
-                        break;
-                    }
-                }
-                if (has_materialized_children) {
-                    skipped_embedded_proxies.insert(parent_id);
-                    continue;
-                }
-            }
-        }
+     for (const bp2::Blueprint::Node& n : bp.nodes()) {
+         // Embedded blueprint instance nodes: skip the proxy (its internal nodes
+         // are already flattened into the blueprint via node-owned BlueprintSource).
+         if (n.is_blueprint_instance() && n.has_embedded_blueprint()) {
+             bool has_materialized_children = false;
+             const std::string parent_id(interner.resolve(n.semantic.id));
+             
+             // Check if this embedded blueprint has materialized children
+             // by looking for nodes with matching parent reference in the source
+             if (n.source && n.source->is_embedded()) {
+                 const auto* embedded_bp = n.source->inline_def();
+                 if (embedded_bp) {
+                     for (const auto& child : embedded_bp->nodes()) {
+                         has_materialized_children = true;
+                         break;
+                     }
+                 }
+             }
+             
+             if (has_materialized_children) {
+                 skipped_embedded_proxies.insert(parent_id);
+                 continue;
+             }
+         }
 
         // Non-embedded expandable (composite) nodes — emit them as regular
         // devices so that parse_json_impl() can expand them via TypeRegistry.
@@ -103,8 +107,6 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
         device["name"]          = nid;
         device["template_name"] = "";
         device["classname"]     = std::string(interner.resolve(n.semantic.type));
-        if (!n.view.render_hint.empty())
-            device["render_hint"] = n.view.render_hint;
         device["priority"]  = "med";
         device["bucket"]    = nullptr;
         device["critical"]  = false;
@@ -153,15 +155,11 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
     out["devices"] = std::move(devices);
 
     // --- connections ---
-    auto path_to_node_port = [&](const bp2::Path& path)
+    auto path_to_node_port = [&](const bp2::WireEndpoint& ep)
             -> std::pair<std::string, std::string> {
-        if (path.kind() != bp2::PathKind::Port) return {};
-        ui::InternedId port_name = path.segment();
-        bp2::Path parent = arena.parent(path);
-        if (parent.kind() != bp2::PathKind::Node) return {};
-        ui::InternedId node_id = parent.segment();
-        return {std::string(interner.resolve(node_id)),
-                std::string(interner.resolve(port_name))};
+        if (ep.node.empty() || ep.port.empty()) return {};
+        return {std::string(interner.resolve(ep.node)),
+                std::string(interner.resolve(ep.port))};
     };
 
     // Build a lookup map for bridge nodes of skipped embedded proxies.

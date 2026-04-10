@@ -1,6 +1,5 @@
 #include "repair.h"
 
-#include "blueprint_v2/validation/owner_scope.h"
 #include "blueprint_v2/validation/path_resolver.h"
 #include <unordered_set>
 
@@ -29,38 +28,37 @@ RepairReport diagnose_and_repair(Blueprint& bp,
             });
         }
         if (!parser_registry.has(std::string(interner.resolve(n.semantic.type)))) {
-            // Skip embedded blueprint proxy nodes — their user-given type
+            // Skip blueprint-instance nodes — their user-given type
             // is not in the library registry by design.
-            const bool is_embedded_proxy = bp.is_embedded_proxy_node(n);
-            if (!is_embedded_proxy) {
+            const bool is_blueprint_instance = n.is_blueprint_instance();
+            if (!is_blueprint_instance) {
                 report.issues.push_back({
                     IntegrityIssue::Kind::UnknownNodeType,
                     "unknown node type at node id=" + iid(n.semantic.id)
                 });
             }
         }
-
-        if (auto owner_scope_err = validate_owner_scope_reference(bp, n, interner)) {
-            report.issues.push_back({
-                IntegrityIssue::Kind::InvalidOwnerScope,
-                "invalid owner_scope at node id=" + iid(n.semantic.id) + ": " + *owner_scope_err
-            });
-        }
     }
 
-    std::unordered_set<ui::InternedId> seen_nested;
-    for (const auto& n : bp.nested()) {
-        if (!seen_nested.insert(n.id).second) {
+    std::unordered_set<ui::InternedId> seen_blueprint_instances;
+    for (const auto& n : bp.nodes()) {
+        if (!n.is_blueprint_instance()) {
+            continue;
+        }
+        if (!n.source.has_value()) {
+            continue;
+        }
+        if (!seen_blueprint_instances.insert(n.semantic.id).second) {
             report.issues.push_back({
                 IntegrityIssue::Kind::DuplicateNestedId,
-                "duplicate nested id=" + iid(n.id)
+                "duplicate blueprint instance id=" + iid(n.semantic.id)
             });
         }
-        if (n.is_reference()
-            && !parser_registry.has(std::string(interner.resolve(n.blueprint_id())))) {
+        if (n.source->is_reference()
+            && !parser_registry.has(std::string(interner.resolve(n.source->blueprint_id())))) {
             report.issues.push_back({
                 IntegrityIssue::Kind::UnknownNestedBlueprint,
-                "unknown nested blueprint id=" + iid(n.id)
+                "unknown blueprint instance id=" + iid(n.semantic.id)
             });
         }
     }
@@ -76,8 +74,8 @@ RepairReport diagnose_and_repair(Blueprint& bp,
             });
         }
 
-        const auto src = resolver.resolve(w.source, bp, arena, parser_registry, interner);
-        const auto tgt = resolver.resolve(w.target, bp, arena, parser_registry, interner);
+        const auto src = resolver.resolve(w.source, bp, parser_registry, interner);
+        const auto tgt = resolver.resolve(w.target, bp, parser_registry, interner);
         if (!src || !tgt) {
             report.issues.push_back({
                 IntegrityIssue::Kind::InvalidWireEndpoint,

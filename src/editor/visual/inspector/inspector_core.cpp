@@ -57,6 +57,10 @@ std::pair<ui::InternedId, ui::InternedId> Inspector::decode_port_path(bp2::Path 
     return {node_id, port_name};
 }
 
+std::pair<ui::InternedId, ui::InternedId> Inspector::decode_port_path(bp2::WireEndpoint const& ep) const {
+    return {ep.node, ep.port};
+}
+
 bool Inspector::ownsWire(const bp2::Blueprint::Wire& w) const {
     if (!bp_) return false;
     auto [src_node, src_port] = decode_port_path(w.source);
@@ -64,26 +68,24 @@ bool Inspector::ownsWire(const bp2::Blueprint::Wire& w) const {
     if (src_node.empty() || tgt_node.empty()) return false;
     const auto* n1 = bp_->find_node(src_node);
     const auto* n2 = bp_->find_node(tgt_node);
-    return n1 && n2 && n1->structure.owner_scope == scope_id_.key() && n2->structure.owner_scope == scope_id_.key();
+    return n1 && n2;
 }
 
 void Inspector::buildDisplayTree() {
     display_tree_.clear();
     if (!bp_ || !arena_ || !interner_) return;
 
-    // Pre-decode owned wires once (avoids O(N*P*W) redundant decode_port_path calls).
-    std::vector<DecodedWire> owned_wires;
-    for (const auto& wire : bp_->wires()) {
-        auto [sn, sp] = decode_port_path(wire.source);
-        auto [tn, tp] = decode_port_path(wire.target);
-        if (sn.empty() || tn.empty()) continue;
-        const auto* n1 = bp_->find_node(sn);
-        const auto* n2 = bp_->find_node(tn);
-        if (!n1 || !n2) continue;
-        if (n1->structure.owner_scope != scope_id_.key()) continue;
-        if (n2->structure.owner_scope != scope_id_.key()) continue;
-        owned_wires.push_back({sn, sp, tn, tp});
-    }
+     // Pre-decode owned wires once (avoids O(N*P*W) redundant decode_port_path calls).
+     std::vector<DecodedWire> owned_wires;
+     for (const auto& wire : bp_->wires()) {
+         auto [sn, sp] = decode_port_path(wire.source);
+         auto [tn, tp] = decode_port_path(wire.target);
+         if (sn.empty() || tn.empty()) continue;
+         const auto* n1 = bp_->find_node(sn);
+         const auto* n2 = bp_->find_node(tn);
+         if (!n1 || !n2) continue;
+         owned_wires.push_back({sn, sp, tn, tp});
+     }
 
     for (const auto& node : bp_->nodes()) {
         if (!ownsNode(node)) continue;

@@ -14,12 +14,10 @@ namespace {
 /// Build a simple node with standard ports
 static bp2::Blueprint::Node make_node(ui::StringInterner& interner,
                                       const char* id,
-                                      const char* type = "Battery",
-                                      const char* owner_scope = "") {
+                                      const char* type = "Battery") {
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern(id);
     n.semantic.type = interner.intern(type);
-    n.structure.owner_scope = owner_scope;
     set_iface(n, {
         make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
@@ -29,16 +27,14 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& interner,
 
 /// Build a wire connecting two nodes
 static bp2::Blueprint::Wire make_wire(ui::StringInterner& interner,
-                                      bp2::PathArena& arena,
+                                      bp2::PathArena& /*arena*/,
                                       const char* wire_id,
                                       const char* src_node, const char* src_port,
                                       const char* dst_node, const char* dst_port) {
     bp2::Blueprint::Wire w;
     w.id = interner.intern(wire_id);
-    w.source = arena.make_port(arena.make_node(arena.root(), interner.intern(src_node)),
-                               interner.intern(src_port));
-    w.target = arena.make_port(arena.make_node(arena.root(), interner.intern(dst_node)),
-                               interner.intern(dst_port));
+    w.source = bp2::WireEndpoint{interner.intern(src_node), interner.intern(src_port)};
+    w.target = bp2::WireEndpoint{interner.intern(dst_node), interner.intern(dst_port)};
     return w;
 }
 
@@ -52,8 +48,8 @@ TEST(EmbeddedSubwindowScene, RebuildFromInlineDefIndependent) {
 
     // Create inline blueprint (the "internals" of an embedded composite)
     bp2::Blueprint inline_bp;
-    auto internal_n1 = make_node(interner, "inner_bat", "Battery", "");
-    auto internal_n2 = make_node(interner, "inner_lamp", "Lamp", "");
+    auto internal_n1 = make_node(interner, "inner_bat", "Battery");
+    auto internal_n2 = make_node(interner, "inner_lamp", "Lamp");
     auto internal_wire = make_wire(interner, arena, "inner_wire_0",
                                    "inner_bat", "v_out", "inner_lamp", "v_in");
 
@@ -72,39 +68,39 @@ TEST(EmbeddedSubwindowScene, RebuildFromInlineDefIndependent) {
     EXPECT_NE(scene.find("inner_wire_0"), nullptr);
 }
 
-/// Verify that even if root blueprint has shadow nodes with a specific owner_scope,
-/// inline_def still renders independently when used directly.
+/// Verify that an embedded definition renders from its own document even when
+/// another blueprint contains nodes with the same IDs.
 TEST(EmbeddedSubwindowScene, InlineDefIndependentOfRootShadows) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
     // Build inline definition
     bp2::Blueprint inline_bp;
-    auto in1 = make_node(interner, "nested_bat", "Battery", "");
-    auto in2 = make_node(interner, "nested_lamp", "Lamp", "");
+    auto in1 = make_node(interner, "nested_bat", "Battery");
+    auto in2 = make_node(interner, "nested_lamp", "Lamp");
     auto in_wire = make_wire(interner, arena, "nested_wire",
                              "nested_bat", "v_out", "nested_lamp", "v_in");
     inline_bp = inline_bp.with_node(std::move(in1));
     inline_bp = inline_bp.with_node(std::move(in2));
     inline_bp = inline_bp.with_wire(std::move(in_wire));
 
-    // Create root blueprint with DIFFERENT shadow copies (same IDs, but different owner_scope)
-    // This simulates the old addBlueprint behavior
+    // Create a separate root blueprint with duplicate IDs to prove the embedded
+    // definition scene is independent from unrelated blueprint content.
     bp2::Blueprint root_bp;
-    auto shadow_n1 = make_node(interner, "nested_bat", "Battery", "composite_1");
-    auto shadow_n2 = make_node(interner, "nested_lamp", "Lamp", "composite_1");
+    auto shadow_n1 = make_node(interner, "nested_bat", "Battery");
+    auto shadow_n2 = make_node(interner, "nested_lamp", "Lamp");
     auto shadow_wire = make_wire(interner, arena, "nested_wire",
                                  "nested_bat", "v_out", "nested_lamp", "v_in");
     root_bp = root_bp.with_node(std::move(shadow_n1));
     root_bp = root_bp.with_node(std::move(shadow_n2));
     root_bp = root_bp.with_wire(std::move(shadow_wire));
 
-    // Rebuild scene from inline_bp (no group filtering, used for subwindow)
+    // Rebuild the scene directly from the embedded definition used by the subwindow.
     visual::Scene inline_scene;
     visual::mutations::rebuild(inline_scene, inline_bp, interner, arena, "");
     EXPECT_EQ(inline_scene.roots().size(), 3u);
 
-    // Rebuild scene from root_bp with owner_scope filter (old approach, for comparison)
+    // Rebuild the separate root blueprint to confirm it renders independently too.
     visual::Scene root_scene_filtered;
     visual::mutations::rebuild(root_scene_filtered, root_bp, interner, arena, "composite_1");
     EXPECT_EQ(root_scene_filtered.roots().size(), 3u);
@@ -119,39 +115,55 @@ TEST(EmbeddedSubwindowScene, InlineDefIndependentOfRootShadows) {
     EXPECT_NE(root_scene_filtered.find("nested_wire"), nullptr);
 }
 
-/// Verify that root-level nodes with empty owner_scope are still rendered
-/// when rebuilding root window.
+/// Verify that rebuilding the root window still renders root nodes alongside an
+/// embedded blueprint instance node.
 TEST(EmbeddedSubwindowScene, RootWindowStillShowsRootNodes) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
-    // Build a blueprint with both root and grouped nodes
+    // Build a root blueprint with a root node and a blueprint-instance node.
     bp2::Blueprint bp;
-    auto root_node = make_node(interner, "root_bat", "Battery", "");
-    auto group_node = make_node(interner, "composite_bat", "Battery", "composite_1");
+    auto root_node = make_node(interner, "root_bat", "Battery");
+
+    bp2::Blueprint inline_bp;
+    inline_bp = inline_bp.with_node(make_node(interner, "composite_bat", "Battery"));
+
+    bp2::Blueprint::Node group_node;
+    group_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    group_node.semantic.id = interner.intern("composite_1");
+    group_node.semantic.type = interner.intern("Composite");
+    group_node.view.name = "composite_1";
+    group_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("Composite"),
+        std::make_unique<bp2::Blueprint>(inline_bp));
+    set_iface(group_node, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
+    });
+
     auto wire = make_wire(interner, arena, "wire_root",
-                          "root_bat", "v_out", "composite_bat", "v_in");
+                          "root_bat", "v_out", "composite_1", "v_in");
 
     bp = bp.with_node(std::move(root_node));
     bp = bp.with_node(std::move(group_node));
     bp = bp.with_wire(std::move(wire));
 
-    // Rebuild root window (empty owner_scope)
+    // Root rebuild renders the root blueprint, not the embedded child blueprint.
     visual::Scene root_scene;
     visual::mutations::rebuild(root_scene, bp, interner, arena, "");
 
-    // Should only show root-level node
-    EXPECT_EQ(root_scene.roots().size(), 1u);
+    EXPECT_EQ(root_scene.roots().size(), 2u);
     EXPECT_NE(root_scene.find("root_bat"), nullptr);
+    EXPECT_NE(root_scene.find("composite_1"), nullptr);
     EXPECT_EQ(root_scene.find("composite_bat"), nullptr);
 
-    // Rebuild subwindow (owner_scope = "composite_1")
+    // Embedded subwindow rebuild uses the inline child blueprint directly.
     visual::Scene sub_scene;
-    visual::mutations::rebuild(sub_scene, bp, interner, arena, "composite_1");
+    visual::mutations::rebuild(sub_scene, inline_bp, interner, arena, "");
 
-    // Should only show grouped node
     EXPECT_EQ(sub_scene.roots().size(), 1u);
     EXPECT_EQ(sub_scene.find("root_bat"), nullptr);
+    EXPECT_EQ(sub_scene.find("composite_1"), nullptr);
     EXPECT_NE(sub_scene.find("composite_bat"), nullptr);
 }
 
@@ -164,23 +176,26 @@ TEST(EmbeddedSubwindowScene, CompositeHostPortsUseNestedAuthorityNotCollapsedCac
         make_port(interner, "inner_only", Domain::Electrical, bp2::Direction::Input, PortType::V),
     }));
 
-    bp2::Blueprint::Node collapsed;
-    collapsed.semantic.id = interner.intern("composite_1");
-    collapsed.semantic.type = interner.intern("CompositeType");
-    collapsed.view.name = "composite_1";
-    collapsed.view.expandable = true;
-    collapsed.structure.owner_scope = "";
-    set_iface(collapsed, {
+    // Create a blueprint-instance node with embedded source
+    bp2::Blueprint::Node composite;
+    composite.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    composite.semantic.id = interner.intern("composite_1");
+    composite.semantic.type = interner.intern("CompositeType");
+    composite.view.name = "composite_1";
+    // Set stale interface on the node (but effective_node_iface should use inline_bp)
+    set_iface(composite, {
         make_port(interner, "stale_only", Domain::Electrical, bp2::Direction::Input, PortType::V),
     });
-
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("composite_1"), interner.intern("CompositeType"),
-        std::make_unique<bp2::Blueprint>(inline_bp));
+    
+    // Attach the inline blueprint as source
+    auto inline_bp_copy = std::make_unique<bp2::Blueprint>(inline_bp);
+    composite.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("CompositeType"),
+        std::move(inline_bp_copy)
+    );
 
     bp2::Blueprint root;
-    root = root.with_node(std::move(collapsed));
-    root = root.with_nested(std::move(nested));
+    root = root.with_node(std::move(composite));
 
     visual::Scene root_scene;
     visual::mutations::rebuild(root_scene, root, interner, arena, "");
@@ -190,8 +205,8 @@ TEST(EmbeddedSubwindowScene, CompositeHostPortsUseNestedAuthorityNotCollapsedCac
     EXPECT_NE(composite_widget->portByName("inner_only"), nullptr);
     EXPECT_EQ(composite_widget->portByName("stale_only"), nullptr);
 
-    auto* collapsed_node = root.find_node(interner.intern("composite_1"));
-    ASSERT_NE(collapsed_node, nullptr);
-    EXPECT_TRUE(collapsed_node->semantic.iface.has(interner.intern("stale_only")));
-    EXPECT_FALSE(collapsed_node->semantic.iface.has(interner.intern("inner_only")));
+    auto* composite_node = root.find_node(interner.intern("composite_1"));
+    ASSERT_NE(composite_node, nullptr);
+    EXPECT_TRUE(composite_node->semantic.iface.has(interner.intern("stale_only")));
+    EXPECT_FALSE(composite_node->semantic.iface.has(interner.intern("inner_only")));
 }

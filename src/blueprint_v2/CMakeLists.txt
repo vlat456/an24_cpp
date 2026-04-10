@@ -6,6 +6,7 @@ add_library(blueprint_v2 STATIC
     blueprint/canonicalize.cpp
     library/blueprint_library.cpp
     library/library_path.cpp
+    library/library_index.cpp
     codec/blueprint_codec.cpp
     codec/blueprint_codec_common.cpp
     codec/blueprint_codec_encode.cpp
@@ -16,7 +17,6 @@ add_library(blueprint_v2 STATIC
     validation/path_resolver.cpp
     validation/wire_validator.cpp
     validation/invariant_checker.cpp
-    validation/owner_scope.cpp
     diagnostics/repair.cpp
     bake/bake_ops.cpp
 )

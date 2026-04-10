@@ -107,34 +107,34 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 ws.pendingExtract.allow_nonembedded_descendant_refs = false;
                 ws.pendingExtract.preview_allow_nonembedded_descendant_refs = false;
 
-                std::string suggested = "extracted_blueprint_1";
-                int idx = 1;
-                while (idx < 100000) {
-                    std::string candidate = "extracted_blueprint_" + std::to_string(idx);
-                    bool used = false;
-                    ui::InternedId cid = doc->interner().lookup(candidate);
-                    if (!cid.empty()) {
-                        for (const auto& nn : doc->blueprint().nested()) {
-                            if (nn.blueprint_id() == cid) {
-                                used = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!used) {
-                        for (const auto& node_it : doc->blueprint().nodes()) {
-                            if (node_it.view.name == candidate) {
-                                used = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!used) {
-                        suggested = std::move(candidate);
-                        break;
-                    }
-                    ++idx;
-                }
+                 std::string suggested = "extracted_blueprint_1";
+                 int idx = 1;
+                 while (idx < 100000) {
+                     std::string candidate = "extracted_blueprint_" + std::to_string(idx);
+                     bool used = false;
+                     ui::InternedId cid = doc->interner().lookup(candidate);
+                     if (!cid.empty()) {
+                         for (const auto& nn : doc->blueprint().nodes()) {
+                             if (nn.is_blueprint_instance() && nn.semantic.type == cid) {
+                                 used = true;
+                                 break;
+                             }
+                         }
+                     }
+                     if (!used) {
+                         for (const auto& node_it : doc->blueprint().nodes()) {
+                             if (node_it.view.name == candidate) {
+                                 used = true;
+                                 break;
+                             }
+                         }
+                     }
+                     if (!used) {
+                         suggested = std::move(candidate);
+                         break;
+                     }
+                     ++idx;
+                 }
                 std::memset(ws.pendingExtract.name_buf, 0, sizeof(ws.pendingExtract.name_buf));
                 std::strncpy(ws.pendingExtract.name_buf, suggested.c_str(), sizeof(ws.pendingExtract.name_buf) - 1);
 
@@ -147,14 +147,14 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             }
         }
         
-        if (node.view.expandable && ImGui::MenuItem("Open in editor")) {
-            const TypeRegistry* registry = doc->type_registry();
-            if (!registry) {
+        if (node.is_blueprint_instance() && ImGui::MenuItem("Open in editor")) {
+            const bp2::LibraryIndex* lib_idx = doc->library_index();
+            if (!lib_idx) {
                 return;
             }
             std::string node_id_str(doc->interner().resolve(node.semantic.id));
             const auto target = editor::resolve_subwindow_open_target(
-                doc->blueprint(), doc->interner(), *registry, node_id_str);
+                doc->blueprint(), doc->interner(), *lib_idx, node_id_str);
             if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
                 ws.openDocument(target.path);
             } else {
@@ -162,26 +162,26 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             }
         }
         
-        // Check for a nested (sub-blueprint) reference that can be baked in
-        const std::string sbi_id = !ws.nodeContextMenu.scope_id.empty()
-            ? ws.nodeContextMenu.scope_id : ws.nodeContextMenu.node_id.str();
-        ui::InternedId sbi_iid = doc->interner().lookup(sbi_id);
-        const bp2::Blueprint::Nested* nested = sbi_iid.empty()
-            ? nullptr : doc->blueprint().find_nested(sbi_iid);
-        if (nested && !nested->is_embedded()) {
-            if (ImGui::MenuItem("Bake In (Embed)")) {
-                ws.pendingBakeIn.show_confirmation = true;
-                ws.pendingBakeIn.sub_blueprint_id = sbi_id;
-                ws.pendingBakeIn.doc_id = !ws.nodeContextMenu.source_doc_id.empty()
-                    ? ws.nodeContextMenu.source_doc_id : (doc ? doc->id() : std::string{});
-            }
-            ImGui::Separator();
-            if (ImGui::MenuItem("Open in editor")) {
-                std::string bp_id_str(doc->interner().resolve(nested->blueprint_id()));
-                std::string lib_path = "library/" + bp_id_str + ".blueprint";
-                ws.openDocument(lib_path);
-            }
-        }
+         // Check for a blueprint instance (reference) that can be baked in
+         const std::string sbi_id = !ws.nodeContextMenu.scope_id.empty()
+             ? ws.nodeContextMenu.scope_id : ws.nodeContextMenu.node_id.str();
+         ui::InternedId sbi_iid = doc->interner().lookup(sbi_id);
+         const bp2::Blueprint::Node* sbi_node = sbi_iid.empty()
+             ? nullptr : doc->blueprint().find_node(sbi_iid);
+         if (sbi_node && sbi_node->is_blueprint_instance() && sbi_node->has_referenced_blueprint()) {
+             if (ImGui::MenuItem("Bake In (Embed)")) {
+                 ws.pendingBakeIn.show_confirmation = true;
+                 ws.pendingBakeIn.sub_blueprint_id = sbi_id;
+                 ws.pendingBakeIn.doc_id = !ws.nodeContextMenu.source_doc_id.empty()
+                     ? ws.nodeContextMenu.source_doc_id : (doc ? doc->id() : std::string{});
+             }
+             ImGui::Separator();
+             if (ImGui::MenuItem("Open in editor")) {
+                 std::string bp_id_str(doc->interner().resolve(sbi_node->source->blueprint_id()));
+                 std::string lib_path = "library/" + bp_id_str + ".blueprint";
+                 ws.openDocument(lib_path);
+             }
+         }
     }
     
     ImGui::EndPopup();

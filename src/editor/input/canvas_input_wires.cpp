@@ -72,15 +72,10 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
          std::string wire_id_str = host_.allocate_wire_id();
          ui::InternedId wire_iid = interner_.intern(wire_id_str);
 
-         bp2::Path node_path = arena_.make_node(arena_.root(), start_node_iid);
-         bp2::Path source    = arena_.make_port(node_path, start_port_iid);
-         bp2::Path tgt_node  = arena_.make_node(arena_.root(), end_node_iid);
-         bp2::Path target    = arena_.make_port(tgt_node, end_port_iid);
-
          bp2::Blueprint::Wire w;
          w.id     = wire_iid;
-         w.source = source;
-         w.target = target;
+         w.source = bp2::WireEndpoint{start_node_iid, start_port_iid};
+         w.target = bp2::WireEndpoint{end_node_iid, end_port_iid};
 
          bool added = host_.add_wire(std::move(w));
          if (added) {
@@ -160,14 +155,13 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                  new_port_iid = interner_.intern("v");
              }
 
-             bp2::Path new_node_path = arena_.make_node(arena_.root(), new_node_iid);
-             bp2::Path new_port_path = arena_.make_port(new_node_path, new_port_iid);
+             bp2::WireEndpoint new_ep{new_node_iid, new_port_iid};
 
              bool updated_ok = host_.update_wire(wire.id, [&](bp2::Blueprint::Wire& wr) {
                  if (reconnect_detach_start_) {
-                     wr.source = new_port_path;
+                     wr.source = new_ep;
                  } else {
-                     wr.target = new_port_path;
+                     wr.target = new_ep;
                  }
              });
 

@@ -87,6 +87,11 @@ bool path_to_node_port(const bp2::Path& path,
                        ui::InternedId& out_node,
                        ui::InternedId& out_port);
 
+bool path_to_node_port(const bp2::WireEndpoint& ep,
+                       const bp2::PathArena& arena,
+                       ui::InternedId& out_node,
+                       ui::InternedId& out_port);
+
 std::string dedupe_name(const std::string& base,
                         std::unordered_set<std::string>& used);
 
@@ -104,8 +109,6 @@ std::unordered_map<ui::InternedId, float> build_node_center_y_map(
     const std::vector<bp2::Blueprint::Node>& nodes);
 
 float fallback_lane_y(size_t index);
-
-bp2::Blueprint::Nested clone_nested(const bp2::Blueprint::Nested& n);
 
 ui::InternedId make_iface_bridge_id(ui::StringInterner& interner,
                                     ui::InternedId nested_instance_id,

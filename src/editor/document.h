@@ -6,6 +6,7 @@
 #include "input/canvas_input.h"
 #include "core/solvers/jit/simulator.h"
 #include "json_parser/json_parser.h"
+#include "blueprint_v2/library/library_index.h"
 #include "visual/render_context.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
@@ -94,6 +95,13 @@ public:
 
     /// Get the type registry (may be nullptr if not yet set).
     const TypeRegistry* type_registry() const { return type_registry_; }
+
+    /// Set the library index used for blueprint path resolution.
+    /// Must be called before openSubWindow() or addBlueprint(). Pointer must outlive the Document.
+    void setLibraryIndex(const bp2::LibraryIndex* idx) { library_index_ = idx; }
+
+    /// Get the library index (may be nullptr if not yet set).
+    const bp2::LibraryIndex* library_index() const { return library_index_; }
 
     void startSimulation();
     void stopSimulation();
@@ -201,6 +209,10 @@ private:
     std::pair<ui::InternedId, ui::InternedId>
     bp2_path_to_node_port(const bp2::Path& path) const;
 
+    /// Overload for WireEndpoint — trivially extracts node/port.
+    std::pair<ui::InternedId, ui::InternedId>
+    bp2_path_to_node_port(const bp2::WireEndpoint& ep) const;
+
     // ── Private data ──
 
     std::string id_;
@@ -217,6 +229,7 @@ private:
     std::unordered_map<std::string, float> signal_overrides_;
     std::unordered_set<std::string> held_buttons_;
     const TypeRegistry* type_registry_ = nullptr;
+    const bp2::LibraryIndex* library_index_ = nullptr;
 
     static int next_id_;
 };

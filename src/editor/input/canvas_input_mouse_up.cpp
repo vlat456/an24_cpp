@@ -43,9 +43,8 @@ void CanvasInput::commit_drag_node() {
 
      std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
      for (const bp2::Blueprint::Wire& w : host_.wires()) {
-         auto [src_node, _sp] = editor_math::path_to_node_port(w.source, arena_);
-         auto [tgt_node, _tp] = editor_math::path_to_node_port(w.target, arena_);
-         if (src_node.empty() || tgt_node.empty()) continue;
+         auto src_node = w.source.node;
+         auto tgt_node = w.target.node;
 
           const bp2::Blueprint::Node* src_n = host_.find_node(src_node);
           const bp2::Blueprint::Node* tgt_n = host_.find_node(tgt_node);
@@ -96,7 +95,7 @@ bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedI
 void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) {
      if (ref_node_id.empty()) return;
      const bp2::Blueprint::Node* ref_node = host_.find_node(ref_node_id);
-     if (!ref_node || ref_node->structure.owner_scope != scope_id_ || ref_node->view.render_hint != "ref") return;
+     if (!ref_node || ref_node->view.render_hint != "ref") return;
 
      ui::InternedId connected_node_id;
      for (const bp2::Blueprint::Wire& w : host_.wires()) {
@@ -227,7 +226,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
               result.inline_value_editor_screen_pos = screen_pos;
               return result;
           }
-          if (node && node->view.expandable) {
+          if (node && node->is_blueprint_instance()) {
               result.open_sub_window = node_id;
               return result;
           }
@@ -309,15 +308,11 @@ InputResult CanvasInput::on_key(Key key) {
 
          case Key::RightBracket: {
              viewport_.grid_step_up();
-             float new_step = viewport_.grid_step;
-             snapshot_and_execute(cmd_set_grid_step(new_step));
              break;
          }
 
          case Key::LeftBracket: {
              viewport_.grid_step_down();
-             float new_step = viewport_.grid_step;
-             snapshot_and_execute(cmd_set_grid_step(new_step));
              break;
          }
 
@@ -340,7 +335,7 @@ void CanvasInput::finish_marquee() {
 
           ui::InternedId node_iid = interner_.lookup(std::string_view(vroot->id()));
           const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : host_.find_node(node_iid);
-          if (!node || node->structure.owner_scope != scope_id_) continue;
+          if (!node) continue;
 
         Pt pos = vroot->worldPos();
         Pt sz = vroot->size();

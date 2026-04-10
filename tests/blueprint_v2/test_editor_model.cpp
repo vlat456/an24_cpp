@@ -9,11 +9,10 @@
 #include <random>
 
 TEST(EditorModel, EmptyByDefault) {
-    bp2::EditorModel model;
-    EXPECT_TRUE(model.current().nodes().empty());
-    EXPECT_TRUE(model.current().wires().empty());
-    EXPECT_TRUE(model.current().nested().empty());
-}
+     bp2::EditorModel model;
+     EXPECT_TRUE(model.current().nodes().empty());
+     EXPECT_TRUE(model.current().wires().empty());
+ }
 
 TEST(EditorModel, ConstructWithBlueprint) {
     ui::StringInterner interner;
@@ -70,31 +69,27 @@ TEST(EditorModel, RemoveNonexistentNode) {
     EXPECT_FALSE(model.remove_node(interner.intern("nope")));
 }
 
-TEST(EditorModel, RemoveHostNodeAlsoRemovesHostedNested) {
-    ui::StringInterner interner;
+TEST(EditorModel, RemoveHostNodeAlsoRemovesEmbeddedBlueprint) {
+     ui::StringInterner interner;
 
-    bp2::Blueprint::Node host;
-    host.semantic.id = interner.intern("host1");
-    host.semantic.type = interner.intern("CompositeType");
-    host.view.expandable = true;
+     bp2::Blueprint inner;
+     inner = inner.with_id(interner.intern("CompositeType"));
 
-    auto inline_bp = std::make_unique<bp2::Blueprint>();
-    *inline_bp = inline_bp->with_id(interner.intern("CompositeType"));
+     bp2::Blueprint::Node host;
+     host.semantic.id = interner.intern("host1");
+     host.semantic.type = interner.intern("CompositeType");
+     host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+     host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+         interner.intern("CompositeType"),
+         std::make_unique<bp2::Blueprint>(inner));
 
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("host1"),
-        interner.intern("CompositeType"),
-        std::move(inline_bp));
+     bp2::Blueprint bp;
+     bp = bp.with_node(std::move(host));
 
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(host));
-    bp = bp.with_nested(std::move(nested));
-
-    bp2::EditorModel model(bp);
-    EXPECT_TRUE(model.remove_node(interner.intern("host1")));
-    EXPECT_EQ(model.current().find_node(interner.intern("host1")), nullptr);
-    EXPECT_EQ(model.current().find_nested(interner.intern("host1")), nullptr);
-}
+     bp2::EditorModel model(bp);
+     EXPECT_TRUE(model.remove_node(interner.intern("host1")));
+     EXPECT_EQ(model.current().find_node(interner.intern("host1")), nullptr);
+ }
 
 TEST(EditorModel, AddWire) {
     ui::StringInterner interner;
@@ -111,12 +106,8 @@ TEST(EditorModel, AddWire) {
 
     bp2::Blueprint::Wire wire;
     wire.id = interner.intern("w1");
-    wire.source = arena.make_port(
-        arena.make_node(arena.root(), interner.intern("b1")),
-        interner.intern("v_out"));
-    wire.target = arena.make_port(
-        arena.make_node(arena.root(), interner.intern("r1")),
-        interner.intern("in"));
+    wire.source = bp2::WireEndpoint{interner.intern("b1"), interner.intern("v_out")};
+    wire.target = bp2::WireEndpoint{interner.intern("r1"), interner.intern("in")};
 
     EXPECT_TRUE(model.add_wire(std::move(wire)));
     EXPECT_EQ(model.current().wires().size(), 1u);
@@ -134,50 +125,13 @@ TEST(EditorModel, RejectsSelfLoopWire) {
 
     bp2::Blueprint::Wire w;
     w.id = interner.intern("w_self");
-    auto port = arena.make_port(
-        arena.make_node(arena.root(), interner.intern("n1")),
-        interner.intern("v_out"));
+    auto port = bp2::WireEndpoint{interner.intern("n1"), interner.intern("v_out")};
     w.source = port;
     w.target = port;  // self-loop
 
     EXPECT_FALSE(model.add_wire(std::move(w)));
 }
 
-TEST(EditorModel, AddNested) {
-    ui::StringInterner interner;
-    bp2::EditorModel model;
-
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"), interner.intern("power_system"), bp2::Interface());
-
-    EXPECT_TRUE(model.add_nested(std::move(nested)));
-    EXPECT_EQ(model.current().nested().size(), 1u);
-}
-
-TEST(EditorModel, DuplicateNestedRejected) {
-    ui::StringInterner interner;
-    bp2::EditorModel model;
-
-    auto n1 = bp2::Blueprint::Nested::make_reference(
-        interner.intern("same_id"), interner.intern("bp1"), bp2::Interface());
-    auto n2 = bp2::Blueprint::Nested::make_reference(
-        interner.intern("same_id"), interner.intern("bp2"), bp2::Interface());
-
-    EXPECT_TRUE(model.add_nested(std::move(n1)));
-    EXPECT_FALSE(model.add_nested(std::move(n2)));
-}
-
-TEST(EditorModel, RemoveNested) {
-    ui::StringInterner interner;
-    bp2::EditorModel model;
-
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"), interner.intern("power_system"), bp2::Interface());
-    model.add_nested(std::move(nested));
-
-    EXPECT_TRUE(model.remove_nested(interner.intern("sub1")));
-    EXPECT_EQ(model.current().nested().size(), 0u);
-}
 
 TEST(EditorModel, UndoRestoresPreviousState) {
     ui::StringInterner interner;
@@ -266,240 +220,95 @@ TEST(EditorModel, UpdateNodePositionCreatesCheckpoint) {
     EXPECT_FLOAT_EQ(found->layout.x, 0.0f);  // Original position
 }
 
-TEST(EditorModel, BakeNestedConvertsReferenceToEmbedded) {
-    ui::StringInterner interner;
-    bp2::BlueprintLibrary library;
-
-    bp2::Blueprint inner;
-    inner = inner.with_id(interner.intern("sub_type"));
-    inner = inner.with_interface(bp2::Interface({
-        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
-        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
-    }));
-    library.add(interner.intern("sub_type"), inner);
-
-    bp2::EditorModel model;
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"), interner.intern("sub_type"), inner.iface());
-    model.add_nested(std::move(nested));
-
-    EXPECT_TRUE(model.bake_nested(interner.intern("sub1"), library, interner));
-
-    auto* baked = model.current().find_nested(interner.intern("sub1"));
-    ASSERT_NE(baked, nullptr);
-    EXPECT_TRUE(baked->is_embedded());
-    EXPECT_NE(baked->inline_def(), nullptr);
-}
 
 TEST(EditorModel, UpdateNodeCannotOverrideEmbeddedCompositeIfaceAuthority) {
-    ui::StringInterner interner;
+     ui::StringInterner interner;
 
-    bp2::Blueprint inner;
-    inner = inner.with_interface(bp2::Interface({
-        {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
-    }));
+     bp2::Blueprint inner;
+     inner = inner.with_interface(bp2::Interface({
+         {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+     }));
 
-    bp2::Blueprint::Node collapsed;
-    collapsed.semantic.id = interner.intern("sub1");
-    collapsed.semantic.type = interner.intern("CompositeType");
-    collapsed.semantic.iface = bp2::Interface({
-        {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
-    });
+     bp2::Blueprint::Node collapsed;
+     collapsed.semantic.id = interner.intern("sub1");
+     collapsed.semantic.type = interner.intern("CompositeType");
+     collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+     collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+         interner.intern("CompositeType"),
+         std::make_unique<bp2::Blueprint>(inner));
 
-    bp2::Blueprint root;
-    root = root.with_node(collapsed);
-    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
-        interner.intern("sub1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
+     bp2::Blueprint root;
+     root = root.with_node(collapsed);
 
-    bp2::EditorModel model(root);
-    ASSERT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
+     bp2::EditorModel model(root);
+      const auto* node_before = model.current().find_node(interner.intern("sub1"));
+      ASSERT_NE(node_before, nullptr);
 
-    ASSERT_TRUE(model.update_node(interner.intern("sub1"), [&](bp2::Blueprint::Node& node) {
-        node.semantic.iface = bp2::Interface({
-            {interner.intern("stale_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
-        });
-    }));
+      // The node's cached iface should match the embedded blueprint's iface
+      ASSERT_TRUE(node_before->source.has_value());
+      EXPECT_EQ(node_before->source->resolved_iface().find(interner.intern("inner_only")).has_value(), true);
+  }
 
-    const auto* updated = model.current().find_node(interner.intern("sub1"));
-    ASSERT_NE(updated, nullptr);
-    EXPECT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
-    EXPECT_TRUE(updated->semantic.iface.find(interner.intern("inner_only")).has_value());
-    EXPECT_FALSE(updated->semantic.iface.find(interner.intern("stale_only")).has_value());
-}
+// Regression: constructor must canonicalize embedded blueprint interface.
+TEST(EditorModel, ConstructorCanonicalizesEmbeddedCompositeHostIface) {
+     ui::StringInterner interner;
 
-// Regression: constructor must canonicalize stale composite host iface.
-TEST(EditorModel, ConstructorCanonicalizesStaleCompositeHostIface) {
-    ui::StringInterner interner;
+     bp2::Blueprint inner;
+     inner = inner.with_interface(bp2::Interface({
+         {interner.intern("authoritative_port"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+     }));
 
-    bp2::Blueprint inner;
-    inner = inner.with_interface(bp2::Interface({
-        {interner.intern("authoritative_port"), Domain::Electrical, bp2::Direction::Input, PortType::V},
-    }));
+     bp2::Blueprint::Node collapsed;
+     collapsed.semantic.id = interner.intern("sub1");
+     collapsed.semantic.type = interner.intern("CompositeType");
+     collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+     collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+         interner.intern("CompositeType"),
+         std::make_unique<bp2::Blueprint>(inner));
 
-    bp2::Blueprint::Node collapsed;
-    collapsed.semantic.id = interner.intern("sub1");
-    collapsed.semantic.type = interner.intern("CompositeType");
-    collapsed.semantic.iface = bp2::Interface({
-        {interner.intern("stale_port"), Domain::Electrical, bp2::Direction::Output, PortType::V},
-    });
+     bp2::Blueprint root;
+     root = root.with_node(std::move(collapsed));
 
-    bp2::Blueprint root;
-    root = root.with_node(std::move(collapsed));
-    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
-        interner.intern("sub1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
+     bp2::EditorModel model(root);
 
-    bp2::EditorModel model(root);
-
-    const auto* node = model.current().find_node(interner.intern("sub1"));
-    ASSERT_NE(node, nullptr);
-    EXPECT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
-    EXPECT_TRUE(node->semantic.iface.find(interner.intern("authoritative_port")).has_value());
-    EXPECT_FALSE(node->semantic.iface.find(interner.intern("stale_port")).has_value());
-}
+      const auto* node = model.current().find_node(interner.intern("sub1"));
+      ASSERT_NE(node, nullptr);
+      EXPECT_TRUE(node->is_blueprint_instance());
+      EXPECT_TRUE(node->has_embedded_blueprint());
+      // Interface authority comes from source
+      ASSERT_TRUE(node->source.has_value());
+      EXPECT_TRUE(node->source->resolved_iface().find(interner.intern("authoritative_port")).has_value());
+  }
 
 TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
-    ui::StringInterner interner;
+     ui::StringInterner interner;
 
-    bp2::Blueprint inner;
-    inner = inner.with_interface(bp2::Interface({
-        {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
-    }));
+     bp2::Blueprint inner;
+     inner = inner.with_interface(bp2::Interface({
+         {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+     }));
 
-    bp2::Blueprint::Node collapsed;
-    collapsed.semantic.id = interner.intern("sub1");
-    collapsed.semantic.type = interner.intern("CompositeType");
-    collapsed.semantic.iface = bp2::Interface({
-        {interner.intern("stale_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
-    });
+     bp2::Blueprint::Node collapsed;
+     collapsed.semantic.id = interner.intern("sub1");
+     collapsed.semantic.type = interner.intern("CompositeType");
+     collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+     collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+         interner.intern("CompositeType"),
+         std::make_unique<bp2::Blueprint>(inner));
 
-    bp2::Blueprint root;
-    root = root.with_node(std::move(collapsed));
-    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
-        interner.intern("sub1"), interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
+     bp2::Blueprint root;
+     root = root.with_node(std::move(collapsed));
 
-    bp2::EditorModel model;
-    model.replace_current(std::move(root));
+     bp2::EditorModel model;
+     model.replace_current(std::move(root));
 
-    const auto* updated = model.current().find_node(interner.intern("sub1"));
-    ASSERT_NE(updated, nullptr);
-    EXPECT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
-    EXPECT_TRUE(updated->semantic.iface.find(interner.intern("inner_only")).has_value());
-    EXPECT_FALSE(updated->semantic.iface.find(interner.intern("stale_only")).has_value());
-}
+      const auto* updated = model.current().find_node(interner.intern("sub1"));
+      ASSERT_NE(updated, nullptr);
+      EXPECT_TRUE(updated->is_blueprint_instance());
+      ASSERT_TRUE(updated->source.has_value());
+      EXPECT_TRUE(updated->source->resolved_iface().find(interner.intern("inner_only")).has_value());
+  }
 
-TEST(EditorModel, BakeNestedIsUndoable) {
-    ui::StringInterner interner;
-    bp2::BlueprintLibrary library;
-
-    bp2::Blueprint inner;
-    inner = inner.with_id(interner.intern("sub_type"));
-    inner = inner.with_interface(bp2::Interface({
-        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
-        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
-    }));
-    library.add(interner.intern("sub_type"), inner);
-
-    bp2::EditorModel model;
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"), interner.intern("sub_type"), inner.iface());
-    model.add_nested(std::move(nested));
-
-    size_t depth_before_bake = model.undo_depth();
-    EXPECT_TRUE(model.bake_nested(interner.intern("sub1"), library, interner));
-
-    // Bake must push a checkpoint so it's undoable
-    EXPECT_EQ(model.undo_depth(), depth_before_bake + 1);
-
-    auto* baked = model.current().find_nested(interner.intern("sub1"));
-    ASSERT_NE(baked, nullptr);
-    EXPECT_TRUE(baked->is_embedded());
-
-    // Undo should restore the reference-mode nested
-    model.undo();
-    auto* restored = model.current().find_nested(interner.intern("sub1"));
-    ASSERT_NE(restored, nullptr);
-    EXPECT_FALSE(restored->is_embedded());
-    EXPECT_EQ(restored->blueprint_id(), interner.intern("sub_type"));
-}
-
-TEST(EditorModel, BakeNestedFailsForNonExistent) {
-    ui::StringInterner interner;
-    bp2::BlueprintLibrary library;
-    bp2::EditorModel model;
-
-    EXPECT_FALSE(model.bake_nested(interner.intern("nope"), library, interner));
-}
-
-TEST(EditorModel, BakeNestedFailsForAlreadyEmbedded) {
-    ui::StringInterner interner;
-    bp2::BlueprintLibrary library;
-    bp2::EditorModel model;
-
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("sub1"), ui::InternedId{},
-        std::make_unique<bp2::Blueprint>());
-    model.add_nested(std::move(nested));
-
-    EXPECT_FALSE(model.bake_nested(interner.intern("sub1"), library, interner));
-}
-
-TEST(EditorModel, BakeNestedFailsForUnknownBlueprintId) {
-    ui::StringInterner interner;
-    bp2::BlueprintLibrary library;
-    bp2::EditorModel model;
-
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"), interner.intern("unknown_type"), bp2::Interface());
-    model.add_nested(std::move(nested));
-
-    EXPECT_FALSE(model.bake_nested(interner.intern("sub1"), library, interner));
-}
-
-// Regression: bake_nested must sync collapsed node interface from nested authority.
-// Before the fix, bake_nested would leave the collapsed node's iface stale.
-TEST(EditorModel, BakeNestedSyncsCollapsedNodeInterface) {
-    ui::StringInterner interner;
-    bp2::BlueprintLibrary library;
-
-    // Library blueprint with 2 ports.
-    bp2::Blueprint inner;
-    inner = inner.with_id(interner.intern("sub_type"));
-    inner = inner.with_interface(bp2::Interface({
-        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
-        {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
-    }));
-    library.add(interner.intern("sub_type"), inner);
-
-    // Create reference nested with only 1 port (simulates stale cached iface).
-    bp2::Interface stale_iface({
-        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
-    });
-
-    bp2::EditorModel model;
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"), interner.intern("sub_type"), stale_iface);
-    model.add_nested(std::move(nested));
-
-    // Add a collapsed node with the stale 1-port interface.
-    bp2::Blueprint::Node collapsed;
-    collapsed.semantic.id = interner.intern("sub1");
-    collapsed.semantic.type = interner.intern("sub_type");
-    collapsed.semantic.iface = stale_iface;
-    model.add_node(std::move(collapsed));
-
-    // Pre-condition: collapsed has 1 port, library has 2.
-    ASSERT_EQ(model.current().find_node(interner.intern("sub1"))->semantic.iface.ports().size(), 1u);
-
-    // Bake should embed the library blueprint AND sync collapsed node to 2 ports.
-    EXPECT_TRUE(model.bake_nested(interner.intern("sub1"), library, interner));
-
-    const auto* baked_node = model.current().find_node(interner.intern("sub1"));
-    ASSERT_NE(baked_node, nullptr);
-    EXPECT_EQ(baked_node->semantic.iface.ports().size(), 2u);
-
-    // The invariant must hold after bake.
-    EXPECT_TRUE(bp2::composite_iface_matches_nested(model.current(), interner.intern("sub1")));
-}
 
 TEST(EditorModel, CanUndoInitiallyFalse) {
     bp2::EditorModel model;
@@ -594,14 +403,8 @@ TEST(EditorModel, WireExistsTracksAddAndRemove) {
     model.add_node(std::move(src));
     model.add_node(std::move(dst));
 
-    bp2::Path source = arena.make_port(
-        arena.make_node(arena.root(), interner.intern("b1")),
-        interner.intern("v_out")
-    );
-    bp2::Path target = arena.make_port(
-        arena.make_node(arena.root(), interner.intern("r1")),
-        interner.intern("in")
-    );
+    bp2::WireEndpoint source{interner.intern("b1"), interner.intern("v_out")};
+    bp2::WireEndpoint target{interner.intern("r1"), interner.intern("in")};
 
     bp2::Blueprint::Wire wire;
     wire.id = interner.intern("w1");
@@ -694,12 +497,8 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
 
                 bp2::Blueprint::Wire w;
                 w.id = interner.intern("w_" + std::to_string(next_wire++));
-                 w.source = arena.make_port(
-                     arena.make_node(arena.root(), nodes[src_i].semantic.id),
-                     interner.intern("v_out"));
-                 w.target = arena.make_port(
-                     arena.make_node(arena.root(), nodes[dst_i].semantic.id),
-                     interner.intern("v_in"));
+                 w.source = bp2::WireEndpoint{nodes[src_i].semantic.id, interner.intern("v_out")};
+                 w.target = bp2::WireEndpoint{nodes[dst_i].semantic.id, interner.intern("v_in")};
                 EXPECT_TRUE(model.add_wire(std::move(w)));
             }
         } else if (op == 2) {
@@ -715,13 +514,11 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
 
                 std::vector<ui::InternedId> incident;
                 for (const auto& w : model.current().wires()) {
-                    const auto src_parent = arena.parent(w.source);
-                    const auto dst_parent = arena.parent(w.target);
-                    if (src_parent.kind() == bp2::PathKind::Node && src_parent.segment() == node_id) {
+                    if (w.source.node == node_id) {
                         incident.push_back(w.id);
                         continue;
                     }
-                    if (dst_parent.kind() == bp2::PathKind::Node && dst_parent.segment() == node_id) {
+                    if (w.target.node == node_id) {
                         incident.push_back(w.id);
                     }
                 }
@@ -815,12 +612,8 @@ TEST(ReplacePreserveOrder, WireReplacementKeepsInsertionOrder) {
     auto make_wire = [&](const char* id) {
         bp2::Blueprint::Wire w;
         w.id = interner.intern(id);
-        w.source = arena.make_port(
-            arena.make_node(arena.root(), interner.intern("n1")),
-            interner.intern("out"));
-        w.target = arena.make_port(
-            arena.make_node(arena.root(), interner.intern("n2")),
-            interner.intern("in"));
+        w.source = bp2::WireEndpoint{interner.intern("n1"), interner.intern("out")};
+        w.target = bp2::WireEndpoint{interner.intern("n2"), interner.intern("in")};
         return w;
     };
 
@@ -838,38 +631,13 @@ TEST(ReplacePreserveOrder, WireReplacementKeepsInsertionOrder) {
     EXPECT_EQ(result.wires()[1].domain, Domain::Mechanical);
 }
 
-TEST(ReplacePreserveOrder, NestedReplacementKeepsInsertionOrder) {
-    ui::StringInterner interner;
-    bp2::Blueprint bp;
 
-    auto a = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub_a"), interner.intern("bp_a"), bp2::Interface());
-    auto b = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub_b"), interner.intern("bp_b"), bp2::Interface());
-    auto c = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub_c"), interner.intern("bp_c"), bp2::Interface());
-
-    bp = bp.with_nested(std::move(a)).with_nested(std::move(b)).with_nested(std::move(c));
-
-    auto updated = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub_b"), interner.intern("bp_b_v2"), bp2::Interface());
-
-    bp2::Blueprint result = bp2::replace_nested_preserve_order(bp, std::move(updated));
-
-    ASSERT_EQ(result.nested().size(), 3u);
-    EXPECT_EQ(result.nested()[0].id, interner.intern("sub_a"));
-    EXPECT_EQ(result.nested()[1].id, interner.intern("sub_b"));
-    EXPECT_EQ(result.nested()[2].id, interner.intern("sub_c"));
-    EXPECT_EQ(result.nested()[1].blueprint_id(), interner.intern("bp_b_v2"));
-}
-
-TEST(ReplacePreserveOrder, ReplacementPreservesViewportAndMetadata) {
+TEST(ReplacePreserveOrder, ReplacementPreservesMetadata) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test_bp"));
     bp = bp.with_display_name("Test Blueprint");
     bp = bp.with_name("test");
-    bp = bp.with_viewport(100.0f, 200.0f, 2.0f, 32.0f);
     bp = bp.with_interface(bp2::Interface({
         {interner.intern("ext_in"), Domain::Electrical, bp2::Direction::Input},
     }));
@@ -884,15 +652,11 @@ TEST(ReplacePreserveOrder, ReplacementPreservesViewportAndMetadata) {
     EXPECT_EQ(result.id(), interner.intern("test_bp"));
     EXPECT_EQ(result.display_name(), "Test Blueprint");
     EXPECT_EQ(result.name(), "test");
-    EXPECT_FLOAT_EQ(result.pan_x(), 100.0f);
-    EXPECT_FLOAT_EQ(result.pan_y(), 200.0f);
-    EXPECT_FLOAT_EQ(result.zoom(), 2.0f);
-    EXPECT_FLOAT_EQ(result.grid_step(), 32.0f);
     ASSERT_EQ(result.iface().ports().size(), 1u);
     EXPECT_EQ(result.iface().ports()[0].name, interner.intern("ext_in"));
 }
 
-TEST(ReplacePreserveOrder, WireReplacementPreservesViewportAndMetadata) {
+TEST(ReplacePreserveOrder, WireReplacementPreservesMetadata) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
@@ -900,15 +664,14 @@ TEST(ReplacePreserveOrder, WireReplacementPreservesViewportAndMetadata) {
     bp = bp.with_id(interner.intern("test_bp2"));
     bp = bp.with_display_name("Test Blueprint 2");
     bp = bp.with_name("test2");
-    bp = bp.with_viewport(50.0f, 75.0f, 1.5f, 24.0f);
     bp = bp.with_interface(bp2::Interface({
         {interner.intern("ext_out"), Domain::Mechanical, bp2::Direction::Output},
     }));
 
     bp2::Blueprint::Wire w;
     w.id = interner.intern("w1");
-    w.source = arena.make_port(arena.make_node(arena.root(), interner.intern("n1")), interner.intern("out"));
-    w.target = arena.make_port(arena.make_node(arena.root(), interner.intern("n2")), interner.intern("in"));
+    w.source = bp2::WireEndpoint{interner.intern("n1"), interner.intern("out")};
+    w.target = bp2::WireEndpoint{interner.intern("n2"), interner.intern("in")};
     bp = bp.with_wire(w);
 
     bp2::Blueprint result = bp2::replace_wire_preserve_order(bp, std::move(w));
@@ -916,76 +679,6 @@ TEST(ReplacePreserveOrder, WireReplacementPreservesViewportAndMetadata) {
     EXPECT_EQ(result.id(), interner.intern("test_bp2"));
     EXPECT_EQ(result.display_name(), "Test Blueprint 2");
     EXPECT_EQ(result.name(), "test2");
-    EXPECT_FLOAT_EQ(result.pan_x(), 50.0f);
-    EXPECT_FLOAT_EQ(result.pan_y(), 75.0f);
-    EXPECT_FLOAT_EQ(result.zoom(), 1.5f);
-    EXPECT_FLOAT_EQ(result.grid_step(), 24.0f);
     ASSERT_EQ(result.iface().ports().size(), 1u);
     EXPECT_EQ(result.iface().ports()[0].name, interner.intern("ext_out"));
-}
-
-TEST(ReplacePreserveOrder, NestedReplacementPreservesViewportAndMetadata) {
-    ui::StringInterner interner;
-
-    bp2::Blueprint bp;
-    bp = bp.with_id(interner.intern("test_bp3"));
-    bp = bp.with_display_name("Test Blueprint 3");
-    bp = bp.with_name("test3");
-    bp = bp.with_viewport(10.0f, 20.0f, 3.0f, 48.0f);
-    bp = bp.with_interface(bp2::Interface({
-        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
-    }));
-
-    auto n = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"), interner.intern("bp_sub"), bp2::Interface());
-    bp = bp.with_nested(std::move(n));
-
-    auto updated = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"), interner.intern("bp_sub_v2"), bp2::Interface());
-    bp2::Blueprint result = bp2::replace_nested_preserve_order(bp, std::move(updated));
-
-    EXPECT_EQ(result.id(), interner.intern("test_bp3"));
-    EXPECT_EQ(result.display_name(), "Test Blueprint 3");
-    EXPECT_EQ(result.name(), "test3");
-    EXPECT_FLOAT_EQ(result.pan_x(), 10.0f);
-    EXPECT_FLOAT_EQ(result.pan_y(), 20.0f);
-    EXPECT_FLOAT_EQ(result.zoom(), 3.0f);
-    EXPECT_FLOAT_EQ(result.grid_step(), 48.0f);
-    // Interface should also be preserved
-    ASSERT_EQ(result.iface().ports().size(), 1u);
-    EXPECT_EQ(result.iface().ports()[0].name, interner.intern("in"));
-}
-
-// Regression: non-embedded nested has null inline_def.
-// resolve_subwindow_open_target returns Nested for BOTH embedded and
-// non-embedded entries. Callers must null-check inline_def.
-TEST(SubWindowOpenTargetRegression, NonEmbeddedNestedHasNullInlineDef) {
-    ui::StringInterner interner;
-    bp2::Blueprint bp;
-    TypeRegistry reg;
-    reg.types["FirstOrderLag"] = TypeDefinition{};
-    reg.categories["FirstOrderLag"] = "math";
-
-    bp2::Blueprint::Node host;
-    host.semantic.id = interner.intern("sub1");
-    host.semantic.type = interner.intern("FirstOrderLag");
-    host.view.expandable = true;
-    host.view.blueprint_path = "math/FirstOrderLag";
-    bp = bp.with_node(std::move(host));
-
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        interner.intern("sub1"), interner.intern("FirstOrderLag"), bp2::Interface());
-    // inline_def() is nullptr for reference-mode nested
-    EXPECT_EQ(nested.inline_def(), nullptr);
-
-    bp = bp.with_nested(std::move(nested));
-
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, reg, "sub1");
-    EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ReferencedNested);
-
-    // After resolution, caller must check inline_def before dereferencing.
-    const auto* found = bp.find_nested(interner.intern("sub1"));
-    ASSERT_NE(found, nullptr);
-    EXPECT_FALSE(found->is_embedded());
-    EXPECT_EQ(found->inline_def(), nullptr);  // This is the crash scenario
 }

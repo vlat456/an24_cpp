@@ -1741,3 +1741,17 @@ target_link_libraries(editor_identity_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(editor_identity_tests)
+
+# LibraryIndex tests (Issue #85: dedicated library index)
+add_executable(bp2_library_index_tests
+    blueprint_v2/test_library_index.cpp
+)
+target_include_directories(bp2_library_index_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(bp2_library_index_tests PRIVATE
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_library_index_tests)

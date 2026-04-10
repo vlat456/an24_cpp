@@ -1,21 +1,12 @@
 #include "document.h"
 
+#include "blueprint_view_hydration.h"
+#include "json_parser/json_parser.h"
 #include "visual/persist.h"
 #include "subwindow_open_target.h"
 #include "visual/scene_mutations.h"
 
-#include <cmath>
 #include <spdlog/spdlog.h>
-
-namespace {
-
-bool has_default_pan_zoom(const bp2::Blueprint& bp) {
-    return std::abs(bp.pan_x()) < 1e-6f
-        && std::abs(bp.pan_y()) < 1e-6f
-        && std::abs(bp.zoom() - 1.0f) < 1e-6f;
-}
-
-} // namespace
 
 void Document::openExternalRefWindow(const std::string& instance_id,
                                       const std::string& blueprint_file_path) {
@@ -62,11 +53,13 @@ void Document::openExternalRefWindow(const std::string& instance_id,
         return;
     }
 
+    bp = editor::hydrate_runtime_node_view_data(std::move(*bp), *ext_interner, *type_registry_);
+
     win->external_blueprint = std::move(*bp);
     win->external_interner = std::move(ext_interner);
     win->external_arena = std::move(ext_arena);
     win->set_read_only(true);
-    win->pending_auto_fit = has_default_pan_zoom(*win->external_blueprint);
+    win->pending_auto_fit = true;
 
     visual::mutations::rebuild(win->scene, *win->external_blueprint,
                                *win->external_interner, *win->external_arena, "");
@@ -76,19 +69,19 @@ void Document::openExternalRefWindow(const std::string& instance_id,
 }
 
 void Document::openSubWindow(const std::string& sub_blueprint_id) {
-    if (!type_registry_) {
-        spdlog::error("[editor] Cannot open sub-window '{}': TypeRegistry is not configured",
+    if (!library_index_) {
+        spdlog::error("[editor] Cannot open sub-window '{}': LibraryIndex is not configured",
                       sub_blueprint_id);
         return;
     }
 
     const auto target = editor::resolve_subwindow_open_target(
-        model_.current(), interner_, *type_registry_, sub_blueprint_id);
+        model_.current(), interner_, *library_index_, sub_blueprint_id);
     auto lookup_id = interner_.lookup(sub_blueprint_id);
-    const bp2::Blueprint::Nested* nested = lookup_id.empty() ? nullptr : model_.current().find_nested(lookup_id);
+    const bp2::Blueprint::Node* node = lookup_id.empty() ? nullptr : model_.current().find_node(lookup_id);
 
-    if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && nested) {
-        std::string type_name = std::string(interner_.resolve(nested->blueprint_id()));
+    if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && node && node->is_blueprint_instance()) {
+        std::string type_name = std::string(interner_.resolve(node->semantic.type));
         auto [win, created] = window_manager_.open(WindowScopeId::embedded(sub_blueprint_id),
                                                    type_name + " [" + sub_blueprint_id + "]");
         if (!win) {
@@ -100,21 +93,9 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
             return;
         }
 
-        win->set_read_only(!nested->is_embedded());
+        win->set_read_only(!node->has_embedded_blueprint());
 
-        if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && nested->inline_def()) {
-            if (has_default_pan_zoom(*nested->inline_def())) {
-                win->pending_auto_fit = true;
-            } else {
-                win->viewport.pan.x = nested->inline_def()->pan_x();
-                win->viewport.pan.y = nested->inline_def()->pan_y();
-                win->viewport.zoom = nested->inline_def()->zoom();
-                win->viewport.grid_step = nested->inline_def()->grid_step();
-                win->viewport.clamp_zoom();
-            }
-        } else {
-            win->pending_auto_fit = true;
-        }
+        win->pending_auto_fit = true;
 
         spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);
         return;
@@ -135,5 +116,5 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
         return;
     }
 
-    spdlog::error("[editor] Cannot open sub-window: nested '{}' not found", sub_blueprint_id);
+    spdlog::error("[editor] Cannot open sub-window: blueprint instance '{}' not found", sub_blueprint_id);
 }

@@ -110,18 +110,14 @@ void create_external_reconnection_wires(
         w.id = next_unique_id(interner, used_wire_ids, "extract_wire_");
         used_wire_ids.insert(w.id);
         w.domain = ec.domain;
-        const auto nested_path = arena.make_port(
-            arena.make_node(arena.root(), nested_instance_id),
-            interner.intern(ec.iface_name));
-        const auto external_path = arena.make_port(
-            arena.make_node(arena.root(), ec.external_node_id),
-            ec.external_port);
+        const bp2::WireEndpoint nested_ep{nested_instance_id, interner.intern(ec.iface_name)};
+        const bp2::WireEndpoint external_ep{ec.external_node_id, ec.external_port};
         if (is_input) {
-            w.source = external_path;
-            w.target = nested_path;
+            w.source = external_ep;
+            w.target = nested_ep;
         } else {
-            w.source = nested_path;
-            w.target = external_path;
+            w.source = nested_ep;
+            w.target = external_ep;
         }
         out = out.with_wire(std::move(w));
     }
@@ -135,90 +131,54 @@ bool append_selected_embedded_nested_for_inline(
     const std::unordered_set<ui::InternedId>& selected_set,
     bool allow_nonembedded_descendant_refs,
     std::string* error_out) {
-    std::unordered_map<ui::InternedId, const bp2::Blueprint::Nested*> embedded_by_blueprint_id;
-    for (const auto& n : source.nested()) {
-        if (!n.is_embedded() || !n.inline_def()) {
+    for (const auto& source_node : source.nodes()) {
+        if (selected_set.find(source_node.semantic.id) == selected_set.end()) {
             continue;
         }
-        auto it = embedded_by_blueprint_id.find(n.blueprint_id());
-        if (it == embedded_by_blueprint_id.end() || n.id.raw() < it->second->id.raw()) {
-            embedded_by_blueprint_id[n.blueprint_id()] = &n;
-        }
-    }
-
-    std::function<bool(bp2::Blueprint::Nested&)> remap_descendants;
-    remap_descendants = [&](bp2::Blueprint::Nested& owner) -> bool {
-        if (!owner.inline_def()) {
-            return true;
+        if (!source_node.has_embedded_blueprint() || !source_node.source || !source_node.source->inline_def()) {
+            continue;
         }
 
-        std::vector<bp2::Blueprint::Nested> remapped;
-        remapped.reserve(owner.inline_def()->nested().size());
-        for (const auto& child_src : owner.inline_def()->nested()) {
-            bp2::Blueprint::Nested child = child_src;
-            if (!child.is_embedded()) {
-                auto it = embedded_by_blueprint_id.find(child.blueprint_id());
-                if (it != embedded_by_blueprint_id.end()) {
-                    const bp2::Blueprint::Nested* resolved = it->second;
-                    // Convert reference to embedded by creating new Embedded content
-                    child.convert_to_embedded(
-                        child.blueprint_id(),
-                        resolved->inline_def()
-                            ? std::make_unique<bp2::Blueprint>(*resolved->inline_def())
-                            : std::make_unique<bp2::Blueprint>()
-                    );
-                } else if (!allow_nonembedded_descendant_refs) {
-                    return set_error(error_out, "selected embedded nested contains non-embedded descendant references");
+        bp2::Blueprint::Node updated = source_node;
+        bp2::Blueprint child_bp = *source_node.source->inline_def();
+
+        for (const auto& child_node : child_bp.nodes()) {
+            if (!child_node.has_referenced_blueprint() || !child_node.source) {
+                continue;
+            }
+            if (!allow_nonembedded_descendant_refs) {
+                return set_error(error_out, "selected embedded blueprint contains non-embedded descendant references");
+            }
+
+            const bp2::Blueprint* provider = nullptr;
+            for (const auto& provider_node : source.nodes()) {
+                if (!provider_node.has_embedded_blueprint() || !provider_node.source || !provider_node.source->inline_def()) {
+                    continue;
+                }
+                if (provider_node.source->blueprint_id() != child_node.source->blueprint_id()) {
+                    continue;
+                }
+                if (!provider || provider_node.semantic.id.raw() < provider->id().raw()) {
+                    provider = provider_node.source->inline_def();
                 }
             }
 
-            if (!remap_descendants(child)) {
-                return false;
+            if (!provider) {
+                continue;
             }
-            remapped.push_back(std::move(child));
+
+            bp2::Blueprint::Node remapped = child_node;
+            remapped.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+                child_node.source->blueprint_id(),
+                std::make_unique<bp2::Blueprint>(*provider));
+            remapped.semantic.iface = remapped.source->resolved_iface();
+            child_bp = bp2::replace_node_preserve_order(child_bp, std::move(remapped));
         }
 
-        bp2::Blueprint rebuilt = *owner.inline_def();
-        for (const auto& existing : owner.inline_def()->nested()) {
-            rebuilt = rebuilt.without_nested(existing.id);
-        }
-        for (auto& child : remapped) {
-            rebuilt = rebuilt.with_nested(std::move(child));
-        }
-        owner.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(rebuilt)));
-        return true;
-    };
-
-    std::vector<const bp2::Blueprint::Nested*> selected_nested;
-    selected_nested.reserve(source.nested().size());
-    for (const auto& n : source.nested()) {
-        if (selected_set.find(n.id) == selected_set.end()) {
-            continue;
-        }
-        selected_nested.push_back(&n);
+        updated.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(child_bp)));
+        inline_bp = bp2::replace_node_preserve_order(inline_bp, std::move(updated));
     }
 
-    std::sort(selected_nested.begin(), selected_nested.end(), [](const auto* a, const auto* b) {
-        return a->id.raw() < b->id.raw();
-    });
-
-    for (const auto* n : selected_nested) {
-        if (!n->is_embedded()) {
-            return set_error(error_out, "selected non-embedded nested instance cannot be inlined");
-        }
-        if (!n->inline_def()) {
-            return set_error(error_out, "selected embedded nested instance missing inline_def");
-        }
-        if (inline_bp.find_nested(n->id) != nullptr) {
-            return set_error(error_out, "inline merge nested id collision");
-        }
-        bp2::Blueprint::Nested copy = clone_nested(*n);
-        if (!remap_descendants(copy)) {
-            return false;
-        }
-        inline_bp = inline_bp.with_nested(std::move(copy));
-        inline_bp = bp2::sync_collapsed_node_iface_from_nested(inline_bp, n->id);
-    }
     return true;
 }
 
@@ -241,15 +201,14 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
 
     std::vector<bp2::Blueprint::Node> translated_nodes;
     translated_nodes.reserve(plan.internal_nodes.size());
-    float max_internal_right = 0.0f;
-    for (auto node : plan.internal_nodes) {
-        node.layout.x = (node.layout.x - min_x) + left_margin;
-        node.layout.y = (node.layout.y - min_y);
-        node.structure.owner_scope.clear();
-        max_internal_right = std::max(max_internal_right, node.layout.x + node.layout.width.value_or(kDefaultNodeWidth));
-        translated_nodes.push_back(node);
-        out = out.with_node(std::move(node));
-    }
+     float max_internal_right = 0.0f;
+     for (auto node : plan.internal_nodes) {
+         node.layout.x = (node.layout.x - min_x) + left_margin;
+         node.layout.y = (node.layout.y - min_y);
+         max_internal_right = std::max(max_internal_right, node.layout.x + node.layout.width.value_or(kDefaultNodeWidth));
+         translated_nodes.push_back(node);
+         out = out.with_node(std::move(node));
+     }
 
     out = out.with_interface(bp2::Interface(build_iface_ports(plan.inputs, plan.outputs, interner)));
 
@@ -276,17 +235,7 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
     }
 
     for (const auto& w : plan.internal_wires) {
-        ui::InternedId src_n;
-        ui::InternedId src_p;
-        ui::InternedId tgt_n;
-        ui::InternedId tgt_p;
-        path_to_node_port(w.source, arena, src_n, src_p);
-        path_to_node_port(w.target, arena, tgt_n, tgt_p);
-
-        bp2::Blueprint::Wire nw = w;
-        nw.source = arena.make_port(arena.make_node(arena.root(), src_n), src_p);
-        nw.target = arena.make_port(arena.make_node(arena.root(), tgt_n), tgt_p);
-        out = out.with_wire(std::move(nw));
+        out = out.with_wire(w);
     }
 
     append_bridge_to_internal_wires(out, plan.inputs, true, input_bridge_ids,
@@ -323,7 +272,6 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     out = out.with_display_name(source.display_name());
     out = out.with_name(source.name());
     out = out.with_interface(source.iface());
-    out = out.with_viewport(source.pan_x(), source.pan_y(), source.zoom(), source.grid_step());
 
     std::unordered_set<ui::InternedId> used_node_ids = collect_used_node_ids(source);
     std::unordered_set<ui::InternedId> used_wire_ids = collect_used_wire_ids(source);
@@ -336,21 +284,17 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     const std::string nested_scope_key = std::string(interner.resolve(nested_instance_id));
     const WindowScopeId nested_scope_id = WindowScopeId::embedded(nested_scope_key);
 
-    for (const auto& nsrc : source.nodes()) {
-        auto n = nsrc;
-        if (plan.selected_set.find(n.semantic.id) != plan.selected_set.end()) {
-            n.structure.owner_scope = nested_scope_key;
-        }
-        out = out.with_node(std::move(n));
-    }
+     for (const auto& nsrc : source.nodes()) {
+         if (plan.selected_set.find(nsrc.semantic.id) != plan.selected_set.end()) {
+             continue;
+         }
+         out = out.with_node(nsrc);
+     }
 
     for (const auto& w : source.wires()) {
-        ui::InternedId src_node;
-        ui::InternedId src_port;
-        ui::InternedId tgt_node;
-        ui::InternedId tgt_port;
-        if (!path_to_node_port(w.source, arena, src_node, src_port)
-            || !path_to_node_port(w.target, arena, tgt_node, tgt_port)) {
+        ui::InternedId src_node = w.source.node;
+        ui::InternedId tgt_node = w.target.node;
+        if (src_node.empty() || tgt_node.empty()) {
             set_error(error_out, "wire endpoint path unresolved during extraction");
             return std::nullopt;
         }
@@ -359,15 +303,10 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
         if (src_selected != tgt_selected) {
             continue;
         }
-        auto nw = w;
-        nw.source = arena.make_port(arena.make_node(arena.root(), src_node), src_port);
-        nw.target = arena.make_port(arena.make_node(arena.root(), tgt_node), tgt_port);
-        out = out.with_wire(std::move(nw));
+        out = out.with_wire(w);
     }
 
-    for (const auto& n : source.nested()) {
-        out = out.with_nested(clone_nested(n));
-    }
+    // Skip copying nested blueprints (TODO BLUEPRINT_83 migration)
 
     auto inline_bp_opt = build_inline_blueprint(
         plan, source, allow_nonembedded_descendant_refs,
@@ -377,36 +316,29 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     }
     bp2::Blueprint inline_bp = std::move(*inline_bp_opt);
 
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        nested_instance_id, blueprint_iid,
-        std::make_unique<bp2::Blueprint>(std::move(inline_bp)),
-        plan.center_x, plan.center_y);
-    out = out.with_nested(std::move(nested));
-
-    // -- Build collapsed proxy node ------------------------------------------
+    // -- Build blueprint-instance node with embedded source ---
     bp2::Blueprint::Node collapsed;
+    collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     collapsed.semantic.id = nested_instance_id;
     collapsed.semantic.type = blueprint_iid;
     collapsed.view.name = blueprint_name;
-    collapsed.view.expandable = true;
     collapsed.layout.collapsed = true;
-    collapsed.view.blueprint_path = blueprint_name;
-    collapsed.structure.owner_scope = scope_id.sim_scope_prefix();
     collapsed.layout.x = plan.center_x;
     collapsed.layout.y = plan.center_y;
     collapsed.layout.width = 160.0f;
     collapsed.layout.height = 64.0f;
+    
+    // Create embedded blueprint source
+    bp2::Blueprint::Node::BlueprintSource::Embedded embedded(
+        blueprint_iid,
+        std::make_unique<bp2::Blueprint>(std::move(inline_bp)));
+    collapsed.source = bp2::Blueprint::Node::BlueprintSource(std::move(embedded));
+    
     std::vector<ExternalConnection> sorted_inputs = plan.inputs;
     std::vector<ExternalConnection> sorted_outputs = plan.outputs;
     std::sort(sorted_inputs.begin(), sorted_inputs.end(), compare_external);
     std::sort(sorted_outputs.begin(), sorted_outputs.end(), compare_external);
-    // collapsed iface is derived from nested authority — do not seed from inline_bp (moved-from).
     out = out.with_node(std::move(collapsed));
-    out = bp2::sync_collapsed_node_iface_from_nested(out, nested_instance_id);
-
-    if (!bp2::composite_iface_matches_nested(out, nested_instance_id)) {
-        throw std::logic_error("build_parent_blueprint_from_plan: collapsed iface desynced from nested authority");
-    }
 
     // -- Iface collision check -----------------------------------------------
     std::unordered_set<std::string> input_iface_names;
@@ -439,11 +371,6 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
                             error_out)) {
         return std::nullopt;
     }
-
-    append_bridge_to_internal_wires(out, plan.inputs, true, input_bridge_ids,
-                                    "extract_wire_", interner, arena, used_wire_ids);
-    append_bridge_to_internal_wires(out, plan.outputs, false, output_bridge_ids,
-                                    "extract_wire_", interner, arena, used_wire_ids);
 
     // -- External reconnection wires -----------------------------------------
     create_external_reconnection_wires(out, plan.inputs, true,

@@ -91,95 +91,8 @@ TEST(PathResolver, ResolveRootInterfacePort) {
     EXPECT_EQ(rp->port.direction, Direction::Input);
 }
 
-TEST(PathResolver, ResolveNestedInterfacePort) {
-    ui::StringInterner I;
-    TypeRegistry reg = make_validation_registry();
-    PathArena arena(I);
 
-    bp2::Blueprint inner;
-    inner = inner.with_interface(Interface({
-        {I.intern("in"), Domain::Electrical, Direction::Input},
-        {I.intern("out"), Domain::Electrical, Direction::Output},
-    }));
 
-     auto n = bp2::Blueprint::Nested::make_embedded(
-         I.intern("sub1"), ui::InternedId{},
-         std::make_unique<bp2::Blueprint>(inner));
-
-    bp2::Blueprint root;
-    root = root.with_nested(std::move(n));
-
-    Path nested = arena.make_nested(arena.root(), I.intern("sub1"));
-    Path iface = arena.make_port(nested, I.intern("in"));
-
-    PathResolver resolver;
-    auto rp = resolver.resolve(iface, root, arena, reg, I);
-    ASSERT_TRUE(rp.has_value());
-    EXPECT_TRUE(rp->is_boundary);
-    EXPECT_EQ(rp->port.direction, Direction::Input);
-}
-
-TEST(PathResolver, CompositeHostNodePortUsesNestedAuthorityNotCollapsedCache) {
-    ui::StringInterner I;
-    TypeRegistry reg = make_validation_registry();
-    PathArena arena(I);
-
-    bp2::Blueprint inner;
-    inner = inner.with_interface(Interface({
-        {I.intern("inner_only"), Domain::Electrical, Direction::Input},
-    }));
-
-    bp2::Blueprint::Node collapsed = make_node(I, "sub1", "CompositeType");
-    collapsed.semantic.iface = Interface({
-        {I.intern("stale_only"), Domain::Electrical, Direction::Input},
-    });
-
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        I.intern("sub1"), I.intern("CompositeType"),
-        std::make_unique<bp2::Blueprint>(inner));
-
-    bp2::Blueprint root;
-    root = root.with_node(std::move(collapsed));
-    root = root.with_nested(std::move(nested));
-
-    Path node = arena.make_node(arena.root(), I.intern("sub1"));
-    Path good_port = arena.make_port(node, I.intern("inner_only"));
-    Path stale_port = arena.make_port(node, I.intern("stale_only"));
-
-    PathResolver resolver;
-    auto resolved_good = resolver.resolve(good_port, root, arena, reg, I);
-    ASSERT_TRUE(resolved_good.has_value());
-    EXPECT_EQ(resolved_good->port.name, I.intern("inner_only"));
-
-    auto resolved_stale = resolver.resolve(stale_port, root, arena, reg, I);
-    EXPECT_FALSE(resolved_stale.has_value());
-}
-
-TEST(PathResolver, CanConnectRejectsBoundarySkipAcrossNestedScopes) {
-    ui::StringInterner I;
-    TypeRegistry reg = make_validation_registry();
-    PathArena arena(I);
-
-    bp2::Blueprint inner;
-     inner = inner.with_node(make_node(I, "r1", "Resistor"));
-
-     auto n = bp2::Blueprint::Nested::make_embedded(
-         I.intern("sub1"), ui::InternedId{},
-         std::make_unique<bp2::Blueprint>(inner));
-
-    bp2::Blueprint root;
-    root = root.with_node(make_node(I, "bat1", "Battery"));
-    root = root.with_nested(std::move(n));
-
-    Path bat = arena.make_node(arena.root(), I.intern("bat1"));
-    Path bat_out = arena.make_port(bat, I.intern("v_out"));
-    Path sub = arena.make_nested(arena.root(), I.intern("sub1"));
-    Path r1 = arena.make_node(sub, I.intern("r1"));
-    Path r1_in = arena.make_port(r1, I.intern("in"));
-
-    PathResolver resolver;
-    EXPECT_FALSE(resolver.can_connect(bat_out, r1_in, root, arena, reg, I));
-}
 
 TEST(PathResolver, CanConnectAcceptsSameScopeWithCompatibleDirections) {
     ui::StringInterner I;
@@ -210,11 +123,11 @@ TEST(WireValidator, ValidWirePasses) {
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
-    w.source = arena.make_port(arena.make_node(arena.root(), I.intern("bat1")), I.intern("v_out"));
-    w.target = arena.make_port(arena.make_node(arena.root(), I.intern("res1")), I.intern("in"));
+    w.source = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    w.target = bp2::WireEndpoint{I.intern("res1"), I.intern("in")};
     w.domain = Domain::Electrical;
 
-    auto r = WireValidator::validate(w, bp, arena, reg, I);
+    auto r = WireValidator::validate(w, bp, reg, I);
     EXPECT_TRUE(r.valid) << r.error;
 }
 
@@ -228,11 +141,11 @@ TEST(WireValidator, InvalidPathFails) {
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
-    w.source = arena.make_port(arena.make_node(arena.root(), I.intern("bat1")), I.intern("v_out"));
-    w.target = arena.make_port(arena.make_node(arena.root(), I.intern("ghost")), I.intern("in"));
+    w.source = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    w.target = bp2::WireEndpoint{I.intern("ghost"), I.intern("in")};
     w.domain = Domain::Electrical;
 
-    auto r = WireValidator::validate(w, bp, arena, reg, I);
+    auto r = WireValidator::validate(w, bp, reg, I);
     EXPECT_FALSE(r.valid);
 }
 
@@ -257,11 +170,11 @@ TEST(WireValidator, DomainMismatchFails) {
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
-    w.source = arena.make_port(arena.make_node(arena.root(), I.intern("a")), I.intern("out"));
-    w.target = arena.make_port(arena.make_node(arena.root(), I.intern("b")), I.intern("in"));
+    w.source = bp2::WireEndpoint{I.intern("a"), I.intern("out")};
+    w.target = bp2::WireEndpoint{I.intern("b"), I.intern("in")};
     w.domain = Domain::Electrical;
 
-    auto r = WireValidator::validate(w, bp, arena, reg, I);
+    auto r = WireValidator::validate(w, bp, reg, I);
     EXPECT_FALSE(r.valid);
 }
 
@@ -276,11 +189,11 @@ TEST(WireValidator, DirectionMismatchFails) {
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
-    w.source = arena.make_port(arena.make_node(arena.root(), I.intern("a")), I.intern("v_in"));
-    w.target = arena.make_port(arena.make_node(arena.root(), I.intern("b")), I.intern("v_in"));
+    w.source = bp2::WireEndpoint{I.intern("a"), I.intern("v_in")};
+    w.target = bp2::WireEndpoint{I.intern("b"), I.intern("v_in")};
     w.domain = Domain::Electrical;
 
-    auto r = WireValidator::validate(w, bp, arena, reg, I);
+    auto r = WireValidator::validate(w, bp, reg, I);
     EXPECT_FALSE(r.valid);
 }
 
@@ -292,7 +205,7 @@ TEST(WireValidator, SelfLoopFails) {
     bp2::Blueprint bp;
     bp = bp.with_node(make_node(I, "bat1", "Battery"));
 
-    Path p = arena.make_port(arena.make_node(arena.root(), I.intern("bat1")), I.intern("v_out"));
+    bp2::WireEndpoint p{I.intern("bat1"), I.intern("v_out")};
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
@@ -300,7 +213,7 @@ TEST(WireValidator, SelfLoopFails) {
     w.target = p;
     w.domain = Domain::Electrical;
 
-    auto r = WireValidator::validate(w, bp, arena, reg, I);
+    auto r = WireValidator::validate(w, bp, reg, I);
     EXPECT_FALSE(r.valid);
 }
 
@@ -330,12 +243,12 @@ TEST(BlueprintValidate, DuplicateWireIdsFail) {
 
     bp2::Blueprint::Wire w1;
     w1.id = I.intern("dup");
-    w1.source = arena.make_port(arena.make_node(arena.root(), I.intern("bat1")), I.intern("v_out"));
-    w1.target = arena.make_port(arena.make_node(arena.root(), I.intern("res1")), I.intern("in"));
+    w1.source = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    w1.target = bp2::WireEndpoint{I.intern("res1"), I.intern("in")};
     w1.domain = Domain::Electrical;
 
     bp2::Blueprint::Wire w2 = w1;
-    w2.target = arena.make_port(arena.make_node(arena.root(), I.intern("res1")), I.intern("out"));
+    w2.target = bp2::WireEndpoint{I.intern("res1"), I.intern("out")};
 
     bp = bp.with_wire(std::move(w1));
     bp = bp.with_wire(std::move(w2));
@@ -346,117 +259,10 @@ TEST(BlueprintValidate, DuplicateWireIdsFail) {
     EXPECT_THROW(bp.validate(reg, I), std::runtime_error);
 }
 
-TEST(BlueprintValidate, CompositeHostIfaceDesyncFails) {
-    ui::StringInterner I;
-    TypeRegistry reg = make_validation_registry();
-    PathArena arena(I);
 
-    bp2::Blueprint inner;
-    inner = inner.with_interface(Interface({
-        {I.intern("inner_only"), Domain::Electrical, Direction::Input},
-    }));
 
-    bp2::Blueprint::Node collapsed = make_node(I, "sub1", "CompositeType");
-    collapsed.view.expandable = true;
-    collapsed.semantic.iface = Interface({
-        {I.intern("stale_only"), Domain::Electrical, Direction::Input},
-    });
 
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        I.intern("sub1"), I.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner));
 
-    bp2::Blueprint root;
-    root = root.with_node(std::move(collapsed));
-    root = root.with_nested(std::move(nested));
-
-    auto r = bp2::InvariantChecker::validate(root, arena, reg, I);
-    EXPECT_FALSE(r.valid);
-    EXPECT_NE(r.error.find("desynced"), std::string::npos);
-}
-
-TEST(BlueprintValidate, NestedInstanceMissingHostNodeFails) {
-    ui::StringInterner I;
-    TypeRegistry reg = make_validation_registry();
-    PathArena arena(I);
-
-    bp2::Blueprint inner;
-    inner = inner.with_interface(Interface({
-        {I.intern("inner_only"), Domain::Electrical, Direction::Input},
-    }));
-
-    bp2::Blueprint root;
-    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
-        I.intern("sub1"), I.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
-
-    auto r = bp2::InvariantChecker::validate(root, arena, reg, I);
-    EXPECT_FALSE(r.valid);
-    EXPECT_NE(r.error.find("missing host node"), std::string::npos);
-}
-
-TEST(BlueprintValidate, NestedHostNodeMustBeExpandable) {
-    ui::StringInterner I;
-    TypeRegistry reg = make_validation_registry();
-    PathArena arena(I);
-
-    bp2::Blueprint inner;
-    inner = inner.with_interface(Interface({
-        {I.intern("inner_only"), Domain::Electrical, Direction::Input},
-    }));
-
-    bp2::Blueprint::Node host = make_node(I, "sub1", "CompositeType");
-    host.view.expandable = false;
-
-    bp2::Blueprint root;
-    root = root.with_node(std::move(host));
-    root = root.with_nested(bp2::Blueprint::Nested::make_embedded(
-        I.intern("sub1"), I.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner)));
-
-    auto r = bp2::InvariantChecker::validate(root, arena, reg, I);
-    EXPECT_FALSE(r.valid);
-    EXPECT_NE(r.error.find("must be expandable"), std::string::npos);
-}
-
-TEST(BlueprintValidate, NestedMissingHostBeatsIncidentalUnknownNodeTypeDiagnostic) {
-    ui::StringInterner I;
-    TypeRegistry reg = load_type_registry("library/");
-    PathArena arena(I);
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(make_node(I, "ghost_unknown", "DefinitelyUnknownType"));
-
-    auto inline_bp = std::make_unique<bp2::Blueprint>();
-    *inline_bp = inline_bp->with_id(I.intern("RN-180-Exciter"));
-    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
-        I.intern("missing_host_inst"), I.intern("RN-180-Exciter"), std::move(inline_bp)));
-
-    auto r = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(r.valid);
-    EXPECT_NE(r.error.find("missing host node"), std::string::npos);
-}
-
-TEST(BlueprintValidate, NestedNonExpandableHostBeatsIncidentalUnknownNodeTypeDiagnostic) {
-    ui::StringInterner I;
-    TypeRegistry reg = load_type_registry("library/");
-    PathArena arena(I);
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(make_node(I, "ghost_unknown", "DefinitelyUnknownType"));
-
-    bp2::Blueprint::Node host;
-    host.semantic.id = I.intern("embedded_inst");
-    host.semantic.type = I.intern("RN-180-Exciter");
-    host.view.expandable = false;
-    bp = bp.with_node(std::move(host));
-
-    auto inline_bp = std::make_unique<bp2::Blueprint>();
-    *inline_bp = inline_bp->with_id(I.intern("RN-180-Exciter"));
-    bp = bp.with_nested(bp2::Blueprint::Nested::make_embedded(
-        I.intern("embedded_inst"), I.intern("RN-180-Exciter"), std::move(inline_bp)));
-
-    auto r = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(r.valid);
-    EXPECT_NE(r.error.find("must be expandable"), std::string::npos);
-}
 
 TEST(BlueprintValidate, UnknownNodeTypeFails) {
     ui::StringInterner I;
@@ -472,144 +278,13 @@ TEST(BlueprintValidate, UnknownNodeTypeFails) {
     EXPECT_THROW(bp.validate(reg, I), std::runtime_error);
 }
 
-TEST(InvariantChecker, OwnerScopeReferencingMissingNodeFails) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
 
-    auto child = make_node(I, "child1", "Battery");
-    child.structure.owner_scope = "missing_host";
 
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(child));
 
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(result.valid);
-    EXPECT_NE(result.error.find("invalid owner_scope"), std::string::npos);
-    EXPECT_NE(result.error.find("unknown node id"), std::string::npos);
-}
 
-TEST(InvariantChecker, OwnerScopeReferencingNonExpandableNodeFails) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
 
-    auto host = make_node(I, "host1", "Battery");
-    host.view.expandable = false;
 
-    auto child = make_node(I, "child1", "Battery");
-    child.structure.owner_scope = "host1";
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(host));
-    bp = bp.with_node(std::move(child));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(result.valid);
-    EXPECT_NE(result.error.find("non-expandable node"), std::string::npos);
-}
-
-TEST(InvariantChecker, OwnerScopeReferencingExpandableNodeWithoutNestedFails) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-
-    auto host = make_node(I, "host1", "Battery");
-    host.view.expandable = true;
-
-    auto child = make_node(I, "child1", "Battery");
-    child.structure.owner_scope = "host1";
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(host));
-    bp = bp.with_node(std::move(child));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(result.valid);
-    EXPECT_NE(result.error.find("without hosted nested"), std::string::npos);
-}
-
-TEST(InvariantChecker, OwnerScopeReferencingReferenceNestedHostFails) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-
-    auto host = make_node(I, "host1", "CompositeType");
-    host.view.expandable = true;
-    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
-
-    auto child = make_node(I, "child1", "Battery");
-    child.structure.owner_scope = "host1";
-
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        I.intern("host1"),
-        I.intern("CompositeType"),
-        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(host));
-    bp = bp.with_node(std::move(child));
-    bp = bp.with_nested(std::move(nested));
-    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(result.valid);
-    EXPECT_NE(result.error.find("non-embedded nested host"), std::string::npos);
-}
-
-TEST(InvariantChecker, OwnerScopeReferencingValidEmbeddedHostPasses) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-
-    auto host = make_node(I, "host1", "CompositeType");
-    host.view.expandable = true;
-    host.semantic.iface = bp2::Interface{};
-
-    auto child = make_node(I, "child1", "Battery");
-    child.structure.owner_scope = "host1";
-
-    auto inline_bp = std::make_unique<bp2::Blueprint>();
-    *inline_bp = inline_bp->with_id(I.intern("CompositeType"));
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        I.intern("host1"), I.intern("CompositeType"), std::move(inline_bp));
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(host));
-    bp = bp.with_node(std::move(child));
-    bp = bp.with_nested(std::move(nested));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_TRUE(result.valid) << result.error;
-}
-
-TEST(InvariantChecker, OwnerScopeSelfReferencingFails) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-
-    // A host node that sets owner_scope to its own id is a structural
-    // contradiction: a node cannot own itself.
-    auto host = make_node(I, "host1", "CompositeType");
-    host.view.expandable = true;
-    host.semantic.iface = bp2::Interface{};
-    host.structure.owner_scope = "host1";
-
-    auto inline_bp = std::make_unique<bp2::Blueprint>();
-    *inline_bp = inline_bp->with_id(I.intern("CompositeType"));
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        I.intern("host1"), I.intern("CompositeType"), std::move(inline_bp));
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(host));
-    bp = bp.with_nested(std::move(nested));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(result.valid);
-    EXPECT_NE(result.error.find("self-referencing"), std::string::npos);
-}
-
-TEST(InvariantChecker, EmptyOwnerScopePasses) {
+TEST(InvariantChecker, RootComponentNodePasses) {
     ui::StringInterner I;
     PathArena arena(I);
     TypeRegistry reg = make_validation_registry();
@@ -621,21 +296,6 @@ TEST(InvariantChecker, EmptyOwnerScopePasses) {
     EXPECT_TRUE(result.valid) << result.error;
 }
 
-TEST(BlueprintValidate, InvalidNestedReferenceFails) {
-    ui::StringInterner I;
-     TypeRegistry reg = make_validation_registry();
-
-     auto n = bp2::Blueprint::Nested::make_reference(
-         I.intern("sub1"), I.intern("NoSuchBlueprint"), bp2::Interface());
-
-    bp2::Blueprint bp;
-    bp = bp.with_nested(std::move(n));
-
-    PathArena arena(I);
-    auto r = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(r.valid);
-    EXPECT_THROW(bp.validate(reg, I), std::runtime_error);
-}
 
 TEST(BlueprintValidate, WirePathUnresolvedFails) {
     ui::StringInterner I;
@@ -647,8 +307,8 @@ TEST(BlueprintValidate, WirePathUnresolvedFails) {
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
-    w.source = arena.make_port(arena.make_node(arena.root(), I.intern("bat1")), I.intern("v_out"));
-    w.target = arena.make_port(arena.make_node(arena.root(), I.intern("ghost")), I.intern("in"));
+    w.source = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    w.target = bp2::WireEndpoint{I.intern("ghost"), I.intern("in")};
     w.domain = Domain::Electrical;
     bp = bp.with_wire(std::move(w));
 
@@ -669,8 +329,8 @@ TEST(BlueprintValidate, ValidBlueprintPasses) {
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
-    w.source = arena.make_port(arena.make_node(arena.root(), I.intern("bat1")), I.intern("v_out"));
-    w.target = arena.make_port(arena.make_node(arena.root(), I.intern("res1")), I.intern("in"));
+    w.source = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    w.target = bp2::WireEndpoint{I.intern("res1"), I.intern("in")};
     w.domain = Domain::Electrical;
     bp = bp.with_wire(std::move(w));
 
@@ -689,8 +349,8 @@ TEST(BlueprintRepair, DiagnoseAndRepairRemovesInvalidWireEndpoints) {
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w_bad");
-    w.source = arena.make_port(arena.make_node(arena.root(), I.intern("bat1")), I.intern("v_out"));
-    w.target = arena.make_port(arena.make_node(arena.root(), I.intern("ghost")), I.intern("in"));
+    w.source = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    w.target = bp2::WireEndpoint{I.intern("ghost"), I.intern("in")};
     w.domain = Domain::Electrical;
     bp = bp.with_wire(std::move(w));
 
@@ -739,123 +399,9 @@ TEST(BlueprintRepair, DiagnoseReportsUnknownNodeType) {
 // All validation paths must accept this pattern.
 // ===========================================================================
 
-TEST(BlueprintValidate, EmbeddedProxyNodePassesInvariantChecker) {
-    ui::StringInterner I;
-    TypeRegistry reg = load_type_registry("library/");
-    PathArena arena(I);
 
-    // Build a blueprint with an embedded proxy node whose type is unknown.
-    bp2::Blueprint bp;
-    bp2::Blueprint::Node proxy;
-    proxy.semantic.id = I.intern("rn180_inst");
-    proxy.semantic.type = I.intern("RN-180-Exciter");   // not in any registry
-    proxy.view.expandable = true;
-    bp = bp.with_node(std::move(proxy));
 
-    // Add matching embedded nested definition.
-    auto inline_bp = std::make_unique<bp2::Blueprint>();
-    *inline_bp = inline_bp->with_id(I.intern("RN-180-Exciter"));
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        I.intern("rn180_inst"), I.intern("RN-180-Exciter"),
-        std::move(inline_bp));
-    bp = bp.with_nested(std::move(nested));
 
-    auto r = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_TRUE(r.valid) << "InvariantChecker rejected embedded proxy: " << r.error;
-    EXPECT_NO_THROW(bp.validate(reg, I));
-}
-
-TEST(BlueprintValidate, NonEmbeddedExpandableNodeStillFailsTypeCheck) {
-    ui::StringInterner I;
-    TypeRegistry reg = load_type_registry("library/");
-    PathArena arena(I);
-
-    // An expandable node WITHOUT a matching embedded nested must still fail.
-    bp2::Blueprint bp;
-    bp2::Blueprint::Node proxy;
-    proxy.semantic.id = I.intern("bad_proxy");
-    proxy.semantic.type = I.intern("NonExistentType");
-    proxy.view.expandable = true;
-    bp = bp.with_node(std::move(proxy));
-
-    // No nested entry at all.
-    auto r = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(r.valid);
-    EXPECT_NE(r.error.find("unknown node type"), std::string::npos);
-    EXPECT_THROW(bp.validate(reg, I), std::runtime_error);
-}
-
-TEST(BlueprintRepair, DiagnoseSkipsEmbeddedProxyNodes) {
-    ui::StringInterner I;
-    TypeRegistry reg = load_type_registry("library/");
-    PathArena arena(I);
-
-    bp2::Blueprint bp;
-    bp2::Blueprint::Node proxy;
-    proxy.semantic.id = I.intern("gen_inst");
-    proxy.semantic.type = I.intern("GSC-18-Starter");
-    proxy.view.expandable = true;
-    bp = bp.with_node(std::move(proxy));
-
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        I.intern("gen_inst"), I.intern("GSC-18-Starter"),
-        std::make_unique<bp2::Blueprint>());
-    bp = bp.with_nested(std::move(nested));
-
-    auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg, I);
-
-    for (const auto& issue : report.issues) {
-        EXPECT_NE(issue.kind, bp2::diagnostics::IntegrityIssue::Kind::UnknownNodeType)
-            << "False positive: embedded proxy reported as unknown type: " << issue.message;
-    }
-}
-
-TEST(BlueprintRepair, DiagnoseStillReportsNonProxyUnknownType) {
-    ui::StringInterner I;
-    TypeRegistry reg = load_type_registry("library/");
-    PathArena arena(I);
-
-    // An expandable node with no matching embedded nested → should still report.
-    bp2::Blueprint bp;
-    bp2::Blueprint::Node bad;
-    bad.semantic.id = I.intern("orphan");
-    bad.semantic.type = I.intern("MadeUpType");
-    bad.view.expandable = true;
-    bp = bp.with_node(std::move(bad));
-
-    auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg, I);
-    bool found = false;
-    for (const auto& issue : report.issues) {
-        if (issue.kind == bp2::diagnostics::IntegrityIssue::Kind::UnknownNodeType) {
-            found = true;
-            break;
-        }
-    }
-    EXPECT_TRUE(found);
-}
-
-TEST(BlueprintRepair, DiagnoseReportsInvalidOwnerScope) {
-    ui::StringInterner I;
-    TypeRegistry reg = load_type_registry("library/");
-    PathArena arena(I);
-
-    auto child = make_node(I, "child1", "Battery");
-    child.structure.owner_scope = "missing_host";
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(child));
-
-    auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg, I);
-    bool found = false;
-    for (const auto& issue : report.issues) {
-        if (issue.kind == bp2::diagnostics::IntegrityIssue::Kind::InvalidOwnerScope) {
-            found = true;
-            break;
-        }
-    }
-    EXPECT_TRUE(found);
-    EXPECT_FALSE(report.changed);
-}
 
 TEST(BlueprintValidate, ParserRegistryOverloadAcceptsKnownType) {
     ui::StringInterner I;
@@ -871,30 +417,6 @@ TEST(BlueprintValidate, ParserRegistryOverloadAcceptsKnownType) {
     EXPECT_NO_THROW(bp.validate(parser_registry, I, arena));
 }
 
-TEST(BlueprintRepair, ParserRegistryOverloadSkipsEmbeddedProxyNodes) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry parser_registry = load_type_registry("library/");
-
-    bp2::Blueprint bp;
-    bp2::Blueprint::Node proxy;
-    proxy.semantic.id = I.intern("gen_inst");
-    proxy.semantic.type = I.intern("GSC-18-Starter");
-    proxy.view.expandable = true;
-    bp = bp.with_node(std::move(proxy));
-
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        I.intern("gen_inst"), I.intern("GSC-18-Starter"),
-        std::make_unique<bp2::Blueprint>());
-    bp = bp.with_nested(std::move(nested));
-
-    auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, parser_registry, I);
-
-    for (const auto& issue : report.issues) {
-        EXPECT_NE(issue.kind, bp2::diagnostics::IntegrityIssue::Kind::UnknownNodeType)
-            << "False positive: embedded proxy reported as unknown type: " << issue.message;
-    }
-}
 
 TEST(PathResolver, ParserRegistryOverloadResolveUsesCanonicalRegistryInput) {
     ui::StringInterner I;
@@ -945,11 +467,11 @@ TEST(WireValidator, ParserRegistryOverloadValidateWire) {
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
-    w.source = arena.make_port(arena.make_node(arena.root(), I.intern("a")), I.intern("out"));
-    w.target = arena.make_port(arena.make_node(arena.root(), I.intern("b")), I.intern("in"));
+    w.source = bp2::WireEndpoint{I.intern("a"), I.intern("out")};
+    w.target = bp2::WireEndpoint{I.intern("b"), I.intern("in")};
     w.domain = Domain::Electrical;
 
-    auto vr = bp2::WireValidator::validate(w, bp, arena, parser_registry, I);
+    auto vr = bp2::WireValidator::validate(w, bp, parser_registry, I);
     EXPECT_TRUE(vr.valid) << vr.error;
 }
 
@@ -967,171 +489,8 @@ TEST(InvariantChecker, ParserRegistryOverloadValidateBlueprint) {
     EXPECT_TRUE(result.valid) << result.error;
 }
 
-TEST(InvariantChecker, ReferencedNestedHostPathMismatchDetected) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
 
-    // Add a reference-mode nested
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        I.intern("ref1"),
-        I.intern("CompositeType"),
-        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
-    
-    // Create host node with mismatched blueprint_path
-    bp2::Blueprint::Node host;
-    host.semantic.id = I.intern("ref1");
-    host.semantic.type = I.intern("CompositeType");
-    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
-    host.view.expandable = true;
-    host.view.blueprint_path = "wrong/path";  // This doesn't match CompositeType category
-    
-    bp2::Blueprint bp;
-    bp = bp.with_nested(std::move(nested));
-    bp = bp.with_node(std::move(host));
-    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
 
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(result.valid);
-    EXPECT_TRUE(result.error.find("blueprint_path mismatch") != std::string::npos)
-        << "Error message: " << result.error;
-}
 
-TEST(InvariantChecker, ReferencedNestedCategorizedHostPathMismatchDetected) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-    reg.categories["CompositeType"] = "math";
 
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        I.intern("ref1"),
-        I.intern("CompositeType"),
-        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
 
-    bp2::Blueprint::Node host;
-    host.semantic.id = I.intern("ref1");
-    host.semantic.type = I.intern("CompositeType");
-    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
-    host.view.expandable = true;
-    host.view.blueprint_path = "CompositeType";
-
-    bp2::Blueprint bp;
-    bp = bp.with_nested(std::move(nested));
-    bp = bp.with_node(std::move(host));
-    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(result.valid);
-    EXPECT_TRUE(result.error.find("expected=math/CompositeType") != std::string::npos)
-        << "Error message: " << result.error;
-}
-
-TEST(InvariantChecker, ReferencedNestedWithCorrectHostPathPassesValidation) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-
-    // Add a reference-mode nested
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        I.intern("ref1"),
-        I.intern("CompositeType"),
-        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
-    
-    // Create host node with matching blueprint_path (no category in this case)
-    bp2::Blueprint::Node host;
-    host.semantic.id = I.intern("ref1");
-    host.semantic.type = I.intern("CompositeType");
-    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
-    host.view.expandable = true;
-    host.view.blueprint_path = "CompositeType";  // Matches blueprint_id with no category
-    
-    bp2::Blueprint bp;
-    bp = bp.with_nested(std::move(nested));
-    bp = bp.with_node(std::move(host));
-    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_TRUE(result.valid) << result.error;
-}
-
-TEST(InvariantChecker, ReferencedNestedWithCategorizedHostPathPassesValidation) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-    reg.categories["CompositeType"] = "math";
-
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        I.intern("ref1"),
-        I.intern("CompositeType"),
-        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
-
-    bp2::Blueprint::Node host;
-    host.semantic.id = I.intern("ref1");
-    host.semantic.type = I.intern("CompositeType");
-    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
-    host.view.expandable = true;
-    host.view.blueprint_path = "math/CompositeType";
-
-    bp2::Blueprint bp;
-    bp = bp.with_nested(std::move(nested));
-    bp = bp.with_node(std::move(host));
-    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_TRUE(result.valid) << result.error;
-}
-
-TEST(InvariantChecker, ReferencedNestedWithEmptyHostPathAllowedUnderCurrentDesign) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-
-    // Add a reference-mode nested
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        I.intern("ref1"),
-        I.intern("CompositeType"),
-        bp2::interface_from_type_definition(*reg.get("CompositeType"), I));
-    
-    // Create host node with empty blueprint_path
-    bp2::Blueprint::Node host;
-    host.semantic.id = I.intern("ref1");
-    host.semantic.type = I.intern("CompositeType");
-    host.semantic.iface = bp2::interface_from_type_definition(*reg.get("CompositeType"), I);
-    host.view.expandable = true;
-    host.view.blueprint_path = "";  // Empty path is allowed
-    
-    bp2::Blueprint bp;
-    bp = bp.with_nested(std::move(nested));
-    bp = bp.with_node(std::move(host));
-    bp = bp2::canonicalize_composite_host_ifaces(std::move(bp));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_TRUE(result.valid) << result.error;
-}
-
-TEST(InvariantChecker, ReferencedNestedResolvedIfaceDriftFailsValidation) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-
-    auto nested = bp2::Blueprint::Nested::make_reference(
-        I.intern("ref1"),
-        I.intern("CompositeType"),
-        bp2::Interface({
-            {I.intern("stale_only"), Domain::Electrical, Direction::Input},
-        }));
-
-    bp2::Blueprint::Node host;
-    host.semantic.id = I.intern("ref1");
-    host.semantic.type = I.intern("CompositeType");
-    host.view.expandable = true;
-    host.semantic.iface = nested.resolved_iface();
-
-    bp2::Blueprint bp;
-    bp = bp.with_nested(std::move(nested));
-    bp = bp.with_node(std::move(host));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
-    EXPECT_FALSE(result.valid);
-    EXPECT_NE(result.error.find("resolved iface desynced from registry"), std::string::npos);
-}

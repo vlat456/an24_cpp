@@ -1,18 +1,18 @@
 #include "document.h"
 
+#include "blueprint_view_hydration.h"
 #include "commands/commands.h"
 #include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/library/library_index.h"
 #include "common/port_type_utils.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "core/solvers/common/signal_key.h"
-#include "data/node_content.h"
 #include "debug.h"
 #include "visual/persist.h"
 #include "parse_number.h"
 #include "visual/snap.h"
 
 #include <algorithm>
-#include <filesystem>
 #include <spdlog/spdlog.h>
 
 namespace {
@@ -28,8 +28,7 @@ PortType parse_exposed_port_type(const std::string& s) {
     return PortType::V;
 }
 
-/// Update the embedded nested interface to include a new bridge port, then derive
-/// the collapsed node interface from that authoritative nested iface.
+/// Update the embedded blueprint-instance's inline blueprint interface to include a new bridge port.
 void add_bridge_port_to_composite(
     bp2::EditorModel& model,
     ui::StringInterner& interner,
@@ -50,24 +49,22 @@ void add_bridge_port_to_composite(
 
     bp2::Blueprint bp = model.current();
 
-    const auto* nested = bp.find_nested(group_iid);
-    if (!nested || !nested->is_embedded() || !nested->inline_def()) {
-        spdlog::warn("[editor] add_bridge_port: embedded nested '{}' not found", scope_id);
+    const auto* node = bp.find_node(group_iid);
+    if (!node || !node->has_embedded_blueprint() || !node->source->inline_def()) {
+        spdlog::warn("[editor] add_bridge_port: embedded blueprint instance '{}' not found", scope_id);
         return;
     }
 
-    bp2::Blueprint::Nested n = *nested;
-    std::vector<bp2::PortDescriptor> ports = n.inline_def()->iface().ports();
+    // Extract, mutate, and restore the embedded blueprint's interface
+    std::vector<bp2::PortDescriptor> ports = node->source->inline_def()->iface().ports();
     ports.push_back(pd);
-    bp2::Blueprint updated_inline = n.inline_def()->with_interface(bp2::Interface(std::move(ports)));
-    n.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
-    bp = bp2::replace_nested_preserve_order(bp, std::move(n));
-    bp = bp2::sync_collapsed_node_iface_from_nested(bp, group_iid);
+    bp2::Blueprint updated_inline = node->source->inline_def()->with_interface(bp2::Interface(std::move(ports)));
 
-    if (!bp2::composite_iface_matches_nested(bp, group_iid)) {
-        throw std::logic_error("add_bridge_port_to_composite: collapsed iface desynced from nested authority");
-    }
+    // Create updated node with mutated embedded blueprint
+    bp2::Blueprint::Node updated_node = *node;
+    updated_node.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
 
+    bp = bp2::replace_node_preserve_order(bp, std::move(updated_node));
     model.replace_current(std::move(bp));
 }
 
@@ -94,17 +91,16 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     std::string unique_id = model_.generate_unique_node_id(classname, interner_);
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, model_.current().grid_step());
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, viewport().grid_step);
 
     bp2::Blueprint::Node node;
+    node.kind = bp2::Blueprint::Node::Kind::Component;
     node.semantic.id = interner_.intern(unique_id);
     node.semantic.type = interner_.intern(classname);
     node.view.name = unique_id;
     node.layout.x = snapped_pos.x;
     node.layout.y = snapped_pos.y;
-    node.structure.owner_scope = scope_id;
     node.view.render_hint = def->render_hint;
-    node.view.expandable = !def->cpp_class && !def->devices.empty();
 
     std::vector<bp2::PortDescriptor> iface_ports;
     iface_ports.reserve(def->ports.size());
@@ -250,20 +246,18 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     }
 
     const std::string unique_id = model_.generate_unique_node_id(blueprint_name, interner_);
-    const Pt snapped_pos = editor_math::snap_to_grid(world_pos, model_.current().grid_step());
+    const Pt snapped_pos = editor_math::snap_to_grid(world_pos, viewport().grid_step);
 
     bp2::Blueprint::Node collapsed;
+    collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     collapsed.semantic.id = interner_.intern(unique_id);
     collapsed.semantic.type = interner_.intern(blueprint_name);
     collapsed.view.name = unique_id;
-    collapsed.structure.owner_scope = scope_id;
     collapsed.layout.x = snapped_pos.x;
     collapsed.layout.y = snapped_pos.y;
     collapsed.layout.width = 160.0f;
     collapsed.layout.height = 64.0f;
-    collapsed.view.expandable = true;
     collapsed.layout.collapsed = true;
-    collapsed.view.blueprint_path = blueprint_name;
     collapsed.view.render_hint = def->render_hint;
 
     std::vector<bp2::PortDescriptor> iface_ports;
@@ -289,36 +283,23 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         collapsed.view.content_tripped = nc.tripped;
     }
 
-    std::string library_path = "library/";
-    {
-        std::filesystem::path lp(library_path);
-        if (!std::filesystem::exists(lp) && lp.is_relative()) {
-            std::vector<std::filesystem::path> try_paths = {
-                lp, "../" / lp, "../../" / lp, "../../../" / lp,
-            };
-            for (const auto& p : try_paths) {
-                if (std::filesystem::exists(p)) {
-                    library_path = p.string();
-                    break;
-                }
-            }
-        }
+    if (!library_index_) {
+        spdlog::error("[editor] addBlueprint('{}'): LibraryIndex is not configured", blueprint_name);
+        return;
     }
 
-    std::string category = registry.categories.count(blueprint_name)
-        ? registry.categories.at(blueprint_name) : "";
-    std::filesystem::path blueprint_file = std::filesystem::path(library_path);
-    if (!category.empty()) {
-        blueprint_file /= category;
+    auto resolved = library_index_->resolve(blueprint_name);
+    if (!resolved) {
+        spdlog::error("[editor] addBlueprint('{}'): not found in library index", blueprint_name);
+        return;
     }
-    blueprint_file /= (blueprint_name + ".blueprint");
 
     auto loaded_opt = load_blueprint_from_file_validated(
-        blueprint_file.string().c_str(), interner_, arena_, registry);
+        resolved->c_str(), interner_, arena_, registry);
 
     if (!loaded_opt) {
         spdlog::error("[editor] addBlueprint('{}'): could not load '{}'",
-            blueprint_name, blueprint_file.string());
+            blueprint_name, *resolved);
         return;
     }
 
@@ -326,33 +307,27 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         blueprint_name,
         loaded_opt->nodes().size(),
         loaded_opt->wires().size(),
-        blueprint_file.string());
+        *resolved);
 
     bp2::Blueprint loaded = std::move(*loaded_opt);
+
+    loaded = editor::hydrate_runtime_node_view_data(std::move(loaded), interner_, registry);
+
     bp2::Blueprint inline_bp = loaded.with_interface(collapsed.semantic.iface);
     inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
     inline_bp = inline_bp.with_display_name(def->classname);
-    inline_bp = inline_bp.with_viewport(
-        inline_bp.pan_x(), inline_bp.pan_y(), inline_bp.zoom(), inline_bp.grid_step());
 
      const bp2::Blueprint before_add = model_.current();
     try {
         model_.mutate_atomically([&] {
-            auto nested = bp2::Blueprint::Nested::make_embedded(
-                collapsed.semantic.id,
+            // Create the blueprint-instance node with embedded blueprint source
+            bp2::Blueprint::Node::BlueprintSource::Embedded embedded(
                 interner_.intern(blueprint_name),
-                std::make_unique<bp2::Blueprint>(std::move(inline_bp)),
-                collapsed.layout.x, collapsed.layout.y);
+                std::make_unique<bp2::Blueprint>(std::move(inline_bp)));
+            collapsed.source = bp2::Blueprint::Node::BlueprintSource(std::move(embedded));
 
-            execute(model_, interner_, cmd_add_nested(std::move(nested)));
             execute(model_, interner_, cmd_add_node(std::move(collapsed)));
-            model_.replace_current(
-                bp2::sync_collapsed_node_iface_from_nested(model_.current(), interner_.lookup(unique_id)));
         });
-
-        if (!bp2::composite_iface_matches_nested(model_.current(), interner_.lookup(unique_id))) {
-            throw std::logic_error("addBlueprint: collapsed iface desynced from nested authority");
-        }
 
         rebuildAllWindows();
         spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) group={}",

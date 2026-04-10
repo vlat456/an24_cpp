@@ -41,16 +41,23 @@ struct BlueprintWindow {
         return nested_id;
     }
 
-    static const bp2::Blueprint::Nested& require_embedded_nested(bp2::EditorModel& root_model,
-                                                                 ui::InternedId nested_id) {
-        const auto* nested = root_model.current().find_nested(nested_id);
-        if (!nested) {
-            throw std::logic_error("Embedded window construction failed: nested instance not found");
+    static const bp2::Blueprint& require_embedded_blueprint(bp2::EditorModel& root_model,
+                                                            ui::InternedId node_id) {
+        const auto* node = root_model.current().find_node(node_id);
+        if (!node) {
+            throw std::logic_error("Embedded window construction failed: node instance not found");
         }
-        if (!nested->is_embedded() || !nested->inline_def()) {
-            throw std::logic_error("Embedded window construction failed: nested instance missing inline_def");
+        if (!node->is_blueprint_instance() || !node->source) {
+            throw std::logic_error("Embedded window construction failed: node missing blueprint source");
         }
-        return *nested;
+        if (!node->source->is_embedded()) {
+            throw std::logic_error("Embedded window construction failed: node is not an embedded blueprint instance");
+        }
+        const auto* inline_bp = node->source->inline_def();
+        if (!inline_bp) {
+            throw std::logic_error("Embedded window construction failed: embedded node missing inline blueprint");
+        }
+        return *inline_bp;
     }
 
     static std::unique_ptr<EditingHost> make_embedded_host(bp2::EditorModel& root_model,
@@ -98,7 +105,6 @@ struct BlueprintWindow {
         , viewport()
         , host(create_editor_model_host(root_model))
         , input(scene, viewport, *host, interner_, arena_, "", parser_registry) {
-        viewport.grid_step = root_model.current().grid_step();
         visual::mutations::rebuild(scene, root_model.current(), interner_, arena_, "");
     }
 
@@ -118,9 +124,8 @@ struct BlueprintWindow {
         , viewport()
         , host(make_embedded_host(root_model, interner_, embedded_scope_id))
         , input(scene, viewport, *host, interner_, arena_, "", parser_registry) {
-        const auto& nested = require_embedded_nested(root_model, require_nested_id(interner_, embedded_scope_id));
-        viewport.grid_step = nested.inline_def()->grid_step();
-        visual::mutations::rebuild(scene, *nested.inline_def(), interner_, arena_, "");
+        const auto& bp = require_embedded_blueprint(root_model, require_nested_id(interner_, embedded_scope_id));
+        visual::mutations::rebuild(scene, bp, interner_, arena_, "");
     }
 
     BlueprintWindow(ExternalWindowTag,

@@ -6,6 +6,7 @@
 #include "window/properties_window.h"
 #include "window/window_scope_id.h"
 #include "json_parser/json_parser.h"
+#include "blueprint_v2/library/library_index.h"
 #include "commands/extract_blueprint.h"
 #include "pi_zn_tuner.h"
 #include "oscilloscope.h"
@@ -56,6 +57,7 @@ public:
     Inspector& inspector() { return inspector_; }
     PropertiesWindow& propertiesWindow() { return properties_window_; }
     TypeRegistry& typeRegistry() { return type_registry_; }
+    const bp2::LibraryIndex& libraryIndex() const { return library_index_; }
 
     // ── Context menu state (with source document) ──
 
@@ -182,6 +184,7 @@ private:
     Document* active_document_ = nullptr;
     Document* pending_tab_focus_ = nullptr;  ///< One-shot: set by create/open, consumed by tab bar
     TypeRegistry type_registry_;
+    bp2::LibraryIndex library_index_;
     Inspector inspector_;
     PropertiesWindow properties_window_;
 };

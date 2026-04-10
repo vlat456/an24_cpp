@@ -297,29 +297,31 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("bp"));
 
-    bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:in", true, PortType::V);
-    bridge.structure.owner_scope = "inst1";
-
-     bp2::Blueprint::Node collapsed;
-     collapsed.semantic.id = interner.intern("inst1");
-     collapsed.semantic.type = interner.intern("bp_type");
-     collapsed.view.name = "inst1";
-     set_iface(collapsed, {
-         make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
-     });
-
-    auto inner_bp = std::make_unique<bp2::Blueprint>();
-    *inner_bp = inner_bp->with_interface(bp2::Interface({
+    // Create a blueprint-instance node with embedded source
+    bp2::Blueprint inner_bp;
+    inner_bp = inner_bp.with_interface(bp2::Interface({
         {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
     }));
-    auto nested = bp2::Blueprint::Nested::make_embedded(
-        interner.intern("inst1"),
+
+    bp2::Blueprint::Node collapsed;
+    collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    collapsed.semantic.id = interner.intern("inst1");
+    collapsed.semantic.type = interner.intern("bp_type");
+    collapsed.view.name = "inst1";
+    set_iface(collapsed, {
+        make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+    
+    collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("bp_type"),
-        std::move(inner_bp));
+        std::make_unique<bp2::Blueprint>(inner_bp)
+    );
+
+    // Create bridge node (now as a regular component node, not nested)
+    bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:in", true, PortType::V);
 
     bp = bp.with_node(std::move(bridge));
     bp = bp.with_node(std::move(collapsed));
-    bp = bp.with_nested(std::move(nested));
     model.replace_current(std::move(bp));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst1:in"));
@@ -335,9 +337,10 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     ASSERT_EQ(count_inputs(collapsed_after->semantic.iface), 1u);
     EXPECT_EQ(get_input_type(collapsed_after->semantic.iface, 0), PortType::RPM);
 
-    const auto* nested_after = model.current().find_nested(interner.intern("inst1"));
-    ASSERT_NE(nested_after, nullptr);
-    auto pd = nested_after->resolved_iface().find(interner.intern("in"));
+    // Check that the embedded blueprint's interface is also updated
+    ASSERT_TRUE(collapsed_after->has_embedded_blueprint());
+    auto embedded_iface = collapsed_after->source->resolved_iface();
+    auto pd = embedded_iface.find(interner.intern("in"));
     ASSERT_TRUE(pd.has_value());
     EXPECT_EQ(pd->domain, Domain::Mechanical);
 }
@@ -498,14 +501,14 @@ TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
 
     bp2::Blueprint::Wire w0;
     w0.id = interner.intern("wire_0");
-    w0.source = bp2::Path{};
-    w0.target = bp2::Path{};
+    w0.source = bp2::WireEndpoint{interner.intern("src"), interner.intern("v_out")};
+    w0.target = bp2::WireEndpoint{interner.intern("bus"), interner.intern("v")};
     bp = bp.with_wire(w0);
 
     bp2::Blueprint::Wire w1;
     w1.id = interner.intern("wire_1");
-    w1.source = bp2::Path{};
-    w1.target = bp2::Path{};
+    w1.source = bp2::WireEndpoint{interner.intern("bus"), interner.intern("v")};
+    w1.target = bp2::WireEndpoint{interner.intern("load"), interner.intern("v_in")};
     bp = bp.with_wire(w1);
 
     model.replace_current(std::move(bp));

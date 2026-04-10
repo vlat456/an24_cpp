@@ -1,64 +1,138 @@
 #include "blueprint.h"
+
 #include "blueprint_v2/validation/invariant_checker.h"
-#include "ui/core/interned_id.h"
+
 #include <algorithm>
 
 namespace bp2 {
 
-Blueprint::Nested::Embedded::Embedded(const Embedded& other)
+Blueprint::Node::BlueprintSource::Embedded::Embedded(const Embedded& other)
     : blueprint_id(other.blueprint_id) {
-    if (other.inline_def) {
-        inline_def = std::make_unique<Blueprint>(*other.inline_def);
+    if (other.blueprint) {
+        blueprint = std::make_unique<Blueprint>(*other.blueprint);
     }
 }
 
-Blueprint::Nested::Embedded& Blueprint::Nested::Embedded::operator=(const Embedded& other) {
+Blueprint::Node::BlueprintSource::Embedded&
+Blueprint::Node::BlueprintSource::Embedded::operator=(const Embedded& other) {
     if (this != &other) {
         blueprint_id = other.blueprint_id;
-        inline_def.reset();
-        if (other.inline_def) {
-            inline_def = std::make_unique<Blueprint>(*other.inline_def);
+        blueprint.reset();
+        if (other.blueprint) {
+            blueprint = std::make_unique<Blueprint>(*other.blueprint);
         }
     }
     return *this;
 }
 
-Blueprint::Nested::Nested(const Blueprint::Nested& other)
-    : id(other.id)
-    , x(other.x)
-    , y(other.y)
-    , content_(other.content_) {
+Blueprint::Node::BlueprintSource::BlueprintSource(const BlueprintSource& other)
+    : value(other.value) {
 }
 
-Blueprint::Nested& Blueprint::Nested::operator=(const Blueprint::Nested& other) {
+Blueprint::Node::BlueprintSource&
+Blueprint::Node::BlueprintSource::operator=(const BlueprintSource& other) {
     if (this != &other) {
-        id = other.id;
-        x = other.x;
-        y = other.y;
-        content_ = other.content_;
+        value = other.value;
     }
     return *this;
+}
+
+Blueprint::Node::BlueprintSource
+Blueprint::Node::BlueprintSource::make_embedded(ui::InternedId blueprint_id,
+                                                std::unique_ptr<Blueprint> blueprint) {
+    if (!blueprint) {
+        throw std::logic_error("BlueprintSource::make_embedded requires non-null blueprint");
+    }
+    return BlueprintSource(Embedded{blueprint_id, std::move(blueprint)});
+}
+
+Blueprint::Node::BlueprintSource
+Blueprint::Node::BlueprintSource::make_reference(ui::InternedId blueprint_id,
+                                                 Interface resolved_iface) {
+    if (blueprint_id.empty()) {
+        throw std::logic_error("BlueprintSource::make_reference requires non-empty blueprint_id");
+    }
+    return BlueprintSource(Reference{blueprint_id, std::move(resolved_iface)});
+}
+
+bool Blueprint::Node::BlueprintSource::is_embedded() const {
+    return std::holds_alternative<Embedded>(value);
+}
+
+bool Blueprint::Node::BlueprintSource::is_reference() const {
+    return std::holds_alternative<Reference>(value);
+}
+
+ui::InternedId Blueprint::Node::BlueprintSource::blueprint_id() const {
+    if (auto* embedded = std::get_if<Embedded>(&value)) {
+        return embedded->blueprint_id;
+    }
+    return std::get<Reference>(value).blueprint_id;
+}
+
+Interface const& Blueprint::Node::BlueprintSource::resolved_iface() const {
+    if (auto* embedded = std::get_if<Embedded>(&value)) {
+        return embedded->blueprint->iface();
+    }
+    return std::get<Reference>(value).resolved_iface;
+}
+
+Blueprint const* Blueprint::Node::BlueprintSource::inline_def() const {
+    if (auto* embedded = std::get_if<Embedded>(&value)) {
+        return embedded->blueprint.get();
+    }
+    return nullptr;
+}
+
+Blueprint* Blueprint::Node::BlueprintSource::inline_def_mut() {
+    if (auto* embedded = std::get_if<Embedded>(&value)) {
+        return embedded->blueprint.get();
+    }
+    return nullptr;
+}
+
+void Blueprint::Node::BlueprintSource::set_inline_def(std::unique_ptr<Blueprint> blueprint) {
+    if (!blueprint) {
+        throw std::logic_error("BlueprintSource::set_inline_def requires non-null blueprint");
+    }
+    auto* embedded = std::get_if<Embedded>(&value);
+    if (!embedded) {
+        throw std::logic_error("BlueprintSource::set_inline_def requires embedded source");
+    }
+    embedded->blueprint = std::move(blueprint);
+}
+
+bool Blueprint::Node::BlueprintSource::operator==(const BlueprintSource& other) const {
+    if (is_embedded() != other.is_embedded()) {
+        return false;
+    }
+    if (blueprint_id() != other.blueprint_id()) {
+        return false;
+    }
+    if (is_embedded()) {
+        const Blueprint* lhs = inline_def();
+        const Blueprint* rhs = other.inline_def();
+        if ((lhs == nullptr) != (rhs == nullptr)) {
+            return false;
+        }
+        return lhs == nullptr || *lhs == *rhs;
+    }
+    return resolved_iface() == other.resolved_iface();
 }
 
 Blueprint::Blueprint(Blueprint const& other)
     : id_(other.id_)
     , display_name_(other.display_name_)
     , iface_(other.iface_)
-    , pan_x_(other.pan_x_)
-    , pan_y_(other.pan_y_)
-    , zoom_(other.zoom_)
-    , grid_step_(other.grid_step_)
     , name_(other.name_)
     , node_idx_valid_(false)
-    , wire_idx_valid_(false)
-    , nested_idx_valid_(false) {
-    for (auto const& n : other.nodes_) {
-        nodes_.push_back(n);  // Node is copyable
+    , wire_idx_valid_(false) {
+    for (auto const& node : other.nodes_) {
+        nodes_.push_back(node);
     }
-    for (auto const& w : other.wires_) {
-        wires_.push_back(w);  // Wire is copyable
+    for (auto const& wire : other.wires_) {
+        wires_.push_back(wire);
     }
-    for (auto const& n : other.nested_) nested_.push_back(n);
 }
 
 Blueprint::Blueprint(Blueprint&& other) noexcept
@@ -67,15 +141,9 @@ Blueprint::Blueprint(Blueprint&& other) noexcept
     , iface_(std::move(other.iface_))
     , nodes_(std::move(other.nodes_))
     , wires_(std::move(other.wires_))
-    , nested_(std::move(other.nested_))
-    , pan_x_(other.pan_x_)
-    , pan_y_(other.pan_y_)
-    , zoom_(other.zoom_)
-    , grid_step_(other.grid_step_)
     , name_(std::move(other.name_))
     , node_idx_valid_(false)
-    , wire_idx_valid_(false)
-    , nested_idx_valid_(false) {
+    , wire_idx_valid_(false) {
 }
 
 Blueprint& Blueprint::operator=(Blueprint const& other) {
@@ -84,19 +152,16 @@ Blueprint& Blueprint::operator=(Blueprint const& other) {
         display_name_ = other.display_name_;
         iface_ = other.iface_;
         nodes_.clear();
-        for (auto const& n : other.nodes_) nodes_.push_back(n);
+        for (auto const& node : other.nodes_) {
+            nodes_.push_back(node);
+        }
         wires_.clear();
-        for (auto const& w : other.wires_) wires_.push_back(w);
-        nested_.clear();
-        for (auto const& n : other.nested_) nested_.push_back(n);
-        pan_x_ = other.pan_x_;
-        pan_y_ = other.pan_y_;
-        zoom_ = other.zoom_;
-        grid_step_ = other.grid_step_;
+        for (auto const& wire : other.wires_) {
+            wires_.push_back(wire);
+        }
         name_ = other.name_;
         node_idx_valid_ = false;
         wire_idx_valid_ = false;
-        nested_idx_valid_ = false;
     }
     return *this;
 }
@@ -108,21 +173,17 @@ Blueprint& Blueprint::operator=(Blueprint&& other) noexcept {
         iface_ = std::move(other.iface_);
         nodes_ = std::move(other.nodes_);
         wires_ = std::move(other.wires_);
-        nested_ = std::move(other.nested_);
-        pan_x_ = other.pan_x_;
-        pan_y_ = other.pan_y_;
-        zoom_ = other.zoom_;
-        grid_step_ = other.grid_step_;
         name_ = std::move(other.name_);
         node_idx_valid_ = false;
         wire_idx_valid_ = false;
-        nested_idx_valid_ = false;
     }
     return *this;
 }
 
 void Blueprint::ensure_node_index() const {
-    if (node_idx_valid_) return;
+    if (node_idx_valid_) {
+        return;
+    }
     node_idx_.clear();
     node_idx_.reserve(nodes_.size());
     for (size_t i = 0; i < nodes_.size(); ++i) {
@@ -134,13 +195,35 @@ void Blueprint::ensure_node_index() const {
 Blueprint::Node const* Blueprint::find_node(ui::InternedId id) const {
     ensure_node_index();
     auto it = node_idx_.find(id);
-    if (it == node_idx_.end()) return nullptr;
+    if (it == node_idx_.end()) {
+        return nullptr;
+    }
     return &nodes_[it->second];
 }
 
-Blueprint Blueprint::with_node(Node n) const {
+Blueprint::Node const* Blueprint::find_blueprint_instance(ui::InternedId id) const {
+    const auto* node = find_node(id);
+    if (!node || !node->is_blueprint_instance()) {
+        return nullptr;
+    }
+    return node;
+}
+
+bool Blueprint::is_blueprint_instance_node(Node const& node) const {
+    return node.is_blueprint_instance() && node.source.has_value();
+}
+
+bool Blueprint::is_embedded_blueprint_instance(Node const& node) const {
+    return node.is_blueprint_instance() && node.source.has_value() && node.source->is_embedded();
+}
+
+bool Blueprint::is_referenced_blueprint_instance(Node const& node) const {
+    return node.is_blueprint_instance() && node.source.has_value() && node.source->is_reference();
+}
+
+Blueprint Blueprint::with_node(Node node) const {
     Blueprint copy = *this;
-    copy.nodes_.push_back(std::move(n));
+    copy.nodes_.push_back(std::move(node));
     copy.node_idx_valid_ = false;
     return copy;
 }
@@ -149,21 +232,16 @@ Blueprint Blueprint::without_node(ui::InternedId id) const {
     Blueprint copy = *this;
     copy.nodes_.erase(
         std::remove_if(copy.nodes_.begin(), copy.nodes_.end(),
-            [id](Node const& n) { return n.semantic.id == id; }),
-        copy.nodes_.end()
-    );
+            [id](Node const& node) { return node.semantic.id == id; }),
+        copy.nodes_.end());
     copy.node_idx_valid_ = false;
-    copy.nested_.erase(
-        std::remove_if(copy.nested_.begin(), copy.nested_.end(),
-            [id](Nested const& n) { return n.id == id; }),
-        copy.nested_.end()
-    );
-    copy.nested_idx_valid_ = false;
     return copy;
 }
 
 void Blueprint::ensure_wire_index() const {
-    if (wire_idx_valid_) return;
+    if (wire_idx_valid_) {
+        return;
+    }
     wire_idx_.clear();
     wire_idx_.reserve(wires_.size());
     for (size_t i = 0; i < wires_.size(); ++i) {
@@ -175,13 +253,15 @@ void Blueprint::ensure_wire_index() const {
 Blueprint::Wire const* Blueprint::find_wire(ui::InternedId id) const {
     ensure_wire_index();
     auto it = wire_idx_.find(id);
-    if (it == wire_idx_.end()) return nullptr;
+    if (it == wire_idx_.end()) {
+        return nullptr;
+    }
     return &wires_[it->second];
 }
 
-Blueprint Blueprint::with_wire(Wire w) const {
+Blueprint Blueprint::with_wire(Wire wire) const {
     Blueprint copy = *this;
-    copy.wires_.push_back(std::move(w));
+    copy.wires_.push_back(std::move(wire));
     copy.wire_idx_valid_ = false;
     return copy;
 }
@@ -190,61 +270,10 @@ Blueprint Blueprint::without_wire(ui::InternedId id) const {
     Blueprint copy = *this;
     copy.wires_.erase(
         std::remove_if(copy.wires_.begin(), copy.wires_.end(),
-            [id](Wire const& w) { return w.id == id; }),
-        copy.wires_.end()
-    );
+            [id](Wire const& wire) { return wire.id == id; }),
+        copy.wires_.end());
     copy.wire_idx_valid_ = false;
     return copy;
-}
-
-void Blueprint::ensure_nested_index() const {
-    if (nested_idx_valid_) return;
-    nested_idx_.clear();
-    nested_idx_.reserve(nested_.size());
-    for (size_t i = 0; i < nested_.size(); ++i) {
-        nested_idx_[nested_[i].id] = i;
-    }
-    nested_idx_valid_ = true;
-}
-
-Blueprint::Nested const* Blueprint::find_nested(ui::InternedId id) const {
-    ensure_nested_index();
-    auto it = nested_idx_.find(id);
-    if (it == nested_idx_.end()) return nullptr;
-    return &nested_[it->second];
-}
-
-Blueprint::Nested const* Blueprint::find_hosted_nested(Node const& node) const {
-    return find_nested(node.semantic.id);
-}
-
-Blueprint::Node const* Blueprint::find_host_node(Nested const& nested) const {
-    return find_node(nested.id);
-}
-
-bool Blueprint::is_embedded_proxy_node(Node const& node) const {
-    const Nested* nested = find_hosted_nested(node);
-    return node.view.expandable && nested && nested->is_embedded();
-}
-
-bool Blueprint::is_external_reference_node(Node const& node) const {
-    return node.view.expandable && !find_hosted_nested(node) && !node.view.blueprint_path.empty();
-}
-
-std::string const& Blueprint::external_reference_path(Node const& node) const {
-    if (!is_external_reference_node(node)) {
-        throw std::logic_error("Blueprint::external_reference_path: node is not an external reference");
-    }
-    return node.view.blueprint_path;
-}
-
-std::string const& Blueprint::referenced_host_blueprint_path_mirror(Node const& node) const {
-    const Nested* nested = find_hosted_nested(node);
-    if (!nested || !nested->is_reference()) {
-        throw std::logic_error(
-            "Blueprint::referenced_host_blueprint_path_mirror: node is not a referenced nested host");
-    }
-    return node.view.blueprint_path;
 }
 
 Interface const& Blueprint::effective_node_iface(ui::InternedId node_id) const {
@@ -256,29 +285,13 @@ Interface const& Blueprint::effective_node_iface(ui::InternedId node_id) const {
 }
 
 Interface const& Blueprint::effective_node_iface(Node const& node) const {
-    const Nested* nested = find_hosted_nested(node);
-    if (nested) {
-        return nested->resolved_iface();
+    if (node.is_blueprint_instance()) {
+        if (!node.source.has_value()) {
+            throw std::logic_error("Blueprint::effective_node_iface: blueprint instance missing source");
+        }
+        return node.source->resolved_iface();
     }
     return node.semantic.iface;
-}
-
-Blueprint Blueprint::with_nested(Nested n) const {
-    Blueprint copy = *this;
-    copy.nested_.push_back(std::move(n));
-    copy.nested_idx_valid_ = false;
-    return copy;
-}
-
-Blueprint Blueprint::without_nested(ui::InternedId id) const {
-    Blueprint copy = *this;
-    copy.nested_.erase(
-        std::remove_if(copy.nested_.begin(), copy.nested_.end(),
-            [id](Nested const& n) { return n.id == id; }),
-        copy.nested_.end()
-    );
-    copy.nested_idx_valid_ = false;
-    return copy;
 }
 
 Blueprint Blueprint::with_id(ui::InternedId id) const {
@@ -299,59 +312,20 @@ Blueprint Blueprint::with_interface(Interface iface) const {
     return copy;
 }
 
-Blueprint Blueprint::with_viewport(float px, float py, float zoom, float grid_step) const {
+Blueprint Blueprint::with_name(std::string name) const {
     Blueprint copy = *this;
-    copy.pan_x_ = px;
-    copy.pan_y_ = py;
-    copy.zoom_ = zoom;
-    copy.grid_step_ = grid_step;
+    copy.name_ = std::move(name);
     return copy;
-}
-
-Blueprint Blueprint::with_name(std::string n) const {
-    Blueprint copy = *this;
-    copy.name_ = std::move(n);
-    return copy;
-}
-
-bool Blueprint::nested_equals(Nested const& a, Nested const& b) {
-    if (a.id != b.id) return false;
-    if (a.x != b.x) return false;
-    if (a.y != b.y) return false;
-
-    if (a.is_embedded() != b.is_embedded()) return false;
-    if (a.is_embedded()) {
-        if (a.blueprint_id() != b.blueprint_id()) return false;
-        bool a_has = (a.inline_def() != nullptr);
-        bool b_has = (b.inline_def() != nullptr);
-        if (a_has != b_has) return false;
-        if (a_has && b_has && *a.inline_def() != *b.inline_def()) return false;
-    } else {
-        if (a.blueprint_id() != b.blueprint_id()) return false;
-        if (a.resolved_iface() != b.resolved_iface()) return false;
-    }
-
-    return true;
 }
 
 bool Blueprint::operator==(Blueprint const& other) const {
-    if (id_ != other.id_) return false;
-    if (display_name_ != other.display_name_) return false;
-    if (name_ != other.name_) return false;
-    if (iface_ != other.iface_) return false;
-    if (pan_x_ != other.pan_x_) return false;
-    if (pan_y_ != other.pan_y_) return false;
-    if (zoom_ != other.zoom_) return false;
-    if (grid_step_ != other.grid_step_) return false;
-    if (nodes_ != other.nodes_) return false;
-    if (wires_ != other.wires_) return false;
-    if (nested_.size() != other.nested_.size()) return false;
-    for (size_t i = 0; i < nested_.size(); ++i) {
-        if (!nested_equals(nested_[i], other.nested_[i])) return false;
-    }
-    return true;
+    return id_ == other.id_
+        && display_name_ == other.display_name_
+        && name_ == other.name_
+        && iface_ == other.iface_
+        && nodes_ == other.nodes_
+        && wires_ == other.wires_;
 }
-
 
 Blueprint Blueprint::clone(ui::InternedId new_id) const {
     Blueprint copy = *this;
@@ -368,18 +342,18 @@ std::vector<std::pair<Path, PortDescriptor>> Blueprint::all_ports(PathArena& are
 
 void Blueprint::validate(::TypeRegistry const& parser_registry, ui::StringInterner& interner) const {
     PathArena arena(interner);
-    auto r = InvariantChecker::validate(*this, arena, parser_registry, interner);
-    if (!r.valid) {
-        throw std::runtime_error(std::string("Blueprint validation: ") + r.error);
+    auto result = InvariantChecker::validate(*this, arena, parser_registry, interner);
+    if (!result.valid) {
+        throw std::runtime_error(std::string("Blueprint validation: ") + result.error);
     }
 }
 
 void Blueprint::validate(::TypeRegistry const& parser_registry,
-                        ui::StringInterner& interner,
-                        PathArena const& arena) const {
-    auto r = InvariantChecker::validate(*this, arena, parser_registry, interner);
-    if (!r.valid) {
-        throw std::runtime_error(std::string("Blueprint validation: ") + r.error);
+                         ui::StringInterner& interner,
+                         PathArena const& arena) const {
+    auto result = InvariantChecker::validate(*this, arena, parser_registry, interner);
+    if (!result.valid) {
+        throw std::runtime_error(std::string("Blueprint validation: ") + result.error);
     }
 }
 
@@ -387,30 +361,25 @@ void Blueprint::collect_ports_recursive(
     std::vector<std::pair<Path, PortDescriptor>>& result,
     PathArena& arena,
     Path prefix) const {
-    // Interface ports of this blueprint (boundary ports)
     for (auto const& port : iface_.ports()) {
-        Path port_path = arena.make_port(prefix, port.name);
-        result.push_back({port_path, port});
+        result.push_back({arena.make_port(prefix, port.name), port});
     }
-    // Node ports
+
     for (auto const& node : nodes_) {
         Path node_path = arena.make_node(prefix, node.semantic.id);
         for (auto const& port : effective_node_iface(node)) {
-            Path port_path = arena.make_port(node_path, port.name);
-            result.push_back({port_path, port});
+            result.push_back({arena.make_port(node_path, port.name), port});
         }
-    }
-    // Nested instance ports (recursively)
-    for (auto const& nested : nested_) {
-        Path nested_path = arena.make_nested(prefix, nested.id);
-        if (auto* def = nested.inline_def()) {
-            def->collect_ports_recursive(result, arena, nested_path);
-        } else {
-            for (auto const& port : nested.resolved_iface()) {
-                Path port_path = arena.make_port(nested_path, port.name);
-                result.push_back({port_path, port});
-            }
+
+        if (!is_embedded_blueprint_instance(node)) {
+            continue;
         }
+
+        const Blueprint* inline_bp = node.source->inline_def();
+        if (!inline_bp) {
+            throw std::logic_error("Blueprint::collect_ports_recursive: embedded blueprint instance missing inline blueprint");
+        }
+        inline_bp->collect_ports_recursive(result, arena, arena.make_nested(prefix, node.semantic.id));
     }
 }
 

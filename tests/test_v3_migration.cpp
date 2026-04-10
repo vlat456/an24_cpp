@@ -23,9 +23,12 @@ TEST(V3Migration, LibraryLoaderParsesConvertedLibraryAsV3Only) {
 
 TEST(V3Migration, CodecRejectsLegacyVersion2Json) {
     std::string old_schema = R"({
+        "format": "an24.blueprint",
         "version": 2,
-        "meta": {"name": "old_schema"},
-        "nodes": {},
+        "blueprint_id": "old_schema",
+        "name": "old_schema",
+        "interface": [],
+        "nodes": [],
         "wires": []
     })";
 

@@ -688,28 +688,32 @@ Right-click-inserting a composite blueprint (e.g., 12SAM28 into `closed_circuit.
 3. **Wire object moved twice bug:** When remapping wires, `w_remapped` was moved into `remapped_bp` AND then moved again into `root_internal_wires`. Since `std::move` transfers ownership, the second `push_back(std::move(w_remapped))` received a moved-from object with empty fields. Both consumers need the same wire data — must copy before first move.
 
 **Fix:** Refactored `addBlueprint()` to use `load_blueprint_from_file_validated()` — the same JSON parsing code used for loading saved documents. This gives us all metadata for free:
-- Node positions from `"position": {"x":..., "y":...}` in the `.blueprint` file
-- Wire routing points from `"routing_points"` in the `.blueprint` file  
-- Viewport settings (`pan_x`, `pan_y`, `zoom`, `grid_step`) for sub-window auto-fit
+- Node positions from `"layout": {"x":..., "y":...}` in the `.blueprint` file
+- Wire routing points from `"routing": []` in the `.blueprint` file  
+- (Pre-#86: Viewport settings (`pan_x`, `pan_y`, `zoom`, `grid_step`) were once persisted, but canonical v1 no longer includes them)
 - Library blueprint path lookup via `registry.categories[blueprint_name]` (e.g., `"systems"` → `library/systems/`)
+
 
 After loading, all internal node IDs and wire endpoints are namespace-remapped to `unique_id + "_" + original_name` (e.g., `"12SAM28_1_battery"`) to avoid collisions when inserting the same blueprint multiple times. Remapped nodes and wires are added to the root blueprint via `cmd_add_node()` / `cmd_add_wire()`. The loaded blueprint (with remapped IDs) becomes `inline_def`.
 
 Also fixed sub-window viewport: instead of blindly setting `pending_auto_fit = has_default_pan_zoom(*nested->inline_def)`, apply saved viewport from nested blueprint directly to window:
 
-```cpp
-if (has_default_pan_zoom(*nested->inline_def)) {
-    win->pending_auto_fit = true;
-} else {
-    win->viewport.pan.x     = nested->inline_def->pan_x();
-    win->viewport.pan.y     = nested->inline_def->pan_y();
-    win->viewport.zoom      = nested->inline_def->zoom();
-    win->viewport.grid_step = nested->inline_def->grid_step();
-    win->viewport.clamp_zoom();
-}
-```
+> **[PRE-#86 HISTORY]** The following code shows the old behavior before blueprint persistence was reset:
+> ```cpp
+> if (has_default_pan_zoom(*nested->inline_def)) {
+>     win->pending_auto_fit = true;
+> } else {
+>     win->viewport.pan.x     = nested->inline_def->pan_x();
+>     win->viewport.pan.y     = nested->inline_def->pan_y();
+>     win->viewport.zoom      = nested->inline_def->zoom();
+>     win->viewport.grid_step = nested->inline_def->grid_step();
+>     win->viewport.clamp_zoom();
+> }
+> ```
+> In canonical v1 persistence (post-#86), viewport state is no longer persisted in blueprints. Sub-windows now always auto-fit to content on first open.
 
-**Key lesson:** Always reuse existing root-level document loading infrastructure. The root-level path already handles nodes, wires, positions, routing points, viewport, simulation integration, and oscilloscope rendering correctly. Don't manually reconstruct what JSON parsing already provides.
+**Key lesson:** Always reuse existing root-level document loading infrastructure. The root-level path already handles nodes, wires, positions, routing points, simulation integration, and oscilloscope rendering correctly. Don't manually reconstruct what JSON parsing already provides.
+
 
 **Files changed:** `src/editor/document.cpp` — `addBlueprint()` function (complete rewrite), added `#include <filesystem>`, viewport fix in `openSubWindow()`
 

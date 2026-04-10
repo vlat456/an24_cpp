@@ -17,23 +17,24 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
 }
 
 // ==================================================================
-// throw_unresolved_nested — fail loudly on missing nested blueprint
+// throw_unresolved_blueprint_instance — fail loudly on missing bp definition
 // ==================================================================
 
-[[noreturn]] void Flattener::throw_unresolved_nested(Blueprint::Nested const& nested, Path prefix) const {
-    const std::string instance_path = arena_->to_string(arena_->make_nested(prefix, nested.id));
-    const auto bp_id = nested.blueprint_id();
+[[noreturn]] void Flattener::throw_unresolved_blueprint_instance(
+    Blueprint::Node const& node, Path prefix) const {
+    const std::string instance_path = arena_->to_string(arena_->make_node(prefix, node.semantic.id));
+    const auto bp_id = node.source->blueprint_id();
     const auto bp_name = arena_->resolve_id(bp_id);
     const std::string blueprint_id = bp_name.empty()
         ? std::string{"<empty>"}
         : std::string{bp_name};
     throw std::logic_error(
-        "Flattener: unresolved nested blueprint for instance '" + instance_path
+        "Flattener: unresolved blueprint for instance '" + instance_path
         + "' (blueprint_id='" + blueprint_id + "')");
 }
 
 // ==================================================================
-// visit_blueprint — emit leaf nodes, recurse into nested instances
+// visit_blueprint — emit leaf nodes, recurse into blueprint instances
 // ==================================================================
 
 void Flattener::visit_blueprint(
@@ -43,14 +44,11 @@ void Flattener::visit_blueprint(
     FlatNetlist& out) {
 
     for (auto const& node : bp.nodes()) {
-        if (bp.find_hosted_nested(node)) {
-            continue;
+        if (node.is_blueprint_instance()) {
+            visit_blueprint_instance(node, prefix, signals, out);
+        } else {
+            emit_component(bp, node, prefix, signals, out);
         }
-        emit_component(bp, node, prefix, signals, out);
-    }
-
-    for (auto const& nested : bp.nested()) {
-        visit_nested(nested, prefix, signals, out);
     }
 }
 
@@ -72,7 +70,6 @@ void Flattener::emit_component(
     comp.type = node.semantic.type;
     comp.params = node.semantic.params;
     comp.string_params = node.semantic.string_params;
-    comp.render_hint = node.view.render_hint;
 
     for (auto const& port : bp.effective_node_iface(node)) {
         Path port_path = arena_->make_port(node_path, port.name);
@@ -97,9 +94,9 @@ void Flattener::process_wires(
 
     for (auto const& wire : bp.wires()) {
         SignalIndex src_sig = get_or_create_signal(
-            wire.source, wire.domain, signals, out);
+            wire.source.to_path(*arena_), wire.domain, signals, out);
         SignalIndex tgt_sig = get_or_create_signal(
-            wire.target, wire.domain, signals, out);
+            wire.target.to_path(*arena_), wire.domain, signals, out);
 
         if (src_sig != tgt_sig) {
             merge_signals(src_sig, tgt_sig, signals, out);
@@ -108,32 +105,36 @@ void Flattener::process_wires(
 }
 
 // ==================================================================
-// visit_nested — expand a nested blueprint instance recursively
+// visit_blueprint_instance — expand a blueprint-instance node recursively
 // ==================================================================
 
-void Flattener::visit_nested(
-    Blueprint::Nested const& nested,
+void Flattener::visit_blueprint_instance(
+    Blueprint::Node const& node,
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     FlatNetlist& out) {
 
-    Path nested_path = arena_->make_nested(prefix, nested.id);
+    if (!node.source) {
+        throw std::logic_error("Flattener: blueprint-instance node without source");
+    }
+
+    Path node_path = arena_->make_node(prefix, node.semantic.id);
 
     Blueprint const* inner = nullptr;
-    if (auto* def = nested.inline_def()) {
+    if (auto* def = node.source->inline_def()) {
         inner = def;
     } else {
-        inner = library_.find(nested.blueprint_id());
+        inner = library_.find(node.source->blueprint_id());
     }
     if (!inner) {
-        throw_unresolved_nested(nested, prefix);
+        throw_unresolved_blueprint_instance(node, prefix);
     }
 
     // Seed boundary signals: map outer port path to parent signal index
     std::unordered_map<Path, SignalIndex> nested_signals;
     std::unordered_map<Path, SignalIndex> seeded_boundary;
-    for (auto const& port : nested.resolved_iface()) {
-        Path outer_port = arena_->make_port(nested_path, port.name);
+    for (auto const& port : node.source->resolved_iface()) {
+        Path outer_port = arena_->make_port(node_path, port.name);
         auto it = signals.find(outer_port);
         if (it != signals.end()) {
             nested_signals[outer_port] = it->second;
@@ -141,10 +142,10 @@ void Flattener::visit_nested(
         }
     }
 
-    // Process inner wires with paths remapped under nested_path
+    // Process inner wires with paths remapped under node_path
     for (auto const& wire : inner->wires()) {
-        Path src = remap_path(wire.source, nested_path);
-        Path tgt = remap_path(wire.target, nested_path);
+        Path src = remap_endpoint(wire.source, node_path);
+        Path tgt = remap_endpoint(wire.target, node_path);
 
         SignalIndex src_sig = get_or_create_signal(
             src, wire.domain, nested_signals, out);
@@ -171,18 +172,8 @@ void Flattener::visit_nested(
         signals[path] = sig;
     }
 
-    // Emit inner leaf nodes (skip composite hosts — they expand via nested)
-    for (auto const& node : inner->nodes()) {
-        if (inner->find_hosted_nested(node)) {
-            continue;
-        }
-        emit_component(*inner, node, nested_path, nested_signals, out);
-    }
-
-    // Recurse into nested-of-nested
-    for (auto const& inner_nested : inner->nested()) {
-        visit_nested(inner_nested, nested_path, nested_signals, out);
-    }
+    // Emit inner leaf nodes and recurse into inner blueprint instances
+    visit_blueprint(*inner, node_path, nested_signals, out);
 }
 
 // ==================================================================
@@ -221,6 +212,15 @@ Path Flattener::remap_path(Path inner_path, Path nested_prefix) {
         }
     }
     return result;
+}
+
+// ==================================================================
+// remap_endpoint — materialize a WireEndpoint under a nested prefix
+// ==================================================================
+
+Path Flattener::remap_endpoint(WireEndpoint const& ep, Path nested_prefix) {
+    Path node_path = arena_->make_node(nested_prefix, ep.node);
+    return arena_->make_port(node_path, ep.port);
 }
 
 // ==================================================================

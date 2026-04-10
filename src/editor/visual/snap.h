@@ -25,6 +25,12 @@ path_to_node_port(const bp2::Path& path, const bp2::PathArena& arena) {
     return {parent.segment(), port_name};
 }
 
+/// Overload for WireEndpoint — trivially extracts node/port without arena.
+inline std::pair<ui::InternedId, ui::InternedId>
+path_to_node_port(const bp2::WireEndpoint& ep, const bp2::PathArena& /*arena*/) {
+    return {ep.node, ep.port};
+}
+
 using ui::Pt;
 
 /// Given two center positions, determine which edge of `from_center` faces

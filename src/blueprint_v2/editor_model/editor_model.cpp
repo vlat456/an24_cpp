@@ -22,9 +22,6 @@ Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updat
     for (const auto& w : bp.wires()) {
         rebuilt = rebuilt.with_wire(w);
     }
-    for (const auto& n : bp.nested()) {
-        rebuilt = rebuilt.with_nested(n);
-    }
 
     return rebuilt;
 }
@@ -49,61 +46,7 @@ Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updat
         rebuilt = rebuilt.with_wire(std::move(updated));
     }
 
-    for (const auto& n : bp.nested()) {
-        rebuilt = rebuilt.with_nested(n);
-    }
-
     return rebuilt;
-}
-
-Blueprint replace_nested_preserve_order(const Blueprint& bp, Blueprint::Nested updated) {
-    Blueprint rebuilt = clone_metadata(bp);
-
-    for (const auto& n : bp.nodes()) {
-        rebuilt = rebuilt.with_node(n);
-    }
-    for (const auto& w : bp.wires()) {
-        rebuilt = rebuilt.with_wire(w);
-    }
-
-    bool replaced = false;
-    for (const auto& n : bp.nested()) {
-        if (n.id == updated.id) {
-            rebuilt = rebuilt.with_nested(std::move(updated));
-            replaced = true;
-        } else {
-            rebuilt = rebuilt.with_nested(n);
-        }
-    }
-    if (!replaced) {
-        rebuilt = rebuilt.with_nested(std::move(updated));
-    }
-
-    return rebuilt;
-}
-
-Blueprint sync_collapsed_node_iface_from_nested(const Blueprint& bp, ui::InternedId nested_id) {
-    const auto* nested = bp.find_nested(nested_id);
-    if (!nested) {
-        throw std::logic_error("sync_collapsed_node_iface_from_nested: nested instance not found");
-    }
-    const auto* collapsed = bp.find_node(nested_id);
-    if (!collapsed) {
-        throw std::logic_error("sync_collapsed_node_iface_from_nested: collapsed node not found");
-    }
-
-    Blueprint::Node updated = *collapsed;
-    updated.semantic.iface = nested->resolved_iface();
-    return replace_node_preserve_order(bp, std::move(updated));
-}
-
-bool composite_iface_matches_nested(const Blueprint& bp, ui::InternedId nested_id) {
-    const auto* nested = bp.find_nested(nested_id);
-    const auto* collapsed = bp.find_node(nested_id);
-    if (!nested || !collapsed) {
-        return false;
-    }
-    return collapsed->semantic.iface == nested->resolved_iface();
 }
 
 EditorModel::EditorModel(Blueprint initial)
@@ -184,22 +127,6 @@ bool EditorModel::remove_wire(ui::InternedId id) {
     return true;
 }
 
-bool EditorModel::add_nested(Blueprint::Nested nested) {
-    if (current_.find_nested(nested.id)) return false;
-    push_checkpoint_if_enabled();
-    current_ = canonicalize_composite_host_ifaces(current_.with_nested(std::move(nested)));
-    invalidate_indices();
-    return true;
-}
-
-bool EditorModel::remove_nested(ui::InternedId id) {
-    if (!current_.find_nested(id)) return false;
-    push_checkpoint_if_enabled();
-    current_ = current_.without_nested(id);
-    invalidate_indices();
-    return true;
-}
-
 bool EditorModel::update_node(ui::InternedId id, std::function<void(Blueprint::Node&)> fn) {
     auto const* existing = current_.find_node(id);
     if (!existing) return false;
@@ -258,35 +185,22 @@ void EditorModel::redo() {
     undo_stack_.push_back(std::move(current_));
     current_ = std::move(redo_stack_.back());
     redo_stack_.pop_back();
-    invalidate_indices();
+     invalidate_indices();
 }
 
-bool EditorModel::bake_nested(ui::InternedId id,
-                               BlueprintLibrary const& library,
-                               ui::StringInterner& interner) {
+bool EditorModel::bake_blueprint_instance(ui::InternedId node_id,
+                                        BlueprintLibrary const& library,
+                                        ui::StringInterner& interner) {
     (void)interner;
-    auto const* nested = current_.find_nested(id);
-    if (!nested) return false;
-    if (nested->is_embedded()) return false;
+    (void)library;
+    auto const* node = current_.find_node(node_id);
+    if (!node) return false;
+    if (!node->is_blueprint_instance()) return false;
+    if (!node->source || !node->source->is_reference()) return false;
 
-    auto const* referenced = library.find(nested->blueprint_id());
-    if (!referenced) return false;
-
-    push_checkpoint_if_enabled();
-
-    auto baked = Blueprint::Nested::make_embedded(
-        nested->id, {},
-        std::make_unique<Blueprint>(*referenced),
-        nested->x, nested->y);
-
-    current_ = canonicalize_composite_host_ifaces(current_.without_nested(id).with_nested(std::move(baked)));
-
-    if (current_.find_node(id) && !composite_iface_matches_nested(current_, id)) {
-        throw std::logic_error("bake_nested: collapsed iface desynced from nested authority");
-    }
-
-    invalidate_indices();
-    return true;
+    // TODO: Implement reference-to-embedded conversion for blueprint_instance nodes.
+    // This will involve looking up the referenced blueprint and updating node.source.
+    return false;
 }
 
 void EditorModel::ensure_indices() const {
@@ -319,7 +233,7 @@ std::vector<ui::InternedId> EditorModel::nodes_in_rect(Rect const& r) const {
     return out;
 }
 
-bool EditorModel::wire_exists(Path source, Path target) const {
+bool EditorModel::wire_exists(WireEndpoint const& source, WireEndpoint const& target) const {
     ensure_indices();
     return indices_.wire_set.find({source, target}) != indices_.wire_set.end();
 }

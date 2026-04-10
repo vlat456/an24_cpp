@@ -4,7 +4,6 @@ namespace bp2 {
 
 WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
                                               Blueprint const& bp,
-                                              PathArena const& arena,
                                               const ::TypeRegistry& parser_registry,
                                               ui::StringInterner& interner) {
     Result out;
@@ -17,8 +16,8 @@ WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
     }
 
     PathResolver resolver;
-    auto src = resolver.resolve(wire.source, bp, arena, parser_registry, interner);
-    auto tgt = resolver.resolve(wire.target, bp, arena, parser_registry, interner);
+    auto src = resolver.resolve(wire.source, bp, parser_registry, interner);
+    auto tgt = resolver.resolve(wire.target, bp, parser_registry, interner);
     if (!src || !tgt) {
         out.error = "wire endpoint path unresolved";
         return out;
@@ -35,7 +34,7 @@ WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
         return out;
     }
 
-    if (!resolver.can_connect(wire.source, wire.target, bp, arena, parser_registry, interner)) {
+    if (!resolver.can_connect(wire.source, wire.target, bp, parser_registry, interner)) {
         out.error = "wire direction/domain invalid";
         return out;
     }

@@ -16,7 +16,6 @@ public:
 
     static Result validate(Blueprint::Wire const& wire,
                            Blueprint const& bp,
-                           PathArena const& arena,
                            const ::TypeRegistry& parser_registry,
                            ui::StringInterner& interner);
 };

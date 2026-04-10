@@ -258,15 +258,10 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         const bp2::Blueprint::Wire* data_wire = bp_ref.find_wire(wire_iid);
         if (!data_wire) return;
 
-        // Decode the source port path: Port -> Node -> Root
-        bp2::PathArena& arena_ref = win.is_external_ref() && win.external_arena
-                                    ? *win.external_arena : const_cast<bp2::PathArena&>(doc.arena());
-        bp2::Path src = data_wire->source;
-        if (src.kind() != bp2::PathKind::Port) return;
-        ui::InternedId port_iid = src.segment();
-        bp2::Path node_path = arena_ref.parent(src);
-        if (node_path.kind() != bp2::PathKind::Node) return;
-        ui::InternedId node_iid = node_path.segment();
+        // Decode the source endpoint directly from WireEndpoint
+        ui::InternedId node_iid = data_wire->source.node;
+        ui::InternedId port_iid = data_wire->source.port;
+        if (node_iid.empty() || port_iid.empty()) return;
 
         std::string signal_key;
         // Use resolver for signal key lookup

@@ -85,19 +85,18 @@ bool validate_blueprint_for_persist(
         return false;
     }
 
-    for (const auto& node : bp.nodes()) {
-        // Embedded blueprint proxy nodes carry a user-given type name that
-        // won't exist in the library TypeRegistry.  Their internals are
-        // already validated as individual nodes, so skip the proxy.
-        if (bp.is_embedded_proxy_node(node)) {
-            continue;
-        }
-        std::string type_name(interner.resolve(node.semantic.type));
-        if (!parser_registry.has(type_name)) {
-            if (error_out) *error_out = "unknown node type: " + type_name;
-            return false;
-        }
-    }
+     for (const auto& node : bp.nodes()) {
+         // Embedded blueprint instances carry a semantic type that matches
+         // the blueprint ID, not a registered component type. Skip validation.
+         if (node.has_embedded_blueprint()) {
+             continue;
+         }
+         std::string type_name(interner.resolve(node.semantic.type));
+         if (!parser_registry.has(type_name)) {
+             if (error_out) *error_out = "unknown node type: " + type_name;
+             return false;
+         }
+     }
 
     if (error_out) error_out->clear();
     return true;

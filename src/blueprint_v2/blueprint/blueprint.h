@@ -20,6 +20,11 @@ namespace bp2 {
 class Blueprint {
 public:
     struct Node {
+        enum class Kind {
+            Component,
+            BlueprintInstance,
+        };
+
         // Per-port layout overrides (used by LayoutData)
         struct PortLayoutOverride {
             std::string port_name;
@@ -34,9 +39,8 @@ public:
         struct SemanticData {
             ui::InternedId id;
             ui::InternedId type;
-            /// For composite host nodes this is a derived cache that must mirror
-            /// the hosted nested resolved interface. Use effective_node_iface()
-            /// for authoritative reads.
+            /// Component interface cache. For blueprint-instance nodes, use
+            /// effective_node_iface() for authoritative reads.
             Interface iface;
             std::unordered_map<ui::InternedId, float> params;
             /// String-valued parameters (e.g. font_size, text content).
@@ -49,17 +53,52 @@ public:
             }
         };
 
-        // === Structural/editor ownership data ===
-        struct StructureData {
-            /// Editor structural scope identity.
-            /// Empty means root scope within the containing blueprint.
-            /// Non-empty means the id of an embedded host node in the same
-            /// blueprint; freeform subgroup labels are not valid here.
-            std::string owner_scope;
+        struct BlueprintSource {
+            struct Embedded {
+                ui::InternedId blueprint_id;
+                std::unique_ptr<Blueprint> blueprint;
 
-            bool operator==(StructureData const& o) const {
-                return owner_scope == o.owner_scope;
-            }
+                Embedded() = delete;
+                Embedded(ui::InternedId bp_id, std::unique_ptr<Blueprint> bp)
+                    : blueprint_id(bp_id), blueprint(std::move(bp)) {}
+                Embedded(const Embedded& other);
+                Embedded(Embedded&&) noexcept = default;
+                Embedded& operator=(const Embedded& other);
+                Embedded& operator=(Embedded&&) noexcept = default;
+            };
+
+            struct Reference {
+                ui::InternedId blueprint_id;
+                Interface resolved_iface;
+            };
+
+            std::variant<Embedded, Reference> value;
+
+            BlueprintSource() = delete;
+            explicit BlueprintSource(Embedded embedded)
+                : value(std::move(embedded)) {}
+            explicit BlueprintSource(Reference reference)
+                : value(std::move(reference)) {}
+
+            BlueprintSource(const BlueprintSource& other);
+            BlueprintSource(BlueprintSource&&) noexcept = default;
+            BlueprintSource& operator=(const BlueprintSource& other);
+            BlueprintSource& operator=(BlueprintSource&&) noexcept = default;
+
+            static BlueprintSource make_embedded(ui::InternedId blueprint_id,
+                                                 std::unique_ptr<Blueprint> blueprint);
+            static BlueprintSource make_reference(ui::InternedId blueprint_id,
+                                                 Interface resolved_iface);
+
+            bool is_embedded() const;
+            bool is_reference() const;
+            ui::InternedId blueprint_id() const;
+            Interface const& resolved_iface() const;
+            Blueprint const* inline_def() const;
+            Blueprint* inline_def_mut();
+            void set_inline_def(std::unique_ptr<Blueprint> blueprint);
+
+            bool operator==(const BlueprintSource& other) const;
         };
 
         // === Layout/positioning data ===
@@ -80,12 +119,13 @@ public:
 
         // === View/presentation data ===
         struct ViewData {
+            /// Canonical authored node label persisted as JSON `label`.
             std::string name;
+
+            /// Runtime/editor presentation state only. These fields are not
+            /// canonical persistence authority and must not be serialized in
+            /// strict blueprint v1 documents.
             std::string render_hint;
-            bool expandable = false;
-            /// External-reference routing path for non-nested expandable nodes.
-            /// Referenced nested hosts must not rely on this as authority.
-            std::string blueprint_path;
 
             // Node content (simulation readout / interactive widget)
             NodeContentType content_type = NodeContentType::None;
@@ -97,13 +137,13 @@ public:
             bool content_state = false;
             bool content_tripped = false;
 
-            // Per-node custom color (has_color=false means use theme default)
+            // Per-node custom color (has_color=false means use theme default).
+            // Session/editor-only state: not part of canonical persistence.
             bool has_color = false;
             float color_r = 0.5f, color_g = 0.5f, color_b = 0.5f, color_a = 1.0f;
 
             bool operator==(ViewData const& o) const {
                 return name == o.name && render_hint == o.render_hint
-                    && expandable == o.expandable && blueprint_path == o.blueprint_path
                     && content_type == o.content_type && content_label == o.content_label
                     && content_value == o.content_value && content_min == o.content_min
                     && content_max == o.content_max && content_unit == o.content_unit
@@ -113,21 +153,31 @@ public:
             }
         };
 
+        Kind kind = Kind::Component;
         SemanticData semantic;
-        StructureData structure;
+        std::optional<BlueprintSource> source;
         LayoutData layout;
         ViewData view;
 
+        bool is_component() const { return kind == Kind::Component; }
+        bool is_blueprint_instance() const { return kind == Kind::BlueprintInstance; }
+        bool has_embedded_blueprint() const {
+            return source.has_value() && source->is_embedded();
+        }
+        bool has_referenced_blueprint() const {
+            return source.has_value() && source->is_reference();
+        }
+
         bool operator==(Node const& o) const {
-            return semantic == o.semantic && structure == o.structure
+            return kind == o.kind && semantic == o.semantic && source == o.source
                 && layout == o.layout && view == o.view;
         }
     };
 
     struct Wire {
         ui::InternedId id;
-        Path source;
-        Path target;
+        WireEndpoint source;
+        WireEndpoint target;
         Domain domain = Domain::Electrical;
         std::vector<std::pair<float,float>> routing_points;
 
@@ -135,122 +185,6 @@ public:
             return id == o.id && source == o.source
                 && target == o.target && domain == o.domain;
         }
-    };
-
-    struct Nested {
-        ui::InternedId id;
-        float x = 0.0f;
-        float y = 0.0f;
-
-        /// Embedded mode: owned inline blueprint definition.
-        struct Embedded {
-            ui::InternedId blueprint_id;
-            std::unique_ptr<Blueprint> inline_def;  // always non-null
-
-            Embedded() = delete;
-            Embedded(ui::InternedId bp_id, std::unique_ptr<Blueprint> def)
-                : blueprint_id(bp_id), inline_def(std::move(def)) {}
-            Embedded(const Embedded& other);
-            Embedded(Embedded&&) noexcept = default;
-            Embedded& operator=(const Embedded& other);
-            Embedded& operator=(Embedded&&) noexcept = default;
-        };
-
-        /// Reference mode: external blueprint by ID with derived interface cache.
-        /// `blueprint_id` is authoritative; `resolved_iface` must mirror the
-        /// current registry/library definition for that id.
-        struct Reference {
-            ui::InternedId blueprint_id;  // always non-empty
-            Interface resolved_iface;     // derived cache, always populated
-        };
-
-    private:
-        std::variant<Embedded, Reference> content_;
-
-        Nested(ui::InternedId nid, float px, float py, std::variant<Embedded, Reference> c)
-            : id(nid), x(px), y(py), content_(std::move(c)) {}
-
-    public:
-
-        // ── Factory methods ──
-
-        static Nested make_embedded(ui::InternedId id,
-                                    ui::InternedId blueprint_id,
-                                    std::unique_ptr<Blueprint> inline_def,
-                                    float x = 0.0f, float y = 0.0f) {
-            if (!inline_def) {
-                throw std::logic_error("Nested::make_embedded requires non-null inline_def");
-            }
-            return Nested{id, x, y, Embedded{blueprint_id, std::move(inline_def)}};
-        }
-
-        static Nested make_reference(ui::InternedId id,
-                                     ui::InternedId blueprint_id,
-                                     Interface resolved_iface,
-                                     float x = 0.0f, float y = 0.0f) {
-            if (blueprint_id.empty()) {
-                throw std::logic_error("Nested::make_reference requires non-empty blueprint_id");
-            }
-            return Nested{id, x, y, Reference{blueprint_id, std::move(resolved_iface)}};
-        }
-
-        // ── Accessors ──
-
-        bool is_embedded() const { return std::holds_alternative<Embedded>(content_); }
-        bool is_reference() const { return std::holds_alternative<Reference>(content_); }
-
-        Interface const& resolved_iface() const {
-            if (auto* e = std::get_if<Embedded>(&content_)) {
-                return e->inline_def->iface();
-            }
-            return std::get<Reference>(content_).resolved_iface;
-        }
-
-        ui::InternedId blueprint_id() const {
-            if (auto* e = std::get_if<Embedded>(&content_)) {
-                return e->blueprint_id;
-            }
-            return std::get<Reference>(content_).blueprint_id;
-        }
-
-        Blueprint const* inline_def() const {
-            if (auto* e = std::get_if<Embedded>(&content_)) {
-                return e->inline_def.get();
-            }
-            return nullptr;
-        }
-
-        Blueprint* inline_def_mut() {
-            if (auto* e = std::get_if<Embedded>(&content_)) {
-                return e->inline_def.get();
-            }
-            return nullptr;
-        }
-
-        // ── Mutators ──
-
-        /// Replace the inline definition of an Embedded nested.
-        /// Throws if this nested is not Embedded or if def is null.
-        void set_inline_def(std::unique_ptr<Blueprint> def) {
-            if (!def) {
-                throw std::logic_error("set_inline_def requires non-null def");
-            }
-            std::get<Embedded>(content_).inline_def = std::move(def);
-        }
-
-        /// Convert this nested to Embedded mode with the given definition.
-        void convert_to_embedded(ui::InternedId bp_id, std::unique_ptr<Blueprint> def) {
-            if (!def) {
-                throw std::logic_error("convert_to_embedded requires non-null def");
-            }
-            content_ = Embedded{bp_id, std::move(def)};
-        }
-
-        Nested() = delete;
-        Nested(const Nested& other);
-        Nested(Nested&& other) noexcept = default;
-        Nested& operator=(const Nested& other);
-        Nested& operator=(Nested&& other) noexcept = default;
     };
 
     Blueprint() = default;
@@ -265,23 +199,16 @@ public:
 
     std::vector<Node> const& nodes() const { return nodes_; }
     std::vector<Wire> const& wires() const { return wires_; }
-    std::vector<Nested> const& nested() const { return nested_; }
 
     Node const* find_node(ui::InternedId id) const;
     Wire const* find_wire(ui::InternedId id) const;
-    Nested const* find_nested(ui::InternedId id) const;
-
-    /// Composite host linkage is canonicalized by shared identity:
-    /// host node id == nested instance id. Validation enforces this relation.
-    Nested const* find_hosted_nested(Node const& node) const;
-    Node const* find_host_node(Nested const& nested) const;
-    bool is_embedded_proxy_node(Node const& node) const;
-    bool is_external_reference_node(Node const& node) const;
-    std::string const& external_reference_path(Node const& node) const;
-    std::string const& referenced_host_blueprint_path_mirror(Node const& node) const;
+    Node const* find_blueprint_instance(ui::InternedId id) const;
+    bool is_blueprint_instance_node(Node const& node) const;
+    bool is_embedded_blueprint_instance(Node const& node) const;
+    bool is_referenced_blueprint_instance(Node const& node) const;
 
     /// Return the authoritative interface for a node.
-    /// For composite host nodes, embedded nested authority wins.
+    /// For blueprint-instance nodes, source authority wins.
     Interface const& effective_node_iface(ui::InternedId node_id) const;
     Interface const& effective_node_iface(Node const& node) const;
 
@@ -289,21 +216,13 @@ public:
     Blueprint without_node(ui::InternedId id) const;
     Blueprint with_wire(Wire w) const;
     Blueprint without_wire(ui::InternedId id) const;
-    Blueprint with_nested(Nested n) const;
-    Blueprint without_nested(ui::InternedId id) const;
     Blueprint with_id(ui::InternedId id) const;
     Blueprint with_display_name(std::string name) const;
     Blueprint with_interface(Interface iface) const;
     Blueprint clone(ui::InternedId new_id) const;
 
-    // === Viewport state accessors ===
-    float pan_x() const { return pan_x_; }
-    float pan_y() const { return pan_y_; }
-    float zoom() const { return zoom_; }
-    float grid_step() const { return grid_step_; }
     std::string const& name() const { return name_; }
 
-    Blueprint with_viewport(float pan_x, float pan_y, float zoom, float grid_step) const;
     Blueprint with_name(std::string n) const;
 
     /// Returns all (path, port) pairs reachable from this blueprint.
@@ -324,27 +243,16 @@ private:
     Interface iface_;
     std::vector<Node> nodes_;
     std::vector<Wire> wires_;
-    std::vector<Nested> nested_;
 
-    // Editor viewport state (saved with document)
-    float pan_x_ = 0.0f;
-    float pan_y_ = 0.0f;
-    float zoom_ = 1.0f;
-    float grid_step_ = 16.0f;
     std::string name_;
 
     mutable std::unordered_map<ui::InternedId, size_t> node_idx_;
     mutable bool node_idx_valid_ = false;
     mutable std::unordered_map<ui::InternedId, size_t> wire_idx_;
     mutable bool wire_idx_valid_ = false;
-    mutable std::unordered_map<ui::InternedId, size_t> nested_idx_;
-    mutable bool nested_idx_valid_ = false;
 
     void ensure_node_index() const;
     void ensure_wire_index() const;
-    void ensure_nested_index() const;
-
-    static bool nested_equals(Nested const& a, Nested const& b);
 
     void collect_ports_recursive(
         std::vector<std::pair<Path, PortDescriptor>>& result,
