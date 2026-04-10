@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-
 #include "editor/visual/persist.h"
 #include "json_parser/json_parser.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
+#include "blueprint_v2/interface/type_definition_interface.h"
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -120,6 +120,11 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
     n.semantic.type = interner.intern("ElectricalSource");
     n.layout.x = 0.0f;
     n.layout.y = 0.0f;
+    // Populate interface from registry
+    const auto* def = parser_registry.get("ElectricalSource");
+    if (def) {
+        n.semantic.iface = bp2::interface_from_type_definition(*def, interner);
+    }
     bp = bp.with_node(std::move(n));
 
     std::string err;
@@ -127,7 +132,7 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
     EXPECT_TRUE(err.empty());
 }
 
-TEST(PersistValidation, WireDomainMismatchIsToleratedWithoutThrow) {
+TEST(PersistValidation, WireDomainMismatchFailsValidation) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     TypeRegistry parser_registry = load_type_registry("library/");
@@ -139,11 +144,19 @@ TEST(PersistValidation, WireDomainMismatchIsToleratedWithoutThrow) {
     bp2::Blueprint::Node a;
     a.semantic.id = interner.intern("a");
     a.semantic.type = interner.intern("ElectricalSource");
+    const auto* def_a = parser_registry.get("ElectricalSource");
+    if (def_a) {
+        a.semantic.iface = bp2::interface_from_type_definition(*def_a, interner);
+    }
     bp = bp.with_node(std::move(a));
 
     bp2::Blueprint::Node b;
     b.semantic.id = interner.intern("b");
     b.semantic.type = interner.intern("Resistor");
+    const auto* def_b = parser_registry.get("Resistor");
+    if (def_b) {
+        b.semantic.iface = bp2::interface_from_type_definition(*def_b, interner);
+    }
     bp = bp.with_node(std::move(b));
 
     bp2::Blueprint::Wire w;
@@ -154,11 +167,10 @@ TEST(PersistValidation, WireDomainMismatchIsToleratedWithoutThrow) {
     bp = bp.with_wire(std::move(w));
 
     std::string err;
-    EXPECT_NO_THROW({
-        const bool ok = validate_blueprint_integrity(bp, interner, arena, parser_registry, &err);
-        EXPECT_TRUE(ok);
-    });
-    EXPECT_TRUE(err.empty());
+    // Issue #88: Strict v1 validation must reject wire domain mismatches
+    const bool ok = validate_blueprint_integrity(bp, interner, arena, parser_registry, &err);
+    EXPECT_FALSE(ok);
+    EXPECT_NE(err.find("domain"), std::string::npos);
 }
 
 // ===========================================================================

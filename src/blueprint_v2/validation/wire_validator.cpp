@@ -1,5 +1,20 @@
 #include "wire_validator.h"
 
+namespace {
+
+std::string domain_to_string(Domain d) {
+    switch (d) {
+        case Domain::Electrical: return "Electrical";
+        case Domain::Logical: return "Logical";
+        case Domain::Mechanical: return "Mechanical";
+        case Domain::Hydraulic: return "Hydraulic";
+        case Domain::Thermal: return "Thermal";
+        default: return "Unknown";
+    }
+}
+
+} // namespace
+
 namespace bp2 {
 
 WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
@@ -30,7 +45,8 @@ WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
 
     out.resolved_domain = src->port.domain;
     if (wire.domain != src->port.domain) {
-        out.valid = true;
+        out.error = "wire domain mismatch: declared as " + domain_to_string(wire.domain)
+                  + " but endpoints are " + domain_to_string(src->port.domain);
         return out;
     }
 

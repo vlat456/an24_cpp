@@ -60,9 +60,32 @@ std::optional<Blueprint> BlueprintCodec::decode(
             }
             return std::nullopt;
         }
+        {
+            const std::string bp_id = j["blueprint_id"].get<std::string>();
+            if (bp_id.empty()) {
+                if (error_out) {
+                    error_out->message = "blueprint_id must not be empty";
+                }
+                return std::nullopt;
+            }
+            for (char c : bp_id) {
+                if (c <= 0x20 || c > 0x7E) {
+                    if (error_out) {
+                        error_out->message = "blueprint_id must contain only printable ASCII with no whitespace";
+                    }
+                    return std::nullopt;
+                }
+            }
+        }
         if (!j.contains("name") || !j["name"].is_string()) {
             if (error_out) {
                 error_out->message = "Missing required string field: name";
+            }
+            return std::nullopt;
+        }
+        if (j["name"].get<std::string>().empty()) {
+            if (error_out) {
+                error_out->message = "name must not be empty";
             }
             return std::nullopt;
         }

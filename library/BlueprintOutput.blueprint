@@ -37,5 +37,9 @@
     "exposed_direction": "Out",
     "exposed_type": "V"
   },
+  "param_schema": {
+    "exposed_direction": { "type": "string" },
+    "exposed_type": { "type": "string" }
+  },
   "priority": "high"
 }

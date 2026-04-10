@@ -16,9 +16,16 @@ const std::unordered_set<std::string>& allowed_interface_fields() {
     return s;
 }
 
-const std::unordered_set<std::string>& allowed_node_fields() {
+const std::unordered_set<std::string>& allowed_component_node_fields() {
     static const std::unordered_set<std::string> s = {
-        "id", "kind", "label", "component", "source", "params", "collapsed", "layout"
+        "id", "kind", "label", "component", "params", "layout"
+    };
+    return s;
+}
+
+const std::unordered_set<std::string>& allowed_blueprint_instance_node_fields() {
+    static const std::unordered_set<std::string> s = {
+        "id", "kind", "label", "source", "collapsed", "layout"
     };
     return s;
 }
@@ -149,6 +156,7 @@ WireEndpoint decode_endpoint(nlohmann::json const& endpoint,
 Interface decode_interface(nlohmann::json const& arr,
                            ui::StringInterner& interner) {
     std::vector<PortDescriptor> ports;
+    std::unordered_set<std::string> seen_ids;
     for (auto const& p : arr) {
         if (!p.is_object()) {
             throw std::runtime_error("invalid interface entry: expected object");
@@ -158,8 +166,13 @@ Interface decode_interface(nlohmann::json const& arr,
         require_field(p, "direction", &nlohmann::json::is_string, "invalid interface entry", "string");
         require_field(p, "port_type", &nlohmann::json::is_string, "invalid interface entry", "string");
 
+        const std::string id_str = p["id"].get<std::string>();
+        if (!seen_ids.insert(id_str).second) {
+            throw std::runtime_error("invalid interface entry: duplicate port id '" + id_str + "'");
+        }
+
         PortDescriptor pd;
-        pd.name = interner.intern(p["id"].get<std::string>());
+        pd.name = interner.intern(id_str);
         pd.direction = decode_direction(p["direction"].get<std::string>());
         auto port_type = port_type_from_name(p["port_type"].get<std::string>());
         if (!port_type.has_value()) {
@@ -183,7 +196,6 @@ Blueprint decode_nodes(Blueprint bp,
         if (!n.is_object()) {
             throw std::runtime_error("invalid node entry: expected object");
         }
-        check_allowed_fields(n, allowed_node_fields(), "node");
         require_field(n, "id", &nlohmann::json::is_string, ctx, "string");
         require_field(n, "kind", &nlohmann::json::is_string, ctx, "string");
         require_field(n, "layout", &nlohmann::json::is_object, ctx, "object");
@@ -191,6 +203,14 @@ Blueprint decode_nodes(Blueprint bp,
         Blueprint::Node node;
         node.semantic.id = interner.intern(n["id"].get<std::string>());
         node.kind = decode_node_kind(n["kind"].get<std::string>());
+
+        // Kind-specific allowed-field validation (spec Layer 2):
+        // collapsed/source are blueprint_instance-only; component/params are component-only.
+        const auto& allowed = node.is_component()
+            ? allowed_component_node_fields()
+            : allowed_blueprint_instance_node_fields();
+        check_allowed_fields(n, allowed, "node");
+
         if (auto v = read_optional_string(n, "label", ctx)) {
             node.view.name = std::move(*v);
         }
@@ -227,6 +247,29 @@ Blueprint decode_nodes(Blueprint bp,
                     throw std::runtime_error("invalid node entry: unknown param '" + key + "'");
                 }
                 assign_param_by_descriptor(node, interner, key, val, schema_it->second, type_def);
+            }
+        }
+
+        // Issue #88 Gap #2: Validate that all required parameters are present
+        if (type_def) {
+            for (const auto& [param_key, param_schema] : type_def->param_schema) {
+                if (param_schema.required && !param_schema.visual_only) {
+                    // Check if param is present in the JSON or was assigned
+                    bool param_found = false;
+                    if (n.contains("params") && n["params"].contains(param_key)) {
+                        param_found = true;
+                    } else {
+                        // Check if it was already assigned
+                        ui::InternedId key_iid = interner.intern(param_key);
+                        if (node.semantic.params.count(key_iid) > 0 ||
+                            node.semantic.string_params.count(param_key) > 0) {
+                            param_found = true;
+                        }
+                    }
+                    if (!param_found) {
+                        throw std::runtime_error("invalid node entry: required param '" + param_key + "' missing");
+                    }
+                }
             }
         }
 

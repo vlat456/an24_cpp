@@ -603,6 +603,7 @@ TEST(Issue31_SingleSource, ExportReadsSemanticIface_CodecRoundTrip) {
     
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("export_semantic_test"));
+    bp = bp.with_name("Export Semantic Test");
     bp = bp.with_node(std::move(node));
 
     // Encode the blueprint
@@ -688,6 +689,7 @@ TEST(Issue31_SingleSource, NoDriftInvariant_ViewDataHasNoPortLists) {
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("no_drift_test"));
+    bp = bp.with_name("No Drift Test");
     bp = bp.with_node(std::move(node));
 
     // Round-trip
@@ -712,4 +714,271 @@ TEST(Issue31_SingleSource, NoDriftInvariant_ViewDataHasNoPortLists) {
         ASSERT_TRUE(loaded_port.has_value());
         EXPECT_EQ(orig_port.direction, loaded_port->direction);
     }
+}
+
+// =============================================================================
+// Issue #88: Kind-specific field validation regression tests
+// =============================================================================
+
+TEST(BlueprintCodec, DecodeRejectsCollapsedOnComponentNode) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    register_type(reg, interner, "Battery");
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "an24.blueprint",
+        "version": 1,
+        "blueprint_id": "collapsed_on_component",
+        "name": "Collapsed On Component",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "kind": "component",
+                "component": "Battery",
+                "collapsed": true,
+                "layout": {"x": 0.0, "y": 0.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("unknown node field: collapsed"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsSourceOnComponentNode) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    register_type(reg, interner, "Battery");
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "an24.blueprint",
+        "version": 1,
+        "blueprint_id": "source_on_component",
+        "name": "Source On Component",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "kind": "component",
+                "component": "Battery",
+                "source": {"mode": "reference", "blueprint_id": "foo"},
+                "layout": {"x": 0.0, "y": 0.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("unknown node field: source"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsComponentOnBlueprintInstance) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    register_type(reg, interner, "Battery");
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "an24.blueprint",
+        "version": 1,
+        "blueprint_id": "component_on_instance",
+        "name": "Component On Instance",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "kind": "blueprint_instance",
+                "component": "Battery",
+                "source": {
+                    "mode": "embedded",
+                    "blueprint": {
+                        "format": "an24.blueprint",
+                        "version": 1,
+                        "blueprint_id": "inner",
+                        "name": "Inner",
+                        "interface": [],
+                        "nodes": [],
+                        "wires": []
+                    }
+                },
+                "layout": {"x": 0.0, "y": 0.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("unknown node field: component"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsParamsOnBlueprintInstance) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    register_type(reg, interner, "Battery");
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "an24.blueprint",
+        "version": 1,
+        "blueprint_id": "params_on_instance",
+        "name": "Params On Instance",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "kind": "blueprint_instance",
+                "params": {"v": 1.0},
+                "source": {
+                    "mode": "embedded",
+                    "blueprint": {
+                        "format": "an24.blueprint",
+                        "version": 1,
+                        "blueprint_id": "inner",
+                        "name": "Inner",
+                        "interface": [],
+                        "nodes": [],
+                        "wires": []
+                    }
+                },
+                "layout": {"x": 0.0, "y": 0.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("unknown node field: params"), std::string::npos);
+}
+
+// =============================================================================
+// Issue #88: Duplicate interface port ID rejection
+// =============================================================================
+
+TEST(BlueprintCodec, DecodeRejectsDuplicateInterfacePortIds) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "an24.blueprint",
+        "version": 1,
+        "blueprint_id": "dup_interface",
+        "name": "Dup Interface",
+        "interface": [
+            {"id": "v_in", "direction": "In", "port_type": "V"},
+            {"id": "v_in", "direction": "Out", "port_type": "V"}
+        ],
+        "nodes": [],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("duplicate port id"), std::string::npos);
+}
+
+// =============================================================================
+// Issue #88: blueprint_id semantic validation
+// =============================================================================
+
+TEST(BlueprintCodec, DecodeRejectsEmptyBlueprintId) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "an24.blueprint",
+        "version": 1,
+        "blueprint_id": "",
+        "name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("blueprint_id must not be empty"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsBlueprintIdWithWhitespace) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "an24.blueprint",
+        "version": 1,
+        "blueprint_id": "has space",
+        "name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("printable ASCII"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsBlueprintIdWithTab) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "format": "an24.blueprint",
+        "version": 1,
+        "blueprint_id": "has)";
+    json += '\t';
+    json += R"(tab",
+        "name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+}
+
+// =============================================================================
+// Issue #88: name non-empty validation
+// =============================================================================
+
+TEST(BlueprintCodec, DecodeRejectsEmptyName) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "an24.blueprint",
+        "version": 1,
+        "blueprint_id": "empty_name_test",
+        "name": "",
+        "interface": [],
+        "nodes": [],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("name must not be empty"), std::string::npos);
 }

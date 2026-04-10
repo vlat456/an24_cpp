@@ -4,6 +4,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/validation/invariant_checker.h"
+#include "blueprint_v2/interface/type_definition_interface.h"
 #include "json_parser/json_parser.h"
 #include "editor/subwindow_open_target.h"
 #include <random>
@@ -485,6 +486,11 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
             std::uniform_real_distribution<float> pos(-500.0f, 500.0f);
             n.layout.x = pos(rng);
             n.layout.y = pos(rng);
+            // Populate interface from registry (required by strict validation)
+            const auto* def = registry.get("Battery");
+            if (def) {
+                n.semantic.iface = bp2::interface_from_type_definition(*def, interner);
+            }
             EXPECT_TRUE(model.add_node(std::move(n)));
         } else if (op == 1) {
             const auto& nodes = model.current().nodes();

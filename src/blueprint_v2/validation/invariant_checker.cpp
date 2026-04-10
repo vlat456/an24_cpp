@@ -63,11 +63,6 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             }
 
             if (node.source->is_reference()) {
-                if (!parser_registry.has(std::string(interner.resolve(node.source->blueprint_id())))) {
-                    out.error = "unknown referenced blueprint id=" + iid_to_string(node.semantic.id)
-                        + " blueprint_id=" + iid_to_string(node.source->blueprint_id());
-                    return out;
-                }
                 const auto* def = parser_registry.get(std::string(interner.resolve(node.source->blueprint_id())));
                 if (!def) {
                     out.error = "unknown referenced blueprint id=" + iid_to_string(node.semantic.id)
@@ -82,6 +77,23 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 }
             }
 
+            // Issue #88 Gap #4: Validate embedded blueprints recursively
+            if (node.source->is_embedded()) {
+                const Blueprint* embedded_bp = node.source->inline_def();
+                if (!embedded_bp) {
+                    out.error = "blueprint-instance node embedded blueprint is null at node id="
+                        + iid_to_string(node.semantic.id);
+                    return out;
+                }
+                // Recursively validate embedded blueprint
+                auto nested_result = InvariantChecker::validate(*embedded_bp, arena, parser_registry, interner);
+                if (!nested_result.valid) {
+                    out.error = "embedded blueprint at node id=" + iid_to_string(node.semantic.id)
+                        + " contains invalid content: " + nested_result.error;
+                    return out;
+                }
+            }
+
             // Validate semantic interface matches source authority
             if (node.semantic.iface != node.source->resolved_iface()) {
                 out.error = "blueprint-instance node iface desynced from source authority at node id="
@@ -90,6 +102,32 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             }
 
             continue;
+        }
+    }
+
+    // Issue #88 Gap #5: Validate component node interfaces match registry
+    // Bridge nodes (BlueprintInput/BlueprintOutput) are intentionally specialized
+    // at creation time (port_type/domain narrowed from Any to actual wire type),
+    // so they are exempt from the exact-match check.
+    const ui::InternedId bridge_input_type  = interner.intern("BlueprintInput");
+    const ui::InternedId bridge_output_type = interner.intern("BlueprintOutput");
+    for (auto const& node : bp.nodes()) {
+        if (node.is_component()) {
+            if (node.semantic.type == bridge_input_type || node.semantic.type == bridge_output_type) {
+                continue;
+            }
+            const std::string type_name(interner.resolve(node.semantic.type));
+            const auto* def = parser_registry.get(type_name);
+            if (!def) {
+                // Type not found (already caught by earlier type check)
+                continue;
+            }
+            Interface expected = interface_from_type_definition(*def, interner);
+            if (node.semantic.iface != expected) {
+                out.error = "component node iface desynced from registry at node id="
+                    + iid_to_string(node.semantic.id) + " type=" + iid_to_string(node.semantic.type);
+                return out;
+            }
         }
     }
 

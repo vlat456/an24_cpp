@@ -300,7 +300,11 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
         }
         const bool src_selected = plan.selected_set.find(src_node) != plan.selected_set.end();
         const bool tgt_selected = plan.selected_set.find(tgt_node) != plan.selected_set.end();
-        if (src_selected != tgt_selected) {
+        // Skip boundary wires (one endpoint selected) — they get reconnected
+        // through the collapsed instance node.
+        // Skip internal wires (both endpoints selected) — they live inside
+        // the extracted inline blueprint.
+        if (src_selected || tgt_selected) {
             continue;
         }
         out = out.with_wire(w);

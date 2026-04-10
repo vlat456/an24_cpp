@@ -1,12 +1,19 @@
 #include <gtest/gtest.h>
 
 #include "editor/document.h"
+#include "editor/commands/blueprint_checksum.h"
+#include "editor/commands/commands.h"
+#include "editor/commands/extract_blueprint.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
+#include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/library/library_index.h"
 #include "json_parser/json_parser.h"
 
 #include <filesystem>
 #include <fstream>
+#include <nlohmann/json.hpp>
+
+#include "../bp2_test_helpers.h"
 
 namespace {
 
@@ -28,6 +35,71 @@ const bp2::Blueprint::Node* require_node(const bp2::Blueprint& bp, ui::StringInt
     auto* node = bp.find_node(interner.lookup(id));
     EXPECT_NE(node, nullptr) << id;
     return node;
+}
+
+bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
+                               const char* wire_id,
+                               const char* src_node,
+                               const char* src_port,
+                               const char* dst_node,
+                               const char* dst_port) {
+    bp2::Blueprint::Wire w;
+    w.id = I.intern(wire_id);
+    w.source = bp2::WireEndpoint{I.intern(src_node), I.intern(src_port)};
+    w.target = bp2::WireEndpoint{I.intern(dst_node), I.intern(dst_port)};
+    w.domain = Domain::Electrical;
+    return w;
+}
+
+/// Build a Component node whose interface matches the TypeRegistry exactly.
+bp2::Blueprint::Node make_typed_node(ui::StringInterner& I,
+                                     const TypeRegistry& registry,
+                                     const char* id,
+                                     const char* type,
+                                     float x,
+                                     float y) {
+    bp2::Blueprint::Node n;
+    n.semantic.id = I.intern(id);
+    n.semantic.type = I.intern(type);
+    n.layout.x = x;
+    n.layout.y = y;
+    const auto* def = registry.get(type);
+    if (def) {
+        n.semantic.iface = bp2::interface_from_type_definition(*def, I);
+    }
+    return n;
+}
+
+/// Build an extract-roundtrip fixture using real registered types.
+///
+/// Topology (all Electrical domain):
+///   ext_in (BlueprintInput)  --port-->  a (ElectricalSource) .v_in
+///                                       a.v_out  -->  b (Resistor) .v_in
+///   ext_out (BlueprintOutput) <--port--  b.v_out
+///
+/// Wire naming:
+///   w0: ext_in.port  → a.v_in
+///   w1: a.v_out      → b.v_in       (internal to selection {a,b})
+///   w2: b.v_out      → ext_out.port
+bp2::Blueprint make_extract_roundtrip_fixture(ui::StringInterner& I,
+                                              const TypeRegistry& registry) {
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("bp_extract_doc"));
+    bp = bp.with_display_name("ExtractDoc");
+    bp = bp.with_name("ExtractDoc");
+
+    bp = bp.with_node(make_typed_node(I, registry, "ext_in",  "BlueprintInput",  0.0f,  0.0f));
+    bp = bp.with_node(make_typed_node(I, registry, "a",       "ElectricalSource", 20.0f, 0.0f));
+    bp = bp.with_node(make_typed_node(I, registry, "b",       "Resistor",        40.0f, 0.0f));
+    bp = bp.with_node(make_typed_node(I, registry, "ext_out", "BlueprintOutput", 60.0f, 0.0f));
+
+    // BlueprintInput.port → ElectricalSource.v_in
+    bp = bp.with_wire(make_wire(I, "w0", "ext_in", "port", "a",       "v_in"));
+    // ElectricalSource.v_out → Resistor.v_in  (internal wire)
+    bp = bp.with_wire(make_wire(I, "w1", "a",      "v_out", "b",      "v_in"));
+    // Resistor.v_out → BlueprintOutput.port
+    bp = bp.with_wire(make_wire(I, "w2", "b",      "v_out", "ext_out", "port"));
+    return bp;
 }
 
 } // namespace
@@ -250,6 +322,132 @@ TEST(DocumentSafety, SaveLoadDropsSessionOnlyNodeColor) {
     const auto* loaded_node = require_node(loaded.model().current(), loaded.interner(), "slider1");
     ASSERT_NE(loaded_node, nullptr);
     EXPECT_FALSE(loaded_node->view.has_color);
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, ExtractSaveLoadRoundTripPreservesEmbeddedBlueprintStructure) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    doc.model().replace_current(make_extract_roundtrip_fixture(doc.interner(), registry));
+
+    std::string err;
+    ASSERT_TRUE(doc.extractToBlueprint(
+        {doc.interner().intern("a"), doc.interner().intern("b")},
+        "extracted_blueprint_1",
+        WindowScopeId::root(),
+        &err,
+        false)) << err;
+
+    const fs::path dir = make_temp_dir("an24_doc_extract_roundtrip");
+    const fs::path bp_path = dir / "extracted.blueprint";
+    ASSERT_TRUE(doc.save(bp_path.string()));
+
+    Document loaded;
+    loaded.setTypeRegistry(&registry);
+    ASSERT_TRUE(loaded.load(bp_path.string()));
+
+    const auto* collapsed = require_node(loaded.model().current(), loaded.interner(), "extract_inst_1");
+    ASSERT_NE(collapsed, nullptr);
+    ASSERT_TRUE(collapsed->has_embedded_blueprint());
+    ASSERT_NE(collapsed->source->inline_def(), nullptr);
+
+    const auto& inner = *collapsed->source->inline_def();
+    EXPECT_NE(inner.find_node(loaded.interner().lookup("a")), nullptr);
+    EXPECT_NE(inner.find_node(loaded.interner().lookup("b")), nullptr);
+    // Internal wire a.v_out → b.v_in plus two bridge-to-internal wires
+    EXPECT_EQ(inner.wires().size(), 3u);
+    // Bridge interface port names derive from the internal ports of boundary wires
+    EXPECT_TRUE(inner.iface().has(loaded.interner().intern("v_in")));
+    EXPECT_TRUE(inner.iface().has(loaded.interner().intern("v_out")));
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(doc.interner().intern("delete_roundtrip"));
+    bp = bp.with_display_name("DeleteRoundtrip");
+    bp = bp.with_name("DeleteRoundtrip");
+    bp = bp.with_node(make_typed_node(doc.interner(), registry, "bat", "ElectricalSource", 0.0f, 0.0f));
+    bp = bp.with_node(make_typed_node(doc.interner(), registry, "res", "Resistor", 20.0f, 0.0f));
+    bp = bp.with_node(make_typed_node(doc.interner(), registry, "sink", "BlueprintOutput", 40.0f, 0.0f));
+    bp = bp.with_wire(make_wire(doc.interner(), "w0", "bat", "v_out", "res", "v_in"));
+    bp = bp.with_wire(make_wire(doc.interner(), "w1", "res", "v_out", "sink", "port"));
+    doc.model().replace_current(std::move(bp));
+
+    doc.model().push_checkpoint();
+    execute(doc.model(), doc.interner(), cmd_remove_node(doc.interner().intern("res"), {
+        doc.interner().intern("w0"),
+        doc.interner().intern("w1"),
+    }));
+
+    const fs::path dir = make_temp_dir("an24_doc_delete_roundtrip");
+    const fs::path bp_path = dir / "deleted.blueprint";
+    ASSERT_TRUE(doc.save(bp_path.string()));
+
+    Document loaded;
+    loaded.setTypeRegistry(&registry);
+    ASSERT_TRUE(loaded.load(bp_path.string()));
+
+    EXPECT_EQ(loaded.model().current().find_node(loaded.interner().lookup("res")), nullptr);
+    EXPECT_EQ(loaded.model().current().wires().size(), 0u);
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, SaveEmitsCanonicalDocumentWithoutForbiddenFieldsAndSortedWires) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+    doc.model().replace_current(make_extract_roundtrip_fixture(doc.interner(), registry));
+
+    const fs::path dir = make_temp_dir("an24_doc_canonical_save_scan");
+    const fs::path bp_path = dir / "canonical.blueprint";
+    ASSERT_TRUE(doc.save(bp_path.string()));
+
+    std::ifstream in(bp_path);
+    ASSERT_TRUE(in.is_open());
+    nlohmann::json j;
+    in >> j;
+
+    EXPECT_EQ(j["format"], "an24.blueprint");
+    EXPECT_EQ(j["version"], 1);
+    EXPECT_FALSE(j.contains("nested"));
+    EXPECT_FALSE(j.contains("pan_x"));
+    EXPECT_FALSE(j.contains("pan_y"));
+    EXPECT_FALSE(j.contains("zoom"));
+    EXPECT_FALSE(j.contains("grid_step"));
+    EXPECT_FALSE(j.contains("owner_scope"));
+    EXPECT_FALSE(j.contains("group_id"));
+    EXPECT_FALSE(j.contains("resolved_iface"));
+    EXPECT_FALSE(j.contains("blueprint_path"));
+
+    ASSERT_TRUE(j.contains("wires"));
+    ASSERT_EQ(j["wires"].size(), 3u);
+    EXPECT_EQ(j["wires"][0]["id"], "w0");
+    EXPECT_EQ(j["wires"][1]["id"], "w1");
+    EXPECT_EQ(j["wires"][2]["id"], "w2");
+
+    for (const auto& node : j["nodes"]) {
+        EXPECT_FALSE(node.contains("content"));
+        EXPECT_FALSE(node.contains("color"));
+        EXPECT_FALSE(node.contains("render_hint"));
+        EXPECT_FALSE(node.contains("resolved_iface"));
+        EXPECT_FALSE(node.contains("blueprint_path"));
+    }
 
     fs::remove_all(dir);
 }

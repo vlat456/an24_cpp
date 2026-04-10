@@ -3,6 +3,7 @@
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/blueprint/canonicalize.h"
+#include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/validation/path_resolver.h"
 #include "blueprint_v2/validation/wire_validator.h"
@@ -25,6 +26,22 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
     bp2::Blueprint::Node n;
     n.semantic.id = I.intern(id);
     n.semantic.type = I.intern(type);
+    // Note: Interface is NOT populated here - tests must populate if needed
+    // or use a registry-aware make_node variant
+    return n;
+}
+
+/// Create a node with interface populated from registry
+static bp2::Blueprint::Node make_node_with_interface(ui::StringInterner& I,
+                                                     const char* id,
+                                                     const char* type,
+                                                     const TypeRegistry& reg) {
+    bp2::Blueprint::Node n = make_node(I, id, type);
+    const std::string type_str(type);
+    const auto* def = reg.get(type_str);
+    if (def) {
+        n.semantic.iface = bp2::interface_from_type_definition(*def, I);
+    }
     return n;
 }
 
@@ -290,7 +307,7 @@ TEST(InvariantChecker, RootComponentNodePasses) {
     TypeRegistry reg = make_validation_registry();
 
     bp2::Blueprint bp;
-    bp = bp.with_node(make_node(I, "child1", "Battery"));
+    bp = bp.with_node(make_node_with_interface(I, "child1", "Battery", reg));
 
     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
     EXPECT_TRUE(result.valid) << result.error;
@@ -303,7 +320,7 @@ TEST(BlueprintValidate, WirePathUnresolvedFails) {
     PathArena arena(I);
 
     bp2::Blueprint bp;
-    bp = bp.with_node(make_node(I, "bat1", "Battery"));
+    bp = bp.with_node(make_node_with_interface(I, "bat1", "Battery", reg));
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
@@ -324,8 +341,8 @@ TEST(BlueprintValidate, ValidBlueprintPasses) {
     PathArena arena(I);
 
     bp2::Blueprint bp;
-    bp = bp.with_node(make_node(I, "bat1", "Battery"));
-    bp = bp.with_node(make_node(I, "res1", "Resistor"));
+    bp = bp.with_node(make_node_with_interface(I, "bat1", "Battery", reg));
+    bp = bp.with_node(make_node_with_interface(I, "res1", "Resistor", reg));
 
     bp2::Blueprint::Wire w;
     w.id = I.intern("w1");
@@ -411,7 +428,7 @@ TEST(BlueprintValidate, ParserRegistryOverloadAcceptsKnownType) {
     const std::string known_type = parser_registry.types.begin()->first;
 
     bp2::Blueprint bp;
-    bp = bp.with_node(make_node(I, "n1", known_type.c_str()));
+    bp = bp.with_node(make_node_with_interface(I, "n1", known_type.c_str(), parser_registry));
 
     EXPECT_NO_THROW(bp.validate(parser_registry, I));
     EXPECT_NO_THROW(bp.validate(parser_registry, I, arena));
@@ -477,20 +494,340 @@ TEST(WireValidator, ParserRegistryOverloadValidateWire) {
 
 TEST(InvariantChecker, ParserRegistryOverloadValidateBlueprint) {
     ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry parser_registry = load_type_registry("library/");
-    ASSERT_FALSE(parser_registry.types.empty());
-    const std::string known_type = parser_registry.types.begin()->first;
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(make_node(I, "n1", known_type.c_str()));
-
-    auto result = bp2::InvariantChecker::validate(bp, arena, parser_registry, I);
-    EXPECT_TRUE(result.valid) << result.error;
+     PathArena arena(I);
+     TypeRegistry parser_registry = load_type_registry("library/");
+     ASSERT_FALSE(parser_registry.types.empty());
+     const std::string known_type = parser_registry.types.begin()->first;
+ 
+     bp2::Blueprint bp;
+     bp = bp.with_node(make_node_with_interface(I, "n1", known_type.c_str(), parser_registry));
+ 
+     auto result = bp2::InvariantChecker::validate(bp, arena, parser_registry, I);
+     EXPECT_TRUE(result.valid) << result.error;
 }
 
+/// Wire declared as Electrical but ports are actually compatible and
+/// wire should still fail strict validation because declared domain !=
+/// resolved domain (Gap #3: Wire Domain Consistency)
+TEST(WireValidator, WireDomainDeclaredMismatchesPorts) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
 
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "bat1", "Battery"));  // ports are Electrical
+    bp = bp.with_node(make_node(I, "res1", "Resistor")); // ports are Electrical
 
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w1");
+    w.source = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    w.target = bp2::WireEndpoint{I.intern("res1"), I.intern("in")};
+    w.domain = Domain::Logical;  // <-- Declared as Logical but ports are Electrical
+
+     auto r = WireValidator::validate(w, bp, reg, I);
+     EXPECT_FALSE(r.valid);
+     EXPECT_NE(r.error.find("domain"), std::string::npos);
+}
+
+/// Issue #88 Gap #2: Required parameters must be present in decoded blueprints
+TEST(BlueprintDecode, RequiredParamValidation_MissingRequiredParamFails) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    
+    // Add a component with a required param
+    TypeDefinition test_type;
+    test_type.classname = "TestComponent";
+    test_type.cpp_class = true;
+    test_type.ports["in"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
+    test_type.ports["out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
+    ParamSchemaEntry req_param;
+    req_param.type = ParamSchemaType::Float;
+    req_param.required = true;
+    test_type.param_schema["critical_value"] = req_param;
+    reg.types["TestComponent"] = std::move(test_type);
+    
+    // Try to decode a blueprint with TestComponent but missing the required param
+    std::string json_str = R"({
+      "format": "an24.blueprint",
+      "version": 1,
+      "blueprint_id": "test_missing_required",
+      "name": "Test Missing Required",
+      "interface": [],
+      "nodes": [
+        {
+          "id": "tc1",
+          "kind": "component",
+          "component": "TestComponent",
+          "layout": {"x": 0.0, "y": 0.0}
+        }
+      ],
+      "wires": []
+    })";
+    
+    bp2::PathArena arena(I);
+    bp2::DecodeError err;
+    auto bp = bp2::BlueprintCodec::decode(json_str, I, arena, reg, &err);
+    
+    // Should fail because critical_value param is required but missing
+    EXPECT_FALSE(bp.has_value());
+    EXPECT_NE(err.message.find("critical_value"), std::string::npos);
+    EXPECT_NE(err.message.find("required"), std::string::npos);
+}
+
+/// Issue #88 Gap #2: Required parameters are accepted when present
+TEST(BlueprintDecode, RequiredParamValidation_PresentRequiredParamPasses) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    
+    // Add a component with a required param
+    TypeDefinition test_type;
+    test_type.classname = "TestComponent";
+    test_type.cpp_class = true;
+    test_type.ports["in"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
+    test_type.ports["out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
+    ParamSchemaEntry req_param;
+    req_param.type = ParamSchemaType::Float;
+    req_param.required = true;
+    test_type.param_schema["critical_value"] = req_param;
+    reg.types["TestComponent"] = std::move(test_type);
+    
+    // Decode a blueprint with TestComponent AND the required param present
+    std::string json_str = R"({
+      "format": "an24.blueprint",
+      "version": 1,
+      "blueprint_id": "test_has_required",
+      "name": "Test Has Required",
+      "interface": [],
+      "nodes": [
+        {
+          "id": "tc1",
+          "kind": "component",
+          "component": "TestComponent",
+          "params": {"critical_value": 42.0},
+          "layout": {"x": 0.0, "y": 0.0}
+        }
+      ],
+      "wires": []
+    })";
+    
+    bp2::PathArena arena(I);
+    bp2::DecodeError err;
+    auto bp = bp2::BlueprintCodec::decode(json_str, I, arena, reg, &err);
+    
+    // Should succeed because critical_value is provided
+    EXPECT_TRUE(bp.has_value()) << "Decode failed: " << err.message;
+}
+
+/// Issue #88 Gap #2: Optional params are not required
+TEST(BlueprintDecode, RequiredParamValidation_OptionalParamCanBeMissing) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    
+    // Add a component with an optional param (required=false)
+    TypeDefinition test_type;
+    test_type.classname = "TestComponent";
+    test_type.cpp_class = true;
+    test_type.ports["in"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
+    test_type.ports["out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
+    ParamSchemaEntry opt_param;
+    opt_param.type = ParamSchemaType::Float;
+    opt_param.required = false;  // Optional
+    test_type.param_schema["optional_value"] = opt_param;
+    reg.types["TestComponent"] = std::move(test_type);
+    
+    // Decode a blueprint with TestComponent but NO optional param
+    std::string json_str = R"({
+      "format": "an24.blueprint",
+      "version": 1,
+      "blueprint_id": "test_optional_missing",
+      "name": "Test Optional Missing",
+      "interface": [],
+      "nodes": [
+        {
+          "id": "tc1",
+          "kind": "component",
+          "component": "TestComponent",
+          "layout": {"x": 0.0, "y": 0.0}
+        }
+      ],
+      "wires": []
+    })";
+    
+    bp2::PathArena arena(I);
+    bp2::DecodeError err;
+    auto bp = bp2::BlueprintCodec::decode(json_str, I, arena, reg, &err);
+    
+    // Should succeed because optional_value is optional
+    EXPECT_TRUE(bp.has_value()) << "Decode failed: " << err.message;
+}
+
+/// Issue #88 Gap #4: Embedded blueprints with invalid internal wires should fail validation
+TEST(InvariantChecker, RecursiveValidation_EmbeddedWithSelfLoopFails) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    PathArena arena(I);
+    
+    // Create an embedded blueprint that contains a self-loop wire (invalid)
+    bp2::Blueprint inner_bp;
+    inner_bp = inner_bp.with_node(make_node_with_interface(I, "bat1", "Battery", reg));
+    
+    bp2::Blueprint::Wire bad_wire;
+    bad_wire.id = I.intern("self_loop");
+    bad_wire.source = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    bad_wire.target = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    bad_wire.domain = Domain::Electrical;
+    inner_bp = inner_bp.with_wire(std::move(bad_wire));
+    
+    // Create parent blueprint with embedded instance
+    bp2::Blueprint parent_bp;
+    bp2::Blueprint::Node composite_node;
+    composite_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;  // CRITICAL: Must be BlueprintInstance
+    composite_node.semantic.id = I.intern("composite1");
+    composite_node.semantic.type = I.intern("Battery");  // Use valid type from registry
+    composite_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("CompositeType"),
+        std::make_unique<bp2::Blueprint>(inner_bp)
+    );
+    composite_node.semantic.iface = composite_node.source->resolved_iface();
+    parent_bp = parent_bp.with_node(std::move(composite_node));
+    
+    // Validate parent blueprint - should fail because embedded has invalid self-loop
+    auto result = bp2::InvariantChecker::validate(parent_bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("wire"), std::string::npos);  // Error will mention wire issue
+}
+
+/// Issue #88 Gap #4: Embedded blueprints with duplicate node IDs should fail validation
+TEST(InvariantChecker, RecursiveValidation_EmbeddedWithDuplicateNodesFails) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    PathArena arena(I);
+    
+    // Create an embedded blueprint that contains duplicate node IDs (invalid)
+    bp2::Blueprint inner_bp;
+    inner_bp = inner_bp.with_node(make_node_with_interface(I, "dup", "Battery", reg));
+    inner_bp = inner_bp.with_node(make_node_with_interface(I, "dup", "Resistor", reg));
+    
+    // Create parent blueprint with embedded instance
+    bp2::Blueprint parent_bp;
+    bp2::Blueprint::Node composite_node;
+    composite_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;  // CRITICAL: Must be BlueprintInstance
+    composite_node.semantic.id = I.intern("composite1");
+    composite_node.semantic.type = I.intern("Battery");  // Use valid type from registry
+    composite_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("CompositeType"),
+        std::make_unique<bp2::Blueprint>(inner_bp)
+    );
+    composite_node.semantic.iface = composite_node.source->resolved_iface();
+    parent_bp = parent_bp.with_node(std::move(composite_node));
+    
+    // Validate parent blueprint - should fail because embedded has duplicate node IDs
+    auto result = bp2::InvariantChecker::validate(parent_bp, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("duplicate"), std::string::npos);
+}
+
+/// Issue #88 Gap #4: Valid embedded blueprints pass recursive validation
+TEST(InvariantChecker, RecursiveValidation_ValidEmbeddedPasses) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+    PathArena arena(I);
+    
+    // Create a valid embedded blueprint
+    bp2::Blueprint inner_bp;
+    inner_bp = inner_bp.with_node(make_node_with_interface(I, "bat1", "Battery", reg));
+    inner_bp = inner_bp.with_node(make_node_with_interface(I, "res1", "Resistor", reg));
+    
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w1");
+    w.source = bp2::WireEndpoint{I.intern("bat1"), I.intern("v_out")};
+    w.target = bp2::WireEndpoint{I.intern("res1"), I.intern("in")};
+    w.domain = Domain::Electrical;
+    inner_bp = inner_bp.with_wire(std::move(w));
+    
+    // Create parent blueprint with valid embedded instance
+    bp2::Blueprint parent_bp;
+    bp2::Blueprint::Node composite_node;
+    composite_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;  // CRITICAL: Must be BlueprintInstance
+    composite_node.semantic.id = I.intern("composite1");
+    composite_node.semantic.type = I.intern("Battery");  // Use valid type from registry
+    composite_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("CompositeType"),
+        std::make_unique<bp2::Blueprint>(inner_bp)
+     );
+     composite_node.semantic.iface = composite_node.source->resolved_iface();
+     parent_bp = parent_bp.with_node(std::move(composite_node));
+     
+     // Validate parent blueprint - should pass
+     auto result = bp2::InvariantChecker::validate(parent_bp, arena, reg, I);
+     EXPECT_TRUE(result.valid) << result.error;
+}
+
+/// Issue #88 Gap #5: Component nodes must have interface consistency with registry
+TEST(InvariantChecker, ComponentNodeInterfaceConsistency_ValidComponentPasses) {
+     ui::StringInterner I;
+     TypeRegistry reg = make_validation_registry();
+     PathArena arena(I);
+     
+     // Create a Battery component with correct interface from registry
+     bp2::Blueprint bp;
+     bp2::Blueprint::Node bat_node = make_node(I, "bat1", "Battery");
+     
+     // Get the actual interface Battery should have
+     const TypeDefinition* battery_def = reg.get("Battery");
+     ASSERT_TRUE(battery_def);
+     bat_node.semantic.iface = bp2::interface_from_type_definition(*battery_def, I);
+     
+     bp = bp.with_node(std::move(bat_node));
+     
+     // Validate blueprint - should pass
+     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+     EXPECT_TRUE(result.valid) << result.error;
+}
+
+/// Issue #88 Gap #5: Component node with mismatched interface should fail
+TEST(InvariantChecker, ComponentNodeInterfaceConsistency_InterfaceMismatchFails) {
+     ui::StringInterner I;
+     TypeRegistry reg = make_validation_registry();
+     PathArena arena(I);
+     
+     // Create a Battery component but with WRONG interface (Resistor's ports)
+     bp2::Blueprint bp;
+     bp2::Blueprint::Node bat_node = make_node(I, "bat1", "Battery");
+     
+      // Set interface to wrong type (Resistor ports instead of Battery ports)
+      bat_node.semantic.iface = bp2::Interface(std::vector<PortDescriptor>{
+          {I.intern("in"), Domain::Electrical, Direction::Input},
+          {I.intern("out"), Domain::Electrical, Direction::Output},
+      });
+     
+     bp = bp.with_node(std::move(bat_node));
+     
+     // Validate blueprint - should fail with iface desynced error
+     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+     EXPECT_FALSE(result.valid);
+     EXPECT_NE(result.error.find("iface desynced"), std::string::npos);
+}
+
+/// Issue #88 Gap #5: Component node with empty interface when ports exist should fail
+TEST(InvariantChecker, ComponentNodeInterfaceConsistency_EmptyInterfaceOnValidComponentFails) {
+     ui::StringInterner I;
+     TypeRegistry reg = make_validation_registry();
+     PathArena arena(I);
+     
+     // Create a Battery component but with EMPTY interface (should have v_out, v_in)
+     bp2::Blueprint bp;
+     bp2::Blueprint::Node bat_node = make_node(I, "bat1", "Battery");
+     
+      // Leave interface empty - Battery has ports so this is invalid
+      bat_node.semantic.iface = bp2::Interface(std::vector<PortDescriptor>{});
+     
+     bp = bp.with_node(std::move(bat_node));
+     
+     // Validate blueprint - should fail with iface desynced error
+     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
+     EXPECT_FALSE(result.valid);
+     EXPECT_NE(result.error.find("iface desynced"), std::string::npos);
+}
 
 
 
