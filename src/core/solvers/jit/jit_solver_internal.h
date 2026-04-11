@@ -40,12 +40,6 @@ private:
     std::unordered_set<std::string> consumed_params_;
 };
 
-/// Signal mapping and port union functions
-void process_port_unions(
-    BuildResult& result,
-    const std::vector<DeviceInstance>& devices,
-    const std::vector<std::pair<std::string, std::string>>& connections);
-
 /// Component factory functions
 void build_and_register_components(
     BuildResult& result,

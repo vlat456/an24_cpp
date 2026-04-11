@@ -1,7 +1,6 @@
 add_library(jit_solver
     jit_solver.cpp
     build_utils.cpp
-    build_signals.cpp
     build_components.cpp
     build_components_logic.cpp
     build_components_control.cpp
