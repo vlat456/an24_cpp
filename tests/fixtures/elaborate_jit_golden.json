@@ -1,0 +1,747 @@
+{
+  "topology": [
+    [
+      "azs_1.v_in",
+      "bus_2.v",
+      "controlledvoltagesource_2.v_pos",
+      "extract_inst_1.bp_in_1",
+      "extract_inst_1:bp_in_1.ext",
+      "extract_inst_1:bp_in_1.port",
+      "extract_inst_1:pi_1.feedback",
+      "extract_inst_2.bp_in_1",
+      "extract_inst_2:bp_in_1.ext",
+      "extract_inst_2:bp_in_1.port",
+      "extract_inst_2:voltagesense_1.v_in",
+      "indicatorlight_1.v_in",
+      "relay_1.v_in",
+      "resistor_1.v_in",
+      "voltmeter_1.v_in"
+    ],
+    [
+      "azs_1.v_out",
+      "variableconductance_1.v_in"
+    ],
+    [
+      "bus_1.v",
+      "bus_3.v",
+      "controlledvoltagesource_2.v_neg",
+      "currentsense_1.v_out",
+      "extract_inst_2.bp_in_2",
+      "extract_inst_2:bp_in_2.ext",
+      "extract_inst_2:bp_in_2.port",
+      "extract_inst_2:voltagesense_1.v_ref",
+      "groundpower_1:groundpower_1.v_in",
+      "groundpower_1:groundpower_1:v_in.ext",
+      "groundpower_1:groundpower_1:v_in.port",
+      "groundpower_1:groundpower_1_src.v_neg",
+      "indicatorlight_1.v_out",
+      "indicatorlight_2.v_out",
+      "indicatorlight_3.v_out",
+      "indicatorlight_4.v_out",
+      "indicatorlight_5.v_out",
+      "refnode_4.v",
+      "resistor_2.v_out"
+    ],
+    [
+      "controlledvoltagesource_2.cmd",
+      "multiply_1.o"
+    ],
+    [
+      "controlledvoltagesource_2.gain",
+      "val_controlledvoltagesource_2_gain.o"
+    ],
+    [
+      "controlledvoltagesource_2.max_v",
+      "val_controlledvoltagesource_2_max_v.o"
+    ],
+    [
+      "controlledvoltagesource_2.min_v",
+      "val_controlledvoltagesource_2_min_v.o"
+    ],
+    [
+      "controlledvoltagesource_2.offset",
+      "val_controlledvoltagesource_2_offset.o"
+    ],
+    [
+      "currentsense_1.v_in",
+      "resistor_1.v_out"
+    ],
+    [
+      "extract_inst_1.bp_out_1",
+      "extract_inst_1:bp_out_1.ext",
+      "extract_inst_1:bp_out_1.port",
+      "extract_inst_1:lut_1.output",
+      "firstorderlag_1.in",
+      "firstorderlag_1:in.ext",
+      "firstorderlag_1:in.port",
+      "firstorderlag_1:subtract.A"
+    ],
+    [
+      "extract_inst_1:lut_1.input",
+      "extract_inst_1:pi_1.output"
+    ],
+    [
+      "extract_inst_1:pi_1.Ki",
+      "extract_inst_1:val_pi_1_Ki.o"
+    ],
+    [
+      "extract_inst_1:pi_1.Kp",
+      "extract_inst_1:val_pi_1_Kp.o"
+    ],
+    [
+      "extract_inst_1:pi_1.output_max",
+      "extract_inst_1:val_pi_1_output_max.o"
+    ],
+    [
+      "extract_inst_1:pi_1.output_min",
+      "extract_inst_1:val_pi_1_output_min.o"
+    ],
+    [
+      "extract_inst_1:pi_1.setpoint",
+      "extract_inst_1:value_1.o"
+    ],
+    [
+      "extract_inst_2.bp_out_1",
+      "extract_inst_2:bp_out_1.ext",
+      "extract_inst_2:bp_out_1.port",
+      "extract_inst_2:clamp_1.out",
+      "variableconductance_1.cmd"
+    ],
+    [
+      "extract_inst_2:clamp_1.in",
+      "extract_inst_2:multiply_4.o"
+    ],
+    [
+      "extract_inst_2:clamp_1.max",
+      "extract_inst_2:val_clamp_1_max.o"
+    ],
+    [
+      "extract_inst_2:clamp_1.min",
+      "extract_inst_2:val_clamp_1_min.o"
+    ],
+    [
+      "extract_inst_2:divide_1.A",
+      "extract_inst_2:integrator_1.out",
+      "extract_inst_2:multiply_2.A"
+    ],
+    [
+      "extract_inst_2:divide_1.B",
+      "extract_inst_2:subtract_1.A",
+      "extract_inst_2:voltagesense_1.out"
+    ],
+    [
+      "extract_inst_2:divide_1.o",
+      "extract_inst_2:multiply_4.A"
+    ],
+    [
+      "extract_inst_2:integrator_1.gain",
+      "extract_inst_2:val_integrator_1_gain.o"
+    ],
+    [
+      "extract_inst_2:integrator_1.in",
+      "extract_inst_2:multiply_3.o"
+    ],
+    [
+      "extract_inst_2:multiply_2.B",
+      "extract_inst_2:value_3.o"
+    ],
+    [
+      "extract_inst_2:multiply_2.o",
+      "extract_inst_2:subtract_1.B"
+    ],
+    [
+      "extract_inst_2:multiply_3.A",
+      "extract_inst_2:subtract_1.o"
+    ],
+    [
+      "extract_inst_2:multiply_3.B",
+      "extract_inst_2:value_4.o"
+    ],
+    [
+      "extract_inst_2:multiply_4.B",
+      "extract_inst_2:value_5.o"
+    ],
+    [
+      "extract_inst_2:val_voltagesense_1_gain.o",
+      "extract_inst_2:voltagesense_1.gain"
+    ],
+    [
+      "extract_inst_2:val_voltagesense_1_offset.o",
+      "extract_inst_2:voltagesense_1.offset"
+    ],
+    [
+      "extract_inst_3.bp_in_1",
+      "extract_inst_3:bp_in_1.ext",
+      "extract_inst_3:bp_in_1.port",
+      "extract_inst_3:multiply_6.A"
+    ],
+    [
+      "extract_inst_3.bp_in_2",
+      "extract_inst_3:bp_in_2.ext",
+      "extract_inst_3:bp_in_2.port",
+      "extract_inst_3:multiply_6.B"
+    ],
+    [
+      "extract_inst_3.bp_in_3",
+      "extract_inst_3:bp_in_3.ext",
+      "extract_inst_3:bp_in_3.port",
+      "extract_inst_3:multiply_5.A"
+    ],
+    [
+      "extract_inst_3.bp_out_1",
+      "extract_inst_3:bp_out_1.ext",
+      "extract_inst_3:bp_out_1.port",
+      "extract_inst_3:multiply_5.o"
+    ],
+    [
+      "extract_inst_3:clamp_2.in",
+      "extract_inst_3:integrator_2.out"
+    ],
+    [
+      "extract_inst_3:clamp_2.max",
+      "extract_inst_3:val_clamp_2_max.o"
+    ],
+    [
+      "extract_inst_3:clamp_2.min",
+      "extract_inst_3:val_clamp_2_min.o"
+    ],
+    [
+      "extract_inst_3:clamp_2.out",
+      "extract_inst_3:subtract_3.B"
+    ],
+    [
+      "extract_inst_3:clamp_3.in",
+      "extract_inst_3:subtract_2.o"
+    ],
+    [
+      "extract_inst_3:clamp_3.max",
+      "extract_inst_3:val_clamp_3_max.o"
+    ],
+    [
+      "extract_inst_3:clamp_3.min",
+      "extract_inst_3:val_clamp_3_min.o"
+    ],
+    [
+      "extract_inst_3:clamp_3.out",
+      "extract_inst_3:multiply_8.A"
+    ],
+    [
+      "extract_inst_3:integrator_2.gain",
+      "extract_inst_3:val_integrator_2_gain.o"
+    ],
+    [
+      "extract_inst_3:integrator_2.in",
+      "extract_inst_3:multiply_8.o"
+    ],
+    [
+      "extract_inst_3:multiply_5.B",
+      "extract_inst_3:subtract_3.o"
+    ],
+    [
+      "extract_inst_3:multiply_6.o",
+      "extract_inst_3:multiply_7.A"
+    ],
+    [
+      "extract_inst_3:multiply_7.B",
+      "extract_inst_3:value_6.o"
+    ],
+    [
+      "extract_inst_3:multiply_7.o",
+      "extract_inst_3:subtract_2.A"
+    ],
+    [
+      "extract_inst_3:multiply_8.B",
+      "extract_inst_3:value_7.o"
+    ],
+    [
+      "extract_inst_3:subtract_2.B",
+      "extract_inst_3:subtract_3.A",
+      "extract_inst_3:value_8.o"
+    ],
+    [
+      "extract_inst_4.bp_in_2",
+      "extract_inst_4:bp_in_2.ext",
+      "extract_inst_4:bp_in_2.port",
+      "extract_inst_4:divide_rotor_accel.torque_in",
+      "slider_1.out"
+    ],
+    [
+      "extract_inst_4.bp_out_1",
+      "extract_inst_4:bp_out_1.ext",
+      "extract_inst_4:bp_out_1.port",
+      "extract_inst_4:divide_rotor_accel.rpm_out",
+      "normalize_1.in"
+    ],
+    [
+      "extract_inst_4:divide_rotor_accel.damping",
+      "extract_inst_4:value_rotor_damping.o"
+    ],
+    [
+      "extract_inst_4:divide_rotor_accel.inv_inertia",
+      "extract_inst_4:value_rotor_inv_inertia.o"
+    ],
+    [
+      "extract_inst_4:divide_rotor_accel.mass",
+      "extract_inst_4:value_rotor_mass.o"
+    ],
+    [
+      "firstorderlag_1.out",
+      "firstorderlag_1:out.ext",
+      "firstorderlag_1:out.port",
+      "firstorderlag_1:splitter.o2",
+      "multiply_1.A"
+    ],
+    [
+      "firstorderlag_1.rate",
+      "firstorderlag_1:multiply.B",
+      "firstorderlag_1:rate.ext",
+      "firstorderlag_1:rate.port",
+      "value_2.o"
+    ],
+    [
+      "firstorderlag_1:accumulator.in",
+      "firstorderlag_1:multiply.o"
+    ],
+    [
+      "firstorderlag_1:accumulator.out",
+      "firstorderlag_1:splitter.i"
+    ],
+    [
+      "firstorderlag_1:multiply.A",
+      "firstorderlag_1:subtract.o"
+    ],
+    [
+      "firstorderlag_1:splitter.o1",
+      "firstorderlag_1:subtract.B"
+    ],
+    [
+      "groundpower_1:groundpower_1.v_out",
+      "groundpower_1:groundpower_1:v_out.ext",
+      "groundpower_1:groundpower_1:v_out.port",
+      "groundpower_1:groundpower_1_src.v_pos",
+      "rotaryswitch1ton_1.wiper"
+    ],
+    [
+      "groundpower_1:groundpower_1_k_max.o",
+      "groundpower_1:groundpower_1_src.max_v"
+    ],
+    [
+      "groundpower_1:groundpower_1_k_one.o",
+      "groundpower_1:groundpower_1_src.gain"
+    ],
+    [
+      "groundpower_1:groundpower_1_k_voltage.o",
+      "groundpower_1:groundpower_1_src.cmd"
+    ],
+    [
+      "groundpower_1:groundpower_1_k_zero.o",
+      "groundpower_1:groundpower_1_src.offset"
+    ],
+    [
+      "groundpower_1:groundpower_1_k_zero_2.o",
+      "groundpower_1:groundpower_1_src.min_v"
+    ],
+    [
+      "indicatorlight_2.v_in",
+      "rotaryswitch1ton_1.throw2"
+    ],
+    [
+      "indicatorlight_3.v_in",
+      "rotaryswitch1ton_1.throw1"
+    ],
+    [
+      "indicatorlight_4.v_in",
+      "rotaryswitch1ton_1.throw4"
+    ],
+    [
+      "indicatorlight_5.v_in",
+      "variableconductance_1.v_out"
+    ],
+    [
+      "multiply_1.B",
+      "normalize_1.out"
+    ],
+    [
+      "normalize_1.max",
+      "val_normalize_1_max.o"
+    ],
+    [
+      "normalize_1.min",
+      "val_normalize_1_min.o"
+    ],
+    [
+      "relay_1.hold_threshold",
+      "val_relay_1_hold_threshold.o"
+    ],
+    [
+      "relay_1.v_out",
+      "resistor_2.v_in"
+    ],
+    [
+      "val_variableconductance_1_g_max.o",
+      "variableconductance_1.g_max"
+    ],
+    [
+      "val_variableconductance_1_g_min.o",
+      "variableconductance_1.g_min"
+    ]
+  ],
+  "devices": {
+    "azs_1": "AZS",
+    "bus_1": "Bus",
+    "bus_2": "Bus",
+    "bus_3": "Bus",
+    "comparator_2": "Comparator",
+    "controlledvoltagesource_2": "ControlledVoltageSource",
+    "currentsense_1": "CurrentSense",
+    "extract_inst_1:bp_in_1": "BlueprintInput",
+    "extract_inst_1:bp_out_1": "BlueprintOutput",
+    "extract_inst_1:lut_1": "LUT",
+    "extract_inst_1:pi_1": "PI",
+    "extract_inst_1:val_pi_1_Ki": "Value",
+    "extract_inst_1:val_pi_1_Kp": "Value",
+    "extract_inst_1:val_pi_1_output_max": "Value",
+    "extract_inst_1:val_pi_1_output_min": "Value",
+    "extract_inst_1:value_1": "Value",
+    "extract_inst_2:bp_in_1": "BlueprintInput",
+    "extract_inst_2:bp_in_2": "BlueprintInput",
+    "extract_inst_2:bp_out_1": "BlueprintOutput",
+    "extract_inst_2:clamp_1": "Clamp",
+    "extract_inst_2:divide_1": "Divide",
+    "extract_inst_2:integrator_1": "Integrator",
+    "extract_inst_2:multiply_2": "Multiply",
+    "extract_inst_2:multiply_3": "Multiply",
+    "extract_inst_2:multiply_4": "Multiply",
+    "extract_inst_2:subtract_1": "Subtract",
+    "extract_inst_2:val_clamp_1_max": "Value",
+    "extract_inst_2:val_clamp_1_min": "Value",
+    "extract_inst_2:val_integrator_1_gain": "Value",
+    "extract_inst_2:val_voltagesense_1_gain": "Value",
+    "extract_inst_2:val_voltagesense_1_offset": "Value",
+    "extract_inst_2:value_3": "Value",
+    "extract_inst_2:value_4": "Value",
+    "extract_inst_2:value_5": "Value",
+    "extract_inst_2:voltagesense_1": "VoltageSense",
+    "extract_inst_3:bp_in_1": "BlueprintInput",
+    "extract_inst_3:bp_in_2": "BlueprintInput",
+    "extract_inst_3:bp_in_3": "BlueprintInput",
+    "extract_inst_3:bp_out_1": "BlueprintOutput",
+    "extract_inst_3:clamp_2": "Clamp",
+    "extract_inst_3:clamp_3": "Clamp",
+    "extract_inst_3:integrator_2": "Integrator",
+    "extract_inst_3:multiply_5": "Multiply",
+    "extract_inst_3:multiply_6": "Multiply",
+    "extract_inst_3:multiply_7": "Multiply",
+    "extract_inst_3:multiply_8": "Multiply",
+    "extract_inst_3:subtract_2": "Subtract",
+    "extract_inst_3:subtract_3": "Subtract",
+    "extract_inst_3:val_clamp_2_max": "Value",
+    "extract_inst_3:val_clamp_2_min": "Value",
+    "extract_inst_3:val_clamp_3_max": "Value",
+    "extract_inst_3:val_clamp_3_min": "Value",
+    "extract_inst_3:val_integrator_2_gain": "Value",
+    "extract_inst_3:value_6": "Value",
+    "extract_inst_3:value_7": "Value",
+    "extract_inst_3:value_8": "Value",
+    "extract_inst_4:bp_in_2": "BlueprintInput",
+    "extract_inst_4:bp_out_1": "BlueprintOutput",
+    "extract_inst_4:divide_rotor_accel": "InertiaNode",
+    "extract_inst_4:value_rotor_damping": "Value",
+    "extract_inst_4:value_rotor_inv_inertia": "Value",
+    "extract_inst_4:value_rotor_mass": "Value",
+    "firstorderlag_1:accumulator": "Accumulator",
+    "firstorderlag_1:in": "BlueprintInput",
+    "firstorderlag_1:multiply": "Multiply",
+    "firstorderlag_1:out": "BlueprintOutput",
+    "firstorderlag_1:rate": "BlueprintInput",
+    "firstorderlag_1:splitter": "Splitter",
+    "firstorderlag_1:subtract": "Subtract",
+    "groundpower_1:groundpower_1:v_in": "BlueprintInput",
+    "groundpower_1:groundpower_1:v_out": "BlueprintOutput",
+    "groundpower_1:groundpower_1_k_max": "Value",
+    "groundpower_1:groundpower_1_k_one": "Value",
+    "groundpower_1:groundpower_1_k_voltage": "Value",
+    "groundpower_1:groundpower_1_k_zero": "Value",
+    "groundpower_1:groundpower_1_k_zero_2": "Value",
+    "groundpower_1:groundpower_1_src": "ControlledVoltageSource",
+    "indicatorlight_1": "IndicatorLight",
+    "indicatorlight_2": "IndicatorLight",
+    "indicatorlight_3": "IndicatorLight",
+    "indicatorlight_4": "IndicatorLight",
+    "indicatorlight_5": "IndicatorLight",
+    "multiply_1": "Multiply",
+    "normalize_1": "Normalize",
+    "refnode_4": "RefNode",
+    "relay_1": "Relay",
+    "resistor_1": "Resistor",
+    "resistor_2": "Resistor",
+    "rotaryswitch1ton_1": "RotarySwitch1ToN",
+    "slider_1": "Slider",
+    "val_controlledvoltagesource_2_gain": "Value",
+    "val_controlledvoltagesource_2_max_v": "Value",
+    "val_controlledvoltagesource_2_min_v": "Value",
+    "val_controlledvoltagesource_2_offset": "Value",
+    "val_normalize_1_max": "Value",
+    "val_normalize_1_min": "Value",
+    "val_relay_1_hold_threshold": "Value",
+    "val_variableconductance_1_g_max": "Value",
+    "val_variableconductance_1_g_min": "Value",
+    "value_2": "Value",
+    "value_9": "Value",
+    "variableconductance_1": "VariableConductance",
+    "voltmeter_1": "Voltmeter"
+  },
+  "values": {
+    "azs_1.control": 0.0,
+    "azs_1.state": 0.0,
+    "azs_1.temp": 3.2858461499864973e-18,
+    "azs_1.tripped": 0.0,
+    "azs_1.v_in": 0.006672900170087814,
+    "azs_1.v_out": 3.3353708204231225e-06,
+    "bus_1.v": 0.0,
+    "bus_2.v": 0.006672900170087814,
+    "bus_3.v": 0.0,
+    "comparator_2.Va": 0.0,
+    "comparator_2.Vb": 0.0,
+    "comparator_2.o": 0.0,
+    "controlledvoltagesource_2.cmd": 0.006324341986328363,
+    "controlledvoltagesource_2.gain": 1.0,
+    "controlledvoltagesource_2.i_out": 0.000727429986000061,
+    "controlledvoltagesource_2.max_v": 30.0,
+    "controlledvoltagesource_2.min_v": 0.0,
+    "controlledvoltagesource_2.offset": 0.0,
+    "controlledvoltagesource_2.v_neg": 0.0,
+    "controlledvoltagesource_2.v_pos": 0.006672900170087814,
+    "currentsense_1.i_out": 0.0006606831448152661,
+    "currentsense_1.v_in": 6.606831448152661e-05,
+    "currentsense_1.v_out": 0.0,
+    "extract_inst_1.bp_in_1": 0.006672900170087814,
+    "extract_inst_1.bp_out_1": 28.5,
+    "extract_inst_1:bp_in_1.ext": 0.006672900170087814,
+    "extract_inst_1:bp_in_1.port": 0.006672900170087814,
+    "extract_inst_1:bp_out_1.ext": 28.5,
+    "extract_inst_1:bp_out_1.port": 28.5,
+    "extract_inst_1:lut_1.input": 1.0,
+    "extract_inst_1:lut_1.output": 28.5,
+    "extract_inst_1:pi_1.Ki": 1.0,
+    "extract_inst_1:pi_1.Kp": 0.10000000149011612,
+    "extract_inst_1:pi_1.feedback": 0.006672900170087814,
+    "extract_inst_1:pi_1.output": 1.0,
+    "extract_inst_1:pi_1.output_max": 1.0,
+    "extract_inst_1:pi_1.output_min": 0.0,
+    "extract_inst_1:pi_1.setpoint": 28.5,
+    "extract_inst_1:val_pi_1_Ki.o": 1.0,
+    "extract_inst_1:val_pi_1_Kp.o": 0.10000000149011612,
+    "extract_inst_1:val_pi_1_output_max.o": 1.0,
+    "extract_inst_1:val_pi_1_output_min.o": 0.0,
+    "extract_inst_1:value_1.o": 28.5,
+    "extract_inst_2.bp_in_1": 0.006672900170087814,
+    "extract_inst_2.bp_in_2": 0.0,
+    "extract_inst_2.bp_out_1": 1.0,
+    "extract_inst_2:bp_in_1.ext": 0.006672900170087814,
+    "extract_inst_2:bp_in_1.port": 0.006672900170087814,
+    "extract_inst_2:bp_in_2.ext": 0.0,
+    "extract_inst_2:bp_in_2.port": 0.0,
+    "extract_inst_2:bp_out_1.ext": 1.0,
+    "extract_inst_2:bp_out_1.port": 1.0,
+    "extract_inst_2:clamp_1.in": 1.782881736755371,
+    "extract_inst_2:clamp_1.max": 1.0,
+    "extract_inst_2:clamp_1.min": 0.0,
+    "extract_inst_2:clamp_1.out": 1.0,
+    "extract_inst_2:divide_1.A": 0.22330209612846375,
+    "extract_inst_2:divide_1.B": 0.006672900170087814,
+    "extract_inst_2:divide_1.o": 35.65763473510742,
+    "extract_inst_2:integrator_1.gain": 1.0,
+    "extract_inst_2:integrator_1.in": -0.7759076952934265,
+    "extract_inst_2:integrator_1.out": 0.22330209612846375,
+    "extract_inst_2:integrator_1.reset": 0.0,
+    "extract_inst_2:multiply_2.A": 0.22330209612846375,
+    "extract_inst_2:multiply_2.B": 0.0560000017285347,
+    "extract_inst_2:multiply_2.o": 0.012504917569458485,
+    "extract_inst_2:multiply_3.A": -0.00583201739937067,
+    "extract_inst_2:multiply_3.B": 125.0,
+    "extract_inst_2:multiply_3.o": -0.7759076952934265,
+    "extract_inst_2:multiply_4.A": 35.65763473510742,
+    "extract_inst_2:multiply_4.B": 0.05000000074505806,
+    "extract_inst_2:multiply_4.o": 1.782881736755371,
+    "extract_inst_2:subtract_1.A": 0.006672900170087814,
+    "extract_inst_2:subtract_1.B": 0.012504917569458485,
+    "extract_inst_2:subtract_1.o": -0.00583201739937067,
+    "extract_inst_2:val_clamp_1_max.o": 1.0,
+    "extract_inst_2:val_clamp_1_min.o": 0.0,
+    "extract_inst_2:val_integrator_1_gain.o": 1.0,
+    "extract_inst_2:val_voltagesense_1_gain.o": 1.0,
+    "extract_inst_2:val_voltagesense_1_offset.o": 0.0,
+    "extract_inst_2:value_3.o": 0.0560000017285347,
+    "extract_inst_2:value_4.o": 125.0,
+    "extract_inst_2:value_5.o": 0.05000000074505806,
+    "extract_inst_2:voltagesense_1.gain": 1.0,
+    "extract_inst_2:voltagesense_1.offset": 0.0,
+    "extract_inst_2:voltagesense_1.out": 0.006672900170087814,
+    "extract_inst_2:voltagesense_1.v_in": 0.006672900170087814,
+    "extract_inst_2:voltagesense_1.v_ref": 0.0,
+    "extract_inst_3.bp_in_1": 0.0,
+    "extract_inst_3.bp_in_2": 0.0,
+    "extract_inst_3.bp_in_3": 0.0,
+    "extract_inst_3.bp_out_1": 0.0,
+    "extract_inst_3:bp_in_1.ext": 0.0,
+    "extract_inst_3:bp_in_1.port": 0.0,
+    "extract_inst_3:bp_in_2.ext": 0.0,
+    "extract_inst_3:bp_in_2.port": 0.0,
+    "extract_inst_3:bp_in_3.ext": 0.0,
+    "extract_inst_3:bp_in_3.port": 0.0,
+    "extract_inst_3:bp_out_1.ext": 0.0,
+    "extract_inst_3:bp_out_1.port": 0.0,
+    "extract_inst_3:clamp_2.in": 0.0,
+    "extract_inst_3:clamp_2.max": 1.0,
+    "extract_inst_3:clamp_2.min": 0.0,
+    "extract_inst_3:clamp_2.out": 0.0,
+    "extract_inst_3:clamp_3.in": -1.0,
+    "extract_inst_3:clamp_3.max": 1.0,
+    "extract_inst_3:clamp_3.min": 0.0,
+    "extract_inst_3:clamp_3.out": 0.0,
+    "extract_inst_3:integrator_2.gain": 1.0,
+    "extract_inst_3:integrator_2.in": 0.0,
+    "extract_inst_3:integrator_2.out": 0.0,
+    "extract_inst_3:integrator_2.reset": 0.0,
+    "extract_inst_3:multiply_5.A": 0.0,
+    "extract_inst_3:multiply_5.B": 1.0,
+    "extract_inst_3:multiply_5.o": 0.0,
+    "extract_inst_3:multiply_6.A": 0.0,
+    "extract_inst_3:multiply_6.B": 0.0,
+    "extract_inst_3:multiply_6.o": 0.0,
+    "extract_inst_3:multiply_7.A": 0.0,
+    "extract_inst_3:multiply_7.B": 3.000000106112566e-06,
+    "extract_inst_3:multiply_7.o": 0.0,
+    "extract_inst_3:multiply_8.A": 0.0,
+    "extract_inst_3:multiply_8.B": 0.008333000354468822,
+    "extract_inst_3:multiply_8.o": 0.0,
+    "extract_inst_3:subtract_2.A": 0.0,
+    "extract_inst_3:subtract_2.B": 1.0,
+    "extract_inst_3:subtract_2.o": -1.0,
+    "extract_inst_3:subtract_3.A": 1.0,
+    "extract_inst_3:subtract_3.B": 0.0,
+    "extract_inst_3:subtract_3.o": 1.0,
+    "extract_inst_3:val_clamp_2_max.o": 1.0,
+    "extract_inst_3:val_clamp_2_min.o": 0.0,
+    "extract_inst_3:val_clamp_3_max.o": 1.0,
+    "extract_inst_3:val_clamp_3_min.o": 0.0,
+    "extract_inst_3:val_integrator_2_gain.o": 1.0,
+    "extract_inst_3:value_6.o": 3.000000106112566e-06,
+    "extract_inst_3:value_7.o": 0.008333000354468822,
+    "extract_inst_3:value_8.o": 1.0,
+    "extract_inst_4.bp_in_2": 0.0,
+    "extract_inst_4.bp_out_1": 0.022197561338543892,
+    "extract_inst_4:bp_in_2.ext": 0.0,
+    "extract_inst_4:bp_in_2.port": 0.0,
+    "extract_inst_4:bp_out_1.ext": 0.022197561338543892,
+    "extract_inst_4:bp_out_1.port": 0.022197561338543892,
+    "extract_inst_4:divide_rotor_accel.damping": 0.15000000596046448,
+    "extract_inst_4:divide_rotor_accel.inv_inertia": 25.0,
+    "extract_inst_4:divide_rotor_accel.mass": 25.0,
+    "extract_inst_4:divide_rotor_accel.rpm_out": 0.022197561338543892,
+    "extract_inst_4:divide_rotor_accel.torque_in": 0.0,
+    "extract_inst_4:value_rotor_damping.o": 0.15000000596046448,
+    "extract_inst_4:value_rotor_inv_inertia.o": 25.0,
+    "extract_inst_4:value_rotor_mass.o": 25.0,
+    "firstorderlag_1.in": 28.5,
+    "firstorderlag_1.out": 28.49115753173828,
+    "firstorderlag_1.rate": 6.0,
+    "firstorderlag_1:accumulator.in": 0.061191558837890625,
+    "firstorderlag_1:accumulator.out": 28.49115753173828,
+    "firstorderlag_1:in.ext": 28.5,
+    "firstorderlag_1:in.port": 28.5,
+    "firstorderlag_1:multiply.A": 0.00884246826171875,
+    "firstorderlag_1:multiply.B": 6.0,
+    "firstorderlag_1:multiply.o": 0.061191558837890625,
+    "firstorderlag_1:out.ext": 28.49115753173828,
+    "firstorderlag_1:out.port": 28.49115753173828,
+    "firstorderlag_1:rate.ext": 6.0,
+    "firstorderlag_1:rate.port": 6.0,
+    "firstorderlag_1:splitter.i": 28.49115753173828,
+    "firstorderlag_1:splitter.o1": 28.49115753173828,
+    "firstorderlag_1:splitter.o2": 28.49115753173828,
+    "firstorderlag_1:subtract.A": 28.5,
+    "firstorderlag_1:subtract.B": 28.49115753173828,
+    "firstorderlag_1:subtract.o": 0.00884246826171875,
+    "groundpower_1:groundpower_1.v_in": 0.0,
+    "groundpower_1:groundpower_1.v_out": 28.499431610107422,
+    "groundpower_1:groundpower_1:v_in.ext": 0.0,
+    "groundpower_1:groundpower_1:v_in.port": 0.0,
+    "groundpower_1:groundpower_1:v_out.ext": 28.499431610107422,
+    "groundpower_1:groundpower_1:v_out.port": 28.499431610107422,
+    "groundpower_1:groundpower_1_k_max.o": 30.0,
+    "groundpower_1:groundpower_1_k_one.o": 1.0,
+    "groundpower_1:groundpower_1_k_voltage.o": 28.5,
+    "groundpower_1:groundpower_1_k_zero.o": 0.0,
+    "groundpower_1:groundpower_1_k_zero_2.o": 0.0,
+    "groundpower_1:groundpower_1_src.cmd": 28.5,
+    "groundpower_1:groundpower_1_src.gain": 1.0,
+    "groundpower_1:groundpower_1_src.i_out": 0.0568389892578125,
+    "groundpower_1:groundpower_1_src.max_v": 30.0,
+    "groundpower_1:groundpower_1_src.min_v": 0.0,
+    "groundpower_1:groundpower_1_src.offset": 0.0,
+    "groundpower_1:groundpower_1_src.v_neg": 0.0,
+    "groundpower_1:groundpower_1_src.v_pos": 28.499431610107422,
+    "indicatorlight_1.brightness": 0.0002383178798481822,
+    "indicatorlight_1.v_in": 0.006672900170087814,
+    "indicatorlight_1.v_out": 0.0,
+    "indicatorlight_2.brightness": 0.0005086641176603734,
+    "indicatorlight_2.v_in": 0.014242594130337238,
+    "indicatorlight_2.v_out": 0.0,
+    "indicatorlight_3.brightness": 1.0,
+    "indicatorlight_3.v_in": 28.499374389648438,
+    "indicatorlight_3.v_out": 0.0,
+    "indicatorlight_4.brightness": 0.0005086640594527125,
+    "indicatorlight_4.v_in": 0.014242593199014664,
+    "indicatorlight_4.v_out": 0.0,
+    "indicatorlight_5.brightness": 1.1909657615660763e-07,
+    "indicatorlight_5.v_in": 3.3347039334330475e-06,
+    "indicatorlight_5.v_out": 0.0,
+    "multiply_1.A": 28.49115753173828,
+    "multiply_1.B": 0.00022197561338543892,
+    "multiply_1.o": 0.006324341986328363,
+    "normalize_1.in": 0.022197561338543892,
+    "normalize_1.max": 100.0,
+    "normalize_1.min": 0.0,
+    "normalize_1.out": 0.00022197561338543892,
+    "refnode_4.v": 0.0,
+    "relay_1.control": 0.0,
+    "relay_1.hold_threshold": 0.5,
+    "relay_1.state": 0.0,
+    "relay_1.v_in": 0.006672900170087814,
+    "relay_1.v_out": 6.672834018672802e-08,
+    "resistor_1.v_in": 0.006672900170087814,
+    "resistor_1.v_out": 6.606831448152661e-05,
+    "resistor_2.v_in": 6.672834018672802e-08,
+    "resistor_2.v_out": 0.0,
+    "rotaryswitch1ton_1.control": 0.0,
+    "rotaryswitch1ton_1.position": 0.0,
+    "rotaryswitch1ton_1.throw1": 28.499374389648438,
+    "rotaryswitch1ton_1.throw2": 0.014242594130337238,
+    "rotaryswitch1ton_1.throw3": 28.499431610107422,
+    "rotaryswitch1ton_1.throw4": 0.014242593199014664,
+    "rotaryswitch1ton_1.throw5": 28.499431610107422,
+    "rotaryswitch1ton_1.wiper": 28.499431610107422,
+    "slider_1.control": 0.0,
+    "slider_1.out": 0.0,
+    "val_controlledvoltagesource_2_gain.o": 1.0,
+    "val_controlledvoltagesource_2_max_v.o": 30.0,
+    "val_controlledvoltagesource_2_min_v.o": 0.0,
+    "val_controlledvoltagesource_2_offset.o": 0.0,
+    "val_normalize_1_max.o": 100.0,
+    "val_normalize_1_min.o": 0.0,
+    "val_relay_1_hold_threshold.o": 0.5,
+    "val_variableconductance_1_g_max.o": 10.0,
+    "val_variableconductance_1_g_min.o": 0.0,
+    "value_2.o": 6.0,
+    "value_9.o": 1.0,
+    "variableconductance_1.cmd": 1.0,
+    "variableconductance_1.g_max": 10.0,
+    "variableconductance_1.g_min": 0.0,
+    "variableconductance_1.v_in": 3.3353708204231225e-06,
+    "variableconductance_1.v_out": 3.3347039334330475e-06,
+    "voltmeter_1.v_in": 0.006672900170087814
+  },
+  "signal_count": 106
+}
