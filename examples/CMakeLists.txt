@@ -220,7 +220,7 @@ target_link_libraries(bp2_debug_validate PRIVATE json_parser blueprint_v2 spdlog
 # Benchmark JIT vs AOT
 add_executable(benchmark_jit_vs_aot benchmark_jit_vs_aot.cpp)
 target_include_directories(benchmark_jit_vs_aot PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver spdlog::spdlog)
+target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver blueprint_v2 spdlog::spdlog nlohmann_json::nlohmann_json)
 
 # Push scheduler benchmark (single-pass)
 add_executable(benchmark_push_scheduler benchmark_push_scheduler.cpp)

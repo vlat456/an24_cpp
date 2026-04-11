@@ -1,7 +1,6 @@
 #include "simulator.h"
 #include "components/port_registry.h"
 #include "core/solvers/common/signal_key.h"
-#include "../../../json_parser/json_parser.h"
 #include "../../../parse_number.h"
 #include <algorithm>
 #include <cmath>
@@ -167,76 +166,6 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
     state_.lut_keys = std::move(build_result_->lut_keys);
     state_.lut_values = std::move(build_result_->lut_values);
 
-    state_.electrical_rt = nullptr;
-    electrical_rt_ = ElectricalRuntimeState{};
-
-    time_ = 0.0;
-    step_count_ = 0;
-    running_ = true;
-}
-
-template <typename SolverTag>
-void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
-    auto ctx = parse_json(json_str);
-
-    std::vector<std::pair<std::string, std::string>> connections;
-    connections.reserve(ctx.connections.size());
-    for (const auto& c : ctx.connections) {
-        connections.push_back({c.from, c.to});
-    }
-
-    build_result_ = build_systems_dev(ctx.devices, connections);
-
-    state_ = SimulationState();
-    // Phase 1: allocate all signals as fixed (append-only) so that
-    // logical signal IDs from port_to_signal match physical indices.
-    // Dynamic/fixed partitioning is a Phase 2 concern when components
-    // actually need the split layout.
-    for (uint32_t i = 0; i < build_result_->signal_count; ++i) {
-        (void)state_.allocate_signal(0.0f);
-    }
-
-    for (const auto& dev : ctx.devices) {
-        if (dev.classname == "RefNode") {
-            float value = 0.0f;
-            auto it_val = dev.params.find("value");
-            if (it_val != dev.params.end()) {
-                value = locale_safe::parse_float_or(it_val->second, 0.0f);
-            }
-
-            auto it_sig = build_result_->port_to_signal.find(signal_key::make_node_port_key(dev.name, "v"));
-            if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
-                state_.values[it_sig->second] = value;
-            }
-        }
-        else if (dev.classname == "Value") {
-            float value = 0.0f;
-            auto it_val = dev.params.find("value");
-            if (it_val != dev.params.end()) {
-                value = locale_safe::parse_float_or(it_val->second, 0.0f);
-            }
-
-            auto it_sig = build_result_->port_to_signal.find(signal_key::make_node_port_key(dev.name, "o"));
-            if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
-                state_.values[it_sig->second] = value;
-            }
-        }
-    }
-
-    // Apply explicit initial values from JSON after baseline signal initialization.
-    // Keys are port references like "device.port".
-    for (const auto& [port_ref, value] : ctx.initial_values) {
-        auto it_sig = build_result_->port_to_signal.find(port_ref);
-        if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
-            state_.values[it_sig->second] = value;
-        }
-    }
-
-    state_.lut_keys = std::move(build_result_->lut_keys);
-    state_.lut_values = std::move(build_result_->lut_values);
-
-    // Explicitly clear electrical_rt pointer: solver-owned electrical propagation
-    // runs inside step(), not between steps. Pointer must not be stale.
     state_.electrical_rt = nullptr;
     electrical_rt_ = ElectricalRuntimeState{};
 

@@ -25,7 +25,6 @@ public:
     Simulator(Simulator&& other) noexcept;
     Simulator& operator=(Simulator&& other) noexcept;
 
-    void start_from_json(const std::string& json_str);
     void start(const JitBuildInput& input);
     void stop();
     void step(double dt);

@@ -811,7 +811,7 @@ TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, MetadataPropagatedThroughLibraryPipeline) {
-    // Use the full JIT_Simulator::start_from_json() pipeline which loads the
+    // Use the full simulator startup pipeline via canonical JitBuildInput which loads the
     // type registry. Verify that solver_role is populated on the merged devices
     // and produces correct solve results.
     //
