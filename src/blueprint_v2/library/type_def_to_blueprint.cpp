@@ -42,9 +42,26 @@ Domain resolve_wire_domain(const Blueprint& bp,
         throw std::runtime_error(
             "blueprint_from_type_definition: unresolved wire port in " + context);
     }
+
+    // Cross-domain wires are valid when PortType::Any is involved:
+    // Any-typed ports adopt the concrete domain from the other side.
+    // This mirrors the logic in codec_detail::resolve_wire_domains().
+    const bool src_any = (src_desc->port_type == PortType::Any);
+    const bool tgt_any = (tgt_desc->port_type == PortType::Any);
+
+    if (src_any && tgt_any) {
+        return src_desc->domain;
+    } else if (src_any) {
+        return tgt_desc->domain;
+    } else if (tgt_any) {
+        return src_desc->domain;
+    }
+
+    // Both concrete types — domains should match.
     if (src_desc->domain != tgt_desc->domain) {
         throw std::runtime_error(
-            "blueprint_from_type_definition: domain mismatch in " + context);
+            "blueprint_from_type_definition: domain mismatch in " + context
+            + " (wire " + src_node + "." + src_port + " -> " + tgt_node + "." + tgt_port + ")");
     }
     return src_desc->domain;
 }
