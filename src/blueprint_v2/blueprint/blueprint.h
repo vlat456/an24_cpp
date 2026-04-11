@@ -39,8 +39,15 @@ public:
         struct SemanticData {
             ui::InternedId id;
             ui::InternedId type;
-            /// Component interface cache. For blueprint-instance nodes, use
-            /// effective_node_iface() for authoritative reads.
+            /// Component-node interface cache.
+            ///
+            /// Contract (#108):
+            /// - component nodes: authoritative and required
+            /// - blueprint-instance nodes: must be empty
+            ///
+            /// For blueprint-instance nodes, always use
+            /// `Blueprint::effective_node_iface()` to read authoritative
+            /// interface data from `source`.
             Interface iface;
             std::unordered_map<ui::InternedId, float> params;
             /// String-valued parameters (e.g. font_size, text content).
@@ -98,6 +105,7 @@ public:
             Blueprint* inline_def_mut();
             void set_inline_def(std::unique_ptr<Blueprint> blueprint);
 
+            bool canonical_eq(const BlueprintSource& other) const;
             bool operator==(const BlueprintSource& other) const;
         };
 
@@ -118,16 +126,37 @@ public:
         };
 
         // === View/presentation data ===
+        //
+        // Design decision (#107): ViewData intentionally lives inside the
+        // core Blueprint::Node model as a pragmatic superset of canonical
+        // persistence authority.  The fields are grouped into three tiers:
+        //
+        //   1. **Canonical** — authored document state, persisted in strict
+        //      blueprint v1 JSON (e.g. `name` → JSON `label`).
+        //
+        //   2. **Runtime/editor hydrated** — populated by an explicit
+        //      post-load hydration step from the TypeRegistry.  NOT
+        //      persisted; must never be serialized.  Hydration is owned
+        //      exclusively by `editor::hydrate_runtime_node_view_data()`.
+        //      Fields: render_hint, content_*.
+        //
+        //   3. **Session/editor-only** — transient visual state that lives
+        //      only in the running editor session.  NOT persisted; NOT
+        //      hydrated from TypeRegistry.  Fields: has_color, color_*.
+        //
+        // `canonical_eq()` compares only tier-1 fields and should be used
+        // for persistence dirty-checking.  `operator==` compares all tiers
+        // and is used for structural equality in tests and model diffing.
+        //
         struct ViewData {
+            // --- Tier 1: Canonical authored state (persisted) ---
             /// Canonical authored node label persisted as JSON `label`.
             std::string name;
 
-            /// Runtime/editor presentation state only. These fields are not
-            /// canonical persistence authority and must not be serialized in
-            /// strict blueprint v1 documents.
+            // --- Tier 2: Runtime/editor hydrated state (NOT persisted) ---
+            // Populated exclusively by editor::hydrate_runtime_node_view_data().
+            // Must NOT be set by BlueprintCodec::decode().
             std::string render_hint;
-
-            // Node content (simulation readout / interactive widget)
             NodeContentType content_type = NodeContentType::None;
             std::string content_label;
             float content_value = 0.0f;
@@ -137,11 +166,17 @@ public:
             bool content_state = false;
             bool content_tripped = false;
 
+            // --- Tier 3: Session/editor-only state (NOT persisted, NOT hydrated) ---
             // Per-node custom color (has_color=false means use theme default).
-            // Session/editor-only state: not part of canonical persistence.
             bool has_color = false;
             float color_r = 0.5f, color_g = 0.5f, color_b = 0.5f, color_a = 1.0f;
 
+            /// Compare only canonical persisted fields (tier 1).
+            bool canonical_eq(ViewData const& o) const {
+                return name == o.name;
+            }
+
+            /// Full structural equality across all tiers.
             bool operator==(ViewData const& o) const {
                 return name == o.name && render_hint == o.render_hint
                     && content_type == o.content_type && content_label == o.content_label
@@ -168,6 +203,7 @@ public:
             return source.has_value() && source->is_reference();
         }
 
+        bool canonical_eq(Node const& o) const;
         bool operator==(Node const& o) const {
             return kind == o.kind && semantic == o.semantic && source == o.source
                 && layout == o.layout && view == o.view;
@@ -231,6 +267,7 @@ public:
                   ui::StringInterner& interner,
                   PathArena const& arena) const;
 
+    bool canonical_eq(Blueprint const& other) const;
     bool operator==(Blueprint const& other) const;
     bool operator!=(Blueprint const& other) const { return !(*this == other); }
 

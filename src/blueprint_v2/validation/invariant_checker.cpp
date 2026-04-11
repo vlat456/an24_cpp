@@ -95,8 +95,13 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             }
 
             // Blueprint-instance interface derives from source authority only.
-            // node.semantic.iface must not be used for blueprint-instance nodes.
-            // Use effective_node_iface() to query authoritative interface.
+            // node.semantic.iface must stay empty so misleading mirror state
+            // cannot drift alongside source authority.
+            if (!node.semantic.iface.ports().empty()) {
+                out.error = "blueprint-instance node carries non-empty semantic.iface at node id="
+                    + iid_to_string(node.semantic.id);
+                return out;
+            }
 
             continue;
         }

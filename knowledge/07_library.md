@@ -2,10 +2,18 @@
 
 ## Overview
 
-The `library/` directory contains JSON blueprint definitions for all components. These define:
+The `library/` directory contains JSON type-definition assets for all components. These define:
 - Port interface (names, domains, directions)
 - Default parameters
 - Component metadata
+
+These files are **not** canonical strict-v1 blueprint persistence documents.
+Canonical blueprint document authority lives in:
+
+- `knowledge/persistence_spec_v1.md`
+- `knowledge/persistence_boundaries.md`
+
+`library/**/*.blueprint` files stay on the library/type-definition path and are consumed by `load_type_registry()`.
 
 ## Directory Structure
 
@@ -53,7 +61,7 @@ library/
 └── Value.blueprint
 ```
 
-## Blueprint Format (v3.0)
+## Library Asset Format (v3.0 type-definition path)
 
 ### Primitive Component
 ```json
@@ -107,9 +115,9 @@ library/
 ### Root Fields
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| version | string | yes | "3.0" |
+| version | string | yes | `"3.0"` for library/type-definition assets |
 | id | string | yes | Unique identifier |
-| display_name | string | no | Human-readable name |
+| display_name | string | no | Human-readable label for library/type-definition assets |
 | description | string | no | Documentation |
 | cpp_class | bool | yes | Has C++ implementation? |
 | domains | [string] | no | Simulation domains |
@@ -127,6 +135,13 @@ library/
 | domain | int | 1=Electrical, 2=Logical, 4=Mechanical, 8=Hydraulic, 16=Thermal |
 | direction | int | 0=Input, 1=Output, 2=Bidirectional |
 | type | string | "V", "I", "Signal", "P", "Q", "T", "H" |
+
+## Boundary Reminder
+
+- `library/**/*.blueprint`: library/type-definition assets
+- canonical blueprint documents: strict v1 document format from `knowledge/persistence_spec_v1.md`
+- workspace/session files: separate editor-only persistence
+- legacy/reference schematics: not canonical authority
 
 ### Domain Values
 | Value | Domain |

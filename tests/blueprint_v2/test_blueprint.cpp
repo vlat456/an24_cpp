@@ -579,3 +579,37 @@ TEST(BlueprintNaming, RoundTripEquality) {
     bp2::Blueprint copy = bp;
     EXPECT_EQ(bp, copy);
 }
+
+TEST(BlueprintCanonicalEq, IgnoresHydratedAndSessionOnlyViewFields) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint::Node a;
+    a.semantic.id = interner.intern("n1");
+    a.semantic.type = interner.intern("Value");
+    a.view.name = "Value";
+    a.view.render_hint = "ref";
+    a.view.content_type = bp2::NodeContentType::Gauge;
+    a.view.content_label = "Volts";
+    a.view.has_color = true;
+    a.view.color_r = 1.0f;
+
+    bp2::Blueprint::Node b = a;
+    b.view.render_hint.clear();
+    b.view.content_type = bp2::NodeContentType::None;
+    b.view.content_label.clear();
+    b.view.has_color = false;
+    b.view.color_r = 0.5f;
+
+    bp2::Blueprint left;
+    left = left.with_id(interner.intern("bp"));
+    left = left.with_name("BP");
+    left = left.with_node(a);
+
+    bp2::Blueprint right;
+    right = right.with_id(interner.intern("bp"));
+    right = right.with_name("BP");
+    right = right.with_node(b);
+
+    EXPECT_NE(left, right);
+    EXPECT_TRUE(left.canonical_eq(right));
+}

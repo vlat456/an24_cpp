@@ -78,7 +78,7 @@ bool Document::load(const std::string& path) {
         return false;
     }
 
-    auto bp = load_blueprint_from_file_validated(path.c_str(), interner_, arena_, *type_registry_);
+    auto bp = load_hydrated_blueprint_from_file(path.c_str(), interner_, arena_, *type_registry_);
     if (!bp.has_value()) {
         return false;
     }
@@ -90,8 +90,6 @@ bool Document::load(const std::string& path) {
         simulation_.stop();
         simulation_running_ = false;
     }
-
-    bp = editor::hydrate_runtime_node_view_data(std::move(*bp), interner_, *type_registry_);
 
     {
         bp2::EditorModel fresh(std::move(*bp));

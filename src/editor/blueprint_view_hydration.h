@@ -8,6 +8,31 @@
 
 namespace editor {
 
+/// [DRY-hydration] Hydrate runtime-only view state (ViewData tier 2) for a
+/// single node in-place.  This is the **single authoritative location** for
+/// render_hint and content_* population; all call sites (creation, load,
+/// import) must go through here.
+///
+/// Only component-kind nodes are hydrated; blueprint-instance nodes are
+/// skipped because their view state is derived differently.
+///
+/// @param node  The node to hydrate (mutated in-place).
+/// @param def   TypeDefinition for the node's component type (may be null).
+inline void hydrate_node_view(bp2::Blueprint::Node& node,
+                              const TypeDefinition* def) {
+    if (!def) return;
+    node.view.render_hint = def->render_hint;
+    NodeContent nc = create_node_content_from_def(def);
+    node.view.content_type    = nc.type;
+    node.view.content_label   = nc.label;
+    node.view.content_value   = nc.value;
+    node.view.content_min     = nc.min;
+    node.view.content_max     = nc.max;
+    node.view.content_unit    = nc.unit;
+    node.view.content_state   = nc.state;
+    node.view.content_tripped = nc.tripped;
+}
+
 /// [DRY-hydration] Hydrate runtime-only node view state from TypeRegistry.
 /// Fills render_hint and content_* fields (not persisted in canonical v1 format).
 /// Recursively hydrates embedded inline blueprints.
@@ -25,21 +50,7 @@ inline bp2::Blueprint hydrate_runtime_node_view_data(
 
         if (node.is_component()) {
             const std::string type_name(interner.resolve(node.semantic.type));
-            const TypeDefinition* def = registry.get(type_name);
-            if (def) {
-                // Hydrate render_hint from type registry (not persisted in v1)
-                updated.view.render_hint = def->render_hint;
-                // Hydrate content from type definition
-                NodeContent nc = create_node_content_from_def(def);
-                updated.view.content_type    = nc.type;
-                updated.view.content_label   = nc.label;
-                updated.view.content_value   = nc.value;
-                updated.view.content_min     = nc.min;
-                updated.view.content_max     = nc.max;
-                updated.view.content_unit    = nc.unit;
-                updated.view.content_state   = nc.state;
-                updated.view.content_tripped = nc.tripped;
-            }
+            hydrate_node_view(updated, registry.get(type_name));
         }
 
         // Recursively hydrate embedded inline blueprints

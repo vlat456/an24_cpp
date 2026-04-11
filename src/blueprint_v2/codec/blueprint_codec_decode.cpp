@@ -1,6 +1,5 @@
 #include "blueprint_codec_internal.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
-#include "editor/data/node_content.h"
 
 #include <algorithm>
 #include <unordered_set>
@@ -70,19 +69,6 @@ const std::unordered_set<std::string>& allowed_endpoint_fields() {
         "node", "port"
     };
     return s;
-}
-
-void hydrate_runtime_content(Blueprint::Node& node, TypeDefinition const& type_def) {
-    // [DRY-hydration] Use shared content creation helper from editor layer
-    NodeContent nc = create_node_content_from_def(&type_def);
-    node.view.content_type    = nc.type;
-    node.view.content_label   = nc.label;
-    node.view.content_value   = nc.value;
-    node.view.content_min     = nc.min;
-    node.view.content_max     = nc.max;
-    node.view.content_unit    = nc.unit;
-    node.view.content_state   = nc.state;
-    node.view.content_tripped = nc.tripped;
 }
 
 Direction decode_direction(std::string const& dir) {
@@ -220,9 +206,9 @@ Blueprint decode_nodes(Blueprint bp,
             node.semantic.type = interner.intern(n["component"].get<std::string>());
             if (const TypeDefinition* type_def = parser_registry.get(std::string(interner.resolve(node.semantic.type)))) {
                 node.semantic.iface = interface_from_type_definition(*type_def, interner);
-                // Hydrate runtime-only render_hint from type registry (not persisted in v1).
-                node.view.render_hint = type_def->render_hint;
-                hydrate_runtime_content(node, *type_def);
+                // Issue #105: render_hint, content_* are runtime/editor-only
+                // (ViewData tier 2).  Hydration is the sole responsibility of
+                // editor::hydrate_runtime_node_view_data() — NOT the codec.
             }
         } else {
             require_field(n, "source", &nlohmann::json::is_object, ctx, "object");

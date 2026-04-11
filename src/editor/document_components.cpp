@@ -101,8 +101,6 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     node.view.name = unique_id;
     node.layout.x = snapped_pos.x;
     node.layout.y = snapped_pos.y;
-    node.view.render_hint = def->render_hint;
-
     std::vector<bp2::PortDescriptor> iface_ports;
     iface_ports.reserve(def->ports.size());
     for (const auto& [port_name, port_def] : def->ports) {
@@ -153,17 +151,8 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         node.semantic.iface = bp2::Interface(std::move(ports));
     }
 
-    {
-        NodeContent nc = create_node_content_from_def(def);
-        node.view.content_type = nc.type;
-        node.view.content_label = nc.label;
-        node.view.content_value = nc.value;
-        node.view.content_min = nc.min;
-        node.view.content_max = nc.max;
-        node.view.content_unit = nc.unit;
-        node.view.content_state = nc.state;
-        node.view.content_tripped = nc.tripped;
-    }
+    // Issue #105: single-source hydration of runtime/editor view state.
+    editor::hydrate_node_view(node, def);
 
     const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
     const bool bridge_is_input = (classname == "BlueprintInput");
@@ -259,7 +248,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     collapsed.layout.width = 160.0f;
     collapsed.layout.height = 64.0f;
     collapsed.layout.collapsed = true;
-    collapsed.view.render_hint = def->render_hint;
 
     std::vector<bp2::PortDescriptor> iface_ports;
     iface_ports.reserve(def->ports.size());
@@ -275,17 +263,8 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     // but do NOT mirror node.semantic.iface.
     bp2::Interface inline_bp_iface = bp2::Interface(std::move(iface_ports));
 
-    {
-        NodeContent nc = create_node_content_from_def(def);
-        collapsed.view.content_type = nc.type;
-        collapsed.view.content_label = nc.label;
-        collapsed.view.content_value = nc.value;
-        collapsed.view.content_min = nc.min;
-        collapsed.view.content_max = nc.max;
-        collapsed.view.content_unit = nc.unit;
-        collapsed.view.content_state = nc.state;
-        collapsed.view.content_tripped = nc.tripped;
-    }
+    // Issue #105: single-source hydration of runtime/editor view state.
+    editor::hydrate_node_view(collapsed, def);
 
     bp2::Blueprint loaded;
     try {

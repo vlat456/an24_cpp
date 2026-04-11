@@ -9,6 +9,7 @@
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/validation/path_resolver.h"
 #include "blueprint_v2/validation/wire_validator.h"
+#include "editor/blueprint_view_hydration.h"
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include <type_traits>
@@ -605,6 +606,94 @@ TEST(BlueprintCodec, DecodeWithParserRegistryOverload) {
     auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, parser_registry, &err);
     ASSERT_TRUE(decoded.has_value()) << err.message;
     EXPECT_EQ(interner.resolve(decoded->id()), "codec_parser_decode");
+}
+
+TEST(BlueprintCodec, DecodeDoesNotHydrateRuntimeViewFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg = make_test_registry();
+    register_type(reg, interner, "Slider");
+    register_type(reg, interner, "Value");
+    reg.types["Value"].render_hint = "ref";
+
+    const std::string json = R"({
+        "format": "blueprint",
+        "version": 1,
+        "blueprint_id": "pure_decode",
+        "name": "Pure Decode",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "slider1",
+                "kind": "component",
+                "component": "Slider",
+                "layout": {"x": 0.0, "y": 0.0}
+            },
+            {
+                "id": "value1",
+                "kind": "component",
+                "component": "Value",
+                "layout": {"x": 1.0, "y": 1.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    bp2::DecodeError err;
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(decoded.has_value()) << err.message;
+
+    const auto* slider = decoded->find_node(interner.lookup("slider1"));
+    ASSERT_NE(slider, nullptr);
+    EXPECT_EQ(slider->view.content_type, bp2::NodeContentType::None);
+    EXPECT_TRUE(slider->view.render_hint.empty());
+
+    const auto* value = decoded->find_node(interner.lookup("value1"));
+    ASSERT_NE(value, nullptr);
+    EXPECT_TRUE(value->view.render_hint.empty());
+}
+
+TEST(BlueprintCodec, ExplicitHydrationPopulatesRuntimeViewFieldsRecursively) {
+    ui::StringInterner interner;
+    TypeRegistry reg = make_test_registry();
+    register_type(reg, interner, "Slider");
+    reg.types["Slider"].content_type = "Slider";
+    reg.types["Slider"].params["min"] = "0.0";
+    reg.types["Slider"].params["max"] = "1.0";
+
+    bp2::Blueprint inner;
+    inner = inner.with_id(interner.intern("inner"));
+    inner = inner.with_name("Inner");
+
+    bp2::Blueprint::Node slider;
+    slider.semantic.id = interner.intern("inner_slider");
+    slider.semantic.type = interner.intern("Slider");
+    slider.layout.x = 3.0f;
+    slider.layout.y = 4.0f;
+    inner = inner.with_node(std::move(slider));
+
+    bp2::Blueprint root;
+    root = root.with_id(interner.intern("root"));
+    root = root.with_name("Root");
+
+    bp2::Blueprint::Node host;
+    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.semantic.id = interner.intern("host");
+    host.semantic.type = interner.intern("Group");
+    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("Group"),
+        std::make_unique<bp2::Blueprint>(inner));
+    root = root.with_node(std::move(host));
+
+    bp2::Blueprint hydrated = editor::hydrate_runtime_node_view_data(std::move(root), interner, reg);
+    const auto* loaded_host = hydrated.find_node(interner.lookup("host"));
+    ASSERT_NE(loaded_host, nullptr);
+    ASSERT_TRUE(loaded_host->source.has_value());
+    const auto* loaded_slider = loaded_host->source->inline_def()->find_node(interner.lookup("inner_slider"));
+    ASSERT_NE(loaded_slider, nullptr);
+    EXPECT_EQ(loaded_slider->view.content_type, bp2::NodeContentType::Slider);
+    EXPECT_FLOAT_EQ(loaded_slider->view.content_min, 0.0f);
+    EXPECT_FLOAT_EQ(loaded_slider->view.content_max, 1.0f);
 }
 
 

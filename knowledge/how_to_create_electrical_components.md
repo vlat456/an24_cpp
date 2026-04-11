@@ -47,6 +47,8 @@ Required fields:
 
 Example (conductance branch):
 
+This example is a **library type-definition asset** (`library/**/*.blueprint`), not a canonical strict-v1 blueprint document.
+
 ```json
 {
   "version": "3.0",

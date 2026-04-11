@@ -26,7 +26,7 @@ void Document::openExternalRefWindow(const std::string& instance_id,
         return;
     }
 
-    auto bp = load_blueprint_from_file_validated(
+    auto bp = load_hydrated_blueprint_from_file(
         blueprint_file_path.c_str(), *ext_interner, *ext_arena, *type_registry_);
     if (!bp.has_value()) {
         spdlog::error("[editor] Failed to load external blueprint '{}' for instance '{}'",
@@ -52,8 +52,6 @@ void Document::openExternalRefWindow(const std::string& instance_id,
         spdlog::info("[editor] Reactivated external-ref window for '{}'", instance_id);
         return;
     }
-
-    bp = editor::hydrate_runtime_node_view_data(std::move(*bp), *ext_interner, *type_registry_);
 
     win->external_blueprint = std::move(*bp);
     win->external_interner = std::move(ext_interner);

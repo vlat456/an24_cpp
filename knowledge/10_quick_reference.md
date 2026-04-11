@@ -62,6 +62,8 @@ cd build && ctest
 | Stable component design | `knowledge/component_authoring.md` |
 | Component internals | `knowledge/03_components.md` |
 | Blueprint/library format | `knowledge/07_library.md` |
+| Canonical blueprint persistence | `knowledge/persistence_spec_v1.md` |
+| Persistence file boundaries | `knowledge/persistence_boundaries.md` |
 | Architecture overview | `knowledge/01_architecture.md` |
 | Editor internals | `knowledge/05_editor.md` |
 | Errors/TODO | `knowledge/errors_TODO.md` |
@@ -149,7 +151,34 @@ for (int step = 0; step < total_steps; ++step) {
 }
 ```
 
-## Blueprint JSON Format
+## Persistence Formats
+
+Canonical blueprint documents are defined only by `knowledge/persistence_spec_v1.md`.
+
+- canonical blueprint document: strict v1, `format: "blueprint"`, `version: 1`
+- library asset: `library/**/*.blueprint` type-definition JSON loaded by `json_parser`
+- workspace/session persistence: separate editor-only file, not part of canonical blueprint authority
+- legacy/reference schematics: preserved outside canonical authority
+
+Do not treat library/type-definition examples as canonical blueprint persistence examples.
+
+### Canonical Blueprint Document (strict v1)
+
+```json
+{
+  "format": "blueprint",
+  "version": 1,
+  "blueprint_id": "example.gain_block",
+  "name": "Gain Block",
+  "interface": [],
+  "nodes": [],
+  "wires": []
+}
+```
+
+### Library Type Asset (`library/**/*.blueprint`)
+
+These are type-definition assets, not canonical blueprint documents:
 
 ```json
 {

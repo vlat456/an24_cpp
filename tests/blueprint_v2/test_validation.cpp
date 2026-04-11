@@ -11,6 +11,8 @@
 #include "blueprint_v2/diagnostics/repair.h"
 #include "json_parser/json_parser.h"
 
+#include "../bp2_test_helpers.h"
+
 using bp2::Direction;
 using bp2::Interface;
 using bp2::Path;
@@ -311,6 +313,36 @@ TEST(InvariantChecker, RootComponentNodePasses) {
 
     auto result = bp2::InvariantChecker::validate(bp, arena, reg, I);
     EXPECT_TRUE(result.valid) << result.error;
+}
+
+TEST(InvariantChecker, BlueprintInstanceWithSemanticIfaceFails) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    bp2::Blueprint inner;
+    inner = inner.with_id(I.intern("inner"));
+    inner = inner.with_interface(Interface({
+        make_port(I, "port", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    }));
+
+    bp2::Blueprint::Node host;
+    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.semantic.id = I.intern("host");
+    host.semantic.type = I.intern("inner");
+    host.semantic.iface = Interface({
+        make_port(I, "wrong", Domain::Electrical, bp2::Direction::Output, PortType::I),
+    });
+    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("inner"),
+        std::make_unique<bp2::Blueprint>(inner));
+
+    bp2::Blueprint root;
+    root = root.with_node(std::move(host));
+
+    auto result = bp2::InvariantChecker::validate(root, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("non-empty semantic.iface"), std::string::npos);
 }
 
 
@@ -825,6 +857,4 @@ TEST(InvariantChecker, ComponentNodeInterfaceConsistency_EmptyInterfaceOnValidCo
      EXPECT_FALSE(result.valid);
      EXPECT_NE(result.error.find("iface desynced"), std::string::npos);
 }
-
-
 

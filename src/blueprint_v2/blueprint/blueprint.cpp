@@ -102,6 +102,24 @@ void Blueprint::Node::BlueprintSource::set_inline_def(std::unique_ptr<Blueprint>
     embedded->blueprint = std::move(blueprint);
 }
 
+bool Blueprint::Node::BlueprintSource::canonical_eq(const BlueprintSource& other) const {
+    if (is_embedded() != other.is_embedded()) {
+        return false;
+    }
+    if (blueprint_id() != other.blueprint_id()) {
+        return false;
+    }
+    if (is_embedded()) {
+        const Blueprint* lhs = inline_def();
+        const Blueprint* rhs = other.inline_def();
+        if ((lhs == nullptr) != (rhs == nullptr)) {
+            return false;
+        }
+        return lhs == nullptr || lhs->canonical_eq(*rhs);
+    }
+    return resolved_iface() == other.resolved_iface();
+}
+
 bool Blueprint::Node::BlueprintSource::operator==(const BlueprintSource& other) const {
     if (is_embedded() != other.is_embedded()) {
         return false;
@@ -217,6 +235,16 @@ bool Blueprint::is_referenced_blueprint_instance(Node const& node) const {
     return node.is_blueprint_instance() && node.source.has_value() && node.source->is_reference();
 }
 
+bool Blueprint::Node::canonical_eq(Node const& o) const {
+    const bool source_equal = (!source && !o.source)
+        || (source && o.source && source->canonical_eq(*o.source));
+    return kind == o.kind
+        && semantic == o.semantic
+        && source_equal
+        && layout == o.layout
+        && view.canonical_eq(o.view);
+}
+
 Blueprint Blueprint::with_node(Node node) const {
     Blueprint copy = *this;
     copy.nodes_.push_back(std::move(node));
@@ -314,6 +342,21 @@ bool Blueprint::operator==(Blueprint const& other) const {
         && iface_ == other.iface_
         && nodes_ == other.nodes_
         && wires_ == other.wires_;
+}
+
+bool Blueprint::canonical_eq(Blueprint const& other) const {
+    if (id_ != other.id_ || name_ != other.name_ || iface_ != other.iface_ || wires_ != other.wires_) {
+        return false;
+    }
+    if (nodes_.size() != other.nodes_.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        if (!nodes_[i].canonical_eq(other.nodes_[i])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 Blueprint Blueprint::clone(ui::InternedId new_id) const {
