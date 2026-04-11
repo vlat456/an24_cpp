@@ -21,6 +21,7 @@
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/subsolvers/electrical_subsolver.h"
 #include "core/solvers/jit/state.h"
+#include "jit_build_input_test_helper.h"
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -149,14 +150,13 @@ TEST(E002_SolverOwnedRefs, PopulatedAfterBuild) {
          make_device("azs1", "AZS"),
          make_device("relay1", "Relay"),
      };
-     std::vector<std::pair<std::string, std::string>> connections = {
+     std::vector<std::vector<std::string>> signal_groups = {
          {"bat1.v_out", "azs1.v_in"},
          {"azs1.v_out", "relay1.v_in"},
-         {"relay1.v_out", "ref_gnd.v"},
-         {"bat1.v_in", "ref_gnd.v"},
+         {"relay1.v_out", "ref_gnd.v", "bat1.v_in"},
      };
 
-     auto br = build_systems_dev(devices, connections);
+     auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
      // ElectricalSource pointer list should be populated
      EXPECT_EQ(br.solver_owned.electrical_sources.size(), 1u);
@@ -179,12 +179,11 @@ TEST(E002_SolverOwnedRefs, PointersMatchDeviceMap) {
          make_device("ref_gnd", "RefNode", {{"value", "0"}}),
          make_device("bat1", "ElectricalSource", {{"voltage", "28"}, {"resistance", "0.01"}}),
      };
-     std::vector<std::pair<std::string, std::string>> connections = {
-         {"bat1.v_out", "ref_gnd.v"},
-         {"bat1.v_in", "ref_gnd.v"},
+     std::vector<std::vector<std::string>> signal_groups = {
+         {"bat1.v_out", "ref_gnd.v", "bat1.v_in"},
      };
 
-     auto br = build_systems_dev(devices, connections);
+     auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
      ASSERT_EQ(br.solver_owned.electrical_sources.size(), 1u);
 
@@ -202,12 +201,11 @@ TEST(E002_SolverOwnedRefs, DeviceStoreSealedAfterBuild) {
          make_device("ref_gnd", "RefNode", {{"value", "0"}}),
          make_device("src", "ElectricalSource", {{"voltage", "28"}, {"resistance", "0.01"}}),
      };
-     std::vector<std::pair<std::string, std::string>> connections = {
-         {"src.v_out", "ref_gnd.v"},
-         {"src.v_in", "ref_gnd.v"},
+     std::vector<std::vector<std::string>> signal_groups = {
+         {"src.v_out", "ref_gnd.v", "src.v_in"},
      };
 
-     auto br = build_systems_dev(devices, connections);
+     auto br = build_systems_dev(make_jit_input(devices, signal_groups));
      EXPECT_TRUE(br.devices.sealed());
 
      EXPECT_THROW(
@@ -221,9 +219,9 @@ TEST(E002_SolverOwnedRefs, DeviceStoreSealedAfterBuild) {
 TEST(E002_SolverOwnedRefs, EmptyCircuitHasEmptyRefs) {
      // An empty circuit should have no solver-owned refs.
      std::vector<DeviceInstance> devices;
-     std::vector<std::pair<std::string, std::string>> connections;
+     std::vector<std::vector<std::string>> signal_groups;
 
-     auto br = build_systems_dev(devices, connections);
+     auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
      EXPECT_TRUE(br.solver_owned.generators.empty());
      EXPECT_TRUE(br.solver_owned.controlled_voltage_sources.empty());

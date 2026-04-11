@@ -3,6 +3,7 @@
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/state.h"
+#include "jit_build_input_test_helper.h"
 
 #include <algorithm>
 #include <cmath>
@@ -35,12 +36,11 @@ DeviceInstance make_device(const std::string& name,
     dev.params = params;
     dev.execution = {};
 
-    auto ports = get_component_ports(classname);
-    for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
-    }
-
     if (const TypeDefinition* def = test_registry().get(classname)) {
+        // Use full ports from type definition
+        for (const auto& [port_name, port] : def->ports) {
+            dev.ports[port_name] = port;
+        }
         for (const auto& [param_name, param_value] : def->params) {
             auto schema_it = def->param_schema.find(param_name);
             if (schema_it != def->param_schema.end() && schema_it->second.visual_only) {
@@ -51,6 +51,11 @@ DeviceInstance make_device(const std::string& name,
             }
         }
         dev.solver_role = def->solver_role;
+    } else {
+        auto ports = get_component_ports(classname);
+        for (const auto& port_name : ports) {
+            dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+        }
     }
     return dev;
 }
@@ -84,10 +89,9 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
         make_device("res", "Resistor", {{"conductance", "0.5"}}),
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
-    std::vector<std::pair<std::string, std::string>> connections_a = {
+    std::vector<std::vector<std::string>> signal_groups_a = {
         {"bat.v_out", "res.v_in"},
-        {"res.v_out", "gnd.v"},
-        {"bat.v_in", "gnd.v"}
+        {"res.v_out", "gnd.v", "bat.v_in"}
     };
 
     // --- Circuit B: Primitive ElectricalConductance ---
@@ -96,14 +100,13 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
         make_device("cond", "ElectricalConductance", {{"conductance", "0.5"}}),
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
-    std::vector<std::pair<std::string, std::string>> connections_b = {
+    std::vector<std::vector<std::string>> signal_groups_b = {
         {"bat.v_out", "cond.v_in"},
-        {"cond.v_out", "gnd.v"},
-        {"bat.v_in", "gnd.v"}
+        {"cond.v_out", "gnd.v", "bat.v_in"}
     };
 
-    auto result_a = build_systems_dev(devices_a, connections_a);
-    auto result_b = build_systems_dev(devices_b, connections_b);
+    auto result_a = build_systems_dev(make_jit_input(devices_a, signal_groups_a));
+    auto result_b = build_systems_dev(make_jit_input(devices_b, signal_groups_b));
 
     // Both should produce exactly 1 island
     ASSERT_EQ(result_a.electrical_plan.islands.size(), 1u);
@@ -266,13 +269,12 @@ TEST(ElectricalPrimitives, BuildPlanIncludesPrimitiveElements) {
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"src.v_out", "load.v_in"},
-        {"load.v_out", "gnd.v"},
-        {"src.v_in", "gnd.v"}
+        {"load.v_out", "gnd.v", "src.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Should produce exactly 1 island
     ASSERT_EQ(result.electrical_plan.islands.size(), 1u);
@@ -321,13 +323,12 @@ TEST(ElectricalPrimitives, PrimitivesAreSolverOwnedNotScheduled) {
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"src.v_out", "load.v_in"},
-        {"load.v_out", "gnd.v"},
-        {"src.v_in", "gnd.v"}
+        {"load.v_out", "gnd.v", "src.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Only RefNode should be scheduled as a source
     EXPECT_EQ(result.scheduler.source_count(), 1u)
@@ -490,16 +491,15 @@ TEST(ElectricalPrimitives, DefaultParametersWork) {
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"src.v_out", "load.v_in"},
-        {"load.v_out", "gnd.v"},
-        {"src.v_in", "gnd.v"}
+        {"load.v_out", "gnd.v", "src.v_in"}
     };
 
     // Should not throw - defaults should be used
-    EXPECT_NO_THROW(build_systems_dev(devices, connections));
+    EXPECT_NO_THROW(build_systems_dev(make_jit_input(devices, signal_groups)));
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Verify defaults in the electrical plan
     ASSERT_EQ(result.electrical_plan.islands.size(), 1u);
@@ -537,9 +537,9 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         }
 
         std::vector<DeviceInstance> devices = {dev};
-        std::vector<std::pair<std::string, std::string>> connections;
+        std::vector<std::vector<std::string>> signal_groups;
 
-        EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
     }
 
     // ElectricalSource with typo
@@ -555,9 +555,9 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         }
 
         std::vector<DeviceInstance> devices = {dev};
-        std::vector<std::pair<std::string, std::string>> connections;
+        std::vector<std::vector<std::string>> signal_groups;
 
-        EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
     }
 }
 
@@ -592,13 +592,12 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
         DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, dev, gnd};
-        std::vector<std::pair<std::string, std::string>> connections = {
+        std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "cond1.v_in"},
-            {"cond1.v_out", "gnd.v"},
-            {"bat.v_in", "gnd.v"}
+            {"cond1.v_out", "gnd.v", "bat.v_in"}
         };
 
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         ASSERT_EQ(result.electrical_plan.islands.size(), 1);
         const auto& island = result.electrical_plan.islands[0];
 
@@ -627,13 +626,12 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {dev, res, gnd};
-        std::vector<std::pair<std::string, std::string>> connections = {
+        std::vector<std::vector<std::string>> signal_groups = {
             {"src1.v_out", "res.v_in"},
-            {"res.v_out", "gnd.v"},
-            {"src1.v_in", "gnd.v"}
+            {"res.v_out", "gnd.v", "src1.v_in"}
         };
 
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         ASSERT_EQ(result.electrical_plan.islands.size(), 1);
         const auto& island = result.electrical_plan.islands[0];
 
@@ -662,13 +660,12 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, res, dev};
-        std::vector<std::pair<std::string, std::string>> connections = {
+        std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "res.v_in"},
-            {"res.v_out", "ref1.v"},
-            {"bat.v_in", "ref1.v"}
+            {"res.v_out", "ref1.v", "bat.v_in"}
         };
 
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         ASSERT_EQ(result.electrical_plan.islands.size(), 1);
         const auto& island = result.electrical_plan.islands[0];
 
@@ -702,13 +699,13 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
         DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, dev, gnd};
-        std::vector<std::pair<std::string, std::string>> connections = {
+        std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "cond1.v_in"},
             {"cond1.v_out", "gnd.v"},
             {"bat.v_in", "gnd.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
     }
 
     // TheveninSource requires "pos" and "neg". Test with "neg" missing.
@@ -724,13 +721,13 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {dev, res, gnd};
-        std::vector<std::pair<std::string, std::string>> connections = {
+        std::vector<std::vector<std::string>> signal_groups = {
             {"src1.v_out", "res.v_in"},
             {"res.v_out", "gnd.v"},
             {"src1.v_in", "gnd.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
     }
 
     // FixedVoltageNode requires "node". Test with empty port_map.
@@ -746,13 +743,13 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, res, dev};
-        std::vector<std::pair<std::string, std::string>> connections = {
+        std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "res.v_in"},
             {"res.v_out", "ref1.v"},
             {"bat.v_in", "ref1.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
     }
 }
 
@@ -774,13 +771,13 @@ TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
         DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {bat, dev, gnd};
-        std::vector<std::pair<std::string, std::string>> connections = {
+        std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "cond1.v_in"},
             {"cond1.v_out", "gnd.v"},
             {"bat.v_in", "gnd.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
     }
 
     // TheveninSource requires "voltage" and "resistance". Test with "resistance" missing.
@@ -796,13 +793,13 @@ TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
 
         std::vector<DeviceInstance> devices = {dev, res, gnd};
-        std::vector<std::pair<std::string, std::string>> connections = {
+        std::vector<std::vector<std::string>> signal_groups = {
             {"src1.v_out", "res.v_in"},
             {"res.v_out", "gnd.v"},
             {"src1.v_in", "gnd.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
     }
 }
 
