@@ -50,15 +50,9 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
         ]
     })";
 
-    // Parse
-    ParserContext ctx = parse_json(std::string(json));
-    std::vector<std::pair<std::string, std::string>> connections;
-    for (const auto& c : ctx.connections) {
-        connections.push_back({c.from, c.to});
-    }
-
     // Build
-    BuildResult result = build_systems_dev(ctx.devices, connections);
+    JitBuildInput input = build_input_from_json(json);
+    BuildResult result = build_systems_dev(input);
 
     // Allocate state
     SimulationState state;
@@ -69,7 +63,7 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     }
 
     // Initialize RefNodes
-    for (const auto& dev : ctx.devices) {
+    for (const auto& dev : input.devices) {
         if (dev.classname == "RefNode") {
             float value = locale_safe::parse_float_or(dev.params.at("value"), 0.0f);
             auto it = result.port_to_signal.find(dev.name + ".v");

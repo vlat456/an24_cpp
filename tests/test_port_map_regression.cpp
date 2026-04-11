@@ -70,12 +70,8 @@ TEST(PortMapRegression, AND_Gate_Reads_Correct_Signals) {
         ]
     })";
 
-    ParserContext ctx = parse_json(std::string(json));
-    std::vector<std::pair<std::string, std::string>> connections;
-    for (const auto& c : ctx.connections)
-        connections.push_back({c.from, c.to});
-
-    BuildResult result = build_systems_dev(ctx.devices, connections);
+    JitBuildInput input = build_input_from_json(std::string(json));
+    BuildResult result = build_systems_dev(input);
     SimulationState state;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
         bool is_fixed = std::binary_search(
@@ -143,12 +139,8 @@ TEST(PortMapRegression, NOT_Gate_Reads_Correct_Input) {
         ]
     })";
 
-    ParserContext ctx = parse_json(std::string(json));
-    std::vector<std::pair<std::string, std::string>> connections;
-    for (const auto& c : ctx.connections)
-        connections.push_back({c.from, c.to});
-
-    BuildResult result = build_systems_dev(ctx.devices, connections);
+    JitBuildInput input = build_input_from_json(std::string(json));
+    BuildResult result = build_systems_dev(input);
     SimulationState state;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
         bool is_fixed = std::binary_search(
@@ -197,12 +189,8 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
         ]
     })";
 
-    ParserContext ctx = parse_json(std::string(json));
-    std::vector<std::pair<std::string, std::string>> connections;
-    for (const auto& c : ctx.connections)
-        connections.push_back({c.from, c.to});
-
-    BuildResult result = build_systems_dev(ctx.devices, connections);
+    JitBuildInput input = build_input_from_json(std::string(json));
+    BuildResult result = build_systems_dev(input);
     SimulationState state;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
         bool is_fixed = std::binary_search(
