@@ -362,22 +362,18 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
         ]
     })";
 
-    auto ctx = parse_json(json);
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : ctx.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
-
     // JIT path
-    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    JitBuildInput jit_input = build_input_from_json(json);
+    auto jit_result = build_systems_dev(jit_input);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 
     // AOT path
+    auto ctx = parse_json(json);
     ElectricalBuildPlan aot_plan;
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
@@ -421,16 +417,12 @@ TEST(ElectricalAotParity, SeriesChainTwoResistors) {
     })";
 
     auto ctx = parse_json(json);
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : ctx.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
-
-    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    JitBuildInput jit_input = build_input_from_json(json);
+    auto jit_result = build_systems_dev(jit_input);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 
@@ -475,16 +467,12 @@ TEST(ElectricalAotParity, ParallelBranchSplit) {
     })";
 
     auto ctx = parse_json(json);
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : ctx.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
-
-    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    JitBuildInput jit_input = build_input_from_json(json);
+    auto jit_result = build_systems_dev(jit_input);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 
@@ -527,16 +515,12 @@ TEST(ElectricalAotParity, MultiIsland) {
     })";
 
     auto ctx = parse_json(json);
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : ctx.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
-
-    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    JitBuildInput jit_input = build_input_from_json(json);
+    auto jit_result = build_systems_dev(jit_input);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 
@@ -575,16 +559,12 @@ TEST(ElectricalAotParity, NearShortHighConductance) {
     })";
 
     auto ctx = parse_json(json);
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : ctx.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
-
-    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    JitBuildInput jit_input = build_input_from_json(json);
+    auto jit_result = build_systems_dev(jit_input);
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 

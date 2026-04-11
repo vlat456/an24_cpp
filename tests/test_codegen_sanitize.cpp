@@ -7,6 +7,7 @@
 #include "json_parser/json_parser.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "test_execution_phases.h"
+#include "jit_build_input_test_helper.h"
 
 namespace {
 
@@ -29,7 +30,6 @@ static auto make_colon_circuit() {
     };
 
     std::vector<DeviceInstance> devices;
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
 
     // Blueprint-expanded names with colons
     DeviceInstance ref;
@@ -81,16 +81,23 @@ static auto make_colon_circuit() {
     }
     devices.push_back(load);
 
-    conn_pairs.push_back({"bp_1:bat.v_in", "bp_1:gnd.v"});
-    conn_pairs.push_back({"bp_1:bat.v_out", "bp_1:main-bus.v"});
-    conn_pairs.push_back({"bp_1:main-bus.v", "bp_1:load.1.v_in"});
-    conn_pairs.push_back({"bp_1:load.1.v_out", "bp_1:gnd.v"});
+    // Signal groups representing the electrical nets
+    std::vector<std::vector<std::string>> signal_groups = {
+        // Net 0: Ground
+        {"bp_1:bat.v_in", "bp_1:gnd.v", "bp_1:load.1.v_out"},
+        // Net 1: Main bus
+        {"bp_1:bat.v_out", "bp_1:main-bus.v", "bp_1:load.1.v_in"}
+    };
 
-    auto sys = build_systems_dev(devices, conn_pairs);
+    auto sys = build_systems_dev(make_jit_input(devices, signal_groups));
 
     std::vector<Connection> connections;
-    for (auto& c : conn_pairs) {
-        connections.push_back({c.first, c.second});
+    for (const auto& group : signal_groups) {
+        for (size_t i = 0; i < group.size(); ++i) {
+            for (size_t j = i + 1; j < group.size(); ++j) {
+                connections.push_back({group[i], group[j]});
+            }
+        }
     }
 
     return Result{devices, connections, sys.port_to_signal, sys.signal_count};
