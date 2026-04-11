@@ -20,7 +20,6 @@
 ///   sim_debug GSC.blueprint -P -every 120 -n 600
 
 #include "core/solvers/jit/simulator.h"
-#include "json_parser/json_parser.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/elaboration/sim_export.h"
 #include "blueprint_v2/flattener/flattener.h"
@@ -104,73 +103,43 @@ int main(int argc, char* argv[]) {
     buf << file.rdbuf();
     std::string raw_json = buf.str();
 
-    bool is_json_input = (bp_path.size() >= 5 &&
-                          bp_path.substr(bp_path.size() - 5) == ".json");
+    // Blueprint file — canonical path via Flattener + elaborate_for_jit.
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry registry = load_type_registry("library/");
 
-    // Build input: either from blueprint (canonical) or from raw JSON (legacy).
-    JitBuildInput build_input;
-    std::string sim_json; // only populated for -json flag or JSON input path
-
-    if (is_json_input) {
-        // Raw simulator JSON — legacy path via parse_json + UnionFind
-        sim_json = raw_json;
-        auto ctx = parse_json(sim_json);
-        std::vector<std::pair<std::string, std::string>> conn_pairs;
-        conn_pairs.reserve(ctx.connections.size());
-        for (const auto& c : ctx.connections)
-            conn_pairs.push_back({c.from, c.to});
-
-        // Build to get port_to_signal for probes/map
-        auto build = build_systems_dev(ctx.devices, conn_pairs);
-        build_input.devices = std::move(ctx.devices);
-        build_input.port_to_signal = std::move(build.port_to_signal);
-        build_input.signal_count = build.signal_count;
-    } else {
-        // Blueprint file — canonical path via Flattener + elaborate_for_jit
-        ui::StringInterner interner;
-        bp2::PathArena arena(interner);
-        TypeRegistry registry = load_type_registry("library/");
-
-        bp2::DecodeError err;
-        auto bp = bp2::BlueprintCodec::decode(raw_json, interner, arena, registry, &err);
-        if (!bp) {
-            std::cerr << "Failed to decode blueprint: " << err.message << "\n";
-            return 1;
-        }
-
-        // Build composite blueprint library for flattening
-        bp2::BlueprintLibrary library;
-        for (const auto& [classname, def] : registry.types) {
-            if (def.cpp_class) continue;
-            try {
-                auto loaded = bp2::blueprint_from_type_definition(def, interner, registry);
-                library.add(interner.intern(classname), std::move(loaded));
-            } catch (const std::exception& e) {
-                spdlog::warn("[sim_debug] Failed to build blueprint '{}': {}", classname, e.what());
-            }
-        }
-
-        bp2::Flattener flattener(library);
-        bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
-
-        if (dump_json) {
-            // For -json flag, still produce the legacy JSON output
-            auto exported = bp2::elaboration::to_simulation_export(netlist, arena, interner, &registry);
-            nlohmann::json out = nlohmann::json::object();
-            out["templates"] = nlohmann::json::object();
-            out["devices"] = std::move(exported.devices);
-            out["connections"] = std::move(exported.connections);
-            std::cout << out.dump(2) << "\n";
-            return 0;
-        }
-
-        build_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
+    bp2::DecodeError err;
+    auto bp = bp2::BlueprintCodec::decode(raw_json, interner, arena, registry, &err);
+    if (!bp) {
+        std::cerr << "Failed to decode blueprint: " << err.message << "\n";
+        return 1;
     }
 
-    if (dump_json && is_json_input) {
-        std::cout << sim_json << "\n";
+    bp2::BlueprintLibrary library;
+    for (const auto& [classname, def] : registry.types) {
+        if (def.cpp_class) continue;
+        try {
+            auto loaded = bp2::blueprint_from_type_definition(def, interner, registry);
+            library.add(interner.intern(classname), std::move(loaded));
+        } catch (const std::exception& e) {
+            spdlog::warn("[sim_debug] Failed to build blueprint '{}': {}", classname, e.what());
+        }
+    }
+
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
+
+    if (dump_json) {
+        auto exported = bp2::elaboration::to_simulation_export(netlist, arena, interner, &registry);
+        nlohmann::json out = nlohmann::json::object();
+        out["templates"] = nlohmann::json::object();
+        out["devices"] = std::move(exported.devices);
+        out["connections"] = std::move(exported.connections);
+        std::cout << out.dump(2) << "\n";
         return 0;
     }
+
+    JitBuildInput build_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
 
     if (dump_map) {
         // Group by signal index

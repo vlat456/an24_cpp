@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace {
@@ -33,23 +34,39 @@ int main() {
 
     std::vector<DeviceInstance> devices;
     devices.reserve(chain_len + 2);
-    devices.push_back(make_device("src", "RefNode", {{"value", "1.0"}}));
-    devices.push_back(make_device("k", "RefNode", {{"value", "0.5"}}));
+    devices.push_back(make_device("src", "Value", {{"value", "1.0"}}));
+    devices.push_back(make_device("k", "Value", {{"value", "0.5"}}));
 
     for (int i = 0; i < chain_len; ++i) {
         devices.push_back(make_device("add" + std::to_string(i), "Add"));
     }
 
-    std::vector<std::pair<std::string, std::string>> connections;
-    connections.reserve(chain_len * 2);
+    JitBuildInput input;
+    input.devices = devices;
+
+    uint32_t next_signal = 0;
+    input.port_to_signal["src.o"] = next_signal;
+    input.port_to_signal["add0.A"] = next_signal;
+    ++next_signal;
+
+    input.port_to_signal["k.o"] = next_signal;
+    for (int i = 0; i < chain_len; ++i) {
+        input.port_to_signal["add" + std::to_string(i) + ".B"] = next_signal;
+    }
+    ++next_signal;
+
     for (int i = 0; i < chain_len; ++i) {
         const std::string curr = "add" + std::to_string(i);
-        const std::string prev = (i == 0) ? "src.v" : ("add" + std::to_string(i - 1) + ".o");
-        connections.emplace_back(prev, curr + ".A");
-        connections.emplace_back("k.v", curr + ".B");
+        input.port_to_signal[curr + ".o"] = next_signal;
+        if (i + 1 < chain_len) {
+            input.port_to_signal["add" + std::to_string(i + 1) + ".A"] = next_signal;
+        }
+        ++next_signal;
     }
 
-    auto result = build_systems_dev(devices, connections);
+    input.signal_count = next_signal + 1;
+
+    auto result = build_systems_dev(input);
 
     SimulationState st;
     for (uint32_t i = 0; i < result.signal_count; ++i) {

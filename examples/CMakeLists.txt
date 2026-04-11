@@ -1,27 +1,3 @@
-add_executable(hello_world main.cpp)
-target_include_directories(hello_world PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(hello_world PRIVATE jit_solver spdlog::spdlog)
-
-# Disabled for AOT-only refactor - Systems removed
-# add_executable(components_test components_test.cpp)
-# target_include_directories(components_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
-# target_link_libraries(components_test PRIVATE jit_solver spdlog::spdlog)
-
-# Disabled for AOT-only refactor - Systems removed
-# add_executable(debug_test debug.cpp)
-# target_include_directories(debug_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
-# target_link_libraries(debug_test PRIVATE jit_solver spdlog::spdlog)
-
-# Disabled for AOT-only refactor - Systems removed
-# add_executable(json_test json_test.cpp)
-# target_include_directories(json_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
-# target_link_libraries(json_test PRIVATE json_parser jit_solver spdlog::spdlog)
-
-# Disabled for AOT-only refactor - Systems removed
-# add_executable(benchmark benchmark.cpp)
-# target_include_directories(benchmark PRIVATE ${CMAKE_SOURCE_DIR}/src)
-# target_link_libraries(benchmark PRIVATE json_parser jit_solver spdlog::spdlog)
-
 add_library(an24_codegen STATIC
     ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen.cpp
     ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen_header.cpp
@@ -36,11 +12,6 @@ target_include_directories(an24_codegen PUBLIC
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(an24_codegen PUBLIC spdlog::spdlog json_parser)
-
-# Codegen tool for generating port registry and ComponentVariant
-add_executable(codegen_test codegen_test.cpp)
-target_include_directories(codegen_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver blueprint_v2 spdlog::spdlog)
 
 # Disabled for AOT-only refactor - needs template component instantiation
 # add_executable(test_generated
