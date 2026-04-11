@@ -1,5 +1,5 @@
 {
-  "format": "an24.library_index",
+  "format": "library_index",
   "version": 1,
   "entries": [
     { "blueprint_id": "12SAM28", "path": "library/systems/12SAM28.blueprint" },

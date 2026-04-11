@@ -13,8 +13,6 @@ std::string Document::title() const {
     std::string base;
     if (!model_.current().name().empty()) {
         base = model_.current().name();
-    } else if (!model_.current().display_name().empty()) {
-        base = model_.current().display_name();
     } else {
         base = display_name_;
     }

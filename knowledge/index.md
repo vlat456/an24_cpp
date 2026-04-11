@@ -13,6 +13,8 @@
 | Component authoring | `knowledge/component_authoring.md` | Rules for stable components, design philosophy (ports-over-params, minimize C++, avoid Divide) |
 | How to create electrical | `knowledge/how_to_create_electrical_components.md` | Electrical components, solver roles |
 | Persistence spec v1 | `knowledge/persistence_spec_v1.md` | Canonical blueprint JSON format contract |
+| Persistence boundaries | `knowledge/persistence_boundaries.md` | Canonical vs session vs library vs legacy file roles |
+| Persistence cutover status | `knowledge/errors_TODO.md` (Umbrella section) | Persistence-reset completion status mapped to GitHub issues #99-#103 |
 | Known issues | `knowledge/errors_TODO.md` | Bugs, architectural debts |
 
 ## Reading Order

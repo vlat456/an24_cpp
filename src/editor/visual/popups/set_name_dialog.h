@@ -58,11 +58,10 @@ private:
         Document* doc = ws.findDocumentById(ws.setName.doc_id);
         if (!doc) return;
 
-        // Update the blueprint display name via EditorModel (immutable update)
+        // Update the blueprint name via EditorModel (immutable update)
         doc->model().replace_current(
             doc->model().current()
-                .with_name(ws.setName.buf)
-                .with_display_name(ws.setName.buf));
+                .with_name(ws.setName.buf));
 
         // If save was deferred until name was set, proceed with save now
         if (ws.setName.save_after) {

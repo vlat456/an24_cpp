@@ -141,11 +141,11 @@ TEST(BlueprintNodeSource, SetInlineDefReplacesDefinition) {
         std::make_unique<bp2::Blueprint>());
 
     auto replacement = std::make_unique<bp2::Blueprint>();
-    *replacement = replacement->with_display_name("replaced");
+    *replacement = replacement->with_name("replaced");
     source.set_inline_def(std::move(replacement));
 
     ASSERT_NE(source.inline_def(), nullptr);
-    EXPECT_EQ(source.inline_def()->display_name(), "replaced");
+    EXPECT_EQ(source.inline_def()->name(), "replaced");
 }
 
 TEST(BlueprintNodeSource, SetInlineDefRejectsNull) {
@@ -419,10 +419,10 @@ TEST(Blueprint, WithId) {
     EXPECT_EQ(interner.resolve(bp.id()), "my_bp");
 }
 
-TEST(Blueprint, WithDisplayName) {
+TEST(Blueprint, WithName) {
     bp2::Blueprint bp;
-    bp = bp.with_display_name("Power System");
-    EXPECT_EQ(bp.display_name(), "Power System");
+    bp = bp.with_name("Power System");
+    EXPECT_EQ(bp.name(), "Power System");
 }
 
 TEST(Blueprint, WithInterface) {
@@ -539,3 +539,43 @@ TEST(NodeSplit, PortListsLiveInSemanticIface) {
      EXPECT_EQ(node.layout, other.layout);
      EXPECT_EQ(node.view, other.view);
  }
+
+// ============================================================================
+// Regression: single-name model (display_name/name duality removed)
+// ============================================================================
+
+TEST(BlueprintNaming, SingleNameField_WithNameSetsName) {
+    bp2::Blueprint bp;
+    bp = bp.with_name("My Blueprint");
+    EXPECT_EQ(bp.name(), "My Blueprint");
+}
+
+TEST(BlueprintNaming, EqualityUsesName) {
+    ui::StringInterner interner;
+    auto a = bp2::Blueprint().with_id(interner.intern("x")).with_name("A");
+    auto b = bp2::Blueprint().with_id(interner.intern("x")).with_name("A");
+    auto c = bp2::Blueprint().with_id(interner.intern("x")).with_name("B");
+    EXPECT_EQ(a, b);
+    EXPECT_NE(a, c);
+}
+
+TEST(BlueprintNaming, CloneUpdatesName) {
+    ui::StringInterner interner;
+    auto bp = bp2::Blueprint()
+        .with_id(interner.intern("orig"))
+        .with_name("Original");
+    auto cloned = bp.clone(interner.intern("copy"));
+    EXPECT_EQ(cloned.name(), "Copy of Original");
+    EXPECT_EQ(cloned.id(), interner.intern("copy"));
+}
+
+TEST(BlueprintNaming, RoundTripEquality) {
+    // Verifies that a Blueprint constructed with with_name() compares equal
+    // to itself after a copy — no hidden fields can cause divergence.
+    ui::StringInterner interner;
+    auto bp = bp2::Blueprint()
+        .with_id(interner.intern("rt"))
+        .with_name("Round Trip");
+    bp2::Blueprint copy = bp;
+    EXPECT_EQ(bp, copy);
+}

@@ -413,9 +413,9 @@ TEST(BlueprintExtension, AllLibraryFilesAreBlueprintExtension) {
     EXPECT_EQ(other_count, 0u) << "No non-.blueprint files should exist in library/";
 }
 
-// Verify blueprint.blueprint (main save file) exists and is valid v3
-// Skipped when the workspace save file is not present.
-TEST(BlueprintExtension, MainSaveFileIsBlueprintExtension) {
+// Verify blueprint.blueprint, when present locally, uses the strict canonical marker.
+// Skipped when the local workspace document is not present.
+TEST(BlueprintExtension, MainSaveFileUsesStrictBlueprintMarker) {
     namespace fs = std::filesystem;
 
     std::vector<std::string> paths = {
@@ -431,14 +431,17 @@ TEST(BlueprintExtension, MainSaveFileIsBlueprintExtension) {
         }
     }
     if (content.empty()) {
-        GTEST_SKIP() << "blueprint.blueprint not present (workspace save file, not source-controlled)";
+        GTEST_SKIP() << "blueprint.blueprint not present (local workspace document, not source-controlled)";
     }
 
-    // Must be valid JSON with version: "3.0"
     auto j = nlohmann::json::parse(content);
+    ASSERT_TRUE(j.contains("format")) << "blueprint.blueprint must have a format field";
+    ASSERT_TRUE(j.at("format").is_string()) << "format must be a string";
+    EXPECT_EQ(j.at("format").get<std::string>(), "blueprint")
+        << "blueprint.blueprint must use the strict blueprint marker";
     ASSERT_TRUE(j.contains("version")) << "blueprint.blueprint must have a version field";
-    ASSERT_TRUE(j.at("version").is_string()) << "version must be a string in v3 format";
-    EXPECT_EQ(j.at("version").get<std::string>(), "3.0") << "blueprint.blueprint must be v3 format";
+    ASSERT_TRUE(j.at("version").is_number_integer()) << "version must be an integer in strict blueprint format";
+    EXPECT_EQ(j.at("version").get<int>(), 1) << "blueprint.blueprint must be strict blueprint version 1";
 }
 
 // Verify codegen source_file uses .blueprint extension

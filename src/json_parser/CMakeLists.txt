@@ -1,5 +1,6 @@
 add_library(json_parser
     json_parser.cpp
+    json_parser_internal_utils.cpp
     json_parser_types.cpp
     json_parser_model.cpp
     json_parser_serialize.cpp

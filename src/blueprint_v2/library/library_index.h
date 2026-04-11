@@ -8,7 +8,7 @@ namespace bp2 {
 
 /// Canonical library index: maps blueprint_id → relative file path.
 /// This is the sole path authority for referenced blueprint resolution.
-/// Loaded from a dedicated library_index.json file (format "an24.library_index", version 1).
+/// Loaded from a dedicated library_index.json file (format "library_index", version 1).
 struct LibraryIndex {
     std::unordered_map<std::string, std::string> entries;  // blueprint_id → path
 
@@ -32,7 +32,7 @@ struct LibraryIndex {
 };
 
 /// Load a LibraryIndex from a JSON file.
-/// Strict validation: format must be "an24.library_index", version must be 1,
+/// Strict validation: format must be "library_index", version must be 1,
 /// no unknown fields, no duplicate blueprint_id, no duplicate path.
 /// Throws std::runtime_error on any validation failure.
 LibraryIndex load_library_index(const std::string& path);

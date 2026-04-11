@@ -145,11 +145,10 @@ bool canonicalize_wire_orientation(nlohmann::json& root,
      bp2::PathArena arena(interner);
      bp2::Blueprint partial;
      partial = partial.with_id(interner.intern(root.value("id", std::string{})));
-     if (root.contains("display_name") && root["display_name"].is_string()) {
-         partial = partial.with_display_name(root["display_name"].get<std::string>());
-     }
      if (root.contains("name") && root["name"].is_string()) {
          partial = partial.with_name(root["name"].get<std::string>());
+     } else if (root.contains("display_name") && root["display_name"].is_string()) {
+         partial = partial.with_name(root["display_name"].get<std::string>());
      }
      if (root.contains("interface") && root["interface"].is_array()) {
          partial = partial.with_interface(bp2::codec_detail::decode_interface(root["interface"], interner));
@@ -160,7 +159,6 @@ bool canonicalize_wire_orientation(nlohmann::json& root,
      if (root.contains("wires") && root["wires"].is_array()) {
          partial = bp2::codec_detail::decode_wires(std::move(partial), root["wires"], interner);
      }
-     partial = bp2::canonicalize_composite_host_ifaces(std::move(partial));
 
      bp2::PathResolver resolver;
      bool changed = false;
@@ -263,11 +261,10 @@ int main(int argc, char** argv) {
              bp2::PathArena diag_arena(diag_interner);
              bp2::Blueprint partial;
              partial = partial.with_id(diag_interner.intern(j.value("id", std::string{})));
-             if (j.contains("display_name") && j["display_name"].is_string()) {
-                 partial = partial.with_display_name(j["display_name"].get<std::string>());
-             }
              if (j.contains("name") && j["name"].is_string()) {
                  partial = partial.with_name(j["name"].get<std::string>());
+             } else if (j.contains("display_name") && j["display_name"].is_string()) {
+                 partial = partial.with_name(j["display_name"].get<std::string>());
              }
              if (j.contains("interface") && j["interface"].is_array()) {
                  partial = partial.with_interface(bp2::codec_detail::decode_interface(j["interface"], diag_interner));
@@ -278,7 +275,6 @@ int main(int argc, char** argv) {
              if (j.contains("wires") && j["wires"].is_array()) {
                  partial = bp2::codec_detail::decode_wires(std::move(partial), j["wires"], diag_interner);
              }
-             partial = bp2::canonicalize_composite_host_ifaces(std::move(partial));
 
              bp2::PathResolver resolver;
              for (const auto& wire : partial.wires()) {
@@ -353,11 +349,10 @@ int main(int argc, char** argv) {
      try {
          bp2::Blueprint partial;
          partial = partial.with_id(interner.intern(j.value("id", std::string{})));
-         if (j.contains("display_name") && j["display_name"].is_string()) {
-             partial = partial.with_display_name(j["display_name"].get<std::string>());
-         }
          if (j.contains("name") && j["name"].is_string()) {
              partial = partial.with_name(j["name"].get<std::string>());
+         } else if (j.contains("display_name") && j["display_name"].is_string()) {
+             partial = partial.with_name(j["display_name"].get<std::string>());
          }
          if (j.contains("interface") && j["interface"].is_array()) {
              partial = partial.with_interface(bp2::codec_detail::decode_interface(j["interface"], interner));
@@ -368,7 +363,6 @@ int main(int argc, char** argv) {
          if (j.contains("wires") && j["wires"].is_array()) {
              partial = bp2::codec_detail::decode_wires(std::move(partial), j["wires"], interner);
          }
-         partial = bp2::canonicalize_composite_host_ifaces(std::move(partial));
 
          bp2::PathResolver resolver;
          for (const auto& wire : partial.wires()) {

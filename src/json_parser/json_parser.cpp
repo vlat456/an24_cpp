@@ -1,4 +1,5 @@
 #include "json_parser.h"
+#include "json_parser_internal_utils.h"
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 #include <filesystem>
@@ -15,73 +16,7 @@ Connection parse_connection_for_parser(const json& j);
 PortType parse_port_type_for_parser(const std::string& s);
 }
 
-// Helper: convert Domain to string
-static std::string domain_to_string(Domain d) {
-    switch (d) {
-        case Domain::Electrical: return "Electrical";
-        case Domain::Logical: return "Logical";
-        case Domain::Hydraulic: return "Hydraulic";
-        case Domain::Mechanical: return "Mechanical";
-        case Domain::Thermal: return "Thermal";
-    }
-    return "Unknown";
-}
-
-// parse_domain/parse_domain_mask_int/parse_param_schema moved to json_parser_types.cpp
-
-static void validate_params_against_schema(
-    const std::unordered_map<std::string, std::string>& params,
-    const std::unordered_map<std::string, ParamSchemaEntry>& schema,
-    const std::string& dev_name,
-    const std::string& classname
-) {
-    for (const auto& [name, entry] : schema) {
-        auto it = params.find(name);
-        if (it == params.end()) {
-            if (entry.required) {
-                throw std::runtime_error("Missing required parameter '" + name + "' on device '" + dev_name + "' (" + classname + ")");
-            }
-            continue;
-        }
-        const std::string& value = it->second;
-        switch (entry.type) {
-            case ParamSchemaType::Float: {
-                float v = 0.0f;
-                if (!locale_safe::parse_float(value, v)) {
-                    throw std::runtime_error("Parameter '" + name + "' must be float on device '" + dev_name + "' (" + classname + ")");
-                }
-                if (entry.min.has_value() && static_cast<double>(v) < *entry.min) {
-                    throw std::runtime_error("Parameter '" + name + "' below min on device '" + dev_name + "' (" + classname + ")");
-                }
-                if (entry.max.has_value() && static_cast<double>(v) > *entry.max) {
-                    throw std::runtime_error("Parameter '" + name + "' above max on device '" + dev_name + "' (" + classname + ")");
-                }
-                break;
-            }
-            case ParamSchemaType::Int: {
-                long long v = 0;
-                if (!locale_safe::parse_int64(value, v)) {
-                    throw std::runtime_error("Parameter '" + name + "' must be int on device '" + dev_name + "' (" + classname + ")");
-                }
-                if (entry.min.has_value() && static_cast<double>(v) < *entry.min) {
-                    throw std::runtime_error("Parameter '" + name + "' below min on device '" + dev_name + "' (" + classname + ")");
-                }
-                if (entry.max.has_value() && static_cast<double>(v) > *entry.max) {
-                    throw std::runtime_error("Parameter '" + name + "' above max on device '" + dev_name + "' (" + classname + ")");
-                }
-                break;
-            }
-            case ParamSchemaType::Bool: {
-                if (!(value == "true" || value == "false" || value == "1" || value == "0")) {
-                    throw std::runtime_error("Parameter '" + name + "' must be bool on device '" + dev_name + "' (" + classname + ")");
-                }
-                break;
-            }
-            case ParamSchemaType::String:
-                break;
-        }
-    }
-}
+// parse_domain/parse_domain_mask_int/parse_param_schema moved to shared json_parser_internal_utils
 
 static bool has_domain_in(const std::vector<Domain>& domains, Domain target) {
     for (Domain d : domains) {

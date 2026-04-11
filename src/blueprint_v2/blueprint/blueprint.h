@@ -183,7 +183,8 @@ public:
 
         bool operator==(Wire const& o) const {
             return id == o.id && source == o.source
-                && target == o.target && domain == o.domain;
+                && target == o.target && domain == o.domain
+                && routing_points == o.routing_points;
         }
     };
 
@@ -194,7 +195,7 @@ public:
     Blueprint& operator=(Blueprint&& other) noexcept;
 
     ui::InternedId id() const { return id_; }
-    std::string const& display_name() const { return display_name_; }
+    std::string const& name() const { return name_; }
     Interface const& iface() const { return iface_; }
 
     std::vector<Node> const& nodes() const { return nodes_; }
@@ -217,13 +218,9 @@ public:
     Blueprint with_wire(Wire w) const;
     Blueprint without_wire(ui::InternedId id) const;
     Blueprint with_id(ui::InternedId id) const;
-    Blueprint with_display_name(std::string name) const;
+    Blueprint with_name(std::string n) const;
     Blueprint with_interface(Interface iface) const;
     Blueprint clone(ui::InternedId new_id) const;
-
-    std::string const& name() const { return name_; }
-
-    Blueprint with_name(std::string n) const;
 
     /// Returns all (path, port) pairs reachable from this blueprint.
     std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena) const;
@@ -239,12 +236,10 @@ public:
 
 private:
     ui::InternedId id_;
-    std::string display_name_;
+    std::string name_;
     Interface iface_;
     std::vector<Node> nodes_;
     std::vector<Wire> wires_;
-
-    std::string name_;
 
     mutable std::unordered_map<ui::InternedId, size_t> node_idx_;
     mutable bool node_idx_valid_ = false;

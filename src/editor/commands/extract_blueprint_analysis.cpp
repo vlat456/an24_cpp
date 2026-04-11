@@ -87,7 +87,8 @@ bool inline_nonembedded_descendants(bp2::Blueprint& bp,
                 remapped.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
                     child_src.source->blueprint_id(),
                     std::make_unique<bp2::Blueprint>(*provider));
-                remapped.semantic.iface = remapped.source->resolved_iface();
+                // Issue #91: Blueprint-instance interface derives from source authority only.
+                // Do NOT mirror node.semantic.iface.
                 inline_bp = bp2::replace_node_preserve_order(inline_bp, std::move(remapped));
                 changed = true;
                 if (stats) {

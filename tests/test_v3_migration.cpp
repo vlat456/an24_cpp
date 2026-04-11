@@ -14,16 +14,16 @@ static std::string read_file(std::string const& path) {
                        std::istreambuf_iterator<char>());
 }
 
-TEST(V3Migration, LibraryLoaderParsesConvertedLibraryAsV3Only) {
+TEST(StrictBlueprintPersistence, LibraryLoaderParsesCurrentLibraryBlueprints) {
     TypeRegistry registry = load_type_registry("library");
 
     EXPECT_TRUE(registry.has("ElectricalSource"));
     EXPECT_TRUE(registry.has("Generator"));
 }
 
-TEST(V3Migration, CodecRejectsLegacyVersion2Json) {
+TEST(StrictBlueprintPersistence, CodecRejectsLegacyVersion2Json) {
     std::string old_schema = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 2,
         "blueprint_id": "old_schema",
         "name": "old_schema",
@@ -42,10 +42,10 @@ TEST(V3Migration, CodecRejectsLegacyVersion2Json) {
     EXPECT_NE(err.message.find("Unsupported blueprint version"), std::string::npos);
 }
 
-TEST(V3Migration, GSCIsV3AndDecodes) {
+TEST(StrictBlueprintPersistence, GSCDecodesAsStrictBlueprintIfPresent) {
     const std::string gsc_path = "/Users/vladimir/an24_cpp/GSC.blueprint";
     if (!std::filesystem::exists(gsc_path)) {
-        GTEST_SKIP() << "GSC.blueprint not present (workspace save file, not source-controlled)";
+        GTEST_SKIP() << "GSC.blueprint not present (local workspace document, not source-controlled)";
     }
 
     std::string content = read_file(gsc_path);

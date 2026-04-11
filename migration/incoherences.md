@@ -110,19 +110,24 @@ struct Node {
 
 ---
 
-## 6. JSON Version Mismatch (Intentional)
+## 6. JSON Version Mismatch (Resolved)
 
-**Architecture (Part V, 5.1):**
+**Old Architecture Drafts:**
 ```json
 "version": "2.0"
 ```
 
-**Phase 5:**
 ```json
 "version": "3.0"
 ```
 
-**Status:** This is **intentional** - Phase 5 notes that version 3.0 distinguishes from the old FlatBlueprint v2 format. No fix needed, but architecture should be updated to reflect the final version number.
+**Current Canonical Contract:**
+```json
+"format": "blueprint",
+"version": 1
+```
+
+**Status:** Resolved. Active persistence authority is now the strict v1 contract in `knowledge/persistence_spec_v1.md`. Older `2.0` / `3.0` references are obsolete migration-history notes, not current format authority.
 
 ---
 

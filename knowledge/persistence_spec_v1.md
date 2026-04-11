@@ -45,7 +45,7 @@ A blueprint document is a single JSON object with exactly these top-level fields
 
 | Field | Type | Description |
 |---|---|---|
-| `format` | string | Must be `"an24.blueprint"` |
+| `format` | string | Must be `"blueprint"` |
 | `version` | integer | Must be `1` |
 | `blueprint_id` | string | Stable opaque identity |
 | `name` | string | User-facing blueprint name |
@@ -75,7 +75,7 @@ These old-format or non-canonical fields must not appear:
 
 ```json
 {
-  "format": "an24.blueprint",
+  "format": "blueprint",
   "version": 1,
   "blueprint_id": "aircraft.power.dc_main",
   "name": "DC Main",
@@ -228,7 +228,7 @@ Example:
 "source": {
   "mode": "embedded",
   "blueprint": {
-    "format": "an24.blueprint",
+    "format": "blueprint",
     "version": 1,
     "blueprint_id": "embedded.12sam28",
     "name": "12SAM28",
@@ -350,7 +350,7 @@ Referenced blueprint instances resolve only through a separate library index.
 
 ```json
 {
-  "format": "an24.library_index",
+  "format": "library_index",
   "version": 1,
   "entries": [
     {
@@ -530,7 +530,7 @@ nodes[2].source.mode: expected "embedded" or "reference", got "inline" (schema v
 
 ```json
 {
-  "format": "an24.blueprint",
+  "format": "blueprint",
   "version": 1,
   "blueprint_id": "bp",
   "name": "BP",
@@ -618,7 +618,7 @@ Invalid: wire endpoints must use structured `from` / `to` endpoint objects.
 
 ```json
 {
-  "format": "an24.blueprint",
+  "format": "blueprint",
   "version": 1,
   "blueprint_id": "aircraft.power.dc_main",
   "name": "DC Main",
@@ -648,7 +648,7 @@ Invalid: wire endpoints must use structured `from` / `to` endpoint objects.
       "source": {
         "mode": "embedded",
         "blueprint": {
-          "format": "an24.blueprint",
+          "format": "blueprint",
           "version": 1,
           "blueprint_id": "embedded.12sam28",
           "name": "12SAM28",

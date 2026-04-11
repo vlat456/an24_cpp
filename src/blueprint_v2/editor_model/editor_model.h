@@ -75,7 +75,8 @@ public:
 
     // === Direct blueprint replacement ===
     void replace_current(Blueprint bp) {
-        current_ = canonicalize_composite_host_ifaces(std::move(bp));
+        // Issue #91: No canonicalization of blueprint-instance iface. Use blueprint as-is.
+        current_ = std::move(bp);
         invalidate_indices();
     }
 

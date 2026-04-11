@@ -24,7 +24,7 @@ constexpr Direction direction_from_port_direction(PortDirection d) {
 inline PortDescriptor port_descriptor_from_type_port(ui::InternedId name, const Port& port) {
     PortDescriptor pd;
     pd.name = name;
-    pd.domain = ::domain_for_port_type(port.type);
+    pd.domain = port.domain;
     pd.direction = direction_from_port_direction(port.direction);
     pd.port_type = port.type;
     return pd;

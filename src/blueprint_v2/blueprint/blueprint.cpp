@@ -122,9 +122,8 @@ bool Blueprint::Node::BlueprintSource::operator==(const BlueprintSource& other) 
 
 Blueprint::Blueprint(Blueprint const& other)
     : id_(other.id_)
-    , display_name_(other.display_name_)
-    , iface_(other.iface_)
     , name_(other.name_)
+    , iface_(other.iface_)
     , node_idx_valid_(false)
     , wire_idx_valid_(false) {
     for (auto const& node : other.nodes_) {
@@ -137,11 +136,10 @@ Blueprint::Blueprint(Blueprint const& other)
 
 Blueprint::Blueprint(Blueprint&& other) noexcept
     : id_(other.id_)
-    , display_name_(std::move(other.display_name_))
+    , name_(std::move(other.name_))
     , iface_(std::move(other.iface_))
     , nodes_(std::move(other.nodes_))
     , wires_(std::move(other.wires_))
-    , name_(std::move(other.name_))
     , node_idx_valid_(false)
     , wire_idx_valid_(false) {
 }
@@ -149,7 +147,7 @@ Blueprint::Blueprint(Blueprint&& other) noexcept
 Blueprint& Blueprint::operator=(Blueprint const& other) {
     if (this != &other) {
         id_ = other.id_;
-        display_name_ = other.display_name_;
+        name_ = other.name_;
         iface_ = other.iface_;
         nodes_.clear();
         for (auto const& node : other.nodes_) {
@@ -159,7 +157,6 @@ Blueprint& Blueprint::operator=(Blueprint const& other) {
         for (auto const& wire : other.wires_) {
             wires_.push_back(wire);
         }
-        name_ = other.name_;
         node_idx_valid_ = false;
         wire_idx_valid_ = false;
     }
@@ -169,11 +166,10 @@ Blueprint& Blueprint::operator=(Blueprint const& other) {
 Blueprint& Blueprint::operator=(Blueprint&& other) noexcept {
     if (this != &other) {
         id_ = other.id_;
-        display_name_ = std::move(other.display_name_);
+        name_ = std::move(other.name_);
         iface_ = std::move(other.iface_);
         nodes_ = std::move(other.nodes_);
         wires_ = std::move(other.wires_);
-        name_ = std::move(other.name_);
         node_idx_valid_ = false;
         wire_idx_valid_ = false;
     }
@@ -300,9 +296,9 @@ Blueprint Blueprint::with_id(ui::InternedId id) const {
     return copy;
 }
 
-Blueprint Blueprint::with_display_name(std::string name) const {
+Blueprint Blueprint::with_name(std::string name) const {
     Blueprint copy = *this;
-    copy.display_name_ = std::move(name);
+    copy.name_ = std::move(name);
     return copy;
 }
 
@@ -312,15 +308,8 @@ Blueprint Blueprint::with_interface(Interface iface) const {
     return copy;
 }
 
-Blueprint Blueprint::with_name(std::string name) const {
-    Blueprint copy = *this;
-    copy.name_ = std::move(name);
-    return copy;
-}
-
 bool Blueprint::operator==(Blueprint const& other) const {
     return id_ == other.id_
-        && display_name_ == other.display_name_
         && name_ == other.name_
         && iface_ == other.iface_
         && nodes_ == other.nodes_
@@ -330,7 +319,7 @@ bool Blueprint::operator==(Blueprint const& other) const {
 Blueprint Blueprint::clone(ui::InternedId new_id) const {
     Blueprint copy = *this;
     copy.id_ = new_id;
-    copy.display_name_ = std::string("Copy of ") + display_name_;
+    copy.name_ = std::string("Copy of ") + name_;
     return copy;
 }
 

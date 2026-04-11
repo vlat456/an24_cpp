@@ -298,9 +298,11 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     bp = bp.with_id(interner.intern("bp"));
 
     // Create a blueprint-instance node with embedded source
+    // Issue #91: Blueprint-instance interface derives from source authority only.
+    // Initialize inner_bp with the interface that will be authoritative.
     bp2::Blueprint inner_bp;
     inner_bp = inner_bp.with_interface(bp2::Interface({
-        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
     }));
 
     bp2::Blueprint::Node collapsed;
@@ -308,9 +310,8 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     collapsed.semantic.id = interner.intern("inst1");
     collapsed.semantic.type = interner.intern("bp_type");
     collapsed.view.name = "inst1";
-    set_iface(collapsed, {
-        make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
-    });
+    // Issue #91: Do NOT set semantic.iface on blueprint-instance nodes.
+    // The interface derives from source authority only.
     
     collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("bp_type"),
@@ -334,8 +335,12 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
 
     const auto* collapsed_after = model.current().find_node(interner.intern("inst1"));
     ASSERT_NE(collapsed_after, nullptr);
-    ASSERT_EQ(count_inputs(collapsed_after->semantic.iface), 1u);
-    EXPECT_EQ(get_input_type(collapsed_after->semantic.iface, 0), PortType::RPM);
+    
+    // Issue #91: Query interface from source authority using effective_node_iface()
+    // since semantic.iface is no longer mirrored for blueprint-instance nodes.
+    auto effective_iface = model.current().effective_node_iface(*collapsed_after);
+    ASSERT_EQ(count_inputs(effective_iface), 1u);
+    EXPECT_EQ(get_input_type(effective_iface, 0), PortType::RPM);
 
     // Check that the embedded blueprint's interface is also updated
     ASSERT_TRUE(collapsed_after->has_embedded_blueprint());

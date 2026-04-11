@@ -94,12 +94,9 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 }
             }
 
-            // Validate semantic interface matches source authority
-            if (node.semantic.iface != node.source->resolved_iface()) {
-                out.error = "blueprint-instance node iface desynced from source authority at node id="
-                    + iid_to_string(node.semantic.id);
-                return out;
-            }
+            // Blueprint-instance interface derives from source authority only.
+            // node.semantic.iface must not be used for blueprint-instance nodes.
+            // Use effective_node_iface() to query authoritative interface.
 
             continue;
         }

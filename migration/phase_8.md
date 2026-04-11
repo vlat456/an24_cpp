@@ -170,7 +170,7 @@ bp2::Blueprint load_blueprint(std::string const& json,
 }
 ```
 
-**Note:** After Phase 8, fallback to old format is removed. All blueprints must use new JSON format (version 3.0).
+**Note:** After Phase 8, fallback to old format is removed. All blueprints must use canonical JSON format (version 1, per `knowledge/persistence_spec_v1.md`).
 
 ### Step 8.5: Update scene_mutations to use bp2 types
 
@@ -328,7 +328,7 @@ tests/test_blueprint_v2.cpp        (old v2 format tests, not bp2)
 After Phase 8:
 1. All tests pass
 2. No old `Blueprint` or `FlatBlueprint` types in codebase
-3. All blueprint files saved in new JSON format (version "3.0")
+3. All blueprint files saved in canonical JSON format (version 1, per `knowledge/persistence_spec_v1.md`)
 4. Editor fully functional with undo/redo via `bp2::EditorModel`
 5. Simulator uses `bp2::Flattener` to produce netlists
 

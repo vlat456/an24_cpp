@@ -4,7 +4,7 @@
 #include "blueprint_v2/flattener/flattener.h"
 #include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/library/library_index.h"
-#include "editor/visual/persist.h"
+#include "blueprint_v2/library/type_def_to_blueprint.h"
 
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
@@ -26,25 +26,15 @@ std::string Document::build_simulation_json() {
                 continue;
             }
 
-            auto resolved = library_index_->resolve(classname);
-            if (!resolved) {
-                spdlog::warn("[editor] export flatten: blueprint '{}' not found in library index",
-                             classname);
+            bp2::Blueprint loaded;
+            try {
+                loaded = bp2::blueprint_from_type_definition(def, interner_, *type_registry_);
+            } catch (const std::exception& e) {
+                spdlog::warn("[editor] export flatten: failed to build blueprint '{}' from TypeDefinition: {}",
+                             classname, e.what());
                 continue;
             }
-
-            auto loaded = load_blueprint_from_file_validated(
-                resolved->c_str(),
-                interner_,
-                arena_,
-                *type_registry_);
-            if (!loaded) {
-                spdlog::warn("[editor] export flatten: failed to load reference blueprint '{}' from '{}'",
-                             classname,
-                             *resolved);
-                continue;
-            }
-            library.add(interner_.intern(classname), std::move(*loaded));
+            library.add(interner_.intern(classname), std::move(loaded));
         }
     }
 

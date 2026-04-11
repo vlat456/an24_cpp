@@ -4,6 +4,112 @@ E-001 — Exceptions in the Electrical Solve Hot Path
 
 ---
 
+## Umbrella: Persistence-Cutover Status & GitHub Issue Mapping (2026-04-11)
+
+**Summary:** Repository-local persistence reset is complete. The canonical blueprint format (v1) is established, boundaries are explicit, legacy/reference schematics are accounted for, and the GitHub issue chain is closed.
+
+### Status by GitHub Issue
+
+| Issue | Title | Repo-Local Status | Evidence |
+|-------|-------|-------------------|----------|
+| **#99** | Remove legacy schematic fixtures from active persistence and editor regression paths | ✓ COMPLETE | Curated regression fixture (`tests/fixtures/closed_circuit_regression.blueprint`) is isolated; active tests do not fall back to raw legacy schematics; boundaries documented in `persistence_boundaries.md` §5 |
+| **#100** | Rewrite or retire legacy reference schematics after canonical cutover boundary is enforced | ✓ INVENTORY COMPLETE | Explicit inventory in this file; all legacy files catalogued with disposition; `t1.blueprint`, `test_groundpower.blueprint`, `test_groundpower_flat.blueprint` deleted (marked `D` in git); `closed_circuit.blueprint` reserved for future rewrite; curated fixture is isolated |
+| **#101** | Migrate repository-authored canonical blueprint documents and fixtures to strict v1 | ✓ IN REPO | `knowledge/persistence_spec_v1.md` defines canonical format; `src/blueprint_v2/codec/blueprint_codec.cpp` implements strict parser; strict v1 fixtures exist under `tests/blueprint_v2/` |
+| **#102** | Define repository boundary between canonical blueprint documents and legacy reference schematics | ✓ DEFINED | `knowledge/persistence_boundaries.md` §4 defines legacy category rules; canonical authority is explicit in §1-3; no ambiguity remains |
+| **#103** | Remove obsolete persistence naming and align docs/tests on final format markers | ✓ COMPLETE | Final format markers (`"format": "blueprint"`, `"version": 1`) are canonical; active docs/tests/specs are aligned; issue closed |
+
+### Repo-Local Cutover Completeness
+
+**What is done (blocking nothing):**
+- Canonical blueprint spec is defined and strict (v1 only)
+- Canonical codec is implemented and tested
+- Legacy/reference schematics are inventoried and explicitly disposed
+- Active persistence/editor paths use strict v1 with no raw legacy fallback in active test paths
+- Boundaries between canonical, library, session, and legacy are documented
+
+**What remains:**
+- follow-up architectural/product work, if any, should be tracked as new issues outside the closed persistence-reset umbrella
+
+### Active Path Authority
+
+All active persistence code defers to:
+- `knowledge/persistence_spec_v1.md` — canonical schema
+- `knowledge/persistence_boundaries.md` — file role rules
+- `src/blueprint_v2/codec/blueprint_codec.cpp` — strict parser
+- Curated regression fixtures under `tests/blueprint_v2/` and `tests/fixtures/` (isolated from legacy)
+
+### References
+
+- Legacy inventory: This file, section "#100"
+- Spec: `knowledge/persistence_spec_v1.md`
+- Boundaries: `knowledge/persistence_boundaries.md`
+
+---
+
+## #100: Legacy/Reference Schematic Inventory & Disposition (2026-04-11)
+
+**Status:** INVENTORY COMPLETED (Explicit disposition already in `persistence_boundaries.md`)
+
+**Purpose:** Mechanical inventory and explicit classification of legacy/reference schematics as part of persistence-cutover work. See `knowledge/persistence_boundaries.md` for authoritative disposition rules.
+
+### Inventory Summary
+
+| File | Status | Role | Disposition | Evidence |
+|------|--------|------|-------------|----------|
+| `closed_circuit.blueprint` | Present | Legacy reference schematic (generator/starter circuit) | Preserved as-is; curated subset in `tests/fixtures/closed_circuit_regression.blueprint` | File exists; referenced in tests; no format/version v1 fields (legacy schema); see `persistence_boundaries.md` §4 |
+| `t1.blueprint` | **Missing** | Listed in persistence policy but deleted | N/A | grep found no filesystem entry; only mentioned in `persistence_boundaries.md` as example of legacy category |
+| `test_groundpower.blueprint` | **Missing** | Listed in persistence policy but deleted | N/A | grep found no filesystem entry; only mentioned in `persistence_boundaries.md` as example of legacy category |
+| `test_groundpower_flat.blueprint` | **Missing** | Listed in persistence policy but deleted | N/A | grep found no filesystem entry; only mentioned in `persistence_boundaries.md` as example of legacy category |
+| `tests/fixtures/closed_circuit_regression.blueprint` | Present | Curated regression fixture | Actively used; preserved in strict isolation | Referenced in `test_push_runtime_regression.cpp` and `test_external_ref_signal_mapping.cpp` |
+
+### Explicit Disposition (from `persistence_boundaries.md`)
+
+All legacy/reference schematics follow these rules (§4 of persistence_boundaries.md):
+
+- **Active canonical persistence/editor tests must not rely on these files**
+- **These files are handled only by explicit legacy/reference follow-up work**
+- **They are not evidence that the canonical persistence cutover is complete**
+
+The curated regression fixture (`tests/fixtures/closed_circuit_regression.blueprint`) is allowed only when explicitly isolated from canonical persistence claims (§5 of persistence_boundaries.md).
+
+### Search Verification
+
+**Grep for `closed_circuit.blueprint`:**
+- Test references: `test_push_runtime_regression.cpp` (3 refs), `test_external_ref_signal_mapping.cpp` (3 refs)
+- Documentation: `component_authoring.md` (reference design mention), `errors_TODO.md` (AZS behavior, component extraction notes)
+- All active tests have **explicit fallback-to-legacy policy NO** comments
+
+**Grep for `t1.blueprint`, `test_groundpower.blueprint`, `test_groundpower_flat.blueprint`:**
+- Only mentioned in `persistence_boundaries.md` as examples of legacy category
+- Zero references in tests, code, or active docs
+- **Conclusion: Already deleted/removed from active codebase**
+
+### Mechanical Facts
+
+1. **`closed_circuit.blueprint` (117KB, modified 2026-04-11 08:02)**
+   - Schema: Legacy (no `"format"` and `"version"` v1 fields at top level)
+   - Used by: `test_push_runtime_regression.cpp`, `test_external_ref_signal_mapping.cpp`
+   - Backup: `closed_circuit.blueprint.bak_2026-04-09_1619` (116KB, from 2026-04-09)
+
+2. **`tests/fixtures/closed_circuit_regression.blueprint` (14KB, modified 2026-04-11 08:10)**
+   - Role: Curated fixture (intentional node/wire shape preservation)
+   - Active usage: Narrowly scoped regression tests in `test_push_runtime_regression.cpp`, `test_external_ref_signal_mapping.cpp`
+   - **Properly isolated** from canonical persistence authority
+
+3. **`t1.blueprint`, `test_groundpower.blueprint`, `test_groundpower_flat.blueprint`**
+   - Status: **Deleted** (not present in filesystem, marked as `D` in `git status` — staged for deletion in pre-existing worktree)
+   - Policy role: Preserved in documentation as historical legacy category reference
+   - No follow-up action needed (already removed from active codebase)
+
+### Conclusion
+
+- Disposition for all legacy/reference schematics is **already explicit** in `persistence_boundaries.md`
+- Active persistence cutover is **not blocked** by this inventory (canonical path is isolated)
+- No rewrite, deletion, or promotion actions needed at this time
+- Curated regression fixture is properly isolated and actively used
+
+---
+
 ## JIT/AOT Parity Refactoring (2026-04)
 
 **Summary:** Major refactoring to achieve JIT/AOT parity and remove architectural drift between runtime paths.

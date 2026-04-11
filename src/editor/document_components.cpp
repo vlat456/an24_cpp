@@ -4,6 +4,7 @@
 #include "commands/commands.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/library/library_index.h"
+#include "blueprint_v2/library/type_def_to_blueprint.h"
 #include "common/port_type_utils.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "core/solvers/common/signal_key.h"
@@ -269,7 +270,10 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         pd.domain = port_def.domain;
         iface_ports.push_back(std::move(pd));
     }
-    collapsed.semantic.iface = bp2::Interface(std::move(iface_ports));
+    // Issue #91: Blueprint-instance interface derives from source authority only.
+    // Store port descriptors temporarily to set on inline blueprint interface,
+    // but do NOT mirror node.semantic.iface.
+    bp2::Interface inline_bp_iface = bp2::Interface(std::move(iface_ports));
 
     {
         NodeContent nc = create_node_content_from_def(def);
@@ -283,41 +287,37 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         collapsed.view.content_tripped = nc.tripped;
     }
 
-    if (!library_index_) {
-        spdlog::error("[editor] addBlueprint('{}'): LibraryIndex is not configured", blueprint_name);
+    bp2::Blueprint loaded;
+    try {
+        loaded = bp2::blueprint_from_type_definition(*def, interner_, registry);
+    } catch (const std::exception& e) {
+        spdlog::error("[editor] addBlueprint('{}'): failed to build from TypeDefinition: {}",
+                      blueprint_name, e.what());
         return;
     }
 
-    auto resolved = library_index_->resolve(blueprint_name);
-    if (!resolved) {
-        spdlog::error("[editor] addBlueprint('{}'): not found in library index", blueprint_name);
-        return;
-    }
-
-    auto loaded_opt = load_blueprint_from_file_validated(
-        resolved->c_str(), interner_, arena_, registry);
-
-    if (!loaded_opt) {
-        spdlog::error("[editor] addBlueprint('{}'): could not load '{}'",
-            blueprint_name, *resolved);
-        return;
-    }
-
-    spdlog::debug("[editor] addBlueprint('{}'): loaded {} nodes, {} wires from '{}'",
+    spdlog::debug("[editor] addBlueprint('{}'): built {} nodes, {} wires from TypeDefinition",
         blueprint_name,
-        loaded_opt->nodes().size(),
-        loaded_opt->wires().size(),
-        *resolved);
-
-    bp2::Blueprint loaded = std::move(*loaded_opt);
+        loaded.nodes().size(),
+        loaded.wires().size());
 
     loaded = editor::hydrate_runtime_node_view_data(std::move(loaded), interner_, registry);
 
-    bp2::Blueprint inline_bp = loaded.with_interface(collapsed.semantic.iface);
+    bp2::Blueprint inline_bp = loaded.with_interface(inline_bp_iface);
     inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
-    inline_bp = inline_bp.with_display_name(def->classname);
+    inline_bp = inline_bp.with_name(def->classname);
 
-     const bp2::Blueprint before_add = model_.current();
+    const bp2::Blueprint before_add = model_.current();
+#ifndef NDEBUG
+    std::string before_integrity_err;
+    if (!type_registry_) {
+        spdlog::error("[editor] TypeRegistry is not configured on Document::addBlueprint");
+        return;
+    }
+    const TypeRegistry& parser_registry = *type_registry_;
+    const bool before_integrity_ok =
+        validate_blueprint_integrity(before_add, interner_, arena_, parser_registry, &before_integrity_err);
+#endif
     try {
         model_.mutate_atomically([&] {
             // Create the blueprint-instance node with embedded blueprint source
@@ -326,8 +326,45 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
                 std::make_unique<bp2::Blueprint>(std::move(inline_bp)));
             collapsed.source = bp2::Blueprint::Node::BlueprintSource(std::move(embedded));
 
-            execute(model_, interner_, cmd_add_node(std::move(collapsed)));
+            if (scope_id.empty()) {
+                execute(model_, interner_, cmd_add_node(std::move(collapsed)));
+                return;
+            }
+
+            const ui::InternedId scope_iid = interner_.intern(scope_id);
+            const auto* host_node = model_.current().find_node(scope_iid);
+            if (!host_node || !host_node->has_embedded_blueprint() || !host_node->source->inline_def()) {
+                throw std::runtime_error("embedded blueprint instance '" + scope_id + "' not found");
+            }
+
+            bp2::Blueprint next_inline = host_node->source->inline_def()->with_node(collapsed);
+            bp2::Blueprint::Node updated_host = *host_node;
+            updated_host.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(next_inline)));
+            model_.replace_current(bp2::replace_node_preserve_order(model_.current(), std::move(updated_host)));
         });
+
+#ifndef NDEBUG
+        {
+            std::string err;
+            if (!validate_blueprint_integrity(model_.current(), interner_, arena_, parser_registry, &err)) {
+#ifndef NDEBUG
+                if (!before_integrity_ok) {
+                    spdlog::warn(
+                        "[editor] addBlueprint('{}') on pre-invalid blueprint: before='{}', after='{}'",
+                        blueprint_name,
+                        before_integrity_err,
+                        err);
+                } else
+#endif
+                {
+                    model_.replace_current(before_add);
+                    spdlog::error("[editor] addBlueprint('{}') rolled back due to integrity failure: {}",
+                                  blueprint_name, err);
+                    return;
+                }
+            }
+        }
+#endif
 
         rebuildAllWindows();
         spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) group={}",

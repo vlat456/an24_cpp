@@ -50,7 +50,7 @@ Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updat
 }
 
 EditorModel::EditorModel(Blueprint initial)
-    : current_(canonicalize_composite_host_ifaces(std::move(initial))) {}
+    : current_(std::move(initial)) {}  // Issue #91: No canonicalization of blueprint-instance iface
 
 void EditorModel::push_checkpoint_if_enabled() {
     if (checkpoint_suppression_depth_ == 0) {
@@ -97,7 +97,8 @@ bool EditorModel::mutate_atomically(const std::function<void()>& fn) {
 bool EditorModel::add_node(Blueprint::Node node) {
     if (current_.find_node(node.semantic.id)) return false;
     push_checkpoint_if_enabled();
-    current_ = current_.with_node(canonicalize_composite_host_iface(current_, std::move(node)));
+    // Issue #91: No canonicalization of blueprint-instance iface. Add node as-is.
+    current_ = current_.with_node(std::move(node));
     invalidate_indices();
     return true;
 }
@@ -132,7 +133,7 @@ bool EditorModel::update_node(ui::InternedId id, std::function<void(Blueprint::N
     if (!existing) return false;
     Blueprint::Node updated = *existing;
     fn(updated);
-    updated = canonicalize_composite_host_iface(current_, std::move(updated));
+    // Issue #91: No canonicalization of blueprint-instance iface. Update node as-is.
     push_checkpoint_if_enabled();
     current_ = replace_node_preserve_order(current_, std::move(updated));
     invalidate_indices();

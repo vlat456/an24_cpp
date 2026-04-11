@@ -547,7 +547,7 @@ TEST(BlueprintDecode, RequiredParamValidation_MissingRequiredParamFails) {
     
     // Try to decode a blueprint with TestComponent but missing the required param
     std::string json_str = R"({
-      "format": "an24.blueprint",
+      "format": "blueprint",
       "version": 1,
       "blueprint_id": "test_missing_required",
       "name": "Test Missing Required",
@@ -592,7 +592,7 @@ TEST(BlueprintDecode, RequiredParamValidation_PresentRequiredParamPasses) {
     
     // Decode a blueprint with TestComponent AND the required param present
     std::string json_str = R"({
-      "format": "an24.blueprint",
+      "format": "blueprint",
       "version": 1,
       "blueprint_id": "test_has_required",
       "name": "Test Has Required",
@@ -636,7 +636,7 @@ TEST(BlueprintDecode, RequiredParamValidation_OptionalParamCanBeMissing) {
     
     // Decode a blueprint with TestComponent but NO optional param
     std::string json_str = R"({
-      "format": "an24.blueprint",
+      "format": "blueprint",
       "version": 1,
       "blueprint_id": "test_optional_missing",
       "name": "Test Optional Missing",
@@ -687,7 +687,6 @@ TEST(InvariantChecker, RecursiveValidation_EmbeddedWithSelfLoopFails) {
         I.intern("CompositeType"),
         std::make_unique<bp2::Blueprint>(inner_bp)
     );
-    composite_node.semantic.iface = composite_node.source->resolved_iface();
     parent_bp = parent_bp.with_node(std::move(composite_node));
     
     // Validate parent blueprint - should fail because embedded has invalid self-loop
@@ -717,7 +716,6 @@ TEST(InvariantChecker, RecursiveValidation_EmbeddedWithDuplicateNodesFails) {
         I.intern("CompositeType"),
         std::make_unique<bp2::Blueprint>(inner_bp)
     );
-    composite_node.semantic.iface = composite_node.source->resolved_iface();
     parent_bp = parent_bp.with_node(std::move(composite_node));
     
     // Validate parent blueprint - should fail because embedded has duplicate node IDs
@@ -750,11 +748,10 @@ TEST(InvariantChecker, RecursiveValidation_ValidEmbeddedPasses) {
     composite_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;  // CRITICAL: Must be BlueprintInstance
     composite_node.semantic.id = I.intern("composite1");
     composite_node.semantic.type = I.intern("Battery");  // Use valid type from registry
-    composite_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("CompositeType"),
-        std::make_unique<bp2::Blueprint>(inner_bp)
-     );
-     composite_node.semantic.iface = composite_node.source->resolved_iface();
+     composite_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+         I.intern("CompositeType"),
+         std::make_unique<bp2::Blueprint>(inner_bp)
+      );
      parent_bp = parent_bp.with_node(std::move(composite_node));
      
      // Validate parent blueprint - should pass

@@ -79,14 +79,20 @@ static std::string read_file_or_fail(const std::string& path) {
     return content;
 }
 
+static std::string scalar_json_to_param_string(const json& value) {
+    if (value.is_string()) {
+        return value.get<std::string>();
+    }
+    return value.dump();
+}
+
+/// Strict: only the canonical regression fixture is accepted.
+/// No fallback to legacy raw schematics (0%-legacy persistence policy).
 static std::string find_closed_circuit_blueprint() {
     std::vector<std::string> try_paths = {
         "../../tests/fixtures/closed_circuit_regression.blueprint",
         "../tests/fixtures/closed_circuit_regression.blueprint",
         "tests/fixtures/closed_circuit_regression.blueprint",
-        "../../closed_circuit.blueprint",
-        "../closed_circuit.blueprint",
-        "closed_circuit.blueprint",
     };
     for (const auto& p : try_paths) {
         std::ifstream f(p);
@@ -97,10 +103,12 @@ static std::string find_closed_circuit_blueprint() {
         if (!tried.empty()) tried += ", ";
         tried += p;
     }
-    throw std::runtime_error("Could not find closed_circuit.blueprint in any of: " + tried);
+    throw std::runtime_error(
+        "Could not find closed_circuit_regression.blueprint fixture in any of: " + tried +
+        "\n  NOTE: Legacy fallback to raw closed_circuit.blueprint is removed (0%-legacy policy).");
 }
 
-/// Convert blueprint v3 to simulation JSON using node id as device key.
+/// Convert the legacy node/wire fixture format to simulation JSON using node id as device key.
 static std::string blueprint_to_simulation_json(const std::string& blueprint_path) {
     std::string content = read_file_or_fail(blueprint_path);
     json bp = json::parse(content);
@@ -118,17 +126,13 @@ static std::string blueprint_to_simulation_json(const std::string& blueprint_pat
             if (node.contains("params") && node["params"].is_object()) {
                 dev["params"] = json::object();
                 for (const auto& [k, v] : node["params"].items()) {
-                    if (v.is_number()) {
-                        dev["params"][k] = json(v.get<double>()).dump();
-                    } else {
-                        dev["params"][k] = v.get<std::string>();
-                    }
+                    dev["params"][k] = scalar_json_to_param_string(v);
                 }
             }
             if (node.contains("string_params") && node["string_params"].is_object()) {
                 if (!dev.contains("params")) dev["params"] = json::object();
                 for (const auto& [k, v] : node["string_params"].items()) {
-                    dev["params"][k] = v.get<std::string>();
+                    dev["params"][k] = scalar_json_to_param_string(v);
                 }
             }
             result["devices"].push_back(dev);

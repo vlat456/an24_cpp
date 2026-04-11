@@ -42,8 +42,8 @@ LibraryIndex load_library_index(const std::string& path) {
     if (!j.contains("format") || !j["format"].is_string()) {
         throw std::runtime_error("Library index: missing or non-string 'format'");
     }
-    if (j["format"].get<std::string>() != "an24.library_index") {
-        throw std::runtime_error("Library index: expected format 'an24.library_index', got '"
+    if (j["format"].get<std::string>() != "library_index") {
+        throw std::runtime_error("Library index: expected format 'library_index', got '"
                                  + j["format"].get<std::string>() + "'");
     }
 

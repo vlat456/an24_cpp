@@ -122,7 +122,7 @@ TEST(BlueprintCodec, EncodeEmptyBlueprint) {
     std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena);
     auto j = nlohmann::json::parse(json_str);
 
-    EXPECT_EQ(j["format"], "an24.blueprint");
+    EXPECT_EQ(j["format"], "blueprint");
     EXPECT_EQ(j["version"], 1);
     EXPECT_EQ(j["blueprint_id"], "test_bp");
     EXPECT_TRUE(j["nodes"].empty());
@@ -180,6 +180,91 @@ TEST(BlueprintCodec, EncodeWires) {
     EXPECT_EQ(w["to"]["port"], "in");
 }
 
+// =============================================================================
+// Regression: Wire::operator== must compare routing_points
+// =============================================================================
+
+TEST(BlueprintCodec, WireEqualityIncludesRoutingPoints) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint::Wire a;
+    a.id = interner.intern("w1");
+    a.source = bp2::WireEndpoint{interner.intern("n1"), interner.intern("out")};
+    a.target = bp2::WireEndpoint{interner.intern("n2"), interner.intern("in")};
+    a.domain = Domain::Electrical;
+
+    bp2::Blueprint::Wire b = a;
+
+    // Identical wires must compare equal.
+    EXPECT_EQ(a, b);
+
+    // Adding routing points to one wire must make them unequal.
+    b.routing_points.push_back({10.0f, 20.0f});
+    EXPECT_NE(a, b) << "Wire::operator== must consider routing_points";
+
+    // Matching routing_points must restore equality.
+    a.routing_points.push_back({10.0f, 20.0f});
+    EXPECT_EQ(a, b);
+
+    // Different routing_points must be unequal.
+    a.routing_points.push_back({30.0f, 40.0f});
+    EXPECT_NE(a, b) << "Wire::operator== must detect different routing_points sizes";
+}
+
+TEST(BlueprintCodec, RoutingPointsRoundTrip) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+
+    // Register stub types so that wire endpoint resolution succeeds.
+    bp2::Interface src_iface({make_port(interner, "out", bp2::Direction::Output, PortType::V)});
+    bp2::Interface dst_iface({make_port(interner, "in", bp2::Direction::Input, PortType::V)});
+    register_type(reg, interner, "SrcType", src_iface);
+    register_type(reg, interner, "DstType", dst_iface);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("routing_test"));
+    bp = bp.with_name("RoutingTest");
+
+    bp2::Blueprint::Node n1;
+    n1.semantic.id = interner.intern("n1");
+    n1.semantic.type = interner.intern("SrcType");
+    n1.semantic.iface = src_iface;
+    n1.layout.x = 0.0f;
+    n1.layout.y = 0.0f;
+    bp = bp.with_node(std::move(n1));
+
+    bp2::Blueprint::Node n2;
+    n2.semantic.id = interner.intern("n2");
+    n2.semantic.type = interner.intern("DstType");
+    n2.semantic.iface = dst_iface;
+    n2.layout.x = 100.0f;
+    n2.layout.y = 0.0f;
+    bp = bp.with_node(std::move(n2));
+
+    bp2::Blueprint::Wire wire;
+    wire.id = interner.intern("w1");
+    wire.source = bp2::WireEndpoint{interner.intern("n1"), interner.intern("out")};
+    wire.target = bp2::WireEndpoint{interner.intern("n2"), interner.intern("in")};
+    wire.domain = Domain::Electrical;
+    wire.routing_points = {{5.0f, 10.0f}, {15.0f, 20.0f}};
+    bp = bp.with_wire(std::move(wire));
+
+    std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
+
+    bp2::DecodeError err;
+    auto decoded = bp2::BlueprintCodec::decode(encoded, interner, arena, reg, &err);
+    ASSERT_TRUE(decoded.has_value()) << err.message;
+    ASSERT_EQ(decoded->wires().size(), 1u);
+
+    const auto& w = decoded->wires()[0];
+    ASSERT_EQ(w.routing_points.size(), 2u);
+    EXPECT_FLOAT_EQ(w.routing_points[0].first, 5.0f);
+    EXPECT_FLOAT_EQ(w.routing_points[0].second, 10.0f);
+    EXPECT_FLOAT_EQ(w.routing_points[1].first, 15.0f);
+    EXPECT_FLOAT_EQ(w.routing_points[1].second, 20.0f);
+}
+
 TEST(BlueprintCodec, DecodeEmptyBlueprint) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -189,7 +274,7 @@ TEST(BlueprintCodec, DecodeEmptyBlueprint) {
     // Library blueprints (e.g. library/math/FirstOrderLag.blueprint) have nodes
     // WITHOUT layout fields. The codec must accept these and default to {0,0}.
     std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "test_no_pos",
         "name": "Test",
@@ -220,7 +305,7 @@ TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
     register_type(reg, interner, "Subtract");
 
     std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "test_with_pos",
         "name": "Test",
@@ -248,7 +333,7 @@ TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
 // Regression: node.semantic.iface must be populated from decoded ports so that
 // PathResolver can resolve wire endpoints even when the node type is NOT
 // in the library registry (e.g. embedded blueprint proxy nodes).
-// Bug: closed_circuit.blueprint saved OK but failed to reload with
+// Bug: a legacy project blueprint saved OK but failed to reload with
 //   "[persist] Failed to load blueprint: wire id=186: wire endpoint path unresolved"
 // Root cause: decode_nodes() populated node.view.inputs/node.view.outputs but never
 // built node.semantic.iface, so node_interface() returned nullptr for non-registry types.
@@ -271,7 +356,7 @@ TEST(BlueprintCodec, DecodePopulatesNodeIfaceFromPorts) {
     register_type(reg, interner, "Battery", battery_iface);
 
     std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "iface_test",
         "name": "Iface Test",
@@ -325,7 +410,7 @@ TEST(BlueprintCodec, DecodeNodeIfaceEmptyWhenNoPorts) {
     register_type(reg, interner, "SomeType");
 
     std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "no_ports_test",
         "name": "No Ports",
@@ -357,7 +442,7 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
     // v1 format: strictly canonical with format/version/blueprint_id/name/interface/nodes/wires
     // Nodes can omit layout (will default to 0,0).
     std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "FirstOrderLag",
         "name": "FirstOrderLag",
@@ -402,7 +487,7 @@ TEST(BlueprintCodec, EncodeOmitsNodeContentAndColorWorkspaceFields) {
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("content_rt"));
-    bp = bp.with_display_name("Content RT");
+    bp = bp.with_name("Content RT");
 
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("knob1");
@@ -431,7 +516,7 @@ TEST(BlueprintCodec, DecodeRejectsForbiddenContentField) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "forbidden_content",
         "name": "Forbidden Content",
@@ -461,7 +546,7 @@ TEST(BlueprintCodec, DecodeRejectsForbiddenColorField) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "forbidden_color",
         "name": "Forbidden Color",
@@ -492,11 +577,11 @@ TEST(BlueprintCodec, EncodeWithParserRegistryOverload) {
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("codec_parser_encode"));
-    bp = bp.with_display_name("Codec Parser Encode");
+    bp = bp.with_name("Codec Parser Encode");
 
     std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena, &parser_registry);
     auto j = nlohmann::json::parse(json_str);
-    EXPECT_EQ(j["format"], "an24.blueprint");
+    EXPECT_EQ(j["format"], "blueprint");
     EXPECT_EQ(j["version"], 1);
     EXPECT_EQ(j["blueprint_id"], "codec_parser_encode");
 }
@@ -507,7 +592,7 @@ TEST(BlueprintCodec, DecodeWithParserRegistryOverload) {
     TypeRegistry parser_registry = load_type_registry("library/");
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "codec_parser_decode",
         "name": "Codec Parser Decode",
@@ -728,7 +813,7 @@ TEST(BlueprintCodec, DecodeRejectsCollapsedOnComponentNode) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "collapsed_on_component",
         "name": "Collapsed On Component",
@@ -758,7 +843,7 @@ TEST(BlueprintCodec, DecodeRejectsSourceOnComponentNode) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "source_on_component",
         "name": "Source On Component",
@@ -788,7 +873,7 @@ TEST(BlueprintCodec, DecodeRejectsComponentOnBlueprintInstance) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "component_on_instance",
         "name": "Component On Instance",
@@ -801,7 +886,7 @@ TEST(BlueprintCodec, DecodeRejectsComponentOnBlueprintInstance) {
                 "source": {
                     "mode": "embedded",
                     "blueprint": {
-                        "format": "an24.blueprint",
+                        "format": "blueprint",
                         "version": 1,
                         "blueprint_id": "inner",
                         "name": "Inner",
@@ -829,7 +914,7 @@ TEST(BlueprintCodec, DecodeRejectsParamsOnBlueprintInstance) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "params_on_instance",
         "name": "Params On Instance",
@@ -842,7 +927,7 @@ TEST(BlueprintCodec, DecodeRejectsParamsOnBlueprintInstance) {
                 "source": {
                     "mode": "embedded",
                     "blueprint": {
-                        "format": "an24.blueprint",
+                        "format": "blueprint",
                         "version": 1,
                         "blueprint_id": "inner",
                         "name": "Inner",
@@ -873,7 +958,7 @@ TEST(BlueprintCodec, DecodeRejectsDuplicateInterfacePortIds) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "dup_interface",
         "name": "Dup Interface",
@@ -901,7 +986,7 @@ TEST(BlueprintCodec, DecodeRejectsEmptyBlueprintId) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "",
         "name": "Test",
@@ -922,7 +1007,7 @@ TEST(BlueprintCodec, DecodeRejectsBlueprintIdWithWhitespace) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "has space",
         "name": "Test",
@@ -943,7 +1028,7 @@ TEST(BlueprintCodec, DecodeRejectsBlueprintIdWithTab) {
     bp2::DecodeError err;
 
     std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "has)";
     json += '\t';
@@ -969,7 +1054,7 @@ TEST(BlueprintCodec, DecodeRejectsEmptyName) {
     bp2::DecodeError err;
 
     const std::string json = R"({
-        "format": "an24.blueprint",
+        "format": "blueprint",
         "version": 1,
         "blueprint_id": "empty_name_test",
         "name": "",
@@ -981,4 +1066,28 @@ TEST(BlueprintCodec, DecodeRejectsEmptyName) {
     auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
     EXPECT_FALSE(decoded.has_value());
     EXPECT_NE(err.message.find("name must not be empty"), std::string::npos);
+}
+
+// =============================================================================
+// Regression: codec round-trip preserves single name field
+// =============================================================================
+
+TEST(BlueprintCodec, RoundTripPreservesNameEquality) {
+    // The old display_name/name duality meant encode→decode could break equality
+    // because display_name_ was not persisted but was compared in operator==.
+    // With the unified name model, round-trip must preserve equality.
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("name_rt"));
+    bp = bp.with_name("Name Round Trip");
+
+    std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
+    bp2::DecodeError err;
+    auto decoded = bp2::BlueprintCodec::decode(encoded, interner, arena, reg, &err);
+    ASSERT_TRUE(decoded.has_value()) << err.message;
+    EXPECT_EQ(decoded->name(), "Name Round Trip");
+    EXPECT_EQ(bp, *decoded);
 }

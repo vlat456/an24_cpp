@@ -187,22 +187,25 @@ std::unordered_map<ui::InternedId, float> params;
 
 ---
 
-### 6. JSON Version Mismatch (Intentional)
+### 6. JSON Version Mismatch (Resolved)
 
-**Architecture:** "version": "2.0"
+**Old Architecture Drafts:** `"version": "2.0"` / `"version": "3.0"`
 
-**Phase 5:** "version": "3.0"
+**Current Canonical Contract:**
+- File: `knowledge/persistence_spec_v1.md`
+- Canonical blueprint documents use `"format": "blueprint"`
+- Canonical blueprint documents use `"version": 1`
 
 **Actual Implementation:**
 - File: `src/blueprint_v2/codec/blueprint_codec.cpp`
-- Uses version "3.0" (line with `"version": "3.0"`)
+- Codec expects the strict canonical markers described above
 
-**Status:** DOCUMENTED AS INTENTIONAL ✓
-- Version 3.0 distinguishes new format from old FlatBlueprint v2
-- incoherences.md line 115: "Status: This is intentional"
+**Status:** RESOLVED ✓
+- Old migration-doc version references are obsolete historical notes
+- Active persistence authority is `knowledge/persistence_spec_v1.md`
 
-**Recommendation:** Update architecture doc to reflect version 3.0
-- Priority: Low (documentation)
+**Recommendation:** Keep migration notes aligned with the canonical v1 spec
+- Priority: Low (documentation hygiene)
 
 ---
 

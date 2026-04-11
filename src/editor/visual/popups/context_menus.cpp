@@ -175,12 +175,14 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                  ws.pendingBakeIn.doc_id = !ws.nodeContextMenu.source_doc_id.empty()
                      ? ws.nodeContextMenu.source_doc_id : (doc ? doc->id() : std::string{});
              }
-             ImGui::Separator();
-             if (ImGui::MenuItem("Open in editor")) {
-                 std::string bp_id_str(doc->interner().resolve(sbi_node->source->blueprint_id()));
-                 std::string lib_path = "library/" + bp_id_str + ".blueprint";
-                 ws.openDocument(lib_path);
-             }
+              ImGui::Separator();
+              if (ImGui::MenuItem("Open in editor")) {
+                  std::string bp_id_str(doc->interner().resolve(sbi_node->source->blueprint_id()));
+                  auto lib_path_opt = ws.libraryIndex().resolve(bp_id_str);
+                  if (lib_path_opt) {
+                      ws.openDocument(lib_path_opt.value());
+                  }
+              }
          }
     }
     

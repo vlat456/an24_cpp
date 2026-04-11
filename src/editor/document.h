@@ -3,6 +3,7 @@
 #include "window/window_manager.h"
 #include "window/window_scope_id.h"
 #include "visual/scene.h"
+#include "visual/workspace_session.h"
 #include "input/canvas_input.h"
 #include "core/solvers/jit/simulator.h"
 #include "json_parser/json_parser.h"
@@ -51,6 +52,22 @@ public:
 
     bool save(const std::string& path);
     bool load(const std::string& path);
+
+    // ── Workspace/session persistence (separate from blueprint) ──
+
+    /// Save workspace/session state to a separate .workspace.json file.
+    /// Path is derived from blueprint filepath.
+    bool saveWorkspaceSession();
+
+    /// Load workspace/session state from a separate .workspace.json file.
+    /// Path is derived from blueprint filepath. Returns false if file missing or invalid.
+    bool loadWorkspaceSession();
+
+    /// Capture current editor-only workspace/session state.
+    [[nodiscard]] WorkspaceSession captureWorkspaceSession() const;
+
+    /// Apply workspace/session state onto the current document/editor windows.
+    void applyWorkspaceSession(const WorkspaceSession& session);
 
     // ── Blueprint & window access ──
 

@@ -100,7 +100,7 @@ struct Port {
     Port(PortDirection direction_)
         : direction(direction_), type(PortType::Any), domain(Domain::Electrical), source_writer(false), alias(std::nullopt) {}
     Port(PortDirection direction_, PortType type_, std::optional<std::string> alias_ = std::nullopt)
-        : direction(direction_), type(type_), domain(Domain::Electrical), source_writer(false), alias(std::move(alias_)) {}
+        : direction(direction_), type(type_), domain(domain_for_port_type(type_)), source_writer(false), alias(std::move(alias_)) {}
     Port(PortDirection direction_, PortType type_, Domain domain_, bool source_writer_, std::optional<std::string> alias_ = std::nullopt)
         : direction(direction_), type(type_), domain(domain_), source_writer(source_writer_), alias(std::move(alias_)) {}
 };
@@ -268,7 +268,7 @@ struct DeviceInstance {
             if (port_name.find('v') != std::string::npos) type = PortType::V;
             else if (port_name.find('i') != std::string::npos) type = PortType::I;
             else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{direction, type, Domain::Electrical, false, std::nullopt};
+            ports[port_name] = Port{direction, type, domain_for_port_type(type), false, std::nullopt};
         }
     }
 
@@ -286,7 +286,7 @@ struct DeviceInstance {
             if (port_name.find('v') != std::string::npos) type = PortType::V;
             else if (port_name.find('i') != std::string::npos) type = PortType::I;
             else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{dir, type, Domain::Electrical, false, std::nullopt};
+            ports[port_name] = Port{dir, type, domain_for_port_type(type), false, std::nullopt};
         }
     }
 

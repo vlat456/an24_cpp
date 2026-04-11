@@ -1,6 +1,5 @@
 #include "blueprint_codec.h"
 #include "blueprint_codec_internal.h"
-#include "blueprint_v2/blueprint/canonicalize.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 
 #include <nlohmann/json.hpp>
@@ -20,10 +19,10 @@ std::string BlueprintCodec::encode(Blueprint const& bp,
         type_def = parser_registry->get(std::string(interner.resolve(bp.id())));
     }
 
-    j["format"] = "an24.blueprint";
+    j["format"] = "blueprint";
     j["version"] = 1;
     j["blueprint_id"] = std::string(interner.resolve(bp.id()));
-    j["name"] = bp.name().empty() ? bp.display_name() : bp.name();
+    j["name"] = bp.name();
     j["interface"] = codec_detail::encode_interface(bp.iface(), interner, type_def);
     j["nodes"] = codec_detail::encode_nodes(bp.nodes(), interner, arena, parser_registry);
     j["wires"] = codec_detail::encode_wires(bp.wires(), interner);
@@ -40,9 +39,9 @@ std::optional<Blueprint> BlueprintCodec::decode(
     try {
         auto j = nlohmann::json::parse(json_str);
         if (!j.contains("format") || !j["format"].is_string()
-            || j["format"].get<std::string>() != "an24.blueprint") {
+            || j["format"].get<std::string>() != "blueprint") {
             if (error_out) {
-                error_out->message = "Unsupported blueprint format (expected \"an24.blueprint\")";
+                error_out->message = "Unsupported blueprint format (expected \"blueprint\")";
             }
             return std::nullopt;
         }
@@ -115,14 +114,11 @@ std::optional<Blueprint> BlueprintCodec::decode(
 
         Blueprint bp;
         bp = bp.with_id(interner.intern(j["blueprint_id"].get<std::string>()));
-        bp = bp.with_display_name(j["name"].get<std::string>());
         bp = bp.with_name(j["name"].get<std::string>());
 
         bp = bp.with_interface(codec_detail::decode_interface(j["interface"], interner));
         bp = codec_detail::decode_nodes(std::move(bp), j["nodes"], interner, parser_registry);
         bp = codec_detail::decode_wires(std::move(bp), j["wires"], interner);
-
-        bp = canonicalize_composite_host_ifaces(std::move(bp));
 
         auto inv = InvariantChecker::validate(bp, arena, parser_registry, interner);
         if (!inv.valid) {

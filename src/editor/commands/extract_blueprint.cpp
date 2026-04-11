@@ -1,7 +1,6 @@
 #include "extract_blueprint.h"
 
 #include "extract_blueprint_internal.h"
-#include "blueprint_v2/blueprint/canonicalize.h"
 #include "editor/visual/persist.h"
 
 namespace editor::commands {
@@ -50,7 +49,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         return std::nullopt;
     }
 
-    return bp2::canonicalize_composite_host_ifaces(std::move(*updated));
+    return *updated;
 }
 
 std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(

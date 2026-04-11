@@ -85,7 +85,6 @@ bp2::Blueprint make_extract_roundtrip_fixture(ui::StringInterner& I,
                                               const TypeRegistry& registry) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_doc"));
-    bp = bp.with_display_name("ExtractDoc");
     bp = bp.with_name("ExtractDoc");
 
     bp = bp.with_node(make_typed_node(I, registry, "ext_in",  "BlueprintInput",  0.0f,  0.0f));
@@ -131,7 +130,7 @@ TEST(DocumentSafety, LoadHydratesRootNodeViewFromTypeRegistry) {
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("root_hydrate"));
-    bp = bp.with_display_name("Root Hydrate");
+    bp = bp.with_name("Root Hydrate");
 
     bp2::Blueprint::Node slider;
     slider.semantic.id = interner.intern("slider1");
@@ -180,7 +179,7 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromTypeRegistry
 
     bp2::Blueprint inline_bp;
     inline_bp = inline_bp.with_id(interner.intern("inline_bp"));
-    inline_bp = inline_bp.with_display_name("Inline BP");
+    inline_bp = inline_bp.with_name("Inline BP");
 
     bp2::Blueprint::Node slider;
     slider.semantic.id = interner.intern("inner_slider");
@@ -200,7 +199,7 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromTypeRegistry
 
     bp2::Blueprint root;
     root = root.with_id(interner.intern("root_embedded_hydrate"));
-    root = root.with_display_name("Embedded Hydrate");
+    root = root.with_name("Embedded Hydrate");
     root = root.with_node(std::move(host));
 
     write_file(bp_path, bp2::BlueprintCodec::encode(root, interner, arena, &registry));
@@ -239,7 +238,7 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromTypeRegistry) {
     bp2::PathArena ext_arena(ext_interner);
     bp2::Blueprint ext_bp;
     ext_bp = ext_bp.with_id(ext_interner.intern("external_test"));
-    ext_bp = ext_bp.with_display_name("External Test");
+    ext_bp = ext_bp.with_name("External Test");
 
     bp2::Blueprint::Node slider;
     slider.semantic.id = ext_interner.intern("external_slider");
@@ -294,7 +293,7 @@ TEST(DocumentSafety, SaveLoadDropsSessionOnlyNodeColor) {
     bp2::PathArena arena(interner);
     bp2::Blueprint seed;
     seed = seed.with_id(interner.intern("color_seed"));
-    seed = seed.with_display_name("Color Seed");
+    seed = seed.with_name("Color Seed");
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("slider1");
@@ -377,7 +376,6 @@ TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
 
     bp2::Blueprint bp;
     bp = bp.with_id(doc.interner().intern("delete_roundtrip"));
-    bp = bp.with_display_name("DeleteRoundtrip");
     bp = bp.with_name("DeleteRoundtrip");
     bp = bp.with_node(make_typed_node(doc.interner(), registry, "bat", "ElectricalSource", 0.0f, 0.0f));
     bp = bp.with_node(make_typed_node(doc.interner(), registry, "res", "Resistor", 20.0f, 0.0f));
@@ -423,7 +421,7 @@ TEST(DocumentSafety, SaveEmitsCanonicalDocumentWithoutForbiddenFieldsAndSortedWi
     nlohmann::json j;
     in >> j;
 
-    EXPECT_EQ(j["format"], "an24.blueprint");
+    EXPECT_EQ(j["format"], "blueprint");
     EXPECT_EQ(j["version"], 1);
     EXPECT_FALSE(j.contains("nested"));
     EXPECT_FALSE(j.contains("pan_x"));
@@ -450,4 +448,44 @@ TEST(DocumentSafety, SaveEmitsCanonicalDocumentWithoutForbiddenFieldsAndSortedWi
     }
 
     fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+
+    bp2::Blueprint inner;
+    inner = inner.with_id(I.intern("inner_bp"));
+    inner = inner.with_name("Inner");
+
+    bp2::Blueprint::Node host;
+    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.semantic.id = I.intern("group_1");
+    host.semantic.type = I.intern("Group");
+    host.view.name = "group_1";
+    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("Group"),
+        std::make_unique<bp2::Blueprint>(inner));
+
+    bp2::Blueprint root;
+    root = root.with_id(I.intern("root_bp"));
+    root = root.with_name("Root");
+    root = root.with_node(std::move(host));
+    doc.model().replace_current(std::move(root));
+
+    ASSERT_NO_THROW(doc.addBlueprint("FirstOrderLag", Pt{64.0f, 64.0f}, "group_1", registry));
+
+    const auto* root_added = doc.model().current().find_node(I.lookup("firstorderlag_1"));
+    EXPECT_EQ(root_added, nullptr);
+
+    const auto* updated_host = doc.model().current().find_node(I.lookup("group_1"));
+    ASSERT_NE(updated_host, nullptr);
+    ASSERT_TRUE(updated_host->source.has_value());
+    ASSERT_TRUE(updated_host->source->is_embedded());
+    const auto* inline_bp = updated_host->source->inline_def();
+    ASSERT_NE(inline_bp, nullptr);
+    EXPECT_NE(inline_bp->find_node(I.lookup("firstorderlag_1")), nullptr);
 }

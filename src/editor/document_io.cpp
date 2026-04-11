@@ -3,9 +3,51 @@
 #include "blueprint_view_hydration.h"
 #include "json_parser/json_parser.h"
 #include "visual/persist.h"
+#include "visual/workspace_session_persist.h"
 #include "visual/scene_mutations.h"
 
 #include <spdlog/spdlog.h>
+
+WorkspaceSession Document::captureWorkspaceSession() const {
+    WorkspaceSession session;
+    session.viewport_pan_x = root().viewport.pan.x;
+    session.viewport_pan_y = root().viewport.pan.y;
+    session.viewport_zoom = root().viewport.zoom;
+    session.grid_step = root().viewport.grid_step;
+
+    for (const auto& win : window_manager_.windows()) {
+        if (!win->resolved_scope_id().is_root() && win->open) {
+            session.open_windows.push_back(win->resolved_scope_id().key());
+        }
+    }
+
+    return session;
+}
+
+void Document::applyWorkspaceSession(const WorkspaceSession& session) {
+    root().viewport.pan.x = session.viewport_pan_x;
+    root().viewport.pan.y = session.viewport_pan_y;
+    root().viewport.zoom = session.viewport_zoom;
+    root().viewport.grid_step = session.grid_step;
+    root().viewport.clamp_zoom();
+
+    for (const auto& window_id : session.open_windows) {
+        const ui::InternedId iid = interner_.lookup(window_id);
+        const bp2::Blueprint::Node* node = iid.empty() ? nullptr : model_.current().find_node(iid);
+        if (node && node->has_embedded_blueprint()) {
+            auto [win, created] = window_manager_.open(WindowScopeId::embedded(window_id),
+                                                       std::string(interner_.resolve(node->semantic.type)) + " [" + window_id + "]");
+            if (win && created) {
+                win->set_read_only(false);
+                win->pending_auto_fit = true;
+            }
+            continue;
+        }
+        if (library_index_) {
+            openSubWindow(window_id);
+        }
+    }
+}
 
 bool Document::save(const std::string& path) {
     if (!type_registry_) {
@@ -90,4 +132,27 @@ void Document::sync_next_wire_id() {
         }
     }
     model_.next_wire_id_ = max_seen + 1;
+}
+
+// ============================================================================
+// Workspace/Session Persistence (separate from blueprint)
+// ============================================================================
+
+bool Document::saveWorkspaceSession() {
+    if (filepath_.empty()) {
+        return false;  // No filepath, cannot derive workspace path
+    }
+    return save_workspace_session(captureWorkspaceSession(), filepath_.c_str());
+}
+
+bool Document::loadWorkspaceSession() {
+    if (filepath_.empty()) {
+        return false;  // No filepath, cannot derive workspace path
+    }
+    auto ws = load_workspace_session(filepath_.c_str());
+    if (!ws.has_value()) {
+        return false;
+    }
+    applyWorkspaceSession(*ws);
+    return true;
 }

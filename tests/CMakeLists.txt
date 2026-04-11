@@ -651,6 +651,7 @@ add_executable(document_safety_tests
     ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/workspace_session_persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
@@ -1745,6 +1746,7 @@ gtest_discover_tests(editor_identity_tests)
 # LibraryIndex tests (Issue #85: dedicated library index)
 add_executable(bp2_library_index_tests
     blueprint_v2/test_library_index.cpp
+    blueprint_v2/test_type_def_to_blueprint.cpp
 )
 target_include_directories(bp2_library_index_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src

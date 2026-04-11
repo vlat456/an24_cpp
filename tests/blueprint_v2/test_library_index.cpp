@@ -51,7 +51,7 @@ void remove_temp(const std::string& path) {
 
 TEST(LibraryIndex, LoadsValidIndex) {
     std::string content = R"({
-        "format": "an24.library_index",
+        "format": "library_index",
         "version": 1,
         "entries": [
             {"blueprint_id": "Battery", "path": "library/electrical/Battery.blueprint"},
@@ -88,7 +88,7 @@ TEST(LibraryIndex, RejectsWrongFormat) {
 
 TEST(LibraryIndex, RejectsWrongVersion) {
     std::string content = R"({
-        "format": "an24.library_index",
+        "format": "library_index",
         "version": 99,
         "entries": []
     })";
@@ -99,7 +99,7 @@ TEST(LibraryIndex, RejectsWrongVersion) {
 
 TEST(LibraryIndex, RejectsUnknownTopLevelField) {
     std::string content = R"({
-        "format": "an24.library_index",
+        "format": "library_index",
         "version": 1,
         "entries": [],
         "extra_field": true
@@ -111,7 +111,7 @@ TEST(LibraryIndex, RejectsUnknownTopLevelField) {
 
 TEST(LibraryIndex, RejectsDuplicateBlueprintId) {
     std::string content = R"({
-        "format": "an24.library_index",
+        "format": "library_index",
         "version": 1,
         "entries": [
             {"blueprint_id": "Battery", "path": "library/a/Battery.blueprint"},
@@ -125,7 +125,7 @@ TEST(LibraryIndex, RejectsDuplicateBlueprintId) {
 
 TEST(LibraryIndex, RejectsDuplicatePath) {
     std::string content = R"({
-        "format": "an24.library_index",
+        "format": "library_index",
         "version": 1,
         "entries": [
             {"blueprint_id": "Battery", "path": "library/electrical/Battery.blueprint"},
@@ -139,7 +139,7 @@ TEST(LibraryIndex, RejectsDuplicatePath) {
 
 TEST(LibraryIndex, RejectsEmptyBlueprintId) {
     std::string content = R"({
-        "format": "an24.library_index",
+        "format": "library_index",
         "version": 1,
         "entries": [
             {"blueprint_id": "", "path": "library/electrical/Battery.blueprint"}
@@ -152,7 +152,7 @@ TEST(LibraryIndex, RejectsEmptyBlueprintId) {
 
 TEST(LibraryIndex, RejectsEmptyPath) {
     std::string content = R"({
-        "format": "an24.library_index",
+        "format": "library_index",
         "version": 1,
         "entries": [
             {"blueprint_id": "Battery", "path": ""}
@@ -165,7 +165,7 @@ TEST(LibraryIndex, RejectsEmptyPath) {
 
 TEST(LibraryIndex, RejectsUnknownEntryField) {
     std::string content = R"({
-        "format": "an24.library_index",
+        "format": "library_index",
         "version": 1,
         "entries": [
             {"blueprint_id": "Battery", "path": "library/Battery.blueprint", "extra": true}
@@ -182,7 +182,7 @@ TEST(LibraryIndex, RejectsMissingFile) {
 
 TEST(LibraryIndex, LoadsEmptyEntries) {
     std::string content = R"({
-        "format": "an24.library_index",
+        "format": "library_index",
         "version": 1,
         "entries": []
     })";

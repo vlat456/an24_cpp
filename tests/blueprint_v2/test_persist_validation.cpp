@@ -19,7 +19,7 @@ TEST(PersistValidation, RejectsInvalidWireEndpointOnLoad) {
     {
         std::ofstream out(tmp);
         out << R"({
-  "format": "an24.blueprint",
+  "format": "blueprint",
   "version": 1,
   "blueprint_id": "invalid_wire",
   "name": "Invalid Wire",
@@ -75,7 +75,7 @@ TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("persist_typed"));
-    bp = bp.with_display_name("Persist Typed");
+    bp = bp.with_name("Persist Typed");
 
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("n1");
@@ -113,7 +113,7 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("integrity_ok"));
-    bp = bp.with_display_name("Integrity OK");
+    bp = bp.with_name("Integrity OK");
 
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("bat1");
@@ -139,7 +139,7 @@ TEST(PersistValidation, WireDomainMismatchFailsValidation) {
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("integrity_wire_domain_mismatch"));
-    bp = bp.with_display_name("Wire Domain Mismatch");
+    bp = bp.with_name("Wire Domain Mismatch");
 
     bp2::Blueprint::Node a;
     a.semantic.id = interner.intern("a");
@@ -182,42 +182,6 @@ TEST(PersistValidation, WireDomainMismatchFailsValidation) {
 
 // ===========================================================================
 // Strict v1 regression: legacy blueprints are intentionally rejected by the
-// canonical codec. closed_circuit.blueprint is still a legacy fixture.
+// canonical codec. Old schematic files have been deleted from the repository.
 // ===========================================================================
 
-TEST(PersistValidation, ClosedCircuitLegacyBlueprintIsRejectedByStrictCodec) {
-    // Try multiple paths to find closed_circuit.blueprint
-    const char* candidates[] = {
-        "../../closed_circuit.blueprint",
-        "../closed_circuit.blueprint",
-        "closed_circuit.blueprint",
-    };
-    std::string bp_path;
-    for (const char* c : candidates) {
-        if (std::filesystem::exists(c)) {
-            bp_path = c;
-            break;
-        }
-    }
-    if (bp_path.empty()) {
-        GTEST_SKIP() << "closed_circuit.blueprint not found; skipping regression test";
-    }
-
-    // Read file content
-    std::ifstream file(bp_path);
-    ASSERT_TRUE(file.is_open()) << "Could not open: " << bp_path;
-    std::stringstream buf;
-    buf << file.rdbuf();
-    std::string content = buf.str();
-
-    // Use a fresh interner and parser registry from library/.
-    ui::StringInterner interner;
-    bp2::PathArena arena(interner);
-
-    TypeRegistry parser_registry = load_type_registry("library/");
-
-    bp2::DecodeError err;
-    auto bp = bp2::BlueprintCodec::decode(content, interner, arena, parser_registry, &err);
-    ASSERT_FALSE(bp.has_value());
-    EXPECT_NE(err.message.find("Unsupported blueprint format"), std::string::npos);
-}

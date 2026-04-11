@@ -642,8 +642,7 @@ TEST(ReplacePreserveOrder, ReplacementPreservesMetadata) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test_bp"));
-    bp = bp.with_display_name("Test Blueprint");
-    bp = bp.with_name("test");
+    bp = bp.with_name("Test Blueprint");
     bp = bp.with_interface(bp2::Interface({
         {interner.intern("ext_in"), Domain::Electrical, bp2::Direction::Input},
     }));
@@ -656,8 +655,7 @@ TEST(ReplacePreserveOrder, ReplacementPreservesMetadata) {
     bp2::Blueprint result = bp2::replace_node_preserve_order(bp, std::move(n));
 
     EXPECT_EQ(result.id(), interner.intern("test_bp"));
-    EXPECT_EQ(result.display_name(), "Test Blueprint");
-    EXPECT_EQ(result.name(), "test");
+    EXPECT_EQ(result.name(), "Test Blueprint");
     ASSERT_EQ(result.iface().ports().size(), 1u);
     EXPECT_EQ(result.iface().ports()[0].name, interner.intern("ext_in"));
 }
@@ -668,8 +666,7 @@ TEST(ReplacePreserveOrder, WireReplacementPreservesMetadata) {
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test_bp2"));
-    bp = bp.with_display_name("Test Blueprint 2");
-    bp = bp.with_name("test2");
+    bp = bp.with_name("Test Blueprint 2");
     bp = bp.with_interface(bp2::Interface({
         {interner.intern("ext_out"), Domain::Mechanical, bp2::Direction::Output},
     }));
@@ -683,8 +680,7 @@ TEST(ReplacePreserveOrder, WireReplacementPreservesMetadata) {
     bp2::Blueprint result = bp2::replace_wire_preserve_order(bp, std::move(w));
 
     EXPECT_EQ(result.id(), interner.intern("test_bp2"));
-    EXPECT_EQ(result.display_name(), "Test Blueprint 2");
-    EXPECT_EQ(result.name(), "test2");
+    EXPECT_EQ(result.name(), "Test Blueprint 2");
     ASSERT_EQ(result.iface().ports().size(), 1u);
     EXPECT_EQ(result.iface().ports()[0].name, interner.intern("ext_out"));
 }

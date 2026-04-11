@@ -171,7 +171,8 @@ bool append_selected_embedded_nested_for_inline(
             remapped.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
                 child_node.source->blueprint_id(),
                 std::make_unique<bp2::Blueprint>(*provider));
-            remapped.semantic.iface = remapped.source->resolved_iface();
+            // Issue #91: Blueprint-instance interface derives from source authority only.
+            // Do NOT mirror node.semantic.iface.
             child_bp = bp2::replace_node_preserve_order(child_bp, std::move(remapped));
         }
 
@@ -192,7 +193,6 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
     std::string* error_out) {
     bp2::Blueprint out;
     out = out.with_id(blueprint_id);
-    out = out.with_display_name(std::string(interner.resolve(blueprint_id)));
     out = out.with_name(std::string(interner.resolve(blueprint_id)));
 
     const float min_x = plan.min_x;
@@ -269,7 +269,6 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     std::string* error_out) {
     bp2::Blueprint out;
     out = out.with_id(source.id());
-    out = out.with_display_name(source.display_name());
     out = out.with_name(source.name());
     out = out.with_interface(source.iface());
 

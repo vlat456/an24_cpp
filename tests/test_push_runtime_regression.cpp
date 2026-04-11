@@ -69,17 +69,21 @@ static std::string read_file_or_fail(const std::string& path) {
     return content;
 }
 
-/// Find the closed_circuit.blueprint file, trying multiple possible paths
-/// to work both when run via ctest (working directory: build/tests/)
-/// and when run directly (working directory: build/).
+static std::string scalar_json_to_param_string(const json& value) {
+    if (value.is_string()) {
+        return value.get<std::string>();
+    }
+    return value.dump();
+}
+
+/// Find the curated closed_circuit regression fixture.
+/// Strict: only the canonical regression fixture is accepted.
+/// No fallback to legacy raw schematics (0%-legacy persistence policy).
 static std::string find_closed_circuit_blueprint() {
     std::vector<std::string> try_paths = {
         "../../tests/fixtures/closed_circuit_regression.blueprint",  // ctest from build/tests/
         "../tests/fixtures/closed_circuit_regression.blueprint",     // run from build/
         "tests/fixtures/closed_circuit_regression.blueprint",        // run from project root
-        "../../closed_circuit.blueprint",                            // fallback for ad-hoc local runs
-        "../closed_circuit.blueprint",                               // fallback
-        "closed_circuit.blueprint",                                  // fallback
     };
     for (const auto& p : try_paths) {
         std::ifstream f(p);
@@ -90,11 +94,13 @@ static std::string find_closed_circuit_blueprint() {
         if (!tried.empty()) tried += ", ";
         tried += p;
     }
-    throw std::runtime_error("Could not find closed_circuit.blueprint in any of: " + tried);
+    throw std::runtime_error(
+        "Could not find closed_circuit_regression.blueprint fixture in any of: " + tried +
+        "\n  NOTE: Legacy fallback to raw closed_circuit.blueprint is removed (0%-legacy policy).");
 }
 
-/// Convert blueprint v3 using node id as device key (mirrors Document::build_simulation_json).
-/// Wires in v3 already use node id in paths ("/node_id:port"), so no remapping needed.
+/// Convert the legacy node/wire fixture format using node id as device key.
+/// These regression fixtures predate strict blueprint v1 and use "/node_id:port" endpoints.
 static std::string blueprint_to_simulation_json_by_id(const std::string& blueprint_path) {
     std::string content = read_file_or_fail(blueprint_path);
     json bp = json::parse(content);
@@ -112,11 +118,7 @@ static std::string blueprint_to_simulation_json_by_id(const std::string& bluepri
             if (node.contains("params") && node["params"].is_object()) {
                 dev["params"] = json::object();
                 for (const auto& [k, v] : node["params"].items()) {
-                    if (v.is_number()) {
-                        dev["params"][k] = json(v.get<double>()).dump();
-                    } else {
-                        dev["params"][k] = v.get<std::string>();
-                    }
+                    dev["params"][k] = scalar_json_to_param_string(v);
                 }
             }
             // Merge string_params (e.g. LUT table, Bus port_edge) into params
@@ -125,7 +127,7 @@ static std::string blueprint_to_simulation_json_by_id(const std::string& bluepri
                     dev["params"] = json::object();
                 }
                 for (const auto& [k, v] : node["string_params"].items()) {
-                    dev["params"][k] = v.get<std::string>();
+                    dev["params"][k] = scalar_json_to_param_string(v);
                 }
             }
             result["devices"].push_back(dev);
@@ -151,8 +153,8 @@ static std::string blueprint_to_simulation_json_by_id(const std::string& bluepri
     return result.dump();
 }
 
-/// Convert blueprint v3 format (nodes/wires) to simulation JSON format (devices/connections).
-/// Blueprint v3 wires have source/target like "/node:port" - these are converted to "node.port".
+/// Convert the legacy node/wire fixture format to simulation JSON format (devices/connections).
+/// Legacy fixture wires use source/target like "/node:port" which are converted to "node.port".
 /// NOTE: This legacy helper uses node name as device key. The real editor uses node id.
 static std::string blueprint_to_simulation_json(const std::string& blueprint_path) {
     std::string content = read_file_or_fail(blueprint_path);
@@ -178,14 +180,8 @@ static std::string blueprint_to_simulation_json(const std::string& blueprint_pat
             if (node.contains("params") && node["params"].is_object()) {
                 dev["params"] = json::object();
                 for (const auto& [k, v] : node["params"].items()) {
-                    if (v.is_number()) {
-                        // Use nlohmann::json dump for full round-trip precision.
-                        // std::to_string(double) truncates to 6 decimal places,
-                        // silently drifting from blueprint source-of-truth values.
-                        dev["params"][k] = json(v.get<double>()).dump();
-                    } else {
-                        dev["params"][k] = v.get<std::string>();
-                    }
+                    // Preserve legacy fixture scalar values as parser-friendly strings.
+                    dev["params"][k] = scalar_json_to_param_string(v);
                 }
             }
             // Merge string_params (e.g. LUT table, Bus port_edge) into params
@@ -194,7 +190,7 @@ static std::string blueprint_to_simulation_json(const std::string& blueprint_pat
                     dev["params"] = json::object();
                 }
                 for (const auto& [k, v] : node["string_params"].items()) {
-                    dev["params"][k] = v.get<std::string>();
+                    dev["params"][k] = scalar_json_to_param_string(v);
                 }
             }
             result["devices"].push_back(dev);

@@ -1,4 +1,5 @@
 #include "json_parser.h"
+#include "json_parser_internal_utils.h"
 
 #include "../parse_number.h"
 
@@ -13,90 +14,6 @@
 using json = nlohmann::json;
 
 namespace {
-
-Domain parse_domain(const std::string& s) {
-    if (s == "Electrical") return Domain::Electrical;
-    if (s == "Logical") return Domain::Logical;
-    if (s == "Hydraulic") return Domain::Hydraulic;
-    if (s == "Mechanical") return Domain::Mechanical;
-    if (s == "Thermal") return Domain::Thermal;
-    throw std::runtime_error("Unknown domain: " + s);
-}
-
-Domain parse_domain_mask_int(int v) {
-    if (v <= 0 || (v & ~31) != 0) {
-        throw std::runtime_error("Invalid domain bitmask value: " + std::to_string(v));
-    }
-    return static_cast<Domain>(static_cast<uint8_t>(v));
-}
-
-ParamSchemaType parse_param_schema_type(const std::string& s) {
-    if (s == "float") return ParamSchemaType::Float;
-    if (s == "int") return ParamSchemaType::Int;
-    if (s == "bool") return ParamSchemaType::Bool;
-    if (s == "string") return ParamSchemaType::String;
-    throw std::runtime_error("Unknown param schema type: " + s);
-}
-
-std::unordered_map<std::string, ParamSchemaEntry> parse_param_schema(const json& j) {
-    std::unordered_map<std::string, ParamSchemaEntry> out;
-    if (!j.is_object()) {
-        throw std::runtime_error("'param_schema' must be an object");
-    }
-    for (const auto& [name, entry] : j.items()) {
-        if (!entry.is_object()) {
-            throw std::runtime_error("param_schema entry '" + name + "' must be object");
-        }
-        if (!entry.contains("type") || !entry["type"].is_string()) {
-            throw std::runtime_error("param_schema entry '" + name + "' missing string 'type'");
-        }
-        ParamSchemaEntry e;
-        e.type = parse_param_schema_type(entry["type"].get<std::string>());
-        if (entry.contains("required")) {
-            if (!entry["required"].is_boolean()) {
-                throw std::runtime_error("param_schema entry '" + name + "' field 'required' must be bool");
-            }
-            e.required = entry["required"].get<bool>();
-        }
-        if (entry.contains("min")) {
-            if (!entry["min"].is_number()) {
-                throw std::runtime_error("param_schema entry '" + name + "' field 'min' must be number");
-            }
-            e.min = entry["min"].get<double>();
-        }
-        if (entry.contains("max")) {
-            if (!entry["max"].is_number()) {
-                throw std::runtime_error("param_schema entry '" + name + "' field 'max' must be number");
-            }
-            e.max = entry["max"].get<double>();
-        }
-        if (e.min.has_value() && e.max.has_value() && *e.min > *e.max) {
-            throw std::runtime_error("param_schema entry '" + name + "' has min > max");
-        }
-        if (entry.contains("visual_only")) {
-            if (!entry["visual_only"].is_boolean()) {
-                throw std::runtime_error("param_schema entry '" + name + "' field 'visual_only' must be bool");
-            }
-            e.visual_only = entry["visual_only"].get<bool>();
-        }
-        out[name] = e;
-    }
-    return out;
-}
-
-PortType parse_port_type(const std::string& s) {
-    if (s == "V") return PortType::V;
-    if (s == "I") return PortType::I;
-    if (s == "Signal") return PortType::Any;
-    if (s == "Fraction") return PortType::Any;
-    if (s == "Bool") return PortType::Bool;
-    if (s == "RPM") return PortType::RPM;
-    if (s == "Temperature") return PortType::Temperature;
-    if (s == "Pressure") return PortType::Pressure;
-    if (s == "Position") return PortType::Position;
-    if (s == "Any") return PortType::Any;
-    throw std::runtime_error("Unknown port type: " + s);
-}
 
 TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesystem::path& path) {
     TypeDefinition def;
@@ -157,7 +74,7 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
             if (!d.is_string()) {
                 throw std::runtime_error("Invalid domain entry for component '" + def.classname + "': must be string");
             }
-            domains.push_back(parse_domain(d.get<std::string>()));
+            domains.push_back(json_parser_internal::parse_domain_string(d.get<std::string>()));
         }
         if (domains.empty()) {
             throw std::runtime_error("Empty 'domains' array for component '" + def.classname + "'");
@@ -196,9 +113,9 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
         else {
             throw std::runtime_error("Invalid interface direction value for component '" + def.classname + "'");
         }
-        port.domain = parse_domain_mask_int(p["domain"].get<int>());
+        port.domain = json_parser_internal::parse_domain_mask_int(p["domain"].get<int>());
         port.source_writer = p["source_writer"].get<bool>();
-        port.type = parse_port_type(p["type"].get<std::string>());
+        port.type = json_parser_internal::parse_port_type_string(p["type"].get<std::string>());
 
         def.ports[p["name"].get<std::string>()] = port;
     }
@@ -213,7 +130,7 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
         }
     }
     if (j.contains("param_schema")) {
-        def.param_schema = parse_param_schema(j["param_schema"]);
+        def.param_schema = json_parser_internal::parse_param_schema(j["param_schema"]);
     }
 
     if (j.contains("solver_role")) {
@@ -289,6 +206,18 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
                     dev.params[k] = v.get<std::string>();
                 }
             }
+            if (node.contains("position") && node["position"].is_object()) {
+                dev.pos = {
+                    node["position"].value("x", 0.0f),
+                    node["position"].value("y", 0.0f)
+                };
+            }
+            if (node.contains("size") && node["size"].is_object()) {
+                dev.size = {
+                    node["size"].value("x", 0.0f),
+                    node["size"].value("y", 0.0f)
+                };
+            }
             def.devices.push_back(std::move(dev));
         }
 
@@ -304,6 +233,13 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
                 std::replace(tgt.begin(), tgt.end(), ':', '.');
                 conn.from = std::move(src);
                 conn.to = std::move(tgt);
+                if (wire.contains("routing_points") && wire["routing_points"].is_array()) {
+                    for (const auto& rp : wire["routing_points"]) {
+                        if (rp.contains("x") && rp.contains("y")) {
+                            conn.routing_points.push_back({rp["x"].get<float>(), rp["y"].get<float>()});
+                        }
+                    }
+                }
                 def.connections.push_back(std::move(conn));
             }
         }

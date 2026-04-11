@@ -69,6 +69,31 @@ void Document::openExternalRefWindow(const std::string& instance_id,
 }
 
 void Document::openSubWindow(const std::string& sub_blueprint_id) {
+    // Handle embedded blueprints directly — no LibraryIndex needed.
+    auto lookup_id = interner_.lookup(sub_blueprint_id);
+    const bp2::Blueprint::Node* node = lookup_id.empty() ? nullptr : model_.current().find_node(lookup_id);
+
+    if (node && node->is_blueprint_instance() && node->has_embedded_blueprint()) {
+        std::string type_name = std::string(interner_.resolve(node->semantic.type));
+        auto [win, created] = window_manager_.open(WindowScopeId::embedded(sub_blueprint_id),
+                                                   type_name + " [" + sub_blueprint_id + "]");
+        if (!win) {
+            spdlog::error("[editor] Failed to open sub-window '{}'", sub_blueprint_id);
+            return;
+        }
+        if (!created) {
+            spdlog::info("[editor] Reactivated sub-window for '{}'", sub_blueprint_id);
+            return;
+        }
+
+        win->set_read_only(false);
+        win->pending_auto_fit = true;
+
+        spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);
+        return;
+    }
+
+    // Referenced / external blueprints require a LibraryIndex.
     if (!library_index_) {
         spdlog::error("[editor] Cannot open sub-window '{}': LibraryIndex is not configured",
                       sub_blueprint_id);
@@ -77,10 +102,11 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
 
     const auto target = editor::resolve_subwindow_open_target(
         model_.current(), interner_, *library_index_, sub_blueprint_id);
-    auto lookup_id = interner_.lookup(sub_blueprint_id);
-    const bp2::Blueprint::Node* node = lookup_id.empty() ? nullptr : model_.current().find_node(lookup_id);
 
     if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && node && node->is_blueprint_instance()) {
+        // Non-embedded blueprint instance that resolve_subwindow_open_target still
+        // classified as EmbeddedNested (e.g. blueprint has source but not
+        // has_embedded_blueprint). Open as read-only scope.
         std::string type_name = std::string(interner_.resolve(node->semantic.type));
         auto [win, created] = window_manager_.open(WindowScopeId::embedded(sub_blueprint_id),
                                                    type_name + " [" + sub_blueprint_id + "]");
@@ -94,7 +120,6 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
         }
 
         win->set_read_only(!node->has_embedded_blueprint());
-
         win->pending_auto_fit = true;
 
         spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);

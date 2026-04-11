@@ -93,7 +93,7 @@ static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
 static bp2::Blueprint make_extract_fixture_node_owned(ui::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract"));
-    bp = bp.with_display_name("ExtractFixture");
+    bp = bp.with_name("ExtractFixture");
 
     auto ext_in = make_node(I, "ext_in");
     ext_in.semantic.type = I.intern("NodeExtIn");
@@ -137,7 +137,7 @@ static bp2::Blueprint make_extract_fixture_node_owned(ui::StringInterner& I, bp2
 static bp2::Blueprint make_extract_with_bridge_node_fixture_node_owned(ui::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_bridge_node"));
-    bp = bp.with_display_name("ExtractBridgeNode");
+    bp = bp.with_name("ExtractBridgeNode");
 
     auto bridge = make_node(I, "bridge_in");
     bridge.semantic.type = I.intern("BlueprintInput");
@@ -173,7 +173,7 @@ static bp2::Blueprint make_extract_with_bridge_node_fixture_node_owned(ui::Strin
 static bp2::Blueprint make_extract_typed_boundary_fixture_node_owned(ui::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_typed_boundary"));
-    bp = bp.with_display_name("ExtractTypedBoundary");
+    bp = bp.with_name("ExtractTypedBoundary");
 
     auto ext_in = make_node(I, "ext_in");
     ext_in.semantic.type = I.intern("TypedExtIn");
@@ -217,7 +217,7 @@ static bp2::Blueprint make_extract_typed_boundary_fixture_node_owned(ui::StringI
 static bp2::Blueprint make_extract_iface_collision_fixture_node_owned(ui::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_collision"));
-    bp = bp.with_display_name("ExtractIfaceCollision");
+    bp = bp.with_name("ExtractIfaceCollision");
 
     auto ext_in = make_node(I, "ext_in");
     ext_in.semantic.type = I.intern("Source");
