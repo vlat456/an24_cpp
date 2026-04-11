@@ -16,7 +16,7 @@ using json = nlohmann::json;
 namespace {
 
 /// Build a BlueprintLibrary from the TypeRegistry (composite blueprints).
-/// Shared between build_simulation_json() and build_jit_input().
+/// Used by build_jit_input().
 bp2::BlueprintLibrary build_library(
     const bp2::LibraryIndex* library_index,
     const TypeRegistry* type_registry,
@@ -41,21 +41,6 @@ bp2::BlueprintLibrary build_library(
 }
 
 } // namespace
-
-std::string Document::build_simulation_json() {
-    const bp2::Blueprint& bp = model_.current();
-    json out = json::object();
-    out["templates"] = json::object();
-
-    bp2::BlueprintLibrary library = build_library(library_index_, type_registry_, interner_);
-
-    bp2::Flattener flattener(library);
-    bp2::FlatNetlist netlist = flattener.flatten(bp, arena_);
-    auto exported = bp2::elaboration::to_simulation_export(netlist, arena_, interner_, type_registry_);
-    out["devices"] = std::move(exported.devices);
-    out["connections"] = std::move(exported.connections);
-    return out.dump(2);
-}
 
 JitBuildInput Document::build_jit_input() {
     const bp2::Blueprint& bp = model_.current();

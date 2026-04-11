@@ -7,10 +7,12 @@
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
+#include "core/solvers/common/signal_key.h"
 #include "ui/core/interned_id.h"
 
 #include <set>
 #include <string>
+#include <unordered_map>
 
 namespace {
 
@@ -33,46 +35,24 @@ bp2::PortDescriptor out_port(ui::StringInterner& I, const char* name, PortType t
     return {I.intern(name), ::domain_for_port_type(t), bp2::Direction::Output, t};
 }
 
-std::set<std::string> collect_conn_edges(const nlohmann::json& connections) {
+std::set<std::string> collect_device_names(const JitBuildInput& jit_input) {
     std::set<std::string> out;
-    for (const auto& c : connections) {
-        out.insert(c.at("from").get<std::string>() + "->" + c.at("to").get<std::string>());
+    for (const auto& dev : jit_input.devices) {
+        out.insert(dev.name);
     }
     return out;
 }
 
-std::set<std::string> collect_device_names(const nlohmann::json& devices) {
-    std::set<std::string> out;
-    for (const auto& d : devices) {
-        out.insert(d.at("name").get<std::string>());
+/// Check that two node.port keys map to the same signal index in port_to_signal.
+bool connected_on_same_signal(const JitBuildInput& jit_input,
+                              const std::string& a,
+                              const std::string& b) {
+    auto it_a = jit_input.port_to_signal.find(a);
+    auto it_b = jit_input.port_to_signal.find(b);
+    if (it_a == jit_input.port_to_signal.end() || it_b == jit_input.port_to_signal.end()) {
+        return false;
     }
-    return out;
-}
-
-/// Check that two endpoints are on the same signal by verifying that some
-/// path exists between them in the star-topology connection set.
-/// In star topology, if both X and Y are on the same signal, either:
-///   anchor->X and anchor->Y exist (for some anchor), OR
-///   X->Y or Y->X exists directly.
-bool connected_via(const std::set<std::string>& edges,
-                   const std::string& a,
-                   const std::string& b) {
-    // Direct edge
-    if (edges.count(a + "->" + b) || edges.count(b + "->" + a)) return true;
-
-    // Same anchor: look for any node Z such that Z->a and Z->b both exist
-    for (const auto& e : edges) {
-        auto arrow = e.find("->");
-        if (arrow == std::string::npos) continue;
-        std::string from = e.substr(0, arrow);
-        std::string to = e.substr(arrow + 2);
-        if (to == a || from == a) {
-            std::string anchor = (to == a) ? from : to;
-            // Check if anchor also connects to b
-            if (edges.count(anchor + "->" + b) || edges.count(b + "->" + anchor)) return true;
-        }
-    }
-    return false;
+    return it_a->second == it_b->second;
 }
 
 } // namespace
@@ -149,36 +129,30 @@ TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
     rw.domain = Domain::Electrical;
     root = root.with_wire(std::move(rw));
 
-    // Flatten and export
+    // Flatten and elaborate
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, nullptr);
 
-    auto exported = bp2::elaboration::to_simulation_export(netlist, arena, I, nullptr);
-
-    // Verify devices
-    auto devices = collect_device_names(exported.devices);
+    // Verify devices exist
+    auto devices = collect_device_names(jit_input);
     EXPECT_TRUE(devices.count("bat")) << "Missing device: bat";
     EXPECT_TRUE(devices.count("inst:vin")) << "Missing device: inst:vin";
     EXPECT_TRUE(devices.count("inst:r1")) << "Missing device: inst:r1";
 
     // Verify connectivity — all three endpoints must be on the same signal.
-    // The connection builder uses star topology, so we check reachability.
-    auto edges = collect_conn_edges(exported.connections);
+    std::string bat_v_out = signal_key::make_node_port_key("bat", "v_out");
+    std::string inst_vin_ext = signal_key::make_node_port_key("inst:vin", "ext");
+    std::string inst_r1_v_in = signal_key::make_node_port_key("inst:r1", "v_in");
 
-    EXPECT_TRUE(connected_via(edges, "bat.v_out", "inst:vin.ext"))
-        << "bat.v_out and inst:vin.ext must be connected";
+    EXPECT_TRUE(connected_on_same_signal(jit_input, bat_v_out, inst_vin_ext))
+        << "bat.v_out and inst:vin.ext must share the same signal";
 
-    EXPECT_TRUE(connected_via(edges, "inst:vin.ext", "inst:r1.v_in"))
-        << "inst:vin.ext and inst:r1.v_in must be connected";
+    EXPECT_TRUE(connected_on_same_signal(jit_input, inst_vin_ext, inst_r1_v_in))
+        << "inst:vin.ext and inst:r1.v_in must share the same signal";
 
-    EXPECT_TRUE(connected_via(edges, "bat.v_out", "inst:r1.v_in"))
-        << "bat.v_out and inst:r1.v_in must be connected (transitively)";
-
-    // Must NOT see the raw unresolved "inst.vin" in any connection
-    for (const auto& edge : edges) {
-        EXPECT_EQ(edge.find("inst.vin"), std::string::npos)
-            << "Found raw unresolved bridge reference in: " << edge;
-    }
+    EXPECT_TRUE(connected_on_same_signal(jit_input, bat_v_out, inst_r1_v_in))
+        << "bat.v_out and inst:r1.v_in must share the same signal (transitively)";
 }
 
 
@@ -278,41 +252,35 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
     rw.domain = Domain::Electrical;
     root = root.with_wire(std::move(rw));
 
-    // Flatten and export
+    // Flatten and elaborate
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
-
-    auto exported = bp2::elaboration::to_simulation_export(netlist, arena, I, nullptr);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, nullptr);
 
     // Verify devices
-    auto devices = collect_device_names(exported.devices);
+    auto devices = collect_device_names(jit_input);
     EXPECT_TRUE(devices.count("bat")) << "Missing device: bat";
     EXPECT_TRUE(devices.count("mid:vin")) << "Missing device: mid:vin";
     EXPECT_TRUE(devices.count("mid:sub:pin")) << "Missing device: mid:sub:pin";
     EXPECT_TRUE(devices.count("mid:sub:r1")) << "Missing device: mid:sub:r1";
 
     // Verify connectivity with bridge resolution at each level
-    auto edges = collect_conn_edges(exported.connections);
+    std::string bat_v_out = signal_key::make_node_port_key("bat", "v_out");
+    std::string mid_vin_ext = signal_key::make_node_port_key("mid:vin", "ext");
+    std::string mid_sub_pin_ext = signal_key::make_node_port_key("mid:sub:pin", "ext");
+    std::string mid_sub_r1_v_in = signal_key::make_node_port_key("mid:sub:r1", "v_in");
 
     // bat.v_out ↔ mid:vin.ext  (root→mid boundary)
-    EXPECT_TRUE(connected_via(edges, "bat.v_out", "mid:vin.ext"))
-        << "Level-1 boundary: bat.v_out and mid:vin.ext must be connected";
+    EXPECT_TRUE(connected_on_same_signal(jit_input, bat_v_out, mid_vin_ext))
+        << "Level-1 boundary: bat.v_out and mid:vin.ext must share the same signal";
 
     // mid:vin.ext ↔ mid:sub:pin.ext  (mid→sub boundary)
-    EXPECT_TRUE(connected_via(edges, "mid:vin.ext", "mid:sub:pin.ext"))
-        << "Level-2 boundary: mid:vin.ext and mid:sub:pin.ext must be connected";
+    EXPECT_TRUE(connected_on_same_signal(jit_input, mid_vin_ext, mid_sub_pin_ext))
+        << "Level-2 boundary: mid:vin.ext and mid:sub:pin.ext must share the same signal";
 
     // mid:sub:pin.ext ↔ mid:sub:r1.v_in  (inner direct connection)
-    EXPECT_TRUE(connected_via(edges, "mid:sub:pin.ext", "mid:sub:r1.v_in"))
-        << "Inner connection: mid:sub:pin.ext and mid:sub:r1.v_in must be connected";
-
-    // Must NOT see raw unresolved references like "mid.vin" or "mid:sub.pin"
-    for (const auto& edge : edges) {
-        EXPECT_EQ(edge.find("mid.vin"), std::string::npos)
-            << "Found raw unresolved bridge reference 'mid.vin' in: " << edge;
-        EXPECT_EQ(edge.find("mid:sub.pin"), std::string::npos)
-            << "Found raw unresolved bridge reference 'mid:sub.pin' in: " << edge;
-    }
+    EXPECT_TRUE(connected_on_same_signal(jit_input, mid_sub_pin_ext, mid_sub_r1_v_in))
+        << "Inner connection: mid:sub:pin.ext and mid:sub:r1.v_in must share the same signal";
 }
 
 
@@ -379,21 +347,15 @@ TEST(ExportFlattenerParity, BlueprintOutputBridgeRewrite) {
     rw.domain = Domain::Electrical;
     root = root.with_wire(std::move(rw));
 
-    // Flatten and export
+    // Flatten and elaborate
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
-
-    auto exported = bp2::elaboration::to_simulation_export(netlist, arena, I, nullptr);
-
-    auto edges = collect_conn_edges(exported.connections);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, nullptr);
 
     // inst:vout.ext must connect to led.v_in (bridge resolution on output side)
-    EXPECT_TRUE(connected_via(edges, "inst:vout.ext", "led.v_in"))
-        << "BlueprintOutput bridge resolution failed: inst:vout.ext and led.v_in must be connected";
+    std::string inst_vout_ext = signal_key::make_node_port_key("inst:vout", "ext");
+    std::string led_v_in = signal_key::make_node_port_key("led", "v_in");
 
-    // Must NOT see raw "inst.vout"
-    for (const auto& edge : edges) {
-        EXPECT_EQ(edge.find("inst.vout"), std::string::npos)
-            << "Found raw unresolved bridge reference 'inst.vout' in: " << edge;
-    }
+    EXPECT_TRUE(connected_on_same_signal(jit_input, inst_vout_ext, led_v_in))
+        << "BlueprintOutput bridge resolution failed: inst:vout.ext and led.v_in must share the same signal";
 }

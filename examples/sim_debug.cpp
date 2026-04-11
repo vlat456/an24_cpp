@@ -26,6 +26,7 @@
 #include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/library/type_def_to_blueprint.h"
 #include "blueprint_v2/path/path.h"
+#include "core/solvers/common/signal_key.h"
 #include "ui/core/interned_id.h"
 #include <spdlog/spdlog.h>
 #include <fstream>
@@ -130,11 +131,34 @@ int main(int argc, char* argv[]) {
     bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
 
     if (dump_json) {
-        auto exported = bp2::elaboration::to_simulation_export(netlist, arena, interner, &registry);
+        JitBuildInput jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
+        
+        // Build canonical JSON output
         nlohmann::json out = nlohmann::json::object();
-        out["templates"] = nlohmann::json::object();
-        out["devices"] = std::move(exported.devices);
-        out["connections"] = std::move(exported.connections);
+        out["signal_count"] = jit_input.signal_count;
+        
+        // Devices array
+        nlohmann::json devices_array = nlohmann::json::array();
+        for (const auto& dev : jit_input.devices) {
+            devices_array.push_back(dev.name);
+        }
+        out["devices"] = devices_array;
+        
+        // Signals grouped by signal index
+        std::map<uint32_t, std::vector<std::string>> sig_to_ports;
+        for (const auto& [port, sig] : jit_input.port_to_signal) {
+            sig_to_ports[sig].push_back(port);
+        }
+        nlohmann::json signals_obj = nlohmann::json::object();
+        for (const auto& [sig_idx, ports] : sig_to_ports) {
+            nlohmann::json ports_array = nlohmann::json::array();
+            for (const auto& p : ports) {
+                ports_array.push_back(p);
+            }
+            signals_obj[std::to_string(sig_idx)] = ports_array;
+        }
+        out["signals"] = signals_obj;
+        
         std::cout << out.dump(2) << "\n";
         return 0;
     }

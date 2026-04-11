@@ -1627,7 +1627,7 @@ TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
 
 // Regression: editor readback must use node id (not display name) as simulation key.
 // In closed_circuit.blueprint, the CVS node has id="controlledvoltagesource_1"
-// but name="GEN". The real Document::build_simulation_json() exports devices keyed
+// but name="GEN". The canonical editor runtime path exports devices keyed
 // by id. The editor's updateNodeContentFromSimulation() must query by id too,
 // otherwise it reads 0 for a device named "GEN" that doesn't exist in the sim.
 TEST(PushRuntime, ClosedCircuit_EditorIdBasedLookup_NonZeroVoltage) {

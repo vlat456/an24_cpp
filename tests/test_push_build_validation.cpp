@@ -832,7 +832,7 @@ TEST(PushBuildValidation, BusWithVisualOnlyParam_PortEdge_DoesNotThrow) {
 
     // Without the fix, port_edge in params would cause:
     //   "Unknown/unconsumed parameter 'port_edge' for component 'bus_1'"
-    // The fix filters visual_only params in build_simulation_json() so they
+    // The fix filters visual_only params in the canonical editor elaboration so they
     // never reach build_systems_dev(). Verify the solver side is clean too:
     // a Bus with NO extra params must build successfully.
     EXPECT_NO_THROW({
