@@ -140,27 +140,9 @@ SimulationExport to_simulation_export(
         out.devices.push_back(emit_device_json(node, dev_id, interner, type_registry));
     }
 
-    // Build bridge lookup: for each BlueprintInput/BlueprintOutput inside a
-    // blueprint-instance scope, map the collapsed composite-node port
-    // (scope.local_id) to the inner bridge node's ext endpoint
-    // (scope:local_id.ext).  This rewrites connections that reference the
-    // collapsed node so they point at the bridge node the JIT runtime expects.
-    //
-    // The flattener creates instance-scope paths as PathKind::Node, so we
-    // accept any non-Root parent — Root means the bridge lives at the top level
-    // with no enclosing instance and needs no rewriting.
-    std::unordered_map<std::string, std::unordered_map<std::string, std::string>> bridge_by_scope;
-    for (const auto& comp : netlist.components) {
-        const std::string tname(interner.resolve(comp.type));
-        if (tname != "BlueprintInput" && tname != "BlueprintOutput") continue;
-
-        Path parent = arena.parent(comp.path);
-        if (parent.kind() == PathKind::Root) continue;
-
-        const std::string scope = node_id_from_path(parent, arena, interner);
-        const std::string local_id(interner.resolve(comp.path.segment()));
-        bridge_by_scope[scope][local_id] = scope + ":" + local_id;
-    }
+    // No bridge rewrite needed — the flattener now resolves wire endpoints
+    // directly to bridge ext ports, producing a self-consistent IR where
+    // every signal endpoint references an emitted leaf device.
 
     std::set<std::string> emitted_keys;
     for (const auto& sig : netlist.signals) {
@@ -172,19 +154,8 @@ SimulationExport to_simulation_export(
             if (parent.kind() != PathKind::Node) continue;
             const std::string node_id = node_id_from_path(parent, arena, interner);
             const std::string port_name(interner.resolve(port_path.segment()));
-            std::string mapped_node = node_id;
-            std::string mapped_port = port_name;
 
-            auto sit = bridge_by_scope.find(node_id);
-            if (sit != bridge_by_scope.end()) {
-                auto bit = sit->second.find(port_name);
-                if (bit != sit->second.end()) {
-                    mapped_node = bit->second;
-                    mapped_port = "ext";
-                }
-            }
-
-            const std::string key = signal_key::make_node_port_key(mapped_node, mapped_port);
+            const std::string key = signal_key::make_node_port_key(node_id, port_name);
             if (unique.insert(key).second) {
                 endpoints.push_back(key);
             }

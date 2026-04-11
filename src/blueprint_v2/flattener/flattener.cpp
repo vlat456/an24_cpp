@@ -1,5 +1,7 @@
 #include "flattener.h"
 
+#include <stdexcept>
+
 namespace bp2 {
 
 Flattener::Flattener(BlueprintLibrary const& library)
@@ -34,6 +36,106 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
 }
 
 // ==================================================================
+// find_bridge_for_port — locate the bridge node matching an interface port
+// ==================================================================
+
+Blueprint::Node const* Flattener::find_bridge_for_port(
+    Blueprint const& inner_bp,
+    ui::InternedId port_name) const {
+
+    std::string_view port_str = arena_->resolve_id(port_name);
+
+    // Pass 1: match by label (node.view.name) — v1 migrated files
+    // e.g. bp_in_1 with label "feedback" matches interface port "feedback"
+    for (auto const& n : inner_bp.nodes()) {
+        std::string_view type_str = arena_->resolve_id(n.semantic.type);
+        if (type_str != "BlueprintInput" && type_str != "BlueprintOutput") continue;
+        if (n.view.name == port_str) {
+            return &n;
+        }
+    }
+
+    // Pass 2: match by node ID — v3 library composites
+    // e.g. bridge node "in" matches interface port "in"
+    for (auto const& n : inner_bp.nodes()) {
+        std::string_view type_str = arena_->resolve_id(n.semantic.type);
+        if (type_str != "BlueprintInput" && type_str != "BlueprintOutput") continue;
+        if (n.semantic.id == port_name) {
+            return &n;
+        }
+    }
+
+    return nullptr;
+}
+
+// ==================================================================
+// resolve_endpoint — scope-aware endpoint resolver
+//
+// If ep.node refers to a leaf component in scope_bp:
+//   returns scope_prefix / node / port
+//
+// If ep.node refers to a blueprint_instance in scope_bp:
+//   resolves through to the bridge node's ext port:
+//   scope_prefix / instance / bridge_node / ext
+// ==================================================================
+
+Path Flattener::resolve_endpoint(
+    Blueprint const& scope_bp,
+    Path scope_prefix,
+    WireEndpoint const& ep) {
+
+    auto const* node = scope_bp.find_node(ep.node);
+    if (!node || !node->is_blueprint_instance()) {
+        // Leaf component — straightforward path
+        Path node_path = arena_->make_node(scope_prefix, ep.node);
+        return arena_->make_port(node_path, ep.port);
+    }
+
+    // Blueprint instance — resolve through to bridge's ext port
+    Path instance_path = arena_->make_node(scope_prefix, ep.node);
+
+    Blueprint const* inner = nullptr;
+    if (node->source) {
+        if (auto* def = node->source->inline_def()) {
+            inner = def;
+        } else {
+            inner = library_.find(node->source->blueprint_id());
+        }
+    }
+    if (!inner) {
+        throw_unresolved_blueprint_instance(*node, scope_prefix);
+    }
+
+    Blueprint::Node const* bridge = find_bridge_for_port(*inner, ep.port);
+    if (!bridge) {
+        std::string inst_str(arena_->resolve_id(ep.node));
+        std::string port_str(arena_->resolve_id(ep.port));
+        throw std::logic_error(
+            "Flattener: no bridge node found for interface port '" + port_str
+            + "' in blueprint instance '" + inst_str + "'");
+    }
+
+    Path bridge_path = arena_->make_node(instance_path, bridge->semantic.id);
+
+    // Find the "ext" port ID from the bridge node's interface
+    ui::InternedId ext_port_id{};
+    for (auto const& p : inner->effective_node_iface(*bridge)) {
+        std::string_view pname = arena_->resolve_id(p.name);
+        if (pname == "ext") {
+            ext_port_id = p.name;
+            break;
+        }
+    }
+    if (ext_port_id == ui::InternedId{}) {
+        std::string bridge_str(arena_->resolve_id(bridge->semantic.id));
+        throw std::logic_error(
+            "Flattener: bridge node '" + bridge_str + "' has no 'ext' port");
+    }
+
+    return arena_->make_port(bridge_path, ext_port_id);
+}
+
+// ==================================================================
 // visit_blueprint — emit leaf nodes, recurse into blueprint instances
 // ==================================================================
 
@@ -54,6 +156,10 @@ void Flattener::visit_blueprint(
 
 // ==================================================================
 // emit_component — create a FlatNetlist::Component for a leaf node
+//
+// For bridge nodes (BlueprintInput / BlueprintOutput), after emitting
+// the component we unify the ext and port signals, since they
+// represent the same electrical point (the bridge is a pass-through).
 // ==================================================================
 
 void Flattener::emit_component(
@@ -71,15 +177,32 @@ void Flattener::emit_component(
     comp.params = node.semantic.params;
     comp.string_params = node.semantic.string_params;
 
+    SignalIndex ext_sig = UINT32_MAX;
+    SignalIndex port_sig = UINT32_MAX;
+
     for (auto const& port : bp.effective_node_iface(node)) {
         Path port_path = arena_->make_port(node_path, port.name);
         SignalIndex sig = get_or_create_signal(
             port_path, port.domain, signals, out);
         comp.ports.push_back(port);
         comp.port_signals.push_back({port.name, sig});
+
+        // Track ext/port signals for bridge unification
+        std::string_view pname = arena_->resolve_id(port.name);
+        if (pname == "ext") ext_sig = sig;
+        else if (pname == "port") port_sig = sig;
     }
 
     out.components.push_back(std::move(comp));
+
+    // Bridge ext/port unification: merge the two signals so that
+    // wires to bridge.ext and bridge.port end up on the same signal
+    std::string_view type_str = arena_->resolve_id(node.semantic.type);
+    if ((type_str == "BlueprintInput" || type_str == "BlueprintOutput")
+        && ext_sig != UINT32_MAX && port_sig != UINT32_MAX
+        && ext_sig != port_sig) {
+        merge_signals(ext_sig, port_sig, signals, out);
+    }
 }
 
 // ==================================================================
@@ -88,15 +211,17 @@ void Flattener::emit_component(
 
 void Flattener::process_wires(
     Blueprint const& bp,
-    Path /*prefix*/,
+    Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     FlatNetlist& out) {
 
     for (auto const& wire : bp.wires()) {
         SignalIndex src_sig = get_or_create_signal(
-            wire.source.to_path(*arena_), wire.domain, signals, out);
+            resolve_endpoint(bp, prefix, wire.source),
+            wire.domain, signals, out);
         SignalIndex tgt_sig = get_or_create_signal(
-            wire.target.to_path(*arena_), wire.domain, signals, out);
+            resolve_endpoint(bp, prefix, wire.target),
+            wire.domain, signals, out);
 
         if (src_sig != tgt_sig) {
             merge_signals(src_sig, tgt_sig, signals, out);
@@ -130,22 +255,45 @@ void Flattener::visit_blueprint_instance(
         throw_unresolved_blueprint_instance(node, prefix);
     }
 
-    // Seed boundary signals: map outer port path to parent signal index
+    // Seed boundary signals: for each interface port, find the bridge node
+    // and seed its ext path with the parent signal (if wired from outside).
+    //
+    // The outer wires (processed by the parent scope's process_wires) have
+    // already resolved to instance/bridge/ext via resolve_endpoint. We look
+    // up those paths in the parent signals map and propagate them into the
+    // nested scope.
     std::unordered_map<Path, SignalIndex> nested_signals;
     std::unordered_map<Path, SignalIndex> seeded_boundary;
     for (auto const& port : node.source->cached_iface()) {
-        Path outer_port = arena_->make_port(node_path, port.name);
-        auto it = signals.find(outer_port);
+        Blueprint::Node const* bridge = find_bridge_for_port(*inner, port.name);
+        if (!bridge) continue;
+
+        Path bridge_path = arena_->make_node(node_path, bridge->semantic.id);
+
+        // Find the "ext" port ID from the bridge's interface
+        ui::InternedId ext_id{};
+        for (auto const& p : inner->effective_node_iface(*bridge)) {
+            std::string_view pname = arena_->resolve_id(p.name);
+            if (pname == "ext") {
+                ext_id = p.name;
+                break;
+            }
+        }
+        if (ext_id == ui::InternedId{}) continue;
+
+        Path ext_path = arena_->make_port(bridge_path, ext_id);
+        auto it = signals.find(ext_path);
         if (it != signals.end()) {
-            nested_signals[outer_port] = it->second;
-            seeded_boundary[outer_port] = it->second;
+            nested_signals[ext_path] = it->second;
+            seeded_boundary[ext_path] = it->second;
         }
     }
 
-    // Process inner wires with paths remapped under node_path
+    // Process inner wires with paths resolved under node_path.
+    // resolve_endpoint handles nested blueprint instances recursively.
     for (auto const& wire : inner->wires()) {
-        Path src = remap_endpoint(wire.source, node_path);
-        Path tgt = remap_endpoint(wire.target, node_path);
+        Path src = resolve_endpoint(*inner, node_path, wire.source);
+        Path tgt = resolve_endpoint(*inner, node_path, wire.target);
 
         SignalIndex src_sig = get_or_create_signal(
             src, wire.domain, nested_signals, out);
@@ -174,53 +322,6 @@ void Flattener::visit_blueprint_instance(
 
     // Emit inner leaf nodes and recurse into inner blueprint instances
     visit_blueprint(*inner, node_path, nested_signals, out);
-}
-
-// ==================================================================
-// remap_path — prefix an inner-relative path with nested instance path
-// ==================================================================
-
-Path Flattener::remap_path(Path inner_path, Path nested_prefix) {
-    if (inner_path.kind() == PathKind::Root) {
-        return nested_prefix;
-    }
-
-    std::vector<std::pair<PathKind, ui::InternedId>> segments;
-    Path current = inner_path;
-    while (current.kind() != PathKind::Root) {
-        segments.push_back({current.kind(), current.segment()});
-        current = arena_->parent(current);
-    }
-
-    Path result = nested_prefix;
-    for (auto it = segments.rbegin(); it != segments.rend(); ++it) {
-        switch (it->first) {
-            case PathKind::Node:
-                result = arena_->make_node(result, it->second);
-                break;
-            case PathKind::Port:
-                result = arena_->make_port(result, it->second);
-                break;
-            case PathKind::Nested:
-                result = arena_->make_nested(result, it->second);
-                break;
-            case PathKind::Wire:
-                result = arena_->make_wire(result, it->second);
-                break;
-            default:
-                break;
-        }
-    }
-    return result;
-}
-
-// ==================================================================
-// remap_endpoint — materialize a WireEndpoint under a nested prefix
-// ==================================================================
-
-Path Flattener::remap_endpoint(WireEndpoint const& ep, Path nested_prefix) {
-    Path node_path = arena_->make_node(nested_prefix, ep.node);
-    return arena_->make_port(node_path, ep.port);
 }
 
 // ==================================================================

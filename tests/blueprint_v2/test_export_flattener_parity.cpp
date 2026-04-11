@@ -49,20 +49,45 @@ std::set<std::string> collect_device_names(const nlohmann::json& devices) {
     return out;
 }
 
+/// Check that two endpoints are on the same signal by verifying that some
+/// path exists between them in the star-topology connection set.
+/// In star topology, if both X and Y are on the same signal, either:
+///   anchor->X and anchor->Y exist (for some anchor), OR
+///   X->Y or Y->X exists directly.
+bool connected_via(const std::set<std::string>& edges,
+                   const std::string& a,
+                   const std::string& b) {
+    // Direct edge
+    if (edges.count(a + "->" + b) || edges.count(b + "->" + a)) return true;
+
+    // Same anchor: look for any node Z such that Z->a and Z->b both exist
+    for (const auto& e : edges) {
+        auto arrow = e.find("->");
+        if (arrow == std::string::npos) continue;
+        std::string from = e.substr(0, arrow);
+        std::string to = e.substr(arrow + 2);
+        if (to == a || from == a) {
+            std::string anchor = (to == a) ? from : to;
+            // Check if anchor also connects to b
+            if (edges.count(anchor + "->" + b) || edges.count(b + "->" + anchor)) return true;
+        }
+    }
+    return false;
+}
+
 } // namespace
 
 
 // ==============================================================================
-// Single-level embedded blueprint instance with bridge rewrite.
+// Single-level embedded blueprint instance — flattener resolves boundary
+// crossing directly to bridge ext port, no sim_export rewrite needed.
 //
 // Topology:
 //   root: bat ──v_out──→ [inst].vin
 //   inst: vin(BlueprintInput) ──ext──→ r1.v_in
 //
 // Expected flat devices: bat, inst:vin, inst:r1
-// Expected connections after bridge rewrite:
-//   bat.v_out → inst:vin.ext   (bridge rewrite: bat.vin → inst:vin.ext)
-//   inst:vin.ext → inst:r1.v_in
+// Expected connectivity: bat.v_out, inst:vin.ext, inst:r1.v_in all on same signal
 // ==============================================================================
 
 TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
@@ -136,19 +161,18 @@ TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
     EXPECT_TRUE(devices.count("inst:vin")) << "Missing device: inst:vin";
     EXPECT_TRUE(devices.count("inst:r1")) << "Missing device: inst:r1";
 
-    // Verify connections — the critical check is that bridge rewrite produces
-    // "inst:vin.ext" rather than "inst.vin" for the boundary crossing.
+    // Verify connectivity — all three endpoints must be on the same signal.
+    // The connection builder uses star topology, so we check reachability.
     auto edges = collect_conn_edges(exported.connections);
 
-    // bat.v_out must connect to inst:vin.ext (bridge rewrite)
-    EXPECT_TRUE(edges.count("bat.v_out->inst:vin.ext")
-             || edges.count("inst:vin.ext->bat.v_out"))
-        << "Bridge rewrite failed: expected bat.v_out <-> inst:vin.ext connection";
+    EXPECT_TRUE(connected_via(edges, "bat.v_out", "inst:vin.ext"))
+        << "bat.v_out and inst:vin.ext must be connected";
 
-    // inst:vin.ext must connect to inst:r1.v_in
-    EXPECT_TRUE(edges.count("inst:vin.ext->inst:r1.v_in")
-             || edges.count("inst:r1.v_in->inst:vin.ext"))
-        << "Inner connection failed: expected inst:vin.ext <-> inst:r1.v_in";
+    EXPECT_TRUE(connected_via(edges, "inst:vin.ext", "inst:r1.v_in"))
+        << "inst:vin.ext and inst:r1.v_in must be connected";
+
+    EXPECT_TRUE(connected_via(edges, "bat.v_out", "inst:r1.v_in"))
+        << "bat.v_out and inst:r1.v_in must be connected (transitively)";
 
     // Must NOT see the raw unresolved "inst.vin" in any connection
     for (const auto& edge : edges) {
@@ -167,10 +191,8 @@ TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
 //   sub:  pin(bridge) ──ext──→ r1.v_in
 //
 // Expected flat components: bat, mid:vin, mid:sub:pin, mid:sub:r1
-// Expected connections after bridge rewrite:
-//   bat.v_out       → mid:vin.ext       (root-level bridge rewrite)
-//   mid:vin.ext     → mid:sub:pin.ext   (mid-level bridge rewrite)
-//   mid:sub:pin.ext → mid:sub:r1.v_in   (inner direct connection)
+// Expected connectivity: bat.v_out, mid:vin.ext, mid:sub:pin.ext, mid:sub:r1.v_in
+//                         all on same signal
 // ==============================================================================
 
 TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
@@ -269,23 +291,20 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
     EXPECT_TRUE(devices.count("mid:sub:pin")) << "Missing device: mid:sub:pin";
     EXPECT_TRUE(devices.count("mid:sub:r1")) << "Missing device: mid:sub:r1";
 
-    // Verify connections with bridge rewrite at each level
+    // Verify connectivity with bridge resolution at each level
     auto edges = collect_conn_edges(exported.connections);
 
-    // bat.v_out → mid:vin.ext  (root→mid bridge rewrite)
-    EXPECT_TRUE(edges.count("bat.v_out->mid:vin.ext")
-             || edges.count("mid:vin.ext->bat.v_out"))
-        << "Level-1 bridge rewrite failed: expected bat.v_out <-> mid:vin.ext";
+    // bat.v_out ↔ mid:vin.ext  (root→mid boundary)
+    EXPECT_TRUE(connected_via(edges, "bat.v_out", "mid:vin.ext"))
+        << "Level-1 boundary: bat.v_out and mid:vin.ext must be connected";
 
-    // mid:vin.ext → mid:sub:pin.ext  (mid→sub bridge rewrite)
-    EXPECT_TRUE(edges.count("mid:vin.ext->mid:sub:pin.ext")
-             || edges.count("mid:sub:pin.ext->mid:vin.ext"))
-        << "Level-2 bridge rewrite failed: expected mid:vin.ext <-> mid:sub:pin.ext";
+    // mid:vin.ext ↔ mid:sub:pin.ext  (mid→sub boundary)
+    EXPECT_TRUE(connected_via(edges, "mid:vin.ext", "mid:sub:pin.ext"))
+        << "Level-2 boundary: mid:vin.ext and mid:sub:pin.ext must be connected";
 
-    // mid:sub:pin.ext → mid:sub:r1.v_in  (inner direct connection)
-    EXPECT_TRUE(edges.count("mid:sub:pin.ext->mid:sub:r1.v_in")
-             || edges.count("mid:sub:r1.v_in->mid:sub:pin.ext"))
-        << "Inner connection failed: expected mid:sub:pin.ext <-> mid:sub:r1.v_in";
+    // mid:sub:pin.ext ↔ mid:sub:r1.v_in  (inner direct connection)
+    EXPECT_TRUE(connected_via(edges, "mid:sub:pin.ext", "mid:sub:r1.v_in"))
+        << "Inner connection: mid:sub:pin.ext and mid:sub:r1.v_in must be connected";
 
     // Must NOT see raw unresolved references like "mid.vin" or "mid:sub.pin"
     for (const auto& edge : edges) {
@@ -304,7 +323,7 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
 //   inst: r1.v_out → vout(BlueprintOutput).ext
 //   root: [inst].vout → led.v_in
 //
-// Expected bridge rewrite: inst:vout.ext connects to led.v_in
+// Expected connectivity: inst:vout.ext and led.v_in on same signal
 // ==============================================================================
 
 TEST(ExportFlattenerParity, BlueprintOutputBridgeRewrite) {
@@ -368,10 +387,9 @@ TEST(ExportFlattenerParity, BlueprintOutputBridgeRewrite) {
 
     auto edges = collect_conn_edges(exported.connections);
 
-    // inst:vout.ext must connect to led.v_in (bridge rewrite on output side)
-    EXPECT_TRUE(edges.count("inst:vout.ext->led.v_in")
-             || edges.count("led.v_in->inst:vout.ext"))
-        << "BlueprintOutput bridge rewrite failed: expected inst:vout.ext <-> led.v_in";
+    // inst:vout.ext must connect to led.v_in (bridge resolution on output side)
+    EXPECT_TRUE(connected_via(edges, "inst:vout.ext", "led.v_in"))
+        << "BlueprintOutput bridge resolution failed: inst:vout.ext and led.v_in must be connected";
 
     // Must NOT see raw "inst.vout"
     for (const auto& edge : edges) {

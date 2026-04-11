@@ -45,9 +45,25 @@ private:
         std::unordered_map<Path, SignalIndex>& signals,
         FlatNetlist& out);
 
-    Path remap_path(Path inner_path, Path nested_prefix);
+    /// Resolve a wire endpoint within a scope blueprint.
+    ///
+    /// If ep.node refers to a leaf component, returns prefix / node / port.
+    /// If ep.node refers to a blueprint_instance, resolves through to the
+    /// inner bridge node's ext port: prefix / instance / bridge_node / ext.
+    Path resolve_endpoint(
+        Blueprint const& scope_bp,
+        Path scope_prefix,
+        WireEndpoint const& ep);
 
-    Path remap_endpoint(WireEndpoint const& ep, Path nested_prefix);
+    /// Find the bridge node inside a blueprint_instance's inner blueprint
+    /// that corresponds to an interface port name.
+    ///
+    /// Matching strategy: first try label (node.view.name), then node ID.
+    /// Handles both v1 migrated files (bp_in_N with labels) and v3 library
+    /// composites (bridge node ID matches port name directly).
+    Blueprint::Node const* find_bridge_for_port(
+        Blueprint const& inner_bp,
+        ui::InternedId port_name) const;
 
     SignalIndex get_or_create_signal(
         Path port_path,
