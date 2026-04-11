@@ -84,7 +84,7 @@ TEST(BlueprintNodeSource, MakeReferenceRejectsEmptyBlueprintId) {
         std::logic_error);
 }
 
-TEST(BlueprintNodeSource, ResolvedIfaceNonThrowingEmbedded) {
+TEST(BlueprintNodeSource, CachedIfaceNonThrowingEmbedded) {
     ui::StringInterner interner;
     auto iface = bp2::Interface({
         {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input}
@@ -96,11 +96,11 @@ TEST(BlueprintNodeSource, ResolvedIfaceNonThrowingEmbedded) {
         interner.intern("inner_bp"),
         std::move(inner));
 
-    EXPECT_NO_THROW(source.resolved_iface());
-    EXPECT_EQ(source.resolved_iface().size(), 1u);
+    EXPECT_NO_THROW(source.cached_iface());
+    EXPECT_EQ(source.cached_iface().size(), 1u);
 }
 
-TEST(BlueprintNodeSource, ResolvedIfaceNonThrowingReference) {
+TEST(BlueprintNodeSource, CachedIfaceNonThrowingReference) {
     ui::StringInterner interner;
     auto iface = bp2::Interface({
         {interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output}
@@ -110,8 +110,22 @@ TEST(BlueprintNodeSource, ResolvedIfaceNonThrowingReference) {
         interner.intern("power_system"),
         iface);
 
-    EXPECT_NO_THROW(source.resolved_iface());
-    EXPECT_EQ(source.resolved_iface().size(), 1u);
+    EXPECT_NO_THROW(source.cached_iface());
+    EXPECT_EQ(source.cached_iface().size(), 1u);
+}
+
+TEST(BlueprintNodeSource, CachedIfaceTracksReferenceCacheOnly) {
+    ui::StringInterner interner;
+    auto iface = bp2::Interface({
+        {interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output}
+    });
+
+    auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+        interner.intern("power_system"),
+        iface);
+
+    EXPECT_EQ(source.blueprint_id(), interner.intern("power_system"));
+    EXPECT_EQ(source.cached_iface(), iface);
 }
 
 TEST(BlueprintNodeSource, CopyPreservesVariantMode) {

@@ -345,6 +345,35 @@ TEST(InvariantChecker, BlueprintInstanceWithSemanticIfaceFails) {
     EXPECT_NE(result.error.find("non-empty semantic.iface"), std::string::npos);
 }
 
+TEST(InvariantChecker, ReferencedBlueprintCachedIfaceDesyncFails) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition ref_def;
+    ref_def.classname = "ReferencedType";
+    ref_def.cpp_class = true;
+    ref_def.ports["port"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
+    reg.types["ReferencedType"] = ref_def;
+
+    bp2::Blueprint::Node host;
+    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.semantic.id = I.intern("host");
+    host.semantic.type = I.intern("ReferencedType");
+    host.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+        I.intern("ReferencedType"),
+        Interface({
+            make_port(I, "wrong", Domain::Electrical, bp2::Direction::Output, PortType::I),
+        }));
+
+    bp2::Blueprint root;
+    root = root.with_node(std::move(host));
+
+    auto result = bp2::InvariantChecker::validate(root, arena, reg, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("cached iface desynced"), std::string::npos);
+}
+
 
 TEST(BlueprintValidate, WirePathUnresolvedFails) {
     ui::StringInterner I;
@@ -857,4 +886,3 @@ TEST(InvariantChecker, ComponentNodeInterfaceConsistency_EmptyInterfaceOnValidCo
      EXPECT_FALSE(result.valid);
      EXPECT_NE(result.error.find("iface desynced"), std::string::npos);
 }
-

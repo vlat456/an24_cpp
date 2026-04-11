@@ -48,11 +48,11 @@ Blueprint::Node::BlueprintSource::make_embedded(ui::InternedId blueprint_id,
 
 Blueprint::Node::BlueprintSource
 Blueprint::Node::BlueprintSource::make_reference(ui::InternedId blueprint_id,
-                                                 Interface resolved_iface) {
+                                                 Interface cached_iface) {
     if (blueprint_id.empty()) {
         throw std::logic_error("BlueprintSource::make_reference requires non-empty blueprint_id");
     }
-    return BlueprintSource(Reference{blueprint_id, std::move(resolved_iface)});
+    return BlueprintSource(Reference{blueprint_id, std::move(cached_iface)});
 }
 
 bool Blueprint::Node::BlueprintSource::is_embedded() const {
@@ -70,11 +70,11 @@ ui::InternedId Blueprint::Node::BlueprintSource::blueprint_id() const {
     return std::get<Reference>(value).blueprint_id;
 }
 
-Interface const& Blueprint::Node::BlueprintSource::resolved_iface() const {
+Interface const& Blueprint::Node::BlueprintSource::cached_iface() const {
     if (auto* embedded = std::get_if<Embedded>(&value)) {
         return embedded->blueprint->iface();
     }
-    return std::get<Reference>(value).resolved_iface;
+    return std::get<Reference>(value).cached_iface;
 }
 
 Blueprint const* Blueprint::Node::BlueprintSource::inline_def() const {
@@ -117,7 +117,7 @@ bool Blueprint::Node::BlueprintSource::canonical_eq(const BlueprintSource& other
         }
         return lhs == nullptr || lhs->canonical_eq(*rhs);
     }
-    return resolved_iface() == other.resolved_iface();
+    return cached_iface() == other.cached_iface();
 }
 
 bool Blueprint::Node::BlueprintSource::operator==(const BlueprintSource& other) const {
@@ -135,7 +135,7 @@ bool Blueprint::Node::BlueprintSource::operator==(const BlueprintSource& other) 
         }
         return lhs == nullptr || *lhs == *rhs;
     }
-    return resolved_iface() == other.resolved_iface();
+    return cached_iface() == other.cached_iface();
 }
 
 Blueprint::Blueprint(Blueprint const& other)
@@ -313,7 +313,7 @@ Interface const& Blueprint::effective_node_iface(Node const& node) const {
         if (!node.source.has_value()) {
             throw std::logic_error("Blueprint::effective_node_iface: blueprint instance missing source");
         }
-        return node.source->resolved_iface();
+        return node.source->cached_iface();
     }
     return node.semantic.iface;
 }

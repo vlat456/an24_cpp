@@ -247,7 +247,7 @@ TEST(EditorModel, UpdateNodeCannotOverrideEmbeddedCompositeIfaceAuthority) {
 
       // The node's cached iface should match the embedded blueprint's iface
       ASSERT_TRUE(node_before->source.has_value());
-      EXPECT_EQ(node_before->source->resolved_iface().find(interner.intern("inner_only")).has_value(), true);
+      EXPECT_EQ(node_before->source->cached_iface().find(interner.intern("inner_only")).has_value(), true);
   }
 
 // Regression: constructor must canonicalize embedded blueprint interface.
@@ -278,7 +278,7 @@ TEST(EditorModel, ConstructorCanonicalizesEmbeddedCompositeHostIface) {
       EXPECT_TRUE(node->has_embedded_blueprint());
       // Interface authority comes from source
       ASSERT_TRUE(node->source.has_value());
-      EXPECT_TRUE(node->source->resolved_iface().find(interner.intern("authoritative_port")).has_value());
+      EXPECT_TRUE(node->source->cached_iface().find(interner.intern("authoritative_port")).has_value());
   }
 
 TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
@@ -307,7 +307,7 @@ TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
       ASSERT_NE(updated, nullptr);
       EXPECT_TRUE(updated->is_blueprint_instance());
       ASSERT_TRUE(updated->source.has_value());
-      EXPECT_TRUE(updated->source->resolved_iface().find(interner.intern("inner_only")).has_value());
+      EXPECT_TRUE(updated->source->cached_iface().find(interner.intern("inner_only")).has_value());
   }
 
 

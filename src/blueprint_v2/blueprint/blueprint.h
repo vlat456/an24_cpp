@@ -75,8 +75,12 @@ public:
             };
 
             struct Reference {
+                /// Sole referenced authority for blueprint-instance sources.
                 ui::InternedId blueprint_id;
-                Interface resolved_iface;
+                /// Strictly derived in-memory cache populated from authoritative
+                /// referenced blueprint/type resolution. Must validate against
+                /// the registry; must never be treated as independent authority.
+                Interface cached_iface;
             };
 
             std::variant<Embedded, Reference> value;
@@ -95,12 +99,12 @@ public:
             static BlueprintSource make_embedded(ui::InternedId blueprint_id,
                                                  std::unique_ptr<Blueprint> blueprint);
             static BlueprintSource make_reference(ui::InternedId blueprint_id,
-                                                 Interface resolved_iface);
+                                                 Interface cached_iface);
 
             bool is_embedded() const;
             bool is_reference() const;
             ui::InternedId blueprint_id() const;
-            Interface const& resolved_iface() const;
+            Interface const& cached_iface() const;
             Blueprint const* inline_def() const;
             Blueprint* inline_def_mut();
             void set_inline_def(std::unique_ptr<Blueprint> blueprint);
@@ -245,7 +249,10 @@ public:
     bool is_referenced_blueprint_instance(Node const& node) const;
 
     /// Return the authoritative interface for a node.
-    /// For blueprint-instance nodes, source authority wins.
+    /// For blueprint-instance nodes, source authority wins:
+    /// - embedded sources: inline blueprint interface
+    /// - reference sources: cache derived from authoritative blueprint_id
+    ///   and validated against the registry
     Interface const& effective_node_iface(ui::InternedId node_id) const;
     Interface const& effective_node_iface(Node const& node) const;
 

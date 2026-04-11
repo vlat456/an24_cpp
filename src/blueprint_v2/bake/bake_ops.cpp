@@ -96,7 +96,7 @@ std::optional<UnbakeResult> try_unbake(Blueprint const& bp,
             auto updated_node = *node;
             updated_node.source = Blueprint::Node::BlueprintSource::make_reference(
                 id,
-                node->source->resolved_iface());
+                node->source->cached_iface());
 
             UnbakeResult out;
             out.blueprint = bp.without_node(node_id).with_node(std::move(updated_node));

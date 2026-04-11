@@ -133,7 +133,7 @@ void Flattener::visit_blueprint_instance(
     // Seed boundary signals: map outer port path to parent signal index
     std::unordered_map<Path, SignalIndex> nested_signals;
     std::unordered_map<Path, SignalIndex> seeded_boundary;
-    for (auto const& port : node.source->resolved_iface()) {
+    for (auto const& port : node.source->cached_iface()) {
         Path outer_port = arena_->make_port(node_path, port.name);
         auto it = signals.find(outer_port);
         if (it != signals.end()) {

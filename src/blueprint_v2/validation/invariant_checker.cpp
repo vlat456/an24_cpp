@@ -70,8 +70,8 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                     return out;
                 }
                 Interface expected = interface_from_type_definition(*def, interner);
-                if (node.source->resolved_iface() != expected) {
-                    out.error = "referenced blueprint resolved iface desynced from registry at node id="
+                if (node.source->cached_iface() != expected) {
+                    out.error = "referenced blueprint cached iface desynced from registry at node id="
                         + iid_to_string(node.semantic.id);
                     return out;
                 }
