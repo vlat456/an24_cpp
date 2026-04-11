@@ -26,7 +26,7 @@ TEST(ProductionPathPushRuntime, SinglePassSettlesLinearChain) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
     EXPECT_NEAR(sim.get_port_value("clamp", "out"), 18.0f, 1e-4f);
@@ -49,7 +49,7 @@ TEST(ProductionPathPushRuntime, CycleRemainsFinite) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     for (int i = 0; i < 10; ++i) {
         sim.step(1.0f / 60.0f);
     }

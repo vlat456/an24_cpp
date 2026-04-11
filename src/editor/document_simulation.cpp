@@ -71,7 +71,7 @@ void Document::rebuild_window_scenes() {
 void Document::startSimulation() {
     if (!simulation_running_) {
         try {
-            simulation_.start_from_json(build_simulation_json());
+            simulation_.start(build_jit_input());
             simulation_running_ = true;
             for (auto& win : window_manager_.windows()) {
                 win->set_simulation_mode(true);
@@ -95,7 +95,7 @@ void Document::rebuildSimulation() {
     if (simulation_running_) {
         simulation_.stop();
         try {
-            simulation_.start_from_json(build_simulation_json());
+            simulation_.start(build_jit_input());
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to rebuild simulation: {}", e.what());
             simulation_running_ = false;

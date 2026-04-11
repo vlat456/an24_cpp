@@ -58,7 +58,7 @@ TEST(ElectricalParityFixtures, SimpleTheveninDivider) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
     float v_gnd = sim.get_port_value("gnd", "v");
@@ -93,7 +93,7 @@ TEST(ElectricalParityFixtures, SeriesChainTwoResistors) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
     float v_gnd = sim.get_port_value("gnd", "v");
@@ -132,7 +132,7 @@ TEST(ElectricalParityFixtures, ParallelBranchSplit) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
     float v_gnd = sim.get_port_value("gnd", "v");
@@ -175,7 +175,7 @@ TEST(ElectricalParityFixtures, MultiIsland) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
     float v_src_a = sim.get_port_value("src_a", "v_out");
@@ -211,7 +211,7 @@ TEST(ElectricalParityFixtures, NearShortHighConductance) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
     float v_gnd = sim.get_port_value("gnd", "v");

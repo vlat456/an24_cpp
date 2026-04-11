@@ -29,7 +29,7 @@ const char* kBatteryWithLoadJson(float conductance_s) {
 
 TEST(SAM28Composite, InitialOutputsAreSane) {
     JIT_Simulator sim;
-    sim.start_from_json(kBatteryWithLoadJson(0.1f));
+    sim.start(build_input_from_json(kBatteryWithLoadJson(0.1f)));
 
     // Two warmup steps: frame 1 populates LUT→cmd, frame 2 CVS uses cmd for solve
     sim.step(1.0 / 60.0);
@@ -47,7 +47,7 @@ TEST(SAM28Composite, InitialOutputsAreSane) {
 
 TEST(SAM28Composite, DischargeDecreasesChargeAndSoc) {
     JIT_Simulator sim;
-    sim.start_from_json(kBatteryWithLoadJson(2.0f));
+    sim.start(build_input_from_json(kBatteryWithLoadJson(2.0f)));
 
     // Two warmup steps for CVS to receive LUT→cmd
     sim.step(1.0 / 60.0);
@@ -68,7 +68,7 @@ TEST(SAM28Composite, DischargeDecreasesChargeAndSoc) {
 
 TEST(SAM28Composite, SocToOcvFeedbackCausesVoltageDrop) {
     JIT_Simulator sim;
-    sim.start_from_json(kBatteryWithLoadJson(10.0f));
+    sim.start(build_input_from_json(kBatteryWithLoadJson(10.0f)));
 
     // Two warmup steps for CVS to receive LUT→cmd
     sim.step(1.0 / 60.0);

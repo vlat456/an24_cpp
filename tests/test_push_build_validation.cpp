@@ -603,7 +603,7 @@ TEST(PushBuildValidation, SimulatorAppliesInitialValuesBeforeStep) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 19.5f, 1e-5f);
 }

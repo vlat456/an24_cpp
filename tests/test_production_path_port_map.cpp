@@ -24,7 +24,7 @@ TEST(ProductionPathPortMap, AndGateReadsWiredInputs) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     for (int i = 0; i < 20; ++i) {
         sim.step(1.0f / 60.0f);
     }
@@ -54,7 +54,7 @@ TEST(ProductionPathPortMap, NotGateReadsCorrectInput) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     for (int i = 0; i < 20; ++i) {
         sim.step(1.0f / 60.0f);
     }
@@ -81,7 +81,7 @@ TEST(ProductionPathPortMap, SubtractReadsBothInputs) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     for (int i = 0; i < 20; ++i) {
         sim.step(1.0f / 60.0f);
     }

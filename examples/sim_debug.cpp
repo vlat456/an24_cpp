@@ -22,7 +22,10 @@
 #include "core/solvers/jit/simulator.h"
 #include "json_parser/json_parser.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
-#include "blueprint_v2/interface/node_port_projection.h"
+#include "blueprint_v2/elaboration/sim_export.h"
+#include "blueprint_v2/flattener/flattener.h"
+#include "blueprint_v2/library/blueprint_library.h"
+#include "blueprint_v2/library/type_def_to_blueprint.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include <spdlog/spdlog.h>
@@ -36,192 +39,6 @@
 #include <map>
 #include <algorithm>
 #include <cstring>
-
-// ============================================================================
-// Helpers duplicated from editor (persist.cpp / document.cpp) to avoid
-// pulling in the entire editor + ImGui dependency chain.
-// ============================================================================
-
-static const char* sim_port_type_str(PortType t) {
-    switch (t) {
-        case PortType::V:           return "V";
-        case PortType::I:           return "I";
-        case PortType::Bool:        return "Bool";
-        case PortType::RPM:         return "RPM";
-        case PortType::Temperature: return "Temperature";
-        case PortType::Pressure:    return "Pressure";
-        case PortType::Position:    return "Position";
-        case PortType::Any:
-        default:                    return "Any";
-    }
-}
-
-/// Build simulation JSON from a bp2::Blueprint (mirrors Document::build_simulation_json).
-static std::string build_simulation_json(const bp2::Blueprint& bp,
-                                          ui::StringInterner& interner,
-                                          const bp2::PathArena& arena,
-                                          const TypeRegistry* reg_ptr) {
-    using json = nlohmann::json;
-
-    json out = json::object();
-    out["templates"] = json::object();
-
-    // --- devices ---
-    json devices = json::array();
-    std::set<std::string> emitted_ids;
-    // Track skipped embedded proxy nodes for connection rewriting
-    std::set<std::string> skipped_embedded_proxies;
-
-     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-         // Embedded blueprint instance nodes: skip the proxy (its internal nodes
-         // are already flattened into the blueprint via node-owned BlueprintSource).
-         if (n.is_blueprint_instance() && n.has_embedded_blueprint()) {
-             bool has_materialized_children = false;
-             const std::string parent_id(interner.resolve(n.semantic.id));
-             
-             // Check if this embedded blueprint has materialized children
-             // by looking for nodes with matching parent reference in the source
-             if (n.source && n.source->is_embedded()) {
-                 const auto* embedded_bp = n.source->inline_def();
-                 if (embedded_bp) {
-                     for (const auto& child : embedded_bp->nodes()) {
-                         has_materialized_children = true;
-                         break;
-                     }
-                 }
-             }
-             
-             if (has_materialized_children) {
-                 skipped_embedded_proxies.insert(parent_id);
-                 continue;
-             }
-         }
-
-        // Non-embedded expandable (composite) nodes — emit them as regular
-        // devices so that parse_json_impl() can expand them via TypeRegistry.
-
-        std::string nid(interner.resolve(n.semantic.id));
-        if (!emitted_ids.insert(nid).second) continue;
-
-        json device = json::object();
-        device["name"]          = nid;
-        device["template_name"] = "";
-        device["classname"]     = std::string(interner.resolve(n.semantic.type));
-        device["priority"]  = "med";
-        device["bucket"]    = nullptr;
-        device["critical"]  = false;
-
-        json ports = json::object();
-        for (const auto& p : bp2::derive_input_ports(n.semantic.iface)) {
-            ports[std::string(interner.resolve(p.name))] = {
-                {"direction", "In"},
-                {"type", sim_port_type_str(p.type)}
-            };
-        }
-        for (const auto& p : bp2::derive_output_ports(n.semantic.iface)) {
-            ports[std::string(interner.resolve(p.name))] = {
-                {"direction", "Out"},
-                {"type", sim_port_type_str(p.type)}
-            };
-        }
-        device["ports"] = std::move(ports);
-
-        json params = json::object();
-        const TypeDefinition* type_def = nullptr;
-        if (reg_ptr) {
-            type_def = reg_ptr->get(std::string(interner.resolve(n.semantic.type)));
-        }
-        auto is_int_param = [&](const std::string& key) -> bool {
-            if (!type_def) return false;
-            auto it = type_def->param_schema.find(key);
-            return it != type_def->param_schema.end() && it->second.type == ParamSchemaType::Int;
-        };
-
-        for (const auto& [k, v] : n.semantic.params) {
-            std::string key = std::string(interner.resolve(k));
-            if (is_int_param(key)) {
-                params[key] = std::to_string(static_cast<long long>(v));
-            } else {
-                params[key] = std::to_string(v);
-            }
-        }
-        for (const auto& [k, v] : n.semantic.string_params)
-            params[k] = v;
-        if (!params.empty())
-            device["params"] = std::move(params);
-
-        devices.push_back(std::move(device));
-    }
-    out["devices"] = std::move(devices);
-
-    // --- connections ---
-    auto path_to_node_port = [&](const bp2::WireEndpoint& ep)
-            -> std::pair<std::string, std::string> {
-        if (ep.node.empty() || ep.port.empty()) return {};
-        return {std::string(interner.resolve(ep.node)),
-                std::string(interner.resolve(ep.port))};
-    };
-
-    // Build a lookup map for bridge nodes of skipped embedded proxies.
-    // Bridge nodes are BlueprintInput/BlueprintOutput nodes whose ID follows
-    // the canonical colon convention: "proxy_id:port_name".
-    // Key: "proxy_id.port_name" -> bridge node device id
-    std::map<std::string, std::string> proxy_port_to_bridge;
-     if (!skipped_embedded_proxies.empty()) {
-         for (const bp2::Blueprint::Node& n : bp.nodes()) {
-             std::string nid(interner.resolve(n.semantic.id));
-            // Match colon-convention IDs: "proxy_id:port_name"
-            for (const auto& proxy_id : skipped_embedded_proxies) {
-                if (nid.size() > proxy_id.size() + 1
-                    && nid.compare(0, proxy_id.size(), proxy_id) == 0
-                    && nid[proxy_id.size()] == ':') {
-                    std::string port_name = nid.substr(proxy_id.size() + 1);
-                    std::string key = proxy_id + "." + port_name;
-                    proxy_port_to_bridge[key] = nid;
-                }
-            }
-        }
-    }
-
-    // Rewrite connections referencing skipped embedded proxy nodes.
-    // Look up the actual bridge node ID by (proxy_id, port_name).
-
-    json connections = json::array();
-    std::set<std::string> emitted_conn;
-
-    for (const bp2::Blueprint::Wire& w : bp.wires()) {
-        auto [sn, sp] = path_to_node_port(w.source);
-        auto [tn, tp] = path_to_node_port(w.target);
-        if (sn.empty() || sp.empty() || tn.empty() || tp.empty()) continue;
-
-        // Rewrite endpoints referencing skipped embedded proxy nodes
-        if (skipped_embedded_proxies.count(sn)) {
-            auto it = proxy_port_to_bridge.find(sn + "." + sp);
-            if (it != proxy_port_to_bridge.end()) {
-                sn = it->second;
-                sp = "ext";
-            }
-        }
-        if (skipped_embedded_proxies.count(tn)) {
-            auto it = proxy_port_to_bridge.find(tn + "." + tp);
-            if (it != proxy_port_to_bridge.end()) {
-                tn = it->second;
-                tp = "ext";
-            }
-        }
-
-        std::string key = sn + "." + sp + "→" + tn + "." + tp;
-        if (!emitted_conn.insert(key).second) continue;
-
-        json c = json::object();
-        c["from"] = sn + "." + sp;
-        c["to"]   = tn + "." + tp;
-        connections.push_back(std::move(c));
-    }
-    out["connections"] = std::move(connections);
-
-    return out.dump(2);
-}
 
 // ============================================================================
 // main
@@ -287,15 +104,29 @@ int main(int argc, char* argv[]) {
     buf << file.rdbuf();
     std::string raw_json = buf.str();
 
-    std::string sim_json;
     bool is_json_input = (bp_path.size() >= 5 &&
                           bp_path.substr(bp_path.size() - 5) == ".json");
 
+    // Build input: either from blueprint (canonical) or from raw JSON (legacy).
+    JitBuildInput build_input;
+    std::string sim_json; // only populated for -json flag or JSON input path
+
     if (is_json_input) {
-        // Raw simulator JSON — use directly
+        // Raw simulator JSON — legacy path via parse_json + UnionFind
         sim_json = raw_json;
+        auto ctx = parse_json(sim_json);
+        std::vector<std::pair<std::string, std::string>> conn_pairs;
+        conn_pairs.reserve(ctx.connections.size());
+        for (const auto& c : ctx.connections)
+            conn_pairs.push_back({c.from, c.to});
+
+        // Build to get port_to_signal for probes/map
+        auto build = build_systems_dev(ctx.devices, conn_pairs);
+        build_input.devices = std::move(ctx.devices);
+        build_input.port_to_signal = std::move(build.port_to_signal);
+        build_input.signal_count = build.signal_count;
     } else {
-        // Blueprint file — decode and convert
+        // Blueprint file — canonical path via Flattener + elaborate_for_jit
         ui::StringInterner interner;
         bp2::PathArena arena(interner);
         TypeRegistry registry = load_type_registry("library/");
@@ -307,18 +138,66 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        sim_json = build_simulation_json(*bp, interner, arena, &registry);
+        // Build composite blueprint library for flattening
+        bp2::BlueprintLibrary library;
+        for (const auto& [classname, def] : registry.types) {
+            if (def.cpp_class) continue;
+            try {
+                auto loaded = bp2::blueprint_from_type_definition(def, interner, registry);
+                library.add(interner.intern(classname), std::move(loaded));
+            } catch (const std::exception& e) {
+                spdlog::warn("[sim_debug] Failed to build blueprint '{}': {}", classname, e.what());
+            }
+        }
+
+        bp2::Flattener flattener(library);
+        bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
+
+        if (dump_json) {
+            // For -json flag, still produce the legacy JSON output
+            auto exported = bp2::elaboration::to_simulation_export(netlist, arena, interner, &registry);
+            nlohmann::json out = nlohmann::json::object();
+            out["templates"] = nlohmann::json::object();
+            out["devices"] = std::move(exported.devices);
+            out["connections"] = std::move(exported.connections);
+            std::cout << out.dump(2) << "\n";
+            return 0;
+        }
+
+        build_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
     }
 
-    if (dump_json) {
+    if (dump_json && is_json_input) {
         std::cout << sim_json << "\n";
+        return 0;
+    }
+
+    if (dump_map) {
+        // Group by signal index
+        std::map<uint32_t, std::vector<std::string>> sig_to_ports;
+        for (const auto& [port, sig] : build_input.port_to_signal)
+            sig_to_ports[sig].push_back(port);
+
+        std::cout << "=== Port → Signal Map ===\n";
+        std::cout << "Signals: " << build_input.signal_count << "\n\n";
+
+        for (auto& [sig, ports] : sig_to_ports) {
+            std::sort(ports.begin(), ports.end());
+            std::cout << "  signal[" << std::setw(3) << sig << "]"
+                      << "       : ";
+            for (size_t j = 0; j < ports.size(); ++j) {
+                if (j) std::cout << ", ";
+                std::cout << ports[j];
+            }
+            std::cout << "\n";
+        }
         return 0;
     }
 
     // --- Start simulator ---
     JIT_Simulator sim;
     try {
-        sim.start_from_json(sim_json);
+        sim.start(build_input);
     } catch (const std::exception& e) {
         std::cerr << "Simulator start failed: " << e.what() << "\n";
         return 1;
@@ -329,54 +208,18 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // --- Build probe list ---
-    // Parse the sim JSON to get port→signal map for the -map flag
-    auto ctx = parse_json(sim_json);
-
-    // Rebuild port→signal via build_systems_dev for the map
-    std::vector<std::pair<std::string,std::string>> conn_pairs;
-    for (const auto& c : ctx.connections)
-        conn_pairs.push_back({c.from, c.to});
-    auto build = build_systems_dev(ctx.devices, conn_pairs);
-
-    if (dump_map) {
-        // Group by signal index
-        std::map<uint32_t, std::vector<std::string>> sig_to_ports;
-        for (const auto& [port, sig] : build.port_to_signal)
-            sig_to_ports[sig].push_back(port);
-
-        std::cout << "=== Port → Signal Map ===\n";
-        std::cout << "Signals: " << build.signal_count
-                  << "  Fixed: " << build.fixed_signals.size() << "\n\n";
-
-        for (auto& [sig, ports] : sig_to_ports) {
-            std::sort(ports.begin(), ports.end());
-            bool fixed = std::binary_search(
-                build.fixed_signals.begin(), build.fixed_signals.end(), sig);
-            std::cout << "  signal[" << std::setw(3) << sig << "]"
-                      << (fixed ? " FIXED" : "      ") << " : ";
-            for (size_t j = 0; j < ports.size(); ++j) {
-                if (j) std::cout << ", ";
-                std::cout << ports[j];
-            }
-            std::cout << "\n";
-        }
-        return 0;
-    }
-
-    // If probe_all, collect all unique port names grouped by node
+    // If probe_all, collect all unique port names
     if (probe_all) {
         std::set<std::string> all;
-        for (const auto& [port, sig] : build.port_to_signal)
+        for (const auto& [port, sig] : build_input.port_to_signal)
             all.insert(port);
         probes.assign(all.begin(), all.end());
     }
 
     // Validate probes
     for (const auto& p : probes) {
-        if (build.port_to_signal.find(p) == build.port_to_signal.end()) {
+        if (build_input.port_to_signal.find(p) == build_input.port_to_signal.end()) {
             std::cerr << "WARNING: probe '" << p << "' not found in signal map.\n";
-            // Don't fail — might be a typo, still run simulation
         }
     }
 

@@ -1759,3 +1759,23 @@ target_link_libraries(bp2_library_index_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(bp2_library_index_tests)
+
+# elaborate_for_jit() vs legacy JSON path parity tests (Issue #113)
+add_executable(elaborate_jit_parity_tests
+    test_elaborate_jit_parity.cpp
+)
+target_include_directories(elaborate_jit_parity_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(elaborate_jit_parity_tests PRIVATE
+    blueprint_v2
+    jit_solver
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(elaborate_jit_parity_tests
+    PROPERTIES LABELS "production_path"
+)

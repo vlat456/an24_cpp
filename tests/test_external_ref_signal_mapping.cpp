@@ -168,7 +168,7 @@ TEST(ExternalRefIntegration, ClosedCircuitFirstOrderLagSignalsNonZero) {
     std::string sim_json = blueprint_to_simulation_json(bp_path);
 
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start_from_json(sim_json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
 
     // Run enough steps for signals to propagate through the composite
     const double dt = 1.0 / 60.0;
@@ -254,7 +254,7 @@ TEST(ExternalRefIntegration, WireIsEnergizedMappedKey) {
     std::string sim_json = blueprint_to_simulation_json(bp_path);
 
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start_from_json(sim_json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
@@ -311,7 +311,7 @@ TEST(CompositePortMapping, RootLevelOutputResolves) {
     std::string sim_json = blueprint_to_simulation_json(bp_path);
 
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start_from_json(sim_json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
@@ -350,7 +350,7 @@ TEST(CompositePortMapping, RootLevelWireEnergizedWithMapping) {
     std::string sim_json = blueprint_to_simulation_json(bp_path);
 
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start_from_json(sim_json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
@@ -379,7 +379,7 @@ TEST(ExternalRefIntegration, RootExpandableRawVsMappedKey) {
     std::string sim_json = blueprint_to_simulation_json(bp_path);
 
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start_from_json(sim_json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
@@ -407,7 +407,7 @@ TEST(ExternalRefIntegration, RootExpandableResolvedKeyMatchesParserRewriteContra
     std::string sim_json = blueprint_to_simulation_json(bp_path);
 
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start_from_json(sim_json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {

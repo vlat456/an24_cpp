@@ -13,30 +13,41 @@
 
 using json = nlohmann::json;
 
-std::string Document::build_simulation_json() {
-    const bp2::Blueprint& bp = model_.current();
-    json out = json::object();
-    out["templates"] = json::object();
+namespace {
+
+/// Build a BlueprintLibrary from the TypeRegistry (composite blueprints).
+/// Shared between build_simulation_json() and build_jit_input().
+bp2::BlueprintLibrary build_library(
+    const bp2::LibraryIndex* library_index,
+    const TypeRegistry* type_registry,
+    ui::StringInterner& interner) {
 
     bp2::BlueprintLibrary library;
-
-    if (library_index_ && type_registry_) {
-        for (const auto& [classname, def] : type_registry_->types) {
-            if (def.cpp_class) {
-                continue;
-            }
-
+    if (library_index && type_registry) {
+        for (const auto& [classname, def] : type_registry->types) {
+            if (def.cpp_class) continue;
             bp2::Blueprint loaded;
             try {
-                loaded = bp2::blueprint_from_type_definition(def, interner_, *type_registry_);
+                loaded = bp2::blueprint_from_type_definition(def, interner, *type_registry);
             } catch (const std::exception& e) {
                 spdlog::warn("[editor] export flatten: failed to build blueprint '{}' from TypeDefinition: {}",
                              classname, e.what());
                 continue;
             }
-            library.add(interner_.intern(classname), std::move(loaded));
+            library.add(interner.intern(classname), std::move(loaded));
         }
     }
+    return library;
+}
+
+} // namespace
+
+std::string Document::build_simulation_json() {
+    const bp2::Blueprint& bp = model_.current();
+    json out = json::object();
+    out["templates"] = json::object();
+
+    bp2::BlueprintLibrary library = build_library(library_index_, type_registry_, interner_);
 
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(bp, arena_);
@@ -44,6 +55,16 @@ std::string Document::build_simulation_json() {
     out["devices"] = std::move(exported.devices);
     out["connections"] = std::move(exported.connections);
     return out.dump(2);
+}
+
+JitBuildInput Document::build_jit_input() {
+    const bp2::Blueprint& bp = model_.current();
+
+    bp2::BlueprintLibrary library = build_library(library_index_, type_registry_, interner_);
+
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(bp, arena_);
+    return bp2::elaboration::elaborate_for_jit(netlist, arena_, interner_, type_registry_);
 }
 
 std::pair<ui::InternedId, ui::InternedId>

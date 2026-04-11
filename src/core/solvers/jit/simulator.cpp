@@ -121,6 +121,61 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
 }
 
 template <typename SolverTag>
+void Simulator<SolverTag>::start(const JitBuildInput& input) {
+    build_result_ = build_systems_dev(input);
+
+    state_ = SimulationState();
+    for (uint32_t i = 0; i < build_result_->signal_count; ++i) {
+        (void)state_.allocate_signal(0.0f);
+    }
+
+    // Initialize RefNode and Value devices from their params.
+    for (const auto& dev : input.devices) {
+        if (dev.classname == "RefNode") {
+            float value = 0.0f;
+            auto it_val = dev.params.find("value");
+            if (it_val != dev.params.end()) {
+                value = locale_safe::parse_float_or(it_val->second, 0.0f);
+            }
+            auto it_sig = build_result_->port_to_signal.find(signal_key::make_node_port_key(dev.name, "v"));
+            if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
+                state_.values[it_sig->second] = value;
+            }
+        }
+        else if (dev.classname == "Value") {
+            float value = 0.0f;
+            auto it_val = dev.params.find("value");
+            if (it_val != dev.params.end()) {
+                value = locale_safe::parse_float_or(it_val->second, 0.0f);
+            }
+            auto it_sig = build_result_->port_to_signal.find(signal_key::make_node_port_key(dev.name, "o"));
+            if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
+                state_.values[it_sig->second] = value;
+            }
+        }
+    }
+
+    // Apply explicit initial values from JitBuildInput (if any).
+    // Keys are port references like "device.port".
+    for (const auto& [port_ref, value] : input.initial_values) {
+        auto it_sig = build_result_->port_to_signal.find(port_ref);
+        if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
+            state_.values[it_sig->second] = value;
+        }
+    }
+
+    state_.lut_keys = std::move(build_result_->lut_keys);
+    state_.lut_values = std::move(build_result_->lut_values);
+
+    state_.electrical_rt = nullptr;
+    electrical_rt_ = ElectricalRuntimeState{};
+
+    time_ = 0.0;
+    step_count_ = 0;
+    running_ = true;
+}
+
+template <typename SolverTag>
 void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
     auto ctx = parse_json(json_str);
 

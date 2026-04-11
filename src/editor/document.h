@@ -217,8 +217,12 @@ private:
     /// Does not cancel gestures and does not rebuild the simulation.
     void rebuild_window_scenes();
 
-    /// Build simulator JSON from current bp2 model.
+    /// Build simulator JSON from current bp2 model (legacy, used by -json flag).
     std::string build_simulation_json();
+
+    /// Build JitBuildInput directly from current bp2 model (no JSON intermediate).
+    /// This is the canonical simulation start path.
+    JitBuildInput build_jit_input();
 
     /// Extract (node_id, port_name) InternedId pair from a bp2::Path
     /// (expects PathKind::Port with Node parent). Returns empty pair on error.

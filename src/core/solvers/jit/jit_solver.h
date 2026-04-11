@@ -198,7 +198,31 @@ struct BuildResult {
     std::vector<SolverStepOp> solver_commit_ops;
 };
 
+/// Pre-computed build input for the JIT solver.
+/// Can be produced either from:
+///   - elaborate_for_jit(FlatNetlist, ...)  — canonical BP2 path (no JSON)
+///   - build_input_from_json(string)        — legacy JSON adapter (tests, CLI)
+struct JitBuildInput {
+    std::vector<DeviceInstance> devices;
+    PortToSignal port_to_signal;
+    uint32_t signal_count = 0;
+    std::unordered_map<std::string, float> initial_values;  // Optional port overrides
+};
+
+/// Build solver runtime from pre-computed input (canonical path).
+/// port_to_signal and signal_count are taken directly from the input;
+/// connections/UnionFind are NOT needed.
+BuildResult build_systems_dev(const JitBuildInput& input);
+
+/// Legacy overload: builds port_to_signal via UnionFind from pairwise connections.
+/// Prefer build_systems_dev(JitBuildInput) for new code.
 BuildResult build_systems_dev(
     const std::vector<DeviceInstance>& devices,
     const std::vector<std::pair<std::string, std::string>>& connections
 );
+
+/// Convert JSON string to JitBuildInput for canonical runtime path.
+/// Parses JSON, computes port_to_signal mapping via UnionFind,
+/// then returns JitBuildInput ready for build_systems_dev(JitBuildInput) or Simulator::start().
+/// This is the adapter for JSON-based tests transitioning to canonical APIs.
+JitBuildInput build_input_from_json(const std::string& json_str);

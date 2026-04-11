@@ -307,7 +307,7 @@ TEST(PushRuntime, DynamicEnableDisableStable) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     sim.apply_overrides({{"sw.control", 0.0f}});
     sim.step(1.0 / 60.0);
@@ -343,7 +343,7 @@ TEST(PushRuntime, InitialValuesSeedState) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 11.5f, 1e-5f);
     sim.step(1.0 / 60.0);
@@ -389,7 +389,7 @@ TEST(PushRuntime, LerpNodeExecuteProducesOutput) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     sim.step(1.0 / 60.0);
 
@@ -417,7 +417,7 @@ TEST(PushRuntime, DynamicFeedbackLoopStableAndBounded) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     for (int i = 0; i < 180; ++i) {
         sim.step(1.0 / 60.0);
@@ -444,7 +444,7 @@ TEST(PushRuntime, CommitHookRunsAfterExecute) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     // Initially switch is open, v_out should be 0
     sim.step(1.0 / 60.0);
@@ -475,7 +475,7 @@ TEST(PushRuntime, StatefulComponentOneFrameDelaySemantic) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     // Initial: switch open, output = 0
     sim.step(1.0 / 60.0);
@@ -518,7 +518,7 @@ TEST(PushRuntime, IntegratorComputesCorrectAccumulation) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
 
@@ -556,7 +556,7 @@ TEST(PushRuntime, SampleHoldBasicOperation) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
 
@@ -583,7 +583,7 @@ TEST(PushRuntime, SlewRateConvergesToInput) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
 
@@ -643,7 +643,7 @@ TEST(PushRuntime, ComponentApiCommitHookCoverageSmoke) {
      })";
 
     JIT_Simulator sim;
-    EXPECT_NO_THROW(sim.start_from_json(json));
+    EXPECT_NO_THROW(sim.start(build_input_from_json(json)));
 
     // Run multiple steps to verify commit path executes safely each frame
     double dt = 1.0 / 60.0;
@@ -676,7 +676,7 @@ TEST(PushRuntime, TimeDelayCommitSemantics) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     double dt = 1.0 / 60.0;
 
     // Run several steps - should be stable without NaN or crashes
@@ -703,7 +703,7 @@ TEST(PushRuntime, MonostableCommitSemantics) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     double dt = 1.0 / 60.0;
 
     // Initial: output should be 0
@@ -734,7 +734,7 @@ TEST(PushRuntime, SlewRateCommitSemantics) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     double dt = 1.0 / 60.0;
 
     // Run several steps - should be stable and converge toward input
@@ -768,7 +768,7 @@ TEST(PushRuntime, AsymSlewRateCommitSemantics) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     double dt = 1.0 / 60.0;
 
     std::vector<float> outputs;
@@ -800,7 +800,7 @@ TEST(PushRuntime, IntegratorCommitOneFrameDelay) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     double dt = 1.0 / 60.0;
 
     // Frame N: output = committed accumulator from frame N-1
@@ -839,7 +839,7 @@ TEST(PushRuntime, SampleHoldCommitSemantics) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     double dt = 1.0 / 60.0;
 
     // Without trigger, output should be 0 (initial stored_value)
@@ -865,7 +865,7 @@ TEST(PushRuntime, LerpNodeCommitSemantics) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     double dt = 1.0 / 60.0;
 
     // Frame 0: cold start, output = input via committed state
@@ -963,7 +963,7 @@ TEST(PushRuntime, StrictParamUsesCanonicalKey) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
 
@@ -1104,7 +1104,7 @@ TEST(PushRuntime, ClosedLoopNoRunawayAfterManySteps) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
 
@@ -1149,7 +1149,7 @@ TEST(PushRuntime, IndicatorLightDoesNotOverwriteSolvedNode) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
 
@@ -1188,7 +1188,7 @@ TEST(PushRuntime, IndicatorLightBrightnessStillFunctional) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
     sim.step(dt);
@@ -1216,7 +1216,7 @@ TEST(PushRuntime, IndicatorLightRejectsMaxBrightnessParam) {
     })";
 
     JIT_Simulator sim;
-    EXPECT_THROW(sim.start_from_json(json), std::runtime_error)
+    EXPECT_THROW(sim.start(build_input_from_json(json)), std::runtime_error)
         << "max_brightness should be rejected as an unknown parameter";
 }
 
@@ -1238,7 +1238,7 @@ TEST(PushRuntime, IndicatorLightBlueprintNormalizedBrightness) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json))
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)))
         << "IndicatorLight with conductance + rated_voltage must build without error";
 
     double dt = 1.0 / 60.0;
@@ -1276,7 +1276,7 @@ TEST(PushRuntime, IndicatorLightNoBrightnessWithoutGround) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
     sim.step(dt);
@@ -1304,7 +1304,7 @@ TEST(PushRuntime, IndicatorLightBrightnessFromVoltageDrop) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
     sim.step(dt);
@@ -1331,7 +1331,7 @@ TEST(PushRuntime, ClosedCircuitBlueprint_NoRunawayVoltage) {
         << "Failed to parse blueprint from: " << blueprint_path;
 
     JIT_Simulator sim;
-    EXPECT_NO_THROW(sim.start_from_json(json))
+    EXPECT_NO_THROW(sim.start(build_input_from_json(json)))
         << "Failed to start simulation from loaded blueprint";
 
     double dt = 1.0 / 60.0;
@@ -1385,7 +1385,7 @@ TEST(PushRuntime, ClosedCircuitBlueprint_RN180RegulatedGeneratorProducesCurrent)
         << "Failed to parse blueprint from: " << blueprint_path;
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json))
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)))
         << "Failed to start simulation from loaded blueprint";
 
     // Run 200 steps (~3.3 seconds) to let PI regulator settle
@@ -1435,7 +1435,7 @@ TEST(PushRuntime, SimulationStateElectricalRtPointerClearedOutsideStep) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     // After start_from_json but before any step, electrical_rt should be nullptr
     // (verified via internal state check by calling step and checking after)
@@ -1544,7 +1544,7 @@ TEST(PushRuntime, RelayElectricalSolverPath_ClosedProducesSag) {
      })";
 
     JIT_Simulator sim_open;
-    ASSERT_NO_THROW(sim_open.start_from_json(json_open));
+    ASSERT_NO_THROW(sim_open.start(build_input_from_json(json_open)));
 
     const double dt = 1.0 / 60.0;
 
@@ -1554,7 +1554,7 @@ TEST(PushRuntime, RelayElectricalSolverPath_ClosedProducesSag) {
     EXPECT_LT(v_open, 1.0f);
 
     JIT_Simulator sim_closed;
-    ASSERT_NO_THROW(sim_closed.start_from_json(json_closed));
+    ASSERT_NO_THROW(sim_closed.start(build_input_from_json(json_closed)));
     for (int i = 0; i < 5; ++i) sim_closed.step(dt);
 
     float v_closed = sim_closed.get_port_value("relay", "v_out");
@@ -1604,7 +1604,7 @@ TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 10; ++i) {
@@ -1639,7 +1639,7 @@ TEST(PushRuntime, ClosedCircuit_EditorIdBasedLookup_NonZeroVoltage) {
         << "Failed to build id-keyed simulation JSON";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json))
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)))
         << "Failed to start simulation from id-keyed JSON";
 
     const double dt = 1.0 / 60.0;
@@ -1694,7 +1694,7 @@ TEST(PushRuntime, AZS_ElectricalSolverPath_ClosedProducesSag) {
 })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(kJson));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(kJson)));
 
     // Let solver-owned dynamic conductance settle through commit/update cycle.
     const double dt = 1.0 / 60.0;
@@ -1731,7 +1731,7 @@ TEST(PushRuntime, HoldButton_ElectricalSolverPath_PressProducesSag) {
 })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(kJson));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(kJson)));
 
     const double dt = 1.0 / 60.0;
     sim.step(dt); // first frame: button state updates after solve
@@ -1773,7 +1773,7 @@ TEST(PushRuntime, AZS_OpenState_ParasiticConductance_StaysFinite) {
 })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(kJson));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(kJson)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 5; ++i) sim.step(dt);
@@ -1815,7 +1815,7 @@ TEST(PushRuntime, AZS_ThermalTripRunsInFullSimulator) {
 })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(kJson));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(kJson)));
 
     // Run for enough steps for thermal model to trip (~1-2 seconds at 60Hz)
     const double dt = 1.0 / 60.0;

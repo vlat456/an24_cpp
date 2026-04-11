@@ -147,8 +147,8 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
         ]
     })";
 
-    sim_a.start_from_json(json_a);
-    sim_b.start_from_json(json_b);
+    sim_a.start(build_input_from_json(json_a));
+    sim_b.start(build_input_from_json(json_b));
 
     double dt = 1.0 / 60.0;
     sim_a.step(dt);
@@ -197,7 +197,7 @@ TEST(ElectricalPrimitives, PrimitiveOnlyCircuitSolvesCorrectly) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
     sim.step(dt);
@@ -237,7 +237,7 @@ TEST(ElectricalPrimitives, PrimitiveOnlyCircuitStableOverTime) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
 
@@ -362,7 +362,7 @@ TEST(ElectricalPrimitives, MixedWrapperAndPrimitiveInSameIsland) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
     sim.step(dt);
@@ -409,8 +409,8 @@ TEST(ElectricalPrimitives, SourceAndBatteryEquivalent) {
 
     JIT_Simulator sim_bat;
     JIT_Simulator sim_src;
-    sim_bat.start_from_json(json_battery);
-    sim_src.start_from_json(json_source);
+    sim_bat.start(build_input_from_json(json_battery));
+    sim_src.start(build_input_from_json(json_source));
 
     double dt = 1.0 / 60.0;
     sim_bat.step(dt);
@@ -458,7 +458,7 @@ TEST(ElectricalPrimitives, TwoConductancesInSeries) {
     })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
 
     double dt = 1.0 / 60.0;
     sim.step(dt);
@@ -833,7 +833,7 @@ TEST(ElectricalPrimitives, MetadataPropagatedThroughLibraryPipeline) {
     })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start_from_json(json));
+    ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
 
     sim.step(1.0 / 60.0);
 

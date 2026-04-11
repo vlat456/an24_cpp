@@ -393,7 +393,7 @@ TEST(ArchitectureRegression, FullSimulatorSmokeWithAllFixes) {
      })";
 
      JIT_Simulator sim;
-     EXPECT_NO_THROW(sim.start_from_json(json));
+     EXPECT_NO_THROW(sim.start(build_input_from_json(json)));
      EXPECT_TRUE(sim.is_running());
 
      // Step 600 frames (10 seconds at 60 Hz)
@@ -508,7 +508,7 @@ TEST(E008_DtClamp, LargeDtIsClamped) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     ASSERT_TRUE(sim.is_running());
 
     // Step with an absurdly large dt (simulating a 1-second frame hitch)
@@ -536,7 +536,7 @@ TEST(E008_DtClamp, NormalDtIsNotClamped) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     ASSERT_TRUE(sim.is_running());
 
     const float normal_dt = 1.0f / 60.0f;
@@ -563,7 +563,7 @@ TEST(E008_DtClamp, ExactlyMaxDtIsNotClamped) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     ASSERT_TRUE(sim.is_running());
 
     sim.step(JIT_Simulator::MAX_DT);
@@ -581,7 +581,7 @@ TEST(E008_DtClamp, ZeroDtIsIgnored) {
         ],
         "connections": []
     })";
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     ASSERT_TRUE(sim.is_running());
 
     sim.step(0.0f);
@@ -598,7 +598,7 @@ TEST(E008_DtClamp, NegativeDtIsIgnored) {
         ],
         "connections": []
     })";
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     ASSERT_TRUE(sim.is_running());
 
     sim.step(-0.5f);
@@ -637,7 +637,7 @@ TEST(E009_SingleSolve, PipelineProducesConsistentElectricalResults) {
      })";
 
     JIT_Simulator sim;
-    sim.start_from_json(json);
+    sim.start(build_input_from_json(json));
     ASSERT_TRUE(sim.is_running());
 
     const double dt = 1.0 / 60.0;
@@ -673,7 +673,7 @@ TEST(E009_SingleSolve, StepCountAndTimeConsistent) {
              {"from": "bat1.v_in", "to": "ref_gnd.v"}
          ]
      })";
-     sim.start_from_json(json);
+     sim.start(build_input_from_json(json));
      ASSERT_TRUE(sim.is_running());
 
      const double dt = 1.0 / 60.0;

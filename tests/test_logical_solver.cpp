@@ -128,7 +128,7 @@ TEST(LogicalSolverTest, LogicalSolver_HasLogicalVector) {
     // Logical-capable blueprint should build and run through Simulator.
     // This validates logical-path plumbing without legacy Systems API.
     Simulator<JIT_Solver> simulator;
-    simulator.start_from_json(comparator_sim_json());
+    simulator.start(build_input_from_json(comparator_sim_json()));
     simulator.step(0.016f);
     simulator.stop();
 
@@ -143,7 +143,7 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
     // Test basic hysteresis: output turns ON above Von, OFF below Voff
     // Using default params: Von=5.0, Voff=2.0
     Simulator<JIT_Solver> simulator;
-    simulator.start_from_json(comparator_sim_json());
+    simulator.start(build_input_from_json(comparator_sim_json()));
 
     // Test 1: Initial state (all zeros) -> output FALSE (diff=0, not > Von)
     simulator.step(0.016f);  // 60Hz = 16.67ms
@@ -186,7 +186,7 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
 TEST(LogicalSolverTest, Comparator_Hysteresis_WithVbOffset) {
     // Test hysteresis with non-zero Vb
     Simulator<JIT_Solver> simulator;
-    simulator.start_from_json(comparator_sim_json());
+    simulator.start(build_input_from_json(comparator_sim_json()));
 
     // Using default params: Von=5, Voff=2
     // Set Vb=10, Va=15 -> (15-10) = 5, at Von threshold -> TRUE

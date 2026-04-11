@@ -6,15 +6,12 @@
 
 using namespace jit_solver_impl;
 
-BuildResult build_systems_dev(
-    const std::vector<DeviceInstance>& devices,
-    const std::vector<std::pair<std::string, std::string>>& connections
+/// Shared build pipeline: phases 2–6 (component factory, electrical islands, etc.)
+/// Assumes result.port_to_signal and result.signal_count are already populated.
+static BuildResult build_from_signals(
+    BuildResult result,
+    const std::vector<DeviceInstance>& devices
 ) {
-    BuildResult result{};
-
-    // Phase 1: Signal allocation and port union-find
-    process_port_unions(result, devices, connections);
-
     if (result.signal_count <= 1) {
         // Empty system, sentinel only
         result.fixed_signals.push_back(0);
@@ -43,4 +40,47 @@ BuildResult build_systems_dev(
     result.devices.seal();
 
     return result;
+}
+
+BuildResult build_systems_dev(const JitBuildInput& input) {
+    BuildResult result{};
+    result.port_to_signal = input.port_to_signal;
+    result.signal_count = input.signal_count;
+    return build_from_signals(std::move(result), input.devices);
+}
+
+BuildResult build_systems_dev(
+    const std::vector<DeviceInstance>& devices,
+    const std::vector<std::pair<std::string, std::string>>& connections
+) {
+    BuildResult result{};
+
+    // Phase 1: Signal allocation and port union-find
+    process_port_unions(result, devices, connections);
+
+    return build_from_signals(std::move(result), devices);
+}
+
+JitBuildInput build_input_from_json(const std::string& json_str) {
+    // Parse JSON to get devices and connections
+    auto ctx = parse_json(json_str);
+
+    // Convert to connection pairs
+    std::vector<std::pair<std::string, std::string>> connections;
+    connections.reserve(ctx.connections.size());
+    for (const auto& c : ctx.connections) {
+        connections.push_back({c.from, c.to});
+    }
+
+    // Build a temporary BuildResult just to compute port_to_signal
+    BuildResult temp_result{};
+    process_port_unions(temp_result, ctx.devices, connections);
+
+    // Return JitBuildInput with computed mapping and initial values
+    return JitBuildInput{
+        ctx.devices,
+        temp_result.port_to_signal,
+        temp_result.signal_count,
+        ctx.initial_values  // Include initial values from JSON
+    };
 }
