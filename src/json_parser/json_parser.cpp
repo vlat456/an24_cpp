@@ -289,54 +289,8 @@ static ParserContext parse_json_impl(const std::string& json_text,
         }
     }
 
-    // Validate one-to-one connections (except for Bus/RefNode)
-    // Log warnings but don't reject - allow existing blueprints to load
-    // Track which ports are already connected
-    std::set<std::string> occupied_ports;
-    for (const auto& conn : ctx.connections) {
-        // Parse connection strings
-        size_t from_dot = conn.from.find('.');
-        size_t to_dot = conn.to.find('.');
-        if (from_dot == std::string::npos || to_dot == std::string::npos) {
-            throw std::runtime_error("Invalid connection format: " + conn.from + " -> " + conn.to);
-        }
-
-        std::string from_device = conn.from.substr(0, from_dot);
-        std::string from_port = conn.from.substr(from_dot + 1);
-        std::string to_device = conn.to.substr(0, to_dot);
-        std::string to_port = conn.to.substr(to_dot + 1);
-
-        // Check if devices allow multiple connections (Bus, RefNode)
-        auto* from_dev = ctx.find_device(from_device);
-        auto* to_dev = ctx.find_device(to_device);
-
-        bool from_allows_multiple = (from_dev &&
-            (from_dev->classname == "Bus" || from_dev->classname == "RefNode"));
-        bool to_allows_multiple = (to_dev &&
-            (to_dev->classname == "Bus" || to_dev->classname == "RefNode"));
-
-        // Check if ports are already occupied - log warning but don't throw
-        if (!from_allows_multiple && occupied_ports.count(conn.from)) {
-            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing duplicate",
-                          conn.from);
-        }
-        if (!to_allows_multiple && occupied_ports.count(conn.to)) {
-            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing duplicate",
-                          conn.to);
-        }
-
-        // Mark ports as occupied
-        if (!from_allows_multiple) {
-            occupied_ports.insert(conn.from);
-        }
-        if (!to_allows_multiple) {
-            occupied_ports.insert(conn.to);
-        }
-    }
-
-    // NOTE: Port type validation is done during wire creation in the editor,
-    // not during JSON parsing. This allows loading existing blueprints and
-    // gives better error messages when users try to create incompatible connections.
+    // NOTE: One-to-one connection validation is not enforced at JSON parse time.
+    // The canonical runtime/editor path uses pairwise validation during blueprint elaboration.
 
     spdlog::debug("[json_parser] Parsed {} templates, {} devices, {} connections",
         ctx.templates.size(), ctx.devices.size(), ctx.connections.size());
