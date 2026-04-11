@@ -177,7 +177,11 @@ bool PathResolver::can_connect(WireEndpoint const& source,
         return false;
     }
 
-    if (src->port.domain != tgt->port.domain) {
+    // PortType::Any is a domain wildcard — skip domain equality check
+    // when either side is Any.
+    if (src->port.port_type != PortType::Any
+        && tgt->port.port_type != PortType::Any
+        && src->port.domain != tgt->port.domain) {
         return false;
     }
 
@@ -204,7 +208,11 @@ bool PathResolver::can_connect(Path const& source,
         return false;
     }
 
-    if (src->port.domain != tgt->port.domain) {
+    // PortType::Any is a domain wildcard — skip domain equality check
+    // when either side is Any.
+    if (src->port.port_type != PortType::Any
+        && tgt->port.port_type != PortType::Any
+        && src->port.domain != tgt->port.domain) {
         return false;
     }
 

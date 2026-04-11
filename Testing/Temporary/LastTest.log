@@ -1,3 +1,19 @@
-Start testing: Apr 10 21:45 CEST
+Start testing: Apr 11 12:33 CEST
 ----------------------------------------------------------
-End testing: Apr 10 21:45 CEST
+Unable to find executable: v3_migration_tests_NOT_BUILT
+616/644 Testing: v3_migration_tests_NOT_BUILT
+616/644 Test: v3_migration_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"v3_migration_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"v3_migration_tests_NOT_BUILT" end time: Apr 11 12:33 CEST
+"v3_migration_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Apr 11 12:33 CEST

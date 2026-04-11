@@ -31,5 +31,10 @@
   ],
   "param_defaults": {
     "table": "0:0; 100:100"
+  },
+  "param_schema": {
+    "table": {
+      "type": "string"
+    }
   }
 }

@@ -1,5 +1,6 @@
 #include "blueprint_codec_internal.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
+#include "blueprint_v2/validation/path_resolver.h"
 
 #include <algorithm>
 #include <unordered_set>
@@ -334,6 +335,46 @@ Blueprint decode_wires(Blueprint bp,
         bp = bp.with_wire(std::move(wire));
     }
     return bp;
+}
+
+Blueprint resolve_wire_domains(Blueprint bp,
+                               ::TypeRegistry const& parser_registry,
+                               ui::StringInterner& interner) {
+    PathResolver resolver;
+    Blueprint result = bp;
+
+    // Clear existing wires and re-add them with resolved domains.
+    for (auto const& w : bp.wires()) {
+        result = result.without_wire(w.id);
+    }
+    for (auto const& w : bp.wires()) {
+        auto src = resolver.resolve(w.source, bp, parser_registry, interner);
+        auto tgt = resolver.resolve(w.target, bp, parser_registry, interner);
+        if (!src || !tgt) {
+            // Unresolvable wire — keep original domain; invariant checker
+            // will report the real error.
+            result = result.with_wire(w);
+            continue;
+        }
+
+        Blueprint::Wire fixed = w;
+        const bool src_any = (src->port.port_type == PortType::Any);
+        const bool tgt_any = (tgt->port.port_type == PortType::Any);
+
+        if (src_any && tgt_any) {
+            fixed.domain = src->port.domain;
+        } else if (src_any) {
+            fixed.domain = tgt->port.domain;
+        } else if (tgt_any) {
+            fixed.domain = src->port.domain;
+        } else {
+            // Both concrete — use source domain (should be equal;
+            // wire validator will catch mismatches).
+            fixed.domain = src->port.domain;
+        }
+        result = result.with_wire(std::move(fixed));
+    }
+    return result;
 }
 
 } // namespace bp2::codec_detail

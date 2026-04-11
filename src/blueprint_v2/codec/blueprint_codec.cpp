@@ -119,6 +119,7 @@ std::optional<Blueprint> BlueprintCodec::decode(
         bp = bp.with_interface(codec_detail::decode_interface(j["interface"], interner));
         bp = codec_detail::decode_nodes(std::move(bp), j["nodes"], interner, parser_registry);
         bp = codec_detail::decode_wires(std::move(bp), j["wires"], interner);
+        bp = codec_detail::resolve_wire_domains(std::move(bp), parser_registry, interner);
 
         auto inv = InvariantChecker::validate(bp, arena, parser_registry, interner);
         if (!inv.valid) {

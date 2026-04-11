@@ -24,6 +24,11 @@
   "param_defaults": {
     "value": "0.0"
   },
+  "param_schema": {
+    "value": {
+      "type": "float"
+    }
+  },
   "solver_role": {
     "kind": "FixedVoltageNode",
     "ports": {

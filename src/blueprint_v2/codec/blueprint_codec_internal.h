@@ -102,4 +102,11 @@ Blueprint decode_wires(Blueprint bp,
                        nlohmann::json const& arr,
                        ui::StringInterner& interner);
 
+/// Resolve wire domain fields from endpoint port types after decode.
+/// v1 format does not persist wire domain; this pass infers it from
+/// resolved endpoint ports so the invariant checker can verify it.
+Blueprint resolve_wire_domains(Blueprint bp,
+                               ::TypeRegistry const& parser_registry,
+                               ui::StringInterner& interner);
+
 } // namespace bp2::codec_detail

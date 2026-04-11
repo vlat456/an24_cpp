@@ -73,6 +73,11 @@
   "param_defaults": {
     "r_internal": "0.1"
   },
+  "param_schema": {
+    "r_internal": {
+      "type": "float"
+    }
+  },
   "solver_role": {
     "kind": "TheveninSource",
     "ports": {

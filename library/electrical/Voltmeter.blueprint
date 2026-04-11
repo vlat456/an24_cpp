@@ -26,6 +26,14 @@
     "max": "28.0",
     "min": "0.0"
   },
+  "param_schema": {
+    "min": {
+      "type": "float"
+    },
+    "max": {
+      "type": "float"
+    }
+  },
   "priority": "low",
   "content_type": "Gauge"
 }

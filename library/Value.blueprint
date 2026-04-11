@@ -25,5 +25,10 @@
   "param_defaults": {
     "value": "0.0"
   },
+  "param_schema": {
+    "value": {
+      "type": "float"
+    }
+  },
   "render_hint": "ref"
 }

@@ -1446,6 +1446,8 @@ gtest_discover_tests(spring_tests)
 
 add_executable(v3_migration_tests
     test_v3_migration.cpp
+    test_closed_circuit_strict_load.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_include_directories(v3_migration_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src

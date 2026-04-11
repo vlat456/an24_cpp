@@ -38,6 +38,11 @@
   "param_defaults": {
     "conductance": "0.05"
   },
+  "param_schema": {
+    "conductance": {
+      "type": "float"
+    }
+  },
   "solver_role": {
     "kind": "ConductanceBranch",
     "ports": {

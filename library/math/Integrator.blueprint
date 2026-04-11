@@ -45,5 +45,10 @@
   ],
   "param_defaults": {
     "initial_val": "0.0"
+  },
+  "param_schema": {
+    "initial_val": {
+      "type": "float"
+    }
   }
 }
