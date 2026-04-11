@@ -1,6 +1,8 @@
 #pragma once
 
 #include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/aot/codegen_composite_helpers.h"
+#include "json_parser/json_parser.h"
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -49,6 +51,37 @@ inline JitBuildInput make_jit_input(
     }
 
     input.signal_count = next_signal + 1;  // +1 for sentinel
+    
+    return input;
+}
+
+/// Helper to construct JitBuildInput from composite signal allocation rules.
+/// Uses codegen_composite_detail production functions to compute signal allocation
+/// from explicit device and connection pairs.
+inline JitBuildInput make_jit_input_from_composite(
+    std::vector<DeviceInstance> devices,
+    const std::vector<Connection>& connections)
+{
+    JitBuildInput input;
+    input.devices = std::move(devices);
+    
+    // Build port index map from all declared device ports
+    std::vector<std::string> all_ports;
+    std::unordered_map<std::string, uint32_t> port_to_idx;
+    codegen_composite_detail::build_port_index_map(input.devices, all_ports, port_to_idx);
+    
+    // Construct union-find for signal allocation
+    codegen_composite_detail::UnionFind uf(all_ports.size());
+    
+    // Apply signal allocation rules (connections, alias rules, etc.)
+    codegen_composite_detail::apply_signal_allocation_rules(uf, input.devices, connections, port_to_idx);
+    
+    // Finalize signal indices from union-find result
+    uint32_t signal_count = 0;
+    input.port_to_signal =
+        codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
+    
+    input.signal_count = signal_count;
     
     return input;
 }

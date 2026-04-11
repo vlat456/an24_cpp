@@ -4,6 +4,7 @@
 #include "core/solvers/aot/codegen_composite_helpers.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "json_parser/json_parser.h"
+#include "jit_build_input_test_helper.h"
 #include "test_fixtures.h"
 #include "test_helpers.h"
 
@@ -154,7 +155,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     for (const auto& c : connections) {
         conn_pairs.emplace_back(c.from, c.to);
     }
-    BuildResult jit = build_systems_dev(devices, conn_pairs);
+    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, connections));
 
     auto signal_of = [&](const std::string& port) {
         auto it = jit.port_to_signal.find(port);
@@ -214,7 +215,7 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     for (const auto& c : connections) {
         conn_pairs.emplace_back(c.from, c.to);
     }
-    BuildResult jit = build_systems_dev(devices, conn_pairs);
+    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, connections));
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
@@ -302,7 +303,7 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
         conn_pairs.emplace_back(c.from, c.to);
     }
 
-    BuildResult jit = build_systems_dev(devices, conn_pairs);
+    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, connections));
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
