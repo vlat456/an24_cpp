@@ -49,18 +49,6 @@ BuildResult build_systems_dev(const JitBuildInput& input) {
     return build_from_signals(std::move(result), input.devices);
 }
 
-BuildResult build_systems_dev(
-    const std::vector<DeviceInstance>& devices,
-    const std::vector<std::pair<std::string, std::string>>& connections
-) {
-    BuildResult result{};
-
-    // Phase 1: Signal allocation and port union-find
-    process_port_unions(result, devices, connections);
-
-    return build_from_signals(std::move(result), devices);
-}
-
 JitBuildInput build_input_from_json(const std::string& json_str) {
     // Parse JSON to get devices and connections
     auto ctx = parse_json(json_str);

@@ -214,13 +214,6 @@ struct JitBuildInput {
 /// connections/UnionFind are NOT needed.
 BuildResult build_systems_dev(const JitBuildInput& input);
 
-/// Legacy overload: builds port_to_signal via UnionFind from pairwise connections.
-/// Prefer build_systems_dev(JitBuildInput) for new code.
-BuildResult build_systems_dev(
-    const std::vector<DeviceInstance>& devices,
-    const std::vector<std::pair<std::string, std::string>>& connections
-);
-
 /// Convert JSON string to JitBuildInput for canonical runtime path.
 /// Parses JSON, computes port_to_signal mapping via UnionFind,
 /// then returns JitBuildInput ready for build_systems_dev(JitBuildInput) or Simulator::start().
