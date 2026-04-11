@@ -5,6 +5,7 @@
 #include "core/solvers/jit/components/all.h"
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/state.h"
+#include "jit_build_input_test_helper.h"
 
 #include <cmath>
 #include <stdexcept>
@@ -29,12 +30,13 @@ DeviceInstance make_device(const std::string& name,
     dev.params = params;
     dev.execution = {};
 
-    auto ports = get_component_ports(classname);
-    for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
-    }
-
+    // First try to get full TypeDefinition::ports if available.
     if (const TypeDefinition* def = test_registry().get(classname)) {
+        // Use full TypeDefinition::ports which includes input, output, and inout.
+        for (const auto& [port_name, port_info] : def->ports) {
+            dev.ports[port_name] = port_info;
+        }
+        // Fill in missing params from defaults.
         for (const auto& [param_name, param_value] : def->params) {
             auto schema_it = def->param_schema.find(param_name);
             if (schema_it != def->param_schema.end() && schema_it->second.visual_only) {
@@ -45,6 +47,12 @@ DeviceInstance make_device(const std::string& name,
             }
         }
         dev.solver_role = def->solver_role;
+    } else {
+        // Fallback: get component ports generically.
+        auto ports = get_component_ports(classname);
+        for (const auto& port_name : ports) {
+            dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+        }
     }
     return dev;
 }
@@ -248,7 +256,7 @@ TEST(PushRuntime, SinglePassSettlesLinearChain) {
         make_device("clamp_max", "Value", {{"value", "20.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"ra.v", "add.A"},
         {"rb.v", "add.B"},
         {"add.o", "mul.A"},
@@ -258,7 +266,7 @@ TEST(PushRuntime, SinglePassSettlesLinearChain) {
         {"clamp_max.o", "clamp.max"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
     auto st = make_state(result.signal_count);
 
     result.scheduler.step(st, 1.0f / 60.0f);
@@ -275,14 +283,14 @@ TEST(PushRuntime, CycleUsesOneFrameDelay) {
         make_device("ref2", "RefNode", {{"value", "2.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"add2.o", "add1.A"},
         {"ref1.v", "add1.B"},
         {"add1.o", "add2.A"},
         {"ref2.v", "add2.B"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
     auto st = make_state(result.signal_count);
 
     for (int i = 0; i < 10; ++i) {
@@ -357,14 +365,13 @@ TEST(PushRuntime, SourceConflictErrorMessageReadable) {
          make_device("gnd", "RefNode", {{"value", "0.0"}})
      };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"b1.v_out", "b2.v_out"},
-        {"gnd.v", "b1.v_in"},
-        {"gnd.v", "b2.v_in"}
+        {"gnd.v", "b1.v_in", "b2.v_in"}
     };
 
     try {
-        (void)build_systems_dev(devices, connections);
+        (void)build_systems_dev(make_jit_input(devices, signal_groups));
         FAIL() << "Expected source conflict to throw";
     }
     catch (const std::runtime_error& e) {
@@ -903,10 +910,9 @@ TEST(PushRuntime, StrictParamMissingThrowsForPID) {
     }
 
     std::vector<DeviceInstance> test_devs = {dev};
-    std::vector<std::pair<std::string, std::string>> connections;
 
     try {
-        (void)build_systems_dev(test_devs, connections);
+        (void)build_systems_dev(make_jit_input(test_devs, {}));
         FAIL() << "Expected runtime_error for PID missing Kp";
     }
     catch (const std::runtime_error& e) {
@@ -932,10 +938,9 @@ TEST(PushRuntime, StrictParamMissingThrowsForSlewRate) {
     }
 
     std::vector<DeviceInstance> test_devs = {dev};
-    std::vector<std::pair<std::string, std::string>> connections;
 
     try {
-        (void)build_systems_dev(test_devs, connections);
+        (void)build_systems_dev(make_jit_input(test_devs, {}));
         FAIL() << "Expected runtime_error for SlewRate missing max_rate";
     }
     catch (const std::runtime_error& e) {
@@ -1008,10 +1013,9 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
         }
         
         std::vector<DeviceInstance> test_devs = {dev};
-        std::vector<std::pair<std::string, std::string>> connections;
         
         try {
-            (void)build_systems_dev(test_devs, connections);
+            (void)build_systems_dev(make_jit_input(test_devs, {}));
             FAIL() << "Expected runtime_error for PID with unknown param 'Kpp'";
         }
         catch (const std::runtime_error& e) {
@@ -1044,9 +1048,8 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
          }
          
          std::vector<DeviceInstance> test_devs = {dev};
-         std::vector<std::pair<std::string, std::string>> connections;
          
-         EXPECT_NO_THROW((void)build_systems_dev(test_devs, connections));
+         EXPECT_NO_THROW((void)build_systems_dev(make_jit_input(test_devs, {})));
      }
 }
 
@@ -1068,14 +1071,13 @@ TEST(PushRuntime, SolverOwnedComponentsNotScheduledForElectricalPropagation) {
          make_device("sw", "Switch", {{"closed", "true"}})  // consumer to verify scheduling works
      };
 
-     std::vector<std::pair<std::string, std::string>> connections = {
-         {"gnd.v", "bat.v_in"},
+     std::vector<std::vector<std::string>> signal_groups = {
+         {"gnd.v", "bat.v_in", "gen.v_in"},
          {"bat.v_out", "res.v_in"},
-         {"res.v_out", "sw.v_in"},
-         {"gnd.v", "gen.v_in"}
+         {"res.v_out", "sw.v_in"}
      };
 
-     auto result = build_systems_dev(devices, connections);
+     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
      // RefNode is scheduled as a source (it must write its constant value).
      // ElectricalSource, Generator, Resistor are solver-owned and NOT scheduled.
