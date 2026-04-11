@@ -3,6 +3,7 @@
 #include "core/solvers/jit/subsolvers/subsolver_types.h"
 #include "core/solvers/jit/components/port_registry.h"
 #include "json_parser/json_parser.h"
+#include "jit_build_input_test_helper.h"
 #include <algorithm>
 
 namespace {
@@ -62,12 +63,11 @@ TEST(ElectricalHandleBuild, ElectricalSourceCreatesTheveninElement) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery.v_out", "battery.v_in", "refnode.v"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
 
@@ -91,12 +91,11 @@ TEST(ElectricalHandleBuild, GeneratorGetsValidHandle) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"gen.v_out", "refnode.v"},
-        {"gen.v_in", "refnode.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"gen.v_out", "gen.v_in", "refnode.v"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
 
@@ -117,13 +116,12 @@ TEST(ElectricalHandleBuild, IndicatorLightGetsValidHandle) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "light.v_in"},
-        {"light.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"light.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
 
@@ -142,12 +140,11 @@ TEST(ElectricalHandleBuild, HandlePointsToCorrectElementKind) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"gen.v_out", "refnode.v"},
-        {"gen.v_in", "refnode.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"gen.v_out", "gen.v_in", "refnode.v"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     const auto& island = result.electrical_plan.islands[0];
     auto it = result.devices.find("gen");
@@ -168,13 +165,12 @@ TEST(ElectricalHandleBuild, IndicatorHandlePointsToConductanceBranch) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "light.v_in"},
-        {"light.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"light.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     const auto& island = result.electrical_plan.islands[0];
     auto it = result.devices.find("light");
@@ -197,14 +193,13 @@ TEST(ElectricalHandleBuild, DeterministicHandles) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"gen.v_out", "light.v_in"},
-        {"light.v_out", "refnode.v"},
-        {"gen.v_in", "refnode.v"}
+        {"light.v_out", "refnode.v", "gen.v_in"}
     };
 
-    auto result1 = build_systems_dev(devices, connections);
-    auto result2 = build_systems_dev(devices, connections);
+    auto result1 = build_systems_dev(make_jit_input(devices, signal_groups));
+    auto result2 = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Generator handles should match
     const Generator<JitProvider>* gen1 = std::get_if<Generator<JitProvider>>(&result1.devices.at("gen"));
@@ -231,13 +226,12 @@ TEST(ElectricalHandleBuild, CurrentSenseGetsValidHandle) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "cs.v_in"},
-        {"cs.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"cs.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     auto it = result.devices.find("cs");
     ASSERT_NE(it, result.devices.end());
@@ -255,13 +249,12 @@ TEST(ElectricalHandleBuild, CurrentSenseHandlePointsToConductanceBranch) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "cs.v_in"},
-        {"cs.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"cs.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     const auto& island = result.electrical_plan.islands[0];
     auto it = result.devices.find("cs");
@@ -286,14 +279,12 @@ TEST(ElectricalHandleBuild, MultipleIslandsIndependentHandles) {
         make_device("gnd2", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"gen1.v_out", "gnd1.v"},
-        {"gen1.v_in", "gnd1.v"},
-        {"gen2.v_out", "gnd2.v"},
-        {"gen2.v_in", "gnd2.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"gen1.v_out", "gen1.v_in", "gnd1.v"},
+        {"gen2.v_out", "gen2.v_in", "gnd2.v"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_EQ(result.electrical_plan.islands.size(), 2u);
 
@@ -317,12 +308,11 @@ TEST(ElectricalHandleBuild, GeneratorHandlePointsToTheveninSource) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"gen.v_out", "refnode.v"},
-        {"gen.v_in", "refnode.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"gen.v_out", "gen.v_in", "refnode.v"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     const auto& island = result.electrical_plan.islands[0];
     auto it = result.devices.find("gen");
@@ -346,12 +336,11 @@ TEST(ElectricalHandleBuild, GeneratorWithParamsGetsValidHandle) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"gen.v_out", "refnode.v"},
-        {"gen.v_in", "refnode.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"gen.v_out", "gen.v_in", "refnode.v"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     const Generator<JitProvider>* gen = std::get_if<Generator<JitProvider>>(&result.devices.at("gen"));
     ASSERT_NE(gen, nullptr);
@@ -386,15 +375,13 @@ TEST(ElectricalHandleBuild, KnobSwitchMetadataGetsHandles) {
     DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
 
     std::vector<DeviceInstance> devices = {bat, knob, gnd};
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"bat.v_out", "knob.wiper"},
-        {"knob.throw1", "gnd.v"},
-        {"knob.throw2", "gnd.v"},
-        {"knob.throw3", "gnd.v"},
-        {"bat.v_in", "gnd.v"}
+        {"knob.throw1", "knob.throw2", "knob.throw3", "gnd.v"},
+        {"bat.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     const KnobSwitch<JitProvider>* ks = std::get_if<KnobSwitch<JitProvider>>(&result.devices.at("knob"));
     ASSERT_NE(ks, nullptr);
@@ -438,14 +425,13 @@ TEST(ElectricalHandleBuild, KnobSwitchMetadataWithoutBindHandleGetsNoHandles) {
     DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
 
     std::vector<DeviceInstance> devices = {bat, knob, gnd};
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"bat.v_out", "knob.wiper"},
-        {"knob.throw1", "gnd.v"},
-        {"knob.throw2", "gnd.v"},
-        {"bat.v_in", "gnd.v"}
+        {"knob.throw1", "knob.throw2", "gnd.v"},
+        {"bat.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     const KnobSwitch<JitProvider>* ks = std::get_if<KnobSwitch<JitProvider>>(&result.devices.at("knob"));
     ASSERT_NE(ks, nullptr);

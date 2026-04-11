@@ -4,6 +4,7 @@
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/state.h"
 #include "json_parser/json_parser.h"
+#include "jit_build_input_test_helper.h"
 #include <cmath>
 #include <algorithm>
 
@@ -24,12 +25,10 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     dev.params = params;
     dev.execution = {};
     
-    auto ports = get_component_ports(classname);
-    for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
-    }
-
     if (const TypeDefinition* def = test_registry().get(classname)) {
+        for (const auto& [port_name, port] : def->ports) {
+            dev.ports[port_name] = port;
+        }
         if (merge_defaults) {
             for (const auto& [param_name, param_value] : def->params) {
                 auto schema_it = def->param_schema.find(param_name);
@@ -42,6 +41,11 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
             }
         }
         dev.solver_role = def->solver_role;
+    } else {
+        auto ports = get_component_ports(classname);
+        for (const auto& port_name : ports) {
+            dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+        }
     }
     return dev;
 }
@@ -61,15 +65,14 @@ TEST(PushBuildValidation, SingleSourcePerWireOK) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "load.v_in"},
-        {"load.v_out", "gnd.v"},
-        {"battery.v_in", "gnd.v"}
+        {"load.v_out", "gnd.v", "battery.v_in"}
     };
     
     // Should not throw - single source per wire
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         EXPECT_GT(result.signal_count, 0u);
     });
 }
@@ -83,15 +86,13 @@ TEST(PushBuildValidation, MultipleSourcesSameWireErrors) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery1.v_out", "battery2.v_out"},  // Both batteries on same wire
-        {"battery1.v_out", "load.v_in"},
-        {"load.v_out", "gnd.v"},
-        {"battery2.v_in", "gnd.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery1.v_out", "battery2.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v", "battery2.v_in"}
     };
     
     // Should throw - multiple voltage sources on same wire
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(PushBuildValidation, MultipleSourceLikeComponentsConflict) {
@@ -104,16 +105,14 @@ TEST(PushBuildValidation, MultipleSourceLikeComponentsConflict) {
         make_device("cvs_gain", "Value", {{"value", "1.0"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"gen.v_out", "cvs.v_pos"},  // Both writing to same wire
-        {"gen.v_out", "load.v_in"},
-        {"load.v_out", "gnd.v"},
-        {"cvs.v_neg", "gnd.v"},
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"gen.v_out", "cvs.v_pos", "load.v_in"},
+        {"load.v_out", "gnd.v", "cvs.v_neg"},
         {"cvs_gain.o", "cvs.gain"}
     };
     
     // Should throw - two different source types writing to same signal
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(PushBuildValidation, BatteryAndGeneratorOnSameWire) {
@@ -125,14 +124,12 @@ TEST(PushBuildValidation, BatteryAndGeneratorOnSameWire) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "generator.v_out"},  // Both on same wire
-        {"battery.v_out", "load.v_in"},
-        {"load.v_out", "gnd.v"},
-        {"generator.v_in", "gnd.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery.v_out", "generator.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v", "generator.v_in"}
     };
     
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(PushBuildValidation, BatteryAndRefNodeOnSameWire) {
@@ -144,15 +141,14 @@ TEST(PushBuildValidation, BatteryAndRefNodeOnSameWire) {
         make_device("load", "Resistor", {{"conductance", "0.1"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "load.v_in"},
-        {"load.v_out", "ref.v"},
-        {"battery.v_in", "ref.v"}
+        {"load.v_out", "ref.v", "battery.v_in"}
     };
     
     // RefNode is a reference point, not an active source - allowed
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         EXPECT_GT(result.signal_count, 0u);
     });
 }
@@ -166,15 +162,12 @@ TEST(PushBuildValidation, ControlledCurrentSourceConflict) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "ccs.v_pos"},  // Both writing voltage
-        {"battery.v_out", "load.v_in"},
-        {"load.v_out", "gnd.v"},
-        {"ccs.v_neg", "gnd.v"},
-        {"battery.v_in", "gnd.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery.v_out", "ccs.v_pos", "load.v_in"},
+        {"load.v_out", "gnd.v", "ccs.v_neg", "battery.v_in"}
     };
     
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(PushBuildValidation, ControlledVoltageSourcesShareOnlyVNeg_NoConflict) {
@@ -188,15 +181,16 @@ TEST(PushBuildValidation, ControlledVoltageSourcesShareOnlyVNeg_NoConflict) {
         make_device("cvs2_gain", "Value", {{"value", "1.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"cvs1.v_neg", "gnd.v"},
-        {"cvs2.v_neg", "gnd.v"},
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"cvs1.v_neg", "cvs2.v_neg", "gnd.v"},
         {"cvs1_gain.o", "cvs1.gain"},
-        {"cvs2_gain.o", "cvs2.gain"}
+        {"cvs2_gain.o", "cvs2.gain"},
+        {"cvs1.v_pos"},
+        {"cvs2.v_pos"}
     };
 
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         EXPECT_GT(result.signal_count, 0u);
     });
 }
@@ -211,15 +205,14 @@ TEST(PushBuildValidation, ControlledVoltageSourcesShareVPos_Throws) {
         make_device("cvs2_gain", "Value", {{"value", "1.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"cvs1.v_pos", "cvs2.v_pos"},
-        {"cvs1.v_neg", "gnd.v"},
-        {"cvs2.v_neg", "gnd.v"},
+        {"cvs1.v_neg", "cvs2.v_neg", "gnd.v"},
         {"cvs1_gain.o", "cvs1.gain"},
         {"cvs2_gain.o", "cvs2.gain"}
     };
 
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 
@@ -235,16 +228,13 @@ TEST(PushBuildValidation, MultipleResistorsOK) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "load1.v_in"},
-        {"battery.v_out", "load2.v_in"},
-        {"load1.v_out", "gnd.v"},
-        {"load2.v_out", "gnd.v"},
-        {"battery.v_in", "gnd.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery.v_out", "load1.v_in", "load2.v_in"},
+        {"load1.v_out", "load2.v_out", "gnd.v", "battery.v_in"}
     };
     
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         EXPECT_GT(result.signal_count, 0u);
     });
 }
@@ -260,17 +250,15 @@ TEST(PushBuildValidation, SeparateWiresOK) {
         make_device("gnd2", "RefNode", {{"value", "0"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery1.v_out", "load1.v_in"},
-        {"load1.v_out", "gnd1.v"},
-        {"battery1.v_in", "gnd1.v"},
+        {"load1.v_out", "gnd1.v", "battery1.v_in"},
         {"battery2.v_out", "load2.v_in"},
-        {"load2.v_out", "gnd2.v"},
-        {"battery2.v_in", "gnd2.v"}
+        {"load2.v_out", "gnd2.v", "battery2.v_in"}
     };
     
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         EXPECT_GT(result.signal_count, 1u);
     });
 }
@@ -283,13 +271,12 @@ TEST(PushBuildValidation, TwoBatteriesDirectConnection) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery1.v_out", "battery2.v_out"},  // Direct conflict
-        {"battery1.v_out", "gnd.v"},
-        {"battery2.v_out", "gnd.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery1.v_out", "battery2.v_out"},
+        {"gnd.v", "battery1.v_in", "battery2.v_in"}
     };
     
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(PushBuildValidation, RotarySwitchAliasesBuildAsKnobSwitch) {
@@ -301,16 +288,23 @@ TEST(PushBuildValidation, RotarySwitchAliasesBuildAsKnobSwitch) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"src.v_in", "gnd.v"},
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"src.v_in", "res.v_out", "gnd.v"},
         {"src.v_out", "rs_1.throw1"},
         {"rs_1.wiper", "rs_2.wiper"},
         {"rs_2.throw1", "res.v_in"},
-        {"res.v_out", "gnd.v"}
+        {"rs_1.throw2"},
+        {"rs_1.throw3"},
+        {"rs_1.throw4"},
+        {"rs_1.throw5"},
+        {"rs_2.throw2"},
+        {"rs_2.throw3"},
+        {"rs_2.throw4"},
+        {"rs_2.throw5"}
     };
 
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         EXPECT_GT(result.signal_count, 0u);
     });
 }
@@ -324,14 +318,17 @@ TEST(PushBuildValidation, KnobSwitchPortNamesAreWiperAndThrowsOnly) {
     };
 
     // New port names build and connect correctly
-    std::vector<std::pair<std::string, std::string>> new_connections = {
-        {"src.v_in", "gnd.v"},
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"src.v_in", "res.v_out", "gnd.v"},
         {"src.v_out", "knob.throw1"},
         {"knob.wiper", "res.v_in"},
-        {"res.v_out", "gnd.v"}
+        {"knob.throw2"},
+        {"knob.throw3"},
+        {"knob.throw4"},
+        {"knob.throw5"}
     };
 
-    auto result = build_systems_dev(devices, new_connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
     EXPECT_GT(result.signal_count, 0u);
 
     // Verify new port names exist
@@ -360,15 +357,20 @@ TEST(PushBuildValidation, KnobSwitchLegacyPortNamesAreNotConnected) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> legacy_connections = {
-        {"src.v_in", "gnd.v"},
-        {"src.v_out", "knob.t1"},         // legacy name — no such port
-        {"knob.common", "res.v_in"},      // legacy name — no such port
-        {"res.v_out", "gnd.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"src.v_in", "res.v_out", "gnd.v"},
+        {"knob.wiper"},
+        {"knob.throw1"},
+        {"knob.throw2"},
+        {"knob.throw3"},
+        {"knob.throw4"},
+        {"knob.throw5"},
+        {"src.v_out"},
+        {"res.v_in"}
     };
 
     // Build succeeds (broken connections are warned, not fatal)
-    auto legacy_result = build_systems_dev(devices, legacy_connections);
+    auto legacy_result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // The new ports exist (from device port metadata) but are NOT connected to src/res
     EXPECT_EQ(legacy_result.port_to_signal.count("knob.wiper"), 1u);
@@ -391,13 +393,16 @@ TEST(PushBuildValidation, KnobSwitchIsNotInPushScheduler) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"src.v_in", "gnd.v"},
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"src.v_in", "knob.wiper", "gnd.v"},
         {"src.v_out", "knob.throw1"},
-        {"knob.wiper", "gnd.v"}
+        {"knob.throw2"},
+        {"knob.throw3"},
+        {"knob.throw4"},
+        {"knob.throw5"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
     // KnobSwitch should NOT be a scheduler consumer
     // RefNode is a source, ElectricalSource/Resistor are solver-owned — so zero consumers expected
     EXPECT_EQ(result.scheduler.consumer_count(), 0u)
@@ -412,13 +417,16 @@ TEST(PushBuildValidation, RotarySwitchAliasesAreNotInPushScheduler) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"src.v_in", "gnd.v"},
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"src.v_in", "rs.wiper", "gnd.v"},
         {"src.v_out", "rs.throw1"},
-        {"rs.wiper", "gnd.v"}
+        {"rs.throw2"},
+        {"rs.throw3"},
+        {"rs.throw4"},
+        {"rs.throw5"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
     EXPECT_EQ(result.scheduler.consumer_count(), 0u)
         << "RotarySwitch1ToN should not appear in the push scheduler consumer list";
 }
@@ -449,11 +457,21 @@ TEST(PushBuildValidation, RotarySwitchAliasesInstantiateDistinctVariantTypes) {
         make_device("rs_b", "RotarySwitchNTo1", {{"positions", "3"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"rs_a.wiper", "rs_b.wiper"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"rs_a.wiper", "rs_b.wiper"},
+        {"rs_a.throw1"},
+        {"rs_a.throw2"},
+        {"rs_a.throw3"},
+        {"rs_a.throw4"},
+        {"rs_a.throw5"},
+        {"rs_b.throw1"},
+        {"rs_b.throw2"},
+        {"rs_b.throw3"},
+        {"rs_b.throw4"},
+        {"rs_b.throw5"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     auto it_a = result.devices.find("rs_a");
     auto it_b = result.devices.find("rs_b");
@@ -495,12 +513,12 @@ TEST(PushBuildValidation, SingleBatteryOK) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
     
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "gnd.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery.v_out", "gnd.v", "battery.v_in"}
     };
     
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         EXPECT_GT(result.signal_count, 0u);
     });
 }
@@ -517,14 +535,14 @@ TEST(PushBuildValidation, TopologicalOrder_LinearChain) {
         make_device("ref_mul", "RefNode", {{"value", "3"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"ref_a.v", "add.A"},
         {"ref_b.v", "add.B"},
         {"add.o", "mul.A"},
         {"ref_mul.v", "mul.B"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     SimulationState st;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
@@ -547,7 +565,7 @@ TEST(PushBuildValidation, TopologicalOrder_CycleFallsBackNoThrow) {
         make_device("ref2", "RefNode", {{"value", "2"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"add2.o", "add1.A"},
         {"ref1.v", "add1.B"},
         {"add1.o", "add2.A"},
@@ -555,7 +573,7 @@ TEST(PushBuildValidation, TopologicalOrder_CycleFallsBackNoThrow) {
     };
 
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
         SimulationState st;
         for (uint32_t i = 0; i < result.signal_count; ++i) {
@@ -634,12 +652,12 @@ TEST(PushBuildValidation, MaxSelectsHigherInput) {
         make_device("ref_b", "RefNode", {{"value", "5.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"ref_a.v", "sel.A"},
         {"ref_b.v", "sel.B"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     SimulationState st;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
@@ -659,15 +677,14 @@ TEST(PushBuildValidation, MaxAvoidsSourceConflict) {
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"gnd.v", "bat.v_in"},
-        {"gnd.v", "gen.v_in"},
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"gnd.v", "bat.v_in", "gen.v_in"},
         {"bat.v_out", "sel.A"},
         {"gen.v_out", "sel.B"}
     };
 
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
         SimulationState st;
         for (uint32_t i = 0; i < result.signal_count; ++i) {
@@ -692,11 +709,11 @@ TEST(PushBuildValidation, UnknownClassnameThrows) {
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"gnd.v", "mystery.in"}
     };
 
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(PushBuildValidation, MetadataHelpersUnknownClassFailFast) {
@@ -738,11 +755,11 @@ TEST(PushBuildValidation, WhitelistParamsRejected) {
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"gnd.v", "bat.v_in"}
     };
 
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(PushBuildValidation, UnknownParamThrows) {
@@ -754,11 +771,11 @@ TEST(PushBuildValidation, UnknownParamThrows) {
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"load.v_out", "gnd.v"}
     };
 
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(PushBuildValidation, MissingRequiredParamThrows) {
@@ -770,12 +787,12 @@ TEST(PushBuildValidation, MissingRequiredParamThrows) {
         make_device("ref", "RefNode", {{"value", "1.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"ref.v", "p.setpoint"},
         {"ref.v", "p.feedback"}
     };
 
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(PushBuildValidation, MissingDomainsThrows) {
@@ -809,9 +826,8 @@ TEST(PushBuildValidation, BusWithVisualOnlyParam_PortEdge_DoesNotThrow) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"bat.v_out", "bus_1.v"},
-        {"bus_1.v", "gnd.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"bat.v_out", "bus_1.v", "gnd.v"}
     };
 
     // Without the fix, port_edge in params would cause:
@@ -820,7 +836,7 @@ TEST(PushBuildValidation, BusWithVisualOnlyParam_PortEdge_DoesNotThrow) {
     // never reach build_systems_dev(). Verify the solver side is clean too:
     // a Bus with NO extra params must build successfully.
     EXPECT_NO_THROW({
-        auto result = build_systems_dev(devices, connections);
+        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
         EXPECT_GT(result.signal_count, 0u);
     });
 }
@@ -865,13 +881,12 @@ TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
         make_device("gnd", "RefNode", {{"value", "0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "load.v_in"},
-        {"load.v_out", "gnd.v"},
-        {"battery.v_in", "gnd.v"}
+        {"load.v_out", "gnd.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     EXPECT_FALSE(is_scheduler_source_component("ElectricalSource"));
     EXPECT_TRUE(is_scheduler_source_component("RefNode"));
@@ -945,9 +960,9 @@ TEST(PushBuildValidation, SentinelIsFixedSignal) {
     std::vector<DeviceInstance> devices = {
         make_device("ref", "RefNode", {{"value", "0.0"}})
     };
-    std::vector<std::pair<std::string, std::string>> connections;
+    std::vector<std::vector<std::string>> signal_groups;
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     uint32_t sentinel = result.signal_count - 1;
     bool sentinel_in_fixed = false;

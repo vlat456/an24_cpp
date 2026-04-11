@@ -4,6 +4,7 @@
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/state.h"
 #include "json_parser/json_parser.h"
+#include "jit_build_input_test_helper.h"
 #include <algorithm>
 
 namespace {
@@ -83,14 +84,13 @@ TEST(ElectricalIslandBuild, ClosedCircuitOneIsland) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "resistor.v_in"},
         {"resistor.v_out", "indicator.v_in"},
-        {"indicator.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"indicator.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Verify electrical plan was populated
     ASSERT_FALSE(result.electrical_plan.islands.empty());
@@ -137,18 +137,14 @@ TEST(ElectricalIslandBuild, TwoDisconnectedNetsTwoIslands) {
         make_device("gnd2", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        // Circuit 1
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery1.v_out", "resistor1.v_in"},
-        {"resistor1.v_out", "gnd1.v"},
-        {"battery1.v_in", "gnd1.v"},
-        // Circuit 2
+        {"resistor1.v_out", "gnd1.v", "battery1.v_in"},
         {"gen2.v_out", "resistor2.v_in"},
-        {"resistor2.v_out", "gnd2.v"},
-        {"gen2.v_in", "gnd2.v"}
+        {"resistor2.v_out", "gnd2.v", "gen2.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Should have 2 islands
     ASSERT_EQ(result.electrical_plan.islands.size(), 2u);
@@ -175,13 +171,13 @@ TEST(ElectricalIslandBuild, MissingRequiredPortThrows) {
         bad_refnode
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "refnode.v"},
         {"battery.v_in", "refnode.v"}
     };
 
     // Missing required port mapping should throw
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
 TEST(ElectricalIslandBuild, RefNodeCreatesFixedVoltageNode) {
@@ -192,12 +188,11 @@ TEST(ElectricalIslandBuild, RefNodeCreatesFixedVoltageNode) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
     const auto& island = result.electrical_plan.islands[0];
@@ -222,12 +217,11 @@ TEST(ElectricalIslandBuild, BatteryCreatesTheveninSource) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
     const auto& island = result.electrical_plan.islands[0];
@@ -253,12 +247,11 @@ TEST(ElectricalIslandBuild, GeneratorCreatesTheveninSource) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"generator.v_out", "refnode.v"},
-        {"generator.v_in", "refnode.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"generator.v_out", "refnode.v", "generator.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
     const auto& island = result.electrical_plan.islands[0];
@@ -285,13 +278,12 @@ TEST(ElectricalIslandBuild, ResistorCreatesConductanceBranch) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "resistor.v_in"},
-        {"resistor.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"resistor.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
     const auto& island = result.electrical_plan.islands[0];
@@ -317,13 +309,12 @@ TEST(ElectricalIslandBuild, IndicatorLightCreatesConductanceBranch) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "light.v_in"},
-        {"light.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"light.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
     const auto& island = result.electrical_plan.islands[0];
@@ -350,14 +341,12 @@ TEST(ElectricalIslandBuild, IslandsOrderedBySmallestSignalIndex) {
         make_device("gnd1", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"bat2.v_out", "gnd2.v"},
-        {"bat2.v_in", "gnd2.v"},
-        {"bat1.v_out", "gnd1.v"},
-        {"bat1.v_in", "gnd1.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"bat2.v_out", "gnd2.v", "bat2.v_in"},
+        {"bat1.v_out", "gnd1.v", "bat1.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_EQ(result.electrical_plan.islands.size(), 2u);
 
@@ -372,7 +361,7 @@ TEST(ElectricalIslandBuild, IslandsOrderedBySmallestSignalIndex) {
     ASSERT_EQ(island1.elements.size(), 2u);
 
     // Verify determinism: same build should produce same order
-    auto result2 = build_systems_dev(devices, connections);
+    auto result2 = build_systems_dev(make_jit_input(devices, signal_groups));
     ASSERT_EQ(result2.electrical_plan.islands.size(), 2u);
 
     for (size_t i = 0; i < result.electrical_plan.islands.size(); ++i) {
@@ -390,13 +379,12 @@ TEST(ElectricalIslandBuild, UnsupportedComponentsIgnored) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "sw.v_in"},
-        {"sw.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"sw.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
     const auto& island = result.electrical_plan.islands[0];
@@ -421,13 +409,12 @@ TEST(ElectricalIslandBuild, RelayCreatesDynamicConductanceBranch) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "relay.v_in"},
-        {"relay.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"relay.v_out", "refnode.v", "battery.v_in"}
     };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_FALSE(result.electrical_plan.islands.empty());
     const auto& island = result.electrical_plan.islands[0];
@@ -451,13 +438,12 @@ TEST(ElectricalIslandBuild, BatteryWithExtraParamsDoesNotThrow) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"battery.v_out", "refnode.v", "battery.v_in"}
     };
 
     // Must NOT throw "Unknown/unconsumed parameter"
-    EXPECT_NO_THROW(build_systems_dev(devices, connections));
+    EXPECT_NO_THROW(build_systems_dev(make_jit_input(devices, signal_groups)));
 }
 
 TEST(ElectricalIslandBuild, IndicatorLightWithExtraParamsDoesNotThrow) {
@@ -471,14 +457,13 @@ TEST(ElectricalIslandBuild, IndicatorLightWithExtraParamsDoesNotThrow) {
         make_device("refnode", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"battery.v_out", "light.v_in"},
-        {"light.v_out", "refnode.v"},
-        {"battery.v_in", "refnode.v"}
+        {"light.v_out", "refnode.v", "battery.v_in"}
     };
 
     // Must NOT throw "Unknown/unconsumed parameter"
-    EXPECT_NO_THROW(build_systems_dev(devices, connections));
+    EXPECT_NO_THROW(build_systems_dev(make_jit_input(devices, signal_groups)));
 }
 
 TEST(ElectricalIslandBuild, MissingSolverRoleOnElectricalPrimitivesThrows) {
@@ -495,19 +480,9 @@ TEST(ElectricalIslandBuild, MissingSolverRoleOnElectricalPrimitivesThrows) {
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"generator.v_in", "gnd.v"},
-        {"generator.v_out", "resistor.v_in"},
-        {"resistor.v_out", "gnd.v"},
-        {"cvs.v_neg", "gnd.v"},
-        {"cvs.v_pos", "gnd.v"},
-        {"azs.v_in", "gnd.v"},
-        {"azs.v_out", "gnd.v"},
-        {"relay.v_in", "gnd.v"},
-        {"relay.v_out", "gnd.v"},
-        {"knob.wiper", "gnd.v"},
-        {"knob.throw1", "gnd.v"},
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"generator.v_in", "generator.v_out", "resistor.v_in", "cvs.v_neg", "cvs.v_pos", "azs.v_in", "azs.v_out", "relay.v_in", "relay.v_out", "knob.wiper", "knob.throw1", "gnd.v"}
     };
 
-    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+    EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
