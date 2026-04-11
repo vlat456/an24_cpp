@@ -4,6 +4,7 @@
 #include "core/solvers/aot/codegen.h"
 #include "test_helpers.h"
 #include "test_fixtures.h"
+#include "jit_build_input_test_helper.h"
 #include <set>
 
 namespace {
@@ -51,17 +52,12 @@ TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
     for (auto& dev : expanded.devices) {
         const auto* type_def = registry.get(dev.classname);
         ASSERT_NE(type_def, nullptr);
-        dev = merge_device_instance(dev, *type_def);
-    }
+         dev = merge_device_instance(dev, *type_def);
+     }
 
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : expanded.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
+     BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.connections));
 
-    BuildResult jit_result = build_systems_dev(expanded.devices, conn_pairs);
-
-    auto jit_sig = [&](const std::string& port) -> uint32_t {
+     auto jit_sig = [&](const std::string& port) -> uint32_t {
         auto it = jit_result.port_to_signal.find(port);
         EXPECT_NE(it, jit_result.port_to_signal.end()) << port << " should exist in JIT map";
         return it != jit_result.port_to_signal.end() ? it->second : UINT32_MAX;
@@ -142,16 +138,12 @@ TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
     for (auto& dev : expanded.devices) {
         const auto* type_def = registry.get(dev.classname);
         ASSERT_NE(type_def, nullptr);
-        dev = merge_device_instance(dev, *type_def);
-    }
+         dev = merge_device_instance(dev, *type_def);
+     }
 
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : expanded.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
-    BuildResult jit_result = build_systems_dev(expanded.devices, conn_pairs);
+     BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.connections));
 
-    EXPECT_EQ(jit_result.electrical_plan.islands.size(), 2u)
+     EXPECT_EQ(jit_result.electrical_plan.islands.size(), 2u)
         << "JIT must detect two electrical islands";
 
     EXPECT_NE(aot_result.header.find("ELECTRICAL_ISLAND_COUNT = 2"), std::string::npos)

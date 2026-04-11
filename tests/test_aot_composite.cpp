@@ -4,6 +4,7 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "test_helpers.h"
 #include "test_fixtures.h"
+#include "jit_build_input_test_helper.h"
 #include <regex>
 #include <set>
 #include <unordered_map>
@@ -283,20 +284,14 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
         }
     }
 
-    // Convert connections to pair format for build_systems_dev
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : expanded.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
-
-    BuildResult jit_result = build_systems_dev(expanded.devices, conn_pairs);
+    BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.connections));
 
     // ---- Compare signal topologies ----
 
-    // Push builder may keep additional bookkeeping/alias signals.
+    // Both paths now use the same signal allocation source via composite helpers.
     uint32_t jit_signal_count = jit_result.signal_count;
-    EXPECT_GE(jit_signal_count, aot_signal_count)
-        << "JIT signal count should be at least AOT signal count";
+    EXPECT_EQ(jit_signal_count, aot_signal_count)
+        << "JIT and AOT signal counts must match exactly (same allocation source)";
 
     // Runtime build/codegen lower bridge nodes before component instantiation.
     // Compare runtime-visible device sets (bridges excluded).
@@ -1041,11 +1036,7 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
         const auto* type_def = registry.get(dev.classname);
         if (type_def) dev = merge_device_instance(dev, *type_def);
     }
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : expanded.connections) {
-        conn_pairs.push_back({c.from, c.to});
-    }
-    BuildResult jit_result = build_systems_dev(expanded.devices, conn_pairs);
+    BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.connections));
 
     // Key assertion: vin.ext and vin.port MUST share a signal in JIT
     auto jit_sig = [&](const std::string& port) -> uint32_t {
