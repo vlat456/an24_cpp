@@ -141,17 +141,21 @@ SimulationExport to_simulation_export(
     }
 
     // Build bridge lookup: for each BlueprintInput/BlueprintOutput inside a
-    // nested scope, map the collapsed composite-node port (scope.local_id) to
-    // the inner bridge node's ext endpoint (scope:local_id.ext).  This rewrites
-    // connections that reference the collapsed node so they point at the bridge
-    // node the JIT runtime expects.
+    // blueprint-instance scope, map the collapsed composite-node port
+    // (scope.local_id) to the inner bridge node's ext endpoint
+    // (scope:local_id.ext).  This rewrites connections that reference the
+    // collapsed node so they point at the bridge node the JIT runtime expects.
+    //
+    // The flattener creates instance-scope paths as PathKind::Node, so we
+    // accept any non-Root parent — Root means the bridge lives at the top level
+    // with no enclosing instance and needs no rewriting.
     std::unordered_map<std::string, std::unordered_map<std::string, std::string>> bridge_by_scope;
     for (const auto& comp : netlist.components) {
         const std::string tname(interner.resolve(comp.type));
         if (tname != "BlueprintInput" && tname != "BlueprintOutput") continue;
 
         Path parent = arena.parent(comp.path);
-        if (parent.kind() != PathKind::Nested) continue;
+        if (parent.kind() == PathKind::Root) continue;
 
         const std::string scope = node_id_from_path(parent, arena, interner);
         const std::string local_id(interner.resolve(comp.path.segment()));
