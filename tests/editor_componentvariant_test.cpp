@@ -47,14 +47,10 @@ TEST(EditorComponentVariant, BuildSimpleBatteryResistorCircuit) {
     })";
 
     // Parse JSON and build simulation
-    auto ctx = parse_json(json);
-    std::vector<std::pair<std::string, std::string>> connections;
-    for (const auto& c : ctx.connections) {
-        connections.push_back({c.from, c.to});
-    }
+    JitBuildInput input = build_input_from_json(json);
 
     // Build using build_systems_dev directly
-    auto build_result = build_systems_dev(ctx.devices, connections);
+    auto build_result = build_systems_dev(input);
 
     // Check that devices map was populated
     EXPECT_EQ(build_result.devices.size(), 3);
@@ -97,9 +93,8 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
     })";
 
     auto ctx = parse_json(json);
-    std::vector<std::pair<std::string, std::string>> connections;
 
-    auto build_result = build_systems_dev(ctx.devices, connections);
+    auto build_result = build_systems_dev(build_input_from_json(json));
 
     // Should have both components created
     EXPECT_EQ(build_result.devices.size(), 3);
@@ -137,12 +132,8 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
     })";
 
     auto ctx = parse_json(json);
-    std::vector<std::pair<std::string, std::string>> connections;
-    for (const auto& c : ctx.connections) {
-        connections.push_back({c.from, c.to});
-    }
 
-    auto build_result = build_systems_dev(ctx.devices, connections);
+    auto build_result = build_systems_dev(build_input_from_json(json));
 
     // Ground should be marked as fixed signal
     EXPECT_FALSE(build_result.fixed_signals.empty());
@@ -190,11 +181,10 @@ TEST(EditorComponentVariant, AllComponentTypes) {
         }
 
         auto ctx = parse_json(json.c_str());
-        std::vector<std::pair<std::string, std::string>> connections;
 
         // Should not throw exception
         EXPECT_NO_THROW({
-            auto build_result = build_systems_dev(ctx.devices, connections);
+            auto build_result = build_systems_dev(build_input_from_json(json));
             const size_t expected_devices = (std::string(type) == "RefNode") ? 1u : 2u;
             EXPECT_EQ(build_result.devices.size(), expected_devices);
         }) << "Failed to create component: " << type;
@@ -225,9 +215,8 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
     })";
 
     auto ctx = parse_json(json);
-    std::vector<std::pair<std::string, std::string>> connections;
 
-    auto build_result = build_systems_dev(ctx.devices, connections);
+    auto build_result = build_systems_dev(build_input_from_json(json));
 
     // Check that bat1 device was created
     EXPECT_EQ(build_result.devices.size(), 2);

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/jit_solver.h"
+#include "jit_build_input_test_helper.h"
 
 // ============================================================================
 // Factory Validation Tests
@@ -155,9 +156,8 @@ BuildResult build_single_component(const std::string& classname,
     }
 
     std::vector<DeviceInstance> devices = {dev, gnd};
-    std::vector<std::pair<std::string, std::string>> connections;
 
-    return build_systems_dev(devices, connections);
+    return build_systems_dev(make_jit_input(devices, {}));
 }
 
 } // anonymous namespace
@@ -273,7 +273,6 @@ TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
     }
 
     std::vector<DeviceInstance> devices = {bat};
-    std::vector<std::pair<std::string, std::string>> connections;
 
-    EXPECT_NO_THROW(build_systems_dev(devices, connections));
+    EXPECT_NO_THROW(build_systems_dev(make_jit_input(devices, {})));
 }
