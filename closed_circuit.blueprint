@@ -1,1735 +1,1735 @@
 {
-  "format": "blueprint",
-  "version": 1,
   "blueprint_id": "GENERATOR_STARTER",
-  "name": "GENERATOR_STARTER",
+  "format": "blueprint",
   "interface": [],
+  "name": "GENERATOR_STARTER",
   "nodes": [
     {
+      "component": "AZS",
       "id": "azs_1",
       "kind": "component",
       "label": "azs_1",
-      "component": "AZS",
-      "params": {
-        "closed": false,
-        "g_closed": 1000.0,
-        "g_open": 9.999999974752427e-07,
-        "i_nominal": 20.0
-      },
       "layout": {
         "x": 272.0,
         "y": -320.0
+      },
+      "params": {
+        "closed": "false",
+        "g_closed": 1000.0,
+        "g_open": 9.999999974752427e-07,
+        "i_nominal": 20.0
       }
     },
     {
+      "component": "Bus",
       "id": "bus_1",
       "kind": "component",
       "label": "GND",
-      "component": "Bus",
+      "layout": {
+        "height": 32.0,
+        "width": 128.0,
+        "x": 480.0,
+        "y": 352.0
+      },
       "params": {
         "port_edge": "top"
-      },
-      "layout": {
-        "x": 480.0,
-        "y": 352.0,
-        "width": 128.0,
-        "height": 32.0
       }
     },
     {
+      "component": "Bus",
       "id": "bus_2",
       "kind": "component",
       "label": "+28V",
-      "component": "Bus",
-      "params": {
-        "port_edge": "bottom"
-      },
       "layout": {
         "x": 688.0,
         "y": -608.0
+      },
+      "params": {
+        "port_edge": "bottom"
       }
     },
     {
+      "component": "Bus",
       "id": "bus_3",
       "kind": "component",
       "label": "bus_3",
-      "component": "Bus",
+      "layout": {
+        "x": 368.0,
+        "y": -632.0
+      },
       "params": {
         "port_edge": "bottom"
-      },
-      "layout": {
-        "x": 320.0,
-        "y": -656.0
       }
     },
     {
+      "component": "Comparator",
       "id": "comparator_2",
       "kind": "component",
       "label": "comparator_2",
-      "component": "Comparator",
+      "layout": {
+        "x": 880.0,
+        "y": -720.0
+      },
       "params": {
         "Voff": 0.0,
         "Von": 0.20000000298023224
-      },
-      "layout": {
-        "x": 912.0,
-        "y": -720.0
       }
     },
     {
+      "component": "ControlledVoltageSource",
       "id": "controlledvoltagesource_2",
       "kind": "component",
       "label": "controlledvoltagesource_2",
-      "component": "ControlledVoltageSource",
+      "layout": {
+        "x": 608.0,
+        "y": 0.0
+      },
       "params": {
         "r_internal": 0.10000000149011612
-      },
-      "layout": {
-        "x": 544.0,
-        "y": 0.0
       }
     },
     {
+      "component": "CurrentSense",
       "id": "currentsense_1",
       "kind": "component",
       "label": "currentsense_1",
-      "component": "CurrentSense",
-      "params": {
-        "conductance": 10.0
-      },
       "layout": {
         "x": 976.0,
         "y": -144.0
+      },
+      "params": {
+        "conductance": 10.0
       }
     },
     {
       "id": "extract_inst_1",
       "kind": "blueprint_instance",
       "label": "RN-180-Exciter",
+      "layout": {
+        "height": 64.0,
+        "width": 160.0,
+        "x": -16.0,
+        "y": 0.0
+      },
       "source": {
-        "mode": "embedded",
         "blueprint": {
-          "format": "blueprint",
-          "version": 1,
           "blueprint_id": "RN-180-Exciter",
-          "name": "RN-180-Exciter",
+          "format": "blueprint",
           "interface": [
             {
-              "id": "feedback",
               "direction": "In",
+              "id": "feedback",
               "port_type": "V"
             },
             {
-              "id": "output",
               "direction": "Out",
+              "id": "output",
               "port_type": "V"
             }
           ],
+          "name": "RN-180-Exciter",
           "nodes": [
             {
+              "component": "BlueprintInput",
               "id": "bp_in_1",
               "kind": "component",
               "label": "feedback",
-              "component": "BlueprintInput",
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "V"
-              },
               "layout": {
                 "x": 0.0,
                 "y": 32.0
+              },
+              "params": {
+                "exposed_direction": "In",
+                "exposed_type": "V"
               }
             },
             {
+              "component": "BlueprintOutput",
               "id": "bp_out_1",
               "kind": "component",
               "label": "output",
-              "component": "BlueprintOutput",
-              "params": {
-                "exposed_direction": "Out",
-                "exposed_type": "V"
-              },
               "layout": {
                 "x": 660.0,
                 "y": 32.0
+              },
+              "params": {
+                "exposed_direction": "Out",
+                "exposed_type": "V"
               }
             },
             {
+              "component": "LUT",
               "id": "lut_1",
               "kind": "component",
               "label": "RN180_excitation",
-              "component": "LUT",
-              "params": {
-                "table": "0.0:0.6; 1.0:28.5"
-              },
               "layout": {
                 "x": 400.0,
                 "y": 0.0
+              },
+              "params": {
+                "table": "0.0:0.6; 1.0:28.5"
               }
             },
             {
+              "component": "PI",
               "id": "pi_1",
               "kind": "component",
               "label": "RN180",
-              "component": "PI",
               "layout": {
                 "x": 240.0,
                 "y": 0.0
               }
             },
             {
+              "component": "Value",
               "id": "val_pi_1_Ki",
               "kind": "component",
               "label": "pi_1_Ki",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 160.0,
                 "y": 120.0
+              },
+              "params": {
+                "value": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "val_pi_1_Kp",
               "kind": "component",
               "label": "pi_1_Kp",
-              "component": "Value",
-              "params": {
-                "value": 0.10000000149011612
-              },
               "layout": {
                 "x": 160.0,
                 "y": 160.0
+              },
+              "params": {
+                "value": 0.10000000149011612
               }
             },
             {
+              "component": "Value",
               "id": "val_pi_1_output_max",
               "kind": "component",
               "label": "pi_1_output_max",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 160.0,
                 "y": 200.0
+              },
+              "params": {
+                "value": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "val_pi_1_output_min",
               "kind": "component",
               "label": "pi_1_output_min",
-              "component": "Value",
-              "params": {
-                "value": 0.0
-              },
               "layout": {
                 "x": 160.0,
                 "y": 240.0
+              },
+              "params": {
+                "value": 0.0
               }
             },
             {
+              "component": "Value",
               "id": "value_1",
               "kind": "component",
               "label": "IdealVoltage",
-              "component": "Value",
-              "params": {
-                "value": 28.5
-              },
               "layout": {
                 "x": 160.0,
                 "y": 80.0
+              },
+              "params": {
+                "value": 28.5
               }
             }
           ],
+          "version": 1,
           "wires": [
             {
-              "id": "bp_bridge_in_wire_1",
               "from": {
                 "node": "bp_in_1",
                 "port": "port"
               },
+              "id": "bp_bridge_in_wire_1",
               "to": {
                 "node": "pi_1",
                 "port": "feedback"
               }
             },
             {
-              "id": "bp_bridge_out_wire_1",
               "from": {
                 "node": "lut_1",
                 "port": "output"
               },
+              "id": "bp_bridge_out_wire_1",
               "to": {
                 "node": "bp_out_1",
                 "port": "port"
               }
             },
             {
-              "id": "wire_42",
               "from": {
                 "node": "value_1",
                 "port": "o"
               },
+              "id": "wire_42",
               "to": {
                 "node": "pi_1",
                 "port": "setpoint"
               }
             },
             {
-              "id": "wire_48",
               "from": {
                 "node": "pi_1",
                 "port": "output"
               },
+              "id": "wire_48",
               "to": {
                 "node": "lut_1",
                 "port": "input"
               }
             },
             {
-              "id": "wire_val_pi_1_Ki",
               "from": {
                 "node": "val_pi_1_Ki",
                 "port": "o"
               },
+              "id": "wire_val_pi_1_Ki",
               "to": {
                 "node": "pi_1",
                 "port": "Ki"
               }
             },
             {
-              "id": "wire_val_pi_1_Kp",
               "from": {
                 "node": "val_pi_1_Kp",
                 "port": "o"
               },
+              "id": "wire_val_pi_1_Kp",
               "to": {
                 "node": "pi_1",
                 "port": "Kp"
               }
             },
             {
-              "id": "wire_val_pi_1_output_max",
               "from": {
                 "node": "val_pi_1_output_max",
                 "port": "o"
               },
+              "id": "wire_val_pi_1_output_max",
               "to": {
                 "node": "pi_1",
                 "port": "output_max"
               }
             },
             {
-              "id": "wire_val_pi_1_output_min",
               "from": {
                 "node": "val_pi_1_output_min",
                 "port": "o"
               },
+              "id": "wire_val_pi_1_output_min",
               "to": {
                 "node": "pi_1",
                 "port": "output_min"
               }
             }
           ]
-        }
-      },
-      "layout": {
-        "x": -16.0,
-        "y": 0.0,
-        "width": 160.0,
-        "height": 64.0
+        },
+        "mode": "embedded"
       }
     },
     {
       "id": "extract_inst_2",
       "kind": "blueprint_instance",
       "label": "LoadVoltageDrp",
+      "layout": {
+        "height": 64.0,
+        "width": 160.0,
+        "x": 96.0,
+        "y": -400.0
+      },
       "source": {
-        "mode": "embedded",
         "blueprint": {
-          "format": "blueprint",
-          "version": 1,
           "blueprint_id": "LoadVoltageDrp",
-          "name": "LoadVoltageDrp",
+          "format": "blueprint",
           "interface": [
             {
-              "id": "out",
               "direction": "Out",
+              "id": "out",
               "port_type": "V"
             },
             {
+              "direction": "In",
               "id": "v_in",
-              "direction": "In",
               "port_type": "V"
             },
             {
-              "id": "v_ref",
               "direction": "In",
+              "id": "v_ref",
               "port_type": "V"
             }
           ],
+          "name": "LoadVoltageDrp",
           "nodes": [
             {
+              "component": "BlueprintInput",
               "id": "bp_in_1",
               "kind": "component",
               "label": "v_in",
-              "component": "BlueprintInput",
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "V"
-              },
               "layout": {
                 "x": 0.0,
                 "y": 160.0
-              }
-            },
-            {
-              "id": "bp_in_2",
-              "kind": "component",
-              "label": "v_ref",
-              "component": "BlueprintInput",
+              },
               "params": {
                 "exposed_direction": "In",
                 "exposed_type": "V"
-              },
+              }
+            },
+            {
+              "component": "BlueprintInput",
+              "id": "bp_in_2",
+              "kind": "component",
+              "label": "v_ref",
               "layout": {
                 "x": 0.0,
                 "y": 176.0
+              },
+              "params": {
+                "exposed_direction": "In",
+                "exposed_type": "V"
               }
             },
             {
+              "component": "BlueprintOutput",
               "id": "bp_out_1",
               "kind": "component",
               "label": "out",
-              "component": "BlueprintOutput",
-              "params": {
-                "exposed_direction": "Out",
-                "exposed_type": "V"
-              },
               "layout": {
                 "x": 756.0,
                 "y": 192.0
+              },
+              "params": {
+                "exposed_direction": "Out",
+                "exposed_type": "V"
               }
             },
             {
+              "component": "Clamp",
               "id": "clamp_1",
               "kind": "component",
               "label": "LoadCmdClamp",
-              "component": "Clamp",
               "layout": {
                 "x": 464.0,
                 "y": 160.0
               }
             },
             {
+              "component": "Divide",
               "id": "divide_1",
               "kind": "component",
               "label": "LoadGFromI",
-              "component": "Divide",
               "layout": {
                 "x": 352.0,
                 "y": 304.0
               }
             },
             {
+              "component": "Integrator",
               "id": "integrator_1",
               "kind": "component",
               "label": "LoadCurrent",
-              "component": "Integrator",
-              "params": {
-                "initial_val": 0.0
-              },
               "layout": {
                 "x": 272.0,
                 "y": 208.0
+              },
+              "params": {
+                "initial_val": 0.0
               }
             },
             {
+              "component": "Multiply",
               "id": "multiply_2",
               "kind": "component",
               "label": "LoadRi",
-              "component": "Multiply",
               "layout": {
                 "x": 224.0,
                 "y": 320.0
               }
             },
             {
+              "component": "Multiply",
               "id": "multiply_3",
               "kind": "component",
               "label": "LoadDidt",
-              "component": "Multiply",
               "layout": {
                 "x": 272.0,
                 "y": 112.0
               }
             },
             {
+              "component": "Multiply",
               "id": "multiply_4",
               "kind": "component",
               "label": "LoadCmdNorm",
-              "component": "Multiply",
               "layout": {
                 "x": 496.0,
                 "y": 288.0
               }
             },
             {
+              "component": "Subtract",
               "id": "subtract_1",
               "kind": "component",
               "label": "LoadVminusRi",
-              "component": "Subtract",
               "layout": {
                 "x": 160.0,
                 "y": 112.0
               }
             },
             {
+              "component": "Value",
               "id": "val_clamp_1_max",
               "kind": "component",
               "label": "clamp_1_max",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 352.0,
                 "y": 232.0
+              },
+              "params": {
+                "value": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "val_clamp_1_min",
               "kind": "component",
               "label": "clamp_1_min",
-              "component": "Value",
-              "params": {
-                "value": 0.0
-              },
               "layout": {
                 "x": 352.0,
                 "y": 192.0
+              },
+              "params": {
+                "value": 0.0
               }
             },
             {
+              "component": "Value",
               "id": "val_integrator_1_gain",
               "kind": "component",
               "label": "integrator_1_gain",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 192.0,
                 "y": 272.0
+              },
+              "params": {
+                "value": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "val_voltagesense_1_gain",
               "kind": "component",
               "label": "voltagesense_1_gain",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 272.0,
                 "y": 192.0
+              },
+              "params": {
+                "value": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "val_voltagesense_1_offset",
               "kind": "component",
               "label": "voltagesense_1_offset",
-              "component": "Value",
-              "params": {
-                "value": 0.0
-              },
               "layout": {
                 "x": 272.0,
                 "y": 232.0
+              },
+              "params": {
+                "value": 0.0
               }
             },
             {
+              "component": "Value",
               "id": "value_3",
               "kind": "component",
               "label": "LoadR",
-              "component": "Value",
-              "params": {
-                "value": 0.0560000017285347
-              },
               "layout": {
                 "x": 160.0,
                 "y": 352.0
+              },
+              "params": {
+                "value": 0.0560000017285347
               }
             },
             {
+              "component": "Value",
               "id": "value_4",
               "kind": "component",
               "label": "InvL",
-              "component": "Value",
+              "layout": {
+                "height": 32.0,
+                "width": 48.0,
+                "x": 336.0,
+                "y": 0.0
+              },
               "params": {
                 "value": 125.0
-              },
-              "layout": {
-                "x": 336.0,
-                "y": 0.0,
-                "width": 48.0,
-                "height": 32.0
               }
             },
             {
+              "component": "Value",
               "id": "value_5",
               "kind": "component",
               "label": "InvGMax",
-              "component": "Value",
-              "params": {
-                "value": 0.05000000074505806
-              },
               "layout": {
                 "x": 448.0,
                 "y": 368.0
+              },
+              "params": {
+                "value": 0.05000000074505806
               }
             },
             {
+              "component": "VoltageSense",
               "id": "voltagesense_1",
               "kind": "component",
               "label": "LoadVoltageDrop",
-              "component": "VoltageSense",
               "layout": {
                 "x": 352.0,
                 "y": 128.0
               }
             }
           ],
+          "version": 1,
           "wires": [
             {
-              "id": "bp_bridge_in_wire_1",
               "from": {
                 "node": "bp_in_1",
                 "port": "port"
               },
+              "id": "bp_bridge_in_wire_1",
               "to": {
                 "node": "voltagesense_1",
                 "port": "v_in"
               }
             },
             {
-              "id": "bp_bridge_in_wire_2",
               "from": {
                 "node": "bp_in_2",
                 "port": "port"
               },
+              "id": "bp_bridge_in_wire_2",
               "to": {
                 "node": "voltagesense_1",
                 "port": "v_ref"
               }
             },
             {
-              "id": "bp_bridge_out_wire_1",
               "from": {
                 "node": "clamp_1",
                 "port": "out"
               },
+              "id": "bp_bridge_out_wire_1",
               "to": {
                 "node": "bp_out_1",
                 "port": "port"
               }
             },
             {
-              "id": "wire_72",
               "from": {
                 "node": "integrator_1",
                 "port": "out"
               },
+              "id": "wire_72",
               "to": {
                 "node": "multiply_2",
                 "port": "A"
               }
             },
             {
-              "id": "wire_73",
               "from": {
                 "node": "value_3",
                 "port": "o"
               },
+              "id": "wire_73",
               "to": {
                 "node": "multiply_2",
                 "port": "B"
               }
             },
             {
-              "id": "wire_74",
               "from": {
                 "node": "voltagesense_1",
                 "port": "out"
               },
+              "id": "wire_74",
               "to": {
                 "node": "subtract_1",
                 "port": "A"
               }
             },
             {
-              "id": "wire_75",
               "from": {
                 "node": "multiply_2",
                 "port": "o"
               },
+              "id": "wire_75",
               "to": {
                 "node": "subtract_1",
                 "port": "B"
               }
             },
             {
-              "id": "wire_76",
               "from": {
                 "node": "subtract_1",
                 "port": "o"
               },
+              "id": "wire_76",
               "to": {
                 "node": "multiply_3",
                 "port": "A"
               }
             },
             {
-              "id": "wire_77",
               "from": {
                 "node": "value_4",
                 "port": "o"
               },
+              "id": "wire_77",
               "to": {
                 "node": "multiply_3",
                 "port": "B"
               }
             },
             {
-              "id": "wire_78",
               "from": {
                 "node": "multiply_3",
                 "port": "o"
               },
+              "id": "wire_78",
               "to": {
                 "node": "integrator_1",
                 "port": "in"
               }
             },
             {
-              "id": "wire_80",
               "from": {
                 "node": "integrator_1",
                 "port": "out"
               },
+              "id": "wire_80",
               "to": {
                 "node": "divide_1",
                 "port": "A"
               }
             },
             {
-              "id": "wire_81",
               "from": {
                 "node": "voltagesense_1",
                 "port": "out"
               },
+              "id": "wire_81",
               "to": {
                 "node": "divide_1",
                 "port": "B"
               }
             },
             {
-              "id": "wire_82",
               "from": {
                 "node": "divide_1",
                 "port": "o"
               },
+              "id": "wire_82",
               "to": {
                 "node": "multiply_4",
                 "port": "A"
               }
             },
             {
-              "id": "wire_83",
               "from": {
                 "node": "value_5",
                 "port": "o"
               },
+              "id": "wire_83",
               "to": {
                 "node": "multiply_4",
                 "port": "B"
               }
             },
             {
-              "id": "wire_84",
               "from": {
                 "node": "multiply_4",
                 "port": "o"
               },
+              "id": "wire_84",
               "to": {
                 "node": "clamp_1",
                 "port": "in"
               }
             },
             {
-              "id": "wire_val_clamp_1_max",
               "from": {
                 "node": "val_clamp_1_max",
                 "port": "o"
               },
+              "id": "wire_val_clamp_1_max",
               "to": {
                 "node": "clamp_1",
                 "port": "max"
               }
             },
             {
-              "id": "wire_val_clamp_1_min",
               "from": {
                 "node": "val_clamp_1_min",
                 "port": "o"
               },
+              "id": "wire_val_clamp_1_min",
               "to": {
                 "node": "clamp_1",
                 "port": "min"
               }
             },
             {
-              "id": "wire_val_integrator_1_gain",
               "from": {
                 "node": "val_integrator_1_gain",
                 "port": "o"
               },
+              "id": "wire_val_integrator_1_gain",
               "to": {
                 "node": "integrator_1",
                 "port": "gain"
               }
             },
             {
-              "id": "wire_val_voltagesense_1_gain",
               "from": {
                 "node": "val_voltagesense_1_gain",
                 "port": "o"
               },
+              "id": "wire_val_voltagesense_1_gain",
               "to": {
                 "node": "voltagesense_1",
                 "port": "gain"
               }
             },
             {
-              "id": "wire_val_voltagesense_1_offset",
               "from": {
                 "node": "val_voltagesense_1_offset",
                 "port": "o"
               },
+              "id": "wire_val_voltagesense_1_offset",
               "to": {
                 "node": "voltagesense_1",
                 "port": "offset"
               }
             }
           ]
-        }
-      },
-      "layout": {
-        "x": 96.0,
-        "y": -408.0,
-        "width": 160.0,
-        "height": 64.0
+        },
+        "mode": "embedded"
       }
     },
     {
       "id": "extract_inst_3",
       "kind": "blueprint_instance",
       "label": "DerateCtrl",
+      "layout": {
+        "height": 64.0,
+        "width": 160.0,
+        "x": 576.0,
+        "y": -736.0
+      },
       "source": {
-        "mode": "embedded",
         "blueprint": {
-          "format": "blueprint",
-          "version": 1,
           "blueprint_id": "DerateCtrl",
-          "name": "DerateCtrl",
+          "format": "blueprint",
           "interface": [
             {
+              "direction": "In",
               "id": "A",
-              "direction": "In",
               "port_type": "V"
             },
             {
+              "direction": "In",
               "id": "A_2",
-              "direction": "In",
               "port_type": "V"
             },
             {
+              "direction": "In",
               "id": "B",
-              "direction": "In",
               "port_type": "V"
             },
             {
-              "id": "o",
               "direction": "Out",
+              "id": "o",
               "port_type": "V"
             }
           ],
+          "name": "DerateCtrl",
           "nodes": [
             {
+              "component": "BlueprintInput",
               "id": "bp_in_1",
               "kind": "component",
               "label": "A_2",
-              "component": "BlueprintInput",
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "V"
-              },
               "layout": {
                 "x": 0.0,
                 "y": 32.0
+              },
+              "params": {
+                "exposed_direction": "In",
+                "exposed_type": "V"
               }
             },
             {
+              "component": "BlueprintInput",
               "id": "bp_in_2",
               "kind": "component",
               "label": "B",
-              "component": "BlueprintInput",
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "V"
-              },
               "layout": {
                 "x": 0.0,
                 "y": 48.0
-              }
-            },
-            {
-              "id": "bp_in_3",
-              "kind": "component",
-              "label": "A",
-              "component": "BlueprintInput",
+              },
               "params": {
                 "exposed_direction": "In",
                 "exposed_type": "V"
-              },
+              }
+            },
+            {
+              "component": "BlueprintInput",
+              "id": "bp_in_3",
+              "kind": "component",
+              "label": "A",
               "layout": {
                 "x": 0.0,
                 "y": 112.0
+              },
+              "params": {
+                "exposed_direction": "In",
+                "exposed_type": "V"
               }
             },
             {
+              "component": "BlueprintOutput",
               "id": "bp_out_1",
               "kind": "component",
               "label": "o",
-              "component": "BlueprintOutput",
+              "layout": {
+                "x": 1616.0,
+                "y": 80.0
+              },
               "params": {
                 "exposed_direction": "Out",
                 "exposed_type": "V"
-              },
+              }
+            },
+            {
+              "component": "Clamp",
+              "id": "clamp_2",
+              "kind": "component",
+              "label": "DerateClamp",
               "layout": {
-                "x": 1668.0,
+                "x": 976.0,
                 "y": 112.0
               }
             },
             {
-              "id": "clamp_2",
-              "kind": "component",
-              "label": "DerateClamp",
               "component": "Clamp",
-              "layout": {
-                "x": 960.0,
-                "y": 64.0
-              }
-            },
-            {
               "id": "clamp_3",
               "kind": "component",
               "label": "ThetaClamp",
-              "component": "Clamp",
               "layout": {
                 "x": 960.0,
-                "y": 0.0
+                "y": -80.0
               }
             },
             {
+              "component": "Integrator",
               "id": "integrator_2",
               "kind": "component",
               "label": "OverloadTheta",
-              "component": "Integrator",
-              "params": {
-                "initial_val": 0.0
-              },
               "layout": {
                 "x": 800.0,
                 "y": 0.0
+              },
+              "params": {
+                "initial_val": 0.0
               }
             },
             {
+              "component": "Multiply",
               "id": "multiply_5",
               "kind": "component",
               "label": "GenCmdDerated",
-              "component": "Multiply",
               "layout": {
                 "x": 1408.0,
                 "y": 80.0
               }
             },
             {
+              "component": "Multiply",
               "id": "multiply_6",
               "kind": "component",
               "label": "LoadI2",
-              "component": "Multiply",
               "layout": {
                 "x": 160.0,
                 "y": 0.0
               }
             },
             {
+              "component": "Multiply",
               "id": "multiply_7",
               "kind": "component",
               "label": "LoadIpu2",
-              "component": "Multiply",
               "layout": {
                 "x": 320.0,
                 "y": 0.0
               }
             },
             {
+              "component": "Multiply",
               "id": "multiply_8",
               "kind": "component",
               "label": "ThermalRate",
-              "component": "Multiply",
               "layout": {
                 "x": 640.0,
                 "y": 0.0
               }
             },
             {
+              "component": "Subtract",
               "id": "subtract_2",
               "kind": "component",
               "label": "OverloadPU",
-              "component": "Subtract",
               "layout": {
                 "x": 480.0,
                 "y": 0.0
               }
             },
             {
+              "component": "Subtract",
               "id": "subtract_3",
               "kind": "component",
               "label": "DerateOneMinusTheta",
-              "component": "Subtract",
               "layout": {
                 "x": 1184.0,
                 "y": 80.0
               }
             },
             {
+              "component": "Value",
               "id": "val_clamp_2_max",
               "kind": "component",
               "label": "clamp_2_max",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 880.0,
                 "y": 152.0
+              },
+              "params": {
+                "value": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "val_clamp_2_min",
               "kind": "component",
               "label": "clamp_2_min",
-              "component": "Value",
-              "params": {
-                "value": 0.0
-              },
               "layout": {
                 "x": 880.0,
                 "y": 112.0
+              },
+              "params": {
+                "value": 0.0
               }
             },
             {
+              "component": "Value",
               "id": "val_clamp_3_max",
               "kind": "component",
               "label": "clamp_3_max",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 880.0,
                 "y": 88.0
+              },
+              "params": {
+                "value": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "val_clamp_3_min",
               "kind": "component",
               "label": "clamp_3_min",
-              "component": "Value",
-              "params": {
-                "value": 0.0
-              },
               "layout": {
                 "x": 880.0,
                 "y": 48.0
+              },
+              "params": {
+                "value": 0.0
               }
             },
             {
+              "component": "Value",
               "id": "val_integrator_2_gain",
               "kind": "component",
               "label": "integrator_2_gain",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 720.0,
                 "y": 48.0
+              },
+              "params": {
+                "value": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "value_6",
               "kind": "component",
               "label": "InvIcontSq",
-              "component": "Value",
-              "params": {
-                "value": 2.7777778086601757e-06
-              },
               "layout": {
                 "x": 240.0,
                 "y": 112.0
+              },
+              "params": {
+                "value": 2.7777778086601757e-06
               }
             },
             {
+              "component": "Value",
               "id": "value_7",
               "kind": "component",
               "label": "OverloadGain",
-              "component": "Value",
-              "params": {
-                "value": 0.008333333767950535
-              },
               "layout": {
                 "x": 576.0,
                 "y": 96.0
+              },
+              "params": {
+                "value": 0.008333333767950535
               }
             },
             {
+              "component": "Value",
               "id": "value_8",
               "kind": "component",
               "label": "One",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 400.0,
                 "y": 128.0
+              },
+              "params": {
+                "value": 1.0
               }
             }
           ],
+          "version": 1,
           "wires": [
             {
-              "id": "bp_bridge_in_wire_1",
               "from": {
                 "node": "bp_in_3",
                 "port": "port"
               },
+              "id": "bp_bridge_in_wire_1",
               "to": {
                 "node": "multiply_5",
                 "port": "A"
               }
             },
             {
-              "id": "bp_bridge_in_wire_2",
               "from": {
                 "node": "bp_in_1",
                 "port": "port"
               },
+              "id": "bp_bridge_in_wire_2",
               "to": {
                 "node": "multiply_6",
                 "port": "A"
               }
             },
             {
-              "id": "bp_bridge_in_wire_3",
               "from": {
                 "node": "bp_in_2",
                 "port": "port"
               },
+              "id": "bp_bridge_in_wire_3",
               "to": {
                 "node": "multiply_6",
                 "port": "B"
               }
             },
             {
-              "id": "bp_bridge_out_wire_1",
               "from": {
                 "node": "multiply_5",
                 "port": "o"
               },
+              "id": "bp_bridge_out_wire_1",
               "to": {
                 "node": "bp_out_1",
                 "port": "port"
               }
             },
             {
-              "id": "wire_100",
               "from": {
                 "node": "clamp_3",
                 "port": "out"
               },
+              "id": "wire_100",
               "to": {
                 "node": "multiply_8",
                 "port": "A"
               }
             },
             {
-              "id": "wire_101",
               "from": {
                 "node": "value_7",
                 "port": "o"
               },
+              "id": "wire_101",
               "to": {
                 "node": "multiply_8",
                 "port": "B"
               }
             },
             {
-              "id": "wire_102",
               "from": {
                 "node": "multiply_8",
                 "port": "o"
               },
+              "id": "wire_102",
               "to": {
                 "node": "integrator_2",
                 "port": "in"
               }
             },
             {
-              "id": "wire_103",
               "from": {
                 "node": "integrator_2",
                 "port": "out"
               },
+              "id": "wire_103",
               "to": {
                 "node": "clamp_2",
                 "port": "in"
               }
             },
             {
-              "id": "wire_104",
               "from": {
                 "node": "value_8",
                 "port": "o"
               },
+              "id": "wire_104",
               "to": {
                 "node": "subtract_3",
                 "port": "A"
               }
             },
             {
-              "id": "wire_105",
               "from": {
                 "node": "clamp_2",
                 "port": "out"
               },
+              "id": "wire_105",
               "to": {
                 "node": "subtract_3",
                 "port": "B"
               }
             },
             {
-              "id": "wire_92",
               "from": {
                 "node": "subtract_3",
                 "port": "o"
               },
+              "id": "wire_92",
               "to": {
                 "node": "multiply_5",
                 "port": "B"
               }
             },
             {
-              "id": "wire_95",
               "from": {
                 "node": "multiply_6",
                 "port": "o"
               },
+              "id": "wire_95",
               "to": {
                 "node": "multiply_7",
                 "port": "A"
               }
             },
             {
-              "id": "wire_96",
               "from": {
                 "node": "value_6",
                 "port": "o"
               },
+              "id": "wire_96",
               "to": {
                 "node": "multiply_7",
                 "port": "B"
               }
             },
             {
-              "id": "wire_97",
               "from": {
                 "node": "multiply_7",
                 "port": "o"
               },
+              "id": "wire_97",
               "to": {
                 "node": "subtract_2",
                 "port": "A"
               }
             },
             {
-              "id": "wire_98",
               "from": {
                 "node": "value_8",
                 "port": "o"
               },
+              "id": "wire_98",
               "to": {
                 "node": "subtract_2",
                 "port": "B"
               }
             },
             {
-              "id": "wire_99",
               "from": {
                 "node": "subtract_2",
                 "port": "o"
               },
+              "id": "wire_99",
               "to": {
                 "node": "clamp_3",
                 "port": "in"
               }
             },
             {
-              "id": "wire_val_clamp_2_max",
               "from": {
                 "node": "val_clamp_2_max",
                 "port": "o"
               },
+              "id": "wire_val_clamp_2_max",
               "to": {
                 "node": "clamp_2",
                 "port": "max"
               }
             },
             {
-              "id": "wire_val_clamp_2_min",
               "from": {
                 "node": "val_clamp_2_min",
                 "port": "o"
               },
+              "id": "wire_val_clamp_2_min",
               "to": {
                 "node": "clamp_2",
                 "port": "min"
               }
             },
             {
-              "id": "wire_val_clamp_3_max",
               "from": {
                 "node": "val_clamp_3_max",
                 "port": "o"
               },
+              "id": "wire_val_clamp_3_max",
               "to": {
                 "node": "clamp_3",
                 "port": "max"
               }
             },
             {
-              "id": "wire_val_clamp_3_min",
               "from": {
                 "node": "val_clamp_3_min",
                 "port": "o"
               },
+              "id": "wire_val_clamp_3_min",
               "to": {
                 "node": "clamp_3",
                 "port": "min"
               }
             },
             {
-              "id": "wire_val_integrator_2_gain",
               "from": {
                 "node": "val_integrator_2_gain",
                 "port": "o"
               },
+              "id": "wire_val_integrator_2_gain",
               "to": {
                 "node": "integrator_2",
                 "port": "gain"
               }
             }
           ]
-        }
-      },
-      "layout": {
-        "x": 656.0,
-        "y": -544.0,
-        "width": 160.0,
-        "height": 64.0
+        },
+        "mode": "embedded"
       }
     },
     {
       "id": "extract_inst_4",
       "kind": "blueprint_instance",
       "label": "RPMIntertial",
+      "layout": {
+        "height": 64.0,
+        "width": 160.0,
+        "x": 32.0,
+        "y": 256.0
+      },
       "source": {
-        "mode": "embedded",
         "blueprint": {
-          "format": "blueprint",
-          "version": 1,
           "blueprint_id": "RPMIntertial",
-          "name": "RPMIntertial",
+          "format": "blueprint",
           "interface": [
             {
-              "id": "Torque",
               "direction": "In",
+              "id": "Torque",
               "port_type": "Any"
             },
             {
-              "id": "out",
               "direction": "Out",
+              "id": "out",
               "port_type": "V"
             }
           ],
+          "name": "RPMIntertial",
           "nodes": [
             {
+              "component": "BlueprintInput",
               "id": "bp_in_2",
               "kind": "component",
               "label": "Torque",
-              "component": "BlueprintInput",
+              "layout": {
+                "x": 280.0,
+                "y": 528.0
+              },
               "params": {
                 "exposed_direction": "In",
                 "exposed_type": "Any"
-              },
-              "layout": {
-                "x": 128.0,
-                "y": 32.0
               }
             },
             {
+              "component": "BlueprintOutput",
               "id": "bp_out_1",
               "kind": "component",
               "label": "out",
-              "component": "BlueprintOutput",
+              "layout": {
+                "x": 688.0,
+                "y": 528.0
+              },
               "params": {
                 "exposed_direction": "Out",
                 "exposed_type": "V"
-              },
-              "layout": {
-                "x": 932.0,
-                "y": 32.0
               }
             },
             {
+              "component": "InertiaNode",
               "id": "divide_rotor_accel",
               "kind": "component",
               "label": "RotorAccel",
-              "component": "InertiaNode",
-              "params": {
-                "initial_rpm": 1.0
-              },
               "layout": {
                 "x": 464.0,
                 "y": 528.0
+              },
+              "params": {
+                "initial_rpm": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "value_rotor_damping",
               "kind": "component",
               "label": "RotorDamping",
-              "component": "Value",
+              "layout": {
+                "x": 400.0,
+                "y": 600.0
+              },
               "params": {
                 "value": 0.15000000596046448
-              },
-              "layout": {
-                "x": 256.0,
-                "y": 512.0
               }
             },
             {
+              "component": "Value",
               "id": "value_rotor_inv_inertia",
               "kind": "component",
               "label": "RotorInvInertia",
-              "component": "Value",
+              "layout": {
+                "x": 408.0,
+                "y": 568.0
+              },
               "params": {
                 "value": 25.0
-              },
-              "layout": {
-                "x": 240.0,
-                "y": 592.0
               }
             },
             {
+              "component": "Value",
               "id": "value_rotor_mass",
               "kind": "component",
               "label": "RotorMass",
-              "component": "Value",
+              "layout": {
+                "x": 408.0,
+                "y": 584.0
+              },
               "params": {
                 "value": 25.0
-              },
-              "layout": {
-                "x": 336.0,
-                "y": 608.0
               }
             }
           ],
+          "version": 1,
           "wires": [
             {
-              "id": "bp_bridge_in_wire_1",
               "from": {
                 "node": "bp_in_2",
                 "port": "port"
               },
+              "id": "bp_bridge_in_wire_1",
               "to": {
                 "node": "divide_rotor_accel",
                 "port": "torque_in"
               }
             },
             {
-              "id": "bp_bridge_out_wire_1",
               "from": {
                 "node": "divide_rotor_accel",
                 "port": "rpm_out"
               },
+              "id": "bp_bridge_out_wire_1",
               "to": {
                 "node": "bp_out_1",
                 "port": "port"
               }
             },
             {
-              "id": "wire_rotor_10",
               "from": {
                 "node": "value_rotor_mass",
                 "port": "o"
               },
+              "id": "wire_rotor_10",
               "to": {
                 "node": "divide_rotor_accel",
                 "port": "mass"
               }
             },
             {
-              "id": "wire_rotor_11",
               "from": {
                 "node": "value_rotor_damping",
                 "port": "o"
               },
+              "id": "wire_rotor_11",
               "to": {
                 "node": "divide_rotor_accel",
                 "port": "damping"
               }
             },
             {
-              "id": "wire_rotor_8",
               "from": {
                 "node": "value_rotor_inv_inertia",
                 "port": "o"
               },
+              "id": "wire_rotor_8",
               "to": {
                 "node": "divide_rotor_accel",
                 "port": "inv_inertia"
               }
             }
           ]
-        }
-      },
-      "layout": {
-        "x": 32.0,
-        "y": 240.0,
-        "width": 160.0,
-        "height": 64.0
+        },
+        "mode": "embedded"
       }
     },
     {
       "id": "firstorderlag_1",
       "kind": "blueprint_instance",
       "label": "FieldLag",
+      "layout": {
+        "height": 64.0,
+        "width": 160.0,
+        "x": 208.0,
+        "y": 0.0
+      },
       "source": {
-        "mode": "embedded",
         "blueprint": {
-          "format": "blueprint",
-          "version": 1,
           "blueprint_id": "FirstOrderLag",
-          "name": "FirstOrderLag",
+          "format": "blueprint",
           "interface": [
             {
+              "direction": "In",
               "id": "in",
-              "direction": "In",
               "port_type": "Any"
             },
             {
-              "id": "out",
               "direction": "Out",
+              "id": "out",
               "port_type": "Any"
             },
             {
-              "id": "rate",
               "direction": "In",
+              "id": "rate",
               "port_type": "Any"
             }
           ],
+          "name": "FirstOrderLag",
           "nodes": [
             {
+              "component": "Accumulator",
               "id": "accumulator",
               "kind": "component",
-              "component": "Accumulator",
-              "params": {
-                "initial_val": 0.6000000238418579
-              },
               "layout": {
                 "x": -64.0,
                 "y": 80.0
+              },
+              "params": {
+                "initial_val": 0.6000000238418579
               }
             },
             {
+              "component": "BlueprintInput",
               "id": "in",
               "kind": "component",
-              "component": "BlueprintInput",
+              "layout": {
+                "x": -360.0,
+                "y": 304.0
+              },
               "params": {
                 "exposed_direction": "In",
                 "exposed_type": "V"
-              },
-              "layout": {
-                "x": -336.0,
-                "y": 304.0
               }
             },
             {
+              "component": "Multiply",
               "id": "multiply",
               "kind": "component",
-              "component": "Multiply",
               "layout": {
                 "x": -192.0,
                 "y": 80.0
               }
             },
             {
+              "component": "BlueprintOutput",
               "id": "out",
               "kind": "component",
-              "component": "BlueprintOutput",
+              "layout": {
+                "x": 224.0,
+                "y": 80.0
+              },
               "params": {
                 "exposed_direction": "Out",
                 "exposed_type": "V"
-              },
-              "layout": {
-                "x": 224.0,
-                "y": 96.0
               }
             },
             {
+              "component": "BlueprintInput",
               "id": "rate",
               "kind": "component",
-              "component": "BlueprintInput",
+              "layout": {
+                "x": -360.0,
+                "y": 96.0
+              },
               "params": {
                 "exposed_direction": "In",
                 "exposed_type": "V"
-              },
-              "layout": {
-                "x": -336.0,
-                "y": 96.0
               }
             },
             {
+              "component": "Splitter",
               "id": "splitter",
               "kind": "component",
-              "component": "Splitter",
               "layout": {
                 "x": 64.0,
                 "y": 80.0
               }
             },
             {
+              "component": "Subtract",
               "id": "subtract",
               "kind": "component",
-              "component": "Subtract",
               "layout": {
                 "x": 192.0,
                 "y": 304.0
               }
             }
           ],
+          "version": 1,
           "wires": [
             {
-              "id": "w_acc_to_split",
               "from": {
                 "node": "accumulator",
                 "port": "out"
               },
+              "id": "w_acc_to_split",
               "to": {
                 "node": "splitter",
                 "port": "i"
               }
             },
             {
-              "id": "w_in_to_sub",
               "from": {
                 "node": "in",
                 "port": "port"
               },
+              "id": "w_in_to_sub",
               "to": {
                 "node": "subtract",
                 "port": "A"
               }
             },
             {
-              "id": "w_mul_to_acc",
               "from": {
                 "node": "multiply",
                 "port": "o"
               },
+              "id": "w_mul_to_acc",
               "to": {
                 "node": "accumulator",
                 "port": "in"
               }
             },
             {
-              "id": "w_rate_to_mul",
               "from": {
                 "node": "rate",
                 "port": "port"
               },
+              "id": "w_rate_to_mul",
               "to": {
                 "node": "multiply",
                 "port": "B"
               }
             },
             {
-              "id": "w_split_o1_to_sub",
               "from": {
                 "node": "splitter",
                 "port": "o1"
               },
-              "to": {
-                "node": "subtract",
-                "port": "B"
-              },
+              "id": "w_split_o1_to_sub",
               "routing": [
                 [
                   160.0,
-                  112.0
+                  128.0
                 ],
                 [
                   160.0,
                   352.0
                 ]
-              ]
+              ],
+              "to": {
+                "node": "subtract",
+                "port": "B"
+              }
             },
             {
-              "id": "w_split_o2_to_out",
               "from": {
                 "node": "splitter",
                 "port": "o2"
               },
+              "id": "w_split_o2_to_out",
               "to": {
                 "node": "out",
                 "port": "port"
               }
             },
             {
-              "id": "w_sub_to_mul",
               "from": {
                 "node": "subtract",
                 "port": "o"
               },
-              "to": {
-                "node": "multiply",
-                "port": "A"
-              },
+              "id": "w_sub_to_mul",
               "routing": [
                 [
                   304.0,
@@ -1747,599 +1747,595 @@
                   -240.0,
                   112.0
                 ]
-              ]
+              ],
+              "to": {
+                "node": "multiply",
+                "port": "A"
+              }
             }
           ]
-        }
-      },
-      "layout": {
-        "x": 208.0,
-        "y": 0.0,
-        "width": 160.0,
-        "height": 64.0
+        },
+        "mode": "embedded"
       }
     },
     {
       "id": "groundpower_1",
       "kind": "blueprint_instance",
       "label": "groundpower_1",
+      "layout": {
+        "height": 64.0,
+        "width": 160.0,
+        "x": -456.0,
+        "y": -624.0
+      },
       "source": {
-        "mode": "embedded",
         "blueprint": {
-          "format": "blueprint",
-          "version": 1,
           "blueprint_id": "GroundPower",
-          "name": "GroundPower",
+          "format": "blueprint",
           "interface": [
             {
-              "id": "v_in",
               "direction": "In",
+              "id": "v_in",
               "port_type": "V"
             },
             {
-              "id": "v_out",
               "direction": "Out",
+              "id": "v_out",
               "port_type": "V"
             }
           ],
+          "name": "GroundPower",
           "nodes": [
             {
+              "component": "BlueprintInput",
               "id": "groundpower_1:v_in",
               "kind": "component",
               "label": "v_in",
-              "component": "BlueprintInput",
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "V"
-              },
               "layout": {
                 "x": 0.0,
                 "y": 160.0
+              },
+              "params": {
+                "exposed_direction": "In",
+                "exposed_type": "V"
               }
             },
             {
+              "component": "BlueprintOutput",
               "id": "groundpower_1:v_out",
               "kind": "component",
               "label": "v_out",
-              "component": "BlueprintOutput",
-              "params": {
-                "exposed_direction": "Out",
-                "exposed_type": "V"
-              },
               "layout": {
                 "x": 352.0,
                 "y": 32.0
+              },
+              "params": {
+                "exposed_direction": "Out",
+                "exposed_type": "V"
               }
             },
             {
+              "component": "Value",
               "id": "groundpower_1_k_max",
               "kind": "component",
               "label": "k_max",
-              "component": "Value",
-              "params": {
-                "value": 30.0
-              },
               "layout": {
                 "x": 0.0,
                 "y": 96.0
+              },
+              "params": {
+                "value": 30.0
               }
             },
             {
+              "component": "Value",
               "id": "groundpower_1_k_one",
               "kind": "component",
               "label": "k_one",
-              "component": "Value",
-              "params": {
-                "value": 1.0
-              },
               "layout": {
                 "x": 0.0,
                 "y": 32.0
+              },
+              "params": {
+                "value": 1.0
               }
             },
             {
+              "component": "Value",
               "id": "groundpower_1_k_voltage",
               "kind": "component",
               "label": "k_voltage",
-              "component": "Value",
-              "params": {
-                "value": 28.5
-              },
               "layout": {
                 "x": 0.0,
                 "y": 0.0
+              },
+              "params": {
+                "value": 28.5
               }
             },
             {
+              "component": "Value",
               "id": "groundpower_1_k_zero",
               "kind": "component",
               "label": "k_zero",
-              "component": "Value",
-              "params": {
-                "value": 0.0
-              },
               "layout": {
                 "x": 0.0,
                 "y": 64.0
+              },
+              "params": {
+                "value": 0.0
               }
             },
             {
+              "component": "Value",
               "id": "groundpower_1_k_zero_2",
               "kind": "component",
               "label": "k_zero_2",
-              "component": "Value",
-              "params": {
-                "value": 0.0
-              },
               "layout": {
                 "x": 0.0,
                 "y": 80.0
+              },
+              "params": {
+                "value": 0.0
               }
             },
             {
+              "component": "ControlledVoltageSource",
               "id": "groundpower_1_src",
               "kind": "component",
               "label": "src",
-              "component": "ControlledVoltageSource",
-              "params": {
-                "r_internal": 0.009999999776482582
-              },
               "layout": {
                 "x": 160.0,
                 "y": 32.0
+              },
+              "params": {
+                "r_internal": 0.009999999776482582
               }
             }
           ],
+          "version": 1,
           "wires": [
             {
-              "id": "wire_groundpower_1_w_max_max",
               "from": {
                 "node": "groundpower_1_k_max",
                 "port": "o"
               },
+              "id": "wire_groundpower_1_w_max_max",
               "to": {
                 "node": "groundpower_1_src",
                 "port": "max_v"
               }
             },
             {
-              "id": "wire_groundpower_1_w_one_gain",
               "from": {
                 "node": "groundpower_1_k_one",
                 "port": "o"
               },
+              "id": "wire_groundpower_1_w_one_gain",
               "to": {
                 "node": "groundpower_1_src",
                 "port": "gain"
               }
             },
             {
-              "id": "wire_groundpower_1_w_src_vout",
               "from": {
                 "node": "groundpower_1_src",
                 "port": "v_pos"
               },
+              "id": "wire_groundpower_1_w_src_vout",
               "to": {
                 "node": "groundpower_1:v_out",
                 "port": "port"
               }
             },
             {
-              "id": "wire_groundpower_1_w_vin_neg",
               "from": {
                 "node": "groundpower_1:v_in",
                 "port": "port"
               },
+              "id": "wire_groundpower_1_w_vin_neg",
               "to": {
                 "node": "groundpower_1_src",
                 "port": "v_neg"
               }
             },
             {
-              "id": "wire_groundpower_1_w_voltage_cmd",
               "from": {
                 "node": "groundpower_1_k_voltage",
                 "port": "o"
               },
+              "id": "wire_groundpower_1_w_voltage_cmd",
               "to": {
                 "node": "groundpower_1_src",
                 "port": "cmd"
               }
             },
             {
-              "id": "wire_groundpower_1_w_zero_min",
               "from": {
                 "node": "groundpower_1_k_zero_2",
                 "port": "o"
               },
+              "id": "wire_groundpower_1_w_zero_min",
               "to": {
                 "node": "groundpower_1_src",
                 "port": "min_v"
               }
             },
             {
-              "id": "wire_groundpower_1_w_zero_offset",
               "from": {
                 "node": "groundpower_1_k_zero",
                 "port": "o"
               },
+              "id": "wire_groundpower_1_w_zero_offset",
               "to": {
                 "node": "groundpower_1_src",
                 "port": "offset"
               }
             }
           ]
-        }
-      },
-      "layout": {
-        "x": -464.0,
-        "y": -848.0,
-        "width": 160.0,
-        "height": 64.0
+        },
+        "mode": "embedded"
       }
     },
     {
+      "component": "IndicatorLight",
       "id": "indicatorlight_1",
       "kind": "component",
       "label": "indicatorlight_1",
-      "component": "IndicatorLight",
+      "layout": {
+        "height": 80.0,
+        "width": 80.0,
+        "x": 888.0,
+        "y": -576.0
+      },
       "params": {
         "conductance": 0.009999999776482582
-      },
-      "layout": {
-        "x": 896.0,
-        "y": -576.0,
-        "width": 80.0,
-        "height": 80.0
       }
     },
     {
+      "component": "IndicatorLight",
       "id": "indicatorlight_2",
       "kind": "component",
       "label": "indicatorlight_2",
-      "component": "IndicatorLight",
+      "layout": {
+        "height": 80.0,
+        "width": 80.0,
+        "x": 96.0,
+        "y": -640.0
+      },
       "params": {
         "conductance": 0.0020000000949949026
-      },
-      "layout": {
-        "x": 96.0,
-        "y": -640.0,
-        "width": 80.0,
-        "height": 80.0
       }
     },
     {
+      "component": "IndicatorLight",
       "id": "indicatorlight_3",
       "kind": "component",
       "label": "indicatorlight_3",
-      "component": "IndicatorLight",
+      "layout": {
+        "height": 80.0,
+        "width": 80.0,
+        "x": 96.0,
+        "y": -736.0
+      },
       "params": {
         "conductance": 0.0020000000949949026
-      },
-      "layout": {
-        "x": 96.0,
-        "y": -736.0,
-        "width": 80.0,
-        "height": 80.0
       }
     },
     {
+      "component": "IndicatorLight",
       "id": "indicatorlight_4",
       "kind": "component",
       "label": "indicatorlight_4",
-      "component": "IndicatorLight",
+      "layout": {
+        "height": 80.0,
+        "width": 80.0,
+        "x": 96.0,
+        "y": -544.0
+      },
       "params": {
         "conductance": 0.0020000000949949026
-      },
-      "layout": {
-        "x": 96.0,
-        "y": -544.0,
-        "width": 80.0,
-        "height": 80.0
       }
     },
     {
+      "component": "IndicatorLight",
       "id": "indicatorlight_5",
       "kind": "component",
       "label": "indicatorlight_5",
-      "component": "IndicatorLight",
+      "layout": {
+        "height": 80.0,
+        "width": 80.0,
+        "x": 664.0,
+        "y": -128.0
+      },
       "params": {
         "conductance": 0.0020000000949949026
-      },
-      "layout": {
-        "x": 624.0,
-        "y": -128.0,
-        "width": 80.0,
-        "height": 80.0
       }
     },
     {
+      "component": "Multiply",
       "id": "multiply_1",
       "kind": "component",
       "label": "multiply_1",
-      "component": "Multiply",
       "layout": {
-        "x": 400.0,
-        "y": 112.0,
+        "height": 64.0,
         "width": 48.0,
-        "height": 64.0
+        "x": 400.0,
+        "y": 48.0
       }
     },
     {
+      "component": "Normalize",
       "id": "normalize_1",
       "kind": "component",
       "label": "normalize_1",
-      "component": "Normalize",
       "layout": {
         "x": 272.0,
         "y": 240.0
       }
     },
     {
+      "component": "RefNode",
       "id": "refnode_4",
       "kind": "component",
       "label": "GND_REF",
-      "component": "RefNode",
+      "layout": {
+        "x": 496.0,
+        "y": 160.0
+      },
       "params": {
         "value": 0.0
-      },
-      "layout": {
-        "x": 480.0,
-        "y": 168.0
       }
     },
     {
+      "component": "Relay",
       "id": "relay_1",
       "kind": "component",
       "label": "relay_1",
-      "component": "Relay",
-      "params": {
-        "closed": false,
-        "g_closed": 1000.0,
-        "g_open": 9.999999974752427e-07
-      },
       "layout": {
         "x": 1104.0,
         "y": -720.0
+      },
+      "params": {
+        "closed": "false",
+        "g_closed": 1000.0,
+        "g_open": 9.999999974752427e-07
       }
     },
     {
+      "component": "Resistor",
       "id": "resistor_1",
       "kind": "component",
       "label": "resistor_1",
-      "component": "Resistor",
-      "params": {
-        "conductance": 0.10000000149011612
-      },
       "layout": {
         "x": 832.0,
-        "y": -160.0
+        "y": -144.0
+      },
+      "params": {
+        "conductance": 0.10000000149011612
       }
     },
     {
+      "component": "Resistor",
       "id": "resistor_2",
       "kind": "component",
       "label": "resistor_2",
-      "component": "Resistor",
-      "params": {
-        "conductance": 0.10000000149011612
-      },
       "layout": {
         "x": 1344.0,
-        "y": -704.0
+        "y": -720.0
+      },
+      "params": {
+        "conductance": 0.10000000149011612
       }
     },
     {
+      "component": "RotarySwitch1ToN",
       "id": "rotaryswitch1ton_1",
       "kind": "component",
       "label": "rotaryswitch1ton_1",
-      "component": "RotarySwitch1ToN",
+      "layout": {
+        "x": -208.0,
+        "y": -640.0
+      },
       "params": {
         "g_closed": 1000.0,
         "g_open": 9.999999974752427e-07,
         "initial_position": 0.0,
         "positions": 5.0
-      },
-      "layout": {
-        "x": -176.0,
-        "y": -880.0
       }
     },
     {
+      "component": "Slider",
       "id": "slider_1",
       "kind": "component",
       "label": "slider_1",
-      "component": "Slider",
+      "layout": {
+        "x": -176.0,
+        "y": 256.0
+      },
       "params": {
         "max": 1.0,
         "min": 0.0
-      },
-      "layout": {
-        "x": -176.0,
-        "y": 240.0
       }
     },
     {
+      "component": "Value",
       "id": "val_controlledvoltagesource_2_gain",
       "kind": "component",
       "label": "controlledvoltagesource_2_gain",
-      "component": "Value",
+      "layout": {
+        "x": 568.0,
+        "y": 40.0
+      },
       "params": {
         "value": 1.0
-      },
-      "layout": {
-        "x": 472.0,
-        "y": 40.0
       }
     },
     {
+      "component": "Value",
       "id": "val_controlledvoltagesource_2_max_v",
       "kind": "component",
       "label": "controlledvoltagesource_2_max_v",
-      "component": "Value",
+      "layout": {
+        "x": 560.0,
+        "y": 24.0
+      },
       "params": {
         "value": 30.0
-      },
-      "layout": {
-        "x": 472.0,
-        "y": 56.0
       }
     },
     {
+      "component": "Value",
       "id": "val_controlledvoltagesource_2_min_v",
       "kind": "component",
       "label": "controlledvoltagesource_2_min_v",
-      "component": "Value",
+      "layout": {
+        "x": 568.0,
+        "y": 104.0
+      },
       "params": {
         "value": 0.0
-      },
-      "layout": {
-        "x": 472.0,
-        "y": 72.0
       }
     },
     {
+      "component": "Value",
       "id": "val_controlledvoltagesource_2_offset",
       "kind": "component",
       "label": "controlledvoltagesource_2_offset",
-      "component": "Value",
+      "layout": {
+        "height": 32.0,
+        "width": 32.0,
+        "x": 568.0,
+        "y": 88.0
+      },
       "params": {
         "value": 0.0
-      },
-      "layout": {
-        "x": 472.0,
-        "y": 88.0,
-        "width": 32.0,
-        "height": 32.0
       }
     },
     {
+      "component": "Value",
       "id": "val_normalize_1_max",
       "kind": "component",
       "label": "normalize_1_max",
-      "component": "Value",
-      "params": {
-        "value": 100.0
-      },
       "layout": {
         "x": 208.0,
-        "y": 280.0
+        "y": 264.0
+      },
+      "params": {
+        "value": 100.0
       }
     },
     {
+      "component": "Value",
       "id": "val_normalize_1_min",
       "kind": "component",
       "label": "normalize_1_min",
-      "component": "Value",
-      "params": {
-        "value": 0.0
-      },
       "layout": {
         "x": 208.0,
         "y": 296.0
+      },
+      "params": {
+        "value": 0.0
       }
     },
     {
+      "component": "Value",
       "id": "val_relay_1_hold_threshold",
       "kind": "component",
       "label": "relay_1_hold_threshold",
-      "component": "Value",
-      "params": {
-        "value": 0.5
-      },
       "layout": {
         "x": 1048.0,
-        "y": -680.0
+        "y": -664.0
+      },
+      "params": {
+        "value": 0.5
       }
     },
     {
+      "component": "Value",
       "id": "val_variableconductance_1_g_max",
       "kind": "component",
       "label": "variableconductance_1_g_max",
-      "component": "Value",
+      "layout": {
+        "x": 440.0,
+        "y": -264.0
+      },
       "params": {
         "value": 10.0
-      },
-      "layout": {
-        "x": 432.0,
-        "y": -280.0
       }
     },
     {
+      "component": "Value",
       "id": "val_variableconductance_1_g_min",
       "kind": "component",
       "label": "variableconductance_1_g_min",
-      "component": "Value",
+      "layout": {
+        "x": 440.0,
+        "y": -248.0
+      },
       "params": {
         "value": 0.0
-      },
-      "layout": {
-        "x": 432.0,
-        "y": -264.0
       }
     },
     {
+      "component": "Value",
       "id": "value_2",
       "kind": "component",
       "label": "FieldRate",
-      "component": "Value",
-      "params": {
-        "value": 6.0
-      },
       "layout": {
         "x": 168.0,
         "y": 40.0
+      },
+      "params": {
+        "value": 6.0
       }
     },
     {
+      "component": "Value",
       "id": "value_9",
       "kind": "component",
       "label": "value_9",
-      "component": "Value",
+      "layout": {
+        "x": 392.0,
+        "y": -56.0
+      },
       "params": {
         "value": 1.0
-      },
-      "layout": {
-        "x": 408.0,
-        "y": 80.0
       }
     },
     {
+      "component": "VariableConductance",
       "id": "variableconductance_1",
       "kind": "component",
       "label": "variableconductance_1",
-      "component": "VariableConductance",
       "layout": {
-        "x": 480.0,
+        "x": 488.0,
         "y": -320.0
       }
     },
     {
+      "component": "Voltmeter",
       "id": "voltmeter_1",
       "kind": "component",
       "label": "voltmeter_1",
-      "component": "Voltmeter",
+      "layout": {
+        "x": 888.0,
+        "y": -464.0
+      },
       "params": {
         "max": 28.0,
         "min": 0.0
-      },
-      "layout": {
-        "x": 816.0,
-        "y": -464.0
       }
     }
   ],
+  "version": 1,
   "wires": [
     {
-      "id": "extract_wire_10",
       "from": {
         "node": "extract_inst_2",
         "port": "out"
       },
-      "to": {
-        "node": "variableconductance_1",
-        "port": "cmd"
-      },
+      "id": "extract_wire_10",
       "routing": [
         [
           448.0,
@@ -2347,532 +2343,120 @@
         ],
         [
           448.0,
-          -288.0
+          -272.0
         ]
-      ]
+      ],
+      "to": {
+        "node": "variableconductance_1",
+        "port": "cmd"
+      }
     },
     {
-      "id": "extract_wire_3",
       "from": {
         "node": "bus_2",
         "port": "v"
       },
-      "to": {
-        "node": "extract_inst_1",
-        "port": "feedback"
-      },
+      "id": "extract_wire_8",
       "routing": [
         [
-          736.0,
-          -144.0
+          704.0,
+          -416.0
         ],
         [
-          -32.0,
-          -144.0
+          32.0,
+          -432.0
         ],
         [
-          -32.0,
-          32.0
+          32.0,
+          -368.0
         ]
-      ]
+      ],
+      "to": {
+        "node": "extract_inst_2",
+        "port": "v_in"
+      }
     },
     {
-      "id": "extract_wire_4",
       "from": {
         "node": "extract_inst_1",
         "port": "output"
       },
+      "id": "extract_wire_4",
       "to": {
         "node": "firstorderlag_1",
         "port": "in"
       }
     },
     {
-      "id": "extract_wire_8",
       "from": {
         "node": "bus_2",
         "port": "v"
       },
-      "to": {
-        "node": "extract_inst_2",
-        "port": "v_in"
-      },
-      "routing": [
-        [
-          704.0,
-          -176.0
-        ],
-        [
-          240.0,
-          -176.0
-        ],
-        [
-          240.0,
-          -368.0
-        ]
-      ]
-    },
-    {
-      "id": "extract_wire_9",
-      "from": {
-        "node": "bus_1",
-        "port": "v"
-      },
-      "to": {
-        "node": "extract_inst_2",
-        "port": "v_ref"
-      },
-      "routing": [
-        [
-          496.0,
-          208.0
-        ],
-        [
-          -64.0,
-          208.0
-        ],
-        [
-          -64.0,
-          -352.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_107",
-      "from": {
-        "node": "multiply_1",
-        "port": "o"
-      },
-      "to": {
-        "node": "controlledvoltagesource_2",
-        "port": "cmd"
-      },
-      "routing": [
-        [
-          464.0,
-          144.0
-        ],
-        [
-          464.0,
-          32.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_114",
-      "from": {
-        "node": "bus_2",
-        "port": "v"
-      },
-      "to": {
-        "node": "relay_1",
-        "port": "v_in"
-      },
-      "routing": [
-        [
-          800.0,
-          -480.0
-        ],
-        [
-          1072.0,
-          -480.0
-        ],
-        [
-          1072.0,
-          -656.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_115",
-      "from": {
-        "node": "relay_1",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "resistor_2",
-        "port": "v_in"
-      }
-    },
-    {
-      "id": "wire_116",
-      "from": {
-        "node": "resistor_2",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "bus_1",
-        "port": "v"
-      },
-      "routing": [
-        [
-          1504.0,
-          -672.0
-        ],
-        [
-          1504.0,
-          304.0
-        ],
-        [
-          576.0,
-          304.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_122",
-      "from": {
-        "node": "extract_inst_4",
-        "port": "out"
-      },
-      "to": {
-        "node": "normalize_1",
-        "port": "in"
-      }
-    },
-    {
-      "id": "wire_129",
-      "from": {
-        "node": "slider_1",
-        "port": "out"
-      },
-      "to": {
-        "node": "extract_inst_4",
-        "port": "Torque"
-      }
-    },
-    {
-      "id": "wire_140",
-      "from": {
-        "node": "normalize_1",
-        "port": "out"
-      },
-      "to": {
-        "node": "multiply_1",
-        "port": "B"
-      },
-      "routing": [
-        [
-          384.0,
-          272.0
-        ],
-        [
-          384.0,
-          160.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_142",
-      "from": {
-        "node": "indicatorlight_1",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "bus_1",
-        "port": "v"
-      }
-    },
-    {
-      "id": "wire_143",
-      "from": {
-        "node": "bus_2",
-        "port": "v"
-      },
-      "to": {
-        "node": "indicatorlight_1",
-        "port": "v_in"
-      }
-    },
-    {
-      "id": "wire_145",
-      "from": {
-        "node": "bus_1",
-        "port": "v"
-      },
-      "to": {
-        "node": "groundpower_1",
-        "port": "v_in"
-      }
-    },
-    {
-      "id": "wire_156",
-      "from": {
-        "node": "rotaryswitch1ton_1",
-        "port": "throw1"
-      },
-      "to": {
-        "node": "indicatorlight_3",
-        "port": "v_in"
-      }
-    },
-    {
-      "id": "wire_157",
-      "from": {
-        "node": "rotaryswitch1ton_1",
-        "port": "throw2"
-      },
-      "to": {
-        "node": "indicatorlight_2",
-        "port": "v_in"
-      }
-    },
-    {
-      "id": "wire_158",
-      "from": {
-        "node": "rotaryswitch1ton_1",
-        "port": "throw4"
-      },
-      "to": {
-        "node": "indicatorlight_4",
-        "port": "v_in"
-      }
-    },
-    {
-      "id": "wire_159",
-      "from": {
-        "node": "indicatorlight_3",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "bus_3",
-        "port": "v"
-      }
-    },
-    {
-      "id": "wire_160",
-      "from": {
-        "node": "indicatorlight_2",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "bus_3",
-        "port": "v"
-      }
-    },
-    {
-      "id": "wire_161",
-      "from": {
-        "node": "indicatorlight_4",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "bus_3",
-        "port": "v"
-      }
-    },
-    {
-      "id": "wire_162",
-      "from": {
-        "node": "bus_3",
-        "port": "v"
-      },
-      "to": {
-        "node": "bus_1",
-        "port": "v"
-      }
-    },
-    {
-      "id": "wire_163",
-      "from": {
-        "node": "groundpower_1",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "rotaryswitch1ton_1",
-        "port": "wiper"
-      }
-    },
-    {
-      "id": "wire_164",
-      "from": {
-        "node": "variableconductance_1",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "indicatorlight_5",
-        "port": "v_in"
-      }
-    },
-    {
-      "id": "wire_165",
-      "from": {
-        "node": "indicatorlight_5",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "bus_1",
-        "port": "v"
-      }
-    },
-    {
-      "id": "wire_23",
-      "from": {
-        "node": "firstorderlag_1",
-        "port": "out"
-      },
-      "to": {
-        "node": "multiply_1",
-        "port": "A"
-      },
-      "routing": [
-        [
-          384.0,
-          32.0
-        ],
-        [
-          384.0,
-          144.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_29",
-      "from": {
-        "node": "refnode_4",
-        "port": "v"
-      },
-      "to": {
-        "node": "bus_1",
-        "port": "v"
-      }
-    },
-    {
-      "id": "wire_30",
-      "from": {
-        "node": "bus_1",
-        "port": "v"
-      },
-      "to": {
-        "node": "controlledvoltagesource_2",
-        "port": "v_neg"
-      },
-      "routing": [
-        [
-          896.0,
-          48.0
-        ],
-        [
-          896.0,
-          256.0
-        ],
-        [
-          528.0,
-          256.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_32",
-      "from": {
-        "node": "controlledvoltagesource_2",
-        "port": "v_pos"
-      },
-      "to": {
-        "node": "bus_2",
-        "port": "v"
-      },
-      "routing": [
-        [
-          752.0,
-          64.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_36",
-      "from": {
-        "node": "currentsense_1",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "bus_1",
-        "port": "v"
-      },
-      "routing": [
-        [
-          1120.0,
-          -96.0
-        ],
-        [
-          1120.0,
-          288.0
-        ],
-        [
-          560.0,
-          288.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_41",
-      "from": {
-        "node": "resistor_1",
-        "port": "v_out"
-      },
-      "to": {
-        "node": "currentsense_1",
-        "port": "v_in"
-      }
-    },
-    {
-      "id": "wire_50",
-      "from": {
-        "node": "value_2",
-        "port": "o"
-      },
-      "to": {
-        "node": "firstorderlag_1",
-        "port": "rate"
-      }
-    },
-    {
-      "id": "wire_52",
-      "from": {
-        "node": "bus_2",
-        "port": "v"
-      },
-      "to": {
-        "node": "voltmeter_1",
-        "port": "v_in"
-      },
-      "routing": [
-        [
-          784.0,
-          -432.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_67",
-      "from": {
-        "node": "bus_2",
-        "port": "v"
-      },
-      "to": {
-        "node": "resistor_1",
-        "port": "v_in"
-      },
-      "routing": [
-        [
-          768.0,
-          -112.0
-        ]
-      ]
-    },
-    {
-      "id": "wire_68",
-      "from": {
-        "node": "bus_2",
-        "port": "v"
-      },
-      "to": {
-        "node": "azs_1",
-        "port": "v_in"
-      },
+      "id": "extract_wire_3",
       "routing": [
         [
           720.0,
+          -144.0
+        ],
+        [
+          -32.0,
+          -144.0
+        ],
+        [
+          -32.0,
+          32.0
+        ]
+      ],
+      "to": {
+        "node": "extract_inst_1",
+        "port": "feedback"
+      }
+    },
+    {
+      "from": {
+        "node": "bus_1",
+        "port": "v"
+      },
+      "id": "wire_145",
+      "routing": [
+        [
+          496.0,
+          224.0
+        ],
+        [
+          -528.0,
+          224.0
+        ],
+        [
+          -528.0,
+          -592.0
+        ]
+      ],
+      "to": {
+        "node": "groundpower_1",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "multiply_1",
+        "port": "o"
+      },
+      "id": "wire_107",
+      "to": {
+        "node": "controlledvoltagesource_2",
+        "port": "cmd"
+      }
+    },
+    {
+      "from": {
+        "node": "bus_2",
+        "port": "v"
+      },
+      "id": "wire_68",
+      "routing": [
+        [
+          736.0,
           -160.0
         ],
         [
@@ -2883,113 +2467,577 @@
           -32.0,
           -272.0
         ]
-      ]
+      ],
+      "to": {
+        "node": "azs_1",
+        "port": "v_in"
+      }
     },
     {
-      "id": "wire_69",
+      "from": {
+        "node": "relay_1",
+        "port": "v_out"
+      },
+      "id": "wire_115",
+      "to": {
+        "node": "resistor_2",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "bus_1",
+        "port": "v"
+      },
+      "id": "extract_wire_9",
+      "routing": [
+        [
+          512.0,
+          208.0
+        ],
+        [
+          -64.0,
+          208.0
+        ],
+        [
+          -64.0,
+          -352.0
+        ]
+      ],
+      "to": {
+        "node": "extract_inst_2",
+        "port": "v_ref"
+      }
+    },
+    {
+      "from": {
+        "node": "extract_inst_4",
+        "port": "out"
+      },
+      "id": "wire_122",
+      "to": {
+        "node": "normalize_1",
+        "port": "in"
+      }
+    },
+    {
+      "from": {
+        "node": "slider_1",
+        "port": "out"
+      },
+      "id": "wire_129",
+      "to": {
+        "node": "extract_inst_4",
+        "port": "Torque"
+      }
+    },
+    {
+      "from": {
+        "node": "normalize_1",
+        "port": "out"
+      },
+      "id": "wire_140",
+      "routing": [
+        [
+          384.0,
+          272.0
+        ],
+        [
+          384.0,
+          96.0
+        ]
+      ],
+      "to": {
+        "node": "multiply_1",
+        "port": "B"
+      }
+    },
+    {
+      "from": {
+        "node": "indicatorlight_4",
+        "port": "v_out"
+      },
+      "id": "wire_161",
+      "to": {
+        "node": "bus_3",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "bus_2",
+        "port": "v"
+      },
+      "id": "wire_67",
+      "routing": [
+        [
+          768.0,
+          -112.0
+        ]
+      ],
+      "to": {
+        "node": "resistor_1",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "refnode_4",
+        "port": "v"
+      },
+      "id": "wire_29",
+      "to": {
+        "node": "bus_1",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "rotaryswitch1ton_1",
+        "port": "throw1"
+      },
+      "id": "wire_156",
+      "to": {
+        "node": "indicatorlight_3",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "rotaryswitch1ton_1",
+        "port": "throw2"
+      },
+      "id": "wire_157",
+      "to": {
+        "node": "indicatorlight_2",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "rotaryswitch1ton_1",
+        "port": "throw4"
+      },
+      "id": "wire_158",
+      "to": {
+        "node": "indicatorlight_4",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "indicatorlight_3",
+        "port": "v_out"
+      },
+      "id": "wire_159",
+      "to": {
+        "node": "bus_3",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "indicatorlight_2",
+        "port": "v_out"
+      },
+      "id": "wire_160",
+      "to": {
+        "node": "bus_3",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "bus_3",
+        "port": "v"
+      },
+      "id": "wire_162",
+      "routing": [
+        [
+          464.0,
+          192.0
+        ],
+        [
+          544.0,
+          192.0
+        ]
+      ],
+      "to": {
+        "node": "bus_1",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "bus_1",
+        "port": "v"
+      },
+      "id": "wire_30",
+      "routing": [
+        [
+          560.0,
+          64.0
+        ]
+      ],
+      "to": {
+        "node": "controlledvoltagesource_2",
+        "port": "v_neg"
+      }
+    },
+    {
+      "from": {
+        "node": "groundpower_1",
+        "port": "v_out"
+      },
+      "id": "wire_163",
+      "to": {
+        "node": "rotaryswitch1ton_1",
+        "port": "wiper"
+      }
+    },
+    {
+      "from": {
+        "node": "variableconductance_1",
+        "port": "v_out"
+      },
+      "id": "wire_164",
+      "to": {
+        "node": "indicatorlight_5",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "indicatorlight_5",
+        "port": "v_out"
+      },
+      "id": "wire_165",
+      "routing": [
+        [
+          768.0,
+          -96.0
+        ],
+        [
+          768.0,
+          -32.0
+        ],
+        [
+          896.0,
+          -32.0
+        ],
+        [
+          896.0,
+          240.0
+        ],
+        [
+          576.0,
+          240.0
+        ]
+      ],
+      "to": {
+        "node": "bus_1",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "firstorderlag_1",
+        "port": "out"
+      },
+      "id": "wire_23",
+      "routing": [
+        [
+          384.0,
+          32.0
+        ],
+        [
+          384.0,
+          80.0
+        ]
+      ],
+      "to": {
+        "node": "multiply_1",
+        "port": "A"
+      }
+    },
+    {
+      "from": {
+        "node": "currentsense_1",
+        "port": "v_out"
+      },
+      "id": "wire_36",
+      "routing": [
+        [
+          1152.0,
+          -112.0
+        ],
+        [
+          1152.0,
+          272.0
+        ],
+        [
+          592.0,
+          272.0
+        ]
+      ],
+      "to": {
+        "node": "bus_1",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "indicatorlight_1",
+        "port": "v_out"
+      },
+      "id": "wire_142",
+      "routing": [
+        [
+          1168.0,
+          -544.0
+        ],
+        [
+          1168.0,
+          288.0
+        ],
+        [
+          608.0,
+          288.0
+        ]
+      ],
+      "to": {
+        "node": "bus_1",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "controlledvoltagesource_2",
+        "port": "v_pos"
+      },
+      "id": "wire_32",
+      "routing": [
+        [
+          816.0,
+          32.0
+        ]
+      ],
+      "to": {
+        "node": "bus_2",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "resistor_2",
+        "port": "v_out"
+      },
+      "id": "wire_116",
+      "routing": [
+        [
+          1504.0,
+          -688.0
+        ],
+        [
+          1504.0,
+          304.0
+        ],
+        [
+          624.0,
+          304.0
+        ]
+      ],
+      "to": {
+        "node": "bus_1",
+        "port": "v"
+      }
+    },
+    {
+      "from": {
+        "node": "resistor_1",
+        "port": "v_out"
+      },
+      "id": "wire_41",
+      "to": {
+        "node": "currentsense_1",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "value_2",
+        "port": "o"
+      },
+      "id": "wire_50",
+      "to": {
+        "node": "firstorderlag_1",
+        "port": "rate"
+      }
+    },
+    {
+      "from": {
+        "node": "bus_2",
+        "port": "v"
+      },
+      "id": "wire_52",
+      "routing": [
+        [
+          784.0,
+          -432.0
+        ]
+      ],
+      "to": {
+        "node": "voltmeter_1",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "bus_2",
+        "port": "v"
+      },
+      "id": "wire_114",
+      "routing": [
+        [
+          800.0,
+          -480.0
+        ],
+        [
+          1024.0,
+          -480.0
+        ],
+        [
+          1024.0,
+          -672.0
+        ]
+      ],
+      "to": {
+        "node": "relay_1",
+        "port": "v_in"
+      }
+    },
+    {
+      "from": {
+        "node": "bus_2",
+        "port": "v"
+      },
+      "id": "wire_143",
+      "routing": [
+        [
+          816.0,
+          -544.0
+        ]
+      ],
+      "to": {
+        "node": "indicatorlight_1",
+        "port": "v_in"
+      }
+    },
+    {
       "from": {
         "node": "azs_1",
         "port": "v_out"
       },
+      "id": "wire_69",
       "to": {
         "node": "variableconductance_1",
         "port": "v_in"
       }
     },
     {
-      "id": "wire_val_controlledvoltagesource_2_gain",
       "from": {
         "node": "val_controlledvoltagesource_2_gain",
         "port": "o"
       },
+      "id": "wire_val_controlledvoltagesource_2_gain",
       "to": {
         "node": "controlledvoltagesource_2",
         "port": "gain"
       }
     },
     {
-      "id": "wire_val_controlledvoltagesource_2_max_v",
       "from": {
         "node": "val_controlledvoltagesource_2_max_v",
         "port": "o"
       },
+      "id": "wire_val_controlledvoltagesource_2_max_v",
       "to": {
         "node": "controlledvoltagesource_2",
         "port": "max_v"
       }
     },
     {
-      "id": "wire_val_controlledvoltagesource_2_min_v",
       "from": {
         "node": "val_controlledvoltagesource_2_min_v",
         "port": "o"
       },
+      "id": "wire_val_controlledvoltagesource_2_min_v",
       "to": {
         "node": "controlledvoltagesource_2",
         "port": "min_v"
       }
     },
     {
-      "id": "wire_val_controlledvoltagesource_2_offset",
       "from": {
         "node": "val_controlledvoltagesource_2_offset",
         "port": "o"
       },
+      "id": "wire_val_controlledvoltagesource_2_offset",
       "to": {
         "node": "controlledvoltagesource_2",
         "port": "offset"
       }
     },
     {
-      "id": "wire_val_normalize_1_max",
       "from": {
         "node": "val_normalize_1_max",
         "port": "o"
       },
+      "id": "wire_val_normalize_1_max",
       "to": {
         "node": "normalize_1",
         "port": "max"
       }
     },
     {
-      "id": "wire_val_normalize_1_min",
       "from": {
         "node": "val_normalize_1_min",
         "port": "o"
       },
+      "id": "wire_val_normalize_1_min",
       "to": {
         "node": "normalize_1",
         "port": "min"
       }
     },
     {
-      "id": "wire_val_relay_1_hold_threshold",
       "from": {
         "node": "val_relay_1_hold_threshold",
         "port": "o"
       },
+      "id": "wire_val_relay_1_hold_threshold",
       "to": {
         "node": "relay_1",
         "port": "hold_threshold"
       }
     },
     {
-      "id": "wire_val_variableconductance_1_g_max",
       "from": {
         "node": "val_variableconductance_1_g_max",
         "port": "o"
       },
+      "id": "wire_val_variableconductance_1_g_max",
       "to": {
         "node": "variableconductance_1",
         "port": "g_max"
       }
     },
     {
-      "id": "wire_val_variableconductance_1_g_min",
       "from": {
         "node": "val_variableconductance_1_g_min",
         "port": "o"
       },
+      "id": "wire_val_variableconductance_1_g_min",
       "to": {
         "node": "variableconductance_1",
         "port": "g_min"
