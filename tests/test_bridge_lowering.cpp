@@ -5,6 +5,7 @@
 #include "core/solvers/jit/components/port_registry.h"
 
 #include "json_parser/json_parser.h"
+#include "jit_build_input_test_helper.h"
 
 namespace {
 
@@ -40,12 +41,12 @@ TEST(BridgeLowering, BuildSkipsBridgeRuntimeComponents) {
     devices.push_back(make_resistor_device("load"));
     devices.push_back(make_bridge_device("vout", "BlueprintOutput"));
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"vin.port", "load.v_in"},
         {"load.v_out", "vout.port"},
     };
 
-    BuildResult result = build_systems_dev(devices, connections);
+    BuildResult result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     EXPECT_EQ(result.devices.count("vin"), 0u);
     EXPECT_EQ(result.devices.count("vout"), 0u);
@@ -57,11 +58,11 @@ TEST(BridgeLowering, BridgeSignalsStillUnifiedForAliasContract) {
     devices.push_back(make_bridge_device("vin", "BlueprintInput"));
     devices.push_back(make_resistor_device("load"));
 
-    std::vector<std::pair<std::string, std::string>> connections = {
-        {"vin.port", "load.v_in"},
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"vin.ext", "vin.port", "load.v_in"},
     };
 
-    BuildResult result = build_systems_dev(devices, connections);
+    BuildResult result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     ASSERT_TRUE(result.port_to_signal.count("vin.ext") > 0);
     ASSERT_TRUE(result.port_to_signal.count("vin.port") > 0);
@@ -77,12 +78,12 @@ TEST(BridgeLowering, BridgeNodesDoNotEnterScheduler) {
     devices.push_back(make_resistor_device("load"));
     devices.push_back(make_bridge_device("vout", "BlueprintOutput"));
 
-    std::vector<std::pair<std::string, std::string>> connections = {
+    std::vector<std::vector<std::string>> signal_groups = {
         {"vin.port", "load.v_in"},
         {"load.v_out", "vout.port"},
     };
 
-    BuildResult result = build_systems_dev(devices, connections);
+    BuildResult result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     EXPECT_EQ(result.scheduler.source_count(), 0u);
     EXPECT_EQ(result.scheduler.consumer_count(), 0u);

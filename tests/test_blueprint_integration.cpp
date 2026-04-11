@@ -5,6 +5,7 @@
 #include "json_parser/json_parser.h"
 #include "parse_number.h"
 #include "test_execution_phases.h"
+#include "jit_build_input_test_helper.h"
 
 
 // =============================================================================
@@ -105,9 +106,11 @@ TEST(BlueprintPorts, AliasPortUnification_JitAotParity) {
     dev.ports["o2"] = Port{PortDirection::Out, PortType::Any};
 
     std::vector<DeviceInstance> devices = { dev };
-    std::vector<std::pair<std::string, std::string>> connections; // no external wires
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"test_dev.i", "test_dev.o1"},
+    };
 
-    auto result = build_systems_dev(devices, connections);
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Ports "test_dev.i" and "test_dev.o1" must map to the same signal
     auto it_i  = result.port_to_signal.find("test_dev.i");
