@@ -156,6 +156,14 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
     InputResult result;
 
     if (btn == MouseButton::Left) {
+        Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
+        if (state_uses_semantic_control_session()) {
+            last_world_pos_ = world;
+            editor::presentation::SemanticCanvasControllerResult semantic =
+                semantic_canvas_controller_.on_pointer_release(world);
+            publish_semantic_control_result(semantic, result);
+        }
+
         switch (state_) {
             case InputState::ReconnectingWire:
                 result = finish_wire_reconnection(screen_pos, canvas_min);
@@ -179,6 +187,10 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
 
             case InputState::ResizingNode:
                 commit_resize_node();
+                break;
+
+            case InputState::DraggingSlider:
+            case InputState::DraggingKnob:
                 break;
 
             default:

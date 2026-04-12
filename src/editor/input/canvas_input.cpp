@@ -140,7 +140,8 @@ void CanvasInput::update_hover(Pt world_pos) {
         state_ == InputState::CreatingWire ||
         state_ == InputState::ReconnectingWire ||
         state_ == InputState::ResizingNode ||
-        state_ == InputState::DraggingSlider) {
+        state_ == InputState::DraggingSlider ||
+        state_ == InputState::DraggingKnob) {
         hovered_wire_id_ = {};
         hovered_routing_point_ = nullptr;
         return;
@@ -255,34 +256,46 @@ void CanvasInput::enter_marquee(Pt world_pos) {
     marquee_end_ = world_pos;
 }
 
-void CanvasInput::enter_drag_slider(visual::Widget* node_widget, const visual::InteractionTarget& target) {
-    state_ = InputState::DraggingSlider;
-    slider_node_id_ = interner_.intern(node_widget->id());
-    auto* visual_node = dynamic_cast<visual::NodeWidget*>(node_widget);
-    if (visual_node) {
-        const Bounds cb = visual_node->contentBounds();
-        const Pt nw_pos = visual_node->worldPos();
-        slider_primary_origin_world_x_ = nw_pos.x + cb.x;
-    } else {
-        slider_primary_origin_world_x_ = node_widget->worldPos().x;
-    }
-    slider_primary_min_ = target.primary_min;
-    slider_primary_max_ = target.primary_max;
-}
+void CanvasInput::setup_semantic_interaction_state(visual::Widget* node_widget, const visual::InteractionTarget& target,
+                                                    const editor::presentation::Rect& interaction_bounds, Pt world_pos) {
+    ui::InternedId node_id = interner_.intern(node_widget->id());
+    const bp2::Blueprint::Node* node = host_.find_node(node_id);
+    if (!node) return;
 
-void CanvasInput::enter_drag_knob(visual::Widget* node_widget, Pt world_pos, const visual::InteractionTarget& target) {
-    state_ = InputState::DraggingKnob;
-    knob_node_id_ = interner_.intern(node_widget->id());
-    knob_drag_start_x_ = world_pos.x;
-    knob_num_positions_ = target.steps;
+    semantic_canvas_controller_.set_snapshot(
+        canvas_input_impl::build_interaction_snapshot(node_id, interaction_bounds, target));
 
-     const bp2::Blueprint::Node* node = host_.find_node(knob_node_id_);
-     if (node) {
-         knob_drag_start_pos_ = static_cast<int>(node->view.content_value);
-         if (knob_num_positions_ < 2) knob_num_positions_ = 2;
-     } else {
-        knob_drag_start_pos_ = 0;
-        if (knob_num_positions_ < 2) knob_num_positions_ = 2;
+    switch (target.role) {
+        case visual::InteractionRole::ContinuousScalar: {
+            state_ = InputState::DraggingSlider;
+            auto* visual_node = dynamic_cast<visual::NodeWidget*>(node_widget);
+            float origin_world_x = visual_node
+                ? visual_node->worldPos().x + visual_node->contentBounds().x
+                : node_widget->worldPos().x;
+            semantic_canvas_controller_.set_active_scalar_mapping({
+                origin_world_x,
+                target.primary_min,
+                target.primary_max,
+                node->view.content_min,
+                node->view.content_max,
+            });
+            break;
+        }
+        case visual::InteractionRole::DiscreteSelector: {
+            state_ = InputState::DraggingKnob;
+            int start_pos = static_cast<int>(node->view.content_value);
+            int num_positions = target.steps;
+            if (num_positions < 2) num_positions = 2;
+            semantic_canvas_controller_.set_active_discrete_mapping({
+                world_pos.x,
+                start_pos,
+                num_positions,
+                30.0f,
+            });
+            break;
+        }
+        case visual::InteractionRole::Toggle:
+            break;
     }
 }
 
@@ -294,6 +307,51 @@ void CanvasInput::leave_state() {
     wire_start_port_ = nullptr;
     rp_point_ = nullptr;
     hovered_routing_point_ = nullptr;
+    semantic_canvas_controller_.reset();
+    semantic_canvas_controller_.clear_active_mapping();
+}
+
+editor::presentation::SemanticCanvasControllerResult CanvasInput::configure_and_dispatch_semantic_interaction(
+    visual::Widget* node_widget, const visual::InteractionTarget& target,
+    const editor::presentation::Rect& interaction_bounds, Pt world) {
+    setup_semantic_interaction_state(node_widget, target, interaction_bounds, world);
+
+    switch (target.role) {
+        case visual::InteractionRole::ContinuousScalar:
+        case visual::InteractionRole::DiscreteSelector:
+            return semantic_canvas_controller_.on_pointer_drag(world);
+
+        case visual::InteractionRole::Toggle:
+            return semantic_canvas_controller_.on_pointer_press(world);
+    }
+
+    return editor::presentation::SemanticCanvasControllerResult{};
+}
+
+bool CanvasInput::publish_semantic_control_result(
+    const editor::presentation::SemanticCanvasControllerResult& semantic,
+    InputResult& result) const {
+    switch (semantic.control_event.kind) {
+        case editor::presentation::SemanticControlEventKind::Toggle:
+            result.toggle_switch_node_id = std::string(interner_.resolve(semantic.control_event.node_id));
+            return true;
+        case editor::presentation::SemanticControlEventKind::SetScalar:
+            result.slider_node_id = std::string(interner_.resolve(semantic.control_event.node_id));
+            result.slider_value = semantic.control_event.scalar_value;
+            return true;
+        case editor::presentation::SemanticControlEventKind::SetDiscrete:
+            result.knob_node_id = std::string(interner_.resolve(semantic.control_event.node_id));
+            result.knob_position = semantic.control_event.discrete_value;
+            return true;
+        case editor::presentation::SemanticControlEventKind::None:
+            return false;
+    }
+
+    return false;
+}
+
+bool CanvasInput::state_uses_semantic_control_session() const {
+    return state_ == InputState::DraggingSlider || state_ == InputState::DraggingKnob;
 }
 
 bool CanvasInput::handle_resolved_interaction(visual::Widget* widget, const visual::InteractionTarget& target, Pt world, InputResult& result) {
@@ -303,36 +361,25 @@ bool CanvasInput::handle_resolved_interaction(visual::Widget* widget, const visu
     }
 
     const std::string node_id(widget->id());
-    switch (target.role) {
-        case visual::InteractionRole::ContinuousScalar: {
-            enter_drag_slider(widget, target);
-
-            ui::InternedId nid_iid = interner_.lookup(node_id);
-            const bp2::Blueprint::Node* node = nid_iid.empty() ? nullptr
-                                                               : host_.find_node(nid_iid);
-             if (node) {
-                 // Use target-provided mapping bounds instead of HANDLE_RADIUS.
-                 float range = target.primary_max - target.primary_min;
-                 float t = (range > 1e-6f)
-                     ? std::clamp((target.local_primary - target.primary_min) / range, 0.0f, 1.0f)
-                     : 0.0f;
-                 float val = node->view.content_min + t * (node->view.content_max - node->view.content_min);
-                 result.slider_node_id = node_id;
-                 result.slider_value = val;
-             }
-            return true;
-        }
-        case visual::InteractionRole::DiscreteSelector:
-            enter_drag_knob(widget, world, target);
-            result.knob_node_id = node_id;
-            result.knob_position = knob_drag_start_pos_;
-            return true;
-        case visual::InteractionRole::Toggle:
-            result.toggle_switch_node_id = node_id;
-            return true;
+    ui::InternedId nid_iid = interner_.intern(node_id);
+    const bp2::Blueprint::Node* node = host_.find_node(nid_iid);
+    if (!node) {
+        return false;
     }
 
-    return false;
+    const Bounds content_bounds = node_widget->contentBounds();
+    const Pt node_world = node_widget->worldPos();
+    const editor::presentation::Rect interaction_bounds{
+        node_world.x + content_bounds.x + target.geometry.origin.x,
+        node_world.y + content_bounds.y + target.geometry.origin.y,
+        target.geometry.size.x,
+        target.geometry.size.y,
+    };
+
+    semantic_canvas_controller_.reset();
+    editor::presentation::SemanticCanvasControllerResult semantic =
+        configure_and_dispatch_semantic_interaction(widget, target, interaction_bounds, world);
+    return publish_semantic_control_result(semantic, result);
 }
 
 
@@ -354,6 +401,18 @@ void CanvasInput::snapshot_wire_routing_points(ui::InternedId wire_id,
 }
 
 void CanvasInput::cancel_gesture() {
+    if (state_uses_semantic_control_session()) {
+        semantic_canvas_controller_.cancel();
+        state_ = InputState::Idle;
+        drag_offsets_.clear();
+        drag_initial_positions_.clear();
+        rp_initial_points_.clear();
+        wire_start_port_ = nullptr;
+        rp_point_ = nullptr;
+        hovered_routing_point_ = nullptr;
+        semantic_canvas_controller_.clear_active_mapping();
+        return;
+    }
     leave_state();
 }
 

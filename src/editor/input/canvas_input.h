@@ -2,6 +2,7 @@
 
 #include "editor/input/input_types.h"
 #include "editor/input/editing_host.h"
+#include "editor/visual/presentation/semantic_canvas_controller.h"
 #include "ui/math/pt.h"
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/blueprint/node_port.h"
@@ -171,17 +172,7 @@ private:
     Pt resize_original_pos_;
     Pt resize_original_size_;
 
-    // Slider drag — stored as InternedId + target mapping metadata (no longer depends on HANDLE_RADIUS)
-    ui::InternedId slider_node_id_;
-    float slider_primary_origin_world_x_ = 0.0f;
-    float slider_primary_min_ = 0.0f;   ///< target.primary_min from interaction target
-    float slider_primary_max_ = 100.0f; ///< target.primary_max from interaction target
-
-    // Knob drag — stored as InternedId + drag start X for delta tracking + steps from target
-    ui::InternedId knob_node_id_;
-    float knob_drag_start_x_ = 0.0f;    ///< world X at drag start
-    int knob_drag_start_pos_ = 0;        ///< position at drag start
-    int knob_num_positions_ = 2;         ///< total positions for this knob (from target.steps)
+    editor::presentation::SemanticCanvasController semantic_canvas_controller_;
 
     // Marquee
     Pt marquee_start_;
@@ -206,10 +197,8 @@ private:
     void enter_create_wire(visual::Port* port, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
                               Pt anchor_pos, bp2::PortSide fixed_side, PortType fixed_type);
-     void enter_marquee(Pt world_pos);
-    void enter_drag_slider(visual::Widget* node_widget, const visual::InteractionTarget& target);
-    void enter_drag_knob(visual::Widget* node_widget, Pt world_pos, const visual::InteractionTarget& target);
-    void leave_state();  // return to Idle (clean up transient data)
+      void enter_marquee(Pt world_pos);
+     void leave_state();  // return to Idle (clean up transient data)
 
 public:
     std::string_view scope_id_for_test() const { return scope_id_; }
@@ -226,6 +215,20 @@ private:
     void finish_marquee();
     /// Handle an already-resolved interaction target. Returns true if interaction was consumed.
     bool handle_resolved_interaction(visual::Widget* widget, const visual::InteractionTarget& target, Pt world, InputResult& result);
+
+     /// Configure semantic snapshot and controller state for interaction role.
+     void setup_semantic_interaction_state(visual::Widget* node_widget, const visual::InteractionTarget& target,
+                                            const editor::presentation::Rect& interaction_bounds, Pt world_pos);
+     
+     /// Configure and dispatch semantic interaction based on role. Returns result.
+     editor::presentation::SemanticCanvasControllerResult configure_and_dispatch_semantic_interaction(
+         visual::Widget* node_widget, const visual::InteractionTarget& target,
+         const editor::presentation::Rect& interaction_bounds, Pt world);
+
+     bool publish_semantic_control_result(const editor::presentation::SemanticCanvasControllerResult& semantic,
+                                          InputResult& result) const;
+
+     bool state_uses_semantic_control_session() const;
 
     void clear_selection_and_enter_panning();
     void advance_world_cursor(Pt world_delta);

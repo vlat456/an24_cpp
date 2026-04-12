@@ -2449,3 +2449,492 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
         << "Double-clicking interactive content of a BlueprintInstance "
            "should still open the sub-window";
 }
+
+// ============================================================================
+// Regression: Semantic controller gates slider/knob drag follow-through
+// ============================================================================
+
+TEST(CanvasInputSemanticGate, SliderDragOffHitStillEmitsThroughSemanticContinuation) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.slider_node_id, "slider_1");
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
+
+    EXPECT_EQ(input.state(), InputState::DraggingSlider);
+    EXPECT_EQ(drag.slider_node_id, "slider_1");
+    EXPECT_GE(drag.slider_value, 0.0f);
+}
+
+TEST(CanvasInputSemanticGate, KnobDragOffHitStillEmitsThroughSemanticContinuation) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 5.0f;
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.knob_node_id, "knob_1");
+    ASSERT_EQ(input.state(), InputState::DraggingKnob);
+
+    auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
+
+    EXPECT_EQ(input.state(), InputState::DraggingKnob);
+    EXPECT_EQ(drag.knob_node_id, "knob_1");
+    EXPECT_GE(drag.knob_position, 0);
+}
+
+TEST(CanvasInputSemanticGate, SliderReleaseOffHitEndsDragState) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.slider_node_id, "slider_1");
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
+    input.on_mouse_up(MouseButton::Left, click_world + Pt(500.0f, 0.0f), canvas_min);
+
+    EXPECT_EQ(input.state(), InputState::Idle);
+}
+
+TEST(CanvasInputSemanticGate, KnobReleaseOffHitEndsDragState) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 5.0f;
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.knob_node_id, "knob_1");
+    ASSERT_EQ(input.state(), InputState::DraggingKnob);
+
+    input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
+    input.on_mouse_up(MouseButton::Left, click_world + Pt(500.0f, 0.0f), canvas_min);
+
+    EXPECT_EQ(input.state(), InputState::Idle);
+}
+
+TEST(CanvasInputSemanticGate, SimulationModeSliderDragStillEmitsWhenSemanticActive) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.slider_node_id, "slider_1");
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    auto drag = input.on_mouse_drag(MouseButton::Left, Pt(50.0f, 0.0f), canvas_min);
+
+    EXPECT_EQ(drag.slider_node_id, "slider_1");
+    EXPECT_GE(drag.slider_value, 0.0f);
+}
+
+TEST(CanvasInputSemanticGate, SimulationModeKnobDragStillEmitsWhenSemanticActive) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 5.0f;
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+     Pt canvas_min(0, 0);
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.knob_node_id, "knob_1");
+    ASSERT_EQ(input.state(), InputState::DraggingKnob);
+
+    auto drag = input.on_mouse_drag(MouseButton::Left, Pt(50.0f, 0.0f), canvas_min);
+
+    EXPECT_EQ(drag.knob_node_id, "knob_1");
+    EXPECT_GE(drag.knob_position, 0);
+}
+
+TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobControl", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_value = 1.0f;
+    set_iface(knob, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto wire_src = make_node(I, "src", "Battery", 0.0f, 100.0f);
+    set_iface(wire_src, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto wire_dst = make_node(I, "dst", "Lamp", 200.0f, 100.0f);
+    set_iface(wire_dst, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob))
+        .with_node(std::move(wire_src))
+        .with_node(std::move(wire_dst))
+        .with_wire(make_wire(I, arena, "wire_0", "src", "v_out", "dst", "v_in"));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(input.state(), InputState::DraggingKnob);
+
+    input.on_mouse_drag(MouseButton::Left, Pt(50.0f, 0.0f), canvas_min);
+    ASSERT_EQ(input.state(), InputState::DraggingKnob);
+
+    input.update_hover(Pt(100.0f, 100.0f));
+
+    EXPECT_EQ(input.hovered_wire(), nullptr)
+         << "While DraggingKnob, hovered_wire() must be nullptr (hover suppressed)";
+     EXPECT_EQ(input.hovered_routing_point(), nullptr)
+         << "While DraggingKnob, hovered_routing_point() must be nullptr (hover suppressed)";
+}
+
+TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "SliderControl", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    slider.view.content_value = 50.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto wire_src = make_node(I, "src", "Battery", 0.0f, 100.0f);
+    set_iface(wire_src, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto wire_dst = make_node(I, "dst", "Lamp", 200.0f, 100.0f);
+    set_iface(wire_dst, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider))
+        .with_node(std::move(wire_src))
+        .with_node(std::move(wire_dst))
+        .with_wire(make_wire(I, arena, "wire_0", "src", "v_out", "dst", "v_in"));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    input.on_mouse_drag(MouseButton::Left, Pt(50.0f, 0.0f), canvas_min);
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    input.update_hover(Pt(100.0f, 100.0f));
+
+    EXPECT_EQ(input.hovered_wire(), nullptr)
+        << "While DraggingSlider, hovered_wire() must be nullptr (hover suppressed)";
+    EXPECT_EQ(input.hovered_routing_point(), nullptr)
+        << "While DraggingSlider, hovered_routing_point() must be nullptr (hover suppressed)";
+}
+
+TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAndCancelsSemanticSession) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobControl", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_value = 1.0f;
+    set_iface(knob, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(input.state(), InputState::DraggingKnob);
+
+    input.cancel_gesture();
+
+    EXPECT_EQ(input.state(), InputState::Idle)
+        << "cancel_gesture() must return to Idle state";
+}
+
+TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdleAndCancelsSemanticSession) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "SliderControl", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    slider.view.content_value = 50.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    input.cancel_gesture();
+
+    EXPECT_EQ(input.state(), InputState::Idle)
+        << "cancel_gesture() must return to Idle state";
+}

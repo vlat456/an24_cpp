@@ -165,35 +165,12 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 handle_resize_node(world_delta);
                 break;
 
-            case InputState::DraggingSlider: {
-                advance_world_cursor(world_delta);
-                float local_x = last_world_pos_.x - slider_primary_origin_world_x_;
-                
-                // Use target-provided mapping bounds to compute normalized value.
-                float range = slider_primary_max_ - slider_primary_min_;
-                float t = (range > 1e-6f)
-                    ? std::clamp((local_x - slider_primary_min_) / range, 0.0f, 1.0f)
-                    : 0.0f;
-
-                const bp2::Blueprint::Node* node = host_.find_node(slider_node_id_);
-                if (node) {
-                    float val = node->view.content_min + t * (node->view.content_max - node->view.content_min);
-                    result.slider_node_id = std::string(interner_.resolve(slider_node_id_));
-                    result.slider_value = val;
-                }
-                break;
-            }
-
+            case InputState::DraggingSlider:
             case InputState::DraggingKnob: {
                 advance_world_cursor(world_delta);
-                float dx = last_world_pos_.x - knob_drag_start_x_;
-                constexpr float PIXELS_PER_STEP = 30.0f;
-                int delta_steps = static_cast<int>(dx / PIXELS_PER_STEP);
-                int new_pos = std::clamp(knob_drag_start_pos_ + delta_steps,
-                                          0, knob_num_positions_ - 1);
-
-                result.knob_node_id = std::string(interner_.resolve(knob_node_id_));
-                result.knob_position = new_pos;
+                editor::presentation::SemanticCanvasControllerResult semantic =
+                    semantic_canvas_controller_.on_pointer_drag(last_world_pos_);
+                publish_semantic_control_result(semantic, result);
                 break;
             }
 

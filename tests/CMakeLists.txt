@@ -682,6 +682,7 @@ target_include_directories(document_safety_tests PRIVATE
 )
 target_link_libraries(document_safety_tests PRIVATE
     blueprint_v2
+    editor_semantic_canvas
     jit_solver
     json_parser
     spdlog::spdlog
@@ -726,6 +727,7 @@ target_include_directories(canvas_input_tests PRIVATE
 )
 target_link_libraries(canvas_input_tests PRIVATE
     blueprint_v2
+    editor_semantic_canvas
     json_parser
     spdlog::spdlog
     GTest::gtest_main
@@ -768,6 +770,7 @@ target_include_directories(window_invariants_tests PRIVATE
 )
 target_link_libraries(window_invariants_tests PRIVATE
     blueprint_v2
+    editor_semantic_canvas
     json_parser
     spdlog::spdlog
     GTest::gtest_main
