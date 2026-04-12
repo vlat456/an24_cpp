@@ -10,6 +10,7 @@
 #include "blueprint_v2/validation/path_resolver.h"
 #include "blueprint_v2/validation/wire_validator.h"
 #include "editor/blueprint_view_hydration.h"
+#include "editor/data/node_content.h"
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include <type_traits>
@@ -1179,4 +1180,149 @@ TEST(BlueprintCodec, RoundTripPreservesNameEquality) {
     ASSERT_TRUE(decoded.has_value()) << err.message;
     EXPECT_EQ(decoded->name(), "Name Round Trip");
     EXPECT_EQ(bp, *decoded);
+}
+
+// =============================================================================
+// Issue #132 Regression Tests: Node-aware content hydration
+// =============================================================================
+
+// Regression 1: Knob with instance positions != type definition
+TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+
+    // Register a Knob type with default positions=2
+    TypeDefinition knob_def;
+    knob_def.classname = "Knob";
+    knob_def.content_type = "Knob";
+    knob_def.params["positions"] = "2";
+    knob_def.params["initial_position"] = "0";
+    reg.types["Knob"] = knob_def;
+
+    // Create a node instance with positions=5 (override)
+    bp2::Blueprint::Node knob_node;
+    knob_node.semantic.id = interner.intern("knob1");
+    knob_node.semantic.type = interner.intern("Knob");
+    knob_node.semantic.params[interner.intern("positions")] = 5.0f;
+    knob_node.semantic.params[interner.intern("initial_position")] = 2.0f;
+
+    // Hydrate
+    editor::hydrate_node_view(knob_node, reg.get("Knob"), interner);
+
+    // Verify that content_max comes from instance params, not type defaults
+    EXPECT_FLOAT_EQ(knob_node.view.content_max, 5.0f);
+    EXPECT_FLOAT_EQ(knob_node.view.content_value, 2.0f);
+}
+
+// Regression 2: Slider with instance min/max != type definition
+TEST(Issue132_HydrationFromInstanceParams, SliderMinMaxFromInstance) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+
+    // Register a Slider type with default min/max
+    TypeDefinition slider_def;
+    slider_def.classname = "Slider";
+    slider_def.content_type = "Slider";
+    slider_def.params["min"] = "0";
+    slider_def.params["max"] = "100";
+    reg.types["Slider"] = slider_def;
+
+    // Create a node instance with custom min/max
+    bp2::Blueprint::Node slider_node;
+    slider_node.semantic.id = interner.intern("slider1");
+    slider_node.semantic.type = interner.intern("Slider");
+    slider_node.semantic.params[interner.intern("min")] = -50.0f;
+    slider_node.semantic.params[interner.intern("max")] = 200.0f;
+
+    // Hydrate
+    editor::hydrate_node_view(slider_node, reg.get("Slider"), interner);
+
+    // Verify instance params take precedence
+    EXPECT_FLOAT_EQ(slider_node.view.content_min, -50.0f);
+    EXPECT_FLOAT_EQ(slider_node.view.content_max, 200.0f);
+}
+
+// Regression 3: Gauge with instance min/max != type definition
+TEST(Issue132_HydrationFromInstanceParams, GaugeMinMaxFromInstance) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+
+    // Register a Gauge type with default min/max
+    TypeDefinition gauge_def;
+    gauge_def.classname = "Voltmeter";
+    gauge_def.content_type = "Gauge";
+    gauge_def.params["min"] = "0";
+    gauge_def.params["max"] = "28";
+    reg.types["Voltmeter"] = gauge_def;
+
+    // Create a node instance with custom min/max
+    bp2::Blueprint::Node gauge_node;
+    gauge_node.semantic.id = interner.intern("gauge1");
+    gauge_node.semantic.type = interner.intern("Voltmeter");
+    gauge_node.semantic.params[interner.intern("min")] = 10.0f;
+    gauge_node.semantic.params[interner.intern("max")] = 50.0f;
+
+    // Hydrate
+    editor::hydrate_node_view(gauge_node, reg.get("Voltmeter"), interner);
+
+    // Verify instance params take precedence
+    EXPECT_FLOAT_EQ(gauge_node.view.content_min, 10.0f);
+    EXPECT_FLOAT_EQ(gauge_node.view.content_max, 50.0f);
+}
+
+// Regression 4: Switch with instance closed state != type definition
+TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+
+    // Register a Switch type with default closed=false
+    TypeDefinition switch_def;
+    switch_def.classname = "Switch";
+    switch_def.content_type = "Switch";
+    switch_def.params["closed"] = "false";
+    reg.types["Switch"] = switch_def;
+
+    // Create a node instance with closed=true (override)
+    bp2::Blueprint::Node switch_node;
+    switch_node.semantic.id = interner.intern("sw1");
+    switch_node.semantic.type = interner.intern("Switch");
+    switch_node.semantic.params[interner.intern("closed")] = 1.0f;  // non-zero = true
+
+    // Hydrate
+    editor::hydrate_node_view(switch_node, reg.get("Switch"), interner);
+
+    // Verify instance state is used
+    EXPECT_TRUE(switch_node.view.content_state);
+}
+
+// Regression 5: Fallback to type definition when instance params absent
+TEST(Issue132_HydrationFromInstanceParams, FallbackToTypeDefinitionWhenNoInstanceParam) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg;
+
+    // Register a Slider type with defaults
+    TypeDefinition slider_def;
+    slider_def.classname = "Slider";
+    slider_def.content_type = "Slider";
+    slider_def.params["min"] = "0";
+    slider_def.params["max"] = "1";
+    reg.types["Slider"] = slider_def;
+
+    // Create a node instance with NO instance params
+    bp2::Blueprint::Node slider_node;
+    slider_node.semantic.id = interner.intern("slider2");
+    slider_node.semantic.type = interner.intern("Slider");
+    // No params added
+
+    // Hydrate
+    editor::hydrate_node_view(slider_node, reg.get("Slider"), interner);
+
+    // Verify type definition defaults are used
+    EXPECT_FLOAT_EQ(slider_node.view.content_min, 0.0f);
+    EXPECT_FLOAT_EQ(slider_node.view.content_max, 1.0f);
 }

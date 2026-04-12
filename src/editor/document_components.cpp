@@ -152,7 +152,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     // Issue #105: single-source hydration of runtime/editor view state.
-    editor::hydrate_node_view(node, def);
+    editor::hydrate_node_view(node, def, interner_);
 
     const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
     const bool bridge_is_input = (classname == "BlueprintInput");
@@ -264,7 +264,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     bp2::Interface inline_bp_iface = bp2::Interface(std::move(iface_ports));
 
     // Issue #105: single-source hydration of runtime/editor view state.
-    editor::hydrate_node_view(collapsed, def);
+    editor::hydrate_node_view(collapsed, def, interner_);
 
     bp2::Blueprint loaded;
     try {

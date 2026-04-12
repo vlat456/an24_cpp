@@ -2,6 +2,7 @@
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "editor/common/port_type_utils.h"
 #include "blueprint_v2/interface/node_port_projection.h"
+#include "editor/blueprint_view_hydration.h"
 #include "parse_number.h"
 
 #ifndef EDITOR_TESTING
@@ -89,6 +90,7 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
                              const std::string& node_id_str,
                              bp2::EditorModel& model,
                              ui::StringInterner& interner,
+                             const TypeRegistry* type_registry,
                              PropertyCallback on_apply) {
     // If already open editing a different node, just close (shadow editing
     // means no live mutations to revert).
@@ -99,6 +101,7 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     target_node_id_ = node_id_str;
     model_    = &model;
     interner_ = &interner;
+    type_registry_ = type_registry;
     on_apply_ = std::move(on_apply);
 
     // Build string→float maps from InternedId→float params
@@ -596,25 +599,18 @@ void PropertiesWindow::apply() {
 
         updated.semantic.string_params = pending_string_params_;
 
-        // Sync content_max / content_min from params for interactive widget types.
-        // When the user changes e.g. "positions" in the inspector, the bp2 node's
-        // content_max must be updated so visual widgets (KnobWidget tick marks,
-        // SliderWidget range, VoltmeterWidget range) reflect the new value.
-        // [BUG-1] Without this, changing positions 2→5 left ticks unchanged.
-        if (updated.view.content_type == bp2::NodeContentType::Knob) {
-            auto pos_key = interner_->intern("positions");
-            auto it = updated.semantic.params.find(pos_key);
-            if (it != updated.semantic.params.end()) {
-                updated.view.content_max = it->second;
-            }
-        } else if (updated.view.content_type == bp2::NodeContentType::Slider
-                || updated.view.content_type == bp2::NodeContentType::Gauge) {
-            auto min_key = interner_->intern("min");
-            auto max_key = interner_->intern("max");
-            auto min_it = updated.semantic.params.find(min_key);
-            auto max_it = updated.semantic.params.find(max_key);
-            if (min_it != updated.semantic.params.end()) updated.view.content_min = min_it->second;
-            if (max_it != updated.semantic.params.end()) updated.view.content_max = max_it->second;
+        // [Issue #132] Re-hydrate content from updated params
+        // Refresh static derived content from semantic params while preserving
+        // live runtime-facing value/state fields already present on the node.
+        if (type_registry_) {
+            const float preserved_value = updated.view.content_value;
+            const bool preserved_state = updated.view.content_state;
+            const bool preserved_tripped = updated.view.content_tripped;
+            const std::string type_name(interner_->resolve(updated.semantic.type));
+            editor::hydrate_node_view(updated, type_registry_->get(type_name), *interner_);
+            updated.view.content_value = preserved_value;
+            updated.view.content_state = preserved_state;
+            updated.view.content_tripped = preserved_tripped;
         }
 
         // Apply name change

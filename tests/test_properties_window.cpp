@@ -6,6 +6,7 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "ui/core/interned_id.h"
+#include "json_parser/json_parser.h"
 
 // Shared bp2 test helpers (make_port, set_iface, count_inputs, count_outputs)
 #include "bp2_test_helpers.h"
@@ -66,6 +67,63 @@ class PropertiesWindowTest : public ::testing::Test {
 protected:
     ui::StringInterner interner;
     bp2::EditorModel   model;
+    TypeRegistry       registry;
+
+    void SetUp() override {
+        // Register common types used in tests with content types and params
+        TypeDefinition battery_def;
+        battery_def.classname = "Battery";
+        battery_def.cpp_class = true;
+        registry.types["Battery"] = battery_def;
+
+        TypeDefinition knob_def;
+        knob_def.classname = "KnobSwitch";
+        knob_def.content_type = "Knob";
+        knob_def.params["positions"] = "2";
+        knob_def.params["initial_position"] = "0";
+        registry.types["KnobSwitch"] = knob_def;
+
+        TypeDefinition slider_def;
+        slider_def.classname = "Slider";
+        slider_def.content_type = "Slider";
+        slider_def.params["min"] = "0";
+        slider_def.params["max"] = "100";
+        registry.types["Slider"] = slider_def;
+
+        TypeDefinition gauge_def;
+        gauge_def.classname = "Gauge";
+        gauge_def.content_type = "Gauge";
+        gauge_def.params["min"] = "0";
+        gauge_def.params["max"] = "30";
+        registry.types["Gauge"] = gauge_def;
+
+        TypeDefinition voltmeter_def;
+        voltmeter_def.classname = "Voltmeter";
+        voltmeter_def.content_type = "Gauge";
+        voltmeter_def.params["min"] = "0";
+        voltmeter_def.params["max"] = "30";
+        registry.types["Voltmeter"] = voltmeter_def;
+
+        TypeDefinition bp_in;
+        bp_in.classname = "BlueprintInput";
+        bp_in.cpp_class = true;
+        registry.types["BlueprintInput"] = bp_in;
+
+        TypeDefinition bp_out;
+        bp_out.classname = "BlueprintOutput";
+        bp_out.cpp_class = true;
+        registry.types["BlueprintOutput"] = bp_out;
+
+        TypeDefinition bus_def;
+        bus_def.classname = "Bus";
+        bus_def.cpp_class = true;
+        registry.types["Bus"] = bus_def;
+
+        TypeDefinition lut_def;
+        lut_def.classname = "LookupTable";
+        lut_def.cpp_class = true;
+        registry.types["LookupTable"] = lut_def;
+    }
 };
 
 // =============================================================================
@@ -81,7 +139,7 @@ TEST_F(PropertiesWindowTest, OpenSetsTarget) {
     PropertiesWindow win;
     EXPECT_FALSE(win.is_open());
 
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
     EXPECT_TRUE(win.is_open());
     EXPECT_EQ(win.target_node_id_str(), "bat1");
 }
@@ -93,7 +151,7 @@ TEST_F(PropertiesWindowTest, OpenInitializesPendingState) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     // Pending state should mirror the node's current values
     EXPECT_EQ(win.pending_name(), "bat1");
@@ -113,7 +171,7 @@ TEST_F(PropertiesWindowTest, OpenKeepsLutTableAsStringParam) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "lut_1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "lut_1", model, interner, nullptr, [](const std::string&) {});
 
     EXPECT_EQ(win.pending_string_params().count("table"), 1u)
         << "LUT table must be edited via string_params table editor";
@@ -129,7 +187,7 @@ TEST_F(PropertiesWindowTest, OpenInitializesPendingBridgePortType) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bp_in_1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bp_in_1", model, interner, nullptr, [](const std::string&) {});
 
     ASSERT_TRUE(win.pending_bridge_port_type().has_value());
     EXPECT_EQ(*win.pending_bridge_port_type(), PortType::V);
@@ -142,7 +200,7 @@ TEST_F(PropertiesWindowTest, CancelDoesNotMutateLiveNode) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     // Simulate user editing pending state
     win.set_pending_param("v", 12.0f);
@@ -170,7 +228,7 @@ TEST_F(PropertiesWindowTest, LiveNodeUntouchedDuringEditing) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     // Edit pending params
     win.set_pending_param("v", 99.0f);
@@ -194,13 +252,13 @@ TEST_F(PropertiesWindowTest, OpenTwiceDiscardsFirstSession) {
     PropertiesWindow win;
 
     // First open
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
     win.set_pending_param("v", 12.0f);
 
     // Open again — first session's pending edits are discarded
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     // Live node was never mutated
     node_ptr = model.current().find_node(interner.intern("bat1"));
@@ -229,7 +287,7 @@ TEST_F(PropertiesWindowTest, ClosedWindowIsNotOpen) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
     EXPECT_TRUE(win.is_open());
 
     win.close();
@@ -247,7 +305,7 @@ TEST_F(PropertiesWindowTest, ApplyEmitsCmdSetParam) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     // Simulate user changing voltage via pending state
     win.set_pending_param("v", 14.0f);
@@ -274,7 +332,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores)
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bp_in_1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bp_in_1", model, interner, nullptr, [](const std::string&) {});
     win.set_pending_bridge_port_type(PortType::RPM);
     win.apply();
 
@@ -329,7 +387,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "inst1:in", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "inst1:in", model, interner, nullptr, [](const std::string&) {});
     win.set_pending_bridge_port_type(PortType::RPM);
     win.apply();
 
@@ -357,7 +415,7 @@ TEST_F(PropertiesWindowTest, ApplyThenUndoRevertsParam) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     win.set_pending_param("v", 14.0f);
     win.set_pending_param("r", 0.05f);
@@ -393,7 +451,7 @@ TEST_F(PropertiesWindowTest, ApplyNoChangesDoesNotPushUndo) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     // No edits — just apply
     win.apply();
@@ -412,8 +470,7 @@ TEST_F(PropertiesWindowTest, ApplyInvokesCallback) {
     std::string callback_node_id;
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner,
-        [&](const std::string& nid) {
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [&](const std::string& nid) {
             callback_invoked = true;
             callback_node_id = nid;
         });
@@ -434,7 +491,7 @@ TEST_F(PropertiesWindowTest, NameChangePushesUndo) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     win.set_pending_name("NewName");
     win.apply();
@@ -454,7 +511,7 @@ TEST_F(PropertiesWindowTest, NameChangeUndoRestoresOldName) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     win.set_pending_name("NewName");
     win.apply();
@@ -528,7 +585,7 @@ TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bus", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bus", model, interner, nullptr, [](const std::string&) {});
     win.set_pending_name("bus_renamed");
     win.apply();
 
@@ -552,7 +609,7 @@ TEST_F(PropertiesWindowTest, ParamAndNameChangeSingleUndo) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     // Change both param and name in one "Apply"
     win.set_pending_param("v", 14.0f);
@@ -586,7 +643,7 @@ TEST_F(PropertiesWindowTest, CloseGracefullyWhenNodeRemoved) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
     EXPECT_TRUE(win.is_open());
 
     // Simulate the node being removed (e.g. by undo of a CmdAddNode)
@@ -607,7 +664,7 @@ TEST_F(PropertiesWindowTest, ApplyGracefullyWhenNodeRemoved) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     // Remove node before apply (simulate node deleted externally)
     model.remove_node(interner.intern("bat1"));
@@ -627,7 +684,7 @@ TEST_F(PropertiesWindowTest, CancelGracefullyWhenNodeRemoved) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
 
     // Remove node before cancel
     model.remove_node(interner.intern("bat1"));
@@ -657,7 +714,7 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_ApplyChanges) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "azs1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "azs1", model, interner, nullptr, [](const std::string&) {});
 
     // Set port layout overrides
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> overrides;
@@ -694,7 +751,7 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_UndoRestoresOriginal) {
     EXPECT_TRUE(node_ptr->layout.layout_overrides.empty()) << "Initial layout_overrides should be empty";
 
     PropertiesWindow win;
-    win.open(*node_ptr, "azs1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "azs1", model, interner, nullptr, [](const std::string&) {});
 
     // Add port layout override
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> overrides;
@@ -731,7 +788,7 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_NoChangesDoesNotPushUndo) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "azs1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "azs1", model, interner, nullptr, [](const std::string&) {});
 
     // No changes to layout overrides (still empty)
     win.apply();
@@ -761,7 +818,7 @@ TEST_F(PropertiesWindowTest, BridgeNode_ExposedParamsInStringParams) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "inst:my_input", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "inst:my_input", model, interner, nullptr, [](const std::string&) {});
 
     // The keys must be present in pending_string_params — they exist as data
     const auto& sp = win.pending_string_params();
@@ -791,7 +848,7 @@ TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "inst:my_output", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "inst:my_output", model, interner, nullptr, [](const std::string&) {});
 
     // Change port type from V to Bool via the dropdown mechanism
     win.set_pending_bridge_port_type(PortType::Bool);
@@ -830,7 +887,7 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax) {
     EXPECT_FLOAT_EQ(node_ptr->view.content_max, 2.0f);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "knob1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "knob1", model, interner, &registry, [](const std::string&) {});
 
     // User changes positions from 2 to 5
     win.set_pending_param("positions", 5.0f);
@@ -859,7 +916,7 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax_UndoReverts) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "knob1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "knob1", model, interner, &registry, [](const std::string&) {});
     win.set_pending_param("positions", 5.0f);
     win.apply();
 
@@ -890,7 +947,7 @@ TEST_F(PropertiesWindowTest, ApplySliderMinMaxSyncsContentRange) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "slider1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "slider1", model, interner, &registry, [](const std::string&) {});
     win.set_pending_param("min", -10.0f);
     win.set_pending_param("max", 200.0f);
     win.apply();
@@ -921,7 +978,7 @@ TEST_F(PropertiesWindowTest, ApplyGaugeMinMaxSyncsContentRange) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "gauge1", model, interner, [](const std::string&) {});
+    win.open(*node_ptr, "gauge1", model, interner, &registry, [](const std::string&) {});
     win.set_pending_param("max", 60.0f);
     win.apply();
 
@@ -931,4 +988,31 @@ TEST_F(PropertiesWindowTest, ApplyGaugeMinMaxSyncsContentRange) {
         << "content_min unchanged for Gauge nodes";
     EXPECT_FLOAT_EQ(node_ptr->view.content_max, 60.0f)
         << "content_max must be synced from 'max' param for Gauge nodes";
+}
+
+TEST_F(PropertiesWindowTest, ApplyKnobPositionsPreservesLiveContentValue) {
+    bp2::Blueprint::Node n;
+    n.semantic.id = interner.intern("knob1");
+    n.semantic.type = interner.intern("KnobSwitch");
+    n.view.name = "knob1";
+    n.view.content_type = bp2::NodeContentType::Knob;
+    n.view.content_value = 3.0f;
+    n.view.content_max = 5.0f;
+    n.semantic.params[interner.intern("positions")] = 5.0f;
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("knob1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "knob1", model, interner, &registry, [](const std::string&) {});
+    win.set_pending_param("positions", 7.0f);
+    win.apply();
+
+    node_ptr = model.current().find_node(interner.intern("knob1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_FLOAT_EQ(node_ptr->view.content_value, 3.0f)
+        << "apply() must preserve live content_value while rehydrating static knob fields";
+    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 7.0f)
+        << "apply() must still refresh static knob range from semantic params";
 }

@@ -3,9 +3,11 @@
 #include "../../blueprint_v2/blueprint/node_content_type.h"
 #include "../../blueprint_v2/blueprint/node_port.h"
 #include "../../ui/math/pt.h"
+#include "../../ui/core/interned_id.h"
 #include <string>
 #include <optional>
 #include <cstdint>
+#include <unordered_map>
 
 /// Содержимое узла (пока placeholder)
 struct NodeContent {
@@ -56,6 +58,10 @@ struct PortLayoutOverride {
 struct TypeDefinition;
 struct TypeRegistry;
 
+namespace ui {
+class StringInterner;
+} // namespace ui
+
 /// Get default node size from type definition (single source of truth)
 /// @param type_name Component classname (e.g., "Battery", "Splitter", "Bus", "RefNode")
 /// @param registry Type registry to look up size from JSON definitions
@@ -76,9 +82,62 @@ inline ui::Pt get_default_node_size(const std::string& type_name, const TypeRegi
     return ui::Pt(120, 80);
 }
 
-// [DRY-i9j0] Shared factory — was duplicated in app.cpp and persist.cpp
-/// Create default NodeContent from a TypeDefinition (single source of truth)
-inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
+/// [Issue #132] Helper to resolve param value from instance params map or defaults
+/// Lookup order: params_map[key] → fallback
+inline float get_param_float_from_map(const std::unordered_map<ui::InternedId, float>& params,
+                                      const std::unordered_map<std::string, std::string>& string_params,
+                                      const std::string& key,
+                                      ui::StringInterner& interner,
+                                      float fallback = 0.0f) {
+    // Try numeric params first
+    const ui::InternedId key_iid = interner.intern(key);
+    auto it = params.find(key_iid);
+    if (it != params.end()) {
+        return it->second;
+    }
+    
+    // Try string params (stof may fail, fallback in that case)
+    auto sit = string_params.find(key);
+    if (sit != string_params.end()) {
+        try {
+            return std::stof(sit->second);
+        } catch (...) {
+            // stof failed, use fallback
+        }
+    }
+    
+    return fallback;
+}
+
+/// [Issue #132] Helper to resolve param bool value from instance params or defaults
+inline bool get_param_bool_from_map(const std::unordered_map<ui::InternedId, float>& params,
+                                    const std::unordered_map<std::string, std::string>& string_params,
+                                    const std::string& key,
+                                    ui::StringInterner& interner,
+                                    bool fallback = false) {
+    // Try numeric params (0 = false, != 0 = true)
+    const ui::InternedId key_iid = interner.intern(key);
+    auto it = params.find(key_iid);
+    if (it != params.end()) {
+        return it->second != 0.0f;
+    }
+    
+    // Try string params
+    auto sit = string_params.find(key);
+    if (sit != string_params.end()) {
+        return sit->second == "true" || sit->second == "1";
+    }
+    
+    return fallback;
+}
+
+/// [Issue #132] Create NodeContent from TypeDefinition and instance params
+/// Resolves param-driven content (min/max/positions/initial_position/closed)
+/// using instance params first, then type definition defaults.
+inline NodeContent create_node_content(const TypeDefinition* def,
+                                       const std::unordered_map<ui::InternedId, float>& instance_params,
+                                       const std::unordered_map<std::string, std::string>& instance_string_params,
+                                       ui::StringInterner& interner) {
     NodeContent content;
     content.type = bp2::NodeContentType::None;
     if (!def) return content;
@@ -88,21 +147,29 @@ inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
         content.type = bp2::NodeContentType::Gauge;
         content.label = "V";
         content.value = 0.0f;
+        
+        // Resolve min/max from instance params, then type definition
         auto min_it = def->params.find("min");
-        content.min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
+        float def_min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
+        content.min = get_param_float_from_map(instance_params, instance_string_params, "min", interner, def_min);
+        
         auto max_it = def->params.find("max");
-        content.max = (max_it != def->params.end()) ? std::stof(max_it->second) : 28.0f;
+        float def_max = (max_it != def->params.end()) ? std::stof(max_it->second) : 28.0f;
+        content.max = get_param_float_from_map(instance_params, instance_string_params, "max", interner, def_max);
+        
         content.unit = "V";
     } else if (ct == "Switch") {
         content.type = bp2::NodeContentType::Switch;
         content.label = "ON";
         auto it = def->params.find("closed");
-        content.state = (it != def->params.end() && it->second == "true");
+        bool def_state = (it != def->params.end() && it->second == "true");
+        content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
     } else if (ct == "VerticalToggle") {
         content.type = bp2::NodeContentType::VerticalToggle;
         content.label = "";
         auto it = def->params.find("closed");
-        content.state = (it != def->params.end() && it->second == "true");
+        bool def_state = (it != def->params.end() && it->second == "true");
+        content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
     } else if (ct == "HoldButton") {
         content.type = bp2::NodeContentType::Switch;
         content.label = "RELEASED";
@@ -113,23 +180,33 @@ inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
     } else if (ct == "Slider") {
         content.type = bp2::NodeContentType::Slider;
         content.value = 0.0f;
+        
+        // Resolve min/max from instance params, then type definition
         auto min_it = def->params.find("min");
-        content.min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
+        float def_min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
+        content.min = get_param_float_from_map(instance_params, instance_string_params, "min", interner, def_min);
+        
         auto max_it = def->params.find("max");
-        content.max = (max_it != def->params.end()) ? std::stof(max_it->second) : 1.0f;
+        float def_max = (max_it != def->params.end()) ? std::stof(max_it->second) : 1.0f;
+        content.max = get_param_float_from_map(instance_params, instance_string_params, "max", interner, def_max);
     } else if (ct == "Indicator") {
         content.type = bp2::NodeContentType::Indicator;
         content.value = 0.0f;  // normalized brightness (0-1)
     } else if (ct == "Knob") {
         content.type = bp2::NodeContentType::Knob;
         content.value = 0.0f;  // current position (0-based)
+        
+        // Resolve positions from instance params, then type definition
         auto pos_it = def->params.find("positions");
-        content.max = (pos_it != def->params.end()) ? std::stof(pos_it->second) : 2.0f;
+        float def_positions = (pos_it != def->params.end()) ? std::stof(pos_it->second) : 2.0f;
+        content.max = get_param_float_from_map(instance_params, instance_string_params, "positions", interner, def_positions);
+        
         content.min = 0.0f;
+        
+        // Resolve initial_position from instance params, then type definition
         auto init_it = def->params.find("initial_position");
-        if (init_it != def->params.end()) {
-            content.value = std::stof(init_it->second);
-        }
+        float def_initial = (init_it != def->params.end()) ? std::stof(init_it->second) : 0.0f;
+        content.value = get_param_float_from_map(instance_params, instance_string_params, "initial_position", interner, def_initial);
     }
     return content;
 }

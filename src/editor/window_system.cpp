@@ -243,6 +243,7 @@ void WindowSystem::openPropertiesForNode(const editor::NodeId& node_id, Document
 
     Document* doc_ptr = &doc;
     properties_window_.open(*node, node_id.str(), doc.model(), doc.interner(),
+        doc.type_registry(),
         [this, doc_ptr](const std::string& nid) {
             // Verify document still exists before using the pointer
             for (const auto& d : documents_) {

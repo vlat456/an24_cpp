@@ -16,13 +16,20 @@ namespace editor {
 /// Only component-kind nodes are hydrated; blueprint-instance nodes are
 /// skipped because their view state is derived differently.
 ///
-/// @param node  The node to hydrate (mutated in-place).
-/// @param def   TypeDefinition for the node's component type (may be null).
+/// [Issue #132] Now derives param-driven content from instance params first,
+/// then falls back to type definition defaults. This ensures that edited
+/// params (e.g., knob positions, slider min/max) take effect immediately
+/// after inspector edits or load/import.
+///
+/// @param node     The node to hydrate (mutated in-place).
+/// @param def      TypeDefinition for the node's component type (may be null).
+/// @param interner StringInterner for resolving param keys.
 inline void hydrate_node_view(bp2::Blueprint::Node& node,
-                              const TypeDefinition* def) {
+                              const TypeDefinition* def,
+                              ui::StringInterner& interner) {
     if (!def) return;
     node.view.render_hint = def->render_hint;
-    NodeContent nc = create_node_content_from_def(def);
+    NodeContent nc = create_node_content(def, node.semantic.params, node.semantic.string_params, interner);
     node.view.content_type    = nc.type;
     node.view.content_label   = nc.label;
     node.view.content_value   = nc.value;
@@ -50,7 +57,7 @@ inline bp2::Blueprint hydrate_runtime_node_view_data(
 
         if (node.is_component()) {
             const std::string type_name(interner.resolve(node.semantic.type));
-            hydrate_node_view(updated, registry.get(type_name));
+            hydrate_node_view(updated, registry.get(type_name), interner);
         }
 
         // Recursively hydrate embedded inline blueprints
