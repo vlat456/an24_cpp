@@ -10,6 +10,7 @@
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/interface/node_port_projection.h"
+#include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
@@ -18,6 +19,72 @@ namespace visual {
 // ============================================================================
 // Construction
 // ============================================================================
+
+namespace {
+
+enum class ContentInteractionRole {
+    Toggle,
+    DiscreteSelector,
+    ContinuousScalar,
+};
+
+struct ContentWidgetInteractionInfo {
+    ContentInteractionRole role;
+    float primary_min = 0.0f;
+    float primary_max = 100.0f;
+    int steps = 2;
+    float bounds_x = 0.0f;
+    float bounds_y = 0.0f;
+    float bounds_w = 0.0f;
+    float bounds_h = 0.0f;
+};
+
+ContentWidgetInteractionInfo build_rect_interaction(ContentInteractionRole role,
+                                                    Pt size,
+                                                    float primary_min = 0.0f,
+                                                    float primary_max = 100.0f,
+                                                    int steps = 2) {
+    return ContentWidgetInteractionInfo{
+        .role = role,
+        .primary_min = primary_min,
+        .primary_max = primary_max,
+        .steps = steps,
+        .bounds_x = 0.0f,
+        .bounds_y = 0.0f,
+        .bounds_w = size.x,
+        .bounds_h = size.y,
+    };
+}
+
+std::optional<ContentWidgetInteractionInfo> derive_content_interaction(
+    bp2::NodeContentType content_type, Widget* content_widget, float content_max) {
+    
+    if (!content_widget) return std::nullopt;
+    const Pt size = content_widget->size();
+    
+    switch (content_type) {
+        case bp2::NodeContentType::Switch:
+        case bp2::NodeContentType::VerticalToggle:
+            return build_rect_interaction(ContentInteractionRole::Toggle, size);
+        
+        case bp2::NodeContentType::Slider: {
+            float pad = SliderWidget::HANDLE_RADIUS;
+            float track_w = size.x - 2.0f * pad;
+            return build_rect_interaction(ContentInteractionRole::ContinuousScalar,
+                                          size, pad, pad + track_w);
+        }
+        
+        case bp2::NodeContentType::Knob:
+            return build_rect_interaction(ContentInteractionRole::DiscreteSelector,
+                                          size, 0.0f, 100.0f,
+                                          std::max(2, static_cast<int>(content_max)));
+        
+        default:
+            return std::nullopt;
+    }
+}
+
+} // namespace
 
 NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
                        const bp2::Interface& render_iface,
@@ -89,8 +156,8 @@ static std::vector<PortLayoutOverride> resolve_bp2_layout_overrides(
 }
 
 void NodeWidget::buildLayout(const bp2::Blueprint::Node& data,
-                             const bp2::Interface& render_iface,
-                             const ui::StringInterner& interner) {
+                              const bp2::Interface& render_iface,
+                              const ui::StringInterner& interner) {
     layout_ = emplaceChild<Column>();
 
     // -- Header --
@@ -98,6 +165,8 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data,
         name_, render_theme::COLOR_HEADER_FILL, editor_constants::NODE_ROUNDING);
 
     bp2::NodeContentType content_type = data.view.content_type;
+    cached_content_type_ = content_type;
+    cached_content_max_ = data.view.content_max;
 
     // -- Port rows / Content --
     // VerticalToggle uses special layout, but falls back to standard when overrides present
@@ -359,35 +428,77 @@ void NodeWidget::buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports
 
 void NodeWidget::updateContent(const ::NodeContent& content) {
     if (content_widget_) content_widget_->updateFromContent(content);
+    cached_content_max_ = content.max;
+    refresh_content_semantic_snapshot();
 }
 
 ::Bounds NodeWidget::contentBounds() const {
     if (!content_widget_) return {};
     Pt wp = content_widget_->worldPos();
     Pt np = worldPos();
-    InteractionGeometry affordance = content_widget_->affordance_bounds_local();
+    Pt sz = content_widget_->size();
     return {
-        wp.x - np.x + affordance.origin.x,
-        wp.y - np.y + affordance.origin.y,
-        affordance.size.x,
-        affordance.size.y,
+        wp.x - np.x,
+        wp.y - np.y,
+        sz.x,
+        sz.y,
     };
 }
 
-std::optional<InteractionTarget> NodeWidget::query_interaction(Pt world_pos) const {
+void NodeWidget::refresh_content_semantic_snapshot() {
+    content_semantic_snapshot_ = {};
     if (!content_widget_) {
-        return std::nullopt;
+        return;
     }
 
     const Bounds cb = contentBounds();
-    const Pt pos = worldPos();
-    const float lx = world_pos.x - pos.x;
-    const float ly = world_pos.y - pos.y;
-    if (!cb.contains(lx, ly)) {
-        return std::nullopt;
+    if (cb.w <= 0.0f || cb.h <= 0.0f) {
+        return;
     }
 
-    return content_widget_->interaction_target(Pt(lx - cb.x, ly - cb.y));
+    auto interaction_info = derive_content_interaction(cached_content_type_, content_widget_, cached_content_max_);
+    if (!interaction_info.has_value()) {
+        return;
+    }
+
+    using namespace editor::presentation;
+
+    SceneHitObject hit_object;
+    hit_object.id = SceneObjectId(1);
+    hit_object.node_id = node_iid_;
+    hit_object.element_id = node_iid_;
+    hit_object.region_id = node_iid_;
+    hit_object.kind = SceneHitObjectKind::ContentRegion;
+    hit_object.shape = HitShapeKind::Rectangle;
+    hit_object.bounds = Rect{
+        worldPos().x + cb.x + interaction_info->bounds_x,
+        worldPos().y + cb.y + interaction_info->bounds_y,
+        interaction_info->bounds_w,
+        interaction_info->bounds_h,
+    };
+
+    InteractionBinding binding;
+    binding.region_id = node_iid_;
+    binding.action_id = node_iid_;
+    switch (interaction_info->role) {
+        case ContentInteractionRole::ContinuousScalar:
+            binding.kind = InteractionKind::DragScalar;
+            binding.min_value = interaction_info->primary_min;
+            binding.max_value = interaction_info->primary_max;
+            break;
+        case ContentInteractionRole::DiscreteSelector:
+            binding.kind = InteractionKind::DragDiscrete;
+            binding.min_value = interaction_info->primary_min;
+            binding.max_value = interaction_info->primary_max;
+            binding.step = static_cast<float>(interaction_info->steps);
+            break;
+        case ContentInteractionRole::Toggle:
+            binding.kind = InteractionKind::Click;
+            break;
+    }
+    hit_object.interactions.push_back(std::move(binding));
+
+    content_semantic_snapshot_.hit_objects.push_back(std::move(hit_object));
 }
 
 NodeVisualState NodeWidget::visual_state(const RenderContext& ctx) const {
@@ -460,6 +571,13 @@ void NodeWidget::layout(float w, float h) {
     if (layout_) {
         layout_->layout(w, h);
     }
+
+    refresh_content_semantic_snapshot();
+}
+
+void NodeWidget::onLocalPosChanged() {
+    Widget::onLocalPosChanged();
+    refresh_content_semantic_snapshot();
 }
 
 // ============================================================================

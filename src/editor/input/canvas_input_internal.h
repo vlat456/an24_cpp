@@ -4,66 +4,16 @@
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "blueprint_v2/path/path.h"
 #include "editor/input/editing_host.h"
-#include "editor/visual/presentation/semantic_canvas_controller.h"
 #include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
 #include "debug.h"
 #include "visual/persist.h"
 #include "visual/snap.h"
-#include "visual/widget.h"
 #include <cstdio>
 #include <cassert>
 #include <string_view>
 
 namespace canvas_input_impl {
-
-// ============================================================================
-// Semantic snapshot bridge
-// ============================================================================
-
-/// Build a single-object SemanticSceneSnapshot for the given interaction
-/// region. Used by CanvasInput to feed the semantic canvas controller during
-/// toggle/slider/knob interactions.
-inline editor::presentation::SemanticSceneSnapshot build_interaction_snapshot(
-    ui::InternedId node_id,
-    const editor::presentation::Rect& bounds,
-    const visual::InteractionTarget& target) {
-    using namespace editor::presentation;
-
-    SceneHitObject hit_object;
-    hit_object.node_id    = node_id;
-    hit_object.element_id = node_id;
-    hit_object.region_id  = node_id;
-    hit_object.kind       = SceneHitObjectKind::ContentRegion;
-    hit_object.bounds     = bounds;
-
-    InteractionBinding binding;
-    binding.region_id = node_id;
-    binding.action_id = node_id;
-
-    switch (target.role) {
-        case visual::InteractionRole::ContinuousScalar:
-            binding.kind      = InteractionKind::DragScalar;
-            binding.min_value = target.primary_min;
-            binding.max_value = target.primary_max;
-            break;
-        case visual::InteractionRole::DiscreteSelector:
-            binding.kind      = InteractionKind::DragDiscrete;
-            binding.min_value = target.primary_min;
-            binding.max_value = target.primary_max;
-            binding.step      = static_cast<float>(target.steps);
-            break;
-        case visual::InteractionRole::Toggle:
-            binding.kind = InteractionKind::Click;
-            break;
-    }
-
-    hit_object.interactions.push_back(binding);
-
-    SemanticSceneSnapshot snapshot;
-    snapshot.hit_objects.push_back(std::move(hit_object));
-    return snapshot;
-}
 
 // ============================================================================
 // Blueprint helpers

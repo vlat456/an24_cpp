@@ -4,7 +4,6 @@
 #include "ui/math/pt.h"
 #include "editor/window/blueprint_window.h"
 #include "editor/window_system.h"
-#include "editor/visual/node/node_content_renderer.h"
 #include "editor/visual/canvas_constants.h"
 
 struct ImDrawList;
@@ -14,15 +13,13 @@ struct ImDrawList;
 /// Uses dependency injection for testability
 class CanvasRenderer {
 public:
-    CanvasRenderer() : node_renderer_() {}
+    CanvasRenderer() {}
     
     /// Render canvas content and handle input
     void render(BlueprintWindow& win, Document& doc, WindowSystem& ws,
                 Pt cmin, Pt cmax, ImDrawList* draw_list, bool hovered);
 
 private:
-    NodeContentRenderer node_renderer_;
-    
     void renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawList* draw_list);
     void renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmin, Pt cmax, ImDrawList* draw_list);
     void renderTooltips(BlueprintWindow& win, Document& doc, WindowSystem& ws, Pt cmin, ImDrawList* draw_list);

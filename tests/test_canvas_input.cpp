@@ -12,6 +12,8 @@
 #include "editor/visual/node/visual_node.h"
 #include "editor/visual/port/visual_port.h"
 #include "editor/visual/wire/wire.h"
+#include "editor/visual/presentation/semantic_scene_snapshot.h"
+#include "editor/visual/presentation/semantic_scene_hittest.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
@@ -1366,11 +1368,15 @@ TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
     // Content bounds must be at least as wide as the VerticalToggle's
     // preferred width (16px). Previously it was ~6.2px.
     Bounds cb = widget->contentBounds();
-    auto* cw = widget->contentWidget();
-    ASSERT_NE(cw, nullptr);
-    auto target = cw->interaction_target(ui::Pt(cb.w * 0.5f, cb.h * 0.5f));
-    ASSERT_TRUE(target.has_value());
-    EXPECT_EQ(target->role, visual::InteractionRole::Toggle);
+    Pt wpos = widget->worldPos();
+    const auto& sem_snapshot = widget->content_semantic_snapshot();
+    auto sem_hit = editor::presentation::hit_test_semantic_scene(
+        sem_snapshot,
+        Pt(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f));
+    auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+    ASSERT_NE(sem_content, nullptr);
+    ASSERT_FALSE(sem_content->object->interactions.empty());
+    EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::Click);
     EXPECT_GE(cb.w, visual::VerticalToggleWidget::WIDTH)
         << "Content bounds width (" << cb.w << ") must be >= "
         << visual::VerticalToggleWidget::WIDTH << "px (VerticalToggle WIDTH)";
@@ -1762,11 +1768,17 @@ TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
     Pt wpos = widget->worldPos();
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    auto hit = visual::hit_test(scene, click_world);
-    auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit);
-    ASSERT_NE(hit_tgt, nullptr) << "hit_test should return HitInteractionTarget for toggle content";
-    EXPECT_EQ(hit_tgt->widget, widget);
-    EXPECT_EQ(hit_tgt->target.role, visual::InteractionRole::Toggle);
+     auto hit = visual::hit_test(scene, click_world);
+     auto* hit_node = std::get_if<visual::HitNode>(&hit);
+     ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
+     EXPECT_EQ(hit_node->widget, widget);
+     
+     const auto& sem_snapshot = widget->content_semantic_snapshot();
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+     ASSERT_NE(sem_content, nullptr);
+     ASSERT_FALSE(sem_content->object->interactions.empty());
+     EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::Click);
 }
 
 TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
@@ -1795,11 +1807,17 @@ TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
     Pt wpos = widget->worldPos();
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    auto hit = visual::hit_test(scene, click_world);
-    auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit);
-    ASSERT_NE(hit_tgt, nullptr) << "hit_test should return HitInteractionTarget for knob content";
-    EXPECT_EQ(hit_tgt->widget, widget);
-    EXPECT_EQ(hit_tgt->target.role, visual::InteractionRole::DiscreteSelector);
+     auto hit = visual::hit_test(scene, click_world);
+     auto* hit_node = std::get_if<visual::HitNode>(&hit);
+     ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
+     EXPECT_EQ(hit_node->widget, widget);
+     
+     const auto& sem_snapshot = widget->content_semantic_snapshot();
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+     ASSERT_NE(sem_content, nullptr);
+     ASSERT_FALSE(sem_content->object->interactions.empty());
+     EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::DragDiscrete);
 }
 
 TEST(HitTestInteractionTarget, KnobContentBoundsCoverVisibleKnobSize) {
@@ -1856,11 +1874,17 @@ TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
     Pt wpos = widget->worldPos();
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    auto hit = visual::hit_test(scene, click_world);
-    auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit);
-    ASSERT_NE(hit_tgt, nullptr) << "hit_test should return HitInteractionTarget for slider content";
-    EXPECT_EQ(hit_tgt->widget, widget);
-    EXPECT_EQ(hit_tgt->target.role, visual::InteractionRole::ContinuousScalar);
+     auto hit = visual::hit_test(scene, click_world);
+     auto* hit_node = std::get_if<visual::HitNode>(&hit);
+     ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
+     EXPECT_EQ(hit_node->widget, widget);
+     
+     const auto& sem_snapshot = widget->content_semantic_snapshot();
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+     ASSERT_NE(sem_content, nullptr);
+     ASSERT_FALSE(sem_content->object->interactions.empty());
+     EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::DragScalar);
 }
 
 TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
@@ -1891,7 +1915,10 @@ TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
     auto hit = visual::hit_test(scene, click_world);
-    EXPECT_TRUE(std::holds_alternative<visual::HitInteractionTarget>(hit));
+    EXPECT_TRUE(std::holds_alternative<visual::HitNode>(hit));
+    auto* hit_node = std::get_if<visual::HitNode>(&hit);
+    ASSERT_NE(hit_node, nullptr);
+    EXPECT_EQ(hit_node->widget, widget);
 }
 
 TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
@@ -1926,10 +1953,17 @@ TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
     Pt screen_click = vp.world_to_screen(world_click, Pt(0, 0));
     Pt roundtrip_world = vp.screen_to_world(screen_click, Pt(0, 0));
 
-    auto hit = visual::hit_test(scene, roundtrip_world);
-    auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit);
-    ASSERT_NE(hit_tgt, nullptr);
-    EXPECT_EQ(hit_tgt->target.role, visual::InteractionRole::Toggle);
+     auto hit = visual::hit_test(scene, roundtrip_world);
+     auto* hit_node = std::get_if<visual::HitNode>(&hit);
+     ASSERT_NE(hit_node, nullptr);
+     EXPECT_EQ(hit_node->widget, widget);
+     
+     const auto& sem_snapshot = widget->content_semantic_snapshot();
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, roundtrip_world);
+     auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+     ASSERT_NE(sem_content, nullptr);
+     ASSERT_FALSE(sem_content->object->interactions.empty());
+     EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::Click);
 }
 
 TEST(CanvasInputInteractionTarget, VerticalTogglePublishesToggleRole) {
@@ -1954,45 +1988,51 @@ TEST(CanvasInputInteractionTarget, VerticalTogglePublishesToggleRole) {
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
 
-    Bounds cb = widget->contentBounds();
-    Pt wpos = widget->worldPos();
-    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+     Bounds cb = widget->contentBounds();
+     Pt wpos = widget->worldPos();
+     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    auto target = widget->query_interaction(click_world);
-    ASSERT_TRUE(target.has_value());
-    EXPECT_EQ(target->role, visual::InteractionRole::Toggle);
+     const auto& sem_snapshot = widget->content_semantic_snapshot();
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+     ASSERT_NE(sem_content, nullptr);
+     ASSERT_FALSE(sem_content->object->interactions.empty());
+     EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::Click);
 }
 
 TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
-    ui::StringInterner I;
-    bp2::PathArena arena(I);
+     ui::StringInterner I;
+     bp2::PathArena arena(I);
 
-    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 5.0f;
-    set_iface(knob, {
-        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
-        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
-    });
+     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+     knob.view.content_type = bp2::NodeContentType::Knob;
+     knob.view.content_max = 5.0f;
+     set_iface(knob, {
+         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+     });
 
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(knob));
+     bp2::Blueprint bp;
+     bp = bp.with_node(std::move(knob));
 
-    bp2::EditorModel model(std::move(bp));
-    visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+     bp2::EditorModel model(std::move(bp));
+     visual::Scene scene;
+     visual::mutations::rebuild(scene, model.current(), I, arena, "");
 
-    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
-    ASSERT_NE(widget, nullptr);
+     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+     ASSERT_NE(widget, nullptr);
 
-    Bounds cb = widget->contentBounds();
-    Pt wpos = widget->worldPos();
-    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+     Bounds cb = widget->contentBounds();
+     Pt wpos = widget->worldPos();
+     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    auto target = widget->query_interaction(click_world);
-    ASSERT_TRUE(target.has_value());
-    EXPECT_EQ(target->role, visual::InteractionRole::DiscreteSelector);
-}
+     const auto& sem_snapshot = widget->content_semantic_snapshot();
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+     ASSERT_NE(sem_content, nullptr);
+     ASSERT_FALSE(sem_content->object->interactions.empty());
+     EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::DragDiscrete);
+ }
 
 TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
     // Verify that the knob target publishes steps metadata so that CanvasInput
@@ -2019,17 +2059,20 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
 
-    Bounds cb = widget->contentBounds();
-    Pt wpos = widget->worldPos();
-    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+     Bounds cb = widget->contentBounds();
+     Pt wpos = widget->worldPos();
+     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    auto target = widget->query_interaction(click_world);
-    ASSERT_TRUE(target.has_value());
-    EXPECT_EQ(target->role, visual::InteractionRole::DiscreteSelector);
-    
-    // The key contract: target publishes steps metadata.
-    EXPECT_EQ(target->steps, 7)
-        << "Target must publish steps (discrete positions) from widget content";
+     const auto& sem_snapshot = widget->content_semantic_snapshot();
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+     ASSERT_NE(sem_content, nullptr);
+     ASSERT_FALSE(sem_content->object->interactions.empty());
+     EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::DragDiscrete);
+     
+     // The key contract: binding publishes steps metadata.
+     EXPECT_EQ(sem_content->object->interactions[0].step, 7)
+         << "Binding must publish steps (discrete positions) from widget content";
     
     // Verify that CanvasInput can use this metadata to track knob state.
     // CanvasInput::enter_drag_knob now reads target.steps instead of accessing
@@ -2072,13 +2115,16 @@ TEST(CanvasInputInteractionTarget, SliderPublishesContinuousScalarRole) {
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
 
-    Bounds cb = widget->contentBounds();
-    Pt wpos = widget->worldPos();
-    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+     Bounds cb = widget->contentBounds();
+     Pt wpos = widget->worldPos();
+     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    auto target = widget->query_interaction(click_world);
-    ASSERT_TRUE(target.has_value());
-     EXPECT_EQ(target->role, visual::InteractionRole::ContinuousScalar);
+     const auto& sem_snapshot = widget->content_semantic_snapshot();
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+     ASSERT_NE(sem_content, nullptr);
+     ASSERT_FALSE(sem_content->object->interactions.empty());
+      EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::DragScalar);
 }
 
 TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) {
@@ -2107,25 +2153,27 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
 
-    Bounds cb = widget->contentBounds();
-    Pt wpos = widget->worldPos();
-    
-    // Query the interaction target at the center of the slider content area.
-    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
-    auto target = widget->query_interaction(click_world);
-    ASSERT_TRUE(target.has_value());
-    EXPECT_EQ(target->role, visual::InteractionRole::ContinuousScalar);
-    
-    // The key contract: target provides mapping bounds, not geometry.
-    // primary_min and primary_max define the range for normalized computation.
-    EXPECT_GT(target->primary_max, target->primary_min)
-        << "Target must provide valid mapping range (primary_max > primary_min)";
-    
-    // Verify that CanvasInput can use these bounds to compute a normalized value.
-    // Note: CanvasInput::handle_resolved_interaction now uses target->primary_min/max
-    // instead of SliderWidget::HANDLE_RADIUS. This test verifies the contract.
-    float range = target->primary_max - target->primary_min;
-    EXPECT_GT(range, 0.0f) << "Mapping range must be positive";
+     Bounds cb = widget->contentBounds();
+     Pt wpos = widget->worldPos();
+     
+     // Query the interaction binding at the center of the slider content area.
+     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+     const auto& sem_snapshot = widget->content_semantic_snapshot();
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+     ASSERT_NE(sem_content, nullptr);
+     ASSERT_FALSE(sem_content->object->interactions.empty());
+     EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::DragScalar);
+     
+     // The key contract: binding provides mapping bounds, not geometry.
+     // min_value and max_value define the range for normalized computation.
+     EXPECT_GT(sem_content->object->interactions[0].max_value, sem_content->object->interactions[0].min_value)
+         << "Binding must provide valid mapping range (max_value > min_value)";
+     
+     // Verify that CanvasInput can use these bounds to compute a normalized value.
+     // Note: CanvasInput now uses binding min/max_value instead of SliderWidget::HANDLE_RADIUS.
+     float range = sem_content->object->interactions[0].max_value - sem_content->object->interactions[0].min_value;
+     EXPECT_GT(range, 0.0f) << "Mapping range must be positive";
     
     // Simulate a click and verify the slider interaction is captured without
     // CanvasInput needing to know about HANDLE_RADIUS.
@@ -2432,15 +2480,15 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("comp_1"));
     ASSERT_NE(widget, nullptr);
 
-    // Click at the center of the content area (where HitInteractionTarget is returned)
+    // Click at the center of the content area
     Bounds cb = widget->contentBounds();
     Pt wpos = widget->worldPos();
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    // Verify we actually get HitInteractionTarget for this click position
+    // Verify we actually get HitNode for this click position
     auto hit = visual::hit_test(scene, click_world);
-    ASSERT_TRUE(std::holds_alternative<visual::HitInteractionTarget>(hit))
-        << "Precondition: click on content area must return HitInteractionTarget";
+    ASSERT_TRUE(std::holds_alternative<visual::HitNode>(hit))
+        << "Precondition: click on content area must return HitNode";
 
     Pt canvas_min(0, 0);
     auto result = input.on_double_click(click_world, canvas_min);

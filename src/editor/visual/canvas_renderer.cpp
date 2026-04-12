@@ -118,7 +118,6 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
     renderTooltips(win, doc, ws, cmin, draw_list);
     renderTempWire(win, cmin, draw_list);
     render_probe_markers(win, doc, ws, cmin, draw_list);
-    node_renderer_.render(doc, win, cmin);
     renderMarquee(win, cmin, draw_list);
     
     if (hovered) {

@@ -21,7 +21,6 @@ class Widget;
 class Wire;
 class Port;
 class RoutingPoint;
-struct InteractionTarget;
 } // namespace visual
 
 struct Viewport;
@@ -209,24 +208,41 @@ public:
     void cancel_gesture();
 
 private:
+    enum class SemanticContentRole {
+        Toggle,
+        DiscreteSelector,
+        ContinuousScalar,
+    };
+
+    struct SemanticContentTarget {
+        SemanticContentRole role = SemanticContentRole::Toggle;
+        float primary_min = 0.0f;
+        float primary_max = 0.0f;
+        int steps = 2;
+    };
+
 
     InputResult finish_wire_creation(Pt screen_pos, Pt canvas_min);
     InputResult finish_wire_reconnection(Pt screen_pos, Pt canvas_min);
     void finish_marquee();
     /// Handle an already-resolved interaction target. Returns true if interaction was consumed.
-    bool handle_resolved_interaction(visual::Widget* widget, const visual::InteractionTarget& target, Pt world, InputResult& result);
+    bool handle_resolved_interaction(visual::Widget* widget, const SemanticContentTarget& target, Pt world, InputResult& result);
 
      /// Configure semantic snapshot and controller state for interaction role.
-     void setup_semantic_interaction_state(visual::Widget* node_widget, const visual::InteractionTarget& target,
-                                            const editor::presentation::Rect& interaction_bounds, Pt world_pos);
+      void setup_semantic_interaction_state(visual::Widget* node_widget, const SemanticContentTarget& target,
+                                            Pt world_pos);
      
      /// Configure and dispatch semantic interaction based on role. Returns result.
-     editor::presentation::SemanticCanvasControllerResult configure_and_dispatch_semantic_interaction(
-         visual::Widget* node_widget, const visual::InteractionTarget& target,
-         const editor::presentation::Rect& interaction_bounds, Pt world);
+        editor::presentation::SemanticCanvasControllerResult configure_and_dispatch_semantic_interaction(
+          visual::Widget* node_widget, const SemanticContentTarget& target, Pt world);
 
-     bool publish_semantic_control_result(const editor::presentation::SemanticCanvasControllerResult& semantic,
-                                          InputResult& result) const;
+      /// Hit-test a node's retained content semantic snapshot at world position.
+      /// Returns a semantic content target if a control was hit, nullopt otherwise.
+      std::optional<SemanticContentTarget> hit_test_semantic_content(
+          visual::Widget* node_widget, Pt world_pos);
+
+      bool publish_semantic_control_result(const editor::presentation::SemanticCanvasControllerResult& semantic,
+                                           InputResult& result) const;
 
      bool state_uses_semantic_control_session() const;
 

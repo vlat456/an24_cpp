@@ -226,14 +226,12 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
          }
      }
 
-     // Extract the underlying widget from either HitNode or HitInteractionTarget,
-     // so double-click on interactive content still resolves node-level actions
-     // (open sub-window, inline value editor).
-     visual::Widget* dbl_click_widget = nullptr;
-     if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-         dbl_click_widget = hn->widget;
-     } else if (auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit)) {
-         dbl_click_widget = hit_tgt->widget;
+      // Extract the underlying widget from HitNode
+      // Double-click on content still resolves node-level actions
+      // (open sub-window, inline value editor).
+      visual::Widget* dbl_click_widget = nullptr;
+      if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
+          dbl_click_widget = hn->widget;
      }
 
      if (dbl_click_widget) {

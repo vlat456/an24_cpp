@@ -32,9 +32,6 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             if (auto* h = std::get_if<visual::HitNode>(&hit)) {
                 if (!mods.ctrl) clear_selection();
                 add_node_selection(h->widget);
-            } else if (auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit)) {
-                if (!mods.ctrl) clear_selection();
-                add_node_selection(hit_tgt->widget);
             } else {
                 clear_selection_and_enter_panning();
             }
@@ -43,10 +40,13 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
 
         if (simulation_mode) {
             auto hit = visual::hit_test(scene_, world);
-            if (auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit)) {
-                InputResult ir;
-                if (handle_resolved_interaction(hit_tgt->widget, hit_tgt->target, world, ir)) {
-                    return ir;
+            if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
+                auto content_target = hit_test_semantic_content(hn->widget, world);
+                if (content_target.has_value()) {
+                    InputResult ir;
+                    if (handle_resolved_interaction(hn->widget, *content_target, world, ir)) {
+                        return ir;
+                    }
                 }
             }
             clear_selection_and_enter_panning();
@@ -73,13 +73,14 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             enter_marquee(world);
         } else if (auto* hrh = std::get_if<visual::HitResizeHandle>(&hit)) {
             enter_resize_node(hrh->widget, hrh->corner);
-        } else if (auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit)) {
-            if (handle_resolved_interaction(hit_tgt->widget, hit_tgt->target, world, result)) {
-                return result;
-            }
-            enter_drag_node(hit_tgt->widget, false, mods.ctrl);
-        } else if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-            enter_drag_node(hn->widget, false, mods.ctrl);
+         } else if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
+             auto content_target = hit_test_semantic_content(hn->widget, world);
+             if (content_target.has_value()) {
+                 if (handle_resolved_interaction(hn->widget, *content_target, world, result)) {
+                     return result;
+                 }
+             }
+             enter_drag_node(hn->widget, false, mods.ctrl);
         } else if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
             enter_drag_routing_point(hrp->wire, hrp->point, hrp->index);
         } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {

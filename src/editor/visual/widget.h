@@ -20,36 +20,6 @@ using ui::IDrawList;
 class Scene;
 class Port;
 
-enum class InteractionRole : uint8_t {
-    Toggle,
-    DiscreteSelector,
-    ContinuousScalar,
-};
-
-struct InteractionGeometry {
-    Pt origin{0.0f, 0.0f};
-    Pt size{0.0f, 0.0f};
-
-    bool contains(Pt local_pos) const {
-        return local_pos.x >= origin.x && local_pos.y >= origin.y
-            && local_pos.x <= origin.x + size.x && local_pos.y <= origin.y + size.y;
-    }
-};
-
-struct InteractionTarget {
-    InteractionRole role = InteractionRole::Toggle;
-    InteractionGeometry geometry{};
-    float local_primary = 0.0f;
-    
-    // Mapping metadata for ContinuousScalar (slider) interaction:
-    // local_primary is normalized to [primary_min, primary_max] for slider value computation.
-    float primary_min = 0.0f;   ///< local_x coordinate where normalized value = 0
-    float primary_max = 100.0f; ///< local_x coordinate where normalized value = 1
-    
-    // Discrete metadata for DiscreteSelector (knob) interaction:
-    int steps = 2; ///< number of discrete positions (default 2 for toggle-like behavior)
-};
-
 /// Z-order layer for rendering. Lower values render first (further back).
 enum class RenderLayer : uint8_t {
     Group  = 0,   ///< Behind everything (group containers)
@@ -73,13 +43,6 @@ public:
     }
     
     virtual void updateFromContent(const NodeContent& content) {}
-    virtual InteractionGeometry affordance_bounds_local() const {
-        return InteractionGeometry{Pt(0.0f, 0.0f), size()};
-    }
-    virtual std::optional<InteractionTarget> interaction_target(Pt local_pos) const {
-        (void)local_pos;
-        return std::nullopt;
-    }
 
     virtual void onLocalPosChanged() override;
 

@@ -39,9 +39,8 @@ struct HitPort { Port* port = nullptr; };
 struct HitWire { Wire* wire = nullptr; size_t segment = 0; };
 struct HitRoutingPoint { RoutingPoint* point = nullptr; Wire* wire = nullptr; size_t index = 0; };
 struct HitResizeHandle { Widget* widget = nullptr; ResizeCorner corner = ResizeCorner::BottomRight; };
-struct HitInteractionTarget { Widget* widget = nullptr; InteractionTarget target{}; };
 
-using HitResult = std::variant<HitEmpty, HitNode, HitPort, HitWire, HitRoutingPoint, HitResizeHandle, HitInteractionTarget>;
+using HitResult = std::variant<HitEmpty, HitNode, HitPort, HitWire, HitRoutingPoint, HitResizeHandle>;
 
 // ============================================================
 // Hit testing functions

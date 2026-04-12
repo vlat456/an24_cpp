@@ -9,6 +9,7 @@
 #include "visual/primitives/primitives.h"
 #include "visual/node/bounds.h"
 #include "visual/node/layout_context.h"
+#include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "ui/core/interned_id.h"
 #include "visual/node/port_layout_resolver.h"
 #include "data/node_content.h"
@@ -53,6 +54,7 @@ public:
 
     Pt preferredSize(IDrawList* dl) const override;
     void layout(float w, float h) override;
+    void onLocalPosChanged() override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
@@ -61,11 +63,11 @@ public:
     Bounds contentBounds() const;
 
     /// Content widget (if any). nullptr for nodes without interactive content.
-    Widget* contentWidget() const { return content_widget_; }
+     Widget* contentWidget() const { return content_widget_; }
 
-    /// Query node-local interaction target in content area.
-    /// Returns empty when no interactive content was hit.
-    std::optional<InteractionTarget> query_interaction(Pt world_pos) const;
+     const editor::presentation::SemanticSceneSnapshot& content_semantic_snapshot() const {
+         return content_semantic_snapshot_;
+     }
 
     /// Derive per-frame visual state for this node from render context.
     NodeVisualState visual_state(const RenderContext& ctx) const;
@@ -84,12 +86,17 @@ private:
     Column* layout_ = nullptr;
     Widget* content_widget_ = nullptr;
     std::vector<Port*> ports_;
+    
+    /// Cached content type for semantic snapshot building
+    bp2::NodeContentType cached_content_type_ = bp2::NodeContentType::None;
+    float cached_content_max_ = 0.0f;
 
     /// Layout context shared with PortRow children for edge-anchoring.
     /// Populated before layout() calls propagate to children.
     LayoutContext layout_ctx_;
 
     std::optional<uint32_t> custom_fill_;
+    editor::presentation::SemanticSceneSnapshot content_semantic_snapshot_;
 
     void buildLayout(const bp2::Blueprint::Node& data,
                      const bp2::Interface& render_iface,
@@ -108,6 +115,7 @@ private:
                               const ui::StringInterner& interner);
 
     void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);
+    void refresh_content_semantic_snapshot();
 };
 
 } // namespace visual
