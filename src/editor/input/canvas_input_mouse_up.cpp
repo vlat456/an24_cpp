@@ -5,7 +5,6 @@
 #include "visual/snap.h"
 #include "visual/node/visual_node.h"
 #include "visual/node/ref_node_widget.h"
-#include "visual/widgets/content_widgets.h"
 #include "visual/wire/wire.h"
 #include "visual/wire/routing_point.h"
 #include "viewport/viewport.h"
@@ -215,8 +214,18 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
          }
      }
 
+     // Extract the underlying widget from either HitNode or HitInteractionTarget,
+     // so double-click on interactive content still resolves node-level actions
+     // (open sub-window, inline value editor).
+     visual::Widget* dbl_click_widget = nullptr;
      if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-          std::string node_id(hn->widget->id());
+         dbl_click_widget = hn->widget;
+     } else if (auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit)) {
+         dbl_click_widget = hit_tgt->widget;
+     }
+
+     if (dbl_click_widget) {
+          std::string node_id(dbl_click_widget->id());
           ui::InternedId node_iid = interner_.lookup(node_id);
           const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : host_.find_node(node_iid);
           if (!read_only && !simulation_mode && node && std::string(interner_.resolve(node->semantic.type)) == "Value") {

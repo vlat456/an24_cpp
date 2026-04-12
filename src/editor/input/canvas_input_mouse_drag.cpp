@@ -3,7 +3,6 @@
 #include "visual/scene_hittest.h"
 #include "visual/snap.h"
 #include "visual/node/visual_node.h"
-#include "visual/widgets/content_widgets.h"
 #include "visual/wire/wire.h"
 #include "visual/wire/routing_point.h"
 #include "viewport/viewport.h"
@@ -168,10 +167,13 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
 
             case InputState::DraggingSlider: {
                 advance_world_cursor(world_delta);
-                float local_x = last_world_pos_.x - slider_widget_world_pos_.x;
-                float pad = visual::SliderWidget::HANDLE_RADIUS;
-                float track_w = slider_widget_width_ - 2.0f * pad;
-                float t = (track_w > 0.0f) ? std::clamp((local_x - pad) / track_w, 0.0f, 1.0f) : 0.0f;
+                float local_x = last_world_pos_.x - slider_primary_origin_world_x_;
+                
+                // Use target-provided mapping bounds to compute normalized value.
+                float range = slider_primary_max_ - slider_primary_min_;
+                float t = (range > 1e-6f)
+                    ? std::clamp((local_x - slider_primary_min_) / range, 0.0f, 1.0f)
+                    : 0.0f;
 
                 const bp2::Blueprint::Node* node = host_.find_node(slider_node_id_);
                 if (node) {

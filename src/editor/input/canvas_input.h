@@ -20,6 +20,7 @@ class Widget;
 class Wire;
 class Port;
 class RoutingPoint;
+struct InteractionTarget;
 } // namespace visual
 
 struct Viewport;
@@ -170,16 +171,17 @@ private:
     Pt resize_original_pos_;
     Pt resize_original_size_;
 
-    // Slider drag — stored as InternedId + cached widget bounds
+    // Slider drag — stored as InternedId + target mapping metadata (no longer depends on HANDLE_RADIUS)
     ui::InternedId slider_node_id_;
-    Pt slider_widget_world_pos_;  ///< world pos of the SliderWidget at drag start
-    float slider_widget_width_ = 0.0f;  ///< width of the SliderWidget
+    float slider_primary_origin_world_x_ = 0.0f;
+    float slider_primary_min_ = 0.0f;   ///< target.primary_min from interaction target
+    float slider_primary_max_ = 100.0f; ///< target.primary_max from interaction target
 
-    // Knob drag — stored as InternedId + drag start X for delta tracking
+    // Knob drag — stored as InternedId + drag start X for delta tracking + steps from target
     ui::InternedId knob_node_id_;
     float knob_drag_start_x_ = 0.0f;    ///< world X at drag start
     int knob_drag_start_pos_ = 0;        ///< position at drag start
-    int knob_num_positions_ = 2;         ///< total positions for this knob
+    int knob_num_positions_ = 2;         ///< total positions for this knob (from target.steps)
 
     // Marquee
     Pt marquee_start_;
@@ -193,20 +195,20 @@ private:
     /// Resolve a wire InternedId to a visual::Wire* (nullptr if not found).
     visual::Wire* resolve_wire(ui::InternedId id) const;
 
-    /// Resolve a node InternedId to a visual::Widget* (nullptr if not found).
+     /// Resolve a node InternedId to a visual::Widget* (nullptr if not found).
     visual::Widget* resolve_node(ui::InternedId id) const;
 
-    // ---- Internal transition helpers ----
-    void enter_panning();
+     // ---- Internal transition helpers ----
+     void enter_panning();
     void enter_drag_node(visual::Widget* widget, bool add_to_selection, bool ctrl);
     void enter_drag_routing_point(visual::Wire* wire, visual::RoutingPoint* rp, size_t rp_idx);
     void enter_resize_node(visual::Widget* widget, ResizeCorner corner);
     void enter_create_wire(visual::Port* port, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
                               Pt anchor_pos, bp2::PortSide fixed_side, PortType fixed_type);
-    void enter_marquee(Pt world_pos);
-    void enter_drag_slider(visual::Widget* node_widget, Pt slider_world_pos, float slider_width);
-    void enter_drag_knob(visual::Widget* node_widget, Pt world_pos);
+     void enter_marquee(Pt world_pos);
+    void enter_drag_slider(visual::Widget* node_widget, const visual::InteractionTarget& target);
+    void enter_drag_knob(visual::Widget* node_widget, Pt world_pos, const visual::InteractionTarget& target);
     void leave_state();  // return to Idle (clean up transient data)
 
 public:
@@ -222,7 +224,9 @@ private:
     InputResult finish_wire_creation(Pt screen_pos, Pt canvas_min);
     InputResult finish_wire_reconnection(Pt screen_pos, Pt canvas_min);
     void finish_marquee();
-    bool try_handle_node_interaction(visual::Widget* widget, Pt world, InputResult& result);
+    /// Handle an already-resolved interaction target. Returns true if interaction was consumed.
+    bool handle_resolved_interaction(visual::Widget* widget, const visual::InteractionTarget& target, Pt world, InputResult& result);
+
     void clear_selection_and_enter_panning();
     void advance_world_cursor(Pt world_delta);
     void snapshot_wire_routing_points(ui::InternedId wire_id,

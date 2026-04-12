@@ -528,40 +528,106 @@ TEST(IndicatorWidgetTest, RenderInContainerEmitsDrawCalls) {
 }
 
 // ============================================================================
-// isToggleable() tests — content widgets self-report click-to-toggle support
+// interaction_target() tests — content widgets publish their interaction role
 // ============================================================================
 
-TEST(SwitchWidgetTest, IsToggleable) {
+TEST(SwitchWidgetTest, InteractionTargetIsToggle) {
     visual::SwitchWidget sw;
-    EXPECT_TRUE(sw.isToggleable());
+    auto target = sw.interaction_target(Pt(sw.size().x * 0.5f, sw.size().y * 0.5f));
+    ASSERT_TRUE(target.has_value());
+    EXPECT_EQ(target->role, visual::InteractionRole::Toggle);
 }
 
-TEST(VerticalToggleTest, IsToggleable) {
+TEST(SwitchWidgetTest, InteractionTargetCoversWidgetEdges) {
+    visual::SwitchWidget sw;
+    auto affordance = sw.affordance_bounds_local();
+    EXPECT_EQ(affordance.size.x, sw.size().x);
+    EXPECT_EQ(affordance.size.y, sw.size().y);
+    auto top_left = sw.interaction_target(Pt(1.0f, 1.0f));
+    auto bottom_right = sw.interaction_target(Pt(sw.size().x - 1.0f, sw.size().y - 1.0f));
+    ASSERT_TRUE(top_left.has_value());
+    ASSERT_TRUE(bottom_right.has_value());
+    EXPECT_EQ(top_left->role, visual::InteractionRole::Toggle);
+    EXPECT_EQ(bottom_right->role, visual::InteractionRole::Toggle);
+}
+
+TEST(VerticalToggleTest, InteractionTargetIsToggle) {
     visual::VerticalToggleWidget toggle;
-    EXPECT_TRUE(toggle.isToggleable());
+    auto target = toggle.interaction_target(Pt(toggle.size().x * 0.5f, toggle.size().y * 0.5f));
+    ASSERT_TRUE(target.has_value());
+    EXPECT_EQ(target->role, visual::InteractionRole::Toggle);
 }
 
-TEST(SliderWidgetTest, NotToggleable) {
+TEST(VerticalToggleTest, InteractionTargetCoversWidgetEdges) {
+    visual::VerticalToggleWidget toggle;
+    auto affordance = toggle.affordance_bounds_local();
+    EXPECT_EQ(affordance.size.x, visual::VerticalToggleWidget::WIDTH);
+    EXPECT_EQ(affordance.size.y, visual::VerticalToggleWidget::HEIGHT);
+    auto top_edge = toggle.interaction_target(Pt(toggle.size().x * 0.5f, 1.0f));
+    auto bottom_edge = toggle.interaction_target(Pt(toggle.size().x * 0.5f, toggle.size().y - 1.0f));
+    ASSERT_TRUE(top_edge.has_value());
+    ASSERT_TRUE(bottom_edge.has_value());
+    EXPECT_EQ(top_edge->role, visual::InteractionRole::Toggle);
+    EXPECT_EQ(bottom_edge->role, visual::InteractionRole::Toggle);
+}
+
+TEST(SliderWidgetTest, InteractionTargetIsContinuousScalar) {
     visual::SliderWidget slider;
-    EXPECT_FALSE(slider.isToggleable());
+    auto target = slider.interaction_target(Pt(slider.size().x * 0.5f, slider.size().y * 0.5f));
+    ASSERT_TRUE(target.has_value());
+    EXPECT_EQ(target->role, visual::InteractionRole::ContinuousScalar);
 }
 
-TEST(VoltmeterWidgetTest, NotToggleable) {
+TEST(SliderWidgetTest, InteractionTargetCoversWidgetEdges) {
+    visual::SliderWidget slider;
+    auto left = slider.interaction_target(Pt(1.0f, slider.size().y * 0.5f));
+    auto right = slider.interaction_target(Pt(slider.size().x - 1.0f, slider.size().y * 0.5f));
+    ASSERT_TRUE(left.has_value());
+    ASSERT_TRUE(right.has_value());
+    EXPECT_EQ(left->role, visual::InteractionRole::ContinuousScalar);
+    EXPECT_EQ(right->role, visual::InteractionRole::ContinuousScalar);
+}
+
+TEST(VoltmeterWidgetTest, NoInteractionTarget) {
     visual::VoltmeterWidget vm;
-    EXPECT_FALSE(vm.isToggleable());
+    auto target = vm.interaction_target(Pt(vm.size().x * 0.5f, vm.size().y * 0.5f));
+    EXPECT_FALSE(target.has_value());
 }
 
-TEST(IndicatorWidgetTest, NotToggleable) {
+TEST(IndicatorWidgetTest, NoInteractionTarget) {
     visual::IndicatorWidget ind;
-    EXPECT_FALSE(ind.isToggleable());
+    auto target = ind.interaction_target(Pt(ind.size().x * 0.5f, ind.size().y * 0.5f));
+    EXPECT_FALSE(target.has_value());
 }
 
-TEST(HeaderWidgetTest, NotToggleable) {
+TEST(KnobWidgetTest, InteractionTargetCoversVisibleRingNearEdge) {
+    visual::KnobWidget knob(0, 5);
+    auto affordance = knob.affordance_bounds_local();
+    EXPECT_EQ(affordance.size.x, visual::KnobWidget::SIZE);
+    EXPECT_EQ(affordance.size.y, visual::KnobWidget::SIZE);
+    const float cx = knob.size().x * 0.5f;
+    const float cy = knob.size().y * 0.5f;
+
+    auto edge = knob.interaction_target(Pt(cx + visual::KnobWidget::TICK_OUTER - 1.0f, cy));
+    ASSERT_TRUE(edge.has_value());
+    EXPECT_EQ(edge->role, visual::InteractionRole::DiscreteSelector);
+}
+
+TEST(KnobWidgetTest, InteractionTargetCoversInteriorCorner) {
+    visual::KnobWidget knob(0, 5);
+    auto corner = knob.interaction_target(Pt(2.0f, 2.0f));
+    ASSERT_TRUE(corner.has_value());
+    EXPECT_EQ(corner->role, visual::InteractionRole::DiscreteSelector);
+}
+
+TEST(HeaderWidgetTest, NoInteractionTarget) {
     visual::HeaderWidget header("Test", 0xFF404040);
-    EXPECT_FALSE(header.isToggleable());
+    auto target = header.interaction_target(Pt(5.0f, 5.0f));
+    EXPECT_FALSE(target.has_value());
 }
 
-TEST(TypeNameWidgetTest, NotToggleable) {
+TEST(TypeNameWidgetTest, NoInteractionTarget) {
     visual::TypeNameWidget type_name("Test");
-    EXPECT_FALSE(type_name.isToggleable());
+    auto target = type_name.interaction_target(Pt(5.0f, 5.0f));
+    EXPECT_FALSE(target.has_value());
 }

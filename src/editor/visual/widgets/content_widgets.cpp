@@ -134,6 +134,20 @@ void SwitchWidget::updateFromContent(const NodeContent& content) {
     tripped_ = content.tripped;
 }
 
+InteractionGeometry SwitchWidget::affordance_bounds_local() const {
+    return InteractionGeometry{Pt(0.0f, 0.0f), size()};
+}
+
+std::optional<InteractionTarget> SwitchWidget::interaction_target(Pt local_pos) const {
+    InteractionTarget target;
+    target.role = InteractionRole::Toggle;
+    target.geometry = affordance_bounds_local();
+    if (!target.geometry.contains(local_pos)) {
+        return std::nullopt;
+    }
+    return target;
+}
+
 VerticalToggleWidget::VerticalToggleWidget(bool state, bool tripped)
     : state_(state), tripped_(tripped)
 {
@@ -198,6 +212,20 @@ void VerticalToggleWidget::updateFromContent(const NodeContent& content) {
     tripped_ = content.tripped;
 }
 
+InteractionGeometry VerticalToggleWidget::affordance_bounds_local() const {
+    return InteractionGeometry{Pt(0.0f, 0.0f), Pt(WIDTH, HEIGHT)};
+}
+
+std::optional<InteractionTarget> VerticalToggleWidget::interaction_target(Pt local_pos) const {
+    InteractionTarget target;
+    target.role = InteractionRole::Toggle;
+    target.geometry = affordance_bounds_local();
+    if (!target.geometry.contains(local_pos)) {
+        return std::nullopt;
+    }
+    return target;
+}
+
 // ============================================================================
 // SliderWidget
 // ============================================================================
@@ -217,13 +245,6 @@ void SliderWidget::layout(float w, float h) {
     setSize(Pt(w, HEIGHT));
 }
 
-float SliderWidget::normalizedFromLocalX(float local_x) const {
-    float pad = HANDLE_RADIUS;
-    float track_w = size().x - 2.0f * pad;
-    if (track_w <= 0.0f) return 0.0f;
-    float t = (local_x - pad) / track_w;
-    return std::clamp(t, 0.0f, 1.0f);
-}
 
 void SliderWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     Pt origin = ctx.world_to_screen(worldPos());
@@ -271,6 +292,29 @@ void SliderWidget::updateFromContent(const NodeContent& content) {
     value_ = content.value;
     min_val_ = content.min;
     max_val_ = content.max;
+}
+
+InteractionGeometry SliderWidget::affordance_bounds_local() const {
+    return InteractionGeometry{Pt(0.0f, 0.0f), size()};
+}
+
+std::optional<InteractionTarget> SliderWidget::interaction_target(Pt local_pos) const {
+    InteractionTarget target;
+    target.role = InteractionRole::ContinuousScalar;
+    target.geometry = affordance_bounds_local();
+    if (!target.geometry.contains(local_pos)) {
+        return std::nullopt;
+    }
+    target.local_primary = local_pos.x;
+    
+    // Publish mapping bounds for slider: track geometry uses HANDLE_RADIUS padding on both sides.
+    // Local X from 0..size.x maps to normalized value 0..1 between the padded track start and end.
+    float pad = HANDLE_RADIUS;
+    float track_w = size().x - 2.0f * pad;
+    target.primary_min = pad;
+    target.primary_max = pad + track_w;
+    
+    return target;
 }
 
 VoltmeterWidget::VoltmeterWidget(float value, float min_val, float max_val,
@@ -424,7 +468,9 @@ Pt KnobWidget::preferredSize(IDrawList*) const {
 }
 
 void KnobWidget::layout(float w, float h) {
-    Widget::layout(w, h);
+    (void)w;
+    (void)h;
+    setSize(Pt(SIZE, SIZE));
 }
 
 void KnobWidget::render(IDrawList* dl, const RenderContext& ctx) const {
@@ -490,6 +536,22 @@ void KnobWidget::updateFromContent(const NodeContent& content) {
     if (num_positions_ < 2) num_positions_ = 2;
     if (position_ < 0) position_ = 0;
     if (position_ >= num_positions_) position_ = num_positions_ - 1;
+}
+
+InteractionGeometry KnobWidget::affordance_bounds_local() const {
+    return InteractionGeometry{Pt(0.0f, 0.0f), Pt(SIZE, SIZE)};
+}
+
+std::optional<InteractionTarget> KnobWidget::interaction_target(Pt local_pos) const {
+    InteractionTarget target;
+    target.role = InteractionRole::DiscreteSelector;
+    target.geometry = affordance_bounds_local();
+    if (!target.geometry.contains(local_pos)) {
+        return std::nullopt;
+    }
+    target.local_primary = local_pos.x;
+    target.steps = num_positions_;
+    return target;
 }
 
 } // namespace visual

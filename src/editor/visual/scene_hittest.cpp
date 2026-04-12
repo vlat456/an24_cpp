@@ -6,6 +6,7 @@
 #include "wire/routing_point.h"
 #include "port/visual_port.h"
 #include "node/group_node_widget.h"
+#include "node/visual_node.h"
 #include "editor/layout_constants.h"
 #include <algorithm>
 #include <cmath>
@@ -116,12 +117,24 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
         return *rh;
     }
 
-    // --- Pass 4: Nodes / generic clickable widgets (AABB) ---
+    // --- Pass 4: Node interaction targets (before generic node body) ---
+    for (ui::Widget* uw : candidates) {
+        auto* w = static_cast<Widget*>(uw);
+        auto* node_widget = dynamic_cast<NodeWidget*>(w);
+        if (!node_widget) continue;
+
+        auto interaction = node_widget->query_interaction(world_pos);
+        if (interaction.has_value()) {
+            return HitInteractionTarget{node_widget, *interaction};
+        }
+    }
+
+    // --- Pass 5: Nodes / generic clickable widgets (AABB) ---
     if (auto* node = hit_test_node_body(candidates, world_pos)) {
         return HitNode{node};
     }
 
-    // --- Pass 5: Wire segments (lowest priority, fine-grained) ---
+    // --- Pass 6: Wire segments (lowest priority, fine-grained) ---
     for (ui::Widget* uw : candidates) {
         auto* w = static_cast<Widget*>(uw);
         if (auto* wire = dynamic_cast<Wire*>(w)) {

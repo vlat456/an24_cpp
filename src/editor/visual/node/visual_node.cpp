@@ -5,6 +5,7 @@
 #include "visual/render_context.h"
 #include "editor/layout_constants.h"
 #include "visual/node/bounds.h"
+#include "visual/container/linear_layout.h"
 #include "visual/snap.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
@@ -364,11 +365,16 @@ void NodeWidget::updateContent(const ::NodeContent& content) {
     if (!content_widget_) return {};
     Pt wp = content_widget_->worldPos();
     Pt np = worldPos();
-    Pt sz = content_widget_->size();
-    return { wp.x - np.x, wp.y - np.y, sz.x, sz.y };
+    InteractionGeometry affordance = content_widget_->affordance_bounds_local();
+    return {
+        wp.x - np.x + affordance.origin.x,
+        wp.y - np.y + affordance.origin.y,
+        affordance.size.x,
+        affordance.size.y,
+    };
 }
 
-std::optional<NodeInteractionHit> NodeWidget::query_interaction(Pt world_pos) const {
+std::optional<InteractionTarget> NodeWidget::query_interaction(Pt world_pos) const {
     if (!content_widget_) {
         return std::nullopt;
     }
@@ -381,33 +387,12 @@ std::optional<NodeInteractionHit> NodeWidget::query_interaction(Pt world_pos) co
         return std::nullopt;
     }
 
-    if (dynamic_cast<const SliderWidget*>(content_widget_) != nullptr) {
-        NodeInteractionHit hit;
-        hit.type = NodeInteractionType::Slider;
-        hit.content_local_x = lx - cb.x;
-        return hit;
-    }
-    if (dynamic_cast<const KnobWidget*>(content_widget_) != nullptr) {
-        NodeInteractionHit hit;
-        hit.type = NodeInteractionType::Knob;
-        return hit;
-    }
-    if (content_widget_->isToggleable()) {
-        NodeInteractionHit hit;
-        hit.type = NodeInteractionType::Toggle;
-        return hit;
-    }
-
-    return std::nullopt;
+    return content_widget_->interaction_target(Pt(lx - cb.x, ly - cb.y));
 }
 
 NodeVisualState NodeWidget::visual_state(const RenderContext& ctx) const {
     NodeVisualState state;
     state.selected = ctx.isNodeSelected(this);
-    state.has_interactive_content =
-        dynamic_cast<const SliderWidget*>(content_widget_) != nullptr ||
-        dynamic_cast<const KnobWidget*>(content_widget_) != nullptr ||
-        (content_widget_ != nullptr && content_widget_->isToggleable());
     return state;
 }
 
@@ -434,25 +419,28 @@ Pt NodeWidget::preferredSize(IDrawList* dl) const {
     if (!layout_) return Pt(0, 0);
     Pt ps = layout_->preferredSize(dl);
     
-    // When content lives inside a flex container within a Row
-    // (both VerticalToggle layout and four-sided layout), the flex child
-    // contributes 0 to the Row's preferred width, making the node too narrow.
-    // Add the content widget's minimum width so the node is never too narrow.
+    // When content lives under a flexible ancestor inside a linear layout,
+    // the flexible child contributes 0 on that layout's main axis. Reserve the
+    // content widget's intrinsic size on the zeroed axis so fixed-affordance
+    // controls do not lose their visible/hittable area inside the old layout system.
     if (content_widget_ && content_widget_->parent()) {
-        // Walk up from content_widget_ to find the nearest flex ancestor.
-        // Accumulate horizontal margins along the way.
-        float h_margins = 0.0f;
         bool found_flex = false;
+        bool flex_in_row = false;
         for (auto* w = content_widget_->parent(); w && w != layout_; w = w->parent()) {
             if (w->isFlexible()) {
                 found_flex = true;
+                if (dynamic_cast<Row*>(w->parent()) != nullptr) {
+                    flex_in_row = true;
+                }
                 break;
             }
         }
         if (found_flex) {
             Pt cps = content_widget_->preferredSize(dl);
-            if (cps.x > 0) {
+            if (flex_in_row && cps.x > 0) {
                 ps.x += cps.x;
+            } else if (!flex_in_row && cps.y > 0) {
+                ps.y += cps.y;
             }
         }
     }

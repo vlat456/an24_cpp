@@ -1,6 +1,7 @@
 #pragma once
 #include "visual/widget.h"
 #include "visual/render_context.h"
+#include "ui/core/interned_id.h"
 #include <string>
 #include <cstdint>
 
@@ -67,7 +68,8 @@ public:
     void layout(float w, float h) override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void updateFromContent(const NodeContent& content) override;
-    bool isToggleable() const override { return true; }
+    InteractionGeometry affordance_bounds_local() const override;
+    std::optional<InteractionTarget> interaction_target(Pt local_pos) const override;
 
     static constexpr float HEIGHT = 20.0f;
     static constexpr float MIN_WIDTH = 40.0f;
@@ -91,7 +93,8 @@ public:
     Pt preferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void updateFromContent(const NodeContent& content) override;
-    bool isToggleable() const override { return true; }
+    InteractionGeometry affordance_bounds_local() const override;
+    std::optional<InteractionTarget> interaction_target(Pt local_pos) const override;
 
     static constexpr float WIDTH = 16.0f;
     static constexpr float HEIGHT = 50.0f;
@@ -113,13 +116,13 @@ public:
     float minVal() const { return min_val_; }
     float maxVal() const { return max_val_; }
 
-    /// Compute normalized value [0,1] from a local X coordinate within the widget.
-    float normalizedFromLocalX(float local_x) const;
 
     Pt preferredSize(IDrawList* dl) const override;
     void layout(float w, float h) override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void updateFromContent(const NodeContent& content) override;
+    InteractionGeometry affordance_bounds_local() const override;
+    std::optional<InteractionTarget> interaction_target(Pt local_pos) const override;
 
     static constexpr float HEIGHT = 16.0f;
     static constexpr float MIN_WIDTH = 60.0f;
@@ -206,6 +209,8 @@ public:
     void layout(float w, float h) override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void updateFromContent(const NodeContent& content) override;
+    InteractionGeometry affordance_bounds_local() const override;
+    std::optional<InteractionTarget> interaction_target(Pt local_pos) const override;
 
     static constexpr float SIZE = 48.0f;
     static constexpr float KNOB_RADIUS = 16.0f;

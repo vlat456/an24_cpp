@@ -1363,14 +1363,14 @@ TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
 
-    // The content widget should exist and be toggleable
-    auto* cw = widget->contentWidget();
-    ASSERT_NE(cw, nullptr);
-    EXPECT_TRUE(cw->isToggleable());
-
     // Content bounds must be at least as wide as the VerticalToggle's
     // preferred width (16px). Previously it was ~6.2px.
     Bounds cb = widget->contentBounds();
+    auto* cw = widget->contentWidget();
+    ASSERT_NE(cw, nullptr);
+    auto target = cw->interaction_target(ui::Pt(cb.w * 0.5f, cb.h * 0.5f));
+    ASSERT_TRUE(target.has_value());
+    EXPECT_EQ(target->role, visual::InteractionRole::Toggle);
     EXPECT_GE(cb.w, visual::VerticalToggleWidget::WIDTH)
         << "Content bounds width (" << cb.w << ") must be >= "
         << visual::VerticalToggleWidget::WIDTH << "px (VerticalToggle WIDTH)";
@@ -1420,6 +1420,43 @@ TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
     if (!result.toggle_switch_node_id.empty()) {
         EXPECT_EQ(result.toggle_switch_node_id, "azs_1");
     }
+}
+
+TEST(CanvasInputContentToggle, EdgeClickOnVerticalToggleContentReturnsToggle) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.view.content_state = false;
+    set_iface(azs, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + 1.0f, wpos.y + cb.y + 1.0f);
+
+    Pt canvas_min(0, 0);
+    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    EXPECT_EQ(result.toggle_switch_node_id, "azs_1");
 }
 
 // ============================================================================
@@ -1647,18 +1684,469 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
 
     Bounds cb = widget->contentBounds();
     Pt wpos = widget->worldPos();
-    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    Pt canvas_min(0, 0);
-    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+     Pt canvas_min(0, 0);
+     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
 
-    EXPECT_EQ(result.slider_node_id, "slider_1")
-        << "simulation_mode must allow slider interaction";
+     EXPECT_EQ(result.slider_node_id, "slider_1")
+         << "simulation_mode must allow slider interaction";
     EXPECT_EQ(input.state(), InputState::DraggingSlider)
         << "simulation_mode must allow slider drag state";
 }
 
+TEST(CanvasInputSimMode, SimModeAllowsSliderInteractionAtEdge) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + 1.0f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    EXPECT_EQ(result.slider_node_id, "slider_1");
+    EXPECT_EQ(input.state(), InputState::DraggingSlider);
+}
+
+TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.view.content_state = false;
+    set_iface(azs, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    auto hit = visual::hit_test(scene, click_world);
+    auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit);
+    ASSERT_NE(hit_tgt, nullptr) << "hit_test should return HitInteractionTarget for toggle content";
+    EXPECT_EQ(hit_tgt->widget, widget);
+    EXPECT_EQ(hit_tgt->target.role, visual::InteractionRole::Toggle);
+}
+
+TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 5.0f;
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    auto hit = visual::hit_test(scene, click_world);
+    auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit);
+    ASSERT_NE(hit_tgt, nullptr) << "hit_test should return HitInteractionTarget for knob content";
+    EXPECT_EQ(hit_tgt->widget, widget);
+    EXPECT_EQ(hit_tgt->target.role, visual::InteractionRole::DiscreteSelector);
+}
+
+TEST(HitTestInteractionTarget, KnobContentBoundsCoverVisibleKnobSize) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 5.0f;
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    EXPECT_GE(cb.w, visual::KnobWidget::SIZE);
+    EXPECT_GE(cb.h, visual::KnobWidget::SIZE);
+}
+
+TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    auto hit = visual::hit_test(scene, click_world);
+    auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit);
+    ASSERT_NE(hit_tgt, nullptr) << "hit_test should return HitInteractionTarget for slider content";
+    EXPECT_EQ(hit_tgt->widget, widget);
+    EXPECT_EQ(hit_tgt->target.role, visual::InteractionRole::ContinuousScalar);
+}
+
+TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    auto hit = visual::hit_test(scene, click_world);
+    EXPECT_TRUE(std::holds_alternative<visual::HitInteractionTarget>(hit));
+}
+
+TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.view.content_state = false;
+    set_iface(azs, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 2.0f;
+    vp.pan = Pt(40.0f, 20.0f);
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt world_click(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+    Pt screen_click = vp.world_to_screen(world_click, Pt(0, 0));
+    Pt roundtrip_world = vp.screen_to_world(screen_click, Pt(0, 0));
+
+    auto hit = visual::hit_test(scene, roundtrip_world);
+    auto* hit_tgt = std::get_if<visual::HitInteractionTarget>(&hit);
+    ASSERT_NE(hit_tgt, nullptr);
+    EXPECT_EQ(hit_tgt->target.role, visual::InteractionRole::Toggle);
+}
+
+TEST(CanvasInputInteractionTarget, VerticalTogglePublishesToggleRole) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.view.content_state = false;
+    set_iface(azs, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    auto target = widget->query_interaction(click_world);
+    ASSERT_TRUE(target.has_value());
+    EXPECT_EQ(target->role, visual::InteractionRole::Toggle);
+}
+
+TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 5.0f;
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    auto target = widget->query_interaction(click_world);
+    ASSERT_TRUE(target.has_value());
+    EXPECT_EQ(target->role, visual::InteractionRole::DiscreteSelector);
+}
+
+TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
+    // Verify that the knob target publishes steps metadata so that CanvasInput
+    // can use this to track positions without reading concrete widget member variables.
+    // This is the core contract for issue #136: semantic metadata instead of concrete knowledge.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 7.0f;  // 7 positions
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    auto target = widget->query_interaction(click_world);
+    ASSERT_TRUE(target.has_value());
+    EXPECT_EQ(target->role, visual::InteractionRole::DiscreteSelector);
+    
+    // The key contract: target publishes steps metadata.
+    EXPECT_EQ(target->steps, 7)
+        << "Target must publish steps (discrete positions) from widget content";
+    
+    // Verify that CanvasInput can use this metadata to track knob state.
+    // CanvasInput::enter_drag_knob now reads target.steps instead of accessing
+    // concrete KnobWidget member variables or node view fields directly.
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    
+    Pt canvas_min(0, 0);
+    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    
+    EXPECT_EQ(result.knob_node_id, "knob_1")
+        << "CanvasInput must handle knob interaction via semantic target metadata";
+    EXPECT_EQ(input.state(), InputState::DraggingKnob)
+        << "CanvasInput must enter DraggingKnob state via semantic metadata";
+}
+
+TEST(CanvasInputInteractionTarget, SliderPublishesContinuousScalarRole) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    auto target = widget->query_interaction(click_world);
+    ASSERT_TRUE(target.has_value());
+     EXPECT_EQ(target->role, visual::InteractionRole::ContinuousScalar);
+}
+
+TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) {
+    // Verify that the slider target publishes mapping bounds (primary_min, primary_max)
+    // and that CanvasInput uses these bounds instead of depending on concrete slider geometry.
+    // This is the core contract for issue #136: semantic mapping instead of geometry knowledge.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    
+    // Query the interaction target at the center of the slider content area.
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+    auto target = widget->query_interaction(click_world);
+    ASSERT_TRUE(target.has_value());
+    EXPECT_EQ(target->role, visual::InteractionRole::ContinuousScalar);
+    
+    // The key contract: target provides mapping bounds, not geometry.
+    // primary_min and primary_max define the range for normalized computation.
+    EXPECT_GT(target->primary_max, target->primary_min)
+        << "Target must provide valid mapping range (primary_max > primary_min)";
+    
+    // Verify that CanvasInput can use these bounds to compute a normalized value.
+    // Note: CanvasInput::handle_resolved_interaction now uses target->primary_min/max
+    // instead of SliderWidget::HANDLE_RADIUS. This test verifies the contract.
+    float range = target->primary_max - target->primary_min;
+    EXPECT_GT(range, 0.0f) << "Mapping range must be positive";
+    
+    // Simulate a click and verify the slider interaction is captured without
+    // CanvasInput needing to know about HANDLE_RADIUS.
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    
+    Pt canvas_min(0, 0);
+    auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    
+    // Verify the slider interaction was handled without accessing concrete geometry.
+    EXPECT_EQ(result.slider_node_id, "slider_1")
+        << "CanvasInput must handle slider interaction via semantic target mapping";
+    EXPECT_EQ(input.state(), InputState::DraggingSlider)
+        << "CanvasInput must enter DraggingSlider state via semantic mapping";
+}
+
 TEST(CanvasInputSimMode, SimModeBlocksRightClickContextMenu) {
+
     // In simulation mode, right-clicking should NOT show context menus.
     ui::StringInterner I;
     bp2::PathArena arena(I);
@@ -1897,8 +2385,67 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
         // Rebuild and check position
         visual::mutations::rebuild(scene, model.current(), I, arena, "");
         
-        Pt ref_pos = dynamic_cast<visual::Widget*>(scene.find("ref1"))->worldPos();
+         Pt ref_pos = dynamic_cast<visual::Widget*>(scene.find("ref1"))->worldPos();
         EXPECT_NEAR(ref_pos.x, 110.0f, 0.1f)
             << "RefNode should snap to full-grid (110)";
     }
+}
+
+// ============================================================================
+// Regression: double-click on interactive content still resolves node actions
+// ============================================================================
+
+TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceOpensSubWindow) {
+    // When a composite (BlueprintInstance) node has interactive content
+    // (e.g. VerticalToggle), double-clicking the content area should still
+    // open the sub-window. Before the fix, hit_test returned HitInteractionTarget
+    // but on_double_click only checked HitNode, silently dropping the event.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto composite = make_node(I, "comp_1", "CompositeSwitch", 100.0f, 100.0f);
+    composite.view.content_type = bp2::NodeContentType::VerticalToggle;
+    composite.view.content_state = false;
+    composite.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    composite.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("CompositeSwitch"),
+        std::make_unique<bp2::Blueprint>());
+    set_iface(composite, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(composite));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("comp_1"));
+    ASSERT_NE(widget, nullptr);
+
+    // Click at the center of the content area (where HitInteractionTarget is returned)
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    // Verify we actually get HitInteractionTarget for this click position
+    auto hit = visual::hit_test(scene, click_world);
+    ASSERT_TRUE(std::holds_alternative<visual::HitInteractionTarget>(hit))
+        << "Precondition: click on content area must return HitInteractionTarget";
+
+    Pt canvas_min(0, 0);
+    auto result = input.on_double_click(click_world, canvas_min);
+
+    EXPECT_EQ(result.open_sub_window, "comp_1")
+        << "Double-clicking interactive content of a BlueprintInstance "
+           "should still open the sub-window";
 }

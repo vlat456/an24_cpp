@@ -10,7 +10,6 @@
 #include "visual/node/group_node_widget.h"
 #include "visual/node/visual_node.h"
 #include "visual/node/ref_node_widget.h"
-#include "visual/widgets/content_widgets.h"
 #include "visual/snap.h"
 #include "viewport/viewport.h"
 #include "commands/commands.h"
@@ -256,26 +255,34 @@ void CanvasInput::enter_marquee(Pt world_pos) {
     marquee_end_ = world_pos;
 }
 
-void CanvasInput::enter_drag_slider(visual::Widget* node_widget, Pt slider_world_pos, float slider_width) {
+void CanvasInput::enter_drag_slider(visual::Widget* node_widget, const visual::InteractionTarget& target) {
     state_ = InputState::DraggingSlider;
     slider_node_id_ = interner_.intern(node_widget->id());
-    slider_widget_world_pos_ = slider_world_pos;
-    slider_widget_width_ = slider_width;
+    auto* visual_node = dynamic_cast<visual::NodeWidget*>(node_widget);
+    if (visual_node) {
+        const Bounds cb = visual_node->contentBounds();
+        const Pt nw_pos = visual_node->worldPos();
+        slider_primary_origin_world_x_ = nw_pos.x + cb.x;
+    } else {
+        slider_primary_origin_world_x_ = node_widget->worldPos().x;
+    }
+    slider_primary_min_ = target.primary_min;
+    slider_primary_max_ = target.primary_max;
 }
 
-void CanvasInput::enter_drag_knob(visual::Widget* node_widget, Pt world_pos) {
+void CanvasInput::enter_drag_knob(visual::Widget* node_widget, Pt world_pos, const visual::InteractionTarget& target) {
     state_ = InputState::DraggingKnob;
     knob_node_id_ = interner_.intern(node_widget->id());
     knob_drag_start_x_ = world_pos.x;
+    knob_num_positions_ = target.steps;
 
      const bp2::Blueprint::Node* node = host_.find_node(knob_node_id_);
      if (node) {
          knob_drag_start_pos_ = static_cast<int>(node->view.content_value);
-         knob_num_positions_ = static_cast<int>(node->view.content_max);
          if (knob_num_positions_ < 2) knob_num_positions_ = 2;
      } else {
         knob_drag_start_pos_ = 0;
-        knob_num_positions_ = 2;
+        if (knob_num_positions_ < 2) knob_num_positions_ = 2;
     }
 }
 
@@ -289,52 +296,45 @@ void CanvasInput::leave_state() {
     hovered_routing_point_ = nullptr;
 }
 
-bool CanvasInput::try_handle_node_interaction(visual::Widget* widget, Pt world, InputResult& result) {
+bool CanvasInput::handle_resolved_interaction(visual::Widget* widget, const visual::InteractionTarget& target, Pt world, InputResult& result) {
     auto* node_widget = dynamic_cast<visual::NodeWidget*>(widget);
     if (!node_widget) {
         return false;
     }
 
-    const auto interaction = node_widget->query_interaction(world);
-    if (!interaction.has_value()) {
-        return false;
-    }
-
     const std::string node_id(widget->id());
-    switch (interaction->type) {
-        case visual::NodeInteractionType::Slider: {
-            const Bounds cb = node_widget->contentBounds();
-            const Pt nw_pos = node_widget->worldPos();
-            const Pt slider_wpos(nw_pos.x + cb.x, nw_pos.y + cb.y);
-            enter_drag_slider(widget, slider_wpos, cb.w);
+    switch (target.role) {
+        case visual::InteractionRole::ContinuousScalar: {
+            enter_drag_slider(widget, target);
 
             ui::InternedId nid_iid = interner_.lookup(node_id);
             const bp2::Blueprint::Node* node = nid_iid.empty() ? nullptr
                                                                : host_.find_node(nid_iid);
-            if (node) {
-                float pad = visual::SliderWidget::HANDLE_RADIUS;
-                float track_w = cb.w - 2.0f * pad;
-                 float t = (track_w > 0.0f)
-                     ? std::clamp((interaction->content_local_x - pad) / track_w, 0.0f, 1.0f)
+             if (node) {
+                 // Use target-provided mapping bounds instead of HANDLE_RADIUS.
+                 float range = target.primary_max - target.primary_min;
+                 float t = (range > 1e-6f)
+                     ? std::clamp((target.local_primary - target.primary_min) / range, 0.0f, 1.0f)
                      : 0.0f;
                  float val = node->view.content_min + t * (node->view.content_max - node->view.content_min);
                  result.slider_node_id = node_id;
                  result.slider_value = val;
-            }
+             }
             return true;
         }
-        case visual::NodeInteractionType::Knob:
-            enter_drag_knob(widget, world);
+        case visual::InteractionRole::DiscreteSelector:
+            enter_drag_knob(widget, world, target);
             result.knob_node_id = node_id;
             result.knob_position = knob_drag_start_pos_;
             return true;
-        case visual::NodeInteractionType::Toggle:
+        case visual::InteractionRole::Toggle:
             result.toggle_switch_node_id = node_id;
             return true;
     }
 
     return false;
 }
+
 
 void CanvasInput::clear_selection_and_enter_panning() {
     clear_selection();
