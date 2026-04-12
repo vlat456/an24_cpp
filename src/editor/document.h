@@ -2,6 +2,7 @@
 
 #include "window/window_manager.h"
 #include "window/window_scope_id.h"
+#include "signal_key_resolver.h"
 #include "visual/scene.h"
 #include "visual/workspace_session.h"
 #include "input/canvas_input.h"
@@ -23,6 +24,12 @@
 /// Multiple Document instances can coexist for MDI.
 class Document {
 public:
+    struct ResolvedSignalScope {
+        const bp2::Blueprint* blueprint = nullptr;
+        const ui::StringInterner* interner = nullptr;
+        editor::SignalKeyContext context = editor::root_signal_context();
+    };
+
     /// Create new untitled document
     Document();
 
@@ -139,16 +146,14 @@ public:
     /// Build a set of wire IDs that are energized (have non-zero voltage).
     void buildEnergizedWireSet(
         std::unordered_set<std::string_view, visual::StringViewHash>& out,
-        const std::string& scope_id) const;
+        const WindowScopeId& scope_id) const;
 
-    /// Build energized wire set for an external-reference window.
-    /// Iterates external blueprint wires and maps signal keys through parent_instance_id.
-    void buildEnergizedWireSetExternal(
-        std::unordered_set<std::string_view, visual::StringViewHash>& out,
-        const bp2::Blueprint& external_bp,
-        ui::StringInterner& external_interner,
-        bp2::PathArena& external_arena,
-        const std::string& parent_instance_id) const;
+    ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
+    std::string resolve_endpoint_signal_key(const WindowScopeId& scope_id,
+                                           std::string_view node_id,
+                                           std::string_view port_name) const;
+    std::string resolve_wire_signal_key(const WindowScopeId& scope_id,
+                                        std::string_view wire_id) const;
 
     // ── Signal overrides (switch/button clicks) ──
 

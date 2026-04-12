@@ -46,6 +46,15 @@ public:
         return nullptr;
     }
 
+    const BlueprintWindow* find(const WindowScopeId& scope_id) const {
+        for (const auto& w : windows_) {
+            if (w->resolved_scope_id() == scope_id) {
+                return w.get();
+            }
+        }
+        return nullptr;
+    }
+
     std::pair<BlueprintWindow*, bool> open(const WindowScopeId& scope_id, const std::string& title) {
         if (auto* existing = find(scope_id)) {
             existing->open = true;

@@ -63,7 +63,9 @@ std::string resolve_runtime_signal_key(
         }
         return build_signal_key(node_sv, port_sv);
     } else {
-        // ExternalReference mode: build child key, then parent-prefix it
+        // Embedded and external child-blueprint views use the same runtime key
+        // rule: resolve the local child node.port, then prefix with the parent
+        // instance id that owns the child blueprint in the runtime graph.
         std::string child_key = build_signal_key(node_sv, port_sv);
         return resolve_external_ref_signal_key(context.parent_instance_id, child_key);
     }

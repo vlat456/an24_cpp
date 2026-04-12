@@ -359,3 +359,52 @@ TEST(ExportFlattenerParity, BlueprintOutputBridgeRewrite) {
     EXPECT_TRUE(connected_on_same_signal(jit_input, inst_vout_ext, led_v_in))
         << "BlueprintOutput bridge resolution failed: inst:vout.ext and led.v_in must share the same signal";
 }
+
+TEST(ExportFlattenerParity, MigratedBlueprintOutputExposesCanonicalInterfacePortKey) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+    bp2::BlueprintLibrary library;
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(bp2::Interface({out_port(I, "out", PortType::RPM)}));
+
+    inner = inner.with_node(make_node(I, "rotor", "InertiaNode", {
+        out_port(I, "rpm_out", PortType::RPM),
+    }));
+
+    bp2::Blueprint::Node bridge;
+    bridge.semantic.id = I.intern("bp_out_1");
+    bridge.semantic.type = I.intern("BlueprintOutput");
+    bridge.view.name = "out";
+    bridge.semantic.iface = bp2::Interface({
+        in_port(I, "ext", PortType::RPM),
+        out_port(I, "port", PortType::RPM),
+    });
+    inner = inner.with_node(std::move(bridge));
+
+    bp2::Blueprint::Wire iw;
+    iw.id = I.intern("iw_rpm");
+    iw.source = {I.intern("rotor"), I.intern("rpm_out")};
+    iw.target = {I.intern("bp_out_1"), I.intern("ext")};
+    iw.domain = Domain::Mechanical;
+    inner = inner.with_wire(std::move(iw));
+
+    bp2::Blueprint root;
+    bp2::Blueprint::Node inst;
+    inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    inst.semantic.id = I.intern("extract_inst_4");
+    inst.semantic.type = I.intern("RPMIntertial");
+    inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("RPMIntertial"),
+        std::make_unique<bp2::Blueprint>(inner));
+    root = root.with_node(std::move(inst));
+
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(root, arena);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, nullptr);
+
+    ASSERT_EQ(jit_input.port_to_signal.count("extract_inst_4.out"), 1u);
+    ASSERT_EQ(jit_input.port_to_signal.count("extract_inst_4:bp_out_1.ext"), 1u);
+    EXPECT_EQ(jit_input.port_to_signal.at("extract_inst_4.out"),
+              jit_input.port_to_signal.at("extract_inst_4:bp_out_1.ext"));
+}

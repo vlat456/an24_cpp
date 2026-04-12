@@ -17,6 +17,7 @@
 #include <nlohmann/json.hpp>
 
 #include <fstream>
+#include <cstdlib>
 #include <map>
 #include <set>
 #include <string>
@@ -109,6 +110,64 @@ std::set<std::set<std::string>> parse_topology(const json& topology_json) {
     return topo;
 }
 
+json make_topology_json(const PortToSignal& p2s) {
+    std::map<uint32_t, std::vector<std::string>> groups;
+    for (const auto& [port, sig] : p2s) {
+        groups[sig].push_back(port);
+    }
+
+    json topology = json::array();
+    for (auto& [_, ports] : groups) {
+        if (ports.size() <= 1) {
+            continue;
+        }
+        std::sort(ports.begin(), ports.end());
+        topology.push_back(ports);
+    }
+    return topology;
+}
+
+json make_values_json(const std::map<std::string, float>& values) {
+    json out = json::object();
+    for (const auto& [port, value] : values) {
+        out[port] = value;
+    }
+    return out;
+}
+
+void maybe_regenerate_golden(const std::string& golden_path, const JitBuildInput& input) {
+    const char* update = std::getenv("AN24_UPDATE_ELABORATE_JIT_GOLDEN");
+    if (!update || std::string_view(update) != "1") {
+        return;
+    }
+
+    json golden = json::object();
+    golden["signal_count"] = input.signal_count;
+
+    std::map<std::string, std::string> devices;
+    for (const auto& d : input.devices) {
+        devices[d.name] = d.classname;
+    }
+    golden["devices"] = devices;
+    golden["topology"] = make_topology_json(input.port_to_signal);
+
+    JIT_Simulator sim;
+    sim.start(input);
+    const double dt = 1.0 / 60.0;
+    for (int i = 0; i < 60; ++i) {
+        sim.step(dt);
+    }
+
+    std::map<std::string, float> values;
+    for (const auto& [port, _sig] : input.port_to_signal) {
+        values[port] = sim.get_wire_voltage(port);
+    }
+    golden["values"] = make_values_json(values);
+
+    std::ofstream out(golden_path);
+    out << golden.dump(2) << '\n';
+}
+
 } // namespace
 
 class ElaborateJitParityTest : public ::testing::Test {
@@ -124,11 +183,16 @@ protected:
         raw_json_ = read_file_or_skip(fixture_path_);
         ASSERT_FALSE(raw_json_.empty()) << "Fixture file is empty";
 
+        registry_ = load_type_registry(library_dir_);
+
+        const char* update = std::getenv("AN24_UPDATE_ELABORATE_JIT_GOLDEN");
+        if (update && std::string_view(update) == "1") {
+            (void)build_input();
+        }
+
         std::string golden_raw = read_file_or_skip(golden_path_);
         ASSERT_FALSE(golden_raw.empty()) << "Golden fixture file is empty";
         golden_ = json::parse(golden_raw);
-
-        registry_ = load_type_registry(library_dir_);
     }
 
     JitBuildInput build_input() const {
@@ -145,7 +209,9 @@ protected:
 
         bp2::Flattener flattener(library);
         bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
-        return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry_);
+        JitBuildInput input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry_);
+        maybe_regenerate_golden(golden_path_, input);
+        return input;
     }
 
     std::string fixture_path_;

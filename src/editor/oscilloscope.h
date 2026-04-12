@@ -12,6 +12,7 @@
 class Document;
 
 struct OscilloscopeProbe {
+    std::string probe_id;
     std::string wire_id;
     std::string doc_id;
     std::string signal_key;
@@ -27,10 +28,10 @@ public:
                       const WindowScopeId& scope_id,
                       const std::string& wire_id,
                       const ui::Pt* click_world = nullptr);
-    void remove_probe(const std::string& wire_id);
-    bool has_probe(const std::string& wire_id) const;
+    void remove_probe(const std::string& probe_id);
+    bool has_probe(const std::string& probe_id) const;
 
-    const OscilloscopeProbe* probe(const std::string& wire_id) const;
+    const OscilloscopeProbe* probe(const std::string& probe_id) const;
     const std::unordered_map<std::string, OscilloscopeProbe>& probes() const { return probes_; }
 
     void on_blueprint_changed(Document& doc);

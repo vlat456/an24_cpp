@@ -9,8 +9,6 @@
 #include "editor/visual/oscilloscope_plot.h"
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
-#include "editor/signal_key_resolver.h"
-#include "editor/external_ref_mapping.h"  // editor::build_signal_key
 #include "blueprint_v2/path/path.h"
 #include <imgui.h>
 #include <unordered_set>
@@ -139,15 +137,7 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
 
     // Build energized wire set from simulation (reuse buffer across frames)
     energized_buf_.clear();
-    if (win.is_external_ref() && win.external_blueprint && win.external_interner && win.external_arena) {
-        doc.buildEnergizedWireSetExternal(energized_buf_,
-                                          *win.external_blueprint,
-                                          *win.external_interner,
-                                          *win.external_arena,
-                                           win.resolved_scope_id().key());
-     } else {
-        doc.buildEnergizedWireSet(energized_buf_, win.resolved_scope_id().key());
-    }
+    doc.buildEnergizedWireSet(energized_buf_, win.resolved_scope_id());
 
     // Resolve selected node IDs → pointers for this frame.
     // Must outlive ctx (which stores a pointer to it).
@@ -186,61 +176,13 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 
         std::string_view port_name = port->name();
         Pt port_screen = win.viewport.world_to_screen(port->worldPos(), cmin);
-        std::string signal_key;
-        auto resolve_with_context = [&](const bp2::Blueprint& bp_ref,
-                                        const ui::StringInterner& key_interner,
-                                        const bp2::Blueprint::Node* node,
-                                        ui::InternedId node_iid,
-                                        ui::InternedId port_iid,
-                                        const editor::SignalKeyContext& context) {
-            editor::SignalEndpoint endpoint{node, node_iid, port_iid};
-            return editor::resolve_runtime_signal_key(bp_ref, key_interner, endpoint, context);
-        };
-
-        // Use centralized resolver for signal key lookup
-        if (win.is_external_ref() && !win.resolved_scope_id().key().empty()) {
-            auto node_iid = win.external_interner ? win.external_interner->lookup(node_id) : ui::InternedId();
-            auto port_iid = win.external_interner ? win.external_interner->lookup(port_name) : ui::InternedId();
-            if (!node_iid.empty() && !port_iid.empty() && win.external_blueprint) {
-                const bp2::Blueprint::Node* node = win.external_blueprint->find_node(node_iid);
-                signal_key = resolve_with_context(*win.external_blueprint,
-                                                  *win.external_interner,
-                                                  node,
-                                                  node_iid,
-                                                  port_iid,
-                                                  editor::external_ref_signal_context(win.resolved_scope_id().key()));
-                // Defensive: if resolver returns empty (unresolvable IDs), build canonical key directly
-                if (signal_key.empty()) {
-                    signal_key = editor::build_signal_key(node_id, port_name);
-                }
-            } else {
-                signal_key = editor::build_signal_key(node_id, port_name);
-            }
-        } else {
-            auto node_iid = doc.interner().lookup(node_id);
-            auto port_iid = doc.interner().lookup(port_name);
-            if (!node_iid.empty() && !port_iid.empty()) {
-                const bp2::Blueprint::Node* node = doc.blueprint().find_node(node_iid);
-                signal_key = resolve_with_context(doc.blueprint(),
-                                                  doc.interner(),
-                                                  node,
-                                                  node_iid,
-                                                  port_iid,
-                                                  editor::root_signal_context());
-                // Defensive: if resolver returns empty (unresolvable IDs), build canonical key directly
-                if (signal_key.empty()) {
-                    signal_key = editor::build_signal_key(node_id, port_name);
-                }
-            } else {
-                signal_key = editor::build_signal_key(node_id, port_name);
-            }
-        }
+        std::string signal_key = doc.resolve_endpoint_signal_key(
+            win.resolved_scope_id(), node_id, port_name);
+        if (signal_key.empty()) return;
         
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-        if (!signal_key.empty()) {
-            float current_value = doc.simulation().get_wire_voltage(signal_key);
-            maybe_log_hover_signal_resolution(std::string(node_id), std::string(port_name), signal_key, current_value);
-        }
+        float current_value = doc.simulation().get_wire_voltage(signal_key);
+        maybe_log_hover_signal_resolution(std::string(node_id), std::string(port_name), signal_key, current_value);
         
         ws.oscilloscope.set_hover_signal(signal_key);
         render_hover_scope_tooltip(doc, ws, signal_key, port_screen);
@@ -248,59 +190,30 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
         visual::Wire* wire = hw->wire;
-        std::string_view wire_id_sv = wire->id();
-        // For external-ref windows, use the external interner/arena to decode wire paths
-        auto& interner = win.is_external_ref() && win.external_interner
-                         ? *win.external_interner : doc.interner();
-        auto wire_iid = interner.lookup(wire_id_sv);
-        const bp2::Blueprint& bp_ref = win.is_external_ref() && win.external_blueprint
-                                       ? *win.external_blueprint : doc.blueprint();
-        const bp2::Blueprint::Wire* data_wire = bp_ref.find_wire(wire_iid);
-        if (!data_wire) return;
+        std::string signal_key = doc.resolve_wire_signal_key(
+            win.resolved_scope_id(), wire->id());
+        if (signal_key.empty()) return;
 
-        // Decode the source endpoint directly from WireEndpoint
-        ui::InternedId node_iid = data_wire->source.node;
-        ui::InternedId port_iid = data_wire->source.port;
-        if (node_iid.empty() || port_iid.empty()) return;
-
-        std::string signal_key;
-        // Use resolver for signal key lookup
-        const bp2::Blueprint::Node* bp_node = bp_ref.find_node(node_iid);
-        if (win.is_external_ref() && !win.resolved_scope_id().key().empty()) {
-            editor::SignalEndpoint endpoint{bp_node, node_iid, port_iid};
-            signal_key = editor::resolve_runtime_signal_key(
-                bp_ref, interner, endpoint,
-                editor::external_ref_signal_context(win.resolved_scope_id().key()));
-        } else {
-            editor::SignalEndpoint endpoint{bp_node, node_iid, port_iid};
-            signal_key = editor::resolve_runtime_signal_key(
-                bp_ref, interner, endpoint, editor::root_signal_context());
-         }
-         
-         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-         if (!signal_key.empty()) {
-             std::string_view node_name = interner.resolve(node_iid);
-             std::string_view port_name = interner.resolve(port_iid);
-             float current_value = doc.simulation().get_wire_voltage(signal_key);
-             maybe_log_hover_signal_resolution(std::string(node_name), std::string(port_name), signal_key, current_value);
-         }
-         
-         // Project mouse onto wire segment for tooltip anchor
-         const auto& poly = wire->polyline();
-         size_t seg = hw->segment;
-         Pt anchor = mouse_world;
-         if (seg + 1 < poly.size()) {
-             // Closest point on segment
-             Pt a = poly[seg], b = poly[seg + 1];
-             float dx = b.x - a.x, dy = b.y - a.y;
-             float len_sq = dx * dx + dy * dy;
-             if (len_sq > 1e-6f) {
-                 float t = ((mouse_world.x - a.x) * dx + (mouse_world.y - a.y) * dy) / len_sq;
-                 if (t < 0.f) t = 0.f;
-                 if (t > 1.f) t = 1.f;
-                 anchor = Pt(a.x + t * dx, a.y + t * dy);
-             }
-         }
+        // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
+        float current_value = doc.simulation().get_wire_voltage(signal_key);
+        maybe_log_hover_signal_resolution(std::string(wire->id()), "src", signal_key, current_value);
+          
+        // Project mouse onto wire segment for tooltip anchor
+        const auto& poly = wire->polyline();
+        size_t seg = hw->segment;
+        Pt anchor = mouse_world;
+        if (seg + 1 < poly.size()) {
+            // Closest point on segment
+            Pt a = poly[seg], b = poly[seg + 1];
+            float dx = b.x - a.x, dy = b.y - a.y;
+            float len_sq = dx * dx + dy * dy;
+            if (len_sq > 1e-6f) {
+                float t = ((mouse_world.x - a.x) * dx + (mouse_world.y - a.y) * dy) / len_sq;
+                if (t < 0.f) t = 0.f;
+                if (t > 1.f) t = 1.f;
+                anchor = Pt(a.x + t * dx, a.y + t * dy);
+            }
+        }
 
          const Pt tip_screen = win.viewport.world_to_screen(anchor, cmin);
          ws.oscilloscope.set_hover_signal(signal_key);

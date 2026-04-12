@@ -53,6 +53,54 @@ static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
      return w;
 }
 
+static TypeRegistry make_canvas_input_test_registry() {
+    TypeRegistry reg;
+
+    {
+        TypeDefinition def;
+        def.classname = "Slider";
+        def.cpp_class = true;
+        def.ports.emplace("out", Port(PortDirection::Out, PortType::Bool, Domain::Logical, false));
+        reg.types[def.classname] = std::move(def);
+    }
+
+    {
+        TypeDefinition def;
+        def.classname = "BoolSrc";
+        def.cpp_class = true;
+        def.ports.emplace("out", Port(PortDirection::Out, PortType::Bool, Domain::Logical, false));
+        reg.types[def.classname] = std::move(def);
+    }
+
+    {
+        TypeDefinition def;
+        def.classname = "BoolSink";
+        def.cpp_class = true;
+        def.ports.emplace("in", Port(PortDirection::In, PortType::Bool, Domain::Logical, false));
+        reg.types[def.classname] = std::move(def);
+    }
+
+    {
+        TypeDefinition def;
+        def.classname = "BlueprintInput";
+        def.cpp_class = true;
+        def.ports.emplace("ext", Port(PortDirection::In, PortType::Any, Domain::Electrical, false));
+        def.ports.emplace("port", Port(PortDirection::Out, PortType::Any, Domain::Electrical, false));
+        reg.types[def.classname] = std::move(def);
+    }
+
+    {
+        TypeDefinition def;
+        def.classname = "BlueprintOutput";
+        def.cpp_class = true;
+        def.ports.emplace("ext", Port(PortDirection::Out, PortType::Any, Domain::Electrical, false));
+        def.ports.emplace("port", Port(PortDirection::In, PortType::Any, Domain::Electrical, false));
+        reg.types[def.classname] = std::move(def);
+    }
+
+    return reg;
+}
+
 static ui::Pt port_center(visual::Port* p) {
     return p->worldPos() + ui::Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
 }
@@ -525,6 +573,124 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibilit
         // Current reconnection semantics remove the wire when drop is invalid.
         EXPECT_TRUE(model.current().wires().empty());
     }
+}
+
+TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+    static const TypeRegistry registry = make_canvas_input_test_registry();
+
+    auto slider = make_node(I, "slider_1", "Slider", 40.0f, 120.0f);
+    set_iface(slider, {
+        make_port(I, "out", Domain::Logical, bp2::Direction::Output, PortType::Bool),
+    });
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(bp2::Interface({
+        make_port(I, "Torque", Domain::Electrical, bp2::Direction::Input, PortType::Any),
+    }));
+
+    bp2::Blueprint::Node host;
+    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.semantic.id = I.intern("extract_inst_4");
+    host.semantic.type = I.intern("RPMIntertial");
+    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("RPMIntertial"),
+        std::make_unique<bp2::Blueprint>(inner));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+    bp = bp.with_node(std::move(host));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* slider_w = dynamic_cast<visual::Widget*>(scene.find("slider_1"));
+    auto* host_w = dynamic_cast<visual::Widget*>(scene.find("extract_inst_4"));
+    ASSERT_NE(slider_w, nullptr);
+    ASSERT_NE(host_w, nullptr);
+    auto* slider_out = slider_w->portByName("out");
+    auto* torque_in = host_w->portByName("Torque");
+    ASSERT_NE(slider_out, nullptr);
+    ASSERT_NE(torque_in, nullptr);
+
+    Viewport vp;
+    auto host_model = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host_model, I, arena, "", &registry);
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    input.on_mouse_down(port_center(slider_out), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(torque_in), canvas_min);
+
+    ASSERT_EQ(model.current().wires().size(), 1u);
+    EXPECT_EQ(model.current().wires().front().domain, Domain::Logical);
+}
+
+TEST(CanvasInputReconnect, EmbeddedAnyInputUsesConcreteSourceDomain) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+    static const TypeRegistry registry = make_canvas_input_test_registry();
+
+    auto slider = make_node(I, "slider_1", "Slider", 40.0f, 120.0f);
+    set_iface(slider, {
+        make_port(I, "out", Domain::Logical, bp2::Direction::Output, PortType::Bool),
+    });
+
+    auto sink_a = make_node(I, "sink_a", "BoolSink", 420.0f, 120.0f);
+    set_iface(sink_a, {
+        make_port(I, "in", Domain::Logical, bp2::Direction::Input, PortType::Bool),
+    });
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(bp2::Interface({
+        make_port(I, "Torque", Domain::Electrical, bp2::Direction::Input, PortType::Any),
+    }));
+
+    bp2::Blueprint::Node host;
+    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.semantic.id = I.intern("extract_inst_4");
+    host.semantic.type = I.intern("RPMIntertial");
+    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("RPMIntertial"),
+        std::make_unique<bp2::Blueprint>(inner));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+    bp = bp.with_node(std::move(sink_a));
+    bp = bp.with_node(std::move(host));
+    auto w = make_wire(I, arena, "wire_logic", "slider_1", "out", "sink_a", "in");
+    w.domain = Domain::Logical;
+    bp = bp.with_wire(std::move(w));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* sink_a_w = dynamic_cast<visual::Widget*>(scene.find("sink_a"));
+    auto* host_w = dynamic_cast<visual::Widget*>(scene.find("extract_inst_4"));
+    ASSERT_NE(sink_a_w, nullptr);
+    ASSERT_NE(host_w, nullptr);
+    auto* sink_a_in = sink_a_w->portByName("in");
+    auto* torque_in = host_w->portByName("Torque");
+    ASSERT_NE(sink_a_in, nullptr);
+    ASSERT_NE(torque_in, nullptr);
+
+    Viewport vp;
+    auto host_model = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host_model, I, arena, "", &registry);
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    input.on_mouse_down(port_center(sink_a_in), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(torque_in), canvas_min);
+
+    const auto* wire_after = model.current().find_wire(I.intern("wire_logic"));
+    ASSERT_NE(wire_after, nullptr);
+    EXPECT_EQ(wire_after->domain, Domain::Logical);
+
+    auto [tgt_n, tgt_p] = endpoint_node_port(wire_after->target, arena);
+    EXPECT_EQ(tgt_n, I.intern("extract_inst_4"));
+    EXPECT_EQ(tgt_p, I.intern("Torque"));
 }
 
 TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {

@@ -10,6 +10,7 @@ namespace editor {
 /// Signal key resolution context mode
 enum class SignalKeyContextMode {
     Root,               ///< Root-level blueprint (may contain expandable composites)
+    EmbeddedScope,      ///< Embedded child blueprint window under a parent instance id
     ExternalReference   ///< External reference window (child blueprint of a composite)
 };
 
@@ -21,6 +22,10 @@ struct SignalKeyContext {
 
 inline SignalKeyContext root_signal_context() {
     return {SignalKeyContextMode::Root, ""};
+}
+
+inline SignalKeyContext embedded_signal_context(std::string_view parent_instance_id) {
+    return {SignalKeyContextMode::EmbeddedScope, parent_instance_id};
 }
 
 inline SignalKeyContext external_ref_signal_context(std::string_view parent_instance_id) {

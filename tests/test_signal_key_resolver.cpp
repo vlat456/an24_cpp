@@ -98,10 +98,45 @@ TEST(SignalKeyResolver, ResolveRuntimeSignatureCheck) {
 TEST(SignalKeyResolver, ContextModes) {
     editor::SignalKeyContext root_ctx{editor::SignalKeyContextMode::Root, ""};
     EXPECT_EQ(root_ctx.mode, editor::SignalKeyContextMode::Root);
+
+    editor::SignalKeyContext embedded_ctx{editor::SignalKeyContextMode::EmbeddedScope, "parent_1"};
+    EXPECT_EQ(embedded_ctx.mode, editor::SignalKeyContextMode::EmbeddedScope);
+    EXPECT_EQ(embedded_ctx.parent_instance_id, "parent_1");
     
     editor::SignalKeyContext ext_ctx{editor::SignalKeyContextMode::ExternalReference, "parent_1"};
     EXPECT_EQ(ext_ctx.mode, editor::SignalKeyContextMode::ExternalReference);
     EXPECT_EQ(ext_ctx.parent_instance_id, "parent_1");
+}
+
+TEST(SignalKeyResolver, EmbeddedScopePrefixesChildEndpoint) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    const ui::InternedId node_id = interner.intern("accumulator");
+    const ui::InternedId port_id = interner.intern("out");
+    editor::SignalEndpoint endpoint{nullptr, node_id, port_id};
+
+    const std::string result = editor::resolve_runtime_signal_key(
+        bp, interner, endpoint, editor::embedded_signal_context("lag_1"));
+
+    EXPECT_EQ(result, "lag_1:accumulator.out");
+}
+
+TEST(SignalKeyResolver, ExternalAndEmbeddedChildScopesShareResolutionRule) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+
+    const ui::InternedId node_id = interner.intern("in");
+    const ui::InternedId port_id = interner.intern("ext");
+    editor::SignalEndpoint endpoint{nullptr, node_id, port_id};
+
+    const std::string embedded = editor::resolve_runtime_signal_key(
+        bp, interner, endpoint, editor::embedded_signal_context("group_7"));
+    const std::string external = editor::resolve_runtime_signal_key(
+        bp, interner, endpoint, editor::external_ref_signal_context("group_7"));
+
+    EXPECT_EQ(embedded, "group_7:in.ext");
+    EXPECT_EQ(external, embedded);
 }
 
 // ===========================================================================

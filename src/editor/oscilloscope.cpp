@@ -2,8 +2,6 @@
 
 #include "document.h"
 #include "editor/visual/wire/wire.h"
-#include "blueprint_v2/path/path.h"
-#include "core/solvers/common/signal_key.h"
 
 #include <algorithm>
 #include <cmath>
@@ -12,21 +10,35 @@
 
 namespace {
 
-static bool decode_source_key(const bp2::Blueprint::Wire& w,
-                              const bp2::PathArena& /*arena*/,
-                              ui::StringInterner& interner,
-                              std::string& out_key,
-                              std::string& out_label) {
-    const std::string node = std::string(interner.resolve(w.source.node));
-    const std::string port = std::string(interner.resolve(w.source.port));
-    if (node.empty() || port.empty()) return false;
-    out_key = signal_key::make_node_port_key(node, port);
+std::string make_probe_id(const WindowScopeId& scope_id, std::string_view wire_id) {
+    std::string probe_id;
+    probe_id.reserve(scope_id.key().size() + wire_id.size() + 8);
+    if (scope_id.is_root()) {
+        probe_id.append("root:");
+    } else if (scope_id.is_embedded()) {
+        probe_id.append("emb:");
+    } else {
+        probe_id.append("ext:");
+    }
+    probe_id.append(scope_id.key());
+    probe_id.push_back('|');
+    probe_id.append(wire_id);
+    return probe_id;
+}
+
+static bool resolve_probe_signal(Document& doc,
+                                 const WindowScopeId& scope_id,
+                                 std::string_view wire_id,
+                                 std::string& out_key,
+                                 std::string& out_label) {
+    out_key = doc.resolve_wire_signal_key(scope_id, wire_id);
+    if (out_key.empty()) return false;
     out_label = out_key;
     return true;
 }
 
 static bool resolve_probe_anchor(Document& doc,
-                                 const bp2::Blueprint::Wire& w,
+                                 std::string_view wire_id,
                                  const WindowScopeId& scope_id,
                                  const ui::Pt* preferred_world,
                                  ui::Pt& out_world) {
@@ -38,7 +50,7 @@ static bool resolve_probe_anchor(Document& doc,
         }
     }
     if (!win) return false;
-    auto* vw = dynamic_cast<visual::Wire*>(win->scene.find(doc.interner().resolve(w.id)));
+    auto* vw = dynamic_cast<visual::Wire*>(win->scene.find(wire_id));
     if (!vw) return false;
     const auto& poly = vw->polyline();
     if (poly.size() < 2) return false;
@@ -99,69 +111,59 @@ void OscilloscopeModel::toggle_probe(Document& doc,
                                      const std::string& wire_id,
                                      const ui::Pt* click_world) {
     if (wire_id.empty()) return;
-    auto it = probes_.find(wire_id);
+    const std::string probe_id = make_probe_id(scope_id, wire_id);
+    auto it = probes_.find(probe_id);
     if (it != probes_.end()) {
         probes_.erase(it);
-        samples_.erase(wire_id);
+        samples_.erase(probe_id);
         return;
     }
 
-    ui::InternedId wid = doc.interner().lookup(wire_id);
-    if (wid.empty()) return;
-    const bp2::Blueprint::Wire* w = doc.blueprint().find_wire(wid);
-    if (!w) return;
-
     OscilloscopeProbe p;
+    p.probe_id = probe_id;
     p.wire_id = wire_id;
     p.doc_id = doc.id();
     p.scope_id = scope_id;
-    if (!decode_source_key(*w, doc.arena(), doc.interner(), p.signal_key, p.label)) return;
-    if (!resolve_probe_anchor(doc, *w, scope_id, click_world, p.world_pos)) return;
+    if (!resolve_probe_signal(doc, scope_id, wire_id, p.signal_key, p.label)) return;
+    if (!resolve_probe_anchor(doc, wire_id, scope_id, click_world, p.world_pos)) return;
     p.color = color_for_index(probes_.size());
 
-    probes_[wire_id] = p;
-    samples_[wire_id] = std::deque<float>{};
+    probes_[probe_id] = p;
+    samples_[probe_id] = std::deque<float>{};
 }
 
-void OscilloscopeModel::remove_probe(const std::string& wire_id) {
-    probes_.erase(wire_id);
-    samples_.erase(wire_id);
+void OscilloscopeModel::remove_probe(const std::string& probe_id) {
+    probes_.erase(probe_id);
+    samples_.erase(probe_id);
 }
 
-bool OscilloscopeModel::has_probe(const std::string& wire_id) const {
-    return probes_.find(wire_id) != probes_.end();
+bool OscilloscopeModel::has_probe(const std::string& probe_id) const {
+    return probes_.find(probe_id) != probes_.end();
 }
 
-const OscilloscopeProbe* OscilloscopeModel::probe(const std::string& wire_id) const {
-    auto it = probes_.find(wire_id);
+const OscilloscopeProbe* OscilloscopeModel::probe(const std::string& probe_id) const {
+    auto it = probes_.find(probe_id);
     return (it == probes_.end()) ? nullptr : &it->second;
 }
 
 void OscilloscopeModel::on_blueprint_changed(Document& doc) {
     std::vector<std::string> to_remove;
     std::vector<std::pair<std::string, OscilloscopeProbe>> updates;
-    for (const auto& [wire_id, p] : probes_) {
-        ui::InternedId wid = doc.interner().lookup(wire_id);
-        const bp2::Blueprint::Wire* w = wid.empty() ? nullptr : doc.blueprint().find_wire(wid);
-        if (!w) {
-            to_remove.push_back(wire_id);
-            continue;
-        }
-
+    for (const auto& [probe_id, p] : probes_) {
         OscilloscopeProbe updated = p;
-        if (!decode_source_key(*w, doc.arena(), doc.interner(), updated.signal_key, updated.label)) {
-            to_remove.push_back(wire_id);
+        if (!resolve_probe_signal(doc, p.scope_id, p.wire_id, updated.signal_key, updated.label)) {
+            to_remove.push_back(probe_id);
             continue;
         }
 
-        if (!resolve_probe_anchor(doc, *w, p.scope_id, &p.world_pos, updated.world_pos)) {
-            to_remove.push_back(wire_id);
+        if (!resolve_probe_anchor(doc, p.wire_id, p.scope_id, &p.world_pos, updated.world_pos)) {
+            to_remove.push_back(probe_id);
             continue;
         }
-        updates.emplace_back(wire_id, std::move(updated));
+        updates.emplace_back(probe_id, std::move(updated));
     }
-    for (auto& [wire_id, updated] : updates) {
-        auto it = probes_.find(wire_id);
+    for (auto& [probe_id, updated] : updates) {
+        auto it = probes_.find(probe_id);
         if (it != probes_.end()) it->second = std::move(updated);
     }
     for (const auto& id : to_remove) {
@@ -171,8 +173,8 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
 
 void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sample_dt_sec) {
     if (sample_dt_sec > 0.0f) sample_period_sec_ = sample_dt_sec;
-    for (auto& [wire_id, p] : probes_) {
-        auto& q = samples_[wire_id];
+    for (auto& [probe_id, p] : probes_) {
+        auto& q = samples_[probe_id];
         float v = simulation_running ? doc.simulation().get_wire_voltage(p.signal_key) : 0.0f;
         q.push_back(v);
         while (q.size() > max_samples_) q.pop_front();
@@ -190,13 +192,13 @@ void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sam
 std::vector<OscilloscopeModel::ChannelView> OscilloscopeModel::channels() const {
     std::vector<ChannelView> out;
     out.reserve(probes_.size());
-    for (const auto& [wire_id, p] : probes_) {
-        auto it = samples_.find(wire_id);
+    for (const auto& [probe_id, p] : probes_) {
+        auto it = samples_.find(probe_id);
         if (it == samples_.end()) continue;
         out.push_back(ChannelView{&p, &it->second});
     }
     std::sort(out.begin(), out.end(), [](const ChannelView& a, const ChannelView& b) {
-        return a.probe->wire_id < b.probe->wire_id;
+        return a.probe->probe_id < b.probe->probe_id;
     });
     return out;
 }

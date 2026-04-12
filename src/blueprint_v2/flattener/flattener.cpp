@@ -4,6 +4,23 @@
 
 namespace bp2 {
 
+namespace {
+
+ui::InternedId find_exposed_port_name_for_bridge(const Blueprint& bp,
+                                                 const Blueprint::Node& node,
+                                                 const PathArena& arena) {
+    const std::string_view bridge_label = node.view.name;
+    for (const auto& iface_port : bp.iface().ports()) {
+        const std::string_view iface_name = arena.resolve_id(iface_port.name);
+        if ((!bridge_label.empty() && iface_name == bridge_label) || iface_port.name == node.semantic.id) {
+            return iface_port.name;
+        }
+    }
+    return {};
+}
+
+} // namespace
+
 Flattener::Flattener(BlueprintLibrary const& library)
     : library_(library) {}
 
@@ -174,8 +191,17 @@ void Flattener::emit_component(
     FlatNetlist::Component comp;
     comp.path = node_path;
     comp.type = node.semantic.type;
+    comp.exposed_port_name = {};
     comp.params = node.semantic.params;
     comp.string_params = node.semantic.string_params;
+
+    std::string_view type_str = arena_->resolve_id(node.semantic.type);
+    if (type_str == "BlueprintInput" || type_str == "BlueprintOutput") {
+        // Preserve the authoritative public interface port id that this bridge
+        // represents. Migrated blueprints may use bridge ids like `bp_out_1`
+        // while exposing the canonical port name through the label.
+        comp.exposed_port_name = find_exposed_port_name_for_bridge(bp, node, *arena_);
+    }
 
     SignalIndex ext_sig = UINT32_MAX;
     SignalIndex port_sig = UINT32_MAX;
@@ -197,7 +223,6 @@ void Flattener::emit_component(
 
     // Bridge ext/port unification: merge the two signals so that
     // wires to bridge.ext and bridge.port end up on the same signal
-    std::string_view type_str = arena_->resolve_id(node.semantic.type);
     if ((type_str == "BlueprintInput" || type_str == "BlueprintOutput")
         && ext_sig != UINT32_MAX && port_sig != UINT32_MAX
         && ext_sig != port_sig) {

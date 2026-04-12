@@ -31,6 +31,23 @@ std::string node_id_from_path(Path node_path, PathArena& arena, const ui::String
     return out;
 }
 
+std::string exposed_key_for_component(const FlatNetlist::Component& comp,
+                                      std::string_view dev_id,
+                                      const ui::StringInterner& interner) {
+    const size_t sep = dev_id.rfind(':');
+    if (sep == std::string_view::npos || sep == 0 || (sep + 1) >= dev_id.size()) {
+        return "";
+    }
+
+    const std::string_view parent_instance = dev_id.substr(0, sep);
+    if (!comp.exposed_port_name.empty()) {
+        return signal_key::make_node_port_key(parent_instance, interner.resolve(comp.exposed_port_name));
+    }
+
+    const std::string_view bridge_segment = dev_id.substr(sep + 1);
+    return signal_key::make_node_port_key(parent_instance, bridge_segment);
+}
+
 } // namespace
 
 // ==================================================================
@@ -136,7 +153,7 @@ JitBuildInput elaborate_for_jit(
         // Bridge nodes: also register the exposed key (parent_scope:bridge_name)
         const std::string classname(interner.resolve(comp.type));
         if (classname == "BlueprintInput" || classname == "BlueprintOutput") {
-            const std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(dev_id);
+            const std::string exposed_key = exposed_key_for_component(comp, dev_id, interner);
             if (!exposed_key.empty()) {
                 // Find the ext port's signal to use for the exposed key
                 for (const auto& [port_iid, sig_idx] : comp.port_signals) {
