@@ -51,6 +51,9 @@ public:
     virtual void setCustomColor(std::optional<uint32_t> c) { (void)c; }
     virtual std::optional<uint32_t> customColor() const { return std::nullopt; }
 
+    void setPaintEnabled(bool enabled) { paint_enabled_ = enabled; }
+    bool paintEnabled() const { return paint_enabled_; }
+
     // The context-free render path (inherited from ui::Widget) is not meaningful
     // for visual widgets. Override to catch accidental misuse in debug builds.
     // Visual widgets must be rendered via render(IDrawList*, const RenderContext&).
@@ -79,6 +82,7 @@ public:
 protected:
     friend class Scene;
     Scene* scene_ = nullptr;
+    bool paint_enabled_ = true;
     void updateGridRecursive(Widget* w);
 };
 

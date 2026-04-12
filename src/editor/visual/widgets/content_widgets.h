@@ -147,15 +147,14 @@ public:
 
     static constexpr float GAUGE_RADIUS = 40.0f;
     static constexpr float NEEDLE_LENGTH = 32.0f;
+    static constexpr float START_ANGLE = 210.0f;
+    static constexpr float SWEEP_ANGLE = -240.0f;
 
 private:
     float value_;
     float min_val_;
     float max_val_;
     std::string unit_;
-
-    static constexpr float START_ANGLE = 210.0f;
-    static constexpr float SWEEP_ANGLE = -240.0f;
 
     static constexpr uint32_t COLOR_GAUGE_BORDER = 0xFF3E3130;
     static constexpr uint32_t COLOR_NEEDLE       = 0xFF2A70C8;
@@ -208,13 +207,12 @@ public:
     static constexpr float KNOB_RADIUS = 16.0f;
     static constexpr float TICK_INNER = 20.0f;
     static constexpr float TICK_OUTER = 24.0f;
+    static constexpr float ARC_START_DEG = 225.0f;
+    static constexpr float ARC_SWEEP_DEG = -270.0f;
 
 private:
     int position_;
     int num_positions_;
-
-    static constexpr float ARC_START_DEG = 225.0f;  ///< Start angle (9 o'clock, upper-left)
-    static constexpr float ARC_SWEEP_DEG = -270.0f;  ///< Sweep CW across top to 3 o'clock
 
     static constexpr uint32_t COLOR_KNOB_FILL   = 0xFF3A3A42;
     static constexpr uint32_t COLOR_KNOB_BORDER = 0xFF606068;

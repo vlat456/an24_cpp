@@ -67,6 +67,10 @@ public:
 
      const editor::presentation::SemanticSceneSnapshot& content_semantic_snapshot() const {
          return content_semantic_snapshot_;
+      }
+
+     bool renders_content_from_semantic_snapshot() const {
+         return render_content_from_semantic_snapshot_;
      }
 
     /// Derive per-frame visual state for this node from render context.
@@ -90,6 +94,12 @@ private:
     /// Cached content type for semantic snapshot building
     bp2::NodeContentType cached_content_type_ = bp2::NodeContentType::None;
     float cached_content_max_ = 0.0f;
+    float cached_content_min_ = 0.0f;
+    float cached_content_value_ = 0.0f;
+    std::string cached_content_label_;
+    bool cached_content_state_ = false;
+    bool cached_content_tripped_ = false;
+    std::string cached_content_unit_;
 
     /// Layout context shared with PortRow children for edge-anchoring.
     /// Populated before layout() calls propagate to children.
@@ -97,6 +107,7 @@ private:
 
     std::optional<uint32_t> custom_fill_;
     editor::presentation::SemanticSceneSnapshot content_semantic_snapshot_;
+    bool render_content_from_semantic_snapshot_ = false;
 
     void buildLayout(const bp2::Blueprint::Node& data,
                      const bp2::Interface& render_iface,

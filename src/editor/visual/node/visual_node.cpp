@@ -84,6 +84,276 @@ std::optional<ContentWidgetInteractionInfo> derive_content_interaction(
     }
 }
 
+void append_text_content_render_object(editor::presentation::SemanticSceneSnapshot& snapshot,
+                                       ui::InternedId node_id,
+                                       const Bounds& bounds,
+                                       const std::string& label) {
+    using namespace editor::presentation;
+
+    if (label.empty()) {
+        return;
+    }
+
+    SceneRenderObject render_object;
+    render_object.id = SceneObjectId(1);
+    render_object.node_id = node_id;
+    render_object.element_id = node_id;
+    render_object.kind = SceneRenderObjectKind::ContentPaint;
+    render_object.primitive = PaintPrimitiveKind::Text;
+    render_object.bounds = Rect{bounds.x, bounds.y, bounds.w, bounds.h};
+    render_object.text = label;
+    snapshot.render_objects.push_back(std::move(render_object));
+}
+
+void append_switch_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
+                                          ui::InternedId node_id,
+                                          const Bounds& bounds,
+                                          bool state,
+                                          bool tripped,
+                                          bool vertical) {
+    using namespace editor::presentation;
+
+    SceneRenderObject body;
+    body.id = SceneObjectId(1);
+    body.node_id = node_id;
+    body.element_id = node_id;
+    body.kind = SceneRenderObjectKind::ContentPaint;
+    body.primitive = PaintPrimitiveKind::Rectangle;
+    body.bounds = Rect{bounds.x, bounds.y, bounds.w, bounds.h};
+    body.fill_color = tripped
+        ? render_theme::COLOR_TRIPPED
+        : (state ? 0xFF3A6830 : 0xFF1C1D24);
+    body.stroke_color = render_theme::COLOR_BUS_BORDER;
+    body.stroke_width = 1.0f;
+    snapshot.render_objects.push_back(std::move(body));
+
+    SceneRenderObject handle;
+    handle.id = SceneObjectId(2);
+    handle.node_id = node_id;
+    handle.element_id = node_id;
+    handle.kind = SceneRenderObjectKind::ContentPaint;
+    handle.primitive = PaintPrimitiveKind::Rectangle;
+    if (vertical) {
+        const float handle_h = bounds.h * 0.24f;
+        const float handle_y = state ? bounds.y + bounds.h * 0.15f : bounds.y + bounds.h * 0.70f;
+        handle.bounds = Rect{bounds.x, handle_y, bounds.w, handle_h};
+    } else {
+        const float handle_w = bounds.w * 0.40f;
+        const float handle_x = state ? bounds.x + bounds.w - handle_w : bounds.x;
+        handle.bounds = Rect{handle_x, bounds.y, handle_w, bounds.h};
+    }
+    handle.fill_color = tripped
+        ? render_theme::COLOR_TRIPPED
+        : (state ? 0xFF3A6830 : 0xFF2C3038);
+    handle.stroke_color = 0xFF1C1D24;
+    handle.stroke_width = 1.0f;
+    snapshot.render_objects.push_back(std::move(handle));
+}
+
+void append_slider_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
+                                          ui::InternedId node_id,
+                                          const Bounds& bounds,
+                                          float value,
+                                          float min_val,
+                                          float max_val) {
+    using namespace editor::presentation;
+
+    const float pad = SliderWidget::HANDLE_RADIUS;
+    const float track_h = SliderWidget::TRACK_HEIGHT;
+    const float track_y = bounds.y + (bounds.h - track_h) * 0.5f;
+    const float track_w = std::max(0.0f, bounds.w - 2.0f * pad);
+    const float range = max_val - min_val;
+    const float t = (range > 1e-6f) ? std::clamp((value - min_val) / range, 0.0f, 1.0f) : 0.0f;
+
+    SceneRenderObject track;
+    track.id = SceneObjectId(1);
+    track.node_id = node_id;
+    track.element_id = node_id;
+    track.kind = SceneRenderObjectKind::ContentPaint;
+    track.primitive = PaintPrimitiveKind::Rectangle;
+    track.bounds = Rect{bounds.x + pad, track_y, track_w, track_h};
+    track.fill_color = 0xFF1C1D24;
+    snapshot.render_objects.push_back(std::move(track));
+
+    SceneRenderObject fill;
+    fill.id = SceneObjectId(2);
+    fill.node_id = node_id;
+    fill.element_id = node_id;
+    fill.kind = SceneRenderObjectKind::ContentPaint;
+    fill.primitive = PaintPrimitiveKind::Rectangle;
+    fill.bounds = Rect{bounds.x + pad, track_y, t * track_w, track_h};
+    fill.fill_color = 0xFF3A6830;
+    snapshot.render_objects.push_back(std::move(fill));
+
+    SceneRenderObject handle;
+    handle.id = SceneObjectId(3);
+    handle.node_id = node_id;
+    handle.element_id = node_id;
+    handle.kind = SceneRenderObjectKind::ContentPaint;
+    handle.primitive = PaintPrimitiveKind::Circle;
+    handle.bounds = Rect{bounds.x + pad + t * track_w, bounds.y + bounds.h * 0.5f,
+                         SliderWidget::HANDLE_RADIUS, 16.0f};
+    handle.fill_color = 0xFF5078C0;
+    handle.stroke_color = 0xFF3050A0;
+    handle.stroke_width = 1.0f;
+    snapshot.render_objects.push_back(std::move(handle));
+
+    SceneRenderObject label;
+    label.id = SceneObjectId(4);
+    label.node_id = node_id;
+    label.element_id = node_id;
+    label.kind = SceneRenderObjectKind::ContentPaint;
+    label.primitive = PaintPrimitiveKind::Text;
+    label.bounds = Rect{bounds.x, track_y + track_h + 1.0f, bounds.w, SliderWidget::HEIGHT};
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.1f", value);
+    label.text = buf;
+    snapshot.render_objects.push_back(std::move(label));
+}
+
+void append_indicator_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
+                                             ui::InternedId node_id,
+                                             const Bounds& bounds,
+                                             float brightness) {
+    using namespace editor::presentation;
+    SceneRenderObject indicator;
+    indicator.id = SceneObjectId(1);
+    indicator.node_id = node_id;
+    indicator.element_id = node_id;
+    indicator.kind = SceneRenderObjectKind::ContentPaint;
+    indicator.primitive = PaintPrimitiveKind::Circle;
+    indicator.bounds = Rect{bounds.x + bounds.w * 0.5f, bounds.y + bounds.h * 0.5f,
+                            IndicatorWidget::SIZE * (0.3f + 0.15f * std::clamp(brightness, 0.0f, 1.0f)), 16.0f};
+    uint32_t fill_color;
+    if (brightness <= 0.0f) {
+        fill_color = 0xFF505050;
+    } else {
+        float b = std::clamp(brightness, 0.0f, 1.0f);
+        uint8_t g = static_cast<uint8_t>(48 + 207 * b);
+        uint8_t r_col = static_cast<uint8_t>(48 * (1.0f - b));
+        uint8_t b_col = static_cast<uint8_t>(48 * (1.0f - b));
+        uint8_t alpha = static_cast<uint8_t>(80 + 175 * b);
+        fill_color = (alpha << 24) | (b_col << 16) | (g << 8) | r_col;
+    }
+    indicator.fill_color = fill_color;
+    indicator.stroke_color = 0xFF404040;
+    indicator.stroke_width = 1.0f;
+    snapshot.render_objects.push_back(std::move(indicator));
+}
+
+void append_knob_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
+                                        ui::InternedId node_id,
+                                        const Bounds& bounds,
+                                        int position,
+                                        int num_positions) {
+    using namespace editor::presentation;
+    const float cx = bounds.x + bounds.w * 0.5f;
+    const float cy = bounds.y + bounds.h * 0.5f;
+
+    SceneRenderObject knob;
+    knob.id = SceneObjectId(1);
+    knob.node_id = node_id;
+    knob.element_id = node_id;
+    knob.kind = SceneRenderObjectKind::ContentPaint;
+    knob.primitive = PaintPrimitiveKind::Circle;
+    knob.bounds = Rect{cx, cy, KnobWidget::KNOB_RADIUS, 24.0f};
+    knob.fill_color = 0xFF3A3A42;
+    knob.stroke_color = 0xFF606068;
+    knob.stroke_width = 1.0f;
+    snapshot.render_objects.push_back(std::move(knob));
+
+    for (int i = 0; i < num_positions; ++i) {
+        const float t = (num_positions > 1) ? static_cast<float>(i) / (num_positions - 1) : 0.5f;
+        const float angle = KnobWidget::ARC_START_DEG + t * KnobWidget::ARC_SWEEP_DEG;
+        SceneRenderObject tick;
+        tick.id = SceneObjectId(2 + static_cast<uint32_t>(i));
+        tick.node_id = node_id;
+        tick.element_id = node_id;
+        tick.kind = SceneRenderObjectKind::ContentPaint;
+        tick.primitive = PaintPrimitiveKind::Line;
+        tick.bounds = Rect{cx, cy, angle, KnobWidget::TICK_OUTER};
+        tick.fill_color = (i == position) ? 0xFF5078C0 : 0xFF808090;
+        tick.inset = KnobWidget::TICK_INNER;
+        tick.stroke_width = (i == position) ? 2.5f : 1.5f;
+        snapshot.render_objects.push_back(std::move(tick));
+    }
+
+    const float sel_t = (num_positions > 1) ? static_cast<float>(position) / (num_positions - 1) : 0.5f;
+    const float sel_angle = KnobWidget::ARC_START_DEG + sel_t * KnobWidget::ARC_SWEEP_DEG;
+    SceneRenderObject indicator;
+    indicator.id = SceneObjectId(2 + static_cast<uint32_t>(num_positions));
+    indicator.node_id = node_id;
+    indicator.element_id = node_id;
+    indicator.kind = SceneRenderObjectKind::ContentPaint;
+    indicator.primitive = PaintPrimitiveKind::Line;
+    indicator.bounds = Rect{cx, cy, sel_angle, KnobWidget::KNOB_RADIUS * 0.85f};
+    indicator.fill_color = 0xFF5078C0;
+    indicator.stroke_width = 2.0f;
+    snapshot.render_objects.push_back(std::move(indicator));
+}
+
+void append_gauge_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
+                                         ui::InternedId node_id,
+                                         const Bounds& bounds,
+                                         float value,
+                                         float min_val,
+                                         float max_val,
+                                         const std::string& unit) {
+    using namespace editor::presentation;
+    const float cx = bounds.x + bounds.w * 0.5f;
+    const float cy = bounds.y + VoltmeterWidget::GAUGE_RADIUS;
+
+    SceneRenderObject arc;
+    arc.id = SceneObjectId(1);
+    arc.node_id = node_id;
+    arc.element_id = node_id;
+    arc.kind = SceneRenderObjectKind::ContentPaint;
+    arc.primitive = PaintPrimitiveKind::Arc;
+    arc.bounds = Rect{cx, cy, VoltmeterWidget::GAUGE_RADIUS, VoltmeterWidget::SWEEP_ANGLE};
+    arc.fill_color = 0xFF3E3130;
+    arc.inset = VoltmeterWidget::START_ANGLE;
+    arc.stroke_width = 2.0f;
+    snapshot.render_objects.push_back(std::move(arc));
+
+    const float range = max_val - min_val;
+    const float normalized = (range > 1e-6f) ? std::clamp((value - min_val) / range, 0.0f, 1.0f) : 0.0f;
+    const float needle_angle = VoltmeterWidget::START_ANGLE + normalized * VoltmeterWidget::SWEEP_ANGLE;
+    SceneRenderObject needle;
+    needle.id = SceneObjectId(2);
+    needle.node_id = node_id;
+    needle.element_id = node_id;
+    needle.kind = SceneRenderObjectKind::ContentPaint;
+    needle.primitive = PaintPrimitiveKind::Line;
+    needle.bounds = Rect{cx, cy, needle_angle, VoltmeterWidget::NEEDLE_LENGTH};
+    needle.fill_color = 0xFF2A70C8;
+    needle.stroke_width = 2.0f;
+    snapshot.render_objects.push_back(std::move(needle));
+
+    SceneRenderObject value_text;
+    value_text.id = SceneObjectId(3);
+    value_text.node_id = node_id;
+    value_text.element_id = node_id;
+    value_text.kind = SceneRenderObjectKind::ContentPaint;
+    value_text.primitive = PaintPrimitiveKind::Text;
+    value_text.bounds = Rect{bounds.x, bounds.y + VoltmeterWidget::GAUGE_RADIUS * 2.0f + 5.0f,
+                             bounds.w, 14.0f};
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.1f", value);
+    value_text.text = buf;
+    snapshot.render_objects.push_back(std::move(value_text));
+
+    SceneRenderObject unit_text;
+    unit_text.id = SceneObjectId(4);
+    unit_text.node_id = node_id;
+    unit_text.element_id = node_id;
+    unit_text.kind = SceneRenderObjectKind::ContentPaint;
+    unit_text.primitive = PaintPrimitiveKind::Text;
+    unit_text.bounds = Rect{bounds.x, bounds.y + VoltmeterWidget::GAUGE_RADIUS * 2.0f + 21.0f,
+                            bounds.w, 10.0f};
+    unit_text.text = unit;
+    snapshot.render_objects.push_back(std::move(unit_text));
+}
+
 } // namespace
 
 NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
@@ -166,7 +436,13 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data,
 
     bp2::NodeContentType content_type = data.view.content_type;
     cached_content_type_ = content_type;
+    cached_content_min_ = data.view.content_min;
     cached_content_max_ = data.view.content_max;
+    cached_content_value_ = data.view.content_value;
+    cached_content_label_ = data.view.content_label;
+    cached_content_state_ = data.view.content_state;
+    cached_content_tripped_ = data.view.content_tripped;
+    cached_content_unit_ = data.view.content_unit;
 
     // -- Port rows / Content --
     // VerticalToggle uses special layout, but falls back to standard when overrides present
@@ -226,21 +502,15 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
             content_widget_ = layout_->emplaceChild<VoltmeterWidget>(
                 data.view.content_value, data.view.content_min,
                 data.view.content_max, data.view.content_unit);
+            content_widget_->setPaintEnabled(false);
         } else if (content_type == bp2::NodeContentType::Switch) {
-            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
-            float v_pad = 2.0f;
-            auto* container = layout_->emplaceChild<Container>(
-                Edges{margin, v_pad, margin, v_pad});
+            auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
             container->setFlexGrow(1.0f);
-            content_widget_ = container->emplaceChild<SwitchWidget>(
-                data.view.content_state, data.view.content_tripped);
+            content_widget_ = container->emplaceChild<Spacer>();
         } else if (content_type == bp2::NodeContentType::VerticalToggle) {
-            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
-            auto* container = layout_->emplaceChild<Container>(
-                Edges{margin, 5.0f, margin, 5.0f});
+            auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
             container->setFlexGrow(1.0f);
-            content_widget_ = container->emplaceChild<VerticalToggleWidget>(
-                data.view.content_state, data.view.content_tripped);
+            content_widget_ = container->emplaceChild<Spacer>();
         } else if (content_type == bp2::NodeContentType::Slider) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             float v_pad = 2.0f;
@@ -250,12 +520,14 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
             content_widget_ = container->emplaceChild<SliderWidget>(
                 data.view.content_value, data.view.content_min,
                 data.view.content_max);
+            content_widget_->setPaintEnabled(false);
         } else if (content_type == bp2::NodeContentType::Indicator) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 2.0f, margin, 2.0f});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<IndicatorWidget>(data.view.content_value);
+            content_widget_->setPaintEnabled(false);
         } else if (content_type == bp2::NodeContentType::Knob) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
@@ -265,17 +537,11 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
             int num = static_cast<int>(data.view.content_max);
             if (num < 2) num = 2;
             content_widget_ = container->emplaceChild<KnobWidget>(pos, num);
+            content_widget_->setPaintEnabled(false);
         } else if (content_type != bp2::NodeContentType::None) {
-            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
-            auto* container = layout_->emplaceChild<Container>(
-                Edges{margin, 0, margin, 0});
+            auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
             container->setFlexGrow(1.0f);
-            if (!data.view.content_label.empty()) {
-                content_widget_ = container->emplaceChild<Label>(
-                    data.view.content_label, 10.0f, (uint32_t)0x00000000);
-            } else {
-                content_widget_ = container->emplaceChild<Spacer>();
-            }
+            content_widget_ = container->emplaceChild<Spacer>();
         }
     } else {
         // Slow path: four-sided layout with overrides.
@@ -305,6 +571,7 @@ void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data,
         Edges{0, 5.0f, 0, 5.0f});
     content_widget_ = toggle_container->emplaceChild<VerticalToggleWidget>(
         data.view.content_state, data.view.content_tripped);
+    content_widget_->setPaintEnabled(false);
 
     // Right column (output ports)
     auto* right_col = main_row->emplaceChild<Column>();
@@ -365,35 +632,30 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data,
         content_widget_ = center->emplaceChild<VoltmeterWidget>(
             data.view.content_value, data.view.content_min,
             data.view.content_max, data.view.content_unit);
+        content_widget_->setPaintEnabled(false);
     } else if (content_type == bp2::NodeContentType::Switch) {
-        auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
-        content_widget_ = inner->emplaceChild<SwitchWidget>(
-            data.view.content_state, data.view.content_tripped);
+        content_widget_ = center->emplaceChild<Spacer>();
     } else if (content_type == bp2::NodeContentType::VerticalToggle) {
-        auto* inner = center->emplaceChild<Container>(Edges{0, 5.0f, 0, 5.0f});
-        content_widget_ = inner->emplaceChild<VerticalToggleWidget>(
-            data.view.content_state, data.view.content_tripped);
+        content_widget_ = center->emplaceChild<Spacer>();
     } else if (content_type == bp2::NodeContentType::Slider) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<SliderWidget>(
             data.view.content_value, data.view.content_min,
             data.view.content_max);
+        content_widget_->setPaintEnabled(false);
     } else if (content_type == bp2::NodeContentType::Indicator) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<IndicatorWidget>(data.view.content_value);
+        content_widget_->setPaintEnabled(false);
     } else if (content_type == bp2::NodeContentType::Knob) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         int pos = static_cast<int>(data.view.content_value);
         int num = static_cast<int>(data.view.content_max);
         if (num < 2) num = 2;
         content_widget_ = inner->emplaceChild<KnobWidget>(pos, num);
+        content_widget_->setPaintEnabled(false);
     } else if (content_type != bp2::NodeContentType::None) {
-        if (!data.view.content_label.empty()) {
-            content_widget_ = center->emplaceChild<Label>(
-                data.view.content_label, 10.0f, (uint32_t)0x00000000);
-        } else {
-            center->emplaceChild<Spacer>();
-        }
+        content_widget_ = center->emplaceChild<Spacer>();
     } else {
         center->emplaceChild<Spacer>();
     }
@@ -428,7 +690,13 @@ void NodeWidget::buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports
 
 void NodeWidget::updateContent(const ::NodeContent& content) {
     if (content_widget_) content_widget_->updateFromContent(content);
+    cached_content_min_ = content.min;
     cached_content_max_ = content.max;
+    cached_content_value_ = content.value;
+    cached_content_label_ = content.label;
+    cached_content_state_ = content.state;
+    cached_content_tripped_ = content.tripped;
+    cached_content_unit_ = content.unit;
     refresh_content_semantic_snapshot();
 }
 
@@ -447,6 +715,7 @@ void NodeWidget::updateContent(const ::NodeContent& content) {
 
 void NodeWidget::refresh_content_semantic_snapshot() {
     content_semantic_snapshot_ = {};
+    render_content_from_semantic_snapshot_ = false;
     if (!content_widget_) {
         return;
     }
@@ -456,6 +725,52 @@ void NodeWidget::refresh_content_semantic_snapshot() {
         return;
     }
 
+    // -- Render objects: produce paint primitives for content types rendered
+    //    from the semantic snapshot (replacing the former widget rendering). --
+    switch (cached_content_type_) {
+        case bp2::NodeContentType::Text:
+            if (!cached_content_label_.empty()) {
+                append_text_content_render_object(content_semantic_snapshot_, node_iid_, cb, cached_content_label_);
+                render_content_from_semantic_snapshot_ = true;
+            }
+            break;
+        case bp2::NodeContentType::Switch:
+            append_switch_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
+                                                 cached_content_state_, cached_content_tripped_, false);
+            render_content_from_semantic_snapshot_ = true;
+            break;
+        case bp2::NodeContentType::VerticalToggle:
+            append_switch_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
+                                                 cached_content_state_, cached_content_tripped_, true);
+            render_content_from_semantic_snapshot_ = true;
+            break;
+        case bp2::NodeContentType::Slider:
+            append_slider_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
+                                                 cached_content_value_, cached_content_min_, cached_content_max_);
+            render_content_from_semantic_snapshot_ = true;
+            break;
+        case bp2::NodeContentType::Indicator:
+            append_indicator_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
+                                                    cached_content_value_);
+            render_content_from_semantic_snapshot_ = true;
+            break;
+        case bp2::NodeContentType::Knob:
+            append_knob_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
+                                               static_cast<int>(cached_content_value_),
+                                               std::max(2, static_cast<int>(cached_content_max_)));
+            render_content_from_semantic_snapshot_ = true;
+            break;
+        case bp2::NodeContentType::Gauge:
+            append_gauge_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
+                                                cached_content_value_, cached_content_min_, cached_content_max_,
+                                                cached_content_unit_);
+            render_content_from_semantic_snapshot_ = true;
+            break;
+        default:
+            break;
+    }
+
+    // -- Hit objects: produce interaction regions for all interactive content types. --
     auto interaction_info = derive_content_interaction(cached_content_type_, content_widget_, cached_content_max_);
     if (!interaction_info.has_value()) {
         return;
@@ -598,6 +913,70 @@ void NodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     // Body fill
     uint32_t fill = custom_fill_.value_or(render_theme::COLOR_BODY_FILL);
     dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
+
+    if (render_content_from_semantic_snapshot_) {
+        for (const auto& object : content_semantic_snapshot_.render_objects) {
+            if (object.kind != editor::presentation::SceneRenderObjectKind::ContentPaint) {
+                continue;
+            }
+            if (object.primitive == editor::presentation::PaintPrimitiveKind::Text) {
+                Pt text_pos = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
+                dl->add_text(text_pos, object.text.c_str(), render_theme::COLOR_TEXT_DIM, 10.0f * ctx.zoom);
+                continue;
+            }
+            if (object.primitive == editor::presentation::PaintPrimitiveKind::Rectangle) {
+                Pt min = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
+                Pt max = ctx.world_to_screen(Pt(pos.x + object.bounds.x + object.bounds.w,
+                                                pos.y + object.bounds.y + object.bounds.h));
+                dl->add_rect_filled(min, max, object.fill_color);
+                if (object.stroke_width > 0.0f) {
+                    dl->add_rect(min, max, object.stroke_color, object.stroke_width * ctx.zoom);
+                }
+                continue;
+            }
+            if (object.primitive == editor::presentation::PaintPrimitiveKind::Circle) {
+                Pt center = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
+                float radius = object.bounds.w * ctx.zoom;
+                dl->add_circle_filled(center, radius, object.fill_color, 24);
+                if (object.stroke_width > 0.0f) {
+                    dl->add_circle(center, radius, object.stroke_color, 24);
+                }
+                continue;
+            }
+            if (object.primitive == editor::presentation::PaintPrimitiveKind::Line) {
+                // Line encoding contract:
+                //   bounds = {center_x, center_y, angle_degrees, end_radius}
+                //   inset  = start_radius (0 = from center)
+                //   stroke_width = line thickness
+                //   fill_color   = line color
+                constexpr float DEG2RAD = 3.14159265f / 180.0f;
+                Pt center = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
+                float angle = object.bounds.w * DEG2RAD;
+                float radius_a = object.inset * ctx.zoom;
+                float radius_b = object.bounds.h * ctx.zoom;
+                Pt a(center.x + std::cos(angle) * radius_a, center.y - std::sin(angle) * radius_a);
+                Pt b(center.x + std::cos(angle) * radius_b, center.y - std::sin(angle) * radius_b);
+                dl->add_line(a, b, object.fill_color, object.stroke_width * ctx.zoom);
+                continue;
+            }
+            if (object.primitive == editor::presentation::PaintPrimitiveKind::Arc) {
+                constexpr float DEG2RAD = 3.14159265f / 180.0f;
+                Pt center = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
+                float radius = object.bounds.w * ctx.zoom;
+                float start_angle = object.inset * DEG2RAD;
+                float sweep_angle = object.bounds.h * DEG2RAD;
+                constexpr int segments = 32;
+                Pt points[segments + 1];
+                for (int i = 0; i <= segments; ++i) {
+                    float t = static_cast<float>(i) / segments;
+                    float angle = start_angle + t * sweep_angle;
+                    points[i] = Pt(center.x + std::cos(angle) * radius,
+                                   center.y - std::sin(angle) * radius);
+                }
+                dl->add_polyline(points, segments + 1, object.fill_color, object.stroke_width * ctx.zoom);
+            }
+        }
+    }
 
     // Children (header, ports, content, footer) rendered by renderTree()
 }

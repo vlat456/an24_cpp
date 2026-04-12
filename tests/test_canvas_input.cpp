@@ -2000,6 +2000,80 @@ TEST(CanvasInputInteractionTarget, VerticalTogglePublishesToggleRole) {
      EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::Click);
 }
 
+TEST(CanvasInputSemanticRender, SwitchProducesRenderObjectsAndHitObjects) {
+    // Regression: render objects for Switch were inside the !interaction_info
+    // branch, but derive_content_interaction always returns Toggle for Switch,
+    // making the render path unreachable — switches were invisible.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto sw = make_node(I, "sw_1", "Switch", 100.0f, 100.0f);
+    sw.view.content_type = bp2::NodeContentType::Switch;
+    sw.view.content_state = true;
+    sw.view.content_tripped = false;
+    set_iface(sw, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(sw));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("sw_1"));
+    ASSERT_NE(widget, nullptr);
+
+    // Must have BOTH render objects (body + handle) AND hit objects
+    const auto& snap = widget->content_semantic_snapshot();
+    EXPECT_GE(snap.render_objects.size(), 2u)
+        << "Switch must produce at least 2 render objects (body + handle)";
+    EXPECT_FALSE(snap.hit_objects.empty())
+        << "Switch must produce at least 1 hit object for interaction";
+    EXPECT_TRUE(widget->renders_content_from_semantic_snapshot())
+        << "Switch must set render_content_from_semantic_snapshot_ = true";
+}
+
+TEST(CanvasInputSemanticRender, VerticalToggleStandardLayoutProducesRenderObjectsAndHitObjects) {
+    // Regression: same dead-code bug as Switch — VerticalToggle in standard
+    // layout (with layout overrides forcing it off the VerticalToggle layout
+    // path) used a Spacer but never populated render objects.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.view.content_state = false;
+    azs.view.content_tripped = true;
+    // Force standard layout by adding layout overrides
+    azs.layout.layout_overrides.push_back(bp2::Blueprint::Node::PortLayoutOverride{
+        "v_in", "left", std::nullopt});
+    set_iface(azs, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    const auto& snap = widget->content_semantic_snapshot();
+    EXPECT_GE(snap.render_objects.size(), 2u)
+        << "VerticalToggle (standard layout) must produce render objects";
+    EXPECT_FALSE(snap.hit_objects.empty())
+        << "VerticalToggle (standard layout) must produce hit objects";
+    EXPECT_TRUE(widget->renders_content_from_semantic_snapshot())
+        << "VerticalToggle (standard layout) must set render flag";
+}
+
 TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
      ui::StringInterner I;
      bp2::PathArena arena(I);

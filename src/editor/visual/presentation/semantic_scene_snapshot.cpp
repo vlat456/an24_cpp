@@ -43,6 +43,10 @@ void append_content_objects(const NodePresentation& presentation,
         render_object.primitive = paint.kind;
         render_object.bounds = *bounds;
         render_object.text = paint.text;
+        render_object.fill_color = paint.fill_color;
+        render_object.stroke_color = paint.stroke_color;
+        render_object.stroke_width = paint.stroke_width;
+        render_object.inset = paint.inset;
         snapshot.render_objects.push_back(std::move(render_object));
     }
 

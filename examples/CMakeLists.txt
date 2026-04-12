@@ -114,7 +114,6 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/canvas_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/oscilloscope_plot.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node_content_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp

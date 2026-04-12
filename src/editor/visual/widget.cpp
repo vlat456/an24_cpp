@@ -26,11 +26,15 @@ void Widget::onLocalPosChanged() {
 }
 
 void Widget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
-    render(dl, ctx);
+    if (paint_enabled_) {
+        render(dl, ctx);
+    }
     for (const auto& c : children_) {
         static_cast<Widget*>(c.get())->renderTree(dl, ctx);
     }
-    renderPost(dl, ctx);
+    if (paint_enabled_) {
+        renderPost(dl, ctx);
+    }
 }
 
 } // namespace visual

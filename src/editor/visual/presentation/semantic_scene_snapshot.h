@@ -46,6 +46,10 @@ struct SceneRenderObject {
     PaintPrimitiveKind primitive = PaintPrimitiveKind::Rectangle;
     Rect bounds;
     std::string text;
+    uint32_t fill_color = 0;
+    uint32_t stroke_color = 0;
+    float stroke_width = 0.0f;
+    float inset = 0.0f;
 };
 
 enum class SceneHitObjectKind {
