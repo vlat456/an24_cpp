@@ -114,7 +114,7 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
     }
 
     renderGrid(win, cmin, cmax, draw_list);
-    renderBlueprint(win, doc, cmin, cmax, draw_list);
+    renderBlueprint(win, doc, ws, cmin, cmax, draw_list);
     renderTooltips(win, doc, ws, cmin, draw_list);
     renderTempWire(win, cmin, draw_list);
     render_probe_markers(win, doc, ws, cmin, draw_list);
@@ -131,7 +131,8 @@ void CanvasRenderer::renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawLi
     grid.render(dl, win.viewport, cmin, cmax);
 }
 
-void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmin, Pt cmax, ImDrawList* draw_list) {
+void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, WindowSystem& ws,
+                                     Pt cmin, Pt cmax, ImDrawList* draw_list) {
     auto dl = make_dl(draw_list);
 
     // Build energized wire set from simulation (reuse buffer across frames)
@@ -151,6 +152,7 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
     ctx.hovered_wire = win.input.hovered_wire();
     ctx.hovered_routing_point = win.input.hovered_routing_point();
     ctx.energized_wires = energized_buf_.empty() ? nullptr : &energized_buf_;
+    ctx.show_debug_bounds = ws.showDebugLayoutBounds;
 
     visual::compute_wire_crossings(win.scene);
     win.scene.render(&dl, ctx);

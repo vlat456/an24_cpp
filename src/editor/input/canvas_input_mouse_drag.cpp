@@ -99,6 +99,11 @@ void CanvasInput::handle_resize_node(Pt world_delta) {
 
     float min_w = editor_constants::PORT_LAYOUT_GRID;
     float min_h = editor_constants::PORT_LAYOUT_GRID;
+    if (auto* node_widget = dynamic_cast<visual::NodeWidget*>(resize_widget)) {
+        Pt minimum = node_widget->minimumNodeSize();
+        min_w = minimum.x;
+        min_h = minimum.y;
+    }
     if (new_size.x < min_w) {
         if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::BottomLeft)
             new_pos.x = orig_pos.x + orig_sz.x - min_w;
@@ -112,6 +117,24 @@ void CanvasInput::handle_resize_node(Pt world_delta) {
 
     new_pos = editor_math::snap_to_grid(new_pos, grid);
     new_size = editor_math::snap_to_grid(new_size, grid);
+
+    // Resizing must never violate the node's required minimum, even when the
+    // user-visible grid step differs from the layout grid and snap_to_grid()
+    // rounds down after clamping.
+    if (new_size.x < min_w) {
+        if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::BottomLeft) {
+            new_pos.x = orig_pos.x + orig_sz.x - min_w;
+            new_pos.x = std::round(new_pos.x / grid) * grid;
+        }
+        new_size.x = min_w;
+    }
+    if (new_size.y < min_h) {
+        if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::TopRight) {
+            new_pos.y = orig_pos.y + orig_sz.y - min_h;
+            new_pos.y = std::round(new_pos.y / grid) * grid;
+        }
+        new_size.y = min_h;
+    }
 
     resize_widget->setLocalPos(new_pos);
     resize_widget->layout(new_size.x, new_size.y);

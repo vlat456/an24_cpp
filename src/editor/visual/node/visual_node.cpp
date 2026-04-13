@@ -171,6 +171,8 @@ struct ContentLayoutPolicy {
     Pt preferred_size{0.0f, 0.0f};
     float align_x = 0.5f;   ///< Horizontal alignment within container
     float align_y = 0.5f;   ///< Vertical alignment within container
+    bool reserve_width = true;
+    bool reserve_height = true;
 };
 
 /// Single authoritative table mapping content type → intrinsic size + alignment.
@@ -180,20 +182,20 @@ ContentLayoutPolicy content_layout_policy(bp2::NodeContentType content_type) {
         case bp2::NodeContentType::Gauge:
             return {Pt(GAUGE_RADIUS * 2.0f,
                        GAUGE_RADIUS * 2.0f + GAUGE_VALUE_FONT_SIZE + GAUGE_UNIT_FONT_SIZE + 10.0f),
-                    0.5f, 0.5f};
+                    0.5f, 0.5f, true, true};
         case bp2::NodeContentType::Switch:
-            return {Pt(SWITCH_WIDTH, SWITCH_HEIGHT), 0.5f, 0.5f};
+            return {Pt(SWITCH_WIDTH, SWITCH_HEIGHT), 0.5f, 0.5f, true, true};
         case bp2::NodeContentType::VerticalToggle:
             // Draw at top of reserved area so it doesn't overlap the header
-            return {Pt(VERTICAL_TOGGLE_WIDTH, VERTICAL_TOGGLE_HEIGHT), 0.5f, 0.0f};
+            return {Pt(VERTICAL_TOGGLE_WIDTH, VERTICAL_TOGGLE_HEIGHT), 0.5f, 0.0f, true, false};
         case bp2::NodeContentType::Slider:
-            return {Pt(SLIDER_MIN_WIDTH, SLIDER_HEIGHT), 0.5f, 0.5f};
+            return {Pt(SLIDER_MIN_WIDTH, SLIDER_HEIGHT), 0.5f, 0.5f, true, true};
         case bp2::NodeContentType::Indicator:
-            return {Pt(INDICATOR_SIZE, INDICATOR_SIZE), 0.5f, 0.5f};
+            return {Pt(INDICATOR_SIZE, INDICATOR_SIZE), 0.5f, 0.5f, true, true};
         case bp2::NodeContentType::Knob:
-            return {Pt(KNOB_SIZE, KNOB_SIZE), 0.5f, 0.5f};
+            return {Pt(KNOB_SIZE, KNOB_SIZE), 0.5f, 0.5f, true, true};
         case bp2::NodeContentType::Text:
-            return {Pt(60.0f, 12.0f), 0.5f, 0.5f};
+            return {Pt(60.0f, 12.0f), 0.5f, 0.5f, true, true};
         default:
             return {};
     }
@@ -582,18 +584,16 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
     setLocalPos(Pt(data.layout.x, data.layout.y));
     buildLayout(data, render_iface, interner);
 
-    // Auto-size: compute preferred, snap to grid
-    Pt preferred = preferredSize(nullptr);
+    // Auto-size: compute required minimum from the node's own layout contract.
+    Pt preferred = minimumNodeSize();
 
     float w = preferred.x;
     float h = preferred.y;
 
     bool has_explicit = data.layout.width.has_value() && data.layout.height.has_value();
     if (has_explicit) {
-        // Trust the user's explicit size — only enforce a hard minimum
-        // (PORT_LAYOUT_GRID) to prevent degenerate zero-area nodes.
-        if (*data.layout.width >= editor_constants::PORT_LAYOUT_GRID) w = *data.layout.width;
-        if (*data.layout.height >= editor_constants::PORT_LAYOUT_GRID) h = *data.layout.height;
+        w = std::max(*data.layout.width, preferred.x);
+        h = std::max(*data.layout.height, preferred.y);
     }
     spdlog::debug("[widget] NodeWidget layout: node='{}' type='{}' preferred=({},{}) explicit_size={} final=({},{})",
                   data.view.name, type_name_, preferred.x, preferred.y,
@@ -673,6 +673,8 @@ void NodeWidget::configure_content_geometry(bp2::NodeContentType content_type) {
     content_preferred_size_ = policy.preferred_size;
     content_align_x_ = policy.align_x;
     content_align_y_ = policy.align_y;
+    content_reserve_width_ = policy.reserve_width;
+    content_reserve_height_ = policy.reserve_height;
 }
 
 void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
@@ -918,15 +920,22 @@ Pt NodeWidget::preferredSize(IDrawList* dl) const {
     // content widget's intrinsic size on the zeroed axis so fixed-affordance
     // controls do not lose their visible/hittable area inside the old layout system.
     if (content_preferred_size_.x > 0.0f || content_preferred_size_.y > 0.0f) {
-        if (content_preferred_size_.x > 0) {
-            ps.x = std::max(ps.x, content_preferred_size_.x + 8.0f);
+        if (content_reserve_width_ && content_preferred_size_.x > 0) {
+            ps.x = std::max(ps.x, content_preferred_size_.x + CONTENT_MARGIN_X * 2.0f);
         }
-        if (content_preferred_size_.y > 0) {
-            ps.y += content_preferred_size_.y;
+        if (content_reserve_height_ && content_preferred_size_.y > 0) {
+            ps.y += content_preferred_size_.y + CONTENT_MARGIN_Y * 2.0f;
         }
     }
     
     return ps;
+}
+
+Pt NodeWidget::minimumNodeSize() const {
+    Pt min_size = preferredSize(nullptr);
+    min_size.x = std::max(min_size.x, editor_constants::PORT_LAYOUT_GRID);
+    min_size.y = std::max(min_size.y, editor_constants::PORT_LAYOUT_GRID);
+    return editor_math::snap_size_to_layout_grid(min_size);
 }
 
 Bounds NodeWidget::compute_content_bounds_from_layout() const {

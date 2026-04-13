@@ -52,6 +52,7 @@ public:
     const std::vector<Port*>& ports() const { return ports_; }
 
     Pt preferredSize(IDrawList* dl) const override;
+    Pt minimumNodeSize() const;
     void layout(float w, float h) override;
     void onLocalPosChanged() override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
@@ -110,6 +111,8 @@ private:
     /// 0.0 = start (left/top), 0.5 = center, 1.0 = end (right/bottom).
     float content_align_x_ = 0.5f;
     float content_align_y_ = 0.5f;
+    bool content_reserve_width_ = true;
+    bool content_reserve_height_ = true;
     Pt content_preferred_size_{};
 
     void buildLayout(const bp2::Blueprint::Node& data,

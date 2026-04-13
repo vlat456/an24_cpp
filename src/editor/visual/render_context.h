@@ -28,6 +28,7 @@ struct RenderContext : public ui::RenderContext {
     const Wire* selected_wire = nullptr;
     const Wire* hovered_wire = nullptr;
     const RoutingPoint* hovered_routing_point = nullptr;
+    bool show_debug_bounds = false;
 
     /// Set of visual wire IDs that are energized (voltage > threshold).
     /// Populated per frame from simulation state. nullptr when simulation is off.

@@ -1465,6 +1465,151 @@ TEST(CanvasInputContentToggle, EdgeClickOnVerticalToggleContentReturnsToggle) {
     EXPECT_EQ(result.toggle_switch_node_id, "azs_1");
 }
 
+TEST(CanvasInputLayoutSizing, ExplicitUndersizedNodeExpandsToRequiredMinimum) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto volt = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
+    volt.view.content_type = bp2::NodeContentType::Gauge;
+    volt.view.content_value = 27.5f;
+    volt.view.content_min = 0.0f;
+    volt.view.content_max = 30.0f;
+    volt.view.content_unit = "Voltmeter";
+    volt.layout.width = 32.0f;
+    volt.layout.height = 32.0f;
+    set_iface(volt, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(volt));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Pt minimum = widget->minimumNodeSize();
+    EXPECT_GE(widget->size().x, minimum.x);
+    EXPECT_GE(widget->size().y, minimum.y);
+}
+
+TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto volt = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
+    volt.view.content_type = bp2::NodeContentType::Gauge;
+    volt.view.content_value = 27.5f;
+    volt.view.content_min = 0.0f;
+    volt.view.content_max = 30.0f;
+    volt.view.content_unit = "Voltmeter";
+    set_iface(volt, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(volt));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Pt minimum = widget->minimumNodeSize();
+    Pt bottom_right = widget->worldPos() + widget->size();
+    const Pt canvas_min(0.0f, 0.0f);
+
+    input.on_mouse_down(bottom_right, MouseButton::Left, canvas_min);
+    ASSERT_EQ(input.state(), InputState::ResizingNode);
+
+    input.on_mouse_drag(MouseButton::Left, Pt(-500.0f, -500.0f), canvas_min);
+
+    EXPECT_GE(widget->size().x, minimum.x);
+    EXPECT_GE(widget->size().y, minimum.y);
+}
+
+TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto volt = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
+    volt.view.content_type = bp2::NodeContentType::Gauge;
+    volt.view.content_value = 27.5f;
+    volt.view.content_min = 0.0f;
+    volt.view.content_max = 30.0f;
+    volt.view.content_unit = "Voltmeter";
+    set_iface(volt, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(volt));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    vp.grid_step = 24.0f;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Pt minimum = widget->minimumNodeSize();
+    Pt bottom_right = widget->worldPos() + widget->size();
+    const Pt canvas_min(0.0f, 0.0f);
+
+    input.on_mouse_down(bottom_right, MouseButton::Left, canvas_min);
+    ASSERT_EQ(input.state(), InputState::ResizingNode);
+
+    input.on_mouse_drag(MouseButton::Left, Pt(-500.0f, -500.0f), canvas_min);
+
+    EXPECT_GE(widget->size().x, minimum.x);
+    EXPECT_GE(widget->size().y, minimum.y);
+}
+
+TEST(CanvasInputLayoutSizing, VerticalToggleMinimumHeightDoesNotAddFullContentStackHeight) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
+    azs.view.content_state = false;
+    set_iface(azs, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Pt minimum = widget->minimumNodeSize();
+    EXPECT_LE(minimum.y, 96.0f)
+        << "VerticalToggle minimum height should come from row/header/footer layout, not a stacked full-content addition";
+}
+
 // ============================================================================
 // Bug 3 regression: simulation_mode blocks editing but allows widget interaction
 // ============================================================================

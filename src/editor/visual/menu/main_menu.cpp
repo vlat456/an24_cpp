@@ -151,6 +151,9 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
     if (ImGui::MenuItem("Oscilloscope", nullptr, ws.showOscilloscope)) {
         ws.showOscilloscope = !ws.showOscilloscope;
     }
+    if (ImGui::MenuItem("Debug Layout Bounds", nullptr, ws.showDebugLayoutBounds)) {
+        ws.showDebugLayoutBounds = !ws.showDebugLayoutBounds;
+    }
 
     Document* active_doc = ws.activeDocument();
     if (active_doc) {

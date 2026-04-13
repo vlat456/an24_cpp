@@ -21,7 +21,8 @@ public:
 
 private:
     void renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawList* draw_list);
-    void renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmin, Pt cmax, ImDrawList* draw_list);
+    void renderBlueprint(BlueprintWindow& win, Document& doc, WindowSystem& ws,
+                         Pt cmin, Pt cmax, ImDrawList* draw_list);
     void renderTooltips(BlueprintWindow& win, Document& doc, WindowSystem& ws, Pt cmin, ImDrawList* draw_list);
     void renderTempWire(BlueprintWindow& win, Pt cmin, ImDrawList* draw_list);
     void renderMarquee(BlueprintWindow& win, Pt cmin, ImDrawList* draw_list);

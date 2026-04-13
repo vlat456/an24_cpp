@@ -32,6 +32,11 @@ void Widget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
     for (const auto& c : children_) {
         static_cast<Widget*>(c.get())->renderTree(dl, ctx);
     }
+    if (paint_enabled_ && ctx.show_debug_bounds && dl != nullptr) {
+        Pt min = ctx.world_to_screen(worldPos());
+        Pt max = ctx.world_to_screen(worldPos() + size());
+        dl->add_rect(min, max, 0xFF0000FF, 1.0f);
+    }
     if (paint_enabled_) {
         renderPost(dl, ctx);
     }
