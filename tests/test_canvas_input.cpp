@@ -2148,6 +2148,108 @@ TEST(CanvasInputSemanticRender, ContentSnapshotObjectIdsAreUniqueAndFindable) {
     }
 }
 
+TEST(CanvasInputSemanticRender, IndicatorAndKnobCirclesUseCenteredRadiusEncoding) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto indicator = make_node(I, "ind_1", "IndicatorLight", 100.0f, 100.0f);
+    indicator.view.content_type = bp2::NodeContentType::Indicator;
+    indicator.view.content_value = 1.0f;
+    set_iface(indicator, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 240.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 5.0f;
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(indicator));
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* indicator_widget = dynamic_cast<visual::NodeWidget*>(scene.find("ind_1"));
+    auto* knob_widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(indicator_widget, nullptr);
+    ASSERT_NE(knob_widget, nullptr);
+
+    const Bounds ind_cb = indicator_widget->contentBounds();
+    const auto& ind_snapshot = indicator_widget->content_semantic_snapshot();
+    const auto ind_circle = std::find_if(ind_snapshot.render_objects.begin(), ind_snapshot.render_objects.end(),
+        [](const editor::presentation::SceneRenderObject& object) {
+            return object.primitive == editor::presentation::PaintPrimitiveKind::Circle;
+        });
+    ASSERT_NE(ind_circle, ind_snapshot.render_objects.end());
+    EXPECT_FLOAT_EQ(ind_circle->bounds.x, ind_cb.x + ind_cb.w * 0.5f);
+    EXPECT_FLOAT_EQ(ind_circle->bounds.y, ind_cb.y + ind_cb.h * 0.5f);
+    EXPECT_GT(ind_circle->bounds.w, 0.0f);
+
+    const Bounds knob_cb = knob_widget->contentBounds();
+    const auto& knob_snapshot = knob_widget->content_semantic_snapshot();
+    const auto knob_circle = std::find_if(knob_snapshot.render_objects.begin(), knob_snapshot.render_objects.end(),
+        [](const editor::presentation::SceneRenderObject& object) {
+            return object.primitive == editor::presentation::PaintPrimitiveKind::Circle;
+        });
+    ASSERT_NE(knob_circle, knob_snapshot.render_objects.end());
+    EXPECT_FLOAT_EQ(knob_circle->bounds.x, knob_cb.x + knob_cb.w * 0.5f);
+    EXPECT_FLOAT_EQ(knob_circle->bounds.y, knob_cb.y + knob_cb.h * 0.5f);
+    EXPECT_GT(knob_circle->bounds.w, 0.0f);
+}
+
+TEST(CanvasInputSemanticRender, GaugeRestoresLegacyTextStackAndFullComposition) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto gauge = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
+    gauge.view.content_type = bp2::NodeContentType::Gauge;
+    gauge.view.content_value = 27.5f;
+    gauge.view.content_min = 0.0f;
+    gauge.view.content_max = 30.0f;
+    gauge.view.content_unit = "Voltmeter";
+    set_iface(gauge, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(gauge));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
+    ASSERT_NE(widget, nullptr);
+
+    const auto& snapshot = widget->content_semantic_snapshot();
+    EXPECT_GE(snapshot.render_objects.size(), 15u)
+        << "Gauge should restore arc, ticks, needle, center cap, and both text rows";
+
+    const editor::presentation::SceneRenderObject* value_text = nullptr;
+    const editor::presentation::SceneRenderObject* unit_text = nullptr;
+    for (const auto& object : snapshot.render_objects) {
+        if (object.primitive != editor::presentation::PaintPrimitiveKind::Text) {
+            continue;
+        }
+        if (object.text == "27.5") {
+            value_text = &object;
+        } else if (object.text == "Voltmeter") {
+            unit_text = &object;
+        }
+    }
+
+    ASSERT_NE(value_text, nullptr);
+    ASSERT_NE(unit_text, nullptr);
+    EXPECT_GT(unit_text->bounds.y, value_text->bounds.y);
+    EXPECT_GT(value_text->text_size, unit_text->text_size);
+}
+
 TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
     // Verify that the knob target publishes steps metadata so that CanvasInput
     // can use this to track positions without reading concrete widget member variables.

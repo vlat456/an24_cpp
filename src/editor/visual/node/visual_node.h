@@ -84,6 +84,7 @@ private:
 
     /// Non-owning pointers to child widgets (owned via widget tree)
     Column* layout_ = nullptr;
+    Widget* content_container_ = nullptr; ///< innermost widget wrapping the content spacer
     std::vector<Port*> ports_;
     
     /// Cached content type for semantic snapshot building
@@ -124,6 +125,7 @@ private:
 
     void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);
     void configure_content_geometry(bp2::NodeContentType content_type);
+    Bounds compute_content_bounds_from_layout() const;
     void refresh_content_semantic_snapshot();
 };
 

@@ -121,6 +121,13 @@ constexpr float GAUGE_RADIUS = 40.0f;
 constexpr float GAUGE_NEEDLE_LENGTH = 32.0f;
 constexpr float GAUGE_START_ANGLE = 210.0f;
 constexpr float GAUGE_SWEEP_ANGLE = -240.0f;
+constexpr float GAUGE_VALUE_FONT_SIZE = 14.0f;
+constexpr float GAUGE_UNIT_FONT_SIZE = 10.0f;
+constexpr uint32_t COLOR_GAUGE_BORDER = 0xFF3E3130;
+constexpr uint32_t COLOR_NEEDLE = 0xFF2A70C8;
+constexpr uint32_t COLOR_TICK_MAJOR = 0xFFDCD5D4;
+constexpr uint32_t COLOR_TICK_MINOR = 0xFF606070;
+constexpr uint32_t COLOR_GAUGE_TEXT = 0xFFDCD5D4;
 
 enum class ContentInteractionRole {
     Toggle,
@@ -159,7 +166,8 @@ ContentWidgetInteractionInfo build_rect_interaction(ContentInteractionRole role,
 Pt preferred_content_size(bp2::NodeContentType content_type) {
     switch (content_type) {
         case bp2::NodeContentType::Gauge:
-            return Pt(GAUGE_RADIUS * 2.0f, GAUGE_RADIUS * 2.0f + 24.0f);
+            return Pt(GAUGE_RADIUS * 2.0f,
+                      GAUGE_RADIUS * 2.0f + GAUGE_VALUE_FONT_SIZE + GAUGE_UNIT_FONT_SIZE + 10.0f);
         case bp2::NodeContentType::Switch:
             return Pt(SWITCH_WIDTH, SWITCH_HEIGHT);
         case bp2::NodeContentType::VerticalToggle:
@@ -444,10 +452,23 @@ ContentPresentationBuildResult build_content_presentation(
             append_painted(PaintPrimitiveKind::Arc,
                            Rect{cx, cy, GAUGE_RADIUS, GAUGE_SWEEP_ANGLE},
                            [&](PaintCommand& paint) {
-                               paint.fill_color = 0xFF3E3130;
+                               paint.fill_color = COLOR_GAUGE_BORDER;
                                paint.inset = GAUGE_START_ANGLE;
                                paint.stroke_width = 2.0f;
                            });
+
+            for (int i = 0; i < 11; ++i) {
+                const float t = static_cast<float>(i) / 10.0f;
+                const float angle = GAUGE_START_ANGLE + t * GAUGE_SWEEP_ANGLE;
+                const bool is_major = (i % 5) == 0;
+                append_painted(PaintPrimitiveKind::Line,
+                               Rect{cx, cy, angle, GAUGE_RADIUS},
+                               [&](PaintCommand& paint) {
+                                   paint.fill_color = is_major ? COLOR_TICK_MAJOR : COLOR_TICK_MINOR;
+                                   paint.inset = GAUGE_RADIUS - (is_major ? 6.0f : 3.0f);
+                                   paint.stroke_width = 1.5f;
+                               });
+            }
 
             const float range = max_value - min_value;
             const float normalized = (range > 1e-6f) ? std::clamp((value - min_value) / range, 0.0f, 1.0f) : 0.0f;
@@ -455,21 +476,30 @@ ContentPresentationBuildResult build_content_presentation(
             append_painted(PaintPrimitiveKind::Line,
                            Rect{cx, cy, needle_angle, GAUGE_NEEDLE_LENGTH},
                            [&](PaintCommand& paint) {
-                               paint.fill_color = 0xFF2A70C8;
+                               paint.fill_color = COLOR_NEEDLE;
                                paint.stroke_width = 2.0f;
                            });
+            append_painted(PaintPrimitiveKind::Circle,
+                           Rect{cx, cy, 3.0f, 0.0f},
+                           [&](PaintCommand& paint) {
+                               paint.fill_color = COLOR_NEEDLE;
+                           });
             append_painted(PaintPrimitiveKind::Text,
-                           Rect{bounds.x, bounds.y + GAUGE_RADIUS * 2.0f + 5.0f, bounds.w, 14.0f},
+                           Rect{cx, bounds.y + GAUGE_RADIUS * 2.0f + 5.0f, 0.0f, 0.0f},
                            [&](PaintCommand& paint) {
                                char buf[32];
                                snprintf(buf, sizeof(buf), "%.1f", value);
                                paint.text = buf;
+                               paint.fill_color = COLOR_GAUGE_TEXT;
+                               paint.text_size = GAUGE_VALUE_FONT_SIZE;
                            });
             append_painted(PaintPrimitiveKind::Text,
-                           Rect{bounds.x, bounds.y + GAUGE_RADIUS * 2.0f + 21.0f, bounds.w, 10.0f},
+                           Rect{cx, bounds.y + GAUGE_RADIUS * 2.0f + 21.0f, 0.0f, 0.0f},
                            [&](PaintCommand& paint) {
-                               paint.text = std::string(unit);
-                           });
+                                paint.text = std::string(unit);
+                                paint.fill_color = render_theme::COLOR_TEXT_DIM;
+                                paint.text_size = GAUGE_UNIT_FONT_SIZE;
+                            });
             break;
         }
         default:
@@ -660,18 +690,23 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
 
         // Content area (appended below port rows in the root Column)
         if (content_type == bp2::NodeContentType::Gauge) {
+            auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
+            container->setFlexGrow(1.0f);
             configure_content_geometry(content_type);
-            layout_->emplaceChild<Spacer>()->setFlexible(false);
+            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+            content_container_ = container;
         } else if (content_type == bp2::NodeContentType::Switch) {
             auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
             container->setFlexGrow(1.0f);
             configure_content_geometry(content_type);
             container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+            content_container_ = container;
         } else if (content_type == bp2::NodeContentType::VerticalToggle) {
             auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
             container->setFlexGrow(1.0f);
             configure_content_geometry(content_type);
             container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+            content_container_ = container;
         } else if (content_type == bp2::NodeContentType::Slider) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             float v_pad = 2.0f;
@@ -680,6 +715,7 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
             container->setFlexGrow(1.0f);
             configure_content_geometry(content_type);
             container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+            content_container_ = container;
         } else if (content_type == bp2::NodeContentType::Indicator) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
@@ -687,6 +723,7 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
             container->setFlexGrow(1.0f);
             configure_content_geometry(content_type);
             container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+            content_container_ = container;
         } else if (content_type == bp2::NodeContentType::Knob) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
@@ -694,11 +731,13 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
             container->setFlexGrow(1.0f);
             configure_content_geometry(content_type);
             container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+            content_container_ = container;
         } else if (content_type != bp2::NodeContentType::None) {
             auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
             container->setFlexGrow(1.0f);
             configure_content_geometry(content_type);
             container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+            content_container_ = container;
         }
     } else {
         // Slow path: four-sided layout with overrides.
@@ -728,6 +767,7 @@ void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data,
         Edges{0, 5.0f, 0, 5.0f});
     configure_content_geometry(bp2::NodeContentType::VerticalToggle);
     toggle_container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+    content_container_ = toggle_container;
 
     // Right column (output ports)
     auto* right_col = main_row->emplaceChild<Column>();
@@ -787,27 +827,34 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data,
     if (content_type == bp2::NodeContentType::Gauge) {
         configure_content_geometry(content_type);
         center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+        content_container_ = center;
     } else if (content_type == bp2::NodeContentType::Switch) {
         configure_content_geometry(content_type);
         center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+        content_container_ = center;
     } else if (content_type == bp2::NodeContentType::VerticalToggle) {
         configure_content_geometry(content_type);
         center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+        content_container_ = center;
     } else if (content_type == bp2::NodeContentType::Slider) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         configure_content_geometry(content_type);
         inner->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+        content_container_ = center;
     } else if (content_type == bp2::NodeContentType::Indicator) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         configure_content_geometry(content_type);
         inner->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+        content_container_ = center;
     } else if (content_type == bp2::NodeContentType::Knob) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         configure_content_geometry(content_type);
         inner->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+        content_container_ = center;
     } else if (content_type != bp2::NodeContentType::None) {
         configure_content_geometry(content_type);
         center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+        content_container_ = center;
     } else {
         center->emplaceChild<Spacer>();
     }
@@ -932,6 +979,35 @@ Pt NodeWidget::preferredSize(IDrawList* dl) const {
     return ps;
 }
 
+Bounds NodeWidget::compute_content_bounds_from_layout() const {
+    if ((content_preferred_size_.x <= 0.0f && content_preferred_size_.y <= 0.0f) ||
+        content_container_ == nullptr) {
+        return {};
+    }
+
+    // Layout owns placement, semantic content owns intrinsic size. The content
+    // container reserves where content should live inside the node, while the
+    // semantic content snapshot uses the intrinsic affordance size for render
+    // and hit geometry. This keeps ports/footer/header layout stable without
+    // shrinking interactive content when flex containers get tight.
+    float cx = 0.0f;
+    float cy = 0.0f;
+    const Widget* walker = content_container_;
+    while (walker != nullptr && walker != this) {
+        cx += walker->localPos().x;
+        cy += walker->localPos().y;
+        walker = walker->parent();
+    }
+
+    const float cw = content_container_->size().x;
+    const float ch = content_container_->size().y;
+    const float bw = content_preferred_size_.x;
+    const float bh = content_preferred_size_.y;
+    const float bx = cx + (cw - bw) * 0.5f;
+    const float by = cy + (ch - bh) * 0.5f;
+    return Bounds{bx, by, bw, bh};
+}
+
 void NodeWidget::layout(float w, float h) {
     setSize(Pt(w, h));
 
@@ -945,15 +1021,7 @@ void NodeWidget::layout(float w, float h) {
         layout_->layout(w, h);
     }
 
-    content_bounds_ = {};
-    if (content_preferred_size_.x > 0.0f || content_preferred_size_.y > 0.0f) {
-        content_bounds_ = Bounds{
-            std::max(0.0f, (w - content_preferred_size_.x) * 0.5f),
-            std::max(0.0f, (h - content_preferred_size_.y) * 0.5f),
-            content_preferred_size_.x,
-            content_preferred_size_.y,
-        };
-    }
+    content_bounds_ = compute_content_bounds_from_layout();
 
     refresh_content_semantic_snapshot();
 }
@@ -988,8 +1056,16 @@ void NodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
                 continue;
             }
             if (object.primitive == editor::presentation::PaintPrimitiveKind::Text) {
+                const float font = (object.text_size > 0.0f ? object.text_size : 10.0f) * ctx.zoom;
                 Pt text_pos = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
-                dl->add_text(text_pos, object.text.c_str(), render_theme::COLOR_TEXT_DIM, 10.0f * ctx.zoom);
+                if (object.bounds.w <= 0.0f && object.bounds.h <= 0.0f) {
+                    Pt text_size = dl->calc_text_size(object.text.c_str(), font);
+                    text_pos.x -= text_size.x * 0.5f;
+                }
+                dl->add_text(text_pos,
+                             object.text.c_str(),
+                             object.fill_color != 0 ? object.fill_color : render_theme::COLOR_TEXT_DIM,
+                             font);
                 continue;
             }
             if (object.primitive == editor::presentation::PaintPrimitiveKind::Rectangle) {

@@ -39,6 +39,7 @@ struct PaintCommand {
     uint32_t stroke_color = 0;
     float stroke_width = 0.0f;
     float inset = 0.0f;
+    float text_size = 0.0f;
 };
 
 enum class HitShapeKind {
