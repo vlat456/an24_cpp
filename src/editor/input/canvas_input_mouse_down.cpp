@@ -55,7 +55,9 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
 
         auto port_hit = visual::hit_test_ports(scene_, world);
         if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
-            auto wire_match = find_wire_on_port(ph->port);
+            ui::InternedId port_node_iid = interner_.intern(ph->port->rootAncestorId());
+            ui::InternedId port_name_iid = interner_.intern(ph->port->name());
+            auto wire_match = find_wire_on_port(port_node_iid, port_name_iid);
             if (wire_match) {
                 enter_reconnect_wire(wire_match->wire_index, wire_match->detach_start,
                                      wire_match->anchor_pos, wire_match->fixed_side,
@@ -63,7 +65,11 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
                 return result;
             }
             Pt port_center = ph->port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
-            enter_create_wire(ph->port, port_center);
+            enter_create_wire(port_node_iid,
+                              port_name_iid,
+                              ph->port->side(),
+                              ph->port->type(),
+                              port_center);
             return result;
         }
 
@@ -82,7 +88,8 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
              }
              enter_drag_node(hn->widget, false, mods.ctrl);
         } else if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
-            enter_drag_routing_point(hrp->wire, hrp->point, hrp->index);
+            enter_drag_routing_point(interner_.intern(hrp->wire->id()), hrp->index,
+                                     hrp->point->worldPos());
         } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
             clear_selection();
             selected_wire_id_ = interner_.intern(hw->wire->id());

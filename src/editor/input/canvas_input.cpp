@@ -148,20 +148,20 @@ void CanvasInput::update_hover(Pt world_pos) {
         state_ == InputState::DraggingSlider ||
         state_ == InputState::DraggingKnob) {
         hovered_wire_id_ = {};
-        hovered_routing_point_ = nullptr;
+        hovered_rp_id_ = {};
         return;
     }
 
     auto hit = visual::hit_test(scene_, world_pos);
     if (auto* h = std::get_if<visual::HitWire>(&hit)) {
         hovered_wire_id_ = interner_.intern(h->wire->id());
-        hovered_routing_point_ = nullptr;
+        hovered_rp_id_ = {};
     } else if (auto* h = std::get_if<visual::HitRoutingPoint>(&hit)) {
         hovered_wire_id_ = interner_.intern(h->wire->id());
-        hovered_routing_point_ = h->point;
+        hovered_rp_id_ = {interner_.resolve(hovered_wire_id_), h->index};
     } else {
         hovered_wire_id_ = {};
-        hovered_routing_point_ = nullptr;
+        hovered_rp_id_ = {};
     }
 }
 
@@ -208,14 +208,12 @@ void CanvasInput::enter_drag_node(visual::Widget* widget, bool add_to_selection,
     }
 }
 
-void CanvasInput::enter_drag_routing_point(visual::Wire* wire, visual::RoutingPoint* rp, size_t rp_idx) {
+void CanvasInput::enter_drag_routing_point(ui::InternedId wire_id, size_t rp_idx, Pt rp_world_pos) {
     state_ = InputState::DraggingRoutingPoint;
-    auto wire_iid = interner_.intern(wire->id());
-    selected_wire_id_ = wire_iid;
-    rp_wire_id_ = wire_iid;
-    rp_point_ = rp;
+    selected_wire_id_ = wire_id;
+    rp_wire_id_ = wire_id;
     rp_index_ = rp_idx;
-    drag_anchor_ = rp->worldPos();
+    drag_anchor_ = rp_world_pos;
 
     const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(rp_wire_id_);
     if (bp2_wire) {
@@ -239,9 +237,10 @@ void CanvasInput::enter_resize_node(visual::Widget* widget, ResizeCorner corner)
     drag_anchor_ = Pt(0, 0);
 }
 
-void CanvasInput::enter_create_wire(visual::Port* port, Pt port_pos) {
+void CanvasInput::enter_create_wire(ui::InternedId node_id, ui::InternedId port_id,
+                                    bp2::PortSide side, PortType type, Pt port_pos) {
     state_ = InputState::CreatingWire;
-    wire_start_port_ = port;
+    wire_start_endpoint_ = WireStartEndpoint{node_id, port_id, side, type};
     wire_start_pos_ = port_pos;
 }
 
@@ -312,9 +311,8 @@ void CanvasInput::leave_state() {
     drag_offsets_.clear();
     drag_initial_positions_.clear();
     rp_initial_points_.clear();
-    wire_start_port_ = nullptr;
-    rp_point_ = nullptr;
-    hovered_routing_point_ = nullptr;
+    wire_start_endpoint_.reset();
+    hovered_rp_id_ = {};
     semantic_canvas_controller_.reset();
     semantic_canvas_controller_.clear_active_mapping();
     semantic_widget_id_ = {};

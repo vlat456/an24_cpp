@@ -150,7 +150,7 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     ctx.selected_nodes = &sel_nodes;
     ctx.selected_wire = win.input.selected_wire();
     ctx.hovered_wire = win.input.hovered_wire();
-    ctx.hovered_routing_point = win.input.hovered_routing_point();
+    ctx.hovered_routing_point = win.input.hovered_routing_point_id();
     ctx.energized_wires = energized_buf_.empty() ? nullptr : &energized_buf_;
     ctx.show_debug_bounds = ws.showDebugLayoutBounds;
     ctx.show_debug_paint_bounds = ws.showDebugPaintBounds;

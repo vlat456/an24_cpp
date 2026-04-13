@@ -386,9 +386,11 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
     // Routing point handles (when wire is selected or hovered)
     if (ctx.selected_wire == this || ctx.hovered_wire == this) {
         float rp_radius = 4.0f * ctx.zoom;
-        for (const auto& child : children()) {
-            Pt screen_rp = ctx.world_to_screen(child->worldPos());
-            uint32_t rp_color = (ctx.hovered_routing_point == child.get())
+        const bool match_wire = !ctx.hovered_routing_point.empty()
+                             && ctx.hovered_routing_point.wire_id == id_;
+        for (size_t ci = 0; ci < children().size(); ++ci) {
+            Pt screen_rp = ctx.world_to_screen(children()[ci]->worldPos());
+            uint32_t rp_color = (match_wire && ctx.hovered_routing_point.index == ci)
                 ? render_theme::COLOR_WIRE_HOVER : render_theme::COLOR_ROUTING_POINT;
             handle_renderer::draw_handle(*dl, screen_rp, rp_radius, rp_color);
         }

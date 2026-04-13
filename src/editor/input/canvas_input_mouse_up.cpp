@@ -110,7 +110,14 @@ void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) 
 void CanvasInput::commit_drag_routing_point() {
      const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(rp_wire_id_);
      if (!bp2_wire) return;
-     Pt final_pos = rp_point_ ? rp_point_->worldPos() : Pt(0, 0);
+     Pt final_pos(0, 0);
+     if (auto* rp_wire = resolve_wire(rp_wire_id_)) {
+         if (rp_index_ < rp_wire->children().size()) {
+             if (auto* rp_point = dynamic_cast<visual::RoutingPoint*>(rp_wire->children()[rp_index_].get())) {
+                 final_pos = rp_point->worldPos();
+             }
+         }
+     }
 
      std::vector<std::pair<float,float>> new_points;
      new_points.reserve(rp_initial_points_.size());
@@ -324,7 +331,7 @@ InputResult CanvasInput::on_key(Key key) {
                  }
              });
              debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
-             hovered_routing_point_ = nullptr;
+                 hovered_rp_id_ = {};
              visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
              clear_selection();
              result.rebuild_simulation = true;

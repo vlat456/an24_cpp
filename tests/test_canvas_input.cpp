@@ -3247,8 +3247,8 @@ TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
 
     EXPECT_EQ(input.hovered_wire(), nullptr)
          << "While DraggingKnob, hovered_wire() must be nullptr (hover suppressed)";
-     EXPECT_EQ(input.hovered_routing_point(), nullptr)
-         << "While DraggingKnob, hovered_routing_point() must be nullptr (hover suppressed)";
+     EXPECT_TRUE(input.hovered_routing_point_id().empty())
+         << "While DraggingKnob, hovered_routing_point_id() must be empty (hover suppressed)";
 }
 
 TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
@@ -3309,8 +3309,8 @@ TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
 
     EXPECT_EQ(input.hovered_wire(), nullptr)
         << "While DraggingSlider, hovered_wire() must be nullptr (hover suppressed)";
-    EXPECT_EQ(input.hovered_routing_point(), nullptr)
-        << "While DraggingSlider, hovered_routing_point() must be nullptr (hover suppressed)";
+    EXPECT_TRUE(input.hovered_routing_point_id().empty())
+        << "While DraggingSlider, hovered_routing_point_id() must be empty (hover suppressed)";
 }
 
 TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAndCancelsSemanticSession) {

@@ -3,6 +3,7 @@
 #include "editor/input/input_types.h"
 #include "editor/input/editing_host.h"
 #include "editor/visual/presentation/semantic_canvas_controller.h"
+#include "editor/visual/render_context.h"
 #include "ui/math/pt.h"
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/blueprint/node_port.h"
@@ -20,7 +21,6 @@ class Scene;
 class Widget;
 class Wire;
 class Port;
-class RoutingPoint;
 } // namespace visual
 
 struct Viewport;
@@ -87,9 +87,9 @@ public:
     /// Wire currently under mouse cursor (resolved from ID), or nullptr.
     visual::Wire* hovered_wire() const;
 
-    /// Routing point currently under mouse cursor, or nullptr.
-    /// Valid only during Idle/hover state (transient pointer).
-    visual::RoutingPoint* hovered_routing_point() const { return hovered_routing_point_; }
+    /// Semantic identifier of the hovered routing point, for rendering.
+    /// Uses wire-id + child-index instead of a raw widget pointer.
+    visual::HoveredRoutingPointId hovered_routing_point_id() const { return hovered_rp_id_; }
 
     bool is_marquee_selecting() const { return state_ == InputState::MarqueeSelect; }
     Pt marquee_start() const { return marquee_start_; }
@@ -141,15 +141,22 @@ private:
     ui::InternedId selected_wire_id_;
     ui::InternedId hovered_wire_id_;
 
-    // Hover — routing point is transient (only valid during current frame).
-    visual::RoutingPoint* hovered_routing_point_ = nullptr;
+    // Hover — routing point identified by wire id + child index (semantic, no raw pointer).
+    visual::HoveredRoutingPointId hovered_rp_id_;
 
     // Drag state (shared by DraggingNode / DraggingRoutingPoint)
     Pt drag_anchor_;
     std::vector<Pt> drag_offsets_;
 
-    // Wire creation — transient (port pointer valid only during CreatingWire state)
-    visual::Port* wire_start_port_ = nullptr;
+    struct WireStartEndpoint {
+        ui::InternedId node_id;
+        ui::InternedId port_id;
+        bp2::PortSide side = bp2::PortSide::Input;
+        PortType type = PortType::Any;
+    };
+
+    // Wire creation — semantic endpoint metadata only, no widget pointer.
+    std::optional<WireStartEndpoint> wire_start_endpoint_;
     Pt wire_start_pos_;
 
     // Wire reconnection
@@ -159,9 +166,8 @@ private:
     bp2::PortSide reconnect_fixed_side_ = bp2::PortSide::Input;
     PortType reconnect_fixed_type_ = PortType::Any;
 
-    // Routing-point drag — transient (pointers valid only during DraggingRoutingPoint)
+    // Routing-point drag — semantic wire/id state only.
     ui::InternedId rp_wire_id_;
-    visual::RoutingPoint* rp_point_ = nullptr;
     size_t rp_index_ = 0;
     std::vector<Pt> rp_initial_points_;  // snapshot of routing_points at drag start
 
@@ -192,9 +198,10 @@ private:
      // ---- Internal transition helpers ----
      void enter_panning();
     void enter_drag_node(visual::Widget* widget, bool add_to_selection, bool ctrl);
-    void enter_drag_routing_point(visual::Wire* wire, visual::RoutingPoint* rp, size_t rp_idx);
+    void enter_drag_routing_point(ui::InternedId wire_id, size_t rp_idx, Pt rp_world_pos);
     void enter_resize_node(visual::Widget* widget, ResizeCorner corner);
-    void enter_create_wire(visual::Port* port, Pt port_pos);
+    void enter_create_wire(ui::InternedId node_id, ui::InternedId port_id,
+                           bp2::PortSide side, PortType type, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
                               Pt anchor_pos, bp2::PortSide fixed_side, PortType fixed_type);
       void enter_marquee(Pt world_pos);
@@ -293,7 +300,8 @@ private:
         bp2::PortSide fixed_side;
         PortType fixed_type;
     };
-    std::optional<WirePortMatch> find_wire_on_port(visual::Port* port) const;
+    std::optional<WirePortMatch> find_wire_on_port(ui::InternedId port_node_id,
+                                                   ui::InternedId port_name_id) const;
 
     /// Build a WirePortMatch for a given wire index and detach direction.
     WirePortMatch build_wire_port_match(size_t wire_index, bool detach_start,

@@ -161,16 +161,21 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 drag_anchor_ = drag_anchor_ + world_delta;
                 Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
 
-                if (rp_point_) {
-                    rp_point_->setLocalPos(snapped);
-                    auto* rp_wire = resolve_wire(rp_wire_id_);
+                auto* rp_wire = resolve_wire(rp_wire_id_);
+                visual::RoutingPoint* rp_point = nullptr;
+                if (rp_wire && rp_index_ < rp_wire->children().size()) {
+                    rp_point = dynamic_cast<visual::RoutingPoint*>(rp_wire->children()[rp_index_].get());
+                }
+
+                if (rp_point) {
+                    rp_point->setLocalPos(snapped);
                     if (rp_wire) {
                         rp_wire->invalidateGeometry();
                         if (rp_wire->scene() && rp_wire->isClickable())
                             rp_wire->scene()->grid().update(rp_wire);
                     }
-                    if (rp_point_->scene())
-                        rp_point_->scene()->grid().update(rp_point_);
+                    if (rp_point->scene())
+                        rp_point->scene()->grid().update(rp_point);
                 }
                 break;
             }
