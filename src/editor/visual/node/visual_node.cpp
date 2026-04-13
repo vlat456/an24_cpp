@@ -128,6 +128,8 @@ constexpr uint32_t COLOR_NEEDLE = 0xFF2A70C8;
 constexpr uint32_t COLOR_TICK_MAJOR = 0xFFDCD5D4;
 constexpr uint32_t COLOR_TICK_MINOR = 0xFF606070;
 constexpr uint32_t COLOR_GAUGE_TEXT = 0xFFDCD5D4;
+constexpr float CONTENT_MARGIN_X = 5.0f;
+constexpr float CONTENT_MARGIN_Y = 5.0f;
 
 enum class ContentInteractionRole {
     Toggle,
@@ -163,26 +165,42 @@ ContentWidgetInteractionInfo build_rect_interaction(ContentInteractionRole role,
     };
 }
 
-Pt preferred_content_size(bp2::NodeContentType content_type) {
+/// Layout policy for content within its container cell.
+/// Alignment values: 0.0 = start (left/top), 0.5 = center, 1.0 = end (right/bottom).
+struct ContentLayoutPolicy {
+    Pt preferred_size{0.0f, 0.0f};
+    float align_x = 0.5f;   ///< Horizontal alignment within container
+    float align_y = 0.5f;   ///< Vertical alignment within container
+};
+
+/// Single authoritative table mapping content type → intrinsic size + alignment.
+/// All per-type layout decisions live here; no type-checks needed downstream.
+ContentLayoutPolicy content_layout_policy(bp2::NodeContentType content_type) {
     switch (content_type) {
         case bp2::NodeContentType::Gauge:
-            return Pt(GAUGE_RADIUS * 2.0f,
-                      GAUGE_RADIUS * 2.0f + GAUGE_VALUE_FONT_SIZE + GAUGE_UNIT_FONT_SIZE + 10.0f);
+            return {Pt(GAUGE_RADIUS * 2.0f,
+                       GAUGE_RADIUS * 2.0f + GAUGE_VALUE_FONT_SIZE + GAUGE_UNIT_FONT_SIZE + 10.0f),
+                    0.5f, 0.5f};
         case bp2::NodeContentType::Switch:
-            return Pt(SWITCH_WIDTH, SWITCH_HEIGHT);
+            return {Pt(SWITCH_WIDTH, SWITCH_HEIGHT), 0.5f, 0.5f};
         case bp2::NodeContentType::VerticalToggle:
-            return Pt(VERTICAL_TOGGLE_WIDTH, VERTICAL_TOGGLE_HEIGHT);
+            // Draw at top of reserved area so it doesn't overlap the header
+            return {Pt(VERTICAL_TOGGLE_WIDTH, VERTICAL_TOGGLE_HEIGHT), 0.5f, 0.0f};
         case bp2::NodeContentType::Slider:
-            return Pt(SLIDER_MIN_WIDTH, SLIDER_HEIGHT);
+            return {Pt(SLIDER_MIN_WIDTH, SLIDER_HEIGHT), 0.5f, 0.5f};
         case bp2::NodeContentType::Indicator:
-            return Pt(INDICATOR_SIZE, INDICATOR_SIZE);
+            return {Pt(INDICATOR_SIZE, INDICATOR_SIZE), 0.5f, 0.5f};
         case bp2::NodeContentType::Knob:
-            return Pt(KNOB_SIZE, KNOB_SIZE);
+            return {Pt(KNOB_SIZE, KNOB_SIZE), 0.5f, 0.5f};
         case bp2::NodeContentType::Text:
-            return Pt(60.0f, 12.0f);
+            return {Pt(60.0f, 12.0f), 0.5f, 0.5f};
         default:
-            return Pt(0.0f, 0.0f);
+            return {};
     }
+}
+
+ui::Edges standard_content_margins() {
+    return ui::Edges{CONTENT_MARGIN_X, CONTENT_MARGIN_Y, CONTENT_MARGIN_X, CONTENT_MARGIN_Y};
 }
 
 std::optional<ContentWidgetInteractionInfo> derive_content_interaction(
@@ -651,7 +669,10 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data,
 }
 
 void NodeWidget::configure_content_geometry(bp2::NodeContentType content_type) {
-    content_preferred_size_ = preferred_content_size(content_type);
+    auto policy = content_layout_policy(content_type);
+    content_preferred_size_ = policy.preferred_size;
+    content_align_x_ = policy.align_x;
+    content_align_y_ = policy.align_y;
 }
 
 void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
@@ -689,51 +710,8 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
         }
 
         // Content area (appended below port rows in the root Column)
-        if (content_type == bp2::NodeContentType::Gauge) {
-            auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
-            container->setFlexGrow(1.0f);
-            configure_content_geometry(content_type);
-            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-            content_container_ = container;
-        } else if (content_type == bp2::NodeContentType::Switch) {
-            auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
-            container->setFlexGrow(1.0f);
-            configure_content_geometry(content_type);
-            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-            content_container_ = container;
-        } else if (content_type == bp2::NodeContentType::VerticalToggle) {
-            auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
-            container->setFlexGrow(1.0f);
-            configure_content_geometry(content_type);
-            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-            content_container_ = container;
-        } else if (content_type == bp2::NodeContentType::Slider) {
-            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
-            float v_pad = 2.0f;
-            auto* container = layout_->emplaceChild<Container>(
-                Edges{margin, v_pad, margin, v_pad});
-            container->setFlexGrow(1.0f);
-            configure_content_geometry(content_type);
-            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-            content_container_ = container;
-        } else if (content_type == bp2::NodeContentType::Indicator) {
-            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
-            auto* container = layout_->emplaceChild<Container>(
-                Edges{margin, 2.0f, margin, 2.0f});
-            container->setFlexGrow(1.0f);
-            configure_content_geometry(content_type);
-            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-            content_container_ = container;
-        } else if (content_type == bp2::NodeContentType::Knob) {
-            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
-            auto* container = layout_->emplaceChild<Container>(
-                Edges{margin, 2.0f, margin, 2.0f});
-            container->setFlexGrow(1.0f);
-            configure_content_geometry(content_type);
-            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-            content_container_ = container;
-        } else if (content_type != bp2::NodeContentType::None) {
-            auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
+        if (content_type != bp2::NodeContentType::None) {
+            auto* container = layout_->emplaceChild<Container>(standard_content_margins());
             container->setFlexGrow(1.0f);
             configure_content_geometry(content_type);
             container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
@@ -763,8 +741,7 @@ void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data,
     // Center column (vertical toggle) — flex to push right column to the edge
     auto* center_col = main_row->emplaceChild<Column>();
     center_col->setFlexGrow(1.0f);
-    auto* toggle_container = center_col->emplaceChild<Container>(
-        Edges{0, 5.0f, 0, 5.0f});
+    auto* toggle_container = center_col->emplaceChild<Container>(standard_content_margins());
     configure_content_geometry(bp2::NodeContentType::VerticalToggle);
     toggle_container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
     content_container_ = toggle_container;
@@ -821,37 +798,10 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data,
     // Center column: content widget or spacer.
     // Must be flexible so it absorbs remaining width, pushing right_col to
     // the node's right edge (mirroring buildVerticalToggleLayout).
-    auto* center = body_row->emplaceChild<Container>(Edges{4, 0, 4, 0});
+    auto* center = body_row->emplaceChild<Container>(standard_content_margins());
     center->setFlexGrow(1.0f);
 
-    if (content_type == bp2::NodeContentType::Gauge) {
-        configure_content_geometry(content_type);
-        center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-        content_container_ = center;
-    } else if (content_type == bp2::NodeContentType::Switch) {
-        configure_content_geometry(content_type);
-        center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-        content_container_ = center;
-    } else if (content_type == bp2::NodeContentType::VerticalToggle) {
-        configure_content_geometry(content_type);
-        center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-        content_container_ = center;
-    } else if (content_type == bp2::NodeContentType::Slider) {
-        auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
-        configure_content_geometry(content_type);
-        inner->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-        content_container_ = center;
-    } else if (content_type == bp2::NodeContentType::Indicator) {
-        auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
-        configure_content_geometry(content_type);
-        inner->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-        content_container_ = center;
-    } else if (content_type == bp2::NodeContentType::Knob) {
-        auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
-        configure_content_geometry(content_type);
-        inner->emplaceChild<Spacer>()->setSize(content_preferred_size_);
-        content_container_ = center;
-    } else if (content_type != bp2::NodeContentType::None) {
+    if (content_type != bp2::NodeContentType::None) {
         configure_content_geometry(content_type);
         center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
         content_container_ = center;
@@ -1003,8 +953,8 @@ Bounds NodeWidget::compute_content_bounds_from_layout() const {
     const float ch = content_container_->size().y;
     const float bw = content_preferred_size_.x;
     const float bh = content_preferred_size_.y;
-    const float bx = cx + (cw - bw) * 0.5f;
-    const float by = cy + (ch - bh) * 0.5f;
+    const float bx = cx + (cw - bw) * content_align_x_;
+    const float by = cy + (ch - bh) * content_align_y_;
     return Bounds{bx, by, bw, bh};
 }
 
