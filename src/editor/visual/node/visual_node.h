@@ -5,7 +5,6 @@
 #include "visual/container/linear_layout.h"
 #include "visual/container/container.h"
 #include "visual/container/port_row.h"
-#include "visual/widgets/content_widgets.h"
 #include "visual/primitives/primitives.h"
 #include "visual/node/bounds.h"
 #include "visual/node/layout_context.h"
@@ -59,11 +58,8 @@ public:
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
     /// Content area bounds relative to the node origin (for ImGui overlay).
-    /// Returns zero-size Bounds if no content widget exists.
+    /// Returns zero-size Bounds if the node has no semantic content region.
     Bounds contentBounds() const;
-
-    /// Content widget (if any). nullptr for nodes without interactive content.
-     Widget* contentWidget() const { return content_widget_; }
 
      const editor::presentation::SemanticSceneSnapshot& content_semantic_snapshot() const {
          return content_semantic_snapshot_;
@@ -88,7 +84,6 @@ private:
 
     /// Non-owning pointers to child widgets (owned via widget tree)
     Column* layout_ = nullptr;
-    Widget* content_widget_ = nullptr;
     std::vector<Port*> ports_;
     
     /// Cached content type for semantic snapshot building
@@ -108,6 +103,8 @@ private:
     std::optional<uint32_t> custom_fill_;
     editor::presentation::SemanticSceneSnapshot content_semantic_snapshot_;
     bool render_content_from_semantic_snapshot_ = false;
+    Bounds content_bounds_{};
+    Pt content_preferred_size_{};
 
     void buildLayout(const bp2::Blueprint::Node& data,
                      const bp2::Interface& render_iface,
@@ -126,6 +123,7 @@ private:
                               const ui::StringInterner& interner);
 
     void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);
+    void configure_content_geometry(bp2::NodeContentType content_type);
     void refresh_content_semantic_snapshot();
 };
 

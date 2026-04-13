@@ -491,52 +491,47 @@ Each subwindow uses an `EmbeddedInlineHost` that reads/writes the authoritative 
 
 3. **Node lookup scope** — when looking up a node for an embedded composite, search `inline_def` (not the root blueprint). Use `find_node_in_scope()` helper in `document_simulation.cpp`.
 
-## Content Types and Widget Pipeline
+## Content Types and Semantic Content Pipeline
 
-### How Content Widgets Work
+### How Node Content Works
 
-Content widgets are visual representations of component state (gauges, switches, indicators) that live inside `NodeWidget` layouts. The pipeline has three stages:
+Node content is no longer implemented as per-type child widgets. The active pipeline is:
 
-1. **Type definition** (`library/*.blueprint`) — specifies `content_type` string (e.g., `"Indicator"`, `"Gauge"`, `"Switch"`)
-2. **Widget creation** (`visual_node.cpp::buildStandardLayout()`) — maps `NodeContentType` enum to widget class
-3. **Runtime updates** (`document.cpp::updateNodeContentFromSimulation()`) — pushes simulation values to widget via `updateFromContent()`
+1. **Type definition** (`library/*.blueprint`) declares `content_type`
+2. **Node layout** (`visual_node.cpp`) reserves content geometry inside `NodeWidget`
+3. **Runtime updates** (`document.cpp::updateNodeContentFromSimulation()`) refresh cached content state on the node
+4. **Semantic snapshot build** (`NodeWidget::refresh_content_semantic_snapshot()`) produces retained render and hit objects
+5. **Rendering and interaction** both consume that same semantic snapshot
+
+The key production object is `NodeWidget::content_semantic_snapshot()`. It contains:
+
+- `render_objects` for live content painting
+- `hit_objects` for semantic content interaction
+
+`CanvasInput` enters content interactions through semantic hit testing, not widget type checks.
 
 ### Adding a New Content Type
 
-**Step 1: Add the enum value** in the canonical enum:
-- `src/blueprint_v2/blueprint/node_content_type.h` → `enum class bp2::NodeContentType`
+**Step 1: Add the enum value** in `src/blueprint_v2/blueprint/node_content_type.h`.
 
-**Step 2: Create the widget class** in `content_widgets.h/cpp`:
-- Extend `Widget`
-- Implement `preferredSize()`, `render()`, `updateFromContent()`, optionally `layout()`
-- Set `setFlexible(false)` if widget has fixed size
-- Colors are `uint32_t` in ImGui AABBGGRR format (alpha, blue, green, red bytes)
+**Step 2: Register the type string** in `src/editor/data/node_content.h` so blueprint metadata maps to the new `bp2::NodeContentType`.
 
-**Step 3: Register in `create_node_content_from_def()`** (`node_content.h`):
-```cpp
-} else if (ct == "MyType") {
-    content.type = NodeContentType::MyType;
-    content.value = 0.0f;
-}
-```
+**Step 3: Add layout support** in `src/editor/visual/node/visual_node.cpp`:
+- update `preferred_content_size()`
+- update `buildStandardLayout()` if the content needs reserved geometry there
+- update `buildFourSidedLayout()` if the content needs reserved geometry there
+- update `buildVerticalToggleLayout()` only if it needs the special vertical-toggle path
 
-**Step 4: Add to BOTH layout paths** in `visual_node.cpp`:
-- `buildStandardLayout()` — standard layout (no port overrides)
-- `buildFourSidedLayout()` — four-sided layout (with port overrides)
+**Step 4: Add semantic rendering and interaction** in `src/editor/visual/node/visual_node.cpp`:
+- extend `refresh_content_semantic_snapshot()` to emit the new render objects
+- if interactive, extend `derive_content_interaction()` and emit the appropriate `InteractionBinding`
 
-⚠️ **Critical pitfall**: If you add the widget to only one layout path, nodes using the other path will get a Spacer/Label instead of your widget. Most nodes use the standard path.
+**Step 5: Wire up simulation readout** in `document.cpp::updateNodeContentFromSimulation()` so the node's cached content values are updated from runtime state.
 
-**Step 5: Wire up simulation readout** in `document.cpp::updateNodeContentFromSimulation()`:
-```cpp
-} else if (type_name == "MyComponent") {
-    content.value = simulation_.get_port_value(nid, "my_port");
-}
-```
+**Step 6: Set `content_type` in the blueprint** (`library/category/MyComponent.blueprint`).
 
-**Step 6: Set content_type in blueprint** (`library/category/MyComponent.blueprint`):
-```json
-"content_type": "MyType"
-```
+Critical pitfall:
+Content geometry reservation and semantic snapshot emission must agree. If layout reserves space but no semantic render objects are emitted, the node will have empty content. If semantic hit objects are missing, the content will render but not interact.
 
 ### Color Format
 
@@ -550,14 +545,15 @@ The `NodeColor::to_uint32()` helper converts (r,g,b,a) floats to this format.
 
 ### Existing Content Types
 
-| ContentType | Widget Class | Blueprint `content_type` | Interactive? |
-|-------------|-------------|-------------------------|-------------|
-| Gauge | VoltmeterWidget | `"Gauge"` | No (display only) |
-| Switch | SwitchWidget | `"Switch"` / `"HoldButton"` | Yes (click) |
-| VerticalToggle | VerticalToggleWidget | `"VerticalToggle"` | Yes (click) |
-| Slider | SliderWidget | `"Slider"` | Yes (drag) |
-| Indicator | IndicatorWidget | `"Indicator"` | No (display only) |
-| Text | Label | `"Text"` | No |
+| ContentType | Blueprint `content_type` | Rendered Semantically | Interactive? |
+|-------------|-------------------------|-----------------------|-------------|
+| Gauge | `"Gauge"` | Yes | No |
+| Switch | `"Switch"` / `"HoldButton"` | Yes | Yes (click) |
+| VerticalToggle | `"VerticalToggle"` | Yes | Yes (click) |
+| Slider | `"Slider"` | Yes | Yes (drag scalar) |
+| Indicator | `"Indicator"` | Yes | No |
+| Knob | `"Knob"` | Yes | Yes (drag discrete) |
+| Text | `"Text"` | Yes | No |
 
 ## KnobSwitch Port Semantics
 

@@ -827,31 +827,31 @@ Also fixed sub-window viewport: instead of blindly setting `pending_auto_fit = h
 
 ---
 
-### ~~31. IndicatorWidget Not Rendered in Standard Layout~~ ✓ FIXED
+### ~~31. Indicator Content Not Rendered in Standard Layout~~ ✓ FIXED
 
 **Status:** CLOSED
 
 **Problem:** IndicatorLight component circle was never drawn in the editor. The component's simulation output (normalized brightness 0-1) was correct, but no visual circle appeared.
 
-**Root cause:** In `visual_node.cpp::buildStandardLayout()`, the `NodeContentType::Indicator` case was **missing** from the content type switch. All other content types (Gauge, Switch, VerticalToggle, Slider) had explicit cases that created the correct widget class. The Indicator type fell through to the catch-all `else if (content_type != NodeContentType::None)` which created a Label or Spacer instead of an IndicatorWidget.
+**Root cause:** In `visual_node.cpp::buildStandardLayout()`, the `NodeContentType::Indicator` case was **missing** from the content type switch. The standard layout path therefore failed to reserve the correct content region for indicator rendering, so the node fell through to the generic non-content layout path.
 
 The `NodeContentType::Indicator` case WAS present in `buildFourSidedLayout()` (the override-based path), but IndicatorLight nodes have no layout overrides, so they always take the standard path where the case was missing.
 
-**Fix:** Added `NodeContentType::Indicator` case to `buildStandardLayout()` following the same pattern as other content types (Container with margins → IndicatorWidget).
+**Fix:** Added `NodeContentType::Indicator` case to `buildStandardLayout()` so the node reserves the correct content geometry for indicator content.
 
 **Lesson:** When adding a new content type, it must be registered in **both** layout paths:
 1. `buildStandardLayout()` — standard layout (no port overrides) — the common path
 2. `buildFourSidedLayout()` — four-sided layout (with port overrides)
 
-Missing either one causes silent fallback to a Spacer with no visual output.
+Missing either one causes silent loss of the intended content region and therefore no visual output.
 
 **Files changed:**
 - `src/editor/visual/node/visual_node.cpp` — added Indicator case to `buildStandardLayout()`
-- `tests/test_visual_content_widgets.cpp` — 9 new rendering tests verifying draw calls
-- `knowledge/05_editor.md` — documented content type widget pipeline
+- `tests/test_canvas_input.cpp` — semantic content rendering regressions
+- `knowledge/05_editor.md` — documented semantic content pipeline
 - `knowledge/errors_TODO.md` — this entry
 
-**Regression tests:** `IndicatorWidgetTest.RenderEmitsFilledCircleAndOutline`, `RenderCircleCenteredInWidget`, `RenderRadiusGrowsWithBrightness`, `RenderColorOffIsGray`, `RenderColorOnHasGreenChannel`, `RenderAtZoom2ScalesRadius`, `RenderBorderAlwaysPresent`, `LayoutAcceptsParentSize`, `RenderInContainerEmitsDrawCalls`
+**Regression tests:** semantic content rendering and hit-test coverage now lives under `tests/test_canvas_input.cpp`
 
 ---
 
@@ -1285,13 +1285,13 @@ alignas(64) std::vector<float> through;
 
 **Status:** CLOSED
 
-**Problem:** Clicking on AZS (VerticalToggle) switches in the editor required pixel-perfect precision. The clickable content area was only ~6.2px wide despite the node being 128px wide and the toggle widget rendering at 16px.
+**Problem:** Clicking on AZS (VerticalToggle) switches in the editor required pixel-perfect precision. The reserved semantic content area was only ~6.2px wide despite the node being 128px wide and the visible control rendering at 16px.
 
-**Root cause:** In `buildVerticalToggleLayout()`, the center column containing the toggle widget uses `setFlexGrow(1.0f)`. During `linearPreferredSize()`, flex children contribute 0 to the parent's preferred size. So the Row's preferred width = left_col + right_col (port label columns) only. After grid snapping to 128px, the center column got the remainder: `128 - 121.8 = 6.2px`.
+**Root cause:** In `buildVerticalToggleLayout()`, the center column containing the content region uses `setFlexGrow(1.0f)`. During `linearPreferredSize()`, flex children contribute 0 to the parent's preferred size. So the Row's preferred width = left_col + right_col (port label columns) only. After grid snapping to 128px, the center column got the remainder: `128 - 121.8 = 6.2px`.
 
-The fix for this already existed in `NodeWidget::preferredSize()` (lines 362-368) — it added content widget preferred size to the node's preferred width. But it was guarded by `four_sided_layout_ == true`, which VerticalToggle nodes never set.
+The fix for this already existed in `NodeWidget::preferredSize()` conceptually — content preferred size must contribute back into node preferred width when the content region sits under a flex ancestor. But it was previously guarded too narrowly.
 
-**Fix:** Replaced the `four_sided_layout_` flag with a generic check: if the content widget has a flex ancestor (i.e., it's inside a flex-grow column), include its preferred size in the node's preferred width. This works for any content type, not just four-sided layouts.
+**Fix:** Replaced the `four_sided_layout_` flag with a generic check: if the content region sits under a flex ancestor (i.e., inside a flex-grow column), include its preferred size in the node's preferred width. This works for any content type, not just four-sided layouts.
 
 - Removed `four_sided_layout_` member and its assignment
 - Added generic parent-chain walk in `preferredSize()` to detect flex ancestor
@@ -1299,7 +1299,7 @@ The fix for this already existed in `NodeWidget::preferredSize()` (lines 362-368
 **Files changed:**
 
 - `src/editor/visual/node/visual_node.cpp` — generalized `preferredSize()` fix
-- `src/editor/visual/node/visual_node.h` — removed `four_sided_layout_` member, added `contentWidget()` accessor
+- `src/editor/visual/node/visual_node.h` — removed `four_sided_layout_` member
 - `tests/test_canvas_input.cpp` — regression test `VerticalToggleContentBoundsWideEnough`
 
 **Regression tests:** `VerticalToggleContentBoundsWideEnough`, `ClickOnVerticalToggleContentReturnsToggle`
@@ -1310,19 +1310,17 @@ The fix for this already existed in `NodeWidget::preferredSize()` (lines 362-368
 
 **Status:** CLOSED
 
-**Problem:** `check_content_toggle()` in `canvas_input.cpp` used hardcoded type checks (`dynamic_cast` or widget type comparisons) to determine if a content widget was clickable/toggleable. Adding a new toggleable widget type required modifying the click detection code.
+**Problem:** Content click detection in `CanvasInput` used hardcoded type checks and renderer knowledge to decide whether content was clickable or draggable. Adding a new interactive content type required editing the input path.
 
-**Fix:** Added a virtual `isToggleable()` method to the `visual::Widget` base class (returns `false` by default). Override to `true` in `SwitchWidget` and `VerticalToggleWidget`. Refactored `check_content_toggle()` to use `isToggleable()` — no type-specific logic needed.
+**Fix:** Replaced the type-specific path with semantic content hit objects and `InteractionBinding` metadata. `CanvasInput` now derives toggle/slider/knob behavior from semantic interaction kind instead of widget type knowledge.
 
 **Files changed:**
 
-- `src/editor/visual/widget.h` — added `virtual bool isToggleable() const { return false; }`
-- `src/editor/visual/widgets/content_widgets.h` — `isToggleable()` overrides in SwitchWidget, VerticalToggleWidget
-- `src/editor/input/canvas_input.cpp` — refactored `check_content_toggle()` to use `isToggleable()`
-- `src/editor/input/canvas_input.h` — updated comment
-- `tests/test_visual_content_widgets.cpp` — 8 new `isToggleable()` tests
+- `src/editor/input/canvas_input.cpp` — semantic content hit-test and interaction dispatch
+- `src/editor/visual/node/visual_node.cpp` — semantic content hit object generation
+- `tests/test_canvas_input.cpp` — semantic interaction regressions
 
-**Regression tests:** `SwitchWidgetTest.IsToggleable`, `VerticalToggleWidgetTest.IsToggleable`, `GaugeWidgetTest.IsNotToggleable`, `SliderWidgetTest.IsNotToggleable`, `IndicatorWidgetTest.IsNotToggleable`, `LabelWidgetTest.IsNotToggleable`, `ContainerWidgetTest.IsNotToggleable`, `SpacerWidgetTest.IsNotToggleable`
+**Regression tests:** toggle, slider, knob semantic interaction regressions live in `tests/test_canvas_input.cpp`
 
 ---
 
@@ -1561,9 +1559,9 @@ Removing direction entirely would touch ~50 source files, ~30 test files, and ev
 | 28    | SAM28 LUT string_params not parsed        | ~~High~~   | Low    | **FIXED**           |
 | 29    | InOut direction on non-Bus CVS port        | ~~Medium~~ | Low    | **FIXED**           |
 | 30    | Double-click right-click-inserted composite shows empty window | ~~High~~ | Medium | **FIXED**   |
-| 31    | IndicatorWidget not rendered in standard layout | ~~High~~ | Low | **FIXED** |
+| 31    | Indicator content not rendered in standard layout | ~~High~~ | Low | **FIXED** |
 | 32    | IndicatorLight brightness without ground | ~~High~~ | Low | **FIXED** |
-| 33    | IndicatorWidget circle not centered in node | ~~Medium~~ | Low | **FIXED** |
+| 33    | Indicator circle not centered in node | ~~Medium~~ | Low | **FIXED** |
 | 34    | AZS VerticalToggle content click area too narrow | ~~High~~ | Low | **FIXED** |
 | 35    | Content click detection hardcoded to specific types | ~~Medium~~ | Low | **FIXED** |
 | 36    | GroundPower tooltip shows 0V (bridge naming) | ~~High~~ | Low | **FIXED** |
@@ -1665,7 +1663,7 @@ Wire visualization is **domain-agnostic** — wires carry all signal types (volt
 - `src/editor/document_input.cpp` — `applyInputResult()` dispatches input results
 - `src/editor/document_export.cpp` — recursive inline_def traversal
 - `src/editor/window/blueprint_window.h` — `BlueprintWindow` with `EditingHost`, no shadow state
-- `src/editor/visual/node/node_content_renderer.{h,cpp}` — render from `rendered_blueprint()`
+- `src/editor/visual/node/visual_node.cpp` — semantic node content render path reads from `rendered_blueprint()`
 - `src/editor/visual/windows/sub_window_renderer.cpp` — fit-to-content fix
 - `knowledge/05_editor.md` — updated documentation
 

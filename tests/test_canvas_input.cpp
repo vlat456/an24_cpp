@@ -1377,9 +1377,9 @@ TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
     ASSERT_NE(sem_content, nullptr);
     ASSERT_FALSE(sem_content->object->interactions.empty());
     EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::Click);
-    EXPECT_GE(cb.w, visual::VerticalToggleWidget::WIDTH)
+    EXPECT_GE(cb.w, 16.0f)
         << "Content bounds width (" << cb.w << ") must be >= "
-        << visual::VerticalToggleWidget::WIDTH << "px (VerticalToggle WIDTH)";
+        << 16.0f << "px (VerticalToggle width)";
 }
 
 TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
@@ -1843,8 +1843,8 @@ TEST(HitTestInteractionTarget, KnobContentBoundsCoverVisibleKnobSize) {
     ASSERT_NE(widget, nullptr);
 
     Bounds cb = widget->contentBounds();
-    EXPECT_GE(cb.w, visual::KnobWidget::SIZE);
-    EXPECT_GE(cb.h, visual::KnobWidget::SIZE);
+    EXPECT_GE(cb.w, 48.0f);
+    EXPECT_GE(cb.h, 48.0f);
 }
 
 TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
@@ -2108,6 +2108,46 @@ TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
      EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::DragDiscrete);
  }
 
+TEST(CanvasInputSemanticRender, ContentSnapshotObjectIdsAreUniqueAndFindable) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
+    knob.view.content_type = bp2::NodeContentType::Knob;
+    knob.view.content_max = 5.0f;
+    set_iface(knob, {
+        make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(knob));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
+    ASSERT_NE(widget, nullptr);
+
+    const auto& snapshot = widget->content_semantic_snapshot();
+    ASSERT_GT(snapshot.render_objects.size(), 1u);
+    ASSERT_FALSE(snapshot.hit_objects.empty());
+
+    for (size_t i = 0; i + 1 < snapshot.render_objects.size(); ++i) {
+        for (size_t j = i + 1; j < snapshot.render_objects.size(); ++j) {
+            EXPECT_NE(snapshot.render_objects[i].id, snapshot.render_objects[j].id);
+        }
+    }
+
+    for (const auto& object : snapshot.render_objects) {
+        EXPECT_EQ(editor::presentation::find_render_object_by_id(snapshot, object.id), &object);
+    }
+    for (const auto& object : snapshot.hit_objects) {
+        EXPECT_EQ(editor::presentation::find_hit_object_by_id(snapshot, object.id), &object);
+    }
+}
+
 TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
     // Verify that the knob target publishes steps metadata so that CanvasInput
     // can use this to track positions without reading concrete widget member variables.
@@ -2146,11 +2186,11 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
      
      // The key contract: binding publishes steps metadata.
      EXPECT_EQ(sem_content->object->interactions[0].step, 7)
-         << "Binding must publish steps (discrete positions) from widget content";
+         << "Binding must publish steps (discrete positions) from semantic content metadata";
     
     // Verify that CanvasInput can use this metadata to track knob state.
     // CanvasInput::enter_drag_knob now reads target.steps instead of accessing
-    // concrete KnobWidget member variables or node view fields directly.
+    // concrete knob-renderer internals or node view fields directly.
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
@@ -2245,7 +2285,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
          << "Binding must provide valid mapping range (max_value > min_value)";
      
      // Verify that CanvasInput can use these bounds to compute a normalized value.
-     // Note: CanvasInput now uses binding min/max_value instead of SliderWidget::HANDLE_RADIUS.
+     // Note: CanvasInput now uses binding min/max_value instead of slider geometry constants.
      float range = sem_content->object->interactions[0].max_value - sem_content->object->interactions[0].min_value;
      EXPECT_GT(range, 0.0f) << "Mapping range must be positive";
     

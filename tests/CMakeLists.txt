@@ -582,23 +582,6 @@ target_link_libraries(visual_primitives_tests PRIVATE
 )
 gtest_discover_tests(visual_primitives_tests)
 
-# Visual Content Widgets tests (Phase 3 - content widgets)
-add_executable(visual_content_widgets_tests
-    test_visual_content_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
-)
-target_include_directories(visual_content_widgets_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(visual_content_widgets_tests PRIVATE
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(visual_content_widgets_tests)
-
 # Scene mutations tests (Phase 10: Blueprint <-> visual::Scene sync)
 add_executable(scene_mutations_tests
     test_scene_mutations.cpp
@@ -609,7 +592,6 @@ add_executable(scene_mutations_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
@@ -658,7 +640,6 @@ add_executable(document_safety_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
@@ -708,7 +689,6 @@ add_executable(canvas_input_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
@@ -751,7 +731,6 @@ add_executable(window_invariants_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp

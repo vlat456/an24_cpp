@@ -22,6 +22,106 @@ namespace visual {
 
 namespace {
 
+class HeaderStrip : public Widget {
+public:
+    explicit HeaderStrip(std::string text) : text_(std::move(text)) {
+        setFlexible(false);
+        setSize(Pt(0.0f, kHeight));
+    }
+
+    Pt preferredSize(IDrawList* dl) const override {
+        float text_w = 0.0f;
+        if (!text_.empty()) {
+            text_w = dl ? dl->calc_text_size(text_.c_str(), kFontSize).x
+                        : static_cast<float>(text_.size()) * kFontSize * 0.6f;
+        }
+        return Pt(kPadding * 2.0f + text_w, kHeight);
+    }
+
+    void render(IDrawList* dl, const RenderContext& ctx) const override {
+        if (!dl) return;
+
+        Pt origin = ctx.world_to_screen(worldPos());
+        float zoom = ctx.zoom;
+        float visual_h = kVisualHeight * zoom;
+        float rounding = editor_constants::NODE_ROUNDING * zoom;
+        Pt max(origin.x + size().x * zoom, origin.y + visual_h);
+        dl->add_rect_filled_with_rounding_corners(
+            origin, max, render_theme::COLOR_HEADER_FILL, rounding, 0x30);
+
+        if (text_.empty()) return;
+
+        float font = kFontSize * zoom;
+        Pt text_pos(origin.x + kPadding * zoom,
+                    origin.y + (kVisualHeight - kFontSize) * zoom * 0.5f);
+        dl->add_text(text_pos, text_.c_str(), render_theme::COLOR_TEXT, font);
+    }
+
+private:
+    std::string text_;
+
+    static constexpr float kHeight = 24.0f;
+    static constexpr float kVisualHeight = 20.0f;
+    static constexpr float kFontSize = 12.0f;
+    static constexpr float kPadding = 5.0f;
+};
+
+class FooterTypeLabel : public Widget {
+public:
+    explicit FooterTypeLabel(std::string text) : text_(std::move(text)) {
+        setFlexible(false);
+        setSize(Pt(0.0f, kHeight));
+    }
+
+    Pt preferredSize(IDrawList* dl) const override {
+        float text_w = 0.0f;
+        if (!text_.empty()) {
+            text_w = dl ? dl->calc_text_size(text_.c_str(), kFontSize).x
+                        : static_cast<float>(text_.size()) * kFontSize * 0.6f;
+        }
+        return Pt(text_w + kRightPadding, kHeight);
+    }
+
+    void render(IDrawList* dl, const RenderContext& ctx) const override {
+        if (!dl || text_.empty()) return;
+
+        Pt origin = ctx.world_to_screen(worldPos());
+        float zoom = ctx.zoom;
+        float font = kFontSize * zoom;
+        Pt text_size = dl->calc_text_size(text_.c_str(), font);
+        float tx = origin.x + size().x * zoom - text_size.x - kRightPadding * zoom;
+        float ty = origin.y + (kHeight * zoom - font) * 0.5f;
+        dl->add_text(Pt(tx, ty), text_.c_str(), render_theme::COLOR_TEXT_DIM, font);
+    }
+
+private:
+    std::string text_;
+
+    static constexpr float kHeight = 16.0f;
+    static constexpr float kFontSize = 9.0f;
+    static constexpr float kRightPadding = 5.0f;
+};
+
+constexpr float SWITCH_WIDTH = 48.0f;
+constexpr float SWITCH_HEIGHT = 20.0f;
+constexpr float VERTICAL_TOGGLE_WIDTH = 16.0f;
+constexpr float VERTICAL_TOGGLE_HEIGHT = 48.0f;
+constexpr float SLIDER_HEIGHT = 16.0f;
+constexpr float SLIDER_MIN_WIDTH = 60.0f;
+constexpr float SLIDER_TRACK_HEIGHT = 4.0f;
+constexpr float SLIDER_HANDLE_RADIUS = 6.0f;
+constexpr float INDICATOR_SIZE = 24.0f;
+constexpr float KNOB_SIZE = 48.0f;
+constexpr float KNOB_RADIUS = 16.0f;
+constexpr float KNOB_TICK_INNER = 20.0f;
+constexpr float KNOB_TICK_OUTER = 24.0f;
+constexpr float KNOB_ARC_START_DEG = 225.0f;
+constexpr float KNOB_ARC_SWEEP_DEG = -270.0f;
+constexpr float GAUGE_RADIUS = 40.0f;
+constexpr float GAUGE_NEEDLE_LENGTH = 32.0f;
+constexpr float GAUGE_START_ANGLE = 210.0f;
+constexpr float GAUGE_SWEEP_ANGLE = -240.0f;
+
 enum class ContentInteractionRole {
     Toggle,
     DiscreteSelector,
@@ -38,6 +138,12 @@ struct ContentWidgetInteractionInfo {
     float bounds_w = 0.0f;
     float bounds_h = 0.0f;
 };
+
+editor::presentation::SceneObjectId next_scene_object_id(
+    editor::presentation::SemanticSceneSnapshot& snapshot) {
+    return editor::presentation::SceneObjectId(
+        static_cast<uint32_t>(snapshot.render_objects.size() + snapshot.hit_objects.size() + 1));
+}
 
 ContentWidgetInteractionInfo build_rect_interaction(ContentInteractionRole role,
                                                     Pt size,
@@ -56,11 +162,30 @@ ContentWidgetInteractionInfo build_rect_interaction(ContentInteractionRole role,
     };
 }
 
+Pt preferred_content_size(bp2::NodeContentType content_type) {
+    switch (content_type) {
+        case bp2::NodeContentType::Gauge:
+            return Pt(GAUGE_RADIUS * 2.0f, GAUGE_RADIUS * 2.0f + 24.0f);
+        case bp2::NodeContentType::Switch:
+            return Pt(SWITCH_WIDTH, SWITCH_HEIGHT);
+        case bp2::NodeContentType::VerticalToggle:
+            return Pt(VERTICAL_TOGGLE_WIDTH, VERTICAL_TOGGLE_HEIGHT);
+        case bp2::NodeContentType::Slider:
+            return Pt(SLIDER_MIN_WIDTH, SLIDER_HEIGHT);
+        case bp2::NodeContentType::Indicator:
+            return Pt(INDICATOR_SIZE, INDICATOR_SIZE);
+        case bp2::NodeContentType::Knob:
+            return Pt(KNOB_SIZE, KNOB_SIZE);
+        case bp2::NodeContentType::Text:
+            return Pt(60.0f, 12.0f);
+        default:
+            return Pt(0.0f, 0.0f);
+    }
+}
+
 std::optional<ContentWidgetInteractionInfo> derive_content_interaction(
-    bp2::NodeContentType content_type, Widget* content_widget, float content_max) {
-    
-    if (!content_widget) return std::nullopt;
-    const Pt size = content_widget->size();
+    bp2::NodeContentType content_type, Pt size, float content_max) {
+    if (size.x <= 0.0f || size.y <= 0.0f) return std::nullopt;
     
     switch (content_type) {
         case bp2::NodeContentType::Switch:
@@ -68,7 +193,7 @@ std::optional<ContentWidgetInteractionInfo> derive_content_interaction(
             return build_rect_interaction(ContentInteractionRole::Toggle, size);
         
         case bp2::NodeContentType::Slider: {
-            float pad = SliderWidget::HANDLE_RADIUS;
+            float pad = SLIDER_HANDLE_RADIUS;
             float track_w = size.x - 2.0f * pad;
             return build_rect_interaction(ContentInteractionRole::ContinuousScalar,
                                           size, pad, pad + track_w);
@@ -95,7 +220,7 @@ void append_text_content_render_object(editor::presentation::SemanticSceneSnapsh
     }
 
     SceneRenderObject render_object;
-    render_object.id = SceneObjectId(1);
+    render_object.id = next_scene_object_id(snapshot);
     render_object.node_id = node_id;
     render_object.element_id = node_id;
     render_object.kind = SceneRenderObjectKind::ContentPaint;
@@ -114,7 +239,7 @@ void append_switch_content_render_objects(editor::presentation::SemanticSceneSna
     using namespace editor::presentation;
 
     SceneRenderObject body;
-    body.id = SceneObjectId(1);
+    body.id = next_scene_object_id(snapshot);
     body.node_id = node_id;
     body.element_id = node_id;
     body.kind = SceneRenderObjectKind::ContentPaint;
@@ -128,7 +253,7 @@ void append_switch_content_render_objects(editor::presentation::SemanticSceneSna
     snapshot.render_objects.push_back(std::move(body));
 
     SceneRenderObject handle;
-    handle.id = SceneObjectId(2);
+    handle.id = next_scene_object_id(snapshot);
     handle.node_id = node_id;
     handle.element_id = node_id;
     handle.kind = SceneRenderObjectKind::ContentPaint;
@@ -158,15 +283,15 @@ void append_slider_content_render_objects(editor::presentation::SemanticSceneSna
                                           float max_val) {
     using namespace editor::presentation;
 
-    const float pad = SliderWidget::HANDLE_RADIUS;
-    const float track_h = SliderWidget::TRACK_HEIGHT;
+    const float pad = SLIDER_HANDLE_RADIUS;
+    const float track_h = SLIDER_TRACK_HEIGHT;
     const float track_y = bounds.y + (bounds.h - track_h) * 0.5f;
     const float track_w = std::max(0.0f, bounds.w - 2.0f * pad);
     const float range = max_val - min_val;
     const float t = (range > 1e-6f) ? std::clamp((value - min_val) / range, 0.0f, 1.0f) : 0.0f;
 
     SceneRenderObject track;
-    track.id = SceneObjectId(1);
+    track.id = next_scene_object_id(snapshot);
     track.node_id = node_id;
     track.element_id = node_id;
     track.kind = SceneRenderObjectKind::ContentPaint;
@@ -176,7 +301,7 @@ void append_slider_content_render_objects(editor::presentation::SemanticSceneSna
     snapshot.render_objects.push_back(std::move(track));
 
     SceneRenderObject fill;
-    fill.id = SceneObjectId(2);
+    fill.id = next_scene_object_id(snapshot);
     fill.node_id = node_id;
     fill.element_id = node_id;
     fill.kind = SceneRenderObjectKind::ContentPaint;
@@ -186,25 +311,25 @@ void append_slider_content_render_objects(editor::presentation::SemanticSceneSna
     snapshot.render_objects.push_back(std::move(fill));
 
     SceneRenderObject handle;
-    handle.id = SceneObjectId(3);
+    handle.id = next_scene_object_id(snapshot);
     handle.node_id = node_id;
     handle.element_id = node_id;
     handle.kind = SceneRenderObjectKind::ContentPaint;
     handle.primitive = PaintPrimitiveKind::Circle;
     handle.bounds = Rect{bounds.x + pad + t * track_w, bounds.y + bounds.h * 0.5f,
-                         SliderWidget::HANDLE_RADIUS, 16.0f};
+                         SLIDER_HANDLE_RADIUS, 16.0f};
     handle.fill_color = 0xFF5078C0;
     handle.stroke_color = 0xFF3050A0;
     handle.stroke_width = 1.0f;
     snapshot.render_objects.push_back(std::move(handle));
 
     SceneRenderObject label;
-    label.id = SceneObjectId(4);
+    label.id = next_scene_object_id(snapshot);
     label.node_id = node_id;
     label.element_id = node_id;
     label.kind = SceneRenderObjectKind::ContentPaint;
     label.primitive = PaintPrimitiveKind::Text;
-    label.bounds = Rect{bounds.x, track_y + track_h + 1.0f, bounds.w, SliderWidget::HEIGHT};
+    label.bounds = Rect{bounds.x, track_y + track_h + 1.0f, bounds.w, SLIDER_HEIGHT};
     char buf[32];
     snprintf(buf, sizeof(buf), "%.1f", value);
     label.text = buf;
@@ -217,13 +342,13 @@ void append_indicator_content_render_objects(editor::presentation::SemanticScene
                                              float brightness) {
     using namespace editor::presentation;
     SceneRenderObject indicator;
-    indicator.id = SceneObjectId(1);
+    indicator.id = next_scene_object_id(snapshot);
     indicator.node_id = node_id;
     indicator.element_id = node_id;
     indicator.kind = SceneRenderObjectKind::ContentPaint;
     indicator.primitive = PaintPrimitiveKind::Circle;
     indicator.bounds = Rect{bounds.x + bounds.w * 0.5f, bounds.y + bounds.h * 0.5f,
-                            IndicatorWidget::SIZE * (0.3f + 0.15f * std::clamp(brightness, 0.0f, 1.0f)), 16.0f};
+                            INDICATOR_SIZE * (0.3f + 0.15f * std::clamp(brightness, 0.0f, 1.0f)), 16.0f};
     uint32_t fill_color;
     if (brightness <= 0.0f) {
         fill_color = 0xFF505050;
@@ -251,12 +376,12 @@ void append_knob_content_render_objects(editor::presentation::SemanticSceneSnaps
     const float cy = bounds.y + bounds.h * 0.5f;
 
     SceneRenderObject knob;
-    knob.id = SceneObjectId(1);
+    knob.id = next_scene_object_id(snapshot);
     knob.node_id = node_id;
     knob.element_id = node_id;
     knob.kind = SceneRenderObjectKind::ContentPaint;
     knob.primitive = PaintPrimitiveKind::Circle;
-    knob.bounds = Rect{cx, cy, KnobWidget::KNOB_RADIUS, 24.0f};
+    knob.bounds = Rect{cx, cy, KNOB_RADIUS, 24.0f};
     knob.fill_color = 0xFF3A3A42;
     knob.stroke_color = 0xFF606068;
     knob.stroke_width = 1.0f;
@@ -264,29 +389,29 @@ void append_knob_content_render_objects(editor::presentation::SemanticSceneSnaps
 
     for (int i = 0; i < num_positions; ++i) {
         const float t = (num_positions > 1) ? static_cast<float>(i) / (num_positions - 1) : 0.5f;
-        const float angle = KnobWidget::ARC_START_DEG + t * KnobWidget::ARC_SWEEP_DEG;
+        const float angle = KNOB_ARC_START_DEG + t * KNOB_ARC_SWEEP_DEG;
         SceneRenderObject tick;
-        tick.id = SceneObjectId(2 + static_cast<uint32_t>(i));
+        tick.id = next_scene_object_id(snapshot);
         tick.node_id = node_id;
         tick.element_id = node_id;
         tick.kind = SceneRenderObjectKind::ContentPaint;
         tick.primitive = PaintPrimitiveKind::Line;
-        tick.bounds = Rect{cx, cy, angle, KnobWidget::TICK_OUTER};
+        tick.bounds = Rect{cx, cy, angle, KNOB_TICK_OUTER};
         tick.fill_color = (i == position) ? 0xFF5078C0 : 0xFF808090;
-        tick.inset = KnobWidget::TICK_INNER;
+        tick.inset = KNOB_TICK_INNER;
         tick.stroke_width = (i == position) ? 2.5f : 1.5f;
         snapshot.render_objects.push_back(std::move(tick));
     }
 
     const float sel_t = (num_positions > 1) ? static_cast<float>(position) / (num_positions - 1) : 0.5f;
-    const float sel_angle = KnobWidget::ARC_START_DEG + sel_t * KnobWidget::ARC_SWEEP_DEG;
+    const float sel_angle = KNOB_ARC_START_DEG + sel_t * KNOB_ARC_SWEEP_DEG;
     SceneRenderObject indicator;
-    indicator.id = SceneObjectId(2 + static_cast<uint32_t>(num_positions));
+    indicator.id = next_scene_object_id(snapshot);
     indicator.node_id = node_id;
     indicator.element_id = node_id;
     indicator.kind = SceneRenderObjectKind::ContentPaint;
     indicator.primitive = PaintPrimitiveKind::Line;
-    indicator.bounds = Rect{cx, cy, sel_angle, KnobWidget::KNOB_RADIUS * 0.85f};
+    indicator.bounds = Rect{cx, cy, sel_angle, KNOB_RADIUS * 0.85f};
     indicator.fill_color = 0xFF5078C0;
     indicator.stroke_width = 2.0f;
     snapshot.render_objects.push_back(std::move(indicator));
@@ -301,41 +426,41 @@ void append_gauge_content_render_objects(editor::presentation::SemanticSceneSnap
                                          const std::string& unit) {
     using namespace editor::presentation;
     const float cx = bounds.x + bounds.w * 0.5f;
-    const float cy = bounds.y + VoltmeterWidget::GAUGE_RADIUS;
+    const float cy = bounds.y + GAUGE_RADIUS;
 
     SceneRenderObject arc;
-    arc.id = SceneObjectId(1);
+    arc.id = next_scene_object_id(snapshot);
     arc.node_id = node_id;
     arc.element_id = node_id;
     arc.kind = SceneRenderObjectKind::ContentPaint;
     arc.primitive = PaintPrimitiveKind::Arc;
-    arc.bounds = Rect{cx, cy, VoltmeterWidget::GAUGE_RADIUS, VoltmeterWidget::SWEEP_ANGLE};
+    arc.bounds = Rect{cx, cy, GAUGE_RADIUS, GAUGE_SWEEP_ANGLE};
     arc.fill_color = 0xFF3E3130;
-    arc.inset = VoltmeterWidget::START_ANGLE;
+    arc.inset = GAUGE_START_ANGLE;
     arc.stroke_width = 2.0f;
     snapshot.render_objects.push_back(std::move(arc));
 
     const float range = max_val - min_val;
     const float normalized = (range > 1e-6f) ? std::clamp((value - min_val) / range, 0.0f, 1.0f) : 0.0f;
-    const float needle_angle = VoltmeterWidget::START_ANGLE + normalized * VoltmeterWidget::SWEEP_ANGLE;
+    const float needle_angle = GAUGE_START_ANGLE + normalized * GAUGE_SWEEP_ANGLE;
     SceneRenderObject needle;
-    needle.id = SceneObjectId(2);
+    needle.id = next_scene_object_id(snapshot);
     needle.node_id = node_id;
     needle.element_id = node_id;
     needle.kind = SceneRenderObjectKind::ContentPaint;
     needle.primitive = PaintPrimitiveKind::Line;
-    needle.bounds = Rect{cx, cy, needle_angle, VoltmeterWidget::NEEDLE_LENGTH};
+    needle.bounds = Rect{cx, cy, needle_angle, GAUGE_NEEDLE_LENGTH};
     needle.fill_color = 0xFF2A70C8;
     needle.stroke_width = 2.0f;
     snapshot.render_objects.push_back(std::move(needle));
 
     SceneRenderObject value_text;
-    value_text.id = SceneObjectId(3);
+    value_text.id = next_scene_object_id(snapshot);
     value_text.node_id = node_id;
     value_text.element_id = node_id;
     value_text.kind = SceneRenderObjectKind::ContentPaint;
     value_text.primitive = PaintPrimitiveKind::Text;
-    value_text.bounds = Rect{bounds.x, bounds.y + VoltmeterWidget::GAUGE_RADIUS * 2.0f + 5.0f,
+    value_text.bounds = Rect{bounds.x, bounds.y + GAUGE_RADIUS * 2.0f + 5.0f,
                              bounds.w, 14.0f};
     char buf[32];
     snprintf(buf, sizeof(buf), "%.1f", value);
@@ -343,12 +468,12 @@ void append_gauge_content_render_objects(editor::presentation::SemanticSceneSnap
     snapshot.render_objects.push_back(std::move(value_text));
 
     SceneRenderObject unit_text;
-    unit_text.id = SceneObjectId(4);
+    unit_text.id = next_scene_object_id(snapshot);
     unit_text.node_id = node_id;
     unit_text.element_id = node_id;
     unit_text.kind = SceneRenderObjectKind::ContentPaint;
     unit_text.primitive = PaintPrimitiveKind::Text;
-    unit_text.bounds = Rect{bounds.x, bounds.y + VoltmeterWidget::GAUGE_RADIUS * 2.0f + 21.0f,
+    unit_text.bounds = Rect{bounds.x, bounds.y + GAUGE_RADIUS * 2.0f + 21.0f,
                             bounds.w, 10.0f};
     unit_text.text = unit;
     snapshot.render_objects.push_back(std::move(unit_text));
@@ -431,8 +556,7 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data,
     layout_ = emplaceChild<Column>();
 
     // -- Header --
-    layout_->emplaceChild<HeaderWidget>(
-        name_, render_theme::COLOR_HEADER_FILL, editor_constants::NODE_ROUNDING);
+    layout_->emplaceChild<HeaderStrip>(name_);
 
     bp2::NodeContentType content_type = data.view.content_type;
     cached_content_type_ = content_type;
@@ -455,12 +579,16 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data,
     // -- Flex spacer pushes footer to bottom when node is resized taller.
     //    Only added when no other flex child exists (e.g., pure port-only nodes),
     //    otherwise the content flex child handles the stretching. --
-    if (!content_widget_) {
+    if (content_preferred_size_.x <= 0.0f && content_preferred_size_.y <= 0.0f) {
         layout_->emplaceChild<Spacer>();
     }
 
     // -- Type name footer --
-    layout_->emplaceChild<TypeNameWidget>(type_name_);
+    layout_->emplaceChild<FooterTypeLabel>(type_name_);
+}
+
+void NodeWidget::configure_content_geometry(bp2::NodeContentType content_type) {
+    content_preferred_size_ = preferred_content_size(content_type);
 }
 
 void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
@@ -499,49 +627,45 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
 
         // Content area (appended below port rows in the root Column)
         if (content_type == bp2::NodeContentType::Gauge) {
-            content_widget_ = layout_->emplaceChild<VoltmeterWidget>(
-                data.view.content_value, data.view.content_min,
-                data.view.content_max, data.view.content_unit);
-            content_widget_->setPaintEnabled(false);
+            configure_content_geometry(content_type);
+            layout_->emplaceChild<Spacer>()->setFlexible(false);
         } else if (content_type == bp2::NodeContentType::Switch) {
             auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
             container->setFlexGrow(1.0f);
-            content_widget_ = container->emplaceChild<Spacer>();
+            configure_content_geometry(content_type);
+            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
         } else if (content_type == bp2::NodeContentType::VerticalToggle) {
             auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
             container->setFlexGrow(1.0f);
-            content_widget_ = container->emplaceChild<Spacer>();
+            configure_content_geometry(content_type);
+            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
         } else if (content_type == bp2::NodeContentType::Slider) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             float v_pad = 2.0f;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, v_pad, margin, v_pad});
             container->setFlexGrow(1.0f);
-            content_widget_ = container->emplaceChild<SliderWidget>(
-                data.view.content_value, data.view.content_min,
-                data.view.content_max);
-            content_widget_->setPaintEnabled(false);
+            configure_content_geometry(content_type);
+            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
         } else if (content_type == bp2::NodeContentType::Indicator) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 2.0f, margin, 2.0f});
             container->setFlexGrow(1.0f);
-            content_widget_ = container->emplaceChild<IndicatorWidget>(data.view.content_value);
-            content_widget_->setPaintEnabled(false);
+            configure_content_geometry(content_type);
+            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
         } else if (content_type == bp2::NodeContentType::Knob) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 2.0f, margin, 2.0f});
             container->setFlexGrow(1.0f);
-            int pos = static_cast<int>(data.view.content_value);
-            int num = static_cast<int>(data.view.content_max);
-            if (num < 2) num = 2;
-            content_widget_ = container->emplaceChild<KnobWidget>(pos, num);
-            content_widget_->setPaintEnabled(false);
+            configure_content_geometry(content_type);
+            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
         } else if (content_type != bp2::NodeContentType::None) {
             auto* container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
             container->setFlexGrow(1.0f);
-            content_widget_ = container->emplaceChild<Spacer>();
+            configure_content_geometry(content_type);
+            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
         }
     } else {
         // Slow path: four-sided layout with overrides.
@@ -569,9 +693,8 @@ void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data,
     center_col->setFlexGrow(1.0f);
     auto* toggle_container = center_col->emplaceChild<Container>(
         Edges{0, 5.0f, 0, 5.0f});
-    content_widget_ = toggle_container->emplaceChild<VerticalToggleWidget>(
-        data.view.content_state, data.view.content_tripped);
-    content_widget_->setPaintEnabled(false);
+    configure_content_geometry(bp2::NodeContentType::VerticalToggle);
+    toggle_container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
 
     // Right column (output ports)
     auto* right_col = main_row->emplaceChild<Column>();
@@ -629,33 +752,29 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data,
     center->setFlexGrow(1.0f);
 
     if (content_type == bp2::NodeContentType::Gauge) {
-        content_widget_ = center->emplaceChild<VoltmeterWidget>(
-            data.view.content_value, data.view.content_min,
-            data.view.content_max, data.view.content_unit);
-        content_widget_->setPaintEnabled(false);
+        configure_content_geometry(content_type);
+        center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
     } else if (content_type == bp2::NodeContentType::Switch) {
-        content_widget_ = center->emplaceChild<Spacer>();
+        configure_content_geometry(content_type);
+        center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
     } else if (content_type == bp2::NodeContentType::VerticalToggle) {
-        content_widget_ = center->emplaceChild<Spacer>();
+        configure_content_geometry(content_type);
+        center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
     } else if (content_type == bp2::NodeContentType::Slider) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
-        content_widget_ = inner->emplaceChild<SliderWidget>(
-            data.view.content_value, data.view.content_min,
-            data.view.content_max);
-        content_widget_->setPaintEnabled(false);
+        configure_content_geometry(content_type);
+        inner->emplaceChild<Spacer>()->setSize(content_preferred_size_);
     } else if (content_type == bp2::NodeContentType::Indicator) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
-        content_widget_ = inner->emplaceChild<IndicatorWidget>(data.view.content_value);
-        content_widget_->setPaintEnabled(false);
+        configure_content_geometry(content_type);
+        inner->emplaceChild<Spacer>()->setSize(content_preferred_size_);
     } else if (content_type == bp2::NodeContentType::Knob) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
-        int pos = static_cast<int>(data.view.content_value);
-        int num = static_cast<int>(data.view.content_max);
-        if (num < 2) num = 2;
-        content_widget_ = inner->emplaceChild<KnobWidget>(pos, num);
-        content_widget_->setPaintEnabled(false);
+        configure_content_geometry(content_type);
+        inner->emplaceChild<Spacer>()->setSize(content_preferred_size_);
     } else if (content_type != bp2::NodeContentType::None) {
-        content_widget_ = center->emplaceChild<Spacer>();
+        configure_content_geometry(content_type);
+        center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
     } else {
         center->emplaceChild<Spacer>();
     }
@@ -689,7 +808,6 @@ void NodeWidget::buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports
 // ============================================================================
 
 void NodeWidget::updateContent(const ::NodeContent& content) {
-    if (content_widget_) content_widget_->updateFromContent(content);
     cached_content_min_ = content.min;
     cached_content_max_ = content.max;
     cached_content_value_ = content.value;
@@ -701,26 +819,17 @@ void NodeWidget::updateContent(const ::NodeContent& content) {
 }
 
 ::Bounds NodeWidget::contentBounds() const {
-    if (!content_widget_) return {};
-    Pt wp = content_widget_->worldPos();
-    Pt np = worldPos();
-    Pt sz = content_widget_->size();
-    return {
-        wp.x - np.x,
-        wp.y - np.y,
-        sz.x,
-        sz.y,
-    };
+    return content_bounds_;
 }
 
 void NodeWidget::refresh_content_semantic_snapshot() {
     content_semantic_snapshot_ = {};
     render_content_from_semantic_snapshot_ = false;
-    if (!content_widget_) {
+    if (content_preferred_size_.x <= 0.0f && content_preferred_size_.y <= 0.0f) {
         return;
     }
 
-    const Bounds cb = contentBounds();
+    const Bounds cb = content_bounds_;
     if (cb.w <= 0.0f || cb.h <= 0.0f) {
         return;
     }
@@ -771,7 +880,7 @@ void NodeWidget::refresh_content_semantic_snapshot() {
     }
 
     // -- Hit objects: produce interaction regions for all interactive content types. --
-    auto interaction_info = derive_content_interaction(cached_content_type_, content_widget_, cached_content_max_);
+    auto interaction_info = derive_content_interaction(cached_content_type_, content_preferred_size_, cached_content_max_);
     if (!interaction_info.has_value()) {
         return;
     }
@@ -779,7 +888,7 @@ void NodeWidget::refresh_content_semantic_snapshot() {
     using namespace editor::presentation;
 
     SceneHitObject hit_object;
-    hit_object.id = SceneObjectId(1);
+    hit_object.id = next_scene_object_id(content_semantic_snapshot_);
     hit_object.node_id = node_iid_;
     hit_object.element_id = node_iid_;
     hit_object.region_id = node_iid_;
@@ -849,25 +958,12 @@ Pt NodeWidget::preferredSize(IDrawList* dl) const {
     // the flexible child contributes 0 on that layout's main axis. Reserve the
     // content widget's intrinsic size on the zeroed axis so fixed-affordance
     // controls do not lose their visible/hittable area inside the old layout system.
-    if (content_widget_ && content_widget_->parent()) {
-        bool found_flex = false;
-        bool flex_in_row = false;
-        for (auto* w = content_widget_->parent(); w && w != layout_; w = w->parent()) {
-            if (w->isFlexible()) {
-                found_flex = true;
-                if (dynamic_cast<Row*>(w->parent()) != nullptr) {
-                    flex_in_row = true;
-                }
-                break;
-            }
+    if (content_preferred_size_.x > 0.0f || content_preferred_size_.y > 0.0f) {
+        if (content_preferred_size_.x > 0) {
+            ps.x = std::max(ps.x, content_preferred_size_.x + 8.0f);
         }
-        if (found_flex) {
-            Pt cps = content_widget_->preferredSize(dl);
-            if (flex_in_row && cps.x > 0) {
-                ps.x += cps.x;
-            } else if (!flex_in_row && cps.y > 0) {
-                ps.y += cps.y;
-            }
+        if (content_preferred_size_.y > 0) {
+            ps.y += content_preferred_size_.y;
         }
     }
     
@@ -885,6 +981,16 @@ void NodeWidget::layout(float w, float h) {
 
     if (layout_) {
         layout_->layout(w, h);
+    }
+
+    content_bounds_ = {};
+    if (content_preferred_size_.x > 0.0f || content_preferred_size_.y > 0.0f) {
+        content_bounds_ = Bounds{
+            std::max(0.0f, (w - content_preferred_size_.x) * 0.5f),
+            std::max(0.0f, (h - content_preferred_size_.y) * 0.5f),
+            content_preferred_size_.x,
+            content_preferred_size_.y,
+        };
     }
 
     refresh_content_semantic_snapshot();

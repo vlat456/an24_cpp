@@ -870,7 +870,7 @@ TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
 // =============================================================================
 
 // When the user changes the "positions" param for a Knob-type node via the
-// inspector, apply() must update content_max so the visual KnobWidget renders
+// inspector, apply() must update content_max so the semantic knob content renders
 // the correct number of tick marks.
 TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax) {
     bp2::Blueprint::Node n;
