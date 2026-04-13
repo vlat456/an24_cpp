@@ -260,3 +260,67 @@ TEST(LinearLayoutTest, REGRESSION_ZeroMinimumChildDoesNotInflateColumnMinWidth) 
     EXPECT_FLOAT_EQ(minimum.x, 48.0f)
         << "Decorative child with zero minimum must not widen column minimum";
 }
+
+// ============================================================
+// linearLayout shrink: non-flex children shrink toward minimum
+// ============================================================
+// When the available main-axis space is less than the sum of preferred
+// sizes, non-flex children should shrink proportionally from their
+// preferred toward their minimum — not overflow.
+
+TEST(LinearLayoutTest, ShrinkNonFlexChildrenProportionally) {
+    visual::Column column;
+
+    // Child A: preferred height 30, minimum height 10 (shrinkable by 20)
+    column.emplaceChild<visual::OverflowLeafWidget>(Pt(50, 30), Pt(50, 10));
+
+    // Child B: preferred height 30, minimum height 10 (shrinkable by 20)
+    column.emplaceChild<visual::OverflowLeafWidget>(Pt(50, 30), Pt(50, 10));
+
+    // Total preferred = 60, total minimum = 20, available = 40.
+    // Need to shrink by 20 out of a budget of 40 → 50% shrink fraction.
+    // Each child: 30 - (30-10)*0.5 = 30 - 10 = 20.
+    column.layout(50, 40);
+
+    EXPECT_FLOAT_EQ(column.children()[0]->size().y, 20.0f);
+    EXPECT_FLOAT_EQ(column.children()[1]->size().y, 20.0f);
+    EXPECT_FLOAT_EQ(column.children()[1]->localPos().y, 20.0f);
+}
+
+TEST(LinearLayoutTest, ShrinkFullyToMinimumWhenSpaceVeryTight) {
+    visual::Column column;
+
+    // Child A: preferred height 30, minimum height 10
+    column.emplaceChild<visual::OverflowLeafWidget>(Pt(50, 30), Pt(50, 10));
+
+    // Child B: preferred height 30, minimum height 10
+    column.emplaceChild<visual::OverflowLeafWidget>(Pt(50, 30), Pt(50, 10));
+
+    // Total preferred = 60, total minimum = 20, available = 15 (below minimum).
+    // Shrink fraction = min(1.0, (60-15)/(60-20)) = min(1.0, 1.125) = 1.0.
+    // Each child shrinks fully to minimum = 10.
+    column.layout(50, 15);
+
+    EXPECT_FLOAT_EQ(column.children()[0]->size().y, 10.0f);
+    EXPECT_FLOAT_EQ(column.children()[1]->size().y, 10.0f);
+    EXPECT_FLOAT_EQ(column.children()[1]->localPos().y, 10.0f);
+}
+
+TEST(LinearLayoutTest, ShrinkDoesNotAffectFlexChildren) {
+    visual::Row row;
+
+    // Fixed child: preferred width 60, minimum width 20
+    row.emplaceChild<visual::OverflowLeafWidget>(Pt(60, 20), Pt(20, 20));
+
+    // Flex child
+    auto* flex = row.emplaceChild<visual::LeafWidget>(Pt(10, 20));
+    flex->setFlexGrow(1.0f);
+
+    // Available = 50, fixed preferred = 60 → needs shrink.
+    // Fixed child shrinks from 60 toward 20. Need=10, budget=40 → 25%.
+    // Fixed child: 60 - 40*0.25 = 50. Flex child: 0 (no surplus).
+    row.layout(50, 20);
+
+    EXPECT_FLOAT_EQ(row.children()[0]->size().x, 50.0f);
+    EXPECT_FLOAT_EQ(row.children()[1]->size().x, 0.0f);
+}

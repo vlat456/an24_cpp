@@ -1537,6 +1537,12 @@ TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
 
     EXPECT_GE(widget->size().x, minimum.x);
     EXPECT_GE(widget->size().y, minimum.y);
+
+    input.on_mouse_up(MouseButton::Left, Pt(-500.0f, -500.0f), canvas_min);
+
+    const auto* updated = model.current().find_node(I.lookup("volt_1"));
+    ASSERT_NE(updated, nullptr);
+    EXPECT_TRUE(updated->layout.manual_size);
 }
 
 TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum) {

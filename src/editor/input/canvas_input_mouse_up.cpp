@@ -149,6 +149,7 @@ void CanvasInput::commit_resize_node() {
          n.layout.y = new_pos.y;
          n.layout.width = new_size.x;
          n.layout.height = new_size.y;
+         n.layout.manual_size = true;
      });
 }
 

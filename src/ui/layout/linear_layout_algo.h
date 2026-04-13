@@ -72,8 +72,13 @@ Pt linearMinimumSize(const std::vector<std::unique_ptr<Widget>>& children,
 }
 
 /// Perform linear layout: partition space among fixed and flexible children.
-/// Remaining space after fixed children is distributed proportionally
-/// based on each child's flexGrow weight.
+///
+/// When there is enough space, non-flex children receive their preferred size
+/// and the remainder is distributed to flex children proportionally by flexGrow.
+///
+/// When space is insufficient for all preferred sizes, non-flex children shrink
+/// proportionally from their preferred size toward their minimum size. Flex
+/// children receive zero in this case (there is no surplus to distribute).
 template <Axis axis>
 void linearLayout(std::vector<std::unique_ptr<Widget>>& children,
                   float available_width, float available_height) {
@@ -81,27 +86,46 @@ void linearLayout(std::vector<std::unique_ptr<Widget>>& children,
     float available_main = A::main_dim(available_width, available_height);
     float available_cross = A::cross_dim(available_width, available_height);
 
-    float fixed_total = 0;
+    float fixed_preferred_total = 0;
+    float fixed_minimum_total = 0;
     float flex_weight_total = 0;
     for (const auto& c : children) {
         if (c->isFlexible()) {
             flex_weight_total += c->flexGrow();
         } else {
-            fixed_total += A::main(c->preferredSize(nullptr));
+            fixed_preferred_total += A::main(c->preferredSize(nullptr));
+            fixed_minimum_total += A::main(c->minimumSize(nullptr));
         }
     }
 
-    float remaining = std::max(0.0f, available_main - fixed_total);
+    // Determine whether non-flex children need to shrink.
+    const bool needs_shrink = available_main < fixed_preferred_total;
+    // How much total shrink budget exists (preferred - minimum across all non-flex).
+    const float shrink_budget = std::max(0.0f, fixed_preferred_total - fixed_minimum_total);
+    // How much we actually need to shrink to fit.
+    const float shrink_needed = std::max(0.0f, fixed_preferred_total - available_main);
+    // Fraction of the budget to apply (clamped to 1 = fully shrunk to minimum).
+    const float shrink_fraction = (shrink_budget > 0.0f)
+        ? std::min(1.0f, shrink_needed / shrink_budget)
+        : 0.0f;
+
+    float remaining = std::max(0.0f, available_main - fixed_preferred_total);
 
     float pos = 0;
     for (auto& c : children) {
         float child_main;
         if (c->isFlexible()) {
-            child_main = (flex_weight_total > 0)
+            child_main = (flex_weight_total > 0 && !needs_shrink)
                 ? remaining * (c->flexGrow() / flex_weight_total)
                 : 0;
         } else {
-            child_main = A::main(c->preferredSize(nullptr));
+            float pref = A::main(c->preferredSize(nullptr));
+            if (needs_shrink) {
+                float minv = A::main(c->minimumSize(nullptr));
+                child_main = pref - (pref - minv) * shrink_fraction;
+            } else {
+                child_main = pref;
+            }
         }
         if constexpr (axis == Axis::Horizontal) {
             c->setLocalPos(Pt(pos, 0));

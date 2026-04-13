@@ -118,12 +118,14 @@ public:
             float x = 0.0f;
             float y = 0.0f;
             bool collapsed = true;
+            bool manual_size = false;
             std::optional<float> width;
             std::optional<float> height;
             std::vector<PortLayoutOverride> layout_overrides;
 
             bool operator==(LayoutData const& o) const {
                 return x == o.x && y == o.y && collapsed == o.collapsed
+                    && manual_size == o.manual_size
                     && width == o.width && height == o.height
                     && layout_overrides == o.layout_overrides;
             }

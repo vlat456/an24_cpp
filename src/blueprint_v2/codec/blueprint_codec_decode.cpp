@@ -32,7 +32,7 @@ const std::unordered_set<std::string>& allowed_blueprint_instance_node_fields() 
 
 const std::unordered_set<std::string>& allowed_layout_fields() {
     static const std::unordered_set<std::string> s = {
-        "x", "y", "width", "height", "port_overrides"
+        "x", "y", "width", "height", "manual_size", "port_overrides"
     };
     return s;
 }
@@ -268,6 +268,7 @@ Blueprint decode_nodes(Blueprint bp,
         node.layout.y = parse_finite_float(layout["y"], "layout.y");
         if (auto v = read_optional_float(layout, "width", "invalid node entry: layout")) node.layout.width = *v;
         if (auto v = read_optional_float(layout, "height", "invalid node entry: layout")) node.layout.height = *v;
+        if (auto v = read_optional_bool(layout, "manual_size", "invalid node entry: layout")) node.layout.manual_size = *v;
         if (layout.contains("port_overrides")) {
             if (!layout["port_overrides"].is_array()) {
                 throw std::runtime_error("invalid node entry: layout.port_overrides must be array");

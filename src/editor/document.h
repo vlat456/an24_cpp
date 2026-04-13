@@ -175,6 +175,10 @@ public:
                       const std::string& scope_id,
                       TypeRegistry& registry);
 
+    /// Recompute node sizes from the current layout minimum-size contract.
+    /// When preserve_manual is true, nodes explicitly marked manual_size are left unchanged.
+    bool normalizeNodeSizesToFit(bool preserve_manual = true);
+
     bool extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
                            const std::string& blueprint_name,
                            const WindowScopeId& scope_id,
@@ -225,6 +229,11 @@ private:
     /// Build JitBuildInput directly from current bp2 model (no JSON intermediate).
     /// This is the canonical simulation start path.
     JitBuildInput build_jit_input();
+
+    /// Apply node-size normalization with optional history/window side effects.
+    bool apply_normalized_node_sizes(bool preserve_manual,
+                                     bool push_checkpoint,
+                                     bool rebuild_windows);
 
     /// Extract (node_id, port_name) InternedId pair from a bp2::Path
     /// (expects PathKind::Port with Node parent). Returns empty pair on error.

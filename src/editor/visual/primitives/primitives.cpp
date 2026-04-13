@@ -39,7 +39,9 @@ void Label::render(IDrawList* dl, const RenderContext& ctx) const {
         float text_w = dl->calc_text_size(text_.c_str(), font).x;
         tx = pos.x + sz.x * zoom - text_w;
     }
+    dl->set_clip_rect(pos, Pt(pos.x + sz.x * zoom, pos.y + sz.y * zoom));
     dl->add_text(Pt(tx, ty), text_.c_str(), color_, font);
+    dl->clear_clip();
 }
 
 // ============ ReservedSpace ============

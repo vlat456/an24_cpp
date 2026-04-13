@@ -135,6 +135,9 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         if (node.layout.height.has_value()) {
             layout["height"] = *node.layout.height;
         }
+        if (node.layout.manual_size) {
+            layout["manual_size"] = true;
+        }
         if (!node.layout.layout_overrides.empty()) {
             nlohmann::json overrides = nlohmann::json::array();
             for (auto const& override : node.layout.layout_overrides) {

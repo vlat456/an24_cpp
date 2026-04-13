@@ -221,6 +221,64 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromTypeRegistry
     fs::remove_all(dir);
 }
 
+TEST(DocumentSafety, LoadNormalizesLegacyAutosizeWithoutDirtyingOrCreatingUndoHistory) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    const fs::path dir = make_temp_dir("an24_doc_load_normalize_sizes");
+    const fs::path bp_path = dir / "normalize.blueprint";
+
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("normalize_root"));
+    bp = bp.with_name("Normalize Root");
+
+    auto legacy = make_typed_node(interner, registry, "legacy_vc", "VariableConductance", 0.0f, 0.0f);
+    legacy.layout.width = 160.0f;
+    legacy.layout.height = 112.0f;
+    legacy.layout.manual_size = false;
+    legacy.view.name = "legacy_vc";
+
+    auto manual = make_typed_node(interner, registry, "manual_vc", "VariableConductance", 200.0f, 0.0f);
+    manual.layout.width = 160.0f;
+    manual.layout.height = 112.0f;
+    manual.layout.manual_size = true;
+    manual.view.name = "manual_vc";
+
+    bp = bp.with_node(std::move(legacy));
+    bp = bp.with_node(std::move(manual));
+
+    write_file(bp_path, bp2::BlueprintCodec::encode(bp, interner, arena, &registry));
+
+    ASSERT_TRUE(doc.load(bp_path.string()));
+
+    const auto* legacy_node = require_node(doc.model().current(), doc.interner(), "legacy_vc");
+    const auto* manual_node = require_node(doc.model().current(), doc.interner(), "manual_vc");
+    ASSERT_NE(legacy_node, nullptr);
+    ASSERT_NE(manual_node, nullptr);
+
+    ASSERT_TRUE(legacy_node->layout.width.has_value());
+    ASSERT_TRUE(legacy_node->layout.height.has_value());
+    EXPECT_LT(*legacy_node->layout.width, 160.0f);
+    EXPECT_LE(*legacy_node->layout.height, 112.0f);
+    EXPECT_FALSE(legacy_node->layout.manual_size);
+
+    ASSERT_TRUE(manual_node->layout.width.has_value());
+    ASSERT_TRUE(manual_node->layout.height.has_value());
+    EXPECT_FLOAT_EQ(*manual_node->layout.width, 160.0f);
+    EXPECT_FLOAT_EQ(*manual_node->layout.height, 112.0f);
+    EXPECT_TRUE(manual_node->layout.manual_size);
+
+    EXPECT_FALSE(doc.model().is_dirty());
+    EXPECT_FALSE(doc.canUndo());
+
+    fs::remove_all(dir);
+}
+
 TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromTypeRegistry) {
     namespace fs = std::filesystem;
 
@@ -277,6 +335,62 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromTypeRegistry) {
     EXPECT_EQ(loaded_value->view.render_hint, "ref");
 
     fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, ExplicitNormalizeNodeSizesCreatesUndoableShrinkAndClearsManualIntent) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(doc.interner().intern("normalize_manual_doc"));
+    bp = bp.with_name("Normalize Manual Doc");
+
+    auto legacy = make_typed_node(doc.interner(), registry, "legacy_vc", "VariableConductance", 0.0f, 0.0f);
+    legacy.layout.width = 160.0f;
+    legacy.layout.height = 112.0f;
+    legacy.layout.manual_size = false;
+    legacy.view.name = "legacy_vc";
+
+    auto manual = make_typed_node(doc.interner(), registry, "manual_vc", "VariableConductance", 200.0f, 0.0f);
+    manual.layout.width = 160.0f;
+    manual.layout.height = 112.0f;
+    manual.layout.manual_size = true;
+    manual.view.name = "manual_vc";
+
+    bp = bp.with_node(std::move(legacy));
+    bp = bp.with_node(std::move(manual));
+    doc.model().replace_current(std::move(bp));
+    visual::mutations::rebuild(doc.scene(), doc.blueprint(), doc.interner(), doc.arena(), "");
+
+    ASSERT_TRUE(doc.normalizeNodeSizesToFit(false));
+    EXPECT_TRUE(doc.canUndo());
+    EXPECT_TRUE(doc.model().is_dirty());
+
+    const auto* legacy_node = require_node(doc.model().current(), doc.interner(), "legacy_vc");
+    const auto* manual_node = require_node(doc.model().current(), doc.interner(), "manual_vc");
+    ASSERT_NE(legacy_node, nullptr);
+    ASSERT_NE(manual_node, nullptr);
+
+    ASSERT_TRUE(legacy_node->layout.width.has_value());
+    ASSERT_TRUE(legacy_node->layout.height.has_value());
+    ASSERT_TRUE(manual_node->layout.width.has_value());
+    ASSERT_TRUE(manual_node->layout.height.has_value());
+    EXPECT_LT(*legacy_node->layout.width, 160.0f);
+    EXPECT_LE(*legacy_node->layout.height, 112.0f);
+    EXPECT_LT(*manual_node->layout.width, 160.0f);
+    EXPECT_LE(*manual_node->layout.height, 112.0f);
+    EXPECT_FALSE(legacy_node->layout.manual_size);
+    EXPECT_FALSE(manual_node->layout.manual_size);
+
+    ASSERT_TRUE(doc.performUndo());
+    const auto* undone_manual = require_node(doc.model().current(), doc.interner(), "manual_vc");
+    ASSERT_NE(undone_manual, nullptr);
+    ASSERT_TRUE(undone_manual->layout.width.has_value());
+    ASSERT_TRUE(undone_manual->layout.height.has_value());
+    EXPECT_FLOAT_EQ(*undone_manual->layout.width, 160.0f);
+    EXPECT_FLOAT_EQ(*undone_manual->layout.height, 112.0f);
+    EXPECT_TRUE(undone_manual->layout.manual_size);
 }
 
 TEST(DocumentSafety, SaveLoadDropsSessionOnlyNodeColor) {

@@ -161,6 +161,10 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
     Document* active_doc = ws.activeDocument();
     if (active_doc) {
         ImGui::Separator();
+        if (ImGui::MenuItem("Shrink Nodes To Fit", nullptr, false, active_doc != nullptr)) {
+            active_doc->normalizeNodeSizesToFit(false);
+        }
+        ImGui::Separator();
         if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
             active_doc->viewport().zoom *= 1.1f;
             active_doc->viewport().clamp_zoom();

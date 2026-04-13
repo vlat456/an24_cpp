@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "editor/window/window_manager.h"
+#include "editor/document.h"
 #include "editor/window/blueprint_window.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/editor_model/editor_model.h"

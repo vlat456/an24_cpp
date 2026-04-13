@@ -5,9 +5,11 @@
 #include "visual/scene.h"
 #include "visual/persist.h"
 #include "json_parser/json_parser.h"
+#include "editor/blueprint_view_hydration.h"
 #include "visual/node/node_factory.h"
 #include "visual/node/visual_node.h"
 #include "visual/node/ref_node_widget.h"
+#include "visual/container/port_row.h"
 #include "editor/layout_constants.h"
 #include "visual/snap.h"
 #include "visual/wire/wire.h"
@@ -692,8 +694,9 @@ TEST(SceneMutations, KnobSwitchUsesWiperThrowNamesAndNoDuplication) {
 
 TEST(SceneMutations, LongHeaderTextDoesNotInflateMinimumNodeWidth) {
     // Regression: a long type name (e.g. "VariableConductance") used to drive
-    // the node minimum width via the HeaderStrip, creating a large empty gap
-    // between left and right port labels. After the fix, the header's minimum
+    // the node minimum width via the FooterTypeLabel, and a long instance name
+    // did the same via the HeaderStrip, creating a large empty gap between
+    // left and right port labels. After the fix, both header and footer minimum
     // width is zero (text can be clipped), so minimum node width is driven
     // solely by port rows and content.
     ui::StringInterner interner;
@@ -726,7 +729,119 @@ TEST(SceneMutations, LongHeaderTextDoesNotInflateMinimumNodeWidth) {
     ASSERT_NE(w_short, nullptr);
 
     // Both nodes have identical ports, so their minimum width must be equal —
-    // the longer header name must not inflate the minimum.
+    // the longer type/header name must not inflate the minimum.
     EXPECT_EQ(w_long->minimumNodeSize().x, w_short->minimumNodeSize().x)
-        << "Header text length should not affect minimumNodeSize width";
+        << "Type name length should not affect minimumNodeSize width";
+}
+
+TEST(SceneMutations, LongInstanceNameDoesNotInflateMinimumNodeWidth) {
+    // Companion to LongHeaderTextDoesNotInflateMinimumNodeWidth:
+    // the header (instance name) must not inflate minimum width either.
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto node_long = make_bp2_node(interner, "long1", "T");
+    node_long.view.name = "VariableConductance_1";
+    set_iface(node_long, {
+        make_port(interner, "a", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "b", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto node_short = make_bp2_node(interner, "short1", "T");
+    node_short.view.name = "X";
+    set_iface(node_short, {
+        make_port(interner, "a", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "b", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node_long));
+    bp = bp.with_node(std::move(node_short));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* w_long  = dynamic_cast<visual::NodeWidget*>(scene.find("long1"));
+    auto* w_short = dynamic_cast<visual::NodeWidget*>(scene.find("short1"));
+    ASSERT_NE(w_long, nullptr);
+    ASSERT_NE(w_short, nullptr);
+
+    EXPECT_EQ(w_long->minimumNodeSize().x, w_short->minimumNodeSize().x)
+        << "Instance name length should not affect minimumNodeSize width";
+}
+
+TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto long_labels = make_bp2_node(interner, "light_long", "IndicatorLight");
+    long_labels.view.name = "light_long";
+    long_labels.view.content_type = bp2::NodeContentType::Indicator;
+    set_iface(long_labels, {
+        make_port(interner, "brightness", Domain::Electrical, bp2::Direction::Output, PortType::I),
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto short_labels = make_bp2_node(interner, "light_short", "IndicatorLight");
+    short_labels.view.name = "light_short";
+    short_labels.view.content_type = bp2::NodeContentType::Indicator;
+    set_iface(short_labels, {
+        make_port(interner, "b", Domain::Electrical, bp2::Direction::Output, PortType::I),
+        make_port(interner, "a", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "o", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(long_labels));
+    bp = bp.with_node(std::move(short_labels));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* long_widget = dynamic_cast<visual::NodeWidget*>(scene.find("light_long"));
+    auto* short_widget = dynamic_cast<visual::NodeWidget*>(scene.find("light_short"));
+    ASSERT_NE(long_widget, nullptr);
+    ASSERT_NE(short_widget, nullptr);
+
+    EXPECT_EQ(long_widget->minimumNodeSize().x, short_widget->minimumNodeSize().x);
+    EXPECT_GT(long_widget->preferredSize(nullptr).x, short_widget->preferredSize(nullptr).x);
+}
+
+TEST(SceneMutations, PairedPortRowMinimumWidthIgnoresLongLabelText) {
+    visual::LayoutContext ctx;
+    ctx.node_width = 0.0f;
+    ctx.node_height = visual::PortConstants::ROW_HEIGHT;
+
+    visual::PairedPortRow short_row("a", PortType::V, "b", PortType::V, &ctx);
+    visual::PairedPortRow long_row("brightness", PortType::V, "v_out", PortType::V, &ctx);
+
+    ui::Pt short_min = short_row.minimumSize(nullptr);
+    ui::Pt long_min = long_row.minimumSize(nullptr);
+    ui::Pt short_pref = short_row.preferredSize(nullptr);
+    ui::Pt long_pref = long_row.preferredSize(nullptr);
+
+    EXPECT_FLOAT_EQ(short_min.x, long_min.x);
+    EXPECT_GT(long_pref.x, short_pref.x);
+    EXPECT_LT(long_min.x, long_pref.x);
+}
+
+TEST(SceneMutations, SingleSidedPortRowMinimumWidthIgnoresLongLabelText) {
+    visual::LayoutContext ctx;
+    ctx.node_width = 0.0f;
+    ctx.node_height = visual::PortConstants::ROW_HEIGHT;
+
+    visual::PortRow short_row("o", bp2::PortSide::Output, PortType::Bool,
+                              bp2::PortLayoutSide::Right, &ctx);
+    visual::PortRow long_row("brightness", bp2::PortSide::Output, PortType::V,
+                             bp2::PortLayoutSide::Right, &ctx);
+
+    ui::Pt short_min = short_row.minimumSize(nullptr);
+    ui::Pt long_min = long_row.minimumSize(nullptr);
+    ui::Pt short_pref = short_row.preferredSize(nullptr);
+    ui::Pt long_pref = long_row.preferredSize(nullptr);
+
+    EXPECT_FLOAT_EQ(short_min.x, long_min.x);
+    EXPECT_GT(long_pref.x, short_pref.x);
+    EXPECT_LT(long_min.x, long_pref.x);
 }

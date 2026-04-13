@@ -621,6 +621,7 @@ add_executable(document_safety_tests
     ${CMAKE_SOURCE_DIR}/src/editor/document_export.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_history.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document_layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_io.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_windows.cpp

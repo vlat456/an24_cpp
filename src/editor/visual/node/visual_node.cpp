@@ -38,8 +38,12 @@ public:
         return Pt(kPadding * 2.0f + text_w, kHeight);
     }
 
-    Pt minimumSize(IDrawList* dl) const override {
-        return preferredSize(dl);
+    /// Minimum size only reserves height — text can be clipped when the
+    /// node is narrower than the header string. This prevents long instance
+    /// names from inflating the node's minimum width and creating a gap
+    /// between left and right port labels.
+    Pt minimumSize(IDrawList* /*dl*/) const override {
+        return Pt(0.0f, kHeight);
     }
 
     void render(IDrawList* dl, const RenderContext& ctx) const override {
@@ -58,7 +62,9 @@ public:
         float font = kFontSize * zoom;
         Pt text_pos(origin.x + kPadding * zoom,
                     origin.y + (kVisualHeight - kFontSize) * zoom * 0.5f);
+        dl->set_clip_rect(origin, max);
         dl->add_text(text_pos, text_.c_str(), render_theme::COLOR_TEXT, font);
+        dl->clear_clip();
     }
 
     void renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const override {
@@ -99,8 +105,12 @@ public:
         return Pt(text_w + kRightPadding, kHeight);
     }
 
-    Pt minimumSize(IDrawList* dl) const override {
-        return preferredSize(dl);
+    /// Minimum size only reserves height — text can be clipped when the
+    /// node is narrower than the type name. This prevents long type names
+    /// (e.g. "VariableConductance") from inflating the node's minimum width
+    /// and creating a gap between left and right port labels.
+    Pt minimumSize(IDrawList* /*dl*/) const override {
+        return Pt(0.0f, kHeight);
     }
 
     void render(IDrawList* dl, const RenderContext& ctx) const override {
@@ -110,9 +120,15 @@ public:
         float zoom = ctx.zoom;
         float font = kFontSize * zoom;
         Pt text_size = dl->calc_text_size(text_.c_str(), font);
-        float tx = origin.x + size().x * zoom - text_size.x - kRightPadding * zoom;
+        // Right-align text within the widget bounds, clamped so it never
+        // extends left of the origin.
+        float tx = std::max(origin.x,
+                            origin.x + size().x * zoom - text_size.x - kRightPadding * zoom);
         float ty = origin.y + (kHeight * zoom - font) * 0.5f;
+        Pt clip_max(origin.x + size().x * zoom, origin.y + kHeight * zoom);
+        dl->set_clip_rect(origin, clip_max);
         dl->add_text(Pt(tx, ty), text_.c_str(), render_theme::COLOR_TEXT_DIM, font);
+        dl->clear_clip();
     }
 
     void renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const override {
@@ -120,7 +136,8 @@ public:
         const float font = kFontSize * ctx.zoom;
         Pt origin = ctx.world_to_screen(worldPos());
         Pt text_size = dl->calc_text_size(text_.c_str(), font);
-        float tx = origin.x + size().x * ctx.zoom - text_size.x - kRightPadding * ctx.zoom;
+        float tx = std::max(origin.x,
+                            origin.x + size().x * ctx.zoom - text_size.x - kRightPadding * ctx.zoom);
         float ty = origin.y + (kHeight * ctx.zoom - font) * 0.5f;
         dl->add_rect(Pt(tx, ty),
                      Pt(tx + text_size.x, ty + text_size.y),
@@ -658,23 +675,24 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
     setLocalPos(Pt(data.layout.x, data.layout.y));
     buildLayout(data, render_iface, interner);
 
-    // Auto-size: minimumNodeSize gives a compact layout driven by port indents
-    // and content area, not header/footer text. Preferred size is the comfortable
-    // size that shows all text. For auto-sizing fresh nodes we use minimum;
-    // explicit saved dimensions are clamped to minimum as a floor.
+    // Auto-size: fresh nodes use preferredSize() so header text, port labels
+    // and footer type text all fit naturally. Explicit (saved/manual) dimensions
+    // are clamped by minimumNodeSize() as a floor.
     Pt min_sz = minimumNodeSize();
+    Pt pref_sz = preferredSize(nullptr);
 
-    float w = min_sz.x;
-    float h = min_sz.y;
-
+    float w, h;
     bool has_explicit = data.layout.width.has_value() && data.layout.height.has_value();
     if (has_explicit) {
         w = std::max(*data.layout.width, min_sz.x);
         h = std::max(*data.layout.height, min_sz.y);
+    } else {
+        w = std::max(pref_sz.x, min_sz.x);
+        h = std::max(pref_sz.y, min_sz.y);
     }
-    spdlog::debug("[widget] NodeWidget layout: node='{}' type='{}' min=({},{}) explicit_size={} final=({},{})",
+    spdlog::debug("[widget] NodeWidget layout: node='{}' type='{}' min=({},{}) pref=({},{}) explicit_size={} final=({},{})",
                   data.view.name, type_name_, min_sz.x, min_sz.y,
-                  has_explicit, w, h);
+                  pref_sz.x, pref_sz.y, has_explicit, w, h);
 
     // Snap to layout grid (round up to nearest PORT_LAYOUT_GRID)
     Pt snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));

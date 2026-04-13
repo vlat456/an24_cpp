@@ -57,23 +57,31 @@ public:
         return Pt(label_w + indent, PortConstants::ROW_HEIGHT);
     }
 
+    Pt minimumSize(IDrawList* /*dl*/) const override {
+        // Labels can clip within their assigned slot; only the edge port indent
+        // is a hard row-local shrink constraint.
+        float indent = port_ ? (PortConstants::RADIUS * 2 + labelOffset()) : 0.0f;
+        return Pt(indent, PortConstants::ROW_HEIGHT);
+    }
+
     void layout(float w, float h) override {
         setSize(Pt(w, h));
 
         // Position label within margins
         float indent = PortConstants::RADIUS * 2 + labelOffset();
-        float label_x = 0;
-        float label_w = 0;
+        float label_x = 0.0f;
+        float label_w = 0.0f;
 
         if (label_) {
             Pt lps = label_->preferredSize(nullptr);
-            label_w = lps.x;
             float label_h = lps.y;
 
             if (layout_side_ == bp2::PortLayoutSide::Left) {
                 label_x = indent;
+                label_w = std::max(0.0f, w - indent);
             } else if (layout_side_ == bp2::PortLayoutSide::Right) {
-                label_x = w - indent - label_w;
+                label_x = 0.0f;
+                label_w = std::max(0.0f, w - indent);
             }
 
             float label_y = (h - label_h) / 2.0f;
@@ -196,6 +204,18 @@ public:
         return Pt(total_w, PortConstants::ROW_HEIGHT);
     }
 
+    Pt minimumSize(IDrawList* dl) const override {
+        (void)dl;
+        const float left_indent = left_port_
+            ? PortConstants::RADIUS * 2 + PortConstants::LEFT_LABEL_OFFSET
+            : 0.0f;
+        const float right_indent = right_port_
+            ? PortConstants::RADIUS * 2 + PortConstants::RIGHT_LABEL_OFFSET
+            : 0.0f;
+        const float gap = (left_port_ && right_port_) ? PortConstants::MIN_GAP : 0.0f;
+        return Pt(left_indent + gap + right_indent, PortConstants::ROW_HEIGHT);
+    }
+
     void layout(float w, float h) override {
         setSize(Pt(w, h));
 
@@ -206,17 +226,33 @@ public:
         float v_pad = (h - PortConstants::LABEL_FONT_SIZE) / 2.0f;
         if (v_pad < 0) v_pad = 0;
 
+        const bool has_left = left_label_ != nullptr;
+        const bool has_right = right_label_ != nullptr;
+        const float gap = (has_left && has_right) ? PortConstants::MIN_GAP : 0.0f;
+        const float available_labels = std::max(0.0f, w - left_indent - right_indent - gap);
+
+        float left_slot_w = 0.0f;
+        float right_slot_w = 0.0f;
+        if (has_left && has_right) {
+            left_slot_w = std::floor(available_labels * 0.5f);
+            right_slot_w = available_labels - left_slot_w;
+        } else if (has_left) {
+            left_slot_w = available_labels;
+        } else if (has_right) {
+            right_slot_w = available_labels;
+        }
+
         if (left_label_) {
             Pt lps = left_label_->preferredSize(nullptr);
             left_label_->setLocalPos(Pt(left_indent, v_pad));
-            left_label_->setSize(Pt(lps.x, lps.y));
+            left_label_->setSize(Pt(left_slot_w, lps.y));
         }
 
         if (right_label_) {
             Pt rps = right_label_->preferredSize(nullptr);
-            float rx = w - right_indent - rps.x;
+            const float rx = w - right_indent - right_slot_w;
             right_label_->setLocalPos(Pt(rx, v_pad));
-            right_label_->setSize(Pt(rps.x, rps.y));
+            right_label_->setSize(Pt(right_slot_w, rps.y));
         }
 
         // Position ports at node edges

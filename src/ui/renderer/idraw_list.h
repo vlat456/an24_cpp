@@ -12,6 +12,9 @@ namespace ui {
 struct IDrawList {
     virtual ~IDrawList() = default;
 
+    virtual void set_clip_rect(Pt min, Pt max) {}
+    virtual void clear_clip() {}
+
     virtual void add_line(Pt a, Pt b, uint32_t color, float thickness = 1.0f) = 0;
     virtual void add_rect(Pt min, Pt max, uint32_t color, float thickness = 1.0f) = 0;
     virtual void add_rect_with_rounding_corners(Pt min, Pt max, uint32_t color, float rounding, int corners, float thickness = 1.0f) = 0;
