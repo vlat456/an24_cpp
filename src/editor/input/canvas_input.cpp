@@ -277,11 +277,11 @@ void CanvasInput::setup_semantic_interaction_state(visual::Widget* node_widget,
     switch (target.role) {
         case CanvasInput::SemanticContentRole::ContinuousScalar: {
             state_ = InputState::DraggingSlider;
-            float origin_world_x = visual_node
-                ? visual_node->worldPos().x + visual_node->contentBounds().x
-                : node_widget->worldPos().x;
+            float origin_local_x = visual_node
+                ? visual_node->contentBounds().x
+                : 0.0f;
             semantic_canvas_controller_.set_active_scalar_mapping({
-                origin_world_x,
+                origin_local_x,
                 target.primary_min,
                 target.primary_max,
                 node->view.content_min,
@@ -295,7 +295,7 @@ void CanvasInput::setup_semantic_interaction_state(visual::Widget* node_widget,
             int num_positions = target.steps;
             if (num_positions < 2) num_positions = 2;
             semantic_canvas_controller_.set_active_discrete_mapping({
-                world_pos.x,
+                visual_node ? world_pos.x - visual_node->worldPos().x : world_pos.x,
                 start_pos,
                 num_positions,
                 DISCRETE_DRAG_PIXELS_PER_STEP,

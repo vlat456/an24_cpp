@@ -2663,6 +2663,53 @@ TEST(CanvasInputSemanticGate, SliderDragOffHitStillEmitsThroughSemanticContinuat
     EXPECT_GE(drag.slider_value, 0.0f);
 }
 
+TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
+    slider.view.content_type = bp2::NodeContentType::Slider;
+    slider.view.content_min = 0.0f;
+    slider.view.content_max = 100.0f;
+    slider.view.content_value = 50.0f;
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+    input.simulation_mode = true;
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+
+    Pt canvas_min(0, 0);
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.slider_node_id, "slider_1");
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    auto drag = input.on_mouse_drag(MouseButton::Left, Pt(-20.0f, 0.0f), canvas_min);
+
+    EXPECT_EQ(drag.slider_node_id, "slider_1");
+    EXPECT_LT(drag.slider_value, 100.0f);
+}
+
 TEST(CanvasInputSemanticGate, KnobDragOffHitStillEmitsThroughSemanticContinuation) {
     ui::StringInterner I;
     bp2::PathArena arena(I);

@@ -21,7 +21,7 @@ struct SemanticControlEvent {
 };
 
 struct SemanticScalarControlMapping {
-    float primary_origin_world = 0.0f;
+    float primary_origin = 0.0f;
     float primary_min = 0.0f;
     float primary_max = 0.0f;
     float value_min = 0.0f;
@@ -29,7 +29,7 @@ struct SemanticScalarControlMapping {
 };
 
 struct SemanticDiscreteControlMapping {
-    float drag_origin_world_x = 0.0f;
+    float drag_origin_x = 0.0f;
     int start_value = 0;
     int value_count = 2;
     float pixels_per_step = 30.0f;
@@ -95,7 +95,7 @@ private:
     };
 
     static float compute_scalar_value(ui::Pt point, const SemanticScalarControlMapping& mapping) {
-        const float local_primary = point.x - mapping.primary_origin_world;
+        const float local_primary = point.x - mapping.primary_origin;
         const float range = mapping.primary_max - mapping.primary_min;
         const float t = (range > 1e-6f)
             ? std::clamp((local_primary - mapping.primary_min) / range, 0.0f, 1.0f)
@@ -104,7 +104,7 @@ private:
     }
 
     static int compute_discrete_value(ui::Pt point, const SemanticDiscreteControlMapping& mapping) {
-        const float dx = point.x - mapping.drag_origin_world_x;
+        const float dx = point.x - mapping.drag_origin_x;
         const int delta_steps = static_cast<int>(dx / mapping.pixels_per_step);
         return std::clamp(mapping.start_value + delta_steps, 0, mapping.value_count - 1);
     }

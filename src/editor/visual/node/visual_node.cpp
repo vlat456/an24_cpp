@@ -363,10 +363,10 @@ ContentPresentationBuildResult build_content_presentation(
                                paint.fill_color = 0xFF3A6830;
                            });
             append_painted(PaintPrimitiveKind::Circle,
-                           Rect{bounds.x + pad + t * track_w - SLIDER_HANDLE_RADIUS,
-                                bounds.y + bounds.h * 0.5f - SLIDER_HANDLE_RADIUS,
-                                SLIDER_HANDLE_RADIUS * 2.0f,
-                                SLIDER_HANDLE_RADIUS * 2.0f},
+                           Rect{bounds.x + pad + t * track_w,
+                                bounds.y + bounds.h * 0.5f,
+                                SLIDER_HANDLE_RADIUS,
+                                0.0f},
                            [&](PaintCommand& paint) {
                                paint.fill_color = 0xFF5078C0;
                                paint.stroke_color = 0xFF3050A0;
@@ -383,14 +383,14 @@ ContentPresentationBuildResult build_content_presentation(
         }
         case bp2::NodeContentType::Indicator: {
             const float b = std::clamp(value, 0.0f, 1.0f);
-            const float diameter = INDICATOR_SIZE * 2.0f * (0.3f + 0.15f * b);
+            const float radius = INDICATOR_SIZE * (0.3f + 0.15f * b);
             const float cx = bounds.x + bounds.w * 0.5f;
             const float cy = bounds.y + bounds.h * 0.5f;
             append_painted(PaintPrimitiveKind::Circle,
-                           Rect{cx - diameter * 0.5f, cy - diameter * 0.5f, diameter, diameter},
+                           Rect{cx, cy, radius, 0.0f},
                            [&](PaintCommand& paint) {
-                               if (value <= 0.0f) {
-                                   paint.fill_color = 0xFF505050;
+                                if (value <= 0.0f) {
+                                    paint.fill_color = 0xFF505050;
                                } else {
                                    uint8_t g = static_cast<uint8_t>(48 + 207 * b);
                                    uint8_t r_col = static_cast<uint8_t>(48 * (1.0f - b));
@@ -409,10 +409,10 @@ ContentPresentationBuildResult build_content_presentation(
             const float cx = bounds.x + bounds.w * 0.5f;
             const float cy = bounds.y + bounds.h * 0.5f;
             append_painted(PaintPrimitiveKind::Circle,
-                           Rect{cx - KNOB_RADIUS, cy - KNOB_RADIUS, KNOB_RADIUS * 2.0f, KNOB_RADIUS * 2.0f},
+                           Rect{cx, cy, KNOB_RADIUS, 0.0f},
                            [&](PaintCommand& paint) {
-                               paint.fill_color = 0xFF3A3A42;
-                               paint.stroke_color = 0xFF606068;
+                                paint.fill_color = 0xFF3A3A42;
+                                paint.stroke_color = 0xFF606068;
                                paint.stroke_width = 1.0f;
                            });
 

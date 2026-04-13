@@ -10,6 +10,8 @@
       "kind": "component",
       "label": "azs_1",
       "layout": {
+        "height": 112.0,
+        "width": 128.0,
         "x": 272.0,
         "y": -320.0
       },
@@ -54,7 +56,7 @@
       "kind": "component",
       "label": "bus_3",
       "layout": {
-        "x": 368.0,
+        "x": 360.0,
         "y": -632.0
       },
       "params": {
@@ -81,6 +83,8 @@
       "kind": "component",
       "label": "controlledvoltagesource_2",
       "layout": {
+        "height": 144.0,
+        "width": 128.0,
         "x": 608.0,
         "y": 0.0
       },
@@ -94,8 +98,8 @@
       "kind": "component",
       "label": "currentsense_1",
       "layout": {
-        "x": 976.0,
-        "y": -144.0
+        "x": 928.0,
+        "y": -224.0
       },
       "params": {
         "conductance": 10.0
@@ -108,8 +112,8 @@
       "layout": {
         "height": 64.0,
         "width": 160.0,
-        "x": -16.0,
-        "y": 0.0
+        "x": -8.0,
+        "y": 48.0
       },
       "source": {
         "blueprint": {
@@ -1542,7 +1546,7 @@
         "height": 64.0,
         "width": 160.0,
         "x": 208.0,
-        "y": 0.0
+        "y": 48.0
       },
       "source": {
         "blueprint": {
@@ -2045,8 +2049,8 @@
       "layout": {
         "height": 80.0,
         "width": 80.0,
-        "x": 664.0,
-        "y": -128.0
+        "x": 608.0,
+        "y": -320.0
       },
       "params": {
         "conductance": 0.0020000000949949026
@@ -2060,7 +2064,7 @@
       "layout": {
         "height": 64.0,
         "width": 48.0,
-        "x": 400.0,
+        "x": 488.0,
         "y": 48.0
       }
     },
@@ -2108,8 +2112,8 @@
       "kind": "component",
       "label": "resistor_1",
       "layout": {
-        "x": 832.0,
-        "y": -144.0
+        "x": 792.0,
+        "y": -224.0
       },
       "params": {
         "conductance": 0.10000000149011612
@@ -2121,7 +2125,7 @@
       "kind": "component",
       "label": "resistor_2",
       "layout": {
-        "x": 1344.0,
+        "x": 1264.0,
         "y": -720.0
       },
       "params": {
@@ -2134,6 +2138,8 @@
       "kind": "component",
       "label": "rotaryswitch1ton_1",
       "layout": {
+        "height": 144.0,
+        "width": 144.0,
         "x": -208.0,
         "y": -640.0
       },
@@ -2150,7 +2156,7 @@
       "kind": "component",
       "label": "slider_1",
       "layout": {
-        "x": -176.0,
+        "x": -144.0,
         "y": 256.0
       },
       "params": {
@@ -2257,7 +2263,7 @@
       "kind": "component",
       "label": "variableconductance_1_g_max",
       "layout": {
-        "x": 440.0,
+        "x": 424.0,
         "y": -264.0
       },
       "params": {
@@ -2270,7 +2276,7 @@
       "kind": "component",
       "label": "variableconductance_1_g_min",
       "layout": {
-        "x": 440.0,
+        "x": 424.0,
         "y": -248.0
       },
       "params": {
@@ -2284,7 +2290,7 @@
       "label": "FieldRate",
       "layout": {
         "x": 168.0,
-        "y": 40.0
+        "y": 88.0
       },
       "params": {
         "value": 6.0
@@ -2296,7 +2302,7 @@
       "kind": "component",
       "label": "value_9",
       "layout": {
-        "x": 392.0,
+        "x": 432.0,
         "y": -56.0
       },
       "params": {
@@ -2309,7 +2315,9 @@
       "kind": "component",
       "label": "variableconductance_1",
       "layout": {
-        "x": 488.0,
+        "height": 112.0,
+        "width": 112.0,
+        "x": 472.0,
         "y": -320.0
       }
     },
@@ -2319,7 +2327,9 @@
       "kind": "component",
       "label": "voltmeter_1",
       "layout": {
-        "x": 888.0,
+        "height": 176.0,
+        "width": 96.0,
+        "x": 896.0,
         "y": -464.0
       },
       "params": {
@@ -2364,7 +2374,7 @@
         ],
         [
           32.0,
-          -432.0
+          -416.0
         ],
         [
           32.0,
@@ -2392,24 +2402,24 @@
         "node": "bus_2",
         "port": "v"
       },
-      "id": "extract_wire_3",
+      "id": "wire_68",
       "routing": [
         [
           720.0,
-          -144.0
+          -160.0
         ],
         [
           -32.0,
-          -144.0
+          -160.0
         ],
         [
           -32.0,
-          32.0
+          -272.0
         ]
       ],
       "to": {
-        "node": "extract_inst_1",
-        "port": "feedback"
+        "node": "azs_1",
+        "port": "v_in"
       }
     },
     {
@@ -2453,24 +2463,24 @@
         "node": "bus_2",
         "port": "v"
       },
-      "id": "wire_68",
+      "id": "extract_wire_3",
       "routing": [
         [
           736.0,
-          -160.0
+          -144.0
         ],
         [
           -32.0,
-          -160.0
+          -144.0
         ],
         [
           -32.0,
-          -272.0
+          80.0
         ]
       ],
       "to": {
-        "node": "azs_1",
-        "port": "v_in"
+        "node": "extract_inst_1",
+        "port": "feedback"
       }
     },
     {
@@ -2496,11 +2506,11 @@
           208.0
         ],
         [
-          -64.0,
+          -48.0,
           208.0
         ],
         [
-          -64.0,
+          -48.0,
           -352.0
         ]
       ],
@@ -2565,19 +2575,19 @@
     },
     {
       "from": {
-        "node": "bus_2",
-        "port": "v"
+        "node": "controlledvoltagesource_2",
+        "port": "v_pos"
       },
-      "id": "wire_67",
+      "id": "wire_32",
       "routing": [
         [
-          768.0,
-          -112.0
+          752.0,
+          32.0
         ]
       ],
       "to": {
-        "node": "resistor_1",
-        "port": "v_in"
+        "node": "bus_2",
+        "port": "v"
       }
     },
     {
@@ -2654,7 +2664,7 @@
       "id": "wire_162",
       "routing": [
         [
-          464.0,
+          416.0,
           192.0
         ],
         [
@@ -2714,11 +2724,11 @@
       "id": "wire_165",
       "routing": [
         [
-          768.0,
-          -96.0
+          704.0,
+          -288.0
         ],
         [
-          768.0,
+          704.0,
           -32.0
         ],
         [
@@ -2745,16 +2755,6 @@
         "port": "out"
       },
       "id": "wire_23",
-      "routing": [
-        [
-          384.0,
-          32.0
-        ],
-        [
-          384.0,
-          80.0
-        ]
-      ],
       "to": {
         "node": "multiply_1",
         "port": "A"
@@ -2769,7 +2769,7 @@
       "routing": [
         [
           1152.0,
-          -112.0
+          -192.0
         ],
         [
           1152.0,
@@ -2812,19 +2812,19 @@
     },
     {
       "from": {
-        "node": "controlledvoltagesource_2",
-        "port": "v_pos"
+        "node": "bus_2",
+        "port": "v"
       },
-      "id": "wire_32",
+      "id": "wire_67",
       "routing": [
         [
-          816.0,
-          32.0
+          768.0,
+          -192.0
         ]
       ],
       "to": {
-        "node": "bus_2",
-        "port": "v"
+        "node": "resistor_1",
+        "port": "v_in"
       }
     },
     {
@@ -2835,11 +2835,11 @@
       "id": "wire_116",
       "routing": [
         [
-          1504.0,
+          1408.0,
           -688.0
         ],
         [
-          1504.0,
+          1408.0,
           304.0
         ],
         [
