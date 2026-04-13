@@ -31,12 +31,16 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
 
     std::unordered_set<ui::InternedId> connected_wire_ids;
 
+    drag_current_positions_.clear();
     size_t drag_idx = 0;
     for (const auto& node_id : selected_node_ids()) {
         auto* widget = resolve_node(node_id);
         if (!widget) continue;
         Pt offset = (drag_idx < drag_offsets_.size()) ? drag_offsets_[drag_idx] : Pt(0, 0);
         Pt new_pos = snapped + offset;
+
+        // Track final positions for commit (no widget readback needed).
+        drag_current_positions_.push_back(new_pos);
 
         widget->setLocalPos(new_pos);
 
@@ -137,6 +141,10 @@ void CanvasInput::handle_resize_node(Pt world_delta) {
 
     resize_widget->setLocalPos(new_pos);
     resize_widget->layout(new_size.x, new_size.y);
+
+    // Track arithmetic final state for commit (no widget readback needed).
+    resize_current_pos_ = new_pos;
+    resize_current_size_ = new_size;
 }
 
 InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canvas_min) {
@@ -159,6 +167,7 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
             case InputState::DraggingRoutingPoint: {
                 drag_anchor_ = drag_anchor_ + world_delta;
                 Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
+                rp_drag_pos_ = snapped;
 
                 auto* rp_wire = resolve_wire(rp_wire_id_);
                 visual::RoutingPoint* rp_point = nullptr;
@@ -196,9 +205,9 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
             case InputState::DraggingKnob: {
                 advance_world_cursor(world_delta);
                 Pt semantic_point = last_world_pos_;
-                if (auto* widget = resolve_node(semantic_widget_id_)) {
-                    semantic_point = Pt(last_world_pos_.x - widget->worldPos().x,
-                                        last_world_pos_.y - widget->worldPos().y);
+                if (semantic_session_seed_) {
+                    semantic_point = Pt(last_world_pos_.x - semantic_session_seed_->node_world_pos.x,
+                                        last_world_pos_.y - semantic_session_seed_->node_world_pos.y);
                 }
                 editor::presentation::SemanticCanvasControllerResult semantic =
                     semantic_canvas_controller_.on_pointer_drag(semantic_point);

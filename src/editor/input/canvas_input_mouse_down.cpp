@@ -41,11 +41,27 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         if (simulation_mode) {
             auto hit = visual::hit_test(scene_, world);
             if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-                ui::InternedId node_id = interner_.intern(hn->node_id);
-                auto content_target = hit_test_semantic_content(node_id, world);
-                if (content_target.has_value()) {
+                if (hn->content_interaction.has_value()) {
+                    SemanticContentTarget target;
+                    switch (hn->content_interaction->kind) {
+                        case editor::presentation::InteractionKind::Click:
+                            target.role = SemanticContentRole::Toggle;
+                            break;
+                        case editor::presentation::InteractionKind::DragScalar:
+                            target.role = SemanticContentRole::ContinuousScalar;
+                            target.primary_min = hn->content_interaction->primary_min;
+                            target.primary_max = hn->content_interaction->primary_max;
+                            break;
+                        case editor::presentation::InteractionKind::DragDiscrete:
+                            target.role = SemanticContentRole::DiscreteSelector;
+                            target.steps = hn->content_interaction->steps;
+                            break;
+                        default:
+                            target.steps = 2;
+                            break;
+                    }
                     InputResult ir;
-                    if (handle_resolved_interaction(node_id, *content_target, world, ir)) {
+                    if (handle_resolved_interaction(*hn, target, world, ir)) {
                         return ir;
                     }
                 }
@@ -82,9 +98,26 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             enter_resize_node(interner_.intern(hrh->node_id), hrh->world_pos, hrh->size, hrh->corner);
          } else if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
              ui::InternedId node_id = interner_.intern(hn->node_id);
-             auto content_target = hit_test_semantic_content(node_id, world);
-             if (content_target.has_value()) {
-                 if (handle_resolved_interaction(node_id, *content_target, world, result)) {
+             if (hn->content_interaction.has_value()) {
+                 SemanticContentTarget target;
+                 switch (hn->content_interaction->kind) {
+                     case editor::presentation::InteractionKind::Click:
+                         target.role = SemanticContentRole::Toggle;
+                         break;
+                     case editor::presentation::InteractionKind::DragScalar:
+                         target.role = SemanticContentRole::ContinuousScalar;
+                         target.primary_min = hn->content_interaction->primary_min;
+                         target.primary_max = hn->content_interaction->primary_max;
+                         break;
+                     case editor::presentation::InteractionKind::DragDiscrete:
+                         target.role = SemanticContentRole::DiscreteSelector;
+                         target.steps = hn->content_interaction->steps;
+                         break;
+                     default:
+                         target.steps = 2;
+                         break;
+                 }
+                 if (handle_resolved_interaction(*hn, target, world, result)) {
                      return result;
                  }
              }

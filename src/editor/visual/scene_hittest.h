@@ -11,6 +11,8 @@
 
 #include "ui/math/pt.h"
 #include "editor/input/input_types.h"
+#include "editor/visual/node/bounds.h"
+#include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "visual/port/visual_port.h"
 #include <variant>
 #include <cstddef>
@@ -34,10 +36,21 @@ class Port;
 class NodeWidget;
 
 struct HitEmpty {};
+struct HitContentInteraction {
+    editor::presentation::InteractionKind kind = editor::presentation::InteractionKind::Click;
+    float primary_min = 0.0f;
+    float primary_max = 0.0f;
+    int steps = 2;
+};
+
 struct HitNode {
     std::string_view node_id;
     Pt world_pos{};
     Pt size{};
+    Bounds content_bounds{};
+    editor::presentation::SemanticSceneSnapshot content_snapshot;
+    bool renders_content_from_semantic_snapshot = false;
+    std::optional<HitContentInteraction> content_interaction;
 };
 struct HitPort {
     std::string_view node_id;

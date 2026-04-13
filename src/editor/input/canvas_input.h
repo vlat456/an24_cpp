@@ -4,6 +4,8 @@
 #include "editor/input/editing_host.h"
 #include "editor/visual/presentation/semantic_canvas_controller.h"
 #include "editor/visual/render_context.h"
+#include "editor/visual/scene_hittest.h"
+#include "editor/visual/node/bounds.h"
 #include "ui/math/pt.h"
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/blueprint/node_port.h"
@@ -130,8 +132,11 @@ private:
     ui::InternedId group_iid_;  // interned handle for O(1) comparisons
     std::string_view scope_id_;  // resolved from interner (stable storage)
     
-    // Initial positions for drag-to-command commit
+    // Initial positions for drag-to-command commit (from blueprint data at drag start).
     std::vector<Pt> drag_initial_positions_;
+    // Current positions maintained by handle_drag_node (arithmetic, no widget readback).
+    // Empty until the first actual drag event; commit_drag_node checks this.
+    std::vector<Pt> drag_current_positions_;
 
     InputState state_ = InputState::Idle;
 
@@ -168,6 +173,7 @@ private:
     // Routing-point drag — semantic wire/id state only.
     ui::InternedId rp_wire_id_;
     size_t rp_index_ = 0;
+    Pt rp_drag_pos_{};
     std::vector<Pt> rp_initial_points_;  // snapshot of routing_points at drag start
 
     // Resize drag — stored as InternedId
@@ -175,9 +181,18 @@ private:
     ResizeCorner resize_corner_ = ResizeCorner::BottomRight;
     Pt resize_original_pos_;
     Pt resize_original_size_;
+    Pt resize_current_pos_;
+    Pt resize_current_size_;
 
     editor::presentation::SemanticCanvasController semantic_canvas_controller_;
-    ui::InternedId semantic_widget_id_;
+    
+    struct SemanticSessionSeed {
+        ui::InternedId node_id;
+        Pt node_world_pos{};
+        Bounds content_bounds{};
+        editor::presentation::SemanticSceneSnapshot content_snapshot;
+    };
+    std::optional<SemanticSessionSeed> semantic_session_seed_;
 
     // Marquee
     Pt marquee_start_;
@@ -233,24 +248,19 @@ private:
     InputResult finish_wire_reconnection(Pt screen_pos, Pt canvas_min);
     void finish_marquee();
     /// Handle an already-resolved interaction target. Returns true if interaction was consumed.
-    bool handle_resolved_interaction(ui::InternedId node_id,
+    bool handle_resolved_interaction(const visual::HitNode& node_hit,
                                      const SemanticContentTarget& target,
                                      Pt world,
                                      InputResult& result);
 
      /// Configure semantic snapshot and controller state for interaction role.
-       void setup_semantic_interaction_state(ui::InternedId node_id,
+       void setup_semantic_interaction_state(const visual::HitNode& node_hit,
                                              const SemanticContentTarget& target,
                                              Pt world_pos);
      
      /// Configure and dispatch semantic interaction based on role. Returns result.
         editor::presentation::SemanticCanvasControllerResult configure_and_dispatch_semantic_interaction(
-          ui::InternedId node_id, const SemanticContentTarget& target, Pt world);
-
-      /// Hit-test a node's retained content semantic snapshot at world position.
-      /// Returns a semantic content target if a control was hit, nullopt otherwise.
-      std::optional<SemanticContentTarget> hit_test_semantic_content(
-          ui::InternedId node_id, Pt world_pos);
+          const visual::HitNode& node_hit, const SemanticContentTarget& target, Pt world);
 
       bool publish_semantic_control_result(const editor::presentation::SemanticCanvasControllerResult& semantic,
                                            InputResult& result) const;

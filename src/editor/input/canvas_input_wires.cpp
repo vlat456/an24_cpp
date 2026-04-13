@@ -317,16 +317,19 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
      bp2::PortSide fixed_side;
      PortType fixed_type = PortType::Any;
 
-     // Helper: resolve a port's world position via the scene graph.
-     // This is a synchronous point-in-time query (no stored pointer).
-     auto resolve_port_pos = [&](ui::InternedId node_id, ui::InternedId port_id,
-                                 ui::InternedId wire_id) -> std::optional<Pt> {
-         auto* widget = scene_.find(interner_.resolve(node_id));
-         if (!widget) return std::nullopt;
-         auto* port = widget->portByName(interner_.resolve(port_id), interner_.resolve(wire_id));
-         if (!port) return std::nullopt;
-         fixed_type = port->type();
-         return port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+     // Estimate a port's world position from blueprint layout data.
+     // The exact pixel position depends on widget layout, but this is only
+     // used as the reconnection anchor (visual wire preview start point),
+     // so an approximate center-of-node position is sufficient.
+     auto estimate_port_pos = [&](ui::InternedId node_id, ui::InternedId port_id) -> std::optional<Pt> {
+         (void)port_id;
+         const bp2::Blueprint::Node* node = host_.find_node(node_id);
+         if (!node) return std::nullopt;
+         constexpr float DEFAULT_W = 64.0f;
+         constexpr float DEFAULT_H = 32.0f;
+         float w = node->layout.width.value_or(DEFAULT_W);
+         float h = node->layout.height.value_or(DEFAULT_H);
+         return Pt(node->layout.x + w * 0.5f, node->layout.y + h * 0.5f);
      };
 
      if (detach_start) {
@@ -335,7 +338,7 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
          fixed_type = resolve_port_type_from_model(host_.current_blueprint(), tgt_node, tgt_port);
          if (!w.routing_points.empty()) {
              anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
-         } else if (auto pos = resolve_port_pos(tgt_node, tgt_port, w.id)) {
+         } else if (auto pos = estimate_port_pos(tgt_node, tgt_port)) {
              anchor_pos = *pos;
          }
      } else {
@@ -344,7 +347,7 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
          fixed_type = resolve_port_type_from_model(host_.current_blueprint(), src_node, src_port);
          if (!w.routing_points.empty()) {
              anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);
-         } else if (auto pos = resolve_port_pos(src_node, src_port, w.id)) {
+         } else if (auto pos = estimate_port_pos(src_node, src_port)) {
              anchor_pos = *pos;
          }
      }

@@ -8,6 +8,7 @@
 #include "node/group_node_widget.h"
 #include "node/visual_node.h"
 #include "editor/layout_constants.h"
+#include "editor/visual/presentation/semantic_scene_hittest.h"
 #include <algorithm>
 #include <cmath>
 #include <optional>
@@ -126,7 +127,31 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
 
     // --- Pass 5: Nodes / generic clickable widgets (AABB) ---
     if (auto* node = hit_test_node_body(candidates, world_pos)) {
-        return HitNode{node->id(), node->worldPos(), node->size()};
+        HitNode hit{node->id(), node->worldPos(), node->size()};
+        if (auto* visual_node = dynamic_cast<NodeWidget*>(node)) {
+            hit.content_bounds = visual_node->contentBounds();
+            hit.content_snapshot = visual_node->content_semantic_snapshot();
+            hit.renders_content_from_semantic_snapshot = visual_node->renders_content_from_semantic_snapshot();
+
+            if (hit.renders_content_from_semantic_snapshot && !hit.content_snapshot.hit_objects.empty()) {
+                const Pt local(world_pos.x - hit.world_pos.x,
+                               world_pos.y - hit.world_pos.y);
+                auto semantic_hit = editor::presentation::hit_test_semantic_scene(hit.content_snapshot, local);
+                if (auto* content_region = std::get_if<editor::presentation::SemanticHitContentRegion>(&semantic_hit)) {
+                    if (content_region->object && !content_region->object->interactions.empty()) {
+                        const auto& binding = content_region->object->interactions.front();
+                        HitContentInteraction interaction;
+                        interaction.kind = binding.kind;
+                        interaction.primary_min = binding.min_value;
+                        interaction.primary_max = binding.max_value;
+                        interaction.steps = static_cast<int>(binding.step);
+                        if (interaction.steps < 2) interaction.steps = 2;
+                        hit.content_interaction = interaction;
+                    }
+                }
+            }
+        }
+        return hit;
     }
 
     // --- Pass 6: Wire segments (lowest priority, fine-grained) ---

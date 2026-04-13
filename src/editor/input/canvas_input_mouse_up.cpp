@@ -16,13 +16,18 @@
 using namespace canvas_input_impl;
 
 void CanvasInput::commit_drag_node() {
+     // drag_current_positions_ is populated by handle_drag_node on each drag event.
+     // If empty, no drag movement occurred (click-without-drag) — nothing to commit.
+     if (drag_current_positions_.empty()) return;
+
      bool any_moved = false;
      std::vector<ui::InternedId> moved_node_ids;
      size_t drag_idx = 0;
      for (const auto& node_id : selected_node_ids()) {
-         auto* widget = resolve_node(node_id);
-         if (!widget) continue;
-         if (drag_idx < drag_initial_positions_.size() && widget->worldPos() != drag_initial_positions_[drag_idx]) {
+         if (node_id.empty() || !host_.find_node(node_id)) continue;
+         if (drag_idx < drag_current_positions_.size() &&
+             drag_idx < drag_initial_positions_.size() &&
+             drag_current_positions_[drag_idx] != drag_initial_positions_[drag_idx]) {
              any_moved = true;
              moved_node_ids.push_back(node_id);
          }
@@ -30,11 +35,15 @@ void CanvasInput::commit_drag_node() {
      }
      if (!any_moved) return;
      host_.mutate_atomically([&] {
+         size_t pos_idx = 0;
          for (const auto& node_id : selected_node_ids()) {
-             auto* widget = resolve_node(node_id);
-             if (widget && !node_id.empty()) {
-                 host_.update_node_position(node_id, widget->worldPos().x, widget->worldPos().y);
-              }
+             if (node_id.empty() || !host_.find_node(node_id)) continue;
+             if (pos_idx < drag_current_positions_.size()) {
+                 host_.update_node_position(node_id,
+                     drag_current_positions_[pos_idx].x,
+                     drag_current_positions_[pos_idx].y);
+             }
+             ++pos_idx;
           }
       });
 
@@ -77,20 +86,31 @@ void CanvasInput::commit_drag_node() {
 }
 
 bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedId connected_id) {
+    const bp2::Blueprint::Node* ref_node = host_.find_node(ref_id);
+    const bp2::Blueprint::Node* other_node = host_.find_node(connected_id);
+    if (!ref_node || !other_node) return false;
+
+    // Use blueprint layout data for center computation.
+    // Width/height default to a nominal size when not explicitly set.
+    constexpr float DEFAULT_W = 64.0f;
+    constexpr float DEFAULT_H = 32.0f;
+    const float ref_w = ref_node->layout.width.value_or(DEFAULT_W);
+    const float ref_h = ref_node->layout.height.value_or(DEFAULT_H);
+    const float other_w = other_node->layout.width.value_or(DEFAULT_W);
+    const float other_h = other_node->layout.height.value_or(DEFAULT_H);
+
+    const Pt ref_center(ref_node->layout.x + ref_w * 0.5f,
+                        ref_node->layout.y + ref_h * 0.5f);
+    const Pt other_center(other_node->layout.x + other_w * 0.5f,
+                          other_node->layout.y + other_h * 0.5f);
+
+    auto side = editor_math::side_from_relative_position(ref_center, other_center);
+
+    // Push the layout side to the widget for live preview.
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(resolve_node(ref_id));
-    auto* other_widget = resolve_node(connected_id);
-    if (!ref_widget || !other_widget) return false;
-
-    const Pt ref_pos = ref_widget->worldPos();
-    const Pt ref_size = ref_widget->size();
-    const Pt other_pos = other_widget->worldPos();
-    const Pt other_size = other_widget->size();
-
-    const Pt ref_center(ref_pos.x + ref_size.x * 0.5f, ref_pos.y + ref_size.y * 0.5f);
-    const Pt other_center(other_pos.x + other_size.x * 0.5f,
-                          other_pos.y + other_size.y * 0.5f);
-
-    ref_widget->setPortLayoutSide(editor_math::side_from_relative_position(ref_center, other_center));
+    if (ref_widget) {
+        ref_widget->setPortLayoutSide(side);
+    }
     return true;
 }
 
@@ -113,14 +133,7 @@ void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) 
 void CanvasInput::commit_drag_routing_point() {
      const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(rp_wire_id_);
      if (!bp2_wire) return;
-     Pt final_pos(0, 0);
-     if (auto* rp_wire = resolve_wire(rp_wire_id_)) {
-         if (rp_index_ < rp_wire->children().size()) {
-             if (auto* rp_point = dynamic_cast<visual::RoutingPoint*>(rp_wire->children()[rp_index_].get())) {
-                 final_pos = rp_point->worldPos();
-             }
-         }
-     }
+     Pt final_pos = rp_drag_pos_;
 
      std::vector<std::pair<float,float>> new_points;
      new_points.reserve(rp_initial_points_.size());
@@ -148,10 +161,8 @@ void CanvasInput::commit_drag_routing_point() {
 }
 
 void CanvasInput::commit_resize_node() {
-     auto* resize_widget = resolve_node(resize_widget_id_);
-     if (!resize_widget) return;
-     Pt new_pos = resize_widget->worldPos();
-     Pt new_size = resize_widget->size();
+     Pt new_pos = resize_current_pos_;
+     Pt new_size = resize_current_size_;
      ui::InternedId node_iid = resize_widget_id_;
      if ((new_pos == resize_original_pos_ && new_size == resize_original_size_) || node_iid.empty()) return;
      host_.update_node(node_iid, [&](bp2::Blueprint::Node& n) {
@@ -167,18 +178,18 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
     InputResult result;
 
     if (btn == MouseButton::Left) {
-        Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
-        if (state_uses_semantic_control_session()) {
-            last_world_pos_ = world;
-            Pt semantic_point = world;
-            if (auto* widget = resolve_node(semantic_widget_id_)) {
-                semantic_point = Pt(world.x - widget->worldPos().x,
-                                    world.y - widget->worldPos().y);
-            }
-            editor::presentation::SemanticCanvasControllerResult semantic =
-                semantic_canvas_controller_.on_pointer_release(semantic_point);
-            publish_semantic_control_result(semantic, result);
-        }
+         Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
+         if (state_uses_semantic_control_session()) {
+             last_world_pos_ = world;
+             Pt semantic_point = world;
+             if (semantic_session_seed_) {
+                 semantic_point = Pt(world.x - semantic_session_seed_->node_world_pos.x,
+                                     world.y - semantic_session_seed_->node_world_pos.y);
+             }
+             editor::presentation::SemanticCanvasControllerResult semantic =
+                 semantic_canvas_controller_.on_pointer_release(semantic_point);
+             publish_semantic_control_result(semantic, result);
+         }
 
         switch (state_) {
             case InputState::ReconnectingWire:
@@ -233,9 +244,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
                   if (!wire_iid.empty()) {
                       snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
-                      if (auto* wire = resolve_wire(wire_iid)) {
-                          wire->removeRoutingPoint(hrp->index);
-                      }
+                      visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
                   }
               }
              return result;
@@ -279,9 +288,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
                   if (!wire_iid.empty()) {
                       snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
-                      if (auto* wire = resolve_wire(wire_iid)) {
-                          wire->addRoutingPoint(snapped, insert_idx);
-                      }
+                      visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
                   }
               }
          }
@@ -363,20 +370,14 @@ void CanvasInput::finish_marquee() {
     float min_y = std::min(marquee_start_.y, marquee_end_.y);
     float max_y = std::max(marquee_start_.y, marquee_end_.y);
 
-    for (const auto& root : scene_.roots()) {
-        auto* vroot = static_cast<visual::Widget*>(root.get());
-        if (vroot->renderLayer() == visual::RenderLayer::Wire) continue;
-        if (vroot->id().empty()) continue;
-
-          ui::InternedId node_iid = interner_.lookup(std::string_view(vroot->id()));
-          const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : host_.find_node(node_iid);
-          if (!node) continue;
-
-        Pt pos = vroot->worldPos();
-        Pt sz = vroot->size();
-        float cx = pos.x + sz.x / 2;
-        float cy = pos.y + sz.y / 2;
+    constexpr float DEFAULT_W = 64.0f;
+    constexpr float DEFAULT_H = 32.0f;
+    for (const auto& node : host_.nodes()) {
+        float w = node.layout.width.value_or(DEFAULT_W);
+        float h = node.layout.height.value_or(DEFAULT_H);
+        float cx = node.layout.x + w * 0.5f;
+        float cy = node.layout.y + h * 0.5f;
         if (cx >= min_x && cx <= max_x && cy >= min_y && cy <= max_y)
-            add_node_selection(node_iid);
+            add_node_selection(node.semantic.id);
     }
 }
