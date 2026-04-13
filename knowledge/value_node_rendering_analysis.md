@@ -29,8 +29,8 @@ The old direct node-content interaction path is gone.
 The active path is:
 
 1. `NodeWidget` reserves a content region and caches content state
-2. `NodeWidget::refresh_content_semantic_snapshot()` emits retained semantic render and hit objects
-3. `CanvasInput::hit_test_semantic_content()` semantic-hit-tests that snapshot
+2. `NodeWidget::refresh_content_semantic_snapshot()` emits retained semantic render and hit objects in node-local coordinates
+3. `CanvasInput::hit_test_semantic_content()` converts world pointer coordinates into node-local space and semantic-hit-tests that snapshot
 4. `InteractionBinding.kind` drives the input state transition
 
 Current semantic interaction kinds:

@@ -1324,6 +1324,34 @@ The fix for this already existed in `NodeWidget::preferredSize()` conceptually �
 
 ---
 
+### ~~35b. Presentation-Builder Content Snapshot Bridge Missed Root Placement Contract~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** After routing `NodeWidget` content snapshots through the shared presentation-layer snapshot builder, semantic content sessions became fragile and some test paths crashed or failed to enter toggle/slider/knob interaction. The synthetic content presentation tree did not fully satisfy the shared builder invariants.
+
+**Root cause:** The synthetic content presentation built in `visual_node.cpp` initially omitted a root `FragmentPlacement` and mixed unrelated element ID spaces. The shared `build_semantic_scene_snapshot()` path expects every `PresentationNode` involved in content snapshot expansion to have matching placement data. At the same time, `CanvasInput` needed to treat `content_semantic_snapshot()` as node-local rather than world-space.
+
+**Fix:**
+
+1. `visual_node.cpp` now builds content snapshots through a self-contained synthetic presentation/layout pair with unique local element IDs and an explicit root placement.
+2. `CanvasInput` now translates world pointer positions into node-local coordinates before semantic hit testing and before forwarding drag/release points into the semantic control session.
+3. Added regression coverage for the root-placement invariant in the presentation snapshot tests.
+
+**Files changed:**
+
+- `src/editor/visual/node/visual_node.cpp` — synthetic content presentation builder with explicit root placement
+- `src/editor/input/canvas_input.cpp` — local-space semantic hit test and initial dispatch
+- `src/editor/input/canvas_input.h` — tracked active semantic widget id for session continuation
+- `src/editor/input/canvas_input_mouse_drag.cpp` — local-space semantic drag continuation
+- `src/editor/input/canvas_input_mouse_up.cpp` — local-space semantic release dispatch
+- `tests/test_semantic_scene_snapshot.cpp` — root-placement regression coverage
+- `tests/test_canvas_input.cpp` — local-space semantic snapshot expectations
+
+**Regression tests:** `SemanticSceneSnapshotTest.ContentRootPlacementIsRequiredForNestedContentTrees` plus the semantic interaction/session regressions in `tests/test_canvas_input.cpp`
+
+---
+
 ### ~~36. GroundPower Component — Tooltip Shows 0V~~ ✓ FIXED
 
 **Status:** CLOSED

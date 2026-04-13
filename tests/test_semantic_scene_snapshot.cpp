@@ -159,6 +159,43 @@ TEST(SemanticSceneSnapshotTest, UsesElementPlacementsForContentObjectBounds) {
     EXPECT_FLOAT_EQ(control->bounds.h, 38.0f);
 }
 
+TEST(SemanticSceneSnapshotTest, ContentRootPlacementIsRequiredForNestedContentTrees) {
+    NodePresentation presentation;
+    presentation.node_id = ui::InternedId(500);
+    presentation.type_id = ui::InternedId(600);
+    presentation.shell.frame_kind = NodeFrameKind::Standard;
+    presentation.shell.title = "Content Node";
+
+    PresentationNode root;
+    root.element_id = ui::InternedId(1);
+    root.layout = LayoutKind::Overlay;
+
+    PresentationNode child;
+    child.element_id = ui::InternedId(2);
+    PaintCommand child_paint;
+    child_paint.id = ui::InternedId(3);
+    child_paint.kind = PaintPrimitiveKind::Rectangle;
+    child.paint.push_back(std::move(child_paint));
+    root.children.push_back(std::move(child));
+    presentation.content.root = std::move(root);
+
+    NodeSlotLayout layout;
+    layout.node_bounds = Rect{0.0f, 0.0f, 120.0f, 80.0f};
+    layout.slots.push_back(SlotAssignment{NodeSlot::Header, Rect{0.0f, 0.0f, 120.0f, 20.0f}});
+    layout.slots.push_back(SlotAssignment{NodeSlot::Body, Rect{0.0f, 20.0f, 120.0f, 60.0f}});
+    layout.placements.push_back(FragmentPlacement{ui::InternedId(1), Rect{10.0f, 24.0f, 80.0f, 40.0f}});
+    layout.placements.push_back(FragmentPlacement{ui::InternedId(2), Rect{18.0f, 30.0f, 24.0f, 24.0f}});
+
+    SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
+
+    const SceneRenderObject* content = find_render(snapshot, SceneRenderObjectKind::ContentPaint, ui::InternedId(2));
+    ASSERT_NE(content, nullptr);
+    EXPECT_FLOAT_EQ(content->bounds.x, 18.0f);
+    EXPECT_FLOAT_EQ(content->bounds.y, 30.0f);
+    EXPECT_FLOAT_EQ(content->bounds.w, 24.0f);
+    EXPECT_FLOAT_EQ(content->bounds.h, 24.0f);
+}
+
 TEST(SemanticSceneSnapshotTest, MultiNodeBuilderAssignsUniqueObjectIdsAcrossNodes) {
     NodePresentation first = make_presentation();
     NodeSlotLayout first_layout = layout_node_presentation(first, ui::Pt(180.0f, 120.0f));

@@ -508,6 +508,9 @@ The key production object is `NodeWidget::content_semantic_snapshot()`. It conta
 - `render_objects` for live content painting
 - `hit_objects` for semantic content interaction
 
+Important contract:
+`NodeWidget::content_semantic_snapshot()` is in node-local coordinates, not world coordinates. `CanvasInput` converts pointer positions from world space into node-local space before semantic hit testing and before forwarding drag/release points into the semantic controller session.
+
 `CanvasInput` enters content interactions through semantic hit testing, not widget type checks.
 
 ### Adding a New Content Type
@@ -525,6 +528,7 @@ The key production object is `NodeWidget::content_semantic_snapshot()`. It conta
 **Step 4: Add semantic rendering and interaction** in `src/editor/visual/node/visual_node.cpp`:
 - extend `refresh_content_semantic_snapshot()` to emit the new render objects
 - if interactive, extend `derive_content_interaction()` and emit the appropriate `InteractionBinding`
+- keep synthetic content presentations internally self-contained: every `PresentationNode` used for content snapshot building must have a matching `FragmentPlacement`
 
 **Step 5: Wire up simulation readout** in `document.cpp::updateNodeContentFromSimulation()` so the node's cached content values are updated from runtime state.
 
