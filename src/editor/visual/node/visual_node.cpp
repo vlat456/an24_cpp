@@ -139,12 +139,6 @@ struct ContentWidgetInteractionInfo {
     float bounds_h = 0.0f;
 };
 
-editor::presentation::SceneObjectId next_scene_object_id(
-    editor::presentation::SemanticSceneSnapshot& snapshot) {
-    return editor::presentation::SceneObjectId(
-        static_cast<uint32_t>(snapshot.render_objects.size() + snapshot.hit_objects.size() + 1));
-}
-
 ContentWidgetInteractionInfo build_rect_interaction(ContentInteractionRole role,
                                                     Pt size,
                                                     float primary_min = 0.0f,
@@ -209,274 +203,313 @@ std::optional<ContentWidgetInteractionInfo> derive_content_interaction(
     }
 }
 
-void append_text_content_render_object(editor::presentation::SemanticSceneSnapshot& snapshot,
-                                       ui::InternedId node_id,
-                                       const Bounds& bounds,
-                                       const std::string& label) {
+struct ContentPresentationBuildResult {
+    editor::presentation::NodePresentation presentation;
+    editor::presentation::NodeSlotLayout layout;
+    bool renders_content = false;
+};
+
+editor::presentation::PresentationNode make_presentation_node(ui::InternedId element_id) {
+    editor::presentation::PresentationNode node;
+    node.element_id = element_id;
+    return node;
+}
+
+editor::presentation::PaintCommand make_paint_command(ui::InternedId id,
+                                                      editor::presentation::PaintPrimitiveKind kind) {
+    editor::presentation::PaintCommand paint;
+    paint.id = id;
+    paint.kind = kind;
+    return paint;
+}
+
+editor::presentation::InteractionBinding make_interaction_binding(
+    ui::InternedId region_id,
+    ui::InternedId action_id,
+    editor::presentation::InteractionKind kind) {
+    editor::presentation::InteractionBinding binding;
+    binding.region_id = region_id;
+    binding.action_id = action_id;
+    binding.kind = kind;
+    return binding;
+}
+
+void append_placement(editor::presentation::NodeSlotLayout& layout,
+                      ui::InternedId element_id,
+                      float x,
+                      float y,
+                      float w,
+                      float h) {
+    layout.placements.push_back(editor::presentation::FragmentPlacement{
+        element_id,
+        editor::presentation::Rect{x, y, w, h},
+    });
+}
+
+ContentPresentationBuildResult build_content_presentation(
+    ui::InternedId node_id,
+    const Bounds& bounds,
+    bp2::NodeContentType content_type,
+    float min_value,
+    float max_value,
+    float value,
+    std::string_view label,
+    bool state,
+    bool tripped,
+    std::string_view unit,
+    const ContentWidgetInteractionInfo* interaction_info) {
     using namespace editor::presentation;
 
-    if (label.empty()) {
-        return;
+    // Element IDs for presentation nodes use a local counter starting at 1.
+    // These IDs are internal to the snapshot and must not collide with each other.
+    uint32_t next_id = 1;
+    auto next_element_id = [&]() { return ui::InternedId(next_id++); };
+
+    ContentPresentationBuildResult result;
+    result.presentation.node_id = node_id;
+    result.presentation.type_id = node_id;
+    result.presentation.shell.frame_kind = NodeFrameKind::Standard;
+
+    ui::InternedId root_element_id = next_element_id();
+    result.presentation.content.root = make_presentation_node(root_element_id);
+    result.presentation.content.root.layout = LayoutKind::Overlay;
+
+    result.layout.node_bounds = Rect{0.0f, 0.0f, bounds.x + bounds.w, bounds.y + bounds.h};
+    result.layout.slots.push_back(SlotAssignment{NodeSlot::Header, Rect{0.0f, 0.0f, bounds.x + bounds.w, 0.0f}});
+    result.layout.slots.push_back(SlotAssignment{NodeSlot::Body, Rect{bounds.x, bounds.y, bounds.w, bounds.h}});
+
+    // Root presentation node covers the full content bounds.
+    append_placement(result.layout, root_element_id, bounds.x, bounds.y, bounds.w, bounds.h);
+
+    auto append_painted = [&](PaintPrimitiveKind kind,
+                              const Rect& placement,
+                              auto configure) {
+        PresentationNode node = make_presentation_node(next_element_id());
+        PaintCommand paint = make_paint_command(next_element_id(), kind);
+        configure(paint);
+        node.paint.push_back(std::move(paint));
+        append_placement(result.layout, node.element_id,
+                         placement.x, placement.y, placement.w, placement.h);
+        result.presentation.content.root.children.push_back(std::move(node));
+        result.renders_content = true;
+    };
+
+    switch (content_type) {
+        case bp2::NodeContentType::Text:
+            if (!label.empty()) {
+                append_painted(PaintPrimitiveKind::Text,
+                               Rect{bounds.x, bounds.y, bounds.w, bounds.h},
+                               [&](PaintCommand& paint) {
+                                   paint.text = std::string(label);
+                               });
+            }
+            break;
+        case bp2::NodeContentType::Switch:
+        case bp2::NodeContentType::VerticalToggle: {
+            const bool vertical = content_type == bp2::NodeContentType::VerticalToggle;
+            append_painted(PaintPrimitiveKind::Rectangle,
+                           Rect{bounds.x, bounds.y, bounds.w, bounds.h},
+                           [&](PaintCommand& paint) {
+                               paint.fill_color = tripped
+                                   ? render_theme::COLOR_TRIPPED
+                                   : (state ? 0xFF3A6830 : 0xFF1C1D24);
+                               paint.stroke_color = render_theme::COLOR_BUS_BORDER;
+                               paint.stroke_width = 1.0f;
+                           });
+
+            if (vertical) {
+                const float handle_h = bounds.h * 0.24f;
+                const float handle_y = state ? bounds.y + bounds.h * 0.15f : bounds.y + bounds.h * 0.70f;
+                append_painted(PaintPrimitiveKind::Rectangle,
+                               Rect{bounds.x, handle_y, bounds.w, handle_h},
+                               [&](PaintCommand& paint) {
+                                   paint.fill_color = tripped
+                                       ? render_theme::COLOR_TRIPPED
+                                       : (state ? 0xFF3A6830 : 0xFF2C3038);
+                                   paint.stroke_color = 0xFF1C1D24;
+                                   paint.stroke_width = 1.0f;
+                               });
+            } else {
+                const float handle_w = bounds.w * 0.40f;
+                const float handle_x = state ? bounds.x + bounds.w - handle_w : bounds.x;
+                append_painted(PaintPrimitiveKind::Rectangle,
+                               Rect{handle_x, bounds.y, handle_w, bounds.h},
+                               [&](PaintCommand& paint) {
+                                   paint.fill_color = tripped
+                                       ? render_theme::COLOR_TRIPPED
+                                       : (state ? 0xFF3A6830 : 0xFF2C3038);
+                                   paint.stroke_color = 0xFF1C1D24;
+                                   paint.stroke_width = 1.0f;
+                               });
+            }
+            break;
+        }
+        case bp2::NodeContentType::Slider: {
+            const float pad = SLIDER_HANDLE_RADIUS;
+            const float track_h = SLIDER_TRACK_HEIGHT;
+            const float track_y = bounds.y + (bounds.h - track_h) * 0.5f;
+            const float track_w = std::max(0.0f, bounds.w - 2.0f * pad);
+            const float range = max_value - min_value;
+            const float t = (range > 1e-6f) ? std::clamp((value - min_value) / range, 0.0f, 1.0f) : 0.0f;
+
+            append_painted(PaintPrimitiveKind::Rectangle,
+                           Rect{bounds.x + pad, track_y, track_w, track_h},
+                           [&](PaintCommand& paint) {
+                               paint.fill_color = 0xFF1C1D24;
+                           });
+            append_painted(PaintPrimitiveKind::Rectangle,
+                           Rect{bounds.x + pad, track_y, t * track_w, track_h},
+                           [&](PaintCommand& paint) {
+                               paint.fill_color = 0xFF3A6830;
+                           });
+            append_painted(PaintPrimitiveKind::Circle,
+                           Rect{bounds.x + pad + t * track_w - SLIDER_HANDLE_RADIUS,
+                                bounds.y + bounds.h * 0.5f - SLIDER_HANDLE_RADIUS,
+                                SLIDER_HANDLE_RADIUS * 2.0f,
+                                SLIDER_HANDLE_RADIUS * 2.0f},
+                           [&](PaintCommand& paint) {
+                               paint.fill_color = 0xFF5078C0;
+                               paint.stroke_color = 0xFF3050A0;
+                               paint.stroke_width = 1.0f;
+                           });
+            append_painted(PaintPrimitiveKind::Text,
+                           Rect{bounds.x, track_y + track_h + 1.0f, bounds.w, SLIDER_HEIGHT},
+                           [&](PaintCommand& paint) {
+                               char buf[32];
+                               snprintf(buf, sizeof(buf), "%.1f", value);
+                               paint.text = buf;
+                           });
+            break;
+        }
+        case bp2::NodeContentType::Indicator: {
+            const float b = std::clamp(value, 0.0f, 1.0f);
+            const float diameter = INDICATOR_SIZE * 2.0f * (0.3f + 0.15f * b);
+            const float cx = bounds.x + bounds.w * 0.5f;
+            const float cy = bounds.y + bounds.h * 0.5f;
+            append_painted(PaintPrimitiveKind::Circle,
+                           Rect{cx - diameter * 0.5f, cy - diameter * 0.5f, diameter, diameter},
+                           [&](PaintCommand& paint) {
+                               if (value <= 0.0f) {
+                                   paint.fill_color = 0xFF505050;
+                               } else {
+                                   uint8_t g = static_cast<uint8_t>(48 + 207 * b);
+                                   uint8_t r_col = static_cast<uint8_t>(48 * (1.0f - b));
+                                   uint8_t b_col = static_cast<uint8_t>(48 * (1.0f - b));
+                                   uint8_t alpha = static_cast<uint8_t>(80 + 175 * b);
+                                   paint.fill_color = (alpha << 24) | (b_col << 16) | (g << 8) | r_col;
+                               }
+                               paint.stroke_color = 0xFF404040;
+                               paint.stroke_width = 1.0f;
+                           });
+            break;
+        }
+        case bp2::NodeContentType::Knob: {
+            const int num_positions = std::max(2, static_cast<int>(max_value));
+            const int position = std::clamp(static_cast<int>(value), 0, num_positions - 1);
+            const float cx = bounds.x + bounds.w * 0.5f;
+            const float cy = bounds.y + bounds.h * 0.5f;
+            append_painted(PaintPrimitiveKind::Circle,
+                           Rect{cx - KNOB_RADIUS, cy - KNOB_RADIUS, KNOB_RADIUS * 2.0f, KNOB_RADIUS * 2.0f},
+                           [&](PaintCommand& paint) {
+                               paint.fill_color = 0xFF3A3A42;
+                               paint.stroke_color = 0xFF606068;
+                               paint.stroke_width = 1.0f;
+                           });
+
+            for (int i = 0; i < num_positions; ++i) {
+                const float t = (num_positions > 1) ? static_cast<float>(i) / (num_positions - 1) : 0.5f;
+                const float angle = KNOB_ARC_START_DEG + t * KNOB_ARC_SWEEP_DEG;
+                append_painted(PaintPrimitiveKind::Line,
+                               Rect{cx, cy, angle, KNOB_TICK_OUTER},
+                               [&](PaintCommand& paint) {
+                                   paint.fill_color = (i == position) ? 0xFF5078C0 : 0xFF808090;
+                                   paint.inset = KNOB_TICK_INNER;
+                                   paint.stroke_width = (i == position) ? 2.5f : 1.5f;
+                               });
+            }
+
+            const float sel_t = (num_positions > 1) ? static_cast<float>(position) / (num_positions - 1) : 0.5f;
+            const float sel_angle = KNOB_ARC_START_DEG + sel_t * KNOB_ARC_SWEEP_DEG;
+            append_painted(PaintPrimitiveKind::Line,
+                           Rect{cx, cy, sel_angle, KNOB_RADIUS * 0.85f},
+                           [&](PaintCommand& paint) {
+                               paint.fill_color = 0xFF5078C0;
+                               paint.stroke_width = 2.0f;
+                           });
+            break;
+        }
+        case bp2::NodeContentType::Gauge: {
+            const float cx = bounds.x + bounds.w * 0.5f;
+            const float cy = bounds.y + GAUGE_RADIUS;
+            append_painted(PaintPrimitiveKind::Arc,
+                           Rect{cx, cy, GAUGE_RADIUS, GAUGE_SWEEP_ANGLE},
+                           [&](PaintCommand& paint) {
+                               paint.fill_color = 0xFF3E3130;
+                               paint.inset = GAUGE_START_ANGLE;
+                               paint.stroke_width = 2.0f;
+                           });
+
+            const float range = max_value - min_value;
+            const float normalized = (range > 1e-6f) ? std::clamp((value - min_value) / range, 0.0f, 1.0f) : 0.0f;
+            const float needle_angle = GAUGE_START_ANGLE + normalized * GAUGE_SWEEP_ANGLE;
+            append_painted(PaintPrimitiveKind::Line,
+                           Rect{cx, cy, needle_angle, GAUGE_NEEDLE_LENGTH},
+                           [&](PaintCommand& paint) {
+                               paint.fill_color = 0xFF2A70C8;
+                               paint.stroke_width = 2.0f;
+                           });
+            append_painted(PaintPrimitiveKind::Text,
+                           Rect{bounds.x, bounds.y + GAUGE_RADIUS * 2.0f + 5.0f, bounds.w, 14.0f},
+                           [&](PaintCommand& paint) {
+                               char buf[32];
+                               snprintf(buf, sizeof(buf), "%.1f", value);
+                               paint.text = buf;
+                           });
+            append_painted(PaintPrimitiveKind::Text,
+                           Rect{bounds.x, bounds.y + GAUGE_RADIUS * 2.0f + 21.0f, bounds.w, 10.0f},
+                           [&](PaintCommand& paint) {
+                               paint.text = std::string(unit);
+                           });
+            break;
+        }
+        default:
+            break;
     }
 
-    SceneRenderObject render_object;
-    render_object.id = next_scene_object_id(snapshot);
-    render_object.node_id = node_id;
-    render_object.element_id = node_id;
-    render_object.kind = SceneRenderObjectKind::ContentPaint;
-    render_object.primitive = PaintPrimitiveKind::Text;
-    render_object.bounds = Rect{bounds.x, bounds.y, bounds.w, bounds.h};
-    render_object.text = label;
-    snapshot.render_objects.push_back(std::move(render_object));
-}
+    if (interaction_info != nullptr) {
+        PresentationNode node = make_presentation_node(next_element_id());
+        ui::InternedId region_id = next_element_id();
+        node.hit_regions.push_back(HitRegion{region_id, HitShapeKind::Rectangle});
 
-void append_switch_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
-                                          ui::InternedId node_id,
-                                          const Bounds& bounds,
-                                          bool state,
-                                          bool tripped,
-                                          bool vertical) {
-    using namespace editor::presentation;
-
-    SceneRenderObject body;
-    body.id = next_scene_object_id(snapshot);
-    body.node_id = node_id;
-    body.element_id = node_id;
-    body.kind = SceneRenderObjectKind::ContentPaint;
-    body.primitive = PaintPrimitiveKind::Rectangle;
-    body.bounds = Rect{bounds.x, bounds.y, bounds.w, bounds.h};
-    body.fill_color = tripped
-        ? render_theme::COLOR_TRIPPED
-        : (state ? 0xFF3A6830 : 0xFF1C1D24);
-    body.stroke_color = render_theme::COLOR_BUS_BORDER;
-    body.stroke_width = 1.0f;
-    snapshot.render_objects.push_back(std::move(body));
-
-    SceneRenderObject handle;
-    handle.id = next_scene_object_id(snapshot);
-    handle.node_id = node_id;
-    handle.element_id = node_id;
-    handle.kind = SceneRenderObjectKind::ContentPaint;
-    handle.primitive = PaintPrimitiveKind::Rectangle;
-    if (vertical) {
-        const float handle_h = bounds.h * 0.24f;
-        const float handle_y = state ? bounds.y + bounds.h * 0.15f : bounds.y + bounds.h * 0.70f;
-        handle.bounds = Rect{bounds.x, handle_y, bounds.w, handle_h};
-    } else {
-        const float handle_w = bounds.w * 0.40f;
-        const float handle_x = state ? bounds.x + bounds.w - handle_w : bounds.x;
-        handle.bounds = Rect{handle_x, bounds.y, handle_w, bounds.h};
-    }
-    handle.fill_color = tripped
-        ? render_theme::COLOR_TRIPPED
-        : (state ? 0xFF3A6830 : 0xFF2C3038);
-    handle.stroke_color = 0xFF1C1D24;
-    handle.stroke_width = 1.0f;
-    snapshot.render_objects.push_back(std::move(handle));
-}
-
-void append_slider_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
-                                          ui::InternedId node_id,
-                                          const Bounds& bounds,
-                                          float value,
-                                          float min_val,
-                                          float max_val) {
-    using namespace editor::presentation;
-
-    const float pad = SLIDER_HANDLE_RADIUS;
-    const float track_h = SLIDER_TRACK_HEIGHT;
-    const float track_y = bounds.y + (bounds.h - track_h) * 0.5f;
-    const float track_w = std::max(0.0f, bounds.w - 2.0f * pad);
-    const float range = max_val - min_val;
-    const float t = (range > 1e-6f) ? std::clamp((value - min_val) / range, 0.0f, 1.0f) : 0.0f;
-
-    SceneRenderObject track;
-    track.id = next_scene_object_id(snapshot);
-    track.node_id = node_id;
-    track.element_id = node_id;
-    track.kind = SceneRenderObjectKind::ContentPaint;
-    track.primitive = PaintPrimitiveKind::Rectangle;
-    track.bounds = Rect{bounds.x + pad, track_y, track_w, track_h};
-    track.fill_color = 0xFF1C1D24;
-    snapshot.render_objects.push_back(std::move(track));
-
-    SceneRenderObject fill;
-    fill.id = next_scene_object_id(snapshot);
-    fill.node_id = node_id;
-    fill.element_id = node_id;
-    fill.kind = SceneRenderObjectKind::ContentPaint;
-    fill.primitive = PaintPrimitiveKind::Rectangle;
-    fill.bounds = Rect{bounds.x + pad, track_y, t * track_w, track_h};
-    fill.fill_color = 0xFF3A6830;
-    snapshot.render_objects.push_back(std::move(fill));
-
-    SceneRenderObject handle;
-    handle.id = next_scene_object_id(snapshot);
-    handle.node_id = node_id;
-    handle.element_id = node_id;
-    handle.kind = SceneRenderObjectKind::ContentPaint;
-    handle.primitive = PaintPrimitiveKind::Circle;
-    handle.bounds = Rect{bounds.x + pad + t * track_w, bounds.y + bounds.h * 0.5f,
-                         SLIDER_HANDLE_RADIUS, 16.0f};
-    handle.fill_color = 0xFF5078C0;
-    handle.stroke_color = 0xFF3050A0;
-    handle.stroke_width = 1.0f;
-    snapshot.render_objects.push_back(std::move(handle));
-
-    SceneRenderObject label;
-    label.id = next_scene_object_id(snapshot);
-    label.node_id = node_id;
-    label.element_id = node_id;
-    label.kind = SceneRenderObjectKind::ContentPaint;
-    label.primitive = PaintPrimitiveKind::Text;
-    label.bounds = Rect{bounds.x, track_y + track_h + 1.0f, bounds.w, SLIDER_HEIGHT};
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%.1f", value);
-    label.text = buf;
-    snapshot.render_objects.push_back(std::move(label));
-}
-
-void append_indicator_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
-                                             ui::InternedId node_id,
-                                             const Bounds& bounds,
-                                             float brightness) {
-    using namespace editor::presentation;
-    SceneRenderObject indicator;
-    indicator.id = next_scene_object_id(snapshot);
-    indicator.node_id = node_id;
-    indicator.element_id = node_id;
-    indicator.kind = SceneRenderObjectKind::ContentPaint;
-    indicator.primitive = PaintPrimitiveKind::Circle;
-    indicator.bounds = Rect{bounds.x + bounds.w * 0.5f, bounds.y + bounds.h * 0.5f,
-                            INDICATOR_SIZE * (0.3f + 0.15f * std::clamp(brightness, 0.0f, 1.0f)), 16.0f};
-    uint32_t fill_color;
-    if (brightness <= 0.0f) {
-        fill_color = 0xFF505050;
-    } else {
-        float b = std::clamp(brightness, 0.0f, 1.0f);
-        uint8_t g = static_cast<uint8_t>(48 + 207 * b);
-        uint8_t r_col = static_cast<uint8_t>(48 * (1.0f - b));
-        uint8_t b_col = static_cast<uint8_t>(48 * (1.0f - b));
-        uint8_t alpha = static_cast<uint8_t>(80 + 175 * b);
-        fill_color = (alpha << 24) | (b_col << 16) | (g << 8) | r_col;
-    }
-    indicator.fill_color = fill_color;
-    indicator.stroke_color = 0xFF404040;
-    indicator.stroke_width = 1.0f;
-    snapshot.render_objects.push_back(std::move(indicator));
-}
-
-void append_knob_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
-                                        ui::InternedId node_id,
-                                        const Bounds& bounds,
-                                        int position,
-                                        int num_positions) {
-    using namespace editor::presentation;
-    const float cx = bounds.x + bounds.w * 0.5f;
-    const float cy = bounds.y + bounds.h * 0.5f;
-
-    SceneRenderObject knob;
-    knob.id = next_scene_object_id(snapshot);
-    knob.node_id = node_id;
-    knob.element_id = node_id;
-    knob.kind = SceneRenderObjectKind::ContentPaint;
-    knob.primitive = PaintPrimitiveKind::Circle;
-    knob.bounds = Rect{cx, cy, KNOB_RADIUS, 24.0f};
-    knob.fill_color = 0xFF3A3A42;
-    knob.stroke_color = 0xFF606068;
-    knob.stroke_width = 1.0f;
-    snapshot.render_objects.push_back(std::move(knob));
-
-    for (int i = 0; i < num_positions; ++i) {
-        const float t = (num_positions > 1) ? static_cast<float>(i) / (num_positions - 1) : 0.5f;
-        const float angle = KNOB_ARC_START_DEG + t * KNOB_ARC_SWEEP_DEG;
-        SceneRenderObject tick;
-        tick.id = next_scene_object_id(snapshot);
-        tick.node_id = node_id;
-        tick.element_id = node_id;
-        tick.kind = SceneRenderObjectKind::ContentPaint;
-        tick.primitive = PaintPrimitiveKind::Line;
-        tick.bounds = Rect{cx, cy, angle, KNOB_TICK_OUTER};
-        tick.fill_color = (i == position) ? 0xFF5078C0 : 0xFF808090;
-        tick.inset = KNOB_TICK_INNER;
-        tick.stroke_width = (i == position) ? 2.5f : 1.5f;
-        snapshot.render_objects.push_back(std::move(tick));
+        InteractionBinding binding;
+        binding.region_id = region_id;
+        binding.action_id = region_id;
+        switch (interaction_info->role) {
+            case ContentInteractionRole::ContinuousScalar:
+                binding.kind = InteractionKind::DragScalar;
+                binding.min_value = interaction_info->primary_min;
+                binding.max_value = interaction_info->primary_max;
+                break;
+            case ContentInteractionRole::DiscreteSelector:
+                binding.kind = InteractionKind::DragDiscrete;
+                binding.min_value = interaction_info->primary_min;
+                binding.max_value = interaction_info->primary_max;
+                binding.step = static_cast<float>(interaction_info->steps);
+                break;
+            case ContentInteractionRole::Toggle:
+                binding.kind = InteractionKind::Click;
+                break;
+        }
+        node.interactions.push_back(std::move(binding));
+        append_placement(result.layout, node.element_id,
+                         bounds.x + interaction_info->bounds_x,
+                         bounds.y + interaction_info->bounds_y,
+                         interaction_info->bounds_w,
+                         interaction_info->bounds_h);
+        result.presentation.content.root.children.push_back(std::move(node));
     }
 
-    const float sel_t = (num_positions > 1) ? static_cast<float>(position) / (num_positions - 1) : 0.5f;
-    const float sel_angle = KNOB_ARC_START_DEG + sel_t * KNOB_ARC_SWEEP_DEG;
-    SceneRenderObject indicator;
-    indicator.id = next_scene_object_id(snapshot);
-    indicator.node_id = node_id;
-    indicator.element_id = node_id;
-    indicator.kind = SceneRenderObjectKind::ContentPaint;
-    indicator.primitive = PaintPrimitiveKind::Line;
-    indicator.bounds = Rect{cx, cy, sel_angle, KNOB_RADIUS * 0.85f};
-    indicator.fill_color = 0xFF5078C0;
-    indicator.stroke_width = 2.0f;
-    snapshot.render_objects.push_back(std::move(indicator));
-}
-
-void append_gauge_content_render_objects(editor::presentation::SemanticSceneSnapshot& snapshot,
-                                         ui::InternedId node_id,
-                                         const Bounds& bounds,
-                                         float value,
-                                         float min_val,
-                                         float max_val,
-                                         const std::string& unit) {
-    using namespace editor::presentation;
-    const float cx = bounds.x + bounds.w * 0.5f;
-    const float cy = bounds.y + GAUGE_RADIUS;
-
-    SceneRenderObject arc;
-    arc.id = next_scene_object_id(snapshot);
-    arc.node_id = node_id;
-    arc.element_id = node_id;
-    arc.kind = SceneRenderObjectKind::ContentPaint;
-    arc.primitive = PaintPrimitiveKind::Arc;
-    arc.bounds = Rect{cx, cy, GAUGE_RADIUS, GAUGE_SWEEP_ANGLE};
-    arc.fill_color = 0xFF3E3130;
-    arc.inset = GAUGE_START_ANGLE;
-    arc.stroke_width = 2.0f;
-    snapshot.render_objects.push_back(std::move(arc));
-
-    const float range = max_val - min_val;
-    const float normalized = (range > 1e-6f) ? std::clamp((value - min_val) / range, 0.0f, 1.0f) : 0.0f;
-    const float needle_angle = GAUGE_START_ANGLE + normalized * GAUGE_SWEEP_ANGLE;
-    SceneRenderObject needle;
-    needle.id = next_scene_object_id(snapshot);
-    needle.node_id = node_id;
-    needle.element_id = node_id;
-    needle.kind = SceneRenderObjectKind::ContentPaint;
-    needle.primitive = PaintPrimitiveKind::Line;
-    needle.bounds = Rect{cx, cy, needle_angle, GAUGE_NEEDLE_LENGTH};
-    needle.fill_color = 0xFF2A70C8;
-    needle.stroke_width = 2.0f;
-    snapshot.render_objects.push_back(std::move(needle));
-
-    SceneRenderObject value_text;
-    value_text.id = next_scene_object_id(snapshot);
-    value_text.node_id = node_id;
-    value_text.element_id = node_id;
-    value_text.kind = SceneRenderObjectKind::ContentPaint;
-    value_text.primitive = PaintPrimitiveKind::Text;
-    value_text.bounds = Rect{bounds.x, bounds.y + GAUGE_RADIUS * 2.0f + 5.0f,
-                             bounds.w, 14.0f};
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%.1f", value);
-    value_text.text = buf;
-    snapshot.render_objects.push_back(std::move(value_text));
-
-    SceneRenderObject unit_text;
-    unit_text.id = next_scene_object_id(snapshot);
-    unit_text.node_id = node_id;
-    unit_text.element_id = node_id;
-    unit_text.kind = SceneRenderObjectKind::ContentPaint;
-    unit_text.primitive = PaintPrimitiveKind::Text;
-    unit_text.bounds = Rect{bounds.x, bounds.y + GAUGE_RADIUS * 2.0f + 21.0f,
-                            bounds.w, 10.0f};
-    unit_text.text = unit;
-    snapshot.render_objects.push_back(std::move(unit_text));
+    return result;
 }
 
 } // namespace
@@ -834,95 +867,24 @@ void NodeWidget::refresh_content_semantic_snapshot() {
         return;
     }
 
-    // -- Render objects: produce paint primitives for content types rendered
-    //    from the semantic snapshot (replacing the former widget rendering). --
-    switch (cached_content_type_) {
-        case bp2::NodeContentType::Text:
-            if (!cached_content_label_.empty()) {
-                append_text_content_render_object(content_semantic_snapshot_, node_iid_, cb, cached_content_label_);
-                render_content_from_semantic_snapshot_ = true;
-            }
-            break;
-        case bp2::NodeContentType::Switch:
-            append_switch_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
-                                                 cached_content_state_, cached_content_tripped_, false);
-            render_content_from_semantic_snapshot_ = true;
-            break;
-        case bp2::NodeContentType::VerticalToggle:
-            append_switch_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
-                                                 cached_content_state_, cached_content_tripped_, true);
-            render_content_from_semantic_snapshot_ = true;
-            break;
-        case bp2::NodeContentType::Slider:
-            append_slider_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
-                                                 cached_content_value_, cached_content_min_, cached_content_max_);
-            render_content_from_semantic_snapshot_ = true;
-            break;
-        case bp2::NodeContentType::Indicator:
-            append_indicator_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
-                                                    cached_content_value_);
-            render_content_from_semantic_snapshot_ = true;
-            break;
-        case bp2::NodeContentType::Knob:
-            append_knob_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
-                                               static_cast<int>(cached_content_value_),
-                                               std::max(2, static_cast<int>(cached_content_max_)));
-            render_content_from_semantic_snapshot_ = true;
-            break;
-        case bp2::NodeContentType::Gauge:
-            append_gauge_content_render_objects(content_semantic_snapshot_, node_iid_, cb,
-                                                cached_content_value_, cached_content_min_, cached_content_max_,
-                                                cached_content_unit_);
-            render_content_from_semantic_snapshot_ = true;
-            break;
-        default:
-            break;
-    }
+    const auto interaction_info = derive_content_interaction(
+        cached_content_type_, content_preferred_size_, cached_content_max_);
+    const auto presentation = build_content_presentation(
+        node_iid_,
+        cb,
+        cached_content_type_,
+        cached_content_min_,
+        cached_content_max_,
+        cached_content_value_,
+        cached_content_label_,
+        cached_content_state_,
+        cached_content_tripped_,
+        cached_content_unit_,
+        interaction_info ? &*interaction_info : nullptr);
 
-    // -- Hit objects: produce interaction regions for all interactive content types. --
-    auto interaction_info = derive_content_interaction(cached_content_type_, content_preferred_size_, cached_content_max_);
-    if (!interaction_info.has_value()) {
-        return;
-    }
-
-    using namespace editor::presentation;
-
-    SceneHitObject hit_object;
-    hit_object.id = next_scene_object_id(content_semantic_snapshot_);
-    hit_object.node_id = node_iid_;
-    hit_object.element_id = node_iid_;
-    hit_object.region_id = node_iid_;
-    hit_object.kind = SceneHitObjectKind::ContentRegion;
-    hit_object.shape = HitShapeKind::Rectangle;
-    hit_object.bounds = Rect{
-        worldPos().x + cb.x + interaction_info->bounds_x,
-        worldPos().y + cb.y + interaction_info->bounds_y,
-        interaction_info->bounds_w,
-        interaction_info->bounds_h,
-    };
-
-    InteractionBinding binding;
-    binding.region_id = node_iid_;
-    binding.action_id = node_iid_;
-    switch (interaction_info->role) {
-        case ContentInteractionRole::ContinuousScalar:
-            binding.kind = InteractionKind::DragScalar;
-            binding.min_value = interaction_info->primary_min;
-            binding.max_value = interaction_info->primary_max;
-            break;
-        case ContentInteractionRole::DiscreteSelector:
-            binding.kind = InteractionKind::DragDiscrete;
-            binding.min_value = interaction_info->primary_min;
-            binding.max_value = interaction_info->primary_max;
-            binding.step = static_cast<float>(interaction_info->steps);
-            break;
-        case ContentInteractionRole::Toggle:
-            binding.kind = InteractionKind::Click;
-            break;
-    }
-    hit_object.interactions.push_back(std::move(binding));
-
-    content_semantic_snapshot_.hit_objects.push_back(std::move(hit_object));
+    content_semantic_snapshot_ = editor::presentation::build_semantic_scene_snapshot(
+        presentation.presentation, presentation.layout);
+    render_content_from_semantic_snapshot_ = presentation.renders_content;
 }
 
 NodeVisualState NodeWidget::visual_state(const RenderContext& ctx) const {

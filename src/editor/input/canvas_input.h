@@ -172,6 +172,7 @@ private:
     Pt resize_original_size_;
 
     editor::presentation::SemanticCanvasController semantic_canvas_controller_;
+    ui::InternedId semantic_widget_id_;
 
     // Marquee
     Pt marquee_start_;

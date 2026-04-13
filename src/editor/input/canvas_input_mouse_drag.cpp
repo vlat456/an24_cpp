@@ -168,8 +168,13 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
             case InputState::DraggingSlider:
             case InputState::DraggingKnob: {
                 advance_world_cursor(world_delta);
+                Pt semantic_point = last_world_pos_;
+                if (auto* widget = resolve_node(semantic_widget_id_)) {
+                    semantic_point = Pt(last_world_pos_.x - widget->worldPos().x,
+                                        last_world_pos_.y - widget->worldPos().y);
+                }
                 editor::presentation::SemanticCanvasControllerResult semantic =
-                    semantic_canvas_controller_.on_pointer_drag(last_world_pos_);
+                    semantic_canvas_controller_.on_pointer_drag(semantic_point);
                 publish_semantic_control_result(semantic, result);
                 break;
             }

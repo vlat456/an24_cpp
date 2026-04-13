@@ -1774,7 +1774,7 @@ TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
      EXPECT_EQ(hit_node->widget, widget);
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
-     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
      auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
      ASSERT_NE(sem_content, nullptr);
      ASSERT_FALSE(sem_content->object->interactions.empty());
@@ -1813,7 +1813,7 @@ TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
      EXPECT_EQ(hit_node->widget, widget);
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
-     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
      auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
      ASSERT_NE(sem_content, nullptr);
      ASSERT_FALSE(sem_content->object->interactions.empty());
@@ -1880,7 +1880,7 @@ TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
      EXPECT_EQ(hit_node->widget, widget);
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
-     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
      auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
      ASSERT_NE(sem_content, nullptr);
      ASSERT_FALSE(sem_content->object->interactions.empty());
@@ -1959,7 +1959,7 @@ TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
      EXPECT_EQ(hit_node->widget, widget);
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
-     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, roundtrip_world);
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
      auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
      ASSERT_NE(sem_content, nullptr);
      ASSERT_FALSE(sem_content->object->interactions.empty());
@@ -1993,7 +1993,7 @@ TEST(CanvasInputInteractionTarget, VerticalTogglePublishesToggleRole) {
      Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
      const auto& sem_snapshot = widget->content_semantic_snapshot();
-     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
      auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
      ASSERT_NE(sem_content, nullptr);
      ASSERT_FALSE(sem_content->object->interactions.empty());
@@ -2101,7 +2101,7 @@ TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
      Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
      const auto& sem_snapshot = widget->content_semantic_snapshot();
-     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
      auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
      ASSERT_NE(sem_content, nullptr);
      ASSERT_FALSE(sem_content->object->interactions.empty());
@@ -2178,7 +2178,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
      Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
      const auto& sem_snapshot = widget->content_semantic_snapshot();
-     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
      auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
      ASSERT_NE(sem_content, nullptr);
      ASSERT_FALSE(sem_content->object->interactions.empty());
@@ -2234,7 +2234,7 @@ TEST(CanvasInputInteractionTarget, SliderPublishesContinuousScalarRole) {
      Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
      const auto& sem_snapshot = widget->content_semantic_snapshot();
-     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
      auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
      ASSERT_NE(sem_content, nullptr);
      ASSERT_FALSE(sem_content->object->interactions.empty());
@@ -2273,7 +2273,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
      // Query the interaction binding at the center of the slider content area.
      Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
      const auto& sem_snapshot = widget->content_semantic_snapshot();
-     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, click_world);
+     auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
      auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
      ASSERT_NE(sem_content, nullptr);
      ASSERT_FALSE(sem_content->object->interactions.empty());

@@ -607,6 +607,7 @@ target_include_directories(scene_mutations_tests PRIVATE
 )
 target_link_libraries(scene_mutations_tests PRIVATE
     blueprint_v2
+    editor_semantic_canvas
     json_parser
     spdlog::spdlog
     GTest::gtest_main

@@ -271,6 +271,7 @@ void CanvasInput::setup_semantic_interaction_state(visual::Widget* node_widget,
     auto* visual_node = dynamic_cast<visual::NodeWidget*>(node_widget);
     if (visual_node) {
         semantic_canvas_controller_.set_snapshot(visual_node->content_semantic_snapshot());
+        semantic_widget_id_ = interner_.intern(node_widget->id());
     }
 
     switch (target.role) {
@@ -316,19 +317,23 @@ void CanvasInput::leave_state() {
     hovered_routing_point_ = nullptr;
     semantic_canvas_controller_.reset();
     semantic_canvas_controller_.clear_active_mapping();
+    semantic_widget_id_ = {};
 }
 
 editor::presentation::SemanticCanvasControllerResult CanvasInput::configure_and_dispatch_semantic_interaction(
     visual::Widget* node_widget, const CanvasInput::SemanticContentTarget& target, Pt world) {
     setup_semantic_interaction_state(node_widget, target, world);
+    const Pt local_point = node_widget
+        ? Pt(world.x - node_widget->worldPos().x, world.y - node_widget->worldPos().y)
+        : world;
 
     switch (target.role) {
         case CanvasInput::SemanticContentRole::ContinuousScalar:
         case CanvasInput::SemanticContentRole::DiscreteSelector:
-            return semantic_canvas_controller_.on_pointer_drag(world);
+            return semantic_canvas_controller_.on_pointer_drag(local_point);
 
         case CanvasInput::SemanticContentRole::Toggle:
-            return semantic_canvas_controller_.on_pointer_press(world);
+            return semantic_canvas_controller_.on_pointer_press(local_point);
     }
 
     return editor::presentation::SemanticCanvasControllerResult{};
@@ -385,7 +390,9 @@ std::optional<CanvasInput::SemanticContentTarget> CanvasInput::hit_test_semantic
     const editor::presentation::SemanticSceneSnapshot& snapshot = visual_node->content_semantic_snapshot();
     if (snapshot.hit_objects.empty()) return std::nullopt;
 
-    auto hit = editor::presentation::hit_test_semantic_scene(snapshot, world_pos);
+    const Pt node_local(world_pos.x - visual_node->worldPos().x,
+                        world_pos.y - visual_node->worldPos().y);
+    auto hit = editor::presentation::hit_test_semantic_scene(snapshot, node_local);
     if (std::holds_alternative<editor::presentation::SemanticHitContentRegion>(hit)) {
         const auto* content_region = std::get_if<editor::presentation::SemanticHitContentRegion>(&hit);
         if (!content_region || !content_region->object) return std::nullopt;
