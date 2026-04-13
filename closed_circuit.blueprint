@@ -11,7 +11,8 @@
       "label": "azs_1",
       "layout": {
         "height": 112.0,
-        "width": 128.0,
+        "manual_size": true,
+        "width": 96.0,
         "x": 272.0,
         "y": -320.0
       },
@@ -69,6 +70,8 @@
       "kind": "component",
       "label": "comparator_2",
       "layout": {
+        "height": 80.0,
+        "width": 32.0,
         "x": 880.0,
         "y": -720.0
       },
@@ -84,7 +87,7 @@
       "label": "controlledvoltagesource_2",
       "layout": {
         "height": 144.0,
-        "width": 128.0,
+        "width": 32.0,
         "x": 608.0,
         "y": 0.0
       },
@@ -98,6 +101,8 @@
       "kind": "component",
       "label": "currentsense_1",
       "layout": {
+        "height": 96.0,
+        "width": 80.0,
         "x": 928.0,
         "y": -224.0
       },
@@ -111,8 +116,8 @@
       "label": "RN-180-Exciter",
       "layout": {
         "height": 64.0,
-        "width": 160.0,
-        "x": -8.0,
+        "width": 32.0,
+        "x": -16.0,
         "y": 48.0
       },
       "source": {
@@ -350,8 +355,8 @@
       "kind": "blueprint_instance",
       "label": "LoadVoltageDrp",
       "layout": {
-        "height": 64.0,
-        "width": 160.0,
+        "height": 80.0,
+        "width": 32.0,
         "x": 96.0,
         "y": -400.0
       },
@@ -842,8 +847,8 @@
       "kind": "blueprint_instance",
       "label": "DerateCtrl",
       "layout": {
-        "height": 64.0,
-        "width": 160.0,
+        "height": 96.0,
+        "width": 32.0,
         "x": 576.0,
         "y": -736.0
       },
@@ -1373,7 +1378,7 @@
       "label": "RPMIntertial",
       "layout": {
         "height": 64.0,
-        "width": 160.0,
+        "width": 32.0,
         "x": 32.0,
         "y": 256.0
       },
@@ -1401,7 +1406,7 @@
               "kind": "component",
               "label": "Torque",
               "layout": {
-                "x": 280.0,
+                "x": 320.0,
                 "y": 528.0
               },
               "params": {
@@ -1415,7 +1420,7 @@
               "kind": "component",
               "label": "out",
               "layout": {
-                "x": 688.0,
+                "x": 600.0,
                 "y": 528.0
               },
               "params": {
@@ -1543,8 +1548,8 @@
       "kind": "blueprint_instance",
       "label": "FieldLag",
       "layout": {
-        "height": 64.0,
-        "width": 160.0,
+        "height": 80.0,
+        "width": 32.0,
         "x": 208.0,
         "y": 48.0
       },
@@ -1768,7 +1773,7 @@
       "label": "groundpower_1",
       "layout": {
         "height": 64.0,
-        "width": 160.0,
+        "width": 32.0,
         "x": -456.0,
         "y": -624.0
       },
@@ -1987,8 +1992,8 @@
       "kind": "component",
       "label": "indicatorlight_1",
       "layout": {
-        "height": 80.0,
-        "width": 80.0,
+        "height": 112.0,
+        "width": 48.0,
         "x": 888.0,
         "y": -576.0
       },
@@ -2002,8 +2007,8 @@
       "kind": "component",
       "label": "indicatorlight_2",
       "layout": {
-        "height": 80.0,
-        "width": 80.0,
+        "height": 112.0,
+        "width": 48.0,
         "x": 96.0,
         "y": -640.0
       },
@@ -2017,8 +2022,8 @@
       "kind": "component",
       "label": "indicatorlight_3",
       "layout": {
-        "height": 80.0,
-        "width": 80.0,
+        "height": 112.0,
+        "width": 48.0,
         "x": 96.0,
         "y": -736.0
       },
@@ -2032,8 +2037,8 @@
       "kind": "component",
       "label": "indicatorlight_4",
       "layout": {
-        "height": 80.0,
-        "width": 80.0,
+        "height": 112.0,
+        "width": 48.0,
         "x": 96.0,
         "y": -544.0
       },
@@ -2047,8 +2052,8 @@
       "kind": "component",
       "label": "indicatorlight_5",
       "layout": {
-        "height": 80.0,
-        "width": 80.0,
+        "height": 112.0,
+        "width": 48.0,
         "x": 608.0,
         "y": -320.0
       },
@@ -2062,8 +2067,8 @@
       "kind": "component",
       "label": "multiply_1",
       "layout": {
-        "height": 64.0,
-        "width": 48.0,
+        "height": 80.0,
+        "width": 32.0,
         "x": 488.0,
         "y": 48.0
       }
@@ -2074,6 +2079,8 @@
       "kind": "component",
       "label": "normalize_1",
       "layout": {
+        "height": 96.0,
+        "width": 32.0,
         "x": 272.0,
         "y": 240.0
       }
@@ -2097,6 +2104,9 @@
       "kind": "component",
       "label": "relay_1",
       "layout": {
+        "height": 96.0,
+        "manual_size": true,
+        "width": 96.0,
         "x": 1104.0,
         "y": -720.0
       },
@@ -2112,6 +2122,8 @@
       "kind": "component",
       "label": "resistor_1",
       "layout": {
+        "height": 64.0,
+        "width": 32.0,
         "x": 792.0,
         "y": -224.0
       },
@@ -2125,6 +2137,9 @@
       "kind": "component",
       "label": "resistor_2",
       "layout": {
+        "height": 64.0,
+        "manual_size": true,
+        "width": 64.0,
         "x": 1264.0,
         "y": -720.0
       },
@@ -2138,8 +2153,9 @@
       "kind": "component",
       "label": "rotaryswitch1ton_1",
       "layout": {
-        "height": 144.0,
-        "width": 144.0,
+        "height": 208.0,
+        "manual_size": true,
+        "width": 80.0,
         "x": -208.0,
         "y": -640.0
       },
@@ -2156,7 +2172,10 @@
       "kind": "component",
       "label": "slider_1",
       "layout": {
-        "x": -144.0,
+        "height": 96.0,
+        "manual_size": true,
+        "width": 176.0,
+        "x": -240.0,
         "y": 256.0
       },
       "params": {
@@ -2316,8 +2335,9 @@
       "label": "variableconductance_1",
       "layout": {
         "height": 112.0,
+        "manual_size": true,
         "width": 112.0,
-        "x": 472.0,
+        "x": 480.0,
         "y": -320.0
       }
     },
@@ -2327,7 +2347,7 @@
       "kind": "component",
       "label": "voltmeter_1",
       "layout": {
-        "height": 176.0,
+        "height": 192.0,
         "width": 96.0,
         "x": 896.0,
         "y": -464.0
