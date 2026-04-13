@@ -689,32 +689,44 @@ TEST(SceneMutations, KnobSwitchUsesWiperThrowNamesAndNoDuplication) {
     EXPECT_EQ(legacy_t1_count, 0);
 }
 
-TEST(SceneMutations, TwoSidedNodeMinimumWidthDoesNotReserveArtificialCenterGap) {
+
+TEST(SceneMutations, LongHeaderTextDoesNotInflateMinimumNodeWidth) {
+    // Regression: a long type name (e.g. "VariableConductance") used to drive
+    // the node minimum width via the HeaderStrip, creating a large empty gap
+    // between left and right port labels. After the fix, the header's minimum
+    // width is zero (text can be clipped), so minimum node width is driven
+    // solely by port rows and content.
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
+    // Short port names with a very long type name.
     auto node = make_bp2_node(interner, "vc1", "VariableConductance");
     set_iface(node, {
         make_port(interner, "a", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(interner, "b", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
 
+    // Same topology but with a short type name.
+    auto node_short = make_bp2_node(interner, "s1", "VCon");
+    set_iface(node_short, {
+        make_port(interner, "a", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "b", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(node));
+    bp = bp.with_node(std::move(node_short));
 
     visual::Scene scene;
     visual::mutations::rebuild(scene, bp, interner, arena, "");
 
-    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("vc1"));
-    ASSERT_NE(widget, nullptr);
+    auto* w_long  = dynamic_cast<visual::NodeWidget*>(scene.find("vc1"));
+    auto* w_short = dynamic_cast<visual::NodeWidget*>(scene.find("s1"));
+    ASSERT_NE(w_long, nullptr);
+    ASSERT_NE(w_short, nullptr);
 
-    const float expected_max =
-        (visual::PortConstants::RADIUS * 2 + visual::PortConstants::LEFT_LABEL_OFFSET) +
-        (1.0f * visual::PortConstants::LABEL_FONT_SIZE * 0.6f) +
-        (1.0f * visual::PortConstants::LABEL_FONT_SIZE * 0.6f) +
-        (visual::PortConstants::RADIUS * 2 + visual::PortConstants::RIGHT_LABEL_OFFSET) +
-        editor_constants::PORT_LAYOUT_GRID;
-
-    EXPECT_LE(widget->minimumNodeSize().x, expected_max)
-        << "Two-sided nodes should not keep an artificial center gap when labels are tiny";
+    // Both nodes have identical ports, so their minimum width must be equal —
+    // the longer header name must not inflate the minimum.
+    EXPECT_EQ(w_long->minimumNodeSize().x, w_short->minimumNodeSize().x)
+        << "Header text length should not affect minimumNodeSize width";
 }

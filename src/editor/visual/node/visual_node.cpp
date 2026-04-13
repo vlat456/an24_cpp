@@ -99,8 +99,8 @@ public:
         return Pt(text_w + kRightPadding, kHeight);
     }
 
-    Pt minimumSize(IDrawList* /*dl*/) const override {
-        return Pt(0.0f, kHeight);
+    Pt minimumSize(IDrawList* dl) const override {
+        return preferredSize(dl);
     }
 
     void render(IDrawList* dl, const RenderContext& ctx) const override {
@@ -658,19 +658,22 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
     setLocalPos(Pt(data.layout.x, data.layout.y));
     buildLayout(data, render_iface, interner);
 
-    // Auto-size: compute required minimum from the node's own layout contract.
-    Pt preferred = minimumNodeSize();
+    // Auto-size: minimumNodeSize gives a compact layout driven by port indents
+    // and content area, not header/footer text. Preferred size is the comfortable
+    // size that shows all text. For auto-sizing fresh nodes we use minimum;
+    // explicit saved dimensions are clamped to minimum as a floor.
+    Pt min_sz = minimumNodeSize();
 
-    float w = preferred.x;
-    float h = preferred.y;
+    float w = min_sz.x;
+    float h = min_sz.y;
 
     bool has_explicit = data.layout.width.has_value() && data.layout.height.has_value();
     if (has_explicit) {
-        w = std::max(*data.layout.width, preferred.x);
-        h = std::max(*data.layout.height, preferred.y);
+        w = std::max(*data.layout.width, min_sz.x);
+        h = std::max(*data.layout.height, min_sz.y);
     }
-    spdlog::debug("[widget] NodeWidget layout: node='{}' type='{}' preferred=({},{}) explicit_size={} final=({},{})",
-                  data.view.name, type_name_, preferred.x, preferred.y,
+    spdlog::debug("[widget] NodeWidget layout: node='{}' type='{}' min=({},{}) explicit_size={} final=({},{})",
+                  data.view.name, type_name_, min_sz.x, min_sz.y,
                   has_explicit, w, h);
 
     // Snap to layout grid (round up to nearest PORT_LAYOUT_GRID)
