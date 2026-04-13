@@ -86,6 +86,7 @@ public:
     void setFlexGrow(float w) { flex_grow_ = w; }
     
     virtual Pt preferredSize(IDrawList* dl) const { return size_; }
+    virtual Pt minimumSize(IDrawList* dl) const { return preferredSize(dl); }
     virtual void layout(float w, float h) { size_ = Pt(w, h); }
     
     virtual void render(IDrawList* dl) const {}

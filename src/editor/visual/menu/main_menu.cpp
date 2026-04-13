@@ -154,6 +154,9 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
     if (ImGui::MenuItem("Debug Layout Bounds", nullptr, ws.showDebugLayoutBounds)) {
         ws.showDebugLayoutBounds = !ws.showDebugLayoutBounds;
     }
+    if (ImGui::MenuItem("Debug Paint Bounds", nullptr, ws.showDebugPaintBounds)) {
+        ws.showDebugPaintBounds = !ws.showDebugPaintBounds;
+    }
 
     Document* active_doc = ws.activeDocument();
     if (active_doc) {

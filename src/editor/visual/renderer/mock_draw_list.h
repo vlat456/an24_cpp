@@ -75,7 +75,7 @@ public:
         texts_.push_back({pos, std::string(text), color, font_size});
     }
     Pt calc_text_size(const char* text, float font_size) const override {
-        return Pt(std::strlen(text) * font_size * 0.6f, font_size);
+        return Pt(std::strlen(text) * font_size * 0.5f, font_size);
     }
     void add_polyline(const Pt*, size_t, uint32_t color, float) override {
         had_polyline_ = true;

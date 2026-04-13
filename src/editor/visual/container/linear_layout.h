@@ -14,6 +14,10 @@ public:
         return ui::detail::linearPreferredSize<axis>(this->children_, dl);
     }
 
+    Pt minimumSize(IDrawList* dl) const override {
+        return ui::detail::linearMinimumSize<axis>(this->children_, dl);
+    }
+
     void layout(float available_width, float available_height) override {
         setSize(Pt(available_width, available_height));
         ui::detail::linearLayout<axis>(this->children_, available_width, available_height);

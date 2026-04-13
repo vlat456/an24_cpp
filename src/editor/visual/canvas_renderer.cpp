@@ -153,6 +153,7 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     ctx.hovered_routing_point = win.input.hovered_routing_point();
     ctx.energized_wires = energized_buf_.empty() ? nullptr : &energized_buf_;
     ctx.show_debug_bounds = ws.showDebugLayoutBounds;
+    ctx.show_debug_paint_bounds = ws.showDebugPaintBounds;
 
     visual::compute_wire_crossings(win.scene);
     win.scene.render(&dl, ctx);

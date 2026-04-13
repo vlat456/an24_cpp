@@ -33,9 +33,13 @@ public:
         float text_w = 0.0f;
         if (!text_.empty()) {
             text_w = dl ? dl->calc_text_size(text_.c_str(), kFontSize).x
-                        : static_cast<float>(text_.size()) * kFontSize * 0.6f;
+                        : fallback_text_width(text_, kFontSize);
         }
         return Pt(kPadding * 2.0f + text_w, kHeight);
+    }
+
+    Pt minimumSize(IDrawList* dl) const override {
+        return preferredSize(dl);
     }
 
     void render(IDrawList* dl, const RenderContext& ctx) const override {
@@ -55,6 +59,19 @@ public:
         Pt text_pos(origin.x + kPadding * zoom,
                     origin.y + (kVisualHeight - kFontSize) * zoom * 0.5f);
         dl->add_text(text_pos, text_.c_str(), render_theme::COLOR_TEXT, font);
+    }
+
+    void renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const override {
+        if (!dl || text_.empty()) return;
+        const float font = kFontSize * ctx.zoom;
+        Pt origin = ctx.world_to_screen(worldPos());
+        Pt text_size = dl->calc_text_size(text_.c_str(), font);
+        Pt text_pos(origin.x + kPadding * ctx.zoom,
+                    origin.y + (kVisualHeight - kFontSize) * ctx.zoom * 0.5f);
+        dl->add_rect(text_pos,
+                     Pt(text_pos.x + text_size.x, text_pos.y + text_size.y),
+                     0xFF00FFFF,
+                     1.0f);
     }
 
 private:
@@ -77,9 +94,13 @@ public:
         float text_w = 0.0f;
         if (!text_.empty()) {
             text_w = dl ? dl->calc_text_size(text_.c_str(), kFontSize).x
-                        : static_cast<float>(text_.size()) * kFontSize * 0.6f;
+                        : fallback_text_width(text_, kFontSize);
         }
         return Pt(text_w + kRightPadding, kHeight);
+    }
+
+    Pt minimumSize(IDrawList* /*dl*/) const override {
+        return Pt(0.0f, kHeight);
     }
 
     void render(IDrawList* dl, const RenderContext& ctx) const override {
@@ -92,6 +113,19 @@ public:
         float tx = origin.x + size().x * zoom - text_size.x - kRightPadding * zoom;
         float ty = origin.y + (kHeight * zoom - font) * 0.5f;
         dl->add_text(Pt(tx, ty), text_.c_str(), render_theme::COLOR_TEXT_DIM, font);
+    }
+
+    void renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const override {
+        if (!dl || text_.empty()) return;
+        const float font = kFontSize * ctx.zoom;
+        Pt origin = ctx.world_to_screen(worldPos());
+        Pt text_size = dl->calc_text_size(text_.c_str(), font);
+        float tx = origin.x + size().x * ctx.zoom - text_size.x - kRightPadding * ctx.zoom;
+        float ty = origin.y + (kHeight * ctx.zoom - font) * 0.5f;
+        dl->add_rect(Pt(tx, ty),
+                     Pt(tx + text_size.x, ty + text_size.y),
+                     0xFF00FFFF,
+                     1.0f);
     }
 
 private:
@@ -174,6 +208,46 @@ struct ContentLayoutPolicy {
     bool reserve_width = true;
     bool reserve_height = true;
 };
+
+struct TextPaintGeometry {
+    Pt pos;
+    Pt size;
+    float font = 0.0f;
+};
+
+struct LinePaintGeometry {
+    Pt a;
+    Pt b;
+};
+
+constexpr float DEG2RAD = 3.14159265f / 180.0f;
+
+TextPaintGeometry resolve_text_paint_geometry(const editor::presentation::SceneRenderObject& object,
+                                              const Pt& node_pos,
+                                              IDrawList& dl,
+                                              const RenderContext& ctx) {
+    TextPaintGeometry geometry;
+    geometry.font = (object.text_size > 0.0f ? object.text_size : 10.0f) * ctx.zoom;
+    geometry.pos = ctx.world_to_screen(Pt(node_pos.x + object.bounds.x, node_pos.y + object.bounds.y));
+    geometry.size = dl.calc_text_size(object.text.c_str(), geometry.font);
+    if (object.bounds.w <= 0.0f && object.bounds.h <= 0.0f) {
+        geometry.pos.x -= geometry.size.x * 0.5f;
+    }
+    return geometry;
+}
+
+LinePaintGeometry resolve_line_paint_geometry(const editor::presentation::SceneRenderObject& object,
+                                              const Pt& node_pos,
+                                              const RenderContext& ctx) {
+    Pt center = ctx.world_to_screen(Pt(node_pos.x + object.bounds.x, node_pos.y + object.bounds.y));
+    float angle = object.bounds.w * DEG2RAD;
+    float radius_a = object.inset * ctx.zoom;
+    float radius_b = object.bounds.h * ctx.zoom;
+    return {
+        Pt(center.x + std::cos(angle) * radius_a, center.y - std::sin(angle) * radius_a),
+        Pt(center.x + std::cos(angle) * radius_b, center.y - std::sin(angle) * radius_b),
+    };
+}
 
 /// Single authoritative table mapping content type → intrinsic size + alignment.
 /// All per-type layout decisions live here; no type-checks needed downstream.
@@ -716,7 +790,9 @@ void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
             auto* container = layout_->emplaceChild<Container>(standard_content_margins());
             container->setFlexGrow(1.0f);
             configure_content_geometry(content_type);
-            container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+            container->emplaceChild<ReservedSpace>(content_preferred_size_,
+                                                   content_reserve_width_,
+                                                   content_reserve_height_);
             content_container_ = container;
         }
     } else {
@@ -745,7 +821,9 @@ void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data,
     center_col->setFlexGrow(1.0f);
     auto* toggle_container = center_col->emplaceChild<Container>(standard_content_margins());
     configure_content_geometry(bp2::NodeContentType::VerticalToggle);
-    toggle_container->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+    toggle_container->emplaceChild<ReservedSpace>(content_preferred_size_,
+                                                  content_reserve_width_,
+                                                  content_reserve_height_);
     content_container_ = toggle_container;
 
     // Right column (output ports)
@@ -805,7 +883,9 @@ void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data,
 
     if (content_type != bp2::NodeContentType::None) {
         configure_content_geometry(content_type);
-        center->emplaceChild<Spacer>()->setSize(content_preferred_size_);
+        center->emplaceChild<ReservedSpace>(content_preferred_size_,
+                                            content_reserve_width_,
+                                            content_reserve_height_);
         content_container_ = center;
     } else {
         center->emplaceChild<Spacer>();
@@ -932,7 +1012,7 @@ Pt NodeWidget::preferredSize(IDrawList* dl) const {
 }
 
 Pt NodeWidget::minimumNodeSize() const {
-    Pt min_size = preferredSize(nullptr);
+    Pt min_size = layout_ ? layout_->minimumSize(nullptr) : Pt(0.0f, 0.0f);
     min_size.x = std::max(min_size.x, editor_constants::PORT_LAYOUT_GRID);
     min_size.y = std::max(min_size.y, editor_constants::PORT_LAYOUT_GRID);
     return editor_math::snap_size_to_layout_grid(min_size);
@@ -1015,16 +1095,11 @@ void NodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
                 continue;
             }
             if (object.primitive == editor::presentation::PaintPrimitiveKind::Text) {
-                const float font = (object.text_size > 0.0f ? object.text_size : 10.0f) * ctx.zoom;
-                Pt text_pos = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
-                if (object.bounds.w <= 0.0f && object.bounds.h <= 0.0f) {
-                    Pt text_size = dl->calc_text_size(object.text.c_str(), font);
-                    text_pos.x -= text_size.x * 0.5f;
-                }
-                dl->add_text(text_pos,
+                const TextPaintGeometry text = resolve_text_paint_geometry(object, pos, *dl, ctx);
+                dl->add_text(text.pos,
                              object.text.c_str(),
                              object.fill_color != 0 ? object.fill_color : render_theme::COLOR_TEXT_DIM,
-                             font);
+                             text.font);
                 continue;
             }
             if (object.primitive == editor::presentation::PaintPrimitiveKind::Rectangle) {
@@ -1047,23 +1122,11 @@ void NodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
                 continue;
             }
             if (object.primitive == editor::presentation::PaintPrimitiveKind::Line) {
-                // Line encoding contract:
-                //   bounds = {center_x, center_y, angle_degrees, end_radius}
-                //   inset  = start_radius (0 = from center)
-                //   stroke_width = line thickness
-                //   fill_color   = line color
-                constexpr float DEG2RAD = 3.14159265f / 180.0f;
-                Pt center = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
-                float angle = object.bounds.w * DEG2RAD;
-                float radius_a = object.inset * ctx.zoom;
-                float radius_b = object.bounds.h * ctx.zoom;
-                Pt a(center.x + std::cos(angle) * radius_a, center.y - std::sin(angle) * radius_a);
-                Pt b(center.x + std::cos(angle) * radius_b, center.y - std::sin(angle) * radius_b);
-                dl->add_line(a, b, object.fill_color, object.stroke_width * ctx.zoom);
+                const LinePaintGeometry line = resolve_line_paint_geometry(object, pos, ctx);
+                dl->add_line(line.a, line.b, object.fill_color, object.stroke_width * ctx.zoom);
                 continue;
             }
             if (object.primitive == editor::presentation::PaintPrimitiveKind::Arc) {
-                constexpr float DEG2RAD = 3.14159265f / 180.0f;
                 Pt center = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
                 float radius = object.bounds.w * ctx.zoom;
                 float start_angle = object.inset * DEG2RAD;
@@ -1115,6 +1178,64 @@ void NodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
     };
     for (const auto& c : corners) {
         handle_renderer::draw_handle(*dl, c, r, color);
+    }
+}
+
+void NodeWidget::renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const {
+    if (!dl || !render_content_from_semantic_snapshot_) {
+        return;
+    }
+
+    Pt pos = worldPos();
+    for (const auto& object : content_semantic_snapshot_.render_objects) {
+        if (object.kind != editor::presentation::SceneRenderObjectKind::ContentPaint) {
+            continue;
+        }
+
+        if (object.primitive == editor::presentation::PaintPrimitiveKind::Text) {
+            const TextPaintGeometry text = resolve_text_paint_geometry(object, pos, *dl, ctx);
+            dl->add_rect(text.pos,
+                         Pt(text.pos.x + text.size.x, text.pos.y + text.size.y),
+                         DEBUG_PAINT_BOUNDS_COLOR,
+                         1.0f);
+            continue;
+        }
+
+        if (object.primitive == editor::presentation::PaintPrimitiveKind::Rectangle) {
+            Pt min = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
+            Pt max = ctx.world_to_screen(Pt(pos.x + object.bounds.x + object.bounds.w,
+                                            pos.y + object.bounds.y + object.bounds.h));
+            dl->add_rect(min, max, DEBUG_PAINT_BOUNDS_COLOR, 1.0f);
+            continue;
+        }
+
+        if (object.primitive == editor::presentation::PaintPrimitiveKind::Circle) {
+            Pt center = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
+            float radius = object.bounds.w * ctx.zoom;
+            dl->add_rect(Pt(center.x - radius, center.y - radius),
+                         Pt(center.x + radius, center.y + radius),
+                         DEBUG_PAINT_BOUNDS_COLOR,
+                         1.0f);
+            continue;
+        }
+
+        if (object.primitive == editor::presentation::PaintPrimitiveKind::Line) {
+            const LinePaintGeometry line = resolve_line_paint_geometry(object, pos, ctx);
+            dl->add_rect(Pt(std::min(line.a.x, line.b.x), std::min(line.a.y, line.b.y)),
+                         Pt(std::max(line.a.x, line.b.x), std::max(line.a.y, line.b.y)),
+                         DEBUG_PAINT_BOUNDS_COLOR,
+                         1.0f);
+            continue;
+        }
+
+        if (object.primitive == editor::presentation::PaintPrimitiveKind::Arc) {
+            Pt center = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
+            float radius = object.bounds.w * ctx.zoom;
+            dl->add_rect(Pt(center.x - radius, center.y - radius),
+                         Pt(center.x + radius, center.y + radius),
+                         DEBUG_PAINT_BOUNDS_COLOR,
+                         1.0f);
+        }
     }
 }
 

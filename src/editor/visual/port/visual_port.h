@@ -31,7 +31,7 @@ struct PortConstants {
     
     // Layout
     static constexpr float ROW_HEIGHT = 16.0f;
-    static constexpr float MIN_GAP = 20.0f;
+    static constexpr float MIN_GAP = 0.0f;
     static constexpr float LAYOUT_GRID = 16.0f;
 };
 
@@ -72,6 +72,7 @@ public:
 
     Pt preferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
+    void renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const override;
 
 private:
     std::string_view name_;

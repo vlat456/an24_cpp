@@ -19,6 +19,13 @@ public:
                   child_ps.y + margins_.top + margins_.bottom);
     }
 
+    Pt minimumSize(IDrawList* dl) const override {
+        if (children().empty()) return Pt(0, 0);
+        Pt child_ms = children()[0]->minimumSize(dl);
+        return Pt(child_ms.x + margins_.left + margins_.right,
+                  child_ms.y + margins_.top + margins_.bottom);
+    }
+
     void layout(float available_width, float available_height) override {
         setSize(Pt(available_width, available_height));
         if (!children().empty()) {

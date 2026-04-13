@@ -12,7 +12,22 @@ class LeafWidget : public Widget {
 public:
     LeafWidget(Pt sz) { setSize(sz); }
     Pt preferredSize(IDrawList*) const override { return size(); }
+    Pt minimumSize(IDrawList*) const override { return size(); }
     void render(IDrawList*, const RenderContext&) const override {}
+};
+
+class OverflowLeafWidget : public Widget {
+public:
+    OverflowLeafWidget(Pt preferred, Pt minimum)
+        : preferred_(preferred), minimum_(minimum) {}
+
+    Pt preferredSize(IDrawList*) const override { return preferred_; }
+    Pt minimumSize(IDrawList*) const override { return minimum_; }
+    void render(IDrawList*, const RenderContext&) const override {}
+
+private:
+    Pt preferred_;
+    Pt minimum_;
 };
 
 } // namespace visual
@@ -160,4 +175,88 @@ TEST(LinearLayoutTest, WorldPosThroughRow) {
     
     EXPECT_EQ(child->worldPos().x, 100);
     EXPECT_EQ(child->worldPos().y, 200);
+}
+
+TEST(LinearLayoutTest, MinimumSizeIncludesFlexibleChildReserve) {
+    visual::Row row;
+    row.emplaceChild<visual::LeafWidget>(Pt(30, 20));
+    auto* center = row.emplaceChild<visual::LeafWidget>(Pt(40, 20));
+    center->setFlexGrow(1.0f);
+    row.emplaceChild<visual::LeafWidget>(Pt(30, 20));
+
+    Pt preferred = row.preferredSize(nullptr);
+    Pt minimum = row.minimumSize(nullptr);
+
+    EXPECT_FLOAT_EQ(preferred.x, 60.0f);
+    EXPECT_FLOAT_EQ(minimum.x, 100.0f);
+    EXPECT_FLOAT_EQ(minimum.y, 20.0f);
+}
+
+TEST(LinearLayoutTest, ColumnMinimumWidthUsesChildMinimumNotPreferredOverflow) {
+    visual::Column column;
+    column.emplaceChild<visual::OverflowLeafWidget>(Pt(120, 16), Pt(0, 16));
+    column.emplaceChild<visual::LeafWidget>(Pt(48, 20));
+
+    Pt preferred = column.preferredSize(nullptr);
+    Pt minimum = column.minimumSize(nullptr);
+
+    EXPECT_FLOAT_EQ(preferred.x, 120.0f);
+    EXPECT_FLOAT_EQ(minimum.x, 48.0f);
+    EXPECT_FLOAT_EQ(minimum.y, 36.0f);
+}
+
+// ============================================================
+// REGRESSION: Header label must constrain node minimum width
+// ============================================================
+// Simulates a Column with a "header-like" child (min == preferred, i.e.
+// identity text that must always be visible) and a "footer-like" child
+// (wide preferred but zero minimum, i.e. decorative text that can clip).
+// The Column's minimum width must be at least the header's width, while
+// the footer must NOT inflate it.
+
+TEST(LinearLayoutTest, REGRESSION_HeaderConstrainsColumnMinWidth_FooterDoesNot) {
+    visual::Column column;
+
+    // Header-like child: preferred width 80, minimum width 80 (identity text)
+    column.emplaceChild<visual::OverflowLeafWidget>(Pt(80, 24), Pt(80, 24));
+
+    // Port row: preferred width 60
+    column.emplaceChild<visual::LeafWidget>(Pt(60, 20));
+
+    // Footer-like child: preferred width 120, minimum width 0 (decorative)
+    column.emplaceChild<visual::OverflowLeafWidget>(Pt(120, 16), Pt(0, 16));
+
+    Pt preferred = column.preferredSize(nullptr);
+    Pt minimum = column.minimumSize(nullptr);
+
+    // Preferred width = max of children preferred = 120 (footer)
+    EXPECT_FLOAT_EQ(preferred.x, 120.0f);
+
+    // Minimum width = max of children minimum = 80 (header), NOT 0 (footer)
+    EXPECT_FLOAT_EQ(minimum.x, 80.0f)
+        << "Header identity text must prevent node from shrinking below its width";
+
+    // Minimum height = sum of all children minimum heights
+    EXPECT_FLOAT_EQ(minimum.y, 60.0f);  // 24 + 20 + 16
+}
+
+// ============================================================
+// REGRESSION: Zero-minimum child does NOT inflate column minimum
+// ============================================================
+// Verifies that a child with wide preferred size but zero minimum
+// width does not contribute to the Column's cross-axis minimum.
+
+TEST(LinearLayoutTest, REGRESSION_ZeroMinimumChildDoesNotInflateColumnMinWidth) {
+    visual::Column column;
+
+    // Narrow fixed child (e.g. port row)
+    column.emplaceChild<visual::LeafWidget>(Pt(48, 20));
+
+    // Wide decorative child with zero minimum width
+    column.emplaceChild<visual::OverflowLeafWidget>(Pt(200, 16), Pt(0, 16));
+
+    Pt minimum = column.minimumSize(nullptr);
+
+    EXPECT_FLOAT_EQ(minimum.x, 48.0f)
+        << "Decorative child with zero minimum must not widen column minimum";
 }

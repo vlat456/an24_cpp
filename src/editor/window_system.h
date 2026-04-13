@@ -149,6 +149,7 @@ public:
     bool showInspector = true;
     bool showOscilloscope = true;
     bool showDebugLayoutBounds = false;
+    bool showDebugPaintBounds = false;
     EditorSettings settings;
     OscilloscopeModel oscilloscope;
 

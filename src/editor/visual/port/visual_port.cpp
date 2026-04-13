@@ -5,6 +5,52 @@
 
 namespace visual {
 
+namespace {
+
+struct PortArrowGeometry {
+    Pt tip;
+    Pt back1;
+    Pt back2;
+};
+
+PortArrowGeometry compute_port_arrow_geometry(const Port& port, Pt center, float radius, float zoom) {
+    float arrow_offset_mult = 0;
+    switch (port.layoutSide()) {
+        case bp2::PortLayoutSide::Left:   arrow_offset_mult = PortConstants::LEFT_ARROW_OFFSET; break;
+        case bp2::PortLayoutSide::Right:  arrow_offset_mult = PortConstants::RIGHT_ARROW_OFFSET; break;
+        case bp2::PortLayoutSide::Top:    arrow_offset_mult = PortConstants::TOP_ARROW_OFFSET; break;
+        case bp2::PortLayoutSide::Bottom: arrow_offset_mult = PortConstants::BOTTOM_ARROW_OFFSET; break;
+    }
+
+    const float arrow_offset = radius * arrow_offset_mult;
+    const float arrow_size = PortConstants::ARROW_SIZE * zoom;
+    const bool is_output = (port.side() == bp2::PortSide::Output);
+    const bool horizontal = (port.layoutSide() == bp2::PortLayoutSide::Left ||
+                             port.layoutSide() == bp2::PortLayoutSide::Right);
+
+    PortArrowGeometry geometry{};
+    if (horizontal) {
+        const bool interior_is_positive = (port.layoutSide() == bp2::PortLayoutSide::Left);
+        const float interior_sign = interior_is_positive ? 1.0f : -1.0f;
+        const float arrow_x = center.x + interior_sign * arrow_offset;
+        const float tip_sign = is_output ? -interior_sign : interior_sign;
+        geometry.tip = Pt(arrow_x, center.y);
+        geometry.back1 = Pt(arrow_x - tip_sign * arrow_size, center.y - arrow_size);
+        geometry.back2 = Pt(arrow_x - tip_sign * arrow_size, center.y + arrow_size);
+    } else {
+        const bool interior_is_positive = (port.layoutSide() == bp2::PortLayoutSide::Top);
+        const float interior_sign = interior_is_positive ? 1.0f : -1.0f;
+        const float arrow_y = center.y + interior_sign * arrow_offset;
+        const float tip_sign = is_output ? -interior_sign : interior_sign;
+        geometry.tip = Pt(center.x, arrow_y);
+        geometry.back1 = Pt(center.x - arrow_size, arrow_y - tip_sign * arrow_size);
+        geometry.back2 = Pt(center.x + arrow_size, arrow_y - tip_sign * arrow_size);
+    }
+    return geometry;
+}
+
+} // namespace
+
 Port::Port(std::string_view name, bp2::PortSide side, PortType type, bp2::PortLayoutSide layout_side)
     : name_(name), side_(side), type_(type), layout_side_(layout_side)
 {
@@ -29,77 +75,30 @@ void Port::render(IDrawList* dl, const RenderContext& ctx) const {
     dl->add_circle_filled(center, r, color(), 8);
 
     if (side_ == bp2::PortSide::InOut) return;
-
-    // Arrow offset multiplier (relative to scaled radius)
-    float arrow_offset_mult = 0;
-    switch (layout_side_) {
-        case bp2::PortLayoutSide::Left:   arrow_offset_mult = PortConstants::LEFT_ARROW_OFFSET; break;
-        case bp2::PortLayoutSide::Right:  arrow_offset_mult = PortConstants::RIGHT_ARROW_OFFSET; break;
-        case bp2::PortLayoutSide::Top:    arrow_offset_mult = PortConstants::TOP_ARROW_OFFSET; break;
-        case bp2::PortLayoutSide::Bottom: arrow_offset_mult = PortConstants::BOTTOM_ARROW_OFFSET; break;
-    }
-    
-    float arrow_offset = r * arrow_offset_mult;
-    float arrow_size = PortConstants::ARROW_SIZE * ctx.zoom;
     float thickness = PortConstants::ARROW_THICKNESS * ctx.zoom;
-    
-    // Determine arrow direction:
-    //   Output = data flows AWAY from node (tip points outward)
-    //   Input  = data flows TOWARD node (tip points inward)
-    //
-    // The arrow sits on the interior side of the port (between circle and label).
-    // "outward" means away from node center:
-    //   Left  → outward = -x,  inward = +x
-    //   Right → outward = +x,  inward = -x
-    //   Top   → outward = -y,  inward = +y
-    //   Bottom→ outward = +y,  inward = -y
-    //
-    // For Output: tip goes outward direction
-    // For Input:  tip goes inward direction
-    //
-    // The arrow chevron is: two lines from tip to back1/back2.
-    // If tip_dir > 0, backs are at tip - arrow_size (so tip is further in + direction).
-    // If tip_dir < 0, backs are at tip + arrow_size (so tip is further in - direction).
-    
-    Pt tip, back1, back2;
-    bool is_output = (side_ == bp2::PortSide::Output);
-    
-    bool horizontal = (layout_side_ == bp2::PortLayoutSide::Left || layout_side_ == bp2::PortLayoutSide::Right);
-    
-    if (horizontal) {
-        // Arrow is along x-axis, positioned on interior side
-        // Interior direction: Left→+x, Right→-x
-        bool interior_is_positive = (layout_side_ == bp2::PortLayoutSide::Left);
-        float interior_sign = interior_is_positive ? 1.0f : -1.0f;
-        
-        // Arrow base position: offset from center toward interior
-        float arrow_x = center.x + interior_sign * arrow_offset;
-        
-        // Tip direction: output→outward (opposite of interior), input→inward (same as interior)
-        float tip_sign = is_output ? -interior_sign : interior_sign;
-        
-        tip = Pt(arrow_x, center.y);
-        back1 = Pt(arrow_x - tip_sign * arrow_size, center.y - arrow_size);
-        back2 = Pt(arrow_x - tip_sign * arrow_size, center.y + arrow_size);
-    } else {
-        // Arrow is along y-axis, positioned on interior side
-        // Interior direction: Top→+y, Bottom→-y
-        bool interior_is_positive = (layout_side_ == bp2::PortLayoutSide::Top);
-        float interior_sign = interior_is_positive ? 1.0f : -1.0f;
-        
-        // Arrow base position: offset from center toward interior
-        float arrow_y = center.y + interior_sign * arrow_offset;
-        
-        // Tip direction: output→outward (opposite of interior), input→inward (same as interior)
-        float tip_sign = is_output ? -interior_sign : interior_sign;
-        
-        tip = Pt(center.x, arrow_y);
-        back1 = Pt(center.x - arrow_size, arrow_y - tip_sign * arrow_size);
-        back2 = Pt(center.x + arrow_size, arrow_y - tip_sign * arrow_size);
-    }
-    
-    dl->add_line(tip, back1, color(), thickness);
-    dl->add_line(tip, back2, color(), thickness);
+    const PortArrowGeometry arrow = compute_port_arrow_geometry(*this, center, r, ctx.zoom);
+    dl->add_line(arrow.tip, arrow.back1, color(), thickness);
+    dl->add_line(arrow.tip, arrow.back2, color(), thickness);
+}
+
+void Port::renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const {
+    if (!dl) return;
+
+    Pt pos = ctx.world_to_screen(worldPos());
+    float r = PortConstants::RADIUS * ctx.zoom;
+    Pt center(pos.x + r, pos.y + r);
+    dl->add_rect(Pt(center.x - r, center.y - r),
+                 Pt(center.x + r, center.y + r),
+                 DEBUG_PAINT_BOUNDS_COLOR,
+                 1.0f);
+
+    if (side_ == bp2::PortSide::InOut) return;
+    const PortArrowGeometry arrow = compute_port_arrow_geometry(*this, center, r, ctx.zoom);
+    float min_x = std::min({arrow.tip.x, arrow.back1.x, arrow.back2.x});
+    float min_y = std::min({arrow.tip.y, arrow.back1.y, arrow.back2.y});
+    float max_x = std::max({arrow.tip.x, arrow.back1.x, arrow.back2.x});
+    float max_y = std::max({arrow.tip.y, arrow.back1.y, arrow.back2.y});
+    dl->add_rect(Pt(min_x, min_y), Pt(max_x, max_y), DEBUG_PAINT_BOUNDS_COLOR, 1.0f);
 }
 
 } // namespace visual

@@ -688,3 +688,33 @@ TEST(SceneMutations, KnobSwitchUsesWiperThrowNamesAndNoDuplication) {
     EXPECT_EQ(legacy_common_count, 0);
     EXPECT_EQ(legacy_t1_count, 0);
 }
+
+TEST(SceneMutations, TwoSidedNodeMinimumWidthDoesNotReserveArtificialCenterGap) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto node = make_bp2_node(interner, "vc1", "VariableConductance");
+    set_iface(node, {
+        make_port(interner, "a", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "b", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("vc1"));
+    ASSERT_NE(widget, nullptr);
+
+    const float expected_max =
+        (visual::PortConstants::RADIUS * 2 + visual::PortConstants::LEFT_LABEL_OFFSET) +
+        (1.0f * visual::PortConstants::LABEL_FONT_SIZE * 0.6f) +
+        (1.0f * visual::PortConstants::LABEL_FONT_SIZE * 0.6f) +
+        (visual::PortConstants::RADIUS * 2 + visual::PortConstants::RIGHT_LABEL_OFFSET) +
+        editor_constants::PORT_LAYOUT_GRID;
+
+    EXPECT_LE(widget->minimumNodeSize().x, expected_max)
+        << "Two-sided nodes should not keep an artificial center gap when labels are tiny";
+}

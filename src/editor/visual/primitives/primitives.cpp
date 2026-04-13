@@ -4,6 +4,11 @@
 
 namespace visual {
 
+float fallback_text_width(std::string_view text, float font_size) {
+    if (text.empty()) return 0.0f;
+    return text.length() * font_size * 0.5f;
+}
+
 // ============ Label ============
 
 Label::Label(std::string_view text, float font_size, uint32_t color,
@@ -11,8 +16,7 @@ Label::Label(std::string_view text, float font_size, uint32_t color,
     : text_(text), font_size_(font_size), color_(color), align_(align) {}
 
 float Label::estimateWidth() const {
-    if (text_.empty()) return 0;
-    return text_.length() * font_size_ * 0.8f;
+    return fallback_text_width(text_, font_size_);
 }
 
 Pt Label::preferredSize(IDrawList* dl) const {
@@ -36,6 +40,26 @@ void Label::render(IDrawList* dl, const RenderContext& ctx) const {
         tx = pos.x + sz.x * zoom - text_w;
     }
     dl->add_text(Pt(tx, ty), text_.c_str(), color_, font);
+}
+
+// ============ ReservedSpace ============
+
+ReservedSpace::ReservedSpace(Pt intrinsic_size, bool reserve_width, bool reserve_height)
+    : intrinsic_size_(intrinsic_size)
+    , reserve_width_(reserve_width)
+    , reserve_height_(reserve_height) {}
+
+Pt ReservedSpace::preferredSize(IDrawList*) const {
+    return intrinsic_size_;
+}
+
+Pt ReservedSpace::minimumSize(IDrawList*) const {
+    return Pt(reserve_width_ ? intrinsic_size_.x : 0.0f,
+              reserve_height_ ? intrinsic_size_.y : 0.0f);
+}
+
+void ReservedSpace::layout(float w, float h) {
+    setSize(Pt(w, h));
 }
 
 // ============ Circle ============

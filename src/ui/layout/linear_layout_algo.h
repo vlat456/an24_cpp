@@ -53,6 +53,24 @@ Pt linearPreferredSize(const std::vector<std::unique_ptr<Widget>>& children,
     return A::make_pt(sum, cross_max);
 }
 
+/// Compute the minimum shrink size for a linear layout along the given axis.
+/// Unlike preferred size, flexible children still contribute their minimum
+/// requirement on the main axis so local row/column composition can prevent
+/// overlap when a parent is resized smaller.
+template <Axis axis>
+Pt linearMinimumSize(const std::vector<std::unique_ptr<Widget>>& children,
+                     IDrawList* dl) {
+    using A = AxisHelper<axis>;
+    float sum = 0;
+    float cross_max = 0;
+    for (const auto& c : children) {
+        Pt ms = c->minimumSize(dl);
+        sum += A::main(ms);
+        cross_max = std::max(cross_max, A::cross(ms));
+    }
+    return A::make_pt(sum, cross_max);
+}
+
 /// Perform linear layout: partition space among fixed and flexible children.
 /// Remaining space after fixed children is distributed proportionally
 /// based on each child's flexGrow weight.

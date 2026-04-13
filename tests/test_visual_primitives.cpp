@@ -23,8 +23,16 @@ TEST(LabelTest, SetSizeFromConstructor) {
     visual::Label label("Test", 14.0f);
     Pt ps = label.preferredSize(nullptr);
     
-    EXPECT_EQ(ps.x, 4 * 14 * 0.8f); // "Test" = 4 chars, estimate uses 0.8 multiplier
+    EXPECT_EQ(ps.x, 4 * 14 * 0.5f); // "Test" = 4 chars, estimate uses 0.5 multiplier
     EXPECT_EQ(ps.y, 14.0f);
+}
+
+TEST(LabelTest, LongLabelUsesTighterFallbackWidthEstimate) {
+    visual::Label label("GeneratorVoltageOutput", 12.0f);
+    Pt ps = label.preferredSize(nullptr);
+
+    EXPECT_EQ(ps.x, 22 * 12 * 0.5f);
+    EXPECT_EQ(ps.y, 12.0f);
 }
 
 TEST(SpacerTest, IsFlexible) {

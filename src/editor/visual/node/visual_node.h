@@ -57,6 +57,7 @@ public:
     void onLocalPosChanged() override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
+    void renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const override;
 
     /// Content area bounds relative to the node origin (for ImGui overlay).
     /// Returns zero-size Bounds if the node has no semantic content region.

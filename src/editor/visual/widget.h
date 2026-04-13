@@ -17,6 +17,8 @@ namespace visual {
 using ui::Pt;
 using ui::IDrawList;
 
+constexpr uint32_t DEBUG_PAINT_BOUNDS_COLOR = 0xFF00FFFF;
+
 class Scene;
 class Port;
 
@@ -64,6 +66,7 @@ public:
 
     virtual void render(IDrawList* dl, const RenderContext& ctx) const {}
     virtual void renderPost(IDrawList* dl, const RenderContext& ctx) const {}
+    virtual void renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const {}
     
     void renderTree(IDrawList* dl, const RenderContext& ctx) const;
 
