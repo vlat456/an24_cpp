@@ -86,20 +86,19 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         if (!wire_start_endpoint_.has_value()) return result;
 
         CanvasInput::WireStartEndpoint start = *wire_start_endpoint_;
-        visual::Port* end_port = ph->port;
-        ui::InternedId end_node_iid = interner_.intern(end_port->rootAncestorId());
-        ui::InternedId end_port_iid = interner_.intern(end_port->name());
+        ui::InternedId end_node_iid = interner_.intern(ph->node_id);
+        ui::InternedId end_port_iid = interner_.intern(ph->port_name);
 
         if (start.node_id == end_node_iid && start.port_id == end_port_iid) return result;
 
-        bool compatible = visual::Port::areSidesCompatible(start.side, end_port->side());
+        bool compatible = visual::Port::areSidesCompatible(start.side, ph->side);
         if (!compatible) return result;
 
-        if (!visual::Port::areTypesCompatible(start.type, end_port->type())) {
+        if (!visual::Port::areTypesCompatible(start.type, ph->type)) {
             return result;
         }
 
-        std::string_view end_node_sv = end_port->rootAncestorId();
+        std::string_view end_node_sv = ph->node_id;
 
         if (start.node_id.empty() || end_node_sv.empty()) return result;
 
@@ -120,8 +119,8 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
             return s == bp2::PortSide::Input || s == bp2::PortSide::InOut;
         };
 
-        const bool forward_ok = can_drive(start.side) && can_receive(end_port->side());
-        const bool reverse_ok = can_drive(end_port->side()) && can_receive(start.side);
+        const bool forward_ok = can_drive(start.side) && can_receive(ph->side);
+        const bool reverse_ok = can_drive(ph->side) && can_receive(start.side);
         if (!forward_ok && !reverse_ok) {
             return result;
         }
@@ -171,9 +170,9 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
      auto [wire_tgt_node, wire_tgt_port] = editor_math::path_to_node_port(wire.target, arena_);
 
      if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
-         std::string_view port_node_sv = ph->port->rootAncestorId();
+         std::string_view port_node_sv = ph->node_id;
          ui::InternedId port_node_iid  = interner_.intern(port_node_sv);
-         ui::InternedId hit_port_iid   = interner_.intern(ph->port->name());
+         ui::InternedId hit_port_iid   = interner_.intern(ph->port_name);
 
          ui::InternedId detached_node = reconnect_detach_start_ ? wire_src_node : wire_tgt_node;
          ui::InternedId detached_port = reconnect_detach_start_ ? wire_src_port : wire_tgt_port;
@@ -185,13 +184,13 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
           bool same_as_fixed = (port_node_iid == fixed_node && hit_port_iid == fixed_port);
           bool compatible = !same_as_fixed &&
-              visual::Port::areSidesCompatible(ph->port->side(), reconnect_fixed_side_);
-         if (compatible && !visual::Port::areTypesCompatible(ph->port->type(), reconnect_fixed_type_)) {
-             compatible = false;
-         }
+              visual::Port::areSidesCompatible(ph->side, reconnect_fixed_side_);
+         if (compatible && !visual::Port::areTypesCompatible(ph->type, reconnect_fixed_type_)) {
+              compatible = false;
+          }
 
-         if (is_bus_node(host_.current_blueprint(), port_node_iid) && is_wire_alias_port_name(ph->port->name())) {
-             size_t target_wire_idx = find_wire_index(hit_port_iid);
+         if (is_bus_node(host_.current_blueprint(), port_node_iid) && is_wire_alias_port_name(ph->port_name)) {
+              size_t target_wire_idx = find_wire_index(hit_port_iid);
              if (target_wire_idx != SIZE_MAX && target_wire_idx < wires.size()) {
                  if (target_wire_idx != reconnect_wire_idx_) {
                      auto reordered = wires;
@@ -217,8 +216,8 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                  }
              }
          } else if (compatible) {
-             ui::InternedId new_node_iid = interner_.intern(port_node_sv);
-             ui::InternedId new_port_iid = interner_.intern(ph->port->name());
+              ui::InternedId new_node_iid = interner_.intern(port_node_sv);
+              ui::InternedId new_port_iid = interner_.intern(ph->port_name);
 
              if (is_bus_node(host_.current_blueprint(), new_node_iid) && new_port_iid != interner_.intern("v")) {
                  new_port_iid = interner_.intern("v");

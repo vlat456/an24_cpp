@@ -34,11 +34,33 @@ class Port;
 class NodeWidget;
 
 struct HitEmpty {};
-struct HitNode { Widget* widget = nullptr; };
-struct HitPort { Port* port = nullptr; };
-struct HitWire { Wire* wire = nullptr; size_t segment = 0; };
-struct HitRoutingPoint { RoutingPoint* point = nullptr; Wire* wire = nullptr; size_t index = 0; };
-struct HitResizeHandle { Widget* widget = nullptr; ResizeCorner corner = ResizeCorner::BottomRight; };
+struct HitNode {
+    std::string_view node_id;
+    Pt world_pos{};
+    Pt size{};
+};
+struct HitPort {
+    std::string_view node_id;
+    std::string_view port_name;
+    bp2::PortSide side = bp2::PortSide::Input;
+    PortType type = PortType::Any;
+    Pt center{};
+};
+struct HitWire {
+    std::string_view wire_id;
+    size_t segment = 0;
+};
+struct HitRoutingPoint {
+    std::string_view wire_id;
+    size_t index = 0;
+    Pt world_pos{};
+};
+struct HitResizeHandle {
+    std::string_view node_id;
+    ResizeCorner corner = ResizeCorner::BottomRight;
+    Pt world_pos{};
+    Pt size{};
+};
 
 using HitResult = std::variant<HitEmpty, HitNode, HitPort, HitWire, HitRoutingPoint, HitResizeHandle>;
 

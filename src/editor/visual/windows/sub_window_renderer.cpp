@@ -71,7 +71,7 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
     
     ImGui::SameLine();
     
-    bool has_sel = !win.input.selected_nodes().empty();
+    bool has_sel = !win.input.selected_node_ids().empty();
     if (!has_sel) ImGui::BeginDisabled();
     if (ImGui::Button("Delete")) {
         auto action = doc.applyInputResult(win.input.on_key(Key::Delete), win.resolved_scope_id());

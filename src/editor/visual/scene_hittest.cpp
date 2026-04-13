@@ -38,7 +38,7 @@ static std::optional<HitResult> hit_test_resize_handles(
 
         for (const auto& c : corners) {
             if (hit_math::distance(world_pos, c.center) <= R) {
-                return HitResizeHandle{w, c.corner};
+                return HitResizeHandle{w->id(), c.corner, w->worldPos(), w->size()};
             }
         }
     }
@@ -86,7 +86,13 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
         if (auto* port = dynamic_cast<Port*>(w)) {
             Pt center = port->worldPos() + Pt(PortConstants::RADIUS, PortConstants::RADIUS);
             if (hit_math::distance(world_pos, center) <= hit_constants::PORT_RADIUS) {
-                return HitPort{port};
+                return HitPort{
+                    port->rootAncestorId(),
+                    port->name(),
+                    port->side(),
+                    port->type(),
+                    center,
+                };
             }
         }
     }
@@ -97,17 +103,18 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
         if (auto* rp = dynamic_cast<RoutingPoint*>(w)) {
             if (hit_math::distance(world_pos, rp->worldPos()) <= hit_constants::ROUTING_POINT_RADIUS) {
                 // Find the owning Wire and index
-                Wire* wire = nullptr;
+                std::string_view wire_id;
                 size_t index = 0;
                 if (auto* parent = rp->parent()) {
-                    wire = dynamic_cast<Wire*>(parent);
+                    auto* wire = dynamic_cast<Wire*>(parent);
                     if (wire) {
+                        wire_id = wire->id();
                         for (size_t i = 0; i < wire->children().size(); ++i) {
                             if (wire->children()[i].get() == rp) { index = i; break; }
                         }
                     }
                 }
-                return HitRoutingPoint{rp, wire, index};
+                return HitRoutingPoint{wire_id, index, rp->worldPos()};
             }
         }
     }
@@ -119,7 +126,7 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
 
     // --- Pass 5: Nodes / generic clickable widgets (AABB) ---
     if (auto* node = hit_test_node_body(candidates, world_pos)) {
-        return HitNode{node};
+        return HitNode{node->id(), node->worldPos(), node->size()};
     }
 
     // --- Pass 6: Wire segments (lowest priority, fine-grained) ---
@@ -132,7 +139,7 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
             for (size_t i = 0; i + 1 < pts.size(); ++i) {
                 if (hit_math::distance_to_segment(world_pos, pts[i], pts[i + 1])
                         < hit_constants::WIRE_TOLERANCE) {
-                    return HitWire{wire, i};
+                    return HitWire{wire->id(), i};
                 }
             }
         }
@@ -153,7 +160,13 @@ HitResult hit_test_ports(const Scene& scene, Pt world_pos) {
         if (auto* port = dynamic_cast<Port*>(w)) {
             Pt center = port->worldPos() + Pt(PortConstants::RADIUS, PortConstants::RADIUS);
             if (hit_math::distance(world_pos, center) <= hit_constants::PORT_RADIUS) {
-                return HitPort{port};
+                return HitPort{
+                    port->rootAncestorId(),
+                    port->name(),
+                    port->side(),
+                    port->type(),
+                    center,
+                };
             }
         }
     }

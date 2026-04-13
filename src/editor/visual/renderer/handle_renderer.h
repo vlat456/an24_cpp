@@ -27,7 +27,7 @@ inline void draw_handle(IDrawList& dl, Pt screen_pos, float radius,
 inline void draw_selection_border(IDrawList& dl, const visual::RenderContext& ctx,
                                   const visual::Widget& w,
                                   Pt screen_min, Pt screen_max, float rounding) {
-    if (!ctx.isNodeSelected(&w)) return;
+    if (!ctx.isNodeSelected(w.id())) return;
     dl.add_rect_with_rounding_corners(screen_min, screen_max,
         render_theme::COLOR_SELECTED, rounding,
         editor_constants::DRAW_CORNERS_ALL, 2.0f * ctx.zoom);
@@ -36,7 +36,7 @@ inline void draw_selection_border(IDrawList& dl, const visual::RenderContext& ct
 /// Draw resize handles at the four corners of a resizable widget when selected.
 inline void draw_resize_handles(IDrawList& dl, const visual::RenderContext& ctx,
                                 const visual::Widget& w) {
-    if (!ctx.isNodeSelected(&w)) return;
+    if (!ctx.isNodeSelected(w.id())) return;
 
     Pt mn = w.worldMin();
     Pt mx = w.worldMax();

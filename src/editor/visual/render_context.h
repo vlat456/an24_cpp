@@ -33,9 +33,9 @@ struct HoveredRoutingPointId {
 /// Passed through the widget tree so every render() can transform
 /// world coordinates to screen coordinates and query selection/hover.
 struct RenderContext : public ui::RenderContext {
-    const std::vector<Widget*>* selected_nodes = nullptr;
-    const Wire* selected_wire = nullptr;
-    const Wire* hovered_wire = nullptr;
+    const std::vector<std::string_view>* selected_node_ids = nullptr;
+    std::string_view selected_wire_id;
+    std::string_view hovered_wire_id;
     HoveredRoutingPointId hovered_routing_point;
     bool show_debug_bounds = false;
     bool show_debug_paint_bounds = false;
@@ -45,11 +45,11 @@ struct RenderContext : public ui::RenderContext {
     /// string_view keys reference the StringInterner's stable deque storage.
     const std::unordered_set<std::string_view, StringViewHash>* energized_wires = nullptr;
 
-    /// Check whether a widget pointer is in the selected_nodes list.
-    bool isNodeSelected(const Widget* w) const {
-        if (!selected_nodes) return false;
-        for (const auto* s : *selected_nodes) {
-            if (s == w) return true;
+    /// Check whether a node id is selected.
+    bool isNodeSelected(std::string_view node_id) const {
+        if (!selected_node_ids || node_id.empty()) return false;
+        for (const auto& id : *selected_node_ids) {
+            if (id == node_id) return true;
         }
         return false;
     }

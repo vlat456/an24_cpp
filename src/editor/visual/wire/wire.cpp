@@ -210,10 +210,10 @@ static WireStyle resolve_wire_style(const Wire& wire, const RenderContext& ctx,
     uint32_t color = render_theme::COLOR_WIRE_UNSEL;
     float thickness = Wire::WIRE_THICKNESS * ctx.zoom;
 
-    if (ctx.selected_wire == &wire) {
+    if (!ctx.selected_wire_id.empty() && ctx.selected_wire_id == wire_id) {
         return {render_theme::COLOR_WIRE, 2.5f * ctx.zoom};
     }
-    if (ctx.hovered_wire == &wire) {
+    if (!ctx.hovered_wire_id.empty() && ctx.hovered_wire_id == wire_id) {
         return {render_theme::COLOR_WIRE_HOVER, 2.0f * ctx.zoom};
     }
     if (ctx.energized_wires && ctx.energized_wires->count(wire_id) > 0) {
@@ -384,7 +384,8 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
     }
 
     // Routing point handles (when wire is selected or hovered)
-    if (ctx.selected_wire == this || ctx.hovered_wire == this) {
+    if ((!ctx.selected_wire_id.empty() && ctx.selected_wire_id == id_) ||
+        (!ctx.hovered_wire_id.empty() && ctx.hovered_wire_id == id_)) {
         float rp_radius = 4.0f * ctx.zoom;
         const bool match_wire = !ctx.hovered_routing_point.empty()
                              && ctx.hovered_routing_point.wire_id == id_;

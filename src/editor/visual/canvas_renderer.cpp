@@ -139,17 +139,16 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     energized_buf_.clear();
     doc.buildEnergizedWireSet(energized_buf_, win.resolved_scope_id());
 
-    // Resolve selected node IDs → pointers for this frame.
-    // Must outlive ctx (which stores a pointer to it).
-    auto sel_nodes = win.input.selected_nodes();
+    // Resolve selected node IDs to stable string_views for this frame.
+    auto sel_nodes = win.input.selected_node_id_views();
 
     visual::RenderContext ctx;
     ctx.zoom = win.viewport.zoom;
     ctx.pan = win.viewport.pan;
     ctx.canvas_min = cmin;
-    ctx.selected_nodes = &sel_nodes;
-    ctx.selected_wire = win.input.selected_wire();
-    ctx.hovered_wire = win.input.hovered_wire();
+    ctx.selected_node_ids = &sel_nodes;
+    ctx.selected_wire_id = win.input.selected_wire_id();
+    ctx.hovered_wire_id = win.input.hovered_wire_id();
     ctx.hovered_routing_point = win.input.hovered_routing_point_id();
     ctx.energized_wires = energized_buf_.empty() ? nullptr : &energized_buf_;
     ctx.show_debug_bounds = ws.showDebugLayoutBounds;
@@ -172,12 +171,11 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
     ws.oscilloscope.clear_hover_signal();
 
     if (auto* hp = std::get_if<visual::HitPort>(&hit)) {
-        visual::Port* port = hp->port;
-        std::string_view node_id = port->rootAncestorId();
+        std::string_view node_id = hp->node_id;
         if (node_id.empty()) return;
 
-        std::string_view port_name = port->name();
-        Pt port_screen = win.viewport.world_to_screen(port->worldPos(), cmin);
+        std::string_view port_name = hp->port_name;
+        Pt port_screen = win.viewport.world_to_screen(hp->center - Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS), cmin);
         std::string signal_key = doc.resolve_endpoint_signal_key(
             win.resolved_scope_id(), node_id, port_name);
         if (signal_key.empty()) return;
@@ -191,16 +189,17 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         return;
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-        visual::Wire* wire = hw->wire;
         std::string signal_key = doc.resolve_wire_signal_key(
-            win.resolved_scope_id(), wire->id());
+            win.resolved_scope_id(), hw->wire_id);
         if (signal_key.empty()) return;
 
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
         float current_value = doc.simulation().get_wire_voltage(signal_key);
-        maybe_log_hover_signal_resolution(std::string(wire->id()), "src", signal_key, current_value);
-          
+        maybe_log_hover_signal_resolution(std::string(hw->wire_id), "src", signal_key, current_value);
+           
         // Project mouse onto wire segment for tooltip anchor
+        auto* wire = dynamic_cast<visual::Wire*>(win.scene.find(hw->wire_id));
+        if (!wire) return;
         const auto& poly = wire->polyline();
         size_t seg = hw->segment;
         Pt anchor = mouse_world;

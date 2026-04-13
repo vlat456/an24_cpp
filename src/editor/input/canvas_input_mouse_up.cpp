@@ -16,24 +16,27 @@
 using namespace canvas_input_impl;
 
 void CanvasInput::commit_drag_node() {
-     auto nodes = selected_nodes();
      bool any_moved = false;
      std::vector<ui::InternedId> moved_node_ids;
-     for (size_t i = 0; i < nodes.size() && i < drag_initial_positions_.size(); ++i) {
-         if (nodes[i]->worldPos() != drag_initial_positions_[i]) {
+     size_t drag_idx = 0;
+     for (const auto& node_id : selected_node_ids()) {
+         auto* widget = resolve_node(node_id);
+         if (!widget) continue;
+         if (drag_idx < drag_initial_positions_.size() && widget->worldPos() != drag_initial_positions_[drag_idx]) {
              any_moved = true;
-             moved_node_ids.push_back(interner_.intern(nodes[i]->id()));
+             moved_node_ids.push_back(node_id);
          }
+         ++drag_idx;
      }
      if (!any_moved) return;
      host_.mutate_atomically([&] {
-         for (auto* widget : nodes) {
-             ui::InternedId node_iid = interner_.intern(widget->id());
-             if (!node_iid.empty()) {
-                 host_.update_node_position(node_iid, widget->worldPos().x, widget->worldPos().y);
-             }
-         }
-     });
+         for (const auto& node_id : selected_node_ids()) {
+             auto* widget = resolve_node(node_id);
+             if (widget && !node_id.empty()) {
+                 host_.update_node_position(node_id, widget->worldPos().x, widget->worldPos().y);
+              }
+          }
+      });
 
      std::unordered_set<ui::InternedId> nodes_to_orient;
      for (ui::InternedId id : moved_node_ids) {
@@ -222,19 +225,19 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
      if (!read_only && !simulation_mode) {
          if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
-             ui::InternedId wire_iid = interner_.intern(hrp->wire->id());
+             ui::InternedId wire_iid = interner_.intern(hrp->wire_id);
              const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(wire_iid);
              if (bp2_wire && hrp->index < bp2_wire->routing_points.size()) {
                  auto new_points = bp2_wire->routing_points;
                  new_points.erase(new_points.begin() + static_cast<long>(hrp->index));
 
-                 if (!wire_iid.empty()) {
-                     snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
-                     if (hrp->wire) {
-                         hrp->wire->removeRoutingPoint(hrp->index);
-                     }
-                 }
-             }
+                  if (!wire_iid.empty()) {
+                      snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
+                      if (auto* wire = resolve_wire(wire_iid)) {
+                          wire->removeRoutingPoint(hrp->index);
+                      }
+                  }
+              }
              return result;
          }
      }
@@ -242,14 +245,14 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
       // Extract the underlying widget from HitNode
       // Double-click on content still resolves node-level actions
       // (open sub-window, inline value editor).
-      visual::Widget* dbl_click_widget = nullptr;
+      std::string_view dbl_click_node_id;
       if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-          dbl_click_widget = hn->widget;
+          dbl_click_node_id = hn->node_id;
      }
 
-     if (dbl_click_widget) {
-          std::string node_id(dbl_click_widget->id());
-          ui::InternedId node_iid = interner_.lookup(node_id);
+     if (!dbl_click_node_id.empty()) {
+          std::string node_id(dbl_click_node_id);
+          ui::InternedId node_iid = interner_.lookup(dbl_click_node_id);
           const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : host_.find_node(node_iid);
           if (!read_only && !simulation_mode && node && std::string(interner_.resolve(node->semantic.type)) == "Value") {
               result.open_inline_value_editor = true;
@@ -266,21 +269,21 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
      if (!read_only && !simulation_mode) {
          if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-             ui::InternedId wire_iid = interner_.intern(hw->wire->id());
+             ui::InternedId wire_iid = interner_.intern(hw->wire_id);
              const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(wire_iid);
              if (bp2_wire) {
-                 auto new_points = bp2_wire->routing_points;
-                 Pt snapped = editor_math::snap_to_grid(world, viewport_.grid_step);
-                 size_t insert_idx = hw->segment;
-                 new_points.insert(new_points.begin() + static_cast<long>(insert_idx), {snapped.x, snapped.y});
+                  auto new_points = bp2_wire->routing_points;
+                  Pt snapped = editor_math::snap_to_grid(world, viewport_.grid_step);
+                  size_t insert_idx = hw->segment;
+                  new_points.insert(new_points.begin() + static_cast<long>(insert_idx), {snapped.x, snapped.y});
 
-                 if (!wire_iid.empty()) {
-                     snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
-                     if (hw->wire) {
-                         hw->wire->addRoutingPoint(snapped, insert_idx);
-                     }
-                 }
-             }
+                  if (!wire_iid.empty()) {
+                      snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
+                      if (auto* wire = resolve_wire(wire_iid)) {
+                          wire->addRoutingPoint(snapped, insert_idx);
+                      }
+                  }
+              }
          }
      }
 
@@ -374,6 +377,6 @@ void CanvasInput::finish_marquee() {
         float cx = pos.x + sz.x / 2;
         float cy = pos.y + sz.y / 2;
         if (cx >= min_x && cx <= max_x && cy >= min_y && cy <= max_y)
-            add_node_selection(vroot);
+            add_node_selection(node_iid);
     }
 }

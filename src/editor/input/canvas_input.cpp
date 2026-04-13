@@ -87,37 +87,33 @@ void CanvasInput::clear_selection() {
     selected_wire_id_ = {};
 }
 
-void CanvasInput::add_node_selection(visual::Widget* w) {
-    if (!w) return;
-    ui::InternedId iid = interner_.intern(w->id());
-    if (iid.empty()) return;
-    if (std::find(selected_node_ids_.begin(), selected_node_ids_.end(), iid) == selected_node_ids_.end())
-        selected_node_ids_.push_back(iid);
+void CanvasInput::add_node_selection(ui::InternedId node_id) {
+    if (node_id.empty()) return;
+    if (std::find(selected_node_ids_.begin(), selected_node_ids_.end(), node_id) == selected_node_ids_.end()) {
+        selected_node_ids_.push_back(node_id);
+    }
 }
 
-bool CanvasInput::is_node_selected(visual::Widget* w) const {
-    if (!w) return false;
-    ui::InternedId iid = interner_.lookup(w->id());
-    if (iid.empty()) return false;
-    return std::find(selected_node_ids_.begin(), selected_node_ids_.end(), iid) != selected_node_ids_.end();
+bool CanvasInput::is_node_selected(ui::InternedId node_id) const {
+    if (node_id.empty()) return false;
+    return std::find(selected_node_ids_.begin(), selected_node_ids_.end(), node_id) != selected_node_ids_.end();
 }
 
-std::vector<visual::Widget*> CanvasInput::selected_nodes() const {
-    std::vector<visual::Widget*> result;
+std::vector<std::string_view> CanvasInput::selected_node_id_views() const {
+    std::vector<std::string_view> result;
     result.reserve(selected_node_ids_.size());
     for (const auto& nid : selected_node_ids_) {
-        auto* w = resolve_node(nid);
-        if (w) result.push_back(w);
+        result.push_back(interner_.resolve(nid));
     }
     return result;
 }
 
-visual::Wire* CanvasInput::selected_wire() const {
-    return resolve_wire(selected_wire_id_);
+std::string_view CanvasInput::selected_wire_id() const {
+    return interner_.resolve(selected_wire_id_);
 }
 
-visual::Wire* CanvasInput::hovered_wire() const {
-    return resolve_wire(hovered_wire_id_);
+std::string_view CanvasInput::hovered_wire_id() const {
+    return interner_.resolve(hovered_wire_id_);
 }
 
 bool CanvasInput::select_node_by_id(std::string_view node_id) {
@@ -126,7 +122,7 @@ bool CanvasInput::select_node_by_id(std::string_view node_id) {
     if (!widget) return false;
 
     clear_selection();
-    add_node_selection(widget);
+    add_node_selection(iid);
 
     Pt pos = widget->worldPos();
     Pt sz = widget->size();
@@ -154,10 +150,10 @@ void CanvasInput::update_hover(Pt world_pos) {
 
     auto hit = visual::hit_test(scene_, world_pos);
     if (auto* h = std::get_if<visual::HitWire>(&hit)) {
-        hovered_wire_id_ = interner_.intern(h->wire->id());
+        hovered_wire_id_ = interner_.intern(h->wire_id);
         hovered_rp_id_ = {};
     } else if (auto* h = std::get_if<visual::HitRoutingPoint>(&hit)) {
-        hovered_wire_id_ = interner_.intern(h->wire->id());
+        hovered_wire_id_ = interner_.intern(h->wire_id);
         hovered_rp_id_ = {interner_.resolve(hovered_wire_id_), h->index};
     } else {
         hovered_wire_id_ = {};
@@ -191,19 +187,18 @@ void CanvasInput::enter_panning() {
     state_ = InputState::Panning;
 }
 
-void CanvasInput::enter_drag_node(visual::Widget* widget, bool add_to_selection, bool ctrl) {
-    if (!ctrl && !is_node_selected(widget)) clear_selection();
-    add_node_selection(widget);
-
-    Pt primary_pos = widget->worldPos();
+void CanvasInput::enter_drag_node(ui::InternedId node_id, Pt world_pos, bool ctrl) {
+    if (!ctrl && !is_node_selected(node_id)) clear_selection();
+    add_node_selection(node_id);
 
     state_ = InputState::DraggingNode;
-    drag_anchor_ = primary_pos;
+    drag_anchor_ = world_pos;
     drag_offsets_.clear();
     drag_initial_positions_.clear();
-    auto nodes = selected_nodes();
-    for (auto* sel : nodes) {
-        drag_offsets_.push_back(sel->worldPos() - primary_pos);
+    for (const auto& selected_id : selected_node_ids_) {
+        auto* sel = resolve_node(selected_id);
+        if (!sel) continue;
+        drag_offsets_.push_back(sel->worldPos() - world_pos);
         drag_initial_positions_.push_back(sel->worldPos());
     }
 }
@@ -226,14 +221,14 @@ void CanvasInput::enter_drag_routing_point(ui::InternedId wire_id, size_t rp_idx
     }
 }
 
-void CanvasInput::enter_resize_node(visual::Widget* widget, ResizeCorner corner) {
+void CanvasInput::enter_resize_node(ui::InternedId node_id, Pt world_pos, Pt size, ResizeCorner corner) {
     state_ = InputState::ResizingNode;
     clear_selection();
-    add_node_selection(widget);
-    resize_widget_id_ = interner_.intern(widget->id());
+    add_node_selection(node_id);
+    resize_widget_id_ = node_id;
     resize_corner_ = corner;
-    resize_original_pos_ = widget->worldPos();
-    resize_original_size_ = widget->size();
+    resize_original_pos_ = world_pos;
+    resize_original_size_ = size;
     drag_anchor_ = Pt(0, 0);
 }
 
@@ -260,17 +255,16 @@ void CanvasInput::enter_marquee(Pt world_pos) {
     marquee_end_ = world_pos;
 }
 
-void CanvasInput::setup_semantic_interaction_state(visual::Widget* node_widget,
-                                                    const CanvasInput::SemanticContentTarget& target,
-                                                    Pt world_pos) {
-    ui::InternedId node_id = interner_.intern(node_widget->id());
+void CanvasInput::setup_semantic_interaction_state(ui::InternedId node_id,
+                                                   const CanvasInput::SemanticContentTarget& target,
+                                                   Pt world_pos) {
     const bp2::Blueprint::Node* node = host_.find_node(node_id);
     if (!node) return;
 
-    auto* visual_node = dynamic_cast<visual::NodeWidget*>(node_widget);
+    auto* visual_node = dynamic_cast<visual::NodeWidget*>(resolve_node(node_id));
     if (visual_node) {
         semantic_canvas_controller_.set_snapshot(visual_node->content_semantic_snapshot());
-        semantic_widget_id_ = interner_.intern(node_widget->id());
+        semantic_widget_id_ = node_id;
     }
 
     switch (target.role) {
@@ -319,8 +313,9 @@ void CanvasInput::leave_state() {
 }
 
 editor::presentation::SemanticCanvasControllerResult CanvasInput::configure_and_dispatch_semantic_interaction(
-    visual::Widget* node_widget, const CanvasInput::SemanticContentTarget& target, Pt world) {
-    setup_semantic_interaction_state(node_widget, target, world);
+    ui::InternedId node_id, const CanvasInput::SemanticContentTarget& target, Pt world) {
+    setup_semantic_interaction_state(node_id, target, world);
+    auto* node_widget = resolve_node(node_id);
     const Pt local_point = node_widget
         ? Pt(world.x - node_widget->worldPos().x, world.y - node_widget->worldPos().y)
         : world;
@@ -363,26 +358,31 @@ bool CanvasInput::state_uses_semantic_control_session() const {
     return state_ == InputState::DraggingSlider || state_ == InputState::DraggingKnob;
 }
 
-bool CanvasInput::handle_resolved_interaction(visual::Widget* widget,
+bool CanvasInput::handle_resolved_interaction(ui::InternedId node_id,
                                               const CanvasInput::SemanticContentTarget& target,
                                               Pt world, InputResult& result) {
+    if (node_id.empty()) {
+        return false;
+    }
+
+    auto* widget = resolve_node(node_id);
     if (!dynamic_cast<visual::NodeWidget*>(widget)) {
         return false;
     }
 
-    if (!host_.find_node(interner_.intern(widget->id()))) {
+    if (!host_.find_node(node_id)) {
         return false;
     }
 
     semantic_canvas_controller_.reset();
     editor::presentation::SemanticCanvasControllerResult semantic =
-        configure_and_dispatch_semantic_interaction(widget, target, world);
+        configure_and_dispatch_semantic_interaction(node_id, target, world);
     return publish_semantic_control_result(semantic, result);
 }
 
 std::optional<CanvasInput::SemanticContentTarget> CanvasInput::hit_test_semantic_content(
-    visual::Widget* node_widget, Pt world_pos) {
-    auto* visual_node = dynamic_cast<visual::NodeWidget*>(node_widget);
+    ui::InternedId node_id, Pt world_pos) {
+    auto* visual_node = dynamic_cast<visual::NodeWidget*>(resolve_node(node_id));
     if (!visual_node) return std::nullopt;
 
     const editor::presentation::SemanticSceneSnapshot& snapshot = visual_node->content_semantic_snapshot();

@@ -17,8 +17,7 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
 
     bool all_ref_nodes = true;
     ui::InternedId value_type = interner_.intern("Value");
-    for (auto* w : selected_nodes()) {
-        ui::InternedId nid = interner_.intern(w->id());
+    for (const auto& nid : selected_node_ids()) {
         if (nid.empty()) continue;
         const bp2::Blueprint::Node* n = host_.find_node(nid);
         if (!n || n->view.render_hint != "ref" || n->semantic.type == value_type) {
@@ -30,23 +29,22 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
         ? editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step)
         : editor_math::snap_to_half_grid(drag_anchor_, viewport_.grid_step);
 
-    auto nodes = selected_nodes();
-
     std::unordered_set<ui::InternedId> connected_wire_ids;
 
-    for (size_t i = 0; i < nodes.size(); i++) {
-        auto* widget = nodes[i];
-        Pt offset = (i < drag_offsets_.size()) ? drag_offsets_[i] : Pt(0, 0);
+    size_t drag_idx = 0;
+    for (const auto& node_id : selected_node_ids()) {
+        auto* widget = resolve_node(node_id);
+        if (!widget) continue;
+        Pt offset = (drag_idx < drag_offsets_.size()) ? drag_offsets_[drag_idx] : Pt(0, 0);
         Pt new_pos = snapped + offset;
 
         widget->setLocalPos(new_pos);
 
-        ui::InternedId node_iid = interner_.intern(widget->id());
-        if (!node_iid.empty()) {
+        if (!node_id.empty()) {
             for (const bp2::Blueprint::Wire& w : host_.wires()) {
                 auto src_node = w.source.node;
                 auto tgt_node = w.target.node;
-                if (src_node == node_iid || tgt_node == node_iid) {
+                if (src_node == node_id || tgt_node == node_id) {
                     connected_wire_ids.insert(w.id);
                 }
             }
@@ -54,6 +52,7 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
 
         if (widget->isClickable())
             scene_.grid().update(widget);
+        ++drag_idx;
     }
 
     for (auto wid : connected_wire_ids) {

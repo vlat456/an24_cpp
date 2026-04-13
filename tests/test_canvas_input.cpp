@@ -815,7 +815,7 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
     EXPECT_TRUE(r.has_toggle_probe_world_pos);
     EXPECT_NEAR(r.toggle_probe_world_pos.x, probe_pos.x, 1.5f);
     EXPECT_NEAR(r.toggle_probe_world_pos.y, probe_pos.y, 1.5f);
-    EXPECT_EQ(input.selected_wire(), nullptr);
+    EXPECT_TRUE(input.selected_wire_id().empty());
 }
 
 TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
@@ -847,7 +847,7 @@ TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
     input.on_mouse_up(MouseButton::Left, click_pos, canvas_min);
 
     EXPECT_EQ(input.state(), InputState::Idle);
-    EXPECT_EQ(input.selected_nodes().size(), 1u);
+    EXPECT_EQ(input.selected_node_ids().size(), 1u);
     EXPECT_EQ(model.undo_depth(), undo_before);
     EXPECT_FALSE(model.is_dirty());
 }
@@ -941,7 +941,7 @@ TEST(CanvasInputDelete, MultiNodeDeleteIsSingleUndoStep) {
     input.on_mouse_up(MouseButton::Left, p1, canvas_min);
     input.on_mouse_down(p2, MouseButton::Left, canvas_min, Modifiers{.ctrl = true});
     input.on_mouse_up(MouseButton::Left, p2, canvas_min);
-    ASSERT_EQ(input.selected_nodes().size(), 2u);
+    ASSERT_EQ(input.selected_node_ids().size(), 2u);
 
     const size_t undo_before = model.undo_depth();
     input.on_key(Key::Delete);
@@ -1028,7 +1028,7 @@ TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
     input.on_mouse_up(MouseButton::Left, p1, canvas_min);
     input.on_mouse_down(p2, MouseButton::Left, canvas_min, Modifiers{.ctrl = true});
     input.on_mouse_up(MouseButton::Left, p2, canvas_min);
-    ASSERT_EQ(input.selected_nodes().size(), 2u);
+    ASSERT_EQ(input.selected_node_ids().size(), 2u);
 
     // Drag both nodes together.
     input.on_mouse_down(p1, MouseButton::Left, canvas_min);
@@ -1651,7 +1651,7 @@ TEST(CanvasInputSimMode, SimModeBlocksNodeDrag) {
         << "simulation_mode must block node dragging";
     EXPECT_EQ(input.state(), InputState::Panning)
         << "clicking on node body in simulation_mode should pan";
-    EXPECT_EQ(input.selected_nodes().size(), 0u)
+    EXPECT_EQ(input.selected_node_ids().size(), 0u)
         << "simulation_mode must not select nodes";
 }
 
@@ -1922,7 +1922,7 @@ TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
      auto hit = visual::hit_test(scene, click_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
-     EXPECT_EQ(hit_node->widget, widget);
+     EXPECT_EQ(hit_node->node_id, std::string_view("azs_1"));
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
      auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
@@ -1961,7 +1961,7 @@ TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
      auto hit = visual::hit_test(scene, click_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
-     EXPECT_EQ(hit_node->widget, widget);
+     EXPECT_EQ(hit_node->node_id, std::string_view("knob_1"));
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
      auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
@@ -2028,7 +2028,7 @@ TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
      auto hit = visual::hit_test(scene, click_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
-     EXPECT_EQ(hit_node->widget, widget);
+     EXPECT_EQ(hit_node->node_id, std::string_view("slider_1"));
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
      auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
@@ -2069,7 +2069,7 @@ TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
     EXPECT_TRUE(std::holds_alternative<visual::HitNode>(hit));
     auto* hit_node = std::get_if<visual::HitNode>(&hit);
     ASSERT_NE(hit_node, nullptr);
-    EXPECT_EQ(hit_node->widget, widget);
+    EXPECT_EQ(hit_node->node_id, std::string_view("slider_1"));
 }
 
 TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
@@ -2107,7 +2107,7 @@ TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
      auto hit = visual::hit_test(scene, roundtrip_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr);
-     EXPECT_EQ(hit_node->widget, widget);
+     EXPECT_EQ(hit_node->node_id, std::string_view("azs_1"));
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
      auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
@@ -3245,8 +3245,8 @@ TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
 
     input.update_hover(Pt(100.0f, 100.0f));
 
-    EXPECT_EQ(input.hovered_wire(), nullptr)
-         << "While DraggingKnob, hovered_wire() must be nullptr (hover suppressed)";
+    EXPECT_TRUE(input.hovered_wire_id().empty())
+         << "While DraggingKnob, hovered_wire_id() must be empty (hover suppressed)";
      EXPECT_TRUE(input.hovered_routing_point_id().empty())
          << "While DraggingKnob, hovered_routing_point_id() must be empty (hover suppressed)";
 }
@@ -3307,8 +3307,8 @@ TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
 
     input.update_hover(Pt(100.0f, 100.0f));
 
-    EXPECT_EQ(input.hovered_wire(), nullptr)
-        << "While DraggingSlider, hovered_wire() must be nullptr (hover suppressed)";
+    EXPECT_TRUE(input.hovered_wire_id().empty())
+        << "While DraggingSlider, hovered_wire_id() must be empty (hover suppressed)";
     EXPECT_TRUE(input.hovered_routing_point_id().empty())
         << "While DraggingSlider, hovered_routing_point_id() must be empty (hover suppressed)";
 }

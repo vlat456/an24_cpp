@@ -989,7 +989,7 @@ void NodeWidget::refresh_content_semantic_snapshot() {
 
 NodeVisualState NodeWidget::visual_state(const RenderContext& ctx) const {
     NodeVisualState state;
-    state.selected = ctx.isNodeSelected(this);
+    state.selected = ctx.isNodeSelected(id());
     return state;
 }
 

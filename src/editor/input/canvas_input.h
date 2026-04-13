@@ -77,15 +77,14 @@ public:
     /// Selected node IDs (interned handles — O(1) comparison).
     const std::vector<ui::InternedId>& selected_node_ids() const { return selected_node_ids_; }
 
-    /// Resolve selected node IDs to widget pointers (for rendering).
-    /// Returns only widgets that still exist in the scene.
-    std::vector<visual::Widget*> selected_nodes() const;
+    /// Selected node ids resolved to stable string_views for rendering.
+    std::vector<std::string_view> selected_node_id_views() const;
 
-    /// Selected wire widget (resolved from ID), or nullptr.
-    visual::Wire* selected_wire() const;
+    /// Selected wire id for rendering (empty = none).
+    std::string_view selected_wire_id() const;
 
-    /// Wire currently under mouse cursor (resolved from ID), or nullptr.
-    visual::Wire* hovered_wire() const;
+    /// Hovered wire id for rendering (empty = none).
+    std::string_view hovered_wire_id() const;
 
     /// Semantic identifier of the hovered routing point, for rendering.
     /// Uses wire-id + child-index instead of a raw widget pointer.
@@ -104,8 +103,8 @@ public:
     // ---- Selection helpers ----
 
     void clear_selection();
-    void add_node_selection(visual::Widget* w);
-    bool is_node_selected(visual::Widget* w) const;
+    void add_node_selection(ui::InternedId node_id);
+    bool is_node_selected(ui::InternedId node_id) const;
 
     /// Select a node by its ID and center the viewport on it.
     /// Returns true if found and selected.
@@ -197,9 +196,9 @@ private:
 
      // ---- Internal transition helpers ----
      void enter_panning();
-    void enter_drag_node(visual::Widget* widget, bool add_to_selection, bool ctrl);
+    void enter_drag_node(ui::InternedId node_id, Pt world_pos, bool ctrl);
     void enter_drag_routing_point(ui::InternedId wire_id, size_t rp_idx, Pt rp_world_pos);
-    void enter_resize_node(visual::Widget* widget, ResizeCorner corner);
+    void enter_resize_node(ui::InternedId node_id, Pt world_pos, Pt size, ResizeCorner corner);
     void enter_create_wire(ui::InternedId node_id, ui::InternedId port_id,
                            bp2::PortSide side, PortType type, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
@@ -234,20 +233,24 @@ private:
     InputResult finish_wire_reconnection(Pt screen_pos, Pt canvas_min);
     void finish_marquee();
     /// Handle an already-resolved interaction target. Returns true if interaction was consumed.
-    bool handle_resolved_interaction(visual::Widget* widget, const SemanticContentTarget& target, Pt world, InputResult& result);
+    bool handle_resolved_interaction(ui::InternedId node_id,
+                                     const SemanticContentTarget& target,
+                                     Pt world,
+                                     InputResult& result);
 
      /// Configure semantic snapshot and controller state for interaction role.
-      void setup_semantic_interaction_state(visual::Widget* node_widget, const SemanticContentTarget& target,
-                                            Pt world_pos);
+       void setup_semantic_interaction_state(ui::InternedId node_id,
+                                             const SemanticContentTarget& target,
+                                             Pt world_pos);
      
      /// Configure and dispatch semantic interaction based on role. Returns result.
         editor::presentation::SemanticCanvasControllerResult configure_and_dispatch_semantic_interaction(
-          visual::Widget* node_widget, const SemanticContentTarget& target, Pt world);
+          ui::InternedId node_id, const SemanticContentTarget& target, Pt world);
 
       /// Hit-test a node's retained content semantic snapshot at world position.
       /// Returns a semantic content target if a control was hit, nullopt otherwise.
       std::optional<SemanticContentTarget> hit_test_semantic_content(
-          visual::Widget* node_widget, Pt world_pos);
+          ui::InternedId node_id, Pt world_pos);
 
       bool publish_semantic_control_result(const editor::presentation::SemanticCanvasControllerResult& semantic,
                                            InputResult& result) const;
