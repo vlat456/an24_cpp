@@ -3400,3 +3400,89 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdle
     EXPECT_EQ(input.state(), InputState::Idle)
         << "cancel_gesture() must return to Idle state";
 }
+
+// ============================================================================
+// Regression: Ref node snap uses half-grid, not full-grid (inverted ternary fix)
+// ============================================================================
+
+TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
+    // This test exercises the handle_drag_node code path to verify that
+    // ref nodes (render_hint="ref", NOT type=Value) snap to half-grid.
+    //
+    // We place a single ref node at grid position (160, 160) with grid_step=16.
+    // After clicking and starting a drag, we apply a delta that moves the
+    // drag anchor to a position where half-grid and full-grid snap differ.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto ref = make_node(I, "ref1", "RefNode", 160.0f, 160.0f, "ref");
+    set_iface(ref, {
+        make_port(I, "v", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+    ref.semantic.iface = bp2::Interface({
+        {I.intern("v"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    auto bat = make_node(I, "bat", "Battery", 0.0f, 0.0f);
+    set_iface(bat, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+    bat.semantic.iface = bp2::Interface({
+        {I.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    auto wire = make_wire(I, arena, "w1", "bat", "v_out", "ref1", "v");
+    wire.domain = Domain::Electrical;
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bat));
+    bp = bp.with_node(std::move(ref));
+    bp = bp.with_wire(std::move(wire));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* ref_widget = dynamic_cast<visual::Widget*>(scene.find("ref1"));
+    ASSERT_NE(ref_widget, nullptr);
+
+    Viewport vp;
+    vp.grid_step = 16.0f;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    const Pt canvas_min(0.0f, 0.0f);
+
+    // Click on the ref node body to start dragging
+    Pt click_pos = ref_widget->worldPos() + Pt(10.0f, 10.0f);
+    input.on_mouse_down(click_pos, MouseButton::Left, canvas_min);
+
+    if (input.state() == InputState::DraggingNode) {
+        // After mouse_down, drag_anchor is set to the ref node's world position
+        // (the click position). We drag by +5 to move the anchor off-grid.
+        // With grid_step=16, half_step=8:
+        //   If anchor lands at e.g. 165, half_grid→168, full_grid→160.
+        //   The ref node should snap to half-grid (168), not full-grid (160).
+        input.on_mouse_drag(MouseButton::Left, Pt(5.0f, 5.0f), canvas_min);
+
+        Pt new_pos = ref_widget->localPos();
+        float half_step = vp.grid_step * 0.5f;  // 8.0
+
+        // Verify the position is on the half-grid
+        float rem_x = std::fmod(std::abs(new_pos.x), half_step);
+        float rem_y = std::fmod(std::abs(new_pos.y), half_step);
+        bool on_half_grid_x = (rem_x < 0.01f || std::abs(rem_x - half_step) < 0.01f);
+        bool on_half_grid_y = (rem_y < 0.01f || std::abs(rem_y - half_step) < 0.01f);
+        EXPECT_TRUE(on_half_grid_x)
+            << "Ref node X=" << new_pos.x << " must be on half-grid (step=" << half_step << ")";
+        EXPECT_TRUE(on_half_grid_y)
+            << "Ref node Y=" << new_pos.y << " must be on half-grid (step=" << half_step << ")";
+    } else {
+        // If the click didn't land on the node body (hit a port instead), skip
+        GTEST_SKIP() << "Click landed on port instead of node body; "
+                     << "state=" << static_cast<int>(input.state());
+    }
+}

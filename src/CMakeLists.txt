@@ -10,6 +10,7 @@ add_library(editor_semantic_canvas STATIC
     ${CMAKE_SOURCE_DIR}/src/editor/visual/presentation/semantic_scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/presentation/semantic_scene_snapshot.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/presentation/semantic_scene_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/presentation/canvas_scene_snapshot.cpp
 )
 target_include_directories(editor_semantic_canvas PUBLIC
     ${CMAKE_SOURCE_DIR}/src

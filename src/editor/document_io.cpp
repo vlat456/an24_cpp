@@ -107,6 +107,7 @@ bool Document::load(const std::string& path) {
     this->apply_normalized_node_sizes(true, false, false);
 
     visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().resolved_scope_id().sim_scope_prefix());
+    root().input.rebuild_snapshot();
 
     filepath_ = path;
     auto pos = path.find_last_of("/\\");

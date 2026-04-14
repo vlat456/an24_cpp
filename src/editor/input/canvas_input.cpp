@@ -11,6 +11,7 @@
 #include "visual/node/visual_node.h"
 #include "visual/node/ref_node_widget.h"
 #include "visual/snap.h"
+#include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "viewport/viewport.h"
 #include "commands/commands.h"
 #include "visual/persist.h"
@@ -44,6 +45,7 @@ CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
       group_iid_(interner.intern(scope_id)),
       scope_id_(interner.resolve(group_iid_))
 {
+    rebuild_snapshot();
 }
 
 // ============================================================================
@@ -150,7 +152,7 @@ void CanvasInput::update_hover(Pt world_pos) {
         return;
     }
 
-    auto hit = visual::hit_test(scene_, world_pos);
+    auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world_pos, interner_);
     if (auto* h = std::get_if<visual::HitWire>(&hit)) {
         hovered_wire_id_ = interner_.intern(h->wire_id);
         hovered_rp_id_ = {};
@@ -411,6 +413,19 @@ void CanvasInput::snapshot_wire_routing_points(ui::InternedId wire_id,
         return;
     }
     snapshot_and_execute(cmd_set_routing_points(wire_id, std::move(new_points)));
+}
+
+// ============================================================================
+// Scene rebuild + snapshot refresh
+// ============================================================================
+
+void CanvasInput::rebuild_scene() {
+    visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
+    rebuild_snapshot();
+}
+
+void CanvasInput::rebuild_snapshot() {
+    snapshot_ = editor::presentation::build_canvas_scene_snapshot(scene_, interner_);
 }
 
 void CanvasInput::cancel_gesture() {

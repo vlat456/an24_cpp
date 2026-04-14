@@ -66,6 +66,7 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
         const std::string& rebuild_group = win.is_external_ref() ? "" : win.resolved_scope_id().key();
         visual::mutations::rebuild(win.scene, rebuild_bp,
                                    rebuild_interner, rebuild_arena, rebuild_group);
+        win.input.rebuild_snapshot();
         fitViewToContent(doc, win);
     }
     

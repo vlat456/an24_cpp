@@ -106,6 +106,7 @@ struct BlueprintWindow {
         , host(create_editor_model_host(root_model))
         , input(scene, viewport, *host, interner_, arena_, "", parser_registry) {
         visual::mutations::rebuild(scene, root_model.current(), interner_, arena_, "");
+        input.rebuild_snapshot();
     }
 
     BlueprintWindow(EmbeddedWindowTag,
@@ -126,6 +127,7 @@ struct BlueprintWindow {
         , input(scene, viewport, *host, interner_, arena_, "", parser_registry) {
         const auto& bp = require_embedded_blueprint(root_model, require_nested_id(interner_, embedded_scope_id));
         visual::mutations::rebuild(scene, bp, interner_, arena_, "");
+        input.rebuild_snapshot();
     }
 
     BlueprintWindow(ExternalWindowTag,

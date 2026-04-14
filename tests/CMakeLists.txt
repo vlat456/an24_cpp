@@ -622,15 +622,15 @@ add_executable(document_safety_tests
     ${CMAKE_SOURCE_DIR}/src/editor/document_history.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_layout.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/document_io.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/document_simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/document_windows.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_down.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/document_io.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/document_simulation.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/document_windows.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_down.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/subwindow_open_target.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
@@ -769,6 +769,39 @@ target_link_libraries(oscilloscope_stats_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(oscilloscope_stats_tests)
+
+add_executable(canvas_scene_snapshot_tests
+    test_canvas_scene_snapshot.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/presentation/canvas_scene_snapshot.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+)
+target_compile_definitions(canvas_scene_snapshot_tests PRIVATE EDITOR_TESTING)
+target_include_directories(canvas_scene_snapshot_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(canvas_scene_snapshot_tests PRIVATE
+    blueprint_v2
+    editor_semantic_canvas
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(canvas_scene_snapshot_tests)
 
 add_executable(pi_zn_tuner_tests
     test_pi_zn_tuner.cpp

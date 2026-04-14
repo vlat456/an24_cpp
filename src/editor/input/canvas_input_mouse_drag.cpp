@@ -26,8 +26,8 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
         }
     }
     Pt snapped = all_ref_nodes
-        ? editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step)
-        : editor_math::snap_to_half_grid(drag_anchor_, viewport_.grid_step);
+        ? editor_math::snap_to_half_grid(drag_anchor_, viewport_.grid_step)
+        : editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
 
     std::unordered_set<ui::InternedId> connected_wire_ids;
 
@@ -64,8 +64,9 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
             scene_.find(interner_.resolve(wid)));
         if (wire) {
             wire->invalidateGeometry();
-            if (wire->isClickable())
+            if (wire->isClickable()) {
                 scene_.grid().update(wire);
+            }
         }
     }
 }
@@ -179,8 +180,9 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                     rp_point->setLocalPos(snapped);
                     if (rp_wire) {
                         rp_wire->invalidateGeometry();
-                        if (rp_wire->scene() && rp_wire->isClickable())
-                            rp_wire->scene()->grid().update(rp_wire);
+                        if (rp_wire->isClickable()) {
+                            scene_.grid().update(rp_wire);
+                        }
                     }
                     if (rp_point->scene())
                         rp_point->scene()->grid().update(rp_point);

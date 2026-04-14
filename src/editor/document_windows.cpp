@@ -61,6 +61,7 @@ void Document::openExternalRefWindow(const std::string& instance_id,
 
     visual::mutations::rebuild(win->scene, *win->external_blueprint,
                                *win->external_interner, *win->external_arena, "");
+    win->input.rebuild_snapshot();
 
     spdlog::info("[editor] Opened external-ref window for '{}' from '{}'",
                  instance_id, blueprint_file_path);

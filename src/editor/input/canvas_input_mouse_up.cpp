@@ -232,67 +232,67 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     InputResult result;
     Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
 
-    auto hit = visual::hit_test(scene_, world);
+    auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world, interner_);
 
-     if (!read_only && !simulation_mode) {
-         if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
-             ui::InternedId wire_iid = interner_.intern(hrp->wire_id);
-             const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(wire_iid);
-             if (bp2_wire && hrp->index < bp2_wire->routing_points.size()) {
-                 auto new_points = bp2_wire->routing_points;
-                 new_points.erase(new_points.begin() + static_cast<long>(hrp->index));
+    if (!read_only && !simulation_mode) {
+        if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
+            ui::InternedId wire_iid = interner_.intern(hrp->wire_id);
+            const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(wire_iid);
+            if (bp2_wire && hrp->index < bp2_wire->routing_points.size()) {
+                auto new_points = bp2_wire->routing_points;
+                new_points.erase(new_points.begin() + static_cast<long>(hrp->index));
 
-                  if (!wire_iid.empty()) {
-                      snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
-                      visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
-                  }
-              }
-             return result;
-         }
-     }
+                if (!wire_iid.empty()) {
+                    snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
+                    rebuild_scene();
+                }
+            }
+            return result;
+        }
+    }
 
-      // Extract the underlying widget from HitNode
-      // Double-click on content still resolves node-level actions
-      // (open sub-window, inline value editor).
-      std::string_view dbl_click_node_id;
-      if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-          dbl_click_node_id = hn->node_id;
-     }
+    // Extract the underlying widget from HitNode.
+    // Double-click on content still resolves node-level actions
+    // (open sub-window, inline value editor).
+    std::string_view dbl_click_node_id;
+    if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
+        dbl_click_node_id = hn->node_id;
+    }
 
-     if (!dbl_click_node_id.empty()) {
-          std::string node_id(dbl_click_node_id);
-          ui::InternedId node_iid = interner_.lookup(dbl_click_node_id);
-          const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : host_.find_node(node_iid);
-          if (!read_only && !simulation_mode && node && std::string(interner_.resolve(node->semantic.type)) == "Value") {
-              result.open_inline_value_editor = true;
-              result.inline_value_editor_node_id = node_id;
-              result.has_inline_value_editor_screen_pos = true;
-              result.inline_value_editor_screen_pos = screen_pos;
-              return result;
-          }
-          if (node && node->is_blueprint_instance()) {
-              result.open_sub_window = node_id;
-              return result;
-          }
-     }
+    if (!dbl_click_node_id.empty()) {
+        std::string node_id(dbl_click_node_id);
+        ui::InternedId node_iid = interner_.lookup(dbl_click_node_id);
+        const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : host_.find_node(node_iid);
+        if (!read_only && !simulation_mode && node && std::string(interner_.resolve(node->semantic.type)) == "Value") {
+            result.open_inline_value_editor = true;
+            result.inline_value_editor_node_id = node_id;
+            result.has_inline_value_editor_screen_pos = true;
+            result.inline_value_editor_screen_pos = screen_pos;
+            return result;
+        }
+        if (node && node->is_blueprint_instance()) {
+            result.open_sub_window = node_id;
+            return result;
+        }
+    }
 
-     if (!read_only && !simulation_mode) {
-         if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-             ui::InternedId wire_iid = interner_.intern(hw->wire_id);
-             const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(wire_iid);
-             if (bp2_wire) {
-                  auto new_points = bp2_wire->routing_points;
-                  Pt snapped = editor_math::snap_to_grid(world, viewport_.grid_step);
-                  size_t insert_idx = hw->segment;
-                  new_points.insert(new_points.begin() + static_cast<long>(insert_idx), {snapped.x, snapped.y});
+    if (!read_only && !simulation_mode) {
+        if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
+            ui::InternedId wire_iid = interner_.intern(hw->wire_id);
+            const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(wire_iid);
+            if (bp2_wire) {
+                auto new_points = bp2_wire->routing_points;
+                Pt snapped = editor_math::snap_to_grid(world, viewport_.grid_step);
+                size_t insert_idx = hw->segment;
+                new_points.insert(new_points.begin() + static_cast<long>(insert_idx), {snapped.x, snapped.y});
 
-                  if (!wire_iid.empty()) {
-                      snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
-                      visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
-                  }
-              }
-         }
-     }
+                if (!wire_iid.empty()) {
+                    snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
+                    rebuild_scene();
+                }
+            }
+        }
+    }
 
     return result;
 }
@@ -305,62 +305,62 @@ InputResult CanvasInput::on_key(Key key) {
         return result;
     }
 
-     switch (key) {
-         case Key::Escape:
-             if (state_ != InputState::Idle && state_ != InputState::Panning) {
-                 bool needs_rebuild =
-                     state_ == InputState::DraggingNode ||
-                     state_ == InputState::DraggingRoutingPoint ||
-                     state_ == InputState::ResizingNode;
-                 cancel_gesture();
-                 if (needs_rebuild) {
-                     visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
-                 }
-             }
-             clear_selection();
-             break;
+    switch (key) {
+        case Key::Escape:
+            if (state_ != InputState::Idle && state_ != InputState::Panning) {
+                bool needs_rebuild =
+                    state_ == InputState::DraggingNode ||
+                    state_ == InputState::DraggingRoutingPoint ||
+                    state_ == InputState::ResizingNode;
+                cancel_gesture();
+                if (needs_rebuild) {
+                    rebuild_scene();
+                }
+            }
+            clear_selection();
+            break;
 
-         case Key::Delete:
-         case Key::Backspace: {
-             if (selected_node_ids_.empty()) break;
+        case Key::Delete:
+        case Key::Backspace: {
+            if (selected_node_ids_.empty()) break;
 
-             host_.mutate_atomically([&] {
-                 for (const auto& nid : selected_node_ids_) {
-                     if (!nid.empty()) {
-                         std::vector<ui::InternedId> connected_wires;
-                         connected_wires.reserve(host_.wires().size());
-                         for (const auto& w : host_.wires()) {
-                             auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, arena_);
-                             auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, arena_);
-                             if (src_node == nid || tgt_node == nid) {
-                                 connected_wires.push_back(w.id);
-                             }
-                         }
-                         host_.remove_node(nid, std::move(connected_wires));
-                     }
-                 }
-             });
-             debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
-                 hovered_rp_id_ = {};
-             visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
-             clear_selection();
-             result.rebuild_simulation = true;
-             break;
-         }
+            host_.mutate_atomically([&] {
+                for (const auto& nid : selected_node_ids_) {
+                    if (!nid.empty()) {
+                        std::vector<ui::InternedId> connected_wires;
+                        connected_wires.reserve(host_.wires().size());
+                        for (const auto& w : host_.wires()) {
+                            auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, arena_);
+                            auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, arena_);
+                            if (src_node == nid || tgt_node == nid) {
+                                connected_wires.push_back(w.id);
+                            }
+                        }
+                        host_.remove_node(nid, std::move(connected_wires));
+                    }
+                }
+            });
+            debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
+            hovered_rp_id_ = {};
+            rebuild_scene();
+            clear_selection();
+            result.rebuild_simulation = true;
+            break;
+        }
 
-         case Key::RightBracket: {
-             viewport_.grid_step_up();
-             break;
-         }
+        case Key::RightBracket: {
+            viewport_.grid_step_up();
+            break;
+        }
 
-         case Key::LeftBracket: {
-             viewport_.grid_step_down();
-             break;
-         }
+        case Key::LeftBracket: {
+            viewport_.grid_step_down();
+            break;
+        }
 
-         default:
-             break;
-     }
+        default:
+            break;
+    }
     return result;
 }
 

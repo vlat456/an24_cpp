@@ -7,6 +7,7 @@
 #include "visual/port/visual_port.h"
 #include "visual/wire/wire.h"
 #include "visual/wire/routing_point.h"
+#include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "viewport/viewport.h"
 #include "commands/commands.h"
 #include "canvas_input_internal.h"
@@ -80,7 +81,7 @@ Domain resolve_wire_domain_from_endpoints(const bp2::Blueprint& bp,
 InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
     InputResult result;
     Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
-    auto port_hit = visual::hit_test_ports(scene_, world);
+    auto port_hit = editor::presentation::hit_test_canvas_scene_ports(snapshot_, world, interner_);
 
     if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
         if (!wire_start_endpoint_.has_value()) return result;
@@ -148,7 +149,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         bool added = host_.add_wire(std::move(w));
         if (added) {
             debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
-            visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
+            rebuild_scene();
             result.rebuild_simulation = true;
         }
     }
@@ -156,9 +157,9 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
 }
 
 InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) {
-     InputResult result;
-     Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
-     auto port_hit = visual::hit_test_ports(scene_, world);
+      InputResult result;
+      Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
+      auto port_hit = editor::presentation::hit_test_canvas_scene_ports(snapshot_, world, interner_);
 
      bool reconnected = false;
 
@@ -204,13 +205,13 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                          updated_bp = updated_bp.with_wire(new_wire);
                      }
 
-                      host_.mutate_atomically([&] {
-                          host_.replace_current(std::move(updated_bp));
-                      });
-                     debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
-                     visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
-                     result.rebuild_simulation = true;
-                     reconnected = true;
+                       host_.mutate_atomically([&] {
+                           host_.replace_current(std::move(updated_bp));
+                       });
+                      debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
+                      rebuild_scene();
+                      result.rebuild_simulation = true;
+                      reconnected = true;
                  } else {
                      reconnected = true;
                  }
@@ -251,21 +252,21 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                   wr.domain = new_domain;
               });
 
-             if (updated_ok) {
-                 debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
-                 visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
-                 result.rebuild_simulation = true;
-                 reconnected = true;
-             }
+              if (updated_ok) {
+                  debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
+                  rebuild_scene();
+                  result.rebuild_simulation = true;
+                  reconnected = true;
+              }
          }
      }
 
-     if (!reconnected && reconnect_wire_idx_ < host_.wires().size()) {
-         if (host_.remove_wire(wire.id)) {
-             visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
-             result.rebuild_simulation = true;
-         }
-     }
+      if (!reconnected && reconnect_wire_idx_ < host_.wires().size()) {
+          if (host_.remove_wire(wire.id)) {
+              rebuild_scene();
+              result.rebuild_simulation = true;
+          }
+      }
 
      return result;
 }

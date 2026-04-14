@@ -2,6 +2,7 @@
 
 #include "editor/input/input_types.h"
 #include "editor/input/editing_host.h"
+#include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "editor/visual/presentation/semantic_canvas_controller.h"
 #include "editor/visual/render_context.h"
 #include "editor/visual/scene_hittest.h"
@@ -124,6 +125,7 @@ public:
 
 private:
     visual::Scene& scene_;
+    editor::presentation::CanvasSceneSnapshot snapshot_;
     Viewport& viewport_;
     EditingHost& host_;
     ui::StringInterner& interner_;
@@ -224,6 +226,9 @@ private:
 public:
     std::string_view scope_id_for_test() const { return scope_id_; }
 
+    /// Refresh the retained canvas snapshot from the current scene state.
+    void rebuild_snapshot();
+
     /// Cancel any in-flight gesture, clearing all transient pointers.
     /// Call this BEFORE any scene rebuild (undo/redo, node deletion, etc.)
     /// to prevent dangling pointers to destroyed widgets.
@@ -298,6 +303,9 @@ private:
     void commit_resize_node();
 
     // ---- Utility ----
+
+    /// Rebuild the visual scene from the current blueprint, then refresh the snapshot.
+    void rebuild_scene();
 
     /// Find the data-layer index of a wire by its InternedId.
     size_t find_wire_index(ui::InternedId wire_id) const;
