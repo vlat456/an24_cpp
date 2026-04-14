@@ -5,7 +5,7 @@
 #include "editor/viewport/viewport.h"
 #include "editor/visual/scene.h"
 #include "editor/visual/scene_mutations.h"
-#include "editor/visual/scene_hittest.h"
+#include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "editor/visual/snap.h"
 #include "editor/visual/node/bus_node_widget.h"
 #include "editor/visual/node/ref_node_widget.h"
@@ -39,6 +39,13 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
     n.layout.y = y;
     n.view.render_hint = render_hint;
     return n;
+}
+
+static visual::HitResult snapshot_hit_test(const visual::Scene& scene,
+                                           ui::StringInterner& interner,
+                                           Pt world) {
+    auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
+    return editor::presentation::hit_test_canvas_scene(snapshot, world, interner);
 }
 
 static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
@@ -790,7 +797,7 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
         for (int step = 1; step <= 3; ++step) {
             const float t = static_cast<float>(step) / 4.0f;
             ui::Pt p(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
-            auto hr = visual::hit_test(scene, p);
+            auto hr = snapshot_hit_test(scene, I, p);
             if (std::holds_alternative<visual::HitWire>(hr)) {
                 probe_pos = p;
                 found_wire_hit = true;
@@ -1919,7 +1926,7 @@ TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
     Pt wpos = widget->worldPos();
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-     auto hit = visual::hit_test(scene, click_world);
+     auto hit = snapshot_hit_test(scene, I, click_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
      EXPECT_EQ(hit_node->node_id, std::string_view("azs_1"));
@@ -1958,7 +1965,7 @@ TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
     Pt wpos = widget->worldPos();
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-     auto hit = visual::hit_test(scene, click_world);
+     auto hit = snapshot_hit_test(scene, I, click_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
      EXPECT_EQ(hit_node->node_id, std::string_view("knob_1"));
@@ -2025,7 +2032,7 @@ TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
     Pt wpos = widget->worldPos();
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-     auto hit = visual::hit_test(scene, click_world);
+     auto hit = snapshot_hit_test(scene, I, click_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
      EXPECT_EQ(hit_node->node_id, std::string_view("slider_1"));
@@ -2065,7 +2072,7 @@ TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
     Pt wpos = widget->worldPos();
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
-    auto hit = visual::hit_test(scene, click_world);
+    auto hit = snapshot_hit_test(scene, I, click_world);
     EXPECT_TRUE(std::holds_alternative<visual::HitNode>(hit));
     auto* hit_node = std::get_if<visual::HitNode>(&hit);
     ASSERT_NE(hit_node, nullptr);
@@ -2104,7 +2111,7 @@ TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
     Pt screen_click = vp.world_to_screen(world_click, Pt(0, 0));
     Pt roundtrip_world = vp.screen_to_world(screen_click, Pt(0, 0));
 
-     auto hit = visual::hit_test(scene, roundtrip_world);
+     auto hit = snapshot_hit_test(scene, I, roundtrip_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr);
      EXPECT_EQ(hit_node->node_id, std::string_view("azs_1"));
@@ -2853,7 +2860,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
     Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
 
     // Verify we actually get HitNode for this click position
-    auto hit = visual::hit_test(scene, click_world);
+    auto hit = snapshot_hit_test(scene, I, click_world);
     ASSERT_TRUE(std::holds_alternative<visual::HitNode>(hit))
         << "Precondition: click on content area must return HitNode";
 

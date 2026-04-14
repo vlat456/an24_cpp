@@ -5,7 +5,6 @@
 #include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "editor/visual/presentation/semantic_canvas_controller.h"
 #include "editor/visual/render_context.h"
-#include "editor/visual/scene_hittest.h"
 #include "editor/visual/node/bounds.h"
 #include "ui/math/pt.h"
 #include "ui/core/interned_id.h"

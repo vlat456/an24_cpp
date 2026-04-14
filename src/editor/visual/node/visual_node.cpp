@@ -5,7 +5,6 @@
 #include "visual/render_context.h"
 #include "editor/layout_constants.h"
 #include "visual/node/bounds.h"
-#include "visual/container/linear_layout.h"
 #include "visual/snap.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
@@ -13,11 +12,12 @@
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
+#include <cmath>
 
 namespace visual {
 
 // ============================================================================
-// Construction
+// Header / Footer primitives (private to this TU)
 // ============================================================================
 
 namespace {
@@ -38,10 +38,6 @@ public:
         return Pt(kPadding * 2.0f + text_w, kHeight);
     }
 
-    /// Minimum size only reserves height — text can be clipped when the
-    /// node is narrower than the header string. This prevents long instance
-    /// names from inflating the node's minimum width and creating a gap
-    /// between left and right port labels.
     Pt minimumSize(IDrawList* /*dl*/) const override {
         return Pt(0.0f, kHeight);
     }
@@ -105,10 +101,6 @@ public:
         return Pt(text_w + kRightPadding, kHeight);
     }
 
-    /// Minimum size only reserves height — text can be clipped when the
-    /// node is narrower than the type name. This prevents long type names
-    /// (e.g. "VariableConductance") from inflating the node's minimum width
-    /// and creating a gap between left and right port labels.
     Pt minimumSize(IDrawList* /*dl*/) const override {
         return Pt(0.0f, kHeight);
     }
@@ -120,8 +112,6 @@ public:
         float zoom = ctx.zoom;
         float font = kFontSize * zoom;
         Pt text_size = dl->calc_text_size(text_.c_str(), font);
-        // Right-align text within the widget bounds, clamped so it never
-        // extends left of the origin.
         float tx = std::max(origin.x,
                             origin.x + size().x * zoom - text_size.x - kRightPadding * zoom);
         float ty = origin.y + (kHeight * zoom - font) * 0.5f;
@@ -152,6 +142,10 @@ private:
     static constexpr float kFontSize = 9.0f;
     static constexpr float kRightPadding = 5.0f;
 };
+
+// ============================================================================
+// Content constants and helpers
+// ============================================================================
 
 constexpr float SWITCH_WIDTH = 48.0f;
 constexpr float SWITCH_HEIGHT = 20.0f;
@@ -216,12 +210,10 @@ ContentWidgetInteractionInfo build_rect_interaction(ContentInteractionRole role,
     };
 }
 
-/// Layout policy for content within its container cell.
-/// Alignment values: 0.0 = start (left/top), 0.5 = center, 1.0 = end (right/bottom).
 struct ContentLayoutPolicy {
     Pt preferred_size{0.0f, 0.0f};
-    float align_x = 0.5f;   ///< Horizontal alignment within container
-    float align_y = 0.5f;   ///< Vertical alignment within container
+    float align_x = 0.5f;
+    float align_y = 0.5f;
     bool reserve_width = true;
     bool reserve_height = true;
 };
@@ -266,8 +258,6 @@ LinePaintGeometry resolve_line_paint_geometry(const editor::presentation::SceneR
     };
 }
 
-/// Single authoritative table mapping content type → intrinsic size + alignment.
-/// All per-type layout decisions live here; no type-checks needed downstream.
 ContentLayoutPolicy content_layout_policy(bp2::NodeContentType content_type) {
     switch (content_type) {
         case bp2::NodeContentType::Gauge:
@@ -277,7 +267,6 @@ ContentLayoutPolicy content_layout_policy(bp2::NodeContentType content_type) {
         case bp2::NodeContentType::Switch:
             return {Pt(SWITCH_WIDTH, SWITCH_HEIGHT), 0.5f, 0.5f, true, true};
         case bp2::NodeContentType::VerticalToggle:
-            // Draw at top of reserved area so it doesn't overlap the header
             return {Pt(VERTICAL_TOGGLE_WIDTH, VERTICAL_TOGGLE_HEIGHT), 0.5f, 0.0f, true, false};
         case bp2::NodeContentType::Slider:
             return {Pt(SLIDER_MIN_WIDTH, SLIDER_HEIGHT), 0.5f, 0.5f, true, true};
@@ -292,31 +281,27 @@ ContentLayoutPolicy content_layout_policy(bp2::NodeContentType content_type) {
     }
 }
 
-ui::Edges standard_content_margins() {
-    return ui::Edges{CONTENT_MARGIN_X, CONTENT_MARGIN_Y, CONTENT_MARGIN_X, CONTENT_MARGIN_Y};
-}
-
 std::optional<ContentWidgetInteractionInfo> derive_content_interaction(
     bp2::NodeContentType content_type, Pt size, float content_max) {
     if (size.x <= 0.0f || size.y <= 0.0f) return std::nullopt;
-    
+
     switch (content_type) {
         case bp2::NodeContentType::Switch:
         case bp2::NodeContentType::VerticalToggle:
             return build_rect_interaction(ContentInteractionRole::Toggle, size);
-        
+
         case bp2::NodeContentType::Slider: {
             float pad = SLIDER_HANDLE_RADIUS;
             float track_w = size.x - 2.0f * pad;
             return build_rect_interaction(ContentInteractionRole::ContinuousScalar,
                                           size, pad, pad + track_w);
         }
-        
+
         case bp2::NodeContentType::Knob:
             return build_rect_interaction(ContentInteractionRole::DiscreteSelector,
                                           size, 0.0f, 100.0f,
                                           std::max(2, static_cast<int>(content_max)));
-        
+
         default:
             return std::nullopt;
     }
@@ -340,17 +325,6 @@ editor::presentation::PaintCommand make_paint_command(ui::InternedId id,
     paint.id = id;
     paint.kind = kind;
     return paint;
-}
-
-editor::presentation::InteractionBinding make_interaction_binding(
-    ui::InternedId region_id,
-    ui::InternedId action_id,
-    editor::presentation::InteractionKind kind) {
-    editor::presentation::InteractionBinding binding;
-    binding.region_id = region_id;
-    binding.action_id = action_id;
-    binding.kind = kind;
-    return binding;
 }
 
 void append_placement(editor::presentation::NodeSlotLayout& layout,
@@ -379,8 +353,6 @@ ContentPresentationBuildResult build_content_presentation(
     const ContentWidgetInteractionInfo* interaction_info) {
     using namespace editor::presentation;
 
-    // Element IDs for presentation nodes use a local counter starting at 1.
-    // These IDs are internal to the snapshot and must not collide with each other.
     uint32_t next_id = 1;
     auto next_element_id = [&]() { return ui::InternedId(next_id++); };
 
@@ -397,7 +369,6 @@ ContentPresentationBuildResult build_content_presentation(
     result.layout.slots.push_back(SlotAssignment{NodeSlot::Header, Rect{0.0f, 0.0f, bounds.x + bounds.w, 0.0f}});
     result.layout.slots.push_back(SlotAssignment{NodeSlot::Body, Rect{bounds.x, bounds.y, bounds.w, bounds.h}});
 
-    // Root presentation node covers the full content bounds.
     append_placement(result.layout, root_element_id, bounds.x, bounds.y, bounds.w, bounds.h);
 
     auto append_painted = [&](PaintPrimitiveKind kind,
@@ -653,7 +624,40 @@ ContentPresentationBuildResult build_content_presentation(
     return result;
 }
 
+/// Helper: resolve layout overrides from bp2 format to PortLayoutOverride vector
+std::vector<PortLayoutOverride> resolve_bp2_layout_overrides(
+    const std::vector<bp2::Blueprint::Node::PortLayoutOverride>& bp2_overrides) {
+    std::vector<PortLayoutOverride> result;
+    result.reserve(bp2_overrides.size());
+    for (const auto& ov : bp2_overrides) {
+        PortLayoutOverride lo;
+        lo.port_name = ov.port_name;
+        if (ov.side.has_value()) {
+            lo.side = bp2::parse_port_layout_side(*ov.side);
+        }
+        if (ov.position.has_value()) {
+            lo.position = static_cast<uint8_t>(*ov.position);
+        }
+        result.push_back(std::move(lo));
+    }
+    return result;
+}
+
+/// Collect entries from port_entries_ matching a given layout side.
+std::vector<PortEntry*> collect_entries_for_side(
+    std::vector<PortEntry>& entries, bp2::PortLayoutSide side) {
+    std::vector<PortEntry*> result;
+    for (auto& e : entries) {
+        if (e.layout_side == side) result.push_back(&e);
+    }
+    return result;
+}
+
 } // namespace
+
+// ============================================================================
+// Construction
+// ============================================================================
 
 NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
                        const bp2::Interface& render_iface,
@@ -673,11 +677,8 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
     }
 
     setLocalPos(Pt(data.layout.x, data.layout.y));
-    buildLayout(data, render_iface, interner);
+    build(data, render_iface, interner);
 
-    // Auto-size: fresh nodes use preferredSize() so header text, port labels
-    // and footer type text all fit naturally. Explicit (saved/manual) dimensions
-    // are clamped by minimumNodeSize() as a floor.
     Pt min_sz = minimumNodeSize();
     Pt pref_sz = preferredSize(nullptr);
 
@@ -694,7 +695,6 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
                   data.view.name, type_name_, min_sz.x, min_sz.y,
                   pref_sz.x, pref_sz.y, has_explicit, w, h);
 
-    // Snap to layout grid (round up to nearest PORT_LAYOUT_GRID)
     Pt snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));
     w = snapped.x;
     h = snapped.y;
@@ -703,39 +703,20 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
 }
 
 // ============================================================================
-// Layout construction
+// Build — flat construction of children
 // ============================================================================
 
-/// Helper: resolve layout overrides from bp2 format to PortLayoutOverride vector
-static std::vector<PortLayoutOverride> resolve_bp2_layout_overrides(
-    const std::vector<bp2::Blueprint::Node::PortLayoutOverride>& bp2_overrides) {
-    std::vector<PortLayoutOverride> result;
-    result.reserve(bp2_overrides.size());
-    for (const auto& ov : bp2_overrides) {
-        PortLayoutOverride lo;
-        lo.port_name = ov.port_name;
-        if (ov.side.has_value()) {
-            // Parse string to bp2::PortLayoutSide
-            lo.side = bp2::parse_port_layout_side(*ov.side);
-        }
-        if (ov.position.has_value()) {
-            lo.position = static_cast<uint8_t>(*ov.position);
-        }
-        result.push_back(std::move(lo));
-    }
-    return result;
-}
+void NodeWidget::build(const bp2::Blueprint::Node& data,
+                       const bp2::Interface& render_iface,
+                       const ui::StringInterner& interner) {
+    // Header
+    header_ = emplaceChild<HeaderStrip>(name_);
 
-void NodeWidget::buildLayout(const bp2::Blueprint::Node& data,
-                              const bp2::Interface& render_iface,
-                              const ui::StringInterner& interner) {
-    layout_ = emplaceChild<Column>();
+    // Footer
+    footer_ = emplaceChild<FooterTypeLabel>(type_name_);
 
-    // -- Header --
-    layout_->emplaceChild<HeaderStrip>(name_);
-
-    bp2::NodeContentType content_type = data.view.content_type;
-    cached_content_type_ = content_type;
+    // Content geometry
+    cached_content_type_ = data.view.content_type;
     cached_content_min_ = data.view.content_min;
     cached_content_max_ = data.view.content_max;
     cached_content_value_ = data.view.content_value;
@@ -744,23 +725,43 @@ void NodeWidget::buildLayout(const bp2::Blueprint::Node& data,
     cached_content_tripped_ = data.view.content_tripped;
     cached_content_unit_ = data.view.content_unit;
 
-    // -- Port rows / Content --
-    // VerticalToggle uses special layout, but falls back to standard when overrides present
-    if (content_type == bp2::NodeContentType::VerticalToggle && data.layout.layout_overrides.empty()) {
-        buildVerticalToggleLayout(data, render_iface, interner);
-    } else {
-        buildStandardLayout(data, render_iface, interner);
+    if (cached_content_type_ != bp2::NodeContentType::None) {
+        configure_content_geometry(cached_content_type_);
     }
 
-    // -- Flex spacer pushes footer to bottom when node is resized taller.
-    //    Only added when no other flex child exists (e.g., pure port-only nodes),
-    //    otherwise the content flex child handles the stretching. --
-    if (content_preferred_size_.x <= 0.0f && content_preferred_size_.y <= 0.0f) {
-        layout_->emplaceChild<Spacer>();
-    }
+    // Resolve port layout — always use the universal resolver.
+    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(render_iface);
+    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(render_iface);
+    auto overrides = resolve_bp2_layout_overrides(data.layout.layout_overrides);
+    resolved_layout_ = resolve_port_layout(input_ports, output_ports, overrides, interner);
 
-    // -- Type name footer --
-    layout_->emplaceChild<FooterTypeLabel>(type_name_);
+    has_top_strip_ = !resolved_layout_.top.empty();
+    has_bottom_strip_ = !resolved_layout_.bottom.empty();
+
+    // Create port + label children for each side.
+    auto create_entries = [&](const std::vector<ResolvedPort>& resolved, bp2::PortLayoutSide side) {
+        for (const auto& rp : resolved) {
+            PortEntry entry;
+            entry.layout_side = side;
+            entry.logical_side = rp.logical_side;
+
+            // Create port widget
+            entry.port = emplaceChild<Port>(rp.port_name, rp.logical_side, rp.type, side);
+            port_ptrs_.push_back(entry.port);
+
+            // Create label widget
+            TextAlign align = (side == bp2::PortLayoutSide::Right) ? TextAlign::Right : TextAlign::Left;
+            entry.label = emplaceChild<Label>(rp.port_name, PortConstants::LABEL_FONT_SIZE,
+                                               PortConstants::LABEL_COLOR, align);
+
+            port_entries_.push_back(entry);
+        }
+    };
+
+    create_entries(resolved_layout_.left, bp2::PortLayoutSide::Left);
+    create_entries(resolved_layout_.right, bp2::PortLayoutSide::Right);
+    create_entries(resolved_layout_.top, bp2::PortLayoutSide::Top);
+    create_entries(resolved_layout_.bottom, bp2::PortLayoutSide::Bottom);
 }
 
 void NodeWidget::configure_content_geometry(bp2::NodeContentType content_type) {
@@ -770,170 +771,6 @@ void NodeWidget::configure_content_geometry(bp2::NodeContentType content_type) {
     content_align_y_ = policy.align_y;
     content_reserve_width_ = policy.reserve_width;
     content_reserve_height_ = policy.reserve_height;
-}
-
-void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data,
-                                     const bp2::Interface& render_iface,
-                                     const ui::StringInterner& interner) {
-    bp2::NodeContentType content_type = data.view.content_type;
-    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(render_iface);
-    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(render_iface);
-
-    // Fast path: no overrides — use existing paired-row layout
-    if (data.layout.layout_overrides.empty()) {
-        // Port rows: pair inputs and outputs.
-        // [BUG-2] InOut ports appear in BOTH inputs and outputs arrays;
-        // filter duplicates from outputs so they only render on the left side.
-        std::vector<bp2::NodePort> right_ports;
-        right_ports.reserve(output_ports.size());
-        for (const auto& p : output_ports) {
-            if (p.side == bp2::PortSide::InOut) continue;  // already in inputs
-            right_ports.push_back(p);
-        }
-
-        size_t max_ports = std::max(input_ports.size(), right_ports.size());
-        for (size_t i = 0; i < max_ports; i++) {
-            std::string_view left_name;
-            std::string_view right_name;
-            if (i < input_ports.size()) {
-                left_name = interner.resolve(input_ports[i].name);
-            }
-            PortType left_type = (i < input_ports.size()) ? input_ports[i].type : PortType::Any;
-            if (i < right_ports.size()) {
-                right_name = interner.resolve(right_ports[i].name);
-            }
-            PortType right_type = (i < right_ports.size()) ? right_ports[i].type : PortType::Any;
-            buildPortRow(left_name, left_type, right_name, right_type);
-        }
-
-        // Content area (appended below port rows in the root Column)
-        if (content_type != bp2::NodeContentType::None) {
-            auto* container = layout_->emplaceChild<Container>(standard_content_margins());
-            container->setFlexGrow(1.0f);
-            configure_content_geometry(content_type);
-            container->emplaceChild<ReservedSpace>(content_preferred_size_,
-                                                   content_reserve_width_,
-                                                   content_reserve_height_);
-            content_container_ = container;
-        }
-    } else {
-        // Slow path: four-sided layout with overrides.
-        // Content is placed inside the center column of the body row.
-        buildFourSidedLayout(data, render_iface, interner);
-    }
-}
-
-void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data,
-                                           const bp2::Interface& render_iface,
-                                           const ui::StringInterner& interner) {
-    auto* main_row = layout_->emplaceChild<Row>();
-    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(render_iface);
-    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(render_iface);
-
-    // Left column (input ports)
-    auto* left_col = main_row->emplaceChild<Column>();
-    for (const auto& p : input_ports) {
-        std::string_view name_sv = interner.resolve(p.name);
-        buildPortInColumn(left_col, name_sv, p.type, bp2::PortSide::Input, bp2::PortLayoutSide::Left);
-    }
-
-    // Center column (vertical toggle) — flex to push right column to the edge
-    auto* center_col = main_row->emplaceChild<Column>();
-    center_col->setFlexGrow(1.0f);
-    auto* toggle_container = center_col->emplaceChild<Container>(standard_content_margins());
-    configure_content_geometry(bp2::NodeContentType::VerticalToggle);
-    toggle_container->emplaceChild<ReservedSpace>(content_preferred_size_,
-                                                  content_reserve_width_,
-                                                  content_reserve_height_);
-    content_container_ = toggle_container;
-
-    // Right column (output ports)
-    auto* right_col = main_row->emplaceChild<Column>();
-    for (const auto& p : output_ports) {
-        std::string_view name_sv = interner.resolve(p.name);
-        buildPortInColumn(right_col, name_sv, p.type, bp2::PortSide::Output, bp2::PortLayoutSide::Right);
-    }
-}
-
-void NodeWidget::buildPortRow(std::string_view left_name, PortType left_type,
-                              std::string_view right_name, PortType right_type) {
-    auto* row = layout_->emplaceChild<PairedPortRow>(
-        left_name, left_type, right_name, right_type, &layout_ctx_);
-    if (row->leftPort())  ports_.push_back(row->leftPort());
-    if (row->rightPort()) ports_.push_back(row->rightPort());
-}
-
-void NodeWidget::buildPortInColumn(Widget* col, std::string_view name,
-                                   PortType type, bp2::PortSide logical_side, bp2::PortLayoutSide layout_side) {
-    auto* row = col->emplaceChild<PortRow>(name, logical_side, type, layout_side, &layout_ctx_);
-    if (row->port()) ports_.push_back(row->port());
-}
-
-void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data,
-                                      const bp2::Interface& render_iface,
-                                      const ui::StringInterner& interner) {
-    using namespace editor_constants;
-
-    auto overrides = resolve_bp2_layout_overrides(data.layout.layout_overrides);
-    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(render_iface);
-    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(render_iface);
-    ResolvedLayout layout = resolve_port_layout(input_ports, output_ports,
-                                                overrides, interner);
-    
-    bp2::NodeContentType content_type = data.view.content_type;
-
-    // Top port strip
-    if (!layout.top.empty()) {
-        buildHorizontalPortStrip(layout.top);
-    }
-    
-    // Main body row: [Left ports | Content | Right ports]
-    auto* body_row = layout_->emplaceChild<Row>();
-    
-    // Left column (input ports that stay on left)
-    auto* left_col = body_row->emplaceChild<Column>();
-    for (const auto& rp : layout.left) {
-        buildPortInColumn(left_col, rp.port_name, rp.type, rp.logical_side, bp2::PortLayoutSide::Left);
-    }
-    
-    // Center column: content widget or spacer.
-    // Must be flexible so it absorbs remaining width, pushing right_col to
-    // the node's right edge (mirroring buildVerticalToggleLayout).
-    auto* center = body_row->emplaceChild<Container>(standard_content_margins());
-    center->setFlexGrow(1.0f);
-
-    if (content_type != bp2::NodeContentType::None) {
-        configure_content_geometry(content_type);
-        center->emplaceChild<ReservedSpace>(content_preferred_size_,
-                                            content_reserve_width_,
-                                            content_reserve_height_);
-        content_container_ = center;
-    } else {
-        center->emplaceChild<Spacer>();
-    }
-    
-    // Right column (output ports that stay on right)
-    auto* right_col = body_row->emplaceChild<Column>();
-    for (const auto& rp : layout.right) {
-        buildPortInColumn(right_col, rp.port_name, rp.type, rp.logical_side, bp2::PortLayoutSide::Right);
-    }
-    
-    // Bottom port strip
-    if (!layout.bottom.empty()) {
-        buildHorizontalPortStrip(layout.bottom);
-    }
-}
-
-void NodeWidget::buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports) {
-    if (ports.empty()) return;
-
-    bp2::PortLayoutSide side = ports[0].layout_side;
-    auto* strip = layout_->emplaceChild<HorizontalPortStrip>(side, &layout_ctx_);
-
-    for (const auto& rp : ports) {
-        auto* port_w = strip->addPort(rp.port_name, rp.logical_side, rp.type);
-        ports_.push_back(port_w);
-    }
 }
 
 // ============================================================================
@@ -994,7 +831,7 @@ NodeVisualState NodeWidget::visual_state(const RenderContext& ctx) const {
 }
 
 Port* NodeWidget::port(std::string_view name) const {
-    for (auto* p : ports_) {
+    for (auto* p : port_ptrs_) {
         if (p->name() == name) return p;
     }
     return nullptr;
@@ -1002,7 +839,7 @@ Port* NodeWidget::port(std::string_view name) const {
 
 Port* NodeWidget::portByName(std::string_view port_name,
                              std::string_view /*wire_id*/) const {
-    for (auto* p : ports_) {
+    for (auto* p : port_ptrs_) {
         if (p->name() == port_name) return p;
     }
     return nullptr;
@@ -1012,77 +849,273 @@ Port* NodeWidget::portByName(std::string_view port_name,
 // Layout & sizing
 // ============================================================================
 
+NodeWidget::SlotRegions NodeWidget::compute_slot_regions(float w, float h) const {
+    SlotRegions r;
+    r.header_y = 0.0f;
+    r.header_h = kHeaderHeight;
+
+    r.footer_h = kFooterHeight;
+    r.footer_y = h - r.footer_h;
+
+    r.top_strip_h = has_top_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
+    r.top_strip_y = r.header_h;
+
+    r.bottom_strip_h = has_bottom_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
+    r.bottom_strip_y = r.footer_y - r.bottom_strip_h;
+
+    r.body_y = r.top_strip_y + r.top_strip_h;
+    r.body_h = std::max(0.0f, r.bottom_strip_y - r.body_y);
+
+    return r;
+}
+
 Pt NodeWidget::preferredSize(IDrawList* dl) const {
-    if (!layout_) return Pt(0, 0);
-    Pt ps = layout_->preferredSize(dl);
-    
-    // When content lives under a flexible ancestor inside a linear layout,
-    // the flexible child contributes 0 on that layout's main axis. Reserve the
-    // content widget's intrinsic size on the zeroed axis so fixed-affordance
-    // controls do not lose their visible/hittable area inside the old layout system.
-    if (content_preferred_size_.x > 0.0f || content_preferred_size_.y > 0.0f) {
-        if (content_reserve_width_ && content_preferred_size_.x > 0) {
-            ps.x = std::max(ps.x, content_preferred_size_.x + CONTENT_MARGIN_X * 2.0f);
-        }
-        if (content_reserve_height_ && content_preferred_size_.y > 0) {
-            ps.y += content_preferred_size_.y + CONTENT_MARGIN_Y * 2.0f;
+    // Width: max of header preferred, footer preferred, and port layout needs.
+    float header_w = header_ ? header_->preferredSize(dl).x : 0.0f;
+    float footer_w = footer_ ? footer_->preferredSize(dl).x : 0.0f;
+
+    // Port width: left indent + left labels + gap + right labels + right indent
+    float left_indent = resolved_layout_.left.empty() ? 0.0f
+        : (PortConstants::RADIUS * 2 + PortConstants::LEFT_LABEL_OFFSET);
+    float right_indent = resolved_layout_.right.empty() ? 0.0f
+        : (PortConstants::RADIUS * 2 + PortConstants::RIGHT_LABEL_OFFSET);
+
+    // Find widest label per side
+    float left_labels_w = 0.0f;
+    float right_labels_w = 0.0f;
+    for (const auto& entry : port_entries_) {
+        if (!entry.label) continue;
+        Pt lps = entry.label->preferredSize(dl);
+        if (entry.layout_side == bp2::PortLayoutSide::Left) {
+            left_labels_w = std::max(left_labels_w, lps.x);
+        } else if (entry.layout_side == bp2::PortLayoutSide::Right) {
+            right_labels_w = std::max(right_labels_w, lps.x);
         }
     }
-    
-    return ps;
+
+    bool has_left = !resolved_layout_.left.empty();
+    bool has_right = !resolved_layout_.right.empty();
+    float gap = (has_left && has_right) ? PortConstants::MIN_GAP : 0.0f;
+    float port_w = left_indent + left_labels_w + gap + right_labels_w + right_indent;
+
+    float w = std::max({header_w, footer_w, port_w});
+
+    // Height: header + port rows + content + footer + strips
+    size_t side_row_count = std::max(resolved_layout_.left.size(), resolved_layout_.right.size());
+    float side_rows_h = static_cast<float>(side_row_count) * PortConstants::ROW_HEIGHT;
+
+    float top_h = has_top_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
+    float bottom_h = has_bottom_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
+
+    float content_h = 0.0f;
+    if (content_preferred_size_.x > 0.0f || content_preferred_size_.y > 0.0f) {
+        if (content_reserve_width_) {
+            w = std::max(w, content_preferred_size_.x + CONTENT_MARGIN_X * 2.0f);
+        }
+        if (content_reserve_height_) {
+            // Content gets its own dedicated vertical band below port rows.
+            content_h = content_preferred_size_.y + CONTENT_MARGIN_Y * 2.0f;
+        } else {
+            // Content shares the body area with port rows — ensure the body
+            // is tall enough for the content (e.g. VerticalToggle).
+            float needed = content_preferred_size_.y + CONTENT_MARGIN_Y * 2.0f;
+            if (needed > side_rows_h) {
+                side_rows_h = needed;
+            }
+        }
+    }
+
+    // Horizontal port strips also need width
+    size_t top_count = resolved_layout_.top.size();
+    size_t bottom_count = resolved_layout_.bottom.size();
+    size_t max_hstrip = std::max(top_count, bottom_count);
+    if (max_hstrip > 0) {
+        float strip_w = static_cast<float>(max_hstrip + 1) * PortConstants::LAYOUT_GRID;
+        w = std::max(w, strip_w);
+    }
+
+    float h = kHeaderHeight + top_h + side_rows_h + content_h + bottom_h + kFooterHeight;
+    return Pt(w, h);
 }
 
 Pt NodeWidget::minimumNodeSize() const {
-    Pt min_size = layout_ ? layout_->minimumSize(nullptr) : Pt(0.0f, 0.0f);
-    min_size.x = std::max(min_size.x, editor_constants::PORT_LAYOUT_GRID);
-    min_size.y = std::max(min_size.y, editor_constants::PORT_LAYOUT_GRID);
-    return editor_math::snap_size_to_layout_grid(min_size);
+    // Minimum width: port indents only (labels can clip).
+    float left_indent = resolved_layout_.left.empty() ? 0.0f
+        : (PortConstants::RADIUS * 2 + PortConstants::LEFT_LABEL_OFFSET);
+    float right_indent = resolved_layout_.right.empty() ? 0.0f
+        : (PortConstants::RADIUS * 2 + PortConstants::RIGHT_LABEL_OFFSET);
+    bool has_left = !resolved_layout_.left.empty();
+    bool has_right = !resolved_layout_.right.empty();
+    float gap = (has_left && has_right) ? PortConstants::MIN_GAP : 0.0f;
+    float min_w = left_indent + gap + right_indent;
+
+    // Horizontal strip minimums
+    size_t max_hstrip = std::max(resolved_layout_.top.size(), resolved_layout_.bottom.size());
+    if (max_hstrip > 0) {
+        float strip_w = static_cast<float>(max_hstrip + 1) * PortConstants::LAYOUT_GRID;
+        min_w = std::max(min_w, strip_w);
+    }
+
+    min_w = std::max(min_w, editor_constants::PORT_LAYOUT_GRID);
+
+    // Minimum height: header + port rows + footer + strips (no content reserve).
+    size_t side_row_count = std::max(resolved_layout_.left.size(), resolved_layout_.right.size());
+    float side_rows_h = static_cast<float>(side_row_count) * PortConstants::ROW_HEIGHT;
+    float top_h = has_top_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
+    float bottom_h = has_bottom_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
+    float min_h = kHeaderHeight + top_h + side_rows_h + bottom_h + kFooterHeight;
+    min_h = std::max(min_h, editor_constants::PORT_LAYOUT_GRID);
+
+    return editor_math::snap_size_to_layout_grid(Pt(min_w, min_h));
 }
 
-Bounds NodeWidget::compute_content_bounds_from_layout() const {
-    if ((content_preferred_size_.x <= 0.0f && content_preferred_size_.y <= 0.0f) ||
-        content_container_ == nullptr) {
+void NodeWidget::layout_side_ports(const std::vector<PortEntry*>& entries,
+                                   bp2::PortLayoutSide side,
+                                   float node_w, float body_y, float body_h) {
+    if (entries.empty()) return;
+
+    const float row_h = PortConstants::ROW_HEIGHT;
+    const bool is_left = (side == bp2::PortLayoutSide::Left);
+    const float label_offset = is_left ? PortConstants::LEFT_LABEL_OFFSET : PortConstants::RIGHT_LABEL_OFFSET;
+    const float indent = PortConstants::RADIUS * 2 + label_offset;
+
+    for (size_t i = 0; i < entries.size(); ++i) {
+        auto* e = entries[i];
+        float row_y = body_y + static_cast<float>(i) * row_h;
+
+        // Port: center at node edge
+        float port_cx = is_left ? 0.0f : node_w;
+        float port_ly = row_y + (row_h - PortConstants::RADIUS * 2) / 2.0f;
+        float port_lx = port_cx - PortConstants::RADIUS;
+        e->port->setLocalPos(Pt(port_lx, port_ly));
+
+        // Label
+        if (e->label) {
+            Pt lps = e->label->preferredSize(nullptr);
+            float label_h = lps.y;
+            float label_y = row_y + (row_h - label_h) / 2.0f;
+
+            if (is_left) {
+                float label_x = indent;
+                float label_w = std::max(0.0f, node_w - indent);
+                e->label->setLocalPos(Pt(label_x, label_y));
+                e->label->setSize(Pt(label_w, label_h));
+            } else {
+                float label_w = std::max(0.0f, node_w - indent);
+                float label_x = 0.0f;
+                e->label->setLocalPos(Pt(label_x, label_y));
+                e->label->setSize(Pt(label_w, label_h));
+            }
+        }
+    }
+}
+
+void NodeWidget::layout_edge_ports(const std::vector<PortEntry*>& entries,
+                                   bp2::PortLayoutSide side,
+                                   float node_w, float node_h,
+                                   float strip_y, float strip_h) {
+    if (entries.empty()) return;
+
+    const size_t n = entries.size();
+    const float grid = PortConstants::LAYOUT_GRID;
+    const float center_x = node_w / 2.0f;
+    const bool is_top = (side == bp2::PortLayoutSide::Top);
+
+    for (size_t i = 0; i < n; ++i) {
+        auto* e = entries[i];
+
+        // Center ports evenly, snapped to grid
+        float ideal_x = center_x + (static_cast<float>(i) - static_cast<float>(n - 1) / 2.0f) * grid;
+        float snapped_x = std::round(ideal_x / grid) * grid;
+
+        // Port center at node edge
+        float port_lx = snapped_x - PortConstants::RADIUS;
+        float port_ly = is_top ? -PortConstants::RADIUS
+                               : (node_h - PortConstants::RADIUS);
+        e->port->setLocalPos(Pt(port_lx, port_ly));
+
+        // Label centered below (top) or above (bottom) the port
+        if (e->label) {
+            Pt lps = e->label->preferredSize(nullptr);
+            float label_w = lps.x;
+            float label_x = port_lx + PortConstants::RADIUS - label_w / 2.0f;
+            float label_offset = is_top ? PortConstants::TOP_LABEL_OFFSET
+                                        : PortConstants::BOTTOM_LABEL_OFFSET;
+            float label_y;
+            if (is_top) {
+                label_y = port_ly + PortConstants::RADIUS * 2 + label_offset;
+            } else {
+                label_y = port_ly - PortConstants::LABEL_FONT_SIZE - label_offset;
+            }
+            e->label->setLocalPos(Pt(label_x, label_y));
+            e->label->setSize(Pt(label_w, lps.y));
+        }
+    }
+}
+
+Bounds NodeWidget::compute_content_bounds(float node_w, const SlotRegions& slots) const {
+    if (content_preferred_size_.x <= 0.0f && content_preferred_size_.y <= 0.0f) {
         return {};
     }
 
-    // Layout owns placement, semantic content owns intrinsic size. The content
-    // container reserves where content should live inside the node, while the
-    // semantic content snapshot uses the intrinsic affordance size for render
-    // and hit geometry. This keeps ports/footer/header layout stable without
-    // shrinking interactive content when flex containers get tight.
-    float cx = 0.0f;
-    float cy = 0.0f;
-    const Widget* walker = content_container_;
-    while (walker != nullptr && walker != this) {
-        cx += walker->localPos().x;
-        cy += walker->localPos().y;
-        walker = walker->parent();
-    }
+    // Body area with content margins
+    float body_x = CONTENT_MARGIN_X;
+    float body_w = std::max(0.0f, node_w - CONTENT_MARGIN_X * 2.0f);
 
-    const float cw = content_container_->size().x;
-    const float ch = content_container_->size().y;
     const float bw = content_preferred_size_.x;
     const float bh = content_preferred_size_.y;
-    const float bx = cx + (cw - bw) * content_align_x_;
-    const float by = cy + (ch - bh) * content_align_y_;
+
+    float content_top;
+    float content_available_h;
+
+    if (content_reserve_height_) {
+        // Content has dedicated vertical space below port rows.
+        size_t side_row_count = std::max(resolved_layout_.left.size(), resolved_layout_.right.size());
+        float port_rows_h = static_cast<float>(side_row_count) * PortConstants::ROW_HEIGHT;
+        content_top = slots.body_y + port_rows_h + CONTENT_MARGIN_Y;
+        content_available_h = std::max(0.0f, slots.body_h - port_rows_h - CONTENT_MARGIN_Y * 2.0f);
+    } else {
+        // Content shares the full body area with port rows (e.g. VerticalToggle).
+        content_top = slots.body_y + CONTENT_MARGIN_Y;
+        content_available_h = std::max(0.0f, slots.body_h - CONTENT_MARGIN_Y * 2.0f);
+    }
+
+    const float bx = body_x + (body_w - bw) * content_align_x_;
+    const float by = content_top + (content_available_h - bh) * content_align_y_;
     return Bounds{bx, by, bw, bh};
 }
 
 void NodeWidget::layout(float w, float h) {
     setSize(Pt(w, h));
 
-    // Populate layout context BEFORE child layout so that PairedPortRow/PortRow
-    // and HorizontalPortStrip children can position ports at node edges during
-    // their own layout() calls.
-    layout_ctx_.node_width  = w;
-    layout_ctx_.node_height = h;
+    const SlotRegions slots = compute_slot_regions(w, h);
 
-    if (layout_) {
-        layout_->layout(w, h);
+    // Header
+    if (header_) {
+        header_->setLocalPos(Pt(0.0f, slots.header_y));
+        header_->setSize(Pt(w, slots.header_h));
     }
 
-    content_bounds_ = compute_content_bounds_from_layout();
+    // Footer
+    if (footer_) {
+        footer_->setLocalPos(Pt(0.0f, slots.footer_y));
+        footer_->setSize(Pt(w, slots.footer_h));
+    }
 
+    // Side ports (left/right)
+    auto left_entries = collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Left);
+    auto right_entries = collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Right);
+    layout_side_ports(left_entries, bp2::PortLayoutSide::Left, w, slots.body_y, slots.body_h);
+    layout_side_ports(right_entries, bp2::PortLayoutSide::Right, w, slots.body_y, slots.body_h);
+
+    // Edge ports (top/bottom)
+    auto top_entries = collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Top);
+    auto bottom_entries = collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Bottom);
+    layout_edge_ports(top_entries, bp2::PortLayoutSide::Top, w, h, slots.top_strip_y, slots.top_strip_h);
+    layout_edge_ports(bottom_entries, bp2::PortLayoutSide::Bottom, w, h, slots.bottom_strip_y, slots.bottom_strip_h);
+
+    // Content
+    content_bounds_ = compute_content_bounds(w, slots);
     refresh_content_semantic_snapshot();
 }
 
@@ -1165,7 +1198,7 @@ void NodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
         }
     }
 
-    // Children (header, ports, content, footer) rendered by renderTree()
+    // Children (header, footer, ports, labels) rendered by renderTree()
 }
 
 void NodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
@@ -1182,7 +1215,6 @@ void NodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
     Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
     float rounding = editor_constants::NODE_ROUNDING * ctx.zoom;
 
-    // Selection border drawn after children so it appears on top
     dl->add_rect_with_rounding_corners(screen_min, screen_max,
         render_theme::COLOR_SELECTED, rounding,
         editor_constants::DRAW_CORNERS_ALL, 2.0f * ctx.zoom);

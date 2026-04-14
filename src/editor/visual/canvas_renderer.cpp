@@ -1,9 +1,9 @@
 #include "canvas_renderer.h"
 #include "editor/visual/renderer/grid_renderer.h"
 #include "editor/visual/render_context.h"
+#include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "editor/visual/wire/wire.h"
 #include "editor/visual/port/visual_port.h"
-#include "editor/visual/scene_hittest.h"
 #include "editor/visual/renderer/draw_list.h"
 #include "editor/imgui_draw_list.h"
 #include "editor/visual/oscilloscope_plot.h"
@@ -167,7 +167,8 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
     Pt mouse_screen(mp.x, mp.y);
     Pt mouse_world = win.viewport.screen_to_world(mouse_screen, cmin);
 
-    auto hit = visual::hit_test(win.scene, mouse_world);
+    const auto snapshot = editor::presentation::build_canvas_scene_snapshot(win.scene, doc.interner());
+    auto hit = editor::presentation::hit_test_canvas_scene(snapshot, mouse_world, doc.interner());
     ws.oscilloscope.clear_hover_signal();
 
     if (auto* hp = std::get_if<visual::HitPort>(&hit)) {

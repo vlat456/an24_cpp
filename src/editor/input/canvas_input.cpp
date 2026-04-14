@@ -1,7 +1,6 @@
 #include "input/canvas_input.h"
 #include "input/canvas_input_internal.h"
 #include "visual/scene.h"
-#include "visual/scene_hittest.h"
 #include "visual/scene_mutations.h"
 #include "visual/widget.h"
 #include "visual/wire/wire.h"

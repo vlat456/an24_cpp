@@ -4,25 +4,87 @@
 #include "editor/visual/presentation/node_slot_layout.h"
 #include "editor/visual/node/bounds.h"
 #include "editor/input/input_types.h"
+#include "editor/visual/port/visual_port.h"
 #include "blueprint_v2/blueprint/node_port.h"
 #include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
 #include <variant>
 #include <vector>
 #include <optional>
+#include <cmath>
 
 namespace visual {
     class Scene;
 
-    // Forward declarations of HitResult types — defined in scene_hittest.h
-    struct HitEmpty;
-    struct HitNode;
-    struct HitPort;
-    struct HitWire;
-    struct HitRoutingPoint;
-    struct HitResizeHandle;
-    struct HitContentInteraction;
+    namespace hit_constants {
+        constexpr float PORT_RADIUS = PortConstants::HIT_RADIUS;
+        constexpr float ROUTING_POINT_RADIUS = 10.0f;
+        constexpr float WIRE_TOLERANCE = 5.0f;
+    }
+
+    struct HitEmpty {};
+    struct HitContentInteraction {
+        editor::presentation::InteractionKind kind = editor::presentation::InteractionKind::Click;
+        float primary_min = 0.0f;
+        float primary_max = 0.0f;
+        int steps = 2;
+    };
+
+    struct HitNode {
+        std::string_view node_id;
+        ui::Pt world_pos{};
+        ui::Pt size{};
+        Bounds content_bounds{};
+        editor::presentation::SemanticSceneSnapshot content_snapshot;
+        bool renders_content_from_semantic_snapshot = false;
+        std::optional<HitContentInteraction> content_interaction;
+    };
+    struct HitPort {
+        std::string_view node_id;
+        std::string_view port_name;
+        bp2::PortSide side = bp2::PortSide::Input;
+        PortType type = PortType::Any;
+        ui::Pt center{};
+    };
+    struct HitWire {
+        std::string_view wire_id;
+        size_t segment = 0;
+    };
+    struct HitRoutingPoint {
+        std::string_view wire_id;
+        size_t index = 0;
+        ui::Pt world_pos{};
+    };
+    struct HitResizeHandle {
+        std::string_view node_id;
+        ResizeCorner corner = ResizeCorner::BottomRight;
+        ui::Pt world_pos{};
+        ui::Pt size{};
+    };
+
     using HitResult = std::variant<HitEmpty, HitNode, HitPort, HitWire, HitRoutingPoint, HitResizeHandle>;
+
+    namespace hit_math {
+        inline float distance(ui::Pt a, ui::Pt b) {
+            float dx = a.x - b.x;
+            float dy = a.y - b.y;
+            return std::sqrt(dx * dx + dy * dy);
+        }
+
+        inline float distance_to_segment(ui::Pt p, ui::Pt a, ui::Pt b) {
+            float ab_x = b.x - a.x;
+            float ab_y = b.y - a.y;
+            float len_sq = ab_x * ab_x + ab_y * ab_y;
+            if (len_sq < 1e-6f) return distance(p, a);
+
+            float t = ((p.x - a.x) * ab_x + (p.y - a.y) * ab_y) / len_sq;
+            if (t < 0.0f) t = 0.0f;
+            if (t > 1.0f) t = 1.0f;
+
+            ui::Pt closest(a.x + t * ab_x, a.y + t * ab_y);
+            return distance(p, closest);
+        }
+    } // namespace hit_math
 }
 
 namespace ui {

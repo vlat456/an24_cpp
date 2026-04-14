@@ -638,7 +638,6 @@ add_executable(document_safety_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/workspace_session_persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
@@ -684,7 +683,6 @@ add_executable(canvas_input_tests
     ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
@@ -726,7 +724,6 @@ add_executable(window_invariants_tests
     ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp

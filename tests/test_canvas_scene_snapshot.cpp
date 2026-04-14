@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "editor/visual/presentation/canvas_scene_snapshot.h"
-#include "editor/visual/scene_hittest.h"
 #include "editor/layout_constants.h"
 #include "visual/scene.h"
 #include "visual/scene_mutations.h"

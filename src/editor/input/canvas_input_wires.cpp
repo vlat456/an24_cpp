@@ -1,6 +1,5 @@
 #include "input/canvas_input.h"
 #include "visual/scene.h"
-#include "visual/scene_hittest.h"
 #include "visual/scene_mutations.h"
 #include "visual/snap.h"
 #include "visual/node/visual_node.h"

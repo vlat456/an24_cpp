@@ -1,5 +1,4 @@
 #include "editor/visual/presentation/canvas_scene_snapshot.h"
-#include "editor/visual/scene_hittest.h"
 #include "editor/visual/presentation/semantic_scene_hittest.h"
 #include "visual/scene.h"
 #include "visual/widget.h"

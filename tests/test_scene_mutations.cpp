@@ -9,7 +9,6 @@
 #include "visual/node/node_factory.h"
 #include "visual/node/visual_node.h"
 #include "visual/node/ref_node_widget.h"
-#include "visual/container/port_row.h"
 #include "editor/layout_constants.h"
 #include "visual/snap.h"
 #include "visual/wire/wire.h"
@@ -806,42 +805,4 @@ TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
 
     EXPECT_EQ(long_widget->minimumNodeSize().x, short_widget->minimumNodeSize().x);
     EXPECT_GT(long_widget->preferredSize(nullptr).x, short_widget->preferredSize(nullptr).x);
-}
-
-TEST(SceneMutations, PairedPortRowMinimumWidthIgnoresLongLabelText) {
-    visual::LayoutContext ctx;
-    ctx.node_width = 0.0f;
-    ctx.node_height = visual::PortConstants::ROW_HEIGHT;
-
-    visual::PairedPortRow short_row("a", PortType::V, "b", PortType::V, &ctx);
-    visual::PairedPortRow long_row("brightness", PortType::V, "v_out", PortType::V, &ctx);
-
-    ui::Pt short_min = short_row.minimumSize(nullptr);
-    ui::Pt long_min = long_row.minimumSize(nullptr);
-    ui::Pt short_pref = short_row.preferredSize(nullptr);
-    ui::Pt long_pref = long_row.preferredSize(nullptr);
-
-    EXPECT_FLOAT_EQ(short_min.x, long_min.x);
-    EXPECT_GT(long_pref.x, short_pref.x);
-    EXPECT_LT(long_min.x, long_pref.x);
-}
-
-TEST(SceneMutations, SingleSidedPortRowMinimumWidthIgnoresLongLabelText) {
-    visual::LayoutContext ctx;
-    ctx.node_width = 0.0f;
-    ctx.node_height = visual::PortConstants::ROW_HEIGHT;
-
-    visual::PortRow short_row("o", bp2::PortSide::Output, PortType::Bool,
-                              bp2::PortLayoutSide::Right, &ctx);
-    visual::PortRow long_row("brightness", bp2::PortSide::Output, PortType::V,
-                             bp2::PortLayoutSide::Right, &ctx);
-
-    ui::Pt short_min = short_row.minimumSize(nullptr);
-    ui::Pt long_min = long_row.minimumSize(nullptr);
-    ui::Pt short_pref = short_row.preferredSize(nullptr);
-    ui::Pt long_pref = long_row.preferredSize(nullptr);
-
-    EXPECT_FLOAT_EQ(short_min.x, long_min.x);
-    EXPECT_GT(long_pref.x, short_pref.x);
-    EXPECT_LT(long_min.x, long_pref.x);
 }

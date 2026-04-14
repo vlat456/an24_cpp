@@ -2,12 +2,8 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "visual/port/visual_port.h"
-#include "visual/container/linear_layout.h"
-#include "visual/container/container.h"
-#include "visual/container/port_row.h"
 #include "visual/primitives/primitives.h"
 #include "visual/node/bounds.h"
-#include "visual/node/layout_context.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "ui/core/interned_id.h"
 #include "visual/node/port_layout_resolver.h"
@@ -25,9 +21,21 @@ struct NodeVisualState {
     bool selected = false;
 };
 
-/// Node widget in the new scene graph.
-/// Root widget added to Scene. Clickable (tracked in Grid for hit testing).
-/// Owns its layout tree: header, port rows, content area, type name footer.
+/// Describes one port entry with its associated label widget, resolved layout
+/// side, and logical side. Owned as direct children of NodeWidget.
+struct PortEntry {
+    Port* port = nullptr;
+    Label* label = nullptr;
+    bp2::PortLayoutSide layout_side = bp2::PortLayoutSide::Left;
+    bp2::PortSide logical_side = bp2::PortSide::Input;
+};
+
+/// Node widget — flat slot-based layout.
+///
+/// Owns ports, labels, header and footer as direct children.
+/// layout() places them into computed slot regions (header, footer,
+/// left/right/top/bottom port strips, body/content) without
+/// intermediate layout widgets.
 class NodeWidget : public Widget {
 public:
     NodeWidget(const bp2::Blueprint::Node& data,
@@ -49,7 +57,7 @@ public:
     Port* port(std::string_view name) const;
     Port* portByName(std::string_view port_name,
                      std::string_view wire_id = {}) const override;
-    const std::vector<Port*>& ports() const { return ports_; }
+    const std::vector<Port*>& ports() const { return port_ptrs_; }
 
     Pt preferredSize(IDrawList* dl) const override;
     Pt minimumNodeSize() const;
@@ -84,12 +92,22 @@ private:
     std::string name_;
     std::string type_name_;
 
-    /// Non-owning pointers to child widgets (owned via widget tree)
-    Column* layout_ = nullptr;
-    Widget* content_container_ = nullptr; ///< innermost widget wrapping the content spacer
-    std::vector<Port*> ports_;
-    
-    /// Cached content type for semantic snapshot building
+    // ---- Flat child widgets (all owned via Widget::children_) ----
+    Widget* header_ = nullptr;      ///< HeaderStrip
+    Widget* footer_ = nullptr;      ///< FooterTypeLabel
+
+    /// Port entries with associated labels. Port* and Label* are owned as
+    /// direct children. The entries are grouped by layout_side for fast
+    /// iteration during layout.
+    std::vector<PortEntry> port_entries_;
+
+    /// Flat port pointer list for external API (ports()).
+    std::vector<Port*> port_ptrs_;
+
+    // ---- Resolved port layout (persisted from construction) ----
+    ResolvedLayout resolved_layout_;
+
+    // ---- Content ----
     bp2::NodeContentType cached_content_type_ = bp2::NodeContentType::None;
     float cached_content_max_ = 0.0f;
     float cached_content_min_ = 0.0f;
@@ -99,43 +117,56 @@ private:
     bool cached_content_tripped_ = false;
     std::string cached_content_unit_;
 
-    /// Layout context shared with PortRow children for edge-anchoring.
-    /// Populated before layout() calls propagate to children.
-    LayoutContext layout_ctx_;
-
     std::optional<uint32_t> custom_fill_;
     editor::presentation::SemanticSceneSnapshot content_semantic_snapshot_;
     bool render_content_from_semantic_snapshot_ = false;
     Bounds content_bounds_{};
 
-    /// Content alignment within its container cell.
-    /// 0.0 = start (left/top), 0.5 = center, 1.0 = end (right/bottom).
+    /// Content alignment within its body cell.
     float content_align_x_ = 0.5f;
     float content_align_y_ = 0.5f;
     bool content_reserve_width_ = true;
     bool content_reserve_height_ = true;
     Pt content_preferred_size_{};
 
-    void buildLayout(const bp2::Blueprint::Node& data,
-                     const bp2::Interface& render_iface,
-                     const ui::StringInterner& interner);
-    void buildStandardLayout(const bp2::Blueprint::Node& data,
-                             const bp2::Interface& render_iface,
-                             const ui::StringInterner& interner);
-    void buildVerticalToggleLayout(const bp2::Blueprint::Node& data,
-                                   const bp2::Interface& render_iface,
-                                   const ui::StringInterner& interner);
-    void buildPortRow(std::string_view left_name, PortType left_type,
-                      std::string_view right_name, PortType right_type);
-    void buildPortInColumn(Widget* col, std::string_view name, PortType type, bp2::PortSide logical_side, bp2::PortLayoutSide layout_side);
-    void buildFourSidedLayout(const bp2::Blueprint::Node& data,
-                              const bp2::Interface& render_iface,
-                              const ui::StringInterner& interner);
+    // ---- Slot geometry (recomputed each layout) ----
+    static constexpr float kHeaderHeight = 24.0f;
+    static constexpr float kFooterHeight = 16.0f;
 
-    void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);
+    /// Has top/bottom port strips?
+    bool has_top_strip_ = false;
+    bool has_bottom_strip_ = false;
+
+    void build(const bp2::Blueprint::Node& data,
+               const bp2::Interface& render_iface,
+               const ui::StringInterner& interner);
     void configure_content_geometry(bp2::NodeContentType content_type);
-    Bounds compute_content_bounds_from_layout() const;
     void refresh_content_semantic_snapshot();
+
+    // ---- Layout helpers ----
+    /// Compute slot regions from node size.
+    struct SlotRegions {
+        float header_y = 0.0f;
+        float header_h = 0.0f;
+        float top_strip_y = 0.0f;
+        float top_strip_h = 0.0f;
+        float body_y = 0.0f;
+        float body_h = 0.0f;
+        float bottom_strip_y = 0.0f;
+        float bottom_strip_h = 0.0f;
+        float footer_y = 0.0f;
+        float footer_h = 0.0f;
+    };
+
+    SlotRegions compute_slot_regions(float w, float h) const;
+    void layout_side_ports(const std::vector<PortEntry*>& entries,
+                           bp2::PortLayoutSide side,
+                           float node_w, float body_y, float body_h);
+    void layout_edge_ports(const std::vector<PortEntry*>& entries,
+                           bp2::PortLayoutSide side,
+                           float node_w, float node_h,
+                           float strip_y, float strip_h);
+    Bounds compute_content_bounds(float node_w, const SlotRegions& slots) const;
 };
 
 } // namespace visual
