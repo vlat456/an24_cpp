@@ -612,6 +612,21 @@ target_link_libraries(semantic_scene_snapshot_tests PRIVATE
 )
 gtest_discover_tests(semantic_scene_snapshot_tests)
 
+# Presentation compiler tests (classify_frame_kind, default_content_presenter, compile pipeline)
+add_executable(presentation_compiler_tests
+    test_presentation_compiler.cpp
+)
+target_include_directories(presentation_compiler_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(presentation_compiler_tests PRIVATE
+    editor_semantic_canvas
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(presentation_compiler_tests)
+
 # Semantic scene hit-test tests (point-in-region, layer ordering, interaction bindings)
 add_executable(semantic_scene_hittest_tests
     test_semantic_scene_hittest.cpp
