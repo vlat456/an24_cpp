@@ -599,18 +599,13 @@ void PropertiesWindow::apply() {
 
         updated.semantic.string_params = pending_string_params_;
 
-        // [Issue #132] Re-hydrate content from updated params
-        // Refresh static derived content from semantic params while preserving
-        // live runtime-facing value/state fields already present on the node.
+        // [Issue #133] Re-hydrate static content semantics from updated params.
+        // hydrate_node_view() now only touches static fields (type, label,
+        // min, max, unit) — dynamic runtime state (value, state, tripped)
+        // is preserved automatically without manual save/restore.
         if (type_registry_) {
-            const float preserved_value = updated.view.content_value;
-            const bool preserved_state = updated.view.content_state;
-            const bool preserved_tripped = updated.view.content_tripped;
             const std::string type_name(interner_->resolve(updated.semantic.type));
             editor::hydrate_node_view(updated, type_registry_->get(type_name), *interner_);
-            updated.view.content_value = preserved_value;
-            updated.view.content_state = preserved_state;
-            updated.view.content_tripped = preserved_tripped;
         }
 
         // Apply name change

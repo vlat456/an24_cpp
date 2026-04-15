@@ -187,6 +187,10 @@ void Document::updateNodeContentFromSimulation() {
         const std::string nid = sim_id_prefix.empty() ? local_id : signal_key::make_child_scope_key(sim_id_prefix, local_id);
         const std::string type_name = std::string(interner_.resolve(n.semantic.type));
 
+        // [Issue #133] Static fields (type, label, min, max, unit) are read
+        // directly from view.content_* which is the single authority set by
+        // hydrate_node_view().  Only dynamic fields (value, state, tripped)
+        // are overwritten from simulation port values below.
         NodeContent content;
         content.type    = n.view.content_type;
         content.label   = n.view.content_label;
@@ -199,16 +203,6 @@ void Document::updateNodeContentFromSimulation() {
 
         if (type_name == "Voltmeter") {
             content.value = simulation_.get_port_value(nid, "v_in");
-            auto min_key = interner_.lookup("min");
-            auto max_key = interner_.lookup("max");
-            if (!min_key.empty()) {
-                auto it = n.semantic.params.find(min_key);
-                if (it != n.semantic.params.end()) content.min = it->second;
-            }
-            if (!max_key.empty()) {
-                auto it = n.semantic.params.find(max_key);
-                if (it != n.semantic.params.end()) content.max = it->second;
-            }
         } else if (type_name == "IndicatorLight") {
             float brightness = simulation_.get_port_value(nid, "brightness");
             content.value = std::clamp(brightness, 0.0f, 1.0f);
@@ -224,17 +218,6 @@ void Document::updateNodeContentFromSimulation() {
             float tripped_voltage = simulation_.get_port_value(nid, "tripped");
             content.tripped = (tripped_voltage > 0.5f);
         } else if (type_name == "Slider") {
-            auto min_key = interner_.lookup("min");
-            auto max_key = interner_.lookup("max");
-            if (!min_key.empty()) {
-                auto it = n.semantic.params.find(min_key);
-                if (it != n.semantic.params.end()) content.min = it->second;
-            }
-            if (!max_key.empty()) {
-                auto it = n.semantic.params.find(max_key);
-                if (it != n.semantic.params.end()) content.max = it->second;
-            }
-
             float out_val = simulation_.get_port_value(nid, "out");
             if (std::isfinite(out_val)) {
                 content.value = out_val;
@@ -250,11 +233,6 @@ void Document::updateNodeContentFromSimulation() {
             float pos_val = simulation_.get_port_value(nid, "position");
             if (std::isfinite(pos_val)) {
                 content.value = pos_val;
-            }
-            auto pos_key = interner_.lookup("positions");
-            if (!pos_key.empty()) {
-                auto it = n.semantic.params.find(pos_key);
-                if (it != n.semantic.params.end()) content.max = it->second;
             }
         }
 

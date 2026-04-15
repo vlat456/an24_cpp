@@ -151,8 +151,8 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         node.semantic.iface = bp2::Interface(std::move(ports));
     }
 
-    // Issue #105: single-source hydration of runtime/editor view state.
-    editor::hydrate_node_view(node, def, interner_);
+    // Issue #105/#133: hydrate static semantics + initial dynamic defaults.
+    editor::hydrate_node_view_full(node, def, interner_);
 
     const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
     const bool bridge_is_input = (classname == "BlueprintInput");
@@ -263,8 +263,8 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     // but do NOT mirror node.semantic.iface.
     bp2::Interface inline_bp_iface = bp2::Interface(std::move(iface_ports));
 
-    // Issue #105: single-source hydration of runtime/editor view state.
-    editor::hydrate_node_view(collapsed, def, interner_);
+    // Issue #105/#133: hydrate static semantics + initial dynamic defaults.
+    editor::hydrate_node_view_full(collapsed, def, interner_);
 
     bp2::Blueprint loaded;
     try {

@@ -855,6 +855,59 @@ Missing either one causes silent loss of the intended content region and therefo
 
 ---
 
+### ~~Issue #133 — Remove Dual Authority Between Semantic Params and view.content_*~~ ✓ FIXED
+
+**Status:** CLOSED
+
+**Problem:** `view.content_*` fields served as a mutable shared cache written by two authorities:
+1. `hydrate_node_view()` wrote ALL fields (static semantics + dynamic state) from semantic params
+2. Simulation runtime overwrote dynamic fields (value, state, tripped) from port values
+
+This created a fragile coupling where re-hydration (e.g., after inspector param edits) destroyed runtime state. The `properties_window.cpp` had an explicit hack (save/restore value/state/tripped around re-hydration) to work around this.
+
+Additionally, `document_simulation.cpp` redundantly re-read min/max from semantic params (Voltmeter, Slider, KnobSwitch) even though those were already set by hydration — a second authority for the same data.
+
+**Root cause:** No separation between static content semantics (type, label, min, max, unit) and dynamic runtime state (value, state, tripped). Both were written by `hydrate_node_view()` and both were overwritten by simulation.
+
+**Fix:** Split `view.content_*` into two authority domains:
+
+1. **Static semantics** (content_type, content_label, content_min, content_max, content_unit) — written ONLY by `hydrate_node_view()`. Single authority from semantic params + TypeDefinition.
+2. **Dynamic runtime state** (content_value, content_state, content_tripped) — written ONLY by simulation/interaction. Never touched by `hydrate_node_view()`.
+
+New function `initialize_node_content_defaults()` sets initial dynamic state at node creation/load time only.
+
+**Changes:**
+- `hydrate_node_view()` — no longer writes content_value, content_state, content_tripped
+- New `initialize_node_content_defaults()` — sets initial dynamic state at creation time
+- `hydrate_runtime_node_view_data()` — calls both functions at load time
+- `document_components.cpp` — calls both at node creation time
+- `properties_window.cpp` — removed save/restore hack (no longer needed)
+- `document_simulation.cpp` — removed redundant re-reads of min/max/positions from semantic params
+
+**Files changed:**
+- `src/editor/blueprint_view_hydration.h` — split hydration into static + dynamic
+- `src/editor/document_components.cpp` — added `initialize_node_content_defaults()` calls
+- `src/editor/window/properties_window.cpp` — removed save/restore hack
+- `src/editor/document_simulation.cpp` — removed redundant param re-reads
+- `tests/blueprint_v2/test_codec.cpp` — updated existing tests, added 5 new #133 regression tests
+- `tests/test_presentation_compiler.cpp` — added 5 new #133 regression tests
+
+**Regression tests (10 total):**
+- `Issue133_SingleAuthority.RehydrationPreservesRuntimeSliderValue`
+- `Issue133_SingleAuthority.RehydrationPreservesRuntimeSwitchState`
+- `Issue133_SingleAuthority.RehydrationPreservesTrippedState`
+- `Issue133_SingleAuthority.RehydrationPreservesKnobPosition`
+- `Issue133_SingleAuthority.FullHydrationSetsStaticAndDynamic`
+- `Issue133_SingleAuthority.SliderUsesStaticMinMaxFromView`
+- `Issue133_SingleAuthority.KnobUsesStaticMaxFromView`
+- `Issue133_SingleAuthority.GaugeUsesStaticMinMaxAndUnit`
+- `Issue133_SingleAuthority.ToggleUsesDynamicStateFromView`
+- `Issue133_SingleAuthority.DynamicStateIndependentOfStaticSemantics`
+
+**Tests:** All 1683 pass, 0 failures
+
+---
+
 ### ~~15. Full Test Suite Migration to Push Runtime~~ ✓ COMPLETED (with explicit deprecations)
 
 **Status:** Full OFF-mode suite builds and runs.

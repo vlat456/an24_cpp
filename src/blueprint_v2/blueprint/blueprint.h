@@ -140,11 +140,15 @@ public:
         //   1. **Canonical** — authored document state, persisted in strict
         //      blueprint v1 JSON (e.g. `name` → JSON `label`).
         //
-        //   2. **Runtime/editor hydrated** — populated by an explicit
-        //      post-load hydration step from the TypeRegistry.  NOT
-        //      persisted; must never be serialized.  Hydration is owned
-        //      exclusively by `editor::hydrate_runtime_node_view_data()`.
-        //      Fields: render_hint, content_*.
+        //   2. **Runtime/editor hydrated** — NOT persisted; must never be
+        //      serialized.  Two sub-authorities (Issue #133):
+        //      - **Static semantics** (render_hint, content_type, label, min,
+        //        max, unit) — owned by `editor::hydrate_node_view()`.
+        //      - **Dynamic runtime state** (content_value, content_state,
+        //        content_tripped) — initial defaults set by
+        //        `editor::initialize_node_content_defaults()` at creation/load,
+        //        then owned exclusively by simulation runtime / user interaction.
+        //      Must NOT be set by BlueprintCodec::decode().
         //
         //   3. **Session/editor-only** — transient visual state that lives
         //      only in the running editor session.  NOT persisted; NOT
@@ -160,15 +164,18 @@ public:
             std::string name;
 
             // --- Tier 2: Runtime/editor hydrated state (NOT persisted) ---
-            // Populated exclusively by editor::hydrate_runtime_node_view_data().
+            // Static semantics — owned by editor::hydrate_node_view().
             // Must NOT be set by BlueprintCodec::decode().
             std::string render_hint;
             NodeContentType content_type = NodeContentType::None;
             std::string content_label;
-            float content_value = 0.0f;
             float content_min = 0.0f;
             float content_max = 1.0f;
             std::string content_unit;
+            // Dynamic runtime state — initial defaults from
+            // editor::initialize_node_content_defaults(), then owned by
+            // simulation runtime / user interaction.
+            float content_value = 0.0f;
             bool content_state = false;
             bool content_tripped = false;
 

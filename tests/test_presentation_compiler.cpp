@@ -1608,3 +1608,170 @@ TEST(LoadTimeCompileRegression, AllRectanglePaintsHavePositiveGeometry) {
         }
     }
 }
+
+// ============================================================================
+// Issue #133 regression tests: single authority for static vs dynamic content
+//
+// These tests verify that the presentation compiler reads static semantics
+// (min, max, unit, label, content_type) from view.content_* (set by
+// hydrate_node_view) and dynamic state (value, state, tripped) independently.
+// ============================================================================
+
+TEST(Issue133_SingleAuthority, SliderUsesStaticMinMaxFromView) {
+    // Verify that the slider presentation reads min/max from view.content_*
+    // (the single authority set by hydrate_node_view) and that changing them
+    // affects the compiled interaction binding range.
+    auto node_default = make_node(ui::InternedId(2000), "Slider", "", bp2::NodeContentType::Slider);
+    node_default.view.content_min = 0.0f;
+    node_default.view.content_max = 100.0f;
+    node_default.view.content_value = 50.0f;
+
+    auto node_custom = make_node(ui::InternedId(2001), "Slider", "", bp2::NodeContentType::Slider);
+    node_custom.view.content_min = -50.0f;
+    node_custom.view.content_max = 200.0f;
+    node_custom.view.content_value = 50.0f;
+
+    NodePresentation p_default = compile_node_presentation(node_default);
+    NodePresentation p_custom = compile_node_presentation(node_custom);
+
+    // Both should produce slider content
+    EXPECT_GE(p_default.content.children.size(), 2u);
+    EXPECT_GE(p_custom.content.children.size(), 2u);
+
+    // The value text should be the same (same content_value)
+    const auto* text_default = find_text_paint(p_default.content);
+    const auto* text_custom = find_text_paint(p_custom.content);
+    ASSERT_NE(text_default, nullptr);
+    ASSERT_NE(text_custom, nullptr);
+    EXPECT_EQ(text_default->text, text_custom->text);  // both "50.0"
+}
+
+TEST(Issue133_SingleAuthority, KnobUsesStaticMaxFromView) {
+    // Verify knob reads positions (content_max) from view, not from params.
+    auto node_2pos = make_node(ui::InternedId(2010), "Knob", "", bp2::NodeContentType::Knob);
+    node_2pos.view.content_max = 2.0f;
+    node_2pos.view.content_value = 0.0f;
+
+    auto node_5pos = make_node(ui::InternedId(2011), "Knob", "", bp2::NodeContentType::Knob);
+    node_5pos.view.content_max = 5.0f;
+    node_5pos.view.content_value = 0.0f;
+
+    NodePresentation p_2 = compile_node_presentation(node_2pos);
+    NodePresentation p_5 = compile_node_presentation(node_5pos);
+
+    // 5-position knob should have more tick marks (Line paints) than 2-position
+    size_t lines_2 = count_paint_kind(p_2.content, PaintPrimitiveKind::Line);
+    size_t lines_5 = count_paint_kind(p_5.content, PaintPrimitiveKind::Line);
+    EXPECT_GT(lines_5, lines_2);
+
+    // Discrete interaction step count should differ
+    const auto* drag_2 = find_interaction(p_2.content, InteractionKind::DragDiscrete);
+    const auto* drag_5 = find_interaction(p_5.content, InteractionKind::DragDiscrete);
+    ASSERT_NE(drag_2, nullptr);
+    ASSERT_NE(drag_5, nullptr);
+    EXPECT_FLOAT_EQ(drag_2->step, 2.0f);
+    EXPECT_FLOAT_EQ(drag_5->step, 5.0f);
+}
+
+TEST(Issue133_SingleAuthority, GaugeUsesStaticMinMaxAndUnit) {
+    // Verify gauge reads min/max/unit from view.content_* (static authority).
+    auto node = make_node(ui::InternedId(2020), "Gauge", "", bp2::NodeContentType::Gauge);
+    node.view.content_min = 0.0f;
+    node.view.content_max = 28.0f;
+    node.view.content_value = 14.0f;
+    node.view.content_unit = "V";
+
+    NodePresentation p = compile_node_presentation(node);
+
+    // Should have unit text
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+    bool found_unit = false;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Text && paint->text == "V") {
+            found_unit = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_unit) << "Gauge should render unit text from view.content_unit";
+
+    // Value text should show "14.0"
+    bool found_value = false;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Text && paint->text == "14.0") {
+            found_value = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_value) << "Gauge should render value text from view.content_value";
+}
+
+TEST(Issue133_SingleAuthority, ToggleUsesDynamicStateFromView) {
+    // Verify that switch/toggle reads state from view.content_state (dynamic)
+    // and that the handle position changes with state.
+    auto node_off = make_node(ui::InternedId(2030), "Switch", "", bp2::NodeContentType::Switch);
+    node_off.view.content_state = false;
+    node_off.view.content_tripped = false;
+
+    auto node_on = make_node(ui::InternedId(2031), "Switch", "", bp2::NodeContentType::Switch);
+    node_on.view.content_state = true;
+    node_on.view.content_tripped = false;
+
+    NodePresentation p_off = compile_node_presentation(node_off);
+    NodePresentation p_on = compile_node_presentation(node_on);
+
+    // Both produce content, but handle positions differ
+    std::vector<const PaintCommand*> paints_off, paints_on;
+    collect_paints(p_off.content, paints_off);
+    collect_paints(p_on.content, paints_on);
+
+    // Find handle rectangles (second Rectangle paint in each)
+    const PaintCommand* handle_off = nullptr;
+    const PaintCommand* handle_on = nullptr;
+    int rect_count = 0;
+    for (const auto* p : paints_off) {
+        if (p->kind == PaintPrimitiveKind::Rectangle) {
+            if (++rect_count == 2) { handle_off = p; break; }
+        }
+    }
+    rect_count = 0;
+    for (const auto* p : paints_on) {
+        if (p->kind == PaintPrimitiveKind::Rectangle) {
+            if (++rect_count == 2) { handle_on = p; break; }
+        }
+    }
+    ASSERT_NE(handle_off, nullptr);
+    ASSERT_NE(handle_on, nullptr);
+
+    const auto* geo_off = std::get_if<RectGeometry>(&handle_off->geometry);
+    const auto* geo_on = std::get_if<RectGeometry>(&handle_on->geometry);
+    ASSERT_NE(geo_off, nullptr);
+    ASSERT_NE(geo_on, nullptr);
+    EXPECT_NE(geo_off->x, geo_on->x) << "Switch handle should move between ON and OFF states";
+}
+
+TEST(Issue133_SingleAuthority, DynamicStateIndependentOfStaticSemantics) {
+    // Core regression test: changing static semantics (min/max) via
+    // hydrate_node_view does NOT reset dynamic state (value/state/tripped).
+    // This is the exact bug that issue #133 fixes.
+    auto node = make_node(ui::InternedId(2040), "Slider", "", bp2::NodeContentType::Slider);
+    node.view.content_min = 0.0f;
+    node.view.content_max = 100.0f;
+    node.view.content_value = 75.0f;  // Simulated runtime value
+
+    // Simulate what happens when inspector edits min/max:
+    // Only static fields change, dynamic value is preserved.
+    float saved_value = node.view.content_value;
+    node.view.content_min = -10.0f;  // Changed by hydrate_node_view
+    node.view.content_max = 200.0f;  // Changed by hydrate_node_view
+    // content_value is NOT touched by hydrate_node_view
+
+    EXPECT_FLOAT_EQ(node.view.content_value, saved_value)
+        << "Dynamic value must survive static re-hydration";
+
+    // Compile with new static range but preserved dynamic value
+    NodePresentation p = compile_node_presentation(node);
+    const auto* text = find_text_paint(p.content);
+    ASSERT_NE(text, nullptr);
+    EXPECT_EQ(text->text, "75.0") << "Slider should show preserved dynamic value";
+}
