@@ -17,15 +17,14 @@ bp2::Blueprint::Node make_test_node(ui::InternedId id, const std::string& name,
     return node;
 }
 
-PresentationFragment make_empty_fragment(const bp2::Blueprint::Node& /*node*/, ui::InternedId /*type_id*/) {
-    PresentationFragment fragment;
-    fragment.root.element_id = ui::InternedId(40);
-    fragment.root.layout = LayoutKind::Column;
-    return fragment;
+PresentationNode make_empty_fragment(const bp2::Blueprint::Node& /*node*/, ui::InternedId /*type_id*/) {
+    PresentationNode root;
+    root.element_id = ui::InternedId(40);
+    root.layout = LayoutKind::Column;
+    return root;
 }
 
-PresentationFragment make_custom_fragment(const bp2::Blueprint::Node& node, ui::InternedId /*type_id*/) {
-    PresentationFragment fragment;
+PresentationNode make_custom_fragment(const bp2::Blueprint::Node& node, ui::InternedId /*type_id*/) {
     PresentationNode root;
     root.element_id = ui::InternedId(50);
     root.layout = LayoutKind::Overlay;
@@ -58,8 +57,7 @@ PresentationFragment make_custom_fragment(const bp2::Blueprint::Node& node, ui::
 
     root.children.push_back(std::move(title));
     root.children.push_back(std::move(badge));
-    fragment.root = std::move(root);
-    return fragment;
+    return root;
 }
 
 } // namespace
@@ -73,7 +71,6 @@ TEST(NodePresentationCompiler, PreservesNodeIdentityAndTitle) {
     NodePresentation presentation = compile_node_presentation(ctx, node, ui::InternedId(100));
 
     EXPECT_EQ(presentation.node_id, ui::InternedId(1));
-    EXPECT_EQ(presentation.type_id, ui::InternedId(100));
     EXPECT_EQ(presentation.shell.title, "Generator");
 }
 
@@ -110,15 +107,15 @@ TEST(NodePresentationCompiler, RegisteredPresenterProducesArbitraryFragmentTree)
 
     NodePresentation presentation = compile_node_presentation(ctx, node, ui::InternedId(103));
 
-    EXPECT_EQ(presentation.content.root.layout, LayoutKind::Overlay);
-    ASSERT_EQ(presentation.content.root.children.size(), 2u);
+    EXPECT_EQ(presentation.content.layout, LayoutKind::Overlay);
+    ASSERT_EQ(presentation.content.children.size(), 2u);
 
-    const PresentationNode& title = presentation.content.root.children[0];
+    const PresentationNode& title = presentation.content.children[0];
     ASSERT_EQ(title.paint.size(), 1u);
     EXPECT_EQ(title.paint[0].kind, PaintPrimitiveKind::Text);
     EXPECT_EQ(title.paint[0].text, "Throttle");
 
-    const PresentationNode& badge = presentation.content.root.children[1];
+    const PresentationNode& badge = presentation.content.children[1];
     ASSERT_EQ(badge.paint.size(), 1u);
     EXPECT_EQ(badge.paint[0].kind, PaintPrimitiveKind::Circle);
     ASSERT_EQ(badge.hit_regions.size(), 1u);
@@ -135,7 +132,7 @@ TEST(NodePresentationCompiler, RegisteredPresenterAllowsNoContentChildren) {
 
     NodePresentation presentation = compile_node_presentation(ctx, node, ui::InternedId(104));
 
-    EXPECT_TRUE(presentation.content.root.children.empty());
+    EXPECT_TRUE(presentation.content.children.empty());
 }
 
 TEST(NodePresentationCompiler, RegisteredPresenterCanEmitSingleLabelOnlyFragment) {
@@ -146,8 +143,8 @@ TEST(NodePresentationCompiler, RegisteredPresenterCanEmitSingleLabelOnlyFragment
 
     NodePresentation presentation = compile_node_presentation(ctx, node, ui::InternedId(105));
 
-    ASSERT_EQ(presentation.content.root.children.size(), 2u);
-    EXPECT_EQ(presentation.content.root.children[0].paint[0].text, "Status");
+    ASSERT_EQ(presentation.content.children.size(), 2u);
+    EXPECT_EQ(presentation.content.children[0].paint[0].text, "Status");
     EXPECT_EQ(presentation.shell.frame_kind, NodeFrameKind::Annotation);
 }
 
@@ -161,11 +158,11 @@ TEST(NodePresentationCompiler, RegistryOverridesDefaultContentCompilation) {
 
     NodePresentation presentation = compile_node_presentation(ctx, node, ui::InternedId(500));
 
-    EXPECT_EQ(presentation.content.root.layout, LayoutKind::Overlay);
-    ASSERT_EQ(presentation.content.root.children.size(), 2u);
-    EXPECT_EQ(presentation.content.root.children[0].paint[0].text, "Custom");
-    EXPECT_EQ(presentation.content.root.children[1].paint[0].kind, PaintPrimitiveKind::Circle);
-    EXPECT_EQ(presentation.content.root.children[1].hit_regions[0].kind, HitShapeKind::Circle);
+    EXPECT_EQ(presentation.content.layout, LayoutKind::Overlay);
+    ASSERT_EQ(presentation.content.children.size(), 2u);
+    EXPECT_EQ(presentation.content.children[0].paint[0].text, "Custom");
+    EXPECT_EQ(presentation.content.children[1].paint[0].kind, PaintPrimitiveKind::Circle);
+    EXPECT_EQ(presentation.content.children[1].hit_regions[0].kind, HitShapeKind::Circle);
     EXPECT_EQ(presentation.shell.frame_kind, NodeFrameKind::Group);
 }
 
@@ -180,8 +177,13 @@ TEST(NodePresentationCompiler, RegistryCanReplacePresenterForSameType) {
 
     NodePresentation presentation = compile_node_presentation(ctx, node, ui::InternedId(600));
 
-    EXPECT_EQ(presentation.content.root.layout, LayoutKind::Overlay);
+    EXPECT_EQ(presentation.content.layout, LayoutKind::Overlay);
     EXPECT_EQ(presentation.shell.frame_kind, NodeFrameKind::Reference);
+}
+
+TEST(NodePresentationCompiler, RegistryReturnsNullForMissingType) {
+    NodePresenterRegistry registry;
+    EXPECT_EQ(registry.find_presenter(ui::InternedId(999)), nullptr);
 }
 
 TEST(NodePresentationCompiler, MissingPresenterDiesInDebug) {

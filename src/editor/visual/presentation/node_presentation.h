@@ -3,6 +3,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "ui/core/interned_id.h"
 #include <cassert>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -79,16 +80,14 @@ struct PresentationNode {
     std::vector<PresentationNode> children;
 };
 
-struct PresentationFragment {
-    PresentationNode root;
-};
-
 struct NodeShellModel {
     NodeFrameKind frame_kind = NodeFrameKind::Standard;
     std::string title;
 };
 
-using ContentPresenterFn = PresentationFragment (*)(const bp2::Blueprint::Node& node, ui::InternedId type_id);
+/// Content presenters remain stateless function pointers for now. Widen this
+/// contract before broader adoption if presenters need injected dependencies.
+using ContentPresenterFn = PresentationNode (*)(const bp2::Blueprint::Node& node, ui::InternedId type_id);
 
 struct NodePresenter {
     NodeFrameKind frame_kind = NodeFrameKind::Standard;
@@ -101,7 +100,7 @@ public:
     const NodePresenter* find_presenter(ui::InternedId type_id) const;
 
 private:
-    std::vector<std::pair<ui::InternedId, NodePresenter>> presenters_;
+    std::unordered_map<ui::InternedId, NodePresenter> presenters_;
 };
 
 struct NodePresentationCompileContext {
@@ -110,9 +109,8 @@ struct NodePresentationCompileContext {
 
 struct NodePresentation {
     ui::InternedId node_id;
-    ui::InternedId type_id;
     NodeShellModel shell;
-    PresentationFragment content;
+    PresentationNode content;
 };
 
 NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,

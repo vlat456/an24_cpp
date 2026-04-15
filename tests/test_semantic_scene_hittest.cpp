@@ -9,11 +9,11 @@ using namespace editor::presentation;
 
 namespace {
 
-PresentationFragment make_test_fragment(const bp2::Blueprint::Node& /*node*/, ui::InternedId /*type_id*/) {
-    PresentationFragment fragment;
-    fragment.root.element_id = ui::InternedId(1);
-    fragment.root.layout = LayoutKind::Column;
-    fragment.root.gap = 4.0f;
+PresentationNode make_test_fragment(const bp2::Blueprint::Node& /*node*/, ui::InternedId /*type_id*/) {
+    PresentationNode root;
+    root.element_id = ui::InternedId(1);
+    root.layout = LayoutKind::Column;
+    root.gap = 4.0f;
 
     PresentationNode label;
     label.element_id = ui::InternedId(2);
@@ -41,9 +41,9 @@ PresentationFragment make_test_fragment(const bp2::Blueprint::Node& /*node*/, ui
     control_binding.action_id = ui::InternedId(7);
     control.interactions.push_back(control_binding);
 
-    fragment.root.children.push_back(std::move(label));
-    fragment.root.children.push_back(std::move(control));
-    return fragment;
+    root.children.push_back(std::move(label));
+    root.children.push_back(std::move(control));
+    return root;
 }
 
 NodePresentation make_test_presentation() {

@@ -358,7 +358,7 @@ NodeSlotLayout layout_node_presentation(const NodePresentation& presentation,
     append_slot(result.slots, NodeSlot::Overlay, overlay);
 
     const ui::Rect content_bounds = inset_rect(body_content, style.body_padding);
-    place_fragment_node(presentation.content.root, content_bounds, result.placements);
+    place_fragment_node(presentation.content, content_bounds, result.placements);
     return result;
 }
 

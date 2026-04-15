@@ -116,7 +116,7 @@ void append_node_snapshot(const NodePresentation& presentation,
     node_body.bounds = *body;
     snapshot.hit_objects.push_back(std::move(node_body));
 
-    append_content_objects(presentation, layout, presentation.content.root, snapshot, next_id);
+    append_content_objects(presentation, layout, presentation.content, snapshot, next_id);
 
     entry.render_range.count = snapshot.render_objects.size() - entry.render_range.offset;
     entry.hit_range.count = snapshot.hit_objects.size() - entry.hit_range.offset;

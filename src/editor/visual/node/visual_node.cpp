@@ -327,12 +327,11 @@ ContentPresentationBuildResult build_content_presentation(
 
     ContentPresentationBuildResult result;
     result.presentation.node_id = node_id;
-    result.presentation.type_id = node_id;
     result.presentation.shell.frame_kind = NodeFrameKind::Standard;
 
     ui::InternedId root_element_id = next_element_id();
-    result.presentation.content.root = make_presentation_node(root_element_id);
-    result.presentation.content.root.layout = LayoutKind::Overlay;
+    result.presentation.content = make_presentation_node(root_element_id);
+    result.presentation.content.layout = LayoutKind::Overlay;
 
     result.layout.node_bounds = ui::Rect{0.0f, 0.0f, bounds.x + bounds.w, bounds.y + bounds.h};
     result.layout.slots.push_back(SlotAssignment{NodeSlot::Header, ui::Rect{0.0f, 0.0f, bounds.x + bounds.w, 0.0f}});
@@ -349,7 +348,7 @@ ContentPresentationBuildResult build_content_presentation(
         node.paint.push_back(std::move(paint));
         append_placement(result.layout, node.element_id,
                          placement.x, placement.y, placement.w, placement.h);
-        result.presentation.content.root.children.push_back(std::move(node));
+        result.presentation.content.children.push_back(std::move(node));
         result.renders_content = true;
     };
 
@@ -587,7 +586,7 @@ ContentPresentationBuildResult build_content_presentation(
                          bounds.y + interaction_info->bounds_y,
                          interaction_info->bounds_w,
                          interaction_info->bounds_h);
-        result.presentation.content.root.children.push_back(std::move(node));
+        result.presentation.content.children.push_back(std::move(node));
     }
 
     return result;

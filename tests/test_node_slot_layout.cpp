@@ -7,11 +7,11 @@ using namespace editor::presentation;
 
 namespace {
 
-PresentationFragment make_column_fragment(const bp2::Blueprint::Node& /*node*/, ui::InternedId /*type_id*/) {
-    PresentationFragment fragment;
-    fragment.root.element_id = ui::InternedId(1);
-    fragment.root.layout = LayoutKind::Column;
-    fragment.root.gap = 6.0f;
+PresentationNode make_column_fragment(const bp2::Blueprint::Node& /*node*/, ui::InternedId /*type_id*/) {
+    PresentationNode root;
+    root.element_id = ui::InternedId(1);
+    root.layout = LayoutKind::Column;
+    root.gap = 6.0f;
 
     PresentationNode top;
     top.element_id = ui::InternedId(2);
@@ -19,9 +19,9 @@ PresentationFragment make_column_fragment(const bp2::Blueprint::Node& /*node*/, 
     PresentationNode bottom;
     bottom.element_id = ui::InternedId(3);
 
-    fragment.root.children.push_back(std::move(top));
-    fragment.root.children.push_back(std::move(bottom));
-    return fragment;
+    root.children.push_back(std::move(top));
+    root.children.push_back(std::move(bottom));
+    return root;
 }
 
 NodePresentation make_presentation(ui::InternedId type_id = ui::InternedId(100)) {
@@ -124,16 +124,16 @@ TEST(NodeSlotLayoutTest, OverlayChildrenReuseParentBounds) {
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(200), NodePresenter{NodeFrameKind::Standard,
         [](const bp2::Blueprint::Node&, ui::InternedId) {
-            PresentationFragment fragment;
-            fragment.root.element_id = ui::InternedId(20);
-            fragment.root.layout = LayoutKind::Overlay;
+            PresentationNode root;
+            root.element_id = ui::InternedId(20);
+            root.layout = LayoutKind::Overlay;
             PresentationNode a;
             a.element_id = ui::InternedId(21);
             PresentationNode b;
             b.element_id = ui::InternedId(22);
-            fragment.root.children.push_back(std::move(a));
-            fragment.root.children.push_back(std::move(b));
-            return fragment;
+            root.children.push_back(std::move(a));
+            root.children.push_back(std::move(b));
+            return root;
         }});
     NodePresentation presentation = compile_node_presentation(NodePresentationCompileContext{&registry}, node, ui::InternedId(200));
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
@@ -164,17 +164,17 @@ TEST(NodeSlotLayoutTest, PerNodeGapOverridesDefault) {
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(300), NodePresenter{NodeFrameKind::Standard,
         [](const bp2::Blueprint::Node&, ui::InternedId) {
-            PresentationFragment fragment;
-            fragment.root.element_id = ui::InternedId(31);
-            fragment.root.layout = LayoutKind::Column;
-            fragment.root.gap = 10.0f; // Non-default gap
+            PresentationNode root;
+            root.element_id = ui::InternedId(31);
+            root.layout = LayoutKind::Column;
+            root.gap = 10.0f; // Non-default gap
             PresentationNode a;
             a.element_id = ui::InternedId(32);
             PresentationNode b;
             b.element_id = ui::InternedId(33);
-            fragment.root.children.push_back(std::move(a));
-            fragment.root.children.push_back(std::move(b));
-            return fragment;
+            root.children.push_back(std::move(a));
+            root.children.push_back(std::move(b));
+            return root;
         }});
     NodePresentation presentation = compile_node_presentation(
         NodePresentationCompileContext{&registry}, node, ui::InternedId(300));
@@ -201,17 +201,17 @@ TEST(NodeSlotLayoutTest, ZeroGapNodePacksChildrenTightly) {
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(400), NodePresenter{NodeFrameKind::Standard,
         [](const bp2::Blueprint::Node&, ui::InternedId) {
-            PresentationFragment fragment;
-            fragment.root.element_id = ui::InternedId(41);
-            fragment.root.layout = LayoutKind::Column;
-            fragment.root.gap = 0.0f;
+            PresentationNode root;
+            root.element_id = ui::InternedId(41);
+            root.layout = LayoutKind::Column;
+            root.gap = 0.0f;
             PresentationNode a;
             a.element_id = ui::InternedId(42);
             PresentationNode b;
             b.element_id = ui::InternedId(43);
-            fragment.root.children.push_back(std::move(a));
-            fragment.root.children.push_back(std::move(b));
-            return fragment;
+            root.children.push_back(std::move(a));
+            root.children.push_back(std::move(b));
+            return root;
         }});
     NodePresentation presentation = compile_node_presentation(
         NodePresentationCompileContext{&registry}, node, ui::InternedId(400));
@@ -236,17 +236,17 @@ TEST(NodeSlotLayoutTest, RowLayoutSplitsHorizontally) {
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(500), NodePresenter{NodeFrameKind::Standard,
         [](const bp2::Blueprint::Node&, ui::InternedId) {
-            PresentationFragment fragment;
-            fragment.root.element_id = ui::InternedId(51);
-            fragment.root.layout = LayoutKind::Row;
-            fragment.root.gap = 4.0f;
+            PresentationNode root;
+            root.element_id = ui::InternedId(51);
+            root.layout = LayoutKind::Row;
+            root.gap = 4.0f;
             PresentationNode a;
             a.element_id = ui::InternedId(52);
             PresentationNode b;
             b.element_id = ui::InternedId(53);
-            fragment.root.children.push_back(std::move(a));
-            fragment.root.children.push_back(std::move(b));
-            return fragment;
+            root.children.push_back(std::move(a));
+            root.children.push_back(std::move(b));
+            return root;
         }});
     NodePresentation presentation = compile_node_presentation(
         NodePresentationCompileContext{&registry}, node, ui::InternedId(500));
@@ -273,13 +273,13 @@ TEST(NodeSlotLayoutTest, NoneLayoutWithChildrenDiesInDebug) {
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(600), NodePresenter{NodeFrameKind::Standard,
         [](const bp2::Blueprint::Node&, ui::InternedId) {
-            PresentationFragment fragment;
-            fragment.root.element_id = ui::InternedId(61);
-            fragment.root.layout = LayoutKind::None;
+            PresentationNode root;
+            root.element_id = ui::InternedId(61);
+            root.layout = LayoutKind::None;
             PresentationNode child;
             child.element_id = ui::InternedId(62);
-            fragment.root.children.push_back(std::move(child));
-            return fragment;
+            root.children.push_back(std::move(child));
+            return root;
         }});
     NodePresentation presentation = compile_node_presentation(
         NodePresentationCompileContext{&registry}, node, ui::InternedId(600));
