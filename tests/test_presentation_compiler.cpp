@@ -14,6 +14,15 @@ using namespace editor::presentation;
 
 namespace {
 
+std::string_view resolve_test_type_name(ui::InternedId type_id, void* /*user_data*/) {
+    switch (type_id.raw()) {
+        case 1000: return "Battery";
+        case 1001: return "Switch";
+        case 1002: return "Gauge";
+        default: return "UnknownType";
+    }
+}
+
 bp2::Blueprint::Node make_node(ui::InternedId id,
                                const std::string& name,
                                const std::string& render_hint = "",
@@ -144,16 +153,17 @@ TEST(ClassifyFrameKind, AnnotationForTextHint) {
 
 TEST(CompileNodePresentation, StandardNodePreservesIdentityAndTitle) {
     auto node = make_node(ui::InternedId(1), "Generator");
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
 
     EXPECT_EQ(p.node_id, ui::InternedId(1));
     EXPECT_EQ(p.shell.title, "Generator");
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Standard);
+    EXPECT_EQ(p.shell.type_name, "Battery");
 }
 
 TEST(CompileNodePresentation, RefNodeGetsReferenceFrame) {
     auto node = make_node(ui::InternedId(2), "GND", "ref");
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
 
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Reference);
     EXPECT_EQ(p.shell.title, "GND");
@@ -161,7 +171,7 @@ TEST(CompileNodePresentation, RefNodeGetsReferenceFrame) {
 
 TEST(CompileNodePresentation, BusNodeGetsBusFrame) {
     auto node = make_node(ui::InternedId(3), "AC Bus", "bus");
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
 
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Bus);
     EXPECT_EQ(p.shell.title, "AC Bus");
@@ -169,7 +179,7 @@ TEST(CompileNodePresentation, BusNodeGetsBusFrame) {
 
 TEST(CompileNodePresentation, GroupNodeGetsGroupFrame) {
     auto node = make_node(ui::InternedId(4), "Power Section", "group");
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
 
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Group);
     EXPECT_EQ(p.shell.title, "Power Section");
@@ -179,7 +189,7 @@ TEST(CompileNodePresentation, TextNodeGetsAnnotationFrame) {
     auto node = make_node(ui::InternedId(5), "Note", "text");
     node.semantic.string_params["text"] = "This is a note";
     node.semantic.string_params["font_size"] = "14.0";
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
 
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Annotation);
     EXPECT_EQ(p.shell.title, "Note");
@@ -189,14 +199,14 @@ TEST(CompileNodePresentation, TextNodeGetsAnnotationFrame) {
 
 TEST(CompileNodePresentation, TextNodeDefaultFontSizeWhenMissing) {
     auto node = make_node(ui::InternedId(6), "Note", "text");
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
 
     EXPECT_FLOAT_EQ(p.shell.annotation_font_size, 12.0f);
 }
 
 TEST(CompileNodePresentation, NoneContentTypeProducesEmptyContentChildren) {
     auto node = make_node(ui::InternedId(10), "Resistor", "", bp2::NodeContentType::None);
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
 
     EXPECT_TRUE(p.content.children.empty());
     EXPECT_EQ(p.content.layout, LayoutKind::Overlay);
@@ -442,10 +452,11 @@ TEST(DefaultContentPresenter, AllElementIdsAreUnique) {
 
 TEST(PresentationCompilerIntegration, StandardNodeWithSwitchFlowsThroughFullPipeline) {
     auto node = make_node(ui::InternedId(100), "AZS-1", "", bp2::NodeContentType::Switch);
+    node.semantic.type = ui::InternedId(1001);
     node.view.content_state = true;
 
     // Step 1: Compile
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Standard);
     EXPECT_GE(p.content.children.size(), 3u);
 
@@ -462,12 +473,15 @@ TEST(PresentationCompilerIntegration, StandardNodeWithSwitchFlowsThroughFullPipe
     // Verify frame and title render objects
     bool has_frame = false;
     bool has_title = false;
+    bool has_footer = false;
     for (const auto& obj : snapshot.render_objects) {
         if (obj.kind == SceneRenderObjectKind::NodeFrame) has_frame = true;
         if (obj.kind == SceneRenderObjectKind::NodeTitle && obj.text == "AZS-1") has_title = true;
+        if (obj.kind == SceneRenderObjectKind::NodeFooter && obj.text == "Switch") has_footer = true;
     }
     EXPECT_TRUE(has_frame);
     EXPECT_TRUE(has_title);
+    EXPECT_TRUE(has_footer);
 }
 
 TEST(PresentationCompilerIntegration, RefNodeFlowsThroughFullPipeline) {

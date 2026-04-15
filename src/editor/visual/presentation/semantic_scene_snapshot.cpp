@@ -86,6 +86,7 @@ void append_node_snapshot(const NodePresentation& presentation,
 
     const ui::Rect* header = find_slot_bounds(layout, NodeSlot::Header);
     const ui::Rect* body = find_slot_bounds(layout, NodeSlot::Body);
+    const ui::Rect* footer = find_slot_bounds(layout, NodeSlot::Footer);
     assert(header != nullptr);
     assert(body != nullptr);
 
@@ -107,6 +108,18 @@ void append_node_snapshot(const NodePresentation& presentation,
     title.bounds = *header;
     title.text = presentation.shell.title;
     snapshot.render_objects.push_back(std::move(title));
+
+    if (!presentation.shell.type_name.empty() && footer != nullptr && footer->h > 0.0f) {
+        SceneRenderObject footer_label;
+        footer_label.id = SceneObjectId(next_id++);
+        footer_label.node_id = presentation.node_id;
+        footer_label.kind = SceneRenderObjectKind::NodeFooter;
+        footer_label.frame_kind = presentation.shell.frame_kind;
+        footer_label.primitive = PaintPrimitiveKind::Text;
+        footer_label.bounds = *footer;
+        footer_label.text = presentation.shell.type_name;
+        snapshot.render_objects.push_back(std::move(footer_label));
+    }
 
     SceneHitObject node_body;
     node_body.id = SceneObjectId(next_id++);

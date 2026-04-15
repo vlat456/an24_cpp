@@ -237,6 +237,9 @@ void project_widget_recursive(const visual::Widget& widget,
                     case SceneRenderObjectKind::NodeTitle:
                         kind = CanvasRenderObjectKind::NodeTitle;
                         break;
+                    case SceneRenderObjectKind::NodeFooter:
+                        kind = CanvasRenderObjectKind::NodeFooter;
+                        break;
                     case SceneRenderObjectKind::ContentPaint:
                         kind = CanvasRenderObjectKind::ContentPaint;
                         break;

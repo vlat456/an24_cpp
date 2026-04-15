@@ -25,6 +25,7 @@ private:
 enum class SceneRenderObjectKind {
     NodeFrame,
     NodeTitle,
+    NodeFooter,
     ContentPaint,
 };
 
@@ -33,7 +34,8 @@ constexpr int render_layer_order(SceneRenderObjectKind kind) {
     switch (kind) {
         case SceneRenderObjectKind::NodeFrame:    return 0;
         case SceneRenderObjectKind::NodeTitle:    return 1;
-        case SceneRenderObjectKind::ContentPaint: return 2;
+        case SceneRenderObjectKind::NodeFooter:   return 2;
+        case SceneRenderObjectKind::ContentPaint: return 3;
     }
     return 0;
 }

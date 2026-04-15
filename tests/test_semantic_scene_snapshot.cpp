@@ -84,19 +84,24 @@ const SceneHitObject* find_hit(const SemanticSceneSnapshot& snapshot,
 
 TEST(SemanticSceneSnapshotTest, BuildsNodeFrameAndTitleObjects) {
     NodePresentation presentation = make_presentation();
+    presentation.shell.type_name = "Bus";
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
     const SceneRenderObject* frame = find_render(snapshot, SceneRenderObjectKind::NodeFrame);
     const SceneRenderObject* title = find_render(snapshot, SceneRenderObjectKind::NodeTitle);
+    const SceneRenderObject* footer = find_render(snapshot, SceneRenderObjectKind::NodeFooter);
     ASSERT_NE(frame, nullptr);
     ASSERT_NE(title, nullptr);
+    ASSERT_NE(footer, nullptr);
 
     EXPECT_EQ(frame->frame_kind, NodeFrameKind::Bus);
     EXPECT_EQ(frame->primitive, PaintPrimitiveKind::Rectangle);
     EXPECT_EQ(title->text, "AC Bus");
     EXPECT_EQ(title->primitive, PaintPrimitiveKind::Text);
+    EXPECT_EQ(footer->text, "Bus");
+    EXPECT_EQ(footer->primitive, PaintPrimitiveKind::Text);
 }
 
 TEST(SemanticSceneSnapshotTest, BuildsNodeBodyHitObjectFromBodySlot) {

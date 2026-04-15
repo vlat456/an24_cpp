@@ -141,6 +141,8 @@ private:
 
 struct NodePresentationCompileContext {
     const NodePresenterRegistry* registry = nullptr;
+    std::string_view (*resolve_type_name)(ui::InternedId type_id, void* user_data) = nullptr;
+    void* resolve_type_name_user_data = nullptr;
 };
 
 struct NodePresentation {
@@ -159,6 +161,11 @@ NodePresentation compile_node_presentation(const NodePresentationCompileContext&
 /// and the default content presenter for the node's content_type.
 /// This is the primary entry point for the presentation compiler —
 /// it works for ALL node kinds without requiring per-type registration.
+NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
+                                           const bp2::Blueprint::Node& node);
+
+/// Convenience overload for tests and compiler-only call sites that do not need
+/// type label resolution.
 NodePresentation compile_node_presentation(const bp2::Blueprint::Node& node);
 
 // ============================================================================

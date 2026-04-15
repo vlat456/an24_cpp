@@ -33,6 +33,36 @@ const NodePresenter* NodePresenterRegistry::find_presenter(ui::InternedId type_i
     return it == presenters_.end() ? nullptr : &it->second;
 }
 
+namespace {
+
+void populate_shell_metadata(NodeShellModel& shell,
+                             const NodePresentationCompileContext& ctx,
+                             const bp2::Blueprint::Node& node,
+                             ui::InternedId type_id) {
+    if (shell.frame_kind == NodeFrameKind::Standard && ctx.resolve_type_name != nullptr) {
+        shell.type_name = std::string(ctx.resolve_type_name(type_id, ctx.resolve_type_name_user_data));
+    }
+
+    if (shell.frame_kind != NodeFrameKind::Annotation) {
+        return;
+    }
+
+    auto it = node.semantic.string_params.find("text");
+    if (it != node.semantic.string_params.end()) {
+        shell.annotation_text = it->second;
+    }
+    auto font_it = node.semantic.string_params.find("font_size");
+    if (font_it != node.semantic.string_params.end()) {
+        char* end = nullptr;
+        float parsed = std::strtof(font_it->second.c_str(), &end);
+        if (end != font_it->second.c_str() && parsed > 0.0f) {
+            shell.annotation_font_size = parsed;
+        }
+    }
+}
+
+} // namespace
+
 // ============================================================================
 // Compile — registry-based (per-type presenter)
 // ============================================================================
@@ -49,6 +79,7 @@ NodePresentation compile_node_presentation(const NodePresentationCompileContext&
     presentation.node_id = node.semantic.id;
     presentation.shell.frame_kind = presenter->frame_kind;
     presentation.shell.title = node.view.name;
+    populate_shell_metadata(presentation.shell, ctx, node, type_id);
     presentation.content = presenter->content(node, type_id);
 
     return presentation;
@@ -375,46 +406,22 @@ PresentationNode default_content_presenter(const bp2::Blueprint::Node& node, ui:
 // Compile — render_hint-based (no registry needed)
 // ============================================================================
 
-NodePresentation compile_node_presentation(const bp2::Blueprint::Node& node) {
+NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
+                                           const bp2::Blueprint::Node& node) {
     NodePresentation presentation;
     presentation.node_id = node.semantic.id;
     presentation.shell.frame_kind = classify_frame_kind(node.view.render_hint);
     presentation.shell.title = node.view.name;
-
-    // Populate shell metadata based on frame kind
-    switch (presentation.shell.frame_kind) {
-        case NodeFrameKind::Annotation:
-            // Text nodes: store body text in annotation_text
-            {
-                auto it = node.semantic.string_params.find("text");
-                if (it != node.semantic.string_params.end()) {
-                    presentation.shell.annotation_text = it->second;
-                }
-                auto font_it = node.semantic.string_params.find("font_size");
-                if (font_it != node.semantic.string_params.end()) {
-                    char* end = nullptr;
-                    float parsed = std::strtof(font_it->second.c_str(), &end);
-                    if (end != font_it->second.c_str() && parsed > 0.0f) {
-                        presentation.shell.annotation_font_size = parsed;
-                    }
-                }
-            }
-            break;
-        case NodeFrameKind::Reference:
-        case NodeFrameKind::Bus:
-        case NodeFrameKind::Group:
-            break;
-        case NodeFrameKind::Standard:
-            // Standard nodes get a type_name footer
-            // (type_id is in semantic.type, but we don't have the interner here;
-            //  the raw InternedId is sufficient for downstream lookup)
-            break;
-    }
+    populate_shell_metadata(presentation.shell, ctx, node, node.semantic.type);
 
     // Compile content tree
     presentation.content = default_content_presenter(node, node.semantic.type);
 
     return presentation;
+}
+
+NodePresentation compile_node_presentation(const bp2::Blueprint::Node& node) {
+    return compile_node_presentation(NodePresentationCompileContext{}, node);
 }
 
 } // namespace editor::presentation

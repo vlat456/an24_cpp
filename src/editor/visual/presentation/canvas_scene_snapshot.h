@@ -69,6 +69,7 @@ enum class CanvasRenderObjectKind {
     NodeBody,
     NodeFrame,
     NodeTitle,
+    NodeFooter,
     ContentPaint,
     Port,
     Wire,

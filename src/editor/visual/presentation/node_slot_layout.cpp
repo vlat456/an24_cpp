@@ -329,16 +329,23 @@ NodeSlotLayout layout_node_presentation(const NodePresentation& presentation,
                                         const NodeSlotLayoutStyle& style) {
     NodeSlotLayout result;
 
+    // Activate footer only when a type label is present
+    const float effective_footer_height = presentation.shell.type_name.empty()
+        ? 0.0f
+        : std::max(style.footer_height, 16.0f);
+
     const float width = std::max(node_size.x, style.min_width);
     const float height = std::max(node_size.y, style.min_height);
     result.node_bounds = ui::Rect{0.0f, 0.0f, width, height};
 
     const ui::Rect header{0.0f, 0.0f, width, style.header_height};
     const float body_y = style.header_height + style.top_strip_height;
-    const float body_h = std::max(0.0f, height - body_y - style.bottom_strip_height);
+    const float footer_y = std::max(body_y, height - effective_footer_height);
+    const ui::Rect footer{0.0f, footer_y, width, effective_footer_height};
+    const float body_h = std::max(0.0f, footer_y - body_y - style.bottom_strip_height);
     const ui::Rect body{0.0f, body_y, width, body_h};
     const ui::Rect top_ports{0.0f, style.header_height, width, style.top_strip_height};
-    const ui::Rect bottom_ports{0.0f, height - style.bottom_strip_height, width, style.bottom_strip_height};
+    const ui::Rect bottom_ports{0.0f, footer_y - style.bottom_strip_height, width, style.bottom_strip_height};
     const ui::Rect left_ports{0.0f, body_y, style.side_strip_width, body_h};
     const ui::Rect right_ports{width - style.side_strip_width, body_y, style.side_strip_width, body_h};
     const ui::Rect body_content{
@@ -355,6 +362,7 @@ NodeSlotLayout layout_node_presentation(const NodePresentation& presentation,
     append_slot(result.slots, NodeSlot::Body, body_content);
     append_slot(result.slots, NodeSlot::RightPorts, right_ports);
     append_slot(result.slots, NodeSlot::BottomPorts, bottom_ports);
+    append_slot(result.slots, NodeSlot::Footer, footer);
     append_slot(result.slots, NodeSlot::Overlay, overlay);
 
     const ui::Rect content_bounds = inset_rect(body_content, style.body_padding);
