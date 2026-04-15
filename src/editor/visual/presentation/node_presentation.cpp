@@ -108,6 +108,8 @@ constexpr float KNOB_TICK_OUTER = 24.0f;
 constexpr float KNOB_ARC_START_DEG = 225.0f;
 constexpr float KNOB_ARC_SWEEP_DEG = -270.0f;
 constexpr float GAUGE_RADIUS = 40.0f;
+constexpr float GAUGE_CONTENT_HEIGHT = 92.0f;
+constexpr float GAUGE_CENTER_OFFSET_Y = GAUGE_RADIUS - GAUGE_CONTENT_HEIGHT * 0.5f; // -6.0f
 constexpr float GAUGE_NEEDLE_LENGTH = 32.0f;
 constexpr float GAUGE_START_ANGLE = 210.0f;
 constexpr float GAUGE_SWEEP_ANGLE = -240.0f;
@@ -136,10 +138,22 @@ PresentationNode make_node(ElementIdAllocator& ids) {
     return node;
 }
 
+PrimitiveGeometry default_geometry_for(PaintPrimitiveKind kind) {
+    switch (kind) {
+        case PaintPrimitiveKind::Rectangle: return RectGeometry{};
+        case PaintPrimitiveKind::Circle:    return CircleGeometry{};
+        case PaintPrimitiveKind::Line:      return LineGeometry{};
+        case PaintPrimitiveKind::Arc:       return ArcGeometry{};
+        case PaintPrimitiveKind::Text:
+        default:                            return TextGeometry{};
+    }
+}
+
 PaintCommand make_paint(ElementIdAllocator& ids, PaintPrimitiveKind kind) {
     PaintCommand paint;
     paint.id = ids.alloc();
     paint.kind = kind;
+    paint.geometry = default_geometry_for(kind);
     return paint;
 }
 
@@ -224,6 +238,7 @@ void build_slider_content(PresentationNode& root, ElementIdAllocator& ids,
         paint.fill_color = 0xFF5078C0;
         paint.stroke_color = 0xFF3050A0;
         paint.stroke_width = 1.0f;
+        paint.geometry = CircleGeometry{0.0f, 0.0f, SLIDER_HANDLE_RADIUS};
     });
 
     // Value label
@@ -256,6 +271,7 @@ void build_indicator_content(PresentationNode& root, ElementIdAllocator& ids,
         }
         paint.stroke_color = 0xFF404040;
         paint.stroke_width = 1.0f;
+        paint.geometry = CircleGeometry{0.0f, 0.0f, INDICATOR_SIZE * (0.3f + 0.15f * b)};
     });
 }
 
@@ -269,6 +285,7 @@ void build_knob_content(PresentationNode& root, ElementIdAllocator& ids,
         paint.fill_color = 0xFF3A3A42;
         paint.stroke_color = 0xFF606068;
         paint.stroke_width = 1.0f;
+        paint.geometry = CircleGeometry{0.0f, 0.0f, KNOB_RADIUS};
     });
 
     // Tick marks
@@ -277,10 +294,8 @@ void build_knob_content(PresentationNode& root, ElementIdAllocator& ids,
         const float angle = KNOB_ARC_START_DEG + t * KNOB_ARC_SWEEP_DEG;
         append_painted(root, ids, PaintPrimitiveKind::Line, [&](PaintCommand& paint) {
             paint.fill_color = (i == position) ? 0xFF5078C0 : 0xFF808090;
-            paint.inset = KNOB_TICK_INNER;
             paint.stroke_width = (i == position) ? 2.5f : 1.5f;
-            // Encode angle/radius in bounds via text_size (convention from visual_node)
-            paint.text_size = angle;
+            paint.geometry = LineGeometry{0.0f, 0.0f, angle, KNOB_TICK_INNER, KNOB_TICK_OUTER};
         });
     }
 
@@ -290,6 +305,7 @@ void build_knob_content(PresentationNode& root, ElementIdAllocator& ids,
     append_painted(root, ids, PaintPrimitiveKind::Line, [&](PaintCommand& paint) {
         paint.fill_color = 0xFF5078C0;
         paint.stroke_width = 2.0f;
+        paint.geometry = LineGeometry{0.0f, 0.0f, sel_angle, 0.0f, KNOB_RADIUS * 0.85f};
     });
 
     // Discrete drag interaction
@@ -308,18 +324,19 @@ void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
     // Arc
     append_painted(root, ids, PaintPrimitiveKind::Arc, [&](PaintCommand& paint) {
         paint.fill_color = COLOR_GAUGE_BORDER;
-        paint.inset = GAUGE_START_ANGLE;
         paint.stroke_width = 2.0f;
+        paint.geometry = ArcGeometry{0.0f, GAUGE_CENTER_OFFSET_Y, GAUGE_RADIUS, GAUGE_START_ANGLE, GAUGE_SWEEP_ANGLE};
     });
 
     // Tick marks
     for (int i = 0; i < 11; ++i) {
         const float t = static_cast<float>(i) / 10.0f;
+        const float angle = GAUGE_START_ANGLE + t * GAUGE_SWEEP_ANGLE;
         const bool is_major = (i % 5) == 0;
         append_painted(root, ids, PaintPrimitiveKind::Line, [&](PaintCommand& paint) {
             paint.fill_color = is_major ? COLOR_TICK_MAJOR : COLOR_TICK_MINOR;
-            paint.inset = GAUGE_RADIUS - (is_major ? 6.0f : 3.0f);
             paint.stroke_width = 1.5f;
+            paint.geometry = LineGeometry{0.0f, GAUGE_CENTER_OFFSET_Y, angle, GAUGE_RADIUS - (is_major ? 6.0f : 3.0f), GAUGE_RADIUS};
         });
     }
 
@@ -328,11 +345,13 @@ void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
     append_painted(root, ids, PaintPrimitiveKind::Line, [&](PaintCommand& paint) {
         paint.fill_color = COLOR_NEEDLE;
         paint.stroke_width = 2.0f;
+        paint.geometry = LineGeometry{0.0f, GAUGE_CENTER_OFFSET_Y, needle_angle, 0.0f, GAUGE_NEEDLE_LENGTH};
     });
 
     // Center dot
     append_painted(root, ids, PaintPrimitiveKind::Circle, [&](PaintCommand& paint) {
         paint.fill_color = COLOR_NEEDLE;
+        paint.geometry = CircleGeometry{0.0f, GAUGE_CENTER_OFFSET_Y, 3.0f};
     });
 
     // Value text
@@ -341,7 +360,7 @@ void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
         snprintf(buf, sizeof(buf), "%.1f", value);
         paint.text = buf;
         paint.fill_color = COLOR_GAUGE_TEXT;
-        paint.text_size = GAUGE_VALUE_FONT_SIZE;
+        paint.geometry = TextGeometry{0.0f, GAUGE_RADIUS * 2.0f + 5.0f, GAUGE_VALUE_FONT_SIZE, true};
     });
 
     // Unit text
@@ -349,7 +368,7 @@ void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
         append_painted(root, ids, PaintPrimitiveKind::Text, [&](PaintCommand& paint) {
             paint.text = node.view.content_unit;
             paint.fill_color = COLOR_TEXT_DIM;
-            paint.text_size = GAUGE_UNIT_FONT_SIZE;
+            paint.geometry = TextGeometry{0.0f, GAUGE_RADIUS * 2.0f + 21.0f, GAUGE_UNIT_FONT_SIZE, true};
         });
     }
 }

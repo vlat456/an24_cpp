@@ -846,3 +846,329 @@ TEST(DefaultContentPresenter, KnobValueClampedToMaxPositions) {
     ASSERT_NE(drag, nullptr);
     EXPECT_FLOAT_EQ(drag->step, 3.0f);
 }
+
+// ============================================================================
+// Regression: explicit geometry types for non-rect primitives
+// ============================================================================
+
+TEST(ExplicitGeometry, IndicatorCircleCarriesCircleGeometry) {
+    auto node = make_node(ui::InternedId(600), "Indicator", "", bp2::NodeContentType::Indicator);
+    node.view.content_value = 1.0f;
+    NodePresentation p = compile_node_presentation(node);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    const PaintCommand* circle_paint = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Circle) {
+            circle_paint = paint;
+            break;
+        }
+    }
+    ASSERT_NE(circle_paint, nullptr);
+
+    const auto* geo = std::get_if<CircleGeometry>(&circle_paint->geometry);
+    ASSERT_NE(geo, nullptr) << "Circle paint must carry CircleGeometry";
+    EXPECT_GT(geo->radius, 0.0f);
+    EXPECT_FLOAT_EQ(geo->cx, 0.0f);
+    EXPECT_FLOAT_EQ(geo->cy, 0.0f);
+}
+
+TEST(ExplicitGeometry, KnobCircleAndLinesCarryExplicitGeometry) {
+    auto node = make_node(ui::InternedId(601), "Knob", "", bp2::NodeContentType::Knob);
+    node.view.content_max = 5.0f;
+    node.view.content_value = 2.0f;
+    NodePresentation p = compile_node_presentation(node);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    // Knob body circle
+    const PaintCommand* circle_paint = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Circle) {
+            circle_paint = paint;
+            break;
+        }
+    }
+    ASSERT_NE(circle_paint, nullptr);
+    const auto* circle_geo = std::get_if<CircleGeometry>(&circle_paint->geometry);
+    ASSERT_NE(circle_geo, nullptr) << "Knob body must carry CircleGeometry";
+    EXPECT_GT(circle_geo->radius, 0.0f);
+
+    // Tick and pointer lines
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Line) {
+            const auto* line_geo = std::get_if<LineGeometry>(&paint->geometry);
+            ASSERT_NE(line_geo, nullptr) << "Knob line must carry LineGeometry";
+            EXPECT_GE(line_geo->outer_radius, line_geo->inner_radius);
+        }
+    }
+}
+
+TEST(ExplicitGeometry, GaugeArcAndTextsCarryExplicitGeometry) {
+    auto node = make_node(ui::InternedId(602), "Gauge", "", bp2::NodeContentType::Gauge);
+    node.view.content_value = 15.0f;
+    node.view.content_min = 0.0f;
+    node.view.content_max = 30.0f;
+    node.view.content_unit = "Volts";
+    NodePresentation p = compile_node_presentation(node);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    // Arc
+    const PaintCommand* arc_paint = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Arc) {
+            arc_paint = paint;
+            break;
+        }
+    }
+    ASSERT_NE(arc_paint, nullptr);
+    const auto* arc_geo = std::get_if<ArcGeometry>(&arc_paint->geometry);
+    ASSERT_NE(arc_geo, nullptr) << "Gauge arc must carry ArcGeometry";
+    EXPECT_GT(arc_geo->radius, 0.0f);
+    EXPECT_NE(arc_geo->sweep_angle_deg, 0.0f);
+
+    // Value and unit texts with distinct Y offsets
+    const PaintCommand* value_text = nullptr;
+    const PaintCommand* unit_text = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Text) {
+            if (paint->text == "15.0") value_text = paint;
+            else if (paint->text == "Volts") unit_text = paint;
+        }
+    }
+    ASSERT_NE(value_text, nullptr);
+    ASSERT_NE(unit_text, nullptr);
+
+    const auto* value_tg = std::get_if<TextGeometry>(&value_text->geometry);
+    const auto* unit_tg = std::get_if<TextGeometry>(&unit_text->geometry);
+    ASSERT_NE(value_tg, nullptr);
+    ASSERT_NE(unit_tg, nullptr);
+    EXPECT_GT(unit_tg->y, value_tg->y) << "Unit text must be below value text";
+    EXPECT_GT(value_tg->font_size, unit_tg->font_size) << "Value text must be larger than unit text";
+    EXPECT_TRUE(value_tg->center_aligned);
+    EXPECT_TRUE(unit_tg->center_aligned);
+}
+
+TEST(ExplicitGeometry, LayoutContentTreePlacesElementsDirectlyInBounds) {
+    auto node = make_node(ui::InternedId(603), "Knob", "", bp2::NodeContentType::Knob);
+    node.view.content_max = 3.0f;
+    NodePresentation p = compile_node_presentation(node);
+
+    const ui::Rect bounds{10.0f, 20.0f, 48.0f, 48.0f};
+    auto placements = layout_content_tree(p.content, bounds);
+
+    // Root placement should match the given bounds exactly
+    ASSERT_FALSE(placements.empty());
+    EXPECT_FLOAT_EQ(placements[0].bounds.x, bounds.x);
+    EXPECT_FLOAT_EQ(placements[0].bounds.y, bounds.y);
+    EXPECT_FLOAT_EQ(placements[0].bounds.w, bounds.w);
+    EXPECT_FLOAT_EQ(placements[0].bounds.h, bounds.h);
+
+    // All child placements should be within the bounds (Overlay layout)
+    for (const auto& placement : placements) {
+        EXPECT_GE(placement.bounds.x, bounds.x);
+        EXPECT_GE(placement.bounds.y, bounds.y);
+        EXPECT_LE(placement.bounds.x + placement.bounds.w, bounds.x + bounds.w + 0.01f);
+        EXPECT_LE(placement.bounds.y + placement.bounds.h, bounds.y + bounds.h + 0.01f);
+    }
+}
+
+TEST(ExplicitGeometry, ContentSemanticSnapshotHasNoShellObjects) {
+    auto node = make_node(ui::InternedId(604), "Indicator", "", bp2::NodeContentType::Indicator);
+    node.view.content_value = 0.5f;
+    NodePresentation p = compile_node_presentation(node);
+
+    const ui::Rect bounds{5.0f, 10.0f, 24.0f, 24.0f};
+    auto placements = layout_content_tree(p.content, bounds);
+    auto snapshot = build_content_semantic_scene_snapshot(p, placements);
+
+    // Content-only snapshot should have no NodeFrame, NodeTitle, or NodeFooter objects
+    for (const auto& obj : snapshot.render_objects) {
+        EXPECT_EQ(obj.kind, SceneRenderObjectKind::ContentPaint)
+            << "Content-only snapshot must not contain shell render objects";
+    }
+    // Should have no NodeBody hit objects
+    for (const auto& obj : snapshot.hit_objects) {
+        EXPECT_EQ(obj.kind, SceneHitObjectKind::ContentRegion)
+            << "Content-only snapshot must not contain shell hit objects";
+    }
+}
+
+// ============================================================================
+// Regression tests for explicit geometry correctness
+// ============================================================================
+
+TEST(ExplicitGeometry, IndicatorBreathingRadiusVariesWithValue) {
+    // Regression: indicator radius must vary with brightness (breathing effect).
+    // A static radius (e.g. INDICATOR_SIZE * 0.5f) is a regression.
+    auto node_off = make_node(ui::InternedId(700), "Indicator", "", bp2::NodeContentType::Indicator);
+    node_off.view.content_value = 0.0f;
+    NodePresentation p_off = compile_node_presentation(node_off);
+
+    auto node_on = make_node(ui::InternedId(701), "Indicator", "", bp2::NodeContentType::Indicator);
+    node_on.view.content_value = 1.0f;
+    NodePresentation p_on = compile_node_presentation(node_on);
+
+    auto get_indicator_radius = [](const PresentationNode& content) -> float {
+        for (const auto& child : content.children) {
+            for (const auto& p : child.paint) {
+                if (p.kind == PaintPrimitiveKind::Circle) {
+                    const auto* geo = std::get_if<CircleGeometry>(&p.geometry);
+                    return geo ? geo->radius : 0.0f;
+                }
+            }
+        }
+        return 0.0f;
+    };
+
+    float r_off = get_indicator_radius(p_off.content);
+    float r_on = get_indicator_radius(p_on.content);
+    EXPECT_GT(r_off, 0.0f) << "Off indicator must still have positive radius";
+    EXPECT_GT(r_on, r_off) << "Full-brightness indicator must have larger radius than off";
+    // Exact formula: INDICATOR_SIZE * (0.3 + 0.15 * b), INDICATOR_SIZE = 24
+    EXPECT_NEAR(r_off, 24.0f * 0.3f, 0.01f);
+    EXPECT_NEAR(r_on, 24.0f * 0.45f, 0.01f);
+}
+
+TEST(ExplicitGeometry, SliderHandleCarriesCircleGeometryWithRadius) {
+    // Regression: slider handle Circle must carry CircleGeometry with SLIDER_HANDLE_RADIUS.
+    // A missing geometry (defaulting to TextGeometry) makes the handle invisible.
+    auto node = make_node(ui::InternedId(702), "Slider", "", bp2::NodeContentType::Slider);
+    node.view.content_value = 5.0f;
+    node.view.content_min = 0.0f;
+    node.view.content_max = 10.0f;
+    NodePresentation p = compile_node_presentation(node);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    const PaintCommand* handle = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Circle) {
+            handle = paint;
+            break;
+        }
+    }
+    ASSERT_NE(handle, nullptr) << "Slider must have a Circle paint for the handle";
+
+    const auto* geo = std::get_if<CircleGeometry>(&handle->geometry);
+    ASSERT_NE(geo, nullptr) << "Slider handle must carry CircleGeometry, not TextGeometry";
+    EXPECT_NEAR(geo->radius, 6.0f, 0.01f) << "Handle radius must be SLIDER_HANDLE_RADIUS (6.0)";
+}
+
+TEST(ExplicitGeometry, DefaultGeometryMatchesPrimitiveKind) {
+    // Regression: make_paint must produce geometry matching the primitive kind.
+    // A Rectangle paint must carry RectGeometry, Circle must carry CircleGeometry, etc.
+    auto node = make_node(ui::InternedId(703), "Slider", "", bp2::NodeContentType::Slider);
+    node.view.content_value = 5.0f;
+    node.view.content_min = 0.0f;
+    node.view.content_max = 10.0f;
+    NodePresentation p = compile_node_presentation(node);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    for (const auto* paint : paints) {
+        switch (paint->kind) {
+            case PaintPrimitiveKind::Rectangle:
+                EXPECT_NE(std::get_if<RectGeometry>(&paint->geometry), nullptr)
+                    << "Rectangle paint must carry RectGeometry";
+                break;
+            case PaintPrimitiveKind::Circle:
+                EXPECT_NE(std::get_if<CircleGeometry>(&paint->geometry), nullptr)
+                    << "Circle paint must carry CircleGeometry";
+                break;
+            case PaintPrimitiveKind::Line:
+                EXPECT_NE(std::get_if<LineGeometry>(&paint->geometry), nullptr)
+                    << "Line paint must carry LineGeometry";
+                break;
+            case PaintPrimitiveKind::Arc:
+                EXPECT_NE(std::get_if<ArcGeometry>(&paint->geometry), nullptr)
+                    << "Arc paint must carry ArcGeometry";
+                break;
+            case PaintPrimitiveKind::Text:
+                EXPECT_NE(std::get_if<TextGeometry>(&paint->geometry), nullptr)
+                    << "Text paint must carry TextGeometry";
+                break;
+        }
+    }
+}
+
+TEST(ExplicitGeometry, GaugeRadialCenterOffsetMatchesLegacyPosition) {
+    // Regression: gauge radial center must be at GAUGE_RADIUS from the top of content,
+    // not at the vertical center. With content height 92 and GAUGE_RADIUS 40,
+    // the offset from center is 40 - 46 = -6.
+    auto node = make_node(ui::InternedId(704), "Gauge", "", bp2::NodeContentType::Gauge);
+    node.view.content_value = 15.0f;
+    node.view.content_min = 0.0f;
+    node.view.content_max = 30.0f;
+    NodePresentation p = compile_node_presentation(node);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    // Check arc center offset
+    const PaintCommand* arc_paint = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Arc) {
+            arc_paint = paint;
+            break;
+        }
+    }
+    ASSERT_NE(arc_paint, nullptr);
+    const auto* arc_geo = std::get_if<ArcGeometry>(&arc_paint->geometry);
+    ASSERT_NE(arc_geo, nullptr);
+    EXPECT_FLOAT_EQ(arc_geo->cy, -6.0f) << "Gauge arc center must be offset -6px from bounds center";
+
+    // Check all radial primitives share the same center offset
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Line) {
+            const auto* line_geo = std::get_if<LineGeometry>(&paint->geometry);
+            ASSERT_NE(line_geo, nullptr);
+            EXPECT_FLOAT_EQ(line_geo->cy, -6.0f) << "Gauge line center must match arc center offset";
+        }
+        if (paint->kind == PaintPrimitiveKind::Circle) {
+            const auto* circle_geo = std::get_if<CircleGeometry>(&paint->geometry);
+            ASSERT_NE(circle_geo, nullptr);
+            EXPECT_FLOAT_EQ(circle_geo->cy, -6.0f) << "Gauge center dot must match arc center offset";
+        }
+    }
+}
+
+TEST(ExplicitGeometry, GaugeTextYOffsetsMatchLegacyPositioning) {
+    // Regression: gauge value text must be at Y = GAUGE_RADIUS * 2 + 5 = 85,
+    // unit text at Y = GAUGE_RADIUS * 2 + 21 = 101, matching old absolute positioning.
+    auto node = make_node(ui::InternedId(705), "Gauge", "", bp2::NodeContentType::Gauge);
+    node.view.content_value = 15.0f;
+    node.view.content_min = 0.0f;
+    node.view.content_max = 30.0f;
+    node.view.content_unit = "V";
+    NodePresentation p = compile_node_presentation(node);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    const PaintCommand* value_text = nullptr;
+    const PaintCommand* unit_text = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Text) {
+            if (paint->text == "15.0") value_text = paint;
+            else if (paint->text == "V") unit_text = paint;
+        }
+    }
+    ASSERT_NE(value_text, nullptr);
+    ASSERT_NE(unit_text, nullptr);
+
+    const auto* value_tg = std::get_if<TextGeometry>(&value_text->geometry);
+    const auto* unit_tg = std::get_if<TextGeometry>(&unit_text->geometry);
+    ASSERT_NE(value_tg, nullptr);
+    ASSERT_NE(unit_tg, nullptr);
+
+    EXPECT_NEAR(value_tg->y, 85.0f, 0.01f) << "Value text Y must be GAUGE_RADIUS * 2 + 5";
+    EXPECT_NEAR(unit_tg->y, 101.0f, 0.01f) << "Unit text Y must be GAUGE_RADIUS * 2 + 21";
+}

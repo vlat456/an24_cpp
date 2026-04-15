@@ -41,13 +41,12 @@ void append_content_objects(const NodePresentation& presentation,
         render_object.kind = SceneRenderObjectKind::ContentPaint;
         render_object.frame_kind = presentation.shell.frame_kind;
         render_object.primitive = paint.kind;
+        render_object.geometry = paint.geometry;
         render_object.bounds = *bounds;
         render_object.text = paint.text;
         render_object.fill_color = paint.fill_color;
         render_object.stroke_color = paint.stroke_color;
         render_object.stroke_width = paint.stroke_width;
-        render_object.inset = paint.inset;
-        render_object.text_size = paint.text_size;
         snapshot.render_objects.push_back(std::move(render_object));
     }
 
@@ -152,6 +151,30 @@ SemanticSceneSnapshot build_semantic_scene_snapshot(const std::vector<SemanticSc
 SemanticSceneSnapshot build_semantic_scene_snapshot(const NodePresentation& presentation,
                                                     const NodeSlotLayout& layout) {
     return build_semantic_scene_snapshot(std::vector<SemanticSceneNode>{{presentation, layout}});
+}
+
+SemanticSceneSnapshot build_content_semantic_scene_snapshot(
+    const NodePresentation& presentation,
+    const std::vector<FragmentPlacement>& placements) {
+    SemanticSceneSnapshot snapshot;
+    uint32_t next_id = 1;
+
+    // Build a temporary layout with just the placements (no slots needed)
+    NodeSlotLayout layout;
+    layout.placements = placements;
+
+    SceneNodeIndexEntry entry;
+    entry.node_id = presentation.node_id;
+    entry.render_range.offset = snapshot.render_objects.size();
+    entry.hit_range.offset = snapshot.hit_objects.size();
+
+    append_content_objects(presentation, layout, presentation.content, snapshot, next_id);
+
+    entry.render_range.count = snapshot.render_objects.size() - entry.render_range.offset;
+    entry.hit_range.count = snapshot.hit_objects.size() - entry.hit_range.offset;
+    snapshot.node_index.push_back(entry);
+
+    return snapshot;
 }
 
 const SceneRenderObject* find_render_object_by_id(const SemanticSceneSnapshot& snapshot, SceneObjectId id) {

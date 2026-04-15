@@ -146,4 +146,9 @@ NodeSlotLayout layout_node_presentation(const NodePresentation& presentation,
                                         ui::Pt node_size,
                                         const NodeSlotLayoutStyle& style = {});
 
+/// Layout only the content tree within the given bounds (no shell, no header/footer/ports).
+/// Returns fragment placements for the content node and all its descendants.
+std::vector<FragmentPlacement> layout_content_tree(const PresentationNode& content,
+                                                   const ui::Rect& bounds);
+
 } // namespace editor::presentation

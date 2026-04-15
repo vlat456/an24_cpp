@@ -250,13 +250,12 @@ void project_widget_recursive(const visual::Widget& widget,
                     .node_id = node_iid,
                     .element_id = sem_obj.element_id,
                     .kind = kind,
+                    .geometry = sem_obj.geometry,
                     .bounds = offset_rect(sem_obj.bounds, content_offset),
                     .text = sem_obj.text,
                     .fill_color = sem_obj.fill_color,
                     .stroke_color = sem_obj.stroke_color,
                     .stroke_width = sem_obj.stroke_width,
-                    .inset = sem_obj.inset,
-                    .text_size = sem_obj.text_size,
                 });
             }
 

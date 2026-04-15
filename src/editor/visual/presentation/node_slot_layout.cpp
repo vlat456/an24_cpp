@@ -370,4 +370,11 @@ NodeSlotLayout layout_node_presentation(const NodePresentation& presentation,
     return result;
 }
 
+std::vector<FragmentPlacement> layout_content_tree(const PresentationNode& content,
+                                                   const ui::Rect& bounds) {
+    std::vector<FragmentPlacement> placements;
+    place_fragment_node(content, bounds, placements);
+    return placements;
+}
+
 } // namespace editor::presentation

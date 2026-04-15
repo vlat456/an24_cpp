@@ -47,13 +47,12 @@ struct SceneRenderObject {
     SceneRenderObjectKind kind = SceneRenderObjectKind::ContentPaint;
     NodeFrameKind frame_kind = NodeFrameKind::Standard;
     PaintPrimitiveKind primitive = PaintPrimitiveKind::Rectangle;
+    PrimitiveGeometry geometry;
     ui::Rect bounds;
     std::string text;
     uint32_t fill_color = 0;
     uint32_t stroke_color = 0;
     float stroke_width = 0.0f;
-    float inset = 0.0f;
-    float text_size = 0.0f;
 };
 
 enum class SceneHitObjectKind {
@@ -107,6 +106,12 @@ SemanticSceneSnapshot build_semantic_scene_snapshot(const std::vector<SemanticSc
 
 SemanticSceneSnapshot build_semantic_scene_snapshot(const NodePresentation& presentation,
                                                     const NodeSlotLayout& layout);
+
+/// Build a content-only semantic scene snapshot (no shell frame/title/footer/body hit).
+/// Uses the provided fragment placements directly — no slot layout required.
+SemanticSceneSnapshot build_content_semantic_scene_snapshot(
+    const NodePresentation& presentation,
+    const std::vector<FragmentPlacement>& placements);
 
 const SceneRenderObject* find_render_object_by_id(const SemanticSceneSnapshot& snapshot, SceneObjectId id);
 const SceneHitObject* find_hit_object_by_id(const SemanticSceneSnapshot& snapshot, SceneObjectId id);

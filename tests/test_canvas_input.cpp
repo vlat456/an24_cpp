@@ -2359,9 +2359,14 @@ TEST(CanvasInputSemanticRender, IndicatorAndKnobCirclesUseCenteredRadiusEncoding
             return object.primitive == editor::presentation::PaintPrimitiveKind::Circle;
         });
     ASSERT_NE(ind_circle, ind_snapshot.render_objects.end());
-    EXPECT_FLOAT_EQ(ind_circle->bounds.x, ind_cb.x + ind_cb.w * 0.5f);
-    EXPECT_FLOAT_EQ(ind_circle->bounds.y, ind_cb.y + ind_cb.h * 0.5f);
-    EXPECT_GT(ind_circle->bounds.w, 0.0f);
+    const auto* ind_geo = std::get_if<editor::presentation::CircleGeometry>(&ind_circle->geometry);
+    ASSERT_NE(ind_geo, nullptr);
+    // Radial primitives use bounds center + geometry offset as world-space center
+    EXPECT_FLOAT_EQ(ind_circle->bounds.x + ind_circle->bounds.w * 0.5f + ind_geo->cx,
+                    ind_cb.x + ind_cb.w * 0.5f);
+    EXPECT_FLOAT_EQ(ind_circle->bounds.y + ind_circle->bounds.h * 0.5f + ind_geo->cy,
+                    ind_cb.y + ind_cb.h * 0.5f);
+    EXPECT_GT(ind_geo->radius, 0.0f);
 
     const Bounds knob_cb = knob_widget->contentBounds();
     const auto& knob_snapshot = knob_widget->content_semantic_snapshot();
@@ -2370,9 +2375,13 @@ TEST(CanvasInputSemanticRender, IndicatorAndKnobCirclesUseCenteredRadiusEncoding
             return object.primitive == editor::presentation::PaintPrimitiveKind::Circle;
         });
     ASSERT_NE(knob_circle, knob_snapshot.render_objects.end());
-    EXPECT_FLOAT_EQ(knob_circle->bounds.x, knob_cb.x + knob_cb.w * 0.5f);
-    EXPECT_FLOAT_EQ(knob_circle->bounds.y, knob_cb.y + knob_cb.h * 0.5f);
-    EXPECT_GT(knob_circle->bounds.w, 0.0f);
+    const auto* knob_geo = std::get_if<editor::presentation::CircleGeometry>(&knob_circle->geometry);
+    ASSERT_NE(knob_geo, nullptr);
+    EXPECT_FLOAT_EQ(knob_circle->bounds.x + knob_circle->bounds.w * 0.5f + knob_geo->cx,
+                    knob_cb.x + knob_cb.w * 0.5f);
+    EXPECT_FLOAT_EQ(knob_circle->bounds.y + knob_circle->bounds.h * 0.5f + knob_geo->cy,
+                    knob_cb.y + knob_cb.h * 0.5f);
+    EXPECT_GT(knob_geo->radius, 0.0f);
 }
 
 TEST(CanvasInputSemanticRender, GaugeRestoresLegacyTextStackAndFullComposition) {
@@ -2418,8 +2427,14 @@ TEST(CanvasInputSemanticRender, GaugeRestoresLegacyTextStackAndFullComposition) 
 
     ASSERT_NE(value_text, nullptr);
     ASSERT_NE(unit_text, nullptr);
-    EXPECT_GT(unit_text->bounds.y, value_text->bounds.y);
-    EXPECT_GT(value_text->text_size, unit_text->text_size);
+    // With Overlay layout, both texts share the same bounds rect.
+    // The Y separation is encoded in TextGeometry.y (relative offset within the element).
+    const auto* value_tg = std::get_if<editor::presentation::TextGeometry>(&value_text->geometry);
+    const auto* unit_tg = std::get_if<editor::presentation::TextGeometry>(&unit_text->geometry);
+    ASSERT_NE(value_tg, nullptr);
+    ASSERT_NE(unit_tg, nullptr);
+    EXPECT_GT(unit_tg->y, value_tg->y);
+    EXPECT_GT(value_tg->font_size, unit_tg->font_size);
 }
 
 TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {

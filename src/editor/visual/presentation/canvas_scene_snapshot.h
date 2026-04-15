@@ -91,13 +91,12 @@ struct CanvasRenderObject {
     ui::InternedId node_id;
     ui::InternedId element_id;
     CanvasRenderObjectKind kind = CanvasRenderObjectKind::ContentPaint;
+    PrimitiveGeometry geometry;
     ui::Rect bounds;
     std::string text;
     uint32_t fill_color = 0;
     uint32_t stroke_color = 0;
     float stroke_width = 0.0f;
-    float inset = 0.0f;
-    float text_size = 0.0f;
 };
 
 struct CanvasHitObject {

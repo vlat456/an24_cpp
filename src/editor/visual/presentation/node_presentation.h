@@ -6,6 +6,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace editor::presentation {
@@ -51,18 +52,65 @@ enum class InteractionKind {
 };
 
 // ============================================================================
+// Primitive geometry — explicit, type-safe, no overloaded fields
+// ============================================================================
+
+/// Text: positioned at (x, y) offset from element bounds origin.
+/// If center_aligned is true, text is horizontally centered within element bounds.
+struct TextGeometry {
+    float x = 0.0f;
+    float y = 0.0f;
+    float font_size = 10.0f;
+    bool center_aligned = false;
+};
+
+/// Rectangle: axis-aligned box.
+struct RectGeometry {
+    float x = 0.0f;
+    float y = 0.0f;
+    float w = 0.0f;
+    float h = 0.0f;
+};
+
+/// Circle: center + radius.
+struct CircleGeometry {
+    float cx = 0.0f;
+    float cy = 0.0f;
+    float radius = 0.0f;
+};
+
+/// Line: radial line from center, defined by angle and inner/outer radii.
+struct LineGeometry {
+    float cx = 0.0f;
+    float cy = 0.0f;
+    float angle_deg = 0.0f;
+    float inner_radius = 0.0f;
+    float outer_radius = 0.0f;
+};
+
+/// Arc: circular arc from center, defined by radius, start angle, and sweep.
+struct ArcGeometry {
+    float cx = 0.0f;
+    float cy = 0.0f;
+    float radius = 0.0f;
+    float start_angle_deg = 0.0f;
+    float sweep_angle_deg = 0.0f;
+};
+
+using PrimitiveGeometry = std::variant<TextGeometry, RectGeometry, CircleGeometry, LineGeometry, ArcGeometry>;
+
+// ============================================================================
 // Paint / Hit / Interaction primitives
 // ============================================================================
 
 struct PaintCommand {
     ui::InternedId id;
     PaintPrimitiveKind kind = PaintPrimitiveKind::Text;
+    PrimitiveGeometry geometry;
     std::string text;
     uint32_t fill_color = 0;
     uint32_t stroke_color = 0;
     float stroke_width = 0.0f;
-    float inset = 0.0f;
-    float text_size = 0.0f;
 };
 
 struct HitRegion {
