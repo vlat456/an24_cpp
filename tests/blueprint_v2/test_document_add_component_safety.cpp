@@ -4,6 +4,8 @@
 #include "editor/commands/blueprint_checksum.h"
 #include "editor/commands/commands.h"
 #include "editor/commands/extract_blueprint.h"
+#include "editor/input/canvas_input.h"
+#include "editor/input/input_types.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/library/library_index.h"
@@ -602,4 +604,66 @@ TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
     const auto* inline_bp = updated_host->source->inline_def();
     ASSERT_NE(inline_bp, nullptr);
     EXPECT_NE(inline_bp->find_node(I.lookup("firstorderlag_1")), nullptr);
+}
+
+// ============================================================================
+// Integration: newly inserted node must be selectable via Document lifecycle
+// ============================================================================
+
+TEST(DocumentSafety, NewlyAddedComponentIsImmediatelySelectableViaDocument) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    // Start with an empty blueprint
+    bp2::Blueprint bp;
+    bp = bp.with_id(doc.interner().intern("select_test"));
+    bp = bp.with_name("Select Test");
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    // Add a component through the full Document path
+    doc.addComponent("Resistor", Pt{200.0f, 200.0f}, "", registry);
+
+    // After addComponent, the scene should have the new node widget
+    const auto& scene = doc.scene();
+    const auto& blueprint = doc.blueprint();
+    ASSERT_EQ(blueprint.nodes().size(), 1u);
+
+    // Get the new node's ID
+    const auto& new_node = blueprint.nodes()[0];
+    std::string_view node_id_sv = doc.interner().resolve(new_node.semantic.id);
+    ASSERT_FALSE(node_id_sv.empty());
+
+    // Find the widget in the scene
+    auto* widget = scene.find(node_id_sv);
+    ASSERT_NE(widget, nullptr) << "Widget for newly added node must exist in scene";
+    EXPECT_GT(widget->size().x, 0.0f) << "Widget must have non-zero width";
+    EXPECT_GT(widget->size().y, 0.0f) << "Widget must have non-zero height";
+
+    // Hit test at the center of the widget using the retained snapshot
+    Pt node_center = widget->worldPos() + widget->size() * 0.5f;
+    const Pt canvas_min(0.0f, 0.0f);
+
+    // Click on the new node - should select it
+    auto& input = doc.input();
+    input.on_mouse_down(node_center, MouseButton::Left, canvas_min);
+    EXPECT_EQ(input.state(), InputState::DraggingNode)
+        << "Clicking on newly added node must enter DraggingNode";
+    input.on_mouse_up(MouseButton::Left, node_center, canvas_min);
+
+    ASSERT_EQ(input.selected_node_ids().size(), 1u);
+
+    // Deselect by clicking empty space
+    Pt empty(900.0f, 900.0f);
+    input.on_mouse_down(empty, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, empty, canvas_min);
+    EXPECT_TRUE(input.selected_node_ids().empty());
+
+    // Click the node AGAIN — this is the reported bug
+    input.on_mouse_down(node_center, MouseButton::Left, canvas_min);
+    EXPECT_EQ(input.state(), InputState::DraggingNode)
+        << "Re-clicking node after deselect must still select it (regression bug)";
+    input.on_mouse_up(MouseButton::Left, node_center, canvas_min);
+    ASSERT_EQ(input.selected_node_ids().size(), 1u);
 }

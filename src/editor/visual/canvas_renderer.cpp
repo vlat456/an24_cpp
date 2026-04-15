@@ -271,13 +271,14 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
         dispatch(win.input.on_scroll(io.MouseWheel * CanvasConstants::SCROLL_ZOOM_FACTOR, screen_pos, cmin));
     }
 
-    bool was_dbl = false;
+    bool was_dbl_consumed = false;
     if (ImGui::IsMouseDoubleClicked(0)) {
-        dispatch(win.input.on_double_click(screen_pos, cmin));
-        was_dbl = true;
+        InputResult dbl_result = win.input.on_double_click(screen_pos, cmin);
+        was_dbl_consumed = dbl_result.double_click_consumed;
+        dispatch(std::move(dbl_result));
     }
 
-    if (!was_dbl && ImGui::IsMouseClicked(0)) {
+    if (!was_dbl_consumed && ImGui::IsMouseClicked(0)) {
         dispatch(win.input.on_mouse_down(screen_pos, MouseButton::Left, cmin, mods));
     }
 

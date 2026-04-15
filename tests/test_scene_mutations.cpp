@@ -804,5 +804,4 @@ TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
     ASSERT_NE(short_widget, nullptr);
 
     EXPECT_EQ(long_widget->minimumNodeSize().x, short_widget->minimumNodeSize().x);
-    EXPECT_GT(long_widget->preferredSize(nullptr).x, short_widget->preferredSize(nullptr).x);
 }

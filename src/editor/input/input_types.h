@@ -76,6 +76,12 @@ struct InputResult {
     bool has_inline_value_editor_screen_pos = false;
     ui::Pt inline_value_editor_screen_pos;
 
+    /// Set by on_double_click when the event was consumed by a
+    /// double-click-specific action (routing point deletion, inline value
+    /// editor, open sub-window, add routing point).  When false, the caller
+    /// should fall through to on_mouse_down so that the click still selects.
+    bool double_click_consumed = false;
+
     /// Combine results (logical OR of flags)
     InputResult& operator|=(const InputResult& o) {
         rebuild_simulation |= o.rebuild_simulation;
@@ -108,6 +114,7 @@ struct InputResult {
             show_node_context_menu = true;
             context_menu_node_id = o.context_menu_node_id;
         }
+        double_click_consumed |= o.double_click_consumed;
         return *this;
     }
 };

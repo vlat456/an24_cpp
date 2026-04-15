@@ -246,6 +246,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
                     rebuild_scene();
                 }
             }
+            result.double_click_consumed = true;
             return result;
         }
     }
@@ -267,10 +268,12 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
             result.inline_value_editor_node_id = node_id;
             result.has_inline_value_editor_screen_pos = true;
             result.inline_value_editor_screen_pos = screen_pos;
+            result.double_click_consumed = true;
             return result;
         }
         if (node && node->is_blueprint_instance()) {
             result.open_sub_window = node_id;
+            result.double_click_consumed = true;
             return result;
         }
     }
@@ -290,9 +293,13 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
                     rebuild_scene();
                 }
             }
+            result.double_click_consumed = true;
         }
     }
 
+    // If we reach here, no double-click-specific action was taken.
+    // double_click_consumed remains false, signalling the caller to
+    // fall through to on_mouse_down so the click still selects/interacts.
     return result;
 }
 

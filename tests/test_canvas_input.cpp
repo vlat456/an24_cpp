@@ -3489,7 +3489,289 @@ TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
             << "Ref node Y=" << new_pos.y << " must be on half-grid (step=" << half_step << ")";
     } else {
         // If the click didn't land on the node body (hit a port instead), skip
-        GTEST_SKIP() << "Click landed on port instead of node body; "
+         GTEST_SKIP() << "Click landed on port instead of node body; "
                      << "state=" << static_cast<int>(input.state());
     }
+}
+
+// ============================================================================
+// Regression: Newly inserted nodes must be immediately interactive
+// ============================================================================
+
+// Reproduces the exact user-reported bug: after adding a node via model
+// mutation + rebuild_scene (the path used by Document::addComponent →
+// rebuildAllWindows), the node must be selectable and resizable without
+// any second insertion or other workaround.
+TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelySelectable) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    // Start with one pre-existing node (simulates an already-saved blueprint)
+    auto existing = make_node(I, "existing", "Battery", 40.0f, 40.0f);
+    existing.layout.width = 100.0f;
+    existing.layout.height = 60.0f;
+    set_iface(existing, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(existing));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    // --- Simulate addComponent: add a new node to the model ---
+    {
+        bp2::Blueprint::Node new_node;
+        new_node.kind = bp2::Blueprint::Node::Kind::Component;
+        new_node.semantic.id = I.intern("new_lamp");
+        new_node.semantic.type = I.intern("Lamp");
+        new_node.view.name = "new_lamp";
+        new_node.layout.x = 300.0f;
+        new_node.layout.y = 300.0f;
+        // width/height intentionally left as nullopt — this is how addComponent works
+        new_node.semantic.iface = bp2::Interface({
+            {I.intern("v_in"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+        });
+
+        bp2::Blueprint updated = model.current().with_node(std::move(new_node));
+        model.replace_current(std::move(updated));
+    }
+
+    // --- Simulate rebuildAllWindows: cancel + rebuild scene + rebuild snapshot ---
+    // (Document::rebuildAllWindows does: cancel_gesture → visual::mutations::rebuild → rebuild_snapshot)
+    input.cancel_gesture();
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+    input.rebuild_snapshot();
+
+    // Verify the new node widget exists in the scene
+    auto* new_widget = scene.find("new_lamp");
+    ASSERT_NE(new_widget, nullptr) << "New node widget must exist in scene after rebuild";
+    ASSERT_GT(new_widget->size().x, 0.0f) << "New node must have non-zero width";
+    ASSERT_GT(new_widget->size().y, 0.0f) << "New node must have non-zero height";
+
+    const Pt canvas_min(0.0f, 0.0f);
+
+    // --- Click on the new node body to select it ---
+    Pt new_node_center = new_widget->worldPos() + new_widget->size() * 0.5f;
+    input.on_mouse_down(new_node_center, MouseButton::Left, canvas_min);
+    EXPECT_EQ(input.state(), InputState::DraggingNode)
+        << "Clicking on newly inserted node must enter DraggingNode (i.e., select it)";
+    input.on_mouse_up(MouseButton::Left, new_node_center, canvas_min);
+
+    // Verify it's actually selected
+    ASSERT_EQ(input.selected_node_ids().size(), 1u);
+    EXPECT_EQ(input.selected_node_ids()[0], I.intern("new_lamp"));
+
+    // --- Deselect by clicking empty space ---
+    Pt empty_space(900.0f, 900.0f);
+    input.on_mouse_down(empty_space, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, empty_space, canvas_min);
+    EXPECT_TRUE(input.selected_node_ids().empty()) << "Selection must be cleared after clicking empty space";
+
+    // --- Click the new node again — THIS IS THE BUG: should still be selectable ---
+    input.on_mouse_down(new_node_center, MouseButton::Left, canvas_min);
+    EXPECT_EQ(input.state(), InputState::DraggingNode)
+        << "Re-clicking newly inserted node after deselection must still enter DraggingNode";
+    input.on_mouse_up(MouseButton::Left, new_node_center, canvas_min);
+    ASSERT_EQ(input.selected_node_ids().size(), 1u);
+    EXPECT_EQ(input.selected_node_ids()[0], I.intern("new_lamp"))
+        << "Newly inserted node must remain selectable without a second insertion";
+}
+
+TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelyResizable) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto existing = make_node(I, "existing", "Battery", 40.0f, 40.0f);
+    existing.layout.width = 100.0f;
+    existing.layout.height = 60.0f;
+    set_iface(existing, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(existing));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    // --- Simulate addComponent ---
+    {
+        bp2::Blueprint::Node new_node;
+        new_node.kind = bp2::Blueprint::Node::Kind::Component;
+        new_node.semantic.id = I.intern("new_lamp");
+        new_node.semantic.type = I.intern("Lamp");
+        new_node.view.name = "new_lamp";
+        new_node.layout.x = 300.0f;
+        new_node.layout.y = 300.0f;
+        new_node.semantic.iface = bp2::Interface({
+            {I.intern("v_in"), Domain::Electrical, bp2::Direction::Input, PortType::V},
+        });
+
+        bp2::Blueprint updated = model.current().with_node(std::move(new_node));
+        model.replace_current(std::move(updated));
+    }
+
+    input.cancel_gesture();
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+    input.rebuild_snapshot();
+
+    auto* new_widget = scene.find("new_lamp");
+    ASSERT_NE(new_widget, nullptr);
+
+    // Compute the bottom-right corner of the new node for resize handle hit
+    Pt br_corner = new_widget->worldMin() + new_widget->size();
+    // Hit the resize handle area: slightly inside the bottom-right corner
+    Pt resize_hit = Pt(br_corner.x - 4.0f, br_corner.y - 4.0f);
+
+    const Pt canvas_min(0.0f, 0.0f);
+    input.on_mouse_down(resize_hit, MouseButton::Left, canvas_min);
+    EXPECT_EQ(input.state(), InputState::ResizingNode)
+        << "Clicking on resize handle of newly inserted node must enter ResizingNode immediately";
+    input.on_mouse_up(MouseButton::Left, resize_hit, canvas_min);
+}
+
+// ============================================================================
+// Regression: double-click on regular node must select (not swallow click)
+// ============================================================================
+
+TEST(CanvasInputDoubleClick, DoubleClickOnRegularNodeDoesNotConsumeEvent) {
+    // When on_double_click fires on a regular component node (not Value, not
+    // BlueprintInstance), the result must NOT be consumed, so that the caller
+    // can fall through to on_mouse_down for normal selection/drag behavior.
+    // This is the root cause of the "newly inserted node not selectable" bug:
+    // ImGui sends IsMouseDoubleClicked when two clicks are fast enough, and
+    // the old code skipped on_mouse_down entirely even though on_double_click
+    // did nothing for regular nodes.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto node = make_node(I, "bat1", "Battery", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("bat1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    const Pt canvas_min(0.0f, 0.0f);
+    Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
+
+    // Simulate what handleInput does: call on_double_click, check consumed flag
+    InputResult dbl_result = input.on_double_click(click_pos, canvas_min);
+    EXPECT_FALSE(dbl_result.double_click_consumed)
+        << "on_double_click on a regular component node must NOT consume the event";
+
+    // Since not consumed, handleInput would call on_mouse_down next
+    input.on_mouse_down(click_pos, MouseButton::Left, canvas_min);
+    EXPECT_EQ(input.state(), InputState::DraggingNode)
+        << "Fallthrough to on_mouse_down after unconsumed double-click must select the node";
+    EXPECT_EQ(input.selected_node_ids().size(), 1u);
+    EXPECT_EQ(input.selected_node_ids()[0], I.intern("bat1"));
+}
+
+TEST(CanvasInputDoubleClick, DoubleClickOnValueNodeConsumesEvent) {
+    // Value node double-click opens inline editor — must be consumed.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto value_node = make_node(I, "val1", "Value", 120.0f, 80.0f);
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(value_node));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    const Pt canvas_min(0.0f, 0.0f);
+    Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
+
+    InputResult dbl_result = input.on_double_click(click_pos, canvas_min);
+    EXPECT_TRUE(dbl_result.double_click_consumed)
+        << "on_double_click on Value node must consume the event (opens inline editor)";
+    EXPECT_TRUE(dbl_result.open_inline_value_editor);
+}
+
+TEST(CanvasInputDoubleClick, DoubleClickOnBlueprintInstanceConsumesEvent) {
+    // BlueprintInstance double-click opens sub-window — must be consumed.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto group = make_node(I, "grp1", "Composite", 120.0f, 80.0f);
+    group.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    group.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("Composite"),
+        std::make_unique<bp2::Blueprint>());
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(group));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* widget = dynamic_cast<visual::Widget*>(scene.find("grp1"));
+    ASSERT_NE(widget, nullptr);
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    const Pt canvas_min(0.0f, 0.0f);
+    Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
+
+    InputResult dbl_result = input.on_double_click(click_pos, canvas_min);
+    EXPECT_TRUE(dbl_result.double_click_consumed)
+        << "on_double_click on BlueprintInstance must consume the event (opens sub-window)";
+    EXPECT_EQ(dbl_result.open_sub_window, "grp1");
+}
+
+TEST(CanvasInputDoubleClick, DoubleClickOnEmptySpaceDoesNotConsume) {
+    // Double-clicking on empty space should not consume — handleInput should
+    // fall through to on_mouse_down which enters panning.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    const Pt canvas_min(0.0f, 0.0f);
+
+    InputResult dbl_result = input.on_double_click(Pt(500.0f, 500.0f), canvas_min);
+    EXPECT_FALSE(dbl_result.double_click_consumed)
+        << "on_double_click on empty space must NOT consume the event";
 }

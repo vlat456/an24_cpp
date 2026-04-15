@@ -5,6 +5,7 @@
 #include "visual/primitives/primitives.h"
 #include "visual/node/bounds.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
+#include "editor/visual/presentation/node_slot_layout.h"
 #include "ui/core/interned_id.h"
 #include "visual/node/port_layout_resolver.h"
 #include "data/node_content.h"
@@ -129,13 +130,9 @@ private:
     bool content_reserve_height_ = true;
     Pt content_preferred_size_{};
 
-    // ---- Slot geometry (recomputed each layout) ----
-    static constexpr float kHeaderHeight = 24.0f;
-    static constexpr float kFooterHeight = 16.0f;
-
-    /// Has top/bottom port strips?
-    bool has_top_strip_ = false;
-    bool has_bottom_strip_ = false;
+    // ---- Slot-driven shell layout state ----
+    editor::presentation::NodeShellLayoutSpec shell_spec_{};
+    mutable editor::presentation::NodeShellLayout measured_shell_{};
 
     void build(const bp2::Blueprint::Node& data,
                const bp2::Interface& render_iface,
@@ -143,30 +140,8 @@ private:
     void configure_content_geometry(bp2::NodeContentType content_type);
     void refresh_content_semantic_snapshot();
 
-    // ---- Layout helpers ----
-    /// Compute slot regions from node size.
-    struct SlotRegions {
-        float header_y = 0.0f;
-        float header_h = 0.0f;
-        float top_strip_y = 0.0f;
-        float top_strip_h = 0.0f;
-        float body_y = 0.0f;
-        float body_h = 0.0f;
-        float bottom_strip_y = 0.0f;
-        float bottom_strip_h = 0.0f;
-        float footer_y = 0.0f;
-        float footer_h = 0.0f;
-    };
-
-    SlotRegions compute_slot_regions(float w, float h) const;
-    void layout_side_ports(const std::vector<PortEntry*>& entries,
-                           bp2::PortLayoutSide side,
-                           float node_w, float body_y, float body_h);
-    void layout_edge_ports(const std::vector<PortEntry*>& entries,
-                           bp2::PortLayoutSide side,
-                           float node_w, float node_h,
-                           float strip_y, float strip_h);
-    Bounds compute_content_bounds(float node_w, const SlotRegions& slots) const;
+    editor::presentation::NodeShellLayoutSpec build_shell_spec(IDrawList* dl) const;
+    void apply_shell_layout(const editor::presentation::NodeShellLayout& shell);
 };
 
 } // namespace visual

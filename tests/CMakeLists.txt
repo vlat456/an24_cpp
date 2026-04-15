@@ -582,6 +582,51 @@ target_link_libraries(visual_primitives_tests PRIVATE
 )
 gtest_discover_tests(visual_primitives_tests)
 
+# Node slot layout engine tests (shell measure/arrange + presentation layout)
+add_executable(node_slot_layout_tests
+    test_node_slot_layout.cpp
+)
+target_include_directories(node_slot_layout_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(node_slot_layout_tests PRIVATE
+    editor_semantic_canvas
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(node_slot_layout_tests)
+
+# Semantic scene snapshot tests (snapshot builder, node indexing, render/hit object projection)
+add_executable(semantic_scene_snapshot_tests
+    test_semantic_scene_snapshot.cpp
+)
+target_include_directories(semantic_scene_snapshot_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(semantic_scene_snapshot_tests PRIVATE
+    editor_semantic_canvas
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(semantic_scene_snapshot_tests)
+
+# Semantic scene hit-test tests (point-in-region, layer ordering, interaction bindings)
+add_executable(semantic_scene_hittest_tests
+    test_semantic_scene_hittest.cpp
+)
+target_include_directories(semantic_scene_hittest_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(semantic_scene_hittest_tests PRIVATE
+    editor_semantic_canvas
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(semantic_scene_hittest_tests)
+
 # Scene mutations tests (Phase 10: Blueprint <-> visual::Scene sync)
 add_executable(scene_mutations_tests
     test_scene_mutations.cpp

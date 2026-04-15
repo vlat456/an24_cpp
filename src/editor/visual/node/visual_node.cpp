@@ -210,14 +210,6 @@ ContentWidgetInteractionInfo build_rect_interaction(ContentInteractionRole role,
     };
 }
 
-struct ContentLayoutPolicy {
-    Pt preferred_size{0.0f, 0.0f};
-    float align_x = 0.5f;
-    float align_y = 0.5f;
-    bool reserve_width = true;
-    bool reserve_height = true;
-};
-
 struct TextPaintGeometry {
     Pt pos;
     Pt size;
@@ -256,29 +248,6 @@ LinePaintGeometry resolve_line_paint_geometry(const editor::presentation::SceneR
         Pt(center.x + std::cos(angle) * radius_a, center.y - std::sin(angle) * radius_a),
         Pt(center.x + std::cos(angle) * radius_b, center.y - std::sin(angle) * radius_b),
     };
-}
-
-ContentLayoutPolicy content_layout_policy(bp2::NodeContentType content_type) {
-    switch (content_type) {
-        case bp2::NodeContentType::Gauge:
-            return {Pt(GAUGE_RADIUS * 2.0f,
-                       GAUGE_RADIUS * 2.0f + GAUGE_VALUE_FONT_SIZE + GAUGE_UNIT_FONT_SIZE + 10.0f),
-                    0.5f, 0.5f, true, true};
-        case bp2::NodeContentType::Switch:
-            return {Pt(SWITCH_WIDTH, SWITCH_HEIGHT), 0.5f, 0.5f, true, true};
-        case bp2::NodeContentType::VerticalToggle:
-            return {Pt(VERTICAL_TOGGLE_WIDTH, VERTICAL_TOGGLE_HEIGHT), 0.5f, 0.0f, true, false};
-        case bp2::NodeContentType::Slider:
-            return {Pt(SLIDER_MIN_WIDTH, SLIDER_HEIGHT), 0.5f, 0.5f, true, true};
-        case bp2::NodeContentType::Indicator:
-            return {Pt(INDICATOR_SIZE, INDICATOR_SIZE), 0.5f, 0.5f, true, true};
-        case bp2::NodeContentType::Knob:
-            return {Pt(KNOB_SIZE, KNOB_SIZE), 0.5f, 0.5f, true, true};
-        case bp2::NodeContentType::Text:
-            return {Pt(60.0f, 12.0f), 0.5f, 0.5f, true, true};
-        default:
-            return {};
-    }
 }
 
 std::optional<ContentWidgetInteractionInfo> derive_content_interaction(
@@ -653,6 +622,16 @@ std::vector<PortEntry*> collect_entries_for_side(
     return result;
 }
 
+editor::presentation::RailEntryMetrics measure_rail_label(std::string_view text, void* user_data) {
+    auto* dl = static_cast<IDrawList*>(user_data);
+    editor::presentation::RailEntryMetrics metrics;
+    metrics.label_text = text;
+    metrics.label_width = dl ? dl->calc_text_size(std::string(text).c_str(), PortConstants::LABEL_FONT_SIZE).x
+                             : fallback_text_width(text, PortConstants::LABEL_FONT_SIZE);
+    metrics.label_height = PortConstants::LABEL_FONT_SIZE;
+    return metrics;
+}
+
 } // namespace
 
 // ============================================================================
@@ -735,9 +714,6 @@ void NodeWidget::build(const bp2::Blueprint::Node& data,
     auto overrides = resolve_bp2_layout_overrides(data.layout.layout_overrides);
     resolved_layout_ = resolve_port_layout(input_ports, output_ports, overrides, interner);
 
-    has_top_strip_ = !resolved_layout_.top.empty();
-    has_bottom_strip_ = !resolved_layout_.bottom.empty();
-
     // Create port + label children for each side.
     auto create_entries = [&](const std::vector<ResolvedPort>& resolved, bp2::PortLayoutSide side) {
         for (const auto& rp : resolved) {
@@ -765,7 +741,10 @@ void NodeWidget::build(const bp2::Blueprint::Node& data,
 }
 
 void NodeWidget::configure_content_geometry(bp2::NodeContentType content_type) {
-    auto policy = content_layout_policy(content_type);
+    auto policy = editor::presentation::compile_node_shell_content_policy(
+        content_type,
+        CONTENT_MARGIN_X,
+        CONTENT_MARGIN_Y);
     content_preferred_size_ = policy.preferred_size;
     content_align_x_ = policy.align_x;
     content_align_y_ = policy.align_y;
@@ -849,273 +828,81 @@ Port* NodeWidget::portByName(std::string_view port_name,
 // Layout & sizing
 // ============================================================================
 
-NodeWidget::SlotRegions NodeWidget::compute_slot_regions(float w, float h) const {
-    SlotRegions r;
-    r.header_y = 0.0f;
-    r.header_h = kHeaderHeight;
+editor::presentation::NodeShellLayoutSpec NodeWidget::build_shell_spec(IDrawList* dl) const {
+    editor::presentation::NodeShellContentPolicy content_policy;
+    content_policy.preferred_size = content_preferred_size_;
+    content_policy.align_x = content_align_x_;
+    content_policy.align_y = content_align_y_;
+    content_policy.reserve_width = content_reserve_width_;
+    content_policy.reserve_height = content_reserve_height_;
+    content_policy.margin_x = CONTENT_MARGIN_X;
+    content_policy.margin_y = CONTENT_MARGIN_Y;
 
-    r.footer_h = kFooterHeight;
-    r.footer_y = h - r.footer_h;
-
-    r.top_strip_h = has_top_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
-    r.top_strip_y = r.header_h;
-
-    r.bottom_strip_h = has_bottom_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
-    r.bottom_strip_y = r.footer_y - r.bottom_strip_h;
-
-    r.body_y = r.top_strip_y + r.top_strip_h;
-    r.body_h = std::max(0.0f, r.bottom_strip_y - r.body_y);
-
-    return r;
+    return editor::presentation::compile_node_shell_layout_spec(
+        header_ ? header_->preferredSize(dl).x : 0.0f,
+        footer_ ? footer_->preferredSize(dl).x : 0.0f,
+        PortConstants::RADIUS * 2.0f,
+        PortConstants::LEFT_LABEL_OFFSET,
+        PortConstants::RIGHT_LABEL_OFFSET,
+        PortConstants::TOP_LABEL_OFFSET,
+        PortConstants::BOTTOM_LABEL_OFFSET,
+        PortConstants::MIN_GAP,
+        PortConstants::LAYOUT_GRID,
+        PortConstants::ROW_HEIGHT,
+        resolved_layout_,
+        &measure_rail_label,
+        dl,
+        content_policy,
+        24.0f,
+        16.0f);
 }
 
 Pt NodeWidget::preferredSize(IDrawList* dl) const {
-    // Width: max of header preferred, footer preferred, and port layout needs.
-    float header_w = header_ ? header_->preferredSize(dl).x : 0.0f;
-    float footer_w = footer_ ? footer_->preferredSize(dl).x : 0.0f;
-
-    // Port width: left indent + left labels + gap + right labels + right indent
-    float left_indent = resolved_layout_.left.empty() ? 0.0f
-        : (PortConstants::RADIUS * 2 + PortConstants::LEFT_LABEL_OFFSET);
-    float right_indent = resolved_layout_.right.empty() ? 0.0f
-        : (PortConstants::RADIUS * 2 + PortConstants::RIGHT_LABEL_OFFSET);
-
-    // Find widest label per side
-    float left_labels_w = 0.0f;
-    float right_labels_w = 0.0f;
-    for (const auto& entry : port_entries_) {
-        if (!entry.label) continue;
-        Pt lps = entry.label->preferredSize(dl);
-        if (entry.layout_side == bp2::PortLayoutSide::Left) {
-            left_labels_w = std::max(left_labels_w, lps.x);
-        } else if (entry.layout_side == bp2::PortLayoutSide::Right) {
-            right_labels_w = std::max(right_labels_w, lps.x);
-        }
-    }
-
-    bool has_left = !resolved_layout_.left.empty();
-    bool has_right = !resolved_layout_.right.empty();
-    float gap = (has_left && has_right) ? PortConstants::MIN_GAP : 0.0f;
-    float port_w = left_indent + left_labels_w + gap + right_labels_w + right_indent;
-
-    float w = std::max({header_w, footer_w, port_w});
-
-    // Height: header + port rows + content + footer + strips
-    size_t side_row_count = std::max(resolved_layout_.left.size(), resolved_layout_.right.size());
-    float side_rows_h = static_cast<float>(side_row_count) * PortConstants::ROW_HEIGHT;
-
-    float top_h = has_top_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
-    float bottom_h = has_bottom_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
-
-    float content_h = 0.0f;
-    if (content_preferred_size_.x > 0.0f || content_preferred_size_.y > 0.0f) {
-        if (content_reserve_width_) {
-            w = std::max(w, content_preferred_size_.x + CONTENT_MARGIN_X * 2.0f);
-        }
-        if (content_reserve_height_) {
-            // Content gets its own dedicated vertical band below port rows.
-            content_h = content_preferred_size_.y + CONTENT_MARGIN_Y * 2.0f;
-        } else {
-            // Content shares the body area with port rows — ensure the body
-            // is tall enough for the content (e.g. VerticalToggle).
-            float needed = content_preferred_size_.y + CONTENT_MARGIN_Y * 2.0f;
-            if (needed > side_rows_h) {
-                side_rows_h = needed;
-            }
-        }
-    }
-
-    // Horizontal port strips also need width
-    size_t top_count = resolved_layout_.top.size();
-    size_t bottom_count = resolved_layout_.bottom.size();
-    size_t max_hstrip = std::max(top_count, bottom_count);
-    if (max_hstrip > 0) {
-        float strip_w = static_cast<float>(max_hstrip + 1) * PortConstants::LAYOUT_GRID;
-        w = std::max(w, strip_w);
-    }
-
-    float h = kHeaderHeight + top_h + side_rows_h + content_h + bottom_h + kFooterHeight;
-    return Pt(w, h);
+    measured_shell_ = editor::presentation::measure_node_shell(build_shell_spec(dl));
+    return measured_shell_.preferred_size;
 }
 
 Pt NodeWidget::minimumNodeSize() const {
-    // Minimum width: port indents only (labels can clip).
-    float left_indent = resolved_layout_.left.empty() ? 0.0f
-        : (PortConstants::RADIUS * 2 + PortConstants::LEFT_LABEL_OFFSET);
-    float right_indent = resolved_layout_.right.empty() ? 0.0f
-        : (PortConstants::RADIUS * 2 + PortConstants::RIGHT_LABEL_OFFSET);
-    bool has_left = !resolved_layout_.left.empty();
-    bool has_right = !resolved_layout_.right.empty();
-    float gap = (has_left && has_right) ? PortConstants::MIN_GAP : 0.0f;
-    float min_w = left_indent + gap + right_indent;
-
-    // Horizontal strip minimums
-    size_t max_hstrip = std::max(resolved_layout_.top.size(), resolved_layout_.bottom.size());
-    if (max_hstrip > 0) {
-        float strip_w = static_cast<float>(max_hstrip + 1) * PortConstants::LAYOUT_GRID;
-        min_w = std::max(min_w, strip_w);
-    }
-
-    min_w = std::max(min_w, editor_constants::PORT_LAYOUT_GRID);
-
-    // Minimum height: header + port rows + footer + strips (no content reserve).
-    size_t side_row_count = std::max(resolved_layout_.left.size(), resolved_layout_.right.size());
-    float side_rows_h = static_cast<float>(side_row_count) * PortConstants::ROW_HEIGHT;
-    float top_h = has_top_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
-    float bottom_h = has_bottom_strip_ ? PortConstants::ROW_HEIGHT : 0.0f;
-    float min_h = kHeaderHeight + top_h + side_rows_h + bottom_h + kFooterHeight;
-    min_h = std::max(min_h, editor_constants::PORT_LAYOUT_GRID);
-
-    return editor_math::snap_size_to_layout_grid(Pt(min_w, min_h));
+    measured_shell_ = editor::presentation::measure_node_shell(build_shell_spec(nullptr));
+    return editor_math::snap_size_to_layout_grid(measured_shell_.minimum_size);
 }
 
-void NodeWidget::layout_side_ports(const std::vector<PortEntry*>& entries,
-                                   bp2::PortLayoutSide side,
-                                   float node_w, float body_y, float body_h) {
-    if (entries.empty()) return;
+void NodeWidget::apply_shell_layout(const editor::presentation::NodeShellLayout& shell) {
+    if (header_) {
+        header_->setLocalPos(Pt(shell.header.x, shell.header.y));
+        header_->setSize(Pt(shell.header.w, shell.header.h));
+    }
+    if (footer_) {
+        footer_->setLocalPos(Pt(shell.footer.x, shell.footer.y));
+        footer_->setSize(Pt(shell.footer.w, shell.footer.h));
+    }
 
-    const float row_h = PortConstants::ROW_HEIGHT;
-    const bool is_left = (side == bp2::PortLayoutSide::Left);
-    const float label_offset = is_left ? PortConstants::LEFT_LABEL_OFFSET : PortConstants::RIGHT_LABEL_OFFSET;
-    const float indent = PortConstants::RADIUS * 2 + label_offset;
-
-    for (size_t i = 0; i < entries.size(); ++i) {
-        auto* e = entries[i];
-        float row_y = body_y + static_cast<float>(i) * row_h;
-
-        // Port: center at node edge
-        float port_cx = is_left ? 0.0f : node_w;
-        float port_ly = row_y + (row_h - PortConstants::RADIUS * 2) / 2.0f;
-        float port_lx = port_cx - PortConstants::RADIUS;
-        e->port->setLocalPos(Pt(port_lx, port_ly));
-
-        // Label
-        if (e->label) {
-            Pt lps = e->label->preferredSize(nullptr);
-            float label_h = lps.y;
-            float label_y = row_y + (row_h - label_h) / 2.0f;
-
-            if (is_left) {
-                float label_x = indent;
-                float label_w = std::max(0.0f, node_w - indent);
-                e->label->setLocalPos(Pt(label_x, label_y));
-                e->label->setSize(Pt(label_w, label_h));
-            } else {
-                float label_w = std::max(0.0f, node_w - indent);
-                float label_x = 0.0f;
-                e->label->setLocalPos(Pt(label_x, label_y));
-                e->label->setSize(Pt(label_w, label_h));
+    auto apply_rail = [&](const std::vector<PortEntry*>& entries,
+                          const std::vector<editor::presentation::RailPlacement>& rail) {
+        const size_t count = std::min(entries.size(), rail.size());
+        for (size_t i = 0; i < count; ++i) {
+            entries[i]->port->setLocalPos(Pt(rail[i].port_bounds.x, rail[i].port_bounds.y));
+            entries[i]->port->setSize(Pt(rail[i].port_bounds.w, rail[i].port_bounds.h));
+            if (entries[i]->label) {
+                entries[i]->label->setLocalPos(Pt(rail[i].label_bounds.x, rail[i].label_bounds.y));
+                entries[i]->label->setSize(Pt(rail[i].label_bounds.w, rail[i].label_bounds.h));
             }
         }
-    }
-}
+    };
 
-void NodeWidget::layout_edge_ports(const std::vector<PortEntry*>& entries,
-                                   bp2::PortLayoutSide side,
-                                   float node_w, float node_h,
-                                   float strip_y, float strip_h) {
-    if (entries.empty()) return;
+    apply_rail(collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Left), shell.left_rail);
+    apply_rail(collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Right), shell.right_rail);
+    apply_rail(collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Top), shell.top_rail);
+    apply_rail(collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Bottom), shell.bottom_rail);
 
-    const size_t n = entries.size();
-    const float grid = PortConstants::LAYOUT_GRID;
-    const float center_x = node_w / 2.0f;
-    const bool is_top = (side == bp2::PortLayoutSide::Top);
-
-    for (size_t i = 0; i < n; ++i) {
-        auto* e = entries[i];
-
-        // Center ports evenly, snapped to grid
-        float ideal_x = center_x + (static_cast<float>(i) - static_cast<float>(n - 1) / 2.0f) * grid;
-        float snapped_x = std::round(ideal_x / grid) * grid;
-
-        // Port center at node edge
-        float port_lx = snapped_x - PortConstants::RADIUS;
-        float port_ly = is_top ? -PortConstants::RADIUS
-                               : (node_h - PortConstants::RADIUS);
-        e->port->setLocalPos(Pt(port_lx, port_ly));
-
-        // Label centered below (top) or above (bottom) the port
-        if (e->label) {
-            Pt lps = e->label->preferredSize(nullptr);
-            float label_w = lps.x;
-            float label_x = port_lx + PortConstants::RADIUS - label_w / 2.0f;
-            float label_offset = is_top ? PortConstants::TOP_LABEL_OFFSET
-                                        : PortConstants::BOTTOM_LABEL_OFFSET;
-            float label_y;
-            if (is_top) {
-                label_y = port_ly + PortConstants::RADIUS * 2 + label_offset;
-            } else {
-                label_y = port_ly - PortConstants::LABEL_FONT_SIZE - label_offset;
-            }
-            e->label->setLocalPos(Pt(label_x, label_y));
-            e->label->setSize(Pt(label_w, lps.y));
-        }
-    }
-}
-
-Bounds NodeWidget::compute_content_bounds(float node_w, const SlotRegions& slots) const {
-    if (content_preferred_size_.x <= 0.0f && content_preferred_size_.y <= 0.0f) {
-        return {};
-    }
-
-    // Body area with content margins
-    float body_x = CONTENT_MARGIN_X;
-    float body_w = std::max(0.0f, node_w - CONTENT_MARGIN_X * 2.0f);
-
-    const float bw = content_preferred_size_.x;
-    const float bh = content_preferred_size_.y;
-
-    float content_top;
-    float content_available_h;
-
-    if (content_reserve_height_) {
-        // Content has dedicated vertical space below port rows.
-        size_t side_row_count = std::max(resolved_layout_.left.size(), resolved_layout_.right.size());
-        float port_rows_h = static_cast<float>(side_row_count) * PortConstants::ROW_HEIGHT;
-        content_top = slots.body_y + port_rows_h + CONTENT_MARGIN_Y;
-        content_available_h = std::max(0.0f, slots.body_h - port_rows_h - CONTENT_MARGIN_Y * 2.0f);
-    } else {
-        // Content shares the full body area with port rows (e.g. VerticalToggle).
-        content_top = slots.body_y + CONTENT_MARGIN_Y;
-        content_available_h = std::max(0.0f, slots.body_h - CONTENT_MARGIN_Y * 2.0f);
-    }
-
-    const float bx = body_x + (body_w - bw) * content_align_x_;
-    const float by = content_top + (content_available_h - bh) * content_align_y_;
-    return Bounds{bx, by, bw, bh};
+    content_bounds_ = Bounds{shell.content_bounds.x, shell.content_bounds.y,
+                             shell.content_bounds.w, shell.content_bounds.h};
 }
 
 void NodeWidget::layout(float w, float h) {
     setSize(Pt(w, h));
-
-    const SlotRegions slots = compute_slot_regions(w, h);
-
-    // Header
-    if (header_) {
-        header_->setLocalPos(Pt(0.0f, slots.header_y));
-        header_->setSize(Pt(w, slots.header_h));
-    }
-
-    // Footer
-    if (footer_) {
-        footer_->setLocalPos(Pt(0.0f, slots.footer_y));
-        footer_->setSize(Pt(w, slots.footer_h));
-    }
-
-    // Side ports (left/right)
-    auto left_entries = collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Left);
-    auto right_entries = collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Right);
-    layout_side_ports(left_entries, bp2::PortLayoutSide::Left, w, slots.body_y, slots.body_h);
-    layout_side_ports(right_entries, bp2::PortLayoutSide::Right, w, slots.body_y, slots.body_h);
-
-    // Edge ports (top/bottom)
-    auto top_entries = collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Top);
-    auto bottom_entries = collect_entries_for_side(port_entries_, bp2::PortLayoutSide::Bottom);
-    layout_edge_ports(top_entries, bp2::PortLayoutSide::Top, w, h, slots.top_strip_y, slots.top_strip_h);
-    layout_edge_ports(bottom_entries, bp2::PortLayoutSide::Bottom, w, h, slots.bottom_strip_y, slots.bottom_strip_h);
-
-    // Content
-    content_bounds_ = compute_content_bounds(w, slots);
+    const auto shell = editor::presentation::arrange_node_shell(build_shell_spec(nullptr), Pt(w, h));
+    apply_shell_layout(shell);
     refresh_content_semantic_snapshot();
 }
 

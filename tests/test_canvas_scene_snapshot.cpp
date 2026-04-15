@@ -350,3 +350,64 @@ TEST(CanvasSceneSnapshot, HitTestPriorityPortOverNode) {
         << "Port must have higher priority than NodeBody in hit testing";
     EXPECT_EQ(std::get<visual::HitPort>(result).port_name, "v_out");
 }
+
+// ============================================================================
+// Diagnostic: Resize handles for node without explicit width/height
+// ============================================================================
+
+TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForNodeWithoutExplicitSize) {
+    // Simulates the addComponent path: a node is created WITHOUT explicit
+    // layout.width / layout.height (std::nullopt). The NodeWidget constructor
+    // computes size from preferredSize/minimumNodeSize. Resize handles must
+    // still be projected into the snapshot with valid (non-zero) bounds.
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto n = make_canvas_snapshot_node(interner, "new_node", "Battery");
+    n.layout.x = 100.0f;
+    n.layout.y = 200.0f;
+    // Deliberately NOT setting n.layout.width or n.layout.height (std::nullopt)
+    set_iface(n, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("new_node"));
+    ASSERT_NE(widget, nullptr);
+
+    // The widget must have non-zero size even without explicit layout dimensions
+    ui::Pt widget_size = widget->size();
+    EXPECT_GT(widget_size.x, 0.0f) << "Widget width must be positive";
+    EXPECT_GT(widget_size.y, 0.0f) << "Widget height must be positive";
+
+    const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
+
+    // Count resize handles for this node
+    size_t handle_count = 0;
+    for (const auto& h : snapshot.hit_objects) {
+        if (h.kind == editor::presentation::CanvasHitObjectKind::ResizeHandle &&
+            h.node_id == interner.lookup("new_node")) {
+            ++handle_count;
+            // Each handle must have non-zero bounds
+            EXPECT_GT(h.bounds.w, 0.0f);
+            EXPECT_GT(h.bounds.h, 0.0f);
+            // node_size stored in the handle must match widget size
+            EXPECT_NEAR(h.node_size.x, widget_size.x, 0.1f);
+            EXPECT_NEAR(h.node_size.y, widget_size.y, 0.1f);
+        }
+    }
+    EXPECT_EQ(handle_count, 4u) << "Node without explicit size must still have 4 resize handles";
+
+    // Hit test: click near bottom-right corner → must get HitResizeHandle
+    ui::Pt br = widget->worldMax() - ui::Pt(2.0f, 2.0f);
+    auto result = editor::presentation::hit_test_canvas_scene(snapshot, br, interner);
+    ASSERT_TRUE(std::holds_alternative<visual::HitResizeHandle>(result))
+        << "Bottom-right corner of node without explicit size must return HitResizeHandle";
+    EXPECT_EQ(std::get<visual::HitResizeHandle>(result).node_id, "new_node");
+}

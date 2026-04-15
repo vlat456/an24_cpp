@@ -287,3 +287,55 @@ TEST(NodeSlotLayoutTest, NoneLayoutWithChildrenDiesInDebug) {
     EXPECT_DEATH((void)layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f)), "");
 #endif
 }
+
+TEST(NodeSlotLayoutTest, SideRailRowSpacingMatchesMeasuredRowHeight) {
+    // Regression: arrange_side_rail() must use spec.row_height for row spacing,
+    // not a hardcoded (port_diameter + 6.0f) expression. If they diverge, the
+    // measure pass reserves N*row_height but arrange only steps N*(port_diameter+6),
+    // leaving ports packed too tightly with wasted space at the bottom.
+    NodeShellLayoutSpec spec;
+    spec.header_height = 24.0f;
+    spec.footer_height = 16.0f;
+    spec.row_height = 16.0f;
+    spec.port_diameter = 6.0f;
+    spec.left_indent = 10.0f;
+    spec.right_indent = 10.0f;
+    spec.layout_grid = 16.0f;
+    spec.min_gap = 0.0f;
+
+    // 3 left ports, 2 right ports
+    for (int i = 0; i < 3; ++i) {
+        spec.left_entries.push_back(RailEntryMetrics{"port", 30.0f, 9.0f});
+    }
+    for (int i = 0; i < 2; ++i) {
+        spec.right_entries.push_back(RailEntryMetrics{"port", 30.0f, 9.0f});
+    }
+
+    NodeShellLayout measured = measure_node_shell(spec);
+    NodeShellLayout arranged = arrange_node_shell(spec, measured.preferred_size);
+
+    // With 3 side rows, body should be at least 3 * row_height = 48
+    EXPECT_GE(arranged.body.h, 3.0f * spec.row_height);
+
+    // Left rail: 3 entries should be spaced exactly at row_height intervals
+    ASSERT_EQ(arranged.left_rail.size(), 3u);
+    for (size_t i = 0; i < arranged.left_rail.size(); ++i) {
+        float expected_row_y = arranged.body.y + static_cast<float>(i) * spec.row_height;
+        float expected_port_y = expected_row_y + (spec.row_height - spec.port_diameter) * 0.5f;
+        EXPECT_FLOAT_EQ(arranged.left_rail[i].port_bounds.y, expected_port_y)
+            << "Left port " << i << " y mismatch";
+    }
+
+    // Right rail: 2 entries should also be spaced at row_height intervals
+    ASSERT_EQ(arranged.right_rail.size(), 2u);
+    for (size_t i = 0; i < arranged.right_rail.size(); ++i) {
+        float expected_row_y = arranged.body.y + static_cast<float>(i) * spec.row_height;
+        float expected_port_y = expected_row_y + (spec.row_height - spec.port_diameter) * 0.5f;
+        EXPECT_FLOAT_EQ(arranged.right_rail[i].port_bounds.y, expected_port_y)
+            << "Right port " << i << " y mismatch";
+    }
+
+    // Verify the last port doesn't exceed the body region
+    float last_port_bottom = arranged.left_rail[2].port_bounds.y + arranged.left_rail[2].port_bounds.h;
+    EXPECT_LE(last_port_bottom, arranged.body.y + arranged.body.h);
+}
