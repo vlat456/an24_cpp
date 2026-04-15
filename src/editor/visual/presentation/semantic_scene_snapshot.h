@@ -46,8 +46,8 @@ struct SceneRenderObject {
     ui::InternedId element_id;
     SceneRenderObjectKind kind = SceneRenderObjectKind::ContentPaint;
     NodeFrameKind frame_kind = NodeFrameKind::Standard;
-    PaintPrimitiveKind primitive = PaintPrimitiveKind::Rectangle;
-    PrimitiveGeometry geometry;
+    PaintPrimitiveKind primitive = PaintPrimitiveKind::Text;
+    PrimitiveGeometry geometry = TextGeometry{};
     ui::Rect bounds;
     std::string text;
     uint32_t fill_color = 0;

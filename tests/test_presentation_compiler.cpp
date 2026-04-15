@@ -276,6 +276,113 @@ TEST(DefaultContentPresenter, SwitchTrippedChangesColor) {
     EXPECT_NE(normal_bg->fill_color, tripped_bg->fill_color);
 }
 
+TEST(DefaultContentPresenter, SwitchRectanglesCarryExplicitRectGeometry) {
+    auto node = make_node(ui::InternedId(24), "AZS", "", bp2::NodeContentType::Switch);
+    node.view.content_state = false;
+    NodePresentation p = compile_node_presentation(node);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    const PaintCommand* bg = nullptr;
+    const PaintCommand* handle = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Rectangle) {
+            if (bg == nullptr) bg = paint;
+            else if (handle == nullptr) handle = paint;
+        }
+    }
+
+    ASSERT_NE(bg, nullptr);
+    ASSERT_NE(handle, nullptr);
+
+    const auto* bg_geo = std::get_if<RectGeometry>(&bg->geometry);
+    const auto* handle_geo = std::get_if<RectGeometry>(&handle->geometry);
+    ASSERT_NE(bg_geo, nullptr) << "Switch background must carry RectGeometry";
+    ASSERT_NE(handle_geo, nullptr) << "Switch handle must carry RectGeometry";
+
+    // Background fills entire switch area (48 x 20)
+    EXPECT_FLOAT_EQ(bg_geo->x, 0.0f);
+    EXPECT_FLOAT_EQ(bg_geo->y, 0.0f);
+    EXPECT_FLOAT_EQ(bg_geo->w, 48.0f);
+    EXPECT_FLOAT_EQ(bg_geo->h, 20.0f);
+
+    // Handle is 40% width, positioned at left when off
+    EXPECT_FLOAT_EQ(handle_geo->x, 0.0f);
+    EXPECT_FLOAT_EQ(handle_geo->y, 0.0f);
+    EXPECT_NEAR(handle_geo->w, 48.0f * 0.4f, 0.01f);
+    EXPECT_FLOAT_EQ(handle_geo->h, 20.0f);
+}
+
+TEST(DefaultContentPresenter, SwitchHandleMovesOnStateChange) {
+    auto node_off = make_node(ui::InternedId(25), "AZS", "", bp2::NodeContentType::Switch);
+    node_off.view.content_state = false;
+    NodePresentation p_off = compile_node_presentation(node_off);
+
+    auto node_on = make_node(ui::InternedId(26), "AZS", "", bp2::NodeContentType::Switch);
+    node_on.view.content_state = true;
+    NodePresentation p_on = compile_node_presentation(node_on);
+
+    auto get_handle_x = [](const PresentationNode& content) -> float {
+        int rect_idx = 0;
+        for (const auto& child : content.children) {
+            for (const auto& p : child.paint) {
+                if (p.kind == PaintPrimitiveKind::Rectangle) {
+                    if (rect_idx == 1) {
+                        const auto* geo = std::get_if<RectGeometry>(&p.geometry);
+                        return geo ? geo->x : -1.0f;
+                    }
+                    ++rect_idx;
+                }
+            }
+        }
+        return -1.0f;
+    };
+
+    float x_off = get_handle_x(p_off.content);
+    float x_on = get_handle_x(p_on.content);
+    EXPECT_FLOAT_EQ(x_off, 0.0f) << "Off-state handle must be at left edge";
+    EXPECT_GT(x_on, 0.0f) << "On-state handle must move to the right";
+}
+
+TEST(DefaultContentPresenter, VerticalToggleHandleMovesOnStateChange) {
+    auto node_off = make_node(ui::InternedId(27), "Toggle", "", bp2::NodeContentType::VerticalToggle);
+    node_off.view.content_state = false;
+    NodePresentation p_off = compile_node_presentation(node_off);
+
+    auto node_on = make_node(ui::InternedId(28), "Toggle", "", bp2::NodeContentType::VerticalToggle);
+    node_on.view.content_state = true;
+    NodePresentation p_on = compile_node_presentation(node_on);
+
+    auto get_handle_geo = [](const PresentationNode& content) -> RectGeometry {
+        int rect_idx = 0;
+        for (const auto& child : content.children) {
+            for (const auto& p : child.paint) {
+                if (p.kind == PaintPrimitiveKind::Rectangle) {
+                    if (rect_idx == 1) {
+                        const auto* geo = std::get_if<RectGeometry>(&p.geometry);
+                        return geo ? *geo : RectGeometry{};
+                    }
+                    ++rect_idx;
+                }
+            }
+        }
+        return {};
+    };
+
+    RectGeometry off_geo = get_handle_geo(p_off.content);
+    RectGeometry on_geo = get_handle_geo(p_on.content);
+
+    // Vertical toggle: background is 16 x 48
+    EXPECT_FLOAT_EQ(off_geo.w, 16.0f);
+    EXPECT_FLOAT_EQ(on_geo.w, 16.0f);
+    EXPECT_GT(off_geo.h, 0.0f);
+    EXPECT_GT(on_geo.h, 0.0f);
+
+    // Off handle at 70%, On handle at 15% — different Y positions
+    EXPECT_GT(off_geo.y, on_geo.y) << "Off-state handle must be lower than on-state";
+}
+
 // ============================================================================
 // Slider content
 // ============================================================================
@@ -295,6 +402,37 @@ TEST(DefaultContentPresenter, SliderProducesTrackHandleAndDragInteraction) {
 
     const auto* drag = find_interaction(p.content, InteractionKind::DragScalar);
     ASSERT_NE(drag, nullptr);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    const PaintCommand* track_bg = nullptr;
+    const PaintCommand* track_fill = nullptr;
+    const PaintCommand* handle = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Rectangle) {
+            if (track_bg == nullptr) track_bg = paint;
+            else if (track_fill == nullptr) track_fill = paint;
+        } else if (paint->kind == PaintPrimitiveKind::Circle && handle == nullptr) {
+            handle = paint;
+        }
+    }
+
+    ASSERT_NE(track_bg, nullptr);
+    ASSERT_NE(track_fill, nullptr);
+    ASSERT_NE(handle, nullptr);
+
+    const auto* bg_geo = std::get_if<RectGeometry>(&track_bg->geometry);
+    const auto* fill_geo = std::get_if<RectGeometry>(&track_fill->geometry);
+    const auto* handle_geo = std::get_if<CircleGeometry>(&handle->geometry);
+    ASSERT_NE(bg_geo, nullptr);
+    ASSERT_NE(fill_geo, nullptr);
+    ASSERT_NE(handle_geo, nullptr);
+
+    EXPECT_GT(bg_geo->w, fill_geo->w);
+    EXPECT_GT(fill_geo->w, 0.0f);
+    EXPECT_GT(handle_geo->cx, -24.0f);
+    EXPECT_LT(handle_geo->cx, 24.0f);
 }
 
 TEST(DefaultContentPresenter, SliderValueTextShowsFormattedValue) {
@@ -784,8 +922,12 @@ TEST(DefaultContentPresenter, SliderZeroRangeProducesZeroT) {
     node.view.content_value = 50.0f;
     NodePresentation p = compile_node_presentation(node);
 
-    // Should not crash and should produce valid content
-    EXPECT_GE(p.content.children.size(), 4u);  // track bg + fill + handle + text
+    // Should not crash and should produce valid content.
+    // With t == 0 the fill rectangle is omitted, leaving:
+    //   track bg + handle circle + value text + drag interaction = 4 children
+    EXPECT_GE(p.content.children.size(), 4u);
+    // No fill rectangle when t == 0
+    EXPECT_EQ(count_paint_kind(p.content, PaintPrimitiveKind::Rectangle), 1u);
     const auto* text = find_text_paint(p.content);
     ASSERT_NE(text, nullptr);
     EXPECT_EQ(text->text, "50.0");
@@ -1171,4 +1313,298 @@ TEST(ExplicitGeometry, GaugeTextYOffsetsMatchLegacyPositioning) {
 
     EXPECT_NEAR(value_tg->y, 85.0f, 0.01f) << "Value text Y must be GAUGE_RADIUS * 2 + 5";
     EXPECT_NEAR(unit_tg->y, 101.0f, 0.01f) << "Unit text Y must be GAUGE_RADIUS * 2 + 21";
+}
+
+TEST(ExplicitGeometry, NoRectanglePaintHasZeroSizeGeometry) {
+    // Regression: every Rectangle paint must carry RectGeometry with positive w and h.
+    // A RectGeometry{0,0,0,0} (the default) causes the renderer to draw a zero-size rect
+    // because it no longer falls back to element bounds.
+    const std::vector<bp2::NodeContentType> types_with_rects = {
+        bp2::NodeContentType::Switch,
+        bp2::NodeContentType::VerticalToggle,
+        bp2::NodeContentType::Slider,
+    };
+
+    for (auto content_type : types_with_rects) {
+        auto node = make_node(ui::InternedId(800), "Test", "", content_type);
+        node.view.content_state = true;
+        node.view.content_min = 0.0f;
+        node.view.content_max = 100.0f;
+        node.view.content_value = 50.0f;
+        NodePresentation p = compile_node_presentation(node);
+
+        std::vector<const PaintCommand*> paints;
+        collect_paints(p.content, paints);
+
+        for (const auto* paint : paints) {
+            if (paint->kind == PaintPrimitiveKind::Rectangle) {
+                const auto* geo = std::get_if<RectGeometry>(&paint->geometry);
+                ASSERT_NE(geo, nullptr) << "Rectangle paint must carry RectGeometry";
+                EXPECT_GT(geo->w, 0.0f)
+                    << "Rectangle RectGeometry.w must be positive (content_type="
+                    << static_cast<int>(content_type) << ")";
+                EXPECT_GT(geo->h, 0.0f)
+                    << "Rectangle RectGeometry.h must be positive (content_type="
+                    << static_cast<int>(content_type) << ")";
+            }
+        }
+    }
+}
+
+TEST(ExplicitGeometry, SwitchBackgroundAndHandleHaveNonZeroGeometry) {
+    // Regression: switch background and handle must have explicit non-zero RectGeometry.
+    // Without this, the renderer draws zero-size rectangles (invisible switch).
+    auto node = make_node(ui::InternedId(801), "AZS", "", bp2::NodeContentType::Switch);
+    node.view.content_state = true;
+    NodePresentation p = compile_node_presentation(node);
+
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+
+    const PaintCommand* bg = nullptr;
+    const PaintCommand* handle = nullptr;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Rectangle) {
+            if (bg == nullptr) bg = paint;
+            else if (handle == nullptr) handle = paint;
+        }
+    }
+
+    ASSERT_NE(bg, nullptr);
+    ASSERT_NE(handle, nullptr);
+
+    const auto* bg_geo = std::get_if<RectGeometry>(&bg->geometry);
+    const auto* handle_geo = std::get_if<RectGeometry>(&handle->geometry);
+    ASSERT_NE(bg_geo, nullptr);
+    ASSERT_NE(handle_geo, nullptr);
+
+    EXPECT_GT(bg_geo->w, 0.0f) << "Background width must be positive";
+    EXPECT_GT(bg_geo->h, 0.0f) << "Background height must be positive";
+    EXPECT_GT(handle_geo->w, 0.0f) << "Handle width must be positive";
+    EXPECT_GT(handle_geo->h, 0.0f) << "Handle height must be positive";
+
+    // Handle must be smaller than background
+    EXPECT_LT(handle_geo->w, bg_geo->w) << "Handle must be narrower than background";
+
+    // On-state handle must be at the right side
+    EXPECT_GT(handle_geo->x, 0.0f) << "On-state handle must be offset to the right";
+}
+
+// ============================================================================
+// Regression: slider fill rectangle omitted at zero fill (load-time crash)
+//
+// The assertion `rect->w > 0` in append_painted() fired during Document::load()
+// because the slider track fill rectangle had width = t * track_width, and t == 0
+// when the slider is at its minimum value (the default state on load).
+// ============================================================================
+
+TEST(SliderFillRegression, SliderAtMinimumValueOmitsFillRectangle) {
+    // This is the exact crash scenario: a Slider node with default view state
+    // (content_value == content_min == 0, content_max == 1) produces t == 0.
+    // The fill rectangle must be omitted, not emitted with zero width.
+    auto node = make_node(ui::InternedId(800), "Throttle", "", bp2::NodeContentType::Slider);
+    node.view.content_min = 0.0f;
+    node.view.content_max = 100.0f;
+    node.view.content_value = 0.0f;  // at minimum → t == 0
+
+    // Must not crash (was: assertion failure in append_painted)
+    NodePresentation p = compile_node_presentation(node);
+
+    // Only the track background rectangle should be present (no fill)
+    EXPECT_EQ(count_paint_kind(p.content, PaintPrimitiveKind::Rectangle), 1u)
+        << "Slider at minimum must have only the track background rectangle, no fill";
+
+    // Handle circle, value text, and drag interaction must still be present
+    EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Circle), 1u);
+    EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Text), 1u);
+    const auto* drag = find_interaction(p.content, InteractionKind::DragScalar);
+    ASSERT_NE(drag, nullptr);
+}
+
+TEST(SliderFillRegression, SliderAtMaximumValueEmitsFillRectangle) {
+    auto node = make_node(ui::InternedId(801), "Throttle", "", bp2::NodeContentType::Slider);
+    node.view.content_min = 0.0f;
+    node.view.content_max = 100.0f;
+    node.view.content_value = 100.0f;  // at maximum → t == 1
+
+    NodePresentation p = compile_node_presentation(node);
+
+    // Both track background and fill rectangles should be present
+    EXPECT_EQ(count_paint_kind(p.content, PaintPrimitiveKind::Rectangle), 2u)
+        << "Slider at maximum must have both track background and fill rectangles";
+
+    // Verify fill rectangle has full track width
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+    const PaintCommand* fill = nullptr;
+    int rect_idx = 0;
+    for (const auto* paint : paints) {
+        if (paint->kind == PaintPrimitiveKind::Rectangle) {
+            if (rect_idx == 1) { fill = paint; break; }
+            ++rect_idx;
+        }
+    }
+    ASSERT_NE(fill, nullptr);
+    const auto* fill_geo = std::get_if<RectGeometry>(&fill->geometry);
+    ASSERT_NE(fill_geo, nullptr);
+    EXPECT_NEAR(fill_geo->w, 48.0f, 0.01f);  // SLIDER_WIDTH - 2*SLIDER_HANDLE_RADIUS
+}
+
+TEST(SliderFillRegression, SliderWithDefaultViewStateCompilesWithoutCrash) {
+    // Simulates the exact load-time scenario: a Slider node with the default
+    // bp2::Blueprint::Node::View state (content_value=0, content_min=0,
+    // content_max=1). This is what every Slider node looks like on first load
+    // before hydration populates runtime values.
+    bp2::Blueprint::Node node;
+    node.semantic.id = ui::InternedId(802);
+    node.semantic.type = ui::InternedId(1000);
+    node.view.name = "DefaultSlider";
+    node.view.content_type = bp2::NodeContentType::Slider;
+    // All other view fields at their defaults: value=0, min=0, max=1
+
+    // Must not crash
+    NodePresentation p = compile_node_presentation(node);
+    EXPECT_FALSE(p.content.children.empty());
+}
+
+TEST(SliderFillRegression, SliderAtMinimumFlowsThroughFullPipeline) {
+    // End-to-end: compile → layout → snapshot for a slider at t == 0.
+    // This exercises the same code path as Document::load() → scene rebuild →
+    // NodeWidget::refresh_content_semantic_snapshot().
+    auto node = make_node(ui::InternedId(803), "Throttle", "", bp2::NodeContentType::Slider);
+    node.view.content_min = 0.0f;
+    node.view.content_max = 100.0f;
+    node.view.content_value = 0.0f;
+
+    // Step 1: Compile (was crashing here)
+    NodePresentation p = compile_node_presentation(node);
+
+    // Step 2: Layout
+    NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(180.0f, 120.0f));
+    EXPECT_GT(layout.node_bounds.w, 0.0f);
+    EXPECT_GT(layout.node_bounds.h, 0.0f);
+
+    // Step 3: Snapshot
+    SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(p, layout);
+    EXPECT_FALSE(snapshot.render_objects.empty());
+}
+
+// ============================================================================
+// Regression: all content types compile without assertion failure at defaults
+//
+// Ensures that every NodeContentType can be compiled with default view state.
+// This is the load-time invariant: any node in the blueprint must survive
+// compile_node_presentation() without hitting geometry assertions.
+// ============================================================================
+
+TEST(LoadTimeCompileRegression, AllContentTypesCompileAtDefaultViewState) {
+    const bp2::NodeContentType types[] = {
+        bp2::NodeContentType::None,
+        bp2::NodeContentType::Switch,
+        bp2::NodeContentType::VerticalToggle,
+        bp2::NodeContentType::Slider,
+        bp2::NodeContentType::Indicator,
+        bp2::NodeContentType::Knob,
+        bp2::NodeContentType::Gauge,
+        bp2::NodeContentType::Text,
+        bp2::NodeContentType::Value,
+    };
+
+    for (auto content_type : types) {
+        bp2::Blueprint::Node node;
+        node.semantic.id = ui::InternedId(900 + static_cast<int>(content_type));
+        node.semantic.type = ui::InternedId(1000);
+        node.view.name = "TestNode";
+        node.view.content_type = content_type;
+        // All view fields at defaults
+
+        // Must not crash for any content type
+        EXPECT_NO_FATAL_FAILURE(compile_node_presentation(node))
+            << "compile_node_presentation crashed for content_type="
+            << static_cast<int>(content_type);
+    }
+}
+
+TEST(LoadTimeCompileRegression, AllContentTypesFlowThroughFullPipelineAtDefaults) {
+    const bp2::NodeContentType types[] = {
+        bp2::NodeContentType::None,
+        bp2::NodeContentType::Switch,
+        bp2::NodeContentType::VerticalToggle,
+        bp2::NodeContentType::Slider,
+        bp2::NodeContentType::Indicator,
+        bp2::NodeContentType::Knob,
+        bp2::NodeContentType::Gauge,
+        bp2::NodeContentType::Text,
+        bp2::NodeContentType::Value,
+    };
+
+    for (auto content_type : types) {
+        bp2::Blueprint::Node node;
+        node.semantic.id = ui::InternedId(950 + static_cast<int>(content_type));
+        node.semantic.type = ui::InternedId(1000);
+        node.view.name = "TestNode";
+        node.view.content_type = content_type;
+
+        NodePresentation p = compile_node_presentation(node);
+        NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(180.0f, 120.0f));
+        SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(p, layout);
+
+        EXPECT_FALSE(snapshot.render_objects.empty())
+            << "Full pipeline produced no render objects for content_type="
+            << static_cast<int>(content_type);
+    }
+}
+
+// ============================================================================
+// Regression: all rectangle paints have positive geometry
+//
+// Structural invariant test: after compiling any content type with any
+// reasonable parameter combination, every Rectangle paint must carry
+// RectGeometry with w > 0 and h > 0.
+// ============================================================================
+
+TEST(LoadTimeCompileRegression, AllRectanglePaintsHavePositiveGeometry) {
+    struct TestCase {
+        bp2::NodeContentType type;
+        float value;
+        float min;
+        float max;
+    };
+
+    const TestCase cases[] = {
+        {bp2::NodeContentType::Slider, 0.0f, 0.0f, 100.0f},    // t == 0
+        {bp2::NodeContentType::Slider, 50.0f, 0.0f, 100.0f},   // t == 0.5
+        {bp2::NodeContentType::Slider, 100.0f, 0.0f, 100.0f},  // t == 1
+        {bp2::NodeContentType::Slider, 10.0f, 10.0f, 10.0f},   // zero range
+        {bp2::NodeContentType::Switch, 0.0f, 0.0f, 0.0f},
+        {bp2::NodeContentType::VerticalToggle, 0.0f, 0.0f, 0.0f},
+    };
+
+    for (const auto& tc : cases) {
+        auto node = make_node(ui::InternedId(1100 + static_cast<int>(tc.type) * 10 + static_cast<int>(tc.value)),
+                              "Test", "", tc.type);
+        node.view.content_value = tc.value;
+        node.view.content_min = tc.min;
+        node.view.content_max = tc.max;
+
+        NodePresentation p = compile_node_presentation(node);
+
+        std::vector<const PaintCommand*> paints;
+        collect_paints(p.content, paints);
+
+        for (const auto* paint : paints) {
+            if (paint->kind == PaintPrimitiveKind::Rectangle) {
+                const auto* geo = std::get_if<RectGeometry>(&paint->geometry);
+                ASSERT_NE(geo, nullptr)
+                    << "Rectangle paint must carry RectGeometry (type="
+                    << static_cast<int>(tc.type) << ", value=" << tc.value << ")";
+                EXPECT_GT(geo->w, 0.0f)
+                    << "Rectangle width must be positive (type="
+                    << static_cast<int>(tc.type) << ", value=" << tc.value << ")";
+                EXPECT_GT(geo->h, 0.0f)
+                    << "Rectangle height must be positive (type="
+                    << static_cast<int>(tc.type) << ", value=" << tc.value << ")";
+            }
+        }
+    }
 }

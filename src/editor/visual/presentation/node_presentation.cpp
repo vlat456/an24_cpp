@@ -166,6 +166,12 @@ void append_painted(PresentationNode& parent,
     PresentationNode child = make_node(ids);
     PaintCommand paint = make_paint(ids, kind);
     configure(paint);
+    if (kind == PaintPrimitiveKind::Rectangle) {
+        const auto* rect = std::get_if<RectGeometry>(&paint.geometry);
+        assert(rect != nullptr);
+        assert(rect->w > 0.0f);
+        assert(rect->h > 0.0f);
+    }
     child.paint.push_back(std::move(paint));
     parent.children.push_back(std::move(child));
 }
@@ -197,18 +203,26 @@ void build_switch_content(PresentationNode& root, ElementIdAllocator& ids,
     const bool state = node.view.content_state;
     const bool tripped = node.view.content_tripped;
 
-    // Background
+    const float bg_w = vertical ? VERTICAL_TOGGLE_WIDTH : SWITCH_WIDTH;
+    const float bg_h = vertical ? VERTICAL_TOGGLE_HEIGHT : SWITCH_HEIGHT;
+
+    // Background — fills entire element bounds
     append_painted(root, ids, PaintPrimitiveKind::Rectangle, [&](PaintCommand& paint) {
         paint.fill_color = tripped ? COLOR_TRIPPED : (state ? 0xFF3A6830 : 0xFF1C1D24);
         paint.stroke_color = COLOR_BUS_BORDER;
         paint.stroke_width = 1.0f;
+        paint.geometry = RectGeometry{0.0f, 0.0f, bg_w, bg_h};
     });
 
-    // Handle
+    // Handle — positioned based on state
+    const RectGeometry handle_geo = vertical
+        ? RectGeometry{0.0f, state ? (bg_h * 0.15f) : (bg_h * 0.70f), bg_w, bg_h * 0.24f}
+        : RectGeometry{state ? (bg_w - bg_w * 0.40f) : 0.0f, 0.0f, bg_w * 0.40f, bg_h};
     append_painted(root, ids, PaintPrimitiveKind::Rectangle, [&](PaintCommand& paint) {
         paint.fill_color = tripped ? COLOR_TRIPPED : (state ? 0xFF3A6830 : 0xFF2C3038);
         paint.stroke_color = 0xFF1C1D24;
         paint.stroke_width = 1.0f;
+        paint.geometry = handle_geo;
     });
 
     // Click interaction
@@ -226,19 +240,33 @@ void build_slider_content(PresentationNode& root, ElementIdAllocator& ids,
     // Track background
     append_painted(root, ids, PaintPrimitiveKind::Rectangle, [&](PaintCommand& paint) {
         paint.fill_color = 0xFF1C1D24;
+        paint.geometry = RectGeometry{SLIDER_HANDLE_RADIUS,
+                                      (SLIDER_HEIGHT - SLIDER_TRACK_HEIGHT) * 0.5f,
+                                      SLIDER_WIDTH - 2.0f * SLIDER_HANDLE_RADIUS,
+                                      SLIDER_TRACK_HEIGHT};
     });
 
-    // Track fill
-    append_painted(root, ids, PaintPrimitiveKind::Rectangle, [&](PaintCommand& paint) {
-        paint.fill_color = 0xFF3A6830;
-    });
+    // Track fill — only emitted when the slider has a nonzero fill fraction.
+    // At t == 0 the fill rectangle would have zero width, which violates the
+    // positive-geometry invariant enforced by append_painted().
+    if (t > 0.0f) {
+        append_painted(root, ids, PaintPrimitiveKind::Rectangle, [&](PaintCommand& paint) {
+            paint.fill_color = 0xFF3A6830;
+            paint.geometry = RectGeometry{SLIDER_HANDLE_RADIUS,
+                                          (SLIDER_HEIGHT - SLIDER_TRACK_HEIGHT) * 0.5f,
+                                          t * (SLIDER_WIDTH - 2.0f * SLIDER_HANDLE_RADIUS),
+                                          SLIDER_TRACK_HEIGHT};
+        });
+    }
 
     // Handle
     append_painted(root, ids, PaintPrimitiveKind::Circle, [&](PaintCommand& paint) {
         paint.fill_color = 0xFF5078C0;
         paint.stroke_color = 0xFF3050A0;
         paint.stroke_width = 1.0f;
-        paint.geometry = CircleGeometry{0.0f, 0.0f, SLIDER_HANDLE_RADIUS};
+        paint.geometry = CircleGeometry{(t - 0.5f) * (SLIDER_WIDTH - 2.0f * SLIDER_HANDLE_RADIUS),
+                                        0.0f,
+                                        SLIDER_HANDLE_RADIUS};
     });
 
     // Value label

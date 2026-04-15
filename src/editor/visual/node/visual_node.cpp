@@ -163,6 +163,11 @@ struct LinePaintGeometry {
     Pt b;
 };
 
+struct RectPaintGeometry {
+    Pt min;
+    Pt max;
+};
+
 constexpr float DEG2RAD = 3.14159265f / 180.0f;
 
 TextPaintGeometry resolve_text_paint_geometry(const editor::presentation::SceneRenderObject& object,
@@ -201,6 +206,20 @@ LinePaintGeometry resolve_line_paint_geometry(const editor::presentation::SceneR
     return {
         Pt(center.x + std::cos(angle) * radius_a, center.y - std::sin(angle) * radius_a),
         Pt(center.x + std::cos(angle) * radius_b, center.y - std::sin(angle) * radius_b),
+    };
+}
+
+RectPaintGeometry resolve_rect_paint_geometry(const editor::presentation::SceneRenderObject& object,
+                                              const Pt& node_pos,
+                                              const RenderContext& ctx) {
+    const auto* rect_geo = std::get_if<editor::presentation::RectGeometry>(&object.geometry);
+    float x = object.bounds.x + (rect_geo ? rect_geo->x : 0.0f);
+    float y = object.bounds.y + (rect_geo ? rect_geo->y : 0.0f);
+    float w = rect_geo ? rect_geo->w : object.bounds.w;
+    float h = rect_geo ? rect_geo->h : object.bounds.h;
+    return {
+        ctx.world_to_screen(Pt(node_pos.x + x, node_pos.y + y)),
+        ctx.world_to_screen(Pt(node_pos.x + x + w, node_pos.y + y + h)),
     };
 }
 
@@ -568,12 +587,10 @@ void NodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
                 continue;
             }
             if (object.primitive == editor::presentation::PaintPrimitiveKind::Rectangle) {
-                Pt min = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
-                Pt max = ctx.world_to_screen(Pt(pos.x + object.bounds.x + object.bounds.w,
-                                                pos.y + object.bounds.y + object.bounds.h));
-                dl->add_rect_filled(min, max, object.fill_color);
+                const RectPaintGeometry rect = resolve_rect_paint_geometry(object, pos, ctx);
+                dl->add_rect_filled(rect.min, rect.max, object.fill_color);
                 if (object.stroke_width > 0.0f) {
-                    dl->add_rect(min, max, object.stroke_color, object.stroke_width * ctx.zoom);
+                    dl->add_rect(rect.min, rect.max, object.stroke_color, object.stroke_width * ctx.zoom);
                 }
                 continue;
             }
@@ -675,10 +692,8 @@ void NodeWidget::renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx)
         }
 
         if (object.primitive == editor::presentation::PaintPrimitiveKind::Rectangle) {
-            Pt min = ctx.world_to_screen(Pt(pos.x + object.bounds.x, pos.y + object.bounds.y));
-            Pt max = ctx.world_to_screen(Pt(pos.x + object.bounds.x + object.bounds.w,
-                                            pos.y + object.bounds.y + object.bounds.h));
-            dl->add_rect(min, max, DEBUG_PAINT_BOUNDS_COLOR, 1.0f);
+            const RectPaintGeometry rect = resolve_rect_paint_geometry(object, pos, ctx);
+            dl->add_rect(rect.min, rect.max, DEBUG_PAINT_BOUNDS_COLOR, 1.0f);
             continue;
         }
 
