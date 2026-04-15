@@ -18,7 +18,7 @@ TEST(SemanticCanvasHostTest, StartsIdleWithEmptySnapshot) {
 TEST(SemanticCanvasHostTest, StepUsesOwnedSnapshot) {
     SemanticSceneSnapshot snapshot;
     SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
@@ -35,7 +35,7 @@ TEST(SemanticCanvasHostTest, StepUsesOwnedSnapshot) {
 TEST(SemanticCanvasHostTest, ReplacingSnapshotChangesFutureHitResults) {
     SemanticSceneSnapshot first;
     SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Click, ui::InternedId(100)));
     first.hit_objects.push_back(region);
 
@@ -55,7 +55,7 @@ TEST(SemanticCanvasHostTest, ReplacingSnapshotChangesFutureHitResults) {
 TEST(SemanticCanvasHostTest, CancelDelegatesToMachine) {
     SemanticSceneSnapshot snapshot;
     SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
@@ -72,7 +72,7 @@ TEST(SemanticCanvasHostTest, CancelDelegatesToMachine) {
 TEST(SemanticCanvasHostTest, ResetDelegatesToMachine) {
     SemanticSceneSnapshot snapshot;
     SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 

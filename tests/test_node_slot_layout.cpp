@@ -35,7 +35,7 @@ NodePresentation make_presentation(ui::InternedId type_id = ui::InternedId(100))
     return compile_node_presentation(ctx, node, type_id);
 }
 
-const Rect* find_slot(const NodeSlotLayout& layout, NodeSlot slot) {
+const ui::Rect* find_slot(const NodeSlotLayout& layout, NodeSlot slot) {
     for (const SlotAssignment& assignment : layout.slots) {
         if (assignment.slot == slot) {
             return &assignment.bounds;
@@ -44,7 +44,7 @@ const Rect* find_slot(const NodeSlotLayout& layout, NodeSlot slot) {
     return nullptr;
 }
 
-const Rect* find_placement(const NodeSlotLayout& layout, ui::InternedId element_id) {
+const ui::Rect* find_placement(const NodeSlotLayout& layout, ui::InternedId element_id) {
     for (const FragmentPlacement& placement : layout.placements) {
         if (placement.element_id == element_id) {
             return &placement.bounds;
@@ -59,11 +59,11 @@ TEST(NodeSlotLayoutTest, ComputesCanonicalShellSlots) {
     NodePresentation presentation = make_presentation();
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const Rect* header = find_slot(layout, NodeSlot::Header);
-    const Rect* body = find_slot(layout, NodeSlot::Body);
-    const Rect* left_ports = find_slot(layout, NodeSlot::LeftPorts);
-    const Rect* right_ports = find_slot(layout, NodeSlot::RightPorts);
-    const Rect* overlay = find_slot(layout, NodeSlot::Overlay);
+    const ui::Rect* header = find_slot(layout, NodeSlot::Header);
+    const ui::Rect* body = find_slot(layout, NodeSlot::Body);
+    const ui::Rect* left_ports = find_slot(layout, NodeSlot::LeftPorts);
+    const ui::Rect* right_ports = find_slot(layout, NodeSlot::RightPorts);
+    const ui::Rect* overlay = find_slot(layout, NodeSlot::Overlay);
 
     ASSERT_NE(header, nullptr);
     ASSERT_NE(body, nullptr);
@@ -92,7 +92,7 @@ TEST(NodeSlotLayoutTest, PlacesFragmentWithinBodySlotPadding) {
     NodePresentation presentation = make_presentation();
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const Rect* root = find_placement(layout, ui::InternedId(1));
+    const ui::Rect* root = find_placement(layout, ui::InternedId(1));
     ASSERT_NE(root, nullptr);
     EXPECT_FLOAT_EQ(root->x, 28.0f);
     EXPECT_FLOAT_EQ(root->y, 32.0f);
@@ -104,8 +104,8 @@ TEST(NodeSlotLayoutTest, SplitsColumnChildrenEvenlyUsingGap) {
     NodePresentation presentation = make_presentation();
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const Rect* top = find_placement(layout, ui::InternedId(2));
-    const Rect* bottom = find_placement(layout, ui::InternedId(3));
+    const ui::Rect* top = find_placement(layout, ui::InternedId(2));
+    const ui::Rect* bottom = find_placement(layout, ui::InternedId(3));
     ASSERT_NE(top, nullptr);
     ASSERT_NE(bottom, nullptr);
 
@@ -138,9 +138,9 @@ TEST(NodeSlotLayoutTest, OverlayChildrenReuseParentBounds) {
     NodePresentation presentation = compile_node_presentation(NodePresentationCompileContext{&registry}, node, ui::InternedId(200));
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const Rect* root = find_placement(layout, ui::InternedId(20));
-    const Rect* a = find_placement(layout, ui::InternedId(21));
-    const Rect* b = find_placement(layout, ui::InternedId(22));
+    const ui::Rect* root = find_placement(layout, ui::InternedId(20));
+    const ui::Rect* a = find_placement(layout, ui::InternedId(21));
+    const ui::Rect* b = find_placement(layout, ui::InternedId(22));
     ASSERT_NE(root, nullptr);
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
@@ -180,8 +180,8 @@ TEST(NodeSlotLayoutTest, PerNodeGapOverridesDefault) {
         NodePresentationCompileContext{&registry}, node, ui::InternedId(300));
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const Rect* a = find_placement(layout, ui::InternedId(32));
-    const Rect* b = find_placement(layout, ui::InternedId(33));
+    const ui::Rect* a = find_placement(layout, ui::InternedId(32));
+    const ui::Rect* b = find_placement(layout, ui::InternedId(33));
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
 
@@ -217,8 +217,8 @@ TEST(NodeSlotLayoutTest, ZeroGapNodePacksChildrenTightly) {
         NodePresentationCompileContext{&registry}, node, ui::InternedId(400));
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const Rect* a = find_placement(layout, ui::InternedId(42));
-    const Rect* b = find_placement(layout, ui::InternedId(43));
+    const ui::Rect* a = find_placement(layout, ui::InternedId(42));
+    const ui::Rect* b = find_placement(layout, ui::InternedId(43));
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
 
@@ -252,8 +252,8 @@ TEST(NodeSlotLayoutTest, RowLayoutSplitsHorizontally) {
         NodePresentationCompileContext{&registry}, node, ui::InternedId(500));
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const Rect* a = find_placement(layout, ui::InternedId(52));
-    const Rect* b = find_placement(layout, ui::InternedId(53));
+    const ui::Rect* a = find_placement(layout, ui::InternedId(52));
+    const ui::Rect* b = find_placement(layout, ui::InternedId(53));
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
 

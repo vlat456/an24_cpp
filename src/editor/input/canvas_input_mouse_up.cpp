@@ -223,6 +223,7 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
                 break;
         }
         leave_state();
+        rebuild_snapshot();
     }
     return result;
 }

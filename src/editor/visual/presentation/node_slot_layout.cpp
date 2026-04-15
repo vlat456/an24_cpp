@@ -7,8 +7,8 @@ namespace editor::presentation {
 
 namespace {
 
-Rect inset_rect(const Rect& rect, float inset) {
-    Rect result;
+ui::Rect inset_rect(const ui::Rect& rect, float inset) {
+    ui::Rect result;
     result.x = rect.x + inset;
     result.y = rect.y + inset;
     result.w = std::max(0.0f, rect.w - inset * 2.0f);
@@ -16,12 +16,12 @@ Rect inset_rect(const Rect& rect, float inset) {
     return result;
 }
 
-void append_slot(std::vector<SlotAssignment>& slots, NodeSlot slot, const Rect& bounds) {
+void append_slot(std::vector<SlotAssignment>& slots, NodeSlot slot, const ui::Rect& bounds) {
     slots.push_back(SlotAssignment{slot, bounds});
 }
 
 void place_fragment_node(const PresentationNode& node,
-                         const Rect& bounds,
+                         const ui::Rect& bounds,
                          std::vector<FragmentPlacement>& placements) {
     placements.push_back(FragmentPlacement{node.element_id, bounds});
 
@@ -45,7 +45,7 @@ void place_fragment_node(const PresentationNode& node,
         const float child_h = child_count > 0.0f ? std::max(0.0f, (bounds.h - total_gap) / child_count) : 0.0f;
         float cursor_y = bounds.y;
         for (const PresentationNode& child : node.children) {
-            Rect child_bounds{bounds.x, cursor_y, bounds.w, child_h};
+            ui::Rect child_bounds{bounds.x, cursor_y, bounds.w, child_h};
             place_fragment_node(child, child_bounds, placements);
             cursor_y += child_h + gap;
         }
@@ -56,7 +56,7 @@ void place_fragment_node(const PresentationNode& node,
     const float child_w = child_count > 0.0f ? std::max(0.0f, (bounds.w - total_gap) / child_count) : 0.0f;
     float cursor_x = bounds.x;
     for (const PresentationNode& child : node.children) {
-        Rect child_bounds{cursor_x, bounds.y, child_w, bounds.h};
+        ui::Rect child_bounds{cursor_x, bounds.y, child_w, bounds.h};
         place_fragment_node(child, child_bounds, placements);
         cursor_x += child_w + gap;
     }
@@ -65,7 +65,7 @@ void place_fragment_node(const PresentationNode& node,
 void arrange_side_rail(const std::vector<RailEntryMetrics>& entries,
                        bool is_left,
                        float node_w,
-                       const Rect& body,
+                       const ui::Rect& body,
                        float port_diameter,
                        float row_height,
                        float indent,
@@ -80,14 +80,14 @@ void arrange_side_rail(const std::vector<RailEntryMetrics>& entries,
 
         RailPlacement placement;
         placement.index = i;
-        placement.port_bounds = Rect{port_x, port_y, port_diameter, port_diameter};
+        placement.port_bounds = ui::Rect{port_x, port_y, port_diameter, port_diameter};
 
         const float label_h = entries[i].label_height;
         const float label_y = row_y + (row_height - label_h) * 0.5f;
         if (is_left) {
-            placement.label_bounds = Rect{indent, label_y, std::max(0.0f, node_w - indent), label_h};
+            placement.label_bounds = ui::Rect{indent, label_y, std::max(0.0f, node_w - indent), label_h};
         } else {
-            placement.label_bounds = Rect{0.0f, label_y, std::max(0.0f, node_w - indent), label_h};
+            placement.label_bounds = ui::Rect{0.0f, label_y, std::max(0.0f, node_w - indent), label_h};
         }
         out.push_back(placement);
     }
@@ -114,7 +114,7 @@ void arrange_edge_rail(const std::vector<RailEntryMetrics>& entries,
 
         RailPlacement placement;
         placement.index = i;
-        placement.port_bounds = Rect{
+        placement.port_bounds = ui::Rect{
             snapped_x - radius,
             is_top ? -radius : (node_h - radius),
             port_diameter,
@@ -123,7 +123,7 @@ void arrange_edge_rail(const std::vector<RailEntryMetrics>& entries,
 
         const float label_w = entries[i].label_width;
         const float label_h = entries[i].label_height;
-        placement.label_bounds = Rect{
+        placement.label_bounds = ui::Rect{
             snapped_x - label_w * 0.5f,
             is_top ? (placement.port_bounds.y + port_diameter + label_offset)
                    : (placement.port_bounds.y - label_h - label_offset),
@@ -283,7 +283,7 @@ NodeShellLayout measure_node_shell(const NodeShellLayoutSpec& spec) {
                  + spec.footer_height,
                  16.0f)
     };
-    result.node_bounds = Rect{0.0f, 0.0f, result.preferred_size.x, result.preferred_size.y};
+    result.node_bounds = ui::Rect{0.0f, 0.0f, result.preferred_size.x, result.preferred_size.y};
     return result;
 }
 
@@ -291,16 +291,16 @@ NodeShellLayout arrange_node_shell(const NodeShellLayoutSpec& spec, ui::Pt node_
     NodeShellLayout result = measure_node_shell(spec);
     const float width = std::max(node_size.x, result.minimum_size.x);
     const float height = std::max(node_size.y, result.minimum_size.y);
-    result.node_bounds = Rect{0.0f, 0.0f, width, height};
+    result.node_bounds = ui::Rect{0.0f, 0.0f, width, height};
 
-    result.header = Rect{0.0f, 0.0f, width, spec.header_height};
-    result.footer = Rect{0.0f, height - spec.footer_height, width, spec.footer_height};
-    result.top_ports = Rect{0.0f, spec.header_height, width, spec.top_entries.empty() ? 0.0f : spec.row_height};
-    result.bottom_ports = Rect{0.0f, result.footer.y - (spec.bottom_entries.empty() ? 0.0f : spec.row_height), width, spec.bottom_entries.empty() ? 0.0f : spec.row_height};
+    result.header = ui::Rect{0.0f, 0.0f, width, spec.header_height};
+    result.footer = ui::Rect{0.0f, height - spec.footer_height, width, spec.footer_height};
+    result.top_ports = ui::Rect{0.0f, spec.header_height, width, spec.top_entries.empty() ? 0.0f : spec.row_height};
+    result.bottom_ports = ui::Rect{0.0f, result.footer.y - (spec.bottom_entries.empty() ? 0.0f : spec.row_height), width, spec.bottom_entries.empty() ? 0.0f : spec.row_height};
 
     const float body_y = result.top_ports.y + result.top_ports.h;
     const float body_h = std::max(0.0f, result.bottom_ports.y - body_y);
-    result.body = Rect{0.0f, body_y, width, body_h};
+    result.body = ui::Rect{0.0f, body_y, width, body_h};
 
     float content_top = body_y + spec.content_margin_y;
     float content_h = std::max(0.0f, body_h - spec.content_margin_y * 2.0f);
@@ -309,7 +309,7 @@ NodeShellLayout arrange_node_shell(const NodeShellLayoutSpec& spec, ui::Pt node_
         content_top = body_y + side_rows_h + spec.content_margin_y;
         content_h = std::max(0.0f, body_h - side_rows_h - spec.content_margin_y * 2.0f);
     }
-    result.content_bounds = Rect{
+    result.content_bounds = ui::Rect{
         spec.content_margin_x + (std::max(0.0f, width - spec.content_margin_x * 2.0f - spec.content_preferred_size.x)) * spec.content_align_x,
         content_top + (std::max(0.0f, content_h - spec.content_preferred_size.y)) * spec.content_align_y,
         spec.content_preferred_size.x,
@@ -331,23 +331,23 @@ NodeSlotLayout layout_node_presentation(const NodePresentation& presentation,
 
     const float width = std::max(node_size.x, style.min_width);
     const float height = std::max(node_size.y, style.min_height);
-    result.node_bounds = Rect{0.0f, 0.0f, width, height};
+    result.node_bounds = ui::Rect{0.0f, 0.0f, width, height};
 
-    const Rect header{0.0f, 0.0f, width, style.header_height};
+    const ui::Rect header{0.0f, 0.0f, width, style.header_height};
     const float body_y = style.header_height + style.top_strip_height;
     const float body_h = std::max(0.0f, height - body_y - style.bottom_strip_height);
-    const Rect body{0.0f, body_y, width, body_h};
-    const Rect top_ports{0.0f, style.header_height, width, style.top_strip_height};
-    const Rect bottom_ports{0.0f, height - style.bottom_strip_height, width, style.bottom_strip_height};
-    const Rect left_ports{0.0f, body_y, style.side_strip_width, body_h};
-    const Rect right_ports{width - style.side_strip_width, body_y, style.side_strip_width, body_h};
-    const Rect body_content{
+    const ui::Rect body{0.0f, body_y, width, body_h};
+    const ui::Rect top_ports{0.0f, style.header_height, width, style.top_strip_height};
+    const ui::Rect bottom_ports{0.0f, height - style.bottom_strip_height, width, style.bottom_strip_height};
+    const ui::Rect left_ports{0.0f, body_y, style.side_strip_width, body_h};
+    const ui::Rect right_ports{width - style.side_strip_width, body_y, style.side_strip_width, body_h};
+    const ui::Rect body_content{
         left_ports.w,
         body_y,
         std::max(0.0f, width - left_ports.w - right_ports.w),
         body_h,
     };
-    const Rect overlay = inset_rect(result.node_bounds, style.overlay_inset);
+    const ui::Rect overlay = inset_rect(result.node_bounds, style.overlay_inset);
 
     append_slot(result.slots, NodeSlot::Header, header);
     append_slot(result.slots, NodeSlot::TopPorts, top_ports);
@@ -357,7 +357,7 @@ NodeSlotLayout layout_node_presentation(const NodePresentation& presentation,
     append_slot(result.slots, NodeSlot::BottomPorts, bottom_ports);
     append_slot(result.slots, NodeSlot::Overlay, overlay);
 
-    const Rect content_bounds = inset_rect(body_content, style.body_padding);
+    const ui::Rect content_bounds = inset_rect(body_content, style.body_padding);
     place_fragment_node(presentation.content.root, content_bounds, result.placements);
     return result;
 }

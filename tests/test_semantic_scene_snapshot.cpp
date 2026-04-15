@@ -180,11 +180,11 @@ TEST(SemanticSceneSnapshotTest, ContentRootPlacementIsRequiredForNestedContentTr
     presentation.content.root = std::move(root);
 
     NodeSlotLayout layout;
-    layout.node_bounds = Rect{0.0f, 0.0f, 120.0f, 80.0f};
-    layout.slots.push_back(SlotAssignment{NodeSlot::Header, Rect{0.0f, 0.0f, 120.0f, 20.0f}});
-    layout.slots.push_back(SlotAssignment{NodeSlot::Body, Rect{0.0f, 20.0f, 120.0f, 60.0f}});
-    layout.placements.push_back(FragmentPlacement{ui::InternedId(1), Rect{10.0f, 24.0f, 80.0f, 40.0f}});
-    layout.placements.push_back(FragmentPlacement{ui::InternedId(2), Rect{18.0f, 30.0f, 24.0f, 24.0f}});
+    layout.node_bounds = ui::Rect{0.0f, 0.0f, 120.0f, 80.0f};
+    layout.slots.push_back(SlotAssignment{NodeSlot::Header, ui::Rect{0.0f, 0.0f, 120.0f, 20.0f}});
+    layout.slots.push_back(SlotAssignment{NodeSlot::Body, ui::Rect{0.0f, 20.0f, 120.0f, 60.0f}});
+    layout.placements.push_back(FragmentPlacement{ui::InternedId(1), ui::Rect{10.0f, 24.0f, 80.0f, 40.0f}});
+    layout.placements.push_back(FragmentPlacement{ui::InternedId(2), ui::Rect{18.0f, 30.0f, 24.0f, 24.0f}});
 
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 

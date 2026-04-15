@@ -2,6 +2,7 @@
 
 #include "editor/visual/presentation/node_presentation.h"
 #include "editor/visual/presentation/node_slot_layout.h"
+#include "ui/math/rect.h"
 #include <vector>
 
 namespace editor::presentation {
@@ -44,7 +45,7 @@ struct SceneRenderObject {
     SceneRenderObjectKind kind = SceneRenderObjectKind::ContentPaint;
     NodeFrameKind frame_kind = NodeFrameKind::Standard;
     PaintPrimitiveKind primitive = PaintPrimitiveKind::Rectangle;
-    Rect bounds;
+    ui::Rect bounds;
     std::string text;
     uint32_t fill_color = 0;
     uint32_t stroke_color = 0;
@@ -74,7 +75,7 @@ struct SceneHitObject {
     ui::InternedId region_id;
     SceneHitObjectKind kind = SceneHitObjectKind::ContentRegion;
     HitShapeKind shape = HitShapeKind::Rectangle;
-    Rect bounds;
+    ui::Rect bounds;
     std::vector<InteractionBinding> interactions;
 };
 

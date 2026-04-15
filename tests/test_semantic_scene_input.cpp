@@ -7,7 +7,7 @@ using namespace editor::presentation;
 namespace {
 
 SceneHitObject make_content_region(ui::InternedId node_id, ui::InternedId element_id,
-                                   ui::InternedId region_id, const Rect& bounds) {
+                                   ui::InternedId region_id, const ui::Rect& bounds) {
     SceneHitObject object;
     object.node_id = node_id;
     object.element_id = element_id;
@@ -17,7 +17,7 @@ SceneHitObject make_content_region(ui::InternedId node_id, ui::InternedId elemen
     return object;
 }
 
-SceneHitObject make_node_body(ui::InternedId node_id, const Rect& bounds) {
+SceneHitObject make_node_body(ui::InternedId node_id, const ui::Rect& bounds) {
     SceneHitObject object;
     object.node_id = node_id;
     object.kind = SceneHitObjectKind::NodeBody;
@@ -53,7 +53,7 @@ TEST(SemanticSceneInputTest, EmptySnapshotReturnsEmptyHit) {
 TEST(SemanticSceneInputTest, ClickingContentRegionResolvesClickAndClears) {
     SemanticSceneSnapshot snapshot;
     SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     region.interactions.push_back(make_binding(InteractionKind::Click, ui::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
@@ -77,7 +77,7 @@ TEST(SemanticSceneInputTest, ClickingContentRegionResolvesClickAndClears) {
 TEST(SemanticSceneInputTest, PressingPressRegionBeginsSession) {
     SemanticSceneSnapshot snapshot;
     SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     region.interactions.push_back(make_binding(InteractionKind::Press, ui::InternedId(101)));
     snapshot.hit_objects.push_back(region);
 
@@ -100,7 +100,7 @@ TEST(SemanticSceneInputTest, PressingPressRegionBeginsSession) {
 TEST(SemanticSceneInputTest, DragContinuationWithMatchingHit) {
     SemanticSceneSnapshot snapshot;
     SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     // No drag binding on the region itself - this tests continuation via session
     snapshot.hit_objects.push_back(region);
 
@@ -127,7 +127,7 @@ TEST(SemanticSceneInputTest, DragContinuationWithMatchingHit) {
 TEST(SemanticSceneInputTest, ReleaseContinuationWithMatchingHitClears) {
     SemanticSceneSnapshot snapshot;
     SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     snapshot.hit_objects.push_back(region);
 
     // Build an active press session
@@ -152,7 +152,7 @@ TEST(SemanticSceneInputTest, ReleaseContinuationWithMatchingHitClears) {
 // Test 6: node body hit yields node-body hit, null resolved request, and no emitted requests
 TEST(SemanticSceneInputTest, NodeBodyHitYieldsNoRequest) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject body = make_node_body(ui::InternedId(10), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    SceneHitObject body = make_node_body(ui::InternedId(10), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     snapshot.hit_objects.push_back(body);
 
     SemanticInteractionSession session;
@@ -172,12 +172,12 @@ TEST(SemanticSceneInputTest, OverlappingHitsReturnContentHit) {
     SemanticSceneSnapshot snapshot;
 
     // Add node body first (lower priority)
-    SceneHitObject body = make_node_body(ui::InternedId(10), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    SceneHitObject body = make_node_body(ui::InternedId(10), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     snapshot.hit_objects.push_back(body);
 
     // Add content region second (higher priority due to reverse iteration in hittest)
     SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), Rect{0.0f, 0.0f, 100.0f, 100.0f});
+                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     region.interactions.push_back(make_binding(InteractionKind::Click, ui::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 

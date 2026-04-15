@@ -6,7 +6,7 @@ namespace semantic_test {
 
 inline editor::presentation::SceneHitObject make_content_region(
     ui::InternedId node_id, ui::InternedId element_id,
-    ui::InternedId region_id, const editor::presentation::Rect& bounds) {
+    ui::InternedId region_id, const ui::Rect& bounds) {
     editor::presentation::SceneHitObject object;
     object.node_id = node_id;
     object.element_id = element_id;

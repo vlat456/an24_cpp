@@ -7,7 +7,7 @@ namespace editor::presentation {
 
 namespace {
 
-const Rect* find_slot_bounds(const NodeSlotLayout& layout, NodeSlot slot) {
+const ui::Rect* find_slot_bounds(const NodeSlotLayout& layout, NodeSlot slot) {
     for (const SlotAssignment& assignment : layout.slots) {
         if (assignment.slot == slot) {
             return &assignment.bounds;
@@ -16,7 +16,7 @@ const Rect* find_slot_bounds(const NodeSlotLayout& layout, NodeSlot slot) {
     return nullptr;
 }
 
-const Rect* find_element_bounds(const NodeSlotLayout& layout, ui::InternedId element_id) {
+const ui::Rect* find_element_bounds(const NodeSlotLayout& layout, ui::InternedId element_id) {
     for (const FragmentPlacement& placement : layout.placements) {
         if (placement.element_id == element_id) {
             return &placement.bounds;
@@ -30,7 +30,7 @@ void append_content_objects(const NodePresentation& presentation,
                             const PresentationNode& node,
                             SemanticSceneSnapshot& snapshot,
                             uint32_t& next_id) {
-    const Rect* bounds = find_element_bounds(layout, node.element_id);
+    const ui::Rect* bounds = find_element_bounds(layout, node.element_id);
     assert(bounds != nullptr);
 
     for (const PaintCommand& paint : node.paint) {
@@ -84,8 +84,8 @@ void append_node_snapshot(const NodePresentation& presentation,
     entry.render_range.offset = snapshot.render_objects.size();
     entry.hit_range.offset = snapshot.hit_objects.size();
 
-    const Rect* header = find_slot_bounds(layout, NodeSlot::Header);
-    const Rect* body = find_slot_bounds(layout, NodeSlot::Body);
+    const ui::Rect* header = find_slot_bounds(layout, NodeSlot::Header);
+    const ui::Rect* body = find_slot_bounds(layout, NodeSlot::Body);
     assert(header != nullptr);
     assert(body != nullptr);
 

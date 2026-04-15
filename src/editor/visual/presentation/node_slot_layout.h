@@ -4,6 +4,7 @@
 #include "visual/node/port_layout_resolver.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "ui/math/pt.h"
+#include "ui/math/rect.h"
 #include <vector>
 
 namespace editor::presentation {
@@ -18,25 +19,18 @@ enum class NodeSlot {
     Overlay,
 };
 
-struct Rect {
-    float x = 0.0f;
-    float y = 0.0f;
-    float w = 0.0f;
-    float h = 0.0f;
-};
-
 struct SlotAssignment {
     NodeSlot slot = NodeSlot::Body;
-    Rect bounds;
+    ui::Rect bounds;
 };
 
 struct FragmentPlacement {
     ui::InternedId element_id;
-    Rect bounds;
+    ui::Rect bounds;
 };
 
 struct NodeSlotLayout {
-    Rect node_bounds;
+    ui::Rect node_bounds;
     std::vector<SlotAssignment> slots;
     std::vector<FragmentPlacement> placements;
 };
@@ -60,8 +54,8 @@ struct RailEntryMetrics {
 
 struct RailPlacement {
     size_t index = 0;
-    Rect port_bounds;
-    Rect label_bounds;
+    ui::Rect port_bounds;
+    ui::Rect label_bounds;
 };
 
 struct NodeShellLayoutSpec {
@@ -108,13 +102,13 @@ NodeShellContentPolicy compile_node_shell_content_policy(bp2::NodeContentType co
                                                          float content_margin_y);
 
 struct NodeShellLayout {
-    Rect node_bounds;
-    Rect header;
-    Rect top_ports;
-    Rect body;
-    Rect bottom_ports;
-    Rect footer;
-    Rect content_bounds;
+    ui::Rect node_bounds;
+    ui::Rect header;
+    ui::Rect top_ports;
+    ui::Rect body;
+    ui::Rect bottom_ports;
+    ui::Rect footer;
+    ui::Rect content_bounds;
     ui::Pt preferred_size{};
     ui::Pt minimum_size{};
     std::vector<RailPlacement> left_rail;

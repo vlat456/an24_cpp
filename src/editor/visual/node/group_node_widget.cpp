@@ -1,4 +1,5 @@
 #include "group_node_widget.h"
+#include "editor/visual/presentation/hit_geometry.h"
 #include "visual/render_context.h"
 #include "visual/renderer/render_theme.h"
 #include "visual/renderer/draw_list.h"
@@ -45,29 +46,9 @@ GroupNodeWidget::GroupNodeWidget(const bp2::Blueprint::Node& data, const ui::Str
 // ============================================================================
 
 bool GroupNodeWidget::containsBorder(Pt world_p) const {
-    Pt pos = worldPos();
-    float x0 = pos.x, y0 = pos.y;
-    float x1 = x0 + size().x, y1 = y0 + size().y;
-
-    // Outside bounds entirely
-    if (world_p.x < x0 || world_p.x > x1 ||
-        world_p.y < y0 || world_p.y > y1)
-        return false;
-
-    // Title bar area (always clickable)
-    float title_h = editor_constants::GROUP_TITLE_PADDING * 2
-                  + editor_constants::Font::Medium;
-    if (world_p.y <= y0 + title_h)
-        return true;
-
-    // Border margins (left, right, bottom)
-    float m = editor_constants::GROUP_BORDER_HIT_MARGIN;
-    if (world_p.x <= x0 + m || world_p.x >= x1 - m ||
-        world_p.y >= y1 - m)
-        return true;
-
-    // Interior — click passes through
-    return false;
+    return editor::presentation::hit_geometry::point_hits_group_frame(
+        world_p,
+        ui::Rect{worldPos().x, worldPos().y, size().x, size().y});
 }
 
 // ============================================================================

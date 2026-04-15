@@ -309,6 +309,50 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForResizableGroupNode) {
     ASSERT_TRUE(std::holds_alternative<visual::HitResizeHandle>(br_result))
         << "Clicking bottom-right corner of resizable group must return HitResizeHandle";
     EXPECT_EQ(std::get<visual::HitResizeHandle>(br_result).corner, ResizeCorner::BottomRight);
+
+    ui::Pt near_br_corner = grp_widget->worldMax() + ui::Pt(8.0f, 0.0f);
+    auto near_br_result = editor::presentation::hit_test_canvas_scene(snapshot, near_br_corner, interner);
+    ASSERT_TRUE(std::holds_alternative<visual::HitResizeHandle>(near_br_result))
+        << "Resize handle hit area should extend beyond the exact node corner";
+    EXPECT_EQ(std::get<visual::HitResizeHandle>(near_br_result).corner, ResizeCorner::BottomRight);
+}
+
+TEST(CanvasSceneSnapshot, RoutingPointHitAreaExtendsBeyondVisibleDot) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto n1 = make_canvas_snapshot_node(interner, "bat2", "Battery");
+    n1.layout.x = 0.0f;
+    n1.layout.y = 0.0f;
+    set_iface(n1, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto n2 = make_canvas_snapshot_node(interner, "lamp2", "Lamp");
+    n2.layout.x = 120.0f;
+    n2.layout.y = 0.0f;
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    auto w = make_canvas_snapshot_wire(interner, "wire2", "bat2", "v_out", "lamp2", "v_in");
+    w.routing_points.push_back({60.0f, 24.0f});
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+    bp = bp.with_wire(std::move(w));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
+
+    ui::Pt near_routing_point(68.0f, 24.0f);
+    auto result = editor::presentation::hit_test_canvas_scene(snapshot, near_routing_point, interner);
+    ASSERT_TRUE(std::holds_alternative<visual::HitRoutingPoint>(result))
+        << "Routing point hit area should be larger than the visible dot";
+    EXPECT_EQ(std::get<visual::HitRoutingPoint>(result).wire_id, "wire2");
 }
 
 // ============================================================================
@@ -349,6 +393,88 @@ TEST(CanvasSceneSnapshot, HitTestPriorityPortOverNode) {
     ASSERT_TRUE(std::holds_alternative<visual::HitPort>(result))
         << "Port must have higher priority than NodeBody in hit testing";
     EXPECT_EQ(std::get<visual::HitPort>(result).port_name, "v_out");
+}
+
+TEST(CanvasSceneSnapshot, RoutingPointWinsOverWireWithinSharedHitTolerance) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto n1 = make_canvas_snapshot_node(interner, "bat3", "Battery");
+    n1.layout.x = 0.0f;
+    n1.layout.y = 0.0f;
+    set_iface(n1, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto n2 = make_canvas_snapshot_node(interner, "lamp3", "Lamp");
+    n2.layout.x = 120.0f;
+    n2.layout.y = 0.0f;
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    auto w = make_canvas_snapshot_wire(interner, "wire3", "bat3", "v_out", "lamp3", "v_in");
+    w.routing_points.push_back({60.0f, 24.0f});
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+    bp = bp.with_wire(std::move(w));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
+
+    auto result = editor::presentation::hit_test_canvas_scene(snapshot, ui::Pt(68.0f, 24.0f), interner);
+    ASSERT_TRUE(std::holds_alternative<visual::HitRoutingPoint>(result))
+        << "Routing point should outrank its parent wire when both are within the shared hit tolerance";
+    EXPECT_EQ(std::get<visual::HitRoutingPoint>(result).wire_id, "wire3");
+}
+
+TEST(CanvasSceneSnapshot, WireSegmentUsesSharedHitTolerance) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto n1 = make_canvas_snapshot_node(interner, "a2", "Battery");
+    n1.layout.x = 0.0f;
+    n1.layout.y = 0.0f;
+    set_iface(n1, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto n2 = make_canvas_snapshot_node(interner, "b2", "Lamp");
+    n2.layout.x = 300.0f;
+    n2.layout.y = 0.0f;
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    auto w = make_canvas_snapshot_wire(interner, "w2", "a2", "v_out", "b2", "v_in");
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+    bp = bp.with_wire(std::move(w));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "");
+
+    auto* wire_widget = dynamic_cast<visual::Wire*>(scene.find(interner.resolve(interner.lookup("w2"))));
+    ASSERT_NE(wire_widget, nullptr);
+    const auto& polyline = wire_widget->polyline();
+    ASSERT_GE(polyline.size(), 2u);
+
+    const ui::Pt seg_mid((polyline[0].x + polyline[1].x) * 0.5f,
+                         (polyline[0].y + polyline[1].y) * 0.5f);
+
+    const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
+
+    auto edge_hit = editor::presentation::hit_test_canvas_scene(snapshot, ui::Pt(seg_mid.x, seg_mid.y + 4.0f), interner);
+    EXPECT_TRUE(std::holds_alternative<visual::HitWire>(edge_hit));
+
+    auto miss_hit = editor::presentation::hit_test_canvas_scene(snapshot, ui::Pt(seg_mid.x, seg_mid.y + 6.0f), interner);
+    EXPECT_FALSE(std::holds_alternative<visual::HitWire>(miss_hit));
 }
 
 // ============================================================================
@@ -410,4 +536,10 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForNodeWithoutExplicitSize) {
     ASSERT_TRUE(std::holds_alternative<visual::HitResizeHandle>(result))
         << "Bottom-right corner of node without explicit size must return HitResizeHandle";
     EXPECT_EQ(std::get<visual::HitResizeHandle>(result).node_id, "new_node");
+
+    ui::Pt near_br = widget->worldMax() + ui::Pt(8.0f, -2.0f);
+    auto near_result = editor::presentation::hit_test_canvas_scene(snapshot, near_br, interner);
+    ASSERT_TRUE(std::holds_alternative<visual::HitResizeHandle>(near_result))
+        << "Node resize handle hit area should extend beyond the exact widget bounds";
+    EXPECT_EQ(std::get<visual::HitResizeHandle>(near_result).node_id, "new_node");
 }

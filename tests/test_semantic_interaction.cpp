@@ -14,7 +14,7 @@ SceneHitObject make_content_region() {
     object.region_id = ui::InternedId(30);
     object.kind = SceneHitObjectKind::ContentRegion;
     object.shape = HitShapeKind::Rectangle;
-    object.bounds = Rect{0.0f, 0.0f, 10.0f, 10.0f};
+    object.bounds = ui::Rect{0.0f, 0.0f, 10.0f, 10.0f};
     return object;
 }
 

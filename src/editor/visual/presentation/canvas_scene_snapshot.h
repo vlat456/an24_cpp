@@ -8,19 +8,13 @@
 #include "blueprint_v2/blueprint/node_port.h"
 #include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
+#include "ui/math/rect.h"
 #include <variant>
 #include <vector>
 #include <optional>
-#include <cmath>
 
 namespace visual {
     class Scene;
-
-    namespace hit_constants {
-        constexpr float PORT_RADIUS = PortConstants::HIT_RADIUS;
-        constexpr float ROUTING_POINT_RADIUS = 10.0f;
-        constexpr float WIRE_TOLERANCE = 5.0f;
-    }
 
     struct HitEmpty {};
     struct HitContentInteraction {
@@ -63,28 +57,6 @@ namespace visual {
     };
 
     using HitResult = std::variant<HitEmpty, HitNode, HitPort, HitWire, HitRoutingPoint, HitResizeHandle>;
-
-    namespace hit_math {
-        inline float distance(ui::Pt a, ui::Pt b) {
-            float dx = a.x - b.x;
-            float dy = a.y - b.y;
-            return std::sqrt(dx * dx + dy * dy);
-        }
-
-        inline float distance_to_segment(ui::Pt p, ui::Pt a, ui::Pt b) {
-            float ab_x = b.x - a.x;
-            float ab_y = b.y - a.y;
-            float len_sq = ab_x * ab_x + ab_y * ab_y;
-            if (len_sq < 1e-6f) return distance(p, a);
-
-            float t = ((p.x - a.x) * ab_x + (p.y - a.y) * ab_y) / len_sq;
-            if (t < 0.0f) t = 0.0f;
-            if (t > 1.0f) t = 1.0f;
-
-            ui::Pt closest(a.x + t * ab_x, a.y + t * ab_y);
-            return distance(p, closest);
-        }
-    } // namespace hit_math
 }
 
 namespace ui {
@@ -118,7 +90,7 @@ struct CanvasRenderObject {
     ui::InternedId node_id;
     ui::InternedId element_id;
     CanvasRenderObjectKind kind = CanvasRenderObjectKind::ContentPaint;
-    Rect bounds;
+    ui::Rect bounds;
     std::string text;
     uint32_t fill_color = 0;
     uint32_t stroke_color = 0;
@@ -133,7 +105,7 @@ struct CanvasHitObject {
     ui::InternedId element_id;
     CanvasHitObjectKind kind = CanvasHitObjectKind::ContentRegion;
     HitShapeKind shape = HitShapeKind::Rectangle;
-    Rect bounds;
+    ui::Rect bounds;
 
     // -- Port metadata (kind == Port) --
     bp2::PortSide port_side = bp2::PortSide::Input;

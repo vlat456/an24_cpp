@@ -1534,9 +1534,16 @@ TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
     ASSERT_NE(widget, nullptr);
 
     Pt minimum = widget->minimumNodeSize();
-    Pt bottom_right = widget->worldPos() + widget->size();
     const Pt canvas_min(0.0f, 0.0f);
 
+    // Resize handles only work on already-selected nodes — select first
+    // by clicking on the node body (center) and releasing.
+    Pt center = widget->worldPos() + widget->size() * 0.5f;
+    input.on_mouse_down(center, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, center, canvas_min);
+    ASSERT_EQ(input.selected_node_ids().size(), 1u);
+
+    Pt bottom_right = widget->worldPos() + widget->size();
     input.on_mouse_down(bottom_right, MouseButton::Left, canvas_min);
     ASSERT_EQ(input.state(), InputState::ResizingNode);
 
@@ -1584,9 +1591,16 @@ TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum)
     ASSERT_NE(widget, nullptr);
 
     Pt minimum = widget->minimumNodeSize();
-    Pt bottom_right = widget->worldPos() + widget->size();
     const Pt canvas_min(0.0f, 0.0f);
 
+    // Resize handles only work on already-selected nodes — select first
+    // by clicking on the node body (center) and releasing.
+    Pt center = widget->worldPos() + widget->size() * 0.5f;
+    input.on_mouse_down(center, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, center, canvas_min);
+    ASSERT_EQ(input.selected_node_ids().size(), 1u);
+
+    Pt bottom_right = widget->worldPos() + widget->size();
     input.on_mouse_down(bottom_right, MouseButton::Left, canvas_min);
     ASSERT_EQ(input.state(), InputState::ResizingNode);
 
@@ -3634,12 +3648,20 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelyResizable) {
     auto* new_widget = scene.find("new_lamp");
     ASSERT_NE(new_widget, nullptr);
 
+    const Pt canvas_min(0.0f, 0.0f);
+
+    // Resize handles only work on already-selected nodes — select first
+    // by clicking on the node body (center) and releasing.
+    Pt center = new_widget->worldPos() + new_widget->size() * 0.5f;
+    input.on_mouse_down(center, MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, center, canvas_min);
+    ASSERT_EQ(input.selected_node_ids().size(), 1u);
+
     // Compute the bottom-right corner of the new node for resize handle hit
     Pt br_corner = new_widget->worldMin() + new_widget->size();
     // Hit the resize handle area: slightly inside the bottom-right corner
     Pt resize_hit = Pt(br_corner.x - 4.0f, br_corner.y - 4.0f);
 
-    const Pt canvas_min(0.0f, 0.0f);
     input.on_mouse_down(resize_hit, MouseButton::Left, canvas_min);
     EXPECT_EQ(input.state(), InputState::ResizingNode)
         << "Clicking on resize handle of newly inserted node must enter ResizingNode immediately";
@@ -3774,4 +3796,217 @@ TEST(CanvasInputDoubleClick, DoubleClickOnEmptySpaceDoesNotConsume) {
     InputResult dbl_result = input.on_double_click(Pt(500.0f, 500.0f), canvas_min);
     EXPECT_FALSE(dbl_result.double_click_consumed)
         << "on_double_click on empty space must NOT consume the event";
+}
+
+// ============================================================================
+// Regression: snapshot staleness after geometry-changing gestures
+// ============================================================================
+
+// The canvas hit-test snapshot caches resize handle positions. After a resize
+// gesture completes, the snapshot must be rebuilt so that subsequent clicks on
+// the (now moved) resize handles still enter ResizingNode rather than
+// DraggingNode.  This was the root cause of the "resize works once then
+// breaks" bug.
+
+TEST(CanvasInputSnapshotRegression, ResizeSelectResizeAgainStillWorks) {
+    // Exact reproduction of the reported bug:
+    //   1. Select node (click center + release)
+    //   2. Resize via bottom-right handle
+    //   3. Click node center to re-select
+    //   4. Resize via bottom-right handle again — MUST still enter ResizingNode
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bat = make_node(I, "bat1", "Battery", 100.0f, 100.0f);
+    bat.layout.width = 120.0f;
+    bat.layout.height = 80.0f;
+    set_iface(bat, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bat));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
+    ASSERT_NE(widget, nullptr);
+
+    const Pt canvas_min(0.0f, 0.0f);
+
+    // --- Step 1: Select the node by clicking center ---
+    {
+        Pt center = widget->worldPos() + widget->size() * 0.5f;
+        input.on_mouse_down(center, MouseButton::Left, canvas_min);
+        input.on_mouse_up(MouseButton::Left, center, canvas_min);
+        ASSERT_EQ(input.selected_node_ids().size(), 1u);
+    }
+
+    // --- Step 2: First resize via bottom-right handle ---
+    {
+        Pt br = widget->worldPos() + widget->size();
+        input.on_mouse_down(br, MouseButton::Left, canvas_min);
+        ASSERT_EQ(input.state(), InputState::ResizingNode)
+            << "First resize attempt must enter ResizingNode";
+
+        // Drag to enlarge the node
+        input.on_mouse_drag(MouseButton::Left, Pt(40.0f, 30.0f), canvas_min);
+        input.on_mouse_up(MouseButton::Left, br + Pt(40.0f, 30.0f), canvas_min);
+        ASSERT_EQ(input.state(), InputState::Idle);
+    }
+
+    // --- Step 3: Re-select the node (click on center, release) ---
+    {
+        Pt center = widget->worldPos() + widget->size() * 0.5f;
+        input.on_mouse_down(center, MouseButton::Left, canvas_min);
+        input.on_mouse_up(MouseButton::Left, center, canvas_min);
+        ASSERT_EQ(input.selected_node_ids().size(), 1u);
+        EXPECT_EQ(input.selected_node_ids()[0], I.intern("bat1"));
+    }
+
+    // --- Step 4: Second resize via bottom-right handle — THE REGRESSION ---
+    {
+        Pt br = widget->worldPos() + widget->size();
+        input.on_mouse_down(br, MouseButton::Left, canvas_min);
+        EXPECT_EQ(input.state(), InputState::ResizingNode)
+            << "Second resize attempt (after re-select) must still enter ResizingNode. "
+               "If this fails, the snapshot was not rebuilt after the first resize.";
+        input.on_mouse_up(MouseButton::Left, br, canvas_min);
+    }
+}
+
+TEST(CanvasInputSnapshotRegression, DragThenResizeStillWorks) {
+    // After dragging a node to a new position, the resize handles in the
+    // snapshot must reflect the new position.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bat = make_node(I, "bat1", "Battery", 50.0f, 50.0f);
+    bat.layout.width = 100.0f;
+    bat.layout.height = 60.0f;
+    set_iface(bat, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bat));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
+    ASSERT_NE(widget, nullptr);
+
+    const Pt canvas_min(0.0f, 0.0f);
+
+    // Select the node by clicking center
+    {
+        Pt center = widget->worldPos() + widget->size() * 0.5f;
+        input.on_mouse_down(center, MouseButton::Left, canvas_min);
+        input.on_mouse_up(MouseButton::Left, center, canvas_min);
+        ASSERT_EQ(input.selected_node_ids().size(), 1u);
+    }
+
+    // Drag the node 200px to the right
+    {
+        Pt center = widget->worldPos() + widget->size() * 0.5f;
+        input.on_mouse_down(center, MouseButton::Left, canvas_min);
+        ASSERT_EQ(input.state(), InputState::DraggingNode);
+        input.on_mouse_drag(MouseButton::Left, Pt(200.0f, 0.0f), canvas_min);
+        input.on_mouse_up(MouseButton::Left, center + Pt(200.0f, 0.0f), canvas_min);
+        ASSERT_EQ(input.state(), InputState::Idle);
+    }
+
+    // Re-select by clicking center at new position
+    {
+        Pt center = widget->worldPos() + widget->size() * 0.5f;
+        input.on_mouse_down(center, MouseButton::Left, canvas_min);
+        input.on_mouse_up(MouseButton::Left, center, canvas_min);
+        ASSERT_EQ(input.selected_node_ids().size(), 1u);
+    }
+
+    // Now resize via the bottom-right handle at the NEW position
+    {
+        Pt br = widget->worldPos() + widget->size();
+        input.on_mouse_down(br, MouseButton::Left, canvas_min);
+        EXPECT_EQ(input.state(), InputState::ResizingNode)
+            << "After dragging a node, resize handles must reflect the new position. "
+               "If this fails, the snapshot was not rebuilt after the drag.";
+        input.on_mouse_up(MouseButton::Left, br, canvas_min);
+    }
+}
+
+TEST(CanvasInputSnapshotRegression, MultipleResizeCyclesAllSucceed) {
+    // Stress test: resize the same node 5 times in a row, re-selecting each
+    // time.  Every cycle must enter ResizingNode.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bat = make_node(I, "bat1", "Battery", 100.0f, 100.0f);
+    bat.layout.width = 80.0f;
+    bat.layout.height = 60.0f;
+    set_iface(bat, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(bat));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "");
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
+    ASSERT_NE(widget, nullptr);
+
+    const Pt canvas_min(0.0f, 0.0f);
+
+    for (int cycle = 0; cycle < 5; ++cycle) {
+        // Select by clicking center
+        {
+            Pt center = widget->worldPos() + widget->size() * 0.5f;
+            input.on_mouse_down(center, MouseButton::Left, canvas_min);
+            input.on_mouse_up(MouseButton::Left, center, canvas_min);
+            ASSERT_EQ(input.selected_node_ids().size(), 1u)
+                << "Cycle " << cycle << ": node must be selected";
+        }
+
+        // Resize via bottom-right handle
+        Pt br = widget->worldPos() + widget->size();
+        input.on_mouse_down(br, MouseButton::Left, canvas_min);
+        ASSERT_EQ(input.state(), InputState::ResizingNode)
+            << "Cycle " << cycle << ": must enter ResizingNode";
+
+        // Enlarge by 10px each cycle
+        Pt delta(10.0f, 10.0f);
+        input.on_mouse_drag(MouseButton::Left, delta, canvas_min);
+        input.on_mouse_up(MouseButton::Left, br + delta, canvas_min);
+        ASSERT_EQ(input.state(), InputState::Idle)
+            << "Cycle " << cycle << ": must return to Idle after mouse_up";
+    }
+
+    // Verify the node actually grew
+    EXPECT_GT(widget->size().x, 80.0f);
+    EXPECT_GT(widget->size().y, 60.0f);
 }

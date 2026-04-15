@@ -96,7 +96,12 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         if (mods.alt) {
             enter_marquee(world);
         } else if (auto* hrh = std::get_if<visual::HitResizeHandle>(&hit)) {
-            enter_resize_node(interner_.intern(hrh->node_id), hrh->world_pos, hrh->size, hrh->corner);
+            ui::InternedId handle_node_id = interner_.intern(hrh->node_id);
+            if (is_node_selected(handle_node_id)) {
+                enter_resize_node(handle_node_id, hrh->world_pos, hrh->size, hrh->corner);
+            } else {
+                enter_drag_node(handle_node_id, hrh->world_pos, mods.ctrl);
+            }
         } else if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
             ui::InternedId node_id = interner_.intern(hn->node_id);
             if (hn->content_interaction.has_value()) {

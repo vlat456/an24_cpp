@@ -1,4 +1,5 @@
 #include "editor/visual/presentation/canvas_scene_snapshot.h"
+#include "editor/visual/presentation/hit_geometry.h"
 #include "editor/visual/presentation/semantic_scene_hittest.h"
 #include "visual/scene.h"
 #include "visual/widget.h"
@@ -20,9 +21,8 @@ namespace editor::presentation {
 
 namespace {
 
-/// Convert ui::Pt with radius to a Rect.
-Rect point_to_rect(ui::Pt pt, float radius) {
-    return Rect{
+ui::Rect point_to_rect(ui::Pt pt, float radius) {
+    return ui::Rect{
         .x = pt.x - radius,
         .y = pt.y - radius,
         .w = radius * 2.0f,
@@ -30,14 +30,14 @@ Rect point_to_rect(ui::Pt pt, float radius) {
     };
 }
 
-Rect widget_bounds(const visual::Widget& widget) {
+ui::Rect widget_bounds(const visual::Widget& widget) {
     const auto min = widget.worldMin();
     const auto max = widget.worldMax();
-    return Rect{min.x, min.y, max.x - min.x, max.y - min.y};
+    return ui::Rect{min.x, min.y, max.x - min.x, max.y - min.y};
 }
 
-Rect offset_rect(const Rect& r, ui::Pt offset) {
-    return Rect{r.x + offset.x, r.y + offset.y, r.w, r.h};
+ui::Rect offset_rect(const ui::Rect& r, ui::Pt offset) {
+    return ui::Rect{r.x + offset.x, r.y + offset.y, r.w, r.h};
 }
 
 /// Helper: extract node ID from any node-like widget.
@@ -106,13 +106,12 @@ void project_widget_recursive(const visual::Widget& widget,
                 .node_id = {},
                 .element_id = wire_iid,
                 .kind = CanvasRenderObjectKind::Wire,
-                .bounds = Rect{min_x - BBOX_PADDING, min_y - BBOX_PADDING,
-                               max_x - min_x + 2.0f * BBOX_PADDING,
-                               max_y - min_y + 2.0f * BBOX_PADDING},
+                .bounds = ui::Rect{min_x - BBOX_PADDING, min_y - BBOX_PADDING,
+                                   max_x - min_x + 2.0f * BBOX_PADDING,
+                                   max_y - min_y + 2.0f * BBOX_PADDING},
                 .stroke_width = visual::Wire::WIRE_THICKNESS,
             });
 
-            constexpr float HIT_TOLERANCE = 4.0f;
             for (size_t i = 0; i + 1 < polyline.size(); ++i) {
                 const auto& p0 = polyline[i];
                 const auto& p1 = polyline[i + 1];
@@ -122,10 +121,10 @@ void project_widget_recursive(const visual::Widget& widget,
                 wh.element_id = wire_iid;
                 wh.kind = CanvasHitObjectKind::WireSegment;
                 wh.shape = HitShapeKind::Rectangle;
-                wh.bounds = Rect{std::min(p0.x, p1.x) - HIT_TOLERANCE,
-                                   std::min(p0.y, p1.y) - HIT_TOLERANCE,
-                                   std::max(p0.x, p1.x) - std::min(p0.x, p1.x) + 2.0f * HIT_TOLERANCE,
-                                   std::max(p0.y, p1.y) - std::min(p0.y, p1.y) + 2.0f * HIT_TOLERANCE};
+                wh.bounds = ui::Rect{std::min(p0.x, p1.x) - hit_geometry::wire_segment_hit_tolerance(),
+                                     std::min(p0.y, p1.y) - hit_geometry::wire_segment_hit_tolerance(),
+                                     std::max(p0.x, p1.x) - std::min(p0.x, p1.x) + 2.0f * hit_geometry::wire_segment_hit_tolerance(),
+                                     std::max(p0.y, p1.y) - std::min(p0.y, p1.y) + 2.0f * hit_geometry::wire_segment_hit_tolerance()};
                 wh.segment_index = i;
                 wh.segment_p0 = p0;
                 wh.segment_p1 = p1;
@@ -136,8 +135,8 @@ void project_widget_recursive(const visual::Widget& widget,
     // ---- Routing points ----
     else if (auto* rp = dynamic_cast<const visual::RoutingPoint*>(&widget)) {
         const ui::Pt rp_pos = rp->worldPos();
-        constexpr float RP_SIZE = 4.0f;
-        const Rect rp_bounds = point_to_rect(rp_pos, RP_SIZE);
+        const ui::Rect rp_render_bounds = hit_geometry::centered_square(rp_pos, hit_geometry::routing_point_render_radius());
+        const ui::Rect rp_hit_bounds = hit_geometry::centered_square(rp_pos, hit_geometry::routing_point_hit_radius());
 
         // Find the owning Wire and compute routing-point index
         ui::InternedId wire_iid;
@@ -157,7 +156,7 @@ void project_widget_recursive(const visual::Widget& widget,
             .node_id = rp_node_iid,
             .element_id = {},
             .kind = CanvasRenderObjectKind::RoutingPoint,
-            .bounds = rp_bounds,
+            .bounds = rp_render_bounds,
             .fill_color = 0xFF888888,
         });
 
@@ -166,7 +165,7 @@ void project_widget_recursive(const visual::Widget& widget,
         rph.node_id = rp_node_iid;
         rph.kind = CanvasHitObjectKind::RoutingPoint;
         rph.shape = HitShapeKind::Rectangle;
-        rph.bounds = rp_bounds;
+        rph.bounds = rp_hit_bounds;
         rph.rp_wire_id = wire_iid;
         rph.rp_index = rp_idx;
         snapshot.hit_objects.push_back(std::move(rph));
@@ -174,7 +173,7 @@ void project_widget_recursive(const visual::Widget& widget,
     // ---- Node-like widgets (NodeWidget, RefNodeWidget, BusNodeWidget, TextNodeWidget, GroupNodeWidget) ----
     else if (is_node_like(widget)) {
         ui::InternedId node_iid = node_widget_iid(widget, interner);
-        const Rect node_bounds = widget_bounds(widget);
+        const ui::Rect node_bounds = widget_bounds(widget);
 
         // Only NodeWidget has semantic content rendering
         bool has_semantic = false;
@@ -271,17 +270,16 @@ void project_widget_recursive(const visual::Widget& widget,
         }
 
         if (widget.isResizable()) {
-            constexpr float HANDLE_SIZE = 8.0f;
             const auto min_pt = widget.worldMin();
             const auto max_pt = widget.worldMax();
             const ui::Pt nwp = widget.worldPos();
             const ui::Pt nsz = widget.size();
 
-            struct { Rect rect; ResizeCorner corner; } handles[] = {
-                {Rect{min_pt.x, min_pt.y, HANDLE_SIZE, HANDLE_SIZE}, ResizeCorner::TopLeft},
-                {Rect{max_pt.x - HANDLE_SIZE, min_pt.y, HANDLE_SIZE, HANDLE_SIZE}, ResizeCorner::TopRight},
-                {Rect{min_pt.x, max_pt.y - HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE}, ResizeCorner::BottomLeft},
-                {Rect{max_pt.x - HANDLE_SIZE, max_pt.y - HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE}, ResizeCorner::BottomRight},
+            struct { ui::Pt center; ResizeCorner corner; } handles[] = {
+                {min_pt, ResizeCorner::TopLeft},
+                {ui::Pt(max_pt.x, min_pt.y), ResizeCorner::TopRight},
+                {ui::Pt(min_pt.x, max_pt.y), ResizeCorner::BottomLeft},
+                {max_pt, ResizeCorner::BottomRight},
             };
             for (const auto& h : handles) {
                 CanvasHitObject rh{};
@@ -289,7 +287,7 @@ void project_widget_recursive(const visual::Widget& widget,
                 rh.node_id = node_iid;
                 rh.kind = CanvasHitObjectKind::ResizeHandle;
                 rh.shape = HitShapeKind::Rectangle;
-                rh.bounds = h.rect;
+                rh.bounds = hit_geometry::resize_handle_hit_bounds(h.center, h.corner);
                 rh.corner = h.corner;
                 rh.node_world_pos = nwp;
                 rh.node_size = nsz;
@@ -303,28 +301,6 @@ void project_widget_recursive(const visual::Widget& widget,
             project_widget_recursive(*visual_child, snapshot, interner, next_id);
         }
     }
-}
-
-// ============================================================
-// Geometry helpers for snapshot hit testing
-// (distance / distance_to_segment reuse visual::hit_math)
-// ============================================================
-
-using visual::hit_math::distance;
-using visual::hit_math::distance_to_segment;
-
-bool point_in_rect(ui::Pt p, const Rect& r) {
-    return p.x >= r.x && p.x <= r.x + r.w &&
-           p.y >= r.y && p.y <= r.y + r.h;
-}
-
-bool point_in_circle(ui::Pt p, const Rect& bounds) {
-    float cx = bounds.x + bounds.w * 0.5f;
-    float cy = bounds.y + bounds.h * 0.5f;
-    float radius = std::min(bounds.w, bounds.h) * 0.5f;
-    float dx = p.x - cx;
-    float dy = p.y - cy;
-    return (dx * dx + dy * dy) <= (radius * radius);
 }
 
 } // namespace
@@ -362,17 +338,13 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
     const CanvasHitObject* best_wire = nullptr;
     float best_wire_dist = 1e9f;
 
-    constexpr float PORT_HIT_RADIUS = visual::PortConstants::HIT_RADIUS;
-    constexpr float RP_HIT_RADIUS = 10.0f;
-    constexpr float WIRE_TOLERANCE = 5.0f;
-
     for (const auto& obj : snapshot.hit_objects) {
         switch (obj.kind) {
             case CanvasHitObjectKind::Port: {
                 float cx = obj.bounds.x + obj.bounds.w * 0.5f;
                 float cy = obj.bounds.y + obj.bounds.h * 0.5f;
                 ui::Pt center(cx, cy);
-                if (distance(world_pos, center) <= PORT_HIT_RADIUS) {
+                if (hit_geometry::distance(world_pos, center) <= hit_geometry::port_hit_radius()) {
                     best_port = &obj;
                 }
                 break;
@@ -381,45 +353,31 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
                 float cx = obj.bounds.x + obj.bounds.w * 0.5f;
                 float cy = obj.bounds.y + obj.bounds.h * 0.5f;
                 ui::Pt center(cx, cy);
-                if (distance(world_pos, center) <= RP_HIT_RADIUS) {
+                if (hit_geometry::distance(world_pos, center) <= hit_geometry::routing_point_hit_radius()) {
                     best_routing_point = &obj;
                 }
                 break;
             }
             case CanvasHitObjectKind::ResizeHandle: {
-                if (point_in_rect(world_pos, obj.bounds)) {
+                if (hit_geometry::point_in_rect(world_pos, obj.bounds)) {
                     best_resize_handle = &obj;
                 }
                 break;
             }
             case CanvasHitObjectKind::NodeBody: {
                 if (obj.is_group) {
-                    // GroupNodeWidget border-only hit semantics: only title bar and border margins.
-                    float x0 = obj.bounds.x, y0 = obj.bounds.y;
-                    float x1 = x0 + obj.bounds.w, y1 = y0 + obj.bounds.h;
-                    if (world_pos.x < x0 || world_pos.x > x1 ||
-                        world_pos.y < y0 || world_pos.y > y1)
-                        break;
-
-                    constexpr float title_h = editor_constants::GROUP_TITLE_PADDING * 2
-                                            + editor_constants::Font::Medium;
-                    constexpr float m = editor_constants::GROUP_BORDER_HIT_MARGIN;
-
-                    bool on_title = (world_pos.y <= y0 + title_h);
-                    bool on_border = (world_pos.x <= x0 + m || world_pos.x >= x1 - m ||
-                                      world_pos.y >= y1 - m);
-                    if (on_title || on_border) {
+                    if (hit_geometry::point_hits_group_frame(world_pos, obj.bounds)) {
                         best_node = &obj;
                     }
-                } else if (point_in_rect(world_pos, obj.bounds)) {
+                } else if (hit_geometry::point_in_rect(world_pos, obj.bounds)) {
                     // If multiple nodes overlap, prefer the last one (higher render layer).
                     best_node = &obj;
                 }
                 break;
             }
             case CanvasHitObjectKind::WireSegment: {
-                float d = distance_to_segment(world_pos, obj.segment_p0, obj.segment_p1);
-                if (d < WIRE_TOLERANCE && d < best_wire_dist) {
+                float d = hit_geometry::distance_to_segment(world_pos, obj.segment_p0, obj.segment_p1);
+                if (d < hit_geometry::wire_segment_hit_tolerance() && d < best_wire_dist) {
                     best_wire_dist = d;
                     best_wire = &obj;
                 }
@@ -510,15 +468,13 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
 
 visual::HitResult hit_test_canvas_scene_ports(const CanvasSceneSnapshot& snapshot, ui::Pt world_pos,
                                               const ui::StringInterner& interner) {
-    constexpr float PORT_HIT_RADIUS = visual::PortConstants::HIT_RADIUS;
-
     for (const auto& obj : snapshot.hit_objects) {
         if (obj.kind != CanvasHitObjectKind::Port) continue;
 
         float cx = obj.bounds.x + obj.bounds.w * 0.5f;
         float cy = obj.bounds.y + obj.bounds.h * 0.5f;
         ui::Pt center(cx, cy);
-        if (distance(world_pos, center) <= PORT_HIT_RADIUS) {
+        if (hit_geometry::distance(world_pos, center) <= hit_geometry::port_hit_radius()) {
             return visual::HitPort{
                 .node_id = interner.resolve(obj.node_id),
                 .port_name = interner.resolve(obj.element_id),

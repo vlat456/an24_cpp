@@ -304,7 +304,7 @@ void append_placement(editor::presentation::NodeSlotLayout& layout,
                       float h) {
     layout.placements.push_back(editor::presentation::FragmentPlacement{
         element_id,
-        editor::presentation::Rect{x, y, w, h},
+        ui::Rect{x, y, w, h},
     });
 }
 
@@ -334,14 +334,14 @@ ContentPresentationBuildResult build_content_presentation(
     result.presentation.content.root = make_presentation_node(root_element_id);
     result.presentation.content.root.layout = LayoutKind::Overlay;
 
-    result.layout.node_bounds = Rect{0.0f, 0.0f, bounds.x + bounds.w, bounds.y + bounds.h};
-    result.layout.slots.push_back(SlotAssignment{NodeSlot::Header, Rect{0.0f, 0.0f, bounds.x + bounds.w, 0.0f}});
-    result.layout.slots.push_back(SlotAssignment{NodeSlot::Body, Rect{bounds.x, bounds.y, bounds.w, bounds.h}});
+    result.layout.node_bounds = ui::Rect{0.0f, 0.0f, bounds.x + bounds.w, bounds.y + bounds.h};
+    result.layout.slots.push_back(SlotAssignment{NodeSlot::Header, ui::Rect{0.0f, 0.0f, bounds.x + bounds.w, 0.0f}});
+    result.layout.slots.push_back(SlotAssignment{NodeSlot::Body, ui::Rect{bounds.x, bounds.y, bounds.w, bounds.h}});
 
     append_placement(result.layout, root_element_id, bounds.x, bounds.y, bounds.w, bounds.h);
 
     auto append_painted = [&](PaintPrimitiveKind kind,
-                              const Rect& placement,
+                              const ui::Rect& placement,
                               auto configure) {
         PresentationNode node = make_presentation_node(next_element_id());
         PaintCommand paint = make_paint_command(next_element_id(), kind);
@@ -357,7 +357,7 @@ ContentPresentationBuildResult build_content_presentation(
         case bp2::NodeContentType::Text:
             if (!label.empty()) {
                 append_painted(PaintPrimitiveKind::Text,
-                               Rect{bounds.x, bounds.y, bounds.w, bounds.h},
+                               ui::Rect{bounds.x, bounds.y, bounds.w, bounds.h},
                                [&](PaintCommand& paint) {
                                    paint.text = std::string(label);
                                });
@@ -367,7 +367,7 @@ ContentPresentationBuildResult build_content_presentation(
         case bp2::NodeContentType::VerticalToggle: {
             const bool vertical = content_type == bp2::NodeContentType::VerticalToggle;
             append_painted(PaintPrimitiveKind::Rectangle,
-                           Rect{bounds.x, bounds.y, bounds.w, bounds.h},
+                           ui::Rect{bounds.x, bounds.y, bounds.w, bounds.h},
                            [&](PaintCommand& paint) {
                                paint.fill_color = tripped
                                    ? render_theme::COLOR_TRIPPED
@@ -380,7 +380,7 @@ ContentPresentationBuildResult build_content_presentation(
                 const float handle_h = bounds.h * 0.24f;
                 const float handle_y = state ? bounds.y + bounds.h * 0.15f : bounds.y + bounds.h * 0.70f;
                 append_painted(PaintPrimitiveKind::Rectangle,
-                               Rect{bounds.x, handle_y, bounds.w, handle_h},
+                               ui::Rect{bounds.x, handle_y, bounds.w, handle_h},
                                [&](PaintCommand& paint) {
                                    paint.fill_color = tripped
                                        ? render_theme::COLOR_TRIPPED
@@ -392,7 +392,7 @@ ContentPresentationBuildResult build_content_presentation(
                 const float handle_w = bounds.w * 0.40f;
                 const float handle_x = state ? bounds.x + bounds.w - handle_w : bounds.x;
                 append_painted(PaintPrimitiveKind::Rectangle,
-                               Rect{handle_x, bounds.y, handle_w, bounds.h},
+                               ui::Rect{handle_x, bounds.y, handle_w, bounds.h},
                                [&](PaintCommand& paint) {
                                    paint.fill_color = tripped
                                        ? render_theme::COLOR_TRIPPED
@@ -412,17 +412,17 @@ ContentPresentationBuildResult build_content_presentation(
             const float t = (range > 1e-6f) ? std::clamp((value - min_value) / range, 0.0f, 1.0f) : 0.0f;
 
             append_painted(PaintPrimitiveKind::Rectangle,
-                           Rect{bounds.x + pad, track_y, track_w, track_h},
+                           ui::Rect{bounds.x + pad, track_y, track_w, track_h},
                            [&](PaintCommand& paint) {
                                paint.fill_color = 0xFF1C1D24;
                            });
             append_painted(PaintPrimitiveKind::Rectangle,
-                           Rect{bounds.x + pad, track_y, t * track_w, track_h},
+                           ui::Rect{bounds.x + pad, track_y, t * track_w, track_h},
                            [&](PaintCommand& paint) {
                                paint.fill_color = 0xFF3A6830;
                            });
             append_painted(PaintPrimitiveKind::Circle,
-                           Rect{bounds.x + pad + t * track_w,
+                           ui::Rect{bounds.x + pad + t * track_w,
                                 bounds.y + bounds.h * 0.5f,
                                 SLIDER_HANDLE_RADIUS,
                                 0.0f},
@@ -432,7 +432,7 @@ ContentPresentationBuildResult build_content_presentation(
                                paint.stroke_width = 1.0f;
                            });
             append_painted(PaintPrimitiveKind::Text,
-                           Rect{bounds.x, track_y + track_h + 1.0f, bounds.w, SLIDER_HEIGHT},
+                           ui::Rect{bounds.x, track_y + track_h + 1.0f, bounds.w, SLIDER_HEIGHT},
                            [&](PaintCommand& paint) {
                                char buf[32];
                                snprintf(buf, sizeof(buf), "%.1f", value);
@@ -446,7 +446,7 @@ ContentPresentationBuildResult build_content_presentation(
             const float cx = bounds.x + bounds.w * 0.5f;
             const float cy = bounds.y + bounds.h * 0.5f;
             append_painted(PaintPrimitiveKind::Circle,
-                           Rect{cx, cy, radius, 0.0f},
+                           ui::Rect{cx, cy, radius, 0.0f},
                            [&](PaintCommand& paint) {
                                 if (value <= 0.0f) {
                                     paint.fill_color = 0xFF505050;
@@ -468,7 +468,7 @@ ContentPresentationBuildResult build_content_presentation(
             const float cx = bounds.x + bounds.w * 0.5f;
             const float cy = bounds.y + bounds.h * 0.5f;
             append_painted(PaintPrimitiveKind::Circle,
-                           Rect{cx, cy, KNOB_RADIUS, 0.0f},
+                           ui::Rect{cx, cy, KNOB_RADIUS, 0.0f},
                            [&](PaintCommand& paint) {
                                 paint.fill_color = 0xFF3A3A42;
                                 paint.stroke_color = 0xFF606068;
@@ -479,7 +479,7 @@ ContentPresentationBuildResult build_content_presentation(
                 const float t = (num_positions > 1) ? static_cast<float>(i) / (num_positions - 1) : 0.5f;
                 const float angle = KNOB_ARC_START_DEG + t * KNOB_ARC_SWEEP_DEG;
                 append_painted(PaintPrimitiveKind::Line,
-                               Rect{cx, cy, angle, KNOB_TICK_OUTER},
+                               ui::Rect{cx, cy, angle, KNOB_TICK_OUTER},
                                [&](PaintCommand& paint) {
                                    paint.fill_color = (i == position) ? 0xFF5078C0 : 0xFF808090;
                                    paint.inset = KNOB_TICK_INNER;
@@ -490,7 +490,7 @@ ContentPresentationBuildResult build_content_presentation(
             const float sel_t = (num_positions > 1) ? static_cast<float>(position) / (num_positions - 1) : 0.5f;
             const float sel_angle = KNOB_ARC_START_DEG + sel_t * KNOB_ARC_SWEEP_DEG;
             append_painted(PaintPrimitiveKind::Line,
-                           Rect{cx, cy, sel_angle, KNOB_RADIUS * 0.85f},
+                           ui::Rect{cx, cy, sel_angle, KNOB_RADIUS * 0.85f},
                            [&](PaintCommand& paint) {
                                paint.fill_color = 0xFF5078C0;
                                paint.stroke_width = 2.0f;
@@ -501,7 +501,7 @@ ContentPresentationBuildResult build_content_presentation(
             const float cx = bounds.x + bounds.w * 0.5f;
             const float cy = bounds.y + GAUGE_RADIUS;
             append_painted(PaintPrimitiveKind::Arc,
-                           Rect{cx, cy, GAUGE_RADIUS, GAUGE_SWEEP_ANGLE},
+                           ui::Rect{cx, cy, GAUGE_RADIUS, GAUGE_SWEEP_ANGLE},
                            [&](PaintCommand& paint) {
                                paint.fill_color = COLOR_GAUGE_BORDER;
                                paint.inset = GAUGE_START_ANGLE;
@@ -513,7 +513,7 @@ ContentPresentationBuildResult build_content_presentation(
                 const float angle = GAUGE_START_ANGLE + t * GAUGE_SWEEP_ANGLE;
                 const bool is_major = (i % 5) == 0;
                 append_painted(PaintPrimitiveKind::Line,
-                               Rect{cx, cy, angle, GAUGE_RADIUS},
+                               ui::Rect{cx, cy, angle, GAUGE_RADIUS},
                                [&](PaintCommand& paint) {
                                    paint.fill_color = is_major ? COLOR_TICK_MAJOR : COLOR_TICK_MINOR;
                                    paint.inset = GAUGE_RADIUS - (is_major ? 6.0f : 3.0f);
@@ -525,18 +525,18 @@ ContentPresentationBuildResult build_content_presentation(
             const float normalized = (range > 1e-6f) ? std::clamp((value - min_value) / range, 0.0f, 1.0f) : 0.0f;
             const float needle_angle = GAUGE_START_ANGLE + normalized * GAUGE_SWEEP_ANGLE;
             append_painted(PaintPrimitiveKind::Line,
-                           Rect{cx, cy, needle_angle, GAUGE_NEEDLE_LENGTH},
+                           ui::Rect{cx, cy, needle_angle, GAUGE_NEEDLE_LENGTH},
                            [&](PaintCommand& paint) {
                                paint.fill_color = COLOR_NEEDLE;
                                paint.stroke_width = 2.0f;
                            });
             append_painted(PaintPrimitiveKind::Circle,
-                           Rect{cx, cy, 3.0f, 0.0f},
+                           ui::Rect{cx, cy, 3.0f, 0.0f},
                            [&](PaintCommand& paint) {
                                paint.fill_color = COLOR_NEEDLE;
                            });
             append_painted(PaintPrimitiveKind::Text,
-                           Rect{cx, bounds.y + GAUGE_RADIUS * 2.0f + 5.0f, 0.0f, 0.0f},
+                           ui::Rect{cx, bounds.y + GAUGE_RADIUS * 2.0f + 5.0f, 0.0f, 0.0f},
                            [&](PaintCommand& paint) {
                                char buf[32];
                                snprintf(buf, sizeof(buf), "%.1f", value);
@@ -545,7 +545,7 @@ ContentPresentationBuildResult build_content_presentation(
                                paint.text_size = GAUGE_VALUE_FONT_SIZE;
                            });
             append_painted(PaintPrimitiveKind::Text,
-                           Rect{cx, bounds.y + GAUGE_RADIUS * 2.0f + 21.0f, 0.0f, 0.0f},
+                           ui::Rect{cx, bounds.y + GAUGE_RADIUS * 2.0f + 21.0f, 0.0f, 0.0f},
                            [&](PaintCommand& paint) {
                                 paint.text = std::string(unit);
                                 paint.fill_color = render_theme::COLOR_TEXT_DIM;
