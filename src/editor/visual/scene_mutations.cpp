@@ -13,8 +13,10 @@
 #include "node/visual_node.h"
 #include "wire/wire.h"
 #include "wire/routing_point.h"
+#include "editor/visual/presentation/node_presentation.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
+#include "json_parser/json_parser.h"
 #include "ui/core/interned_id.h"
 #include "visual/snap.h"
 #include <algorithm>
@@ -99,7 +101,9 @@ static void orient_ref_node_ports(Scene& scene,
                                   const bp2::Blueprint& bp,
                                   const bp2::PathArena& arena,
                                   const ui::StringInterner& interner,
-                                  std::string_view scope_id) {
+                                  std::string_view scope_id,
+                                  const TypeRegistry& registry) {
+    using editor::presentation::NodeFrameKind;
     std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
 
     for (const bp2::Blueprint::Wire& w : bp.wires()) {
@@ -111,10 +115,15 @@ static void orient_ref_node_ports(Scene& scene,
          const bp2::Blueprint::Node* tgt_node = bp.find_node(tgt_node_id);
          if (!src_node || !tgt_node) continue;
 
-         if (src_node->view.render_hint == "ref" && ref_to_connected.count(src_node_id) == 0) {
+         auto src_kind = editor::presentation::resolve_frame_kind(
+             registry.get(std::string(interner.resolve(src_node->semantic.type))));
+         auto tgt_kind = editor::presentation::resolve_frame_kind(
+             registry.get(std::string(interner.resolve(tgt_node->semantic.type))));
+
+         if (src_kind == NodeFrameKind::Reference && ref_to_connected.count(src_node_id) == 0) {
              ref_to_connected.emplace(src_node_id, tgt_node_id);
          }
-         if (tgt_node->view.render_hint == "ref" && ref_to_connected.count(tgt_node_id) == 0) {
+         if (tgt_kind == NodeFrameKind::Reference && ref_to_connected.count(tgt_node_id) == 0) {
              ref_to_connected.emplace(tgt_node_id, src_node_id);
          }
     }
@@ -148,7 +157,8 @@ void rebuild(Scene& scene,
              const bp2::Blueprint& bp,
              ui::StringInterner& interner,
              bp2::PathArena& arena,
-             std::string_view scope_id) {
+             std::string_view scope_id,
+             const TypeRegistry& registry) {
     auto guard = scene.flushGuard();
     scene.clear();
 
@@ -163,12 +173,15 @@ void rebuild(Scene& scene,
      // 1) Create node widgets for all nodes in this group
      for (const bp2::Blueprint::Node& n : bp.nodes()) {
          const bp2::Interface& render_iface = bp.effective_node_iface(n);
-         std::unique_ptr<Widget> widget = NodeFactory::create(n, render_iface, interner, bus_wires);
+         const std::string type_name(interner.resolve(n.semantic.type));
+         const TypeDefinition* def = registry.get(type_name);
+         auto frame_kind = editor::presentation::resolve_frame_kind(def);
+         std::unique_ptr<Widget> widget = NodeFactory::create(n, frame_kind, render_iface, interner, bus_wires);
          scene.add(std::move(widget));
      }
 
     // Orient single-port ref/value nodes toward their connected node.
-    orient_ref_node_ports(scene, bp, arena, interner, scope_id);
+    orient_ref_node_ports(scene, bp, arena, interner, scope_id, registry);
 
     // 2) Create wire widgets for wires whose both endpoints are in this group
     for (const bp2::Blueprint::Wire& w : bp.wires()) {

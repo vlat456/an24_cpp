@@ -1,5 +1,6 @@
 #include "input/canvas_input.h"
 #include "input/canvas_input_internal.h"
+#include "json_parser/json_parser.h"
 #include "visual/scene.h"
 #include "visual/scene_mutations.h"
 #include "visual/widget.h"
@@ -421,8 +422,13 @@ void CanvasInput::snapshot_wire_routing_points(ui::InternedId wire_id,
 // ============================================================================
 
 void CanvasInput::rebuild_scene() {
-    visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_);
+    visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_, registry());
     rebuild_snapshot();
+}
+
+const TypeRegistry& CanvasInput::registry() const {
+    static const TypeRegistry empty_reg;
+    return parser_registry_ ? *parser_registry_ : empty_reg;
 }
 
 void CanvasInput::rebuild_snapshot() {

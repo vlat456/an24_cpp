@@ -10,6 +10,8 @@
 #include <vector>
 #include <cstdlib>
 
+struct TypeDefinition;
+
 namespace editor::presentation {
 
 // ============================================================================
@@ -163,6 +165,17 @@ struct PresentationSpec {
 /// Build a PresentationSpec from a bp2::Blueprint::Node.
 /// This is the bridge from the existing data model to the new compiler input.
 PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node);
+
+/// Resolve NodeFrameKind from TypeDefinition (canonical authority).
+/// Falls back to NodeFrameKind::Standard if def is null or render_hint is empty.
+NodeFrameKind resolve_frame_kind(const struct TypeDefinition* def);
+
+/// Build a PresentationSpec from TypeDefinition + semantic data (canonical path).
+/// This is the preferred overload — reads from the source of truth, not from
+/// hydrated view mirrors.
+PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
+                                        const struct TypeDefinition* def,
+                                        ui::StringInterner& interner);
 
 // ============================================================================
 // Paint / Hit / Interaction primitives

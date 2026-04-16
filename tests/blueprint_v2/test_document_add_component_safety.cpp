@@ -363,7 +363,7 @@ TEST(DocumentSafety, ExplicitNormalizeNodeSizesCreatesUndoableShrinkAndClearsMan
     bp = bp.with_node(std::move(legacy));
     bp = bp.with_node(std::move(manual));
     doc.model().replace_current(std::move(bp));
-    visual::mutations::rebuild(doc.scene(), doc.blueprint(), doc.interner(), doc.arena(), "");
+    visual::mutations::rebuild(doc.scene(), doc.blueprint(), doc.interner(), doc.arena(), "", TypeRegistry{});
 
     ASSERT_TRUE(doc.normalizeNodeSizesToFit(false));
     EXPECT_TRUE(doc.canUndo());

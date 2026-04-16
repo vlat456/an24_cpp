@@ -1,4 +1,6 @@
 #include "editor/visual/presentation/node_presentation.h"
+#include "data/node_content.h"
+#include "json_parser/json_parser.h"
 
 #include <algorithm>
 #include <cmath>
@@ -35,6 +37,61 @@ PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node) {
     spec.content_max = node.view.content_max;
     spec.content_value = node.view.content_value;
     spec.content_unit = node.view.content_unit;
+    spec.content_state = node.view.content_state;
+    spec.content_tripped = node.view.content_tripped;
+
+    // Annotation params from semantic string_params
+    if (spec.frame_kind == NodeFrameKind::Annotation) {
+        auto it = node.semantic.string_params.find("text");
+        if (it != node.semantic.string_params.end()) {
+            spec.annotation_text = it->second;
+        }
+        auto font_it = node.semantic.string_params.find("font_size");
+        if (font_it != node.semantic.string_params.end()) {
+            char* end = nullptr;
+            float parsed = std::strtof(font_it->second.c_str(), &end);
+            if (end != font_it->second.c_str() && parsed > 0.0f) {
+                spec.annotation_font_size = parsed;
+            }
+        }
+    }
+
+    return spec;
+}
+
+// ============================================================================
+// Canonical frame kind resolution from TypeDefinition
+// ============================================================================
+
+NodeFrameKind resolve_frame_kind(const TypeDefinition* def) {
+    if (!def) return NodeFrameKind::Standard;
+    return classify_frame_kind(def->render_hint);
+}
+
+// ============================================================================
+// Canonical PresentationSpec from TypeDefinition + semantic params
+// ============================================================================
+
+PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
+                                        const TypeDefinition* def,
+                                        ui::StringInterner& interner) {
+    PresentationSpec spec;
+    spec.node_id = node.semantic.id;
+    spec.type_id = node.semantic.type;
+    spec.frame_kind = resolve_frame_kind(def);
+    spec.title = node.view.name;  // name is tier-1 canonical, OK to read from view
+
+    // Derive content from TypeDefinition + semantic params (source of truth)
+    NodeContent nc = create_node_content(def, node.semantic.params,
+                                         node.semantic.string_params, interner);
+    spec.content_type = nc.type;
+    spec.content_label = nc.label;
+    spec.content_min = nc.min;
+    spec.content_max = nc.max;
+    spec.content_unit = nc.unit;
+    // Dynamic state: use view.* for runtime values (these are tier-2 dynamic,
+    // owned by simulation/user interaction, not by TypeDefinition)
+    spec.content_value = node.view.content_value;
     spec.content_state = node.view.content_state;
     spec.content_tripped = node.view.content_tripped;
 

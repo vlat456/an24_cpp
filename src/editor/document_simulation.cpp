@@ -87,11 +87,13 @@ Document::ResolvedSignalScope Document::resolve_signal_scope(const WindowScopeId
 }
 
 void Document::rebuild_window_scenes() {
+    TypeRegistry empty_reg;
+    const TypeRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     for (auto& win : window_manager_.windows()) {
         if (win->is_external_ref() && win->external_blueprint
             && win->external_interner && win->external_arena) {
             visual::mutations::rebuild(win->scene, *win->external_blueprint,
-                                       *win->external_interner, *win->external_arena, "");
+                                       *win->external_interner, *win->external_arena, "", reg);
             win->input.rebuild_snapshot();
         } else if (win->resolved_scope_id().is_embedded()) {
             const std::string scope_key = win->resolved_scope_id().key();
@@ -102,7 +104,7 @@ void Document::rebuild_window_scenes() {
 
             if (node && node->has_embedded_blueprint() && node->source->inline_def()) {
                 visual::mutations::rebuild(win->scene, *node->source->inline_def(),
-                                           interner_, arena_, "");
+                                           interner_, arena_, "", reg);
                 win->input.rebuild_snapshot();
             } else {
                 spdlog::error("[editor] Embedded window '{}' missing embedded blueprint during rebuild", scope_key);
@@ -110,7 +112,7 @@ void Document::rebuild_window_scenes() {
             }
         } else {
             visual::mutations::rebuild(win->scene, model_.current(),
-                                       interner_, arena_, "");
+                                       interner_, arena_, "", reg);
             win->input.rebuild_snapshot();
         }
     }

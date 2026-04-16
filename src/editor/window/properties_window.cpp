@@ -3,6 +3,8 @@
 #include "editor/common/port_type_utils.h"
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "editor/blueprint_view_hydration.h"
+#include "editor/visual/presentation/node_presentation.h"
+#include "json_parser/json_parser.h"
 #include "parse_number.h"
 
 #ifndef EDITOR_TESTING
@@ -476,7 +478,11 @@ void PropertiesWindow::render_port_layout_row(const std::string& port_name) {
 void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& node) {
 #ifndef EDITOR_TESTING
     // Skip for Bus nodes - they have their own port_edge mechanism
-    if (node.view.render_hint == "bus") return;
+    if (type_registry_ && interner_) {
+        const std::string type_name(interner_->resolve(node.semantic.type));
+        auto fk = editor::presentation::resolve_frame_kind(type_registry_->get(type_name));
+        if (fk == editor::presentation::NodeFrameKind::Bus) return;
+    }
 
     // Skip if node has no ports
     const bp2::Interface& iface = model_->current().effective_node_iface(node);

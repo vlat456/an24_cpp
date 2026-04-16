@@ -19,7 +19,7 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
     for (const auto& nid : selected_node_ids()) {
         if (nid.empty()) continue;
         const bp2::Blueprint::Node* n = host_.find_node(nid);
-        if (!n || n->view.render_hint != "ref" || n->semantic.type == value_type) {
+        if (!n || !is_ref_node(*n, registry(), interner_) || n->semantic.type == value_type) {
             all_ref_nodes = false;
             break;
         }

@@ -5,6 +5,7 @@
 #include "viewport/viewport.h"
 #include "visual/scene.h"
 #include "visual/scene_mutations.h"
+#include "json_parser/json_parser.h"
 #include "window/window_scope_id.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
@@ -89,6 +90,7 @@ struct BlueprintWindow {
     std::optional<bp2::Blueprint> external_blueprint;
     std::unique_ptr<ui::StringInterner> external_interner;
     std::unique_ptr<bp2::PathArena> external_arena;
+    const TypeRegistry* type_registry = nullptr;
 
     BlueprintWindow(RootWindowTag,
                     bp2::EditorModel& model_,
@@ -104,8 +106,11 @@ struct BlueprintWindow {
         , scene()
         , viewport()
         , host(create_editor_model_host(root_model))
-        , input(scene, viewport, *host, interner_, arena_, "", parser_registry) {
-        visual::mutations::rebuild(scene, root_model.current(), interner_, arena_, "");
+        , input(scene, viewport, *host, interner_, arena_, "", parser_registry)
+        , type_registry(parser_registry) {
+        TypeRegistry empty_reg;
+        const TypeRegistry& reg = parser_registry ? *parser_registry : empty_reg;
+        visual::mutations::rebuild(scene, root_model.current(), interner_, arena_, "", reg);
         input.rebuild_snapshot();
     }
 
@@ -124,9 +129,12 @@ struct BlueprintWindow {
         , scene()
         , viewport()
         , host(make_embedded_host(root_model, interner_, embedded_scope_id))
-        , input(scene, viewport, *host, interner_, arena_, "", parser_registry) {
+        , input(scene, viewport, *host, interner_, arena_, "", parser_registry)
+        , type_registry(parser_registry) {
+        TypeRegistry empty_reg;
+        const TypeRegistry& reg = parser_registry ? *parser_registry : empty_reg;
         const auto& bp = require_embedded_blueprint(root_model, require_nested_id(interner_, embedded_scope_id));
-        visual::mutations::rebuild(scene, bp, interner_, arena_, "");
+        visual::mutations::rebuild(scene, bp, interner_, arena_, "", reg);
         input.rebuild_snapshot();
     }
 
@@ -146,7 +154,8 @@ struct BlueprintWindow {
         , viewport()
         , host(create_editor_model_host(root_model))
         , input(scene, viewport, *host, interner_, arena_, "", parser_registry)
-        , read_only(true) {
+        , read_only(true)
+        , type_registry(parser_registry) {
         input.read_only = true;
     }
 

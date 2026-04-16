@@ -59,8 +59,10 @@ void Document::openExternalRefWindow(const std::string& instance_id,
     win->set_read_only(true);
     win->pending_auto_fit = true;
 
+    TypeRegistry empty_reg;
+    const TypeRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     visual::mutations::rebuild(win->scene, *win->external_blueprint,
-                               *win->external_interner, *win->external_arena, "");
+                               *win->external_interner, *win->external_arena, "", reg);
     win->input.rebuild_snapshot();
 
     spdlog::info("[editor] Opened external-ref window for '{}' from '{}'",

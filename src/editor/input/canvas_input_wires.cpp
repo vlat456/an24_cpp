@@ -105,10 +105,10 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         ui::InternedId start_node_iid = start.node_id;
         ui::InternedId start_port_iid = start.port_id;
 
-        if (is_bus_node(host_.current_blueprint(), start_node_iid) && start_port_iid != interner_.intern("v")) {
+        if (is_bus_node(host_.current_blueprint(), start_node_iid, registry(), interner_) && start_port_iid != interner_.intern("v")) {
             start_port_iid = interner_.intern("v");
         }
-        if (is_bus_node(host_.current_blueprint(), end_node_iid) && end_port_iid != interner_.intern("v")) {
+        if (is_bus_node(host_.current_blueprint(), end_node_iid, registry(), interner_) && end_port_iid != interner_.intern("v")) {
             end_port_iid = interner_.intern("v");
         }
 
@@ -189,7 +189,7 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
               compatible = false;
           }
 
-         if (is_bus_node(host_.current_blueprint(), port_node_iid) && is_wire_alias_port_name(ph->port_name)) {
+         if (is_bus_node(host_.current_blueprint(), port_node_iid, registry(), interner_) && is_wire_alias_port_name(ph->port_name)) {
               size_t target_wire_idx = find_wire_index(hit_port_iid);
              if (target_wire_idx != SIZE_MAX && target_wire_idx < wires.size()) {
                  if (target_wire_idx != reconnect_wire_idx_) {
@@ -219,7 +219,7 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
               ui::InternedId new_node_iid = interner_.intern(port_node_sv);
               ui::InternedId new_port_iid = interner_.intern(ph->port_name);
 
-             if (is_bus_node(host_.current_blueprint(), new_node_iid) && new_port_iid != interner_.intern("v")) {
+             if (is_bus_node(host_.current_blueprint(), new_node_iid, registry(), interner_) && new_port_iid != interner_.intern("v")) {
                  new_port_iid = interner_.intern("v");
              }
 
@@ -276,7 +276,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(
 
      std::string_view port_name_sv = interner_.resolve(port_name_iid);
 
-     if (is_bus_node(host_.current_blueprint(), port_node_iid)) {
+     if (is_bus_node(host_.current_blueprint(), port_node_iid, registry(), interner_)) {
          if (port_name_sv == "v") {
              return std::nullopt;
          }

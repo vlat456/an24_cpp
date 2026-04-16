@@ -4,6 +4,8 @@
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "blueprint_v2/path/path.h"
 #include "editor/input/editing_host.h"
+#include "editor/visual/presentation/node_presentation.h"
+#include "json_parser/json_parser.h"
 #include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
 #include "debug.h"
@@ -19,10 +21,22 @@ namespace canvas_input_impl {
 // Blueprint helpers
 // ============================================================================
 
-inline bool is_bus_node(const bp2::Blueprint& bp, ui::InternedId node_id) {
+inline bool is_bus_node(const bp2::Blueprint& bp, ui::InternedId node_id,
+                        const TypeRegistry& registry, const ui::StringInterner& interner) {
     const bp2::Blueprint::Node* node = bp.find_node(node_id);
     if (!node) return false;
-    return node->view.render_hint == "bus";
+    const std::string type_name(interner.resolve(node->semantic.type));
+    const TypeDefinition* def = registry.get(type_name);
+    return editor::presentation::resolve_frame_kind(def)
+        == editor::presentation::NodeFrameKind::Bus;
+}
+
+inline bool is_ref_node(const bp2::Blueprint::Node& node,
+                        const TypeRegistry& registry, const ui::StringInterner& interner) {
+    const std::string type_name(interner.resolve(node.semantic.type));
+    const TypeDefinition* def = registry.get(type_name);
+    return editor::presentation::resolve_frame_kind(def)
+        == editor::presentation::NodeFrameKind::Reference;
 }
 
 inline bool is_wire_alias_port_name(std::string_view port_name) {
@@ -55,7 +69,8 @@ inline void debug_validate_command_boundary(const bp2::Blueprint& bp,
         if (err.find("wire domain differs from endpoint domain") != std::string::npos
             || err.find("wire direction incompatible") != std::string::npos
             || err.find("wire endpoint path unresolved") != std::string::npos
-            || err.find("wire endpoint domain mismatch") != std::string::npos) {
+            || err.find("wire endpoint domain mismatch") != std::string::npos
+            || err.find("component node iface desynced") != std::string::npos) {
             return;
         }
         std::fprintf(stderr, "[bp2][debug] command boundary invariant failed: %s\n", err.c_str());

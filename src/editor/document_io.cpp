@@ -106,7 +106,9 @@ bool Document::load(const std::string& path) {
     // or trigger a full rebuild/simulation restart.
     this->apply_normalized_node_sizes(true, false, false);
 
-    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().resolved_scope_id().sim_scope_prefix());
+    TypeRegistry empty_reg;
+    const TypeRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
+    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().resolved_scope_id().sim_scope_prefix(), reg);
     root().input.rebuild_snapshot();
 
     filepath_ = path;

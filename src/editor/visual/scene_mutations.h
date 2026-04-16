@@ -8,6 +8,8 @@
 #include <vector>
 #include <cstddef>
 
+struct TypeRegistry;
+
 namespace visual {
 class Scene;
 } // namespace visual
@@ -15,9 +17,12 @@ class Scene;
 namespace visual::mutations {
 
 /// Full rebuild: clear scene and recreate all widgets from bp2::Blueprint data.
+/// @param registry  TypeRegistry for resolving frame kind and content from the
+///                  canonical source of truth (TypeDefinition). Must not be null.
 void rebuild(Scene& scene, const bp2::Blueprint& bp,
              ui::StringInterner& interner,
              bp2::PathArena& arena,
-             std::string_view scope_id);
+             std::string_view scope_id,
+             const TypeRegistry& registry);
 
 } // namespace visual::mutations

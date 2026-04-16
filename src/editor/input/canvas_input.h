@@ -306,6 +306,9 @@ private:
     /// Rebuild the visual scene from the current blueprint, then refresh the snapshot.
     void rebuild_scene();
 
+    /// Return the registry reference, safe even when parser_registry_ is null.
+    const TypeRegistry& registry() const;
+
     /// Find the data-layer index of a wire by its InternedId.
     size_t find_wire_index(ui::InternedId wire_id) const;
 
