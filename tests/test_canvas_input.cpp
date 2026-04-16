@@ -11,6 +11,7 @@
 #include "editor/visual/node/bus_node_widget.h"
 #include "editor/visual/node/ref_node_widget.h"
 #include "editor/visual/node/visual_node.h"
+#include "editor/data/node_content.h"
 #include "editor/visual/port/visual_port.h"
 #include "editor/visual/wire/wire.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
@@ -42,6 +43,22 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
     return n;
 }
 
+/// Set instance string params on a node (for overriding TypeDefinition defaults)
+static void set_params(bp2::Blueprint::Node& n,
+                       std::initializer_list<std::pair<std::string, std::string>> params) {
+    for (auto& [k, v] : params) n.semantic.string_params[k] = v;
+}
+
+/// Update dynamic content on a widget after scene rebuild
+static void update_dynamic(visual::Scene& scene, const char* node_id,
+                           std::function<void(NodeContent&)> mutate) {
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find(node_id));
+    if (!widget) return;
+    NodeContent c = widget->currentContent();
+    mutate(c);
+    widget->updateContent(c);
+}
+
 static visual::HitResult snapshot_hit_test(const visual::Scene& scene,
                                            ui::StringInterner& interner,
                                            Pt world) {
@@ -66,11 +83,15 @@ static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
 static TypeRegistry make_canvas_input_test_registry() {
     TypeRegistry reg;
 
-    auto add_simple = [&](const char* name, const char* hint = "") {
+    auto add_simple = [&](const char* name, const char* hint = "",
+                          const char* ct = "None",
+                          std::initializer_list<std::pair<std::string,std::string>> params = {}) {
         TypeDefinition def;
         def.classname = name;
         def.cpp_class = true;
         def.render_hint = hint;
+        def.content_type = ct;
+        for (auto& [k, v] : params) def.params[k] = v;
         reg.types[def.classname] = std::move(def);
     };
 
@@ -79,6 +100,9 @@ static TypeRegistry make_canvas_input_test_registry() {
         TypeDefinition def;
         def.classname = "Slider";
         def.cpp_class = true;
+        def.content_type = "Slider";
+        def.params["min"] = "0";
+        def.params["max"] = "1";
         def.ports.emplace("out", Port(PortDirection::Out, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
     }
@@ -113,23 +137,23 @@ static TypeRegistry make_canvas_input_test_registry() {
         reg.types[def.classname] = std::move(def);
     }
 
-    // Simple types (no specific port definitions needed for classification)
+    // Simple types
     add_simple("Battery");
     add_simple("Lamp");
     add_simple("Bus", "bus");
     add_simple("RefNode", "ref");
     add_simple("Value");
-    add_simple("AZS");
-    add_simple("Switch");
-    add_simple("KnobSwitch");
-    add_simple("KnobControl");
-    add_simple("SliderControl");
-    add_simple("CompositeSwitch");
+    add_simple("AZS", "", "VerticalToggle", {{"closed", "false"}});
+    add_simple("Switch", "", "Switch", {{"closed", "false"}});
+    add_simple("KnobSwitch", "", "Knob", {{"positions", "2"}});
+    add_simple("KnobControl", "", "Knob", {{"positions", "2"}});
+    add_simple("SliderControl", "", "Slider", {{"min", "0"}, {"max", "1"}});
+    add_simple("CompositeSwitch", "", "VerticalToggle", {{"closed", "false"}});
     add_simple("Composite");
     add_simple("CompositeType");
-    add_simple("IndicatorLight");
+    add_simple("IndicatorLight", "", "Indicator");
     add_simple("Splitter");
-    add_simple("Voltmeter");
+    add_simple("Voltmeter", "", "Gauge", {{"min", "0"}, {"max", "28"}});
     add_simple("TypeSrc");
     add_simple("TypeSink");
 
@@ -1384,8 +1408,6 @@ TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
 
     // Create an AZS-like node with VerticalToggle content and left/right ports
     auto azs = make_node(I, "azs_1", "AZS", 0.0f, 0.0f);
-    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.view.content_state = false;
     set_iface(azs, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -1424,8 +1446,6 @@ TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.view.content_state = false;
     set_iface(azs, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -1469,8 +1489,6 @@ TEST(CanvasInputContentToggle, EdgeClickOnVerticalToggleContentReturnsToggle) {
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.view.content_state = false;
     set_iface(azs, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -1506,11 +1524,7 @@ TEST(CanvasInputLayoutSizing, ExplicitUndersizedNodeExpandsToRequiredMinimum) {
     bp2::PathArena arena(I);
 
     auto volt = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
-    volt.view.content_type = bp2::NodeContentType::Gauge;
-    volt.view.content_value = 27.5f;
-    volt.view.content_min = 0.0f;
-    volt.view.content_max = 30.0f;
-    volt.view.content_unit = "Voltmeter";
+    set_params(volt, {{"min", "0.0"}, {"max", "30.0"}});
     volt.layout.width = 32.0f;
     volt.layout.height = 32.0f;
     set_iface(volt, {
@@ -1523,6 +1537,7 @@ TEST(CanvasInputLayoutSizing, ExplicitUndersizedNodeExpandsToRequiredMinimum) {
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
     ASSERT_NE(widget, nullptr);
@@ -1537,11 +1552,7 @@ TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
     bp2::PathArena arena(I);
 
     auto volt = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
-    volt.view.content_type = bp2::NodeContentType::Gauge;
-    volt.view.content_value = 27.5f;
-    volt.view.content_min = 0.0f;
-    volt.view.content_max = 30.0f;
-    volt.view.content_unit = "Voltmeter";
+    set_params(volt, {{"min", "0.0"}, {"max", "30.0"}});
     set_iface(volt, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
     });
@@ -1552,6 +1563,7 @@ TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -1593,11 +1605,7 @@ TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum)
     bp2::PathArena arena(I);
 
     auto volt = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
-    volt.view.content_type = bp2::NodeContentType::Gauge;
-    volt.view.content_value = 27.5f;
-    volt.view.content_min = 0.0f;
-    volt.view.content_max = 30.0f;
-    volt.view.content_unit = "Voltmeter";
+    set_params(volt, {{"min", "0.0"}, {"max", "30.0"}});
     set_iface(volt, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
     });
@@ -1608,6 +1616,7 @@ TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum)
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -1644,8 +1653,6 @@ TEST(CanvasInputLayoutSizing, VerticalToggleMinimumHeightDoesNotAddFullContentSt
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.view.content_state = false;
     set_iface(azs, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -1775,8 +1782,6 @@ TEST(CanvasInputSimMode, SimModeAllowsToggleInteraction) {
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.view.content_state = false;
     set_iface(azs, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -1818,8 +1823,7 @@ TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 5.0f;
+    set_params(knob, {{"positions", "5.0"}});
     set_iface(knob, {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -1863,9 +1867,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -1907,9 +1909,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteractionAtEdge) {
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -1948,8 +1948,6 @@ TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.view.content_state = false;
     set_iface(azs, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -1987,8 +1985,7 @@ TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 5.0f;
+    set_params(knob, {{"positions", "5.0"}});
     set_iface(knob, {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -2026,8 +2023,7 @@ TEST(HitTestInteractionTarget, KnobContentBoundsCoverVisibleKnobSize) {
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 5.0f;
+    set_params(knob, {{"positions", "5.0"}});
     set_iface(knob, {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -2053,9 +2049,7 @@ TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -2093,9 +2087,7 @@ TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -2127,8 +2119,6 @@ TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.view.content_state = false;
     set_iface(azs, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -2172,8 +2162,6 @@ TEST(CanvasInputInteractionTarget, VerticalTogglePublishesToggleRole) {
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.view.content_state = false;
     set_iface(azs, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -2209,9 +2197,7 @@ TEST(CanvasInputSemanticRender, SwitchProducesRenderObjectsAndHitObjects) {
     bp2::PathArena arena(I);
 
     auto sw = make_node(I, "sw_1", "Switch", 100.0f, 100.0f);
-    sw.view.content_type = bp2::NodeContentType::Switch;
-    sw.view.content_state = true;
-    sw.view.content_tripped = false;
+    sw.semantic.string_params["closed"] = "true";
     set_iface(sw, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -2245,9 +2231,6 @@ TEST(CanvasInputSemanticRender, VerticalToggleStandardLayoutProducesRenderObject
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
-    azs.view.content_type = bp2::NodeContentType::VerticalToggle;
-    azs.view.content_state = false;
-    azs.view.content_tripped = true;
     // Force standard layout by adding layout overrides
     azs.layout.layout_overrides.push_back(bp2::Blueprint::Node::PortLayoutOverride{
         "v_in", "left", std::nullopt});
@@ -2262,6 +2245,7 @@ TEST(CanvasInputSemanticRender, VerticalToggleStandardLayoutProducesRenderObject
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "azs_1", [](NodeContent& c) { c.tripped = true; });
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -2280,8 +2264,7 @@ TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
      bp2::PathArena arena(I);
 
      auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-     knob.view.content_type = bp2::NodeContentType::Knob;
-     knob.view.content_max = 5.0f;
+     set_params(knob, {{"positions", "5.0"}});
      set_iface(knob, {
          make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
          make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -2314,8 +2297,7 @@ TEST(CanvasInputSemanticRender, ContentSnapshotObjectIdsAreUniqueAndFindable) {
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 5.0f;
+    set_params(knob, {{"positions", "5.0"}});
     set_iface(knob, {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -2354,15 +2336,12 @@ TEST(CanvasInputSemanticRender, IndicatorAndKnobCirclesUseCenteredRadiusEncoding
     bp2::PathArena arena(I);
 
     auto indicator = make_node(I, "ind_1", "IndicatorLight", 100.0f, 100.0f);
-    indicator.view.content_type = bp2::NodeContentType::Indicator;
-    indicator.view.content_value = 1.0f;
     set_iface(indicator, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
     });
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 240.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 5.0f;
+    set_params(knob, {{"positions", "5.0"}});
     set_iface(knob, {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -2375,6 +2354,7 @@ TEST(CanvasInputSemanticRender, IndicatorAndKnobCirclesUseCenteredRadiusEncoding
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "ind_1", [](NodeContent& c) { c.value = 1.0f; });
 
     auto* indicator_widget = dynamic_cast<visual::NodeWidget*>(scene.find("ind_1"));
     auto* knob_widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
@@ -2418,11 +2398,7 @@ TEST(CanvasInputSemanticRender, GaugeRestoresLegacyTextStackAndFullComposition) 
     bp2::PathArena arena(I);
 
     auto gauge = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
-    gauge.view.content_type = bp2::NodeContentType::Gauge;
-    gauge.view.content_value = 27.5f;
-    gauge.view.content_min = 0.0f;
-    gauge.view.content_max = 30.0f;
-    gauge.view.content_unit = "Voltmeter";
+    set_params(gauge, {{"min", "0.0"}, {"max", "30.0"}});
     set_iface(gauge, {
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
     });
@@ -2433,6 +2409,7 @@ TEST(CanvasInputSemanticRender, GaugeRestoresLegacyTextStackAndFullComposition) 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
     ASSERT_NE(widget, nullptr);
@@ -2449,7 +2426,7 @@ TEST(CanvasInputSemanticRender, GaugeRestoresLegacyTextStackAndFullComposition) 
         }
         if (object.text == "27.5") {
             value_text = &object;
-        } else if (object.text == "Voltmeter") {
+        } else if (object.text == "V") {
             unit_text = &object;
         }
     }
@@ -2474,8 +2451,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 7.0f;  // 7 positions
+    set_params(knob, {{"positions", "7.0"}});  // 7 positions
     set_iface(knob, {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -2529,9 +2505,7 @@ TEST(CanvasInputInteractionTarget, SliderPublishesContinuousScalarRole) {
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -2567,9 +2541,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -2884,8 +2856,6 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
     bp2::PathArena arena(I);
 
     auto composite = make_node(I, "comp_1", "CompositeSwitch", 100.0f, 100.0f);
-    composite.view.content_type = bp2::NodeContentType::VerticalToggle;
-    composite.view.content_state = false;
     composite.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     composite.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("CompositeSwitch"),
@@ -2939,9 +2909,7 @@ TEST(CanvasInputSemanticGate, SliderDragOffHitStillEmitsThroughSemanticContinuat
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -2986,10 +2954,7 @@ TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
-    slider.view.content_value = 50.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -3001,6 +2966,7 @@ TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "slider_1", [](NodeContent& c) { c.value = 50.0f; });
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3033,8 +2999,7 @@ TEST(CanvasInputSemanticGate, KnobDragOffHitStillEmitsThroughSemanticContinuatio
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 5.0f;
+    set_params(knob, {{"positions", "5.0"}});
     set_iface(knob, {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -3079,9 +3044,7 @@ TEST(CanvasInputSemanticGate, SliderReleaseOffHitEndsDragState) {
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -3125,8 +3088,7 @@ TEST(CanvasInputSemanticGate, KnobReleaseOffHitEndsDragState) {
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 5.0f;
+    set_params(knob, {{"positions", "5.0"}});
     set_iface(knob, {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -3170,9 +3132,7 @@ TEST(CanvasInputSemanticGate, SimulationModeSliderDragStillEmitsWhenSemanticActi
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -3216,8 +3176,7 @@ TEST(CanvasInputSemanticGate, SimulationModeKnobDragStillEmitsWhenSemanticActive
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_max = 5.0f;
+    set_params(knob, {{"positions", "5.0"}});
     set_iface(knob, {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -3261,8 +3220,6 @@ TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobControl", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_value = 1.0f;
     set_iface(knob, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -3287,6 +3244,7 @@ TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "knob_1", [](NodeContent& c) { c.value = 1.0f; });
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3321,10 +3279,7 @@ TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "SliderControl", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
-    slider.view.content_value = 50.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -3349,6 +3304,7 @@ TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "slider_1", [](NodeContent& c) { c.value = 50.0f; });
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3383,8 +3339,6 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAn
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobControl", 100.0f, 100.0f);
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_value = 1.0f;
     set_iface(knob, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -3396,6 +3350,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAn
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "knob_1", [](NodeContent& c) { c.value = 1.0f; });
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3426,10 +3381,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdle
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "SliderControl", 100.0f, 100.0f);
-    slider.view.content_type = bp2::NodeContentType::Slider;
-    slider.view.content_min = 0.0f;
-    slider.view.content_max = 100.0f;
-    slider.view.content_value = 50.0f;
+    set_params(slider, {{"min", "0.0"}, {"max", "100.0"}});
     set_iface(slider, {
         make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -3441,6 +3393,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdle
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    update_dynamic(scene, "slider_1", [](NodeContent& c) { c.value = 50.0f; });
 
     Viewport vp;
     vp.zoom = 1.0f;

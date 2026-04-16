@@ -4,6 +4,7 @@
 #include "editor/visual/presentation/node_presentation.h"
 #include "editor/visual/presentation/node_slot_layout.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
+#include "json_parser/json_parser.h"
 #include "ui/core/interned_id.h"
 
 using namespace editor::presentation;
@@ -23,17 +24,17 @@ std::string_view resolve_test_type_name(ui::InternedId type_id, void* /*user_dat
     }
 }
 
-bp2::Blueprint::Node make_node(ui::InternedId id,
-                               const std::string& name,
-                               const std::string& render_hint = "",
-                               bp2::NodeContentType content_type = bp2::NodeContentType::None) {
-    bp2::Blueprint::Node node;
-    node.semantic.id = id;
-    node.semantic.type = ui::InternedId(1000);
-    node.view.name = name;
-    node.view.render_hint = render_hint;
-    node.view.content_type = content_type;
-    return node;
+PresentationSpec make_spec(ui::InternedId id,
+                          const std::string& name,
+                          NodeFrameKind frame_kind = NodeFrameKind::Standard,
+                          bp2::NodeContentType content_type = bp2::NodeContentType::None) {
+    PresentationSpec spec;
+    spec.node_id = id;
+    spec.type_id = ui::InternedId(1000);
+    spec.title = name;
+    spec.frame_kind = frame_kind;
+    spec.content_type = content_type;
+    return spec;
 }
 
 /// Count paint commands of a given kind in the content tree (recursive).
@@ -161,8 +162,8 @@ TEST(ClassifyFrameKind, AnnotationForTextHint) {
 // ============================================================================
 
 TEST(CompileNodePresentation, StandardNodePreservesIdentityAndTitle) {
-    auto node = make_node(ui::InternedId(1), "Generator");
-    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
+    auto spec = make_spec(ui::InternedId(1), "Generator");
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, spec);
 
     EXPECT_EQ(p.node_id, ui::InternedId(1));
     EXPECT_EQ(p.shell.title, "Generator");
@@ -171,34 +172,34 @@ TEST(CompileNodePresentation, StandardNodePreservesIdentityAndTitle) {
 }
 
 TEST(CompileNodePresentation, RefNodeGetsReferenceFrame) {
-    auto node = make_node(ui::InternedId(2), "GND", "ref");
-    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
+    auto spec = make_spec(ui::InternedId(2), "GND", NodeFrameKind::Reference);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, spec);
 
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Reference);
     EXPECT_EQ(p.shell.title, "GND");
 }
 
 TEST(CompileNodePresentation, BusNodeGetsBusFrame) {
-    auto node = make_node(ui::InternedId(3), "AC Bus", "bus");
-    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
+    auto spec = make_spec(ui::InternedId(3), "AC Bus", NodeFrameKind::Bus);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, spec);
 
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Bus);
     EXPECT_EQ(p.shell.title, "AC Bus");
 }
 
 TEST(CompileNodePresentation, GroupNodeGetsGroupFrame) {
-    auto node = make_node(ui::InternedId(4), "Power Section", "group");
-    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
+    auto spec = make_spec(ui::InternedId(4), "Power Section", NodeFrameKind::Group);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, spec);
 
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Group);
     EXPECT_EQ(p.shell.title, "Power Section");
 }
 
 TEST(CompileNodePresentation, TextNodeGetsAnnotationFrame) {
-    auto node = make_node(ui::InternedId(5), "Note", "text");
-    node.semantic.string_params["text"] = "This is a note";
-    node.semantic.string_params["font_size"] = "14.0";
-    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
+    auto spec = make_spec(ui::InternedId(5), "Note", NodeFrameKind::Annotation);
+    spec.annotation_text = "This is a note";
+    spec.annotation_font_size = 14.0f;
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, spec);
 
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Annotation);
     EXPECT_EQ(p.shell.title, "Note");
@@ -207,15 +208,15 @@ TEST(CompileNodePresentation, TextNodeGetsAnnotationFrame) {
 }
 
 TEST(CompileNodePresentation, TextNodeDefaultFontSizeWhenMissing) {
-    auto node = make_node(ui::InternedId(6), "Note", "text");
-    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
+    auto spec = make_spec(ui::InternedId(6), "Note", NodeFrameKind::Annotation);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, spec);
 
     EXPECT_FLOAT_EQ(p.shell.annotation_font_size, 12.0f);
 }
 
 TEST(CompileNodePresentation, NoneContentTypeProducesEmptyContentChildren) {
-    auto node = make_node(ui::InternedId(10), "Resistor", "", bp2::NodeContentType::None);
-    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
+    auto spec = make_spec(ui::InternedId(10), "Resistor", NodeFrameKind::Standard, bp2::NodeContentType::None);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, spec);
 
     EXPECT_TRUE(p.content.children.empty());
     EXPECT_EQ(p.content.layout, LayoutKind::Overlay);
@@ -226,9 +227,9 @@ TEST(CompileNodePresentation, NoneContentTypeProducesEmptyContentChildren) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, SwitchProducesRectanglesAndClickInteraction) {
-    auto node = make_node(ui::InternedId(20), "AZS", "", bp2::NodeContentType::Switch);
-    node.view.content_state = true;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(20), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec.content_state = true;
+    NodePresentation p = compile_node_presentation(spec);
 
     // Switch: background rect + handle rect + click interaction child
     EXPECT_GE(p.content.children.size(), 3u);
@@ -239,9 +240,9 @@ TEST(DefaultContentPresenter, SwitchProducesRectanglesAndClickInteraction) {
 }
 
 TEST(DefaultContentPresenter, VerticalToggleProducesRectanglesAndClickInteraction) {
-    auto node = make_node(ui::InternedId(21), "Toggle", "", bp2::NodeContentType::VerticalToggle);
-    node.view.content_state = false;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(21), "Toggle", NodeFrameKind::Standard, bp2::NodeContentType::VerticalToggle);
+    spec.content_state = false;
+    NodePresentation p = compile_node_presentation(spec);
 
     EXPECT_GE(p.content.children.size(), 3u);
     EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Rectangle), 2u);
@@ -251,16 +252,16 @@ TEST(DefaultContentPresenter, VerticalToggleProducesRectanglesAndClickInteractio
 }
 
 TEST(DefaultContentPresenter, SwitchTrippedChangesColor) {
-    auto node_normal = make_node(ui::InternedId(22), "AZS", "", bp2::NodeContentType::Switch);
-    node_normal.view.content_state = true;
-    node_normal.view.content_tripped = false;
+    auto spec_normal = make_spec(ui::InternedId(22), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec_normal.content_state = true;
+    spec_normal.content_tripped = false;
 
-    auto node_tripped = make_node(ui::InternedId(23), "AZS", "", bp2::NodeContentType::Switch);
-    node_tripped.view.content_state = true;
-    node_tripped.view.content_tripped = true;
+    auto spec_tripped = make_spec(ui::InternedId(23), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec_tripped.content_state = true;
+    spec_tripped.content_tripped = true;
 
-    NodePresentation p_normal = compile_node_presentation(node_normal);
-    NodePresentation p_tripped = compile_node_presentation(node_tripped);
+    NodePresentation p_normal = compile_node_presentation(spec_normal);
+    NodePresentation p_tripped = compile_node_presentation(spec_tripped);
 
     // Both should have paint commands but with different colors
     EXPECT_GE(count_total_paints(p_normal.content), 2u);
@@ -286,9 +287,9 @@ TEST(DefaultContentPresenter, SwitchTrippedChangesColor) {
 }
 
 TEST(DefaultContentPresenter, SwitchRectanglesCarryExplicitRectGeometry) {
-    auto node = make_node(ui::InternedId(24), "AZS", "", bp2::NodeContentType::Switch);
-    node.view.content_state = false;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(24), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec.content_state = false;
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<const PaintCommand*> paints;
     collect_paints(p.content, paints);
@@ -324,13 +325,13 @@ TEST(DefaultContentPresenter, SwitchRectanglesCarryExplicitRectGeometry) {
 }
 
 TEST(DefaultContentPresenter, SwitchHandleMovesOnStateChange) {
-    auto node_off = make_node(ui::InternedId(25), "AZS", "", bp2::NodeContentType::Switch);
-    node_off.view.content_state = false;
-    NodePresentation p_off = compile_node_presentation(node_off);
+    auto spec_off = make_spec(ui::InternedId(25), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec_off.content_state = false;
+    NodePresentation p_off = compile_node_presentation(spec_off);
 
-    auto node_on = make_node(ui::InternedId(26), "AZS", "", bp2::NodeContentType::Switch);
-    node_on.view.content_state = true;
-    NodePresentation p_on = compile_node_presentation(node_on);
+    auto spec_on = make_spec(ui::InternedId(26), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec_on.content_state = true;
+    NodePresentation p_on = compile_node_presentation(spec_on);
 
     auto get_handle_x = [](const PresentationNode& content) -> float {
         int rect_idx = 0;
@@ -355,13 +356,13 @@ TEST(DefaultContentPresenter, SwitchHandleMovesOnStateChange) {
 }
 
 TEST(DefaultContentPresenter, VerticalToggleHandleMovesOnStateChange) {
-    auto node_off = make_node(ui::InternedId(27), "Toggle", "", bp2::NodeContentType::VerticalToggle);
-    node_off.view.content_state = false;
-    NodePresentation p_off = compile_node_presentation(node_off);
+    auto spec_off = make_spec(ui::InternedId(27), "Toggle", NodeFrameKind::Standard, bp2::NodeContentType::VerticalToggle);
+    spec_off.content_state = false;
+    NodePresentation p_off = compile_node_presentation(spec_off);
 
-    auto node_on = make_node(ui::InternedId(28), "Toggle", "", bp2::NodeContentType::VerticalToggle);
-    node_on.view.content_state = true;
-    NodePresentation p_on = compile_node_presentation(node_on);
+    auto spec_on = make_spec(ui::InternedId(28), "Toggle", NodeFrameKind::Standard, bp2::NodeContentType::VerticalToggle);
+    spec_on.content_state = true;
+    NodePresentation p_on = compile_node_presentation(spec_on);
 
     auto get_handle_geo = [](const PresentationNode& content) -> RectGeometry {
         int rect_idx = 0;
@@ -397,11 +398,11 @@ TEST(DefaultContentPresenter, VerticalToggleHandleMovesOnStateChange) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, SliderProducesTrackHandleAndDragInteraction) {
-    auto node = make_node(ui::InternedId(30), "Throttle", "", bp2::NodeContentType::Slider);
-    node.view.content_min = 0.0f;
-    node.view.content_max = 100.0f;
-    node.view.content_value = 50.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(30), "Throttle", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_min = 0.0f;
+    spec.content_max = 100.0f;
+    spec.content_value = 50.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     // Slider: track bg + track fill + handle circle + value text + drag interaction
     EXPECT_GE(p.content.children.size(), 5u);
@@ -445,9 +446,9 @@ TEST(DefaultContentPresenter, SliderProducesTrackHandleAndDragInteraction) {
 }
 
 TEST(DefaultContentPresenter, SliderValueTextShowsFormattedValue) {
-    auto node = make_node(ui::InternedId(31), "Slider", "", bp2::NodeContentType::Slider);
-    node.view.content_value = 42.5f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(31), "Slider", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_value = 42.5f;
+    NodePresentation p = compile_node_presentation(spec);
 
     const auto* text = find_text_paint(p.content);
     ASSERT_NE(text, nullptr);
@@ -459,9 +460,9 @@ TEST(DefaultContentPresenter, SliderValueTextShowsFormattedValue) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, IndicatorProducesCircle) {
-    auto node = make_node(ui::InternedId(40), "Light", "", bp2::NodeContentType::Indicator);
-    node.view.content_value = 0.8f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(40), "Light", NodeFrameKind::Standard, bp2::NodeContentType::Indicator);
+    spec.content_value = 0.8f;
+    NodePresentation p = compile_node_presentation(spec);
 
     EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Circle), 1u);
     // Indicator has no interaction
@@ -469,9 +470,9 @@ TEST(DefaultContentPresenter, IndicatorProducesCircle) {
 }
 
 TEST(DefaultContentPresenter, IndicatorOffProducesDimColor) {
-    auto node = make_node(ui::InternedId(41), "Light", "", bp2::NodeContentType::Indicator);
-    node.view.content_value = 0.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(41), "Light", NodeFrameKind::Standard, bp2::NodeContentType::Indicator);
+    spec.content_value = 0.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Circle), 1u);
 }
@@ -481,10 +482,10 @@ TEST(DefaultContentPresenter, IndicatorOffProducesDimColor) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, KnobProducesCircleTicksAndDiscreteInteraction) {
-    auto node = make_node(ui::InternedId(50), "Selector", "", bp2::NodeContentType::Knob);
-    node.view.content_max = 5.0f;
-    node.view.content_value = 2.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(50), "Selector", NodeFrameKind::Standard, bp2::NodeContentType::Knob);
+    spec.content_max = 5.0f;
+    spec.content_value = 2.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     // Knob body circle + tick lines (5) + pointer line + discrete interaction
     EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Circle), 1u);
@@ -496,10 +497,10 @@ TEST(DefaultContentPresenter, KnobProducesCircleTicksAndDiscreteInteraction) {
 }
 
 TEST(DefaultContentPresenter, KnobMinTwoPositions) {
-    auto node = make_node(ui::InternedId(51), "Selector", "", bp2::NodeContentType::Knob);
-    node.view.content_max = 1.0f;  // Would be 1 position, clamped to 2
-    node.view.content_value = 0.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(51), "Selector", NodeFrameKind::Standard, bp2::NodeContentType::Knob);
+    spec.content_max = 1.0f;  // Would be 1 position, clamped to 2
+    spec.content_value = 0.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     const auto* drag = find_interaction(p.content, InteractionKind::DragDiscrete);
     ASSERT_NE(drag, nullptr);
@@ -511,12 +512,12 @@ TEST(DefaultContentPresenter, KnobMinTwoPositions) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, GaugeProducesArcTicksNeedleAndValueText) {
-    auto node = make_node(ui::InternedId(60), "Voltmeter", "", bp2::NodeContentType::Gauge);
-    node.view.content_min = 0.0f;
-    node.view.content_max = 30.0f;
-    node.view.content_value = 27.5f;
-    node.view.content_unit = "V";
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(60), "Voltmeter", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_min = 0.0f;
+    spec.content_max = 30.0f;
+    spec.content_value = 27.5f;
+    spec.content_unit = "V";
+    NodePresentation p = compile_node_presentation(spec);
 
     // Arc + 11 tick lines + needle line + center dot circle + value text + unit text
     EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Arc), 1u);
@@ -529,10 +530,10 @@ TEST(DefaultContentPresenter, GaugeProducesArcTicksNeedleAndValueText) {
 }
 
 TEST(DefaultContentPresenter, GaugeValueTextShowsFormattedValue) {
-    auto node = make_node(ui::InternedId(61), "Gauge", "", bp2::NodeContentType::Gauge);
-    node.view.content_value = 12.3f;
-    node.view.content_unit = "A";
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(61), "Gauge", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_value = 12.3f;
+    spec.content_unit = "A";
+    NodePresentation p = compile_node_presentation(spec);
 
     const auto* text = find_text_paint(p.content);
     ASSERT_NE(text, nullptr);
@@ -540,9 +541,9 @@ TEST(DefaultContentPresenter, GaugeValueTextShowsFormattedValue) {
 }
 
 TEST(DefaultContentPresenter, GaugeWithoutUnitOmitsUnitText) {
-    auto node = make_node(ui::InternedId(62), "Gauge", "", bp2::NodeContentType::Gauge);
-    node.view.content_unit = "";
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(62), "Gauge", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_unit = "";
+    NodePresentation p = compile_node_presentation(spec);
 
     // Should have value text but not unit text
     // Arc(1) + ticks(11) + needle(1) + dot(1) + value_text(1) = 15 children
@@ -556,9 +557,9 @@ TEST(DefaultContentPresenter, GaugeWithoutUnitOmitsUnitText) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, TextContentProducesTextPaint) {
-    auto node = make_node(ui::InternedId(70), "Label", "", bp2::NodeContentType::Text);
-    node.view.content_label = "Hello World";
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(70), "Label", NodeFrameKind::Standard, bp2::NodeContentType::Text);
+    spec.content_label = "Hello World";
+    NodePresentation p = compile_node_presentation(spec);
 
     const auto* text = find_text_paint(p.content);
     ASSERT_NE(text, nullptr);
@@ -566,9 +567,9 @@ TEST(DefaultContentPresenter, TextContentProducesTextPaint) {
 }
 
 TEST(DefaultContentPresenter, EmptyTextContentProducesNoChildren) {
-    auto node = make_node(ui::InternedId(71), "Label", "", bp2::NodeContentType::Text);
-    node.view.content_label = "";
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(71), "Label", NodeFrameKind::Standard, bp2::NodeContentType::Text);
+    spec.content_label = "";
+    NodePresentation p = compile_node_presentation(spec);
 
     EXPECT_TRUE(p.content.children.empty());
 }
@@ -578,10 +579,10 @@ TEST(DefaultContentPresenter, EmptyTextContentProducesNoChildren) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, AllElementIdsAreUnique) {
-    auto node = make_node(ui::InternedId(80), "Gauge", "", bp2::NodeContentType::Gauge);
-    node.view.content_value = 15.0f;
-    node.view.content_unit = "V";
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(80), "Gauge", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_value = 15.0f;
+    spec.content_unit = "V";
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<ui::InternedId> ids;
     collect_element_ids(p.content, ids);
@@ -598,12 +599,12 @@ TEST(DefaultContentPresenter, AllElementIdsAreUnique) {
 // ============================================================================
 
 TEST(PresentationCompilerIntegration, StandardNodeWithSwitchFlowsThroughFullPipeline) {
-    auto node = make_node(ui::InternedId(100), "AZS-1", "", bp2::NodeContentType::Switch);
-    node.semantic.type = ui::InternedId(1001);
-    node.view.content_state = true;
+    auto spec = make_spec(ui::InternedId(100), "AZS-1", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec.type_id = ui::InternedId(1001);
+    spec.content_state = true;
 
     // Step 1: Compile
-    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, node);
+    NodePresentation p = compile_node_presentation(NodePresentationCompileContext{.resolve_type_name = &resolve_test_type_name}, spec);
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Standard);
     EXPECT_GE(p.content.children.size(), 3u);
 
@@ -632,9 +633,9 @@ TEST(PresentationCompilerIntegration, StandardNodeWithSwitchFlowsThroughFullPipe
 }
 
 TEST(PresentationCompilerIntegration, RefNodeFlowsThroughFullPipeline) {
-    auto node = make_node(ui::InternedId(101), "GND", "ref");
+    auto spec = make_spec(ui::InternedId(101), "GND", NodeFrameKind::Reference);
 
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Reference);
 
     NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(60.0f, 40.0f));
@@ -649,9 +650,9 @@ TEST(PresentationCompilerIntegration, RefNodeFlowsThroughFullPipeline) {
 }
 
 TEST(PresentationCompilerIntegration, BusNodeFlowsThroughFullPipeline) {
-    auto node = make_node(ui::InternedId(102), "DC Bus", "bus");
+    auto spec = make_spec(ui::InternedId(102), "DC Bus", NodeFrameKind::Bus);
 
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Bus);
 
     NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(200.0f, 40.0f));
@@ -668,9 +669,9 @@ TEST(PresentationCompilerIntegration, BusNodeFlowsThroughFullPipeline) {
 }
 
 TEST(PresentationCompilerIntegration, GroupNodeFlowsThroughFullPipeline) {
-    auto node = make_node(ui::InternedId(103), "Power Section", "group");
+    auto spec = make_spec(ui::InternedId(103), "Power Section", NodeFrameKind::Group);
 
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Group);
 
     NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(300.0f, 200.0f));
@@ -680,10 +681,10 @@ TEST(PresentationCompilerIntegration, GroupNodeFlowsThroughFullPipeline) {
 }
 
 TEST(PresentationCompilerIntegration, TextNodeFlowsThroughFullPipeline) {
-    auto node = make_node(ui::InternedId(104), "Note", "text");
-    node.semantic.string_params["text"] = "Design note";
+    auto spec = make_spec(ui::InternedId(104), "Note", NodeFrameKind::Annotation);
+    spec.annotation_text = "Design note";
 
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Annotation);
     EXPECT_EQ(p.shell.annotation_text, "Design note");
 
@@ -694,13 +695,13 @@ TEST(PresentationCompilerIntegration, TextNodeFlowsThroughFullPipeline) {
 }
 
 TEST(PresentationCompilerIntegration, GaugeNodeFlowsThroughFullPipeline) {
-    auto node = make_node(ui::InternedId(105), "Voltmeter", "", bp2::NodeContentType::Gauge);
-    node.view.content_min = 0.0f;
-    node.view.content_max = 30.0f;
-    node.view.content_value = 27.5f;
-    node.view.content_unit = "V";
+    auto spec = make_spec(ui::InternedId(105), "Voltmeter", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_min = 0.0f;
+    spec.content_max = 30.0f;
+    spec.content_value = 27.5f;
+    spec.content_unit = "V";
 
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
     NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(180.0f, 160.0f));
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(p, layout);
 
@@ -713,12 +714,12 @@ TEST(PresentationCompilerIntegration, GaugeNodeFlowsThroughFullPipeline) {
 }
 
 TEST(PresentationCompilerIntegration, MultiNodeSnapshotWithMixedKinds) {
-    auto standard = make_node(ui::InternedId(200), "Battery", "", bp2::NodeContentType::Gauge);
-    standard.view.content_value = 27.0f;
-    standard.view.content_unit = "V";
+    auto standard = make_spec(ui::InternedId(200), "Battery", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    standard.content_value = 27.0f;
+    standard.content_unit = "V";
 
-    auto ref = make_node(ui::InternedId(201), "GND", "ref");
-    auto bus = make_node(ui::InternedId(202), "DC Bus", "bus");
+    auto ref = make_spec(ui::InternedId(201), "GND", NodeFrameKind::Reference);
+    auto bus = make_spec(ui::InternedId(202), "DC Bus", NodeFrameKind::Bus);
 
     NodePresentation p1 = compile_node_presentation(standard);
     NodePresentation p2 = compile_node_presentation(ref);
@@ -801,26 +802,26 @@ PresentationNode make_custom_fragment(const PresentationSpec& spec) {
 } // namespace
 
 TEST(RegistryBasedCompile, PreservesNodeIdentityAndTitle) {
-    auto node = make_node(ui::InternedId(300), "Generator");
-    node.semantic.type = ui::InternedId(100);
+    auto spec = make_spec(ui::InternedId(300), "Generator");
+    spec.type_id = ui::InternedId(100);
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(100), NodePresenter{NodeFrameKind::Standard, &make_empty_fragment});
     NodePresentationCompileContext ctx{&registry};
 
-    NodePresentation p = compile_node_presentation(ctx, node);
+    NodePresentation p = compile_node_presentation(ctx, spec);
 
     EXPECT_EQ(p.node_id, ui::InternedId(300));
     EXPECT_EQ(p.shell.title, "Generator");
 }
 
 TEST(RegistryBasedCompile, CustomPresenterOverridesDefaultContent) {
-    auto node = make_node(ui::InternedId(301), "Custom", "", bp2::NodeContentType::Slider);
-    node.semantic.type = ui::InternedId(500);
+    auto spec = make_spec(ui::InternedId(301), "Custom", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.type_id = ui::InternedId(500);
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(500), NodePresenter{NodeFrameKind::Group, &make_custom_fragment});
 
     NodePresentationCompileContext ctx{&registry};
-    NodePresentation p = compile_node_presentation(ctx, node);
+    NodePresentation p = compile_node_presentation(ctx, spec);
 
     EXPECT_EQ(p.content.layout, LayoutKind::Overlay);
     ASSERT_EQ(p.content.children.size(), 2u);
@@ -834,11 +835,11 @@ TEST(RegistryBasedCompile, RegistryReturnsNullForMissingType) {
 }
 
 TEST(RegistryBasedCompile, MissingPresenterFallsBackToDefault) {
-    auto node = make_node(ui::InternedId(302), "Missing");
+    auto spec = make_spec(ui::InternedId(302), "Missing");
     NodePresenterRegistry registry;
     // Registry has no presenter for type 302 — compiler should fall back to default
     NodePresentationCompileContext ctx{&registry};
-    NodePresentation p = compile_node_presentation(ctx, node);
+    NodePresentation p = compile_node_presentation(ctx, spec);
 
     // Fallback produces a valid presentation with the node's name
     EXPECT_EQ(p.shell.title, "Missing");
@@ -849,47 +850,33 @@ TEST(RegistryBasedCompile, MissingPresenterFallsBackToDefault) {
 // ============================================================================
 
 TEST(CompileNodePresentation, ValueNodeWithRefHintGetsReferenceFrame) {
-    auto node = make_node(ui::InternedId(400), "28.0", "ref", bp2::NodeContentType::Value);
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(400), "28.0", NodeFrameKind::Reference, bp2::NodeContentType::Value);
+    NodePresentation p = compile_node_presentation(spec);
 
     EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Reference);
     EXPECT_EQ(p.shell.title, "28.0");
 }
 
 // ============================================================================
-// Regression: annotation font_size parsing edge cases
+// Regression: annotation font_size — the compiler passes through spec values.
+// Parsing edge cases are tested via make_presentation_spec(node, def, interner)
+// in the PresentationSpec section below.
 // ============================================================================
 
-TEST(CompileNodePresentation, InvalidFontSizeKeepsDefault) {
-    auto node = make_node(ui::InternedId(500), "Note", "text");
-    node.semantic.string_params["font_size"] = "not_a_number";
-    NodePresentation p = compile_node_presentation(node);
+TEST(CompileNodePresentation, NegativeFontSizePassedThrough) {
+    auto spec = make_spec(ui::InternedId(501), "Note", NodeFrameKind::Annotation);
+    spec.annotation_font_size = -5.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
-    EXPECT_FLOAT_EQ(p.shell.annotation_font_size, 12.0f);
+    EXPECT_FLOAT_EQ(p.shell.annotation_font_size, -5.0f);
 }
 
-TEST(CompileNodePresentation, NegativeFontSizeKeepsDefault) {
-    auto node = make_node(ui::InternedId(501), "Note", "text");
-    node.semantic.string_params["font_size"] = "-5.0";
-    NodePresentation p = compile_node_presentation(node);
+TEST(CompileNodePresentation, CustomFontSizePassedThrough) {
+    auto spec = make_spec(ui::InternedId(502), "Note", NodeFrameKind::Annotation);
+    spec.annotation_font_size = 24.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
-    EXPECT_FLOAT_EQ(p.shell.annotation_font_size, 12.0f);
-}
-
-TEST(CompileNodePresentation, ZeroFontSizeKeepsDefault) {
-    auto node = make_node(ui::InternedId(502), "Note", "text");
-    node.semantic.string_params["font_size"] = "0";
-    NodePresentation p = compile_node_presentation(node);
-
-    EXPECT_FLOAT_EQ(p.shell.annotation_font_size, 12.0f);
-}
-
-TEST(CompileNodePresentation, EmptyFontSizeStringKeepsDefault) {
-    auto node = make_node(ui::InternedId(503), "Note", "text");
-    node.semantic.string_params["font_size"] = "";
-    NodePresentation p = compile_node_presentation(node);
-
-    EXPECT_FLOAT_EQ(p.shell.annotation_font_size, 12.0f);
+    EXPECT_FLOAT_EQ(p.shell.annotation_font_size, 24.0f);
 }
 
 // ============================================================================
@@ -897,8 +884,8 @@ TEST(CompileNodePresentation, EmptyFontSizeStringKeepsDefault) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, ValueContentTypeProducesEmptyChildren) {
-    auto node = make_node(ui::InternedId(510), "28V", "", bp2::NodeContentType::Value);
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(510), "28V", NodeFrameKind::Standard, bp2::NodeContentType::Value);
+    NodePresentation p = compile_node_presentation(spec);
 
     EXPECT_TRUE(p.content.children.empty());
     EXPECT_EQ(p.content.layout, LayoutKind::Overlay);
@@ -909,11 +896,11 @@ TEST(DefaultContentPresenter, ValueContentTypeProducesEmptyChildren) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, SliderDragScalarRangeMatchesPreferredWidth) {
-    auto node = make_node(ui::InternedId(520), "Throttle", "", bp2::NodeContentType::Slider);
-    node.view.content_min = 0.0f;
-    node.view.content_max = 100.0f;
-    node.view.content_value = 50.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(520), "Throttle", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_min = 0.0f;
+    spec.content_max = 100.0f;
+    spec.content_value = 50.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     const auto* drag = find_interaction(p.content, InteractionKind::DragScalar);
     ASSERT_NE(drag, nullptr);
@@ -929,11 +916,11 @@ TEST(DefaultContentPresenter, SliderDragScalarRangeMatchesPreferredWidth) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, SliderZeroRangeProducesZeroT) {
-    auto node = make_node(ui::InternedId(530), "Slider", "", bp2::NodeContentType::Slider);
-    node.view.content_min = 50.0f;
-    node.view.content_max = 50.0f;
-    node.view.content_value = 50.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(530), "Slider", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_min = 50.0f;
+    spec.content_max = 50.0f;
+    spec.content_value = 50.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     // Should not crash and should produce valid content.
     // With t == 0 the fill rectangle is omitted, leaving:
@@ -951,11 +938,11 @@ TEST(DefaultContentPresenter, SliderZeroRangeProducesZeroT) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, GaugeZeroRangeProducesZeroNormalized) {
-    auto node = make_node(ui::InternedId(540), "Gauge", "", bp2::NodeContentType::Gauge);
-    node.view.content_min = 10.0f;
-    node.view.content_max = 10.0f;
-    node.view.content_value = 10.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(540), "Gauge", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_min = 10.0f;
+    spec.content_max = 10.0f;
+    spec.content_value = 10.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     // Should not crash and should produce valid content
     EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Arc), 1u);
@@ -967,9 +954,9 @@ TEST(DefaultContentPresenter, GaugeZeroRangeProducesZeroNormalized) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, IndicatorNegativeValueProducesDimColor) {
-    auto node = make_node(ui::InternedId(550), "Light", "", bp2::NodeContentType::Indicator);
-    node.view.content_value = -1.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(550), "Light", NodeFrameKind::Standard, bp2::NodeContentType::Indicator);
+    spec.content_value = -1.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Circle), 1u);
 
@@ -988,10 +975,10 @@ TEST(DefaultContentPresenter, IndicatorNegativeValueProducesDimColor) {
 // ============================================================================
 
 TEST(DefaultContentPresenter, KnobValueClampedToMaxPositions) {
-    auto node = make_node(ui::InternedId(560), "Selector", "", bp2::NodeContentType::Knob);
-    node.view.content_max = 3.0f;
-    node.view.content_value = 999.0f;  // way beyond max
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(560), "Selector", NodeFrameKind::Standard, bp2::NodeContentType::Knob);
+    spec.content_max = 3.0f;
+    spec.content_value = 999.0f;  // way beyond max
+    NodePresentation p = compile_node_presentation(spec);
 
     // Should not crash; knob should still produce valid content
     EXPECT_GE(count_paint_kind(p.content, PaintPrimitiveKind::Circle), 1u);
@@ -1007,9 +994,9 @@ TEST(DefaultContentPresenter, KnobValueClampedToMaxPositions) {
 // ============================================================================
 
 TEST(ExplicitGeometry, IndicatorCircleCarriesCircleGeometry) {
-    auto node = make_node(ui::InternedId(600), "Indicator", "", bp2::NodeContentType::Indicator);
-    node.view.content_value = 1.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(600), "Indicator", NodeFrameKind::Standard, bp2::NodeContentType::Indicator);
+    spec.content_value = 1.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<const PaintCommand*> paints;
     collect_paints(p.content, paints);
@@ -1031,10 +1018,10 @@ TEST(ExplicitGeometry, IndicatorCircleCarriesCircleGeometry) {
 }
 
 TEST(ExplicitGeometry, KnobCircleAndLinesCarryExplicitGeometry) {
-    auto node = make_node(ui::InternedId(601), "Knob", "", bp2::NodeContentType::Knob);
-    node.view.content_max = 5.0f;
-    node.view.content_value = 2.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(601), "Knob", NodeFrameKind::Standard, bp2::NodeContentType::Knob);
+    spec.content_max = 5.0f;
+    spec.content_value = 2.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<const PaintCommand*> paints;
     collect_paints(p.content, paints);
@@ -1063,12 +1050,12 @@ TEST(ExplicitGeometry, KnobCircleAndLinesCarryExplicitGeometry) {
 }
 
 TEST(ExplicitGeometry, GaugeArcAndTextsCarryExplicitGeometry) {
-    auto node = make_node(ui::InternedId(602), "Gauge", "", bp2::NodeContentType::Gauge);
-    node.view.content_value = 15.0f;
-    node.view.content_min = 0.0f;
-    node.view.content_max = 30.0f;
-    node.view.content_unit = "Volts";
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(602), "Gauge", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_value = 15.0f;
+    spec.content_min = 0.0f;
+    spec.content_max = 30.0f;
+    spec.content_unit = "Volts";
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<const PaintCommand*> paints;
     collect_paints(p.content, paints);
@@ -1110,9 +1097,9 @@ TEST(ExplicitGeometry, GaugeArcAndTextsCarryExplicitGeometry) {
 }
 
 TEST(ExplicitGeometry, LayoutContentTreePlacesElementsDirectlyInBounds) {
-    auto node = make_node(ui::InternedId(603), "Knob", "", bp2::NodeContentType::Knob);
-    node.view.content_max = 3.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(603), "Knob", NodeFrameKind::Standard, bp2::NodeContentType::Knob);
+    spec.content_max = 3.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     const ui::Rect bounds{10.0f, 20.0f, 48.0f, 48.0f};
     auto placements = layout_content_tree(p.content, bounds);
@@ -1134,9 +1121,9 @@ TEST(ExplicitGeometry, LayoutContentTreePlacesElementsDirectlyInBounds) {
 }
 
 TEST(ExplicitGeometry, ContentSemanticSnapshotHasNoShellObjects) {
-    auto node = make_node(ui::InternedId(604), "Indicator", "", bp2::NodeContentType::Indicator);
-    node.view.content_value = 0.5f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(604), "Indicator", NodeFrameKind::Standard, bp2::NodeContentType::Indicator);
+    spec.content_value = 0.5f;
+    NodePresentation p = compile_node_presentation(spec);
 
     const ui::Rect bounds{5.0f, 10.0f, 24.0f, 24.0f};
     auto placements = layout_content_tree(p.content, bounds);
@@ -1161,13 +1148,13 @@ TEST(ExplicitGeometry, ContentSemanticSnapshotHasNoShellObjects) {
 TEST(ExplicitGeometry, IndicatorBreathingRadiusVariesWithValue) {
     // Regression: indicator radius must vary with brightness (breathing effect).
     // A static radius (e.g. INDICATOR_SIZE * 0.5f) is a regression.
-    auto node_off = make_node(ui::InternedId(700), "Indicator", "", bp2::NodeContentType::Indicator);
-    node_off.view.content_value = 0.0f;
-    NodePresentation p_off = compile_node_presentation(node_off);
+    auto spec_off = make_spec(ui::InternedId(700), "Indicator", NodeFrameKind::Standard, bp2::NodeContentType::Indicator);
+    spec_off.content_value = 0.0f;
+    NodePresentation p_off = compile_node_presentation(spec_off);
 
-    auto node_on = make_node(ui::InternedId(701), "Indicator", "", bp2::NodeContentType::Indicator);
-    node_on.view.content_value = 1.0f;
-    NodePresentation p_on = compile_node_presentation(node_on);
+    auto spec_on = make_spec(ui::InternedId(701), "Indicator", NodeFrameKind::Standard, bp2::NodeContentType::Indicator);
+    spec_on.content_value = 1.0f;
+    NodePresentation p_on = compile_node_presentation(spec_on);
 
     auto get_indicator_radius = [](const PresentationNode& content) -> float {
         for (const auto& child : content.children) {
@@ -1193,11 +1180,11 @@ TEST(ExplicitGeometry, IndicatorBreathingRadiusVariesWithValue) {
 TEST(ExplicitGeometry, SliderHandleCarriesCircleGeometryWithRadius) {
     // Regression: slider handle Circle must carry CircleGeometry with SLIDER_HANDLE_RADIUS.
     // A missing geometry (defaulting to TextGeometry) makes the handle invisible.
-    auto node = make_node(ui::InternedId(702), "Slider", "", bp2::NodeContentType::Slider);
-    node.view.content_value = 5.0f;
-    node.view.content_min = 0.0f;
-    node.view.content_max = 10.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(702), "Slider", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_value = 5.0f;
+    spec.content_min = 0.0f;
+    spec.content_max = 10.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<const PaintCommand*> paints;
     collect_paints(p.content, paints);
@@ -1219,11 +1206,11 @@ TEST(ExplicitGeometry, SliderHandleCarriesCircleGeometryWithRadius) {
 TEST(ExplicitGeometry, DefaultGeometryMatchesPrimitiveKind) {
     // Regression: make_paint must produce geometry matching the primitive kind.
     // A Rectangle paint must carry RectGeometry, Circle must carry CircleGeometry, etc.
-    auto node = make_node(ui::InternedId(703), "Slider", "", bp2::NodeContentType::Slider);
-    node.view.content_value = 5.0f;
-    node.view.content_min = 0.0f;
-    node.view.content_max = 10.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(703), "Slider", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_value = 5.0f;
+    spec.content_min = 0.0f;
+    spec.content_max = 10.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<const PaintCommand*> paints;
     collect_paints(p.content, paints);
@@ -1258,11 +1245,11 @@ TEST(ExplicitGeometry, GaugeRadialCenterOffsetMatchesLegacyPosition) {
     // Regression: gauge radial center must be at GAUGE_RADIUS from the top of content,
     // not at the vertical center. With content height 92 and GAUGE_RADIUS 40,
     // the offset from center is 40 - 46 = -6.
-    auto node = make_node(ui::InternedId(704), "Gauge", "", bp2::NodeContentType::Gauge);
-    node.view.content_value = 15.0f;
-    node.view.content_min = 0.0f;
-    node.view.content_max = 30.0f;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(704), "Gauge", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_value = 15.0f;
+    spec.content_min = 0.0f;
+    spec.content_max = 30.0f;
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<const PaintCommand*> paints;
     collect_paints(p.content, paints);
@@ -1300,12 +1287,12 @@ TEST(ExplicitGeometry, GaugeRadialCenterOffsetMatchesLegacyPosition) {
 TEST(ExplicitGeometry, GaugeTextYOffsetsMatchLegacyPositioning) {
     // Regression: gauge value text must be at Y = GAUGE_RADIUS * 2 + 5 = 85,
     // unit text at Y = GAUGE_RADIUS * 2 + 21 = 101, matching old absolute positioning.
-    auto node = make_node(ui::InternedId(705), "Gauge", "", bp2::NodeContentType::Gauge);
-    node.view.content_value = 15.0f;
-    node.view.content_min = 0.0f;
-    node.view.content_max = 30.0f;
-    node.view.content_unit = "V";
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(705), "Gauge", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_value = 15.0f;
+    spec.content_min = 0.0f;
+    spec.content_max = 30.0f;
+    spec.content_unit = "V";
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<const PaintCommand*> paints;
     collect_paints(p.content, paints);
@@ -1332,8 +1319,8 @@ TEST(ExplicitGeometry, GaugeTextYOffsetsMatchLegacyPositioning) {
 }
 
 TEST(ExplicitGeometry, GaugePreferredSizeMatchesSharedMetrics) {
-    auto node = make_node(ui::InternedId(706), "Gauge", "", bp2::NodeContentType::Gauge);
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(706), "Gauge", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    NodePresentation p = compile_node_presentation(spec);
     NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(180.0f, 140.0f));
 
     constexpr auto metrics = gauge_metrics();
@@ -1378,12 +1365,12 @@ TEST(ExplicitGeometry, NoRectanglePaintHasZeroSizeGeometry) {
     };
 
     for (auto content_type : types_with_rects) {
-        auto node = make_node(ui::InternedId(800), "Test", "", content_type);
-        node.view.content_state = true;
-        node.view.content_min = 0.0f;
-        node.view.content_max = 100.0f;
-        node.view.content_value = 50.0f;
-        NodePresentation p = compile_node_presentation(node);
+        auto spec = make_spec(ui::InternedId(800), "Test", NodeFrameKind::Standard, content_type);
+        spec.content_state = true;
+        spec.content_min = 0.0f;
+        spec.content_max = 100.0f;
+        spec.content_value = 50.0f;
+        NodePresentation p = compile_node_presentation(spec);
 
         std::vector<const PaintCommand*> paints;
         collect_paints(p.content, paints);
@@ -1406,9 +1393,9 @@ TEST(ExplicitGeometry, NoRectanglePaintHasZeroSizeGeometry) {
 TEST(ExplicitGeometry, SwitchBackgroundAndHandleHaveNonZeroGeometry) {
     // Regression: switch background and handle must have explicit non-zero RectGeometry.
     // Without this, the renderer draws zero-size rectangles (invisible switch).
-    auto node = make_node(ui::InternedId(801), "AZS", "", bp2::NodeContentType::Switch);
-    node.view.content_state = true;
-    NodePresentation p = compile_node_presentation(node);
+    auto spec = make_spec(ui::InternedId(801), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec.content_state = true;
+    NodePresentation p = compile_node_presentation(spec);
 
     std::vector<const PaintCommand*> paints;
     collect_paints(p.content, paints);
@@ -1454,13 +1441,13 @@ TEST(SliderFillRegression, SliderAtMinimumValueOmitsFillRectangle) {
     // This is the exact crash scenario: a Slider node with default view state
     // (content_value == content_min == 0, content_max == 1) produces t == 0.
     // The fill rectangle must be omitted, not emitted with zero width.
-    auto node = make_node(ui::InternedId(800), "Throttle", "", bp2::NodeContentType::Slider);
-    node.view.content_min = 0.0f;
-    node.view.content_max = 100.0f;
-    node.view.content_value = 0.0f;  // at minimum → t == 0
+    auto spec = make_spec(ui::InternedId(800), "Throttle", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_min = 0.0f;
+    spec.content_max = 100.0f;
+    spec.content_value = 0.0f;  // at minimum → t == 0
 
     // Must not crash (was: assertion failure in append_painted)
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
 
     // Only the track background rectangle should be present (no fill)
     EXPECT_EQ(count_paint_kind(p.content, PaintPrimitiveKind::Rectangle), 1u)
@@ -1474,12 +1461,12 @@ TEST(SliderFillRegression, SliderAtMinimumValueOmitsFillRectangle) {
 }
 
 TEST(SliderFillRegression, SliderAtMaximumValueEmitsFillRectangle) {
-    auto node = make_node(ui::InternedId(801), "Throttle", "", bp2::NodeContentType::Slider);
-    node.view.content_min = 0.0f;
-    node.view.content_max = 100.0f;
-    node.view.content_value = 100.0f;  // at maximum → t == 1
+    auto spec = make_spec(ui::InternedId(801), "Throttle", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_min = 0.0f;
+    spec.content_max = 100.0f;
+    spec.content_value = 100.0f;  // at maximum → t == 1
 
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
 
     // Both track background and fill rectangles should be present
     EXPECT_EQ(count_paint_kind(p.content, PaintPrimitiveKind::Rectangle), 2u)
@@ -1503,19 +1490,18 @@ TEST(SliderFillRegression, SliderAtMaximumValueEmitsFillRectangle) {
 }
 
 TEST(SliderFillRegression, SliderWithDefaultViewStateCompilesWithoutCrash) {
-    // Simulates the exact load-time scenario: a Slider node with the default
-    // bp2::Blueprint::Node::View state (content_value=0, content_min=0,
-    // content_max=1). This is what every Slider node looks like on first load
-    // before hydration populates runtime values.
-    bp2::Blueprint::Node node;
-    node.semantic.id = ui::InternedId(802);
-    node.semantic.type = ui::InternedId(1000);
-    node.view.name = "DefaultSlider";
-    node.view.content_type = bp2::NodeContentType::Slider;
-    // All other view fields at their defaults: value=0, min=0, max=1
+    // Simulates the exact load-time scenario: a Slider with default state
+    // (content_value=0, content_min=0, content_max=0). This is what every
+    // Slider looks like before hydration populates runtime values.
+    PresentationSpec spec;
+    spec.node_id = ui::InternedId(802);
+    spec.type_id = ui::InternedId(1000);
+    spec.title = "DefaultSlider";
+    spec.content_type = bp2::NodeContentType::Slider;
+    // All other fields at their defaults: value=0, min=0, max=0
 
     // Must not crash
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
     EXPECT_FALSE(p.content.children.empty());
 }
 
@@ -1523,13 +1509,13 @@ TEST(SliderFillRegression, SliderAtMinimumFlowsThroughFullPipeline) {
     // End-to-end: compile → layout → snapshot for a slider at t == 0.
     // This exercises the same code path as Document::load() → scene rebuild →
     // NodeWidget::refresh_content_semantic_snapshot().
-    auto node = make_node(ui::InternedId(803), "Throttle", "", bp2::NodeContentType::Slider);
-    node.view.content_min = 0.0f;
-    node.view.content_max = 100.0f;
-    node.view.content_value = 0.0f;
+    auto spec = make_spec(ui::InternedId(803), "Throttle", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_min = 0.0f;
+    spec.content_max = 100.0f;
+    spec.content_value = 0.0f;
 
     // Step 1: Compile (was crashing here)
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
 
     // Step 2: Layout
     NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(180.0f, 120.0f));
@@ -1563,15 +1549,14 @@ TEST(LoadTimeCompileRegression, AllContentTypesCompileAtDefaultViewState) {
     };
 
     for (auto content_type : types) {
-        bp2::Blueprint::Node node;
-        node.semantic.id = ui::InternedId(900 + static_cast<int>(content_type));
-        node.semantic.type = ui::InternedId(1000);
-        node.view.name = "TestNode";
-        node.view.content_type = content_type;
-        // All view fields at defaults
+        PresentationSpec spec;
+        spec.node_id = ui::InternedId(900 + static_cast<int>(content_type));
+        spec.type_id = ui::InternedId(1000);
+        spec.title = "TestNode";
+        spec.content_type = content_type;
 
         // Must not crash for any content type
-        EXPECT_NO_FATAL_FAILURE(compile_node_presentation(node))
+        EXPECT_NO_FATAL_FAILURE(compile_node_presentation(spec))
             << "compile_node_presentation crashed for content_type="
             << static_cast<int>(content_type);
     }
@@ -1591,13 +1576,13 @@ TEST(LoadTimeCompileRegression, AllContentTypesFlowThroughFullPipelineAtDefaults
     };
 
     for (auto content_type : types) {
-        bp2::Blueprint::Node node;
-        node.semantic.id = ui::InternedId(950 + static_cast<int>(content_type));
-        node.semantic.type = ui::InternedId(1000);
-        node.view.name = "TestNode";
-        node.view.content_type = content_type;
+        PresentationSpec spec;
+        spec.node_id = ui::InternedId(950 + static_cast<int>(content_type));
+        spec.type_id = ui::InternedId(1000);
+        spec.title = "TestNode";
+        spec.content_type = content_type;
 
-        NodePresentation p = compile_node_presentation(node);
+        NodePresentation p = compile_node_presentation(spec);
         NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(180.0f, 120.0f));
         SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(p, layout);
 
@@ -1633,13 +1618,12 @@ TEST(LoadTimeCompileRegression, AllRectanglePaintsHavePositiveGeometry) {
     };
 
     for (const auto& tc : cases) {
-        auto node = make_node(ui::InternedId(1100 + static_cast<int>(tc.type) * 10 + static_cast<int>(tc.value)),
-                              "Test", "", tc.type);
-        node.view.content_value = tc.value;
-        node.view.content_min = tc.min;
-        node.view.content_max = tc.max;
+        auto spec = make_spec(ui::InternedId(1100 + static_cast<int>(tc.type) * 10 + static_cast<int>(tc.value)), "Test", NodeFrameKind::Standard, tc.type);
+        spec.content_value = tc.value;
+        spec.content_min = tc.min;
+        spec.content_max = tc.max;
 
-        NodePresentation p = compile_node_presentation(node);
+        NodePresentation p = compile_node_presentation(spec);
 
         std::vector<const PaintCommand*> paints;
         collect_paints(p.content, paints);
@@ -1673,18 +1657,18 @@ TEST(Issue133_SingleAuthority, SliderUsesStaticMinMaxFromView) {
     // Verify that the slider presentation reads min/max from view.content_*
     // (the single authority set by hydrate_node_view) and that changing them
     // affects the compiled interaction binding range.
-    auto node_default = make_node(ui::InternedId(2000), "Slider", "", bp2::NodeContentType::Slider);
-    node_default.view.content_min = 0.0f;
-    node_default.view.content_max = 100.0f;
-    node_default.view.content_value = 50.0f;
+    auto spec_default = make_spec(ui::InternedId(2000), "Slider", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec_default.content_min = 0.0f;
+    spec_default.content_max = 100.0f;
+    spec_default.content_value = 50.0f;
 
-    auto node_custom = make_node(ui::InternedId(2001), "Slider", "", bp2::NodeContentType::Slider);
-    node_custom.view.content_min = -50.0f;
-    node_custom.view.content_max = 200.0f;
-    node_custom.view.content_value = 50.0f;
+    auto spec_custom = make_spec(ui::InternedId(2001), "Slider", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec_custom.content_min = -50.0f;
+    spec_custom.content_max = 200.0f;
+    spec_custom.content_value = 50.0f;
 
-    NodePresentation p_default = compile_node_presentation(node_default);
-    NodePresentation p_custom = compile_node_presentation(node_custom);
+    NodePresentation p_default = compile_node_presentation(spec_default);
+    NodePresentation p_custom = compile_node_presentation(spec_custom);
 
     // Both should produce slider content
     EXPECT_GE(p_default.content.children.size(), 2u);
@@ -1700,16 +1684,16 @@ TEST(Issue133_SingleAuthority, SliderUsesStaticMinMaxFromView) {
 
 TEST(Issue133_SingleAuthority, KnobUsesStaticMaxFromView) {
     // Verify knob reads positions (content_max) from view, not from params.
-    auto node_2pos = make_node(ui::InternedId(2010), "Knob", "", bp2::NodeContentType::Knob);
-    node_2pos.view.content_max = 2.0f;
-    node_2pos.view.content_value = 0.0f;
+    auto spec_2pos = make_spec(ui::InternedId(2010), "Knob", NodeFrameKind::Standard, bp2::NodeContentType::Knob);
+    spec_2pos.content_max = 2.0f;
+    spec_2pos.content_value = 0.0f;
 
-    auto node_5pos = make_node(ui::InternedId(2011), "Knob", "", bp2::NodeContentType::Knob);
-    node_5pos.view.content_max = 5.0f;
-    node_5pos.view.content_value = 0.0f;
+    auto spec_5pos = make_spec(ui::InternedId(2011), "Knob", NodeFrameKind::Standard, bp2::NodeContentType::Knob);
+    spec_5pos.content_max = 5.0f;
+    spec_5pos.content_value = 0.0f;
 
-    NodePresentation p_2 = compile_node_presentation(node_2pos);
-    NodePresentation p_5 = compile_node_presentation(node_5pos);
+    NodePresentation p_2 = compile_node_presentation(spec_2pos);
+    NodePresentation p_5 = compile_node_presentation(spec_5pos);
 
     // 5-position knob should have more tick marks (Line paints) than 2-position
     size_t lines_2 = count_paint_kind(p_2.content, PaintPrimitiveKind::Line);
@@ -1727,13 +1711,13 @@ TEST(Issue133_SingleAuthority, KnobUsesStaticMaxFromView) {
 
 TEST(Issue133_SingleAuthority, GaugeUsesStaticMinMaxAndUnit) {
     // Verify gauge reads min/max/unit from view.content_* (static authority).
-    auto node = make_node(ui::InternedId(2020), "Gauge", "", bp2::NodeContentType::Gauge);
-    node.view.content_min = 0.0f;
-    node.view.content_max = 28.0f;
-    node.view.content_value = 14.0f;
-    node.view.content_unit = "V";
+    auto spec = make_spec(ui::InternedId(2020), "Gauge", NodeFrameKind::Standard, bp2::NodeContentType::Gauge);
+    spec.content_min = 0.0f;
+    spec.content_max = 28.0f;
+    spec.content_value = 14.0f;
+    spec.content_unit = "V";
 
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
 
     // Should have unit text
     std::vector<const PaintCommand*> paints;
@@ -1761,16 +1745,16 @@ TEST(Issue133_SingleAuthority, GaugeUsesStaticMinMaxAndUnit) {
 TEST(Issue133_SingleAuthority, ToggleUsesDynamicStateFromView) {
     // Verify that switch/toggle reads state from view.content_state (dynamic)
     // and that the handle position changes with state.
-    auto node_off = make_node(ui::InternedId(2030), "Switch", "", bp2::NodeContentType::Switch);
-    node_off.view.content_state = false;
-    node_off.view.content_tripped = false;
+    auto spec_off = make_spec(ui::InternedId(2030), "Switch", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec_off.content_state = false;
+    spec_off.content_tripped = false;
 
-    auto node_on = make_node(ui::InternedId(2031), "Switch", "", bp2::NodeContentType::Switch);
-    node_on.view.content_state = true;
-    node_on.view.content_tripped = false;
+    auto spec_on = make_spec(ui::InternedId(2031), "Switch", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
+    spec_on.content_state = true;
+    spec_on.content_tripped = false;
 
-    NodePresentation p_off = compile_node_presentation(node_off);
-    NodePresentation p_on = compile_node_presentation(node_on);
+    NodePresentation p_off = compile_node_presentation(spec_off);
+    NodePresentation p_on = compile_node_presentation(spec_on);
 
     // Both produce content, but handle positions differ
     std::vector<const PaintCommand*> paints_off, paints_on;
@@ -1806,50 +1790,115 @@ TEST(Issue133_SingleAuthority, ToggleUsesDynamicStateFromView) {
 // PresentationSpec regression tests
 // ============================================================================
 
-TEST(PresentationSpec, MakeFromNodePreservesIdentity) {
+TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
+    // Test the canonical make_presentation_spec(node, def, interner) path.
+    // TypeDefinition with content_type "Slider" and render_hint "ref".
+    ui::StringInterner interner;
+    TypeDefinition def;
+    def.render_hint = "ref";
+    def.content_type = "Slider";
+    def.params["min"] = "-10";
+    def.params["max"] = "50";
+
     bp2::Blueprint::Node node;
     node.semantic.id = ui::InternedId(3000);
-    node.semantic.type = ui::InternedId(3001);
+    node.semantic.type = interner.intern("TestType");
     node.view.name = "TestNode";
-    node.view.render_hint = "ref";
-    node.view.content_type = bp2::NodeContentType::Slider;
-    node.view.content_min = -10.0f;
-    node.view.content_max = 50.0f;
     node.view.content_value = 25.0f;
-    node.view.content_unit = "V";
-    node.view.content_label = "Voltage";
     node.view.content_state = true;
     node.view.content_tripped = true;
 
-    PresentationSpec spec = make_presentation_spec(node);
+    PresentationSpec spec = make_presentation_spec(node, &def, interner);
 
     EXPECT_EQ(spec.node_id, ui::InternedId(3000));
-    EXPECT_EQ(spec.type_id, ui::InternedId(3001));
     EXPECT_EQ(spec.title, "TestNode");
     EXPECT_EQ(spec.frame_kind, NodeFrameKind::Reference);
     EXPECT_EQ(spec.content_type, bp2::NodeContentType::Slider);
     EXPECT_FLOAT_EQ(spec.content_min, -10.0f);
     EXPECT_FLOAT_EQ(spec.content_max, 50.0f);
     EXPECT_FLOAT_EQ(spec.content_value, 25.0f);
-    EXPECT_EQ(spec.content_unit, "V");
-    EXPECT_EQ(spec.content_label, "Voltage");
     EXPECT_TRUE(spec.content_state);
     EXPECT_TRUE(spec.content_tripped);
 }
 
-TEST(PresentationSpec, MakeFromNodeExtractsAnnotationParams) {
+TEST(PresentationSpec, CanonicalMakeFromDefExtractsAnnotationParams) {
+    ui::StringInterner interner;
+    TypeDefinition def;
+    def.render_hint = "text";
+
     bp2::Blueprint::Node node;
     node.semantic.id = ui::InternedId(3010);
+    node.semantic.type = interner.intern("Annotation");
     node.view.name = "My Note";
-    node.view.render_hint = "text";
     node.semantic.string_params["text"] = "Hello world";
     node.semantic.string_params["font_size"] = "18.5";
 
-    PresentationSpec spec = make_presentation_spec(node);
+    PresentationSpec spec = make_presentation_spec(node, &def, interner);
 
     EXPECT_EQ(spec.frame_kind, NodeFrameKind::Annotation);
     EXPECT_EQ(spec.annotation_text, "Hello world");
     EXPECT_FLOAT_EQ(spec.annotation_font_size, 18.5f);
+}
+
+TEST(PresentationSpec, CanonicalMakeWithNullDefFallsBackToStandard) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = ui::InternedId(3020);
+    node.semantic.type = interner.intern("Unknown");
+    node.view.name = "Fallback";
+
+    PresentationSpec spec = make_presentation_spec(node, nullptr, interner);
+
+    EXPECT_EQ(spec.frame_kind, NodeFrameKind::Standard);
+    EXPECT_EQ(spec.content_type, bp2::NodeContentType::None);
+}
+
+TEST(PresentationSpec, CanonicalMakeAnnotationFontSizeEdgeCases) {
+    ui::StringInterner interner;
+    TypeDefinition def;
+    def.render_hint = "text";
+
+    // Invalid font_size string
+    {
+        bp2::Blueprint::Node node;
+        node.semantic.id = ui::InternedId(3030);
+        node.semantic.type = interner.intern("Annotation");
+        node.view.name = "Note";
+        node.semantic.string_params["font_size"] = "not_a_number";
+        PresentationSpec spec = make_presentation_spec(node, &def, interner);
+        EXPECT_FLOAT_EQ(spec.annotation_font_size, 12.0f);
+    }
+    // Negative font_size
+    {
+        bp2::Blueprint::Node node;
+        node.semantic.id = ui::InternedId(3031);
+        node.semantic.type = interner.intern("Annotation");
+        node.view.name = "Note";
+        node.semantic.string_params["font_size"] = "-5.0";
+        PresentationSpec spec = make_presentation_spec(node, &def, interner);
+        EXPECT_FLOAT_EQ(spec.annotation_font_size, 12.0f);
+    }
+    // Zero font_size
+    {
+        bp2::Blueprint::Node node;
+        node.semantic.id = ui::InternedId(3032);
+        node.semantic.type = interner.intern("Annotation");
+        node.view.name = "Note";
+        node.semantic.string_params["font_size"] = "0";
+        PresentationSpec spec = make_presentation_spec(node, &def, interner);
+        EXPECT_FLOAT_EQ(spec.annotation_font_size, 12.0f);
+    }
+    // Empty font_size
+    {
+        bp2::Blueprint::Node node;
+        node.semantic.id = ui::InternedId(3033);
+        node.semantic.type = interner.intern("Annotation");
+        node.view.name = "Note";
+        node.semantic.string_params["font_size"] = "";
+        PresentationSpec spec = make_presentation_spec(node, &def, interner);
+        EXPECT_FLOAT_EQ(spec.annotation_font_size, 12.0f);
+    }
 }
 
 TEST(PresentationSpec, DirectSpecConstructionBypassesNode) {
@@ -1925,23 +1974,23 @@ TEST(Issue133_SingleAuthority, DynamicStateIndependentOfStaticSemantics) {
     // Core regression test: changing static semantics (min/max) via
     // hydrate_node_view does NOT reset dynamic state (value/state/tripped).
     // This is the exact bug that issue #133 fixes.
-    auto node = make_node(ui::InternedId(2040), "Slider", "", bp2::NodeContentType::Slider);
-    node.view.content_min = 0.0f;
-    node.view.content_max = 100.0f;
-    node.view.content_value = 75.0f;  // Simulated runtime value
+    auto spec = make_spec(ui::InternedId(2040), "Slider", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
+    spec.content_min = 0.0f;
+    spec.content_max = 100.0f;
+    spec.content_value = 75.0f;  // Simulated runtime value
 
     // Simulate what happens when inspector edits min/max:
     // Only static fields change, dynamic value is preserved.
-    float saved_value = node.view.content_value;
-    node.view.content_min = -10.0f;  // Changed by hydrate_node_view
-    node.view.content_max = 200.0f;  // Changed by hydrate_node_view
+    float saved_value = spec.content_value;
+    spec.content_min = -10.0f;  // Changed by hydrate_node_view
+    spec.content_max = 200.0f;  // Changed by hydrate_node_view
     // content_value is NOT touched by hydrate_node_view
 
-    EXPECT_FLOAT_EQ(node.view.content_value, saved_value)
+    EXPECT_FLOAT_EQ(spec.content_value, saved_value)
         << "Dynamic value must survive static re-hydration";
 
     // Compile with new static range but preserved dynamic value
-    NodePresentation p = compile_node_presentation(node);
+    NodePresentation p = compile_node_presentation(spec);
     const auto* text = find_text_paint(p.content);
     ASSERT_NE(text, nullptr);
     EXPECT_EQ(text->text, "75.0") << "Slider should show preserved dynamic value";

@@ -19,12 +19,14 @@ struct NodeFactory {
     /// @param frame_kind Resolved frame kind (from TypeDefinition, not view.render_hint)
     /// @param render_iface The authoritative interface to project for rendering
     /// @param interner   String interner for resolving InternedId to strings
+    /// @param content    Resolved content semantics (from TypeDefinition + instance params)
     /// @param wires      All wires in the blueprint (used by BusNodeWidget)
     /// @return Owning pointer to the created widget
     static std::unique_ptr<Widget> create(const bp2::Blueprint::Node& node,
                                           editor::presentation::NodeFrameKind frame_kind,
                                           const bp2::Interface& render_iface,
                                           const ui::StringInterner& interner,
+                                          const NodeContent& content,
                                           const std::vector<BusWireRef>& wires = {}) {
         using editor::presentation::NodeFrameKind;
         switch (frame_kind) {
@@ -46,7 +48,7 @@ struct NodeFactory {
                 return std::make_unique<TextNodeWidget>(node, interner);
             case NodeFrameKind::Standard:
             default:
-                return std::make_unique<NodeWidget>(node, render_iface, interner);
+                return std::make_unique<NodeWidget>(node, render_iface, interner, content);
         }
     }
 };

@@ -176,7 +176,8 @@ void rebuild(Scene& scene,
          const std::string type_name(interner.resolve(n.semantic.type));
          const TypeDefinition* def = registry.get(type_name);
          auto frame_kind = editor::presentation::resolve_frame_kind(def);
-         std::unique_ptr<Widget> widget = NodeFactory::create(n, frame_kind, render_iface, interner, bus_wires);
+         NodeContent content = create_node_content(def, n.semantic.params, n.semantic.string_params, interner);
+         std::unique_ptr<Widget> widget = NodeFactory::create(n, frame_kind, render_iface, interner, content, bus_wires);
          scene.add(std::move(widget));
      }
 

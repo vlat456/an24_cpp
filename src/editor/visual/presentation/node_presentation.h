@@ -162,16 +162,12 @@ struct PresentationSpec {
     float annotation_font_size = 12.0f;
 };
 
-/// Build a PresentationSpec from a bp2::Blueprint::Node.
-/// This is the bridge from the existing data model to the new compiler input.
-PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node);
-
 /// Resolve NodeFrameKind from TypeDefinition (canonical authority).
 /// Falls back to NodeFrameKind::Standard if def is null or render_hint is empty.
 NodeFrameKind resolve_frame_kind(const struct TypeDefinition* def);
 
 /// Build a PresentationSpec from TypeDefinition + semantic data (canonical path).
-/// This is the preferred overload — reads from the source of truth, not from
+/// This is the sole authority — reads from the source of truth, not from
 /// hydrated view mirrors.
 PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
                                         const struct TypeDefinition* def,
@@ -286,14 +282,6 @@ NodePresentation compile_node_presentation(const NodePresentationCompileContext&
 /// Convenience overload for tests and compiler-only call sites that do not need
 /// type label resolution or a registry.
 NodePresentation compile_node_presentation(const PresentationSpec& spec);
-
-/// Bridge overload: compile from a bp2::Blueprint::Node by converting to spec first.
-/// Provided for call sites that still work with blueprint nodes directly.
-NodePresentation compile_node_presentation(const bp2::Blueprint::Node& node);
-
-/// Bridge overload with compile context: compile from a bp2::Blueprint::Node.
-NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
-                                           const bp2::Blueprint::Node& node);
 
 // ============================================================================
 // Default content presenter

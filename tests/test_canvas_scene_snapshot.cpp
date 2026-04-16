@@ -6,6 +6,7 @@
 #include "visual/scene.h"
 #include "visual/scene_mutations.h"
 #include "visual/node/visual_node.h"
+#include "editor/data/node_content.h"
 #include "visual/node/group_node_widget.h"
 #include "visual/port/visual_port.h"
 #include "visual/wire/wire.h"
@@ -14,15 +15,19 @@
 
 static TypeRegistry make_snapshot_test_registry() {
     TypeRegistry reg;
-    auto add = [&](const char* name, const char* hint = "") {
+    auto add = [&](const char* name, const char* hint = "",
+                   const char* ct = "None",
+                   std::initializer_list<std::pair<std::string,std::string>> params = {}) {
         TypeDefinition def;
         def.classname = name;
         def.render_hint = hint;
+        def.content_type = ct;
+        for (auto& [k, v] : params) def.params[k] = v;
         reg.types[def.classname] = std::move(def);
     };
     add("Battery");
     add("Lamp");
-    add("KnobSwitch");
+    add("KnobSwitch", "", "Knob", {{"positions", "2"}});
     add("Group", "group");
     return reg;
 }
@@ -113,9 +118,7 @@ TEST(CanvasSceneSnapshot, ContentObjectsAreProjectedToAbsoluteCanvasCoordinates)
     auto knob = make_canvas_snapshot_node(interner, "knob1", "KnobSwitch");
     knob.layout.x = 100.0f;
     knob.layout.y = 50.0f;
-    knob.view.content_type = bp2::NodeContentType::Knob;
-    knob.view.content_value = 1.0f;
-    knob.view.content_max = 4.0f;
+    knob.semantic.string_params["positions"] = "4";
     set_iface(knob, {
         make_port(interner, "common", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(interner, "throw_1", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -129,6 +132,11 @@ TEST(CanvasSceneSnapshot, ContentObjectsAreProjectedToAbsoluteCanvasCoordinates)
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob1"));
     ASSERT_NE(widget, nullptr);
+    {
+        NodeContent c = widget->currentContent();
+        c.value = 1.0f;
+        widget->updateContent(c);
+    }
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
     bool found_absolute_content = false;

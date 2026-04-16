@@ -47,14 +47,14 @@ PresentationNode make_test_fragment(const PresentationSpec& /*spec*/) {
 }
 
 NodePresentation make_test_presentation() {
-    bp2::Blueprint::Node node;
-    node.semantic.id = ui::InternedId(100);
-    node.semantic.type = ui::InternedId(200);
-    node.view.name = "Test Node";
+    PresentationSpec spec;
+    spec.node_id = ui::InternedId(100);
+    spec.type_id = ui::InternedId(200);
+    spec.title = "Test Node";
 
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(200), NodePresenter{NodeFrameKind::Standard, &make_test_fragment});
-    return compile_node_presentation(NodePresentationCompileContext{&registry}, node);
+    return compile_node_presentation(NodePresentationCompileContext{&registry}, spec);
 }
 
 } // namespace

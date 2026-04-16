@@ -270,7 +270,8 @@ editor::presentation::RailEntryMetrics measure_rail_label(std::string_view text,
 
 NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
                        const bp2::Interface& render_iface,
-                       const ui::StringInterner& interner)
+                       const ui::StringInterner& interner,
+                       const NodeContent& content)
     : node_iid_(data.semantic.id)
     , interner_(&interner)
     , name_(data.view.name)
@@ -286,7 +287,7 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
     }
 
     setLocalPos(Pt(data.layout.x, data.layout.y));
-    build(data, render_iface, interner);
+    build(data, render_iface, interner, content);
 
     Pt min_sz = minimumNodeSize();
     Pt pref_sz = preferredSize(nullptr);
@@ -317,22 +318,23 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
 
 void NodeWidget::build(const bp2::Blueprint::Node& data,
                        const bp2::Interface& render_iface,
-                       const ui::StringInterner& interner) {
+                       const ui::StringInterner& interner,
+                       const NodeContent& content) {
     // Header
     header_ = emplaceChild<HeaderStrip>(name_);
 
     // Footer
     footer_ = emplaceChild<FooterTypeLabel>(type_name_);
 
-    // Content geometry
-    cached_content_type_ = data.view.content_type;
-    cached_content_min_ = data.view.content_min;
-    cached_content_max_ = data.view.content_max;
-    cached_content_value_ = data.view.content_value;
-    cached_content_label_ = data.view.content_label;
-    cached_content_state_ = data.view.content_state;
-    cached_content_tripped_ = data.view.content_tripped;
-    cached_content_unit_ = data.view.content_unit;
+    // Content geometry — from resolved NodeContent (source of truth: TypeDefinition + params)
+    cached_content_type_ = content.type;
+    cached_content_min_ = content.min;
+    cached_content_max_ = content.max;
+    cached_content_value_ = content.value;
+    cached_content_label_ = content.label;
+    cached_content_state_ = content.state;
+    cached_content_tripped_ = content.tripped;
+    cached_content_unit_ = content.unit;
 
     if (cached_content_type_ != bp2::NodeContentType::None) {
         configure_content_geometry(cached_content_type_);

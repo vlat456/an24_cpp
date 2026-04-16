@@ -22,44 +22,6 @@ NodeFrameKind classify_frame_kind(std::string_view render_hint) {
 }
 
 // ============================================================================
-// PresentationSpec factory
-// ============================================================================
-
-PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node) {
-    PresentationSpec spec;
-    spec.node_id = node.semantic.id;
-    spec.type_id = node.semantic.type;
-    spec.frame_kind = classify_frame_kind(node.view.render_hint);
-    spec.title = node.view.name;
-    spec.content_type = node.view.content_type;
-    spec.content_label = node.view.content_label;
-    spec.content_min = node.view.content_min;
-    spec.content_max = node.view.content_max;
-    spec.content_value = node.view.content_value;
-    spec.content_unit = node.view.content_unit;
-    spec.content_state = node.view.content_state;
-    spec.content_tripped = node.view.content_tripped;
-
-    // Annotation params from semantic string_params
-    if (spec.frame_kind == NodeFrameKind::Annotation) {
-        auto it = node.semantic.string_params.find("text");
-        if (it != node.semantic.string_params.end()) {
-            spec.annotation_text = it->second;
-        }
-        auto font_it = node.semantic.string_params.find("font_size");
-        if (font_it != node.semantic.string_params.end()) {
-            char* end = nullptr;
-            float parsed = std::strtof(font_it->second.c_str(), &end);
-            if (end != font_it->second.c_str() && parsed > 0.0f) {
-                spec.annotation_font_size = parsed;
-            }
-        }
-    }
-
-    return spec;
-}
-
-// ============================================================================
 // Canonical frame kind resolution from TypeDefinition
 // ============================================================================
 
@@ -537,15 +499,6 @@ NodePresentation compile_node_presentation(const NodePresentationCompileContext&
 
 NodePresentation compile_node_presentation(const PresentationSpec& spec) {
     return compile_node_presentation(NodePresentationCompileContext{}, spec);
-}
-
-NodePresentation compile_node_presentation(const bp2::Blueprint::Node& node) {
-    return compile_node_presentation(make_presentation_spec(node));
-}
-
-NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
-                                           const bp2::Blueprint::Node& node) {
-    return compile_node_presentation(ctx, make_presentation_spec(node));
 }
 
 } // namespace editor::presentation

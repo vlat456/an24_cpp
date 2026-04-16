@@ -41,7 +41,8 @@ class NodeWidget : public Widget {
 public:
     NodeWidget(const bp2::Blueprint::Node& data,
                const bp2::Interface& render_iface,
-               const ui::StringInterner& interner);
+               const ui::StringInterner& interner,
+               const NodeContent& content);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
@@ -86,6 +87,20 @@ public:
     /// Custom fill color (nullopt = use theme default)
     void setCustomColor(std::optional<uint32_t> c) override { custom_fill_ = c; }
     std::optional<uint32_t> customColor() const override { return custom_fill_; }
+
+    /// Snapshot of current cached content (for test inspection / round-trip)
+    NodeContent currentContent() const {
+        NodeContent c;
+        c.type = cached_content_type_;
+        c.min = cached_content_min_;
+        c.max = cached_content_max_;
+        c.value = cached_content_value_;
+        c.label = cached_content_label_;
+        c.state = cached_content_state_;
+        c.tripped = cached_content_tripped_;
+        c.unit = cached_content_unit_;
+        return c;
+    }
 
 private:
     ui::InternedId node_iid_;
@@ -136,7 +151,8 @@ private:
 
     void build(const bp2::Blueprint::Node& data,
                const bp2::Interface& render_iface,
-               const ui::StringInterner& interner);
+               const ui::StringInterner& interner,
+               const NodeContent& content);
     void configure_content_geometry(bp2::NodeContentType content_type);
     void refresh_content_semantic_snapshot();
 
