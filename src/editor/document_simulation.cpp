@@ -54,6 +54,74 @@ std::pair<const bp2::Blueprint::Wire*, std::string_view> find_wire_in_scope(
     return {resolved.blueprint->find_wire(wire_iid), resolved.interner->resolve(wire_iid)};
 }
 
+NodeContent resolve_base_content(const bp2::Blueprint::Node& node,
+                                 ui::StringInterner& interner,
+                                 const TypeRegistry* registry) {
+    const std::string type_name(interner.resolve(node.semantic.type));
+    const TypeDefinition* def = registry ? registry->get(type_name) : nullptr;
+    return create_node_content(def, node.semantic.params, node.semantic.string_params, interner);
+}
+
+void dispatch_content_to_widget(WindowManager& window_manager,
+                                ui::StringInterner& interner,
+                                ui::InternedId node_iid,
+                                const std::string& scope_id,
+                                const NodeContent& content) {
+    std::string_view node_sv = interner.resolve(node_iid);
+    for (const auto& win : window_manager.windows()) {
+        const std::string scope_key = win->resolved_scope_id().key();
+        if (scope_id.empty()) {
+            if (!scope_key.empty()) continue;
+        } else {
+            if (scope_key != scope_id) continue;
+        }
+        auto* widget = win->scene.find(node_sv);
+        if (!widget) continue;
+        auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
+        if (nw) nw->updateContent(content);
+    }
+}
+
+void overlay_simulation_values(NodeContent& content,
+                               const std::string& type_name,
+                               const std::string& sim_node_id,
+                               Simulator<JIT_Solver>& simulation) {
+    if (type_name == "Voltmeter") {
+        content.value = simulation.get_port_value(sim_node_id, "v_in");
+    } else if (type_name == "IndicatorLight") {
+        float brightness = simulation.get_port_value(sim_node_id, "brightness");
+        content.value = std::clamp(brightness, 0.0f, 1.0f);
+    } else if (type_name == "Switch") {
+        float state_voltage = simulation.get_port_value(sim_node_id, "state");
+        content.state = (state_voltage > 0.5f);
+    } else if (type_name == "HoldButton") {
+        float state_voltage = simulation.get_port_value(sim_node_id, "state");
+        content.state = (state_voltage > 0.5f);
+    } else if (type_name == "AZS") {
+        float state_voltage = simulation.get_port_value(sim_node_id, "state");
+        content.state = (state_voltage > 0.5f);
+        float tripped_voltage = simulation.get_port_value(sim_node_id, "tripped");
+        content.tripped = (tripped_voltage > 0.5f);
+    } else if (type_name == "Slider") {
+        float out_val = simulation.get_port_value(sim_node_id, "out");
+        if (std::isfinite(out_val)) {
+            content.value = out_val;
+        } else {
+            float control_val = simulation.get_port_value(sim_node_id, "control");
+            if (std::isfinite(control_val)) {
+                content.value = control_val;
+            }
+        }
+    } else if (type_name == "KnobSwitch"
+               || type_name == "RotarySwitch1ToN"
+               || type_name == "RotarySwitchNTo1") {
+        float pos_val = simulation.get_port_value(sim_node_id, "position");
+        if (std::isfinite(pos_val)) {
+            content.value = pos_val;
+        }
+    }
+}
+
 } // namespace
 
 Document::ResolvedSignalScope Document::resolve_signal_scope(const WindowScopeId& scope_id) const {
@@ -183,75 +251,14 @@ void Document::updateNodeContentFromSimulation() {
     // Helper: given a node, type name, and simulation ID prefix, update the content
     auto update_node_content = [&](const bp2::Blueprint::Node& n,
                                    const std::string& sim_id_prefix) {
-        if (n.view.content_type == bp2::NodeContentType::None) return;
-
         const std::string local_id = std::string(interner_.resolve(n.semantic.id));
         const std::string nid = sim_id_prefix.empty() ? local_id : signal_key::make_child_scope_key(sim_id_prefix, local_id);
         const std::string type_name = std::string(interner_.resolve(n.semantic.type));
+        NodeContent content = resolve_base_content(n, interner_, type_registry_);
+        if (content.type == bp2::NodeContentType::None) return;
 
-        // [Issue #133] Static fields (type, label, min, max, unit) are read
-        // directly from view.content_* which is the single authority set by
-        // hydrate_node_view().  Only dynamic fields (value, state, tripped)
-        // are overwritten from simulation port values below.
-        NodeContent content;
-        content.type    = n.view.content_type;
-        content.label   = n.view.content_label;
-        content.value   = n.view.content_value;
-        content.min     = n.view.content_min;
-        content.max     = n.view.content_max;
-        content.unit    = n.view.content_unit;
-        content.state   = n.view.content_state;
-        content.tripped = n.view.content_tripped;
-
-        if (type_name == "Voltmeter") {
-            content.value = simulation_.get_port_value(nid, "v_in");
-        } else if (type_name == "IndicatorLight") {
-            float brightness = simulation_.get_port_value(nid, "brightness");
-            content.value = std::clamp(brightness, 0.0f, 1.0f);
-        } else if (type_name == "Switch") {
-            float state_voltage = simulation_.get_port_value(nid, "state");
-            content.state = (state_voltage > 0.5f);
-        } else if (type_name == "HoldButton") {
-            float state_voltage = simulation_.get_port_value(nid, "state");
-            content.state = (state_voltage > 0.5f);
-        } else if (type_name == "AZS") {
-            float state_voltage = simulation_.get_port_value(nid, "state");
-            content.state = (state_voltage > 0.5f);
-            float tripped_voltage = simulation_.get_port_value(nid, "tripped");
-            content.tripped = (tripped_voltage > 0.5f);
-        } else if (type_name == "Slider") {
-            float out_val = simulation_.get_port_value(nid, "out");
-            if (std::isfinite(out_val)) {
-                content.value = out_val;
-            } else {
-                float control_val = simulation_.get_port_value(nid, "control");
-                if (std::isfinite(control_val)) {
-                    content.value = control_val;
-                }
-            }
-        } else if (type_name == "KnobSwitch"
-                   || type_name == "RotarySwitch1ToN"
-                   || type_name == "RotarySwitchNTo1") {
-            float pos_val = simulation_.get_port_value(nid, "position");
-            if (std::isfinite(pos_val)) {
-                content.value = pos_val;
-            }
-        }
-
-        // Find the widget: for root nodes, look in root window; for nested, look in subwindow
-        std::string_view node_sv = interner_.resolve(n.semantic.id);
-        for (const auto& win : window_manager_.windows()) {
-            const std::string scope_key = win->resolved_scope_id().key();
-            if (sim_id_prefix.empty()) {
-                if (!scope_key.empty()) continue;
-            } else {
-                if (scope_key != sim_id_prefix) continue;
-            }
-            auto* widget = win->scene.find(node_sv);
-            if (!widget) continue;
-            auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
-            if (nw) nw->updateContent(content);
-        }
+        overlay_simulation_values(content, type_name, nid, simulation_);
+        dispatch_content_to_widget(window_manager_, interner_, n.semantic.id, sim_id_prefix, content);
     };
 
     // Update root-level nodes
@@ -352,25 +359,10 @@ void Document::setSliderValue(const editor::NodeId& node_id, float value, const 
     const bp2::Blueprint::Node* n = find_node_in_scope(model_, interner_, node_id, scope_id);
     if (!n) return;
 
-    NodeContent content;
-    content.type  = n->view.content_type;
+    NodeContent content = resolve_base_content(*n, interner_, type_registry_);
+    if (content.type == bp2::NodeContentType::None) return;
     content.value = value;
-    content.min   = n->view.content_min;
-    content.max   = n->view.content_max;
-
-    const ui::InternedId node_iid = interner_.lookup(node_id.str());
-    for (const auto& win : window_manager_.windows()) {
-        const std::string scope_key = win->resolved_scope_id().key();
-        if (scope_id.empty()) {
-            if (!scope_key.empty()) continue;
-        } else {
-            if (scope_key != scope_id) continue;
-        }
-        auto* widget = win->scene.find(interner_.resolve(node_iid));
-        if (!widget) continue;
-        auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
-        if (nw) nw->updateContent(content);
-    }
+    dispatch_content_to_widget(window_manager_, interner_, n->semantic.id, scope_id, content);
 }
 
 void Document::setKnobPosition(const editor::NodeId& node_id, int position, const std::string& scope_id) {
@@ -380,25 +372,10 @@ void Document::setKnobPosition(const editor::NodeId& node_id, int position, cons
     const bp2::Blueprint::Node* n = find_node_in_scope(model_, interner_, node_id, scope_id);
     if (!n) return;
 
-    NodeContent content;
-    content.type  = n->view.content_type;
+    NodeContent content = resolve_base_content(*n, interner_, type_registry_);
+    if (content.type == bp2::NodeContentType::None) return;
     content.value = static_cast<float>(position);
-    content.max   = n->view.content_max;
-    content.min   = n->view.content_min;
-
-    const ui::InternedId node_iid = interner_.lookup(node_id.str());
-    for (const auto& win : window_manager_.windows()) {
-        const std::string scope_key = win->resolved_scope_id().key();
-        if (scope_id.empty()) {
-            if (!scope_key.empty()) continue;
-        } else {
-            if (scope_key != scope_id) continue;
-        }
-        auto* widget = win->scene.find(interner_.resolve(node_iid));
-        if (!widget) continue;
-        auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
-        if (nw) nw->updateContent(content);
-    }
+    dispatch_content_to_widget(window_manager_, interner_, n->semantic.id, scope_id, content);
 }
 
 void Document::holdButtonPress(const editor::NodeId& node_id, const std::string& scope_id) {

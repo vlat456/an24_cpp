@@ -6,6 +6,7 @@
 #include "editor/commands/extract_blueprint.h"
 #include "editor/input/canvas_input.h"
 #include "editor/input/input_types.h"
+#include "editor/visual/node/visual_node.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/library/library_index.h"
@@ -221,6 +222,69 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromTypeRegistry
     EXPECT_FLOAT_EQ(loaded_slider->view.content_max, 1.0f);
 
     fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, SetSliderValuePreservesCanonicalStaticContent) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("slider_doc"));
+    bp = bp.with_name("Slider Doc");
+
+    auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
+    slider.semantic.params[I.intern("min")] = -10.0f;
+    slider.semantic.params[I.intern("max")] = 200.0f;
+    bp = bp.with_node(std::move(slider));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("slider1"));
+    ASSERT_NE(widget, nullptr);
+
+    doc.setSliderValue(editor::NodeId::from_string("slider1"), 42.0f);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::Slider);
+    EXPECT_FLOAT_EQ(content.min, -10.0f);
+    EXPECT_FLOAT_EQ(content.max, 200.0f);
+    EXPECT_FLOAT_EQ(content.value, 42.0f);
+}
+
+TEST(DocumentSafety, SetKnobPositionPreservesCanonicalStaticContent) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("knob_doc"));
+    bp = bp.with_name("Knob Doc");
+
+    auto knob = make_typed_node(I, registry, "knob1", "KnobSwitch", 40.0f, 20.0f);
+    knob.semantic.params[I.intern("positions")] = 7.0f;
+    bp = bp.with_node(std::move(knob));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("knob1"));
+    ASSERT_NE(widget, nullptr);
+
+    doc.setKnobPosition(editor::NodeId::from_string("knob1"), 3);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::Knob);
+    EXPECT_FLOAT_EQ(content.min, 0.0f);
+    EXPECT_FLOAT_EQ(content.max, 7.0f);
+    EXPECT_FLOAT_EQ(content.value, 3.0f);
 }
 
 TEST(DocumentSafety, LoadNormalizesLegacyAutosizeWithoutDirtyingOrCreatingUndoHistory) {
