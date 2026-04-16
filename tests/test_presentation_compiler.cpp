@@ -989,6 +989,26 @@ TEST(DefaultContentPresenter, KnobValueClampedToMaxPositions) {
     EXPECT_FLOAT_EQ(drag->step, 3.0f);
 }
 
+TEST(DefaultContentPresenter, RotaryKnobWithFivePositionsProducesFiveTicks) {
+    auto spec = make_spec(ui::InternedId(561), "Rotary", NodeFrameKind::Standard, bp2::NodeContentType::Knob);
+    spec.content_max = 5.0f;
+    spec.content_value = 2.0f;
+    NodePresentation p = compile_node_presentation(spec);
+
+    size_t tick_count = 0;
+    std::vector<const PaintCommand*> paints;
+    collect_paints(p.content, paints);
+    for (const auto* paint : paints) {
+        if (paint->kind != PaintPrimitiveKind::Line) continue;
+        const auto* geo = std::get_if<LineGeometry>(&paint->geometry);
+        if (geo && geo->inner_radius > 0.0f) {
+            ++tick_count;
+        }
+    }
+
+    EXPECT_EQ(tick_count, 5u);
+}
+
 // ============================================================================
 // Regression: explicit geometry types for non-rect primitives
 // ============================================================================
