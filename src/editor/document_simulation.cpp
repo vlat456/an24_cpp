@@ -1,4 +1,5 @@
 #include "document.h"
+#include "document_simulation_internal.h"
 
 #include "signal_key_resolver.h"
 #include "core/solvers/common/signal_key.h"
@@ -83,6 +84,8 @@ void dispatch_content_to_widget(WindowManager& window_manager,
 }
 
 void overlay_simulation_values(NodeContent& content,
+                               const bp2::Blueprint::Node& node,
+                               ui::StringInterner& interner,
                                const std::string& type_name,
                                const std::string& sim_node_id,
                                Simulator<JIT_Solver>& simulation) {
@@ -103,13 +106,10 @@ void overlay_simulation_values(NodeContent& content,
         float tripped_voltage = simulation.get_port_value(sim_node_id, "tripped");
         content.tripped = (tripped_voltage > 0.5f);
     } else if (type_name == "Slider") {
-        float out_val = simulation.get_port_value(sim_node_id, "out");
-        if (std::isfinite(out_val)) {
-            content.value = out_val;
-        } else {
-            float control_val = simulation.get_port_value(sim_node_id, "control");
-            if (std::isfinite(control_val)) {
-                content.value = control_val;
+        if (auto port = editor::select_slider_readback_port(node, interner)) {
+            float val = simulation.get_port_value(sim_node_id, std::string(*port));
+            if (std::isfinite(val)) {
+                content.value = val;
             }
         }
     } else if (type_name == "KnobSwitch"
@@ -123,6 +123,21 @@ void overlay_simulation_values(NodeContent& content,
 }
 
 } // namespace
+
+namespace editor {
+
+std::optional<std::string_view> select_slider_readback_port(const bp2::Blueprint::Node& node,
+                                                            ui::StringInterner& interner) {
+    if (node.semantic.iface.has(interner.intern("out"))) {
+        return std::string_view{"out"};
+    }
+    if (node.semantic.iface.has(interner.intern("control"))) {
+        return std::string_view{"control"};
+    }
+    return std::nullopt;
+}
+
+} // namespace editor
 
 Document::ResolvedSignalScope Document::resolve_signal_scope(const WindowScopeId& scope_id) const {
     if (scope_id.is_external()) {
@@ -257,7 +272,7 @@ void Document::updateNodeContentFromSimulation() {
         NodeContent content = resolve_base_content(n, interner_, type_registry_);
         if (content.type == bp2::NodeContentType::None) return;
 
-        overlay_simulation_values(content, type_name, nid, simulation_);
+        overlay_simulation_values(content, n, interner_, type_name, nid, simulation_);
         dispatch_content_to_widget(window_manager_, interner_, n.semantic.id, sim_id_prefix, content);
     };
 

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "editor/document.h"
+#include "editor/document_simulation_internal.h"
 #include "editor/commands/blueprint_checksum.h"
 #include "editor/commands/commands.h"
 #include "editor/commands/extract_blueprint.h"
@@ -285,6 +286,62 @@ TEST(DocumentSafety, SetKnobPositionPreservesCanonicalStaticContent) {
     EXPECT_FLOAT_EQ(content.min, 0.0f);
     EXPECT_FLOAT_EQ(content.max, 7.0f);
     EXPECT_FLOAT_EQ(content.value, 3.0f);
+}
+
+TEST(DocumentSafety, SliderRuntimeReadbackUsesOutPortWhenPresent) {
+    ui::StringInterner I;
+    TypeRegistry registry = load_type_registry("library/");
+
+    auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
+    set_iface(slider, {
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto port = editor::select_slider_readback_port(slider, I);
+    ASSERT_TRUE(port.has_value());
+    EXPECT_EQ(*port, "out");
+}
+
+TEST(DocumentSafety, SliderRuntimeReadbackUsesControlPortWhenOutMissing) {
+    ui::StringInterner I;
+    TypeRegistry registry = load_type_registry("library/");
+
+    auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
+    set_iface(slider, {
+        make_port(I, "control", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    auto port = editor::select_slider_readback_port(slider, I);
+    ASSERT_TRUE(port.has_value());
+    EXPECT_EQ(*port, "control");
+}
+
+TEST(DocumentSafety, SliderRuntimeReadbackPrefersOutOverControlWhenBothExist) {
+    ui::StringInterner I;
+    TypeRegistry registry = load_type_registry("library/");
+
+    auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
+    set_iface(slider, {
+        make_port(I, "control", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto port = editor::select_slider_readback_port(slider, I);
+    ASSERT_TRUE(port.has_value());
+    EXPECT_EQ(*port, "out");
+}
+
+TEST(DocumentSafety, SliderRuntimeReadbackReturnsNulloptWhenNoRelevantPorts) {
+    ui::StringInterner I;
+
+    bp2::Blueprint::Node slider;
+    slider.semantic.id = I.intern("slider1");
+    slider.semantic.type = I.intern("Slider");
+    // Empty interface — no out, no control
+    set_iface(slider, {});
+
+    auto port = editor::select_slider_readback_port(slider, I);
+    EXPECT_FALSE(port.has_value());
 }
 
 TEST(DocumentSafety, LoadNormalizesLegacyAutosizeWithoutDirtyingOrCreatingUndoHistory) {
