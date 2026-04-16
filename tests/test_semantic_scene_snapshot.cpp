@@ -8,7 +8,7 @@ using namespace editor::presentation;
 
 namespace {
 
-PresentationNode make_snapshot_fragment(const bp2::Blueprint::Node& /*node*/, ui::InternedId /*type_id*/) {
+PresentationNode make_snapshot_fragment(const PresentationSpec& /*spec*/) {
     PresentationNode root;
     root.element_id = ui::InternedId(1);
     root.layout = LayoutKind::Column;
@@ -49,13 +49,14 @@ PresentationNode make_snapshot_fragment(const bp2::Blueprint::Node& /*node*/, ui
 }
 
 NodePresentation make_presentation() {
-    bp2::Blueprint::Node node;
-    node.semantic.id = ui::InternedId(100);
-    node.view.name = "AC Bus";
+    PresentationSpec spec;
+    spec.node_id = ui::InternedId(100);
+    spec.type_id = ui::InternedId(200);
+    spec.title = "AC Bus";
 
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(200), NodePresenter{NodeFrameKind::Bus, &make_snapshot_fragment});
-    return compile_node_presentation(NodePresentationCompileContext{&registry}, node, ui::InternedId(200));
+    return compile_node_presentation(NodePresentationCompileContext{&registry}, spec);
 }
 
 const SceneRenderObject* find_render(const SemanticSceneSnapshot& snapshot,

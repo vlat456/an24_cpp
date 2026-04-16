@@ -8,6 +8,7 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <cstdlib>
 
 namespace editor::presentation {
 
@@ -129,6 +130,41 @@ constexpr GaugeMetrics gauge_metrics() {
 }
 
 // ============================================================================
+// Presentation spec — sole input to the presentation compiler
+// ============================================================================
+
+/// Self-contained, resolved input for the presentation compiler.
+/// Replaces bp2::Blueprint::Node as the compiler's parameter — no widget-era
+/// hydrated view data leaks into the compiler contract.
+struct PresentationSpec {
+    // Identity
+    ui::InternedId node_id;
+    ui::InternedId type_id;
+
+    // Shell
+    NodeFrameKind frame_kind = NodeFrameKind::Standard;
+    std::string title;
+
+    // Content
+    bp2::NodeContentType content_type = bp2::NodeContentType::None;
+    std::string content_label;
+    float content_min = 0.0f;
+    float content_max = 1.0f;
+    float content_value = 0.0f;
+    std::string content_unit;
+    bool content_state = false;
+    bool content_tripped = false;
+
+    // Annotation (only meaningful when frame_kind == Annotation)
+    std::string annotation_text;
+    float annotation_font_size = 12.0f;
+};
+
+/// Build a PresentationSpec from a bp2::Blueprint::Node.
+/// This is the bridge from the existing data model to the new compiler input.
+PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node);
+
+// ============================================================================
 // Paint / Hit / Interaction primitives
 // ============================================================================
 
@@ -196,7 +232,7 @@ NodeFrameKind classify_frame_kind(std::string_view render_hint);
 
 /// Content presenters remain stateless function pointers for now. Widen this
 /// contract before broader adoption if presenters need injected dependencies.
-using ContentPresenterFn = PresentationNode (*)(const bp2::Blueprint::Node& node, ui::InternedId type_id);
+using ContentPresenterFn = PresentationNode (*)(const PresentationSpec& spec);
 
 struct NodePresenter {
     NodeFrameKind frame_kind = NodeFrameKind::Standard;
@@ -228,22 +264,23 @@ struct NodePresentation {
     PresentationNode content;
 };
 
-/// Compile a node presentation using a registered per-type presenter.
-/// Requires a matching presenter in the registry; asserts on miss.
+/// Compile a node presentation from a PresentationSpec.
+/// If a registry is provided in ctx and contains a presenter for spec.type_id,
+/// that presenter is used. Otherwise falls back to the default content presenter.
 NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
-                                           const bp2::Blueprint::Node& node,
-                                           ui::InternedId type_id);
-
-/// Compile a node presentation using render_hint-based frame classification
-/// and the default content presenter for the node's content_type.
-/// This is the primary entry point for the presentation compiler —
-/// it works for ALL node kinds without requiring per-type registration.
-NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
-                                           const bp2::Blueprint::Node& node);
+                                           const PresentationSpec& spec);
 
 /// Convenience overload for tests and compiler-only call sites that do not need
-/// type label resolution.
+/// type label resolution or a registry.
+NodePresentation compile_node_presentation(const PresentationSpec& spec);
+
+/// Bridge overload: compile from a bp2::Blueprint::Node by converting to spec first.
+/// Provided for call sites that still work with blueprint nodes directly.
 NodePresentation compile_node_presentation(const bp2::Blueprint::Node& node);
+
+/// Bridge overload with compile context: compile from a bp2::Blueprint::Node.
+NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
+                                           const bp2::Blueprint::Node& node);
 
 // ============================================================================
 // Default content presenter
@@ -252,6 +289,6 @@ NodePresentation compile_node_presentation(const bp2::Blueprint::Node& node);
 /// Default content presenter that handles all bp2::NodeContentType variants.
 /// Produces paint commands, hit regions, and interaction bindings for
 /// Switch, VerticalToggle, Slider, Indicator, Knob, Gauge, Text, and None.
-PresentationNode default_content_presenter(const bp2::Blueprint::Node& node, ui::InternedId type_id);
+PresentationNode default_content_presenter(const PresentationSpec& spec);
 
 } // namespace editor::presentation

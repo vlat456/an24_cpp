@@ -290,18 +290,20 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
         case CanvasInput::SemanticContentRole::ContinuousScalar: {
             state_ = InputState::DraggingSlider;
             float origin_local_x = content_bounds.x;
+            auto spec = editor::presentation::make_presentation_spec(*node);
             semantic_canvas_controller_.set_active_scalar_mapping({
                 origin_local_x,
                 target.primary_min,
                 target.primary_max,
-                node->view.content_min,
-                node->view.content_max,
+                spec.content_min,
+                spec.content_max,
             });
             break;
         }
         case CanvasInput::SemanticContentRole::DiscreteSelector: {
             state_ = InputState::DraggingKnob;
-            int start_pos = static_cast<int>(node->view.content_value);
+            auto spec = editor::presentation::make_presentation_spec(*node);
+            int start_pos = static_cast<int>(spec.content_value);
             int num_positions = target.steps;
             if (num_positions < 2) num_positions = 2;
             semantic_canvas_controller_.set_active_discrete_mapping({

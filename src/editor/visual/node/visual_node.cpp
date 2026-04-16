@@ -413,22 +413,23 @@ void NodeWidget::refresh_content_semantic_snapshot() {
         return;
     }
 
-    // Build a bp2 node with cached content state for the compiler path
-    bp2::Blueprint::Node bp_node;
-    bp_node.semantic.id = node_iid_;
-    bp_node.view.name = name_;
-    bp_node.view.content_type = cached_content_type_;
-    bp_node.view.content_min = cached_content_min_;
-    bp_node.view.content_max = cached_content_max_;
-    bp_node.view.content_value = cached_content_value_;
-    bp_node.view.content_label = cached_content_label_;
-    bp_node.view.content_state = cached_content_state_;
-    bp_node.view.content_tripped = cached_content_tripped_;
-    bp_node.view.content_unit = cached_content_unit_;
+    // Build a PresentationSpec directly from cached content state — no fake node
+    editor::presentation::PresentationSpec spec;
+    spec.node_id = node_iid_;
+    spec.frame_kind = editor::presentation::NodeFrameKind::Standard;
+    spec.title = name_;
+    spec.content_type = cached_content_type_;
+    spec.content_min = cached_content_min_;
+    spec.content_max = cached_content_max_;
+    spec.content_value = cached_content_value_;
+    spec.content_label = cached_content_label_;
+    spec.content_state = cached_content_state_;
+    spec.content_tripped = cached_content_tripped_;
+    spec.content_unit = cached_content_unit_;
 
     // Compile content through the single-authority compiler path
     editor::presentation::NodePresentation presentation =
-        editor::presentation::compile_node_presentation(bp_node);
+        editor::presentation::compile_node_presentation(spec);
 
     // Check if the compiler produced any renderable content
     bool has_content = !presentation.content.children.empty();

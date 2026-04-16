@@ -755,14 +755,14 @@ TEST(PresentationCompilerIntegration, MultiNodeSnapshotWithMixedKinds) {
 
 namespace {
 
-PresentationNode make_empty_fragment(const bp2::Blueprint::Node& /*node*/, ui::InternedId /*type_id*/) {
+PresentationNode make_empty_fragment(const PresentationSpec& /*spec*/) {
     PresentationNode root;
     root.element_id = ui::InternedId(40);
     root.layout = LayoutKind::Column;
     return root;
 }
 
-PresentationNode make_custom_fragment(const bp2::Blueprint::Node& node, ui::InternedId /*type_id*/) {
+PresentationNode make_custom_fragment(const PresentationSpec& spec) {
     PresentationNode root;
     root.element_id = ui::InternedId(50);
     root.layout = LayoutKind::Overlay;
@@ -772,7 +772,7 @@ PresentationNode make_custom_fragment(const bp2::Blueprint::Node& node, ui::Inte
     PaintCommand title_cmd;
     title_cmd.id = ui::InternedId(52);
     title_cmd.kind = PaintPrimitiveKind::Text;
-    title_cmd.text = node.view.name;
+    title_cmd.text = spec.title;
     title.paint.push_back(std::move(title_cmd));
 
     PresentationNode badge;
@@ -802,11 +802,12 @@ PresentationNode make_custom_fragment(const bp2::Blueprint::Node& node, ui::Inte
 
 TEST(RegistryBasedCompile, PreservesNodeIdentityAndTitle) {
     auto node = make_node(ui::InternedId(300), "Generator");
+    node.semantic.type = ui::InternedId(100);
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(100), NodePresenter{NodeFrameKind::Standard, &make_empty_fragment});
     NodePresentationCompileContext ctx{&registry};
 
-    NodePresentation p = compile_node_presentation(ctx, node, ui::InternedId(100));
+    NodePresentation p = compile_node_presentation(ctx, node);
 
     EXPECT_EQ(p.node_id, ui::InternedId(300));
     EXPECT_EQ(p.shell.title, "Generator");
@@ -814,11 +815,12 @@ TEST(RegistryBasedCompile, PreservesNodeIdentityAndTitle) {
 
 TEST(RegistryBasedCompile, CustomPresenterOverridesDefaultContent) {
     auto node = make_node(ui::InternedId(301), "Custom", "", bp2::NodeContentType::Slider);
+    node.semantic.type = ui::InternedId(500);
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(500), NodePresenter{NodeFrameKind::Group, &make_custom_fragment});
 
     NodePresentationCompileContext ctx{&registry};
-    NodePresentation p = compile_node_presentation(ctx, node, ui::InternedId(500));
+    NodePresentation p = compile_node_presentation(ctx, node);
 
     EXPECT_EQ(p.content.layout, LayoutKind::Overlay);
     ASSERT_EQ(p.content.children.size(), 2u);
@@ -831,13 +833,15 @@ TEST(RegistryBasedCompile, RegistryReturnsNullForMissingType) {
     EXPECT_EQ(registry.find_presenter(ui::InternedId(999)), nullptr);
 }
 
-TEST(RegistryBasedCompile, MissingPresenterDiesInDebug) {
-#ifndef NDEBUG
+TEST(RegistryBasedCompile, MissingPresenterFallsBackToDefault) {
     auto node = make_node(ui::InternedId(302), "Missing");
     NodePresenterRegistry registry;
+    // Registry has no presenter for type 302 — compiler should fall back to default
+    NodePresentationCompileContext ctx{&registry};
+    NodePresentation p = compile_node_presentation(ctx, node);
 
-    EXPECT_DEATH((void)compile_node_presentation(NodePresentationCompileContext{&registry}, node, ui::InternedId(700)), "");
-#endif
+    // Fallback produces a valid presentation with the node's name
+    EXPECT_EQ(p.shell.title, "Missing");
 }
 
 // ============================================================================
@@ -1797,6 +1801,125 @@ TEST(Issue133_SingleAuthority, ToggleUsesDynamicStateFromView) {
     ASSERT_NE(geo_on, nullptr);
     EXPECT_NE(geo_off->x, geo_on->x) << "Switch handle should move between ON and OFF states";
 }
+
+// ============================================================================
+// PresentationSpec regression tests
+// ============================================================================
+
+TEST(PresentationSpec, MakeFromNodePreservesIdentity) {
+    bp2::Blueprint::Node node;
+    node.semantic.id = ui::InternedId(3000);
+    node.semantic.type = ui::InternedId(3001);
+    node.view.name = "TestNode";
+    node.view.render_hint = "ref";
+    node.view.content_type = bp2::NodeContentType::Slider;
+    node.view.content_min = -10.0f;
+    node.view.content_max = 50.0f;
+    node.view.content_value = 25.0f;
+    node.view.content_unit = "V";
+    node.view.content_label = "Voltage";
+    node.view.content_state = true;
+    node.view.content_tripped = true;
+
+    PresentationSpec spec = make_presentation_spec(node);
+
+    EXPECT_EQ(spec.node_id, ui::InternedId(3000));
+    EXPECT_EQ(spec.type_id, ui::InternedId(3001));
+    EXPECT_EQ(spec.title, "TestNode");
+    EXPECT_EQ(spec.frame_kind, NodeFrameKind::Reference);
+    EXPECT_EQ(spec.content_type, bp2::NodeContentType::Slider);
+    EXPECT_FLOAT_EQ(spec.content_min, -10.0f);
+    EXPECT_FLOAT_EQ(spec.content_max, 50.0f);
+    EXPECT_FLOAT_EQ(spec.content_value, 25.0f);
+    EXPECT_EQ(spec.content_unit, "V");
+    EXPECT_EQ(spec.content_label, "Voltage");
+    EXPECT_TRUE(spec.content_state);
+    EXPECT_TRUE(spec.content_tripped);
+}
+
+TEST(PresentationSpec, MakeFromNodeExtractsAnnotationParams) {
+    bp2::Blueprint::Node node;
+    node.semantic.id = ui::InternedId(3010);
+    node.view.name = "My Note";
+    node.view.render_hint = "text";
+    node.semantic.string_params["text"] = "Hello world";
+    node.semantic.string_params["font_size"] = "18.5";
+
+    PresentationSpec spec = make_presentation_spec(node);
+
+    EXPECT_EQ(spec.frame_kind, NodeFrameKind::Annotation);
+    EXPECT_EQ(spec.annotation_text, "Hello world");
+    EXPECT_FLOAT_EQ(spec.annotation_font_size, 18.5f);
+}
+
+TEST(PresentationSpec, DirectSpecConstructionBypassesNode) {
+    // Verify the compiler works with a hand-built spec — no bp2::Blueprint::Node needed
+    PresentationSpec spec;
+    spec.node_id = ui::InternedId(4000);
+    spec.type_id = ui::InternedId(4001);
+    spec.frame_kind = NodeFrameKind::Standard;
+    spec.title = "DirectSpec";
+    spec.content_type = bp2::NodeContentType::Indicator;
+    spec.content_value = 1.0f;
+
+    NodePresentation p = compile_node_presentation(spec);
+
+    EXPECT_EQ(p.node_id, ui::InternedId(4000));
+    EXPECT_EQ(p.shell.title, "DirectSpec");
+    EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Standard);
+    // Indicator should produce a circle paint
+    EXPECT_GT(count_paint_kind(p.content, PaintPrimitiveKind::Circle), 0u);
+}
+
+TEST(PresentationSpec, DirectSpecAnnotationCompiles) {
+    PresentationSpec spec;
+    spec.node_id = ui::InternedId(4010);
+    spec.frame_kind = NodeFrameKind::Annotation;
+    spec.title = "Note";
+    spec.annotation_text = "Some annotation";
+    spec.annotation_font_size = 20.0f;
+
+    NodePresentation p = compile_node_presentation(spec);
+
+    EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Annotation);
+    EXPECT_EQ(p.shell.annotation_text, "Some annotation");
+    EXPECT_FLOAT_EQ(p.shell.annotation_font_size, 20.0f);
+}
+
+TEST(PresentationSpec, RegistryLookupUsesSpecTypeId) {
+    auto custom_presenter = [](const PresentationSpec& spec) -> PresentationNode {
+        PresentationNode root;
+        root.layout = LayoutKind::Column;
+        PresentationNode child;
+        PaintCommand pc;
+        pc.id = ui::InternedId(1);
+        pc.kind = PaintPrimitiveKind::Text;
+        pc.text = "FromRegistry";
+        child.paint.push_back(std::move(pc));
+        root.children.push_back(std::move(child));
+        return root;
+    };
+
+    NodePresenterRegistry registry;
+    registry.register_presenter(ui::InternedId(5000),
+                                NodePresenter{NodeFrameKind::Bus, custom_presenter});
+
+    PresentationSpec spec;
+    spec.node_id = ui::InternedId(5001);
+    spec.type_id = ui::InternedId(5000);
+    spec.title = "RegistryTest";
+
+    NodePresentationCompileContext ctx{&registry};
+    NodePresentation p = compile_node_presentation(ctx, spec);
+
+    EXPECT_EQ(p.shell.frame_kind, NodeFrameKind::Bus);
+    ASSERT_GE(p.content.children.size(), 1u);
+    EXPECT_EQ(p.content.children[0].paint[0].text, "FromRegistry");
+}
+
+// ============================================================================
+// Issue #133 regression
+// ============================================================================
 
 TEST(Issue133_SingleAuthority, DynamicStateIndependentOfStaticSemantics) {
     // Core regression test: changing static semantics (min/max) via

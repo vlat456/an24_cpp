@@ -20,6 +20,44 @@ NodeFrameKind classify_frame_kind(std::string_view render_hint) {
 }
 
 // ============================================================================
+// PresentationSpec factory
+// ============================================================================
+
+PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node) {
+    PresentationSpec spec;
+    spec.node_id = node.semantic.id;
+    spec.type_id = node.semantic.type;
+    spec.frame_kind = classify_frame_kind(node.view.render_hint);
+    spec.title = node.view.name;
+    spec.content_type = node.view.content_type;
+    spec.content_label = node.view.content_label;
+    spec.content_min = node.view.content_min;
+    spec.content_max = node.view.content_max;
+    spec.content_value = node.view.content_value;
+    spec.content_unit = node.view.content_unit;
+    spec.content_state = node.view.content_state;
+    spec.content_tripped = node.view.content_tripped;
+
+    // Annotation params from semantic string_params
+    if (spec.frame_kind == NodeFrameKind::Annotation) {
+        auto it = node.semantic.string_params.find("text");
+        if (it != node.semantic.string_params.end()) {
+            spec.annotation_text = it->second;
+        }
+        auto font_it = node.semantic.string_params.find("font_size");
+        if (font_it != node.semantic.string_params.end()) {
+            char* end = nullptr;
+            float parsed = std::strtof(font_it->second.c_str(), &end);
+            if (end != font_it->second.c_str() && parsed > 0.0f) {
+                spec.annotation_font_size = parsed;
+            }
+        }
+    }
+
+    return spec;
+}
+
+// ============================================================================
 // Registry
 // ============================================================================
 
@@ -37,53 +75,20 @@ namespace {
 
 void populate_shell_metadata(NodeShellModel& shell,
                              const NodePresentationCompileContext& ctx,
-                             const bp2::Blueprint::Node& node,
-                             ui::InternedId type_id) {
+                             const PresentationSpec& spec) {
     if (shell.frame_kind == NodeFrameKind::Standard && ctx.resolve_type_name != nullptr) {
-        shell.type_name = std::string(ctx.resolve_type_name(type_id, ctx.resolve_type_name_user_data));
+        shell.type_name = std::string(ctx.resolve_type_name(spec.type_id, ctx.resolve_type_name_user_data));
     }
 
     if (shell.frame_kind != NodeFrameKind::Annotation) {
         return;
     }
 
-    auto it = node.semantic.string_params.find("text");
-    if (it != node.semantic.string_params.end()) {
-        shell.annotation_text = it->second;
-    }
-    auto font_it = node.semantic.string_params.find("font_size");
-    if (font_it != node.semantic.string_params.end()) {
-        char* end = nullptr;
-        float parsed = std::strtof(font_it->second.c_str(), &end);
-        if (end != font_it->second.c_str() && parsed > 0.0f) {
-            shell.annotation_font_size = parsed;
-        }
-    }
+    shell.annotation_text = spec.annotation_text;
+    shell.annotation_font_size = spec.annotation_font_size;
 }
 
 } // namespace
-
-// ============================================================================
-// Compile — registry-based (per-type presenter)
-// ============================================================================
-
-NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
-                                           const bp2::Blueprint::Node& node,
-                                           ui::InternedId type_id) {
-    assert(ctx.registry != nullptr);
-    const NodePresenter* presenter = ctx.registry->find_presenter(type_id);
-    assert(presenter != nullptr);
-    assert(presenter->content != nullptr);
-
-    NodePresentation presentation;
-    presentation.node_id = node.semantic.id;
-    presentation.shell.frame_kind = presenter->frame_kind;
-    presentation.shell.title = node.view.name;
-    populate_shell_metadata(presentation.shell, ctx, node, type_id);
-    presentation.content = presenter->content(node, type_id);
-
-    return presentation;
-}
 
 // ============================================================================
 // Default content presenter — handles all NodeContentType variants
@@ -190,9 +195,9 @@ void append_interaction(PresentationNode& parent,
 }
 
 void build_switch_content(PresentationNode& root, ElementIdAllocator& ids,
-                          const bp2::Blueprint::Node& node, bool vertical) {
-    const bool state = node.view.content_state;
-    const bool tripped = node.view.content_tripped;
+                          const PresentationSpec& spec, bool vertical) {
+    const bool state = spec.content_state;
+    const bool tripped = spec.content_tripped;
 
     const float bg_w = vertical ? VERTICAL_TOGGLE_WIDTH : SWITCH_WIDTH;
     const float bg_h = vertical ? VERTICAL_TOGGLE_HEIGHT : SWITCH_HEIGHT;
@@ -221,10 +226,10 @@ void build_switch_content(PresentationNode& root, ElementIdAllocator& ids,
 }
 
 void build_slider_content(PresentationNode& root, ElementIdAllocator& ids,
-                          const bp2::Blueprint::Node& node) {
-    const float min_value = node.view.content_min;
-    const float max_value = node.view.content_max;
-    const float value = node.view.content_value;
+                          const PresentationSpec& spec) {
+    const float min_value = spec.content_min;
+    const float max_value = spec.content_max;
+    const float value = spec.content_value;
     const float range = max_value - min_value;
     const float t = (range > 1e-6f) ? std::clamp((value - min_value) / range, 0.0f, 1.0f) : 0.0f;
 
@@ -274,8 +279,8 @@ void build_slider_content(PresentationNode& root, ElementIdAllocator& ids,
 }
 
 void build_indicator_content(PresentationNode& root, ElementIdAllocator& ids,
-                             const bp2::Blueprint::Node& node) {
-    const float value = node.view.content_value;
+                             const PresentationSpec& spec) {
+    const float value = spec.content_value;
     const float b = std::clamp(value, 0.0f, 1.0f);
 
     append_painted(root, ids, PaintPrimitiveKind::Circle, [&](PaintCommand& paint) {
@@ -295,9 +300,9 @@ void build_indicator_content(PresentationNode& root, ElementIdAllocator& ids,
 }
 
 void build_knob_content(PresentationNode& root, ElementIdAllocator& ids,
-                        const bp2::Blueprint::Node& node) {
-    const int num_positions = std::max(2, static_cast<int>(node.view.content_max));
-    const int position = std::clamp(static_cast<int>(node.view.content_value), 0, num_positions - 1);
+                        const PresentationSpec& spec) {
+    const int num_positions = std::max(2, static_cast<int>(spec.content_max));
+    const int position = std::clamp(static_cast<int>(spec.content_value), 0, num_positions - 1);
 
     // Knob body
     append_painted(root, ids, PaintPrimitiveKind::Circle, [&](PaintCommand& paint) {
@@ -333,11 +338,11 @@ void build_knob_content(PresentationNode& root, ElementIdAllocator& ids,
 }
 
 void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
-                         const bp2::Blueprint::Node& node) {
+                         const PresentationSpec& spec) {
     constexpr GaugeMetrics metrics = gauge_metrics();
-    const float min_value = node.view.content_min;
-    const float max_value = node.view.content_max;
-    const float value = node.view.content_value;
+    const float min_value = spec.content_min;
+    const float max_value = spec.content_max;
+    const float value = spec.content_value;
     const float range = max_value - min_value;
     const float normalized = (range > 1e-6f) ? std::clamp((value - min_value) / range, 0.0f, 1.0f) : 0.0f;
 
@@ -387,9 +392,9 @@ void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
     });
 
     // Unit text
-    if (!node.view.content_unit.empty()) {
+    if (!spec.content_unit.empty()) {
         append_painted(root, ids, PaintPrimitiveKind::Text, [&](PaintCommand& paint) {
-            paint.text = node.view.content_unit;
+            paint.text = spec.content_unit;
             paint.fill_color = COLOR_TEXT_DIM;
             paint.geometry = TextGeometry{0.0f, metrics.unit_text_y(), metrics.unit_font_size, true};
         });
@@ -397,42 +402,42 @@ void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
 }
 
 void build_text_content(PresentationNode& root, ElementIdAllocator& ids,
-                        const bp2::Blueprint::Node& node) {
-    if (!node.view.content_label.empty()) {
+                        const PresentationSpec& spec) {
+    if (!spec.content_label.empty()) {
         append_painted(root, ids, PaintPrimitiveKind::Text, [&](PaintCommand& paint) {
-            paint.text = node.view.content_label;
+            paint.text = spec.content_label;
         });
     }
 }
 
 } // namespace
 
-PresentationNode default_content_presenter(const bp2::Blueprint::Node& node, ui::InternedId /*type_id*/) {
+PresentationNode default_content_presenter(const PresentationSpec& spec) {
     ElementIdAllocator ids;
     PresentationNode root = make_node(ids);
     root.layout = LayoutKind::Overlay;
 
-    switch (node.view.content_type) {
+    switch (spec.content_type) {
         case bp2::NodeContentType::Switch:
-            build_switch_content(root, ids, node, false);
+            build_switch_content(root, ids, spec, false);
             break;
         case bp2::NodeContentType::VerticalToggle:
-            build_switch_content(root, ids, node, true);
+            build_switch_content(root, ids, spec, true);
             break;
         case bp2::NodeContentType::Slider:
-            build_slider_content(root, ids, node);
+            build_slider_content(root, ids, spec);
             break;
         case bp2::NodeContentType::Indicator:
-            build_indicator_content(root, ids, node);
+            build_indicator_content(root, ids, spec);
             break;
         case bp2::NodeContentType::Knob:
-            build_knob_content(root, ids, node);
+            build_knob_content(root, ids, spec);
             break;
         case bp2::NodeContentType::Gauge:
-            build_gauge_content(root, ids, node);
+            build_gauge_content(root, ids, spec);
             break;
         case bp2::NodeContentType::Text:
-            build_text_content(root, ids, node);
+            build_text_content(root, ids, spec);
             break;
         case bp2::NodeContentType::None:
         case bp2::NodeContentType::Value:
@@ -445,25 +450,45 @@ PresentationNode default_content_presenter(const bp2::Blueprint::Node& node, ui:
 }
 
 // ============================================================================
-// Compile — render_hint-based (no registry needed)
+// Compile — unified entry point
 // ============================================================================
 
 NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
-                                           const bp2::Blueprint::Node& node) {
+                                           const PresentationSpec& spec) {
     NodePresentation presentation;
-    presentation.node_id = node.semantic.id;
-    presentation.shell.frame_kind = classify_frame_kind(node.view.render_hint);
-    presentation.shell.title = node.view.name;
-    populate_shell_metadata(presentation.shell, ctx, node, node.semantic.type);
+    presentation.node_id = spec.node_id;
+    presentation.shell.title = spec.title;
 
-    // Compile content tree
-    presentation.content = default_content_presenter(node, node.semantic.type);
+    // Determine frame_kind: registry presenter wins over spec if present
+    if (ctx.registry != nullptr) {
+        const NodePresenter* presenter = ctx.registry->find_presenter(spec.type_id);
+        if (presenter != nullptr) {
+            assert(presenter->content != nullptr);
+            presentation.shell.frame_kind = presenter->frame_kind;
+            populate_shell_metadata(presentation.shell, ctx, spec);
+            presentation.content = presenter->content(spec);
+            return presentation;
+        }
+    }
 
+    // Fall back to default content presenter
+    presentation.shell.frame_kind = spec.frame_kind;
+    populate_shell_metadata(presentation.shell, ctx, spec);
+    presentation.content = default_content_presenter(spec);
     return presentation;
 }
 
+NodePresentation compile_node_presentation(const PresentationSpec& spec) {
+    return compile_node_presentation(NodePresentationCompileContext{}, spec);
+}
+
 NodePresentation compile_node_presentation(const bp2::Blueprint::Node& node) {
-    return compile_node_presentation(NodePresentationCompileContext{}, node);
+    return compile_node_presentation(make_presentation_spec(node));
+}
+
+NodePresentation compile_node_presentation(const NodePresentationCompileContext& ctx,
+                                           const bp2::Blueprint::Node& node) {
+    return compile_node_presentation(ctx, make_presentation_spec(node));
 }
 
 } // namespace editor::presentation

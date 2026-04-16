@@ -9,7 +9,7 @@ using namespace editor::presentation;
 
 namespace {
 
-PresentationNode make_test_fragment(const bp2::Blueprint::Node& /*node*/, ui::InternedId /*type_id*/) {
+PresentationNode make_test_fragment(const PresentationSpec& /*spec*/) {
     PresentationNode root;
     root.element_id = ui::InternedId(1);
     root.layout = LayoutKind::Column;
@@ -49,11 +49,12 @@ PresentationNode make_test_fragment(const bp2::Blueprint::Node& /*node*/, ui::In
 NodePresentation make_test_presentation() {
     bp2::Blueprint::Node node;
     node.semantic.id = ui::InternedId(100);
+    node.semantic.type = ui::InternedId(200);
     node.view.name = "Test Node";
 
     NodePresenterRegistry registry;
     registry.register_presenter(ui::InternedId(200), NodePresenter{NodeFrameKind::Standard, &make_test_fragment});
-    return compile_node_presentation(NodePresentationCompileContext{&registry}, node, ui::InternedId(200));
+    return compile_node_presentation(NodePresentationCompileContext{&registry}, node);
 }
 
 } // namespace
