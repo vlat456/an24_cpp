@@ -43,19 +43,16 @@ PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
     spec.frame_kind = resolve_frame_kind(def);
     spec.title = node.view.name;  // name is tier-1 canonical, OK to read from view
 
-    // Derive content from TypeDefinition + semantic params (source of truth)
-    NodeContent nc = create_node_content(def, node.semantic.params,
-                                         node.semantic.string_params, interner);
+    // Full runtime content: canonical static semantics plus current dynamic state.
+    NodeContent nc = create_runtime_node_content(node, def, interner);
     spec.content_type = nc.type;
     spec.content_label = nc.label;
     spec.content_min = nc.min;
     spec.content_max = nc.max;
     spec.content_unit = nc.unit;
-    // Dynamic state: use view.* for runtime values (these are tier-2 dynamic,
-    // owned by simulation/user interaction, not by TypeDefinition)
-    spec.content_value = node.view.content_value;
-    spec.content_state = node.view.content_state;
-    spec.content_tripped = node.view.content_tripped;
+    spec.content_value = nc.value;
+    spec.content_state = nc.state;
+    spec.content_tripped = nc.tripped;
 
     // Annotation params from semantic string_params
     if (spec.frame_kind == NodeFrameKind::Annotation) {

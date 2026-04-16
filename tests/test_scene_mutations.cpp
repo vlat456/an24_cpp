@@ -825,3 +825,56 @@ TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
 
     EXPECT_EQ(long_widget->minimumNodeSize().x, short_widget->minimumNodeSize().x);
 }
+
+TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    TypeRegistry reg = scene_reg();
+    reg.types["Slider"].content_type = "Slider";
+    reg.types["Slider"].params["min"] = "-10";
+    reg.types["Slider"].params["max"] = "200";
+
+    auto slider = make_bp2_node(interner, "slider_live", "Slider");
+    slider.view.name = "slider_live";
+    slider.semantic.params[interner.intern("min")] = -10.0f;
+    slider.semantic.params[interner.intern("max")] = 200.0f;
+    slider.view.content_value = 42.0f;
+    set_iface(slider, {
+        make_port(interner, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(interner, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto sw = make_bp2_node(interner, "switch_live", "Switch");
+    sw.view.name = "switch_live";
+    sw.view.content_state = true;
+    set_iface(sw, {
+        make_port(interner, "state", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+    reg.types["Switch"].content_type = "Switch";
+    reg.types["Switch"].params["closed"] = "false";
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+    bp = bp.with_node(std::move(sw));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, "", reg);
+
+    auto* slider_widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_live"));
+    auto* switch_widget = dynamic_cast<visual::NodeWidget*>(scene.find("switch_live"));
+    ASSERT_NE(slider_widget, nullptr);
+    ASSERT_NE(switch_widget, nullptr);
+
+    NodeContent slider_content = slider_widget->currentContent();
+    EXPECT_EQ(slider_content.type, bp2::NodeContentType::Slider);
+    EXPECT_FLOAT_EQ(slider_content.min, -10.0f);
+    EXPECT_FLOAT_EQ(slider_content.max, 200.0f);
+    EXPECT_FLOAT_EQ(slider_content.value, 42.0f)
+        << "Rebuild must seed NodeWidget with live slider value, not static default";
+
+    NodeContent switch_content = switch_widget->currentContent();
+    EXPECT_EQ(switch_content.type, bp2::NodeContentType::Switch);
+    EXPECT_TRUE(switch_content.state)
+        << "Rebuild must seed NodeWidget with live switch state, not static default";
+}

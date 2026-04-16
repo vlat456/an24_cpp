@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../blueprint_v2/blueprint/node_content_type.h"
+#include "../../blueprint_v2/blueprint/blueprint.h"
 #include "../../blueprint_v2/blueprint/node_port.h"
 #include "../../ui/math/pt.h"
 #include "../../ui/core/interned_id.h"
@@ -208,5 +209,17 @@ inline NodeContent create_node_content(const TypeDefinition* def,
         float def_initial = (init_it != def->params.end()) ? std::stof(init_it->second) : 0.0f;
         content.value = get_param_float_from_map(instance_params, instance_string_params, "initial_position", interner, def_initial);
     }
+    return content;
+}
+
+/// Build the full runtime node content payload from canonical static semantics
+/// plus the node's current dynamic runtime state.
+inline NodeContent create_runtime_node_content(const bp2::Blueprint::Node& node,
+                                               const TypeDefinition* def,
+                                               ui::StringInterner& interner) {
+    NodeContent content = create_node_content(def, node.semantic.params, node.semantic.string_params, interner);
+    content.value = node.view.content_value;
+    content.state = node.view.content_state;
+    content.tripped = node.view.content_tripped;
     return content;
 }
