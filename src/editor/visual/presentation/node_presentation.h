@@ -99,6 +99,35 @@ struct ArcGeometry {
 
 using PrimitiveGeometry = std::variant<TextGeometry, RectGeometry, CircleGeometry, LineGeometry, ArcGeometry>;
 
+struct GaugeMetrics {
+    // Primary parameters — tune these
+    float radius = 40.0f;
+    float needle_length = 32.0f;
+    float start_angle_deg = 210.0f;
+    float sweep_angle_deg = -240.0f;
+    float value_font_size = 14.0f;
+    float unit_font_size = 10.0f;
+    float center_dot_radius = 3.0f;
+    float major_tick_inset = 6.0f;
+    float minor_tick_inset = 3.0f;
+    float value_text_gap = 5.0f;   ///< gap between arc bottom and value text top
+    float unit_text_gap = 2.0f;    ///< gap between value text bottom and unit text top
+
+    // Derived — all geometry flows from the primaries above
+    constexpr float diameter() const { return radius * 2.0f; }
+    constexpr float major_tick_inner_radius() const { return radius - major_tick_inset; }
+    constexpr float minor_tick_inner_radius() const { return radius - minor_tick_inset; }
+    constexpr float value_text_y() const { return diameter() + value_text_gap; }
+    constexpr float unit_text_y() const { return value_text_y() + value_font_size + unit_text_gap; }
+    constexpr float preferred_width() const { return diameter(); }
+    constexpr float preferred_height() const { return unit_text_y() + unit_font_size; }
+    constexpr float center_offset_y() const { return radius - preferred_height() * 0.5f; }
+};
+
+constexpr GaugeMetrics gauge_metrics() {
+    return GaugeMetrics{};
+}
+
 // ============================================================================
 // Paint / Hit / Interaction primitives
 // ============================================================================

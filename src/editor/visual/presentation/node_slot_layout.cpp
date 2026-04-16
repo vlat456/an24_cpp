@@ -163,7 +163,10 @@ NodeShellContentPolicy compile_node_shell_content_policy(bp2::NodeContentType co
             policy.preferred_size = ui::Pt(48.0f, 48.0f);
             break;
         case bp2::NodeContentType::Gauge:
-            policy.preferred_size = ui::Pt(80.0f, 92.0f);
+            {
+                constexpr GaugeMetrics metrics = gauge_metrics();
+                policy.preferred_size = ui::Pt(metrics.preferred_width(), metrics.preferred_height());
+            }
             break;
         case bp2::NodeContentType::None:
         default:

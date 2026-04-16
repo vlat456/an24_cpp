@@ -107,15 +107,6 @@ constexpr float KNOB_TICK_INNER = 20.0f;
 constexpr float KNOB_TICK_OUTER = 24.0f;
 constexpr float KNOB_ARC_START_DEG = 225.0f;
 constexpr float KNOB_ARC_SWEEP_DEG = -270.0f;
-constexpr float GAUGE_RADIUS = 40.0f;
-constexpr float GAUGE_CONTENT_HEIGHT = 92.0f;
-constexpr float GAUGE_CENTER_OFFSET_Y = GAUGE_RADIUS - GAUGE_CONTENT_HEIGHT * 0.5f; // -6.0f
-constexpr float GAUGE_NEEDLE_LENGTH = 32.0f;
-constexpr float GAUGE_START_ANGLE = 210.0f;
-constexpr float GAUGE_SWEEP_ANGLE = -240.0f;
-constexpr float GAUGE_VALUE_FONT_SIZE = 14.0f;
-constexpr float GAUGE_UNIT_FONT_SIZE = 10.0f;
-
 // Colors
 constexpr uint32_t COLOR_GAUGE_BORDER = 0xFF3E3130;
 constexpr uint32_t COLOR_NEEDLE = 0xFF2A70C8;
@@ -343,6 +334,7 @@ void build_knob_content(PresentationNode& root, ElementIdAllocator& ids,
 
 void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
                          const bp2::Blueprint::Node& node) {
+    constexpr GaugeMetrics metrics = gauge_metrics();
     const float min_value = node.view.content_min;
     const float max_value = node.view.content_max;
     const float value = node.view.content_value;
@@ -353,33 +345,36 @@ void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
     append_painted(root, ids, PaintPrimitiveKind::Arc, [&](PaintCommand& paint) {
         paint.fill_color = COLOR_GAUGE_BORDER;
         paint.stroke_width = 2.0f;
-        paint.geometry = ArcGeometry{0.0f, GAUGE_CENTER_OFFSET_Y, GAUGE_RADIUS, GAUGE_START_ANGLE, GAUGE_SWEEP_ANGLE};
+        paint.geometry = ArcGeometry{0.0f, metrics.center_offset_y(), metrics.radius,
+                                     metrics.start_angle_deg, metrics.sweep_angle_deg};
     });
 
     // Tick marks
     for (int i = 0; i < 11; ++i) {
         const float t = static_cast<float>(i) / 10.0f;
-        const float angle = GAUGE_START_ANGLE + t * GAUGE_SWEEP_ANGLE;
+        const float angle = metrics.start_angle_deg + t * metrics.sweep_angle_deg;
         const bool is_major = (i % 5) == 0;
         append_painted(root, ids, PaintPrimitiveKind::Line, [&](PaintCommand& paint) {
             paint.fill_color = is_major ? COLOR_TICK_MAJOR : COLOR_TICK_MINOR;
             paint.stroke_width = 1.5f;
-            paint.geometry = LineGeometry{0.0f, GAUGE_CENTER_OFFSET_Y, angle, GAUGE_RADIUS - (is_major ? 6.0f : 3.0f), GAUGE_RADIUS};
+            paint.geometry = LineGeometry{0.0f, metrics.center_offset_y(), angle,
+                                          is_major ? metrics.major_tick_inner_radius() : metrics.minor_tick_inner_radius(),
+                                          metrics.radius};
         });
     }
 
     // Needle
-    const float needle_angle = GAUGE_START_ANGLE + normalized * GAUGE_SWEEP_ANGLE;
+    const float needle_angle = metrics.start_angle_deg + normalized * metrics.sweep_angle_deg;
     append_painted(root, ids, PaintPrimitiveKind::Line, [&](PaintCommand& paint) {
         paint.fill_color = COLOR_NEEDLE;
         paint.stroke_width = 2.0f;
-        paint.geometry = LineGeometry{0.0f, GAUGE_CENTER_OFFSET_Y, needle_angle, 0.0f, GAUGE_NEEDLE_LENGTH};
+        paint.geometry = LineGeometry{0.0f, metrics.center_offset_y(), needle_angle, 0.0f, metrics.needle_length};
     });
 
     // Center dot
     append_painted(root, ids, PaintPrimitiveKind::Circle, [&](PaintCommand& paint) {
         paint.fill_color = COLOR_NEEDLE;
-        paint.geometry = CircleGeometry{0.0f, GAUGE_CENTER_OFFSET_Y, 3.0f};
+        paint.geometry = CircleGeometry{0.0f, metrics.center_offset_y(), metrics.center_dot_radius};
     });
 
     // Value text
@@ -388,7 +383,7 @@ void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
         snprintf(buf, sizeof(buf), "%.1f", value);
         paint.text = buf;
         paint.fill_color = COLOR_GAUGE_TEXT;
-        paint.geometry = TextGeometry{0.0f, GAUGE_RADIUS * 2.0f + 5.0f, GAUGE_VALUE_FONT_SIZE, true};
+        paint.geometry = TextGeometry{0.0f, metrics.value_text_y(), metrics.value_font_size, true};
     });
 
     // Unit text
@@ -396,7 +391,7 @@ void build_gauge_content(PresentationNode& root, ElementIdAllocator& ids,
         append_painted(root, ids, PaintPrimitiveKind::Text, [&](PaintCommand& paint) {
             paint.text = node.view.content_unit;
             paint.fill_color = COLOR_TEXT_DIM;
-            paint.geometry = TextGeometry{0.0f, GAUGE_RADIUS * 2.0f + 21.0f, GAUGE_UNIT_FONT_SIZE, true};
+            paint.geometry = TextGeometry{0.0f, metrics.unit_text_y(), metrics.unit_font_size, true};
         });
     }
 }

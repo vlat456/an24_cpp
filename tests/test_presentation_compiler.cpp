@@ -48,6 +48,15 @@ size_t count_paint_kind(const PresentationNode& node, PaintPrimitiveKind kind) {
     return count;
 }
 
+const ui::Rect* find_slot(const NodeSlotLayout& layout, NodeSlot slot) {
+    for (const SlotAssignment& assignment : layout.slots) {
+        if (assignment.slot == slot) {
+            return &assignment.bounds;
+        }
+    }
+    return nullptr;
+}
+
 /// Count total paint commands in the content tree (recursive).
 size_t count_total_paints(const PresentationNode& node) {
     size_t count = node.paint.size();
@@ -1265,19 +1274,21 @@ TEST(ExplicitGeometry, GaugeRadialCenterOffsetMatchesLegacyPosition) {
     ASSERT_NE(arc_paint, nullptr);
     const auto* arc_geo = std::get_if<ArcGeometry>(&arc_paint->geometry);
     ASSERT_NE(arc_geo, nullptr);
-    EXPECT_FLOAT_EQ(arc_geo->cy, -6.0f) << "Gauge arc center must be offset -6px from bounds center";
+    constexpr auto metrics = gauge_metrics();
+    EXPECT_FLOAT_EQ(arc_geo->cy, metrics.center_offset_y())
+        << "Gauge arc center must derive from shared gauge metrics";
 
     // Check all radial primitives share the same center offset
     for (const auto* paint : paints) {
         if (paint->kind == PaintPrimitiveKind::Line) {
             const auto* line_geo = std::get_if<LineGeometry>(&paint->geometry);
             ASSERT_NE(line_geo, nullptr);
-            EXPECT_FLOAT_EQ(line_geo->cy, -6.0f) << "Gauge line center must match arc center offset";
+            EXPECT_FLOAT_EQ(line_geo->cy, metrics.center_offset_y()) << "Gauge line center must match arc center offset";
         }
         if (paint->kind == PaintPrimitiveKind::Circle) {
             const auto* circle_geo = std::get_if<CircleGeometry>(&paint->geometry);
             ASSERT_NE(circle_geo, nullptr);
-            EXPECT_FLOAT_EQ(circle_geo->cy, -6.0f) << "Gauge center dot must match arc center offset";
+            EXPECT_FLOAT_EQ(circle_geo->cy, metrics.center_offset_y()) << "Gauge center dot must match arc center offset";
         }
     }
 }
@@ -1311,8 +1322,45 @@ TEST(ExplicitGeometry, GaugeTextYOffsetsMatchLegacyPositioning) {
     ASSERT_NE(value_tg, nullptr);
     ASSERT_NE(unit_tg, nullptr);
 
-    EXPECT_NEAR(value_tg->y, 85.0f, 0.01f) << "Value text Y must be GAUGE_RADIUS * 2 + 5";
-    EXPECT_NEAR(unit_tg->y, 101.0f, 0.01f) << "Unit text Y must be GAUGE_RADIUS * 2 + 21";
+    constexpr auto metrics = gauge_metrics();
+    EXPECT_NEAR(value_tg->y, metrics.value_text_y(), 0.01f) << "Value text Y must derive from shared gauge metrics";
+    EXPECT_NEAR(unit_tg->y, metrics.unit_text_y(), 0.01f) << "Unit text Y must derive from shared gauge metrics";
+}
+
+TEST(ExplicitGeometry, GaugePreferredSizeMatchesSharedMetrics) {
+    auto node = make_node(ui::InternedId(706), "Gauge", "", bp2::NodeContentType::Gauge);
+    NodePresentation p = compile_node_presentation(node);
+    NodeSlotLayout layout = layout_node_presentation(p, ui::Pt(180.0f, 140.0f));
+
+    constexpr auto metrics = gauge_metrics();
+    const ui::Rect* body = find_slot(layout, NodeSlot::Body);
+    ASSERT_NE(body, nullptr);
+    EXPECT_GE(body->h, metrics.preferred_height())
+        << "Gauge body height must reserve at least the shared preferred gauge height";
+}
+
+TEST(ExplicitGeometry, GaugeMetricsDerivedFieldsAreConsistent) {
+    // Regression: preferred_height must encompass all content including unit text.
+    // If derived fields drift from primaries, gauge text overflows its bounds.
+    constexpr auto m = gauge_metrics();
+
+    // preferred_height must reach past unit text bottom
+    EXPECT_GE(m.preferred_height(), m.unit_text_y() + m.unit_font_size)
+        << "preferred_height must encompass unit text";
+    EXPECT_GE(m.preferred_height(), m.value_text_y() + m.value_font_size)
+        << "preferred_height must encompass value text";
+
+    // preferred_width must encompass the arc diameter
+    EXPECT_GE(m.preferred_width(), m.diameter())
+        << "preferred_width must encompass arc diameter";
+
+    // tick radii must be inside the arc
+    EXPECT_LT(m.major_tick_inner_radius(), m.radius);
+    EXPECT_LT(m.minor_tick_inner_radius(), m.radius);
+    EXPECT_LT(m.major_tick_inner_radius(), m.minor_tick_inner_radius());
+
+    // needle must fit inside the arc
+    EXPECT_LE(m.needle_length, m.radius);
 }
 
 TEST(ExplicitGeometry, NoRectanglePaintHasZeroSizeGeometry) {
