@@ -101,8 +101,9 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
         return;
     }
 
-    const auto target = editor::resolve_subwindow_open_target(
+    const auto result = editor::resolve_subwindow_open_target(
         model_.current(), interner_, *library_index_, sub_blueprint_id);
+    const auto& target = result.target;
 
     if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && node && node->is_blueprint_instance()) {
         // Non-embedded blueprint instance that resolve_subwindow_open_target still
@@ -142,5 +143,7 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
         return;
     }
 
-    spdlog::error("[editor] Cannot open sub-window: blueprint instance '{}' not found", sub_blueprint_id);
+    spdlog::error("[editor] Cannot open sub-window '{}': {}",
+                  sub_blueprint_id,
+                  editor::to_string(result.failure));
 }

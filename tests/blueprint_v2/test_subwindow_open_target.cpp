@@ -24,7 +24,9 @@ TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
         bp2::Interface{});
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, index, "n1");
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "n1");
+    ASSERT_EQ(result.failure, editor::SubWindowOpenTargetFailure::None);
+    const auto& target = result.target;
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ReferencedNested);
     EXPECT_EQ(target.path, "library/math/FirstOrderLag.blueprint");
 }
@@ -43,13 +45,15 @@ TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathResolvesWithIndex)
     // No blueprint_path set - should still resolve via LibraryIndex
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, index, "n_resolved");
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "n_resolved");
+    ASSERT_EQ(result.failure, editor::SubWindowOpenTargetFailure::None);
+    const auto& target = result.target;
     // With LibraryIndex, path can be resolved from blueprint_id even without host.blueprint_path
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ReferencedNested);
     EXPECT_EQ(target.path, "library/math/FirstOrderLag.blueprint");
 }
 
-TEST(SubWindowOpenTarget, ReferencedNestedMissingIndexEntryReturnsMissing) {
+TEST(SubWindowOpenTarget, ReferencedNestedMissingIndexEntryReportsFailure) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
     bp2::LibraryIndex index;  // empty index
@@ -62,9 +66,10 @@ TEST(SubWindowOpenTarget, ReferencedNestedMissingIndexEntryReturnsMissing) {
         bp2::Interface{});
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, index, "n_missing");
-    EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::Missing);
-    EXPECT_TRUE(target.path.empty());
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "n_missing");
+    EXPECT_EQ(result.target.kind, editor::SubWindowOpenTargetKind::Missing);
+    EXPECT_TRUE(result.target.path.empty());
+    EXPECT_EQ(result.failure, editor::SubWindowOpenTargetFailure::MissingLibraryIndexEntry);
 }
 
 TEST(SubWindowOpenTarget, ResolvesEmbeddedNestedKind) {
@@ -80,7 +85,9 @@ TEST(SubWindowOpenTarget, ResolvesEmbeddedNestedKind) {
         std::make_unique<bp2::Blueprint>());
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, index, "n2");
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "n2");
+    ASSERT_EQ(result.failure, editor::SubWindowOpenTargetFailure::None);
+    const auto& target = result.target;
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::EmbeddedNested);
     EXPECT_TRUE(target.path.empty());
 }
@@ -98,7 +105,9 @@ TEST(SubWindowOpenTarget, ResolvesExternalBlueprintPath) {
         bp2::Interface{});
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, index, "firstorderlag_1");
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "firstorderlag_1");
+    ASSERT_EQ(result.failure, editor::SubWindowOpenTargetFailure::None);
+    const auto& target = result.target;
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ReferencedNested);
     EXPECT_EQ(target.path, "library/math/FirstOrderLag.blueprint");
 }
@@ -116,19 +125,22 @@ TEST(SubWindowOpenTarget, ReferencedNestedWinsEvenIfHostMirrorPathIsPresent) {
         bp2::Interface{});
     bp = bp.with_node(std::move(host));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, index, "n_hosted");
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "n_hosted");
+    ASSERT_EQ(result.failure, editor::SubWindowOpenTargetFailure::None);
+    const auto& target = result.target;
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::ReferencedNested);
     EXPECT_EQ(target.path, "library/math/FirstOrderLag.blueprint");
 }
 
-TEST(SubWindowOpenTarget, MissingForUnknownNode) {
+TEST(SubWindowOpenTarget, UnknownNodeReportsFailure) {
     ui::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, index, "missing");
-    EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::Missing);
-    EXPECT_TRUE(target.path.empty());
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "missing");
+    EXPECT_EQ(result.target.kind, editor::SubWindowOpenTargetKind::Missing);
+    EXPECT_TRUE(result.target.path.empty());
+    EXPECT_EQ(result.failure, editor::SubWindowOpenTargetFailure::UnknownNodeId);
 }
 
 // With the variant design, an Embedded always has a non-null inline_def.
@@ -147,7 +159,9 @@ TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded)
         std::make_unique<bp2::Blueprint>());
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, index, "broken_embedded");
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "broken_embedded");
+    ASSERT_EQ(result.failure, editor::SubWindowOpenTargetFailure::None);
+    const auto& target = result.target;
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::EmbeddedNested);
 
     const auto* found = bp.find_blueprint_instance(interner.intern("broken_embedded"));
@@ -171,7 +185,39 @@ TEST(SubWindowOpenTarget, EmbeddedNestedTakesPriorityOverExpandableNode) {
         std::make_unique<bp2::Blueprint>());
     bp = bp.with_node(std::move(node));
 
-    const auto target = editor::resolve_subwindow_open_target(bp, interner, index, "shared_id");
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "shared_id");
+    ASSERT_EQ(result.failure, editor::SubWindowOpenTargetFailure::None);
+    const auto& target = result.target;
     // Node is a blueprint instance with embedded source → EmbeddedNested
     EXPECT_EQ(target.kind, editor::SubWindowOpenTargetKind::EmbeddedNested);
+}
+
+TEST(SubWindowOpenTarget, NonBlueprintInstanceReportsFailure) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+    auto index = make_test_index();
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("plain_node");
+    node.kind = bp2::Blueprint::Node::Kind::Component;
+    bp = bp.with_node(std::move(node));
+
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "plain_node");
+    EXPECT_EQ(result.target.kind, editor::SubWindowOpenTargetKind::Missing);
+    EXPECT_EQ(result.failure, editor::SubWindowOpenTargetFailure::NotBlueprintInstance);
+}
+
+TEST(SubWindowOpenTarget, BlueprintInstanceMissingSourceReportsFailure) {
+    ui::StringInterner interner;
+    bp2::Blueprint bp;
+    auto index = make_test_index();
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("missing_source");
+    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    bp = bp.with_node(std::move(node));
+
+    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "missing_source");
+    EXPECT_EQ(result.target.kind, editor::SubWindowOpenTargetKind::Missing);
+    EXPECT_EQ(result.failure, editor::SubWindowOpenTargetFailure::MissingBlueprintSource);
 }

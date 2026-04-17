@@ -153,8 +153,9 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 return;
             }
             std::string node_id_str(doc->interner().resolve(node.semantic.id));
-            const auto target = editor::resolve_subwindow_open_target(
+            const auto result = editor::resolve_subwindow_open_target(
                 doc->blueprint(), doc->interner(), *lib_idx, node_id_str);
+            const auto& target = result.target;
             if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
                 ws.openDocument(target.path);
             } else {

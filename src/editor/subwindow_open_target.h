@@ -17,14 +17,34 @@ enum class SubWindowOpenTargetKind {
     ExternalReference,
 };
 
+enum class SubWindowOpenTargetFailure {
+    None,
+    UnknownNodeId,
+    NotBlueprintInstance,
+    MissingBlueprintSource,
+    MissingLibraryIndexEntry,
+};
+
 struct SubWindowOpenTarget {
     SubWindowOpenTargetKind kind = SubWindowOpenTargetKind::Missing;
     std::string path;
 };
 
-SubWindowOpenTarget resolve_subwindow_open_target(const bp2::Blueprint& bp,
-                                                  ui::StringInterner& interner,
-                                                  const bp2::LibraryIndex& library_index,
-                                                  const std::string& sub_blueprint_id);
+struct SubWindowOpenTargetResult {
+    SubWindowOpenTarget target;
+    SubWindowOpenTargetFailure failure = SubWindowOpenTargetFailure::None;
+
+    bool ok() const {
+        return failure == SubWindowOpenTargetFailure::None
+            && target.kind != SubWindowOpenTargetKind::Missing;
+    }
+};
+
+SubWindowOpenTargetResult resolve_subwindow_open_target(const bp2::Blueprint& bp,
+                                                        ui::StringInterner& interner,
+                                                        const bp2::LibraryIndex& library_index,
+                                                        const std::string& sub_blueprint_id);
+
+const char* to_string(SubWindowOpenTargetFailure failure);
 
 } // namespace editor
