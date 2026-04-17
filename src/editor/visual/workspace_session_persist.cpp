@@ -6,6 +6,39 @@
 
 namespace fs = std::filesystem;
 
+namespace {
+
+const char* to_persisted_mode(BlueprintWindowMode mode) {
+    switch (mode) {
+        case BlueprintWindowMode::RootDocument:
+            return "root";
+        case BlueprintWindowMode::EmbeddedScope:
+            return "embedded";
+        case BlueprintWindowMode::ExternalReference:
+            return "external";
+    }
+    return "root";
+}
+
+std::optional<BlueprintWindowMode> parse_persisted_mode(const nlohmann::json& j) {
+    if (!j.is_string()) {
+        return std::nullopt;
+    }
+    const std::string value = j.get<std::string>();
+    if (value == "root") {
+        return BlueprintWindowMode::RootDocument;
+    }
+    if (value == "embedded") {
+        return BlueprintWindowMode::EmbeddedScope;
+    }
+    if (value == "external") {
+        return BlueprintWindowMode::ExternalReference;
+    }
+    return std::nullopt;
+}
+
+} // namespace
+
 static std::string blueprint_path_to_workspace_path(const char* blueprint_path) {
     std::string bp_str(blueprint_path);
     // Remove .blueprint extension if present
@@ -21,7 +54,7 @@ bool save_workspace_session(
 {
     nlohmann::json j;
     j["format"] = "an24.workspace_session";
-    j["version"] = 1;
+    j["version"] = 2;
 
     nlohmann::json viewport;
     viewport["pan_x"] = ws.viewport_pan_x;
@@ -31,7 +64,14 @@ bool save_workspace_session(
     j["viewport"] = viewport;
 
     nlohmann::json editor;
-    editor["open_windows"] = ws.open_windows;
+    nlohmann::json open_windows = nlohmann::json::array();
+    for (const auto& scope : ws.open_windows) {
+        open_windows.push_back({
+            {"mode", to_persisted_mode(scope.mode)},
+            {"key", scope.key},
+        });
+    }
+    editor["open_windows"] = std::move(open_windows);
     j["editor"] = editor;
 
     std::string ws_path = blueprint_path_to_workspace_path(blueprint_path);
@@ -70,7 +110,7 @@ std::optional<WorkspaceSession> load_workspace_session(
         if (!j.contains("format") || j["format"] != "an24.workspace_session") {
             return std::nullopt;
         }
-        if (!j.contains("version") || j["version"] != 1) {
+        if (!j.contains("version") || j["version"] != 2) {
             return std::nullopt;
         }
 
@@ -97,8 +137,18 @@ std::optional<WorkspaceSession> load_workspace_session(
         if (j.contains("editor")) {
             const auto& ed = j["editor"];
             if (ed.contains("open_windows") && ed["open_windows"].is_array()) {
-                for (const auto& win_id : ed["open_windows"]) {
-                    ws.open_windows.push_back(win_id.get<std::string>());
+                for (const auto& win_scope : ed["open_windows"]) {
+                    if (!win_scope.is_object() || !win_scope.contains("mode") || !win_scope.contains("key")) {
+                        return std::nullopt;
+                    }
+                    auto mode = parse_persisted_mode(win_scope["mode"]);
+                    if (!mode.has_value() || !win_scope["key"].is_string()) {
+                        return std::nullopt;
+                    }
+                    ws.open_windows.push_back(PersistedWindowScope{
+                        *mode,
+                        win_scope["key"].get<std::string>(),
+                    });
                 }
             }
         }

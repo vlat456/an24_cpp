@@ -36,8 +36,8 @@ TEST_F(WorkspaceSessionTest, SaveAndLoadBasicSession) {
     ws.viewport_pan_y = 200.0f;
     ws.viewport_zoom = 2.5f;
     ws.grid_step = 64;
-    ws.open_windows.push_back("window_1");
-    ws.open_windows.push_back("window_2");
+    ws.open_windows.push_back({BlueprintWindowMode::EmbeddedScope, "window_1"});
+    ws.open_windows.push_back({BlueprintWindowMode::ExternalReference, "window_2"});
 
     fs::path bp_path = make_blueprint_path("test_basic");
     ASSERT_TRUE(save_workspace_session(ws, bp_path.c_str()));
@@ -54,8 +54,10 @@ TEST_F(WorkspaceSessionTest, SaveAndLoadBasicSession) {
     EXPECT_FLOAT_EQ(loaded->viewport_zoom, 2.5f);
     EXPECT_EQ(loaded->grid_step, 64);
     ASSERT_EQ(loaded->open_windows.size(), 2u);
-    EXPECT_EQ(loaded->open_windows[0], "window_1");
-    EXPECT_EQ(loaded->open_windows[1], "window_2");
+    EXPECT_EQ(loaded->open_windows[0].mode, BlueprintWindowMode::EmbeddedScope);
+    EXPECT_EQ(loaded->open_windows[0].key, "window_1");
+    EXPECT_EQ(loaded->open_windows[1].mode, BlueprintWindowMode::ExternalReference);
+    EXPECT_EQ(loaded->open_windows[1].key, "window_2");
 }
 
 TEST_F(WorkspaceSessionTest, LoadNonexistentFileReturnsEmpty) {
@@ -80,7 +82,7 @@ TEST_F(WorkspaceSessionTest, DefaultWorkspaceIsIdentified) {
     EXPECT_FALSE(ws3.isDefault());
 
     WorkspaceSession ws4;
-    ws4.open_windows.push_back("test");
+    ws4.open_windows.push_back({BlueprintWindowMode::EmbeddedScope, "test"});
     EXPECT_FALSE(ws4.isDefault());
 
 }
@@ -91,7 +93,7 @@ TEST_F(WorkspaceSessionTest, WorkspaceFileHasCorrectFormat) {
     ws.viewport_pan_y = 75.0f;
     ws.viewport_zoom = 1.5f;
     ws.grid_step = 48;
-    ws.open_windows.push_back("win_1");
+    ws.open_windows.push_back({BlueprintWindowMode::EmbeddedScope, "win_1"});
 
     fs::path bp_path = make_blueprint_path("test_format");
     ASSERT_TRUE(save_workspace_session(ws, bp_path.c_str()));
@@ -106,7 +108,7 @@ TEST_F(WorkspaceSessionTest, WorkspaceFileHasCorrectFormat) {
     ASSERT_TRUE(j.contains("format"));
     EXPECT_EQ(j["format"], "an24.workspace_session");
     ASSERT_TRUE(j.contains("version"));
-    EXPECT_EQ(j["version"], 1);
+    EXPECT_EQ(j["version"], 2);
 
     // Check viewport
     ASSERT_TRUE(j.contains("viewport"));
@@ -118,6 +120,9 @@ TEST_F(WorkspaceSessionTest, WorkspaceFileHasCorrectFormat) {
     // Check editor state
     ASSERT_TRUE(j.contains("editor"));
     ASSERT_TRUE(j["editor"].contains("open_windows"));
+    ASSERT_EQ(j["editor"]["open_windows"].size(), 1u);
+    EXPECT_EQ(j["editor"]["open_windows"][0]["mode"], "embedded");
+    EXPECT_EQ(j["editor"]["open_windows"][0]["key"], "win_1");
 }
 
 TEST_F(WorkspaceSessionTest, WorkspaceIndependentOfBlueprint) {

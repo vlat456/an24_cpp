@@ -2,6 +2,7 @@
 
 #include "blueprint_view_hydration.h"
 #include "json_parser/json_parser.h"
+#include "blueprint_v2/library/library_path.h"
 #include "visual/persist.h"
 #include "visual/workspace_session_persist.h"
 #include "visual/scene_mutations.h"
@@ -17,7 +18,10 @@ WorkspaceSession Document::captureWorkspaceSession() const {
 
     for (const auto& win : window_manager_.windows()) {
         if (!win->resolved_scope_id().is_root() && win->open) {
-            session.open_windows.push_back(win->resolved_scope_id().key());
+            session.open_windows.push_back(PersistedWindowScope{
+                win->resolved_scope_id().mode(),
+                win->resolved_scope_id().key(),
+            });
         }
     }
 
@@ -31,20 +35,35 @@ void Document::applyWorkspaceSession(const WorkspaceSession& session) {
     root().viewport.grid_step = session.grid_step;
     root().viewport.clamp_zoom();
 
-    for (const auto& window_id : session.open_windows) {
-        const ui::InternedId iid = interner_.lookup(window_id);
-        const bp2::Blueprint::Node* node = iid.empty() ? nullptr : model_.current().find_node(iid);
-        if (node && node->has_embedded_blueprint()) {
-            auto [win, created] = window_manager_.open(WindowScopeId::embedded(window_id),
-                                                       std::string(interner_.resolve(node->semantic.type)) + " [" + window_id + "]");
+    for (const auto& window_scope : session.open_windows) {
+        if (window_scope.mode == BlueprintWindowMode::EmbeddedScope) {
+            const ui::InternedId iid = interner_.lookup(window_scope.key);
+            const bp2::Blueprint::Node* node = iid.empty() ? nullptr : model_.current().find_node(iid);
+            if (!node || !node->has_embedded_blueprint()) {
+                continue;
+            }
+            auto [win, created] = window_manager_.open(WindowScopeId::embedded(window_scope.key),
+                                                       std::string(interner_.resolve(node->semantic.type)) + " [" + window_scope.key + "]");
             if (win && created) {
                 win->set_read_only(false);
                 win->pending_auto_fit = true;
             }
             continue;
         }
-        if (library_index_) {
-            openSubWindow(window_id);
+
+        if (window_scope.mode == BlueprintWindowMode::ExternalReference && library_index_) {
+            const ui::InternedId iid = interner_.lookup(window_scope.key);
+            const bp2::Blueprint::Node* node = iid.empty() ? nullptr : model_.current().find_node(iid);
+            if (!node || !node->is_blueprint_instance() || !node->source.has_value() || !node->source->is_reference()) {
+                continue;
+            }
+            auto path = bp2::resolve_library_blueprint_path(
+                *library_index_,
+                std::string(interner_.resolve(node->source->blueprint_id())));
+            if (!path.has_value()) {
+                continue;
+            }
+            openExternalRefWindow(window_scope.key, *path);
         }
     }
 }

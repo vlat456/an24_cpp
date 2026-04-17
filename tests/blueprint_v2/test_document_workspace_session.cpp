@@ -44,6 +44,17 @@ bp2::Blueprint make_root_blueprint(ui::StringInterner& interner) {
         std::make_unique<bp2::Blueprint>(std::move(inner)));
 
     bp = bp.with_node(std::move(host));
+
+    bp2::Blueprint::Node ref;
+    ref.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    ref.semantic.id = interner.intern("ref1");
+    ref.semantic.type = interner.intern("FirstOrderLag");
+    ref.view.name = "ref1";
+    ref.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+        interner.intern("FirstOrderLag"),
+        bp2::Interface{});
+    bp = bp.with_node(std::move(ref));
+
     return bp;
 }
 
@@ -53,6 +64,9 @@ TEST(DocumentWorkspaceSession, SaveAndLoadRoundTripAppliesViewportAndReopensWind
     Document doc;
     TypeRegistry registry = load_type_registry("library/");
     doc.setTypeRegistry(&registry);
+    bp2::LibraryIndex index;
+    index.entries["FirstOrderLag"] = "library/math/FirstOrderLag.blueprint";
+    doc.setLibraryIndex(&index);
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -68,12 +82,12 @@ TEST(DocumentWorkspaceSession, SaveAndLoadRoundTripAppliesViewportAndReopensWind
     doc.viewport().zoom = 1.75f;
     doc.viewport().grid_step = 24.0f;
     doc.openSubWindow("host1");
+    doc.openSubWindow("ref1");
 
     ASSERT_TRUE(doc.saveWorkspaceSession());
 
     Document restored;
     restored.setTypeRegistry(&registry);
-    bp2::LibraryIndex index;
     restored.setLibraryIndex(&index);
     ASSERT_TRUE(restored.load(bp_path.string()));
     ASSERT_TRUE(restored.loadWorkspaceSession());
@@ -83,6 +97,7 @@ TEST(DocumentWorkspaceSession, SaveAndLoadRoundTripAppliesViewportAndReopensWind
     EXPECT_FLOAT_EQ(restored.viewport().zoom, 1.75f);
     EXPECT_FLOAT_EQ(restored.viewport().grid_step, 24.0f);
     EXPECT_NE(restored.windowManager().find(WindowScopeId::embedded("host1")), nullptr);
+    EXPECT_NE(restored.windowManager().find(WindowScopeId::external("ref1")), nullptr);
 
     fs::remove_all(dir);
 }
