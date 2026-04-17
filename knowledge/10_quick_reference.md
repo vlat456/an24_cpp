@@ -193,20 +193,22 @@ These are type-definition assets, not canonical blueprint documents:
 }
 ```
 
-### Blueprint Nodes (BP2/Library)
+### Node Persistence Reminder
 
-All nodes must have a non-empty `name` field. For Value nodes, use `render_hint: "ref"` to display numeric constants inline (like `12SAM28.blueprint`):
+Do not treat old node snippets with fields like `name`, `type`, `render_hint`, or `ports` as canonical blueprint persistence guidance.
 
-```json
-{
-  "id": "k_max",
-  "name": "k_max",
-  "type": "Value",
-  "params": {"value": 28.0},
-  "render_hint": "ref",
-  "ports": {"o": {"direction": "Out", "type": 7}}
-}
-```
+Those shapes are legacy/reference material or library/type-definition concepts, not the strict v1 blueprint document format.
+
+For current authoritative persistence rules, use:
+
+- `knowledge/persistence_spec_v1.md`
+- `knowledge/persistence_boundaries.md`
+
+Canonical v1 blueprint documents persist node authority through the strict `nodes[]` shapes defined in the persistence spec:
+
+- component nodes use `kind`, `component`, optional typed `params`, and `layout`
+- blueprint-instance nodes use `kind`, `source`, optional `collapsed`, and `layout`
+- runtime/editor-only hydrated fields like `render_hint`, `content_*`, window/session state, or interface mirrors are not canonical persisted authority
 
 ## Editor Grid Snapping
 
