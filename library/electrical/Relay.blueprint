@@ -37,7 +37,7 @@
       "name": "hold_threshold",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     }
   ],

@@ -30,14 +30,14 @@
       "name": "g_min",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "g_max",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     }
   ],

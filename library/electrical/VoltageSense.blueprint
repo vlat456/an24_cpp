@@ -31,14 +31,14 @@
       "name": "gain",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "offset",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     }
   ],

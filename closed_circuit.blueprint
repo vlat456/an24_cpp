@@ -17,7 +17,7 @@
         "y": -320.0
       },
       "params": {
-        "closed": "false",
+        "closed": false,
         "g_closed": 1000.0,
         "g_open": 9.999999974752427e-07,
         "i_nominal": 20.0
@@ -87,7 +87,8 @@
       "label": "controlledvoltagesource_2",
       "layout": {
         "height": 144.0,
-        "width": 32.0,
+        "manual_size": true,
+        "width": 112.0,
         "x": 608.0,
         "y": 0.0
       },
@@ -116,7 +117,8 @@
       "label": "RN-180-Exciter",
       "layout": {
         "height": 64.0,
-        "width": 32.0,
+        "manual_size": true,
+        "width": 112.0,
         "x": -16.0,
         "y": 48.0
       },
@@ -128,12 +130,12 @@
             {
               "direction": "In",
               "id": "feedback",
-              "port_type": "V"
+              "port_type": "Signal"
             },
             {
               "direction": "Out",
               "id": "output",
-              "port_type": "V"
+              "port_type": "Signal"
             }
           ],
           "name": "RN-180-Exciter",
@@ -149,7 +151,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -163,7 +165,7 @@
               },
               "params": {
                 "exposed_direction": "Out",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -356,7 +358,8 @@
       "label": "LoadVoltageDrp",
       "layout": {
         "height": 80.0,
-        "width": 32.0,
+        "manual_size": true,
+        "width": 128.0,
         "x": 96.0,
         "y": -400.0
       },
@@ -368,7 +371,7 @@
             {
               "direction": "Out",
               "id": "out",
-              "port_type": "V"
+              "port_type": "Signal"
             },
             {
               "direction": "In",
@@ -394,7 +397,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -408,7 +411,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -417,12 +420,12 @@
               "kind": "component",
               "label": "out",
               "layout": {
-                "x": 756.0,
-                "y": 192.0
+                "x": 800.0,
+                "y": 160.0
               },
               "params": {
                 "exposed_direction": "Out",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -431,7 +434,7 @@
               "kind": "component",
               "label": "LoadCmdClamp",
               "layout": {
-                "x": 464.0,
+                "x": 640.0,
                 "y": 160.0
               }
             },
@@ -484,8 +487,8 @@
               "kind": "component",
               "label": "LoadCmdNorm",
               "layout": {
-                "x": 496.0,
-                "y": 288.0
+                "x": 448.0,
+                "y": 256.0
               }
             },
             {
@@ -860,22 +863,22 @@
             {
               "direction": "In",
               "id": "A",
-              "port_type": "V"
+              "port_type": "Signal"
             },
             {
               "direction": "In",
               "id": "A_2",
-              "port_type": "V"
+              "port_type": "Signal"
             },
             {
               "direction": "In",
               "id": "B",
-              "port_type": "V"
+              "port_type": "Signal"
             },
             {
               "direction": "Out",
               "id": "o",
-              "port_type": "V"
+              "port_type": "Signal"
             }
           ],
           "name": "DerateCtrl",
@@ -891,7 +894,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -905,7 +908,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -919,7 +922,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -933,7 +936,7 @@
               },
               "params": {
                 "exposed_direction": "Out",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -1390,12 +1393,12 @@
             {
               "direction": "In",
               "id": "Torque",
-              "port_type": "Any"
+              "port_type": "Signal"
             },
             {
               "direction": "Out",
               "id": "out",
-              "port_type": "V"
+              "port_type": "Signal"
             }
           ],
           "name": "RPMIntertial",
@@ -1411,7 +1414,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "Any"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -1425,7 +1428,7 @@
               },
               "params": {
                 "exposed_direction": "Out",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -1549,7 +1552,8 @@
       "label": "FieldLag",
       "layout": {
         "height": 80.0,
-        "width": 32.0,
+        "manual_size": true,
+        "width": 112.0,
         "x": 208.0,
         "y": 48.0
       },
@@ -1561,17 +1565,17 @@
             {
               "direction": "In",
               "id": "in",
-              "port_type": "Any"
+              "port_type": "Signal"
             },
             {
               "direction": "Out",
               "id": "out",
-              "port_type": "Any"
+              "port_type": "Signal"
             },
             {
               "direction": "In",
               "id": "rate",
-              "port_type": "Any"
+              "port_type": "Signal"
             }
           ],
           "name": "FirstOrderLag",
@@ -1581,7 +1585,10 @@
               "id": "accumulator",
               "kind": "component",
               "layout": {
-                "x": -64.0,
+                "height": 80.0,
+                "manual_size": true,
+                "width": 80.0,
+                "x": -48.0,
                 "y": 80.0
               },
               "params": {
@@ -1598,7 +1605,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -1606,6 +1613,9 @@
               "id": "multiply",
               "kind": "component",
               "layout": {
+                "height": 80.0,
+                "manual_size": true,
+                "width": 80.0,
                 "x": -192.0,
                 "y": 80.0
               }
@@ -1620,7 +1630,7 @@
               },
               "params": {
                 "exposed_direction": "Out",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -1633,7 +1643,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -1806,7 +1816,7 @@
               },
               "params": {
                 "exposed_direction": "In",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -1820,7 +1830,7 @@
               },
               "params": {
                 "exposed_direction": "Out",
-                "exposed_type": "V"
+                "exposed_type": "Contextual"
               }
             },
             {
@@ -2111,7 +2121,7 @@
         "y": -720.0
       },
       "params": {
-        "closed": "false",
+        "closed": false,
         "g_closed": 1000.0,
         "g_open": 9.999999974752427e-07
       }
@@ -2162,8 +2172,8 @@
       "params": {
         "g_closed": 1000.0,
         "g_open": 9.999999974752427e-07,
-        "initial_position": 0.0,
-        "positions": 5.0
+        "initial_position": 0,
+        "positions": 5
       }
     },
     {

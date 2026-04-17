@@ -10,6 +10,7 @@ std::string port_type_to_string(PortType t) {
     switch (t) {
         case PortType::V: return "V";
         case PortType::I: return "I";
+        case PortType::Signal: return "Signal";
         case PortType::Bool: return "Bool";
         case PortType::RPM: return "RPM";
         case PortType::Temperature: return "Temperature";

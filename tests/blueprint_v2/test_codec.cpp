@@ -13,6 +13,8 @@
 #include "editor/data/node_content.h"
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
+#include <fstream>
+#include <sstream>
 #include <type_traits>
 
 // ==============================================================================
@@ -662,6 +664,21 @@ TEST(BlueprintCodec, DecodeMalformedBridgeMetadataRejectsBlueprint) {
     auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
     EXPECT_FALSE(decoded.has_value());
     EXPECT_NE(err.message.find("wire signal typing unresolved"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeClosedCircuitBlueprint) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg = load_type_registry("library/");
+
+    std::ifstream in("/Users/vladimir/an24_cpp/closed_circuit.blueprint");
+    ASSERT_TRUE(in.is_open());
+    std::stringstream buffer;
+    buffer << in.rdbuf();
+
+    bp2::DecodeError err;
+    auto decoded = bp2::BlueprintCodec::decode(buffer.str(), interner, arena, reg, &err);
+    ASSERT_TRUE(decoded.has_value()) << err.message;
 }
 
 TEST(BlueprintCodec, DecodeDoesNotHydrateRuntimeViewFields) {

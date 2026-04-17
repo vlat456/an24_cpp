@@ -8,23 +8,23 @@
   "interface": [
     {
       "name": "i1",
-      "domain": 1,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "i2",
-      "domain": 1,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "o",
-      "domain": 1,
+      "domain": 2,
       "direction": 1,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     }
   ],
@@ -32,12 +32,9 @@
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "2-to-1 signal merger. Two real input ports merged into 1 output via alias. All ports are type 'Any' for universal compatibility across all domains. Inverse of Splitter.",
+  "description": "2-to-1 signal merger. Two input ports merged into 1 output via alias. Inverse of Splitter.",
   "domains": [
-    "Electrical",
-    "Mechanical",
-    "Hydraulic",
-    "Thermal"
+    "Logical"
   ],
   "priority": "high"
 }

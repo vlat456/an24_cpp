@@ -77,8 +77,8 @@ std::unordered_map<std::string, ParamSchemaEntry> parse_param_schema(const nlohm
 PortType parse_port_type_string(const std::string& s) {
     if (s == "V") return PortType::V;
     if (s == "I") return PortType::I;
-    if (s == "Signal") return PortType::Any;
-    if (s == "Fraction") return PortType::Any;
+    if (s == "Signal") return PortType::Signal;
+    if (s == "Fraction") return PortType::Signal;
     if (s == "Bool") return PortType::Bool;
     if (s == "RPM") return PortType::RPM;
     if (s == "Temperature") return PortType::Temperature;

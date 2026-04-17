@@ -11,17 +11,17 @@
   "interface": [
     {
       "direction": 1,
-      "domain": 1,
+      "domain": 2,
       "name": "charge_out",
       "source_writer": false,
-      "type": "Any"
+      "type": "Signal"
     },
     {
       "direction": 1,
-      "domain": 1,
+      "domain": 2,
       "name": "soc_out",
       "source_writer": false,
-      "type": "Any"
+      "type": "Signal"
     },
     {
       "direction": 0,
@@ -82,7 +82,7 @@
       },
       "string_params": {
         "exposed_direction": "Out",
-        "exposed_type": "V"
+        "exposed_type": "Contextual"
       },
       "type": "BlueprintOutput"
     },
@@ -419,7 +419,7 @@
       },
       "string_params": {
         "exposed_direction": "Out",
-        "exposed_type": "V"
+        "exposed_type": "Contextual"
       },
       "type": "BlueprintOutput"
     },

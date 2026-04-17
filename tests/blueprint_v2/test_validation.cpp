@@ -397,6 +397,39 @@ TEST(WireValidator, ContextualAndAnyWithoutConcreteAnchorFailsExplicitly) {
     EXPECT_EQ(r.error, "wire signal typing unresolved");
 }
 
+TEST(WireValidator, SignalValueBindsToSignalMathPort) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition src;
+    src.classname = "Value";
+    src.cpp_class = true;
+    src.ports["o"] = Port{PortDirection::Out, PortType::Signal, Domain::Logical, false};
+    reg.types["Value"] = std::move(src);
+
+    TypeDefinition dst;
+    dst.classname = "Multiply";
+    dst.cpp_class = true;
+    dst.ports["A"] = Port{PortDirection::In, PortType::Signal, Domain::Logical, false};
+    dst.ports["B"] = Port{PortDirection::In, PortType::Signal, Domain::Logical, false};
+    dst.ports["o"] = Port{PortDirection::Out, PortType::Signal, Domain::Logical, false};
+    reg.types["Multiply"] = std::move(dst);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "value", "Value"));
+    bp = bp.with_node(make_node(I, "mul", "Multiply"));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w_ctx_any_math");
+    w.source = bp2::WireEndpoint{I.intern("value"), I.intern("o")};
+    w.target = bp2::WireEndpoint{I.intern("mul"), I.intern("B")};
+    w.domain = Domain::Logical;
+
+    auto r = WireValidator::validate(w, bp, reg, I);
+    EXPECT_TRUE(r.valid) << r.error;
+    EXPECT_EQ(r.resolved_domain, Domain::Logical);
+}
+
 TEST(WireValidator, BridgeWithoutMatchingExposedRootPortFailsExplicitly) {
     ui::StringInterner I;
     TypeRegistry reg = make_validation_registry();

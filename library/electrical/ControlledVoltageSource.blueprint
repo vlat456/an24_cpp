@@ -37,28 +37,28 @@
       "name": "gain",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "offset",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "min_v",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "max_v",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     }
   ],

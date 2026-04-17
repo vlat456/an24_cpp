@@ -41,6 +41,7 @@ constexpr bool has_domain(Domain mask, Domain domain) {
 enum class PortType {
     V,            // Voltage (electrical potential)
     I,            // Current (electrical flow)
+    Signal,       // Scalar logical/control signal
     Bool,         // Boolean (logic level, on/off)
     RPM,          // Rotational speed (revolutions per minute)
     Temperature,  // Temperature (degrees Celsius)
@@ -58,6 +59,7 @@ constexpr Domain domain_for_port_type(PortType t) {
         case PortType::Contextual:
         case PortType::Any:
             return Domain::Electrical;
+        case PortType::Signal:
         case PortType::Bool:
             return Domain::Logical;
         case PortType::RPM:

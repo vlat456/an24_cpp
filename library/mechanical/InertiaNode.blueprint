@@ -8,37 +8,37 @@
   "interface": [
     {
       "name": "torque_in",
-      "domain": 4,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "mass",
-      "domain": 4,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "inv_inertia",
-      "domain": 4,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "damping",
-      "domain": 4,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "rpm_out",
       "domain": 4,
       "direction": 1,
-      "type": "Any",
+      "type": "RPM",
       "source_writer": false
     }
   ],

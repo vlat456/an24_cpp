@@ -8,16 +8,16 @@
   "interface": [
     {
       "name": "in",
-      "domain": 1,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "out",
-      "domain": 1,
+      "domain": 2,
       "direction": 1,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
@@ -31,7 +31,7 @@
       "name": "gain",
       "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     }
   ],

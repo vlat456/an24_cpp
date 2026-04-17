@@ -6,24 +6,24 @@
   "interface": [
     {
       "direction": 0,
-      "domain": 1,
+      "domain": 2,
       "name": "in",
       "source_writer": false,
-      "type": "Any"
+      "type": "Signal"
     },
     {
       "direction": 1,
-      "domain": 1,
+      "domain": 2,
       "name": "out",
       "source_writer": false,
-      "type": "Any"
+      "type": "Signal"
     },
     {
       "direction": 0,
-      "domain": 1,
+      "domain": 2,
       "name": "rate",
       "source_writer": false,
-      "type": "Any"
+      "type": "Signal"
     }
   ],
   "nodes": [
@@ -66,7 +66,7 @@
       },
       "string_params": {
         "exposed_direction": "In",
-        "exposed_type": "V"
+        "exposed_type": "Contextual"
       },
       "type": "BlueprintInput"
     },
@@ -110,7 +110,7 @@
       },
       "string_params": {
         "exposed_direction": "Out",
-        "exposed_type": "V"
+        "exposed_type": "Contextual"
       },
       "type": "BlueprintOutput"
     },
@@ -132,7 +132,7 @@
       },
       "string_params": {
         "exposed_direction": "In",
-        "exposed_type": "V"
+        "exposed_type": "Contextual"
       },
       "type": "BlueprintInput"
     },

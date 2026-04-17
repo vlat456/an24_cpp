@@ -8,16 +8,16 @@
   "interface": [
     {
       "name": "Va",
-      "domain": 3,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "Vb",
-      "domain": 3,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
@@ -32,9 +32,8 @@
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "Voltage comparator with hysteresis. Compares Va to Vb with configurable turn-on (Von) and turn-off (Voff) thresholds. Output is boolean (TRUE/FALSE). Thresholds are set via component parameters, not input ports.",
+  "description": "Signal comparator with hysteresis. Compares Va to Vb with configurable turn-on (Von) and turn-off (Voff) thresholds. Output is boolean (TRUE/FALSE).",
   "domains": [
-    "Electrical",
     "Logical"
   ],
   "param_defaults": {

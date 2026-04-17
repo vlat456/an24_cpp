@@ -8,16 +8,16 @@
   "interface": [
     {
       "name": "A",
-      "domain": 1,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {
       "name": "B",
-      "domain": 1,
+      "domain": 2,
       "direction": 0,
-      "type": "Any",
+      "type": "Signal",
       "source_writer": false
     },
     {

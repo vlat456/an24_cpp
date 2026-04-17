@@ -24,7 +24,11 @@ struct IndexedSignalGraph {
 };
 
 bool is_concrete_port_type(PortType type) {
-    return type != PortType::Any && type != PortType::Contextual;
+    return type != PortType::Any && type != PortType::Contextual && type != PortType::Signal;
+}
+
+bool is_signal_port_type(PortType type) {
+    return type == PortType::Signal;
 }
 
 bool is_contextual_port_type(PortType type) {
@@ -208,6 +212,7 @@ SignalTypingResult resolve_signal_group_typing(const Blueprint& bp,
     std::optional<Domain> concrete_domain;
     std::optional<PortType> concrete_type;
     bool saw_contextual = false;
+    bool saw_signal = false;
 
     for (uint32_t i = 0; i < static_cast<uint32_t>(graph.ports.size()); ++i) {
         if (graph.uf.find(i) != root) {
@@ -235,13 +240,23 @@ SignalTypingResult resolve_signal_group_typing(const Blueprint& bp,
             concrete_domain = port.domain;
             continue;
         }
+        if (is_signal_port_type(port.port_type)) {
+            saw_signal = true;
+            continue;
+        }
         if (is_contextual_port_type(port.port_type)) {
             saw_contextual = true;
         }
     }
 
+    // Concrete type found — it dominates Signal and Contextual.
     if (concrete_domain.has_value() && concrete_type.has_value()) {
         return {ResolvedSignalTyping{*concrete_domain, *concrete_type}, SignalTypingError::None};
+    }
+
+    // Signal type found but no more-specific concrete type — resolve as Signal.
+    if (saw_signal) {
+        return {ResolvedSignalTyping{Domain::Logical, PortType::Signal}, SignalTypingError::None};
     }
 
     if (saw_contextual) {
@@ -292,6 +307,10 @@ bool port_types_compatible(const PortDescriptor& source,
         return true;
     }
     if (source.port_type == PortType::Contextual || target.port_type == PortType::Contextual) {
+        return true;
+    }
+    // Signal is the scalar supertype — compatible with all concrete scalar types.
+    if (source.port_type == PortType::Signal || target.port_type == PortType::Signal) {
         return true;
     }
     return source.port_type == target.port_type;

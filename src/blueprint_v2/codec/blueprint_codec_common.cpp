@@ -80,6 +80,7 @@ struct PortTypeEntry {
 static constexpr PortTypeEntry port_type_table[] = {
     {PortType::V,           "V"},
     {PortType::I,           "I"},
+    {PortType::Signal,      "Signal"},
     {PortType::Bool,        "Bool"},
     {PortType::RPM,         "RPM"},
     {PortType::Temperature, "Temperature"},

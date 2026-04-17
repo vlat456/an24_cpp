@@ -168,9 +168,9 @@ TEST(ExtractExposedPorts, DefaultValues) {
     // Default from component definition: BlueprintOutput has exposed_direction="Out"
     EXPECT_EQ(exposed["out"].direction, PortDirection::Out);
 
-    // Default type from component definition (both have "V" as default)
-    EXPECT_EQ(exposed["in"].type, PortType::V);
-    EXPECT_EQ(exposed["out"].type, PortType::V);
+    // Default type from component definition (both have "Contextual" as default)
+    EXPECT_EQ(exposed["in"].type, PortType::Contextual);
+    EXPECT_EQ(exposed["out"].type, PortType::Contextual);
 }
 
 // =============================================================================
