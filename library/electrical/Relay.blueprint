@@ -78,5 +78,6 @@
     "values": {
       "bind_handle": 1.0
     }
-  }
+  },
+  "content_type": "Switch"
 }

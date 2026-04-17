@@ -2630,6 +2630,103 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
         << "CanvasInput must enter DraggingSlider state via semantic mapping";
 }
 
+TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinMax) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_custom", "Slider", 100.0f, 100.0f);
+    set_params(slider, {{"min", "-10.0"}, {"max", "200.0"}});
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_custom"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    const auto& sem_snapshot = widget->content_semantic_snapshot();
+    auto sem_hit = editor::presentation::hit_test_semantic_scene(
+        sem_snapshot,
+        Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
+    auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+    ASSERT_NE(sem_content, nullptr);
+    ASSERT_FALSE(sem_content->object->interactions.empty());
+    EXPECT_EQ(sem_content->object->interactions[0].kind, editor::presentation::InteractionKind::DragScalar);
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    input.simulation_mode = true;
+
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+    Pt canvas_min(0, 0);
+
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.slider_node_id, "slider_custom");
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
+    EXPECT_EQ(drag.slider_node_id, "slider_custom");
+    EXPECT_FLOAT_EQ(drag.slider_value, 200.0f);
+
+    input.on_mouse_up(MouseButton::Left, click_world + Pt(500.0f, 0.0f), canvas_min);
+}
+
+TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinOnLeftClamp) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto slider = make_node(I, "slider_custom", "Slider", 100.0f, 100.0f);
+    set_params(slider, {{"min", "-10.0"}, {"max", "200.0"}});
+    set_iface(slider, {
+        make_port(I, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(slider));
+
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_custom"));
+    ASSERT_NE(widget, nullptr);
+
+    Bounds cb = widget->contentBounds();
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0, 0);
+    auto host = create_editor_model_host(model);
+    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    input.simulation_mode = true;
+
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+    Pt canvas_min(0, 0);
+
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.slider_node_id, "slider_custom");
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    auto drag = input.on_mouse_drag(MouseButton::Left, Pt(-500.0f, 0.0f), canvas_min);
+    EXPECT_EQ(drag.slider_node_id, "slider_custom");
+    EXPECT_FLOAT_EQ(drag.slider_value, -10.0f);
+
+    input.on_mouse_up(MouseButton::Left, click_world + Pt(-500.0f, 0.0f), canvas_min);
+}
+
 TEST(CanvasInputSimMode, SimModeBlocksRightClickContextMenu) {
 
     // In simulation mode, right-clicking should NOT show context menus.

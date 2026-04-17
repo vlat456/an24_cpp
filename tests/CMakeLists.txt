@@ -685,6 +685,7 @@ add_executable(document_safety_tests
      ${CMAKE_SOURCE_DIR}/src/editor/document_io.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/document_simulation.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/document_windows.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_down.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
@@ -711,9 +712,10 @@ add_executable(document_safety_tests
     ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_analysis.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_bridge.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_build.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_common.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_build.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint_common.cpp
 )
+target_compile_definitions(document_safety_tests PRIVATE EDITOR_TESTING)
 target_include_directories(document_safety_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor

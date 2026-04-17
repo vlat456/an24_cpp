@@ -27,16 +27,18 @@ bool Document::apply_normalized_node_sizes(bool preserve_manual,
         }
 
         Pt minimum = widget->minimumNodeSize();
-        const bool width_changed = !node.layout.width.has_value() || *node.layout.width != minimum.x;
-        const bool height_changed = !node.layout.height.has_value() || *node.layout.height != minimum.y;
+        const float current_width = node.layout.width.value_or(minimum.x);
+        const float current_height = node.layout.height.value_or(minimum.y);
+        const bool width_changed = current_width < minimum.x;
+        const bool height_changed = current_height < minimum.y;
         if (!width_changed && !height_changed) {
             continue;
         }
 
         changed = true;
         bp2::Blueprint::Node resized = node;
-        resized.layout.width = minimum.x;
-        resized.layout.height = minimum.y;
+        resized.layout.width = width_changed ? minimum.x : current_width;
+        resized.layout.height = height_changed ? minimum.y : current_height;
         resized.layout.manual_size = false;
         updated = bp2::replace_node_preserve_order(updated, std::move(resized));
     }

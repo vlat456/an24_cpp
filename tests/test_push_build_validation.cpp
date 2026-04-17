@@ -506,6 +506,98 @@ TEST(PushBuildValidation, RotarySwitchAliasPortDirectionsMatchTopologyIntent) {
     EXPECT_EQ(s2.count("throw5"), 0u);
 }
 
+TEST(PushBuildValidation, AzsConsumesNonDefaultParamsFromSemanticData) {
+    DeviceInstance azs = make_device("azs", "AZS", {
+        {"closed", "true"},
+        {"i_nominal", "7.5"},
+        {"g_open", "0.25"},
+        {"g_closed", "321.0"}
+    });
+    DeviceInstance src = make_device("src", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
+    DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
+
+    std::vector<DeviceInstance> devices = {src, azs, gnd};
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"src.v_out", "azs.v_in"},
+        {"azs.v_out"},
+        {"src.v_in", "gnd.v"},
+        {"azs.control"},
+        {"azs.state"},
+        {"azs.temp"},
+        {"azs.tripped"}
+    };
+
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
+
+    auto it = result.devices.find("azs");
+    ASSERT_NE(it, result.devices.end());
+    const AZS<JitProvider>* comp = std::get_if<AZS<JitProvider>>(&it->second);
+    ASSERT_NE(comp, nullptr);
+    EXPECT_TRUE(comp->closed);
+    EXPECT_FLOAT_EQ(comp->i_nominal, 7.5f);
+    EXPECT_FLOAT_EQ(comp->g_open, 0.25f);
+    EXPECT_FLOAT_EQ(comp->g_closed, 321.0f);
+}
+
+TEST(PushBuildValidation, RelayConsumesNonDefaultParamsFromSemanticData) {
+    DeviceInstance relay = make_device("relay", "Relay", {
+        {"closed", "true"},
+        {"g_open", "0.125"},
+        {"g_closed", "456.0"}
+    });
+    DeviceInstance src = make_device("src", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
+    DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
+
+    std::vector<DeviceInstance> devices = {src, relay, gnd};
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"src.v_out", "relay.v_in"},
+        {"relay.v_out"},
+        {"src.v_in", "gnd.v"},
+        {"relay.control"},
+        {"relay.state"},
+        {"relay.hold_threshold"}
+    };
+
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
+
+    auto it = result.devices.find("relay");
+    ASSERT_NE(it, result.devices.end());
+    const Relay<JitProvider>* comp = std::get_if<Relay<JitProvider>>(&it->second);
+    ASSERT_NE(comp, nullptr);
+    EXPECT_TRUE(comp->closed);
+    EXPECT_FLOAT_EQ(comp->g_open, 0.125f);
+    EXPECT_FLOAT_EQ(comp->g_closed, 456.0f);
+}
+
+TEST(PushBuildValidation, HoldButtonConsumesNonDefaultParamsFromSemanticData) {
+    DeviceInstance btn = make_device("btn", "HoldButton", {
+        {"idle", "2.5"},
+        {"g_open", "0.125"},
+        {"g_closed", "654.0"}
+    });
+    DeviceInstance src = make_device("src", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
+    DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
+
+    std::vector<DeviceInstance> devices = {src, btn, gnd};
+    std::vector<std::vector<std::string>> signal_groups = {
+        {"src.v_out", "btn.v_in"},
+        {"btn.v_out"},
+        {"src.v_in", "gnd.v"},
+        {"btn.control"},
+        {"btn.state"}
+    };
+
+    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
+
+    auto it = result.devices.find("btn");
+    ASSERT_NE(it, result.devices.end());
+    const HoldButton<JitProvider>* comp = std::get_if<HoldButton<JitProvider>>(&it->second);
+    ASSERT_NE(comp, nullptr);
+    EXPECT_FLOAT_EQ(comp->idle, 2.5f);
+    EXPECT_FLOAT_EQ(comp->g_open, 0.125f);
+    EXPECT_FLOAT_EQ(comp->g_closed, 654.0f);
+}
+
 TEST(PushBuildValidation, SingleBatteryOK) {
     // Just one ElectricalSource - should succeed
     std::vector<DeviceInstance> devices = {

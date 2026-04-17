@@ -1016,3 +1016,93 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsPreservesLiveContentValue) {
     EXPECT_FLOAT_EQ(node_ptr->view.content_max, 7.0f)
         << "apply() must still refresh static knob range from semantic params";
 }
+
+TEST_F(PropertiesWindowTest, ApplySwitchClosedReseedsLiveContentState) {
+    bp2::Blueprint::Node n;
+    n.semantic.id = interner.intern("switch1");
+    n.semantic.type = interner.intern("Switch");
+    n.view.name = "switch1";
+    n.view.content_type = bp2::NodeContentType::Switch;
+    n.view.content_state = false;
+    n.semantic.params[interner.intern("closed")] = 0.0f;
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("switch1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    TypeDefinition switch_def;
+    switch_def.classname = "Switch";
+    switch_def.content_type = "Switch";
+    switch_def.params["closed"] = "false";
+    registry.types["Switch"] = switch_def;
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "switch1", model, interner, &registry, [](const std::string&) {});
+    win.set_pending_param("closed", 1.0f);
+    win.apply();
+
+    node_ptr = model.current().find_node(interner.intern("switch1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_TRUE(node_ptr->view.content_state)
+        << "apply() must reseed live switch state when the semantic default 'closed' changes";
+}
+
+TEST_F(PropertiesWindowTest, ApplyAzsClosedReseedsLiveVerticalToggleState) {
+    TypeDefinition azs_def;
+    azs_def.classname = "AZS";
+    azs_def.content_type = "VerticalToggle";
+    azs_def.params["closed"] = "false";
+    registry.types["AZS"] = azs_def;
+
+    bp2::Blueprint::Node n;
+    n.semantic.id = interner.intern("azs1");
+    n.semantic.type = interner.intern("AZS");
+    n.view.name = "azs1";
+    n.view.content_type = bp2::NodeContentType::VerticalToggle;
+    n.view.content_state = false;
+    n.semantic.params[interner.intern("closed")] = 0.0f;
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("azs1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "azs1", model, interner, &registry, [](const std::string&) {});
+    win.set_pending_param("closed", 1.0f);
+    win.apply();
+
+    node_ptr = model.current().find_node(interner.intern("azs1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_TRUE(node_ptr->view.content_state)
+        << "apply() must reseed live AZS toggle state when the semantic default 'closed' changes";
+}
+
+TEST_F(PropertiesWindowTest, ApplyRelayClosedReseedsLiveSwitchState) {
+    TypeDefinition relay_def;
+    relay_def.classname = "Relay";
+    relay_def.content_type = "Switch";
+    relay_def.params["closed"] = "false";
+    registry.types["Relay"] = relay_def;
+
+    bp2::Blueprint::Node n;
+    n.semantic.id = interner.intern("relay1");
+    n.semantic.type = interner.intern("Relay");
+    n.view.name = "relay1";
+    n.view.content_type = bp2::NodeContentType::Switch;
+    n.view.content_state = false;
+    n.semantic.params[interner.intern("closed")] = 0.0f;
+    model.add_node(std::move(n));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("relay1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "relay1", model, interner, &registry, [](const std::string&) {});
+    win.set_pending_param("closed", 1.0f);
+    win.apply();
+
+    node_ptr = model.current().find_node(interner.intern("relay1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_TRUE(node_ptr->view.content_state)
+        << "apply() must reseed live Relay switch state when the semantic default 'closed' changes";
+}

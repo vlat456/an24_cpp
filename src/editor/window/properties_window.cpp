@@ -49,6 +49,20 @@ static const std::vector<PortType>& all_port_types() {
     return kTypes;
 }
 
+static bool float_param_changed(const std::unordered_map<std::string, float>& pending,
+                                const std::unordered_map<std::string, float>& snapshot,
+                                const char* key) {
+    const auto pending_it = pending.find(key);
+    const auto snapshot_it = snapshot.find(key);
+    if (pending_it == pending.end() && snapshot_it == snapshot.end()) {
+        return false;
+    }
+    if (pending_it == pending.end() || snapshot_it == snapshot.end()) {
+        return true;
+    }
+    return pending_it->second != snapshot_it->second;
+}
+
 // Parse "k1:v1; k2:v2; ..." into parallel vectors
 static bool parse_table_entries(const std::string& str,
                                 std::vector<float>& keys,
@@ -596,22 +610,52 @@ void PropertiesWindow::apply() {
         // This guarantees a single undo step regardless of how many fields changed.
         bp2::Blueprint::Node updated = *target;
 
-        // Apply all pending params
-        updated.semantic.params.clear();
-        for (const auto& [key, new_value] : pending_params_) {
-            ui::InternedId key_iid = interner_->intern(key);
-            updated.semantic.params[key_iid] = new_value;
+        const TypeDefinition* def = nullptr;
+        if (type_registry_) {
+            const std::string type_name(interner_->resolve(updated.semantic.type));
+            def = type_registry_->get(type_name);
         }
 
+        // Apply all pending params
+        updated.semantic.params.clear();
         updated.semantic.string_params = pending_string_params_;
+        for (const auto& [key, new_value] : pending_params_) {
+            bool handled_as_bool = false;
+            if (def != nullptr) {
+                auto schema_it = def->param_schema.find(key);
+                if (schema_it != def->param_schema.end()
+                    && schema_it->second.type == ParamSchemaType::Bool) {
+                    updated.semantic.string_params[key] = (new_value != 0.0f) ? "true" : "false";
+                    handled_as_bool = true;
+                }
+            }
+            if (!handled_as_bool) {
+                ui::InternedId key_iid = interner_->intern(key);
+                updated.semantic.params[key_iid] = new_value;
+            }
+        }
 
         // [Issue #133] Re-hydrate static content semantics from updated params.
         // hydrate_node_view() now only touches static fields (type, label,
         // min, max, unit) — dynamic runtime state (value, state, tripped)
         // is preserved automatically without manual save/restore.
         if (type_registry_) {
-            const std::string type_name(interner_->resolve(updated.semantic.type));
-            editor::hydrate_node_view(updated, type_registry_->get(type_name), *interner_);
+            editor::hydrate_node_view(updated, def, *interner_);
+
+            // Param-driven dynamic defaults remain runtime-owned in general, but
+            // when the user explicitly edits the semantic default itself we must
+            // reseed the corresponding live field so the rebuilt widget matches
+            // the newly requested default immediately.
+            if (def != nullptr) {
+                const std::string& content_type = def->content_type;
+                if ((content_type == "Switch" || content_type == "VerticalToggle")
+                    && float_param_changed(pending_params_, snapshot_params_, "closed")) {
+                    editor::initialize_node_content_defaults(updated, def, *interner_);
+                } else if (content_type == "Knob"
+                           && float_param_changed(pending_params_, snapshot_params_, "initial_position")) {
+                    editor::initialize_node_content_defaults(updated, def, *interner_);
+                }
+            }
         }
 
         // Apply name change

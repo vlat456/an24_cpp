@@ -6,7 +6,9 @@
 #include "editor/commands/commands.h"
 #include "editor/commands/extract_blueprint.h"
 #include "editor/input/canvas_input.h"
+#include "editor/input/editing_host.h"
 #include "editor/input/input_types.h"
+#include "editor/window/properties_window.h"
 #include "editor/visual/node/visual_node.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
@@ -288,6 +290,415 @@ TEST(DocumentSafety, SetKnobPositionPreservesCanonicalStaticContent) {
     EXPECT_FLOAT_EQ(content.value, 3.0f);
 }
 
+TEST(DocumentSafety, LoadHydratesNonDefaultKnobPositionsFromInstanceParams) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    const fs::path dir = make_temp_dir("an24_doc_knob_positions_load");
+    const fs::path bp_path = dir / "knob_positions.blueprint";
+
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("knob_positions_root"));
+    bp = bp.with_name("Knob Positions Root");
+
+    auto knob = make_typed_node(interner, registry, "knob5", "KnobSwitch", 80.0f, 40.0f);
+    knob.semantic.params[interner.intern("positions")] = 5.0f;
+    bp = bp.with_node(std::move(knob));
+
+    write_file(bp_path, bp2::BlueprintCodec::encode(bp, interner, arena, &registry));
+    ASSERT_TRUE(doc.load(bp_path.string()));
+
+    const auto* loaded = require_node(doc.model().current(), doc.interner(), "knob5");
+    ASSERT_NE(loaded, nullptr);
+    EXPECT_EQ(loaded->view.content_type, bp2::NodeContentType::Knob);
+    EXPECT_FLOAT_EQ(loaded->view.content_max, 5.0f);
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("knob5"));
+    ASSERT_NE(widget, nullptr);
+    EXPECT_FLOAT_EQ(widget->currentContent().max, 5.0f);
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, LoadHydratesNonDefaultGaugeRangeAndUnitFromInstanceParams) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    const fs::path dir = make_temp_dir("an24_doc_gauge_params_load");
+    const fs::path bp_path = dir / "gauge_params.blueprint";
+
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("gauge_params_root"));
+    bp = bp.with_name("Gauge Params Root");
+
+    auto gauge = make_typed_node(interner, registry, "gauge1", "Voltmeter", 80.0f, 40.0f);
+    gauge.semantic.params[interner.intern("min")] = -20.0f;
+    gauge.semantic.params[interner.intern("max")] = 60.0f;
+    bp = bp.with_node(std::move(gauge));
+
+    write_file(bp_path, bp2::BlueprintCodec::encode(bp, interner, arena, &registry));
+    ASSERT_TRUE(doc.load(bp_path.string()));
+
+    const auto* loaded = require_node(doc.model().current(), doc.interner(), "gauge1");
+    ASSERT_NE(loaded, nullptr);
+    EXPECT_EQ(loaded->view.content_type, bp2::NodeContentType::Gauge);
+    EXPECT_FLOAT_EQ(loaded->view.content_min, -20.0f);
+    EXPECT_FLOAT_EQ(loaded->view.content_max, 60.0f);
+    EXPECT_EQ(loaded->view.content_unit, "V");
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("gauge1"));
+    ASSERT_NE(widget, nullptr);
+    NodeContent content = widget->currentContent();
+    EXPECT_FLOAT_EQ(content.min, -20.0f);
+    EXPECT_FLOAT_EQ(content.max, 60.0f);
+    EXPECT_EQ(content.unit, "V");
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, LoadHydratesHoldButtonAsSwitchLikeContent) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    const fs::path dir = make_temp_dir("an24_doc_hold_button_load");
+    const fs::path bp_path = dir / "hold_button.blueprint";
+
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("hold_button_root"));
+    bp = bp.with_name("Hold Button Root");
+
+    auto btn = make_typed_node(interner, registry, "btn1", "HoldButton", 20.0f, 20.0f);
+    btn.semantic.params[interner.intern("idle")] = 2.5f;
+    bp = bp.with_node(std::move(btn));
+
+    write_file(bp_path, bp2::BlueprintCodec::encode(bp, interner, arena, &registry));
+    ASSERT_TRUE(doc.load(bp_path.string()));
+
+    const auto* loaded = require_node(doc.model().current(), doc.interner(), "btn1");
+    ASSERT_NE(loaded, nullptr);
+    EXPECT_EQ(loaded->view.content_type, bp2::NodeContentType::Switch);
+    EXPECT_FALSE(loaded->view.content_state);
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("btn1"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::Switch);
+    EXPECT_FALSE(content.state);
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEditedParams) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("slider_apply_doc"));
+    bp = bp.with_name("Slider Apply Doc");
+
+    auto slider = make_typed_node(I, registry, "slider_apply", "Slider", 40.0f, 20.0f);
+    slider.semantic.params[I.intern("min")] = 0.0f;
+    slider.semantic.params[I.intern("max")] = 1.0f;
+    bp = bp.with_node(std::move(slider));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    const auto* original = require_node(doc.model().current(), I, "slider_apply");
+    ASSERT_NE(original, nullptr);
+
+    PropertiesWindow props;
+    props.open(*original, "slider_apply", doc.model(), doc.interner(), &registry,
+               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.set_pending_param("min", -10.0f);
+    props.set_pending_param("max", 200.0f);
+    props.apply();
+
+    const auto* updated = require_node(doc.model().current(), I, "slider_apply");
+    ASSERT_NE(updated, nullptr);
+    EXPECT_FLOAT_EQ(updated->semantic.params.at(I.intern("min")), -10.0f);
+    EXPECT_FLOAT_EQ(updated->semantic.params.at(I.intern("max")), 200.0f);
+    EXPECT_FLOAT_EQ(updated->view.content_min, -10.0f);
+    EXPECT_FLOAT_EQ(updated->view.content_max, 200.0f);
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("slider_apply"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_FLOAT_EQ(content.min, -10.0f);
+    EXPECT_FLOAT_EQ(content.max, 200.0f);
+
+    auto& input = doc.input();
+    input.simulation_mode = true;
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+    Pt canvas_min(0.0f, 0.0f);
+
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.slider_node_id, "slider_apply");
+    ASSERT_EQ(input.state(), InputState::DraggingSlider);
+
+    auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
+    EXPECT_EQ(drag.slider_node_id, "slider_apply");
+    EXPECT_FLOAT_EQ(drag.slider_value, 200.0f)
+        << "Slider interaction must immediately use inspector-edited max after rebuild";
+}
+
+TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedParams) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("knob_apply_doc"));
+    bp = bp.with_name("Knob Apply Doc");
+
+    auto knob = make_typed_node(I, registry, "knob_apply", "KnobSwitch", 40.0f, 20.0f);
+    knob.semantic.params[I.intern("positions")] = 2.0f;
+    knob.semantic.params[I.intern("initial_position")] = 0.0f;
+    bp = bp.with_node(std::move(knob));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    const auto* original = require_node(doc.model().current(), I, "knob_apply");
+    ASSERT_NE(original, nullptr);
+
+    PropertiesWindow props;
+    props.open(*original, "knob_apply", doc.model(), doc.interner(), &registry,
+               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.set_pending_param("positions", 5.0f);
+    props.apply();
+
+    const auto* updated = require_node(doc.model().current(), I, "knob_apply");
+    ASSERT_NE(updated, nullptr);
+    EXPECT_FLOAT_EQ(updated->semantic.params.at(I.intern("positions")), 5.0f);
+    EXPECT_FLOAT_EQ(updated->view.content_max, 5.0f);
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("knob_apply"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_FLOAT_EQ(content.max, 5.0f);
+
+    auto& input = doc.input();
+    input.simulation_mode = true;
+    Bounds cb = widget->contentBounds();
+    Pt wpos = widget->worldPos();
+    Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+    Pt canvas_min(0.0f, 0.0f);
+
+    auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+    ASSERT_EQ(down.knob_node_id, "knob_apply");
+    ASSERT_EQ(input.state(), InputState::DraggingKnob);
+
+    auto drag = input.on_mouse_drag(MouseButton::Left, Pt(120.0f, 0.0f), canvas_min);
+    EXPECT_EQ(drag.knob_node_id, "knob_apply");
+    EXPECT_EQ(drag.knob_position, 4)
+        << "Knob interaction must immediately use inspector-edited positions after rebuild";
+}
+
+TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("gauge_apply_doc"));
+    bp = bp.with_name("Gauge Apply Doc");
+
+    auto gauge = make_typed_node(I, registry, "gauge_apply", "Voltmeter", 40.0f, 20.0f);
+    gauge.semantic.params[I.intern("min")] = 0.0f;
+    gauge.semantic.params[I.intern("max")] = 28.0f;
+    bp = bp.with_node(std::move(gauge));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    const auto* original = require_node(doc.model().current(), I, "gauge_apply");
+    ASSERT_NE(original, nullptr);
+
+    PropertiesWindow props;
+    props.open(*original, "gauge_apply", doc.model(), doc.interner(), &registry,
+               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.set_pending_param("min", -20.0f);
+    props.set_pending_param("max", 60.0f);
+    props.apply();
+
+    const auto* updated = require_node(doc.model().current(), I, "gauge_apply");
+    ASSERT_NE(updated, nullptr);
+    EXPECT_FLOAT_EQ(updated->semantic.params.at(I.intern("min")), -20.0f);
+    EXPECT_FLOAT_EQ(updated->semantic.params.at(I.intern("max")), 60.0f);
+    EXPECT_FLOAT_EQ(updated->view.content_min, -20.0f);
+    EXPECT_FLOAT_EQ(updated->view.content_max, 60.0f);
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("gauge_apply"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::Gauge);
+    EXPECT_FLOAT_EQ(content.min, -20.0f);
+    EXPECT_FLOAT_EQ(content.max, 60.0f);
+    EXPECT_EQ(content.unit, "V");
+}
+
+TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("switch_apply_doc"));
+    bp = bp.with_name("Switch Apply Doc");
+
+    auto sw = make_typed_node(I, registry, "switch_apply", "Switch", 40.0f, 20.0f);
+    sw.semantic.params[I.intern("closed")] = 0.0f;
+    bp = bp.with_node(std::move(sw));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    const auto* original = require_node(doc.model().current(), I, "switch_apply");
+    ASSERT_NE(original, nullptr);
+
+    PropertiesWindow props;
+    props.open(*original, "switch_apply", doc.model(), doc.interner(), &registry,
+               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.set_pending_param("closed", 1.0f);
+    props.apply();
+
+    const auto* updated = require_node(doc.model().current(), I, "switch_apply");
+    ASSERT_NE(updated, nullptr);
+    EXPECT_FLOAT_EQ(updated->semantic.params.at(I.intern("closed")), 1.0f);
+    EXPECT_TRUE(updated->view.content_state)
+        << "Switch properties apply must immediately re-seed dynamic closed state on rebuild";
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("switch_apply"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::Switch);
+    EXPECT_TRUE(content.state);
+}
+
+TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedState) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("azs_apply_doc"));
+    bp = bp.with_name("AZS Apply Doc");
+
+    auto azs = make_typed_node(I, registry, "azs_apply", "AZS", 40.0f, 20.0f);
+    azs.semantic.params[I.intern("closed")] = 0.0f;
+    bp = bp.with_node(std::move(azs));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    const auto* original = require_node(doc.model().current(), I, "azs_apply");
+    ASSERT_NE(original, nullptr);
+
+    PropertiesWindow props;
+    props.open(*original, "azs_apply", doc.model(), doc.interner(), &registry,
+               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.set_pending_param("closed", 1.0f);
+    props.apply();
+
+    const auto* updated = require_node(doc.model().current(), I, "azs_apply");
+    ASSERT_NE(updated, nullptr);
+    EXPECT_FLOAT_EQ(updated->semantic.params.at(I.intern("closed")), 1.0f);
+    EXPECT_TRUE(updated->view.content_state)
+        << "AZS properties apply must immediately re-seed dynamic closed state on rebuild";
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("azs_apply"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::VerticalToggle);
+    EXPECT_TRUE(content.state);
+}
+
+TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("relay_apply_doc"));
+    bp = bp.with_name("Relay Apply Doc");
+
+    auto relay = make_typed_node(I, registry, "relay_apply", "Relay", 40.0f, 20.0f);
+    relay.semantic.params[I.intern("closed")] = 0.0f;
+    bp = bp.with_node(std::move(relay));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    const auto* original = require_node(doc.model().current(), I, "relay_apply");
+    ASSERT_NE(original, nullptr);
+
+    PropertiesWindow props;
+    props.open(*original, "relay_apply", doc.model(), doc.interner(), &registry,
+               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.set_pending_param("closed", 1.0f);
+    props.apply();
+
+    const auto* updated = require_node(doc.model().current(), I, "relay_apply");
+    ASSERT_NE(updated, nullptr);
+    EXPECT_TRUE(updated->view.content_state);
+
+    auto* win = doc.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("relay_apply"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::Switch);
+    EXPECT_TRUE(content.state);
+}
+
 TEST(DocumentSafety, SliderRuntimeReadbackUsesOutPortWhenPresent) {
     ui::StringInterner I;
     TypeRegistry registry = load_type_registry("library/");
@@ -386,7 +797,7 @@ TEST(DocumentSafety, LoadNormalizesLegacyAutosizeWithoutDirtyingOrCreatingUndoHi
 
     ASSERT_TRUE(legacy_node->layout.width.has_value());
     ASSERT_TRUE(legacy_node->layout.height.has_value());
-    EXPECT_LT(*legacy_node->layout.width, 160.0f);
+    EXPECT_GE(*legacy_node->layout.width, 160.0f);
     EXPECT_LE(*legacy_node->layout.height, 112.0f);
     EXPECT_FALSE(legacy_node->layout.manual_size);
 
@@ -637,6 +1048,342 @@ TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
 
     EXPECT_EQ(loaded.model().current().find_node(loaded.interner().lookup("res")), nullptr);
     EXPECT_EQ(loaded.model().current().wires().size(), 0u);
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthority) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("inspector_roundtrip"));
+    bp = bp.with_name("Inspector Roundtrip");
+
+    auto slider = make_typed_node(I, registry, "slider_rt", "Slider", 40.0f, 20.0f);
+    slider.semantic.params[I.intern("min")] = 0.0f;
+    slider.semantic.params[I.intern("max")] = 1.0f;
+    bp = bp.with_node(std::move(slider));
+
+    auto knob = make_typed_node(I, registry, "knob_rt", "KnobSwitch", 260.0f, 20.0f);
+    knob.semantic.params[I.intern("positions")] = 2.0f;
+    knob.semantic.params[I.intern("initial_position")] = 0.0f;
+    bp = bp.with_node(std::move(knob));
+
+    auto gauge = make_typed_node(I, registry, "gauge_rt", "Voltmeter", 480.0f, 20.0f);
+    gauge.semantic.params[I.intern("min")] = 0.0f;
+    gauge.semantic.params[I.intern("max")] = 28.0f;
+    bp = bp.with_node(std::move(gauge));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    {
+        const auto* slider_node = require_node(doc.model().current(), I, "slider_rt");
+        ASSERT_NE(slider_node, nullptr);
+        PropertiesWindow props;
+        props.open(*slider_node, "slider_rt", doc.model(), doc.interner(), &registry,
+                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.set_pending_param("min", -10.0f);
+        props.set_pending_param("max", 200.0f);
+        props.apply();
+    }
+
+    {
+        const auto* knob_node = require_node(doc.model().current(), I, "knob_rt");
+        ASSERT_NE(knob_node, nullptr);
+        PropertiesWindow props;
+        props.open(*knob_node, "knob_rt", doc.model(), doc.interner(), &registry,
+                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.set_pending_param("positions", 5.0f);
+        props.apply();
+    }
+
+    {
+        const auto* gauge_node = require_node(doc.model().current(), I, "gauge_rt");
+        ASSERT_NE(gauge_node, nullptr);
+        PropertiesWindow props;
+        props.open(*gauge_node, "gauge_rt", doc.model(), doc.interner(), &registry,
+                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.set_pending_param("min", -20.0f);
+        props.set_pending_param("max", 60.0f);
+        props.apply();
+    }
+
+    const fs::path dir = make_temp_dir("an24_doc_inspector_param_roundtrip");
+    const fs::path bp_path = dir / "inspector_roundtrip.blueprint";
+    ASSERT_TRUE(doc.save(bp_path.string()));
+
+    Document loaded;
+    loaded.setTypeRegistry(&registry);
+    ASSERT_TRUE(loaded.load(bp_path.string()));
+
+    const auto* slider_loaded = require_node(loaded.model().current(), loaded.interner(), "slider_rt");
+    const auto* knob_loaded = require_node(loaded.model().current(), loaded.interner(), "knob_rt");
+    const auto* gauge_loaded = require_node(loaded.model().current(), loaded.interner(), "gauge_rt");
+    ASSERT_NE(slider_loaded, nullptr);
+    ASSERT_NE(knob_loaded, nullptr);
+    ASSERT_NE(gauge_loaded, nullptr);
+
+    EXPECT_FLOAT_EQ(slider_loaded->view.content_min, -10.0f);
+    EXPECT_FLOAT_EQ(slider_loaded->view.content_max, 200.0f);
+    EXPECT_FLOAT_EQ(knob_loaded->view.content_max, 5.0f);
+    EXPECT_FLOAT_EQ(gauge_loaded->view.content_min, -20.0f);
+    EXPECT_FLOAT_EQ(gauge_loaded->view.content_max, 60.0f);
+
+    auto* loaded_win = loaded.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(loaded_win, nullptr);
+    loaded.input().rebuild_snapshot();
+
+    auto* slider_widget = dynamic_cast<visual::NodeWidget*>(loaded_win->scene.find("slider_rt"));
+    auto* knob_widget = dynamic_cast<visual::NodeWidget*>(loaded_win->scene.find("knob_rt"));
+    auto* gauge_widget = dynamic_cast<visual::NodeWidget*>(loaded_win->scene.find("gauge_rt"));
+    ASSERT_NE(slider_widget, nullptr);
+    ASSERT_NE(knob_widget, nullptr);
+    ASSERT_NE(gauge_widget, nullptr);
+
+    NodeContent slider_content = slider_widget->currentContent();
+    NodeContent knob_content = knob_widget->currentContent();
+    NodeContent gauge_content = gauge_widget->currentContent();
+    EXPECT_FLOAT_EQ(slider_content.min, -10.0f);
+    EXPECT_FLOAT_EQ(slider_content.max, 200.0f);
+    EXPECT_FLOAT_EQ(knob_content.max, 5.0f);
+    EXPECT_FLOAT_EQ(gauge_content.min, -20.0f);
+    EXPECT_FLOAT_EQ(gauge_content.max, 60.0f);
+
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.pan = Pt(0.0f, 0.0f);
+    auto host = create_editor_model_host(loaded.model());
+    CanvasInput input(loaded.scene(), vp, *host, loaded.interner(), loaded.arena(), "", &registry);
+    input.simulation_mode = true;
+    input.rebuild_snapshot();
+    Pt canvas_min(0.0f, 0.0f);
+
+    {
+        Bounds cb = slider_widget->contentBounds();
+        ASSERT_GT(cb.w, 0.0f);
+        ASSERT_GT(cb.h, 0.0f);
+        const auto& sem_snapshot = slider_widget->content_semantic_snapshot();
+        auto sem_hit = editor::presentation::hit_test_semantic_scene(
+            sem_snapshot,
+            Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
+        auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+        ASSERT_NE(sem_content, nullptr);
+        ASSERT_FALSE(sem_content->object->interactions.empty());
+        EXPECT_EQ(sem_content->object->interactions[0].kind,
+                  editor::presentation::InteractionKind::DragScalar);
+        Pt wpos = slider_widget->worldPos();
+        Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+        Pt node_min = slider_widget->worldMin();
+        Pt node_max = slider_widget->worldMax();
+        ASSERT_GE(click_world.x, node_min.x);
+        ASSERT_GE(click_world.y, node_min.y);
+        ASSERT_LE(click_world.x, node_max.x);
+        ASSERT_LE(click_world.y, node_max.y);
+        auto scene_snapshot = editor::presentation::build_canvas_scene_snapshot(loaded.scene(), loaded.interner());
+        auto scene_hit = editor::presentation::hit_test_canvas_scene(scene_snapshot, click_world, loaded.interner());
+        auto* scene_hit_node = std::get_if<visual::HitNode>(&scene_hit);
+        ASSERT_NE(scene_hit_node, nullptr);
+        EXPECT_EQ(scene_hit_node->node_id, std::string_view("slider_rt"));
+        ASSERT_TRUE(scene_hit_node->content_interaction.has_value());
+        EXPECT_EQ(scene_hit_node->content_interaction->kind,
+                  editor::presentation::InteractionKind::DragScalar);
+        auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+        ASSERT_EQ(down.slider_node_id, "slider_rt");
+        auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
+        EXPECT_FLOAT_EQ(drag.slider_value, 200.0f);
+        input.on_mouse_up(MouseButton::Left, click_world + Pt(500.0f, 0.0f), canvas_min);
+    }
+
+    {
+        Bounds cb = knob_widget->contentBounds();
+        ASSERT_GT(cb.w, 0.0f);
+        ASSERT_GT(cb.h, 0.0f);
+        const auto& sem_snapshot = knob_widget->content_semantic_snapshot();
+        auto sem_hit = editor::presentation::hit_test_semantic_scene(
+            sem_snapshot,
+            Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
+        auto* sem_content = std::get_if<editor::presentation::SemanticHitContentRegion>(&sem_hit);
+        ASSERT_NE(sem_content, nullptr);
+        ASSERT_FALSE(sem_content->object->interactions.empty());
+        EXPECT_EQ(sem_content->object->interactions[0].kind,
+                  editor::presentation::InteractionKind::DragDiscrete);
+        Pt wpos = knob_widget->worldPos();
+        Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
+        auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
+        ASSERT_EQ(down.knob_node_id, "knob_rt");
+        auto drag = input.on_mouse_drag(MouseButton::Left, Pt(120.0f, 0.0f), canvas_min);
+        EXPECT_EQ(drag.knob_position, 4);
+        input.on_mouse_up(MouseButton::Left, click_world + Pt(120.0f, 0.0f), canvas_min);
+    }
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAuthority) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("azs_roundtrip"));
+    bp = bp.with_name("AZS Roundtrip");
+
+    auto azs = make_typed_node(I, registry, "azs_rt", "AZS", 40.0f, 20.0f);
+    azs.semantic.params[I.intern("closed")] = 0.0f;
+    bp = bp.with_node(std::move(azs));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    {
+        const auto* azs_node = require_node(doc.model().current(), I, "azs_rt");
+        ASSERT_NE(azs_node, nullptr);
+        PropertiesWindow props;
+        props.open(*azs_node, "azs_rt", doc.model(), doc.interner(), &registry,
+                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.set_pending_param("closed", 1.0f);
+        props.apply();
+    }
+
+    const fs::path dir = make_temp_dir("an24_doc_azs_roundtrip");
+    const fs::path bp_path = dir / "azs_roundtrip.blueprint";
+    ASSERT_TRUE(doc.save(bp_path.string()));
+
+    Document loaded;
+    loaded.setTypeRegistry(&registry);
+    ASSERT_TRUE(loaded.load(bp_path.string()));
+
+    const auto* loaded_azs = require_node(loaded.model().current(), loaded.interner(), "azs_rt");
+    ASSERT_NE(loaded_azs, nullptr);
+    EXPECT_TRUE(loaded_azs->view.content_state);
+
+    auto* loaded_win = loaded.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(loaded_win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(loaded_win->scene.find("azs_rt"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::VerticalToggle);
+    EXPECT_TRUE(content.state);
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("relay_roundtrip"));
+    bp = bp.with_name("Relay Roundtrip");
+
+    auto relay = make_typed_node(I, registry, "relay_rt", "Relay", 40.0f, 20.0f);
+    relay.semantic.params[I.intern("closed")] = 0.0f;
+    bp = bp.with_node(std::move(relay));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    {
+        const auto* relay_node = require_node(doc.model().current(), I, "relay_rt");
+        ASSERT_NE(relay_node, nullptr);
+        PropertiesWindow props;
+        props.open(*relay_node, "relay_rt", doc.model(), doc.interner(), &registry,
+                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.set_pending_param("closed", 1.0f);
+        props.apply();
+    }
+
+    const fs::path dir = make_temp_dir("an24_doc_relay_roundtrip");
+    const fs::path bp_path = dir / "relay_roundtrip.blueprint";
+    ASSERT_TRUE(doc.save(bp_path.string()));
+
+    Document loaded;
+    loaded.setTypeRegistry(&registry);
+    ASSERT_TRUE(loaded.load(bp_path.string()));
+
+    const auto* loaded_relay = require_node(loaded.model().current(), loaded.interner(), "relay_rt");
+    ASSERT_NE(loaded_relay, nullptr);
+    EXPECT_TRUE(loaded_relay->view.content_state);
+
+    auto* loaded_win = loaded.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(loaded_win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(loaded_win->scene.find("relay_rt"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::Switch);
+    EXPECT_TRUE(content.state);
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLikeAuthority) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    TypeRegistry registry = load_type_registry("library/");
+    doc.setTypeRegistry(&registry);
+
+    ui::StringInterner& I = doc.interner();
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("hold_button_roundtrip"));
+    bp = bp.with_name("HoldButton Roundtrip");
+
+    auto btn = make_typed_node(I, registry, "btn_rt", "HoldButton", 40.0f, 20.0f);
+    btn.semantic.params[I.intern("idle")] = 0.0f;
+    btn.semantic.params[I.intern("g_closed")] = 1000.0f;
+    bp = bp.with_node(std::move(btn));
+
+    doc.model().replace_current(std::move(bp));
+    doc.rebuildAllWindows();
+
+    {
+        const auto* btn_node = require_node(doc.model().current(), I, "btn_rt");
+        ASSERT_NE(btn_node, nullptr);
+        PropertiesWindow props;
+        props.open(*btn_node, "btn_rt", doc.model(), doc.interner(), &registry,
+                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.set_pending_param("idle", 2.5f);
+        props.set_pending_param("g_closed", 321.0f);
+        props.apply();
+    }
+
+    const fs::path dir = make_temp_dir("an24_doc_hold_button_roundtrip");
+    const fs::path bp_path = dir / "hold_button_roundtrip.blueprint";
+    ASSERT_TRUE(doc.save(bp_path.string()));
+
+    Document loaded;
+    loaded.setTypeRegistry(&registry);
+    ASSERT_TRUE(loaded.load(bp_path.string()));
+
+    const auto* loaded_btn = require_node(loaded.model().current(), loaded.interner(), "btn_rt");
+    ASSERT_NE(loaded_btn, nullptr);
+    EXPECT_EQ(loaded_btn->view.content_type, bp2::NodeContentType::Switch);
+    EXPECT_FLOAT_EQ(loaded_btn->semantic.params.at(loaded.interner().intern("idle")), 2.5f);
+    EXPECT_FLOAT_EQ(loaded_btn->semantic.params.at(loaded.interner().intern("g_closed")), 321.0f);
+
+    auto* loaded_win = loaded.windowManager().find(WindowScopeId::root());
+    ASSERT_NE(loaded_win, nullptr);
+    auto* widget = dynamic_cast<visual::NodeWidget*>(loaded_win->scene.find("btn_rt"));
+    ASSERT_NE(widget, nullptr);
+
+    NodeContent content = widget->currentContent();
+    EXPECT_EQ(content.type, bp2::NodeContentType::Switch);
+    EXPECT_FALSE(content.state);
 
     fs::remove_all(dir);
 }

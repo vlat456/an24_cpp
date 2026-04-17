@@ -115,11 +115,41 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
             }
         }
 
+        const TypeDefinition* type_def = parser_registry
+            ? parser_registry->get(std::string(interner.resolve(node.semantic.type)))
+            : nullptr;
+
         nlohmann::json params = nlohmann::json::object();
         for (auto const& [k, v] : node.semantic.params) {
-            params[std::string(interner.resolve(k))] = v;
+            const std::string key = std::string(interner.resolve(k));
+            if (type_def) {
+                auto schema_it = type_def->param_schema.find(key);
+                if (schema_it != type_def->param_schema.end()) {
+                    switch (schema_it->second.type) {
+                        case ParamSchemaType::Bool:
+                            params[key] = (v != 0.0f);
+                            continue;
+                        case ParamSchemaType::Int:
+                            params[key] = static_cast<int>(v);
+                            continue;
+                        case ParamSchemaType::Float:
+                        case ParamSchemaType::String:
+                            break;
+                    }
+                }
+            }
+            params[key] = v;
         }
         for (auto const& [k, v] : node.semantic.string_params) {
+            if (type_def) {
+                auto schema_it = type_def->param_schema.find(k);
+                if (schema_it != type_def->param_schema.end()) {
+                    if (schema_it->second.type == ParamSchemaType::Bool) {
+                        params[k] = (v == "true" || v == "1");
+                        continue;
+                    }
+                }
+            }
             params[k] = v;
         }
         if (!params.empty()) {

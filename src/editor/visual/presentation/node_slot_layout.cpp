@@ -276,15 +276,8 @@ NodeShellLayout measure_node_shell(const NodeShellLayoutSpec& spec) {
 
     result.preferred_size = ui::Pt{std::max(width, 120.0f), std::max(height, 80.0f)};
     result.minimum_size = ui::Pt{
-        std::max(std::max(spec.left_indent + (has_left && has_right ? spec.min_gap : 0.0f) + spec.right_indent,
-                          max_hstrip > 0 ? static_cast<float>(max_hstrip + 1) * spec.layout_grid : 0.0f),
-                 16.0f),
-        std::max(spec.header_height
-                 + (!spec.top_entries.empty() ? spec.row_height : 0.0f)
-                 + static_cast<float>(std::max(spec.left_entries.size(), spec.right_entries.size())) * spec.row_height
-                 + (!spec.bottom_entries.empty() ? spec.row_height : 0.0f)
-                 + spec.footer_height,
-                 16.0f)
+        std::max(width, 16.0f),
+        std::max(height, 16.0f)
     };
     result.node_bounds = ui::Rect{0.0f, 0.0f, result.preferred_size.x, result.preferred_size.y};
     return result;
