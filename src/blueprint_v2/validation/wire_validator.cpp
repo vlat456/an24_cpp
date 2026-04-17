@@ -1,31 +1,9 @@
 #include "wire_validator.h"
 
+#include "blueprint_v2/interface/port_compatibility.h"
 #include "core/domain_string.h"
 
 namespace bp2 {
-
-/// When either endpoint has PortType::Any, domain comparison is bypassed
-/// because Any is a wildcard that can connect across domains.
-/// Returns the concrete domain when one side is Any, or the common domain
-/// when both sides agree, or std::nullopt on mismatch.
-static std::optional<Domain> reconcile_endpoint_domains(
-        PortDescriptor const& src, PortDescriptor const& tgt) {
-    const bool src_any = (src.port_type == PortType::Any);
-    const bool tgt_any = (tgt.port_type == PortType::Any);
-
-    if (src_any && tgt_any) {
-        // Both wildcard — prefer the non-default domain if they differ,
-        // otherwise just pick source. This is a best-effort heuristic;
-        // the concrete domain is unknowable when both sides are Any.
-        return src.domain;
-    }
-    if (src_any) return tgt.domain;   // concrete side wins
-    if (tgt_any) return src.domain;   // concrete side wins
-
-    // Neither side is Any — strict equality required.
-    if (src.domain != tgt.domain) return std::nullopt;
-    return src.domain;
-}
 
 WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
                                               Blueprint const& bp,
@@ -49,16 +27,16 @@ WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
     }
 
     // Domain compatibility: PortType::Any is a wildcard that crosses domains.
-    auto resolved = reconcile_endpoint_domains(src->port, tgt->port);
-    if (!resolved.has_value()) {
+    auto resolved = resolve_port_domain(src->port, tgt->port);
+    if (!resolved.compatible()) {
         out.error = "wire endpoint domain mismatch";
         return out;
     }
-    out.resolved_domain = *resolved;
+    out.resolved_domain = *resolved.domain;
 
-    if (wire.domain != *resolved) {
+    if (wire.domain != *resolved.domain) {
         out.error = "wire domain mismatch: declared as " + domain_to_string(wire.domain)
-                  + " but endpoints are " + domain_to_string(*resolved);
+                  + " but endpoints are " + domain_to_string(*resolved.domain);
         return out;
     }
 

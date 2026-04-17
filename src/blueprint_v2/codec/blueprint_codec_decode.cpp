@@ -1,4 +1,5 @@
 #include "blueprint_codec_internal.h"
+#include "blueprint_v2/interface/port_compatibility.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/validation/path_resolver.h"
 
@@ -359,20 +360,8 @@ Blueprint resolve_wire_domains(Blueprint bp,
         }
 
         Blueprint::Wire fixed = w;
-        const bool src_any = (src->port.port_type == PortType::Any);
-        const bool tgt_any = (tgt->port.port_type == PortType::Any);
-
-        if (src_any && tgt_any) {
-            fixed.domain = src->port.domain;
-        } else if (src_any) {
-            fixed.domain = tgt->port.domain;
-        } else if (tgt_any) {
-            fixed.domain = src->port.domain;
-        } else {
-            // Both concrete — use source domain (should be equal;
-            // wire validator will catch mismatches).
-            fixed.domain = src->port.domain;
-        }
+        const auto resolved = resolve_port_domain(src->port, tgt->port);
+        fixed.domain = resolved.domain.value_or(src->port.domain);
         result = result.with_wire(std::move(fixed));
     }
     return result;

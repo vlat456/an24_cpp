@@ -1,6 +1,7 @@
 add_library(blueprint_v2 STATIC
     path/path.cpp
     interface/interface.cpp
+    interface/port_compatibility.cpp
     interface/node_port_projection.cpp
     blueprint/blueprint.cpp
     blueprint/canonicalize.cpp

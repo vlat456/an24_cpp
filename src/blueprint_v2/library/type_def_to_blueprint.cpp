@@ -1,5 +1,6 @@
 #include "type_def_to_blueprint.h"
 
+#include "blueprint_v2/interface/port_compatibility.h"
 #include "parse_number.h"
 
 #include <spdlog/spdlog.h>
@@ -43,18 +44,9 @@ Domain resolve_wire_domain(const Blueprint& bp,
             "blueprint_from_type_definition: unresolved wire port in " + context);
     }
 
-    // Cross-domain wires are valid when PortType::Any is involved:
-    // Any-typed ports adopt the concrete domain from the other side.
-    // This mirrors the logic in codec_detail::resolve_wire_domains().
-    const bool src_any = (src_desc->port_type == PortType::Any);
-    const bool tgt_any = (tgt_desc->port_type == PortType::Any);
-
-    if (src_any && tgt_any) {
-        return src_desc->domain;
-    } else if (src_any) {
-        return tgt_desc->domain;
-    } else if (tgt_any) {
-        return src_desc->domain;
+    const auto resolved = resolve_port_domain(*src_desc, *tgt_desc);
+    if (resolved.compatible()) {
+        return *resolved.domain;
     }
 
     // Both concrete types — domains should match.

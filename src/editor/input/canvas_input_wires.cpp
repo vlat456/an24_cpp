@@ -11,26 +11,13 @@
 #include "commands/commands.h"
 #include "canvas_input_internal.h"
 #include "editor/common/port_type_utils.h"
+#include "blueprint_v2/interface/port_compatibility.h"
 #include "blueprint_v2/validation/wire_validator.h"
 #include <algorithm>
 
 using namespace canvas_input_impl;
 
 namespace {
-
-std::optional<Domain> reconcile_endpoint_domains(const bp2::PortDescriptor& src,
-                                                 const bp2::PortDescriptor& tgt) {
-    const bool src_any = (src.port_type == PortType::Any);
-    const bool tgt_any = (tgt.port_type == PortType::Any);
-
-    if (src_any && tgt_any) {
-        return src.domain;
-    }
-    if (src_any) return tgt.domain;
-    if (tgt_any) return src.domain;
-    if (src.domain != tgt.domain) return std::nullopt;
-    return src.domain;
-}
 
 Domain resolve_wire_domain_without_registry(const bp2::Blueprint& bp,
                                             ui::InternedId start_node,
@@ -52,8 +39,8 @@ Domain resolve_wire_domain_without_registry(const bp2::Blueprint& bp,
         return Domain::Electrical;
     }
 
-    const auto resolved = reconcile_endpoint_domains(*src, *tgt);
-    return resolved.value_or(Domain::Electrical);
+    const auto resolved = bp2::resolve_port_domain(*src, *tgt);
+    return resolved.domain.value_or(Domain::Electrical);
 }
 
 Domain resolve_wire_domain_from_endpoints(const bp2::Blueprint& bp,

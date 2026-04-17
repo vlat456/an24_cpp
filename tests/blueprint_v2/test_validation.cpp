@@ -4,6 +4,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/blueprint/canonicalize.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
+#include "blueprint_v2/interface/port_compatibility.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/validation/path_resolver.h"
 #include "blueprint_v2/validation/wire_validator.h"
@@ -148,6 +149,70 @@ TEST(WireValidator, ValidWirePasses) {
 
     auto r = WireValidator::validate(w, bp, reg, I);
     EXPECT_TRUE(r.valid) << r.error;
+}
+
+TEST(PortCompatibility, LegacyDomainResolutionCases) {
+    ui::StringInterner I;
+    const PortDescriptor electrical_out{I.intern("out"), Domain::Electrical, Direction::Output, PortType::V};
+    const PortDescriptor electrical_any{I.intern("any_e"), Domain::Electrical, Direction::Input, PortType::Any};
+    const PortDescriptor logical_any{I.intern("any_l"), Domain::Logical, Direction::Input, PortType::Any};
+    const PortDescriptor logical_bool{I.intern("bool"), Domain::Logical, Direction::Input, PortType::Bool};
+
+    auto exact = bp2::resolve_port_domain(electrical_out, PortDescriptor{I.intern("in"), Domain::Electrical, Direction::Input, PortType::V});
+    EXPECT_EQ(exact.kind, bp2::PortDomainResolutionKind::ExactMatch);
+    ASSERT_TRUE(exact.domain.has_value());
+    EXPECT_EQ(*exact.domain, Domain::Electrical);
+
+    auto src_any = bp2::resolve_port_domain(electrical_any, logical_bool);
+    EXPECT_EQ(src_any.kind, bp2::PortDomainResolutionKind::SourceAnyAdoptsTarget);
+    ASSERT_TRUE(src_any.domain.has_value());
+    EXPECT_EQ(*src_any.domain, Domain::Logical);
+
+    auto tgt_any = bp2::resolve_port_domain(electrical_out, logical_any);
+    EXPECT_EQ(tgt_any.kind, bp2::PortDomainResolutionKind::TargetAnyAdoptsSource);
+    ASSERT_TRUE(tgt_any.domain.has_value());
+    EXPECT_EQ(*tgt_any.domain, Domain::Electrical);
+
+    auto both_any = bp2::resolve_port_domain(electrical_any, logical_any);
+    EXPECT_EQ(both_any.kind, bp2::PortDomainResolutionKind::BothAnyAmbiguous);
+    ASSERT_TRUE(both_any.domain.has_value());
+    EXPECT_EQ(*both_any.domain, Domain::Electrical);
+    EXPECT_TRUE(both_any.ambiguous());
+
+    auto mismatch = bp2::resolve_port_domain(electrical_out, logical_bool);
+    EXPECT_EQ(mismatch.kind, bp2::PortDomainResolutionKind::Mismatch);
+    EXPECT_FALSE(mismatch.domain.has_value());
+}
+
+TEST(WireValidator, AnyToAnyUsesSharedLegacyResolutionRule) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition src;
+    src.classname = "SrcAny";
+    src.cpp_class = true;
+    src.ports["out"] = Port{PortDirection::Out, PortType::Any, Domain::Electrical, false};
+    reg.types["SrcAny"] = std::move(src);
+
+    TypeDefinition dst;
+    dst.classname = "DstAny";
+    dst.cpp_class = true;
+    dst.ports["in"] = Port{PortDirection::In, PortType::Any, Domain::Logical, false};
+    reg.types["DstAny"] = std::move(dst);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "src", "SrcAny"));
+    bp = bp.with_node(make_node(I, "dst", "DstAny"));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w_any_any");
+    w.source = bp2::WireEndpoint{I.intern("src"), I.intern("out")};
+    w.target = bp2::WireEndpoint{I.intern("dst"), I.intern("in")};
+    w.domain = Domain::Electrical;
+
+    auto r = WireValidator::validate(w, bp, reg, I);
+    EXPECT_TRUE(r.valid) << r.error;
+    EXPECT_EQ(r.resolved_domain, Domain::Electrical);
 }
 
 TEST(WireValidator, InvalidPathFails) {
