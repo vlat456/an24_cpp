@@ -1,6 +1,6 @@
 #include "blueprint_codec_internal.h"
-#include "blueprint_v2/interface/port_compatibility.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
+#include "blueprint_v2/validation/signal_typing.h"
 #include "blueprint_v2/validation/path_resolver.h"
 
 #include <algorithm>
@@ -360,8 +360,10 @@ Blueprint resolve_wire_domains(Blueprint bp,
         }
 
         Blueprint::Wire fixed = w;
-        const auto resolved = resolve_port_domain(src->port, tgt->port);
-        fixed.domain = resolved.domain.value_or(src->port.domain);
+        const auto resolved = resolve_signal_typing(bp, &parser_registry, interner, w.source, w.target);
+        if (resolved.resolved.has_value()) {
+            fixed.domain = resolved.resolved->domain;
+        }
         result = result.with_wire(std::move(fixed));
     }
     return result;

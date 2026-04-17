@@ -609,6 +609,61 @@ TEST(BlueprintCodec, DecodeWithParserRegistryOverload) {
     EXPECT_EQ(interner.resolve(decoded->id()), "codec_parser_decode");
 }
 
+TEST(BlueprintCodec, DecodeMalformedBridgeMetadataRejectsBlueprint) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg = make_test_registry();
+
+    TypeDefinition bridge_in;
+    bridge_in.classname = "BlueprintInput";
+    bridge_in.cpp_class = true;
+    bridge_in.ports["ext"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
+    bridge_in.ports["port"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    reg.types["BlueprintInput"] = std::move(bridge_in);
+
+    TypeDefinition sink;
+    sink.classname = "BoolSink";
+    sink.cpp_class = true;
+    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    reg.types["BoolSink"] = std::move(sink);
+
+    const std::string json = R"({
+        "format": "blueprint",
+        "version": 1,
+        "blueprint_id": "bad_bridge_decode",
+        "name": "Bad Bridge Decode",
+        "interface": [
+            {"id": "other_flag", "direction": "In", "port_type": "Bool"}
+        ],
+        "nodes": [
+            {
+                "id": "flag",
+                "kind": "component",
+                "component": "BlueprintInput",
+                "layout": {"x": 0.0, "y": 0.0}
+            },
+            {
+                "id": "sink",
+                "kind": "component",
+                "component": "BoolSink",
+                "layout": {"x": 1.0, "y": 0.0}
+            }
+        ],
+        "wires": [
+            {
+                "id": "w1",
+                "from": {"node": "flag", "port": "port"},
+                "to": {"node": "sink", "port": "in"}
+            }
+        ]
+    })";
+
+    bp2::DecodeError err;
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("wire signal typing unresolved"), std::string::npos);
+}
+
 TEST(BlueprintCodec, DecodeDoesNotHydrateRuntimeViewFields) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);

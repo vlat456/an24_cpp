@@ -1,6 +1,6 @@
 #include "path_resolver.h"
 
-#include "blueprint_v2/interface/port_compatibility.h"
+#include "blueprint_v2/validation/signal_typing.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "json_parser/json_parser.h"
 
@@ -178,7 +178,7 @@ bool PathResolver::can_connect(WireEndpoint const& source,
         return false;
     }
 
-    if (!port_domains_compatible(src->port, tgt->port)) {
+    if (!port_types_compatible(src->port, tgt->port)) {
         return false;
     }
 
@@ -205,7 +205,7 @@ bool PathResolver::can_connect(Path const& source,
         return false;
     }
 
-    if (!port_domains_compatible(src->port, tgt->port)) {
+    if (!port_types_compatible(src->port, tgt->port)) {
         return false;
     }
 

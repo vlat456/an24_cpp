@@ -10,14 +10,14 @@
       "name": "ext",
       "domain": 1,
       "direction": 1,
-      "type": "Any",
+      "type": "Contextual",
       "source_writer": false
     },
     {
       "name": "port",
       "domain": 1,
       "direction": 0,
-      "type": "Any",
+      "type": "Contextual",
       "source_writer": false
     }
   ],
@@ -35,7 +35,7 @@
   ],
   "param_defaults": {
     "exposed_direction": "Out",
-    "exposed_type": "V"
+    "exposed_type": "Contextual"
   },
   "param_schema": {
     "exposed_direction": { "type": "string" },

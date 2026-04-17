@@ -46,6 +46,7 @@ enum class PortType {
     Temperature,  // Temperature (degrees Celsius)
     Pressure,     // Pressure (Pascal, bar, etc.)
     Position,     // Position/Displacement (mechanical position)
+    Contextual,   // Concrete type/domain resolved from graph context
     Any,          // Wildcard - can connect to any type
 };
 
@@ -54,6 +55,7 @@ constexpr Domain domain_for_port_type(PortType t) {
     switch (t) {
         case PortType::V:
         case PortType::I:
+        case PortType::Contextual:
         case PortType::Any:
             return Domain::Electrical;
         case PortType::Bool:
@@ -78,7 +80,7 @@ constexpr PortType port_type_for_domain(Domain d) {
         case Domain::Hydraulic:  return PortType::Pressure;
         case Domain::Thermal:    return PortType::Temperature;
     }
-    return PortType::Any;
+    return PortType::Contextual;
 }
 
 /// Port direction

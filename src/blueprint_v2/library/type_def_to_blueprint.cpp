@@ -1,6 +1,6 @@
 #include "type_def_to_blueprint.h"
 
-#include "blueprint_v2/interface/port_compatibility.h"
+#include "blueprint_v2/validation/signal_typing.h"
 #include "parse_number.h"
 
 #include <spdlog/spdlog.h>
@@ -24,6 +24,7 @@ std::pair<std::string, std::string> parse_endpoint(const std::string& ep,
 }
 
 Domain resolve_wire_domain(const Blueprint& bp,
+                           const TypeRegistry& registry,
                            ui::StringInterner& interner,
                            const std::string& src_node,
                            const std::string& src_port,
@@ -44,9 +45,16 @@ Domain resolve_wire_domain(const Blueprint& bp,
             "blueprint_from_type_definition: unresolved wire port in " + context);
     }
 
-    const auto resolved = resolve_port_domain(*src_desc, *tgt_desc);
-    if (resolved.compatible()) {
-        return *resolved.domain;
+    if (port_types_compatible(*src_desc, *tgt_desc)) {
+        const auto resolved = resolve_signal_typing(
+            bp,
+            &registry,
+            interner,
+            WireEndpoint{interner.lookup(src_node), interner.lookup(src_port)},
+            WireEndpoint{interner.lookup(tgt_node), interner.lookup(tgt_port)});
+        if (resolved.resolved.has_value()) {
+            return resolved.resolved->domain;
+        }
     }
 
     // Both concrete types — domains should match.
@@ -132,7 +140,7 @@ Blueprint blueprint_from_type_definition(const TypeDefinition& def,
         wire.id = interner.intern("w_td_" + std::to_string(wire_idx++));
         wire.source = WireEndpoint{interner.intern(src_node), interner.intern(src_port)};
         wire.target = WireEndpoint{interner.intern(tgt_node), interner.intern(tgt_port)};
-        wire.domain = resolve_wire_domain(bp, interner,
+        wire.domain = resolve_wire_domain(bp, registry, interner,
                                           src_node, src_port,
                                           tgt_node, tgt_port,
                                           def.classname);

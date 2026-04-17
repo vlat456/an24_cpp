@@ -39,6 +39,7 @@ static std::string port_type_to_string(PortType t) {
         case PortType::Temperature: return "Temperature";
         case PortType::Pressure: return "Pressure";
         case PortType::Position: return "Position";
+        case PortType::Contextual: return "Contextual";
         case PortType::Any: return "Any";
     }
     return "Unknown";
@@ -46,8 +47,10 @@ static std::string port_type_to_string(PortType t) {
 
 // Check if two port types are compatible for connection
 static bool are_ports_compatible(PortType from_type, PortType to_type) {
-    // Any type is wildcard - compatible with everything
-    if (from_type == PortType::Any || to_type == PortType::Any) {
+    // Any is wildcard; Contextual participates in compatibility without
+    // declaring a concrete type itself.
+    if (from_type == PortType::Any || to_type == PortType::Any
+        || from_type == PortType::Contextual || to_type == PortType::Contextual) {
         return true;
     }
     // Types must match exactly

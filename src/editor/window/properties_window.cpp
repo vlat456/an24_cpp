@@ -30,6 +30,7 @@ static const char* port_type_label(PortType t) {
         case PortType::Temperature: return "Temperature";
         case PortType::Pressure: return "Pressure";
         case PortType::Position: return "Position";
+        case PortType::Contextual: return "Contextual";
         case PortType::Any: return "Any";
     }
     return "Any";
@@ -44,6 +45,7 @@ static const std::vector<PortType>& all_port_types() {
         PortType::Temperature,
         PortType::Pressure,
         PortType::Position,
+        PortType::Contextual,
         PortType::Any,
     };
     return kTypes;

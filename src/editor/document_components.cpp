@@ -26,7 +26,8 @@ PortType parse_exposed_port_type(const std::string& s) {
     if (s == "Temperature") return PortType::Temperature;
     if (s == "Pressure") return PortType::Pressure;
     if (s == "Position") return PortType::Position;
-    return PortType::V;
+    if (s == "Contextual") return PortType::Contextual;
+    return PortType::Contextual;
 }
 
 /// Update the embedded blueprint-instance's inline blueprint interface to include a new bridge port.
@@ -138,7 +139,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         node.semantic.id = interner_.intern(canonical_id);
         unique_id = canonical_id;
 
-        PortType pt = PortType::V;
+        PortType pt = PortType::Contextual;
         auto et_it = node.semantic.string_params.find("exposed_type");
         if (et_it != node.semantic.string_params.end()) {
             pt = parse_exposed_port_type(et_it->second);
@@ -156,7 +157,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
     const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
     const bool bridge_is_input = (classname == "BlueprintInput");
-    PortType bridge_port_type = PortType::V;
+    PortType bridge_port_type = PortType::Contextual;
     if (bridge_in_group) {
         auto et_it = node.semantic.string_params.find("exposed_type");
         if (et_it != node.semantic.string_params.end()) {

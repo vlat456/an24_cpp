@@ -124,16 +124,16 @@ static TypeRegistry make_canvas_input_test_registry() {
         TypeDefinition def;
         def.classname = "BlueprintInput";
         def.cpp_class = true;
-        def.ports.emplace("ext", Port(PortDirection::In, PortType::Any, Domain::Electrical, false));
-        def.ports.emplace("port", Port(PortDirection::Out, PortType::Any, Domain::Electrical, false));
+        def.ports.emplace("ext", Port(PortDirection::In, PortType::Contextual, Domain::Electrical, false));
+        def.ports.emplace("port", Port(PortDirection::Out, PortType::Contextual, Domain::Electrical, false));
         reg.types[def.classname] = std::move(def);
     }
     {
         TypeDefinition def;
         def.classname = "BlueprintOutput";
         def.cpp_class = true;
-        def.ports.emplace("ext", Port(PortDirection::Out, PortType::Any, Domain::Electrical, false));
-        def.ports.emplace("port", Port(PortDirection::In, PortType::Any, Domain::Electrical, false));
+        def.ports.emplace("ext", Port(PortDirection::Out, PortType::Contextual, Domain::Electrical, false));
+        def.ports.emplace("port", Port(PortDirection::In, PortType::Contextual, Domain::Electrical, false));
         reg.types[def.classname] = std::move(def);
     }
 

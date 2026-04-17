@@ -27,6 +27,7 @@ inline PortDescriptor port_descriptor_from_type_port(ui::InternedId name, const 
     pd.domain = port.domain;
     pd.direction = direction_from_port_direction(port.direction);
     pd.port_type = port.type;
+    pd.source_writer = port.source_writer;
     return pd;
 }
 
@@ -35,7 +36,11 @@ inline Interface interface_from_type_definition(const TypeDefinition& def,
     std::vector<PortDescriptor> iface_ports;
     iface_ports.reserve(def.ports.size());
     for (const auto& [name, port] : def.ports) {
-        iface_ports.push_back(port_descriptor_from_type_port(interner.intern(name), port));
+        auto pd = port_descriptor_from_type_port(interner.intern(name), port);
+        if (port.alias.has_value() && !port.alias->empty()) {
+            pd.alias = interner.intern(*port.alias);
+        }
+        iface_ports.push_back(std::move(pd));
     }
     return Interface(std::move(iface_ports));
 }

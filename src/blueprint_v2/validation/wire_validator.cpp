@@ -1,6 +1,6 @@
 #include "wire_validator.h"
 
-#include "blueprint_v2/interface/port_compatibility.h"
+#include "blueprint_v2/validation/signal_typing.h"
 #include "core/domain_string.h"
 
 namespace bp2 {
@@ -26,17 +26,34 @@ WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
         return out;
     }
 
-    // Domain compatibility: PortType::Any is a wildcard that crosses domains.
-    auto resolved = resolve_port_domain(src->port, tgt->port);
-    if (!resolved.compatible()) {
-        out.error = "wire endpoint domain mismatch";
+    if (!port_types_compatible(src->port, tgt->port)) {
+        out.error = "wire endpoint type mismatch";
         return out;
     }
-    out.resolved_domain = *resolved.domain;
 
-    if (wire.domain != *resolved.domain) {
+    auto resolved = resolve_signal_typing(bp, &parser_registry, interner, wire.source, wire.target);
+    if (!resolved.resolved.has_value()) {
+        switch (resolved.error) {
+            case SignalTypingError::ConflictingConcreteDomains:
+                out.error = "wire endpoint domain mismatch";
+                break;
+            case SignalTypingError::ConflictingConcreteTypes:
+                out.error = "wire endpoint type mismatch";
+                break;
+            case SignalTypingError::UnresolvedContextualSignal:
+                out.error = "wire signal typing unresolved";
+                break;
+            default:
+                out.error = "wire signal typing failed";
+                break;
+        }
+        return out;
+    }
+    out.resolved_domain = resolved.resolved->domain;
+
+    if (wire.domain != resolved.resolved->domain) {
         out.error = "wire domain mismatch: declared as " + domain_to_string(wire.domain)
-                  + " but endpoints are " + domain_to_string(*resolved.domain);
+                  + " but endpoints are " + domain_to_string(resolved.resolved->domain);
         return out;
     }
 

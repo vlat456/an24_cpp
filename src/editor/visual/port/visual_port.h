@@ -67,6 +67,7 @@ public:
     /// Check if port types are compatible (Any is wildcard)
     static bool areTypesCompatible(PortType a, PortType b) {
         if (a == PortType::Any || b == PortType::Any) return true;
+        if (a == PortType::Contextual || b == PortType::Contextual) return true;
         return a == b;
     }
 

@@ -114,3 +114,60 @@ TEST(TypeDefToBlueprint, WireDomainMatchesResolvedEndpointInterface) {
     ASSERT_EQ(bp.wires().size(), 1u);
     EXPECT_EQ(bp.wires().front().domain, Domain::Electrical);
 }
+
+TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
+    ui::StringInterner interner;
+    TypeRegistry registry = make_registry();
+
+    TypeDefinition bridge_in;
+    bridge_in.classname = "BlueprintInput";
+    bridge_in.cpp_class = true;
+    Port ext;
+    ext.direction = PortDirection::In;
+    ext.type = PortType::Contextual;
+    ext.domain = Domain::Electrical;
+    bridge_in.ports["ext"] = ext;
+    Port port;
+    port.direction = PortDirection::Out;
+    port.type = PortType::Contextual;
+    port.domain = Domain::Electrical;
+    bridge_in.ports["port"] = port;
+    registry.types["BlueprintInput"] = bridge_in;
+
+    TypeDefinition sink;
+    sink.classname = "BoolSink";
+    sink.cpp_class = true;
+    Port sink_in;
+    sink_in.direction = PortDirection::In;
+    sink_in.type = PortType::Bool;
+    sink_in.domain = Domain::Logical;
+    sink.ports["in"] = sink_in;
+    registry.types["BoolSink"] = sink;
+
+    TypeDefinition def;
+    def.classname = "BadComposite";
+    def.cpp_class = false;
+
+    Port exposed;
+    exposed.direction = PortDirection::In;
+    exposed.type = PortType::Bool;
+    exposed.domain = Domain::Logical;
+    def.ports["other_flag"] = exposed;
+
+    DeviceInstance bridge_dev;
+    bridge_dev.name = "flag";
+    bridge_dev.classname = "BlueprintInput";
+    def.devices.push_back(bridge_dev);
+
+    DeviceInstance sink_dev;
+    sink_dev.name = "sink";
+    sink_dev.classname = "BoolSink";
+    def.devices.push_back(sink_dev);
+
+    Connection conn;
+    conn.from = "flag.port";
+    conn.to = "sink.in";
+    def.connections.push_back(conn);
+
+    EXPECT_THROW(bp2::blueprint_from_type_definition(def, interner, registry), std::runtime_error);
+}

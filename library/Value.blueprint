@@ -10,7 +10,7 @@
       "name": "o",
       "domain": 2,
       "direction": 1,
-      "type": "Any",
+      "type": "Contextual",
       "source_writer": false
     }
   ],

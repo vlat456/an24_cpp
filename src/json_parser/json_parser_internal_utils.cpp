@@ -84,6 +84,7 @@ PortType parse_port_type_string(const std::string& s) {
     if (s == "Temperature") return PortType::Temperature;
     if (s == "Pressure") return PortType::Pressure;
     if (s == "Position") return PortType::Position;
+    if (s == "Contextual") return PortType::Contextual;
     if (s == "Any") return PortType::Any;
     throw std::runtime_error("Unknown port type: " + s);
 }

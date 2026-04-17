@@ -6,6 +6,7 @@
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/interface/port_compatibility.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
+#include "blueprint_v2/validation/signal_typing.h"
 #include "blueprint_v2/validation/path_resolver.h"
 #include "blueprint_v2/validation/wire_validator.h"
 #include "blueprint_v2/validation/invariant_checker.h"
@@ -213,6 +214,318 @@ TEST(WireValidator, AnyToAnyUsesSharedLegacyResolutionRule) {
     auto r = WireValidator::validate(w, bp, reg, I);
     EXPECT_TRUE(r.valid) << r.error;
     EXPECT_EQ(r.resolved_domain, Domain::Electrical);
+}
+
+TEST(WireValidator, ContextualBindsToConcreteAnchor) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition value;
+    value.classname = "Value";
+    value.cpp_class = true;
+    value.ports["o"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    reg.types["Value"] = std::move(value);
+
+    TypeDefinition sink;
+    sink.classname = "BoolSink";
+    sink.cpp_class = true;
+    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    reg.types["BoolSink"] = std::move(sink);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "value", "Value"));
+    bp = bp.with_node(make_node(I, "sink", "BoolSink"));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w_ctx_bool");
+    w.source = bp2::WireEndpoint{I.intern("value"), I.intern("o")};
+    w.target = bp2::WireEndpoint{I.intern("sink"), I.intern("in")};
+    w.domain = Domain::Logical;
+
+    auto r = WireValidator::validate(w, bp, reg, I);
+    EXPECT_TRUE(r.valid) << r.error;
+    EXPECT_EQ(r.resolved_domain, Domain::Logical);
+}
+
+TEST(WireValidator, ContextualOnlySignalFailsExplicitly) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition lhs;
+    lhs.classname = "CtxOut";
+    lhs.cpp_class = true;
+    lhs.ports["out"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    reg.types["CtxOut"] = std::move(lhs);
+
+    TypeDefinition rhs;
+    rhs.classname = "CtxIn";
+    rhs.cpp_class = true;
+    rhs.ports["in"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
+    reg.types["CtxIn"] = std::move(rhs);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "a", "CtxOut"));
+    bp = bp.with_node(make_node(I, "b", "CtxIn"));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w_ctx_ctx");
+    w.source = bp2::WireEndpoint{I.intern("a"), I.intern("out")};
+    w.target = bp2::WireEndpoint{I.intern("b"), I.intern("in")};
+    w.domain = Domain::Electrical;
+
+    auto r = WireValidator::validate(w, bp, reg, I);
+    EXPECT_FALSE(r.valid);
+    EXPECT_EQ(r.error, "wire signal typing unresolved");
+}
+
+TEST(WireValidator, ContextualBridgeBindsToExposedRootPort) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition bridge_in;
+    bridge_in.classname = "BlueprintInput";
+    bridge_in.cpp_class = true;
+    bridge_in.ports["ext"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
+    bridge_in.ports["port"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    reg.types["BlueprintInput"] = std::move(bridge_in);
+
+    TypeDefinition sink;
+    sink.classname = "BoolSink";
+    sink.cpp_class = true;
+    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    reg.types["BoolSink"] = std::move(sink);
+
+    bp2::Blueprint bp;
+    bp = bp.with_interface(Interface({
+        {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
+    }));
+
+    bp2::Blueprint::Node bridge = make_node(I, "flag", "BlueprintInput");
+    bridge.semantic.iface = bp2::Interface({
+        {I.intern("ext"), Domain::Electrical, Direction::Input, PortType::Contextual},
+        {I.intern("port"), Domain::Electrical, Direction::Output, PortType::Contextual},
+    });
+    bp = bp.with_node(std::move(bridge));
+    bp = bp.with_node(make_node(I, "sink", "BoolSink"));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w_bridge_bool");
+    w.source = bp2::WireEndpoint{I.intern("flag"), I.intern("port")};
+    w.target = bp2::WireEndpoint{I.intern("sink"), I.intern("in")};
+    w.domain = Domain::Logical;
+
+    auto r = WireValidator::validate(w, bp, reg, I);
+    EXPECT_TRUE(r.valid) << r.error;
+    EXPECT_EQ(r.resolved_domain, Domain::Logical);
+}
+
+TEST(WireValidator, ContextualAliasGroupBindsTransitivelyToConcreteAnchor) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition splitter;
+    splitter.classname = "CtxSplitter";
+    splitter.cpp_class = true;
+    splitter.ports["i"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
+    splitter.ports["o1"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false, std::string("i")};
+    splitter.ports["o2"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false, std::string("i")};
+    reg.types["CtxSplitter"] = std::move(splitter);
+
+    TypeDefinition sink;
+    sink.classname = "BoolSink";
+    sink.cpp_class = true;
+    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    reg.types["BoolSink"] = std::move(sink);
+
+    TypeDefinition value;
+    value.classname = "Value";
+    value.cpp_class = true;
+    value.ports["o"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    reg.types["Value"] = std::move(value);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "value", "Value"));
+    bp = bp.with_node(make_node(I, "split", "CtxSplitter"));
+    bp = bp.with_node(make_node(I, "sink", "BoolSink"));
+
+    bp2::Blueprint::Wire w1;
+    w1.id = I.intern("w_ctx_alias_1");
+    w1.source = bp2::WireEndpoint{I.intern("value"), I.intern("o")};
+    w1.target = bp2::WireEndpoint{I.intern("split"), I.intern("i")};
+    w1.domain = Domain::Logical;
+    bp = bp.with_wire(std::move(w1));
+
+    bp2::Blueprint::Wire w2;
+    w2.id = I.intern("w_ctx_alias_2");
+    w2.source = bp2::WireEndpoint{I.intern("split"), I.intern("o2")};
+    w2.target = bp2::WireEndpoint{I.intern("sink"), I.intern("in")};
+    w2.domain = Domain::Logical;
+
+    auto r = WireValidator::validate(w2, bp, reg, I);
+    EXPECT_TRUE(r.valid) << r.error;
+    EXPECT_EQ(r.resolved_domain, Domain::Logical);
+}
+
+TEST(WireValidator, ContextualAndAnyWithoutConcreteAnchorFailsExplicitly) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition src;
+    src.classname = "CtxOut";
+    src.cpp_class = true;
+    src.ports["out"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    reg.types["CtxOut"] = std::move(src);
+
+    TypeDefinition dst;
+    dst.classname = "AnyIn";
+    dst.cpp_class = true;
+    dst.ports["in"] = Port{PortDirection::In, PortType::Any, Domain::Logical, false};
+    reg.types["AnyIn"] = std::move(dst);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "ctx", "CtxOut"));
+    bp = bp.with_node(make_node(I, "any", "AnyIn"));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w_ctx_any");
+    w.source = bp2::WireEndpoint{I.intern("ctx"), I.intern("out")};
+    w.target = bp2::WireEndpoint{I.intern("any"), I.intern("in")};
+    w.domain = Domain::Electrical;
+
+    auto r = WireValidator::validate(w, bp, reg, I);
+    EXPECT_FALSE(r.valid);
+    EXPECT_EQ(r.error, "wire signal typing unresolved");
+}
+
+TEST(WireValidator, BridgeWithoutMatchingExposedRootPortFailsExplicitly) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition bridge_in;
+    bridge_in.classname = "BlueprintInput";
+    bridge_in.cpp_class = true;
+    bridge_in.ports["ext"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
+    bridge_in.ports["port"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    reg.types["BlueprintInput"] = std::move(bridge_in);
+
+    TypeDefinition sink;
+    sink.classname = "BoolSink";
+    sink.cpp_class = true;
+    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    reg.types["BoolSink"] = std::move(sink);
+
+    bp2::Blueprint bp;
+    bp = bp.with_interface(Interface({
+        {I.intern("other_flag"), Domain::Logical, Direction::Input, PortType::Bool},
+    }));
+
+    bp2::Blueprint::Node bridge = make_node(I, "flag", "BlueprintInput");
+    bridge.semantic.iface = bp2::Interface({
+        {I.intern("ext"), Domain::Electrical, Direction::Input, PortType::Contextual},
+        {I.intern("port"), Domain::Electrical, Direction::Output, PortType::Contextual},
+    });
+    bp = bp.with_node(std::move(bridge));
+    bp = bp.with_node(make_node(I, "sink", "BoolSink"));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w_bad_bridge");
+    w.source = bp2::WireEndpoint{I.intern("flag"), I.intern("port")};
+    w.target = bp2::WireEndpoint{I.intern("sink"), I.intern("in")};
+    w.domain = Domain::Logical;
+
+    auto r = WireValidator::validate(w, bp, reg, I);
+    EXPECT_FALSE(r.valid);
+    EXPECT_EQ(r.error, "wire signal typing unresolved");
+}
+
+TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor) {
+    ui::StringInterner I;
+    TypeRegistry reg = make_validation_registry();
+
+    TypeDefinition bridge_in;
+    bridge_in.classname = "BlueprintInput";
+    bridge_in.cpp_class = true;
+    bridge_in.ports["ext"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
+    bridge_in.ports["port"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    reg.types["BlueprintInput"] = std::move(bridge_in);
+
+    TypeDefinition sink;
+    sink.classname = "BoolSink";
+    sink.cpp_class = true;
+    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    reg.types["BoolSink"] = std::move(sink);
+
+    bp2::Blueprint leaf;
+    leaf = leaf.with_id(I.intern("LeafType"));
+    leaf = leaf.with_name("LeafType");
+    leaf = leaf.with_interface(Interface({
+        {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
+    }));
+
+    bp2::Blueprint::Node leaf_bridge = make_node(I, "flag", "BlueprintInput");
+    leaf_bridge.semantic.iface = bp2::Interface({
+        {I.intern("ext"), Domain::Electrical, Direction::Input, PortType::Contextual},
+        {I.intern("port"), Domain::Electrical, Direction::Output, PortType::Contextual},
+    });
+    leaf = leaf.with_node(std::move(leaf_bridge));
+    leaf = leaf.with_node(make_node(I, "sink", "BoolSink"));
+
+    bp2::Blueprint::Wire leaf_wire;
+    leaf_wire.id = I.intern("leaf_wire");
+    leaf_wire.source = bp2::WireEndpoint{I.intern("flag"), I.intern("port")};
+    leaf_wire.target = bp2::WireEndpoint{I.intern("sink"), I.intern("in")};
+    leaf_wire.domain = Domain::Logical;
+    leaf = leaf.with_wire(std::move(leaf_wire));
+
+    bp2::Blueprint mid;
+    mid = mid.with_id(I.intern("MidType"));
+    mid = mid.with_name("MidType");
+    mid = mid.with_interface(Interface({
+        {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
+    }));
+
+    bp2::Blueprint::Node mid_bridge = make_node(I, "flag", "BlueprintInput");
+    mid_bridge.semantic.iface = bp2::Interface({
+        {I.intern("ext"), Domain::Electrical, Direction::Input, PortType::Contextual},
+        {I.intern("port"), Domain::Electrical, Direction::Output, PortType::Contextual},
+    });
+    mid = mid.with_node(std::move(mid_bridge));
+
+    bp2::Blueprint::Node leaf_inst;
+    leaf_inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    leaf_inst.semantic.id = I.intern("leaf");
+    leaf_inst.semantic.type = I.intern("LeafType");
+    leaf_inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("LeafType"),
+        std::make_unique<bp2::Blueprint>(leaf));
+    mid = mid.with_node(std::move(leaf_inst));
+
+    bp2::Blueprint::Wire mid_wire;
+    mid_wire.id = I.intern("mid_wire");
+    mid_wire.source = bp2::WireEndpoint{I.intern("flag"), I.intern("port")};
+    mid_wire.target = bp2::WireEndpoint{I.intern("leaf"), I.intern("flag")};
+    mid_wire.domain = Domain::Logical;
+    mid = mid.with_wire(std::move(mid_wire));
+
+    auto mid_resolved = bp2::resolve_signal_typing(
+        mid,
+        &reg,
+        I,
+        bp2::WireEndpoint{I.intern("flag"), I.intern("port")},
+        bp2::WireEndpoint{I.intern("leaf"), I.intern("flag")});
+    ASSERT_TRUE(mid_resolved.resolved.has_value());
+    EXPECT_EQ(mid_resolved.resolved->domain, Domain::Logical);
+    EXPECT_EQ(mid_resolved.resolved->port_type, PortType::Bool);
+
+    auto leaf_resolved = bp2::resolve_signal_typing(
+        leaf,
+        &reg,
+        I,
+        bp2::WireEndpoint{I.intern("flag"), I.intern("port")},
+        bp2::WireEndpoint{I.intern("sink"), I.intern("in")});
+    ASSERT_TRUE(leaf_resolved.resolved.has_value());
+    EXPECT_EQ(leaf_resolved.resolved->domain, Domain::Logical);
+    EXPECT_EQ(leaf_resolved.resolved->port_type, PortType::Bool);
 }
 
 TEST(WireValidator, InvalidPathFails) {

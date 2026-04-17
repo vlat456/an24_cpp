@@ -17,6 +17,7 @@ add_library(blueprint_v2 STATIC
     elaboration/sim_export.cpp
     editor_model/editor_model.cpp
     validation/path_resolver.cpp
+    validation/signal_typing.cpp
     validation/wire_validator.cpp
     validation/invariant_checker.cpp
     diagnostics/repair.cpp

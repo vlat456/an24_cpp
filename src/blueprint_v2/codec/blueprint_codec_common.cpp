@@ -85,6 +85,7 @@ static constexpr PortTypeEntry port_type_table[] = {
     {PortType::Temperature, "Temperature"},
     {PortType::Pressure,    "Pressure"},
     {PortType::Position,    "Position"},
+    {PortType::Contextual,  "Contextual"},
     {PortType::Any,         "Any"},
 };
 

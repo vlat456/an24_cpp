@@ -15,6 +15,7 @@ std::string encode_port_type(PortType type) {
         case PortType::Temperature: return "Temperature";
         case PortType::Pressure: return "Pressure";
         case PortType::Position: return "Position";
+        case PortType::Contextual: return "Contextual";
         case PortType::Any: return "Any";
     }
     return "Any";

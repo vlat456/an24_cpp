@@ -11,7 +11,7 @@
 #include "commands/commands.h"
 #include "canvas_input_internal.h"
 #include "editor/common/port_type_utils.h"
-#include "blueprint_v2/interface/port_compatibility.h"
+#include "blueprint_v2/validation/signal_typing.h"
 #include "blueprint_v2/validation/wire_validator.h"
 #include <algorithm>
 
@@ -20,27 +20,18 @@ using namespace canvas_input_impl;
 namespace {
 
 Domain resolve_wire_domain_without_registry(const bp2::Blueprint& bp,
+                                            ui::StringInterner& interner,
                                             ui::InternedId start_node,
                                             ui::InternedId start_port,
                                             ui::InternedId end_node,
                                             ui::InternedId end_port) {
-    auto lookup_port = [&](ui::InternedId node_id, ui::InternedId port_id) -> std::optional<bp2::PortDescriptor> {
-        const bp2::Blueprint::Node* node = bp.find_node(node_id);
-        if (!node) return std::nullopt;
-        for (const auto& p : bp.effective_node_iface(*node).ports()) {
-            if (p.name == port_id) return p;
-        }
-        return std::nullopt;
-    };
-
-    const auto src = lookup_port(start_node, start_port);
-    const auto tgt = lookup_port(end_node, end_port);
-    if (!src || !tgt) {
-        return Domain::Electrical;
-    }
-
-    const auto resolved = bp2::resolve_port_domain(*src, *tgt);
-    return resolved.domain.value_or(Domain::Electrical);
+    const auto resolved = bp2::resolve_signal_typing(
+        bp,
+        nullptr,
+        interner,
+        bp2::WireEndpoint{start_node, start_port},
+        bp2::WireEndpoint{end_node, end_port});
+    return resolved.resolved.has_value() ? resolved.resolved->domain : Domain::Electrical;
 }
 
 Domain resolve_wire_domain_from_endpoints(const bp2::Blueprint& bp,
@@ -55,7 +46,7 @@ Domain resolve_wire_domain_from_endpoints(const bp2::Blueprint& bp,
     probe.target = bp2::WireEndpoint{end_node, end_port};
 
     if (!parser_registry) {
-        return resolve_wire_domain_without_registry(bp, start_node, start_port, end_node, end_port);
+        return resolve_wire_domain_without_registry(bp, interner, start_node, start_port, end_node, end_port);
     }
 
     const auto result = bp2::WireValidator::validate(probe, bp, *parser_registry, interner);
