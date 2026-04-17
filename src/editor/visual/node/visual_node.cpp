@@ -257,7 +257,7 @@ editor::presentation::RailEntryMetrics measure_rail_label(std::string_view text,
     editor::presentation::RailEntryMetrics metrics;
     metrics.label_text = text;
     metrics.label_width = dl ? dl->calc_text_size(std::string(text).c_str(), PortConstants::LABEL_FONT_SIZE).x
-                             : fallback_text_width(text, PortConstants::LABEL_FONT_SIZE);
+                             : 0.0f;
     metrics.label_height = PortConstants::LABEL_FONT_SIZE;
     return metrics;
 }
@@ -485,8 +485,8 @@ editor::presentation::NodeShellLayoutSpec NodeWidget::build_shell_spec(IDrawList
     content_policy.margin_y = CONTENT_MARGIN_Y;
 
     return editor::presentation::compile_node_shell_layout_spec(
-        header_ ? header_->preferredSize(dl).x : 0.0f,
-        footer_ ? footer_->preferredSize(dl).x : 0.0f,
+        (dl && header_) ? header_->preferredSize(dl).x : 0.0f,
+        (dl && footer_) ? footer_->preferredSize(dl).x : 0.0f,
         PortConstants::RADIUS * 2.0f,
         PortConstants::LEFT_LABEL_OFFSET,
         PortConstants::RIGHT_LABEL_OFFSET,

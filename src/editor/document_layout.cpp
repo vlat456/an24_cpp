@@ -27,18 +27,31 @@ bool Document::apply_normalized_node_sizes(bool preserve_manual,
         }
 
         Pt minimum = widget->minimumNodeSize();
-        const float current_width = node.layout.width.value_or(minimum.x);
-        const float current_height = node.layout.height.value_or(minimum.y);
-        const bool width_changed = current_width < minimum.x;
-        const bool height_changed = current_height < minimum.y;
+        Pt target = minimum;
+        bool width_changed = false;
+        bool height_changed = false;
+
+        if (!push_checkpoint) {
+            target = widget->size();
+            const float current_width = node.layout.width.value_or(target.x);
+            const float current_height = node.layout.height.value_or(target.y);
+            width_changed = current_width < target.x;
+            height_changed = current_height < target.y;
+        } else {
+            const float current_width = node.layout.width.value_or(minimum.x);
+            const float current_height = node.layout.height.value_or(minimum.y);
+            width_changed = current_width != minimum.x;
+            height_changed = current_height != minimum.y;
+        }
+
         if (!width_changed && !height_changed) {
             continue;
         }
 
         changed = true;
         bp2::Blueprint::Node resized = node;
-        resized.layout.width = width_changed ? minimum.x : current_width;
-        resized.layout.height = height_changed ? minimum.y : current_height;
+        resized.layout.width = push_checkpoint ? minimum.x : target.x;
+        resized.layout.height = push_checkpoint ? minimum.y : target.y;
         resized.layout.manual_size = false;
         updated = bp2::replace_node_preserve_order(updated, std::move(resized));
     }
