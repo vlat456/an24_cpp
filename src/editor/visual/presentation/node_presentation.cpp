@@ -1,6 +1,7 @@
 #include "editor/visual/presentation/node_presentation.h"
 #include "data/node_content.h"
 #include "json_parser/json_parser.h"
+#include "editor/presentation_spec.h"
 
 #include <algorithm>
 #include <cmath>
@@ -25,26 +26,29 @@ NodeFrameKind classify_frame_kind(std::string_view render_hint) {
 // Canonical frame kind resolution from TypeDefinition
 // ============================================================================
 
-NodeFrameKind resolve_frame_kind(const TypeDefinition* def) {
+NodeFrameKind resolve_frame_kind(const TypeDefinition* def, const TypePresentation* pres) {
     if (!def) return NodeFrameKind::Standard;
-    return classify_frame_kind(def->render_hint);
+    const std::string& hint = pres ? pres->render_hint : "";
+    if (hint.empty()) return NodeFrameKind::Standard;
+    return classify_frame_kind(hint);
 }
 
 // ============================================================================
-// Canonical PresentationSpec from TypeDefinition + semantic params
+// Canonical CompiledPresentationSpec from TypeDefinition + TypePresentation + semantic params
 // ============================================================================
 
-PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
+CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
                                         const TypeDefinition* def,
+                                        const TypePresentation* pres,
                                         ui::StringInterner& interner) {
-    PresentationSpec spec;
+    CompiledPresentationSpec spec;
     spec.node_id = node.semantic.id;
     spec.type_id = node.semantic.type;
-    spec.frame_kind = resolve_frame_kind(def);
+    spec.frame_kind = resolve_frame_kind(def, pres);
     spec.title = node.view.name;  // name is tier-1 canonical, OK to read from view
 
     // Full runtime content: canonical static semantics plus current dynamic state.
-    NodeContent nc = create_runtime_node_content(node, def, interner);
+    NodeContent nc = create_runtime_node_content(node, def, pres, interner);
     spec.content_type = nc.type;
     spec.content_label = nc.label;
     spec.content_min = nc.min;

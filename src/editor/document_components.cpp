@@ -1,6 +1,7 @@
 #include "document.h"
 
 #include "blueprint_view_hydration.h"
+#include "presentation_spec.h"
 #include "commands/commands.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/library/library_index.h"
@@ -121,6 +122,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         spdlog::error("[editor] Component definition not found for '{}'", classname);
         return;
     }
+    const auto* pres = registry.presentation.get(classname);
 
     if (!def->cpp_class && !def->devices.empty()) {
         addBlueprint(classname, world_pos, scope_id, registry);
@@ -195,7 +197,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     // Issue #105/#133: hydrate static semantics + initial dynamic defaults.
-    editor::hydrate_node_view_full(node, def, interner_);
+    editor::hydrate_node_view_full(node, def, pres, interner_);
 
     const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
     const bool bridge_is_input = bridge_side == bp2::Blueprint::Node::BridgePortSide::Input;
@@ -277,6 +279,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         spdlog::error("[editor] '{}' is not a composite blueprint", blueprint_name);
         return;
     }
+    const auto* pres = registry.presentation.get(blueprint_name);
 
     const std::string unique_id = model_.generate_unique_node_id(blueprint_name, interner_);
     const Pt snapped_pos = editor_math::snap_to_grid(world_pos, viewport().grid_step);
@@ -305,7 +308,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     bp2::Interface inline_bp_iface = bp2::Interface(std::move(iface_ports));
 
     // Issue #105/#133: hydrate static semantics + initial dynamic defaults.
-    editor::hydrate_node_view_full(collapsed, def, interner_);
+    editor::hydrate_node_view_full(collapsed, def, pres, interner_);
 
     bp2::Blueprint loaded;
     try {

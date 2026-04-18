@@ -4,6 +4,7 @@
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "editor/blueprint_view_hydration.h"
 #include "editor/visual/presentation/node_presentation.h"
+#include "editor/presentation_spec.h"
 #include "json_parser/json_parser.h"
 #include "parse_number.h"
 
@@ -495,7 +496,7 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
     // Skip for Bus nodes - they have their own port_edge mechanism
     if (type_registry_ && interner_) {
         const std::string type_name(interner_->resolve(node.semantic.type));
-        auto fk = editor::presentation::resolve_frame_kind(type_registry_->get(type_name));
+        auto fk = editor::presentation::resolve_frame_kind(type_registry_->get(type_name), type_registry_->presentation.get(type_name));
         if (fk == editor::presentation::NodeFrameKind::Bus) return;
     }
 
@@ -614,9 +615,11 @@ void PropertiesWindow::apply() {
         bp2::Blueprint::Node updated = *target;
 
         const TypeDefinition* def = nullptr;
+        const TypePresentation* pres = nullptr;
         if (type_registry_) {
             const std::string type_name(interner_->resolve(updated.semantic.type));
             def = type_registry_->get(type_name);
+            pres = type_registry_->presentation.get(type_name);
         }
 
         // Apply all pending params
@@ -643,20 +646,20 @@ void PropertiesWindow::apply() {
         // min, max, unit) — dynamic runtime state (value, state, tripped)
         // is preserved automatically without manual save/restore.
         if (type_registry_) {
-            editor::hydrate_node_view(updated, def, *interner_);
+            editor::hydrate_node_view(updated, def, pres, *interner_);
 
             // Param-driven dynamic defaults remain runtime-owned in general, but
             // when the user explicitly edits the semantic default itself we must
             // reseed the corresponding live field so the rebuilt widget matches
             // the newly requested default immediately.
             if (def != nullptr) {
-                const std::string& content_type = def->content_type;
+                const std::string& content_type = pres ? pres->content_type : "None";
                 if ((content_type == "Switch" || content_type == "VerticalToggle")
                     && float_param_changed(pending_params_, snapshot_params_, "closed")) {
-                    editor::initialize_node_content_defaults(updated, def, *interner_);
+                    editor::initialize_node_content_defaults(updated, def, pres, *interner_);
                 } else if (content_type == "Knob"
                            && float_param_changed(pending_params_, snapshot_params_, "initial_position")) {
-                    editor::initialize_node_content_defaults(updated, def, *interner_);
+                    editor::initialize_node_content_defaults(updated, def, pres, *interner_);
                 }
             }
         }

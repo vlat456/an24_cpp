@@ -2,6 +2,7 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "ui/core/interned_id.h"
+#include "editor/presentation_spec.h"
 #include <cassert>
 #include <string_view>
 #include <unordered_map>
@@ -132,13 +133,13 @@ constexpr GaugeMetrics gauge_metrics() {
 }
 
 // ============================================================================
-// Presentation spec — sole input to the presentation compiler
+// Compiled Presentation spec — sole input to the presentation compiler
 // ============================================================================
 
 /// Self-contained, resolved input for the presentation compiler.
 /// Replaces bp2::Blueprint::Node as the compiler's parameter — no widget-era
 /// hydrated view data leaks into the compiler contract.
-struct PresentationSpec {
+struct CompiledPresentationSpec {
     // Identity
     ui::InternedId node_id;
     ui::InternedId type_id;
@@ -162,16 +163,28 @@ struct PresentationSpec {
     float annotation_font_size = 12.0f;
 };
 
-/// Resolve NodeFrameKind from TypeDefinition (canonical authority).
-/// Falls back to NodeFrameKind::Standard if def is null or render_hint is empty.
-NodeFrameKind resolve_frame_kind(const struct TypeDefinition* def);
+// Backwards compatibility alias for compiled presentation spec
+using PresentationSpec = CompiledPresentationSpec;
 
-/// Build a PresentationSpec from TypeDefinition + semantic data (canonical path).
+// ============================================================================
+// Frame kind classification and resolution
+// ============================================================================
+
+/// Classify render_hint string → NodeFrameKind.
+/// This is the single authority for node visual classification.
+NodeFrameKind classify_frame_kind(std::string_view render_hint);
+
+/// Resolve NodeFrameKind from TypeDefinition + TypePresentation (canonical authority).
+/// Falls back to NodeFrameKind::Standard if both are null or render_hint is empty.
+NodeFrameKind resolve_frame_kind(const TypeDefinition* def, const TypePresentation* pres);
+
+/// Build a CompiledPresentationSpec from TypeDefinition + TypePresentation + semantic data (canonical path).
 /// This is the sole authority — reads from the source of truth, not from
 /// hydrated view mirrors.
-PresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
-                                        const struct TypeDefinition* def,
-                                        ui::StringInterner& interner);
+CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
+                                                const TypeDefinition* def,
+                                                const TypePresentation* pres,
+                                                ui::StringInterner& interner);
 
 // ============================================================================
 // Paint / Hit / Interaction primitives
@@ -226,14 +239,6 @@ struct NodeShellModel {
     std::string annotation_text;    ///< Body text for Annotation frames
     float annotation_font_size = 12.0f;
 };
-
-// ============================================================================
-// Frame kind classification (replaces widget-type dynamic_cast)
-// ============================================================================
-
-/// Classify render_hint string → NodeFrameKind.
-/// This is the single authority for node visual classification.
-NodeFrameKind classify_frame_kind(std::string_view render_hint);
 
 // ============================================================================
 // Content presenter registry

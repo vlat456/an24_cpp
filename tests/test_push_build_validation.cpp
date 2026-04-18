@@ -730,10 +730,8 @@ TEST(PushBuildValidation, TypeDefinitionWithoutExecutionIsAccepted) {
         {"params", nlohmann::json::object()}
     };
 
-    EXPECT_NO_THROW({
-        auto def = parse_type_definition(td);
-        EXPECT_FALSE(def.execution.has_value());
-    });
+    std::pair<TypeDefinition, TypePresentation> result = parse_type_definition(td);
+    EXPECT_FALSE(result.first.execution.has_value());
 }
 
 TEST(PushBuildValidation, MaxSelectsHigherInput) {
@@ -953,7 +951,7 @@ TEST(PushBuildValidation, ParamSchemaVisualOnlyFlag) {
         }
     })");
 
-    TypeDefinition def = parse_type_definition(j);
+    auto [def, pres] = parse_type_definition(j);
 
     ASSERT_TRUE(def.params.count("port_edge") > 0);
     EXPECT_TRUE(def.params.at("port_edge").visual_only);
@@ -1029,7 +1027,7 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
         "ports": {"v_out": {"direction": "Out", "type": "V"}}
     })");
 
-    TypeDefinition def = parse_type_definition(j);
+    auto [def, pres] = parse_type_definition(j);
     EXPECT_TRUE(def.scheduler_source);
 
     // Also verify false case
@@ -1041,7 +1039,7 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
         "ports": {"v_in": {"direction": "In", "type": "V"}}
     })");
 
-    TypeDefinition def2 = parse_type_definition(j2);
+    auto [def2, pres2] = parse_type_definition(j2);
     EXPECT_FALSE(def2.scheduler_source);
 }
 

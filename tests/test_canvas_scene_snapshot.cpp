@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
+#include <cstring>
 #include "json_parser/json_parser.h"
+#include "editor/presentation_spec.h"
 
 #include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "editor/layout_constants.h"
@@ -20,10 +22,14 @@ static TypeRegistry make_snapshot_test_registry() {
                    std::initializer_list<std::pair<std::string,std::string>> params = {}) {
         TypeDefinition def;
         def.classname = name;
-        def.render_hint = hint;
-        def.content_type = ct;
         for (auto& [k, v] : params) def.params[k] = ParamSpec{ParamSchemaType::String, v};
         reg.types[def.classname] = std::move(def);
+        if (hint && hint[0]) {
+            reg.presentation.specs[name].render_hint = hint;
+        }
+        if (ct && ct[0] && strcmp(ct, "None") != 0) {
+            reg.presentation.specs[name].content_type = ct;
+        }
     };
     add("Battery");
     add("Lamp");

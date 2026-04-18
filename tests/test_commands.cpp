@@ -57,7 +57,6 @@ static TypeRegistry make_command_test_registry() {
     for (const auto& type_name : synthetic_types) {
         TypeDefinition def;
         def.classname = type_name;
-        def.description = "command test synthetic type";
         def.cpp_class = true;
         for (const auto& port_name : synthetic_ports) {
             Port p;
@@ -68,6 +67,7 @@ static TypeRegistry make_command_test_registry() {
             def.ports.emplace(port_name, std::move(p));
         }
         reg.types[type_name] = std::move(def);
+        reg.presentation.specs[type_name].description = "command test synthetic type";
     }
 
     return reg;

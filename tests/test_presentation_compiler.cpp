@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "editor/presentation_spec.h"
 #include "editor/visual/presentation/node_presentation.h"
 #include "editor/visual/presentation/node_slot_layout.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
@@ -1811,14 +1812,16 @@ TEST(Issue133_SingleAuthority, ToggleUsesDynamicStateFromView) {
 // ============================================================================
 
 TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
-    // Test the canonical make_presentation_spec(node, def, interner) path.
-    // TypeDefinition with content_type "Slider" and render_hint "ref".
+    // Test the canonical make_presentation_spec(node, def, pres, interner) path.
+    // TypeDefinition with content_type "Slider" and render_hint moved to TypePresentation.
     ui::StringInterner interner;
     TypeDefinition def;
-    def.render_hint = "ref";
-    def.content_type = "Slider";
     def.params["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
     def.params["max"] = ParamSpec{ParamSchemaType::Float, "50"};
+
+    TypePresentation pres;
+    pres.render_hint = "ref";
+    pres.content_type = "Slider";
 
     bp2::Blueprint::Node node;
     node.semantic.id = ui::InternedId(3000);
@@ -1828,7 +1831,7 @@ TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
     node.view.content_state = true;
     node.view.content_tripped = true;
 
-    PresentationSpec spec = make_presentation_spec(node, &def, interner);
+    CompiledPresentationSpec spec = make_presentation_spec(node, &def, &pres, interner);
 
     EXPECT_EQ(spec.node_id, ui::InternedId(3000));
     EXPECT_EQ(spec.title, "TestNode");
@@ -1844,7 +1847,9 @@ TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
 TEST(PresentationSpec, CanonicalMakeFromDefExtractsAnnotationParams) {
     ui::StringInterner interner;
     TypeDefinition def;
-    def.render_hint = "text";
+
+    TypePresentation pres;
+    pres.render_hint = "text";
 
     bp2::Blueprint::Node node;
     node.semantic.id = ui::InternedId(3010);
@@ -1853,7 +1858,7 @@ TEST(PresentationSpec, CanonicalMakeFromDefExtractsAnnotationParams) {
     node.semantic.string_params["text"] = "Hello world";
     node.semantic.string_params["font_size"] = "18.5";
 
-    PresentationSpec spec = make_presentation_spec(node, &def, interner);
+    CompiledPresentationSpec spec = make_presentation_spec(node, &def, &pres, interner);
 
     EXPECT_EQ(spec.frame_kind, NodeFrameKind::Annotation);
     EXPECT_EQ(spec.annotation_text, "Hello world");
@@ -1868,7 +1873,7 @@ TEST(PresentationSpec, CanonicalMakeWithNullDefFallsBackToStandard) {
     node.semantic.type = interner.intern("Unknown");
     node.view.name = "Fallback";
 
-    PresentationSpec spec = make_presentation_spec(node, nullptr, interner);
+    CompiledPresentationSpec spec = make_presentation_spec(node, nullptr, nullptr, interner);
 
     EXPECT_EQ(spec.frame_kind, NodeFrameKind::Standard);
     EXPECT_EQ(spec.content_type, bp2::NodeContentType::None);
@@ -1877,7 +1882,9 @@ TEST(PresentationSpec, CanonicalMakeWithNullDefFallsBackToStandard) {
 TEST(PresentationSpec, CanonicalMakeAnnotationFontSizeEdgeCases) {
     ui::StringInterner interner;
     TypeDefinition def;
-    def.render_hint = "text";
+
+    TypePresentation pres;
+    pres.render_hint = "text";
 
     // Invalid font_size string
     {
@@ -1886,7 +1893,7 @@ TEST(PresentationSpec, CanonicalMakeAnnotationFontSizeEdgeCases) {
         node.semantic.type = interner.intern("Annotation");
         node.view.name = "Note";
         node.semantic.string_params["font_size"] = "not_a_number";
-        PresentationSpec spec = make_presentation_spec(node, &def, interner);
+        CompiledPresentationSpec spec = make_presentation_spec(node, &def, &pres, interner);
         EXPECT_FLOAT_EQ(spec.annotation_font_size, 12.0f);
     }
     // Negative font_size
@@ -1896,7 +1903,7 @@ TEST(PresentationSpec, CanonicalMakeAnnotationFontSizeEdgeCases) {
         node.semantic.type = interner.intern("Annotation");
         node.view.name = "Note";
         node.semantic.string_params["font_size"] = "-5.0";
-        PresentationSpec spec = make_presentation_spec(node, &def, interner);
+        CompiledPresentationSpec spec = make_presentation_spec(node, &def, &pres, interner);
         EXPECT_FLOAT_EQ(spec.annotation_font_size, 12.0f);
     }
     // Zero font_size
@@ -1906,7 +1913,7 @@ TEST(PresentationSpec, CanonicalMakeAnnotationFontSizeEdgeCases) {
         node.semantic.type = interner.intern("Annotation");
         node.view.name = "Note";
         node.semantic.string_params["font_size"] = "0";
-        PresentationSpec spec = make_presentation_spec(node, &def, interner);
+        CompiledPresentationSpec spec = make_presentation_spec(node, &def, &pres, interner);
         EXPECT_FLOAT_EQ(spec.annotation_font_size, 12.0f);
     }
     // Empty font_size
@@ -1916,7 +1923,7 @@ TEST(PresentationSpec, CanonicalMakeAnnotationFontSizeEdgeCases) {
         node.semantic.type = interner.intern("Annotation");
         node.view.name = "Note";
         node.semantic.string_params["font_size"] = "";
-        PresentationSpec spec = make_presentation_spec(node, &def, interner);
+        CompiledPresentationSpec spec = make_presentation_spec(node, &def, &pres, interner);
         EXPECT_FLOAT_EQ(spec.annotation_font_size, 12.0f);
     }
 }

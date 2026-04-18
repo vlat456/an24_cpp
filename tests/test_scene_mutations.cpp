@@ -33,8 +33,10 @@ static TypeRegistry make_scene_test_registry() {
     auto add = [&](const char* name, const char* hint = "") {
         TypeDefinition def;
         def.classname = name;
-        def.render_hint = hint;
         reg.types[def.classname] = std::move(def);
+        if (hint && hint[0]) {
+            reg.presentation.specs[name].render_hint = hint;
+        }
     };
     add("Battery");
     add("Lamp");
@@ -831,7 +833,7 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     bp2::PathArena arena(interner);
 
     TypeRegistry reg = scene_reg();
-    reg.types["Slider"].content_type = "Slider";
+    reg.presentation.specs["Slider"].content_type = "Slider";
     reg.types["Slider"].params["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
     reg.types["Slider"].params["max"] = ParamSpec{ParamSchemaType::Float, "200"};
 
@@ -851,7 +853,7 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     set_iface(sw, {
         make_port(interner, "state", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
-    reg.types["Switch"].content_type = "Switch";
+    reg.presentation.specs["Switch"].content_type = "Switch";
     reg.types["Switch"].params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
 
     bp2::Blueprint bp;

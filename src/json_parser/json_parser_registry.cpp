@@ -21,17 +21,18 @@ bp2::Direction bridge_side_from_string(const std::string& side) {
     throw std::runtime_error("Invalid bridge side '" + side + "'");
 }
 
-TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesystem::path& path) {
+std::pair<TypeDefinition, TypePresentation> parse_blueprint_type_definition(const json& j, const std::filesystem::path& path) {
     TypeDefinition def;
+    TypePresentation pres;
     if (!j.contains("id") || !j["id"].is_string() || j["id"].get<std::string>().empty()) {
         throw std::runtime_error("Missing required non-empty 'id' in '" + path.string() + "'");
     }
     def.classname = j["id"].get<std::string>();
 
     if (j.contains("display_name") && j["display_name"].is_string()) {
-        def.description = j["display_name"].get<std::string>();
+        pres.description = j["display_name"].get<std::string>();
     } else if (j.contains("description") && j["description"].is_string()) {
-        def.description = j["description"].get<std::string>();
+        pres.description = j["description"].get<std::string>();
     }
 
     if (!j.contains("cpp_class") || !j["cpp_class"].is_boolean()) {
@@ -46,10 +47,10 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
         def.critical = j["critical"].get<bool>();
     }
     if (j.contains("content_type") && j["content_type"].is_string()) {
-        def.content_type = j["content_type"].get<std::string>();
+        pres.content_type = j["content_type"].get<std::string>();
     }
     if (j.contains("render_hint") && j["render_hint"].is_string()) {
-        def.render_hint = j["render_hint"].get<std::string>();
+        pres.render_hint = j["render_hint"].get<std::string>();
     }
     if (j.contains("visual_only") && j["visual_only"].is_boolean()) {
         def.visual_only = j["visual_only"].get<bool>();
@@ -264,7 +265,7 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
         }
     }
 
-    return def;
+    return {def, pres};
 }
 
 } // namespace
@@ -310,7 +311,7 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                 throw std::runtime_error("Invalid or unsupported 'version' in '" + entry.path().string() + "'");
             }
 
-            TypeDefinition def = parse_blueprint_type_definition(j, entry.path());
+            auto [def, pres] = parse_blueprint_type_definition(j, entry.path());
 
             if (registry.has(def.classname)) {
                 throw std::runtime_error("Duplicate classname '" + def.classname + "' in '" + entry.path().string() + "'");
@@ -321,6 +322,7 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
             if (category == ".") category = "";
 
             registry.types[def.classname] = def;
+            registry.presentation.specs[def.classname] = pres;
             if (!category.empty()) {
                 registry.categories[def.classname] = category;
             }

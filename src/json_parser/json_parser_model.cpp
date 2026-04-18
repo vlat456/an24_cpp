@@ -25,9 +25,9 @@ MenuTree TypeRegistry::build_menu_tree() const {
         }
 
         node->entries.push_back(classname);
-        auto it = types.find(classname);
-        if (it != types.end() && !it->second.description.empty()) {
-            node->labels[classname] = it->second.description;
+        const auto* pres = presentation.get(classname);
+        if (pres && !pres->description.empty()) {
+            node->labels[classname] = pres->description;
         } else {
             node->labels[classname] = classname;
         }

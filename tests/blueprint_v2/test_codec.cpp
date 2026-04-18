@@ -11,6 +11,7 @@
 #include "blueprint_v2/validation/wire_validator.h"
 #include "editor/blueprint_view_hydration.h"
 #include "editor/data/node_content.h"
+#include "editor/presentation_spec.h"
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -789,7 +790,7 @@ TEST(BlueprintCodec, DecodeDoesNotHydrateRuntimeViewFields) {
     TypeRegistry reg = make_test_registry();
     register_type(reg, interner, "Slider");
     register_type(reg, interner, "Value");
-    reg.types["Value"].render_hint = "ref";
+    reg.presentation.specs["Value"].render_hint = "ref";
 
     const std::string json = R"({
         "format": "blueprint",
@@ -832,7 +833,7 @@ TEST(BlueprintCodec, ExplicitHydrationPopulatesRuntimeViewFieldsRecursively) {
     ui::StringInterner interner;
     TypeRegistry reg = make_test_registry();
     register_type(reg, interner, "Slider");
-    reg.types["Slider"].content_type = "Slider";
+    reg.presentation.specs["Slider"].content_type = "Slider";
     reg.types["Slider"].params["min"] = ParamSpec{ParamSchemaType::Float, "0.0"};
     reg.types["Slider"].params["max"] = ParamSpec{ParamSchemaType::Float, "1.0"};
 
@@ -1368,10 +1369,10 @@ TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
     // Register a Knob type with default positions=2
     TypeDefinition knob_def;
     knob_def.classname = "Knob";
-    knob_def.content_type = "Knob";
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "2"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
     reg.types["Knob"] = knob_def;
+    reg.presentation.specs["Knob"].content_type = "Knob";
 
     // Create a node instance with positions=5 (override)
     bp2::Blueprint::Node knob_node;
@@ -1381,7 +1382,7 @@ TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
     knob_node.semantic.params[interner.intern("initial_position")] = 2.0f;
 
     // Hydrate static semantics
-    editor::hydrate_node_view(knob_node, reg.get("Knob"), interner);
+    editor::hydrate_node_view(knob_node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
 
     // Verify that content_max (static) comes from instance params
     EXPECT_FLOAT_EQ(knob_node.view.content_max, 5.0f);
@@ -1389,7 +1390,7 @@ TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
     EXPECT_FLOAT_EQ(knob_node.view.content_value, 0.0f);
 
     // Initialize dynamic defaults
-    editor::initialize_node_content_defaults(knob_node, reg.get("Knob"), interner);
+    editor::initialize_node_content_defaults(knob_node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
 
     // Now content_value should reflect initial_position
     EXPECT_FLOAT_EQ(knob_node.view.content_value, 2.0f);
@@ -1404,10 +1405,10 @@ TEST(Issue132_HydrationFromInstanceParams, SliderMinMaxFromInstance) {
     // Register a Slider type with default min/max
     TypeDefinition slider_def;
     slider_def.classname = "Slider";
-    slider_def.content_type = "Slider";
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
     reg.types["Slider"] = slider_def;
+    reg.presentation.specs["Slider"].content_type = "Slider";
 
     // Create a node instance with custom min/max
     bp2::Blueprint::Node slider_node;
@@ -1417,7 +1418,7 @@ TEST(Issue132_HydrationFromInstanceParams, SliderMinMaxFromInstance) {
     slider_node.semantic.params[interner.intern("max")] = 200.0f;
 
     // Hydrate
-    editor::hydrate_node_view(slider_node, reg.get("Slider"), interner);
+    editor::hydrate_node_view(slider_node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
 
     // Verify instance params take precedence
     EXPECT_FLOAT_EQ(slider_node.view.content_min, -50.0f);
@@ -1433,10 +1434,10 @@ TEST(Issue132_HydrationFromInstanceParams, GaugeMinMaxFromInstance) {
     // Register a Gauge type with default min/max
     TypeDefinition gauge_def;
     gauge_def.classname = "Voltmeter";
-    gauge_def.content_type = "Gauge";
     gauge_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     gauge_def.params["max"] = ParamSpec{ParamSchemaType::Float, "28"};
     reg.types["Voltmeter"] = gauge_def;
+    reg.presentation.specs["Voltmeter"].content_type = "Gauge";
 
     // Create a node instance with custom min/max
     bp2::Blueprint::Node gauge_node;
@@ -1446,7 +1447,7 @@ TEST(Issue132_HydrationFromInstanceParams, GaugeMinMaxFromInstance) {
     gauge_node.semantic.params[interner.intern("max")] = 50.0f;
 
     // Hydrate
-    editor::hydrate_node_view(gauge_node, reg.get("Voltmeter"), interner);
+    editor::hydrate_node_view(gauge_node, reg.get("Voltmeter"), reg.presentation.get("Voltmeter"), interner);
 
     // Verify instance params take precedence
     EXPECT_FLOAT_EQ(gauge_node.view.content_min, 10.0f);
@@ -1462,9 +1463,9 @@ TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
     // Register a Switch type with default closed=false
     TypeDefinition switch_def;
     switch_def.classname = "Switch";
-    switch_def.content_type = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     reg.types["Switch"] = switch_def;
+    reg.presentation.specs["Switch"].content_type = "Switch";
 
     // Create a node instance with closed=true (override)
     bp2::Blueprint::Node switch_node;
@@ -1473,11 +1474,11 @@ TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
     switch_node.semantic.params[interner.intern("closed")] = 1.0f;  // non-zero = true
 
     // hydrate_node_view only sets static fields — content_state is dynamic
-    editor::hydrate_node_view(switch_node, reg.get("Switch"), interner);
+    editor::hydrate_node_view(switch_node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
     EXPECT_FALSE(switch_node.view.content_state);  // not set by hydrate
 
     // initialize_node_content_defaults sets initial dynamic state
-    editor::initialize_node_content_defaults(switch_node, reg.get("Switch"), interner);
+    editor::initialize_node_content_defaults(switch_node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
     EXPECT_TRUE(switch_node.view.content_state);
 }
 
@@ -1490,10 +1491,10 @@ TEST(Issue132_HydrationFromInstanceParams, FallbackToTypeDefinitionWhenNoInstanc
     // Register a Slider type with defaults
     TypeDefinition slider_def;
     slider_def.classname = "Slider";
-    slider_def.content_type = "Slider";
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "1"};
     reg.types["Slider"] = slider_def;
+    reg.presentation.specs["Slider"].content_type = "Slider";
 
     // Create a node instance with NO instance params
     bp2::Blueprint::Node slider_node;
@@ -1502,7 +1503,7 @@ TEST(Issue132_HydrationFromInstanceParams, FallbackToTypeDefinitionWhenNoInstanc
     // No params added
 
     // Hydrate
-    editor::hydrate_node_view(slider_node, reg.get("Slider"), interner);
+    editor::hydrate_node_view(slider_node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
 
     // Verify type definition defaults are used
     EXPECT_FLOAT_EQ(slider_node.view.content_min, 0.0f);
@@ -1520,10 +1521,10 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSliderValue) {
 
     TypeDefinition slider_def;
     slider_def.classname = "Slider";
-    slider_def.content_type = "Slider";
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
     reg.types["Slider"] = slider_def;
+    reg.presentation.specs["Slider"].content_type = "Slider";
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("slider1");
@@ -1532,8 +1533,8 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSliderValue) {
     node.semantic.params[interner.intern("max")] = 100.0f;
 
     // Initial hydration + defaults
-    editor::hydrate_node_view(node, reg.get("Slider"), interner);
-    editor::initialize_node_content_defaults(node, reg.get("Slider"), interner);
+    editor::hydrate_node_view(node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
+    editor::initialize_node_content_defaults(node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
     EXPECT_FLOAT_EQ(node.view.content_value, 0.0f);  // initial default
 
     // Simulate runtime: slider moved to 75
@@ -1541,7 +1542,7 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSliderValue) {
 
     // Simulate inspector edit: change max to 200
     node.semantic.params[interner.intern("max")] = 200.0f;
-    editor::hydrate_node_view(node, reg.get("Slider"), interner);
+    editor::hydrate_node_view(node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
 
     // Static field updated
     EXPECT_FLOAT_EQ(node.view.content_max, 200.0f);
@@ -1557,24 +1558,24 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSwitchState) {
 
     TypeDefinition switch_def;
     switch_def.classname = "Switch";
-    switch_def.content_type = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     reg.types["Switch"] = switch_def;
+    reg.presentation.specs["Switch"].content_type = "Switch";
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("sw1");
     node.semantic.type = interner.intern("Switch");
 
     // Initial hydration + defaults
-    editor::hydrate_node_view(node, reg.get("Switch"), interner);
-    editor::initialize_node_content_defaults(node, reg.get("Switch"), interner);
+    editor::hydrate_node_view(node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
+    editor::initialize_node_content_defaults(node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
     EXPECT_FALSE(node.view.content_state);  // initial default: open
 
     // Simulate runtime: user toggled switch ON
     node.view.content_state = true;
 
     // Re-hydrate (e.g., after inspector edit of some other param)
-    editor::hydrate_node_view(node, reg.get("Switch"), interner);
+    editor::hydrate_node_view(node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
 
     // Dynamic state preserved
     EXPECT_TRUE(node.view.content_state)
@@ -1588,17 +1589,17 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesTrippedState) {
 
     TypeDefinition switch_def;
     switch_def.classname = "AZS";
-    switch_def.content_type = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "true"};
     reg.types["AZS"] = switch_def;
+    reg.presentation.specs["AZS"].content_type = "Switch";
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("azs1");
     node.semantic.type = interner.intern("AZS");
 
     // Initial hydration + defaults
-    editor::hydrate_node_view(node, reg.get("AZS"), interner);
-    editor::initialize_node_content_defaults(node, reg.get("AZS"), interner);
+    editor::hydrate_node_view(node, reg.get("AZS"), reg.presentation.get("AZS"), interner);
+    editor::initialize_node_content_defaults(node, reg.get("AZS"), reg.presentation.get("AZS"), interner);
     EXPECT_FALSE(node.view.content_tripped);  // not tripped initially
 
     // Simulate runtime: AZS trips
@@ -1606,7 +1607,7 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesTrippedState) {
     node.view.content_state = false;
 
     // Re-hydrate
-    editor::hydrate_node_view(node, reg.get("AZS"), interner);
+    editor::hydrate_node_view(node, reg.get("AZS"), reg.presentation.get("AZS"), interner);
 
     // Dynamic state preserved
     EXPECT_TRUE(node.view.content_tripped)
@@ -1622,18 +1623,18 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesKnobPosition) {
 
     TypeDefinition knob_def;
     knob_def.classname = "Knob";
-    knob_def.content_type = "Knob";
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "3"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
     reg.types["Knob"] = knob_def;
+    reg.presentation.specs["Knob"].content_type = "Knob";
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("knob1");
     node.semantic.type = interner.intern("Knob");
 
     // Initial hydration + defaults
-    editor::hydrate_node_view(node, reg.get("Knob"), interner);
-    editor::initialize_node_content_defaults(node, reg.get("Knob"), interner);
+    editor::hydrate_node_view(node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
+    editor::initialize_node_content_defaults(node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
     EXPECT_FLOAT_EQ(node.view.content_value, 0.0f);  // initial_position=0
     EXPECT_FLOAT_EQ(node.view.content_max, 3.0f);    // positions=3
 
@@ -1642,7 +1643,7 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesKnobPosition) {
 
     // Inspector edit: change positions to 5
     node.semantic.params[interner.intern("positions")] = 5.0f;
-    editor::hydrate_node_view(node, reg.get("Knob"), interner);
+    editor::hydrate_node_view(node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
 
     // Static field updated
     EXPECT_FLOAT_EQ(node.view.content_max, 5.0f);
@@ -1658,10 +1659,10 @@ TEST(Issue133_SingleAuthority, FullHydrationSetsStaticAndDynamic) {
 
     TypeDefinition knob_def;
     knob_def.classname = "Knob";
-    knob_def.content_type = "Knob";
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "4"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "1"};
     reg.types["Knob"] = knob_def;
+    reg.presentation.specs["Knob"].content_type = "Knob";
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test_bp"));

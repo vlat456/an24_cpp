@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
+#include <cstring>
 #include "json_parser/json_parser.h"
+#include "editor/presentation_spec.h"
 
 #include "editor/input/canvas_input.h"
 #include "editor/input/editing_host.h"
@@ -89,10 +91,14 @@ static TypeRegistry make_canvas_input_test_registry() {
         TypeDefinition def;
         def.classname = name;
         def.cpp_class = true;
-        def.render_hint = hint;
-        def.content_type = ct;
         for (auto& [k, v] : params) def.params[k] = ParamSpec{ParamSchemaType::String, v};
         reg.types[def.classname] = std::move(def);
+        if (hint && hint[0]) {
+            reg.presentation.specs[name].render_hint = hint;
+        }
+        if (ct && ct[0] && strcmp(ct, "None") != 0) {
+            reg.presentation.specs[name].content_type = ct;
+        }
     };
 
     // Types with specific ports (used by wire-compatibility tests)
@@ -100,11 +106,11 @@ static TypeRegistry make_canvas_input_test_registry() {
         TypeDefinition def;
         def.classname = "Slider";
         def.cpp_class = true;
-        def.content_type = "Slider";
         def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         def.params["max"] = ParamSpec{ParamSchemaType::Float, "1"};
         def.ports.emplace("out", Port(bp2::Direction::Output, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
+        reg.presentation.specs["Slider"].content_type = "Slider";
     }
     {
         TypeDefinition def;

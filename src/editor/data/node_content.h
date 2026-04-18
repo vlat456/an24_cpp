@@ -4,6 +4,7 @@
 #include "../../blueprint_v2/blueprint/blueprint.h"
 #include "../../blueprint_v2/blueprint/node_port.h"
 #include "../../json_parser/json_parser.h"
+#include "../../editor/presentation_spec.h"
 #include "../../ui/math/pt.h"
 #include "../../ui/core/interned_id.h"
 #include <string>
@@ -71,12 +72,12 @@ class StringInterner;
 inline ui::Pt get_default_node_size(const std::string& type_name, const TypeRegistry* registry) {
     constexpr float GRID_UNIT = 20.0f;  // 1 grid unit = 20 pixels
 
-    // Try to get size from type definition
+    // Try to get size from presentation spec
     if (registry) {
-        const auto* def = registry->get(type_name);
-        if (def && def->size.has_value()) {
-            return ui::Pt(def->size->first * GRID_UNIT,
-                     def->size->second * GRID_UNIT);
+        const auto* pres = registry->presentation.get(type_name);
+        if (pres && pres->default_size.has_value()) {
+            return ui::Pt(pres->default_size->first * GRID_UNIT,
+                     pres->default_size->second * GRID_UNIT);
         }
     }
 
@@ -137,6 +138,7 @@ inline bool get_param_bool_from_map(const std::unordered_map<ui::InternedId, flo
 /// Resolves param-driven content (min/max/positions/initial_position/closed)
 /// using instance params first, then type definition defaults.
 inline NodeContent create_node_content(const TypeDefinition* def,
+                                       const TypePresentation* pres,
                                        const std::unordered_map<ui::InternedId, float>& instance_params,
                                        const std::unordered_map<std::string, std::string>& instance_string_params,
                                        ui::StringInterner& interner) {
@@ -144,7 +146,7 @@ inline NodeContent create_node_content(const TypeDefinition* def,
     content.type = bp2::NodeContentType::None;
     if (!def) return content;
 
-    const std::string& ct = def->content_type;
+    const std::string& ct = pres ? pres->content_type : "None";
     if (ct == "Gauge") {
         content.type = bp2::NodeContentType::Gauge;
         content.label = "V";
@@ -217,8 +219,9 @@ inline NodeContent create_node_content(const TypeDefinition* def,
 /// plus the node's current dynamic runtime state.
 inline NodeContent create_runtime_node_content(const bp2::Blueprint::Node& node,
                                                const TypeDefinition* def,
+                                               const TypePresentation* pres,
                                                ui::StringInterner& interner) {
-    NodeContent content = create_node_content(def, node.semantic.params, node.semantic.string_params, interner);
+    NodeContent content = create_node_content(def, pres, node.semantic.params, node.semantic.string_params, interner);
     content.value = node.view.content_value;
     content.state = node.view.content_state;
     content.tripped = node.view.content_tripped;

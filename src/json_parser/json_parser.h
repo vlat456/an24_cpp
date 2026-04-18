@@ -12,6 +12,7 @@
 
 #include "core/domain_types.h"
 #include "blueprint_v2/interface/direction.h"
+#include "editor/presentation_spec.h"
 
 // Forward declarations
 struct DeviceInstance;
@@ -105,17 +106,13 @@ struct ParamSpec {
 /// Type definition (ports, params, domains for a component class or blueprint)
 struct TypeDefinition {
     std::string classname;                    // C++ class name or blueprint classname (e.g., "Battery", "SimpleBattery")
-    std::string description;                  // Human-readable description
     bool cpp_class = true;                    // true = C++ component, false = blueprint
     std::unordered_map<std::string, Port> ports;  // Port definitions
     std::unordered_map<std::string, ParamSpec> params;  // Combined parameter specs (default + schema)
     std::optional<std::vector<Domain>> domains;    // Domains
     std::string priority = "med";     // Priority
     bool critical = false;            // Critical flag
-    std::string content_type = "None"; // UI content type (None, Gauge, Switch, Text)
-    std::string render_hint;  // Visual hint for editor rendering ("bus", "ref", or empty)
     bool visual_only = false;  // True = no simulation behavior (e.g. Group)
-    std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
     std::optional<ExecutionPhases> execution;      // Explicit execution-phase metadata
     bool scheduler_source = false;                 // Explicit scheduler source classification
     bool solver_owned_electrical = false;           // Explicit solver ownership for electrical propagation
@@ -139,6 +136,7 @@ struct MenuTree {
 struct TypeRegistry {
     std::unordered_map<std::string, TypeDefinition> types;
     std::unordered_map<std::string, std::string> categories;  // classname → relative subdir path (e.g., "electrical")
+    PresentationRegistry presentation;
 
     /// Get type definition by classname
     const TypeDefinition* get(const std::string& classname) const {
@@ -308,7 +306,7 @@ DeviceInstance merge_device_instance(
 );
 
 /// Parse a TypeDefinition from JSON (helper for testing)
-TypeDefinition parse_type_definition(const nlohmann::json& j);
+std::pair<TypeDefinition, TypePresentation> parse_type_definition(const nlohmann::json& j);
 
 /// Expand sub_blueprint references into flat devices + connections.
 /// Throws std::runtime_error on circular references.

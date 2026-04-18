@@ -144,13 +144,14 @@ PortType parse_port_type_for_parser(const std::string& s) {
 
 } // namespace json_parser_detail
 
-TypeDefinition parse_type_definition(const json& j) {
+std::pair<TypeDefinition, TypePresentation> parse_type_definition(const json& j) {
     TypeDefinition def;
+    TypePresentation pres;
 
     if (j.contains("classname")) def.classname = j["classname"].get<std::string>();
     else throw std::runtime_error("Type definition missing 'classname' field");
 
-    if (j.contains("description")) def.description = j["description"].get<std::string>();
+    if (j.contains("description")) pres.description = j["description"].get<std::string>();
     if (j.contains("cpp_class")) def.cpp_class = j["cpp_class"].get<bool>();
 
     if (j.contains("ports")) {
@@ -182,11 +183,11 @@ TypeDefinition parse_type_definition(const json& j) {
     }
 
     if (j.contains("content_type")) {
-        def.content_type = j["content_type"].get<std::string>();
+        pres.content_type = j["content_type"].get<std::string>();
     }
 
     if (j.contains("render_hint")) {
-        def.render_hint = j["render_hint"].get<std::string>();
+        pres.render_hint = j["render_hint"].get<std::string>();
     }
 
     if (j.contains("visual_only")) {
@@ -202,7 +203,7 @@ TypeDefinition parse_type_definition(const json& j) {
         if (size_obj.contains("x") && size_obj.contains("y")) {
             float x = size_obj["x"].get<float>();
             float y = size_obj["y"].get<float>();
-            def.size = {x, y};
+            pres.default_size = {x, y};
         }
     }
 
@@ -248,7 +249,7 @@ TypeDefinition parse_type_definition(const json& j) {
         }
     }
 
-    return def;
+    return {def, pres};
 }
 
 DeviceInstance merge_device_instance(

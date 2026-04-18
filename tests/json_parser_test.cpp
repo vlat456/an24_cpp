@@ -1,4 +1,5 @@
 #include "json_parser.h"
+#include "editor/presentation_spec.h"
 #include <gtest/gtest.h>
 #include <sstream>
 #include <filesystem>
@@ -660,7 +661,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParamSchemaParsed) {
         "ports": {"v": {"direction": "Out", "type": "V"}}
     })");
 
-    TypeDefinition def = parse_type_definition(j);
+    auto [def, pres] = parse_type_definition(j);
     ASSERT_TRUE(def.params.count("r_internal") > 0);
     EXPECT_EQ(def.params.at("r_internal").type, ParamSchemaType::Float);
     EXPECT_TRUE(def.params.at("r_internal").required);
@@ -839,7 +840,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
         "ports": {"v_out": {"direction": "Out", "type": "V"}}
     })");
 
-    TypeDefinition def = parse_type_definition(j);
+    auto [def, pres] = parse_type_definition(j);
     EXPECT_TRUE(def.scheduler_source);
 
     // Also verify false case
@@ -851,7 +852,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
         "ports": {"v_in": {"direction": "In", "type": "V"}}
     })");
 
-    TypeDefinition def2 = parse_type_definition(j2);
+    auto [def2, pres2] = parse_type_definition(j2);
     EXPECT_FALSE(def2.scheduler_source);
 }
 
@@ -864,7 +865,7 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
         "ports": {"v_out": {"direction": "Out", "type": "V"}}
     })");
 
-     TypeDefinition def = parse_type_definition(j);
+     auto [def, pres] = parse_type_definition(j);
      EXPECT_FALSE(def.scheduler_source);
 }
 

@@ -115,10 +115,12 @@ static void orient_ref_node_ports(Scene& scene,
          const bp2::Blueprint::Node* tgt_node = bp.find_node(tgt_node_id);
          if (!src_node || !tgt_node) continue;
 
+         const std::string src_type(interner.resolve(src_node->semantic.type));
+         const std::string tgt_type(interner.resolve(tgt_node->semantic.type));
          auto src_kind = editor::presentation::resolve_frame_kind(
-             registry.get(std::string(interner.resolve(src_node->semantic.type))));
+             registry.get(src_type), registry.presentation.get(src_type));
          auto tgt_kind = editor::presentation::resolve_frame_kind(
-             registry.get(std::string(interner.resolve(tgt_node->semantic.type))));
+             registry.get(tgt_type), registry.presentation.get(tgt_type));
 
          if (src_kind == NodeFrameKind::Reference && ref_to_connected.count(src_node_id) == 0) {
              ref_to_connected.emplace(src_node_id, tgt_node_id);
@@ -175,8 +177,9 @@ void rebuild(Scene& scene,
          const bp2::Interface render_iface = bp.effective_node_iface(n, registry, interner);
          const std::string type_name(interner.resolve(n.semantic.type));
          const TypeDefinition* def = registry.get(type_name);
-         auto frame_kind = editor::presentation::resolve_frame_kind(def);
-         NodeContent content = create_runtime_node_content(n, def, interner);
+         const TypePresentation* pres = registry.presentation.get(type_name);
+         auto frame_kind = editor::presentation::resolve_frame_kind(def, pres);
+         NodeContent content = create_runtime_node_content(n, def, pres, interner);
          std::unique_ptr<Widget> widget = NodeFactory::create(n, frame_kind, render_iface, interner, content, bus_wires);
          scene.add(std::move(widget));
      }

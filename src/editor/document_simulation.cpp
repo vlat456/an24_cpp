@@ -60,7 +60,8 @@ NodeContent resolve_base_content(const bp2::Blueprint::Node& node,
                                  const TypeRegistry* registry) {
     const std::string type_name(interner.resolve(node.semantic.type));
     const TypeDefinition* def = registry ? registry->get(type_name) : nullptr;
-    return create_node_content(def, node.semantic.params, node.semantic.string_params, interner);
+    const TypePresentation* pres = registry ? registry->presentation.get(type_name) : nullptr;
+    return create_node_content(def, pres, node.semantic.params, node.semantic.string_params, interner);
 }
 
 void dispatch_content_to_widget(WindowManager& window_manager,
