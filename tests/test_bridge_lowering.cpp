@@ -14,11 +14,11 @@ const TypeRegistry& shared_registry() {
     return registry;
 }
 
-BridgePortDefinition make_bridge(std::string name, bp2::Direction side) {
+BridgePortDefinition make_bridge(std::string name, bp2::Direction direction) {
     BridgePortDefinition bridge;
     bridge.id = std::move(name);
     bridge.exposed_port = bridge.id;
-    bridge.side = side;
+    bridge.direction = direction;
     bridge.type = PortType::Any;
     return bridge;
 }

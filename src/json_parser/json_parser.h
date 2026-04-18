@@ -127,7 +127,7 @@ struct SubBlueprintRef {
 struct BridgePortDefinition {
     std::string id;
     std::string exposed_port;
-    bp2::Direction side = bp2::Direction::Input;
+    bp2::Direction direction = bp2::Direction::Input;
     PortType type = PortType::Contextual;
     std::optional<std::pair<float, float>> pos;
     std::optional<std::pair<float, float>> size;

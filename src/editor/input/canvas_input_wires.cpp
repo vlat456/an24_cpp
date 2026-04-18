@@ -69,7 +69,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
 
         if (start.node_id == end_node_iid && start.port_id == end_port_iid) return result;
 
-        bool compatible = visual::Port::areSidesCompatible(start.side, ph->side);
+        bool compatible = visual::Port::areSidesCompatible(start.direction, ph->direction);
         if (!compatible) return result;
 
         if (!visual::Port::areTypesCompatible(start.type, ph->type)) {
@@ -97,8 +97,8 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
             return s == bp2::Direction::Input || s == bp2::Direction::InOut;
         };
 
-        const bool forward_ok = can_drive(start.side) && can_receive(ph->side);
-        const bool reverse_ok = can_drive(ph->side) && can_receive(start.side);
+        const bool forward_ok = can_drive(start.direction) && can_receive(ph->direction);
+        const bool reverse_ok = can_drive(ph->direction) && can_receive(start.direction);
         if (!forward_ok && !reverse_ok) {
             return result;
         }
@@ -162,7 +162,7 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
           bool same_as_fixed = (port_node_iid == fixed_node && hit_port_iid == fixed_port);
           bool compatible = !same_as_fixed &&
-              visual::Port::areSidesCompatible(ph->side, reconnect_fixed_side_);
+              visual::Port::areSidesCompatible(ph->direction, reconnect_fixed_direction_);
          if (compatible && !visual::Port::areTypesCompatible(ph->type, reconnect_fixed_type_)) {
               compatible = false;
           }
@@ -292,7 +292,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(
 CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
      size_t wire_index, bool detach_start, const bp2::Blueprint::Wire& w) const {
 Pt anchor_pos;
-      bp2::Direction fixed_side;
+      bp2::Direction fixed_direction;
       PortType fixed_type = PortType::Any;
 
      // Estimate a port's world position from blueprint layout data.
@@ -311,7 +311,7 @@ Pt anchor_pos;
      };
 
 if (detach_start) {
-           fixed_side = bp2::Direction::Input;
+           fixed_direction = bp2::Direction::Input;
           auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
           fixed_type = resolve_port_type_from_model(host_.current_blueprint(), tgt_node, tgt_port, registry(), interner_);
           if (!w.routing_points.empty()) {
@@ -320,7 +320,7 @@ if (detach_start) {
               anchor_pos = *pos;
           }
 } else {
-           fixed_side = bp2::Direction::Output;
+           fixed_direction = bp2::Direction::Output;
           auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
           fixed_type = resolve_port_type_from_model(host_.current_blueprint(), src_node, src_port, registry(), interner_);
          if (!w.routing_points.empty()) {
@@ -329,5 +329,5 @@ if (detach_start) {
              anchor_pos = *pos;
          }
      }
-     return WirePortMatch{wire_index, detach_start, anchor_pos, fixed_side, fixed_type};
+     return WirePortMatch{wire_index, detach_start, anchor_pos, fixed_direction, fixed_type};
 }

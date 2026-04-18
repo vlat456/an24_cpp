@@ -24,7 +24,7 @@ PortArrowGeometry compute_port_arrow_geometry(const Port& port, Pt center, float
 
     const float arrow_offset = radius * arrow_offset_mult;
     const float arrow_size = PortConstants::ARROW_SIZE * zoom;
-    const bool is_output = (port.side() == bp2::Direction::Output);
+    const bool is_output = (port.direction() == bp2::Direction::Output);
     const bool horizontal = (port.layoutSide() == bp2::PortLayoutSide::Left ||
                              port.layoutSide() == bp2::PortLayoutSide::Right);
 
@@ -51,8 +51,8 @@ PortArrowGeometry compute_port_arrow_geometry(const Port& port, Pt center, float
 
 } // namespace
 
-Port::Port(std::string_view name, bp2::Direction side, PortType type, bp2::PortLayoutSide layout_side)
-    : name_(name), side_(side), type_(type), layout_side_(layout_side)
+Port::Port(std::string_view name, bp2::Direction direction, PortType type, bp2::PortLayoutSide layout_side)
+    : name_(name), direction_(direction), type_(type), layout_side_(layout_side)
 {
     setSize(Pt(PortConstants::RADIUS * 2, PortConstants::RADIUS * 2));
 }
@@ -74,7 +74,7 @@ void Port::render(IDrawList* dl, const RenderContext& ctx) const {
     Pt center(pos.x + r, pos.y + r);
     dl->add_circle_filled(center, r, color(), 8);
 
-    if (side_ == bp2::Direction::InOut) return;
+    if (direction_ == bp2::Direction::InOut) return;
     float thickness = PortConstants::ARROW_THICKNESS * ctx.zoom;
     const PortArrowGeometry arrow = compute_port_arrow_geometry(*this, center, r, ctx.zoom);
     dl->add_line(arrow.tip, arrow.back1, color(), thickness);
@@ -92,7 +92,7 @@ void Port::renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const
                  DEBUG_PAINT_BOUNDS_COLOR,
                  1.0f);
 
-    if (side_ == bp2::Direction::InOut) return;
+    if (direction_ == bp2::Direction::InOut) return;
     const PortArrowGeometry arrow = compute_port_arrow_geometry(*this, center, r, ctx.zoom);
     float min_x = std::min({arrow.tip.x, arrow.back1.x, arrow.back2.x});
     float min_y = std::min({arrow.tip.y, arrow.back1.y, arrow.back2.y});

@@ -7,7 +7,7 @@
 /// Cached port info for Inspector display
 struct DisplayPort {
     std::string name;
-    bp2::Direction side;
+    bp2::Direction direction;
     std::string connection;  // "Battery.v_out" or "[not connected]"
 };
 

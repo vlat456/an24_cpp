@@ -191,7 +191,7 @@ TEST(PortLayoutResolver, InOutPort_NoDuplicates) {
     EXPECT_EQ(total, 1u) << "InOut port appearing in both inputs and outputs must be deduplicated";
     EXPECT_EQ(layout.left.size(), 1u);
     EXPECT_EQ(layout.left[0].port_name, "v");
-    EXPECT_EQ(layout.left[0].logical_side, bp2::Direction::InOut);
+    EXPECT_EQ(layout.left[0].logical_direction, bp2::Direction::InOut);
 }
 
 TEST(PortLayoutResolver, InOutPort_OverrideMovesToSide) {
@@ -239,21 +239,21 @@ TEST(PortLayoutResolver, InOutPort_MixedWithRegularPorts) {
     EXPECT_EQ(layout.right[0].port_name, "status");
 }
 
-TEST(PortLayoutResolver, LogicalSide_PreservedFromPortDefinition) {
-    // Verify that logical_side comes from the NodePort, not hardcoded.
+TEST(PortLayoutResolver, LogicalDirection_PreservedFromPortDefinition) {
+    // Verify that logical_direction comes from the NodePort, not hardcoded.
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
     inputs.emplace_back(interner.intern("a"), bp2::Direction::Input, PortType::V);
-    
+
     std::vector<bp2::NodePort> outputs;
     outputs.emplace_back(interner.intern("b"), bp2::Direction::Output, PortType::RPM);
-    
+
     ResolvedLayout layout = resolve_port_layout(inputs, outputs, {}, interner);
-    
+
     ASSERT_EQ(layout.left.size(), 1u);
     ASSERT_EQ(layout.right.size(), 1u);
-    EXPECT_EQ(layout.left[0].logical_side, bp2::Direction::Input);
-    EXPECT_EQ(layout.right[0].logical_side, bp2::Direction::Output);
+    EXPECT_EQ(layout.left[0].logical_direction, bp2::Direction::Input);
+    EXPECT_EQ(layout.right[0].logical_direction, bp2::Direction::Output);
 }
 
 // ============================================================

@@ -142,7 +142,7 @@ std::unordered_map<std::string, Port> extract_exposed_ports(const TypeDefinition
 
     for (const auto& bridge : blueprint.bridge_ports) {
         Port port;
-        port.direction = bridge.side;
+        port.direction = bridge.direction;
         port.type = bridge.type;
         port.domain = domain_for_port_type(bridge.type);
         port.alias = std::nullopt;

@@ -40,7 +40,7 @@ struct PortConstants {
 /// Renders as a filled circle with type-based color.
 class Port : public Widget {
 public:
-    Port(std::string_view name, bp2::Direction side, PortType type, bp2::PortLayoutSide layout_side = bp2::PortLayoutSide::Left);
+    Port(std::string_view name, bp2::Direction direction, PortType type, bp2::PortLayoutSide layout_side = bp2::PortLayoutSide::Left);
 
     std::string_view id() const override { return name_; }
     bool isClickable() const override { return true; }
@@ -50,7 +50,7 @@ public:
     bool isIndexable() const override { return false; }
 
     std::string_view name() const { return name_; }
-    bp2::Direction side() const { return side_; }
+    bp2::Direction direction() const { return direction_; }
     PortType type() const { return type_; }
     bp2::PortLayoutSide layoutSide() const { return layout_side_; }
     
@@ -77,7 +77,7 @@ public:
 
 private:
     std::string_view name_;
-    bp2::Direction side_;
+    bp2::Direction direction_;
     PortType type_;
     bp2::PortLayoutSide layout_side_;
 };

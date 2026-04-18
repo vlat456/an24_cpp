@@ -105,7 +105,7 @@ private:
 
     // Data model helpers (inspector_core.cpp)
     std::string findConnectionFor(const bp2::Blueprint::Node& node,
-                                  const bp2::NodePort& port, bp2::Direction side,
+                                  const bp2::NodePort& port, bp2::Direction direction,
                                   const std::vector<DecodedWire>& wires) const;
     void sortDisplayTree();
     bool passesFilter(const bp2::Blueprint::Node& node) const;

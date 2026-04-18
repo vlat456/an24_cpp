@@ -200,7 +200,7 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
                 BridgePortDefinition bridge;
                 bridge.id = node.value("id", "");
                 bridge.exposed_port = node.value("exposed_port", bridge.id);
-                bridge.side = bridge_side_from_string(node.value("side", "input"));
+                bridge.direction = bridge_side_from_string(node.value("side", "input"));
                 bridge.type = json_parser_internal::parse_port_type_string(node.value("port_type", "Contextual"));
                 bridge.label = node.value("label", "");
                 if (node.contains("layout") && node["layout"].is_object()) {

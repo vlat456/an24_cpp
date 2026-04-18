@@ -114,14 +114,14 @@ void Inspector::buildDisplayTree() {
         for (const auto& port : inputs) {
             DisplayPort dp;
             dp.name = std::string(interner_->resolve(port.name));
-            dp.side = bp2::Direction::Input;
+            dp.direction = bp2::Direction::Input;
             dp.connection = findConnectionFor(node, port, bp2::Direction::Input, owned_wires);
             dn.ports.push_back(std::move(dp));
         }
         for (const auto& port : outputs) {
             DisplayPort dp;
             dp.name = std::string(interner_->resolve(port.name));
-            dp.side = bp2::Direction::Output;
+            dp.direction = bp2::Direction::Output;
             dp.connection = findConnectionFor(node, port, bp2::Direction::Output, owned_wires);
             dn.ports.push_back(std::move(dp));
         }
@@ -133,16 +133,16 @@ void Inspector::buildDisplayTree() {
 }
 
 std::string Inspector::findConnectionFor(const bp2::Blueprint::Node& node,
-                                          const bp2::NodePort& port, bp2::Direction side,
+                                          const bp2::NodePort& port, bp2::Direction direction,
                                           const std::vector<DecodedWire>& wires) const {
     std::string result;
 
     for (const auto& dw : wires) {
-        // Match the port's side: inputs match wire.target, outputs match wire.source
-        ui::InternedId local_node  = (side == bp2::Direction::Input) ? dw.tgt_node : dw.src_node;
-        ui::InternedId local_port  = (side == bp2::Direction::Input) ? dw.tgt_port : dw.src_port;
-        ui::InternedId remote_node = (side == bp2::Direction::Input) ? dw.src_node : dw.tgt_node;
-        ui::InternedId remote_port = (side == bp2::Direction::Input) ? dw.src_port : dw.tgt_port;
+        // Match the port's direction: inputs match wire.target, outputs match wire.source
+        ui::InternedId local_node  = (direction == bp2::Direction::Input) ? dw.tgt_node : dw.src_node;
+        ui::InternedId local_port  = (direction == bp2::Direction::Input) ? dw.tgt_port : dw.src_port;
+        ui::InternedId remote_node = (direction == bp2::Direction::Input) ? dw.src_node : dw.tgt_node;
+        ui::InternedId remote_port = (direction == bp2::Direction::Input) ? dw.src_port : dw.tgt_port;
 
         if (local_node == node.semantic.id && local_port == port.name) {
             const auto* other = bp_->find_node(remote_node);

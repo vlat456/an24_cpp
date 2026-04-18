@@ -4,13 +4,13 @@
 #include "test_helpers.h"
 
 inline BridgePortDefinition make_bridge_port_def(const std::string& id,
-                                                 bp2::Direction side,
+                                                 bp2::Direction direction,
                                                  PortType type = PortType::Any,
                                                  const std::string& exposed_port = "") {
     BridgePortDefinition bridge;
     bridge.id = id;
     bridge.exposed_port = exposed_port.empty() ? id : exposed_port;
-    bridge.side = side;
+    bridge.direction = direction;
     bridge.type = type;
     bridge.label = bridge.exposed_port;
     return bridge;

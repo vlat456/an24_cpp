@@ -78,14 +78,14 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             auto wire_match = find_wire_on_port(port_node_iid, port_name_iid);
             if (wire_match) {
                 enter_reconnect_wire(wire_match->wire_index, wire_match->detach_start,
-                                     wire_match->anchor_pos, wire_match->fixed_side,
+                                     wire_match->anchor_pos, wire_match->fixed_direction,
                                      wire_match->fixed_type);
                 return result;
             }
             Pt port_center = ph->center;
             enter_create_wire(port_node_iid,
                               port_name_iid,
-                              ph->side,
+                              ph->direction,
                               ph->type,
                               port_center);
             return result;

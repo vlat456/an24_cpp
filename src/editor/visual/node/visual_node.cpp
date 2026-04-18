@@ -351,10 +351,10 @@ void NodeWidget::build(const bp2::Blueprint::Node& data,
         for (const auto& rp : resolved) {
             PortEntry entry;
             entry.layout_side = side;
-            entry.logical_side = rp.logical_side;
+            entry.logical_direction = rp.logical_direction;
 
             // Create port widget
-            entry.port = emplaceChild<Port>(rp.port_name, rp.logical_side, rp.type, side);
+            entry.port = emplaceChild<Port>(rp.port_name, rp.logical_direction, rp.type, side);
             port_ptrs_.push_back(entry.port);
 
             // Create label widget

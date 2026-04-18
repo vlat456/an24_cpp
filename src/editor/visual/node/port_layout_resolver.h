@@ -12,7 +12,7 @@
 struct ResolvedPort {
     std::string_view port_name;
     PortType type;
-    bp2::Direction logical_side;
+    bp2::Direction logical_direction;
     bp2::PortLayoutSide layout_side;
     uint8_t final_position = 0;
     
@@ -73,7 +73,7 @@ inline ResolvedLayout resolve_port_layout(
         ResolvedPort rp;
         rp.port_name = interner.resolve(p.name);
         rp.type = p.type;
-        rp.logical_side = p.direction;
+        rp.logical_direction = p.direction;
         rp.layout_side = bp2::default_layout_side(p.direction);
         rp.final_position = 255;  // Will be assigned later
         all_ports.push_back(rp);
@@ -91,7 +91,7 @@ inline ResolvedLayout resolve_port_layout(
         ResolvedPort rp;
         rp.port_name = name;
         rp.type = p.type;
-        rp.logical_side = p.direction;
+        rp.logical_direction = p.direction;
         rp.layout_side = bp2::default_layout_side(p.direction);
         rp.final_position = 255;
         all_ports.push_back(rp);

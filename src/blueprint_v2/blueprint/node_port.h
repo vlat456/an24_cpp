@@ -42,8 +42,8 @@ inline std::optional<PortLayoutSide> parse_port_layout_side(const std::string& s
     return std::nullopt;
 }
 
-inline PortLayoutSide default_layout_side(Direction side) {
-    switch (side) {
+inline PortLayoutSide default_layout_side(Direction direction) {
+    switch (direction) {
         case Direction::Input:  return PortLayoutSide::Left;
         case Direction::Output: return PortLayoutSide::Right;
         case Direction::InOut:  return PortLayoutSide::Left;

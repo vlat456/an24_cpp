@@ -82,7 +82,7 @@ void project_widget_recursive(const visual::Widget& widget,
         ph.kind = CanvasHitObjectKind::Port;
         ph.shape = HitShapeKind::Circle;
         ph.bounds = point_to_rect(center, visual::PortConstants::HIT_RADIUS);
-        ph.port_side = port->side();
+        ph.port_direction = port->direction();
         ph.port_type = port->type();
         snapshot.hit_objects.push_back(std::move(ph));
     }
@@ -398,7 +398,7 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
         return visual::HitPort{
             .node_id = interner.resolve(best_port->node_id),
             .port_name = interner.resolve(best_port->element_id),
-            .side = best_port->port_side,
+            .direction = best_port->port_direction,
             .type = best_port->port_type,
             .center = ui::Pt(cx, cy),
         };
@@ -480,7 +480,7 @@ visual::HitResult hit_test_canvas_scene_ports(const CanvasSceneSnapshot& snapsho
             return visual::HitPort{
                 .node_id = interner.resolve(obj.node_id),
                 .port_name = interner.resolve(obj.element_id),
-                .side = obj.port_side,
+                .direction = obj.port_direction,
                 .type = obj.port_type,
                 .center = center,
             };
