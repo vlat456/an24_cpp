@@ -144,7 +144,9 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     snapshot_bridge_port_type_.reset();
     pending_bridge_port_type_.reset();
     if (node.is_bridge_port()) {
-        const bp2::Interface& iface = model_->current().effective_node_iface(node);
+        const bp2::Interface iface = type_registry_
+            ? model_->current().effective_node_iface(node, *type_registry_, *interner_)
+            : model_->current().effective_node_iface(node);
         const auto in_ports = bp2::derive_input_ports(iface);
         const auto out_ports = bp2::derive_output_ports(iface);
         if (!in_ports.empty()) {
@@ -498,7 +500,9 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
     }
 
     // Skip if node has no ports
-    const bp2::Interface& iface = model_->current().effective_node_iface(node);
+    const bp2::Interface iface = type_registry_
+        ? model_->current().effective_node_iface(node, *type_registry_, *interner_)
+        : model_->current().effective_node_iface(node);
     const auto in_ports = bp2::derive_input_ports(iface);
     const auto out_ports = bp2::derive_output_ports(iface);
     if (in_ports.empty() && out_ports.empty()) return;

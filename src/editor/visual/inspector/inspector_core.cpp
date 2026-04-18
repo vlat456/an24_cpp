@@ -8,7 +8,7 @@
 #include <cctype>
 
 Inspector::Inspector(const bp2::Blueprint* bp, const bp2::PathArena* arena,
-                     const ui::StringInterner* interner, const WindowScopeId& scope_id,
+                     ui::StringInterner* interner, const WindowScopeId& scope_id,
                      const TypeRegistry* registry)
     : bp_(bp), arena_(arena), interner_(interner), registry_(registry), scope_id_(scope_id) {}
 
@@ -107,7 +107,7 @@ void Inspector::buildDisplayTree() {
 
         // Collect ports (inputs then outputs)
         const bp2::Interface iface = registry_
-            ? bp_->effective_node_iface(node, *registry_, const_cast<ui::StringInterner&>(*interner_))
+            ? bp_->effective_node_iface(node, *registry_, *interner_)
             : bp_->effective_node_iface(node);
         const auto inputs = bp2::derive_input_ports(iface);
         const auto outputs = bp2::derive_output_ports(iface);

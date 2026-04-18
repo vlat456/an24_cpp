@@ -44,8 +44,7 @@ TEST(BlueprintNode, ReferenceInstanceMode) {
     node.semantic.id = interner.intern("sub1");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("power_system"),
-        bp2::Interface{})
+        interner.intern("power_system"))
     };
     EXPECT_TRUE(node.blueprint_instance().source.is_reference());
     EXPECT_EQ(node.blueprint_instance().source.inline_def(), nullptr);
@@ -81,8 +80,7 @@ TEST(BlueprintNodeSource, MakeReferenceRejectsEmptyBlueprintId) {
     ui::StringInterner interner;
     EXPECT_THROW(
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-            ui::InternedId{},  // empty
-            bp2::Interface{}),
+            ui::InternedId{}),
         std::logic_error);
 }
 
@@ -167,8 +165,7 @@ TEST(BlueprintNodeSource, SetInlineDefRejectsNull) {
 TEST(BlueprintNodeSource, SetInlineDefThrowsOnReference) {
     ui::StringInterner interner;
     auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("power_system"),
-        bp2::Interface{});
+        interner.intern("power_system"));
 
     EXPECT_THROW(
         source.set_inline_def(std::make_unique<bp2::Blueprint>()),
@@ -178,8 +175,7 @@ TEST(BlueprintNodeSource, SetInlineDefThrowsOnReference) {
 TEST(BlueprintNodeSource, ConvertToEmbedded) {
     ui::StringInterner interner;
     auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("power_system"),
-        bp2::Interface{});
+        interner.intern("power_system"));
 
     EXPECT_TRUE(source.is_reference());
     // Note: BlueprintSource is a variant. To change modes, create a new one
@@ -274,7 +270,7 @@ TEST(Blueprint, BlueprintInstanceNodeWithReferenceSource) {
     node.semantic.type = interner.intern("CompositeType");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("CompositeType"), bp2::Interface{})
+        interner.intern("CompositeType"))
     };
 
     bp2::Blueprint bp;
@@ -413,8 +409,7 @@ TEST(Blueprint, AddBlueprintInstanceNodeAndFind) {
     node.semantic.id = interner.intern("sub1");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("power_system"),
-        bp2::Interface{})
+        interner.intern("power_system"))
     };
 
     bp = bp.with_node(std::move(node));
@@ -433,8 +428,7 @@ TEST(Blueprint, WithoutNode) {
     node.semantic.id = interner.intern("sub1");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("power_system"),
-        bp2::Interface{})
+        interner.intern("power_system"))
     };
 
     bp = bp.with_node(std::move(node));

@@ -336,6 +336,7 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, PreviewReportsBasicBoundaryShape) {
         WindowScopeId::root(),
         interner,
         arena,
+        parser_registry,
         &err,
         false);
 
@@ -447,6 +448,7 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, PreviewRejectsEmptyName) {
         WindowScopeId::root(),
         interner,
         arena,
+        parser_registry,
         &err,
         false);
 
@@ -466,6 +468,7 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, PreviewRejectsDuplicateBlueprintName) {
         WindowScopeId::root(),
         interner,
         arena,
+        parser_registry,
         &err,
         false);
 
@@ -485,6 +488,7 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, PreviewReportsIfaceCollision) {
         WindowScopeId::root(),
         interner,
         arena,
+        parser_registry,
         &err,
         false);
 

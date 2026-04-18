@@ -259,10 +259,10 @@ static void run_aot_electrical(
 ) {
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(devices, all_ports, port_to_idx);
+    codegen_composite_detail::build_port_index_map(devices, {}, all_ports, port_to_idx);
 
     codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, connections, port_to_idx);
+    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, {}, connections, port_to_idx);
 
     uint32_t signal_count = 0;
     out_port_to_signal = codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);

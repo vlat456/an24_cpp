@@ -192,12 +192,13 @@ DescendantRemapStats collect_descendant_remap_stats(
 }
 
 std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
-                                                 const std::vector<ui::InternedId>& selected_ids,
-                                                 const WindowScopeId& scope_id,
-                                                  bool allow_nonembedded,
-                                                  ui::StringInterner& interner,
-                                                  const bp2::PathArena& arena,
-                                                  std::string* error_out) {
+                                                  const std::vector<ui::InternedId>& selected_ids,
+                                                  const WindowScopeId& scope_id,
+                                                   bool allow_nonembedded,
+                                                   ui::StringInterner& interner,
+                                                   const bp2::PathArena& arena,
+                                                   const TypeRegistry& registry,
+                                                   std::string* error_out) {
     if (selected_ids.size() < 2) {
         return set_error(error_out, "extract selection must include at least 2 nodes"), std::nullopt;
     }
@@ -284,7 +285,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         }
 
         const auto* internal_node = bp.find_node(ec.internal_node_id);
-        ec.port_type = find_port_type(bp, internal_node, ec.internal_port);
+        ec.port_type = find_port_type(bp, internal_node, ec.internal_port, registry, interner);
         ec.iface_name = default_iface_name_for(ec, interner);
         if (ec.is_input) {
             plan.inputs.push_back(std::move(ec));

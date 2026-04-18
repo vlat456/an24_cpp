@@ -890,8 +890,7 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromTypeRegistry) {
     ref_host.semantic.type = doc.interner().intern("external_test");
     ref_host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-        doc.interner().intern("external_test"),
-        bp2::Interface{})
+        doc.interner().intern("external_test"))
     };
     doc.model().replace_current(doc.model().current().with_node(std::move(ref_host)));
 

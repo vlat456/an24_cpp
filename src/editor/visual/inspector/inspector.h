@@ -29,12 +29,12 @@ public:
 
     /// Constructor with blueprint pointer and group filter
     Inspector(const bp2::Blueprint* bp, const bp2::PathArena* arena,
-              const ui::StringInterner* interner, const WindowScopeId& scope_id = WindowScopeId::root(),
+              ui::StringInterner* interner, const WindowScopeId& scope_id = WindowScopeId::root(),
               const TypeRegistry* registry = nullptr);
 
     /// Set the blueprint to inspect (for switching between documents)
     void setBlueprint(const bp2::Blueprint& bp, const bp2::PathArena& arena,
-                      const ui::StringInterner& interner,
+                      ui::StringInterner& interner,
                       const WindowScopeId& scope_id = WindowScopeId::root(),
                       const TypeRegistry* registry = nullptr) {
         bp_ = &bp;
@@ -70,7 +70,7 @@ public:
 private:
     const bp2::Blueprint*    bp_       = nullptr;
     const bp2::PathArena*    arena_    = nullptr;
-    const ui::StringInterner* interner_ = nullptr;
+    ui::StringInterner* interner_ = nullptr;
     const TypeRegistry* registry_ = nullptr;
     WindowScopeId scope_id_            = WindowScopeId::root();
     std::vector<DisplayNode> display_tree_;

@@ -166,7 +166,9 @@ bool WindowSystem::closeDocument(Document& doc) {
         // Force inspector update (setActiveDocument skips if pointer unchanged)
         inspector_.setBlueprint(active_document_->blueprint(),
                                 active_document_->arena(),
-                                active_document_->interner());
+                                active_document_->interner(),
+                                WindowScopeId::root(),
+                                active_document_->type_registry());
         inspector_.markDirty();
     }
 
@@ -204,7 +206,8 @@ void WindowSystem::setActiveDocument(Document* doc) {
     if (active_document_ != doc) {
         active_document_ = doc;
         if (doc) {
-            inspector_.setBlueprint(doc->blueprint(), doc->arena(), doc->interner());
+            inspector_.setBlueprint(doc->blueprint(), doc->arena(), doc->interner(),
+                                    WindowScopeId::root(), doc->type_registry());
             inspector_.markDirty();
             spdlog::debug("[WindowSystem] Active document: {}", doc->displayName());
         }

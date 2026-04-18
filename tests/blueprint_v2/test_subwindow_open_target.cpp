@@ -20,8 +20,7 @@ TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
     node.semantic.id = interner.intern("n1");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-            interner.intern("FirstOrderLag"),
-            bp2::Interface{})
+            interner.intern("FirstOrderLag"))
     };
     bp = bp.with_node(std::move(node));
 
@@ -41,8 +40,7 @@ TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathResolvesWithIndex)
     node.semantic.id = interner.intern("n_resolved");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-            interner.intern("FirstOrderLag"),
-            bp2::Interface{})
+            interner.intern("FirstOrderLag"))
     };
     // No blueprint_path set - should still resolve via LibraryIndex
     bp = bp.with_node(std::move(node));
@@ -64,8 +62,7 @@ TEST(SubWindowOpenTarget, ReferencedNestedMissingIndexEntryReportsFailure) {
     node.semantic.id = interner.intern("n_missing");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-            interner.intern("FirstOrderLag"),
-            bp2::Interface{})
+            interner.intern("FirstOrderLag"))
     };
     bp = bp.with_node(std::move(node));
 
@@ -105,8 +102,7 @@ TEST(SubWindowOpenTarget, ResolvesExternalBlueprintPath) {
     node.semantic.id = interner.intern("firstorderlag_1");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-            interner.intern("FirstOrderLag"),
-            bp2::Interface{})
+            interner.intern("FirstOrderLag"))
     };
     bp = bp.with_node(std::move(node));
 
@@ -126,8 +122,7 @@ TEST(SubWindowOpenTarget, ReferencedNestedWinsEvenIfHostMirrorPathIsPresent) {
     host.semantic.id = interner.intern("n_hosted");
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-            interner.intern("FirstOrderLag"),
-            bp2::Interface{})
+            interner.intern("FirstOrderLag"))
     };
     bp = bp.with_node(std::move(host));
 

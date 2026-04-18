@@ -31,6 +31,7 @@ std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     const WindowScopeId& scope_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
+    const TypeRegistry& parser_registry,
     std::string* error_out = nullptr,
     bool allow_nonembedded_descendant_refs = false);
 

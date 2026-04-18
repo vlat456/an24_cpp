@@ -943,11 +943,7 @@ TEST(Flattener, Regression112_LibraryReferenceInstance) {
     lag.semantic.type = I.intern("MyComposite");
     lag.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-        I.intern("MyComposite"),
-        bp2::Interface({
-            make_port(I, "in", Domain::Logical, bp2::Direction::Input),
-            make_port(I, "out", Domain::Logical, bp2::Direction::Output),
-        }))
+        I.intern("MyComposite"))
     };
     root = root.with_node(std::move(lag));
 

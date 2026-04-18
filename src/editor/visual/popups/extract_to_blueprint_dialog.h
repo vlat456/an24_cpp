@@ -40,6 +40,7 @@ public:
                 ws.pendingExtract.scope_id,
                 doc_for_preview->interner(),
                 doc_for_preview->arena(),
+                ws.typeRegistry(),
                 &ws.pendingExtract.preview_error,
                 ws.pendingExtract.allow_nonembedded_descendant_refs);
             if (preview) {

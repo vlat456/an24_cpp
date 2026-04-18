@@ -159,10 +159,11 @@ bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
 std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
                                                  const std::vector<ui::InternedId>& selected_ids,
                                                  const WindowScopeId& scope_id,
-                                                 bool allow_nonembedded_descendant_refs,
-                                                 ui::StringInterner& interner,
-                                                 const bp2::PathArena& arena,
-                                                 std::string* error_out);
+                                                  bool allow_nonembedded_descendant_refs,
+                                                  ui::StringInterner& interner,
+                                                  const bp2::PathArena& arena,
+                                                  const TypeRegistry& registry,
+                                                  std::string* error_out);
 
 DescendantRemapStats collect_descendant_remap_stats(
     const bp2::Blueprint& source,

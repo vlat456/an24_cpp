@@ -311,18 +311,18 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
      };
 
      if (detach_start) {
-         fixed_side = bp2::PortSide::Input;
-         auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
-         fixed_type = resolve_port_type_from_model(host_.current_blueprint(), tgt_node, tgt_port);
-         if (!w.routing_points.empty()) {
-             anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
-         } else if (auto pos = estimate_port_pos(tgt_node, tgt_port)) {
-             anchor_pos = *pos;
-         }
-     } else {
-         fixed_side = bp2::PortSide::Output;
-         auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
-         fixed_type = resolve_port_type_from_model(host_.current_blueprint(), src_node, src_port);
+          fixed_side = bp2::PortSide::Input;
+          auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
+          fixed_type = resolve_port_type_from_model(host_.current_blueprint(), tgt_node, tgt_port, registry(), interner_);
+          if (!w.routing_points.empty()) {
+              anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
+          } else if (auto pos = estimate_port_pos(tgt_node, tgt_port)) {
+              anchor_pos = *pos;
+          }
+      } else {
+          fixed_side = bp2::PortSide::Output;
+          auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
+          fixed_type = resolve_port_type_from_model(host_.current_blueprint(), src_node, src_port, registry(), interner_);
          if (!w.routing_points.empty()) {
              anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);
          } else if (auto pos = estimate_port_pos(src_node, src_port)) {
