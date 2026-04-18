@@ -625,8 +625,8 @@ void PropertiesWindow::apply() {
         for (const auto& [key, new_value] : pending_params_) {
             bool handled_as_bool = false;
             if (def != nullptr) {
-                auto schema_it = def->param_schema.find(key);
-                if (schema_it != def->param_schema.end()
+                auto schema_it = def->params.find(key);
+                if (schema_it != def->params.end()
                     && schema_it->second.type == ParamSchemaType::Bool) {
                     updated.semantic.string_params[key] = (new_value != 0.0f) ? "true" : "false";
                     handled_as_bool = true;

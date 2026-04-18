@@ -152,11 +152,11 @@ inline NodeContent create_node_content(const TypeDefinition* def,
         
         // Resolve min/max from instance params, then type definition
         auto min_it = def->params.find("min");
-        float def_min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
+        float def_min = (min_it != def->params.end()) ? std::stof(min_it->second.default_value) : 0.0f;
         content.min = get_param_float_from_map(instance_params, instance_string_params, "min", interner, def_min);
         
         auto max_it = def->params.find("max");
-        float def_max = (max_it != def->params.end()) ? std::stof(max_it->second) : 28.0f;
+        float def_max = (max_it != def->params.end()) ? std::stof(max_it->second.default_value) : 28.0f;
         content.max = get_param_float_from_map(instance_params, instance_string_params, "max", interner, def_max);
         
         content.unit = "V";
@@ -164,13 +164,13 @@ inline NodeContent create_node_content(const TypeDefinition* def,
         content.type = bp2::NodeContentType::Switch;
         content.label = "ON";
         auto it = def->params.find("closed");
-        bool def_state = (it != def->params.end() && it->second == "true");
+        bool def_state = (it != def->params.end() && it->second.default_value == "true");
         content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
     } else if (ct == "VerticalToggle") {
         content.type = bp2::NodeContentType::VerticalToggle;
         content.label = "";
         auto it = def->params.find("closed");
-        bool def_state = (it != def->params.end() && it->second == "true");
+        bool def_state = (it != def->params.end() && it->second.default_value == "true");
         content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
     } else if (ct == "HoldButton") {
         content.type = bp2::NodeContentType::Switch;
@@ -185,11 +185,11 @@ inline NodeContent create_node_content(const TypeDefinition* def,
         
         // Resolve min/max from instance params, then type definition
         auto min_it = def->params.find("min");
-        float def_min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
+        float def_min = (min_it != def->params.end()) ? std::stof(min_it->second.default_value) : 0.0f;
         content.min = get_param_float_from_map(instance_params, instance_string_params, "min", interner, def_min);
         
         auto max_it = def->params.find("max");
-        float def_max = (max_it != def->params.end()) ? std::stof(max_it->second) : 1.0f;
+        float def_max = (max_it != def->params.end()) ? std::stof(max_it->second.default_value) : 1.0f;
         content.max = get_param_float_from_map(instance_params, instance_string_params, "max", interner, def_max);
     } else if (ct == "Indicator") {
         content.type = bp2::NodeContentType::Indicator;
@@ -200,14 +200,14 @@ inline NodeContent create_node_content(const TypeDefinition* def,
         
         // Resolve positions from instance params, then type definition
         auto pos_it = def->params.find("positions");
-        float def_positions = (pos_it != def->params.end()) ? std::stof(pos_it->second) : 2.0f;
+        float def_positions = (pos_it != def->params.end()) ? std::stof(pos_it->second.default_value) : 2.0f;
         content.max = get_param_float_from_map(instance_params, instance_string_params, "positions", interner, def_positions);
         
         content.min = 0.0f;
         
         // Resolve initial_position from instance params, then type definition
         auto init_it = def->params.find("initial_position");
-        float def_initial = (init_it != def->params.end()) ? std::stof(init_it->second) : 0.0f;
+        float def_initial = (init_it != def->params.end()) ? std::stof(init_it->second.default_value) : 0.0f;
         content.value = get_param_float_from_map(instance_params, instance_string_params, "initial_position", interner, def_initial);
     }
     return content;

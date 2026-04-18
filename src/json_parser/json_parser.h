@@ -92,12 +92,14 @@ enum class ParamSchemaType {
     String,
 };
 
-struct ParamSchemaEntry {
+/// Combined parameter specification (default value + schema metadata)
+struct ParamSpec {
     ParamSchemaType type = ParamSchemaType::String;
+    std::string default_value;
     std::optional<double> min;
     std::optional<double> max;
     bool required = false;
-    bool visual_only = false;   ///< True = editor-only param, excluded from simulation JSON
+    bool visual_only = false;
 };
 
 /// Type definition (ports, params, domains for a component class or blueprint)
@@ -106,8 +108,7 @@ struct TypeDefinition {
     std::string description;                  // Human-readable description
     bool cpp_class = true;                    // true = C++ component, false = blueprint
     std::unordered_map<std::string, Port> ports;  // Port definitions
-    std::unordered_map<std::string, std::string> params;  // Default parameter values
-    std::unordered_map<std::string, ParamSchemaEntry> param_schema;  // Explicit typed parameter schema
+    std::unordered_map<std::string, ParamSpec> params;  // Combined parameter specs (default + schema)
     std::optional<std::vector<Domain>> domains;    // Domains
     std::string priority = "med";     // Priority
     bool critical = false;            // Critical flag

@@ -91,7 +91,7 @@ static TypeRegistry make_canvas_input_test_registry() {
         def.cpp_class = true;
         def.render_hint = hint;
         def.content_type = ct;
-        for (auto& [k, v] : params) def.params[k] = v;
+        for (auto& [k, v] : params) def.params[k] = ParamSpec{ParamSchemaType::String, v};
         reg.types[def.classname] = std::move(def);
     };
 
@@ -101,8 +101,8 @@ static TypeRegistry make_canvas_input_test_registry() {
         def.classname = "Slider";
         def.cpp_class = true;
         def.content_type = "Slider";
-        def.params["min"] = "0";
-        def.params["max"] = "1";
+        def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
+        def.params["max"] = ParamSpec{ParamSchemaType::Float, "1"};
         def.ports.emplace("out", Port(bp2::Direction::Output, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
     }

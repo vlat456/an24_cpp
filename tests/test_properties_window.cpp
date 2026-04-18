@@ -83,29 +83,29 @@ protected:
         TypeDefinition knob_def;
         knob_def.classname = "KnobSwitch";
         knob_def.content_type = "Knob";
-        knob_def.params["positions"] = "2";
-        knob_def.params["initial_position"] = "0";
+        knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "2"};
+        knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
         registry.types["KnobSwitch"] = knob_def;
 
         TypeDefinition slider_def;
         slider_def.classname = "Slider";
         slider_def.content_type = "Slider";
-        slider_def.params["min"] = "0";
-        slider_def.params["max"] = "100";
+        slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
+        slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
         registry.types["Slider"] = slider_def;
 
         TypeDefinition gauge_def;
         gauge_def.classname = "Gauge";
         gauge_def.content_type = "Gauge";
-        gauge_def.params["min"] = "0";
-        gauge_def.params["max"] = "30";
+        gauge_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
+        gauge_def.params["max"] = ParamSpec{ParamSchemaType::Float, "30"};
         registry.types["Gauge"] = gauge_def;
 
         TypeDefinition voltmeter_def;
         voltmeter_def.classname = "Voltmeter";
         voltmeter_def.content_type = "Gauge";
-        voltmeter_def.params["min"] = "0";
-        voltmeter_def.params["max"] = "30";
+        voltmeter_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
+        voltmeter_def.params["max"] = ParamSpec{ParamSchemaType::Float, "30"};
         registry.types["Voltmeter"] = voltmeter_def;
 
         TypeDefinition bus_def;
@@ -1007,7 +1007,7 @@ TEST_F(PropertiesWindowTest, ApplySwitchClosedReseedsLiveContentState) {
     TypeDefinition switch_def;
     switch_def.classname = "Switch";
     switch_def.content_type = "Switch";
-    switch_def.params["closed"] = "false";
+    switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     registry.types["Switch"] = switch_def;
 
     PropertiesWindow win;
@@ -1025,7 +1025,7 @@ TEST_F(PropertiesWindowTest, ApplyAzsClosedReseedsLiveVerticalToggleState) {
     TypeDefinition azs_def;
     azs_def.classname = "AZS";
     azs_def.content_type = "VerticalToggle";
-    azs_def.params["closed"] = "false";
+    azs_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     registry.types["AZS"] = azs_def;
 
     bp2::Blueprint::Node n;
@@ -1055,7 +1055,7 @@ TEST_F(PropertiesWindowTest, ApplyRelayClosedReseedsLiveSwitchState) {
     TypeDefinition relay_def;
     relay_def.classname = "Relay";
     relay_def.content_type = "Switch";
-    relay_def.params["closed"] = "false";
+    relay_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     registry.types["Relay"] = relay_def;
 
     bp2::Blueprint::Node n;

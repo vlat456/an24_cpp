@@ -28,10 +28,10 @@ std::optional<bp2::Blueprint::Node::BridgePortSide> bridge_side_from_type_defini
     if (it == def.params.end()) {
         return std::nullopt;
     }
-    if (it->second == "In") {
+    if (it->second.default_value == "In") {
         return bp2::Blueprint::Node::BridgePortSide::Input;
     }
-    if (it->second == "Out") {
+    if (it->second.default_value == "Out") {
         return bp2::Blueprint::Node::BridgePortSide::Output;
     }
     return std::nullopt;
@@ -158,10 +158,10 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
     for (const auto& [k, v] : def->params) {
         float parsed = 0.0f;
-        if (locale_safe::parse_float(v, parsed)) {
+        if (locale_safe::parse_float(v.default_value, parsed)) {
             node.semantic.params[interner_.intern(k)] = parsed;
         } else {
-            node.semantic.string_params[k] = v;
+            node.semantic.string_params[k] = v.default_value;
         }
     }
 

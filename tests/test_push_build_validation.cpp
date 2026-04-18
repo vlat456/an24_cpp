@@ -30,13 +30,12 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
             dev.ports[port_name] = port;
         }
         if (merge_defaults) {
-            for (const auto& [param_name, param_value] : def->params) {
-                auto schema_it = def->param_schema.find(param_name);
-                if (schema_it != def->param_schema.end() && schema_it->second.visual_only) {
+            for (const auto& [param_name, param_spec] : def->params) {
+                if (param_spec.visual_only) {
                     continue;
                 }
                 if (!dev.params.count(param_name)) {
-                    dev.params[param_name] = param_value;
+                    dev.params[param_name] = param_spec.default_value;
                 }
             }
         }
@@ -956,12 +955,12 @@ TEST(PushBuildValidation, ParamSchemaVisualOnlyFlag) {
 
     TypeDefinition def = parse_type_definition(j);
 
-    ASSERT_TRUE(def.param_schema.count("port_edge") > 0);
-    EXPECT_TRUE(def.param_schema.at("port_edge").visual_only);
-    EXPECT_EQ(def.param_schema.at("port_edge").type, ParamSchemaType::String);
+    ASSERT_TRUE(def.params.count("port_edge") > 0);
+    EXPECT_TRUE(def.params.at("port_edge").visual_only);
+    EXPECT_EQ(def.params.at("port_edge").type, ParamSchemaType::String);
 
-    ASSERT_TRUE(def.param_schema.count("v_nominal") > 0);
-    EXPECT_FALSE(def.param_schema.at("v_nominal").visual_only);
+    ASSERT_TRUE(def.params.count("v_nominal") > 0);
+    EXPECT_FALSE(def.params.at("v_nominal").visual_only);
 }
 
 

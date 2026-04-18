@@ -127,8 +127,8 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         for (auto const& [k, v] : node.semantic.params) {
             const std::string key = std::string(interner.resolve(k));
             if (type_def) {
-                auto schema_it = type_def->param_schema.find(key);
-                if (schema_it != type_def->param_schema.end()) {
+                auto schema_it = type_def->params.find(key);
+                if (schema_it != type_def->params.end()) {
                     switch (schema_it->second.type) {
                         case ParamSchemaType::Bool:
                             params[key] = (v != 0.0f);
@@ -146,8 +146,8 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         }
         for (auto const& [k, v] : node.semantic.string_params) {
             if (type_def) {
-                auto schema_it = type_def->param_schema.find(k);
-                if (schema_it != type_def->param_schema.end()) {
+                auto schema_it = type_def->params.find(k);
+                if (schema_it != type_def->params.end()) {
                     if (schema_it->second.type == ParamSchemaType::Bool) {
                         params[k] = (v == "true" || v == "1");
                         continue;

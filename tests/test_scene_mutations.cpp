@@ -832,8 +832,8 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
 
     TypeRegistry reg = scene_reg();
     reg.types["Slider"].content_type = "Slider";
-    reg.types["Slider"].params["min"] = "-10";
-    reg.types["Slider"].params["max"] = "200";
+    reg.types["Slider"].params["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
+    reg.types["Slider"].params["max"] = ParamSpec{ParamSchemaType::Float, "200"};
 
     auto slider = make_bp2_node(interner, "slider_live", "Slider");
     slider.view.name = "slider_live";
@@ -852,7 +852,7 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
         make_port(interner, "state", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
     reg.types["Switch"].content_type = "Switch";
-    reg.types["Switch"].params["closed"] = "false";
+    reg.types["Switch"].params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(slider));

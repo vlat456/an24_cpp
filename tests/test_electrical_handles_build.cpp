@@ -34,13 +34,12 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     }
 
     if (const TypeDefinition* def = test_registry().get(classname)) {
-        for (const auto& [param_name, param_value] : def->params) {
-            auto schema_it = def->param_schema.find(param_name);
-            if (schema_it != def->param_schema.end() && schema_it->second.visual_only) {
+        for (const auto& [param_name, param_spec] : def->params) {
+            if (param_spec.visual_only) {
                 continue;
             }
             if (!dev.params.count(param_name)) {
-                dev.params[param_name] = param_value;
+                dev.params[param_name] = param_spec.default_value;
             }
         }
         dev.solver_role = def->solver_role;

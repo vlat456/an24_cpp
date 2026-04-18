@@ -935,10 +935,10 @@ TEST(BlueprintDecode, RequiredParamValidation_MissingRequiredParamFails) {
     test_type.cpp_class = true;
     test_type.ports["in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
     test_type.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
-    ParamSchemaEntry req_param;
+    ParamSpec req_param;
     req_param.type = ParamSchemaType::Float;
     req_param.required = true;
-    test_type.param_schema["critical_value"] = req_param;
+    test_type.params["critical_value"] = req_param;
     reg.types["TestComponent"] = std::move(test_type);
     
     // Try to decode a blueprint with TestComponent but missing the required param
@@ -980,10 +980,10 @@ TEST(BlueprintDecode, RequiredParamValidation_PresentRequiredParamPasses) {
     test_type.cpp_class = true;
     test_type.ports["in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
     test_type.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
-    ParamSchemaEntry req_param;
+    ParamSpec req_param;
     req_param.type = ParamSchemaType::Float;
     req_param.required = true;
-    test_type.param_schema["critical_value"] = req_param;
+    test_type.params["critical_value"] = req_param;
     reg.types["TestComponent"] = std::move(test_type);
     
     // Decode a blueprint with TestComponent AND the required param present
@@ -1024,10 +1024,10 @@ TEST(BlueprintDecode, RequiredParamValidation_OptionalParamCanBeMissing) {
     test_type.cpp_class = true;
     test_type.ports["in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
     test_type.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
-    ParamSchemaEntry opt_param;
+    ParamSpec opt_param;
     opt_param.type = ParamSchemaType::Float;
     opt_param.required = false;  // Optional
-    test_type.param_schema["optional_value"] = opt_param;
+    test_type.params["optional_value"] = opt_param;
     reg.types["TestComponent"] = std::move(test_type);
     
     // Decode a blueprint with TestComponent but NO optional param

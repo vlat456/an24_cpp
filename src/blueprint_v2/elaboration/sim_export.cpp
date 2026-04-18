@@ -97,13 +97,13 @@ JitBuildInput elaborate_for_jit(
         const TypeDefinition* type_def = type_registry ? type_registry->get(classname) : nullptr;
         auto is_visual_only = [&](const std::string& key) -> bool {
             if (!type_def) return false;
-            auto it = type_def->param_schema.find(key);
-            return it != type_def->param_schema.end() && it->second.visual_only;
+            auto it = type_def->params.find(key);
+            return it != type_def->params.end() && it->second.visual_only;
         };
         auto is_int_param = [&](const std::string& key) -> bool {
             if (!type_def) return false;
-            auto it = type_def->param_schema.find(key);
-            return it != type_def->param_schema.end() && it->second.type == ParamSchemaType::Int;
+            auto it = type_def->params.find(key);
+            return it != type_def->params.end() && it->second.type == ParamSchemaType::Int;
         };
 
         for (const auto& [k, v] : comp.params) {

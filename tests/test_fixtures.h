@@ -25,7 +25,7 @@ inline TypeDefinition make_indicator_light_type() {
     td.ports["brightness"] = Port{bp2::Direction::Output, PortType::I, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    td.params["conductance"] = "0.002";
+    td.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.002"};
     SolverRole role;
     role.kind = "ConductanceBranch";
     role.port_map["a"] = "v_in";
@@ -45,7 +45,7 @@ inline TypeDefinition make_refnode_type(bp2::Direction direction = bp2::Directio
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
     td.scheduler_source = true;
-    td.params["value"] = "0.0";
+    td.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
     SolverRole role;
     role.kind = "FixedVoltageNode";
     role.port_map["node"] = "v";
@@ -64,8 +64,8 @@ inline TypeDefinition make_electrical_source_type() {
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    td.params["voltage"] = "28.0";
-    td.params["resistance"] = "0.01";
+    td.params["voltage"] = ParamSpec{ParamSchemaType::Float, "28.0"};
+    td.params["resistance"] = ParamSpec{ParamSchemaType::Float, "0.01"};
     SolverRole role;
     role.kind = "TheveninSource";
     role.port_map["pos"] = "v_out";
@@ -86,7 +86,7 @@ inline TypeDefinition make_electrical_conductance_type() {
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    td.params["conductance"] = "0.1";
+    td.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.1"};
     SolverRole role;
     role.kind = "ConductanceBranch";
     role.port_map["a"] = "v_in";
@@ -106,8 +106,8 @@ inline TypeDefinition make_generator_type() {
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    td.params["v_nominal"] = "28.5";
-    td.params["internal_r"] = "0.005";
+    td.params["v_nominal"] = ParamSpec{ParamSchemaType::Float, "28.5"};
+    td.params["internal_r"] = ParamSpec{ParamSchemaType::Float, "0.005"};
     SolverRole role;
     role.kind = "TheveninSource";
     role.port_map["pos"] = "v_out";
@@ -129,7 +129,7 @@ inline TypeDefinition make_currentsense_type() {
     td.ports["i_out"] = Port{bp2::Direction::Output, PortType::I, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    td.params["conductance"] = "0.05";
+    td.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.05"};
     SolverRole role;
     role.kind = "ConductanceBranch";
     role.port_map["a"] = "v_in";
@@ -149,7 +149,7 @@ inline TypeDefinition make_resistor_type() {
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    td.params["conductance"] = "0.1";
+    td.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.1"};
     SolverRole role;
     role.kind = "ConductanceBranch";
     role.port_map["a"] = "v_in";

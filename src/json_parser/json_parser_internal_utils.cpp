@@ -89,31 +89,91 @@ PortType parse_port_type_string(const std::string& s) {
     throw std::runtime_error("Unknown port type: " + s);
 }
 
+static ParamSpec to_param_spec(const ParamSchemaEntry& e, std::string default_value = {}) {
+    ParamSpec spec;
+    spec.type = e.type;
+    spec.default_value = std::move(default_value);
+    spec.min = e.min;
+    spec.max = e.max;
+    spec.required = e.required;
+    spec.visual_only = e.visual_only;
+    return spec;
+}
+
+void merge_params_and_schema(
+    const nlohmann::json& j,
+    const std::string& defaults_key,
+    std::unordered_map<std::string, ParamSpec>& out_params)
+{
+    std::unordered_map<std::string, ParamSchemaEntry> temp_schema;
+    if (j.contains("param_schema")) {
+        temp_schema = parse_param_schema(j["param_schema"]);
+    }
+
+    auto apply_schema = [&](const std::string& key, ParamSpec& spec) {
+        auto it = temp_schema.find(key);
+        if (it != temp_schema.end()) {
+            spec.type = it->second.type;
+            spec.min = it->second.min;
+            spec.max = it->second.max;
+            spec.required = it->second.required;
+            spec.visual_only = it->second.visual_only;
+        }
+    };
+
+    if (j.contains(defaults_key) && j[defaults_key].is_object()) {
+        for (auto& [k, v] : j[defaults_key].items()) {
+            ParamSpec spec;
+            if (v.is_string()) {
+                spec.default_value = v.get<std::string>();
+            } else if (v.is_number()) {
+                spec.default_value = locale_safe::format_float(static_cast<float>(v.get<double>()));
+            } else if (v.is_object() && v.contains("default")) {
+                spec.default_value = v["default"].get<std::string>();
+            }
+            apply_schema(k, spec);
+            out_params[k] = std::move(spec);
+        }
+
+        // Schema-only params (no default in JSON)
+        for (auto& [k, schema] : temp_schema) {
+            if (out_params.find(k) == out_params.end()) {
+                out_params[k] = to_param_spec(schema);
+            }
+        }
+    } else if (!temp_schema.empty()) {
+        // param_schema without defaults
+        for (auto& [k, schema] : temp_schema) {
+            out_params[k] = to_param_spec(schema);
+        }
+    }
+}
+
 void validate_params_against_schema(
     const std::unordered_map<std::string, std::string>& params,
-    const std::unordered_map<std::string, ParamSchemaEntry>& schema,
+    const std::unordered_map<std::string, ParamSpec>& schema,
     const std::string& dev_name,
     const std::string& classname)
 {
-    for (const auto& [name, entry] : schema) {
+    for (const auto& [name, spec] : schema) {
         auto it = params.find(name);
         if (it == params.end()) {
-            if (entry.required) {
+            if (spec.required) {
                 throw std::runtime_error("Missing required parameter '" + name + "' on device '" + dev_name + "' (" + classname + ")");
             }
             continue;
         }
         const std::string& value = it->second;
-        switch (entry.type) {
+        switch (spec.type) {
             case ParamSchemaType::Float: {
                 float v = 0.0f;
                 if (!locale_safe::parse_float(value, v)) {
                     throw std::runtime_error("Parameter '" + name + "' must be float on device '" + dev_name + "' (" + classname + ")");
                 }
-                if (entry.min.has_value() && static_cast<double>(v) < *entry.min) {
+                if (spec.min.has_value() && static_cast<double>(v) < *spec.min) {
                     throw std::runtime_error("Parameter '" + name + "' below min on device '" + dev_name + "' (" + classname + ")");
                 }
-                if (entry.max.has_value() && static_cast<double>(v) > *entry.max) {
+                if (spec.max.has_value() && static_cast<double>(v) > *spec.max) {
                     throw std::runtime_error("Parameter '" + name + "' above max on device '" + dev_name + "' (" + classname + ")");
                 }
                 break;
@@ -123,10 +183,10 @@ void validate_params_against_schema(
                 if (!locale_safe::parse_int64(value, v)) {
                     throw std::runtime_error("Parameter '" + name + "' must be int on device '" + dev_name + "' (" + classname + ")");
                 }
-                if (entry.min.has_value() && static_cast<double>(v) < *entry.min) {
+                if (spec.min.has_value() && static_cast<double>(v) < *spec.min) {
                     throw std::runtime_error("Parameter '" + name + "' below min on device '" + dev_name + "' (" + classname + ")");
                 }
-                if (entry.max.has_value() && static_cast<double>(v) > *entry.max) {
+                if (spec.max.has_value() && static_cast<double>(v) > *spec.max) {
                     throw std::runtime_error("Parameter '" + name + "' above max on device '" + dev_name + "' (" + classname + ")");
                 }
                 break;

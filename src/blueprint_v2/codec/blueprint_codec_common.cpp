@@ -119,7 +119,7 @@ void assign_param_by_descriptor(Blueprint::Node& node,
                                 ui::StringInterner& interner,
                                 std::string const& key,
                                 nlohmann::json const& val,
-                                ParamSchemaEntry const& schema,
+                                ParamSpec const& schema,
                                 TypeDefinition const* type_def) {
     const auto key_iid = interner.intern(key);
     switch (schema.type) {

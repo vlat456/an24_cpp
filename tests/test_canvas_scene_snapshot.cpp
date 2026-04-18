@@ -22,7 +22,7 @@ static TypeRegistry make_snapshot_test_registry() {
         def.classname = name;
         def.render_hint = hint;
         def.content_type = ct;
-        for (auto& [k, v] : params) def.params[k] = v;
+        for (auto& [k, v] : params) def.params[k] = ParamSpec{ParamSchemaType::String, v};
         reg.types[def.classname] = std::move(def);
     };
     add("Battery");

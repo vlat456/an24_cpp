@@ -41,13 +41,12 @@ DeviceInstance make_device(const std::string& name,
         for (const auto& [port_name, port] : def->ports) {
             dev.ports[port_name] = port;
         }
-        for (const auto& [param_name, param_value] : def->params) {
-            auto schema_it = def->param_schema.find(param_name);
-            if (schema_it != def->param_schema.end() && schema_it->second.visual_only) {
+        for (const auto& [param_name, param_spec] : def->params) {
+            if (param_spec.visual_only) {
                 continue;
             }
             if (!dev.params.count(param_name)) {
-                dev.params[param_name] = param_value;
+                dev.params[param_name] = param_spec.default_value;
             }
         }
         dev.solver_role = def->solver_role;

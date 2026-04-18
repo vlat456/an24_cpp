@@ -119,7 +119,7 @@ DeviceInstance parse_device(const json& j) {
 
 void validate_params_against_schema(
     const std::unordered_map<std::string, std::string>& params,
-    const std::unordered_map<std::string, ParamSchemaEntry>& schema,
+    const std::unordered_map<std::string, ParamSpec>& schema,
     const std::string& dev_name,
     const std::string& classname)
 {
@@ -159,18 +159,7 @@ TypeDefinition parse_type_definition(const json& j) {
         }
     }
 
-    if (j.contains("params")) {
-        for (auto& [key, val] : j["params"].items()) {
-            if (val.is_string()) {
-                def.params[key] = val.get<std::string>();
-            } else if (val.is_object() && val.contains("default")) {
-                def.params[key] = val["default"].get<std::string>();
-            }
-        }
-    }
-    if (j.contains("param_schema")) {
-        def.param_schema = json_parser_internal::parse_param_schema(j["param_schema"]);
-    }
+    json_parser_internal::merge_params_and_schema(j, "params", def.params);
 
     if (!j.contains("domains") || !j["domains"].is_array()) {
         throw std::runtime_error("Type definition missing required 'domains' array for component '" + def.classname + "'");
@@ -283,19 +272,18 @@ DeviceInstance merge_device_instance(
         }
     }
 
-    for (const auto& [param_name, param_value] : definition.params) {
-        auto schema_it = definition.param_schema.find(param_name);
-        if (schema_it != definition.param_schema.end() && schema_it->second.visual_only) {
+    for (const auto& [param_name, param_spec] : definition.params) {
+        if (param_spec.visual_only) {
             continue;
         }
         if (!merged.params.count(param_name)) {
-            merged.params[param_name] = param_value;
+            merged.params[param_name] = param_spec.default_value;
         }
     }
 
     for (auto it = merged.params.begin(); it != merged.params.end(); ) {
-        auto schema_it = definition.param_schema.find(it->first);
-        if (schema_it != definition.param_schema.end() && schema_it->second.visual_only) {
+        auto spec_it = definition.params.find(it->first);
+        if (spec_it != definition.params.end() && spec_it->second.visual_only) {
             it = merged.params.erase(it);
         } else {
             ++it;
@@ -325,8 +313,9 @@ DeviceInstance merge_device_instance(
     merged.solver_owned_electrical = definition.solver_owned_electrical;
     merged.solver_role = definition.solver_role;
 
-    if (!definition.param_schema.empty()) {
-        json_parser_internal::validate_params_against_schema(merged.params, definition.param_schema, merged.name, merged.classname);
+    // Validate params against schema (using unified params map)
+    if (!definition.params.empty()) {
+        json_parser_internal::validate_params_against_schema(merged.params, definition.params, merged.name, merged.classname);
     }
 
     return merged;

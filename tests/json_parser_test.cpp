@@ -661,9 +661,9 @@ TEST(JsonParserTest, ParseTypeDefinition_ParamSchemaParsed) {
     })");
 
     TypeDefinition def = parse_type_definition(j);
-    ASSERT_TRUE(def.param_schema.count("r_internal") > 0);
-    EXPECT_EQ(def.param_schema.at("r_internal").type, ParamSchemaType::Float);
-    EXPECT_TRUE(def.param_schema.at("r_internal").required);
+    ASSERT_TRUE(def.params.count("r_internal") > 0);
+    EXPECT_EQ(def.params.at("r_internal").type, ParamSchemaType::Float);
+    EXPECT_TRUE(def.params.at("r_internal").required);
 }
 
 TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
@@ -673,8 +673,7 @@ TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
     def.domains = std::vector<Domain>{Domain::Electrical};
     def.execution = ExecutionPhases{true, false, false, false, false, false, false, false, false};
     def.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
-    def.params["r_internal"] = "0.1";
-    def.param_schema["r_internal"] = ParamSchemaEntry{ParamSchemaType::Float, 0.000001, std::nullopt, true};
+    def.params["r_internal"] = ParamSpec{ParamSchemaType::Float, "0.1", 0.000001, std::nullopt, true, false};
 
     DeviceInstance inst;
     inst.name = "bat";

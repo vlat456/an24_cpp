@@ -300,8 +300,8 @@ Blueprint decode_nodes(Blueprint bp,
                 if (!type_def) {
                     throw std::runtime_error("invalid node entry: params require known node type");
                 }
-                auto schema_it = type_def->param_schema.find(key);
-                if (schema_it == type_def->param_schema.end()) {
+                auto schema_it = type_def->params.find(key);
+                if (schema_it == type_def->params.end()) {
                     throw std::runtime_error("invalid node entry: unknown param '" + key + "'");
                 }
                 assign_param_by_descriptor(node, interner, key, val, schema_it->second, type_def);
@@ -310,8 +310,8 @@ Blueprint decode_nodes(Blueprint bp,
 
         // Issue #88 Gap #2: Validate that all required parameters are present
         if (decoded_kind == DecodedNodeKind::Component && type_def) {
-            for (const auto& [param_key, param_schema] : type_def->param_schema) {
-                if (param_schema.required && !param_schema.visual_only) {
+            for (const auto& [param_key, param_spec] : type_def->params) {
+                if (param_spec.required && !param_spec.visual_only) {
                     // Check if param is present in the JSON or was assigned
                     bool param_found = false;
                     if (n.contains("params") && n["params"].contains(param_key)) {

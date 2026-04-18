@@ -1817,8 +1817,8 @@ TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
     TypeDefinition def;
     def.render_hint = "ref";
     def.content_type = "Slider";
-    def.params["min"] = "-10";
-    def.params["max"] = "50";
+    def.params["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
+    def.params["max"] = ParamSpec{ParamSchemaType::Float, "50"};
 
     bp2::Blueprint::Node node;
     node.semantic.id = ui::InternedId(3000);

@@ -126,18 +126,7 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
         def.ports[p["name"].get<std::string>()] = port;
     }
 
-    if (j.contains("param_defaults") && j["param_defaults"].is_object()) {
-        for (auto& [k, v] : j["param_defaults"].items()) {
-            if (v.is_string()) {
-                def.params[k] = v.get<std::string>();
-            } else if (v.is_number()) {
-                def.params[k] = locale_safe::format_float(static_cast<float>(v.get<double>()));
-            }
-        }
-    }
-    if (j.contains("param_schema")) {
-        def.param_schema = json_parser_internal::parse_param_schema(j["param_schema"]);
-    }
+    json_parser_internal::merge_params_and_schema(j, "param_defaults", def.params);
 
     if (j.contains("solver_role")) {
         if (!j["solver_role"].is_object()) {

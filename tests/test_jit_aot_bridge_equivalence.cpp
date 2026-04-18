@@ -39,7 +39,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     src.ports["offset"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     src.ports["min_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     src.ports["max_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
-    src.params["r_internal"] = "0.1";
+    src.params["r_internal"] = ParamSpec{ParamSchemaType::Float, "0.1"};
     src.solver_owned_electrical = true;
     {
         SolverRole role;
