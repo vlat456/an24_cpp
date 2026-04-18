@@ -247,9 +247,10 @@ TEST(EditorModel, UpdateNodeCannotOverrideEmbeddedCompositeIfaceAuthority) {
       const auto* node_before = model.current().find_node(interner.intern("sub1"));
       ASSERT_NE(node_before, nullptr);
 
-      // The node's cached iface should match the embedded blueprint's iface
+      // The node's source authority should expose the embedded blueprint iface
       ASSERT_TRUE(node_before->is_blueprint_instance());
-      EXPECT_EQ(node_before->blueprint_instance().source.cached_iface().find(interner.intern("inner_only")).has_value(), true);
+      ASSERT_NE(node_before->blueprint_instance().source.inline_def(), nullptr);
+      EXPECT_EQ(node_before->blueprint_instance().source.inline_def()->iface().find(interner.intern("inner_only")).has_value(), true);
   }
 
 // Regression: constructor must canonicalize embedded blueprint interface.
@@ -281,7 +282,8 @@ TEST(EditorModel, ConstructorCanonicalizesEmbeddedCompositeHostIface) {
       EXPECT_TRUE(node->has_embedded_blueprint());
       // Interface authority comes from source
       ASSERT_TRUE(node->is_blueprint_instance());
-      EXPECT_TRUE(node->blueprint_instance().source.cached_iface().find(interner.intern("authoritative_port")).has_value());
+      ASSERT_NE(node->blueprint_instance().source.inline_def(), nullptr);
+      EXPECT_TRUE(node->blueprint_instance().source.inline_def()->iface().find(interner.intern("authoritative_port")).has_value());
   }
 
 TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
@@ -311,7 +313,8 @@ TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
       ASSERT_NE(updated, nullptr);
       EXPECT_TRUE(updated->is_blueprint_instance());
       ASSERT_TRUE(updated->is_blueprint_instance());
-      EXPECT_TRUE(updated->blueprint_instance().source.cached_iface().find(interner.intern("inner_only")).has_value());
+      ASSERT_NE(updated->blueprint_instance().source.inline_def(), nullptr);
+      EXPECT_TRUE(updated->blueprint_instance().source.inline_def()->iface().find(interner.intern("inner_only")).has_value());
   }
 
 

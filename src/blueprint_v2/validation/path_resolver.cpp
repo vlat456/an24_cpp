@@ -95,7 +95,7 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
             return std::nullopt;
         }
 
-        const Interface& node_iface = current_bp->effective_node_iface(*node);
+        const Interface node_iface = current_bp->effective_node_iface(*node, parser_registry, interner);
         if (!node_iface.empty()) {
             auto maybe = node_iface.find(port_name);
             if (!maybe.has_value()) {
@@ -140,7 +140,7 @@ std::optional<ResolvedPort> PathResolver::resolve(WireEndpoint const& ep,
         return std::nullopt;
     }
 
-    const Interface& node_iface = root.effective_node_iface(*node);
+    const Interface node_iface = root.effective_node_iface(*node, parser_registry, interner);
     if (!node_iface.empty()) {
         auto maybe = node_iface.find(ep.port);
         if (!maybe.has_value()) {

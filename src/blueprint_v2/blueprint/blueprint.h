@@ -61,10 +61,6 @@ public:
             struct Reference {
                 /// Sole referenced authority for blueprint-instance sources.
                 ui::InternedId blueprint_id;
-                /// Strictly derived in-memory cache populated from authoritative
-                /// referenced blueprint/type resolution. Must validate against
-                /// the registry; must never be treated as independent authority.
-                Interface cached_iface;
             };
 
             std::variant<Embedded, Reference> value;
@@ -82,13 +78,11 @@ public:
 
             static BlueprintSource make_embedded(ui::InternedId blueprint_id,
                                                  std::unique_ptr<Blueprint> blueprint);
-            static BlueprintSource make_reference(ui::InternedId blueprint_id,
-                                                 Interface cached_iface);
+            static BlueprintSource make_reference(ui::InternedId blueprint_id);
 
             bool is_embedded() const;
             bool is_reference() const;
             ui::InternedId blueprint_id() const;
-            Interface const& cached_iface() const;
             Blueprint const* inline_def() const;
             Blueprint* inline_def_mut();
             void set_inline_def(std::unique_ptr<Blueprint> blueprint);
@@ -281,13 +275,22 @@ public:
     bool is_embedded_blueprint_instance(Node const& node) const;
     bool is_referenced_blueprint_instance(Node const& node) const;
 
-    /// Return the authoritative interface for a node.
-    /// For blueprint-instance nodes, source authority wins:
-    /// - embedded sources: inline blueprint interface
-    /// - reference sources: cache derived from authoritative blueprint_id
-    ///   and validated against the registry
+    /// Return the authoritative interface for a node when it is self-contained.
+    /// Component and structural bridge nodes always satisfy this. Embedded
+    /// blueprint instances do as well via their owned inline blueprint.
+    /// Referenced blueprint instances require explicit external authority and
+    /// will throw if queried through this overload.
     Interface const& effective_node_iface(ui::InternedId node_id) const;
     Interface const& effective_node_iface(Node const& node) const;
+
+    /// Resolve the authoritative interface for any node, including referenced
+    /// blueprint instances, using the parser registry as authority.
+    Interface effective_node_iface(Node const& node,
+                                   ::TypeRegistry const& parser_registry,
+                                   ui::StringInterner& interner) const;
+    Interface effective_node_iface(ui::InternedId node_id,
+                                   ::TypeRegistry const& parser_registry,
+                                   ui::StringInterner& interner) const;
 
     Blueprint with_node(Node n) const;
     Blueprint without_node(ui::InternedId id) const;
@@ -300,6 +303,9 @@ public:
 
     /// Returns all (path, port) pairs reachable from this blueprint.
     std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena) const;
+    std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena,
+                                                           ::TypeRegistry const& parser_registry,
+                                                           ui::StringInterner& interner) const;
 
     /// Validates all invariants. Throws std::runtime_error on failure.
     void validate(::TypeRegistry const& parser_registry, ui::StringInterner& interner) const;
@@ -330,6 +336,12 @@ private:
         std::vector<std::pair<Path, PortDescriptor>>& result,
         PathArena& arena,
         Path prefix) const;
+    void collect_ports_recursive(
+        std::vector<std::pair<Path, PortDescriptor>>& result,
+        PathArena& arena,
+        Path prefix,
+        ::TypeRegistry const& parser_registry,
+        ui::StringInterner& interner) const;
 };
 
 } // namespace bp2

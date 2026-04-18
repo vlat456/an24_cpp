@@ -399,7 +399,8 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
 
     // Check that the embedded blueprint's interface is also updated
     ASSERT_TRUE(collapsed_after->has_embedded_blueprint());
-    auto embedded_iface = collapsed_after->blueprint_instance().source.cached_iface();
+    ASSERT_NE(collapsed_after->blueprint_instance().source.inline_def(), nullptr);
+    auto embedded_iface = collapsed_after->blueprint_instance().source.inline_def()->iface();
     auto pd = embedded_iface.find(interner.intern("in"));
     ASSERT_TRUE(pd.has_value());
     EXPECT_EQ(pd->domain, Domain::Mechanical);

@@ -63,7 +63,13 @@ std::optional<PortDescriptor> node_port_descriptor(const Blueprint::Node& node,
                                                    const Blueprint& bp,
                                                    const TypeRegistry* parser_registry,
                                                    ui::StringInterner& interner) {
-    const Interface& effective_iface = bp.effective_node_iface(node);
+    if (node.is_blueprint_instance() && parser_registry == nullptr && !node.has_embedded_blueprint()) {
+        return std::nullopt;
+    }
+
+    const Interface effective_iface = parser_registry
+        ? bp.effective_node_iface(node, *parser_registry, interner)
+        : bp.effective_node_iface(node);
 
     if (!effective_iface.empty()) {
         return effective_iface.find(port_name);
@@ -114,7 +120,13 @@ IndexedSignalGraph build_indexed_signal_graph(const Blueprint& bp,
     }
 
     for (const auto& node : bp.nodes()) {
-        const Interface& effective_iface = bp.effective_node_iface(node);
+        if (node.is_blueprint_instance() && parser_registry == nullptr && !node.has_embedded_blueprint()) {
+            continue;
+        }
+
+        const Interface effective_iface = parser_registry
+            ? bp.effective_node_iface(node, *parser_registry, interner)
+            : bp.effective_node_iface(node);
         if (!effective_iface.empty()) {
             for (const auto& port : effective_iface.ports()) {
                 ports.push_back({

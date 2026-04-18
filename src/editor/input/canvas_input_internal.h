@@ -45,10 +45,12 @@ inline bool is_wire_alias_port_name(std::string_view port_name) {
 
 inline PortType resolve_port_type_from_model(const bp2::Blueprint& bp,
                                              ui::InternedId node_id,
-                                             ui::InternedId port_name) {
+                                             ui::InternedId port_name,
+                                             const TypeRegistry& registry,
+                                             ui::StringInterner& interner) {
     const bp2::Blueprint::Node* node = bp.find_node(node_id);
     if (!node) return PortType::Any;
-    for (const auto& p : bp.effective_node_iface(*node).ports()) {
+    for (const auto& p : bp.effective_node_iface(*node, registry, interner).ports()) {
         if (p.name == port_name) return p.port_type;
     }
     return PortType::Any;

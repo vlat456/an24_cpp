@@ -86,7 +86,7 @@ TEST(BlueprintNodeSource, MakeReferenceRejectsEmptyBlueprintId) {
         std::logic_error);
 }
 
-TEST(BlueprintNodeSource, CachedIfaceNonThrowingEmbedded) {
+TEST(BlueprintNodeSource, EmbeddedBlueprintSourceExposesInlineBlueprint) {
     ui::StringInterner interner;
     auto iface = bp2::Interface({
         {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input}
@@ -98,36 +98,28 @@ TEST(BlueprintNodeSource, CachedIfaceNonThrowingEmbedded) {
         interner.intern("inner_bp"),
         std::move(inner));
 
-    EXPECT_NO_THROW(source.cached_iface());
-    EXPECT_EQ(source.cached_iface().size(), 1u);
+    ASSERT_NE(source.inline_def(), nullptr);
+    EXPECT_EQ(source.inline_def()->iface().size(), 1u);
 }
 
-TEST(BlueprintNodeSource, CachedIfaceNonThrowingReference) {
+TEST(BlueprintNodeSource, ReferenceSourceStoresOnlyBlueprintId) {
     ui::StringInterner interner;
-    auto iface = bp2::Interface({
-        {interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output}
-    });
 
     auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("power_system"),
-        iface);
+        interner.intern("power_system"));
 
-    EXPECT_NO_THROW(source.cached_iface());
-    EXPECT_EQ(source.cached_iface().size(), 1u);
+    EXPECT_TRUE(source.is_reference());
+    EXPECT_EQ(source.blueprint_id(), interner.intern("power_system"));
+    EXPECT_EQ(source.inline_def(), nullptr);
 }
 
-TEST(BlueprintNodeSource, CachedIfaceTracksReferenceCacheOnly) {
+TEST(BlueprintNodeSource, ReferenceEqualityTracksBlueprintIdOnly) {
     ui::StringInterner interner;
-    auto iface = bp2::Interface({
-        {interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output}
-    });
 
     auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("power_system"),
-        iface);
+        interner.intern("power_system"));
 
     EXPECT_EQ(source.blueprint_id(), interner.intern("power_system"));
-    EXPECT_EQ(source.cached_iface(), iface);
 }
 
 TEST(BlueprintNodeSource, CopyPreservesVariantMode) {
@@ -143,8 +135,7 @@ TEST(BlueprintNodeSource, CopyPreservesVariantMode) {
 
     // Reference copy
     auto ref = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("power_system"),
-        bp2::Interface{});
+        interner.intern("power_system"));
     auto ref_copy = ref;
     EXPECT_TRUE(ref_copy.is_reference());
     EXPECT_EQ(ref_copy.inline_def(), nullptr);
@@ -348,6 +339,23 @@ TEST(Blueprint, EffectiveNodeIfaceThrowsForMissingNodeId) {
     bp2::Blueprint bp;
 
     EXPECT_THROW(bp.effective_node_iface(interner.intern("missing")), std::logic_error);
+}
+
+TEST(Blueprint, EffectiveNodeIfaceReferenceRequiresExplicitAuthority) {
+    ui::StringInterner interner;
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("ref1");
+    node.semantic.type = interner.intern("CompositeType");
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(interner.intern("CompositeType"))
+    };
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    const auto* found = bp.find_node(interner.intern("ref1"));
+    ASSERT_NE(found, nullptr);
+    EXPECT_THROW(bp.effective_node_iface(*found), std::logic_error);
 }
 
 TEST(Blueprint, WithNodeDoesNotMutateOriginal) {

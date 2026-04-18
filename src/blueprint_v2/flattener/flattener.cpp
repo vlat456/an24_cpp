@@ -260,7 +260,7 @@ void Flattener::visit_blueprint_instance(
     // nested scope.
     std::unordered_map<Path, SignalIndex> nested_signals;
     std::unordered_map<Path, SignalIndex> seeded_boundary;
-    for (auto const& port : node.blueprint_instance().source.cached_iface()) {
+    for (auto const& port : inner->iface()) {
         Blueprint::Node const* bridge = find_bridge_for_port(*inner, port.name);
         if (!bridge) continue;
 

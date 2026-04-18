@@ -65,12 +65,6 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                         + " blueprint_id=" + iid_to_string(source.blueprint_id());
                     return out;
                 }
-                Interface expected = interface_from_type_definition(*def, interner);
-                if (source.cached_iface() != expected) {
-                    out.error = "referenced blueprint cached iface desynced from registry at node id="
-                        + iid_to_string(node.semantic.id);
-                    return out;
-                }
             }
 
             // Issue #88 Gap #4: Validate embedded blueprints recursively

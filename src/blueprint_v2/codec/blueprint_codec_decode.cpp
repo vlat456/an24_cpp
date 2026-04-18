@@ -153,8 +153,7 @@ Blueprint::Node::BlueprintSource decode_node_source(nlohmann::json const& source
             throw std::runtime_error("invalid node entry: unknown referenced blueprint_id");
         }
         return Blueprint::Node::BlueprintSource::make_reference(
-            bp_id,
-            interface_from_type_definition(*def, interner));
+            bp_id);
     }
 
     throw std::runtime_error("invalid node entry: unknown source.mode");

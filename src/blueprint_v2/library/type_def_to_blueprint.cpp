@@ -38,8 +38,8 @@ Domain resolve_wire_domain(const Blueprint& bp,
             "blueprint_from_type_definition: unresolved wire node in " + context);
     }
 
-    const auto src_desc = bp.effective_node_iface(*src).find(interner.lookup(src_port));
-    const auto tgt_desc = bp.effective_node_iface(*tgt).find(interner.lookup(tgt_port));
+    const auto src_desc = bp.effective_node_iface(*src, registry, interner).find(interner.lookup(src_port));
+    const auto tgt_desc = bp.effective_node_iface(*tgt, registry, interner).find(interner.lookup(tgt_port));
     if (!src_desc || !tgt_desc) {
         throw std::runtime_error(
             "blueprint_from_type_definition: unresolved wire port in " + context);
