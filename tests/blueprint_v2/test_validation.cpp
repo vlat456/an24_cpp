@@ -509,8 +509,7 @@ TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor
     bp2::Blueprint::Node leaf_inst;
     leaf_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("LeafType"),
-            std::make_unique<bp2::Blueprint>(leaf))
+            std::make_unique<bp2::Blueprint>(leaf.with_id(I.intern("LeafType"))))
     };
     leaf_inst.semantic.id = I.intern("leaf");
     leaf_inst.semantic.type = I.intern("LeafType");
@@ -1079,8 +1078,7 @@ TEST(InvariantChecker, RecursiveValidation_EmbeddedWithSelfLoopFails) {
     bp2::Blueprint::Node composite_node;
     composite_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("CompositeType"),
-            std::make_unique<bp2::Blueprint>(inner_bp)
+            std::make_unique<bp2::Blueprint>(inner_bp.with_id(I.intern("CompositeType")))
         )
     };
     composite_node.semantic.id = I.intern("composite1");
@@ -1109,8 +1107,7 @@ TEST(InvariantChecker, RecursiveValidation_EmbeddedWithDuplicateNodesFails) {
     bp2::Blueprint::Node composite_node;
     composite_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("CompositeType"),
-            std::make_unique<bp2::Blueprint>(inner_bp)
+            std::make_unique<bp2::Blueprint>(inner_bp.with_id(I.intern("CompositeType")))
         )
     };
     composite_node.semantic.id = I.intern("composite1");
@@ -1146,8 +1143,7 @@ TEST(InvariantChecker, RecursiveValidation_ValidEmbeddedPasses) {
     bp2::Blueprint::Node composite_node;
     composite_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("CompositeType"),
-            std::make_unique<bp2::Blueprint>(inner_bp)
+            std::make_unique<bp2::Blueprint>(inner_bp.with_id(I.intern("CompositeType")))
         )
     };
     composite_node.semantic.id = I.intern("composite1");

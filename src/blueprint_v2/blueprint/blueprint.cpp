@@ -7,8 +7,7 @@
 
 namespace bp2 {
 
-Blueprint::Node::BlueprintSource::Embedded::Embedded(const Embedded& other)
-    : blueprint_id(other.blueprint_id) {
+Blueprint::Node::BlueprintSource::Embedded::Embedded(const Embedded& other) {
     if (other.blueprint) {
         blueprint = std::make_unique<Blueprint>(*other.blueprint);
     }
@@ -17,13 +16,18 @@ Blueprint::Node::BlueprintSource::Embedded::Embedded(const Embedded& other)
 Blueprint::Node::BlueprintSource::Embedded&
 Blueprint::Node::BlueprintSource::Embedded::operator=(const Embedded& other) {
     if (this != &other) {
-        blueprint_id = other.blueprint_id;
         blueprint.reset();
         if (other.blueprint) {
             blueprint = std::make_unique<Blueprint>(*other.blueprint);
         }
     }
     return *this;
+}
+
+bool Blueprint::Node::BlueprintSource::Embedded::operator==(Embedded const& o) const {
+    if (!blueprint && !o.blueprint) return true;
+    if (!blueprint || !o.blueprint) return false;
+    return *blueprint == *o.blueprint;
 }
 
 Blueprint::Node::BlueprintSource::BlueprintSource(const BlueprintSource& other)
@@ -39,12 +43,14 @@ Blueprint::Node::BlueprintSource::operator=(const BlueprintSource& other) {
 }
 
 Blueprint::Node::BlueprintSource
-Blueprint::Node::BlueprintSource::make_embedded(ui::InternedId blueprint_id,
-                                                std::unique_ptr<Blueprint> blueprint) {
+Blueprint::Node::BlueprintSource::make_embedded(std::unique_ptr<Blueprint> blueprint) {
     if (!blueprint) {
         throw std::logic_error("BlueprintSource::make_embedded requires non-null blueprint");
     }
-    return BlueprintSource(Embedded{blueprint_id, std::move(blueprint)});
+    if (blueprint->id().empty()) {
+        throw std::logic_error("BlueprintSource::make_embedded requires blueprint with non-empty id");
+    }
+    return BlueprintSource(Embedded{std::move(blueprint)});
 }
 
 Blueprint::Node::BlueprintSource
@@ -65,7 +71,7 @@ bool Blueprint::Node::BlueprintSource::is_reference() const {
 
 ui::InternedId Blueprint::Node::BlueprintSource::blueprint_id() const {
     if (auto* embedded = std::get_if<Embedded>(&value)) {
-        return embedded->blueprint_id;
+        return embedded->blueprint->id();
     }
     return std::get<Reference>(value).blueprint_id;
 }
@@ -87,6 +93,9 @@ Blueprint* Blueprint::Node::BlueprintSource::inline_def_mut() {
 void Blueprint::Node::BlueprintSource::set_inline_def(std::unique_ptr<Blueprint> blueprint) {
     if (!blueprint) {
         throw std::logic_error("BlueprintSource::set_inline_def requires non-null blueprint");
+    }
+    if (blueprint->id().empty()) {
+        throw std::logic_error("BlueprintSource::set_inline_def requires blueprint with non-empty id");
     }
     auto* embedded = std::get_if<Embedded>(&value);
     if (!embedded) {

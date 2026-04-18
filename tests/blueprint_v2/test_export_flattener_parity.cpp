@@ -136,8 +136,7 @@ TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
     inst.semantic.type = I.intern("EmbeddedType");
     inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("EmbeddedType"),
-        std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("EmbeddedType"))))
     };
     root = root.with_node(std::move(inst));
 
@@ -224,8 +223,7 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
     sub_inst.semantic.type = I.intern("SubType");
     sub_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("SubType"),
-        std::make_unique<bp2::Blueprint>(sub_bp))
+        std::make_unique<bp2::Blueprint>(sub_bp.with_id(I.intern("SubType"))))
     };
     mid_bp = mid_bp.with_node(std::move(sub_inst));
 
@@ -248,8 +246,7 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
     mid_inst.semantic.type = I.intern("MidType");
     mid_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("MidType"),
-        std::make_unique<bp2::Blueprint>(mid_bp))
+        std::make_unique<bp2::Blueprint>(mid_bp.with_id(I.intern("MidType"))))
     };
     root = root.with_node(std::move(mid_inst));
 
@@ -333,8 +330,7 @@ TEST(ExportFlattenerParity, OutputBridgeRewrite) {
     inst.semantic.type = I.intern("EmbeddedType");
     inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("EmbeddedType"),
-        std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("EmbeddedType"))))
     };
     root = root.with_node(std::move(inst));
 
@@ -387,10 +383,9 @@ TEST(ExportFlattenerParity, StructuralOutputBridgeExposesCanonicalInterfacePortK
     bp2::Blueprint::Node inst;
     inst.semantic.id = I.intern("extract_inst_4");
     inst.semantic.type = I.intern("RPMIntertial");
-    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("RPMIntertial"),
-        std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("RPMIntertial"))))
     };
     root = root.with_node(std::move(inst));
 

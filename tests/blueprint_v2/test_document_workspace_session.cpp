@@ -40,8 +40,7 @@ bp2::Blueprint make_root_blueprint(ui::StringInterner& interner) {
 
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("embedded_type"),
-        std::make_unique<bp2::Blueprint>(std::move(inner)))
+        std::make_unique<bp2::Blueprint>(std::move(inner).with_id(interner.intern("embedded_type"))))
     };
 
     bp = bp.with_node(std::move(host));

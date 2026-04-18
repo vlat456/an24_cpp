@@ -18,12 +18,11 @@ TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
      bp2::Blueprint::Node collapsed;
      collapsed.semantic.id = interner.intern("comp_1");
      collapsed.semantic.type = interner.intern("FirstOrderLag");
-     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
-         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-         interner.intern("FirstOrderLag"),
-         std::make_unique<bp2::Blueprint>(inline_bp))
-     };
-     root = root.with_node(collapsed);
+collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+          bp2::Blueprint::Node::BlueprintSource::make_embedded(
+          std::make_unique<bp2::Blueprint>(inline_bp.with_id(interner.intern("FirstOrderLag"))))
+      };
+      root = root.with_node(collapsed);
 
      bp2::EditorModel model(root);
 
@@ -41,11 +40,10 @@ TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
      moved.layout.x = 42.0f;
      moved.layout.y = 99.0f;
 
-     auto updated_inline = std::make_unique<bp2::Blueprint>(
-         bp2::replace_node_preserve_order(*before_node->blueprint_instance().source.inline_def(), std::move(moved)));
-     updated_node.blueprint_instance().source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-         before_node->blueprint_instance().source.blueprint_id(),
-         std::move(updated_inline));
+auto updated_inline = std::make_unique<bp2::Blueprint>(
+          bp2::replace_node_preserve_order(*before_node->blueprint_instance().source.inline_def(), std::move(moved)));
+      updated_node.blueprint_instance().source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+          std::make_unique<bp2::Blueprint>(std::move(*updated_inline).with_id(before_node->blueprint_instance().source.blueprint_id())));
 
      model.push_checkpoint();
      model.replace_current(bp2::replace_node_preserve_order(model.current(), std::move(updated_node)));

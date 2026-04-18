@@ -639,8 +639,7 @@ TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
     bp2::Blueprint::Node host;
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("RPMIntertial"),
-            std::make_unique<bp2::Blueprint>(inner))
+            std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("RPMIntertial"))))
     };
     host.semantic.id = I.intern("extract_inst_4");
     host.semantic.type = I.intern("RPMIntertial");
@@ -696,8 +695,7 @@ TEST(CanvasInputReconnect, EmbeddedAnyInputUsesConcreteSourceDomain) {
     bp2::Blueprint::Node host;
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("RPMIntertial"),
-            std::make_unique<bp2::Blueprint>(inner))
+            std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("RPMIntertial"))))
     };
     host.semantic.id = I.intern("extract_inst_4");
     host.semantic.type = I.intern("RPMIntertial");
@@ -1013,16 +1011,15 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
     auto host_node = make_node(I, "host1", "CompositeType", 120.0f, 80.0f);
     host_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("CompositeType"),
-            std::make_unique<bp2::Blueprint>())
+            std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(I.intern("CompositeType"))))
     };
 
     auto inner_def = std::make_unique<bp2::Blueprint>();
     *inner_def = inner_def->with_id(I.intern("CompositeType"));
     *inner_def = inner_def->with_interface(bp2::Interface{});
     
+    inner_def = std::make_unique<bp2::Blueprint>(inner_def->with_id(I.intern("CompositeType")));
     host_node.blueprint_instance().source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("CompositeType"),
         std::move(inner_def)
     );
 
@@ -1204,8 +1201,7 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
     // Mark as blueprint instance (composite nodes can be expanded/opened)
     group.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("Composite"),
-            std::make_unique<bp2::Blueprint>())
+            std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(I.intern("Composite"))))
     };
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(group));
@@ -2970,8 +2966,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
     auto composite = make_node(I, "comp_1", "CompositeSwitch", 100.0f, 100.0f);
     composite.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("CompositeSwitch"),
-            std::make_unique<bp2::Blueprint>())
+            std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(I.intern("CompositeSwitch"))))
     };
 
     bp2::Blueprint bp;
@@ -3851,8 +3846,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnBlueprintInstanceConsumesEvent) {
     auto group = make_node(I, "grp1", "Composite", 120.0f, 80.0f);
     group.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            I.intern("Composite"),
-            std::make_unique<bp2::Blueprint>())
+            std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(I.intern("Composite"))))
     };
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(group));

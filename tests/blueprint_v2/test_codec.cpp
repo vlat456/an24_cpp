@@ -868,8 +868,7 @@ TEST(BlueprintCodec, ExplicitHydrationPopulatesRuntimeViewFieldsRecursively) {
     bp2::Blueprint::Node host;
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            interner.intern("Group"),
-            std::make_unique<bp2::Blueprint>(inner))
+            std::make_unique<bp2::Blueprint>(inner.with_id(interner.intern("Group"))))
     };
     host.semantic.id = interner.intern("host");
     host.semantic.type = interner.intern("Group");

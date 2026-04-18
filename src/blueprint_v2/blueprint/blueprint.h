@@ -46,16 +46,17 @@ public:
 
         struct BlueprintSource {
             struct Embedded {
-                ui::InternedId blueprint_id;
                 std::unique_ptr<Blueprint> blueprint;
 
                 Embedded() = delete;
-                Embedded(ui::InternedId bp_id, std::unique_ptr<Blueprint> bp)
-                    : blueprint_id(bp_id), blueprint(std::move(bp)) {}
+                explicit Embedded(std::unique_ptr<Blueprint> bp)
+                    : blueprint(std::move(bp)) {}
                 Embedded(const Embedded& other);
                 Embedded(Embedded&&) noexcept = default;
                 Embedded& operator=(const Embedded& other);
                 Embedded& operator=(Embedded&&) noexcept = default;
+
+                bool operator==(Embedded const& o) const;
             };
 
             struct Reference {
@@ -76,8 +77,7 @@ public:
             BlueprintSource& operator=(const BlueprintSource& other);
             BlueprintSource& operator=(BlueprintSource&&) noexcept = default;
 
-            static BlueprintSource make_embedded(ui::InternedId blueprint_id,
-                                                 std::unique_ptr<Blueprint> blueprint);
+            static BlueprintSource make_embedded(std::unique_ptr<Blueprint> blueprint);
             static BlueprintSource make_reference(ui::InternedId blueprint_id);
 
             bool is_embedded() const;

@@ -81,7 +81,6 @@ TEST(EditorModel, RemoveHostNodeAlsoRemovesEmbeddedBlueprint) {
      host.semantic.type = interner.intern("CompositeType");
      host.content = bp2::Blueprint::Node::BlueprintInstanceData{
          bp2::Blueprint::Node::BlueprintSource::make_embedded(
-         interner.intern("CompositeType"),
          std::make_unique<bp2::Blueprint>(inner))
      };
 
@@ -231,19 +230,18 @@ TEST(EditorModel, UpdateNodeCannotOverrideEmbeddedCompositeIfaceAuthority) {
          {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
      }));
 
-     bp2::Blueprint::Node collapsed;
-     collapsed.semantic.id = interner.intern("sub1");
-     collapsed.semantic.type = interner.intern("CompositeType");
-     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
-         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-         interner.intern("CompositeType"),
-         std::make_unique<bp2::Blueprint>(inner))
-     };
+bp2::Blueprint::Node collapsed;
+      collapsed.semantic.id = interner.intern("sub1");
+      collapsed.semantic.type = interner.intern("CompositeType");
+      collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+          bp2::Blueprint::Node::BlueprintSource::make_embedded(
+          std::make_unique<bp2::Blueprint>(inner.with_id(interner.intern("CompositeType"))))
+      };
 
-     bp2::Blueprint root;
-     root = root.with_node(collapsed);
+      bp2::Blueprint root;
+      root = root.with_node(collapsed);
 
-     bp2::EditorModel model(root);
+      bp2::EditorModel model(root);
       const auto* node_before = model.current().find_node(interner.intern("sub1"));
       ASSERT_NE(node_before, nullptr);
 
@@ -263,20 +261,19 @@ TEST(EditorModel, ConstructorCanonicalizesEmbeddedCompositeHostIface) {
      }));
 
      bp2::Blueprint::Node collapsed;
-     collapsed.semantic.id = interner.intern("sub1");
-     collapsed.semantic.type = interner.intern("CompositeType");
-     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
-         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-         interner.intern("CompositeType"),
-         std::make_unique<bp2::Blueprint>(inner))
-     };
+collapsed.semantic.id = interner.intern("sub1");
+      collapsed.semantic.type = interner.intern("CompositeType");
+      collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+          bp2::Blueprint::Node::BlueprintSource::make_embedded(
+          std::make_unique<bp2::Blueprint>(inner.with_id(interner.intern("CompositeType"))))
+      };
 
-     bp2::Blueprint root;
-     root = root.with_node(std::move(collapsed));
+      bp2::Blueprint root;
+      root = root.with_node(std::move(collapsed));
 
-     bp2::EditorModel model(root);
+      bp2::EditorModel model(root);
 
-      const auto* node = model.current().find_node(interner.intern("sub1"));
+       const auto* node = model.current().find_node(interner.intern("sub1"));
       ASSERT_NE(node, nullptr);
       EXPECT_TRUE(node->is_blueprint_instance());
       EXPECT_TRUE(node->has_embedded_blueprint());
@@ -294,22 +291,21 @@ TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
          {interner.intern("inner_only"), Domain::Electrical, bp2::Direction::Input, PortType::V},
      }));
 
-     bp2::Blueprint::Node collapsed;
-     collapsed.semantic.id = interner.intern("sub1");
-     collapsed.semantic.type = interner.intern("CompositeType");
-     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
-         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-         interner.intern("CompositeType"),
-         std::make_unique<bp2::Blueprint>(inner))
-     };
+bp2::Blueprint::Node collapsed;
+      collapsed.semantic.id = interner.intern("sub1");
+      collapsed.semantic.type = interner.intern("CompositeType");
+      collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+          bp2::Blueprint::Node::BlueprintSource::make_embedded(
+          std::make_unique<bp2::Blueprint>(inner.with_id(interner.intern("CompositeType"))))
+      };
 
-     bp2::Blueprint root;
-     root = root.with_node(std::move(collapsed));
+      bp2::Blueprint root;
+      root = root.with_node(std::move(collapsed));
 
-     bp2::EditorModel model;
-     model.replace_current(std::move(root));
+      bp2::EditorModel model;
+      model.replace_current(std::move(root));
 
-      const auto* updated = model.current().find_node(interner.intern("sub1"));
+       const auto* updated = model.current().find_node(interner.intern("sub1"));
       ASSERT_NE(updated, nullptr);
       EXPECT_TRUE(updated->is_blueprint_instance());
       ASSERT_TRUE(updated->is_blueprint_instance());

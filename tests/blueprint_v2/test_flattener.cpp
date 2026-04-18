@@ -379,7 +379,7 @@ TEST(Flattener, Regression112_SingleLevelNoPhantomPaths) {
     inst.semantic.type = I.intern("Embedded");
     inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("Embedded"))))
     };
     root = root.with_node(std::move(inst));
 
@@ -475,7 +475,7 @@ TEST(Flattener, Regression112_V1LabelBasedBridgeMatch) {
     exciter.semantic.type = I.intern("RN-180-Exciter");
     exciter.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("RN-180-Exciter"), std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("RN-180-Exciter"))))
     };
     root = root.with_node(std::move(exciter));
 
@@ -566,7 +566,7 @@ TEST(Flattener, Regression112_ThreeLevelNesting_NoPhantomPaths) {
     sub_inst.semantic.type = I.intern("SubType");
     sub_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("SubType"), std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("SubType"))))
     };
     mid = mid.with_node(std::move(sub_inst));
 
@@ -593,7 +593,7 @@ TEST(Flattener, Regression112_ThreeLevelNesting_NoPhantomPaths) {
     mid_inst.semantic.type = I.intern("MidType");
     mid_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("MidType"), std::make_unique<bp2::Blueprint>(mid))
+        std::make_unique<bp2::Blueprint>(mid.with_id(I.intern("MidType"))))
     };
     root = root.with_node(std::move(mid_inst));
 
@@ -671,7 +671,7 @@ TEST(Flattener, Regression112_OutputBridge_NoPhantomPaths) {
     inst.semantic.type = I.intern("Embedded");
     inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("Embedded"))))
     };
     root = root.with_node(std::move(inst));
 
@@ -769,7 +769,7 @@ TEST(Flattener, Regression112_BidirectionalBridge) {
     inst.semantic.type = I.intern("Embedded");
     inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("Embedded"))))
     };
     root = root.with_node(std::move(inst));
 
@@ -856,7 +856,7 @@ TEST(Flattener, Regression112_MissingBridgeThrows) {
     inst.semantic.type = I.intern("Embedded");
     inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("Embedded"))))
     };
     root = root.with_node(std::move(inst));
 
@@ -1022,7 +1022,7 @@ TEST(Flattener, Regression112_UnwiredInstance_NoCrash) {
     inst.semantic.type = I.intern("Embedded");
     inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("Embedded"))))
     };
     root = root.with_node(std::move(inst));
 

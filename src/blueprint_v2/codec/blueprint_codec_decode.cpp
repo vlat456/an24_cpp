@@ -141,7 +141,7 @@ Blueprint::Node::BlueprintSource decode_node_source(nlohmann::json const& source
         if (!inner.has_value()) {
             throw std::runtime_error("invalid node entry: embedded blueprint decode failed: " + inner_err.message);
         }
-        return Blueprint::Node::BlueprintSource::make_embedded(inner->id(), std::make_unique<Blueprint>(std::move(*inner)));
+        return Blueprint::Node::BlueprintSource::make_embedded(std::make_unique<Blueprint>(std::move(*inner)));
     }
 
     if (mode == "reference") {

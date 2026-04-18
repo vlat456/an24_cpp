@@ -135,8 +135,7 @@ TEST(EmbeddedSubwindowScene, RootWindowStillShowsRootNodes) {
     group_node.view.name = "composite_1";
     group_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("Composite"),
-        std::make_unique<bp2::Blueprint>(inline_bp))
+        std::make_unique<bp2::Blueprint>(inline_bp.with_id(interner.intern("Composite"))))
     };
 
     auto wire = make_wire(interner, arena, "wire_root",
@@ -184,9 +183,7 @@ TEST(EmbeddedSubwindowScene, CompositeHostPortsUseNestedAuthorityNotCollapsedCac
     auto inline_bp_copy = std::make_unique<bp2::Blueprint>(inline_bp);
     composite.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("CompositeType"),
-        std::move(inline_bp_copy)
-    )
+        std::make_unique<bp2::Blueprint>(inline_bp_copy->with_id(interner.intern("CompositeType"))))
     };
 
     bp2::Blueprint root;

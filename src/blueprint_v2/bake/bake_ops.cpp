@@ -29,7 +29,6 @@ Blueprint bake_node_blueprint_instance(Blueprint const& bp,
 
     auto updated_node = *node;
     updated_node.blueprint_instance().source = Blueprint::Node::BlueprintSource::make_embedded(
-        node->blueprint_instance().source.blueprint_id(),
         std::make_unique<Blueprint>(referenced->clone(node_id)));
 
     return bp.without_node(node_id).with_node(std::move(updated_node));

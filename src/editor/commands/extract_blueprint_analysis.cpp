@@ -81,7 +81,6 @@ bool inline_nonembedded_descendants(bp2::Blueprint& bp,
                 bp2::Blueprint::Node remapped = child_src;
                 remapped.content = bp2::Blueprint::Node::BlueprintInstanceData{
                     bp2::Blueprint::Node::BlueprintSource::make_embedded(
-                        child_src.blueprint_instance().source.blueprint_id(),
                         std::make_unique<bp2::Blueprint>(*provider))
                 };
                 inline_bp = bp2::replace_node_preserve_order(inline_bp, std::move(remapped));

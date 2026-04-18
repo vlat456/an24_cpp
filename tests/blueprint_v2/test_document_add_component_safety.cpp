@@ -238,8 +238,7 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromTypeRegistry
     host.layout.collapsed = true;
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("Group"),
-        std::make_unique<bp2::Blueprint>(inline_bp))
+        std::make_unique<bp2::Blueprint>(inline_bp.with_id(interner.intern("Group"))))
     };
 
     bp2::Blueprint root;
@@ -1494,8 +1493,7 @@ TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
     host.view.name = "group_1";
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Group"),
-        std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("Group"))))
     };
 
     bp2::Blueprint root;

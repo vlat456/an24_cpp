@@ -128,8 +128,7 @@ TEST(SceneMutations, RebuildFiltersGroupId) {
     // Attach embedded blueprint as source
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("HostType"),
-        std::move(inner_def)
+        std::make_unique<bp2::Blueprint>(inner_def->with_id(interner.intern("HostType")))
     )
     };
 

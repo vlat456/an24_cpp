@@ -81,8 +81,7 @@ TEST(SubWindowOpenTarget, ResolvesEmbeddedNestedKind) {
     node.semantic.id = interner.intern("n2");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            interner.intern("FirstOrderLag"),
-            std::make_unique<bp2::Blueprint>())
+            std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("FirstOrderLag"))))
     };
     bp = bp.with_node(std::move(node));
 
@@ -156,8 +155,7 @@ TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded)
     node.semantic.id = interner.intern("broken_embedded");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            interner.intern("some/Type"),
-            std::make_unique<bp2::Blueprint>())
+            std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("some/Type"))))
     };
     bp = bp.with_node(std::move(node));
 
@@ -183,8 +181,7 @@ TEST(SubWindowOpenTarget, EmbeddedNestedTakesPriorityOverExpandableNode) {
     node.semantic.id = interner.intern("shared_id");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            interner.intern("Adder"),
-            std::make_unique<bp2::Blueprint>())
+            std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("Adder"))))
     };
     bp = bp.with_node(std::move(node));
 

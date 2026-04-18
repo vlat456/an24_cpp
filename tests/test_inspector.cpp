@@ -276,12 +276,11 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
          bp_node.view.name = "lamp1";
          
          // Create an empty inline blueprint (in new model, we don't create shadow nodes)
-         auto inline_bp = std::make_unique<bp2::Blueprint>();
-         bp_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
-             bp2::Blueprint::Node::BlueprintSource::make_embedded(
-             ts.interner.intern("LampBlueprint"),
-             std::move(inline_bp)
-         )
+          auto inline_bp = std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(ts.interner.intern("LampBlueprint")));
+          bp_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+              bp2::Blueprint::Node::BlueprintSource::make_embedded(
+              std::move(inline_bp)
+          )
          };
          
          ts.addNodeRaw(std::move(bp_node));
@@ -348,12 +347,11 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
              inline_bp = inline_bp.with_node(std::move(res));
          }
          
-         bp_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
-             bp2::Blueprint::Node::BlueprintSource::make_embedded(
-             ts.interner.intern("Lamp"),
-             std::make_unique<bp2::Blueprint>(inline_bp)
-         )
-         };
+bp_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+              bp2::Blueprint::Node::BlueprintSource::make_embedded(
+              std::make_unique<bp2::Blueprint>(inline_bp.with_id(ts.interner.intern("Lamp")))
+          )
+          };
          
          ts.addNodeRaw(std::move(bp_node));
      }
@@ -434,12 +432,11 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
                inline_bp = inline_bp.with_wire(std::move(w));
           }
          
-         lamp.content = bp2::Blueprint::Node::BlueprintInstanceData{
-             bp2::Blueprint::Node::BlueprintSource::make_embedded(
-             ts.interner.intern("Lamp"),
-             std::make_unique<bp2::Blueprint>(inline_bp)
-         )
-         };
+lamp.content = bp2::Blueprint::Node::BlueprintInstanceData{
+              bp2::Blueprint::Node::BlueprintSource::make_embedded(
+              std::make_unique<bp2::Blueprint>(inline_bp.with_id(ts.interner.intern("Lamp")))
+          )
+          };
          
          ts.addNodeRaw(std::move(lamp));
      }

@@ -368,8 +368,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     
     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("bp_type"),
-        std::make_unique<bp2::Blueprint>(inner_bp)
+        std::make_unique<bp2::Blueprint>(inner_bp.with_id(interner.intern("bp_type")))
     )
     };
 

@@ -328,7 +328,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     inline_bp = inline_bp.with_name(def->classname);
     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            interner_.intern(blueprint_name),
             std::make_unique<bp2::Blueprint>(std::move(inline_bp)))
     };
 

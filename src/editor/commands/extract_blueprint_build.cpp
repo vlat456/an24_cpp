@@ -170,7 +170,6 @@ bool append_selected_embedded_nested_for_inline(
             bp2::Blueprint::Node remapped = child_node;
             remapped.content = bp2::Blueprint::Node::BlueprintInstanceData{
                 bp2::Blueprint::Node::BlueprintSource::make_embedded(
-                    child_node.blueprint_instance().source.blueprint_id(),
                     std::make_unique<bp2::Blueprint>(*provider))
             };
             child_bp = bp2::replace_node_preserve_order(child_bp, std::move(remapped));
@@ -323,7 +322,6 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     bp2::Blueprint::Node collapsed;
     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            blueprint_iid,
             std::make_unique<bp2::Blueprint>(std::move(inline_bp)))
     };
     collapsed.semantic.id = nested_instance_id;

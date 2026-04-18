@@ -271,7 +271,6 @@ static bp2::Blueprint make_extract_fixture_with_existing_blueprint_name_node_own
     existing.view.name = "existing_inst";
     existing.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("extracted_blueprint_1"),
         std::make_unique<bp2::Blueprint>(bp2::Blueprint{}
             .with_id(I.intern("extracted_blueprint_1"))
             .with_name("extracted_blueprint_1")

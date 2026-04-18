@@ -35,8 +35,7 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, EmbeddedBlueprintInstanceDeri
     // Issue #91: DO NOT set component().iface - it should be derived only
     bi_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("inner_type"),
-        std::make_unique<bp2::Blueprint>(inner_bp))
+        std::make_unique<bp2::Blueprint>(inner_bp.with_id(interner.intern("inner_type"))))
     };
 
     bp2::Blueprint root;
@@ -123,8 +122,7 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, EffectiveNodeIfaceReturnsSour
     
     bi_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("inner"),
-        std::make_unique<bp2::Blueprint>(inner_bp))
+        std::make_unique<bp2::Blueprint>(inner_bp.with_id(interner.intern("inner"))))
     };
 
     bp2::Blueprint root;

@@ -56,8 +56,7 @@ TEST(BlueprintNode, EmbeddedInstanceMode) {
     node.semantic.id = interner.intern("sub1");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("power_system"),
-        std::make_unique<bp2::Blueprint>())
+        std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("power_system"))))
     };
     EXPECT_TRUE(node.blueprint_instance().source.is_embedded());
     EXPECT_NE(node.blueprint_instance().source.inline_def(), nullptr);
@@ -71,7 +70,6 @@ TEST(BlueprintNodeSource, MakeEmbeddedRejectsNullInlineDef) {
     ui::StringInterner interner;
     EXPECT_THROW(
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            interner.intern("bp_type"),
             nullptr),
         std::logic_error);
 }
@@ -92,8 +90,8 @@ TEST(BlueprintNodeSource, EmbeddedBlueprintSourceExposesInlineBlueprint) {
     auto inner = std::make_unique<bp2::Blueprint>();
     *inner = inner->with_interface(iface);
 
+    inner = std::make_unique<bp2::Blueprint>(inner->with_id(interner.intern("inner_bp")));
     auto source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("inner_bp"),
         std::move(inner));
 
     ASSERT_NE(source.inline_def(), nullptr);
@@ -125,8 +123,7 @@ TEST(BlueprintNodeSource, CopyPreservesVariantMode) {
 
     // Embedded copy
     auto embedded = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("bp1"),
-        std::make_unique<bp2::Blueprint>());
+        std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("bp1"))));
     auto embedded_copy = embedded;
     EXPECT_TRUE(embedded_copy.is_embedded());
     EXPECT_NE(embedded_copy.inline_def(), nullptr);
@@ -142,10 +139,9 @@ TEST(BlueprintNodeSource, CopyPreservesVariantMode) {
 TEST(BlueprintNodeSource, SetInlineDefReplacesDefinition) {
     ui::StringInterner interner;
     auto source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("bp1"),
-        std::make_unique<bp2::Blueprint>());
+        std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("bp1"))));
 
-    auto replacement = std::make_unique<bp2::Blueprint>();
+    auto replacement = std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("bp1")));
     *replacement = replacement->with_name("replaced");
     source.set_inline_def(std::move(replacement));
 
@@ -156,8 +152,7 @@ TEST(BlueprintNodeSource, SetInlineDefReplacesDefinition) {
 TEST(BlueprintNodeSource, SetInlineDefRejectsNull) {
     ui::StringInterner interner;
     auto source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("bp1"),
-        std::make_unique<bp2::Blueprint>());
+        std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("bp1"))));
 
     EXPECT_THROW(source.set_inline_def(nullptr), std::logic_error);
 }
@@ -180,8 +175,7 @@ TEST(BlueprintNodeSource, ConvertToEmbedded) {
     EXPECT_TRUE(source.is_reference());
     // Note: BlueprintSource is a variant. To change modes, create a new one
     auto embedded_source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("new_bp"),
-        std::make_unique<bp2::Blueprint>());
+        std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("new_bp"))));
     EXPECT_TRUE(embedded_source.is_embedded());
     EXPECT_NE(embedded_source.inline_def(), nullptr);
 }
@@ -190,7 +184,7 @@ TEST(BlueprintNodeSource, ConvertToEmbeddedRejectsNull) {
     ui::StringInterner interner;
     EXPECT_THROW(
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-            interner.intern("bp"), nullptr),
+            nullptr),
         std::logic_error);
 }
 
@@ -230,7 +224,7 @@ TEST(Blueprint, FindBlueprintInstanceNode) {
     host.semantic.type = interner.intern("CompositeType");
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>())
+        std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("CompositeType"))))
     };
 
     bp2::Blueprint bp;
@@ -250,7 +244,7 @@ TEST(Blueprint, BlueprintInstanceNodeWithEmbeddedSource) {
     host.semantic.type = interner.intern("CompositeType");
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>())
+        std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("CompositeType"))))
     };
 
     bp2::Blueprint bp;
@@ -298,7 +292,7 @@ TEST(Blueprint, EffectiveNodeIfaceUsesEmbeddedBlueprintWhenPresent) {
     });
     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner))
+        std::make_unique<bp2::Blueprint>(inner.with_id(interner.intern("CompositeType"))))
     };
 
     bp2::Blueprint bp;
