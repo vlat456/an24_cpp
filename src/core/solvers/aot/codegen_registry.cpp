@@ -100,17 +100,17 @@ void emit_port_registry_metadata(std::ostringstream& oss, const std::vector<Comp
     }
     oss << "\n";
 
-    oss << "enum class RegistryPortDirection : uint8_t { In = 0, Out = 1, InOut = 2 };\n\n";
+    oss << "#include \"../../../../blueprint_v2/interface/direction.h\"\n\n";
     for (const auto& comp : all_components) {
-        oss << "constexpr RegistryPortDirection " << comp.classname << "_PORT_DIRECTIONS[] = {\n";
+        oss << "constexpr bp2::Direction " << comp.classname << "_PORT_DIRECTIONS[] = {\n";
         for (size_t i = 0; i < comp.ports.size(); ++i) {
-            const char* dir_name = "Out";
+            const char* dir_name = "Output";
             if (comp.ports[i].direction == bp2::Direction::Input) {
-                dir_name = "In";
+                dir_name = "Input";
             } else if (comp.ports[i].direction == bp2::Direction::InOut) {
                 dir_name = "InOut";
             }
-            oss << "    RegistryPortDirection::" << dir_name;
+            oss << "    bp2::Direction::" << dir_name;
             if (i < comp.ports.size() - 1) {
                 oss << ",\n";
             } else {
@@ -239,8 +239,8 @@ void emit_port_registry_lookups(
     for (const auto& comp : all_components) {
         oss << "    if (classname == \"" << comp.classname << "\") {\n";
         oss << "        for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
-        oss << "            if (" << comp.classname << "_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || "
-            << comp.classname << "_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(" << comp.classname << "_PORTS[i]);\n";
+        oss << "            if (" << comp.classname << "_PORT_DIRECTIONS[i] == bp2::Direction::Output || "
+            << comp.classname << "_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(" << comp.classname << "_PORTS[i]);\n";
         oss << "        }\n";
         oss << "        return result;\n";
         oss << "    }\n";

@@ -525,12 +525,12 @@ constexpr const char* XOR_PORTS[] = {
     "o"
 };
 
-enum class RegistryPortDirection : uint8_t { In = 0, Out = 1, InOut = 2 };
+#include "../../../../blueprint_v2/interface/direction.h"
 
-constexpr RegistryPortDirection AND_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction AND_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t AND_PORT_DOMAINS[] = {
     2,
@@ -546,13 +546,13 @@ constexpr bool AND_SCHEDULER_SOURCE = false;
 
 constexpr bool AND_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection AZS_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction AZS_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Output,
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t AZS_PORT_DOMAINS[] = {
     16,
@@ -574,13 +574,13 @@ constexpr bool AZS_SCHEDULER_SOURCE = false;
 
 constexpr bool AZS_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection Accumulator_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Accumulator_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Accumulator_PORT_DOMAINS[] = {
-    1,
-    1
+    2,
+    2
 };
 constexpr bool Accumulator_PORT_SOURCE_WRITER[] = {
     false,
@@ -590,15 +590,15 @@ constexpr bool Accumulator_SCHEDULER_SOURCE = false;
 
 constexpr bool Accumulator_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Add_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Add_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Add_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool Add_PORT_SOURCE_WRITER[] = {
     false,
@@ -609,9 +609,9 @@ constexpr bool Add_SCHEDULER_SOURCE = false;
 
 constexpr bool Add_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Any_V_to_Bool_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Any_V_to_Bool_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Any_V_to_Bool_PORT_DOMAINS[] = {
     1,
@@ -625,13 +625,13 @@ constexpr bool Any_V_to_Bool_SCHEDULER_SOURCE = false;
 
 constexpr bool Any_V_to_Bool_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection AsymSlewRate_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction AsymSlewRate_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t AsymSlewRate_PORT_DOMAINS[] = {
-    1,
-    1
+    2,
+    2
 };
 constexpr bool AsymSlewRate_PORT_SOURCE_WRITER[] = {
     false,
@@ -641,13 +641,13 @@ constexpr bool AsymSlewRate_SCHEDULER_SOURCE = false;
 
 constexpr bool AsymSlewRate_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection AsymTMO_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction AsymTMO_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t AsymTMO_PORT_DOMAINS[] = {
-    1,
-    1
+    2,
+    2
 };
 constexpr bool AsymTMO_PORT_SOURCE_WRITER[] = {
     false,
@@ -657,8 +657,8 @@ constexpr bool AsymTMO_SCHEDULER_SOURCE = false;
 
 constexpr bool AsymTMO_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Bus_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::InOut
+constexpr bp2::Direction Bus_PORT_DIRECTIONS[] = {
+    bp2::Direction::InOut
 };
 constexpr uint8_t Bus_PORT_DOMAINS[] = {
     1
@@ -670,17 +670,17 @@ constexpr bool Bus_SCHEDULER_SOURCE = false;
 
 constexpr bool Bus_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Clamp_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Clamp_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Clamp_PORT_DOMAINS[] = {
-    1,
     2,
     2,
-    1
+    2,
+    2
 };
 constexpr bool Clamp_PORT_SOURCE_WRITER[] = {
     false,
@@ -692,14 +692,14 @@ constexpr bool Clamp_SCHEDULER_SOURCE = false;
 
 constexpr bool Clamp_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Comparator_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Comparator_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Comparator_PORT_DOMAINS[] = {
-    3,
-    3,
+    2,
+    2,
     2
 };
 constexpr bool Comparator_PORT_SOURCE_WRITER[] = {
@@ -711,10 +711,10 @@ constexpr bool Comparator_SCHEDULER_SOURCE = false;
 
 constexpr bool Comparator_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection ControlledCurrentSource_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out
+constexpr bp2::Direction ControlledCurrentSource_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Output
 };
 constexpr uint8_t ControlledCurrentSource_PORT_DOMAINS[] = {
     2,
@@ -730,15 +730,15 @@ constexpr bool ControlledCurrentSource_SCHEDULER_SOURCE = false;
 
 constexpr bool ControlledCurrentSource_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection ControlledVoltageSource_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction ControlledVoltageSource_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t ControlledVoltageSource_PORT_DOMAINS[] = {
     2,
@@ -764,10 +764,10 @@ constexpr bool ControlledVoltageSource_SCHEDULER_SOURCE = false;
 
 constexpr bool ControlledVoltageSource_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection CurrentSense_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction CurrentSense_PORT_DIRECTIONS[] = {
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t CurrentSense_PORT_DOMAINS[] = {
     1,
@@ -783,15 +783,15 @@ constexpr bool CurrentSense_SCHEDULER_SOURCE = false;
 
 constexpr bool CurrentSense_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Divide_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Divide_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Divide_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool Divide_PORT_SOURCE_WRITER[] = {
     false,
@@ -802,9 +802,9 @@ constexpr bool Divide_SCHEDULER_SOURCE = false;
 
 constexpr bool Divide_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection ElectricHeater_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction ElectricHeater_PORT_DIRECTIONS[] = {
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t ElectricHeater_PORT_DOMAINS[] = {
     16,
@@ -818,10 +818,10 @@ constexpr bool ElectricHeater_SCHEDULER_SOURCE = false;
 
 constexpr bool ElectricHeater_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection ElectricPump_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction ElectricPump_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t ElectricPump_PORT_DOMAINS[] = {
     8,
@@ -837,9 +837,9 @@ constexpr bool ElectricPump_SCHEDULER_SOURCE = false;
 
 constexpr bool ElectricPump_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection ElectricalConductance_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction ElectricalConductance_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t ElectricalConductance_PORT_DOMAINS[] = {
     1,
@@ -853,9 +853,9 @@ constexpr bool ElectricalConductance_SCHEDULER_SOURCE = false;
 
 constexpr bool ElectricalConductance_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection ElectricalSource_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction ElectricalSource_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t ElectricalSource_PORT_DOMAINS[] = {
     1,
@@ -869,13 +869,13 @@ constexpr bool ElectricalSource_SCHEDULER_SOURCE = false;
 
 constexpr bool ElectricalSource_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection FastTMO_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction FastTMO_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t FastTMO_PORT_DOMAINS[] = {
-    1,
-    1
+    2,
+    2
 };
 constexpr bool FastTMO_PORT_SOURCE_WRITER[] = {
     false,
@@ -885,13 +885,13 @@ constexpr bool FastTMO_SCHEDULER_SOURCE = false;
 
 constexpr bool FastTMO_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection FuelTank_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out
+constexpr bp2::Direction FuelTank_PORT_DIRECTIONS[] = {
+    bp2::Direction::Output,
+    bp2::Direction::Output
 };
 constexpr uint8_t FuelTank_PORT_DOMAINS[] = {
     8,
-    1
+    2
 };
 constexpr bool FuelTank_PORT_SOURCE_WRITER[] = {
     false,
@@ -901,9 +901,9 @@ constexpr bool FuelTank_SCHEDULER_SOURCE = false;
 
 constexpr bool FuelTank_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Generator_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Generator_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Generator_PORT_DOMAINS[] = {
     1,
@@ -917,9 +917,9 @@ constexpr bool Generator_SCHEDULER_SOURCE = true;
 
 constexpr bool Generator_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection GidroAccumulator_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction GidroAccumulator_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t GidroAccumulator_PORT_DOMAINS[] = {
     8,
@@ -933,14 +933,14 @@ constexpr bool GidroAccumulator_SCHEDULER_SOURCE = false;
 
 constexpr bool GidroAccumulator_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Greater_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Greater_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Greater_PORT_DOMAINS[] = {
-    1,
-    1,
+    2,
+    2,
     2
 };
 constexpr bool Greater_PORT_SOURCE_WRITER[] = {
@@ -952,14 +952,14 @@ constexpr bool Greater_SCHEDULER_SOURCE = false;
 
 constexpr bool Greater_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection GreaterEq_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction GreaterEq_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t GreaterEq_PORT_DOMAINS[] = {
-    1,
-    1,
+    2,
+    2,
     2
 };
 constexpr bool GreaterEq_PORT_SOURCE_WRITER[] = {
@@ -971,8 +971,8 @@ constexpr bool GreaterEq_SCHEDULER_SOURCE = false;
 
 constexpr bool GreaterEq_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Gyroscope_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In
+constexpr bp2::Direction Gyroscope_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input
 };
 constexpr uint8_t Gyroscope_PORT_DOMAINS[] = {
     1
@@ -984,11 +984,11 @@ constexpr bool Gyroscope_SCHEDULER_SOURCE = false;
 
 constexpr bool Gyroscope_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection HoldButton_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction HoldButton_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t HoldButton_PORT_DOMAINS[] = {
     16,
@@ -1006,10 +1006,10 @@ constexpr bool HoldButton_SCHEDULER_SOURCE = false;
 
 constexpr bool HoldButton_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection IndicatorLight_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction IndicatorLight_PORT_DIRECTIONS[] = {
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t IndicatorLight_PORT_DOMAINS[] = {
     1,
@@ -1025,19 +1025,19 @@ constexpr bool IndicatorLight_SCHEDULER_SOURCE = false;
 
 constexpr bool IndicatorLight_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection InertiaNode_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction InertiaNode_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t InertiaNode_PORT_DOMAINS[] = {
+    2,
+    2,
+    2,
     4,
-    4,
-    4,
-    4,
-    4
+    2
 };
 constexpr bool InertiaNode_PORT_SOURCE_WRITER[] = {
     false,
@@ -1050,16 +1050,16 @@ constexpr bool InertiaNode_SCHEDULER_SOURCE = false;
 
 constexpr bool InertiaNode_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Integrator_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction Integrator_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t Integrator_PORT_DOMAINS[] = {
     2,
-    1,
-    1,
+    2,
+    2,
     2
 };
 constexpr bool Integrator_PORT_SOURCE_WRITER[] = {
@@ -1072,9 +1072,9 @@ constexpr bool Integrator_SCHEDULER_SOURCE = false;
 
 constexpr bool Integrator_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Inverter_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction Inverter_PORT_DIRECTIONS[] = {
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t Inverter_PORT_DOMAINS[] = {
     16,
@@ -1088,15 +1088,15 @@ constexpr bool Inverter_SCHEDULER_SOURCE = false;
 
 constexpr bool Inverter_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection KnobSwitch_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut,
-    RegistryPortDirection::InOut
+constexpr bp2::Direction KnobSwitch_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::InOut,
+    bp2::Direction::InOut,
+    bp2::Direction::InOut,
+    bp2::Direction::InOut,
+    bp2::Direction::InOut,
+    bp2::Direction::InOut
 };
 constexpr uint8_t KnobSwitch_PORT_DOMAINS[] = {
     2,
@@ -1122,13 +1122,13 @@ constexpr bool KnobSwitch_SCHEDULER_SOURCE = false;
 
 constexpr bool KnobSwitch_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection LUT_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction LUT_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t LUT_PORT_DOMAINS[] = {
-    1,
-    1
+    2,
+    2
 };
 constexpr bool LUT_PORT_SOURCE_WRITER[] = {
     false,
@@ -1138,13 +1138,13 @@ constexpr bool LUT_SCHEDULER_SOURCE = false;
 
 constexpr bool LUT_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection LerpNode_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction LerpNode_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t LerpNode_PORT_DOMAINS[] = {
-    1,
-    1
+    2,
+    2
 };
 constexpr bool LerpNode_PORT_SOURCE_WRITER[] = {
     false,
@@ -1154,14 +1154,14 @@ constexpr bool LerpNode_SCHEDULER_SOURCE = false;
 
 constexpr bool LerpNode_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Lesser_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Lesser_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Lesser_PORT_DOMAINS[] = {
-    1,
-    1,
+    2,
+    2,
     2
 };
 constexpr bool Lesser_PORT_SOURCE_WRITER[] = {
@@ -1173,14 +1173,14 @@ constexpr bool Lesser_SCHEDULER_SOURCE = false;
 
 constexpr bool Lesser_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection LesserEq_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction LesserEq_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t LesserEq_PORT_DOMAINS[] = {
-    1,
-    1,
+    2,
+    2,
     2
 };
 constexpr bool LesserEq_PORT_SOURCE_WRITER[] = {
@@ -1192,15 +1192,15 @@ constexpr bool LesserEq_SCHEDULER_SOURCE = false;
 
 constexpr bool LesserEq_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Max_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Max_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Max_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool Max_PORT_SOURCE_WRITER[] = {
     false,
@@ -1211,15 +1211,15 @@ constexpr bool Max_SCHEDULER_SOURCE = false;
 
 constexpr bool Max_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Merger_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Merger_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Merger_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool Merger_PORT_SOURCE_WRITER[] = {
     false,
@@ -1230,15 +1230,15 @@ constexpr bool Merger_SCHEDULER_SOURCE = false;
 
 constexpr bool Merger_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Min_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Min_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Min_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool Min_PORT_SOURCE_WRITER[] = {
     false,
@@ -1249,9 +1249,9 @@ constexpr bool Min_SCHEDULER_SOURCE = false;
 
 constexpr bool Min_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Monostable_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Monostable_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Monostable_PORT_DOMAINS[] = {
     2,
@@ -1265,15 +1265,15 @@ constexpr bool Monostable_SCHEDULER_SOURCE = false;
 
 constexpr bool Monostable_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Multiply_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Multiply_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Multiply_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool Multiply_PORT_SOURCE_WRITER[] = {
     false,
@@ -1284,10 +1284,10 @@ constexpr bool Multiply_SCHEDULER_SOURCE = false;
 
 constexpr bool Multiply_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection NAND_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction NAND_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t NAND_PORT_DOMAINS[] = {
     2,
@@ -1303,9 +1303,9 @@ constexpr bool NAND_SCHEDULER_SOURCE = false;
 
 constexpr bool NAND_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection NOT_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction NOT_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t NOT_PORT_DOMAINS[] = {
     2,
@@ -1319,17 +1319,17 @@ constexpr bool NOT_SCHEDULER_SOURCE = false;
 
 constexpr bool NOT_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Normalize_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Normalize_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Normalize_PORT_DOMAINS[] = {
-    1,
     2,
     2,
-    1
+    2,
+    2
 };
 constexpr bool Normalize_PORT_SOURCE_WRITER[] = {
     false,
@@ -1341,10 +1341,10 @@ constexpr bool Normalize_SCHEDULER_SOURCE = false;
 
 constexpr bool Normalize_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection OR_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction OR_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t OR_PORT_DOMAINS[] = {
     2,
@@ -1360,15 +1360,15 @@ constexpr bool OR_SCHEDULER_SOURCE = false;
 
 constexpr bool OR_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection P_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction P_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t P_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool P_PORT_SOURCE_WRITER[] = {
     false,
@@ -1379,15 +1379,15 @@ constexpr bool P_SCHEDULER_SOURCE = false;
 
 constexpr bool P_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection PD_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction PD_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t PD_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool PD_PORT_SOURCE_WRITER[] = {
     false,
@@ -1398,23 +1398,23 @@ constexpr bool PD_SCHEDULER_SOURCE = false;
 
 constexpr bool PD_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection PI_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In
+constexpr bp2::Direction PI_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input
 };
 constexpr uint8_t PI_PORT_DOMAINS[] = {
     2,
     2,
-    1,
-    1,
     2,
     2,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool PI_PORT_SOURCE_WRITER[] = {
     false,
@@ -1429,15 +1429,15 @@ constexpr bool PI_SCHEDULER_SOURCE = false;
 
 constexpr bool PI_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection PID_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction PID_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t PID_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool PID_PORT_SOURCE_WRITER[] = {
     false,
@@ -1448,9 +1448,9 @@ constexpr bool PID_SCHEDULER_SOURCE = false;
 
 constexpr bool PID_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Positive_V_to_Bool_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Positive_V_to_Bool_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Positive_V_to_Bool_PORT_DOMAINS[] = {
     1,
@@ -1464,9 +1464,9 @@ constexpr bool Positive_V_to_Bool_SCHEDULER_SOURCE = false;
 
 constexpr bool Positive_V_to_Bool_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Radiator_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Radiator_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Radiator_PORT_DOMAINS[] = {
     1,
@@ -1480,8 +1480,8 @@ constexpr bool Radiator_SCHEDULER_SOURCE = false;
 
 constexpr bool Radiator_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection RefNode_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out
+constexpr bp2::Direction RefNode_PORT_DIRECTIONS[] = {
+    bp2::Direction::Output
 };
 constexpr uint8_t RefNode_PORT_DOMAINS[] = {
     1
@@ -1493,12 +1493,12 @@ constexpr bool RefNode_SCHEDULER_SOURCE = true;
 
 constexpr bool RefNode_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Relay_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Relay_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Relay_PORT_DOMAINS[] = {
     2,
@@ -1518,9 +1518,9 @@ constexpr bool Relay_SCHEDULER_SOURCE = false;
 
 constexpr bool Relay_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection Resistor_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Resistor_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Resistor_PORT_DOMAINS[] = {
     1,
@@ -1534,15 +1534,15 @@ constexpr bool Resistor_SCHEDULER_SOURCE = false;
 
 constexpr bool Resistor_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection RotarySwitch1ToN_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction RotarySwitch1ToN_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Output,
+    bp2::Direction::Output,
+    bp2::Direction::Output,
+    bp2::Direction::Output,
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t RotarySwitch1ToN_PORT_DOMAINS[] = {
     2,
@@ -1568,15 +1568,15 @@ constexpr bool RotarySwitch1ToN_SCHEDULER_SOURCE = false;
 
 constexpr bool RotarySwitch1ToN_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection RotarySwitchNTo1_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction RotarySwitchNTo1_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t RotarySwitchNTo1_PORT_DOMAINS[] = {
     2,
@@ -1602,14 +1602,14 @@ constexpr bool RotarySwitchNTo1_SCHEDULER_SOURCE = false;
 
 constexpr bool RotarySwitchNTo1_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection SampleHold_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In
+constexpr bp2::Direction SampleHold_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input
 };
 constexpr uint8_t SampleHold_PORT_DOMAINS[] = {
-    1,
-    1,
+    2,
+    2,
     2
 };
 constexpr bool SampleHold_PORT_SOURCE_WRITER[] = {
@@ -1621,13 +1621,13 @@ constexpr bool SampleHold_SCHEDULER_SOURCE = false;
 
 constexpr bool SampleHold_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection SlewRate_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction SlewRate_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t SlewRate_PORT_DOMAINS[] = {
-    1,
-    1
+    2,
+    2
 };
 constexpr bool SlewRate_PORT_SOURCE_WRITER[] = {
     false,
@@ -1637,13 +1637,13 @@ constexpr bool SlewRate_SCHEDULER_SOURCE = false;
 
 constexpr bool SlewRate_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Slider_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Slider_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Slider_PORT_DOMAINS[] = {
-    1,
-    1
+    2,
+    2
 };
 constexpr bool Slider_PORT_SOURCE_WRITER[] = {
     false,
@@ -1653,10 +1653,10 @@ constexpr bool Slider_SCHEDULER_SOURCE = false;
 
 constexpr bool Slider_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection SolenoidValve_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction SolenoidValve_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t SolenoidValve_PORT_DOMAINS[] = {
     1,
@@ -1672,15 +1672,15 @@ constexpr bool SolenoidValve_SCHEDULER_SOURCE = false;
 
 constexpr bool SolenoidValve_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Splitter_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Splitter_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Output
 };
 constexpr uint8_t Splitter_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool Splitter_PORT_SOURCE_WRITER[] = {
     false,
@@ -1691,15 +1691,15 @@ constexpr bool Splitter_SCHEDULER_SOURCE = false;
 
 constexpr bool Splitter_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Spring_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In
+constexpr bp2::Direction Spring_PORT_DIRECTIONS[] = {
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Input
 };
 constexpr uint8_t Spring_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool Spring_PORT_SOURCE_WRITER[] = {
     false,
@@ -1710,15 +1710,15 @@ constexpr bool Spring_SCHEDULER_SOURCE = false;
 
 constexpr bool Spring_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Subtract_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Subtract_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Subtract_PORT_DOMAINS[] = {
-    1,
-    1,
-    1
+    2,
+    2,
+    2
 };
 constexpr bool Subtract_PORT_SOURCE_WRITER[] = {
     false,
@@ -1729,11 +1729,11 @@ constexpr bool Subtract_SCHEDULER_SOURCE = false;
 
 constexpr bool Subtract_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Switch_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Switch_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Switch_PORT_DOMAINS[] = {
     16,
@@ -1751,9 +1751,9 @@ constexpr bool Switch_SCHEDULER_SOURCE = false;
 
 constexpr bool Switch_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection TempSensor_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction TempSensor_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t TempSensor_PORT_DOMAINS[] = {
     1,
@@ -1767,9 +1767,9 @@ constexpr bool TempSensor_SCHEDULER_SOURCE = false;
 
 constexpr bool TempSensor_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection TimeDelay_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction TimeDelay_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t TimeDelay_PORT_DOMAINS[] = {
     2,
@@ -1783,9 +1783,9 @@ constexpr bool TimeDelay_SCHEDULER_SOURCE = false;
 
 constexpr bool TimeDelay_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Transformer_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction Transformer_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t Transformer_PORT_DOMAINS[] = {
     1,
@@ -1799,8 +1799,8 @@ constexpr bool Transformer_SCHEDULER_SOURCE = false;
 
 constexpr bool Transformer_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Value_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::Out
+constexpr bp2::Direction Value_PORT_DIRECTIONS[] = {
+    bp2::Direction::Output
 };
 constexpr uint8_t Value_PORT_DOMAINS[] = {
     2
@@ -1812,12 +1812,12 @@ constexpr bool Value_SCHEDULER_SOURCE = true;
 
 constexpr bool Value_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection VariableConductance_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction VariableConductance_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t VariableConductance_PORT_DOMAINS[] = {
     2,
@@ -1837,12 +1837,12 @@ constexpr bool VariableConductance_SCHEDULER_SOURCE = false;
 
 constexpr bool VariableConductance_SOLVER_OWNED_ELECTRICAL = true;
 
-constexpr RegistryPortDirection VoltageSense_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out,
-    RegistryPortDirection::In,
-    RegistryPortDirection::In
+constexpr bp2::Direction VoltageSense_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output,
+    bp2::Direction::Input,
+    bp2::Direction::Input
 };
 constexpr uint8_t VoltageSense_PORT_DOMAINS[] = {
     2,
@@ -1862,8 +1862,8 @@ constexpr bool VoltageSense_SCHEDULER_SOURCE = false;
 
 constexpr bool VoltageSense_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection Voltmeter_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In
+constexpr bp2::Direction Voltmeter_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input
 };
 constexpr uint8_t Voltmeter_PORT_DOMAINS[] = {
     1
@@ -1875,10 +1875,10 @@ constexpr bool Voltmeter_SCHEDULER_SOURCE = false;
 
 constexpr bool Voltmeter_SOLVER_OWNED_ELECTRICAL = false;
 
-constexpr RegistryPortDirection XOR_PORT_DIRECTIONS[] = {
-    RegistryPortDirection::In,
-    RegistryPortDirection::In,
-    RegistryPortDirection::Out
+constexpr bp2::Direction XOR_PORT_DIRECTIONS[] = {
+    bp2::Direction::Input,
+    bp2::Direction::Input,
+    bp2::Direction::Output
 };
 constexpr uint8_t XOR_PORT_DOMAINS[] = {
     2,
@@ -2384,427 +2384,427 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
     std::vector<std::string> result;
     if (classname == "AND") {
         for (size_t i = 0; i < AND_PORT_COUNT; ++i) {
-            if (AND_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AND_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(AND_PORTS[i]);
+            if (AND_PORT_DIRECTIONS[i] == bp2::Direction::Output || AND_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(AND_PORTS[i]);
         }
         return result;
     }
     if (classname == "AZS") {
         for (size_t i = 0; i < AZS_PORT_COUNT; ++i) {
-            if (AZS_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AZS_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(AZS_PORTS[i]);
+            if (AZS_PORT_DIRECTIONS[i] == bp2::Direction::Output || AZS_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(AZS_PORTS[i]);
         }
         return result;
     }
     if (classname == "Accumulator") {
         for (size_t i = 0; i < Accumulator_PORT_COUNT; ++i) {
-            if (Accumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Accumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Accumulator_PORTS[i]);
+            if (Accumulator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Accumulator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Accumulator_PORTS[i]);
         }
         return result;
     }
     if (classname == "Add") {
         for (size_t i = 0; i < Add_PORT_COUNT; ++i) {
-            if (Add_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Add_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Add_PORTS[i]);
+            if (Add_PORT_DIRECTIONS[i] == bp2::Direction::Output || Add_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Add_PORTS[i]);
         }
         return result;
     }
     if (classname == "Any_V_to_Bool") {
         for (size_t i = 0; i < Any_V_to_Bool_PORT_COUNT; ++i) {
-            if (Any_V_to_Bool_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Any_V_to_Bool_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Any_V_to_Bool_PORTS[i]);
+            if (Any_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::Output || Any_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Any_V_to_Bool_PORTS[i]);
         }
         return result;
     }
     if (classname == "AsymSlewRate") {
         for (size_t i = 0; i < AsymSlewRate_PORT_COUNT; ++i) {
-            if (AsymSlewRate_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AsymSlewRate_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(AsymSlewRate_PORTS[i]);
+            if (AsymSlewRate_PORT_DIRECTIONS[i] == bp2::Direction::Output || AsymSlewRate_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(AsymSlewRate_PORTS[i]);
         }
         return result;
     }
     if (classname == "AsymTMO") {
         for (size_t i = 0; i < AsymTMO_PORT_COUNT; ++i) {
-            if (AsymTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AsymTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(AsymTMO_PORTS[i]);
+            if (AsymTMO_PORT_DIRECTIONS[i] == bp2::Direction::Output || AsymTMO_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(AsymTMO_PORTS[i]);
         }
         return result;
     }
     if (classname == "Bus") {
         for (size_t i = 0; i < Bus_PORT_COUNT; ++i) {
-            if (Bus_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Bus_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Bus_PORTS[i]);
+            if (Bus_PORT_DIRECTIONS[i] == bp2::Direction::Output || Bus_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Bus_PORTS[i]);
         }
         return result;
     }
     if (classname == "Clamp") {
         for (size_t i = 0; i < Clamp_PORT_COUNT; ++i) {
-            if (Clamp_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Clamp_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Clamp_PORTS[i]);
+            if (Clamp_PORT_DIRECTIONS[i] == bp2::Direction::Output || Clamp_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Clamp_PORTS[i]);
         }
         return result;
     }
     if (classname == "Comparator") {
         for (size_t i = 0; i < Comparator_PORT_COUNT; ++i) {
-            if (Comparator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Comparator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Comparator_PORTS[i]);
+            if (Comparator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Comparator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Comparator_PORTS[i]);
         }
         return result;
     }
     if (classname == "ControlledCurrentSource") {
         for (size_t i = 0; i < ControlledCurrentSource_PORT_COUNT; ++i) {
-            if (ControlledCurrentSource_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ControlledCurrentSource_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(ControlledCurrentSource_PORTS[i]);
+            if (ControlledCurrentSource_PORT_DIRECTIONS[i] == bp2::Direction::Output || ControlledCurrentSource_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ControlledCurrentSource_PORTS[i]);
         }
         return result;
     }
     if (classname == "ControlledVoltageSource") {
         for (size_t i = 0; i < ControlledVoltageSource_PORT_COUNT; ++i) {
-            if (ControlledVoltageSource_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ControlledVoltageSource_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(ControlledVoltageSource_PORTS[i]);
+            if (ControlledVoltageSource_PORT_DIRECTIONS[i] == bp2::Direction::Output || ControlledVoltageSource_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ControlledVoltageSource_PORTS[i]);
         }
         return result;
     }
     if (classname == "CurrentSense") {
         for (size_t i = 0; i < CurrentSense_PORT_COUNT; ++i) {
-            if (CurrentSense_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || CurrentSense_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(CurrentSense_PORTS[i]);
+            if (CurrentSense_PORT_DIRECTIONS[i] == bp2::Direction::Output || CurrentSense_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(CurrentSense_PORTS[i]);
         }
         return result;
     }
     if (classname == "Divide") {
         for (size_t i = 0; i < Divide_PORT_COUNT; ++i) {
-            if (Divide_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Divide_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Divide_PORTS[i]);
+            if (Divide_PORT_DIRECTIONS[i] == bp2::Direction::Output || Divide_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Divide_PORTS[i]);
         }
         return result;
     }
     if (classname == "ElectricHeater") {
         for (size_t i = 0; i < ElectricHeater_PORT_COUNT; ++i) {
-            if (ElectricHeater_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricHeater_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(ElectricHeater_PORTS[i]);
+            if (ElectricHeater_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricHeater_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ElectricHeater_PORTS[i]);
         }
         return result;
     }
     if (classname == "ElectricPump") {
         for (size_t i = 0; i < ElectricPump_PORT_COUNT; ++i) {
-            if (ElectricPump_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricPump_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(ElectricPump_PORTS[i]);
+            if (ElectricPump_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricPump_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ElectricPump_PORTS[i]);
         }
         return result;
     }
     if (classname == "ElectricalConductance") {
         for (size_t i = 0; i < ElectricalConductance_PORT_COUNT; ++i) {
-            if (ElectricalConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricalConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(ElectricalConductance_PORTS[i]);
+            if (ElectricalConductance_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricalConductance_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ElectricalConductance_PORTS[i]);
         }
         return result;
     }
     if (classname == "ElectricalSource") {
         for (size_t i = 0; i < ElectricalSource_PORT_COUNT; ++i) {
-            if (ElectricalSource_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricalSource_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(ElectricalSource_PORTS[i]);
+            if (ElectricalSource_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricalSource_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ElectricalSource_PORTS[i]);
         }
         return result;
     }
     if (classname == "FastTMO") {
         for (size_t i = 0; i < FastTMO_PORT_COUNT; ++i) {
-            if (FastTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || FastTMO_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(FastTMO_PORTS[i]);
+            if (FastTMO_PORT_DIRECTIONS[i] == bp2::Direction::Output || FastTMO_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(FastTMO_PORTS[i]);
         }
         return result;
     }
     if (classname == "FuelTank") {
         for (size_t i = 0; i < FuelTank_PORT_COUNT; ++i) {
-            if (FuelTank_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || FuelTank_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(FuelTank_PORTS[i]);
+            if (FuelTank_PORT_DIRECTIONS[i] == bp2::Direction::Output || FuelTank_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(FuelTank_PORTS[i]);
         }
         return result;
     }
     if (classname == "Generator") {
         for (size_t i = 0; i < Generator_PORT_COUNT; ++i) {
-            if (Generator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Generator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Generator_PORTS[i]);
+            if (Generator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Generator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Generator_PORTS[i]);
         }
         return result;
     }
     if (classname == "GidroAccumulator") {
         for (size_t i = 0; i < GidroAccumulator_PORT_COUNT; ++i) {
-            if (GidroAccumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || GidroAccumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(GidroAccumulator_PORTS[i]);
+            if (GidroAccumulator_PORT_DIRECTIONS[i] == bp2::Direction::Output || GidroAccumulator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(GidroAccumulator_PORTS[i]);
         }
         return result;
     }
     if (classname == "Greater") {
         for (size_t i = 0; i < Greater_PORT_COUNT; ++i) {
-            if (Greater_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Greater_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Greater_PORTS[i]);
+            if (Greater_PORT_DIRECTIONS[i] == bp2::Direction::Output || Greater_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Greater_PORTS[i]);
         }
         return result;
     }
     if (classname == "GreaterEq") {
         for (size_t i = 0; i < GreaterEq_PORT_COUNT; ++i) {
-            if (GreaterEq_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || GreaterEq_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(GreaterEq_PORTS[i]);
+            if (GreaterEq_PORT_DIRECTIONS[i] == bp2::Direction::Output || GreaterEq_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(GreaterEq_PORTS[i]);
         }
         return result;
     }
     if (classname == "Gyroscope") {
         for (size_t i = 0; i < Gyroscope_PORT_COUNT; ++i) {
-            if (Gyroscope_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Gyroscope_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Gyroscope_PORTS[i]);
+            if (Gyroscope_PORT_DIRECTIONS[i] == bp2::Direction::Output || Gyroscope_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Gyroscope_PORTS[i]);
         }
         return result;
     }
     if (classname == "HoldButton") {
         for (size_t i = 0; i < HoldButton_PORT_COUNT; ++i) {
-            if (HoldButton_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || HoldButton_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(HoldButton_PORTS[i]);
+            if (HoldButton_PORT_DIRECTIONS[i] == bp2::Direction::Output || HoldButton_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(HoldButton_PORTS[i]);
         }
         return result;
     }
     if (classname == "IndicatorLight") {
         for (size_t i = 0; i < IndicatorLight_PORT_COUNT; ++i) {
-            if (IndicatorLight_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || IndicatorLight_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(IndicatorLight_PORTS[i]);
+            if (IndicatorLight_PORT_DIRECTIONS[i] == bp2::Direction::Output || IndicatorLight_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(IndicatorLight_PORTS[i]);
         }
         return result;
     }
     if (classname == "InertiaNode") {
         for (size_t i = 0; i < InertiaNode_PORT_COUNT; ++i) {
-            if (InertiaNode_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || InertiaNode_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(InertiaNode_PORTS[i]);
+            if (InertiaNode_PORT_DIRECTIONS[i] == bp2::Direction::Output || InertiaNode_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(InertiaNode_PORTS[i]);
         }
         return result;
     }
     if (classname == "Integrator") {
         for (size_t i = 0; i < Integrator_PORT_COUNT; ++i) {
-            if (Integrator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Integrator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Integrator_PORTS[i]);
+            if (Integrator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Integrator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Integrator_PORTS[i]);
         }
         return result;
     }
     if (classname == "Inverter") {
         for (size_t i = 0; i < Inverter_PORT_COUNT; ++i) {
-            if (Inverter_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Inverter_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Inverter_PORTS[i]);
+            if (Inverter_PORT_DIRECTIONS[i] == bp2::Direction::Output || Inverter_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Inverter_PORTS[i]);
         }
         return result;
     }
     if (classname == "KnobSwitch") {
         for (size_t i = 0; i < KnobSwitch_PORT_COUNT; ++i) {
-            if (KnobSwitch_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || KnobSwitch_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(KnobSwitch_PORTS[i]);
+            if (KnobSwitch_PORT_DIRECTIONS[i] == bp2::Direction::Output || KnobSwitch_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(KnobSwitch_PORTS[i]);
         }
         return result;
     }
     if (classname == "LUT") {
         for (size_t i = 0; i < LUT_PORT_COUNT; ++i) {
-            if (LUT_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || LUT_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(LUT_PORTS[i]);
+            if (LUT_PORT_DIRECTIONS[i] == bp2::Direction::Output || LUT_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(LUT_PORTS[i]);
         }
         return result;
     }
     if (classname == "LerpNode") {
         for (size_t i = 0; i < LerpNode_PORT_COUNT; ++i) {
-            if (LerpNode_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || LerpNode_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(LerpNode_PORTS[i]);
+            if (LerpNode_PORT_DIRECTIONS[i] == bp2::Direction::Output || LerpNode_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(LerpNode_PORTS[i]);
         }
         return result;
     }
     if (classname == "Lesser") {
         for (size_t i = 0; i < Lesser_PORT_COUNT; ++i) {
-            if (Lesser_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Lesser_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Lesser_PORTS[i]);
+            if (Lesser_PORT_DIRECTIONS[i] == bp2::Direction::Output || Lesser_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Lesser_PORTS[i]);
         }
         return result;
     }
     if (classname == "LesserEq") {
         for (size_t i = 0; i < LesserEq_PORT_COUNT; ++i) {
-            if (LesserEq_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || LesserEq_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(LesserEq_PORTS[i]);
+            if (LesserEq_PORT_DIRECTIONS[i] == bp2::Direction::Output || LesserEq_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(LesserEq_PORTS[i]);
         }
         return result;
     }
     if (classname == "Max") {
         for (size_t i = 0; i < Max_PORT_COUNT; ++i) {
-            if (Max_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Max_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Max_PORTS[i]);
+            if (Max_PORT_DIRECTIONS[i] == bp2::Direction::Output || Max_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Max_PORTS[i]);
         }
         return result;
     }
     if (classname == "Merger") {
         for (size_t i = 0; i < Merger_PORT_COUNT; ++i) {
-            if (Merger_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Merger_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Merger_PORTS[i]);
+            if (Merger_PORT_DIRECTIONS[i] == bp2::Direction::Output || Merger_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Merger_PORTS[i]);
         }
         return result;
     }
     if (classname == "Min") {
         for (size_t i = 0; i < Min_PORT_COUNT; ++i) {
-            if (Min_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Min_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Min_PORTS[i]);
+            if (Min_PORT_DIRECTIONS[i] == bp2::Direction::Output || Min_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Min_PORTS[i]);
         }
         return result;
     }
     if (classname == "Monostable") {
         for (size_t i = 0; i < Monostable_PORT_COUNT; ++i) {
-            if (Monostable_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Monostable_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Monostable_PORTS[i]);
+            if (Monostable_PORT_DIRECTIONS[i] == bp2::Direction::Output || Monostable_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Monostable_PORTS[i]);
         }
         return result;
     }
     if (classname == "Multiply") {
         for (size_t i = 0; i < Multiply_PORT_COUNT; ++i) {
-            if (Multiply_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Multiply_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Multiply_PORTS[i]);
+            if (Multiply_PORT_DIRECTIONS[i] == bp2::Direction::Output || Multiply_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Multiply_PORTS[i]);
         }
         return result;
     }
     if (classname == "NAND") {
         for (size_t i = 0; i < NAND_PORT_COUNT; ++i) {
-            if (NAND_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || NAND_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(NAND_PORTS[i]);
+            if (NAND_PORT_DIRECTIONS[i] == bp2::Direction::Output || NAND_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(NAND_PORTS[i]);
         }
         return result;
     }
     if (classname == "NOT") {
         for (size_t i = 0; i < NOT_PORT_COUNT; ++i) {
-            if (NOT_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || NOT_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(NOT_PORTS[i]);
+            if (NOT_PORT_DIRECTIONS[i] == bp2::Direction::Output || NOT_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(NOT_PORTS[i]);
         }
         return result;
     }
     if (classname == "Normalize") {
         for (size_t i = 0; i < Normalize_PORT_COUNT; ++i) {
-            if (Normalize_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Normalize_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Normalize_PORTS[i]);
+            if (Normalize_PORT_DIRECTIONS[i] == bp2::Direction::Output || Normalize_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Normalize_PORTS[i]);
         }
         return result;
     }
     if (classname == "OR") {
         for (size_t i = 0; i < OR_PORT_COUNT; ++i) {
-            if (OR_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || OR_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(OR_PORTS[i]);
+            if (OR_PORT_DIRECTIONS[i] == bp2::Direction::Output || OR_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(OR_PORTS[i]);
         }
         return result;
     }
     if (classname == "P") {
         for (size_t i = 0; i < P_PORT_COUNT; ++i) {
-            if (P_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || P_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(P_PORTS[i]);
+            if (P_PORT_DIRECTIONS[i] == bp2::Direction::Output || P_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(P_PORTS[i]);
         }
         return result;
     }
     if (classname == "PD") {
         for (size_t i = 0; i < PD_PORT_COUNT; ++i) {
-            if (PD_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || PD_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(PD_PORTS[i]);
+            if (PD_PORT_DIRECTIONS[i] == bp2::Direction::Output || PD_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(PD_PORTS[i]);
         }
         return result;
     }
     if (classname == "PI") {
         for (size_t i = 0; i < PI_PORT_COUNT; ++i) {
-            if (PI_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || PI_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(PI_PORTS[i]);
+            if (PI_PORT_DIRECTIONS[i] == bp2::Direction::Output || PI_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(PI_PORTS[i]);
         }
         return result;
     }
     if (classname == "PID") {
         for (size_t i = 0; i < PID_PORT_COUNT; ++i) {
-            if (PID_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || PID_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(PID_PORTS[i]);
+            if (PID_PORT_DIRECTIONS[i] == bp2::Direction::Output || PID_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(PID_PORTS[i]);
         }
         return result;
     }
     if (classname == "Positive_V_to_Bool") {
         for (size_t i = 0; i < Positive_V_to_Bool_PORT_COUNT; ++i) {
-            if (Positive_V_to_Bool_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Positive_V_to_Bool_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Positive_V_to_Bool_PORTS[i]);
+            if (Positive_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::Output || Positive_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Positive_V_to_Bool_PORTS[i]);
         }
         return result;
     }
     if (classname == "Radiator") {
         for (size_t i = 0; i < Radiator_PORT_COUNT; ++i) {
-            if (Radiator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Radiator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Radiator_PORTS[i]);
+            if (Radiator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Radiator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Radiator_PORTS[i]);
         }
         return result;
     }
     if (classname == "RefNode") {
         for (size_t i = 0; i < RefNode_PORT_COUNT; ++i) {
-            if (RefNode_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || RefNode_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(RefNode_PORTS[i]);
+            if (RefNode_PORT_DIRECTIONS[i] == bp2::Direction::Output || RefNode_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(RefNode_PORTS[i]);
         }
         return result;
     }
     if (classname == "Relay") {
         for (size_t i = 0; i < Relay_PORT_COUNT; ++i) {
-            if (Relay_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Relay_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Relay_PORTS[i]);
+            if (Relay_PORT_DIRECTIONS[i] == bp2::Direction::Output || Relay_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Relay_PORTS[i]);
         }
         return result;
     }
     if (classname == "Resistor") {
         for (size_t i = 0; i < Resistor_PORT_COUNT; ++i) {
-            if (Resistor_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Resistor_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Resistor_PORTS[i]);
+            if (Resistor_PORT_DIRECTIONS[i] == bp2::Direction::Output || Resistor_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Resistor_PORTS[i]);
         }
         return result;
     }
     if (classname == "RotarySwitch1ToN") {
         for (size_t i = 0; i < RotarySwitch1ToN_PORT_COUNT; ++i) {
-            if (RotarySwitch1ToN_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || RotarySwitch1ToN_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(RotarySwitch1ToN_PORTS[i]);
+            if (RotarySwitch1ToN_PORT_DIRECTIONS[i] == bp2::Direction::Output || RotarySwitch1ToN_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(RotarySwitch1ToN_PORTS[i]);
         }
         return result;
     }
     if (classname == "RotarySwitchNTo1") {
         for (size_t i = 0; i < RotarySwitchNTo1_PORT_COUNT; ++i) {
-            if (RotarySwitchNTo1_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || RotarySwitchNTo1_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(RotarySwitchNTo1_PORTS[i]);
+            if (RotarySwitchNTo1_PORT_DIRECTIONS[i] == bp2::Direction::Output || RotarySwitchNTo1_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(RotarySwitchNTo1_PORTS[i]);
         }
         return result;
     }
     if (classname == "SampleHold") {
         for (size_t i = 0; i < SampleHold_PORT_COUNT; ++i) {
-            if (SampleHold_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || SampleHold_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(SampleHold_PORTS[i]);
+            if (SampleHold_PORT_DIRECTIONS[i] == bp2::Direction::Output || SampleHold_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(SampleHold_PORTS[i]);
         }
         return result;
     }
     if (classname == "SlewRate") {
         for (size_t i = 0; i < SlewRate_PORT_COUNT; ++i) {
-            if (SlewRate_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || SlewRate_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(SlewRate_PORTS[i]);
+            if (SlewRate_PORT_DIRECTIONS[i] == bp2::Direction::Output || SlewRate_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(SlewRate_PORTS[i]);
         }
         return result;
     }
     if (classname == "Slider") {
         for (size_t i = 0; i < Slider_PORT_COUNT; ++i) {
-            if (Slider_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Slider_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Slider_PORTS[i]);
+            if (Slider_PORT_DIRECTIONS[i] == bp2::Direction::Output || Slider_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Slider_PORTS[i]);
         }
         return result;
     }
     if (classname == "SolenoidValve") {
         for (size_t i = 0; i < SolenoidValve_PORT_COUNT; ++i) {
-            if (SolenoidValve_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || SolenoidValve_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(SolenoidValve_PORTS[i]);
+            if (SolenoidValve_PORT_DIRECTIONS[i] == bp2::Direction::Output || SolenoidValve_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(SolenoidValve_PORTS[i]);
         }
         return result;
     }
     if (classname == "Splitter") {
         for (size_t i = 0; i < Splitter_PORT_COUNT; ++i) {
-            if (Splitter_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Splitter_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Splitter_PORTS[i]);
+            if (Splitter_PORT_DIRECTIONS[i] == bp2::Direction::Output || Splitter_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Splitter_PORTS[i]);
         }
         return result;
     }
     if (classname == "Spring") {
         for (size_t i = 0; i < Spring_PORT_COUNT; ++i) {
-            if (Spring_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Spring_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Spring_PORTS[i]);
+            if (Spring_PORT_DIRECTIONS[i] == bp2::Direction::Output || Spring_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Spring_PORTS[i]);
         }
         return result;
     }
     if (classname == "Subtract") {
         for (size_t i = 0; i < Subtract_PORT_COUNT; ++i) {
-            if (Subtract_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Subtract_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Subtract_PORTS[i]);
+            if (Subtract_PORT_DIRECTIONS[i] == bp2::Direction::Output || Subtract_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Subtract_PORTS[i]);
         }
         return result;
     }
     if (classname == "Switch") {
         for (size_t i = 0; i < Switch_PORT_COUNT; ++i) {
-            if (Switch_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Switch_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Switch_PORTS[i]);
+            if (Switch_PORT_DIRECTIONS[i] == bp2::Direction::Output || Switch_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Switch_PORTS[i]);
         }
         return result;
     }
     if (classname == "TempSensor") {
         for (size_t i = 0; i < TempSensor_PORT_COUNT; ++i) {
-            if (TempSensor_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || TempSensor_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(TempSensor_PORTS[i]);
+            if (TempSensor_PORT_DIRECTIONS[i] == bp2::Direction::Output || TempSensor_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(TempSensor_PORTS[i]);
         }
         return result;
     }
     if (classname == "TimeDelay") {
         for (size_t i = 0; i < TimeDelay_PORT_COUNT; ++i) {
-            if (TimeDelay_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || TimeDelay_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(TimeDelay_PORTS[i]);
+            if (TimeDelay_PORT_DIRECTIONS[i] == bp2::Direction::Output || TimeDelay_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(TimeDelay_PORTS[i]);
         }
         return result;
     }
     if (classname == "Transformer") {
         for (size_t i = 0; i < Transformer_PORT_COUNT; ++i) {
-            if (Transformer_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Transformer_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Transformer_PORTS[i]);
+            if (Transformer_PORT_DIRECTIONS[i] == bp2::Direction::Output || Transformer_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Transformer_PORTS[i]);
         }
         return result;
     }
     if (classname == "Value") {
         for (size_t i = 0; i < Value_PORT_COUNT; ++i) {
-            if (Value_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Value_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Value_PORTS[i]);
+            if (Value_PORT_DIRECTIONS[i] == bp2::Direction::Output || Value_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Value_PORTS[i]);
         }
         return result;
     }
     if (classname == "VariableConductance") {
         for (size_t i = 0; i < VariableConductance_PORT_COUNT; ++i) {
-            if (VariableConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || VariableConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(VariableConductance_PORTS[i]);
+            if (VariableConductance_PORT_DIRECTIONS[i] == bp2::Direction::Output || VariableConductance_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(VariableConductance_PORTS[i]);
         }
         return result;
     }
     if (classname == "VoltageSense") {
         for (size_t i = 0; i < VoltageSense_PORT_COUNT; ++i) {
-            if (VoltageSense_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || VoltageSense_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(VoltageSense_PORTS[i]);
+            if (VoltageSense_PORT_DIRECTIONS[i] == bp2::Direction::Output || VoltageSense_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(VoltageSense_PORTS[i]);
         }
         return result;
     }
     if (classname == "Voltmeter") {
         for (size_t i = 0; i < Voltmeter_PORT_COUNT; ++i) {
-            if (Voltmeter_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Voltmeter_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(Voltmeter_PORTS[i]);
+            if (Voltmeter_PORT_DIRECTIONS[i] == bp2::Direction::Output || Voltmeter_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Voltmeter_PORTS[i]);
         }
         return result;
     }
     if (classname == "XOR") {
         for (size_t i = 0; i < XOR_PORT_COUNT; ++i) {
-            if (XOR_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || XOR_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) result.push_back(XOR_PORTS[i]);
+            if (XOR_PORT_DIRECTIONS[i] == bp2::Direction::Output || XOR_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(XOR_PORTS[i]);
         }
         return result;
     }
