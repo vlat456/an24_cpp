@@ -25,9 +25,9 @@ std::string port_type_to_string(PortType t) {
 json port_to_json(const Port& port) {
     json j;
     switch (port.direction) {
-        case PortDirection::In:    j["direction"] = "In"; break;
-        case PortDirection::InOut: j["direction"] = "InOut"; break;
-        default:                   j["direction"] = "Out"; break;
+        case bp2::Direction::Input:  j["direction"] = "In"; break;
+        case bp2::Direction::InOut: j["direction"] = "InOut"; break;
+        default:                     j["direction"] = "Out"; break;
     }
     j["type"] = port_type_to_string(port.type);
     return j;

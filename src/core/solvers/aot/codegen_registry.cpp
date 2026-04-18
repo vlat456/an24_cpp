@@ -10,7 +10,7 @@ namespace {
 
 struct PortMeta {
     std::string name;
-    PortDirection direction = PortDirection::Out;
+    bp2::Direction direction = bp2::Direction::Output;
     Domain domain = Domain::Electrical;
     bool source_writer = false;
 };
@@ -105,9 +105,9 @@ void emit_port_registry_metadata(std::ostringstream& oss, const std::vector<Comp
         oss << "constexpr RegistryPortDirection " << comp.classname << "_PORT_DIRECTIONS[] = {\n";
         for (size_t i = 0; i < comp.ports.size(); ++i) {
             const char* dir_name = "Out";
-            if (comp.ports[i].direction == PortDirection::In) {
+            if (comp.ports[i].direction == bp2::Direction::Input) {
                 dir_name = "In";
-            } else if (comp.ports[i].direction == PortDirection::InOut) {
+            } else if (comp.ports[i].direction == bp2::Direction::InOut) {
                 dir_name = "InOut";
             }
             oss << "    RegistryPortDirection::" << dir_name;

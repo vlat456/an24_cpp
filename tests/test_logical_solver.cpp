@@ -88,9 +88,9 @@ TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
     EXPECT_TRUE(comp->ports.contains("o")) << "Should have o output";
 
     // Check port directions
-    EXPECT_EQ(comp->ports.at("Va").direction, PortDirection::In);
-    EXPECT_EQ(comp->ports.at("Vb").direction, PortDirection::In);
-    EXPECT_EQ(comp->ports.at("o").direction, PortDirection::Out);
+    EXPECT_EQ(comp->ports.at("Va").direction, bp2::Direction::Input);
+    EXPECT_EQ(comp->ports.at("Vb").direction, bp2::Direction::Input);
+    EXPECT_EQ(comp->ports.at("o").direction, bp2::Direction::Output);
 
     // Check port types (Va, Vb accept Signal type; o should be Bool)
     EXPECT_EQ(comp->ports.at("Va").type, PortType::Signal);

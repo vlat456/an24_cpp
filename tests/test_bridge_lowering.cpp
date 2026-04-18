@@ -14,7 +14,7 @@ const TypeRegistry& shared_registry() {
     return registry;
 }
 
-BridgePortDefinition make_bridge(std::string name, PortDirection side) {
+BridgePortDefinition make_bridge(std::string name, bp2::Direction side) {
     BridgePortDefinition bridge;
     bridge.id = std::move(name);
     bridge.exposed_port = bridge.id;
@@ -39,8 +39,8 @@ TEST(BridgeLowering, BuildSkipsBridgeRuntimeComponents) {
     std::vector<DeviceInstance> devices;
     devices.push_back(make_resistor_device("load"));
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge("vin", PortDirection::In),
-        make_bridge("vout", PortDirection::Out),
+        make_bridge("vin", bp2::Direction::Input),
+        make_bridge("vout", bp2::Direction::Output),
     };
 
     std::vector<Connection> connections = {
@@ -59,7 +59,7 @@ TEST(BridgeLowering, BridgeSignalsStillUnifiedForAliasContract) {
     std::vector<DeviceInstance> devices;
     devices.push_back(make_resistor_device("load"));
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge("vin", PortDirection::In),
+        make_bridge("vin", bp2::Direction::Input),
     };
 
     std::vector<Connection> connections = {
@@ -80,8 +80,8 @@ TEST(BridgeLowering, BridgeNodesDoNotEnterScheduler) {
     std::vector<DeviceInstance> devices;
     devices.push_back(make_resistor_device("load"));
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge("vin", PortDirection::In),
-        make_bridge("vout", PortDirection::Out),
+        make_bridge("vin", bp2::Direction::Input),
+        make_bridge("vout", bp2::Direction::Output),
     };
 
     std::vector<Connection> connections = {

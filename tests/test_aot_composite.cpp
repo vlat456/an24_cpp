@@ -26,8 +26,8 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
     d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
     lamp.devices = {d_lamp};
     lamp.bridge_ports = {
-        make_bridge_port_def("vin", PortDirection::In, PortType::V),
-        make_bridge_port_def("vout", PortDirection::Out, PortType::V),
+        make_bridge_port_def("vin", bp2::Direction::Input, PortType::V),
+        make_bridge_port_def("vout", bp2::Direction::Output, PortType::V),
     };
     lamp.connections = {{"vin.port", "lamp.v_in", {}}, {"lamp.v_out", "vout.port", {}}};
     registry.types["voltage_indicator"] = lamp;
@@ -239,15 +239,15 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     d_lamp.classname = "IndicatorLight";
     lamp.devices = {d_lamp};
     lamp.bridge_ports = {
-        make_bridge_port_def("vin", PortDirection::In, PortType::V),
-        make_bridge_port_def("vout", PortDirection::Out, PortType::V),
+        make_bridge_port_def("vin", bp2::Direction::Input, PortType::V),
+        make_bridge_port_def("vout", bp2::Direction::Output, PortType::V),
     };
     lamp.connections = {
         {"vin.port", "lamp.v_in", {}},
         {"lamp.v_out", "vout.port", {}}
     };
-    lamp.ports["vin"]  = Port{PortDirection::In, PortType::V, std::nullopt};
-    lamp.ports["vout"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    lamp.ports["vin"]  = Port{bp2::Direction::Input, PortType::V, std::nullopt};
+    lamp.ports["vout"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     registry.types["voltage_indicator"] = lamp;
 
     // ---- AOT path: generate_composite_systems ----
@@ -848,23 +848,23 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
     TypeDefinition battery_type;
     battery_type.classname = "ElectricalSource";
     battery_type.cpp_class = true;
-    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    battery_type.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
+    battery_type.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
     registry.types["ElectricalSource"] = battery_type;
 
     TypeDefinition resistor_type;
     resistor_type.classname = "Resistor";
     resistor_type.cpp_class = true;
-    resistor_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    resistor_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    resistor_type.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
+    resistor_type.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     resistor_type.domains = {{Domain::Electrical}};
     registry.types["Resistor"] = resistor_type;
 
     TypeDefinition ref_type;
     ref_type.classname = "RefNode";
     ref_type.cpp_class = true;
-    ref_type.ports["v"] = Port{PortDirection::InOut, PortType::V, std::nullopt};
+    ref_type.ports["v"] = Port{bp2::Direction::InOut, PortType::V, std::nullopt};
     ref_type.domains = {{Domain::Electrical}};
     ref_type.scheduler_source = true;
     registry.types["RefNode"] = ref_type;
@@ -918,12 +918,12 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
 TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     TypeRegistry registry;
 
-    registry.types["RefNode"] = make_refnode_type(PortDirection::Out);
+    registry.types["RefNode"] = make_refnode_type(bp2::Direction::Output);
 
     TypeDefinition consumer_type;
     consumer_type.classname = "Voltmeter";
     consumer_type.cpp_class = true;
-    consumer_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    consumer_type.ports["v"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     consumer_type.domains = {{Domain::Electrical}};
     consumer_type.scheduler_source = false;
     consumer_type.execution = make_execution(false, true, false, false, false, false, false, false, false);
@@ -986,15 +986,15 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     d_lamp.classname = "IndicatorLight";
     composite.devices = {d_lamp};
     composite.bridge_ports = {
-        make_bridge_port_def("vin", PortDirection::In, PortType::V),
-        make_bridge_port_def("vout", PortDirection::Out, PortType::V),
+        make_bridge_port_def("vin", bp2::Direction::Input, PortType::V),
+        make_bridge_port_def("vout", bp2::Direction::Output, PortType::V),
     };
     composite.connections = {
         {"vin.port", "lamp.v_in", {}},
         {"lamp.v_out", "vout.port", {}}
     };
-    composite.ports["vin"]  = Port{PortDirection::In, PortType::V, std::nullopt};
-    composite.ports["vout"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    composite.ports["vin"]  = Port{bp2::Direction::Input, PortType::V, std::nullopt};
+    composite.ports["vout"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     registry.types["bridge_test"] = composite;
 
     // Generate AOT code
@@ -1041,13 +1041,13 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     TypeDefinition cvs;
     cvs.classname = "ControlledVoltageSource";
     cvs.cpp_class = true;
-    cvs.ports["cmd"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    cvs.ports["gain"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    cvs.ports["offset"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    cvs.ports["min_v"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    cvs.ports["max_v"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    cvs.ports["v_pos"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    cvs.ports["v_neg"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    cvs.ports["cmd"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    cvs.ports["gain"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    cvs.ports["offset"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    cvs.ports["min_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    cvs.ports["max_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    cvs.ports["v_pos"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
+    cvs.ports["v_neg"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     cvs.domains = {{Domain::Electrical}};
     cvs.execution = make_execution(true, false, false, false, false, false, false, false, false);
     registry.types["ControlledVoltageSource"] = cvs;
@@ -1055,11 +1055,11 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     TypeDefinition vc;
     vc.classname = "VariableConductance";
     vc.cpp_class = true;
-    vc.ports["cmd"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    vc.ports["g_min"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    vc.ports["g_max"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    vc.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    vc.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    vc.ports["cmd"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    vc.ports["g_min"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    vc.ports["g_max"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    vc.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
+    vc.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     vc.domains = {{Domain::Electrical}};
     vc.execution = make_execution(true, false, false, false, false, false, false, false, false);
     registry.types["VariableConductance"] = vc;

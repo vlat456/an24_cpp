@@ -27,7 +27,7 @@ static auto make_multi_domain_devices() {
         ExecutionPhases phases;
         phases.electrical_passive = true;
         dev.execution = phases;
-        dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["gnd.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
     }
@@ -43,8 +43,8 @@ static auto make_multi_domain_devices() {
         dev.params["domain"] = "Electrical";
         dev.params["emf"] = "28";
         dev.params["internal_r"] = "0.05";
-        dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
-        dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.ports["v_in"] = {bp2::Direction::Input, PortType::V, std::nullopt};
+        dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["bat.v_in"] = next_sig++;
         port_to_signal["bat.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
@@ -60,8 +60,8 @@ static auto make_multi_domain_devices() {
         phases.thermal = true;
         dev.execution = phases;
         dev.params["domain"] = "Electrical,Thermal";
-        dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
-        dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.ports["v_in"] = {bp2::Direction::Input, PortType::V, std::nullopt};
+        dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["rad.v_in"] = next_sig++;
         port_to_signal["rad.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
@@ -78,8 +78,8 @@ static auto make_multi_domain_devices() {
         phases.hydraulic = true;
         dev.execution = phases;
         dev.params["domain"] = "Electrical,Mechanical,Hydraulic";
-        dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
-        dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.ports["v_in"] = {bp2::Direction::Input, PortType::V, std::nullopt};
+        dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["pump.v_in"] = next_sig++;
         port_to_signal["pump.v_out"] = next_sig++;
         devices.push_back(std::move(dev));

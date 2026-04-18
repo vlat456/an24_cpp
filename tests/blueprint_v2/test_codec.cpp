@@ -33,18 +33,6 @@ struct second_arg<R (*)(A0, A1, A2, A3)> {
     using type = A1;
 };
 
-/// Convert bp2::Direction to PortDirection
-PortDirection to_port_direction(bp2::Direction dir) {
-    switch (dir) {
-         case bp2::Direction::Input:  return PortDirection::In;
-         case bp2::Direction::Output: return PortDirection::Out;
-         case bp2::Direction::InOut:  return PortDirection::InOut;
-         default: return PortDirection::Out;
-     }
- }
-
-/// Register a type stub in the canonical TypeRegistry.
-/// Ports are derived from the bp2::Interface using the interner to resolve names.
 void register_type(
     TypeRegistry& reg,
     ui::StringInterner& interner,
@@ -62,7 +50,7 @@ void register_type(
     for (const auto& pd : iface.ports()) {
         std::string port_name(interner.resolve(pd.name));
         def.ports[port_name] = Port{
-            to_port_direction(pd.direction),
+            pd.direction,
             PortType::Any,
             pd.domain,
             false
@@ -628,7 +616,7 @@ TEST(BlueprintCodec, DecodePseudoComponentBridgeEncodingRejectsBlueprint) {
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
-    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
     reg.types["BoolSink"] = std::move(sink);
 
     const std::string json = R"({
@@ -935,7 +923,7 @@ TEST(Issue31_SingleSource, MutationSinglePath_DeriveReflectsSemanticIface) {
     EXPECT_EQ(interner.resolve(inputs_after[0].name), "sig_in");
     EXPECT_EQ(interner.resolve(outputs_after[0].name), "sig_out");
     EXPECT_EQ(outputs_after[0].type, PortType::V);
-    EXPECT_EQ(outputs_after[0].side, bp2::PortSide::Output);
+    EXPECT_EQ(outputs_after[0].direction, bp2::Direction::Output);
 }
 
 // Issue #31 Required Test 2: Export reads semantic

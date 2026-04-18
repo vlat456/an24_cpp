@@ -148,10 +148,10 @@ std::unordered_map<std::string, Port> extract_exposed_ports(const TypeDefinition
         port.alias = std::nullopt;
         exposed[bridge.exposed_port] = port;
 
-        spdlog::debug("[parser] Exposed port: {} ({}, {})",
-                     bridge.exposed_port,
-                     (port.direction == PortDirection::In) ? "In" : "Out",
-                     port_type_to_string(port.type));
+spdlog::debug("[parser] Exposed port: {} ({}, {})",
+                      bridge.exposed_port,
+                      (port.direction == bp2::Direction::Input) ? "In" : "Out",
+                      port_type_to_string(port.type));
     }
 
     return exposed;

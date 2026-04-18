@@ -10,13 +10,13 @@ TypeDefinition make_composite_def() {
     def.cpp_class = false;
 
     Port in;
-    in.direction = PortDirection::In;
+in.direction = bp2::Direction::Input;
     in.type = PortType::Bool;
     in.domain = Domain::Logical;
     def.ports["in"] = in;
 
     Port out;
-    out.direction = PortDirection::Out;
+out.direction = bp2::Direction::Output;
     out.type = PortType::Bool;
     out.domain = Domain::Logical;
     def.ports["out"] = out;
@@ -52,7 +52,7 @@ TypeRegistry make_registry() {
     src.classname = "SourceNode";
     src.cpp_class = true;
     Port src_out;
-    src_out.direction = PortDirection::Out;
+    src_out.direction = bp2::Direction::Output;
     src_out.type = PortType::Bool;
     src_out.domain = Domain::Logical;
     src.ports["out"] = src_out;
@@ -62,7 +62,7 @@ TypeRegistry make_registry() {
     dst.classname = "SinkNode";
     dst.cpp_class = true;
     Port dst_in;
-    dst_in.direction = PortDirection::In;
+    dst_in.direction = bp2::Direction::Input;
     dst_in.type = PortType::Bool;
     dst_in.domain = Domain::Logical;
     dst.ports["in"] = dst_in;
@@ -123,7 +123,7 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     sink.classname = "BoolSink";
     sink.cpp_class = true;
     Port sink_in;
-    sink_in.direction = PortDirection::In;
+    sink_in.direction = bp2::Direction::Input;
     sink_in.type = PortType::Bool;
     sink_in.domain = Domain::Logical;
     sink.ports["in"] = sink_in;
@@ -134,7 +134,7 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     def.cpp_class = false;
 
     Port exposed;
-    exposed.direction = PortDirection::In;
+    exposed.direction = bp2::Direction::Input;
     exposed.type = PortType::Bool;
     exposed.domain = Domain::Logical;
     def.ports["other_flag"] = exposed;
@@ -142,7 +142,7 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     BridgePortDefinition bridge;
     bridge.id = "flag";
     bridge.exposed_port = "flag";
-    bridge.side = PortDirection::In;
+    bridge.side = bp2::Direction::Input;
     bridge.type = PortType::Contextual;
     def.bridge_ports.push_back(bridge);
 

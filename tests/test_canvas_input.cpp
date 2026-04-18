@@ -103,21 +103,21 @@ static TypeRegistry make_canvas_input_test_registry() {
         def.content_type = "Slider";
         def.params["min"] = "0";
         def.params["max"] = "1";
-        def.ports.emplace("out", Port(PortDirection::Out, PortType::Bool, Domain::Logical, false));
+        def.ports.emplace("out", Port(bp2::Direction::Output, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
     }
     {
         TypeDefinition def;
         def.classname = "BoolSrc";
         def.cpp_class = true;
-        def.ports.emplace("out", Port(PortDirection::Out, PortType::Bool, Domain::Logical, false));
+        def.ports.emplace("out", Port(bp2::Direction::Output, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
     }
     {
         TypeDefinition def;
         def.classname = "BoolSink";
         def.cpp_class = true;
-        def.ports.emplace("in", Port(PortDirection::In, PortType::Bool, Domain::Logical, false));
+        def.ports.emplace("in", Port(bp2::Direction::Input, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
     }
     // Simple types

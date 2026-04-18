@@ -6,11 +6,11 @@
 TEST(PortLayoutResolver, DefaultLayout_NoOverrides) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("gnd"), bp2::PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("v_in"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("gnd"), bp2::Direction::Input, PortType::V);
     
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(interner.intern("v_out"), bp2::PortSide::Output, PortType::V);
+    outputs.emplace_back(interner.intern("v_out"), bp2::Direction::Output, PortType::V);
     
     std::vector<PortLayoutOverride> overrides;
     
@@ -25,7 +25,7 @@ TEST(PortLayoutResolver, DefaultLayout_NoOverrides) {
 TEST(PortLayoutResolver, OverrideSide_MoveInputToRight) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("v_in"), bp2::Direction::Input, PortType::V);
     
     std::vector<bp2::NodePort> outputs;
     
@@ -42,7 +42,7 @@ TEST(PortLayoutResolver, OverrideSide_MoveInputToRight) {
 TEST(PortLayoutResolver, OverrideSide_MoveOutputToTop) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(interner.intern("rpm_out"), bp2::PortSide::Output, PortType::RPM);
+    outputs.emplace_back(interner.intern("rpm_out"), bp2::Direction::Output, PortType::RPM);
     
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"rpm_out", bp2::PortLayoutSide::Top, std::nullopt});
@@ -56,8 +56,8 @@ TEST(PortLayoutResolver, OverrideSide_MoveOutputToTop) {
 TEST(PortLayoutResolver, OverridePosition_Ordering) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(interner.intern("a"), bp2::PortSide::Output, PortType::V);
-    outputs.emplace_back(interner.intern("b"), bp2::PortSide::Output, PortType::V);
+    outputs.emplace_back(interner.intern("a"), bp2::Direction::Output, PortType::V);
+    outputs.emplace_back(interner.intern("b"), bp2::Direction::Output, PortType::V);
     
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"a", bp2::PortLayoutSide::Right, 1});
@@ -73,9 +73,9 @@ TEST(PortLayoutResolver, OverridePosition_Ordering) {
 TEST(PortLayoutResolver, MixedOverrideAndAuto) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(interner.intern("a"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("b"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("c"), bp2::PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("b"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("c"), bp2::Direction::Input, PortType::V);
     
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"c", bp2::PortLayoutSide::Left, 0});
@@ -90,7 +90,7 @@ TEST(PortLayoutResolver, MixedOverrideAndAuto) {
 TEST(PortLayoutResolver, OrphanedOverride_Ignored) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("v_in"), bp2::Direction::Input, PortType::V);
     
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"nonexistent", bp2::PortLayoutSide::Top, std::nullopt});
@@ -104,8 +104,8 @@ TEST(PortLayoutResolver, OrphanedOverride_Ignored) {
 TEST(PortLayoutResolver, PositionCollision_StableSortOrder) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(interner.intern("first"), bp2::PortSide::Output, PortType::V);
-    outputs.emplace_back(interner.intern("second"), bp2::PortSide::Output, PortType::V);
+    outputs.emplace_back(interner.intern("first"), bp2::Direction::Output, PortType::V);
+    outputs.emplace_back(interner.intern("second"), bp2::Direction::Output, PortType::V);
     
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"first", bp2::PortLayoutSide::Right, 0});
@@ -122,7 +122,7 @@ TEST(PortLayoutResolver, PositionCollision_StableSortOrder) {
 TEST(PortLayoutResolver, PartialOverride_SideOnly) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(interner.intern("v_out"), bp2::PortSide::Output, PortType::V);
+    outputs.emplace_back(interner.intern("v_out"), bp2::Direction::Output, PortType::V);
     
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"v_out", bp2::PortLayoutSide::Bottom, std::nullopt});
@@ -136,12 +136,12 @@ TEST(PortLayoutResolver, PartialOverride_SideOnly) {
 TEST(PortLayoutResolver, AllPortsMovedToOneSide) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(interner.intern("a"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("b"), bp2::PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("b"), bp2::Direction::Input, PortType::V);
     
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(interner.intern("c"), bp2::PortSide::Output, PortType::V);
-    outputs.emplace_back(interner.intern("d"), bp2::PortSide::Output, PortType::V);
+    outputs.emplace_back(interner.intern("c"), bp2::Direction::Output, PortType::V);
+    outputs.emplace_back(interner.intern("d"), bp2::Direction::Output, PortType::V);
     
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"a", bp2::PortLayoutSide::Top, std::nullopt});
@@ -160,10 +160,10 @@ TEST(PortLayoutResolver, AllPortsMovedToOneSide) {
 TEST(PortLayoutResolver, EmptyOverrides_EqualsDefault) {
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(interner.intern("v_in"), bp2::PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("v_in"), bp2::Direction::Input, PortType::V);
     
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(interner.intern("v_out"), bp2::PortSide::Output, PortType::V);
+    outputs.emplace_back(interner.intern("v_out"), bp2::Direction::Output, PortType::V);
     
     ResolvedLayout layout = resolve_port_layout(inputs, outputs, {}, interner);
     
@@ -178,10 +178,10 @@ TEST(PortLayoutResolver, InOutPort_NoDuplicates) {
     auto bus_port = interner.intern("v");
     
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(bus_port, bp2::PortSide::InOut, PortType::V);
+    inputs.emplace_back(bus_port, bp2::Direction::InOut, PortType::V);
     
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(bus_port, bp2::PortSide::InOut, PortType::V);
+    outputs.emplace_back(bus_port, bp2::Direction::InOut, PortType::V);
     
     ResolvedLayout layout = resolve_port_layout(inputs, outputs, {}, interner);
     
@@ -191,7 +191,7 @@ TEST(PortLayoutResolver, InOutPort_NoDuplicates) {
     EXPECT_EQ(total, 1u) << "InOut port appearing in both inputs and outputs must be deduplicated";
     EXPECT_EQ(layout.left.size(), 1u);
     EXPECT_EQ(layout.left[0].port_name, "v");
-    EXPECT_EQ(layout.left[0].logical_side, bp2::PortSide::InOut);
+    EXPECT_EQ(layout.left[0].logical_side, bp2::Direction::InOut);
 }
 
 TEST(PortLayoutResolver, InOutPort_OverrideMovesToSide) {
@@ -200,10 +200,10 @@ TEST(PortLayoutResolver, InOutPort_OverrideMovesToSide) {
     auto bus_port = interner.intern("v");
     
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(bus_port, bp2::PortSide::InOut, PortType::V);
+    inputs.emplace_back(bus_port, bp2::Direction::InOut, PortType::V);
     
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(bus_port, bp2::PortSide::InOut, PortType::V);
+    outputs.emplace_back(bus_port, bp2::Direction::InOut, PortType::V);
     
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"v", bp2::PortLayoutSide::Top, std::nullopt});
@@ -224,12 +224,12 @@ TEST(PortLayoutResolver, InOutPort_MixedWithRegularPorts) {
     auto out_port = interner.intern("status");
     
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(in_port, bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(inout_port, bp2::PortSide::InOut, PortType::V);
+    inputs.emplace_back(in_port, bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(inout_port, bp2::Direction::InOut, PortType::V);
     
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(inout_port, bp2::PortSide::InOut, PortType::V);  // duplicate of InOut
-    outputs.emplace_back(out_port, bp2::PortSide::Output, PortType::V);
+    outputs.emplace_back(inout_port, bp2::Direction::InOut, PortType::V);  // duplicate of InOut
+    outputs.emplace_back(out_port, bp2::Direction::Output, PortType::V);
     
     ResolvedLayout layout = resolve_port_layout(inputs, outputs, {}, interner);
     
@@ -243,17 +243,17 @@ TEST(PortLayoutResolver, LogicalSide_PreservedFromPortDefinition) {
     // Verify that logical_side comes from the NodePort, not hardcoded.
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(interner.intern("a"), bp2::PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a"), bp2::Direction::Input, PortType::V);
     
     std::vector<bp2::NodePort> outputs;
-    outputs.emplace_back(interner.intern("b"), bp2::PortSide::Output, PortType::RPM);
+    outputs.emplace_back(interner.intern("b"), bp2::Direction::Output, PortType::RPM);
     
     ResolvedLayout layout = resolve_port_layout(inputs, outputs, {}, interner);
     
     ASSERT_EQ(layout.left.size(), 1u);
     ASSERT_EQ(layout.right.size(), 1u);
-    EXPECT_EQ(layout.left[0].logical_side, bp2::PortSide::Input);
-    EXPECT_EQ(layout.right[0].logical_side, bp2::PortSide::Output);
+    EXPECT_EQ(layout.left[0].logical_side, bp2::Direction::Input);
+    EXPECT_EQ(layout.right[0].logical_side, bp2::Direction::Output);
 }
 
 // ============================================================
@@ -270,11 +270,11 @@ TEST(PortLayoutResolver, REGRESSION_StablePartitionPreservesAutoPortOrder) {
     // they come out in the same order they were inserted.
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(interner.intern("alpha"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("beta"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("gamma"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("delta"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("epsilon"), bp2::PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("alpha"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("beta"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("gamma"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("delta"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("epsilon"), bp2::Direction::Input, PortType::V);
     
     // No overrides — all are auto-positioned
     ResolvedLayout layout = resolve_port_layout(inputs, {}, {}, interner);
@@ -292,10 +292,10 @@ TEST(PortLayoutResolver, REGRESSION_StablePartitionMixedHintedAndAuto) {
     // then auto ports in their original insertion order.
     ui::StringInterner interner;
     std::vector<bp2::NodePort> inputs;
-    inputs.emplace_back(interner.intern("a1"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("a2"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("a3"), bp2::PortSide::Input, PortType::V);
-    inputs.emplace_back(interner.intern("a4"), bp2::PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a1"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a2"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a3"), bp2::Direction::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a4"), bp2::Direction::Input, PortType::V);
     
     // Override: a3 to position 0, a1 to position 1
     // Auto: a2, a4 (should appear after hinted, in insertion order)

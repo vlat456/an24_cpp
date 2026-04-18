@@ -78,21 +78,21 @@ static TypeRegistry make_validation_registry() {
     TypeDefinition battery;
     battery.classname = "Battery";
     battery.cpp_class = true;
-    battery.ports["v_out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
-    battery.ports["v_in"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
+    battery.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
+    battery.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
     reg.types["Battery"] = std::move(battery);
 
     TypeDefinition resistor;
     resistor.classname = "Resistor";
     resistor.cpp_class = true;
-    resistor.ports["in"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
-    resistor.ports["out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
+    resistor.ports["in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
+    resistor.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
     reg.types["Resistor"] = std::move(resistor);
 
     TypeDefinition composite;
     composite.classname = "CompositeType";
     composite.cpp_class = true;
-    composite.ports["inner_only"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
+    composite.ports["inner_only"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
     reg.types["CompositeType"] = std::move(composite);
 
     return reg;
@@ -215,13 +215,13 @@ TEST(WireValidator, AnyToAnyUsesSharedLegacyResolutionRule) {
     TypeDefinition src;
     src.classname = "SrcAny";
     src.cpp_class = true;
-    src.ports["out"] = Port{PortDirection::Out, PortType::Any, Domain::Electrical, false};
+    src.ports["out"] = Port{bp2::Direction::Output, PortType::Any, Domain::Electrical, false};
     reg.types["SrcAny"] = std::move(src);
 
     TypeDefinition dst;
     dst.classname = "DstAny";
     dst.cpp_class = true;
-    dst.ports["in"] = Port{PortDirection::In, PortType::Any, Domain::Logical, false};
+    dst.ports["in"] = Port{bp2::Direction::Input, PortType::Any, Domain::Logical, false};
     reg.types["DstAny"] = std::move(dst);
 
     bp2::Blueprint bp;
@@ -246,13 +246,13 @@ TEST(WireValidator, ContextualBindsToConcreteAnchor) {
     TypeDefinition value;
     value.classname = "Value";
     value.cpp_class = true;
-    value.ports["o"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    value.ports["o"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false};
     reg.types["Value"] = std::move(value);
 
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
-    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
     reg.types["BoolSink"] = std::move(sink);
 
     bp2::Blueprint bp;
@@ -277,13 +277,13 @@ TEST(WireValidator, ContextualOnlySignalFailsExplicitly) {
     TypeDefinition lhs;
     lhs.classname = "CtxOut";
     lhs.cpp_class = true;
-    lhs.ports["out"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    lhs.ports["out"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false};
     reg.types["CtxOut"] = std::move(lhs);
 
     TypeDefinition rhs;
     rhs.classname = "CtxIn";
     rhs.cpp_class = true;
-    rhs.ports["in"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
+    rhs.ports["in"] = Port{bp2::Direction::Input, PortType::Contextual, Domain::Electrical, false};
     reg.types["CtxIn"] = std::move(rhs);
 
     bp2::Blueprint bp;
@@ -308,7 +308,7 @@ TEST(WireValidator, ContextualBridgeBindsToExposedRootPort) {
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
-    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
     reg.types["BoolSink"] = std::move(sink);
 
     bp2::Blueprint bp;
@@ -337,21 +337,21 @@ TEST(WireValidator, ContextualAliasGroupBindsTransitivelyToConcreteAnchor) {
     TypeDefinition splitter;
     splitter.classname = "CtxSplitter";
     splitter.cpp_class = true;
-    splitter.ports["i"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
-    splitter.ports["o1"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false, std::string("i")};
-    splitter.ports["o2"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false, std::string("i")};
+    splitter.ports["i"] = Port{bp2::Direction::Input, PortType::Contextual, Domain::Electrical, false};
+    splitter.ports["o1"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false, std::string("i")};
+    splitter.ports["o2"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false, std::string("i")};
     reg.types["CtxSplitter"] = std::move(splitter);
 
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
-    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
     reg.types["BoolSink"] = std::move(sink);
 
     TypeDefinition value;
     value.classname = "Value";
     value.cpp_class = true;
-    value.ports["o"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    value.ports["o"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false};
     reg.types["Value"] = std::move(value);
 
     bp2::Blueprint bp;
@@ -384,13 +384,13 @@ TEST(WireValidator, ContextualAndAnyWithoutConcreteAnchorFailsExplicitly) {
     TypeDefinition src;
     src.classname = "CtxOut";
     src.cpp_class = true;
-    src.ports["out"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
+    src.ports["out"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false};
     reg.types["CtxOut"] = std::move(src);
 
     TypeDefinition dst;
     dst.classname = "AnyIn";
     dst.cpp_class = true;
-    dst.ports["in"] = Port{PortDirection::In, PortType::Any, Domain::Logical, false};
+    dst.ports["in"] = Port{bp2::Direction::Input, PortType::Any, Domain::Logical, false};
     reg.types["AnyIn"] = std::move(dst);
 
     bp2::Blueprint bp;
@@ -415,15 +415,15 @@ TEST(WireValidator, SignalValueBindsToSignalMathPort) {
     TypeDefinition src;
     src.classname = "Value";
     src.cpp_class = true;
-    src.ports["o"] = Port{PortDirection::Out, PortType::Signal, Domain::Logical, false};
+    src.ports["o"] = Port{bp2::Direction::Output, PortType::Signal, Domain::Logical, false};
     reg.types["Value"] = std::move(src);
 
     TypeDefinition dst;
     dst.classname = "Multiply";
     dst.cpp_class = true;
-    dst.ports["A"] = Port{PortDirection::In, PortType::Signal, Domain::Logical, false};
-    dst.ports["B"] = Port{PortDirection::In, PortType::Signal, Domain::Logical, false};
-    dst.ports["o"] = Port{PortDirection::Out, PortType::Signal, Domain::Logical, false};
+    dst.ports["A"] = Port{bp2::Direction::Input, PortType::Signal, Domain::Logical, false};
+    dst.ports["B"] = Port{bp2::Direction::Input, PortType::Signal, Domain::Logical, false};
+    dst.ports["o"] = Port{bp2::Direction::Output, PortType::Signal, Domain::Logical, false};
     reg.types["Multiply"] = std::move(dst);
 
     bp2::Blueprint bp;
@@ -448,7 +448,7 @@ TEST(WireValidator, BridgeWithoutMatchingExposedRootPortFailsExplicitly) {
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
-    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
     reg.types["BoolSink"] = std::move(sink);
 
     bp2::Blueprint bp;
@@ -477,7 +477,7 @@ TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
-    sink.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
     reg.types["BoolSink"] = std::move(sink);
 
     bp2::Blueprint leaf;
@@ -567,12 +567,12 @@ TEST(WireValidator, DomainMismatchFails) {
     TypeDefinition src;
     src.classname = "Src";
     src.cpp_class = true;
-    src.ports["out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
+    src.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
     reg.types["Src"] = std::move(src);
     TypeDefinition dst;
     dst.classname = "Dst";
     dst.cpp_class = true;
-    dst.ports["in"] = Port{PortDirection::In, PortType::Bool, Domain::Logical, false};
+    dst.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
     reg.types["Dst"] = std::move(dst);
 
     PathArena arena(I);
@@ -933,8 +933,8 @@ TEST(BlueprintDecode, RequiredParamValidation_MissingRequiredParamFails) {
     TypeDefinition test_type;
     test_type.classname = "TestComponent";
     test_type.cpp_class = true;
-    test_type.ports["in"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
-    test_type.ports["out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
+    test_type.ports["in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
+    test_type.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
     ParamSchemaEntry req_param;
     req_param.type = ParamSchemaType::Float;
     req_param.required = true;
@@ -978,8 +978,8 @@ TEST(BlueprintDecode, RequiredParamValidation_PresentRequiredParamPasses) {
     TypeDefinition test_type;
     test_type.classname = "TestComponent";
     test_type.cpp_class = true;
-    test_type.ports["in"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
-    test_type.ports["out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
+    test_type.ports["in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
+    test_type.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
     ParamSchemaEntry req_param;
     req_param.type = ParamSchemaType::Float;
     req_param.required = true;
@@ -1022,8 +1022,8 @@ TEST(BlueprintDecode, RequiredParamValidation_OptionalParamCanBeMissing) {
     TypeDefinition test_type;
     test_type.classname = "TestComponent";
     test_type.cpp_class = true;
-    test_type.ports["in"] = Port{PortDirection::In, PortType::V, Domain::Electrical, false};
-    test_type.ports["out"] = Port{PortDirection::Out, PortType::V, Domain::Electrical, false};
+    test_type.ports["in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
+    test_type.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
     ParamSchemaEntry opt_param;
     opt_param.type = ParamSchemaType::Float;
     opt_param.required = false;  // Optional

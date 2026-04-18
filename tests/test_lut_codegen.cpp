@@ -12,8 +12,8 @@ static auto make_lut_device(const std::string& name, const std::string& table) {
     DeviceInstance dev;
     dev.name = name;
     dev.classname = "LUT";
-    dev.ports["input"]  = {PortDirection::In,  PortType::Any, std::nullopt};
-    dev.ports["output"] = {PortDirection::Out, PortType::Any, std::nullopt};
+    dev.ports["input"]  = {bp2::Direction::Input,  PortType::Any, std::nullopt};
+    dev.ports["output"] = {bp2::Direction::Output, PortType::Any, std::nullopt};
     dev.params["table"] = table;
     dev.execution = test_exec::lut();
     return dev;
@@ -23,7 +23,7 @@ static auto make_ref_node() {
     DeviceInstance dev;
     dev.name = "gnd";
     dev.classname = "RefNode";
-    dev.ports["v"] = {PortDirection::Out, PortType::V, std::nullopt};
+    dev.ports["v"] = {bp2::Direction::Output, PortType::V, std::nullopt};
     dev.execution = test_exec::electrical_passive();
     return dev;
 }
@@ -125,8 +125,8 @@ TEST(LUTCodegen, NoLUTs_NoArenaCode) {
     bat.classname = "Battery";
     bat.params["v_nominal"] = "28";
     bat.params["internal_r"] = "0.1";
-    bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
-    bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.ports["v_in"]  = {bp2::Direction::Input,  PortType::V, std::nullopt};
+    bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
     bat.execution = test_exec::electrical_passive();
 
     auto setup = make_setup({std::move(bat)});
@@ -201,8 +201,8 @@ TEST(LUTCodegen, GenericParamLoop_SkippedForLUT) {
     DeviceInstance lut;
     lut.name = "test_lut";
     lut.classname = "LUT";
-    lut.ports["input"]  = {PortDirection::In,  PortType::Any, std::nullopt};
-    lut.ports["output"] = {PortDirection::Out, PortType::Any, std::nullopt};
+    lut.ports["input"]  = {bp2::Direction::Input,  PortType::Any, std::nullopt};
+    lut.ports["output"] = {bp2::Direction::Output, PortType::Any, std::nullopt};
     lut.params["table"] = "0:0; 100:100";
     lut.execution = test_exec::lut();
 
@@ -235,8 +235,8 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
     DeviceInstance bat;
     bat.name = "bat";
     bat.classname = "Battery";
-    bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
-    bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.ports["v_in"]  = {bp2::Direction::Input,  PortType::V, std::nullopt};
+    bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
     bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
@@ -274,8 +274,8 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
     DeviceInstance bat;
     bat.name = "bat";
     bat.classname = "Battery";
-    bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
-    bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.ports["v_in"]  = {bp2::Direction::Input,  PortType::V, std::nullopt};
+    bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
     bat.params["emf"] = "24.0";
     bat.params["internal_r"] = "0.05";
     bat.execution = test_exec::electrical_passive();
@@ -319,8 +319,8 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     DeviceInstance bat;
     bat.name = "bat";
     bat.classname = "Battery";
-    bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
-    bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.ports["v_in"]  = {bp2::Direction::Input,  PortType::V, std::nullopt};
+    bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
     bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
@@ -360,8 +360,8 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     DeviceInstance bat;
     bat.name = "bat";
     bat.classname = "Battery";
-    bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
-    bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.ports["v_in"]  = {bp2::Direction::Input,  PortType::V, std::nullopt};
+    bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
     bat.params["emf"] = "24.0";
     bat.params["internal_r"] = "0.05";
     bat.execution = test_exec::electrical_passive();

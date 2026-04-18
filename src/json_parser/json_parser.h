@@ -85,27 +85,25 @@ constexpr PortType port_type_for_domain(Domain d) {
     return PortType::Contextual;
 }
 
-/// Port direction
-enum class PortDirection {
-    In,
-    Out,
-    InOut  // [g7h8] bidirectional port
-};
+/// Port direction — canonical enum used everywhere.
+/// Defined in blueprint_v2/interface/direction.h; re-exported here for
+/// backward-compat-free access from parser code.
+#include "blueprint_v2/interface/direction.h"
 
 /// Single port definition
 struct Port {
-    PortDirection direction = PortDirection::Out;
-    PortType type = PortType::Any;  // Port type for validation
-    Domain domain = Domain::Electrical;  // Port domain mask
-    bool source_writer = false;  // Active domain writer for source-conflict checks
-    std::optional<std::string> alias;  // If set, this port is an alias to another port (e.g., "out1" -> "in")
+    bp2::Direction direction = bp2::Direction::Output;
+    PortType type = PortType::Any;
+    Domain domain = Domain::Electrical;
+    bool source_writer = false;
+    std::optional<std::string> alias;
 
     Port() = default;
-    Port(PortDirection direction_)
+    Port(bp2::Direction direction_)
         : direction(direction_), type(PortType::Any), domain(Domain::Electrical), source_writer(false), alias(std::nullopt) {}
-    Port(PortDirection direction_, PortType type_, std::optional<std::string> alias_ = std::nullopt)
+    Port(bp2::Direction direction_, PortType type_, std::optional<std::string> alias_ = std::nullopt)
         : direction(direction_), type(type_), domain(domain_for_port_type(type_)), source_writer(false), alias(std::move(alias_)) {}
-    Port(PortDirection direction_, PortType type_, Domain domain_, bool source_writer_, std::optional<std::string> alias_ = std::nullopt)
+    Port(bp2::Direction direction_, PortType type_, Domain domain_, bool source_writer_, std::optional<std::string> alias_ = std::nullopt)
         : direction(direction_), type(type_), domain(domain_), source_writer(source_writer_), alias(std::move(alias_)) {}
 };
 
@@ -129,7 +127,7 @@ struct SubBlueprintRef {
 struct BridgePortDefinition {
     std::string id;
     std::string exposed_port;
-    PortDirection side = PortDirection::In;
+    bp2::Direction side = bp2::Direction::Input;
     PortType type = PortType::Contextual;
     std::optional<std::pair<float, float>> pos;
     std::optional<std::pair<float, float>> size;
@@ -270,14 +268,12 @@ struct DeviceInstance {
     // Default constructor
     DeviceInstance() = default;
 
-    // Convenience constructor for testing/debug (PortDirection version)
     DeviceInstance(
         const std::string& name_,
         const std::string& classname_,
         std::unordered_map<std::string, std::string> params_ = {},
-        std::unordered_map<std::string, PortDirection> ports_ = {}
+        std::unordered_map<std::string, bp2::Direction> ports_ = {}
     ) : name(name_), classname(classname_), params(std::move(params_)) {
-        // Convert PortDirection to Port
         for (const auto& [port_name, direction] : ports_) {
             PortType type = PortType::Any;
             if (port_name.find('v') != std::string::npos) type = PortType::V;
@@ -287,16 +283,14 @@ struct DeviceInstance {
         }
     }
 
-    // Convenience constructor for testing/debug (string port direction version)
     DeviceInstance(
         const std::string& name_,
         const std::string& classname_,
         std::unordered_map<std::string, std::string> params_,
         std::unordered_map<std::string, std::string> ports_
     ) : name(name_), classname(classname_), params(std::move(params_)) {
-        // Convert string port direction to Port
         for (const auto& [port_name, dir_str] : ports_) {
-            PortDirection dir = (dir_str == "in" || dir_str == "i" || dir_str == "input") ? PortDirection::In : PortDirection::Out;
+            bp2::Direction dir = (dir_str == "in" || dir_str == "i" || dir_str == "input") ? bp2::Direction::Input : bp2::Direction::Output;
             PortType type = PortType::Any;
             if (port_name.find('v') != std::string::npos) type = PortType::V;
             else if (port_name.find('i') != std::string::npos) type = PortType::I;

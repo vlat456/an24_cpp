@@ -156,7 +156,7 @@ private:
     struct WireStartEndpoint {
         ui::InternedId node_id;
         ui::InternedId port_id;
-        bp2::PortSide side = bp2::PortSide::Input;
+        bp2::Direction side = bp2::Direction::Input;
         PortType type = PortType::Any;
     };
 
@@ -168,7 +168,7 @@ private:
     size_t reconnect_wire_idx_ = 0;
     bool reconnect_detach_start_ = false;
     Pt reconnect_anchor_pos_;
-    bp2::PortSide reconnect_fixed_side_ = bp2::PortSide::Input;
+    bp2::Direction reconnect_fixed_side_ = bp2::Direction::Input;
     PortType reconnect_fixed_type_ = PortType::Any;
 
     // Routing-point drag — semantic wire/id state only.
@@ -216,9 +216,9 @@ private:
     void enter_drag_routing_point(ui::InternedId wire_id, size_t rp_idx, Pt rp_world_pos);
     void enter_resize_node(ui::InternedId node_id, Pt world_pos, Pt size, ResizeCorner corner);
     void enter_create_wire(ui::InternedId node_id, ui::InternedId port_id,
-                           bp2::PortSide side, PortType type, Pt port_pos);
+                           bp2::Direction side, PortType type, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
-                              Pt anchor_pos, bp2::PortSide fixed_side, PortType fixed_type);
+                              Pt anchor_pos, bp2::Direction fixed_side, PortType fixed_type);
       void enter_marquee(Pt world_pos);
      void leave_state();  // return to Idle (clean up transient data)
 
@@ -320,7 +320,7 @@ private:
         size_t wire_index;
         bool detach_start;
         Pt anchor_pos;
-        bp2::PortSide fixed_side;
+        bp2::Direction fixed_side;
         PortType fixed_type;
     };
     std::optional<WirePortMatch> find_wire_on_port(ui::InternedId port_node_id,

@@ -19,11 +19,11 @@ namespace {
 TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     TypeRegistry registry;
 
-    TypeDefinition gnd = make_refnode_type(PortDirection::Out);
+    TypeDefinition gnd = make_refnode_type(bp2::Direction::Output);
     registry.types["RefNode"] = gnd;
 
     TypeDefinition cmd = make_any_v_to_bool_type();
-    cmd.ports["v_in"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    cmd.ports["v_in"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     registry.types["Any_V_to_Bool"] = cmd;
 
     TypeDefinition src;
@@ -31,14 +31,14 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     src.cpp_class = true;
     src.domains = {Domain::Electrical};
     src.execution = make_execution(false, false, false, false, true, false, false, false, false);
-    src.ports["cmd"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    src.ports["v_neg"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    src.ports["v_pos"] = Port{PortDirection::Out, PortType::V, std::nullopt};
-    src.ports["i_out"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
-    src.ports["gain"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    src.ports["offset"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    src.ports["min_v"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    src.ports["max_v"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    src.ports["cmd"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    src.ports["v_neg"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
+    src.ports["v_pos"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
+    src.ports["i_out"] = Port{bp2::Direction::Output, PortType::Any, std::nullopt};
+    src.ports["gain"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    src.ports["offset"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    src.ports["min_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
+    src.ports["max_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     src.params["r_internal"] = "0.1";
     src.solver_owned_electrical = true;
     {
@@ -177,15 +177,15 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     std::vector<DeviceInstance> devices;
     TypeDefinition resistor_type = make_resistor_type();
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge_port_def("vin", PortDirection::In),
-        make_bridge_port_def("vout", PortDirection::Out),
+        make_bridge_port_def("vin", bp2::Direction::Input),
+        make_bridge_port_def("vout", bp2::Direction::Output),
     };
 
     DeviceInstance pass;
     pass.name = "pass";
     pass.classname = "Resistor";
-    pass.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    pass.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    pass.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
+    pass.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     pass.params["conductance"] = "1.0";
     pass = merge_device_instance(pass, resistor_type);
     devices.push_back(pass);
@@ -240,15 +240,15 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     TypeDefinition resistor_type = make_resistor_type();
     TypeDefinition value_type = make_value_type();
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge_port_def("vin", PortDirection::In),
-        make_bridge_port_def("vout", PortDirection::Out),
+        make_bridge_port_def("vin", bp2::Direction::Input),
+        make_bridge_port_def("vout", bp2::Direction::Output),
     };
 
     DeviceInstance load;
     load.name = "load";
     load.classname = "Resistor";
-    load.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    load.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    load.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
+    load.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     load.params["conductance"] = "1.0";
     load = merge_device_instance(load, resistor_type);
     devices.push_back(load);
@@ -257,7 +257,7 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     visual.name = "ui_only";
     visual.classname = "Value";
     visual.visual_only = true;
-    visual.ports["o"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
+    visual.ports["o"] = Port{bp2::Direction::Output, PortType::Any, std::nullopt};
     visual = merge_device_instance(visual, value_type);
     visual.visual_only = true;  // re-set after merge (value_type.visual_only is false)
     devices.push_back(visual);

@@ -44,7 +44,7 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     } else {
         auto ports = get_component_ports(classname);
         for (const auto& port_name : ports) {
-            dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+            dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
         }
     }
     return dev;
@@ -1004,13 +1004,13 @@ TEST(PushBuildValidation, MergeDeviceInstance_PropagatesPortDomainAndSourceWrite
     def.cpp_class = true;
     def.domains = std::vector<Domain>{Domain::Electrical};
     // Definition port: domain=Mechanical, source_writer=true
-    def.ports["v_out"] = Port{PortDirection::Out, PortType::V, Domain::Mechanical, true};
+    def.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Mechanical, true};
 
     DeviceInstance inst;
     inst.name = "gen1";
     inst.classname = "Generator";
     // Instance port: same name, but with default domain/source_writer
-    inst.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+    inst.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
 
     DeviceInstance merged = merge_device_instance(inst, def);
 

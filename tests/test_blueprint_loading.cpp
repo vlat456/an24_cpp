@@ -107,9 +107,9 @@ static float get_voltage(const SimulationState& state, const BuildResult& result
 TEST(ExtractExposedPorts, MultipleBlueprints) {
     TypeDefinition bp;
     bp.bridge_ports = {
-        BridgePortDefinition{"in1", "in1", PortDirection::In, PortType::V},
-        BridgePortDefinition{"in2", "in2", PortDirection::In, PortType::I},
-        BridgePortDefinition{"out1", "out1", PortDirection::Out, PortType::Bool},
+        BridgePortDefinition{"in1", "in1", bp2::Direction::Input, PortType::V},
+        BridgePortDefinition{"in2", "in2", bp2::Direction::Input, PortType::I},
+        BridgePortDefinition{"out1", "out1", bp2::Direction::Output, PortType::Bool},
     };
 
     auto exposed = extract_exposed_ports(bp);
@@ -118,11 +118,11 @@ TEST(ExtractExposedPorts, MultipleBlueprints) {
     EXPECT_EQ(exposed.size(), 3);
 
     // Verify input bridge directions (data flows INTO blueprint)
-    EXPECT_EQ(exposed["in1"].direction, PortDirection::In);
-    EXPECT_EQ(exposed["in2"].direction, PortDirection::In);
+    EXPECT_EQ(exposed["in1"].direction, bp2::Direction::Input);
+    EXPECT_EQ(exposed["in2"].direction, bp2::Direction::Input);
 
     // Verify output bridge direction (data flows OUT OF blueprint)
-    EXPECT_EQ(exposed["out1"].direction, PortDirection::Out);
+    EXPECT_EQ(exposed["out1"].direction, bp2::Direction::Output);
 
     // Verify types
     EXPECT_EQ(exposed["in1"].type, PortType::V);
@@ -141,8 +141,8 @@ TEST(ExtractExposedPorts, EmptyBlueprint) {
 TEST(ExtractExposedPorts, DefaultValues) {
     TypeDefinition bp;
     bp.bridge_ports = {
-        BridgePortDefinition{"in", "in", PortDirection::In, PortType::Contextual},
-        BridgePortDefinition{"out", "out", PortDirection::Out, PortType::Contextual},
+        BridgePortDefinition{"in", "in", bp2::Direction::Input, PortType::Contextual},
+        BridgePortDefinition{"out", "out", bp2::Direction::Output, PortType::Contextual},
     };
 
     auto exposed = extract_exposed_ports(bp);
@@ -150,8 +150,8 @@ TEST(ExtractExposedPorts, DefaultValues) {
     EXPECT_EQ(exposed.size(), 2);
 
     // Structural bridge defaults are explicit in bridge metadata.
-    EXPECT_EQ(exposed["in"].direction, PortDirection::In);
-    EXPECT_EQ(exposed["out"].direction, PortDirection::Out);
+    EXPECT_EQ(exposed["in"].direction, bp2::Direction::Input);
+    EXPECT_EQ(exposed["out"].direction, bp2::Direction::Output);
 
     EXPECT_EQ(exposed["in"].type, PortType::Contextual);
     EXPECT_EQ(exposed["out"].type, PortType::Contextual);

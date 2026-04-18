@@ -101,9 +101,9 @@ TEST(BlueprintPorts, AliasPortUnification_JitAotParity) {
     dev.critical = false;
     dev.execution = test_exec::bus();
 
-    dev.ports["i"]  = Port{PortDirection::In,  PortType::Any};
-    dev.ports["o1"] = Port{PortDirection::Out, PortType::Any, std::string("i")};  // alias → "i"
-    dev.ports["o2"] = Port{PortDirection::Out, PortType::Any};
+    dev.ports["i"]  = Port{bp2::Direction::Input,  PortType::Any};
+    dev.ports["o1"] = Port{bp2::Direction::Output, PortType::Any, std::string("i")};  // alias → "i"
+    dev.ports["o2"] = Port{bp2::Direction::Output, PortType::Any};
 
     std::vector<DeviceInstance> devices = { dev };
     std::vector<std::vector<std::string>> signal_groups = {

@@ -15,9 +15,9 @@ using json = nlohmann::json;
 
 namespace {
 
-PortDirection bridge_side_from_string(const std::string& side) {
-    if (side == "input") return PortDirection::In;
-    if (side == "output") return PortDirection::Out;
+bp2::Direction bridge_side_from_string(const std::string& side) {
+    if (side == "input") return bp2::Direction::Input;
+    if (side == "output") return bp2::Direction::Output;
     throw std::runtime_error("Invalid bridge side '" + side + "'");
 }
 
@@ -113,9 +113,9 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
 
         Port port;
         int dir = p["direction"].get<int>();
-        if (dir == 0) port.direction = PortDirection::In;
-        else if (dir == 1) port.direction = PortDirection::Out;
-        else if (dir == 2) port.direction = PortDirection::InOut;
+        if (dir == 0) port.direction = bp2::Direction::Input;
+        else if (dir == 1) port.direction = bp2::Direction::Output;
+        else if (dir == 2) port.direction = bp2::Direction::InOut;
         else {
             throw std::runtime_error("Invalid interface direction value for component '" + def.classname + "'");
         }

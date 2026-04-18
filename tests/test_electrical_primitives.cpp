@@ -54,7 +54,7 @@ DeviceInstance make_device(const std::string& name,
     } else {
         auto ports = get_component_ports(classname);
         for (const auto& port_name : ports) {
-            dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+            dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
         }
     }
     return dev;
@@ -533,7 +533,7 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         dev.execution = {};
         auto ports = get_component_ports("ElectricalConductance");
         for (const auto& p : ports) {
-            dev.ports[p] = Port{PortDirection::InOut, PortType::Any};
+            dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
         }
 
         std::vector<DeviceInstance> devices = {dev};
@@ -551,7 +551,7 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         dev.execution = {};
         auto ports = get_component_ports("ElectricalSource");
         for (const auto& p : ports) {
-            dev.ports[p] = Port{PortDirection::InOut, PortType::Any};
+            dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
         }
 
         std::vector<DeviceInstance> devices = {dev};

@@ -28,7 +28,7 @@ struct PortEntry {
     Port* port = nullptr;
     Label* label = nullptr;
     bp2::PortLayoutSide layout_side = bp2::PortLayoutSide::Left;
-    bp2::PortSide logical_side = bp2::PortSide::Input;
+    bp2::Direction logical_side = bp2::Direction::Input;
 };
 
 /// Node widget — flat slot-based layout.

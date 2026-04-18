@@ -57,7 +57,7 @@ DeviceInstance make_device(const std::string& name,
         // Fallback: get component ports generically.
         auto ports = get_component_ports(classname);
         for (const auto& port_name : ports) {
-            dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+            dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
         }
     }
     return dev;
@@ -940,7 +940,7 @@ TEST(PushRuntime, StrictParamMissingThrowsForPID) {
 
     auto ports = get_component_ports("PID");
     for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+        dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
     std::vector<DeviceInstance> test_devs = {dev};
@@ -968,7 +968,7 @@ TEST(PushRuntime, StrictParamMissingThrowsForSlewRate) {
 
     auto ports = get_component_ports("SlewRate");
     for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+        dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
     std::vector<DeviceInstance> test_devs = {dev};
@@ -1043,7 +1043,7 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
         
         auto ports = get_component_ports("PID");
         for (const auto& port_name : ports) {
-            dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+            dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
         }
         
         std::vector<DeviceInstance> test_devs = {dev};
@@ -1078,7 +1078,7 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
          
          auto ports = get_component_ports("PID");
          for (const auto& port_name : ports) {
-             dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+             dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
          }
          
          std::vector<DeviceInstance> test_devs = {dev};

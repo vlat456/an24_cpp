@@ -21,15 +21,15 @@ TypeRegistry build_registry_for_lamp() {
     d_lamp.classname = "IndicatorLight";
     lamp.devices = {d_lamp};
     lamp.bridge_ports = {
-        BridgePortDefinition{"vin", "vin", PortDirection::In, PortType::V},
-        BridgePortDefinition{"vout", "vout", PortDirection::Out, PortType::V},
+        BridgePortDefinition{"vin", "vin", bp2::Direction::Input, PortType::V},
+        BridgePortDefinition{"vout", "vout", bp2::Direction::Output, PortType::V},
     };
     lamp.connections = {
         {"vin.port", "lamp.v_in", {}},
         {"lamp.v_out", "vout.port", {}}
     };
-    lamp.ports["vin"] = Port{PortDirection::In, PortType::V, std::nullopt};
-    lamp.ports["vout"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    lamp.ports["vin"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
+    lamp.ports["vout"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     registry.types["voltage_indicator"] = lamp;
 
     return registry;

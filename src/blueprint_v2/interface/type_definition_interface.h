@@ -9,23 +9,11 @@
 
 namespace bp2 {
 
-constexpr Direction direction_from_port_direction(PortDirection d) {
-    switch (d) {
-        case PortDirection::In:
-            return Direction::Input;
-        case PortDirection::Out:
-            return Direction::Output;
-        case PortDirection::InOut:
-            return Direction::InOut;
-    }
-    return Direction::Output;
-}
-
 inline PortDescriptor port_descriptor_from_type_port(ui::InternedId name, const Port& port) {
     PortDescriptor pd;
     pd.name = name;
     pd.domain = port.domain;
-    pd.direction = direction_from_port_direction(port.direction);
+    pd.direction = port.direction;
     pd.port_type = port.type;
     pd.source_writer = port.source_writer;
     return pd;

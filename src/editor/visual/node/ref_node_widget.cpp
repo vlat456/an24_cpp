@@ -82,7 +82,7 @@ void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data,
     }
 
     // Single port, centered on top edge
-    port_ = emplaceChild<Port>(port_name, bp2::PortSide::Output, port_type);
+    port_ = emplaceChild<Port>(port_name, bp2::Direction::Output, port_type);
 }
 
 void RefNodeWidget::positionPort() {

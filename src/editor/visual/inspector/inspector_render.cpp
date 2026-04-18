@@ -48,7 +48,7 @@ void Inspector::render() {
                 clicked_node_id_ = node.node_id;
             }
             for (const auto& port : node.ports) {
-                const char* arrow = (port.side == bp2::PortSide::Input) ? "\xe2\x86\x90" : "\xe2\x86\x92"; // ← / →
+                const char* arrow = (port.side == bp2::Direction::Input) ? "\xe2\x86\x90" : "\xe2\x86\x92"; // ← / →
                 bool connected = (port.connection != "[not connected]");
                 if (connected) {
                     ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.3f, 1.0f),

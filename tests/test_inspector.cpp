@@ -129,7 +129,7 @@ TEST(Inspector, BuildDisplayTree_UnconnectedPort_ShowsNotConnected) {
     ASSERT_EQ(tree.size(), 1u);
 
     auto input_it = std::find_if(tree[0].ports.begin(), tree[0].ports.end(),
-        [](const DisplayPort& p) { return p.side == bp2::PortSide::Input; });
+        [](const DisplayPort& p) { return p.side == bp2::Direction::Input; });
     if (input_it != tree[0].ports.end()) {
         EXPECT_EQ(input_it->connection, "[not connected]");
     }

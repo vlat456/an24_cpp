@@ -86,11 +86,7 @@ JitBuildInput elaborate_for_jit(
         for (const auto& pd : comp.ports) {
             const std::string port_name(interner.resolve(pd.name));
             Port port;
-            switch (pd.direction) {
-                case bp2::Direction::Input:  port.direction = PortDirection::In; break;
-                case bp2::Direction::Output: port.direction = PortDirection::Out; break;
-                case bp2::Direction::InOut:  port.direction = PortDirection::InOut; break;
-            }
+            port.direction = pd.direction;
             port.type = pd.port_type;
             port.domain = pd.domain;
             port.source_writer = false;

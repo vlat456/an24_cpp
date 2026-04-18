@@ -73,7 +73,7 @@ Blueprint::Node make_bridge_node(const BridgePortDefinition& bridge,
     node.semantic.type = interner.intern("BridgePort");
     node.view.name = bridge.label;
 
-    const bool is_input = bridge.side == PortDirection::In;
+    const bool is_input = bridge.side == bp2::Direction::Input;
     node.content = Blueprint::Node::BridgePortData{
         interner.intern(bridge.exposed_port),
         is_input ? Blueprint::Node::BridgePortSide::Input

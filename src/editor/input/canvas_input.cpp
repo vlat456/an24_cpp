@@ -242,14 +242,14 @@ void CanvasInput::enter_resize_node(ui::InternedId node_id, Pt world_pos, Pt siz
 }
 
 void CanvasInput::enter_create_wire(ui::InternedId node_id, ui::InternedId port_id,
-                                    bp2::PortSide side, PortType type, Pt port_pos) {
+                                    bp2::Direction side, PortType type, Pt port_pos) {
     state_ = InputState::CreatingWire;
     wire_start_endpoint_ = WireStartEndpoint{node_id, port_id, side, type};
     wire_start_pos_ = port_pos;
 }
 
 void CanvasInput::enter_reconnect_wire(size_t wire_idx, bool detach_start,
-                                       Pt anchor_pos, bp2::PortSide fixed_side, PortType fixed_type) {
+                                       Pt anchor_pos, bp2::Direction fixed_side, PortType fixed_type) {
     state_ = InputState::ReconnectingWire;
     reconnect_wire_idx_ = wire_idx;
     reconnect_detach_start_ = detach_start;

@@ -92,12 +92,12 @@ void BusNodeWidget::rebuildPorts() {
     // (the interner) — never to a local std::string.
     for (const auto& w : wires_) {
         std::string_view wire_id = interner_->resolve(w.id);
-        auto* p = emplaceChild<Port>(wire_id, bp2::PortSide::InOut, PortType::V);
+        auto* p = emplaceChild<Port>(wire_id, bp2::Direction::InOut, PortType::V);
         ports_.push_back(p);
     }
 
     // Base "v" port (always present)
-    auto* base = emplaceChild<Port>("v", bp2::PortSide::InOut, PortType::V);
+    auto* base = emplaceChild<Port>("v", bp2::Direction::InOut, PortType::V);
     ports_.push_back(base);
 
     // Recalculate size based on port count — but respect user's explicit size.

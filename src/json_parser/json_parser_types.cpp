@@ -10,11 +10,11 @@ using json = nlohmann::json;
 
 namespace {
 
-PortDirection parse_port_direction(const std::string& s) {
-    if (s == "in" || s == "input" || s == "i" || s == "In") return PortDirection::In;
-    if (s == "InOut" || s == "inout" || s == "io") return PortDirection::InOut;
-    if (s == "out" || s == "output" || s == "o" || s == "Out") return PortDirection::Out;
-    return PortDirection::Out;
+bp2::Direction parse_port_direction(const std::string& s) {
+    if (s == "in" || s == "input" || s == "i" || s == "In") return bp2::Direction::Input;
+    if (s == "InOut" || s == "inout" || s == "io") return bp2::Direction::InOut;
+    if (s == "out" || s == "output" || s == "o" || s == "Out") return bp2::Direction::Output;
+    return bp2::Direction::Output;
 }
 
 PortType parse_port_type(const std::string& s) {

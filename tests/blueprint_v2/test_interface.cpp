@@ -121,25 +121,19 @@ TEST(Interface, UnequalInterfaces) {
     EXPECT_NE(i1, i2);
 }
 
-TEST(TypeDefinitionInterface, DirectionFromPortDirectionMapping) {
-    EXPECT_EQ(bp2::direction_from_port_direction(PortDirection::In), bp2::Direction::Input);
-    EXPECT_EQ(bp2::direction_from_port_direction(PortDirection::Out), bp2::Direction::Output);
-    EXPECT_EQ(bp2::direction_from_port_direction(PortDirection::InOut), bp2::Direction::InOut);
-}
-
 TEST(TypeDefinitionInterface, InterfaceFromTypeDefinitionCoversAllPortTypes) {
     ui::StringInterner interner;
 
     TypeDefinition def;
     def.classname = "AllPortTypes";
-    def.ports["v"] = Port{PortDirection::In, PortType::V};
-    def.ports["i"] = Port{PortDirection::Out, PortType::I};
-    def.ports["b"] = Port{PortDirection::In, PortType::Bool};
-    def.ports["rpm"] = Port{PortDirection::Out, PortType::RPM};
-    def.ports["tmp"] = Port{PortDirection::InOut, PortType::Temperature};
-    def.ports["prs"] = Port{PortDirection::InOut, PortType::Pressure};
-    def.ports["pos"] = Port{PortDirection::In, PortType::Position};
-    def.ports["any"] = Port{PortDirection::Out, PortType::Any};
+    def.ports["v"] = Port{bp2::Direction::Input, PortType::V};
+    def.ports["i"] = Port{bp2::Direction::Output, PortType::I};
+    def.ports["b"] = Port{bp2::Direction::Input, PortType::Bool};
+    def.ports["rpm"] = Port{bp2::Direction::Output, PortType::RPM};
+    def.ports["tmp"] = Port{bp2::Direction::InOut, PortType::Temperature};
+    def.ports["prs"] = Port{bp2::Direction::InOut, PortType::Pressure};
+    def.ports["pos"] = Port{bp2::Direction::Input, PortType::Position};
+    def.ports["any"] = Port{bp2::Direction::Output, PortType::Any};
 
     bp2::Interface iface = bp2::interface_from_type_definition(def, interner);
 

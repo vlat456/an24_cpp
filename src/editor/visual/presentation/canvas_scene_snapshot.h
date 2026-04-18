@@ -36,7 +36,7 @@ namespace visual {
     struct HitPort {
         std::string_view node_id;
         std::string_view port_name;
-        bp2::PortSide side = bp2::PortSide::Input;
+        bp2::Direction side = bp2::Direction::Input;
         PortType type = PortType::Any;
         ui::Pt center{};
     };
@@ -108,7 +108,7 @@ struct CanvasHitObject {
     ui::Rect bounds;
 
     // -- Port metadata (kind == Port) --
-    bp2::PortSide port_side = bp2::PortSide::Input;
+    bp2::Direction port_side = bp2::Direction::Input;
     PortType port_type = PortType::Any;
 
     // -- WireSegment metadata (kind == WireSegment) --

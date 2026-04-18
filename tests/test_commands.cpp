@@ -61,7 +61,7 @@ static TypeRegistry make_command_test_registry() {
         def.cpp_class = true;
         for (const auto& port_name : synthetic_ports) {
             Port p;
-            p.direction = PortDirection::InOut;
+            p.direction = bp2::Direction::InOut;
             p.type = PortType::V;
             p.domain = Domain::Electrical;
             p.source_writer = false;

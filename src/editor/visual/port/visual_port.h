@@ -40,7 +40,7 @@ struct PortConstants {
 /// Renders as a filled circle with type-based color.
 class Port : public Widget {
 public:
-    Port(std::string_view name, bp2::PortSide side, PortType type, bp2::PortLayoutSide layout_side = bp2::PortLayoutSide::Left);
+    Port(std::string_view name, bp2::Direction side, PortType type, bp2::PortLayoutSide layout_side = bp2::PortLayoutSide::Left);
 
     std::string_view id() const override { return name_; }
     bool isClickable() const override { return true; }
@@ -50,7 +50,7 @@ public:
     bool isIndexable() const override { return false; }
 
     std::string_view name() const { return name_; }
-    bp2::PortSide side() const { return side_; }
+    bp2::Direction side() const { return side_; }
     PortType type() const { return type_; }
     bp2::PortLayoutSide layoutSide() const { return layout_side_; }
     
@@ -59,8 +59,8 @@ public:
     uint32_t color() const;
 
     /// Check if port sides allow connection (Input <-> Output, InOut connects to anything)
-    static bool areSidesCompatible(bp2::PortSide a, bp2::PortSide b) {
-        if (a == bp2::PortSide::InOut || b == bp2::PortSide::InOut) return true;
+    static bool areSidesCompatible(bp2::Direction a, bp2::Direction b) {
+        if (a == bp2::Direction::InOut || b == bp2::Direction::InOut) return true;
         return a != b;
     }
 
@@ -77,7 +77,7 @@ public:
 
 private:
     std::string_view name_;
-    bp2::PortSide side_;
+    bp2::Direction side_;
     PortType type_;
     bp2::PortLayoutSide layout_side_;
 };

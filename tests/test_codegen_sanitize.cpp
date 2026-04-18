@@ -36,7 +36,7 @@ static auto make_colon_circuit() {
     ref.name = "bp_1:gnd";
     ref.classname = "RefNode";
     ref.params = {{"value", "0"}};
-    ref.ports["v"] = {PortDirection::Out};
+    ref.ports["v"] = {bp2::Direction::Output};
     ref.domains = {Domain::Electrical};
     ref.execution = test_exec::electrical_passive();
     if (const TypeDefinition* def = test_registry().get("RefNode")) {
@@ -48,8 +48,8 @@ static auto make_colon_circuit() {
     bat.name = "bp_1:bat";
     bat.classname = "ElectricalSource";
     bat.params = {{"voltage", "28"}, {"resistance", "0.01"}};
-    bat.ports["v_out"] = {PortDirection::Out};
-    bat.ports["v_in"] = {PortDirection::In};
+    bat.ports["v_out"] = {bp2::Direction::Output};
+    bat.ports["v_in"] = {bp2::Direction::Input};
     bat.domains = {Domain::Electrical};
     bat.execution = test_exec::electrical_passive();
     if (const TypeDefinition* def = test_registry().get("ElectricalSource")) {
@@ -60,7 +60,7 @@ static auto make_colon_circuit() {
     DeviceInstance bus;
     bus.name = "bp_1:main-bus";  // also has a hyphen
     bus.classname = "Bus";
-    bus.ports["v"] = {PortDirection::InOut};
+    bus.ports["v"] = {bp2::Direction::InOut};
     bus.domains = {Domain::Electrical};
     bus.execution = test_exec::bus();
     if (const TypeDefinition* def = test_registry().get("Bus")) {
@@ -72,8 +72,8 @@ static auto make_colon_circuit() {
     load.name = "bp_1:load.1";  // also has a dot
     load.classname = "Resistor";
     load.params = {{"conductance", "0.1"}};
-    load.ports["v_in"] = {PortDirection::In};
-    load.ports["v_out"] = {PortDirection::Out};
+    load.ports["v_in"] = {bp2::Direction::Input};
+    load.ports["v_out"] = {bp2::Direction::Output};
     load.domains = {Domain::Electrical};
     load.execution = test_exec::electrical_passive();
     if (const TypeDefinition* def = test_registry().get("Resistor")) {
@@ -164,7 +164,7 @@ TEST(CodegenSanitize, SanitizeNameFunction) {
         DeviceInstance dev;
         dev.name = input;
         dev.classname = "RefNode";
-        dev.ports["v"] = {PortDirection::Out};
+        dev.ports["v"] = {bp2::Direction::Output};
         dev.domains = {Domain::Electrical};
         dev.execution = test_exec::electrical_passive();
         devices.push_back(dev);
@@ -196,7 +196,7 @@ TEST(CodegenSanitize, NoCollisionBetweenDotAndDashAndColon) {
         DeviceInstance dev;
         dev.name = name;
         dev.classname = "RefNode";
-        dev.ports["v"] = {PortDirection::Out};
+        dev.ports["v"] = {bp2::Direction::Output};
         dev.domains = {Domain::Electrical};
         dev.execution = test_exec::electrical_passive();
         devices.push_back(dev);

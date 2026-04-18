@@ -1,5 +1,6 @@
 #pragma once
 
+#include "direction.h"
 #include "ui/core/interned_id.h"
 #include "json_parser/json_parser.h"
 #include <cstdint>
@@ -7,16 +8,10 @@
 
 namespace bp2 {
 
-enum class Direction : uint8_t {
-    Input,
-    Output,
-    InOut
-};
-
 struct PortDescriptor {
     ui::InternedId name;
     Domain domain;
-    bp2::Direction direction;
+    Direction direction;
     PortType port_type = PortType::Any;
     std::optional<ui::InternedId> alias;
     bool source_writer = false;

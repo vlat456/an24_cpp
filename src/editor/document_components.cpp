@@ -144,9 +144,9 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         bp2::PortDescriptor pd;
         pd.name = pid;
         pd.domain = port_def.domain;
-        if (port_def.direction == PortDirection::In) {
+        if (port_def.direction == bp2::Direction::Input) {
             pd.direction = bp2::Direction::Input;
-        } else if (port_def.direction == PortDirection::Out) {
+        } else if (port_def.direction == bp2::Direction::Output) {
             pd.direction = bp2::Direction::Output;
         } else {
             pd.direction = bp2::Direction::InOut;

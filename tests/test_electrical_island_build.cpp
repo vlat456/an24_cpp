@@ -31,7 +31,7 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
         ports = get_component_ports(classname);
     }
     for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
+        dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
     if (const TypeDefinition* def = test_registry().get(classname)) {

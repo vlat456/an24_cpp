@@ -27,7 +27,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     gnd.classname = "RefNode";
     gnd.priority = "med";
     gnd.critical = false;
-    gnd.ports["v"] = Port{PortDirection::Out, PortType::V};
+    gnd.ports["v"] = Port{bp2::Direction::Output, PortType::V};
     gnd.params["value"] = "0.0";
     gnd.domains = {Domain::Electrical};
     ctx.devices.push_back(gnd);
@@ -37,7 +37,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     bat.name = "bat";
     bat.classname = "ElectricalSource";
     bat.priority = "high";
-    bat.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+    bat.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
     bat.params["voltage"] = "28.0";
     bat.domains = {Domain::Electrical};
     ctx.devices.push_back(bat);
@@ -160,16 +160,16 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     EXPECT_EQ(dev.ports.size(), 5);
     auto it_in = dev.ports.find("v_in");
     ASSERT_NE(it_in, dev.ports.end());
-    EXPECT_EQ(it_in->second.direction, PortDirection::In);
+    EXPECT_EQ(it_in->second.direction, bp2::Direction::Input);
     auto it_out = dev.ports.find("v_out");
     ASSERT_NE(it_out, dev.ports.end());
-    EXPECT_EQ(it_out->second.direction, PortDirection::Out);
+    EXPECT_EQ(it_out->second.direction, bp2::Direction::Output);
     auto it_control = dev.ports.find("control");
     ASSERT_NE(it_control, dev.ports.end());
-    EXPECT_EQ(it_control->second.direction, PortDirection::In);
+    EXPECT_EQ(it_control->second.direction, bp2::Direction::Input);
     auto it_state = dev.ports.find("state");
     ASSERT_NE(it_state, dev.ports.end());
-    EXPECT_EQ(it_state->second.direction, PortDirection::Out);
+    EXPECT_EQ(it_state->second.direction, bp2::Direction::Output);
 
     auto it_param = dev.params.find("closed");
     ASSERT_NE(it_param, dev.params.end());
@@ -229,8 +229,8 @@ TEST(JsonParserTest, InOutPortDirection_Roundtrip_g7h8) {
     DeviceInstance dev;
     dev.name = "test_dev";
     dev.classname = "ElectricalSource"; // use known component for validation
-    dev.ports["v_in"] = Port{PortDirection::In, PortType::V};
-    dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+    dev.ports["v_in"] = Port{bp2::Direction::Input, PortType::V};
+    dev.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
     ctx.devices.push_back(dev);
 
     std::string json = serialize_json(ctx);
@@ -243,16 +243,16 @@ TEST(JsonParserTest, InOutPortDirection_Roundtrip_g7h8) {
 
     auto ctx2 = parse_json(json);
     ASSERT_EQ(ctx2.devices.size(), 1);
-    EXPECT_EQ(ctx2.devices[0].ports["v_in"].direction, PortDirection::In);
-    EXPECT_EQ(ctx2.devices[0].ports["v_out"].direction, PortDirection::Out);
+    EXPECT_EQ(ctx2.devices[0].ports["v_in"].direction, bp2::Direction::Input);
+    EXPECT_EQ(ctx2.devices[0].ports["v_out"].direction, bp2::Direction::Output);
 }
 
 // [g7h8] InOut enum value exists and parses correctly
 TEST(JsonParserTest, InOutEnumExists_g7h8) {
-    // Verify InOut is a valid PortDirection value
-    PortDirection d = PortDirection::InOut;
-    EXPECT_NE(d, PortDirection::In);
-    EXPECT_NE(d, PortDirection::Out);
+    // Verify InOut is a valid Direction value
+    bp2::Direction d = bp2::Direction::InOut;
+    EXPECT_NE(d, bp2::Direction::Input);
+    EXPECT_NE(d, bp2::Direction::Output);
 }
 
 // ============================================================================
@@ -405,8 +405,8 @@ TEST(JsonParserTest, PortTypeSerialization_RoundTrip) {
     dev.name = "test";
     dev.classname = "ElectricalSource";
     dev.domains = {Domain::Electrical};
-    dev.ports["v_in"] = Port{PortDirection::In, PortType::V};
-    dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+    dev.ports["v_in"] = Port{bp2::Direction::Input, PortType::V};
+    dev.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
     ctx.devices.push_back(dev);
 
     std::string json = serialize_json(ctx);
@@ -672,7 +672,7 @@ TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
     def.cpp_class = true;
     def.domains = std::vector<Domain>{Domain::Electrical};
     def.execution = ExecutionPhases{true, false, false, false, false, false, false, false, false};
-    def.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    def.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     def.params["r_internal"] = "0.1";
     def.param_schema["r_internal"] = ParamSchemaEntry{ParamSchemaType::Float, 0.000001, std::nullopt, true};
 
@@ -814,13 +814,13 @@ TEST(JsonParserTest, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
     def.cpp_class = true;
     def.domains = std::vector<Domain>{Domain::Electrical};
     // Definition port: domain=Mechanical, source_writer=true
-    def.ports["v_out"] = Port{PortDirection::Out, PortType::V, Domain::Mechanical, true};
+    def.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Mechanical, true};
 
     DeviceInstance inst;
     inst.name = "gen1";
     inst.classname = "Generator";
     // Instance port: same name, but with default domain/source_writer
-    inst.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+    inst.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
 
     DeviceInstance merged = merge_device_instance(inst, def);
 

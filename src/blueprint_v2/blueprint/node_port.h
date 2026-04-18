@@ -1,5 +1,6 @@
 #pragma once
 
+#include "blueprint_v2/interface/direction.h"
 #include "ui/core/interned_id.h"
 #include "json_parser/json_parser.h"
 #include <cstdint>
@@ -7,12 +8,6 @@
 #include <string>
 
 namespace bp2 {
-
-enum class PortSide {
-    Input,
-    Output,
-    InOut
-};
 
 enum class PortLayoutSide : uint8_t {
     Left,
@@ -47,26 +42,26 @@ inline std::optional<PortLayoutSide> parse_port_layout_side(const std::string& s
     return std::nullopt;
 }
 
-inline PortLayoutSide default_layout_side(PortSide side) {
+inline PortLayoutSide default_layout_side(Direction side) {
     switch (side) {
-        case PortSide::Input:  return PortLayoutSide::Left;
-        case PortSide::Output: return PortLayoutSide::Right;
-        case PortSide::InOut:  return PortLayoutSide::Left;
+        case Direction::Input:  return PortLayoutSide::Left;
+        case Direction::Output: return PortLayoutSide::Right;
+        case Direction::InOut:  return PortLayoutSide::Left;
     }
     return PortLayoutSide::Left;
 }
 
 struct NodePort {
     ui::InternedId name;
-    PortSide side;
+    Direction direction;
     PortType type;
 
-    NodePort() : name(), side(PortSide::Input), type(PortType::Any) {}
-    NodePort(ui::InternedId name_, PortSide side_, PortType type_)
-        : name(name_), side(side_), type(type_) {}
+    NodePort() : name(), direction(Direction::Input), type(PortType::Any) {}
+    NodePort(ui::InternedId name_, Direction direction_, PortType type_)
+        : name(name_), direction(direction_), type(type_) {}
 
     bool operator==(const NodePort& o) const {
-        return name == o.name && side == o.side && type == o.type;
+        return name == o.name && direction == o.direction && type == o.type;
     }
 };
 

@@ -90,11 +90,11 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
             end_port_iid = interner_.intern("v");
         }
 
-        auto can_drive = [](bp2::PortSide s) {
-            return s == bp2::PortSide::Output || s == bp2::PortSide::InOut;
+        auto can_drive = [](bp2::Direction s) {
+            return s == bp2::Direction::Output || s == bp2::Direction::InOut;
         };
-        auto can_receive = [](bp2::PortSide s) {
-            return s == bp2::PortSide::Input || s == bp2::PortSide::InOut;
+        auto can_receive = [](bp2::Direction s) {
+            return s == bp2::Direction::Input || s == bp2::Direction::InOut;
         };
 
         const bool forward_ok = can_drive(start.side) && can_receive(ph->side);
@@ -291,9 +291,9 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(
 
 CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
      size_t wire_index, bool detach_start, const bp2::Blueprint::Wire& w) const {
-     Pt anchor_pos;
-     bp2::PortSide fixed_side;
-     PortType fixed_type = PortType::Any;
+Pt anchor_pos;
+      bp2::Direction fixed_side;
+      PortType fixed_type = PortType::Any;
 
      // Estimate a port's world position from blueprint layout data.
      // The exact pixel position depends on widget layout, but this is only
@@ -310,8 +310,8 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
          return Pt(node->layout.x + w * 0.5f, node->layout.y + h * 0.5f);
      };
 
-     if (detach_start) {
-          fixed_side = bp2::PortSide::Input;
+if (detach_start) {
+           fixed_side = bp2::Direction::Input;
           auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena_);
           fixed_type = resolve_port_type_from_model(host_.current_blueprint(), tgt_node, tgt_port, registry(), interner_);
           if (!w.routing_points.empty()) {
@@ -319,8 +319,8 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
           } else if (auto pos = estimate_port_pos(tgt_node, tgt_port)) {
               anchor_pos = *pos;
           }
-      } else {
-          fixed_side = bp2::PortSide::Output;
+} else {
+           fixed_side = bp2::Direction::Output;
           auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena_);
           fixed_type = resolve_port_type_from_model(host_.current_blueprint(), src_node, src_port, registry(), interner_);
          if (!w.routing_points.empty()) {
