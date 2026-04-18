@@ -1392,7 +1392,7 @@
               "kind": "bridge_port",
               "label": "Torque",
               "layout": {
-                "x": 320.0,
+                "x": 240.0,
                 "y": 528.0
               },
               "port_type": "Contextual",
@@ -1416,7 +1416,7 @@
               "kind": "component",
               "label": "RotorAccel",
               "layout": {
-                "x": 496.0,
+                "x": 528.0,
                 "y": 528.0
               },
               "params": {

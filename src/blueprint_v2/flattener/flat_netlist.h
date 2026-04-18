@@ -3,7 +3,7 @@
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/interface/port_descriptor.h"
-#include "json_parser/json_parser.h"
+#include "core/domain_types.h"
 #include <string>
 #include <vector>
 #include <unordered_map>

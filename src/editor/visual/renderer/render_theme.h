@@ -1,6 +1,6 @@
 #pragma once
 
-#include "json_parser/json_parser.h"
+#include "core/domain_types.h"
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -96,8 +96,9 @@ inline uint32_t get_port_color(PortType type) {
          case PortType::Temperature: return 0xFF4050B0;  // Port Temp     (warm rose)
          case PortType::Pressure:    return 0xFF8C7848;  // Port Pressure (muted cyan-teal)
          case PortType::Position:    return 0xFFA86078;  // Port Position (muted purple)
+         case PortType::Signal:      return 0xFF60905A;  // Port Signal   (same as Bool)
+         case PortType::Contextual:  return 0xFF968685;  // Port Context  (Text Secondary)
          case PortType::Any:         return 0xFF968685;  // Port Any      (Text Secondary)
-        default:                          return 0xFF968685;
     }
 }
 

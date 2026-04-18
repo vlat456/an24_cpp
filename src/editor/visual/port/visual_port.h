@@ -2,7 +2,7 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "blueprint_v2/blueprint/node_port.h"
-#include "json_parser/json_parser.h"
+#include "core/domain_types.h"
 #include <string_view>
 #include <cstdint>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "json_parser/json_parser.h"
+#include "core/domain_types.h"
 
 #include <string>
 

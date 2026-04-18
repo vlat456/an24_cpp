@@ -2,7 +2,7 @@
 
 #include "blueprint_v2/interface/direction.h"
 #include "ui/core/interned_id.h"
-#include "json_parser/json_parser.h"
+#include "core/domain_types.h"
 #include <cstdint>
 #include <optional>
 #include <string>

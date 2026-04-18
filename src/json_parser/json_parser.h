@@ -10,85 +10,14 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
+#include "core/domain_types.h"
+#include "blueprint_v2/interface/direction.h"
+
 // Forward declarations
 struct DeviceInstance;
 
-/// Domain types for multi-domain simulation (bitmask for multi-domain components)
-enum class Domain : uint8_t {
-    Electrical = 1 << 0,  // 60 Hz - fast electrical dynamics
-    Logical    = 1 << 1,  // 60 Hz - boolean logic operations (runs every frame)
-    Mechanical = 1 << 2,  // 20 Hz - medium mechanical systems
-    Hydraulic  = 1 << 3,  // 5 Hz - slow fluid dynamics
-    Thermal    = 1 << 4   // 1 Hz - very slow temperature changes
-};
-
-/// Bitwise OR for Domain bitmask
-constexpr Domain operator|(Domain a, Domain b) {
-    return static_cast<Domain>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
-}
-
-/// Bitwise AND for Domain bitmask
-constexpr Domain operator&(Domain a, Domain b) {
-    return static_cast<Domain>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
-}
-
-/// Check if domain mask has specific domain
-constexpr bool has_domain(Domain mask, Domain domain) {
-    return (static_cast<uint8_t>(mask) & static_cast<uint8_t>(domain)) != 0;
-}
-
-/// Port type for validation and AOT optimization
-enum class PortType {
-    V,            // Voltage (electrical potential)
-    I,            // Current (electrical flow)
-    Signal,       // Scalar logical/control signal
-    Bool,         // Boolean (logic level, on/off)
-    RPM,          // Rotational speed (revolutions per minute)
-    Temperature,  // Temperature (degrees Celsius)
-    Pressure,     // Pressure (Pascal, bar, etc.)
-    Position,     // Position/Displacement (mechanical position)
-    Contextual,   // Concrete type/domain resolved from graph context
-    Any,          // Wildcard - can connect to any type
-};
-
-/// Canonical mapping from PortType to runtime Domain.
-constexpr Domain domain_for_port_type(PortType t) {
-    switch (t) {
-        case PortType::V:
-        case PortType::I:
-        case PortType::Contextual:
-        case PortType::Any:
-            return Domain::Electrical;
-        case PortType::Signal:
-        case PortType::Bool:
-            return Domain::Logical;
-        case PortType::RPM:
-        case PortType::Position:
-            return Domain::Mechanical;
-        case PortType::Pressure:
-            return Domain::Hydraulic;
-        case PortType::Temperature:
-            return Domain::Thermal;
-    }
-    return Domain::Electrical;
-}
-
-/// Canonical reverse mapping from Domain to a representative PortType.
-constexpr PortType port_type_for_domain(Domain d) {
-    switch (d) {
-        case Domain::Electrical: return PortType::V;
-        case Domain::Logical:    return PortType::Bool;
-        case Domain::Mechanical: return PortType::RPM;
-        case Domain::Hydraulic:  return PortType::Pressure;
-        case Domain::Thermal:    return PortType::Temperature;
-    }
-    return PortType::Contextual;
-}
-
-/// Port direction — canonical enum used everywhere.
-/// Defined in blueprint_v2/interface/direction.h; re-exported here for
-/// backward-compat-free access from parser code.
-#include "blueprint_v2/interface/direction.h"
+/// Port direction — re-exported from direction.h for convenience.
+using bp2::Direction;
 
 /// Single port definition
 struct Port {

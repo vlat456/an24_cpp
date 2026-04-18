@@ -1,8 +1,8 @@
 #pragma once
 
-// Thin namespace alias — all canonical mappings live in json_parser.h.
+// Thin namespace alias — all canonical mappings live in domain_types.h.
 // This header exists solely to avoid mass-renaming editor call sites.
-#include "json_parser/json_parser.h"
+#include "core/domain_types.h"
 
 namespace editor::common {
 

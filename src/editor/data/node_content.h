@@ -3,6 +3,7 @@
 #include "../../blueprint_v2/blueprint/node_content_type.h"
 #include "../../blueprint_v2/blueprint/blueprint.h"
 #include "../../blueprint_v2/blueprint/node_port.h"
+#include "../../json_parser/json_parser.h"
 #include "../../ui/math/pt.h"
 #include "../../ui/core/interned_id.h"
 #include <string>
