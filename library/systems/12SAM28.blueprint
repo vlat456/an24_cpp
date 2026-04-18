@@ -65,26 +65,15 @@
     },
     {
       "id": "charge_out",
-      "name": "charge_out",
-      "ports": {
-        "ext": {
-          "direction": "Out",
-          "type": 7
-        },
-        "port": {
-          "direction": "In",
-          "type": 7
-        }
-      },
-      "position": {
+      "kind": "bridge_port",
+      "exposed_port": "charge_out",
+      "side": "output",
+      "port_type": "Signal",
+      "layout": {
         "x": 672.0,
         "y": 320.0
       },
-      "string_params": {
-        "exposed_direction": "Out",
-        "exposed_type": "Contextual"
-      },
-      "type": "BlueprintOutput"
+      "label": "charge_out"
     },
     {
       "height": 96.0,
@@ -402,26 +391,15 @@
     },
     {
       "id": "soc_out",
-      "name": "soc_out",
-      "ports": {
-        "ext": {
-          "direction": "Out",
-          "type": 7
-        },
-        "port": {
-          "direction": "In",
-          "type": 7
-        }
-      },
-      "position": {
+      "kind": "bridge_port",
+      "exposed_port": "soc_out",
+      "side": "output",
+      "port_type": "Signal",
+      "layout": {
         "x": 672.0,
         "y": 144.0
       },
-      "string_params": {
-        "exposed_direction": "Out",
-        "exposed_type": "Contextual"
-      },
-      "type": "BlueprintOutput"
+      "label": "soc_out"
     },
     {
       "height": 80.0,
@@ -555,52 +533,28 @@
       "type": "Text"
     },
     {
-      "height": 64.0,
       "id": "v_in",
-      "name": "v_in",
-      "ports": {
-        "ext": {
-          "direction": "In",
-          "type": 7
-        },
-        "port": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
+      "kind": "bridge_port",
+      "exposed_port": "v_in",
+      "side": "input",
+      "port_type": "V",
+      "layout": {
         "x": -272.0,
         "y": 400.0
       },
-      "string_params": {
-        "exposed_direction": "In",
-        "exposed_type": "V"
-      },
-      "type": "BlueprintInput",
-      "width": 80.0
+      "label": "v_in"
     },
     {
       "id": "v_out",
-      "name": "v_out",
-      "ports": {
-        "ext": {
-          "direction": "Out",
-          "type": 7
-        },
-        "port": {
-          "direction": "In",
-          "type": 7
-        }
-      },
-      "position": {
+      "kind": "bridge_port",
+      "exposed_port": "v_out",
+      "side": "output",
+      "port_type": "V",
+      "layout": {
         "x": 672.0,
         "y": 224.0
       },
-      "string_params": {
-        "exposed_direction": "Out",
-        "exposed_type": "V"
-      },
-      "type": "BlueprintOutput"
+      "label": "v_out"
     }
   ],
   "pan_x": -373.51409912109375,

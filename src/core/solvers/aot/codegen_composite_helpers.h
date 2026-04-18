@@ -9,6 +9,7 @@ using UnionFind = core::utils::UnionFind;
 
 void build_port_index_map(
     const std::vector<DeviceInstance>& expanded_devices,
+    const std::vector<BridgePortDefinition>& bridge_ports,
     std::vector<std::string>& out_all_ports,
     std::unordered_map<std::string, uint32_t>& out_port_to_idx
 );
@@ -16,6 +17,7 @@ void build_port_index_map(
 void apply_signal_allocation_rules(
     UnionFind& uf,
     const std::vector<DeviceInstance>& expanded_devices,
+    const std::vector<BridgePortDefinition>& bridge_ports,
     const std::vector<Connection>& expanded_connections,
     const std::unordered_map<std::string, uint32_t>& port_to_idx
 );

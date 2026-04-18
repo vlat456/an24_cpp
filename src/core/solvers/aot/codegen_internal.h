@@ -54,8 +54,7 @@ inline std::vector<DeviceInstance> filter_simulation_devices(
     std::vector<DeviceInstance> devices;
     devices.reserve(devices_unfiltered.size());
     for (const auto& d : devices_unfiltered) {
-        const bool is_bridge = d.classname == "BlueprintInput" || d.classname == "BlueprintOutput";
-        if (!d.visual_only && !is_bridge) {
+        if (!d.visual_only) {
             devices.push_back(d);
         }
     }

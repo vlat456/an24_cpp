@@ -224,25 +224,32 @@ Blueprint::Node const* Blueprint::find_blueprint_instance(ui::InternedId id) con
 }
 
 bool Blueprint::is_blueprint_instance_node(Node const& node) const {
-    return node.is_blueprint_instance() && node.source.has_value();
+    return node.is_blueprint_instance();
 }
 
 bool Blueprint::is_embedded_blueprint_instance(Node const& node) const {
-    return node.is_blueprint_instance() && node.source.has_value() && node.source->is_embedded();
+    return node.has_embedded_blueprint();
 }
 
 bool Blueprint::is_referenced_blueprint_instance(Node const& node) const {
-    return node.is_blueprint_instance() && node.source.has_value() && node.source->is_reference();
+    return node.has_referenced_blueprint();
 }
 
 bool Blueprint::Node::canonical_eq(Node const& o) const {
-    const bool source_equal = (!source && !o.source)
-        || (source && o.source && source->canonical_eq(*o.source));
-    return kind == o.kind
-        && semantic == o.semantic
-        && source_equal
-        && layout == o.layout
-        && view.canonical_eq(o.view);
+    if (content.index() != o.content.index()) {
+        return false;
+    }
+
+    bool content_equal = false;
+    if (is_component()) {
+        content_equal = component() == o.component();
+    } else if (is_blueprint_instance()) {
+        content_equal = blueprint_instance().source.canonical_eq(o.blueprint_instance().source);
+    } else {
+        content_equal = bridge_port() == o.bridge_port();
+    }
+
+    return semantic == o.semantic && content_equal && layout == o.layout && view.canonical_eq(o.view);
 }
 
 Blueprint Blueprint::with_node(Node node) const {
@@ -310,12 +317,12 @@ Interface const& Blueprint::effective_node_iface(ui::InternedId node_id) const {
 
 Interface const& Blueprint::effective_node_iface(Node const& node) const {
     if (node.is_blueprint_instance()) {
-        if (!node.source.has_value()) {
-            throw std::logic_error("Blueprint::effective_node_iface: blueprint instance missing source");
-        }
-        return node.source->cached_iface();
+        return node.blueprint_instance().source.cached_iface();
     }
-    return node.semantic.iface;
+    if (node.is_bridge_port()) {
+        return node.bridge_port().iface;
+    }
+    return node.component().iface;
 }
 
 Blueprint Blueprint::with_id(ui::InternedId id) const {
@@ -407,7 +414,7 @@ void Blueprint::collect_ports_recursive(
             continue;
         }
 
-        const Blueprint* inline_bp = node.source->inline_def();
+        const Blueprint* inline_bp = node.blueprint_instance().source.inline_def();
         if (!inline_bp) {
             throw std::logic_error("Blueprint::collect_ports_recursive: embedded blueprint instance missing inline blueprint");
         }

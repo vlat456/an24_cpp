@@ -55,6 +55,7 @@ target_include_directories(push_runtime_regression_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(push_runtime_regression_tests PRIVATE
+    blueprint_v2
     jit_solver
     GTest::gtest_main
 )
@@ -263,6 +264,7 @@ target_include_directories(bridge_lowering_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(bridge_lowering_tests PRIVATE
+    an24_codegen
     jit_solver
     json_parser
     GTest::gtest_main
@@ -1069,7 +1071,7 @@ target_link_libraries(factory_validation_tests PRIVATE
 )
 gtest_discover_tests(factory_validation_tests)
 
-# Blueprint integration tests (TDD - BlueprintInput/BlueprintOutput pass-through)
+# Blueprint integration tests
 add_executable(blueprint_integration_tests
     test_blueprint_integration.cpp
 )

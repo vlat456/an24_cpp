@@ -44,7 +44,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
         if (!parser_registry.has(std::string(interner.resolve(node.semantic.type)))) {
             // Blueprint-instance nodes can carry a user-given type name
             // that won't be in the library registry; authority is the source blueprint_id.
-            if (node.is_blueprint_instance()) {
+            if (node.is_blueprint_instance() || node.is_bridge_port()) {
                 continue;
             }
             out.error = "unknown node type at node id=" + iid_to_string(node.semantic.id)
@@ -56,21 +56,17 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     for (auto const& node : bp.nodes()) {
         // Validate blueprint-instance nodes (node-owned sources)
         if (node.is_blueprint_instance()) {
-            if (!node.source) {
-                out.error = "blueprint-instance node missing source at node id="
-                    + iid_to_string(node.semantic.id);
-                return out;
-            }
+            const auto& source = node.blueprint_instance().source;
 
-            if (node.source->is_reference()) {
-                const auto* def = parser_registry.get(std::string(interner.resolve(node.source->blueprint_id())));
+            if (source.is_reference()) {
+                const auto* def = parser_registry.get(std::string(interner.resolve(source.blueprint_id())));
                 if (!def) {
                     out.error = "unknown referenced blueprint id=" + iid_to_string(node.semantic.id)
-                        + " blueprint_id=" + iid_to_string(node.source->blueprint_id());
+                        + " blueprint_id=" + iid_to_string(source.blueprint_id());
                     return out;
                 }
                 Interface expected = interface_from_type_definition(*def, interner);
-                if (node.source->cached_iface() != expected) {
+                if (source.cached_iface() != expected) {
                     out.error = "referenced blueprint cached iface desynced from registry at node id="
                         + iid_to_string(node.semantic.id);
                     return out;
@@ -78,8 +74,8 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             }
 
             // Issue #88 Gap #4: Validate embedded blueprints recursively
-            if (node.source->is_embedded()) {
-                const Blueprint* embedded_bp = node.source->inline_def();
+            if (source.is_embedded()) {
+                const Blueprint* embedded_bp = source.inline_def();
                 if (!embedded_bp) {
                     out.error = "blueprint-instance node embedded blueprint is null at node id="
                         + iid_to_string(node.semantic.id);
@@ -94,30 +90,42 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 }
             }
 
-            // Blueprint-instance interface derives from source authority only.
-            // node.semantic.iface must stay empty so misleading mirror state
-            // cannot drift alongside source authority.
-            if (!node.semantic.iface.ports().empty()) {
-                out.error = "blueprint-instance node carries non-empty semantic.iface at node id="
-                    + iid_to_string(node.semantic.id);
-                return out;
-            }
-
             continue;
         }
     }
 
-    // Issue #88 Gap #5: Validate component node interfaces match registry
-    // Bridge nodes (BlueprintInput/BlueprintOutput) are intentionally specialized
-    // at creation time (port_type/domain narrowed from Any to actual wire type),
-    // so they are exempt from the exact-match check.
-    const ui::InternedId bridge_input_type  = interner.intern("BlueprintInput");
-    const ui::InternedId bridge_output_type = interner.intern("BlueprintOutput");
+    const ui::InternedId ext_id = interner.intern("ext");
+    const ui::InternedId port_id = interner.intern("port");
     for (auto const& node : bp.nodes()) {
-        if (node.is_component()) {
-            if (node.semantic.type == bridge_input_type || node.semantic.type == bridge_output_type) {
-                continue;
+        if (node.is_bridge_port()) {
+            const auto& bridge = node.bridge_port();
+            if (bridge.exposed_port.empty()) {
+                out.error = "bridge node missing exposed port at node id=" + iid_to_string(node.semantic.id);
+                return out;
             }
+            if (bridge.iface.size() != 2 || !bridge.iface.has(ext_id) || !bridge.iface.has(port_id)) {
+                out.error = "bridge node iface malformed at node id=" + iid_to_string(node.semantic.id);
+                return out;
+            }
+            const auto ext = bridge.iface.at(ext_id);
+            const auto port = bridge.iface.at(port_id);
+            const Domain expected_domain = domain_for_port_type(bridge.port_type);
+            if (ext.domain != expected_domain || port.domain != expected_domain
+                || ext.port_type != bridge.port_type || port.port_type != bridge.port_type) {
+                out.error = "bridge node iface/type mismatch at node id=" + iid_to_string(node.semantic.id);
+                return out;
+            }
+            const bool expected_input = bridge.side == Blueprint::Node::BridgePortSide::Input;
+            if (ext.direction != (expected_input ? Direction::Input : Direction::Output)
+                || port.direction != (expected_input ? Direction::Output : Direction::Input)) {
+                out.error = "bridge node iface/direction mismatch at node id=" + iid_to_string(node.semantic.id);
+                return out;
+            }
+            continue;
+        }
+
+        // Issue #88 Gap #5: Validate component node interfaces match registry.
+        if (node.is_component()) {
             const std::string type_name(interner.resolve(node.semantic.type));
             const auto* def = parser_registry.get(type_name);
             if (!def) {
@@ -125,7 +133,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 continue;
             }
             Interface expected = interface_from_type_definition(*def, interner);
-            if (node.semantic.iface != expected) {
+            if (node.component().iface != expected) {
                 out.error = "component node iface desynced from registry at node id="
                     + iid_to_string(node.semantic.id) + " type=" + iid_to_string(node.semantic.type);
                 return out;

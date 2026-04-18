@@ -44,8 +44,31 @@ static bp2::Blueprint::Node make_node_with_interface(ui::StringInterner& I,
     const std::string type_str(type);
     const auto* def = reg.get(type_str);
     if (def) {
-        n.semantic.iface = bp2::interface_from_type_definition(*def, I);
+        n.content = bp2::Blueprint::Node::ComponentData{
+            bp2::interface_from_type_definition(*def, I)
+        };
     }
+    return n;
+}
+
+static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+                                             const char* exposed_port,
+                                             bp2::Blueprint::Node::BridgePortSide side,
+                                             PortType port_type) {
+    bp2::Blueprint::Node n;
+    n.semantic.id = I.intern(exposed_port);
+    n.semantic.type = I.intern("BridgePort");
+
+    const bool is_input = side == bp2::Blueprint::Node::BridgePortSide::Input;
+    n.content = bp2::Blueprint::Node::BridgePortData{
+        I.intern(exposed_port),
+        side,
+        port_type,
+        bp2::Interface({
+            {I.intern("ext"), domain_for_port_type(port_type), is_input ? Direction::Input : Direction::Output, port_type},
+            {I.intern("port"), domain_for_port_type(port_type), is_input ? Direction::Output : Direction::Input, port_type},
+        })
+    };
     return n;
 }
 
@@ -282,13 +305,6 @@ TEST(WireValidator, ContextualBridgeBindsToExposedRootPort) {
     ui::StringInterner I;
     TypeRegistry reg = make_validation_registry();
 
-    TypeDefinition bridge_in;
-    bridge_in.classname = "BlueprintInput";
-    bridge_in.cpp_class = true;
-    bridge_in.ports["ext"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
-    bridge_in.ports["port"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
-    reg.types["BlueprintInput"] = std::move(bridge_in);
-
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
@@ -300,12 +316,7 @@ TEST(WireValidator, ContextualBridgeBindsToExposedRootPort) {
         {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
     }));
 
-    bp2::Blueprint::Node bridge = make_node(I, "flag", "BlueprintInput");
-    bridge.semantic.iface = bp2::Interface({
-        {I.intern("ext"), Domain::Electrical, Direction::Input, PortType::Contextual},
-        {I.intern("port"), Domain::Electrical, Direction::Output, PortType::Contextual},
-    });
-    bp = bp.with_node(std::move(bridge));
+    bp = bp.with_node(make_bridge_node(I, "flag", bp2::Blueprint::Node::BridgePortSide::Input, PortType::Contextual));
     bp = bp.with_node(make_node(I, "sink", "BoolSink"));
 
     bp2::Blueprint::Wire w;
@@ -434,13 +445,6 @@ TEST(WireValidator, BridgeWithoutMatchingExposedRootPortFailsExplicitly) {
     ui::StringInterner I;
     TypeRegistry reg = make_validation_registry();
 
-    TypeDefinition bridge_in;
-    bridge_in.classname = "BlueprintInput";
-    bridge_in.cpp_class = true;
-    bridge_in.ports["ext"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
-    bridge_in.ports["port"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
-    reg.types["BlueprintInput"] = std::move(bridge_in);
-
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
@@ -452,12 +456,7 @@ TEST(WireValidator, BridgeWithoutMatchingExposedRootPortFailsExplicitly) {
         {I.intern("other_flag"), Domain::Logical, Direction::Input, PortType::Bool},
     }));
 
-    bp2::Blueprint::Node bridge = make_node(I, "flag", "BlueprintInput");
-    bridge.semantic.iface = bp2::Interface({
-        {I.intern("ext"), Domain::Electrical, Direction::Input, PortType::Contextual},
-        {I.intern("port"), Domain::Electrical, Direction::Output, PortType::Contextual},
-    });
-    bp = bp.with_node(std::move(bridge));
+    bp = bp.with_node(make_bridge_node(I, "flag", bp2::Blueprint::Node::BridgePortSide::Input, PortType::Contextual));
     bp = bp.with_node(make_node(I, "sink", "BoolSink"));
 
     bp2::Blueprint::Wire w;
@@ -475,13 +474,6 @@ TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor
     ui::StringInterner I;
     TypeRegistry reg = make_validation_registry();
 
-    TypeDefinition bridge_in;
-    bridge_in.classname = "BlueprintInput";
-    bridge_in.cpp_class = true;
-    bridge_in.ports["ext"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
-    bridge_in.ports["port"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
-    reg.types["BlueprintInput"] = std::move(bridge_in);
-
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
@@ -495,12 +487,7 @@ TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor
         {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
     }));
 
-    bp2::Blueprint::Node leaf_bridge = make_node(I, "flag", "BlueprintInput");
-    leaf_bridge.semantic.iface = bp2::Interface({
-        {I.intern("ext"), Domain::Electrical, Direction::Input, PortType::Contextual},
-        {I.intern("port"), Domain::Electrical, Direction::Output, PortType::Contextual},
-    });
-    leaf = leaf.with_node(std::move(leaf_bridge));
+    leaf = leaf.with_node(make_bridge_node(I, "flag", bp2::Blueprint::Node::BridgePortSide::Input, PortType::Contextual));
     leaf = leaf.with_node(make_node(I, "sink", "BoolSink"));
 
     bp2::Blueprint::Wire leaf_wire;
@@ -517,20 +504,16 @@ TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor
         {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
     }));
 
-    bp2::Blueprint::Node mid_bridge = make_node(I, "flag", "BlueprintInput");
-    mid_bridge.semantic.iface = bp2::Interface({
-        {I.intern("ext"), Domain::Electrical, Direction::Input, PortType::Contextual},
-        {I.intern("port"), Domain::Electrical, Direction::Output, PortType::Contextual},
-    });
-    mid = mid.with_node(std::move(mid_bridge));
+    mid = mid.with_node(make_bridge_node(I, "flag", bp2::Blueprint::Node::BridgePortSide::Input, PortType::Contextual));
 
     bp2::Blueprint::Node leaf_inst;
-    leaf_inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    leaf_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("LeafType"),
+            std::make_unique<bp2::Blueprint>(leaf))
+    };
     leaf_inst.semantic.id = I.intern("leaf");
     leaf_inst.semantic.type = I.intern("LeafType");
-    leaf_inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("LeafType"),
-        std::make_unique<bp2::Blueprint>(leaf));
     mid = mid.with_node(std::move(leaf_inst));
 
     bp2::Blueprint::Wire mid_wire;
@@ -726,36 +709,6 @@ TEST(InvariantChecker, RootComponentNodePasses) {
     EXPECT_TRUE(result.valid) << result.error;
 }
 
-TEST(InvariantChecker, BlueprintInstanceWithSemanticIfaceFails) {
-    ui::StringInterner I;
-    PathArena arena(I);
-    TypeRegistry reg = make_validation_registry();
-
-    bp2::Blueprint inner;
-    inner = inner.with_id(I.intern("inner"));
-    inner = inner.with_interface(Interface({
-        make_port(I, "port", Domain::Electrical, bp2::Direction::Input, PortType::V),
-    }));
-
-    bp2::Blueprint::Node host;
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    host.semantic.id = I.intern("host");
-    host.semantic.type = I.intern("inner");
-    host.semantic.iface = Interface({
-        make_port(I, "wrong", Domain::Electrical, bp2::Direction::Output, PortType::I),
-    });
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("inner"),
-        std::make_unique<bp2::Blueprint>(inner));
-
-    bp2::Blueprint root;
-    root = root.with_node(std::move(host));
-
-    auto result = bp2::InvariantChecker::validate(root, arena, reg, I);
-    EXPECT_FALSE(result.valid);
-    EXPECT_NE(result.error.find("non-empty semantic.iface"), std::string::npos);
-}
-
 TEST(InvariantChecker, ReferencedBlueprintCachedIfaceDesyncFails) {
     ui::StringInterner I;
     PathArena arena(I);
@@ -768,14 +721,15 @@ TEST(InvariantChecker, ReferencedBlueprintCachedIfaceDesyncFails) {
     reg.types["ReferencedType"] = ref_def;
 
     bp2::Blueprint::Node host;
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
+            I.intern("ReferencedType"),
+            Interface({
+                make_port(I, "wrong", Domain::Electrical, bp2::Direction::Output, PortType::I),
+            }))
+    };
     host.semantic.id = I.intern("host");
     host.semantic.type = I.intern("ReferencedType");
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        I.intern("ReferencedType"),
-        Interface({
-            make_port(I, "wrong", Domain::Electrical, bp2::Direction::Output, PortType::I),
-        }));
 
     bp2::Blueprint root;
     root = root.with_node(std::move(host));
@@ -916,9 +870,9 @@ TEST(PathResolver, ParserRegistryOverloadResolveUsesCanonicalRegistryInput) {
     bp2::Blueprint::Node n;
     n.semantic.id = I.intern("n1");
     n.semantic.type = I.intern("AnyType");
-    n.semantic.iface = bp2::Interface({
+    n.content = bp2::Blueprint::Node::ComponentData{bp2::Interface({
         {I.intern("p"), Domain::Electrical, bp2::Direction::Output},
-    });
+    })};
     bp = bp.with_node(std::move(n));
 
     bp2::Path node = arena.make_node(arena.root(), I.intern("n1"));
@@ -941,17 +895,17 @@ TEST(WireValidator, ParserRegistryOverloadValidateWire) {
     bp2::Blueprint::Node a;
     a.semantic.id = I.intern("a");
     a.semantic.type = I.intern(known_type);
-    a.semantic.iface = bp2::Interface({
+    a.content = bp2::Blueprint::Node::ComponentData{bp2::Interface({
         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
-    });
+    })};
     bp = bp.with_node(std::move(a));
 
     bp2::Blueprint::Node b;
     b.semantic.id = I.intern("b");
     b.semantic.type = I.intern(known_type);
-    b.semantic.iface = bp2::Interface({
+    b.content = bp2::Blueprint::Node::ComponentData{bp2::Interface({
         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
-    });
+    })};
     bp = bp.with_node(std::move(b));
 
     bp2::Blueprint::Wire w;
@@ -1152,13 +1106,14 @@ TEST(InvariantChecker, RecursiveValidation_EmbeddedWithSelfLoopFails) {
     // Create parent blueprint with embedded instance
     bp2::Blueprint parent_bp;
     bp2::Blueprint::Node composite_node;
-    composite_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;  // CRITICAL: Must be BlueprintInstance
+    composite_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("CompositeType"),
+            std::make_unique<bp2::Blueprint>(inner_bp)
+        )
+    };
     composite_node.semantic.id = I.intern("composite1");
     composite_node.semantic.type = I.intern("Battery");  // Use valid type from registry
-    composite_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("CompositeType"),
-        std::make_unique<bp2::Blueprint>(inner_bp)
-    );
     parent_bp = parent_bp.with_node(std::move(composite_node));
     
     // Validate parent blueprint - should fail because embedded has invalid self-loop
@@ -1181,13 +1136,14 @@ TEST(InvariantChecker, RecursiveValidation_EmbeddedWithDuplicateNodesFails) {
     // Create parent blueprint with embedded instance
     bp2::Blueprint parent_bp;
     bp2::Blueprint::Node composite_node;
-    composite_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;  // CRITICAL: Must be BlueprintInstance
+    composite_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("CompositeType"),
+            std::make_unique<bp2::Blueprint>(inner_bp)
+        )
+    };
     composite_node.semantic.id = I.intern("composite1");
     composite_node.semantic.type = I.intern("Battery");  // Use valid type from registry
-    composite_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("CompositeType"),
-        std::make_unique<bp2::Blueprint>(inner_bp)
-    );
     parent_bp = parent_bp.with_node(std::move(composite_node));
     
     // Validate parent blueprint - should fail because embedded has duplicate node IDs
@@ -1217,13 +1173,14 @@ TEST(InvariantChecker, RecursiveValidation_ValidEmbeddedPasses) {
     // Create parent blueprint with valid embedded instance
     bp2::Blueprint parent_bp;
     bp2::Blueprint::Node composite_node;
-    composite_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;  // CRITICAL: Must be BlueprintInstance
+    composite_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("CompositeType"),
+            std::make_unique<bp2::Blueprint>(inner_bp)
+        )
+    };
     composite_node.semantic.id = I.intern("composite1");
     composite_node.semantic.type = I.intern("Battery");  // Use valid type from registry
-     composite_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-         I.intern("CompositeType"),
-         std::make_unique<bp2::Blueprint>(inner_bp)
-      );
      parent_bp = parent_bp.with_node(std::move(composite_node));
      
      // Validate parent blueprint - should pass
@@ -1244,7 +1201,9 @@ TEST(InvariantChecker, ComponentNodeInterfaceConsistency_ValidComponentPasses) {
      // Get the actual interface Battery should have
      const TypeDefinition* battery_def = reg.get("Battery");
      ASSERT_TRUE(battery_def);
-     bat_node.semantic.iface = bp2::interface_from_type_definition(*battery_def, I);
+     bat_node.content = bp2::Blueprint::Node::ComponentData{
+         bp2::interface_from_type_definition(*battery_def, I)
+     };
      
      bp = bp.with_node(std::move(bat_node));
      
@@ -1264,10 +1223,10 @@ TEST(InvariantChecker, ComponentNodeInterfaceConsistency_InterfaceMismatchFails)
      bp2::Blueprint::Node bat_node = make_node(I, "bat1", "Battery");
      
       // Set interface to wrong type (Resistor ports instead of Battery ports)
-      bat_node.semantic.iface = bp2::Interface(std::vector<PortDescriptor>{
+      bat_node.content = bp2::Blueprint::Node::ComponentData{bp2::Interface(std::vector<PortDescriptor>{
           {I.intern("in"), Domain::Electrical, Direction::Input},
           {I.intern("out"), Domain::Electrical, Direction::Output},
-      });
+      })};
      
      bp = bp.with_node(std::move(bat_node));
      
@@ -1288,7 +1247,7 @@ TEST(InvariantChecker, ComponentNodeInterfaceConsistency_EmptyInterfaceOnValidCo
      bp2::Blueprint::Node bat_node = make_node(I, "bat1", "Battery");
      
       // Leave interface empty - Battery has ports so this is invalid
-      bat_node.semantic.iface = bp2::Interface(std::vector<PortDescriptor>{});
+      bat_node.content = bp2::Blueprint::Node::ComponentData{bp2::Interface(std::vector<PortDescriptor>{})};
      
      bp = bp.with_node(std::move(bat_node));
      

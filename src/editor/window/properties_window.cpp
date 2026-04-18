@@ -16,15 +16,11 @@
 #include <sstream>
 #include <vector>
 
-static bool is_bridge_node_type(ui::StringInterner& interner, ui::InternedId type) {
-    return type == interner.intern("BlueprintInput")
-        || type == interner.intern("BlueprintOutput");
-}
-
 static const char* port_type_label(PortType t) {
     switch (t) {
         case PortType::V: return "Voltage (V)";
         case PortType::I: return "Current (I)";
+        case PortType::Signal: return "Signal";
         case PortType::Bool: return "Bool";
         case PortType::RPM: return "RPM";
         case PortType::Temperature: return "Temperature";
@@ -40,6 +36,7 @@ static const std::vector<PortType>& all_port_types() {
     static const std::vector<PortType> kTypes = {
         PortType::V,
         PortType::I,
+        PortType::Signal,
         PortType::Bool,
         PortType::RPM,
         PortType::Temperature,
@@ -146,7 +143,7 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     pending_layout_overrides_ = node.layout.layout_overrides;
     snapshot_bridge_port_type_.reset();
     pending_bridge_port_type_.reset();
-    if (is_bridge_node_type(*interner_, node.semantic.type)) {
+    if (node.is_bridge_port()) {
         const bp2::Interface& iface = model_->current().effective_node_iface(node);
         const auto in_ports = bp2::derive_input_ports(iface);
         const auto out_ports = bp2::derive_output_ports(iface);
@@ -222,7 +219,7 @@ void PropertiesWindow::render() {
         // Determine if this is a bridge node so we can skip exposed_type/
         // exposed_direction — those are edited via the dedicated PortType
         // dropdown rendered by render_bridge_port_type_section() below.
-        const bool is_bridge = target && is_bridge_node_type(*interner_, target->semantic.type);
+        const bool is_bridge = target && target->is_bridge_port();
 
         for (const auto& key : string_keys) {
             if (key == "table") {
@@ -243,7 +240,7 @@ void PropertiesWindow::render() {
         // Port layout section
         render_port_layout_section(*target);
 
-        // Bridge PortType section (BlueprintInput/BlueprintOutput)
+        // Bridge PortType section (structural bridge nodes)
         render_bridge_port_type_section();
 
         ImGui::Separator();
@@ -667,13 +664,14 @@ void PropertiesWindow::apply() {
         updated.layout.layout_overrides = pending_layout_overrides_;
 
         // Apply bridge PortType change to all ports (ext/port share semantics).
-        if (pending_bridge_port_type_.has_value() && is_bridge_node_type(*interner_, updated.semantic.type)) {
-            std::vector<bp2::PortDescriptor> ports = updated.semantic.iface.ports();
+        if (pending_bridge_port_type_.has_value() && updated.is_bridge_port()) {
+            std::vector<bp2::PortDescriptor> ports = updated.bridge_port().iface.ports();
             for (auto& pd : ports) {
                 pd.port_type = *pending_bridge_port_type_;
                 pd.domain = editor::common::domain_for_port_type(*pending_bridge_port_type_);
             }
-            updated.semantic.iface = bp2::Interface(std::move(ports));
+            updated.bridge_port().port_type = *pending_bridge_port_type_;
+            updated.bridge_port().iface = bp2::Interface(std::move(ports));
         }
 
         // Single atomic checkpoint + replace
@@ -692,19 +690,19 @@ void PropertiesWindow::apply() {
 
                  if (!nested_iid.empty() && !iface_iid.empty()) {
                      if (const auto* node = next_bp.find_node(nested_iid)) {
-                         if (node->has_embedded_blueprint() && node->source->inline_def()) {
-                             bp2::Blueprint::Node updated_node = *node;
-                             std::vector<bp2::PortDescriptor> ports = updated_node.source->inline_def()->iface().ports();
-                             const Domain d = editor::common::domain_for_port_type(*pending_bridge_port_type_);
-                             for (auto& pd : ports) {
-                                 if (pd.name == iface_iid) {
-                                     pd.domain = d;
-                                     pd.port_type = *pending_bridge_port_type_;
-                                 }
-                             }
-                             bp2::Blueprint updated_inline = updated_node.source->inline_def()->with_interface(bp2::Interface(std::move(ports)));
-                             updated_node.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
-                             next_bp = bp2::replace_node_preserve_order(next_bp, std::move(updated_node));
+                         if (node->has_embedded_blueprint()) {
+                              bp2::Blueprint::Node updated_node = *node;
+                              std::vector<bp2::PortDescriptor> ports = updated_node.blueprint_instance().source.inline_def()->iface().ports();
+                              const Domain d = editor::common::domain_for_port_type(*pending_bridge_port_type_);
+                              for (auto& pd : ports) {
+                                  if (pd.name == iface_iid) {
+                                      pd.domain = d;
+                                      pd.port_type = *pending_bridge_port_type_;
+                                  }
+                              }
+                              bp2::Blueprint updated_inline = updated_node.blueprint_instance().source.inline_def()->with_interface(bp2::Interface(std::move(ports)));
+                              updated_node.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
+                              next_bp = bp2::replace_node_preserve_order(next_bp, std::move(updated_node));
                          }
                      }
                  }
@@ -731,7 +729,7 @@ void PropertiesWindow::render_bridge_port_type_section() {
 #ifndef EDITOR_TESTING
     const bp2::Blueprint::Node* target = resolve_target();
     if (!target || !interner_) return;
-    if (!is_bridge_node_type(*interner_, target->semantic.type)) return;
+    if (!target->is_bridge_port()) return;
     if (!pending_bridge_port_type_.has_value()) return;
 
     ImGui::Separator();

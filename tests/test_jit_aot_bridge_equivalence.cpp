@@ -155,7 +155,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     for (const auto& c : connections) {
         conn_pairs.emplace_back(c.from, c.to);
     }
-    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, connections));
+    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, {}, connections));
 
     auto signal_of = [&](const std::string& port) {
         auto it = jit.port_to_signal.find(port);
@@ -175,18 +175,11 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
 
 TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     std::vector<DeviceInstance> devices;
-
-    TypeDefinition bp_in_type = make_blueprint_input_type();
     TypeDefinition resistor_type = make_resistor_type();
-    TypeDefinition bp_out_type = make_blueprint_output_type();
-
-    DeviceInstance vin;
-    vin.name = "vin";
-    vin.classname = "BlueprintInput";
-    vin.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
-    vin.ports["ext"] = Port{PortDirection::In, PortType::Any, std::string("port")};
-    vin = merge_device_instance(vin, bp_in_type);
-    devices.push_back(vin);
+    std::vector<BridgePortDefinition> bridges = {
+        make_bridge_port_def("vin", PortDirection::In),
+        make_bridge_port_def("vout", PortDirection::Out),
+    };
 
     DeviceInstance pass;
     pass.name = "pass";
@@ -196,14 +189,6 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     pass.params["conductance"] = "1.0";
     pass = merge_device_instance(pass, resistor_type);
     devices.push_back(pass);
-
-    DeviceInstance vout;
-    vout.name = "vout";
-    vout.classname = "BlueprintOutput";
-    vout.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    vout.ports["ext"] = Port{PortDirection::Out, PortType::Any, std::string("port")};
-    vout = merge_device_instance(vout, bp_out_type);
-    devices.push_back(vout);
 
     std::vector<Connection> connections = {
         {"vin.port", "pass.v_in"},
@@ -215,14 +200,14 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     for (const auto& c : connections) {
         conn_pairs.emplace_back(c.from, c.to);
     }
-    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, connections));
+    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(devices, all_ports, port_to_idx);
+    codegen_composite_detail::build_port_index_map(devices, bridges, all_ports, port_to_idx);
 
     codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, connections, port_to_idx);
+    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, bridges, connections, port_to_idx);
 
     uint32_t aot_signal_count = 0;
     auto aot_port_to_signal =
@@ -252,19 +237,12 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
 
 TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     std::vector<DeviceInstance> devices;
-
-    TypeDefinition bp_in_type = make_blueprint_input_type();
     TypeDefinition resistor_type = make_resistor_type();
-    TypeDefinition bp_out_type = make_blueprint_output_type();
     TypeDefinition value_type = make_value_type();
-
-    DeviceInstance vin;
-    vin.name = "vin";
-    vin.classname = "BlueprintInput";
-    vin.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
-    vin.ports["ext"] = Port{PortDirection::In, PortType::Any, std::string("port")};
-    vin = merge_device_instance(vin, bp_in_type);
-    devices.push_back(vin);
+    std::vector<BridgePortDefinition> bridges = {
+        make_bridge_port_def("vin", PortDirection::In),
+        make_bridge_port_def("vout", PortDirection::Out),
+    };
 
     DeviceInstance load;
     load.name = "load";
@@ -274,14 +252,6 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     load.params["conductance"] = "1.0";
     load = merge_device_instance(load, resistor_type);
     devices.push_back(load);
-
-    DeviceInstance vout;
-    vout.name = "vout";
-    vout.classname = "BlueprintOutput";
-    vout.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    vout.ports["ext"] = Port{PortDirection::Out, PortType::Any, std::string("port")};
-    vout = merge_device_instance(vout, bp_out_type);
-    devices.push_back(vout);
 
     DeviceInstance visual;
     visual.name = "ui_only";
@@ -303,14 +273,14 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
         conn_pairs.emplace_back(c.from, c.to);
     }
 
-    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, connections));
+    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(devices, all_ports, port_to_idx);
+    codegen_composite_detail::build_port_index_map(devices, bridges, all_ports, port_to_idx);
 
     codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, connections, port_to_idx);
+    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, bridges, connections, port_to_idx);
 
     uint32_t aot_signal_count = 0;
     auto aot_port_to_signal =

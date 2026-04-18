@@ -48,13 +48,10 @@ struct BlueprintWindow {
         if (!node) {
             throw std::logic_error("Embedded window construction failed: node instance not found");
         }
-        if (!node->is_blueprint_instance() || !node->source) {
-            throw std::logic_error("Embedded window construction failed: node missing blueprint source");
-        }
-        if (!node->source->is_embedded()) {
+        if (!node->has_embedded_blueprint()) {
             throw std::logic_error("Embedded window construction failed: node is not an embedded blueprint instance");
         }
-        const auto* inline_bp = node->source->inline_def();
+        const auto* inline_bp = node->blueprint_instance().source.inline_def();
         if (!inline_bp) {
             throw std::logic_error("Embedded window construction failed: embedded node missing inline blueprint");
         }

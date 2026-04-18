@@ -31,6 +31,13 @@ const std::unordered_set<std::string>& allowed_blueprint_instance_node_fields() 
     return s;
 }
 
+const std::unordered_set<std::string>& allowed_bridge_port_node_fields() {
+    static const std::unordered_set<std::string> s = {
+        "id", "kind", "label", "exposed_port", "side", "port_type", "layout"
+    };
+    return s;
+}
+
 const std::unordered_set<std::string>& allowed_layout_fields() {
     static const std::unordered_set<std::string> s = {
         "x", "y", "width", "height", "manual_size", "port_overrides"
@@ -80,10 +87,39 @@ Direction decode_direction(std::string const& dir) {
     throw std::runtime_error("invalid interface entry: unknown direction token");
 }
 
-Blueprint::Node::Kind decode_node_kind(std::string const& kind) {
-    if (kind == "component") return Blueprint::Node::Kind::Component;
-    if (kind == "blueprint_instance") return Blueprint::Node::Kind::BlueprintInstance;
+enum class DecodedNodeKind {
+    Component,
+    BlueprintInstance,
+    BridgePort,
+};
+
+DecodedNodeKind decode_node_kind(std::string const& kind) {
+    if (kind == "component") return DecodedNodeKind::Component;
+    if (kind == "blueprint_instance") return DecodedNodeKind::BlueprintInstance;
+    if (kind == "bridge_port") return DecodedNodeKind::BridgePort;
     throw std::runtime_error("invalid node entry: unknown node kind");
+}
+
+Blueprint::Node::BridgePortSide decode_bridge_side(std::string const& side) {
+    if (side == "input") return Blueprint::Node::BridgePortSide::Input;
+    if (side == "output") return Blueprint::Node::BridgePortSide::Output;
+    throw std::runtime_error("invalid node entry: unknown bridge side");
+}
+
+Interface make_bridge_iface(ui::StringInterner& interner,
+                            Blueprint::Node::BridgePortSide side,
+                            PortType port_type) {
+    const Domain domain = domain_for_port_type(port_type);
+    if (side == Blueprint::Node::BridgePortSide::Input) {
+        return Interface({
+            {interner.intern("ext"), domain, Direction::Input, port_type},
+            {interner.intern("port"), domain, Direction::Output, port_type},
+        });
+    }
+    return Interface({
+        {interner.intern("port"), domain, Direction::Input, port_type},
+        {interner.intern("ext"), domain, Direction::Output, port_type},
+    });
 }
 
 Blueprint::Node::BlueprintSource decode_node_source(nlohmann::json const& source,
@@ -190,39 +226,74 @@ Blueprint decode_nodes(Blueprint bp,
 
         Blueprint::Node node;
         node.semantic.id = interner.intern(n["id"].get<std::string>());
-        node.kind = decode_node_kind(n["kind"].get<std::string>());
+        const DecodedNodeKind decoded_kind = decode_node_kind(n["kind"].get<std::string>());
+        if (decoded_kind == DecodedNodeKind::Component) {
+            node.content = Blueprint::Node::ComponentData{};
+        } else if (decoded_kind == DecodedNodeKind::BlueprintInstance) {
+            node.content = Blueprint::Node::BlueprintInstanceData{
+                decode_node_source(n["source"], interner, parser_registry, local_arena)
+            };
+        } else {
+            node.content = Blueprint::Node::BridgePortData{};
+        }
 
         // Kind-specific allowed-field validation (spec Layer 2):
         // collapsed/source are blueprint_instance-only; component/params are component-only.
-        const auto& allowed = node.is_component()
+        const auto& allowed = decoded_kind == DecodedNodeKind::Component
             ? allowed_component_node_fields()
-            : allowed_blueprint_instance_node_fields();
+            : decoded_kind == DecodedNodeKind::BlueprintInstance
+                ? allowed_blueprint_instance_node_fields()
+                : allowed_bridge_port_node_fields();
         check_allowed_fields(n, allowed, "node");
 
         if (auto v = read_optional_string(n, "label", ctx)) {
             node.view.name = std::move(*v);
         }
 
-        if (node.is_component()) {
+        if (decoded_kind == DecodedNodeKind::Component) {
             require_field(n, "component", &nlohmann::json::is_string, ctx, "string");
             node.semantic.type = interner.intern(n["component"].get<std::string>());
+            const std::string component_name = n["component"].get<std::string>();
+            if (component_name == "BlueprintInput" || component_name == "BlueprintOutput" || component_name == "BridgePort" || component_name == "LegacyPseudoBridge") {
+                throw std::runtime_error("invalid node entry: canonical bridge ports must use kind 'bridge_port'");
+            }
             if (const TypeDefinition* type_def = parser_registry.get(std::string(interner.resolve(node.semantic.type)))) {
-                node.semantic.iface = interface_from_type_definition(*type_def, interner);
+                node.component().iface = interface_from_type_definition(*type_def, interner);
                 // Issue #105: render_hint, content_* are runtime/editor-only
                 // (ViewData tier 2).  Hydration is the sole responsibility of
                 // editor::hydrate_runtime_node_view_data() — NOT the codec.
             }
-        } else {
-            require_field(n, "source", &nlohmann::json::is_object, ctx, "object");
-            node.source = decode_node_source(n["source"], interner, parser_registry, local_arena);
-            node.semantic.type = node.source->blueprint_id();
+        } else if (decoded_kind == DecodedNodeKind::BlueprintInstance) {
+            node.semantic.type = node.blueprint_instance().source.blueprint_id();
             if (auto v = read_optional_bool(n, "collapsed", ctx)) {
                 node.layout.collapsed = *v;
             }
+        } else {
+            require_field(n, "exposed_port", &nlohmann::json::is_string, ctx, "string");
+            require_field(n, "side", &nlohmann::json::is_string, ctx, "string");
+            require_field(n, "port_type", &nlohmann::json::is_string, ctx, "string");
+
+            const auto exposed_port = interner.intern(n["exposed_port"].get<std::string>());
+            const auto side = decode_bridge_side(n["side"].get<std::string>());
+            const auto port_type = port_type_from_name(n["port_type"].get<std::string>());
+            if (!port_type.has_value()) {
+                throw std::runtime_error("invalid node entry: unknown bridge port_type");
+            }
+
+            node.semantic.type = interner.intern("BridgePort");
+            node.bridge_port() = Blueprint::Node::BridgePortData{
+                exposed_port,
+                side,
+                *port_type,
+                make_bridge_iface(interner, side, *port_type),
+            };
         }
 
         const TypeDefinition* type_def = parser_registry.get(std::string(interner.resolve(node.semantic.type)));
         if (n.contains("params")) {
+            if (decoded_kind != DecodedNodeKind::Component) {
+                throw std::runtime_error("invalid node entry: params only allowed on component nodes");
+            }
             if (!n["params"].is_object()) {
                 throw std::runtime_error("invalid node entry: params must be object");
             }
@@ -239,7 +310,7 @@ Blueprint decode_nodes(Blueprint bp,
         }
 
         // Issue #88 Gap #2: Validate that all required parameters are present
-        if (type_def) {
+        if (decoded_kind == DecodedNodeKind::Component && type_def) {
             for (const auto& [param_key, param_schema] : type_def->param_schema) {
                 if (param_schema.required && !param_schema.visual_only) {
                     // Check if param is present in the JSON or was assigned

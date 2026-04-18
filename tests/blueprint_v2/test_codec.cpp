@@ -233,7 +233,7 @@ TEST(BlueprintCodec, RoutingPointsRoundTrip) {
     bp2::Blueprint::Node n1;
     n1.semantic.id = interner.intern("n1");
     n1.semantic.type = interner.intern("SrcType");
-    n1.semantic.iface = src_iface;
+    n1.content = bp2::Blueprint::Node::ComponentData{src_iface};
     n1.layout.x = 0.0f;
     n1.layout.y = 0.0f;
     bp = bp.with_node(std::move(n1));
@@ -241,7 +241,7 @@ TEST(BlueprintCodec, RoutingPointsRoundTrip) {
     bp2::Blueprint::Node n2;
     n2.semantic.id = interner.intern("n2");
     n2.semantic.type = interner.intern("DstType");
-    n2.semantic.iface = dst_iface;
+    n2.content = bp2::Blueprint::Node::ComponentData{dst_iface};
     n2.layout.x = 100.0f;
     n2.layout.y = 0.0f;
     bp = bp.with_node(std::move(n2));
@@ -334,17 +334,17 @@ TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
 }
 
 // =============================================================================
-// Regression: node.semantic.iface must be populated from decoded ports so that
+// Regression: component node iface must be populated from decoded ports so that
 // PathResolver can resolve wire endpoints even when the node type is NOT
 // in the library registry (e.g. embedded blueprint proxy nodes).
 // Bug: a legacy project blueprint saved OK but failed to reload with
 //   "[persist] Failed to load blueprint: wire id=186: wire endpoint path unresolved"
-// Root cause: decode_nodes() populated node.view.inputs/node.view.outputs but never
-// built node.semantic.iface, so node_interface() returned nullptr for non-registry types.
+// Root cause: decode_nodes() populated view data but never built the component
+// iface, so node_interface() returned nullptr for non-registry types.
 // =============================================================================
 
 TEST(BlueprintCodec, DecodePopulatesNodeIfaceFromPorts) {
-    // After decoding a component node, node.semantic.iface must be populated
+    // After decoding a component node, component().iface must be populated
     // from the type registry's TypeDefinition ports (not from inline node ports).
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -382,25 +382,25 @@ TEST(BlueprintCodec, DecodePopulatesNodeIfaceFromPorts) {
     ASSERT_EQ(result->nodes().size(), 1u);
 
     const auto& node = result->nodes()[0];
-    // The fix: node.semantic.iface must be populated from the registry type definition
-    EXPECT_FALSE(node.semantic.iface.empty());
-    EXPECT_EQ(node.semantic.iface.size(), 3u);
+    // The fix: component().iface must be populated from the registry type definition
+    EXPECT_FALSE(node.component().iface.empty());
+    EXPECT_EQ(node.component().iface.size(), 3u);
 
     // Verify each port is findable by name
-    EXPECT_TRUE(node.semantic.iface.has(interner.intern("feedback")));
-    EXPECT_TRUE(node.semantic.iface.has(interner.intern("output")));
-    EXPECT_TRUE(node.semantic.iface.has(interner.intern("bidir")));
+    EXPECT_TRUE(node.component().iface.has(interner.intern("feedback")));
+    EXPECT_TRUE(node.component().iface.has(interner.intern("output")));
+    EXPECT_TRUE(node.component().iface.has(interner.intern("bidir")));
 
     // Verify directions
-    auto fb = node.semantic.iface.find(interner.intern("feedback"));
+    auto fb = node.component().iface.find(interner.intern("feedback"));
     ASSERT_TRUE(fb.has_value());
     EXPECT_EQ(fb->direction, bp2::Direction::Input);
 
-    auto out = node.semantic.iface.find(interner.intern("output"));
+    auto out = node.component().iface.find(interner.intern("output"));
     ASSERT_TRUE(out.has_value());
     EXPECT_EQ(out->direction, bp2::Direction::Output);
 
-    auto bd = node.semantic.iface.find(interner.intern("bidir"));
+    auto bd = node.component().iface.find(interner.intern("bidir"));
     ASSERT_TRUE(bd.has_value());
     EXPECT_EQ(bd->direction, bp2::Direction::InOut);
 }
@@ -433,15 +433,13 @@ TEST(BlueprintCodec, DecodeNodeIfaceEmptyWhenNoPorts) {
      bp2::DecodeError err;
      auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
      ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
-     EXPECT_TRUE(result->nodes()[0].semantic.iface.empty());
+     EXPECT_TRUE(result->nodes()[0].component().iface.empty());
 }
 
 TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     TypeRegistry reg;
-    register_type(reg, interner, "BlueprintInput");
-    register_type(reg, interner, "BlueprintOutput");
 
     // v1 format: strictly canonical with format/version/blueprint_id/name/interface/nodes/wires
     // Nodes can omit layout (will default to 0,0).
@@ -457,14 +455,18 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
         "nodes": [
             {
                 "id": "in",
-                "kind": "component",
-                "component": "BlueprintInput",
+                "kind": "bridge_port",
+                "exposed_port": "in",
+                "side": "input",
+                "port_type": "Any",
                 "layout": {"x": 0, "y": 0}
             },
             {
                 "id": "out",
-                "kind": "component",
-                "component": "BlueprintOutput",
+                "kind": "bridge_port",
+                "exposed_port": "out",
+                "side": "output",
+                "port_type": "Any",
                 "layout": {"x": 0, "y": 0}
             }
         ],
@@ -481,6 +483,13 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
         EXPECT_FLOAT_EQ(node.layout.x, 0.0f);
         EXPECT_FLOAT_EQ(node.layout.y, 0.0f);
     }
+
+    ASSERT_TRUE(result->nodes()[0].is_bridge_port());
+    EXPECT_EQ(result->nodes()[0].bridge_port().exposed_port, interner.intern("in"));
+    EXPECT_EQ(result->nodes()[0].bridge_port().side, bp2::Blueprint::Node::BridgePortSide::Input);
+    ASSERT_TRUE(result->nodes()[1].is_bridge_port());
+    EXPECT_EQ(result->nodes()[1].bridge_port().exposed_port, interner.intern("out"));
+    EXPECT_EQ(result->nodes()[1].bridge_port().side, bp2::Blueprint::Node::BridgePortSide::Output);
 }
 
 
@@ -611,17 +620,10 @@ TEST(BlueprintCodec, DecodeWithParserRegistryOverload) {
     EXPECT_EQ(interner.resolve(decoded->id()), "codec_parser_decode");
 }
 
-TEST(BlueprintCodec, DecodeMalformedBridgeMetadataRejectsBlueprint) {
+TEST(BlueprintCodec, DecodePseudoComponentBridgeEncodingRejectsBlueprint) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     TypeRegistry reg = make_test_registry();
-
-    TypeDefinition bridge_in;
-    bridge_in.classname = "BlueprintInput";
-    bridge_in.cpp_class = true;
-    bridge_in.ports["ext"] = Port{PortDirection::In, PortType::Contextual, Domain::Electrical, false};
-    bridge_in.ports["port"] = Port{PortDirection::Out, PortType::Contextual, Domain::Electrical, false};
-    reg.types["BlueprintInput"] = std::move(bridge_in);
 
     TypeDefinition sink;
     sink.classname = "BoolSink";
@@ -641,7 +643,7 @@ TEST(BlueprintCodec, DecodeMalformedBridgeMetadataRejectsBlueprint) {
             {
                 "id": "flag",
                 "kind": "component",
-                "component": "BlueprintInput",
+                "component": "LegacyPseudoBridge",
                 "layout": {"x": 0.0, "y": 0.0}
             },
             {
@@ -663,7 +665,121 @@ TEST(BlueprintCodec, DecodeMalformedBridgeMetadataRejectsBlueprint) {
     bp2::DecodeError err;
     auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
     EXPECT_FALSE(decoded.has_value());
-    EXPECT_NE(err.message.find("wire signal typing unresolved"), std::string::npos);
+    EXPECT_NE(err.message.find("canonical bridge ports must use kind 'bridge_port'"), std::string::npos);
+}
+
+TEST(BlueprintCodec, BridgePortRoundTripPreservesStructuralFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg = make_test_registry();
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("bridge_roundtrip"));
+    bp = bp.with_name("Bridge Roundtrip");
+    bp = bp.with_interface(bp2::Interface({
+        make_port(interner, "out", Domain::Mechanical, bp2::Direction::Output, PortType::RPM),
+    }));
+
+    bp2::Blueprint::Node bridge;
+    bridge.semantic.id = interner.intern("bp_out_1");
+    bridge.semantic.type = interner.intern("BridgePort");
+    bridge.view.name = "out";
+    bridge.content = bp2::Blueprint::Node::BridgePortData{
+        interner.intern("out"),
+        bp2::Blueprint::Node::BridgePortSide::Output,
+        PortType::RPM,
+        bp2::Interface({
+            make_port(interner, "port", Domain::Mechanical, bp2::Direction::Input, PortType::RPM),
+            make_port(interner, "ext", Domain::Mechanical, bp2::Direction::Output, PortType::RPM),
+        })
+    };
+    bridge.layout.x = 12.0f;
+    bridge.layout.y = 34.0f;
+    bp = bp.with_node(std::move(bridge));
+
+    const std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena, &reg);
+    const auto j = nlohmann::json::parse(encoded);
+    ASSERT_EQ(j["nodes"].size(), 1u);
+    EXPECT_EQ(j["nodes"][0]["kind"], "bridge_port");
+    EXPECT_EQ(j["nodes"][0]["exposed_port"], "out");
+    EXPECT_EQ(j["nodes"][0]["side"], "output");
+    EXPECT_EQ(j["nodes"][0]["port_type"], "RPM");
+    EXPECT_FALSE(j["nodes"][0].contains("component"));
+    EXPECT_FALSE(j["nodes"][0].contains("source"));
+    EXPECT_FALSE(j["nodes"][0].contains("params"));
+
+    bp2::DecodeError err;
+    auto decoded = bp2::BlueprintCodec::decode(encoded, interner, arena, reg, &err);
+    ASSERT_TRUE(decoded.has_value()) << err.message;
+    ASSERT_EQ(decoded->nodes().size(), 1u);
+    const auto& node = decoded->nodes()[0];
+    ASSERT_TRUE(node.is_bridge_port());
+    EXPECT_EQ(node.semantic.id, interner.intern("bp_out_1"));
+    EXPECT_EQ(node.semantic.type, interner.intern("BridgePort"));
+    EXPECT_EQ(node.bridge_port().exposed_port, interner.intern("out"));
+    EXPECT_EQ(node.bridge_port().side, bp2::Blueprint::Node::BridgePortSide::Output);
+    EXPECT_EQ(node.bridge_port().port_type, PortType::RPM);
+    EXPECT_TRUE(node.bridge_port().iface.has(interner.intern("ext")));
+    EXPECT_TRUE(node.bridge_port().iface.has(interner.intern("port")));
+}
+
+TEST(BlueprintCodec, DecodeRejectsComponentFieldOnBridgePort) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg = make_test_registry();
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "blueprint",
+        "version": 1,
+        "blueprint_id": "bridge_with_component",
+        "name": "Bridge With Component",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "kind": "bridge_port",
+                "component": "Battery",
+                "exposed_port": "n1",
+                "side": "input",
+                "port_type": "V",
+                "layout": {"x": 0.0, "y": 0.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("unknown node field: component"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsMissingBridgePortFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry reg = make_test_registry();
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "blueprint",
+        "version": 1,
+        "blueprint_id": "bridge_missing_fields",
+        "name": "Bridge Missing Fields",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "kind": "bridge_port",
+                "exposed_port": "n1",
+                "layout": {"x": 0.0, "y": 0.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(decoded.has_value());
+    EXPECT_NE(err.message.find("missing string field 'side'"), std::string::npos);
 }
 
 TEST(BlueprintCodec, DecodeClosedCircuitBlueprint) {
@@ -750,19 +866,19 @@ TEST(BlueprintCodec, ExplicitHydrationPopulatesRuntimeViewFieldsRecursively) {
     root = root.with_name("Root");
 
     bp2::Blueprint::Node host;
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            interner.intern("Group"),
+            std::make_unique<bp2::Blueprint>(inner))
+    };
     host.semantic.id = interner.intern("host");
     host.semantic.type = interner.intern("Group");
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("Group"),
-        std::make_unique<bp2::Blueprint>(inner));
     root = root.with_node(std::move(host));
 
     bp2::Blueprint hydrated = editor::hydrate_runtime_node_view_data(std::move(root), interner, reg);
     const auto* loaded_host = hydrated.find_node(interner.lookup("host"));
     ASSERT_NE(loaded_host, nullptr);
-    ASSERT_TRUE(loaded_host->source.has_value());
-    const auto* loaded_slider = loaded_host->source->inline_def()->find_node(interner.lookup("inner_slider"));
+    const auto* loaded_slider = loaded_host->blueprint_instance().source.inline_def()->find_node(interner.lookup("inner_slider"));
     ASSERT_NE(loaded_slider, nullptr);
     EXPECT_EQ(loaded_slider->view.content_type, bp2::NodeContentType::Slider);
     EXPECT_FLOAT_EQ(loaded_slider->view.content_min, 0.0f);
@@ -771,25 +887,25 @@ TEST(BlueprintCodec, ExplicitHydrationPopulatesRuntimeViewFieldsRecursively) {
 
 
 // =============================================================================
-// Issue #31 regression tests: semantic.iface is the single source of truth
+// Issue #31 regression tests: component().iface is the single source of truth
 // =============================================================================
 
 // Issue #31 Required Test 1: Mutation single-path
-// After mutating semantic.iface on a node, derive_input_ports() / derive_output_ports()
+// After mutating component().iface on a node, derive_input_ports() / derive_output_ports()
 // must reflect the change WITHOUT any explicit view.inputs/outputs mutation (because
 // those fields no longer exist).
 TEST(Issue31_SingleSource, MutationSinglePath_DeriveReflectsSemanticIface) {
     ui::StringInterner interner;
 
-    // Build a node with semantic.iface ports only
+    // Build a node with component iface ports only
     bp2::Blueprint::Node collapsed;
     collapsed.semantic.id = interner.intern("proxy1");
     collapsed.semantic.type = interner.intern("CustomSubsystem");
 
     // Start with one input port
-    collapsed.semantic.iface = bp2::Interface({
+    collapsed.content = bp2::Blueprint::Node::ComponentData{bp2::Interface({
         make_port(interner, "sig_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
-    });
+    })};
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("mutation_test"));
@@ -797,24 +913,24 @@ TEST(Issue31_SingleSource, MutationSinglePath_DeriveReflectsSemanticIface) {
 
     // Verify initial state via projection
     const auto& node_before = bp.nodes()[0];
-    auto inputs_before = bp2::derive_input_ports(node_before.semantic.iface);
-    auto outputs_before = bp2::derive_output_ports(node_before.semantic.iface);
+    auto inputs_before = bp2::derive_input_ports(node_before.component().iface);
+    auto outputs_before = bp2::derive_output_ports(node_before.component().iface);
     ASSERT_EQ(inputs_before.size(), 1u);
     EXPECT_EQ(outputs_before.size(), 0u);
     EXPECT_EQ(interner.resolve(inputs_before[0].name), "sig_in");
 
-    // Simulate the mutation: add a new output port to semantic.iface (same as
+    // Simulate the mutation: add a new output port to component().iface (same as
     // add_bridge_port_to_composite does — single mutation path, no view mutation)
     bp2::Blueprint::Node mutated = bp.nodes()[0];
     {
-        std::vector<bp2::PortDescriptor> ports = mutated.semantic.iface.ports();
+        std::vector<bp2::PortDescriptor> ports = mutated.component().iface.ports();
         ports.push_back(make_port(interner, "sig_out", Domain::Electrical, bp2::Direction::Output, PortType::V));
-        mutated.semantic.iface = bp2::Interface(std::move(ports));
+        mutated.component().iface = bp2::Interface(std::move(ports));
     }
 
     // The projection must immediately reflect the mutation
-    auto inputs_after = bp2::derive_input_ports(mutated.semantic.iface);
-    auto outputs_after = bp2::derive_output_ports(mutated.semantic.iface);
+    auto inputs_after = bp2::derive_input_ports(mutated.component().iface);
+    auto outputs_after = bp2::derive_output_ports(mutated.component().iface);
     EXPECT_EQ(inputs_after.size(), 1u);
     ASSERT_EQ(outputs_after.size(), 1u);
     EXPECT_EQ(interner.resolve(inputs_after[0].name), "sig_in");
@@ -824,9 +940,9 @@ TEST(Issue31_SingleSource, MutationSinglePath_DeriveReflectsSemanticIface) {
 }
 
 // Issue #31 Required Test 2: Export reads semantic
-// After encoding/decoding, semantic.iface survives round-trip perfectly.
+// After encoding/decoding, component().iface survives round-trip perfectly.
 // In the v1 format, node ports are looked up from the type registry during decode,
-// not stored per-node in JSON. The test verifies semantic.iface is correctly populated.
+// not stored per-node in JSON. The test verifies component().iface is correctly populated.
 // Note: Domains are derived from PortType, not preserved separately in the type registry.
 TEST(Issue31_SingleSource, ExportReadsSemanticIface_CodecRoundTrip) {
     ui::StringInterner interner;
@@ -860,33 +976,33 @@ TEST(Issue31_SingleSource, ExportReadsSemanticIface_CodecRoundTrip) {
     // In v1 format, individual nodes don't have a "ports" field - ports come from registry
     EXPECT_FALSE(j["nodes"][0].contains("ports"));
 
-    // Decode and verify semantic.iface is correctly reconstructed from registry
+    // Decode and verify component().iface is correctly reconstructed from registry
     bp2::DecodeError err;
     auto loaded = bp2::BlueprintCodec::decode(json_str, interner, arena, reg, &err);
     ASSERT_TRUE(loaded.has_value()) << "Decode failed: " << err.message;
     ASSERT_EQ(loaded->nodes().size(), 1u);
 
     const auto& loaded_node = loaded->nodes()[0];
-    // semantic.iface was populated from the type registry during decode
-    EXPECT_EQ(loaded_node.semantic.iface.size(), 3u);
+    // component().iface was populated from the type registry during decode
+    EXPECT_EQ(loaded_node.component().iface.size(), 3u);
 
     // Verify each port's direction survives the round-trip
     // (Domains are derived from PortType, not stored separately)
-    auto ctrl = loaded_node.semantic.iface.find(interner.intern("ctrl"));
+    auto ctrl = loaded_node.component().iface.find(interner.intern("ctrl"));
     ASSERT_TRUE(ctrl.has_value());
     EXPECT_EQ(ctrl->direction, bp2::Direction::Input);
 
-    auto v_bus = loaded_node.semantic.iface.find(interner.intern("v_bus"));
+    auto v_bus = loaded_node.component().iface.find(interner.intern("v_bus"));
     ASSERT_TRUE(v_bus.has_value());
     EXPECT_EQ(v_bus->direction, bp2::Direction::InOut);
 
-    auto temp = loaded_node.semantic.iface.find(interner.intern("temp"));
+    auto temp = loaded_node.component().iface.find(interner.intern("temp"));
     ASSERT_TRUE(temp.has_value());
     EXPECT_EQ(temp->direction, bp2::Direction::Output);
 
     // Verify derived projections match semantic
-    auto inputs = bp2::derive_input_ports(loaded_node.semantic.iface);
-    auto outputs = bp2::derive_output_ports(loaded_node.semantic.iface);
+    auto inputs = bp2::derive_input_ports(loaded_node.component().iface);
+    auto outputs = bp2::derive_output_ports(loaded_node.component().iface);
     EXPECT_EQ(inputs.size(), 2u);  // ctrl (Input) + v_bus (InOut appears in inputs)
     EXPECT_EQ(outputs.size(), 2u); // temp (Output) + v_bus (InOut appears in outputs)
 }
@@ -895,7 +1011,7 @@ TEST(Issue31_SingleSource, ExportReadsSemanticIface_CodecRoundTrip) {
 // ViewData must NOT contain inputs/outputs port lists. This test verifies
 // the structural invariant at compile time: if someone re-adds port lists
 // to ViewData, the sizeof check will fail.
-// Additionally verifies that semantic.iface is the sole source for port data.
+// Additionally verifies that component().iface is the sole source for port data.
 TEST(Issue31_SingleSource, NoDriftInvariant_ViewDataHasNoPortLists) {
     // Structural assertion: ViewData should be small — it contains no port vectors.
     // A ViewData with two std::vector<NodePort> would be at least 48 bytes larger
@@ -945,7 +1061,7 @@ TEST(Issue31_SingleSource, NoDriftInvariant_ViewDataHasNoPortLists) {
     auto loaded = bp2::BlueprintCodec::decode(json_str, interner, arena, reg, &err);
     ASSERT_TRUE(loaded.has_value()) << err.message;
 
-    // The key invariant: semantic.iface is the only source, and the in-memory
+    // The key invariant: component().iface is the only source, and the in-memory
     // ViewData shape still carries no hidden port-list state. This is about the
     // internal node object after codec round-trip, not canonical persistence of
     // render/content/color fields.
@@ -953,11 +1069,11 @@ TEST(Issue31_SingleSource, NoDriftInvariant_ViewDataHasNoPortLists) {
     const auto& rt = loaded->nodes()[0];
     EXPECT_EQ(orig.view, rt.view)
         << "ViewData must not grow hidden port state";
-    // Verify semantic.iface survives with same port count and directions
-    EXPECT_EQ(orig.semantic.iface.size(), rt.semantic.iface.size())
-        << "semantic.iface must be the sole port authority and survive round-trip";
-    for (const auto& orig_port : orig.semantic.iface.ports()) {
-        auto loaded_port = rt.semantic.iface.find(orig_port.name);
+    // Verify component().iface survives with same port count and directions
+    EXPECT_EQ(orig.component().iface.size(), rt.component().iface.size())
+        << "component().iface must be the sole port authority and survive round-trip";
+    for (const auto& orig_port : orig.component().iface.ports()) {
+        auto loaded_port = rt.component().iface.find(orig_port.name);
         ASSERT_TRUE(loaded_port.has_value());
         EXPECT_EQ(orig_port.direction, loaded_port->direction);
     }

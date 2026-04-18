@@ -42,24 +42,26 @@ TEST(BlueprintNode, ReferenceInstanceMode) {
     ui::StringInterner interner;
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("sub1");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
-        bp2::Interface{});
-    EXPECT_TRUE(node.source->is_reference());
-    EXPECT_EQ(node.source->inline_def(), nullptr);
+        bp2::Interface{})
+    };
+    EXPECT_TRUE(node.blueprint_instance().source.is_reference());
+    EXPECT_EQ(node.blueprint_instance().source.inline_def(), nullptr);
 }
 
 TEST(BlueprintNode, EmbeddedInstanceMode) {
     ui::StringInterner interner;
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("sub1");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("power_system"),
-        std::make_unique<bp2::Blueprint>());
-    EXPECT_TRUE(node.source->is_embedded());
-    EXPECT_NE(node.source->inline_def(), nullptr);
+        std::make_unique<bp2::Blueprint>())
+    };
+    EXPECT_TRUE(node.blueprint_instance().source.is_embedded());
+    EXPECT_NE(node.blueprint_instance().source.inline_def(), nullptr);
 }
 
 // ============================================================================
@@ -239,9 +241,10 @@ TEST(Blueprint, FindBlueprintInstanceNode) {
     bp2::Blueprint::Node host;
     host.semantic.id = interner.intern("comp1");
     host.semantic.type = interner.intern("CompositeType");
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>());
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>())
+    };
 
     bp2::Blueprint bp;
     bp = bp.with_node(host);
@@ -249,7 +252,7 @@ TEST(Blueprint, FindBlueprintInstanceNode) {
     const auto* found = bp.find_blueprint_instance(interner.intern("comp1"));
     ASSERT_NE(found, nullptr);
     EXPECT_EQ(found->semantic.id, interner.intern("comp1"));
-    EXPECT_TRUE(found->source->is_embedded());
+    EXPECT_TRUE(found->blueprint_instance().source.is_embedded());
 }
 
 TEST(Blueprint, BlueprintInstanceNodeWithEmbeddedSource) {
@@ -258,17 +261,18 @@ TEST(Blueprint, BlueprintInstanceNodeWithEmbeddedSource) {
     bp2::Blueprint::Node host;
     host.semantic.id = interner.intern("comp1");
     host.semantic.type = interner.intern("CompositeType");
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>());
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>())
+    };
 
     bp2::Blueprint bp;
     bp = bp.with_node(host);
 
     const auto* found_host = bp.find_node(interner.intern("comp1"));
     ASSERT_NE(found_host, nullptr);
-    EXPECT_TRUE(found_host->kind == bp2::Blueprint::Node::Kind::BlueprintInstance);
-    EXPECT_TRUE(found_host->source->is_embedded());
+    EXPECT_TRUE(found_host->is_blueprint_instance());
+    EXPECT_TRUE(found_host->blueprint_instance().source.is_embedded());
 }
 
 TEST(Blueprint, BlueprintInstanceNodeWithReferenceSource) {
@@ -277,17 +281,18 @@ TEST(Blueprint, BlueprintInstanceNodeWithReferenceSource) {
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("comp1");
     node.semantic.type = interner.intern("CompositeType");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("CompositeType"), bp2::Interface{});
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
+        interner.intern("CompositeType"), bp2::Interface{})
+    };
 
     bp2::Blueprint bp;
     bp = bp.with_node(node);
 
     const auto* found = bp.find_node(interner.intern("comp1"));
     ASSERT_NE(found, nullptr);
-    EXPECT_TRUE(found->kind == bp2::Blueprint::Node::Kind::BlueprintInstance);
-    EXPECT_TRUE(found->source->is_reference());
+    EXPECT_TRUE(found->is_blueprint_instance());
+    EXPECT_TRUE(found->blueprint_instance().source.is_reference());
 }
 
 TEST(Blueprint, EffectiveNodeIfaceUsesEmbeddedBlueprintWhenPresent) {
@@ -301,12 +306,13 @@ TEST(Blueprint, EffectiveNodeIfaceUsesEmbeddedBlueprintWhenPresent) {
     bp2::Blueprint::Node host;
     host.semantic.id = interner.intern("comp1");
     host.semantic.type = interner.intern("CompositeType");
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    host.semantic.iface = bp2::Interface({
+    host.component().iface = bp2::Interface({
         {interner.intern("stale"), Domain::Electrical, bp2::Direction::Input, PortType::V},
     });
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner));
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        interner.intern("CompositeType"), std::make_unique<bp2::Blueprint>(inner))
+    };
 
     bp2::Blueprint bp;
     bp = bp.with_node(host);
@@ -324,7 +330,7 @@ TEST(Blueprint, EffectiveNodeIfaceFallsBackToNodeIfaceWithoutHostedNested) {
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("n1");
     node.semantic.type = interner.intern("Battery");
-    node.semantic.iface = bp2::Interface({
+    node.component().iface = bp2::Interface({
         {interner.intern("local"), Domain::Electrical, bp2::Direction::Output, PortType::V},
     });
 
@@ -397,17 +403,18 @@ TEST(Blueprint, AddBlueprintInstanceNodeAndFind) {
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("sub1");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
-        bp2::Interface{});
+        bp2::Interface{})
+    };
 
     bp = bp.with_node(std::move(node));
     EXPECT_EQ(bp.nodes().size(), 1u);
 
     auto* found = bp.find_blueprint_instance(interner.intern("sub1"));
     ASSERT_NE(found, nullptr);
-    EXPECT_TRUE(found->source->is_reference());
+    EXPECT_TRUE(found->blueprint_instance().source.is_reference());
 }
 
 TEST(Blueprint, WithoutNode) {
@@ -416,10 +423,11 @@ TEST(Blueprint, WithoutNode) {
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("sub1");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"),
-        bp2::Interface{});
+        bp2::Interface{})
+    };
 
     bp = bp.with_node(std::move(node));
     bp = bp.without_node(interner.intern("sub1"));
@@ -543,9 +551,9 @@ TEST(NodeSplit, PortListsLiveInSemanticIface) {
          make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
      });
 
-     // Verify ports are in semantic.iface
-     EXPECT_EQ(count_inputs(node.semantic.iface), 1u);
-     EXPECT_EQ(count_outputs(node.semantic.iface), 1u);
+     // Verify ports are in component().iface
+     EXPECT_EQ(count_inputs(node.component().iface), 1u);
+     EXPECT_EQ(count_outputs(node.component().iface), 1u);
 
      // A copy with different ports should differ
      auto other = node;

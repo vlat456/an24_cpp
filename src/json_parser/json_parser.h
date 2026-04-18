@@ -126,6 +126,16 @@ struct SubBlueprintRef {
     std::map<std::string, std::string> params_override;
 };
 
+struct BridgePortDefinition {
+    std::string id;
+    std::string exposed_port;
+    PortDirection side = PortDirection::In;
+    PortType type = PortType::Contextual;
+    std::optional<std::pair<float, float>> pos;
+    std::optional<std::pair<float, float>> size;
+    std::string label;
+};
+
 /// Solver role metadata — describes how a component participates in a domain subsolver.
 /// Primitives declare this in their blueprint; wrappers rely on classname fallback.
 struct SolverRole {
@@ -185,6 +195,7 @@ struct TypeDefinition {
     // For blueprints only: internal devices and connections
     std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
     std::vector<Connection> connections;  // Internal connections (for blueprints)
+    std::vector<BridgePortDefinition> bridge_ports;  // Structural bridge nodes for composites
     // Sub-blueprint references (cpp_class = false composites only)
     std::vector<SubBlueprintRef> sub_blueprints;
 };
@@ -327,6 +338,7 @@ struct ParserContext {
     std::unordered_map<std::string, SystemTemplate> templates;
     std::vector<DeviceInstance> devices;
     std::vector<Connection> connections;
+    std::vector<BridgePortDefinition> bridge_ports;
     std::unordered_map<std::string, float> initial_values;
 
     /// Find device by name
@@ -355,10 +367,9 @@ ParserContext parse_json(const std::string& json_text);
 /// Parse JSON text with explicit library directory (for testing)
 ParserContext parse_json(const std::string& json_text, const std::string& library_dir);
 
-/// Extract exposed port metadata from BlueprintInput/BlueprintOutput devices
-/// For Editor: displays exposed ports on collapsed nested blueprint nodes
-/// Returns map: exposed_port_name -> Port metadata
-std::unordered_map<std::string, Port> extract_exposed_ports(const ParserContext& blueprint);
+/// Extract exposed port metadata from structural bridge definitions.
+/// For editor/library use when displaying a composite blueprint boundary.
+std::unordered_map<std::string, Port> extract_exposed_ports(const TypeDefinition& blueprint);
 
 /// Serialize a ParserContext to pretty-printed JSON
 std::string serialize_json(const ParserContext& ctx);

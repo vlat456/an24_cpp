@@ -50,25 +50,15 @@
     },
     {
       "id": "in",
-      "ports": {
-        "ext": {
-          "direction": "In",
-          "type": 7
-        },
-        "port": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
+      "kind": "bridge_port",
+      "exposed_port": "in",
+      "side": "input",
+      "port_type": "Signal",
+      "layout": {
         "x": -336.0,
         "y": 304.0
       },
-      "string_params": {
-        "exposed_direction": "In",
-        "exposed_type": "Contextual"
-      },
-      "type": "BlueprintInput"
+      "label": "in"
     },
     {
       "id": "multiply",
@@ -94,47 +84,27 @@
     },
     {
       "id": "out",
-      "ports": {
-        "ext": {
-          "direction": "Out",
-          "type": 7
-        },
-        "port": {
-          "direction": "In",
-          "type": 7
-        }
-      },
-      "position": {
+      "kind": "bridge_port",
+      "exposed_port": "out",
+      "side": "output",
+      "port_type": "Signal",
+      "layout": {
         "x": 224.0,
         "y": 96.0
       },
-      "string_params": {
-        "exposed_direction": "Out",
-        "exposed_type": "Contextual"
-      },
-      "type": "BlueprintOutput"
+      "label": "out"
     },
     {
       "id": "rate",
-      "ports": {
-        "ext": {
-          "direction": "In",
-          "type": 7
-        },
-        "port": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
+      "kind": "bridge_port",
+      "exposed_port": "rate",
+      "side": "input",
+      "port_type": "Signal",
+      "layout": {
         "x": -336.0,
         "y": 96.0
       },
-      "string_params": {
-        "exposed_direction": "In",
-        "exposed_type": "Contextual"
-      },
-      "type": "BlueprintInput"
+      "label": "rate"
     },
     {
       "id": "splitter",

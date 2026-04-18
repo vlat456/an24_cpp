@@ -117,7 +117,6 @@ TEST(SceneMutations, RebuildFiltersGroupId) {
 
     // Create scope host: blueprint-instance node with embedded nested.
     bp2::Blueprint::Node host;
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     host.semantic.id = interner.intern("group_A");
     host.semantic.type = interner.intern("HostType");
 
@@ -127,10 +126,12 @@ TEST(SceneMutations, RebuildFiltersGroupId) {
     *inner_def = inner_def->with_interface(bp2::Interface());
     
     // Attach embedded blueprint as source
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("HostType"),
         std::move(inner_def)
-    );
+    )
+    };
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(n1));

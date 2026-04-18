@@ -8,11 +8,6 @@ namespace editor::commands::extract_detail {
 
 namespace {
 
-bool is_bridge_node_type(ui::StringInterner& interner, ui::InternedId type) {
-    return type == interner.intern("BlueprintInput")
-        || type == interner.intern("BlueprintOutput");
-}
-
 bool node_allowed_in_scope(const bp2::Blueprint::Node& node, const WindowScopeId& scope_id) {
     if (scope_id.is_root()) {
         return true;
@@ -36,14 +31,14 @@ bool find_embedded_provider_blueprint(const bp2::Blueprint& bp,
     ui::InternedId best_node_id;
 
     for (const auto& node : bp.nodes()) {
-        if (!node.has_embedded_blueprint() || !node.source || !node.source->inline_def()) {
+        if (!node.has_embedded_blueprint()) {
             continue;
         }
-        if (node.source->blueprint_id() != blueprint_id) {
+        if (node.blueprint_instance().source.blueprint_id() != blueprint_id) {
             continue;
         }
         if (!best || node.semantic.id.raw() < best_node_id.raw()) {
-            best = node.source->inline_def();
+            best = node.blueprint_instance().source.inline_def();
             best_node_id = node.semantic.id;
         }
     }
@@ -64,16 +59,16 @@ bool inline_nonembedded_descendants(bp2::Blueprint& bp,
                                     std::string* error_out,
                                     ui::StringInterner& interner) {
     for (const auto& node_src : bp.nodes()) {
-        if (!node_src.has_embedded_blueprint() || !node_src.source || !node_src.source->inline_def()) {
+        if (!node_src.has_embedded_blueprint()) {
             continue;
         }
 
         bp2::Blueprint::Node updated_node = node_src;
-        bp2::Blueprint inline_bp = *node_src.source->inline_def();
+        bp2::Blueprint inline_bp = *node_src.blueprint_instance().source.inline_def();
         bool changed = false;
 
         for (const auto& child_src : inline_bp.nodes()) {
-            if (!child_src.has_referenced_blueprint() || !child_src.source) {
+            if (!child_src.has_referenced_blueprint()) {
                 continue;
             }
 
@@ -82,13 +77,13 @@ bool inline_nonembedded_descendants(bp2::Blueprint& bp,
             }
 
             const bp2::Blueprint* provider = nullptr;
-            if (find_embedded_provider_blueprint(source, child_src.source->blueprint_id(), &provider)) {
+            if (find_embedded_provider_blueprint(source, child_src.blueprint_instance().source.blueprint_id(), &provider)) {
                 bp2::Blueprint::Node remapped = child_src;
-                remapped.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-                    child_src.source->blueprint_id(),
-                    std::make_unique<bp2::Blueprint>(*provider));
-                // Issue #91: Blueprint-instance interface derives from source authority only.
-                // Do NOT mirror node.semantic.iface.
+                remapped.content = bp2::Blueprint::Node::BlueprintInstanceData{
+                    bp2::Blueprint::Node::BlueprintSource::make_embedded(
+                        child_src.blueprint_instance().source.blueprint_id(),
+                        std::make_unique<bp2::Blueprint>(*provider))
+                };
                 inline_bp = bp2::replace_node_preserve_order(inline_bp, std::move(remapped));
                 changed = true;
                 if (stats) {
@@ -100,7 +95,7 @@ bool inline_nonembedded_descendants(bp2::Blueprint& bp,
         }
 
         if (changed) {
-            updated_node.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(inline_bp)));
+            updated_node.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(inline_bp)));
             bp = bp2::replace_node_preserve_order(bp, std::move(updated_node));
         }
     }
@@ -112,13 +107,13 @@ bool inline_nonembedded_descendants(bp2::Blueprint& bp,
 
 bool contains_nonembedded_descendant_nested(const bp2::Blueprint& bp) {
     for (const auto& node : bp.nodes()) {
-        if (!node.is_blueprint_instance() || !node.source) {
+        if (!node.is_blueprint_instance()) {
             continue;
         }
-        if (node.source->is_reference()) {
+        if (node.has_referenced_blueprint()) {
             return true;
         }
-        const auto* inline_bp = node.source->inline_def();
+        const auto* inline_bp = node.blueprint_instance().source.inline_def();
         if (inline_bp && contains_nonembedded_descendant_nested(*inline_bp)) {
             return true;
         }
@@ -146,10 +141,10 @@ bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
 
     ui::InternedId blueprint_iid = interner.intern(blueprint_name);
     for (const auto& node : source.nodes()) {
-        if (!node.is_blueprint_instance() || !node.source) {
+        if (!node.is_blueprint_instance()) {
             continue;
         }
-        if (node.source->blueprint_id() == blueprint_iid) {
+        if (node.blueprint_instance().source.blueprint_id() == blueprint_iid) {
             return set_error(error_out, "blueprint with this name already exists");
         }
     }
@@ -169,24 +164,24 @@ DescendantRemapStats collect_descendant_remap_stats(
         if (selected_set.find(node.semantic.id) == selected_set.end()) {
             continue;
         }
-        if (!node.has_embedded_blueprint() || !node.source || !node.source->inline_def()) {
+        if (!node.has_embedded_blueprint()) {
             continue;
         }
 
-        const auto* inline_bp = node.source->inline_def();
+        const auto* inline_bp = node.blueprint_instance().source.inline_def();
         if (!contains_nonembedded_descendant_nested(*inline_bp)) {
             continue;
         }
 
         for (const auto& child : inline_bp->nodes()) {
-            if (!child.has_referenced_blueprint() || !child.source) {
+            if (!child.has_referenced_blueprint()) {
                 continue;
             }
             if (!allow_nonembedded) {
                 continue;
             }
             const bp2::Blueprint* provider = nullptr;
-            if (find_embedded_provider_blueprint(bp, child.source->blueprint_id(), &provider)) {
+            if (find_embedded_provider_blueprint(bp, child.blueprint_instance().source.blueprint_id(), &provider)) {
                 ++stats.remapped;
             } else {
                 ++stats.passthrough;
@@ -227,14 +222,14 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         if (!node_allowed_in_scope(*node, scope_id)) {
             return set_error(error_out, "selected nodes must belong to the active group"), std::nullopt;
         }
-        if (is_bridge_node_type(interner, node->semantic.type)) {
-            return set_error(error_out, "cannot extract BlueprintInput/BlueprintOutput bridge nodes"), std::nullopt;
+        if (node->is_bridge_port()) {
+            return set_error(error_out, "cannot extract bridge port nodes"), std::nullopt;
         }
         if (node->has_referenced_blueprint()) {
             return set_error(error_out, "cannot extract non-embedded nested instances"), std::nullopt;
         }
-        if (node->has_embedded_blueprint() && node->source && node->source->inline_def()
-            && contains_nonembedded_descendant_nested(*node->source->inline_def())
+        if (node->has_embedded_blueprint()
+            && contains_nonembedded_descendant_nested(*node->blueprint_instance().source.inline_def())
             && !allow_nonembedded) {
             return set_error(error_out, "selected embedded blueprint contains non-embedded descendant references"), std::nullopt;
         }

@@ -199,10 +199,10 @@ private:
     ui::InternedId nested_id_;
 
     static const bp2::Blueprint& require_inline_blueprint(const bp2::Blueprint::Node& node) {
-        if (!node.is_blueprint_instance() || !node.source || !node.source->is_embedded()) {
+        if (!node.has_embedded_blueprint()) {
             throw std::logic_error("EmbeddedInlineHost requires embedded blueprint-instance node");
         }
-        const auto* inline_bp = node.source->inline_def();
+        const auto* inline_bp = node.blueprint_instance().source.inline_def();
         if (!inline_bp) {
             throw std::logic_error("EmbeddedInlineHost missing embedded inline blueprint");
         }
@@ -214,7 +214,7 @@ private:
         if (!node) {
             throw std::logic_error("EmbeddedInlineHost missing blueprint-instance node");
         }
-        if (!node->is_blueprint_instance() || !node->source || !node->source->is_embedded()) {
+        if (!node->has_embedded_blueprint()) {
             throw std::logic_error("EmbeddedInlineHost requires embedded blueprint-instance node");
         }
         return *node;
@@ -223,10 +223,8 @@ private:
     void replace_inline_def(bp2::Blueprint next_inline) {
         const bp2::Blueprint::Node& node = require_node();
         auto updated = node;
-        if (updated.source) {
-            updated.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(next_inline)));
-            root_model_.replace_current(bp2::replace_node_preserve_order(root_model_.current(), std::move(updated)));
-        }
+        updated.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(next_inline)));
+        root_model_.replace_current(bp2::replace_node_preserve_order(root_model_.current(), std::move(updated)));
     }
 };
 

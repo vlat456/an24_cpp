@@ -42,21 +42,25 @@ static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
                                              bool input_bridge,
                                              PortType t) {
     bp2::Blueprint::Node n;
-     n.semantic.id = I.intern(id);
-     n.semantic.type = I.intern(input_bridge ? "BlueprintInput" : "BlueprintOutput");
-     n.view.name = id;
-     if (input_bridge) {
-         set_iface(n, {
-             make_port(I, "ext", Domain::Electrical, bp2::Direction::Input, t),
-             make_port(I, "port", Domain::Electrical, bp2::Direction::Output, t),
-         });
-     } else {
-         set_iface(n, {
-             make_port(I, "port", Domain::Electrical, bp2::Direction::Input, t),
-             make_port(I, "ext", Domain::Electrical, bp2::Direction::Output, t),
-         });
-     }
-     return n;
+    n.semantic.id = I.intern(id);
+    n.semantic.type = I.intern("BridgePort");
+    n.view.name = id;
+    n.content = bp2::Blueprint::Node::BridgePortData{
+        I.intern(id),
+        input_bridge ? bp2::Blueprint::Node::BridgePortSide::Input
+                     : bp2::Blueprint::Node::BridgePortSide::Output,
+        t,
+        input_bridge
+            ? bp2::Interface({
+                make_port(I, "ext", Domain::Electrical, bp2::Direction::Input, t),
+                make_port(I, "port", Domain::Electrical, bp2::Direction::Output, t),
+            })
+            : bp2::Interface({
+                make_port(I, "port", Domain::Electrical, bp2::Direction::Input, t),
+                make_port(I, "ext", Domain::Electrical, bp2::Direction::Output, t),
+            })
+    };
+    return n;
 }
 
 // =============================================================================
@@ -103,16 +107,6 @@ protected:
         voltmeter_def.params["min"] = "0";
         voltmeter_def.params["max"] = "30";
         registry.types["Voltmeter"] = voltmeter_def;
-
-        TypeDefinition bp_in;
-        bp_in.classname = "BlueprintInput";
-        bp_in.cpp_class = true;
-        registry.types["BlueprintInput"] = bp_in;
-
-        TypeDefinition bp_out;
-        bp_out.classname = "BlueprintOutput";
-        bp_out.cpp_class = true;
-        registry.types["BlueprintOutput"] = bp_out;
 
         TypeDefinition bus_def;
         bus_def.classname = "Bus";
@@ -338,17 +332,19 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores)
 
     node_ptr = model.current().find_node(interner.intern("bp_in_1"));
     ASSERT_NE(node_ptr, nullptr);
-    ASSERT_EQ(count_inputs(node_ptr->semantic.iface), 1u);
-    ASSERT_EQ(count_outputs(node_ptr->semantic.iface), 1u);
-    EXPECT_EQ(get_input_type(node_ptr->semantic.iface, 0), PortType::RPM);
-    EXPECT_EQ(get_output_type(node_ptr->semantic.iface, 0), PortType::RPM);
+    const auto iface = model.current().effective_node_iface(*node_ptr);
+    ASSERT_EQ(count_inputs(iface), 1u);
+    ASSERT_EQ(count_outputs(iface), 1u);
+    EXPECT_EQ(get_input_type(iface, 0), PortType::RPM);
+    EXPECT_EQ(get_output_type(iface, 0), PortType::RPM);
 
     ASSERT_TRUE(model.can_undo());
     model.undo();
     node_ptr = model.current().find_node(interner.intern("bp_in_1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(get_input_type(node_ptr->semantic.iface, 0), PortType::V);
-    EXPECT_EQ(get_output_type(node_ptr->semantic.iface, 0), PortType::V);
+    const auto undone_iface = model.current().effective_node_iface(*node_ptr);
+    EXPECT_EQ(get_input_type(undone_iface, 0), PortType::V);
+    EXPECT_EQ(get_output_type(undone_iface, 0), PortType::V);
 }
 
 TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNestedIface) {
@@ -364,17 +360,18 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     }));
 
     bp2::Blueprint::Node collapsed;
-    collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     collapsed.semantic.id = interner.intern("inst1");
     collapsed.semantic.type = interner.intern("bp_type");
     collapsed.view.name = "inst1";
-    // Issue #91: Do NOT set semantic.iface on blueprint-instance nodes.
+    // Issue #91: Do NOT set component().iface on blueprint-instance nodes.
     // The interface derives from source authority only.
     
-    collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("bp_type"),
         std::make_unique<bp2::Blueprint>(inner_bp)
-    );
+    )
+    };
 
     // Create bridge node (now as a regular component node, not nested)
     bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:in", true, PortType::V);
@@ -395,14 +392,14 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     ASSERT_NE(collapsed_after, nullptr);
     
     // Issue #91: Query interface from source authority using effective_node_iface()
-    // since semantic.iface is no longer mirrored for blueprint-instance nodes.
+    // since component().iface is no longer mirrored for blueprint-instance nodes.
     auto effective_iface = model.current().effective_node_iface(*collapsed_after);
     ASSERT_EQ(count_inputs(effective_iface), 1u);
     EXPECT_EQ(get_input_type(effective_iface, 0), PortType::RPM);
 
     // Check that the embedded blueprint's interface is also updated
     ASSERT_TRUE(collapsed_after->has_embedded_blueprint());
-    auto embedded_iface = collapsed_after->source->cached_iface();
+    auto embedded_iface = collapsed_after->blueprint_instance().source.cached_iface();
     auto pd = embedded_iface.find(interner.intern("in"));
     ASSERT_TRUE(pd.has_value());
     EXPECT_EQ(pd->domain, Domain::Mechanical);
@@ -800,18 +797,8 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_NoChangesDoesNotPushUndo) {
 // Phase 6: Bridge Node Duplicate Control Regression (Bug 2)
 // =============================================================================
 
-// Regression: BlueprintInput/BlueprintOutput nodes carry exposed_type and
-// exposed_direction as string_params (from param_defaults).  The properties
-// dialog must NOT render these as generic text-input controls because they are
-// already covered by the dedicated PortType dropdown
-// (render_bridge_port_type_section).  This test verifies that the data layer
-// correctly carries these keys in pending_string_params_ so the rendering
-// skip logic has something to filter.  The actual skip is in the #ifndef
-// EDITOR_TESTING render() path (see properties_window.cpp line ~210).
-TEST_F(PropertiesWindowTest, BridgeNode_ExposedParamsInStringParams) {
+TEST_F(PropertiesWindowTest, BridgeNodeUsesDedicatedPortTypeState) {
     auto n = make_bridge_node(interner, "inst:my_input", true, PortType::V);
-    n.semantic.string_params["exposed_type"]      = "V";
-    n.semantic.string_params["exposed_direction"] = "In";
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst:my_input"));
@@ -820,16 +807,7 @@ TEST_F(PropertiesWindowTest, BridgeNode_ExposedParamsInStringParams) {
     PropertiesWindow win;
     win.open(*node_ptr, "inst:my_input", model, interner, nullptr, [](const std::string&) {});
 
-    // The keys must be present in pending_string_params — they exist as data
-    const auto& sp = win.pending_string_params();
-    EXPECT_NE(sp.find("exposed_type"), sp.end())
-        << "exposed_type must be present in pending string params";
-    EXPECT_NE(sp.find("exposed_direction"), sp.end())
-        << "exposed_direction must be present in pending string params";
-    EXPECT_EQ(sp.at("exposed_type"), "V");
-    EXPECT_EQ(sp.at("exposed_direction"), "In");
-
-    // The bridge port type dropdown should be initialized from the node ports
+    EXPECT_TRUE(win.pending_string_params().empty());
     EXPECT_TRUE(win.pending_bridge_port_type().has_value());
     EXPECT_EQ(*win.pending_bridge_port_type(), PortType::V);
 }
@@ -840,8 +818,6 @@ TEST_F(PropertiesWindowTest, BridgeNode_ExposedParamsInStringParams) {
 // round-trips cleanly.
 TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
     auto n = make_bridge_node(interner, "inst:my_output", false, PortType::V);
-    n.semantic.string_params["exposed_type"]      = "V";
-    n.semantic.string_params["exposed_direction"] = "Out";
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst:my_output"));
@@ -857,13 +833,11 @@ TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
      // Verify the port type was updated on the node
      node_ptr = model.current().find_node(interner.intern("inst:my_output"));
      ASSERT_NE(node_ptr, nullptr);
-     ASSERT_GT(count_inputs(node_ptr->semantic.iface), 0u);
-     EXPECT_EQ(get_input_type(node_ptr->semantic.iface, 0), PortType::Bool);
-
-     // String params should still carry the original exposed_type (not auto-updated
-     // from the dropdown — that's a separate serialization concern)
-     EXPECT_EQ(node_ptr->semantic.string_params.at("exposed_type"), "V");
- }
+     const auto iface = model.current().effective_node_iface(*node_ptr);
+     ASSERT_GT(count_inputs(iface), 0u);
+     EXPECT_EQ(get_input_type(iface, 0), PortType::Bool);
+     EXPECT_TRUE(node_ptr->semantic.string_params.empty());
+  }
 
 // =============================================================================
 // Bug 1 regression: Apply syncs content_max/min from params

@@ -9,14 +9,9 @@ namespace {
 ui::InternedId find_exposed_port_name_for_bridge(const Blueprint& bp,
                                                  const Blueprint::Node& node,
                                                  const PathArena& arena) {
-    const std::string_view bridge_label = node.view.name;
-    for (const auto& iface_port : bp.iface().ports()) {
-        const std::string_view iface_name = arena.resolve_id(iface_port.name);
-        if ((!bridge_label.empty() && iface_name == bridge_label) || iface_port.name == node.semantic.id) {
-            return iface_port.name;
-        }
-    }
-    return {};
+    (void)bp;
+    (void)arena;
+    return node.bridge_port().exposed_port;
 }
 
 } // namespace
@@ -42,7 +37,7 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
 [[noreturn]] void Flattener::throw_unresolved_blueprint_instance(
     Blueprint::Node const& node, Path prefix) const {
     const std::string instance_path = arena_->to_string(arena_->make_node(prefix, node.semantic.id));
-    const auto bp_id = node.source->blueprint_id();
+    const auto bp_id = node.blueprint_instance().source.blueprint_id();
     const auto bp_name = arena_->resolve_id(bp_id);
     const std::string blueprint_id = bp_name.empty()
         ? std::string{"<empty>"}
@@ -59,25 +54,9 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
 Blueprint::Node const* Flattener::find_bridge_for_port(
     Blueprint const& inner_bp,
     ui::InternedId port_name) const {
-
-    std::string_view port_str = arena_->resolve_id(port_name);
-
-    // Pass 1: match by label (node.view.name) — v1 migrated files
-    // e.g. bp_in_1 with label "feedback" matches interface port "feedback"
     for (auto const& n : inner_bp.nodes()) {
-        std::string_view type_str = arena_->resolve_id(n.semantic.type);
-        if (type_str != "BlueprintInput" && type_str != "BlueprintOutput") continue;
-        if (n.view.name == port_str) {
-            return &n;
-        }
-    }
-
-    // Pass 2: match by node ID — v3 library composites
-    // e.g. bridge node "in" matches interface port "in"
-    for (auto const& n : inner_bp.nodes()) {
-        std::string_view type_str = arena_->resolve_id(n.semantic.type);
-        if (type_str != "BlueprintInput" && type_str != "BlueprintOutput") continue;
-        if (n.semantic.id == port_name) {
+        if (!n.is_bridge_port()) continue;
+        if (n.bridge_port().exposed_port == port_name) {
             return &n;
         }
     }
@@ -112,12 +91,10 @@ Path Flattener::resolve_endpoint(
     Path instance_path = arena_->make_node(scope_prefix, ep.node);
 
     Blueprint const* inner = nullptr;
-    if (node->source) {
-        if (auto* def = node->source->inline_def()) {
-            inner = def;
-        } else {
-            inner = library_.find(node->source->blueprint_id());
-        }
+    if (auto* def = node->blueprint_instance().source.inline_def()) {
+        inner = def;
+    } else {
+        inner = library_.find(node->blueprint_instance().source.blueprint_id());
     }
     if (!inner) {
         throw_unresolved_blueprint_instance(*node, scope_prefix);
@@ -174,7 +151,7 @@ void Flattener::visit_blueprint(
 // ==================================================================
 // emit_component — create a FlatNetlist::Component for a leaf node
 //
-// For bridge nodes (BlueprintInput / BlueprintOutput), after emitting
+// For structural bridge nodes, after emitting
 // the component we unify the ext and port signals, since they
 // represent the same electrical point (the bridge is a pass-through).
 // ==================================================================
@@ -195,11 +172,9 @@ void Flattener::emit_component(
     comp.params = node.semantic.params;
     comp.string_params = node.semantic.string_params;
 
-    std::string_view type_str = arena_->resolve_id(node.semantic.type);
-    if (type_str == "BlueprintInput" || type_str == "BlueprintOutput") {
-        // Preserve the authoritative public interface port id that this bridge
-        // represents. Migrated blueprints may use bridge ids like `bp_out_1`
-        // while exposing the canonical port name through the label.
+    if (node.is_bridge_port()) {
+        // Preserve the authoritative public interface port id represented by
+        // this structural bridge node.
         comp.exposed_port_name = find_exposed_port_name_for_bridge(bp, node, *arena_);
     }
 
@@ -223,7 +198,7 @@ void Flattener::emit_component(
 
     // Bridge ext/port unification: merge the two signals so that
     // wires to bridge.ext and bridge.port end up on the same signal
-    if ((type_str == "BlueprintInput" || type_str == "BlueprintOutput")
+    if (node.is_bridge_port()
         && ext_sig != UINT32_MAX && port_sig != UINT32_MAX
         && ext_sig != port_sig) {
         merge_signals(ext_sig, port_sig, signals, out);
@@ -264,17 +239,13 @@ void Flattener::visit_blueprint_instance(
     std::unordered_map<Path, SignalIndex>& signals,
     FlatNetlist& out) {
 
-    if (!node.source) {
-        throw std::logic_error("Flattener: blueprint-instance node without source");
-    }
-
     Path node_path = arena_->make_node(prefix, node.semantic.id);
 
     Blueprint const* inner = nullptr;
-    if (auto* def = node.source->inline_def()) {
+    if (auto* def = node.blueprint_instance().source.inline_def()) {
         inner = def;
     } else {
-        inner = library_.find(node.source->blueprint_id());
+        inner = library_.find(node.blueprint_instance().source.blueprint_id());
     }
     if (!inner) {
         throw_unresolved_blueprint_instance(node, prefix);
@@ -289,7 +260,7 @@ void Flattener::visit_blueprint_instance(
     // nested scope.
     std::unordered_map<Path, SignalIndex> nested_signals;
     std::unordered_map<Path, SignalIndex> seeded_boundary;
-    for (auto const& port : node.source->cached_iface()) {
+    for (auto const& port : node.blueprint_instance().source.cached_iface()) {
         Blueprint::Node const* bridge = find_bridge_for_port(*inner, port.name);
         if (!bridge) continue;
 

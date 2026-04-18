@@ -15,37 +15,37 @@ std::string encode_direction(Direction direction) {
     return "Out";
 }
 
-std::string encode_node_kind(Blueprint::Node::Kind kind) {
-    switch (kind) {
-        case Blueprint::Node::Kind::Component: return "component";
-        case Blueprint::Node::Kind::BlueprintInstance: return "blueprint_instance";
-    }
-    return "component";
+std::string encode_bridge_side(Blueprint::Node::BridgePortSide side) {
+    return side == Blueprint::Node::BridgePortSide::Input ? "input" : "output";
+}
+
+std::string encode_node_kind(Blueprint::Node const& node) {
+    if (node.is_component()) return "component";
+    if (node.is_blueprint_instance()) return "blueprint_instance";
+    return "bridge_port";
 }
 
 nlohmann::json encode_node_source(const Blueprint::Node& node,
                                   ui::StringInterner const& interner,
                                   PathArena const& arena,
                                   ::TypeRegistry const* parser_registry) {
-    if (!node.source.has_value()) {
-        throw std::logic_error("encode_node_source: blueprint_instance node missing source");
-    }
+    const auto& node_source = node.blueprint_instance().source;
 
-    nlohmann::json source;
-    if (node.source->is_embedded()) {
-        source["mode"] = "embedded";
-        const Blueprint* inline_bp = node.source->inline_def();
+    nlohmann::json encoded_source;
+    if (node_source.is_embedded()) {
+        encoded_source["mode"] = "embedded";
+        const Blueprint* inline_bp = node_source.inline_def();
         if (!inline_bp) {
             throw std::logic_error("encode_node_source: embedded source missing inline blueprint");
         }
-        source["blueprint"] = nlohmann::json::parse(
+        encoded_source["blueprint"] = nlohmann::json::parse(
             BlueprintCodec::encode(*inline_bp, interner, arena, parser_registry));
-        return source;
+        return encoded_source;
     }
 
-    source["mode"] = "reference";
-    source["blueprint_id"] = std::string(interner.resolve(node.source->blueprint_id()));
-    return source;
+    encoded_source["mode"] = "reference";
+    encoded_source["blueprint_id"] = std::string(interner.resolve(node_source.blueprint_id()));
+    return encoded_source;
 }
 
 } // namespace
@@ -101,18 +101,22 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         auto const& node = *node_ptr;
         nlohmann::json n;
         n["id"] = std::string(interner.resolve(node.semantic.id));
-        n["kind"] = encode_node_kind(node.kind);
+        n["kind"] = encode_node_kind(node);
         if (!node.view.name.empty()) {
             n["label"] = node.view.name;
         }
 
         if (node.is_component()) {
             n["component"] = std::string(interner.resolve(node.semantic.type));
-        } else {
+        } else if (node.is_blueprint_instance()) {
             n["source"] = encode_node_source(node, interner, arena, parser_registry);
             if (!node.layout.collapsed) {
                 n["collapsed"] = false;
             }
+        } else {
+            n["exposed_port"] = std::string(interner.resolve(node.bridge_port().exposed_port));
+            n["side"] = encode_bridge_side(node.bridge_port().side);
+            n["port_type"] = port_type_to_string(node.bridge_port().port_type);
         }
 
         const TypeDefinition* type_def = parser_registry
@@ -153,6 +157,9 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
             params[k] = v;
         }
         if (!params.empty()) {
+            if (!node.is_component()) {
+                throw std::logic_error("encode_nodes: non-component node has params");
+            }
             n["params"] = std::move(params);
         }
 

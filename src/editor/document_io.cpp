@@ -54,12 +54,12 @@ void Document::applyWorkspaceSession(const WorkspaceSession& session) {
         if (window_scope.mode == BlueprintWindowMode::ExternalReference && library_index_) {
             const ui::InternedId iid = interner_.lookup(window_scope.key);
             const bp2::Blueprint::Node* node = iid.empty() ? nullptr : model_.current().find_node(iid);
-            if (!node || !node->is_blueprint_instance() || !node->source.has_value() || !node->source->is_reference()) {
+            if (!node || !node->has_referenced_blueprint()) {
                 continue;
             }
             auto path = bp2::resolve_library_blueprint_path(
                 *library_index_,
-                std::string(interner_.resolve(node->source->blueprint_id())));
+                std::string(interner_.resolve(node->blueprint_instance().source.blueprint_id())));
             if (!path.has_value()) {
                 continue;
             }

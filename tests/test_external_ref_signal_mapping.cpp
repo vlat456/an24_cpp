@@ -1,5 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "blueprint_v2/codec/blueprint_codec.h"
+#include "blueprint_v2/elaboration/sim_export.h"
+#include "blueprint_v2/flattener/flattener.h"
+#include "blueprint_v2/library/blueprint_library.h"
+#include "blueprint_v2/library/type_def_to_blueprint.h"
+#include "blueprint_v2/path/path.h"
 #include "editor/external_ref_mapping.h"
 #include "editor/signal_key_resolver.h"
 #include "core/solvers/jit/simulator.h"
@@ -79,20 +85,60 @@ static std::string read_file_or_fail(const std::string& path) {
     return content;
 }
 
-static std::string scalar_json_to_param_string(const json& value) {
-    if (value.is_string()) {
-        return value.get<std::string>();
+static std::string find_library_dir() {
+    for (const auto& p : {
+        "../../library/",
+        "../library/",
+        "library/",
+    }) {
+        std::ifstream f(std::string(p) + "electrical/Resistor.blueprint");
+        if (f.is_open()) return p;
     }
-    return value.dump();
+    throw std::runtime_error("Could not find library directory");
 }
 
-/// Strict: only the canonical regression fixture is accepted.
-/// No fallback to legacy raw schematics (0%-legacy persistence policy).
+static const TypeRegistry& fixture_registry() {
+    static const TypeRegistry registry = load_type_registry(find_library_dir());
+    return registry;
+}
+
+static bp2::BlueprintLibrary build_library(const TypeRegistry& registry, ui::StringInterner& interner) {
+    bp2::BlueprintLibrary library;
+    for (const auto& [classname, def] : registry.types) {
+        if (def.cpp_class) continue;
+        try {
+            auto loaded = bp2::blueprint_from_type_definition(def, interner, registry);
+            library.add(interner.intern(classname), std::move(loaded));
+        } catch (...) {
+        }
+    }
+    return library;
+}
+
+static JitBuildInput build_input_from_blueprint_file(const std::string& blueprint_path) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    const TypeRegistry& registry = fixture_registry();
+    bp2::BlueprintLibrary library = build_library(registry, interner);
+
+    const std::string raw = read_file_or_fail(blueprint_path);
+    bp2::DecodeError err;
+    auto bp = bp2::BlueprintCodec::decode(raw, interner, arena, registry, &err);
+    if (!bp.has_value()) {
+        throw std::runtime_error("Decode failed: " + err.message);
+    }
+
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
+    return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
+}
+
+/// Find the canonical strict closed_circuit blueprint fixture.
 static std::string find_closed_circuit_blueprint() {
     std::vector<std::string> try_paths = {
-        "../../tests/fixtures/closed_circuit_regression.blueprint",
-        "../tests/fixtures/closed_circuit_regression.blueprint",
-        "tests/fixtures/closed_circuit_regression.blueprint",
+        "../../closed_circuit.blueprint",
+        "../closed_circuit.blueprint",
+        "closed_circuit.blueprint",
     };
     for (const auto& p : try_paths) {
         std::ifstream f(p);
@@ -104,57 +150,7 @@ static std::string find_closed_circuit_blueprint() {
         tried += p;
     }
     throw std::runtime_error(
-        "Could not find closed_circuit_regression.blueprint fixture in any of: " + tried +
-        "\n  NOTE: Legacy fallback to raw closed_circuit.blueprint is removed (0%-legacy policy).");
-}
-
-/// Convert the legacy node/wire fixture format to simulation JSON using node id as device key.
-static std::string blueprint_to_simulation_json(const std::string& blueprint_path) {
-    std::string content = read_file_or_fail(blueprint_path);
-    json bp = json::parse(content);
-
-    json result;
-    result["devices"] = json::array();
-    result["connections"] = json::array();
-
-    if (bp.contains("nodes") && bp["nodes"].is_array()) {
-        for (const auto& node : bp["nodes"]) {
-            std::string node_id = node.value("id", "");
-            json dev;
-            dev["name"] = node_id;
-            dev["classname"] = node["type"].get<std::string>();
-            if (node.contains("params") && node["params"].is_object()) {
-                dev["params"] = json::object();
-                for (const auto& [k, v] : node["params"].items()) {
-                    dev["params"][k] = scalar_json_to_param_string(v);
-                }
-            }
-            if (node.contains("string_params") && node["string_params"].is_object()) {
-                if (!dev.contains("params")) dev["params"] = json::object();
-                for (const auto& [k, v] : node["string_params"].items()) {
-                    dev["params"][k] = scalar_json_to_param_string(v);
-                }
-            }
-            result["devices"].push_back(dev);
-        }
-    }
-
-    if (bp.contains("wires") && bp["wires"].is_array()) {
-        for (const auto& wire : bp["wires"]) {
-            json conn;
-            std::string from = wire["source"].get<std::string>();
-            std::string to = wire["target"].get<std::string>();
-            if (!from.empty() && from[0] == '/') from = from.substr(1);
-            if (!to.empty() && to[0] == '/') to = to.substr(1);
-            std::replace(from.begin(), from.end(), ':', '.');
-            std::replace(to.begin(), to.end(), ':', '.');
-            conn["from"] = from;
-            conn["to"] = to;
-            result["connections"].push_back(conn);
-        }
-    }
-
-    return result.dump();
+        "Could not find closed_circuit.blueprint fixture in any of: " + tried);
 }
 
 } // namespace
@@ -165,10 +161,8 @@ TEST(ExternalRefIntegration, ClosedCircuitFirstOrderLagSignalsNonZero) {
     ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint())
         << "Could not find closed_circuit.blueprint";
 
-    std::string sim_json = blueprint_to_simulation_json(bp_path);
-
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
+    ASSERT_NO_THROW(sim.start(build_input_from_blueprint_file(bp_path)));
 
     // Run enough steps for signals to propagate through the composite
     const double dt = 1.0 / 60.0;
@@ -251,10 +245,8 @@ TEST(ExternalRefIntegration, WireIsEnergizedMappedKey) {
     ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint())
         << "Could not find closed_circuit.blueprint";
 
-    std::string sim_json = blueprint_to_simulation_json(bp_path);
-
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
+    ASSERT_NO_THROW(sim.start(build_input_from_blueprint_file(bp_path)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
@@ -308,10 +300,8 @@ TEST(CompositePortMapping, RootLevelOutputResolves) {
     std::string bp_path;
     ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint());
 
-    std::string sim_json = blueprint_to_simulation_json(bp_path);
-
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
+    ASSERT_NO_THROW(sim.start(build_input_from_blueprint_file(bp_path)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
@@ -347,10 +337,8 @@ TEST(CompositePortMapping, RootLevelWireEnergizedWithMapping) {
     std::string bp_path;
     ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint());
 
-    std::string sim_json = blueprint_to_simulation_json(bp_path);
-
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
+    ASSERT_NO_THROW(sim.start(build_input_from_blueprint_file(bp_path)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
@@ -376,10 +364,8 @@ TEST(ExternalRefIntegration, RootExpandableRawVsMappedKey) {
     std::string bp_path;
     ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint());
 
-    std::string sim_json = blueprint_to_simulation_json(bp_path);
-
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
+    ASSERT_NO_THROW(sim.start(build_input_from_blueprint_file(bp_path)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {
@@ -404,10 +390,8 @@ TEST(ExternalRefIntegration, RootExpandableResolvedKeyMatchesParserRewriteContra
     std::string bp_path;
     ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint());
 
-    std::string sim_json = blueprint_to_simulation_json(bp_path);
-
     Simulator<JIT_Solver> sim;
-    ASSERT_NO_THROW(sim.start(build_input_from_json(sim_json)));
+    ASSERT_NO_THROW(sim.start(build_input_from_blueprint_file(bp_path)));
 
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 120; ++i) {

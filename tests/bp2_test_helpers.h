@@ -7,6 +7,7 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "json_parser/json_parser.h"
 #include "ui/core/interned_id.h"
+#include <cassert>
 #include <initializer_list>
 #include <string>
 #include <vector>
@@ -56,12 +57,13 @@ inline bp2::PortDescriptor make_port(
 // Interface helpers
 // ==============================================================================
 
-/// Set semantic interface from a vector of port descriptors.
+/// Set interface on a component node from a vector of port descriptors.
 inline void set_iface(bp2::Blueprint::Node& node, std::vector<bp2::PortDescriptor> ports) {
-    node.semantic.iface = bp2::Interface(std::move(ports));
+    assert(node.is_component() && "set_iface requires a component node");
+    node.component().iface = bp2::Interface(std::move(ports));
 }
 
-/// Set semantic interface from an initializer list of port descriptors.
+/// Set interface on a component node from an initializer list of port descriptors.
 inline void set_iface(bp2::Blueprint::Node& node,
                       std::initializer_list<bp2::PortDescriptor> ports) {
     set_iface(node, std::vector<bp2::PortDescriptor>(ports));

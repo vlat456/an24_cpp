@@ -18,10 +18,11 @@ TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("n1");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("FirstOrderLag"),
-        bp2::Interface{});
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
+            interner.intern("FirstOrderLag"),
+            bp2::Interface{})
+    };
     bp = bp.with_node(std::move(node));
 
     const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "n1");
@@ -38,10 +39,11 @@ TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathResolvesWithIndex)
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("n_resolved");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("FirstOrderLag"),
-        bp2::Interface{});
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
+            interner.intern("FirstOrderLag"),
+            bp2::Interface{})
+    };
     // No blueprint_path set - should still resolve via LibraryIndex
     bp = bp.with_node(std::move(node));
 
@@ -60,10 +62,11 @@ TEST(SubWindowOpenTarget, ReferencedNestedMissingIndexEntryReportsFailure) {
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("n_missing");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("FirstOrderLag"),
-        bp2::Interface{});
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
+            interner.intern("FirstOrderLag"),
+            bp2::Interface{})
+    };
     bp = bp.with_node(std::move(node));
 
     const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "n_missing");
@@ -79,10 +82,11 @@ TEST(SubWindowOpenTarget, ResolvesEmbeddedNestedKind) {
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("n2");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("FirstOrderLag"),
-        std::make_unique<bp2::Blueprint>());
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            interner.intern("FirstOrderLag"),
+            std::make_unique<bp2::Blueprint>())
+    };
     bp = bp.with_node(std::move(node));
 
     const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "n2");
@@ -99,10 +103,11 @@ TEST(SubWindowOpenTarget, ResolvesExternalBlueprintPath) {
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("firstorderlag_1");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("FirstOrderLag"),
-        bp2::Interface{});
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
+            interner.intern("FirstOrderLag"),
+            bp2::Interface{})
+    };
     bp = bp.with_node(std::move(node));
 
     const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "firstorderlag_1");
@@ -119,10 +124,11 @@ TEST(SubWindowOpenTarget, ReferencedNestedWinsEvenIfHostMirrorPathIsPresent) {
 
     bp2::Blueprint::Node host;
     host.semantic.id = interner.intern("n_hosted");
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
-        interner.intern("FirstOrderLag"),
-        bp2::Interface{});
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
+            interner.intern("FirstOrderLag"),
+            bp2::Interface{})
+    };
     bp = bp.with_node(std::move(host));
 
     const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "n_hosted");
@@ -153,10 +159,11 @@ TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded)
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("broken_embedded");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("some/Type"),
-        std::make_unique<bp2::Blueprint>());
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            interner.intern("some/Type"),
+            std::make_unique<bp2::Blueprint>())
+    };
     bp = bp.with_node(std::move(node));
 
     const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "broken_embedded");
@@ -166,8 +173,8 @@ TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded)
 
     const auto* found = bp.find_blueprint_instance(interner.intern("broken_embedded"));
     ASSERT_NE(found, nullptr);
-    EXPECT_TRUE(found->source->is_embedded());
-    EXPECT_NE(found->source->inline_def(), nullptr);  // always non-null with variant design
+    EXPECT_TRUE(found->blueprint_instance().source.is_embedded());
+    EXPECT_NE(found->blueprint_instance().source.inline_def(), nullptr);  // always non-null with variant design
 }
 
 // Verify nested priority: nested lookup takes precedence over node lookup
@@ -179,10 +186,11 @@ TEST(SubWindowOpenTarget, EmbeddedNestedTakesPriorityOverExpandableNode) {
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("shared_id");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("Adder"),
-        std::make_unique<bp2::Blueprint>());
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            interner.intern("Adder"),
+            std::make_unique<bp2::Blueprint>())
+    };
     bp = bp.with_node(std::move(node));
 
     const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "shared_id");
@@ -199,25 +207,10 @@ TEST(SubWindowOpenTarget, NonBlueprintInstanceReportsFailure) {
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("plain_node");
-    node.kind = bp2::Blueprint::Node::Kind::Component;
+    node.content = bp2::Blueprint::Node::ComponentData{};
     bp = bp.with_node(std::move(node));
 
     const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "plain_node");
     EXPECT_EQ(result.target.kind, editor::SubWindowOpenTargetKind::Missing);
     EXPECT_EQ(result.failure, editor::SubWindowOpenTargetFailure::NotBlueprintInstance);
-}
-
-TEST(SubWindowOpenTarget, BlueprintInstanceMissingSourceReportsFailure) {
-    ui::StringInterner interner;
-    bp2::Blueprint bp;
-    auto index = make_test_index();
-
-    bp2::Blueprint::Node node;
-    node.semantic.id = interner.intern("missing_source");
-    node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    bp = bp.with_node(std::move(node));
-
-    const auto result = editor::resolve_subwindow_open_target(bp, interner, index, "missing_source");
-    EXPECT_EQ(result.target.kind, editor::SubWindowOpenTargetKind::Missing);
-    EXPECT_EQ(result.failure, editor::SubWindowOpenTargetFailure::MissingBlueprintSource);
 }

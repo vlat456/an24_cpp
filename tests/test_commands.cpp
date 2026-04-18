@@ -39,8 +39,6 @@ static TypeRegistry make_command_test_registry() {
         "NodeB",
         "NodeExtIn",
         "NodeExtOut",
-        "BlueprintInput",
-        "BlueprintOutput",
         "Sink",
         "Slider",
         "SomeLibraryBlueprint",
@@ -140,11 +138,16 @@ static bp2::Blueprint make_extract_with_bridge_node_fixture_node_owned(ui::Strin
     bp = bp.with_name("ExtractBridgeNode");
 
     auto bridge = make_node(I, "bridge_in");
-    bridge.semantic.type = I.intern("BlueprintInput");
-    set_iface(bridge, {
-        make_port(I.intern("ext"), bp2::Direction::Input, PortType::V),
-        make_port(I.intern("port"), bp2::Direction::Output, PortType::V),
-    });
+    bridge.semantic.type = I.intern("BridgePort");
+    bridge.content = bp2::Blueprint::Node::BridgePortData{
+        I.intern("bridge_in"),
+        bp2::Blueprint::Node::BridgePortSide::Input,
+        PortType::V,
+        bp2::Interface({
+            make_port(I.intern("ext"), bp2::Direction::Input, PortType::V),
+            make_port(I.intern("port"), bp2::Direction::Output, PortType::V),
+        })
+    };
 
     auto a = make_node(I, "a");
     a.semantic.type = I.intern("NodeA");
@@ -263,16 +266,17 @@ static bp2::Blueprint make_extract_fixture_with_existing_blueprint_name_node_own
     bp2::Blueprint bp = make_extract_fixture_node_owned(I, arena);
 
     bp2::Blueprint::Node existing;
-    existing.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     existing.semantic.id = I.intern("existing_inst");
     existing.semantic.type = I.intern("extracted_blueprint_1");
     existing.view.name = "existing_inst";
-    existing.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    existing.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("extracted_blueprint_1"),
         std::make_unique<bp2::Blueprint>(bp2::Blueprint{}
             .with_id(I.intern("extracted_blueprint_1"))
             .with_name("extracted_blueprint_1")
-            .with_interface(bp2::Interface{})));
+            .with_interface(bp2::Interface{})))
+    };
     bp = bp.with_node(std::move(existing));
     return bp;
 }
@@ -306,11 +310,10 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, BasicAtomicCreatesCollapsedEmbeddedNode)
     const auto* collapsed = updated->find_blueprint_instance(interner.lookup("extract_inst_1"));
     ASSERT_NE(collapsed, nullptr);
     ASSERT_TRUE(collapsed->has_embedded_blueprint());
-    ASSERT_NE(collapsed->source, std::nullopt);
-    ASSERT_NE(collapsed->source->inline_def(), nullptr);
-    EXPECT_EQ(std::string(interner.resolve(collapsed->source->blueprint_id())), "extracted_blueprint_1");
+    ASSERT_NE(collapsed->blueprint_instance().source.inline_def(), nullptr);
+    EXPECT_EQ(std::string(interner.resolve(collapsed->blueprint_instance().source.blueprint_id())), "extracted_blueprint_1");
 
-    const bp2::Blueprint& inner = *collapsed->source->inline_def();
+    const bp2::Blueprint& inner = *collapsed->blueprint_instance().source.inline_def();
     EXPECT_NE(inner.find_node(interner.intern("a")), nullptr);
     EXPECT_NE(inner.find_node(interner.intern("b")), nullptr);
     EXPECT_EQ(inner.iface().size(), 2u);
@@ -365,7 +368,7 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, RejectsBridgeNodeSelection) {
         false);
 
     EXPECT_FALSE(updated.has_value());
-    EXPECT_NE(err.find("BlueprintInput/BlueprintOutput"), std::string::npos);
+    EXPECT_NE(err.find("bridge port nodes"), std::string::npos);
 }
 
 TEST_F(ExtractToBlueprintNodeOwnedTest, RejectsSmallSelection) {
@@ -407,28 +410,29 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, PreservesTypedBoundaryPorts) {
     ASSERT_TRUE(updated.has_value()) << err;
     const auto* collapsed = updated->find_blueprint_instance(interner.lookup("extract_inst_1"));
     ASSERT_NE(collapsed, nullptr);
-    ASSERT_EQ(count_inputs(collapsed->semantic.iface), 1u);
-    ASSERT_EQ(count_outputs(collapsed->semantic.iface), 1u);
-    EXPECT_EQ(get_input_type(collapsed->semantic.iface, 0), PortType::I);
-    EXPECT_EQ(get_output_type(collapsed->semantic.iface, 0), PortType::I);
+    auto collapsed_iface = updated->effective_node_iface(*collapsed);
+    ASSERT_EQ(count_inputs(collapsed_iface), 1u);
+    ASSERT_EQ(count_outputs(collapsed_iface), 1u);
+    EXPECT_EQ(get_input_type(collapsed_iface, 0), PortType::I);
+    EXPECT_EQ(get_output_type(collapsed_iface, 0), PortType::I);
 
-    const bp2::Blueprint& inner = *collapsed->source->inline_def();
+    const bp2::Blueprint& inner = *collapsed->blueprint_instance().source.inline_def();
     const bp2::Blueprint::Node* bp_in_node = nullptr;
     const bp2::Blueprint::Node* bp_out_node = nullptr;
     for (const auto& n : inner.nodes()) {
-        if (n.semantic.type == interner.intern("BlueprintInput")) {
+        if (n.is_bridge_port() && n.bridge_port().side == bp2::Blueprint::Node::BridgePortSide::Input) {
             bp_in_node = &n;
         }
-        if (n.semantic.type == interner.intern("BlueprintOutput")) {
+        if (n.is_bridge_port() && n.bridge_port().side == bp2::Blueprint::Node::BridgePortSide::Output) {
             bp_out_node = &n;
         }
     }
     ASSERT_NE(bp_in_node, nullptr);
     ASSERT_NE(bp_out_node, nullptr);
-    EXPECT_EQ(get_input_type(bp_in_node->semantic.iface, 0), PortType::I);
-    EXPECT_EQ(get_output_type(bp_in_node->semantic.iface, 0), PortType::I);
-    EXPECT_EQ(get_input_type(bp_out_node->semantic.iface, 0), PortType::I);
-    EXPECT_EQ(get_output_type(bp_out_node->semantic.iface, 0), PortType::I);
+    EXPECT_EQ(get_input_type(inner.effective_node_iface(*bp_in_node), 0), PortType::I);
+    EXPECT_EQ(get_output_type(inner.effective_node_iface(*bp_in_node), 0), PortType::I);
+    EXPECT_EQ(get_input_type(inner.effective_node_iface(*bp_out_node), 0), PortType::I);
+    EXPECT_EQ(get_output_type(inner.effective_node_iface(*bp_out_node), 0), PortType::I);
 }
 
 TEST_F(ExtractToBlueprintNodeOwnedTest, PreviewRejectsEmptyName) {
@@ -534,11 +538,11 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, AtomicEncodingIsDeterministic) {
 
         const auto* collapsed = updated->find_blueprint_instance(local_interner.lookup("extract_inst_1"));
         EXPECT_NE(collapsed, nullptr);
-        if (!collapsed || !collapsed->source || !collapsed->source->inline_def()) {
+        if (!collapsed || !collapsed->has_embedded_blueprint() || !collapsed->blueprint_instance().source.inline_def()) {
             return std::string();
         }
 
-        const auto& inner = *collapsed->source->inline_def();
+        const auto& inner = *collapsed->blueprint_instance().source.inline_def();
         std::vector<std::string> iface_names;
         for (const auto& port : inner.iface().ports()) {
             iface_names.push_back(std::string(local_interner.resolve(port.name)));
@@ -546,7 +550,7 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, AtomicEncodingIsDeterministic) {
         std::sort(iface_names.begin(), iface_names.end());
 
         std::string summary;
-        summary += std::string(local_interner.resolve(collapsed->source->blueprint_id()));
+        summary += std::string(local_interner.resolve(collapsed->blueprint_instance().source.blueprint_id()));
         summary += "|nodes=" + std::to_string(inner.nodes().size());
         summary += "|wires=" + std::to_string(inner.wires().size());
         summary += "|iface=";

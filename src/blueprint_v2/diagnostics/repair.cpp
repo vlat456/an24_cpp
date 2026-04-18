@@ -45,17 +45,14 @@ RepairReport diagnose_and_repair(Blueprint& bp,
         if (!n.is_blueprint_instance()) {
             continue;
         }
-        if (!n.source.has_value()) {
-            continue;
-        }
         if (!seen_blueprint_instances.insert(n.semantic.id).second) {
             report.issues.push_back({
                 IntegrityIssue::Kind::DuplicateNestedId,
                 "duplicate blueprint instance id=" + iid(n.semantic.id)
             });
         }
-        if (n.source->is_reference()
-            && !parser_registry.has(std::string(interner.resolve(n.source->blueprint_id())))) {
+        if (n.has_referenced_blueprint()
+            && !parser_registry.has(std::string(interner.resolve(n.blueprint_instance().source.blueprint_id())))) {
             report.issues.push_back({
                 IntegrityIssue::Kind::UnknownNestedBlueprint,
                 "unknown blueprint instance id=" + iid(n.semantic.id)

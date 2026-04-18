@@ -70,7 +70,7 @@ public:
         pending_layout_overrides_ = overrides;
     }
 
-    /// Set pending bridge port type for BlueprintInput/BlueprintOutput nodes.
+    /// Set pending bridge port type for structural bridge nodes.
     void set_pending_bridge_port_type(PortType t) {
         pending_bridge_port_type_ = t;
     }
@@ -151,6 +151,6 @@ private:
     /// Render a single row in the port layout table
     void render_port_layout_row(const std::string& port_name);
 
-    /// Render PortType selector for BlueprintInput/BlueprintOutput nodes.
+    /// Render PortType selector for structural bridge nodes.
     void render_bridge_port_type_section();
 };

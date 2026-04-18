@@ -104,9 +104,9 @@ inline bp2::Blueprint hydrate_runtime_node_view_data(
         }
 
         // Recursively hydrate embedded inline blueprints
-        if (updated.source && updated.source->is_embedded()) {
-            if (const bp2::Blueprint* inline_def = updated.source->inline_def()) {
-                updated.source->set_inline_def(std::make_unique<bp2::Blueprint>(
+        if (updated.has_embedded_blueprint()) {
+            if (const bp2::Blueprint* inline_def = updated.blueprint_instance().source.inline_def()) {
+                updated.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(
                     hydrate_runtime_node_view_data(*inline_def, interner, registry)));
             }
         }

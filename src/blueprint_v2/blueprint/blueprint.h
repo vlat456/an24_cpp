@@ -20,11 +20,6 @@ namespace bp2 {
 class Blueprint {
 public:
     struct Node {
-        enum class Kind {
-            Component,
-            BlueprintInstance,
-        };
-
         // Per-port layout overrides (used by LayoutData)
         struct PortLayoutOverride {
             std::string port_name;
@@ -39,24 +34,13 @@ public:
         struct SemanticData {
             ui::InternedId id;
             ui::InternedId type;
-            /// Component-node interface cache.
-            ///
-            /// Contract (#108):
-            /// - component nodes: authoritative and required
-            /// - blueprint-instance nodes: must be empty
-            ///
-            /// For blueprint-instance nodes, always use
-            /// `Blueprint::effective_node_iface()` to read authoritative
-            /// interface data from `source`.
-            Interface iface;
             std::unordered_map<ui::InternedId, float> params;
             /// String-valued parameters (e.g. font_size, text content).
             /// Kept separate from numeric params to avoid stof() failures.
             std::unordered_map<std::string, std::string> string_params;
 
             bool operator==(SemanticData const& o) const {
-                return id == o.id && type == o.type && iface == o.iface
-                    && params == o.params && string_params == o.string_params;
+                return id == o.id && type == o.type && params == o.params && string_params == o.string_params;
             }
         };
 
@@ -111,6 +95,41 @@ public:
 
             bool canonical_eq(const BlueprintSource& other) const;
             bool operator==(const BlueprintSource& other) const;
+        };
+
+        struct ComponentData {
+            Interface iface;
+
+            bool operator==(ComponentData const& o) const {
+                return iface == o.iface;
+            }
+        };
+
+        struct BlueprintInstanceData {
+            BlueprintSource source;
+
+            bool operator==(BlueprintInstanceData const& o) const {
+                return source == o.source;
+            }
+        };
+
+        enum class BridgePortSide {
+            Input,
+            Output,
+        };
+
+        struct BridgePortData {
+            ui::InternedId exposed_port;
+            BridgePortSide side = BridgePortSide::Input;
+            PortType port_type = PortType::Contextual;
+            Interface iface;
+
+            bool operator==(BridgePortData const& o) const {
+                return exposed_port == o.exposed_port
+                    && side == o.side
+                    && port_type == o.port_type
+                    && iface == o.iface;
+            }
         };
 
         // === Layout/positioning data ===
@@ -201,25 +220,30 @@ public:
             }
         };
 
-        Kind kind = Kind::Component;
         SemanticData semantic;
-        std::optional<BlueprintSource> source;
+        std::variant<ComponentData, BlueprintInstanceData, BridgePortData> content = ComponentData{};
         LayoutData layout;
         ViewData view;
 
-        bool is_component() const { return kind == Kind::Component; }
-        bool is_blueprint_instance() const { return kind == Kind::BlueprintInstance; }
+        bool is_component() const { return std::holds_alternative<ComponentData>(content); }
+        bool is_blueprint_instance() const { return std::holds_alternative<BlueprintInstanceData>(content); }
+        bool is_bridge_port() const { return std::holds_alternative<BridgePortData>(content); }
+        ComponentData const& component() const { return std::get<ComponentData>(content); }
+        ComponentData& component() { return std::get<ComponentData>(content); }
+        BlueprintInstanceData const& blueprint_instance() const { return std::get<BlueprintInstanceData>(content); }
+        BlueprintInstanceData& blueprint_instance() { return std::get<BlueprintInstanceData>(content); }
+        BridgePortData const& bridge_port() const { return std::get<BridgePortData>(content); }
+        BridgePortData& bridge_port() { return std::get<BridgePortData>(content); }
         bool has_embedded_blueprint() const {
-            return source.has_value() && source->is_embedded();
+            return is_blueprint_instance() && blueprint_instance().source.is_embedded();
         }
         bool has_referenced_blueprint() const {
-            return source.has_value() && source->is_reference();
+            return is_blueprint_instance() && blueprint_instance().source.is_reference();
         }
 
         bool canonical_eq(Node const& o) const;
         bool operator==(Node const& o) const {
-            return kind == o.kind && semantic == o.semantic && source == o.source
-                && layout == o.layout && view == o.view;
+            return semantic == o.semantic && content == o.content && layout == o.layout && view == o.view;
         }
     };
 

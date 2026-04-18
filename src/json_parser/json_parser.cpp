@@ -126,45 +126,32 @@ static void merge_nested_blueprint(
         rewritten.to = signal_key::make_child_scope_key(prefix, conn.to);
         parent.connections.push_back(rewritten);
     }
+
+    for (const auto& bridge : nested.bridge_ports) {
+        BridgePortDefinition prefixed = bridge;
+        prefixed.id = signal_key::make_child_scope_key(prefix, bridge.id);
+        parent.bridge_ports.push_back(std::move(prefixed));
+    }
 }
 
-/// Extract exposed port metadata from BlueprintInput/BlueprintOutput devices
+/// Extract exposed port metadata from structural bridge definitions
 /// For Editor: displays exposed ports on collapsed nested blueprint nodes
 /// Returns map: exposed_port_name -> Port metadata
-std::unordered_map<std::string, Port> extract_exposed_ports(
-    const ParserContext& blueprint
-) {
+std::unordered_map<std::string, Port> extract_exposed_ports(const TypeDefinition& blueprint) {
     std::unordered_map<std::string, Port> exposed;
 
-    for (const auto& dev : blueprint.devices) {
-        if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
-            // The device NAME is the exposed port name (e.g., "vin", "vout")
-            std::string exposed_name = dev.name;
+    for (const auto& bridge : blueprint.bridge_ports) {
+        Port port;
+        port.direction = bridge.side;
+        port.type = bridge.type;
+        port.domain = domain_for_port_type(bridge.type);
+        port.alias = std::nullopt;
+        exposed[bridge.exposed_port] = port;
 
-            // Get metadata from params
-            Port port;
-            auto dir_it = dev.params.find("exposed_direction");
-            if (dir_it != dev.params.end()) {
-                port.direction = (dir_it->second == "In") ? PortDirection::In : PortDirection::Out;
-            } else {
-                port.direction = (dev.classname == "BlueprintInput") ? PortDirection::Out : PortDirection::In;
-            }
-
-            auto type_it = dev.params.find("exposed_type");
-            if (type_it != dev.params.end()) {
-                port.type = json_parser_detail::parse_port_type_for_parser(type_it->second);
-            } else {
-                port.type = PortType::Any;  // Default
-            }
-
-            port.alias = std::nullopt;  // Exposed ports don't have aliases
-            exposed[exposed_name] = port;
-
-            spdlog::debug("[parser] Exposed port: {} ({}, {})",
-                         exposed_name,
-                         (port.direction == PortDirection::In) ? "In" : "Out",
-                         port_type_to_string(port.type));
-        }
+        spdlog::debug("[parser] Exposed port: {} ({}, {})",
+                     bridge.exposed_port,
+                     (port.direction == PortDirection::In) ? "In" : "Out",
+                     port_type_to_string(port.type));
     }
 
     return exposed;
@@ -250,6 +237,10 @@ static ParserContext parse_json_impl(const std::string& json_text,
             // Track this classname as being expanded, then recurse
             expanding.insert(raw_dev.classname);
             ParserContext nested = parse_json_impl(nested_json.dump(), registry, expanding);
+            for (auto bridge : def->bridge_ports) {
+                bridge.id = raw_dev.name + ":" + bridge.id;
+                ctx.bridge_ports.push_back(std::move(bridge));
+            }
             merge_nested_blueprint(ctx, nested, raw_dev.name);
 
             spdlog::info("[json_parser] Expanded blueprint '{}' as device '{}' ({} devices)",

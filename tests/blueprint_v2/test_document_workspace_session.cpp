@@ -30,7 +30,6 @@ bp2::Blueprint make_root_blueprint(ui::StringInterner& interner) {
     bp = bp.with_name("Workspace Doc");
 
     bp2::Blueprint::Node host;
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     host.semantic.id = interner.intern("host1");
     host.semantic.type = interner.intern("embedded_type");
     host.view.name = "host1";
@@ -39,20 +38,23 @@ bp2::Blueprint make_root_blueprint(ui::StringInterner& interner) {
     inner = inner.with_id(interner.intern("embedded_type"));
     inner = inner.with_name("Embedded Type");
 
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("embedded_type"),
-        std::make_unique<bp2::Blueprint>(std::move(inner)));
+        std::make_unique<bp2::Blueprint>(std::move(inner)))
+    };
 
     bp = bp.with_node(std::move(host));
 
     bp2::Blueprint::Node ref;
-    ref.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     ref.semantic.id = interner.intern("ref1");
     ref.semantic.type = interner.intern("FirstOrderLag");
     ref.view.name = "ref1";
-    ref.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+    ref.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("FirstOrderLag"),
-        bp2::Interface{});
+        bp2::Interface{})
+    };
     bp = bp.with_node(std::move(ref));
 
     return bp;

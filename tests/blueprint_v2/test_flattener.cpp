@@ -6,6 +6,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/path/path.h"
+#include "../bp2_test_helpers.h"
 
 // ==================================================================
 // Helper: Create test library with standard components
@@ -42,6 +43,33 @@ static bp2::BlueprintLibrary make_test_library(ui::StringInterner& interner) {
     library.add(interner.intern("LED"), led);
     
     return library;
+}
+
+static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+                                             const char* id,
+                                             bool input_side,
+                                             Domain domain,
+                                             PortType type = PortType::V) {
+    bp2::Blueprint::Node bridge;
+    bridge.semantic.id = I.intern(id);
+    bridge.semantic.type = I.intern("BridgePort");
+    bridge.view.name = id;
+    bridge.content = bp2::Blueprint::Node::BridgePortData{
+        I.intern(id),
+        input_side ? bp2::Blueprint::Node::BridgePortSide::Input
+                   : bp2::Blueprint::Node::BridgePortSide::Output,
+        type,
+        input_side
+            ? bp2::Interface({
+                make_port(I, "ext", domain, bp2::Direction::Input, type),
+                make_port(I, "port", domain, bp2::Direction::Output, type),
+            })
+            : bp2::Interface({
+                make_port(I, "port", domain, bp2::Direction::Input, type),
+                make_port(I, "ext", domain, bp2::Direction::Output, type),
+            })
+    };
+    return bridge;
 }
 
 // ==================================================================
@@ -82,7 +110,7 @@ TEST(Flattener, SingleNodeNoWires) {
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("bat1");
     node.semantic.type = interner.intern("Battery");
-    node.semantic.iface = library.find(interner.intern("Battery"))->iface();
+    node.component().iface = library.find(interner.intern("Battery"))->iface();
     bp = bp.with_node(std::move(node));
 
     bp2::Flattener flattener(library);
@@ -108,13 +136,13 @@ TEST(Flattener, TwoNodesOneWire) {
     bp2::Blueprint::Node bat;
     bat.semantic.id = interner.intern("bat1");
     bat.semantic.type = interner.intern("Battery");
-    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
+    bat.component().iface = library.find(interner.intern("Battery"))->iface();
     bp = bp.with_node(std::move(bat));
 
     bp2::Blueprint::Node res;
     res.semantic.id = interner.intern("r1");
     res.semantic.type = interner.intern("Resistor");
-    res.semantic.iface = library.find(interner.intern("Resistor"))->iface();
+    res.component().iface = library.find(interner.intern("Resistor"))->iface();
     bp = bp.with_node(std::move(res));
 
     bp2::Blueprint::Wire w;
@@ -161,19 +189,19 @@ TEST(Flattener, ThreeNodesChainedSignalCount) {
     bp2::Blueprint::Node bat;
     bat.semantic.id = interner.intern("bat1");
     bat.semantic.type = interner.intern("Battery");
-    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
+    bat.component().iface = library.find(interner.intern("Battery"))->iface();
     bp = bp.with_node(std::move(bat));
 
     bp2::Blueprint::Node res;
     res.semantic.id = interner.intern("r1");
     res.semantic.type = interner.intern("Resistor");
-    res.semantic.iface = library.find(interner.intern("Resistor"))->iface();
+    res.component().iface = library.find(interner.intern("Resistor"))->iface();
     bp = bp.with_node(std::move(res));
 
     bp2::Blueprint::Node led;
     led.semantic.id = interner.intern("led1");
     led.semantic.type = interner.intern("LED");
-    led.semantic.iface = library.find(interner.intern("LED"))->iface();
+    led.component().iface = library.find(interner.intern("LED"))->iface();
     bp = bp.with_node(std::move(led));
 
     bp2::Blueprint::Wire w1;
@@ -222,7 +250,7 @@ TEST(Flattener, ParamsPreserved) {
     bp2::Blueprint::Node bat;
     bat.semantic.id = interner.intern("bat1");
     bat.semantic.type = interner.intern("Battery");
-    bat.semantic.iface = library.find(interner.intern("Battery"))->iface();
+    bat.component().iface = library.find(interner.intern("Battery"))->iface();
     bat.semantic.params[interner.intern("v_nominal")] = 28.0f;
     bat.semantic.params[interner.intern("capacity")] = 24.0f;
     bp = bp.with_node(std::move(bat));
@@ -317,19 +345,13 @@ TEST(Flattener, Regression112_SingleLevelNoPhantomPaths) {
         make_port(I, "vin", Domain::Electrical, bp2::Direction::Input),
     }));
 
-    bp2::Blueprint::Node bridge;
-    bridge.semantic.id = I.intern("vin");
-    bridge.semantic.type = I.intern("BlueprintInput");
-    bridge.semantic.iface = bp2::Interface({
-        make_port(I, "port", Domain::Electrical, bp2::Direction::Input),
-        make_port(I, "ext", Domain::Electrical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node bridge = make_bridge_node(I, "vin", true, Domain::Electrical);
     inner = inner.with_node(std::move(bridge));
 
     bp2::Blueprint::Node r1;
     r1.semantic.id = I.intern("r1");
     r1.semantic.type = I.intern("Resistor");
-    r1.semantic.iface = bp2::Interface({
+    r1.component().iface = bp2::Interface({
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
     });
@@ -347,17 +369,18 @@ TEST(Flattener, Regression112_SingleLevelNoPhantomPaths) {
     bp2::Blueprint::Node bat;
     bat.semantic.id = I.intern("bat");
     bat.semantic.type = I.intern("Battery");
-    bat.semantic.iface = bp2::Interface({
+    bat.component().iface = bp2::Interface({
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
     });
     root = root.with_node(std::move(bat));
 
     bp2::Blueprint::Node inst;
-    inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     inst.semantic.id = I.intern("inst");
     inst.semantic.type = I.intern("Embedded");
-    inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner));
+    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+    };
     root = root.with_node(std::move(inst));
 
     bp2::Blueprint::Wire rw;
@@ -417,20 +440,14 @@ TEST(Flattener, Regression112_V1LabelBasedBridgeMatch) {
         make_port(I, "feedback", Domain::Logical, bp2::Direction::Input),
     }));
 
-    bp2::Blueprint::Node bridge;
-    bridge.semantic.id = I.intern("bp_in_1");
-    bridge.semantic.type = I.intern("BlueprintInput");
-    bridge.semantic.iface = bp2::Interface({
-        make_port(I, "port", Domain::Logical, bp2::Direction::Input),
-        make_port(I, "ext", Domain::Logical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node bridge = make_bridge_node(I, "bp_in_1", true, Domain::Logical);
     bridge.view.name = "feedback";  // v1 label-based matching
     inner = inner.with_node(std::move(bridge));
 
     bp2::Blueprint::Node leaf;
     leaf.semantic.id = I.intern("pi_1");
     leaf.semantic.type = I.intern("PI");
-    leaf.semantic.iface = bp2::Interface({
+    leaf.component().iface = bp2::Interface({
         make_port(I, "feedback", Domain::Logical, bp2::Direction::Input),
         make_port(I, "output", Domain::Logical, bp2::Direction::Output),
     });
@@ -448,17 +465,18 @@ TEST(Flattener, Regression112_V1LabelBasedBridgeMatch) {
     bp2::Blueprint::Node val;
     val.semantic.id = I.intern("value_1");
     val.semantic.type = I.intern("Value");
-    val.semantic.iface = bp2::Interface({
+    val.component().iface = bp2::Interface({
         make_port(I, "o", Domain::Logical, bp2::Direction::Output),
     });
     root = root.with_node(std::move(val));
 
     bp2::Blueprint::Node exciter;
-    exciter.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     exciter.semantic.id = I.intern("extract_inst_1");
     exciter.semantic.type = I.intern("RN-180-Exciter");
-    exciter.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("RN-180-Exciter"), std::make_unique<bp2::Blueprint>(inner));
+    exciter.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("RN-180-Exciter"), std::make_unique<bp2::Blueprint>(inner))
+    };
     root = root.with_node(std::move(exciter));
 
     bp2::Blueprint::Wire rw;
@@ -515,19 +533,13 @@ TEST(Flattener, Regression112_ThreeLevelNesting_NoPhantomPaths) {
         make_port(I, "pin", Domain::Electrical, bp2::Direction::Input),
     }));
 
-    bp2::Blueprint::Node inner_bridge;
-    inner_bridge.semantic.id = I.intern("pin");
-    inner_bridge.semantic.type = I.intern("BlueprintInput");
-    inner_bridge.semantic.iface = bp2::Interface({
-        make_port(I, "port", Domain::Electrical, bp2::Direction::Input),
-        make_port(I, "ext", Domain::Electrical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node inner_bridge = make_bridge_node(I, "pin", true, Domain::Electrical);
     inner = inner.with_node(std::move(inner_bridge));
 
     bp2::Blueprint::Node r1;
     r1.semantic.id = I.intern("r1");
     r1.semantic.type = I.intern("Resistor");
-    r1.semantic.iface = bp2::Interface({
+    r1.component().iface = bp2::Interface({
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
     });
@@ -546,21 +558,16 @@ TEST(Flattener, Regression112_ThreeLevelNesting_NoPhantomPaths) {
         make_port(I, "vin", Domain::Electrical, bp2::Direction::Input),
     }));
 
-    bp2::Blueprint::Node mid_bridge;
-    mid_bridge.semantic.id = I.intern("vin");
-    mid_bridge.semantic.type = I.intern("BlueprintInput");
-    mid_bridge.semantic.iface = bp2::Interface({
-        make_port(I, "port", Domain::Electrical, bp2::Direction::Input),
-        make_port(I, "ext", Domain::Electrical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node mid_bridge = make_bridge_node(I, "vin", true, Domain::Electrical);
     mid = mid.with_node(std::move(mid_bridge));
 
     bp2::Blueprint::Node sub_inst;
-    sub_inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     sub_inst.semantic.id = I.intern("sub");
     sub_inst.semantic.type = I.intern("SubType");
-    sub_inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("SubType"), std::make_unique<bp2::Blueprint>(inner));
+    sub_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("SubType"), std::make_unique<bp2::Blueprint>(inner))
+    };
     mid = mid.with_node(std::move(sub_inst));
 
     bp2::Blueprint::Wire mid_w;
@@ -576,17 +583,18 @@ TEST(Flattener, Regression112_ThreeLevelNesting_NoPhantomPaths) {
     bp2::Blueprint::Node bat;
     bat.semantic.id = I.intern("bat");
     bat.semantic.type = I.intern("Battery");
-    bat.semantic.iface = bp2::Interface({
+    bat.component().iface = bp2::Interface({
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
     });
     root = root.with_node(std::move(bat));
 
     bp2::Blueprint::Node mid_inst;
-    mid_inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     mid_inst.semantic.id = I.intern("mid");
     mid_inst.semantic.type = I.intern("MidType");
-    mid_inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("MidType"), std::make_unique<bp2::Blueprint>(mid));
+    mid_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("MidType"), std::make_unique<bp2::Blueprint>(mid))
+    };
     root = root.with_node(std::move(mid_inst));
 
     bp2::Blueprint::Wire rw;
@@ -622,15 +630,15 @@ TEST(Flattener, Regression112_ThreeLevelNesting_NoPhantomPaths) {
 }
 
 // ==================================================================
-// #112 Regression: BlueprintOutput — output bridge resolves correctly
+// #112 Regression: output bridge resolves correctly
 // ==================================================================
 
-TEST(Flattener, Regression112_BlueprintOutput_NoPhantomPaths) {
+TEST(Flattener, Regression112_OutputBridge_NoPhantomPaths) {
     ui::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
-    // Inner: r1 → vout(BlueprintOutput)
+    // Inner: r1 → vout(output bridge)
     bp2::Blueprint inner;
     inner = inner.with_interface(bp2::Interface({
         make_port(I, "vout", Domain::Electrical, bp2::Direction::Output),
@@ -639,19 +647,13 @@ TEST(Flattener, Regression112_BlueprintOutput_NoPhantomPaths) {
     bp2::Blueprint::Node r1;
     r1.semantic.id = I.intern("r1");
     r1.semantic.type = I.intern("Resistor");
-    r1.semantic.iface = bp2::Interface({
+    r1.component().iface = bp2::Interface({
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
     });
     inner = inner.with_node(std::move(r1));
 
-    bp2::Blueprint::Node bridge;
-    bridge.semantic.id = I.intern("vout");
-    bridge.semantic.type = I.intern("BlueprintOutput");
-    bridge.semantic.iface = bp2::Interface({
-        make_port(I, "ext", Domain::Electrical, bp2::Direction::Input),
-        make_port(I, "port", Domain::Electrical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node bridge = make_bridge_node(I, "vout", false, Domain::Electrical);
     inner = inner.with_node(std::move(bridge));
 
     bp2::Blueprint::Wire iw;
@@ -665,17 +667,18 @@ TEST(Flattener, Regression112_BlueprintOutput_NoPhantomPaths) {
     bp2::Blueprint root;
 
     bp2::Blueprint::Node inst;
-    inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     inst.semantic.id = I.intern("inst");
     inst.semantic.type = I.intern("Embedded");
-    inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner));
+    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+    };
     root = root.with_node(std::move(inst));
 
     bp2::Blueprint::Node led;
     led.semantic.id = I.intern("led");
     led.semantic.type = I.intern("LED");
-    led.semantic.iface = bp2::Interface({
+    led.component().iface = bp2::Interface({
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input),
     });
     root = root.with_node(std::move(led));
@@ -721,28 +724,16 @@ TEST(Flattener, Regression112_BidirectionalBridge) {
         make_port(I, "vout", Domain::Electrical, bp2::Direction::Output),
     }));
 
-    bp2::Blueprint::Node bridge_in;
-    bridge_in.semantic.id = I.intern("vin");
-    bridge_in.semantic.type = I.intern("BlueprintInput");
-    bridge_in.semantic.iface = bp2::Interface({
-        make_port(I, "port", Domain::Electrical, bp2::Direction::Input),
-        make_port(I, "ext", Domain::Electrical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node bridge_in = make_bridge_node(I, "vin", true, Domain::Electrical);
     inner = inner.with_node(std::move(bridge_in));
 
-    bp2::Blueprint::Node bridge_out;
-    bridge_out.semantic.id = I.intern("vout");
-    bridge_out.semantic.type = I.intern("BlueprintOutput");
-    bridge_out.semantic.iface = bp2::Interface({
-        make_port(I, "ext", Domain::Electrical, bp2::Direction::Input),
-        make_port(I, "port", Domain::Electrical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node bridge_out = make_bridge_node(I, "vout", false, Domain::Electrical);
     inner = inner.with_node(std::move(bridge_out));
 
     bp2::Blueprint::Node r1;
     r1.semantic.id = I.intern("r1");
     r1.semantic.type = I.intern("Resistor");
-    r1.semantic.iface = bp2::Interface({
+    r1.component().iface = bp2::Interface({
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
     });
@@ -768,23 +759,24 @@ TEST(Flattener, Regression112_BidirectionalBridge) {
     bp2::Blueprint::Node bat;
     bat.semantic.id = I.intern("bat");
     bat.semantic.type = I.intern("Battery");
-    bat.semantic.iface = bp2::Interface({
+    bat.component().iface = bp2::Interface({
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
     });
     root = root.with_node(std::move(bat));
 
     bp2::Blueprint::Node inst;
-    inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     inst.semantic.id = I.intern("inst");
     inst.semantic.type = I.intern("Embedded");
-    inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner));
+    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+    };
     root = root.with_node(std::move(inst));
 
     bp2::Blueprint::Node led;
     led.semantic.id = I.intern("led");
     led.semantic.type = I.intern("LED");
-    led.semantic.iface = bp2::Interface({
+    led.component().iface = bp2::Interface({
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input),
     });
     root = root.with_node(std::move(led));
@@ -853,24 +845,25 @@ TEST(Flattener, Regression112_MissingBridgeThrows) {
     bp2::Blueprint::Node r1;
     r1.semantic.id = I.intern("r1");
     r1.semantic.type = I.intern("Resistor");
-    r1.semantic.iface = bp2::Interface({
+    r1.component().iface = bp2::Interface({
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input),
     });
     inner = inner.with_node(std::move(r1));
 
     bp2::Blueprint root;
     bp2::Blueprint::Node inst;
-    inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     inst.semantic.id = I.intern("inst");
     inst.semantic.type = I.intern("Embedded");
-    inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner));
+    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+    };
     root = root.with_node(std::move(inst));
 
     bp2::Blueprint::Node bat;
     bat.semantic.id = I.intern("bat");
     bat.semantic.type = I.intern("Battery");
-    bat.semantic.iface = bp2::Interface({
+    bat.component().iface = bp2::Interface({
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
     });
     root = root.with_node(std::move(bat));
@@ -903,28 +896,16 @@ TEST(Flattener, Regression112_LibraryReferenceInstance) {
     }));
 
     // Bridge node "in" with ID matching port name (v3 style)
-    bp2::Blueprint::Node bridge_in;
-    bridge_in.semantic.id = I.intern("in");
-    bridge_in.semantic.type = I.intern("BlueprintInput");
-    bridge_in.semantic.iface = bp2::Interface({
-        make_port(I, "port", Domain::Logical, bp2::Direction::Input),
-        make_port(I, "ext", Domain::Logical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node bridge_in = make_bridge_node(I, "in", true, Domain::Logical);
     lib_bp = lib_bp.with_node(std::move(bridge_in));
 
-    bp2::Blueprint::Node bridge_out;
-    bridge_out.semantic.id = I.intern("out");
-    bridge_out.semantic.type = I.intern("BlueprintOutput");
-    bridge_out.semantic.iface = bp2::Interface({
-        make_port(I, "ext", Domain::Logical, bp2::Direction::Input),
-        make_port(I, "port", Domain::Logical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node bridge_out = make_bridge_node(I, "out", false, Domain::Logical);
     lib_bp = lib_bp.with_node(std::move(bridge_out));
 
     bp2::Blueprint::Node leaf;
     leaf.semantic.id = I.intern("acc");
     leaf.semantic.type = I.intern("Accumulator");
-    leaf.semantic.iface = bp2::Interface({
+    leaf.component().iface = bp2::Interface({
         make_port(I, "in", Domain::Logical, bp2::Direction::Input),
         make_port(I, "out", Domain::Logical, bp2::Direction::Output),
     });
@@ -952,27 +933,28 @@ TEST(Flattener, Regression112_LibraryReferenceInstance) {
     bp2::Blueprint::Node val;
     val.semantic.id = I.intern("val");
     val.semantic.type = I.intern("Value");
-    val.semantic.iface = bp2::Interface({
+    val.component().iface = bp2::Interface({
         make_port(I, "o", Domain::Logical, bp2::Direction::Output),
     });
     root = root.with_node(std::move(val));
 
     bp2::Blueprint::Node lag;
-    lag.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     lag.semantic.id = I.intern("lag");
     lag.semantic.type = I.intern("MyComposite");
-    lag.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+    lag.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
         I.intern("MyComposite"),
         bp2::Interface({
             make_port(I, "in", Domain::Logical, bp2::Direction::Input),
             make_port(I, "out", Domain::Logical, bp2::Direction::Output),
-        }));
+        }))
+    };
     root = root.with_node(std::move(lag));
 
     bp2::Blueprint::Node sink;
     sink.semantic.id = I.intern("sink");
     sink.semantic.type = I.intern("Value");
-    sink.semantic.iface = bp2::Interface({
+    sink.component().iface = bp2::Interface({
         make_port(I, "i", Domain::Logical, bp2::Direction::Input),
     });
     root = root.with_node(std::move(sink));
@@ -1034,23 +1016,18 @@ TEST(Flattener, Regression112_UnwiredInstance_NoCrash) {
     inner = inner.with_interface(bp2::Interface({
         make_port(I, "vin", Domain::Electrical, bp2::Direction::Input),
     }));
-    bp2::Blueprint::Node bridge;
-    bridge.semantic.id = I.intern("vin");
-    bridge.semantic.type = I.intern("BlueprintInput");
-    bridge.semantic.iface = bp2::Interface({
-        make_port(I, "port", Domain::Electrical, bp2::Direction::Input),
-        make_port(I, "ext", Domain::Electrical, bp2::Direction::Output),
-    });
+    bp2::Blueprint::Node bridge = make_bridge_node(I, "vin", true, Domain::Electrical);
     inner = inner.with_node(std::move(bridge));
 
     // Root with instance but no wires connecting to it
     bp2::Blueprint root;
     bp2::Blueprint::Node inst;
-    inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     inst.semantic.id = I.intern("inst");
     inst.semantic.type = I.intern("Embedded");
-    inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner));
+    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+        I.intern("Embedded"), std::make_unique<bp2::Blueprint>(inner))
+    };
     root = root.with_node(std::move(inst));
 
     bp2::Flattener flattener(library);
@@ -1060,4 +1037,3 @@ TEST(Flattener, Regression112_UnwiredInstance_NoCrash) {
     EXPECT_EQ(netlist.components.size(), 1u);
     assert_no_phantom_paths(netlist, arena, I);
 }
-

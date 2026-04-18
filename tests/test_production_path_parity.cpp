@@ -16,16 +16,14 @@ TypeRegistry build_registry_for_lamp() {
     TypeDefinition lamp;
     lamp.classname = "voltage_indicator";
     lamp.cpp_class = false;
-    DeviceInstance d_vin;
-    d_vin.name = "vin";
-    d_vin.classname = "BlueprintInput";
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
-    DeviceInstance d_vout;
-    d_vout.name = "vout";
-    d_vout.classname = "BlueprintOutput";
-    lamp.devices = {d_vin, d_lamp, d_vout};
+    lamp.devices = {d_lamp};
+    lamp.bridge_ports = {
+        BridgePortDefinition{"vin", "vin", PortDirection::In, PortType::V},
+        BridgePortDefinition{"vout", "vout", PortDirection::Out, PortType::V},
+    };
     lamp.connections = {
         {"vin.port", "lamp.v_in", {}},
         {"lamp.v_out", "vout.port", {}}
@@ -55,7 +53,7 @@ TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
          dev = merge_device_instance(dev, *type_def);
      }
 
-     BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.connections));
+     BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
 
      auto jit_sig = [&](const std::string& port) -> uint32_t {
         auto it = jit_result.port_to_signal.find(port);
@@ -141,7 +139,7 @@ TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
          dev = merge_device_instance(dev, *type_def);
      }
 
-     BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.connections));
+      BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
 
      EXPECT_EQ(jit_result.electrical_plan.islands.size(), 2u)
         << "JIT must detect two electrical islands";

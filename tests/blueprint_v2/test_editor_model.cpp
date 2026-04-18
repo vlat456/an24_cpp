@@ -79,10 +79,11 @@ TEST(EditorModel, RemoveHostNodeAlsoRemovesEmbeddedBlueprint) {
      bp2::Blueprint::Node host;
      host.semantic.id = interner.intern("host1");
      host.semantic.type = interner.intern("CompositeType");
-     host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-     host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+     host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+         bp2::Blueprint::Node::BlueprintSource::make_embedded(
          interner.intern("CompositeType"),
-         std::make_unique<bp2::Blueprint>(inner));
+         std::make_unique<bp2::Blueprint>(inner))
+     };
 
      bp2::Blueprint bp;
      bp = bp.with_node(std::move(host));
@@ -233,10 +234,11 @@ TEST(EditorModel, UpdateNodeCannotOverrideEmbeddedCompositeIfaceAuthority) {
      bp2::Blueprint::Node collapsed;
      collapsed.semantic.id = interner.intern("sub1");
      collapsed.semantic.type = interner.intern("CompositeType");
-     collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-     collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+         bp2::Blueprint::Node::BlueprintSource::make_embedded(
          interner.intern("CompositeType"),
-         std::make_unique<bp2::Blueprint>(inner));
+         std::make_unique<bp2::Blueprint>(inner))
+     };
 
      bp2::Blueprint root;
      root = root.with_node(collapsed);
@@ -246,8 +248,8 @@ TEST(EditorModel, UpdateNodeCannotOverrideEmbeddedCompositeIfaceAuthority) {
       ASSERT_NE(node_before, nullptr);
 
       // The node's cached iface should match the embedded blueprint's iface
-      ASSERT_TRUE(node_before->source.has_value());
-      EXPECT_EQ(node_before->source->cached_iface().find(interner.intern("inner_only")).has_value(), true);
+      ASSERT_TRUE(node_before->is_blueprint_instance());
+      EXPECT_EQ(node_before->blueprint_instance().source.cached_iface().find(interner.intern("inner_only")).has_value(), true);
   }
 
 // Regression: constructor must canonicalize embedded blueprint interface.
@@ -262,10 +264,11 @@ TEST(EditorModel, ConstructorCanonicalizesEmbeddedCompositeHostIface) {
      bp2::Blueprint::Node collapsed;
      collapsed.semantic.id = interner.intern("sub1");
      collapsed.semantic.type = interner.intern("CompositeType");
-     collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-     collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+         bp2::Blueprint::Node::BlueprintSource::make_embedded(
          interner.intern("CompositeType"),
-         std::make_unique<bp2::Blueprint>(inner));
+         std::make_unique<bp2::Blueprint>(inner))
+     };
 
      bp2::Blueprint root;
      root = root.with_node(std::move(collapsed));
@@ -277,8 +280,8 @@ TEST(EditorModel, ConstructorCanonicalizesEmbeddedCompositeHostIface) {
       EXPECT_TRUE(node->is_blueprint_instance());
       EXPECT_TRUE(node->has_embedded_blueprint());
       // Interface authority comes from source
-      ASSERT_TRUE(node->source.has_value());
-      EXPECT_TRUE(node->source->cached_iface().find(interner.intern("authoritative_port")).has_value());
+      ASSERT_TRUE(node->is_blueprint_instance());
+      EXPECT_TRUE(node->blueprint_instance().source.cached_iface().find(interner.intern("authoritative_port")).has_value());
   }
 
 TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
@@ -292,10 +295,11 @@ TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
      bp2::Blueprint::Node collapsed;
      collapsed.semantic.id = interner.intern("sub1");
      collapsed.semantic.type = interner.intern("CompositeType");
-     collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-     collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+         bp2::Blueprint::Node::BlueprintSource::make_embedded(
          interner.intern("CompositeType"),
-         std::make_unique<bp2::Blueprint>(inner));
+         std::make_unique<bp2::Blueprint>(inner))
+     };
 
      bp2::Blueprint root;
      root = root.with_node(std::move(collapsed));
@@ -306,8 +310,8 @@ TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
       const auto* updated = model.current().find_node(interner.intern("sub1"));
       ASSERT_NE(updated, nullptr);
       EXPECT_TRUE(updated->is_blueprint_instance());
-      ASSERT_TRUE(updated->source.has_value());
-      EXPECT_TRUE(updated->source->cached_iface().find(interner.intern("inner_only")).has_value());
+      ASSERT_TRUE(updated->is_blueprint_instance());
+      EXPECT_TRUE(updated->blueprint_instance().source.cached_iface().find(interner.intern("inner_only")).has_value());
   }
 
 
@@ -489,7 +493,7 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
             // Populate interface from registry (required by strict validation)
             const auto* def = registry.get("Battery");
             if (def) {
-                n.semantic.iface = bp2::interface_from_type_definition(*def, interner);
+                n.component().iface = bp2::interface_from_type_definition(*def, interner);
             }
             EXPECT_TRUE(model.add_node(std::move(n)));
         } else if (op == 1) {

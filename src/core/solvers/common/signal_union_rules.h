@@ -15,8 +15,23 @@ inline bool should_skip_device(const DeviceInstance& dev, bool skip_visual_only)
     return skip_visual_only && dev.visual_only;
 }
 
-inline bool is_bridge_node(const DeviceInstance& dev) {
-    return dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput";
+inline std::string bridge_internal_key(const BridgePortDefinition& bridge) {
+    return signal_key::make_bridge_internal_key(bridge.id);
+}
+
+inline std::string bridge_external_key(const BridgePortDefinition& bridge) {
+    return signal_key::make_bridge_external_key(bridge.id);
+}
+
+inline std::string bridge_exposed_key(const BridgePortDefinition& bridge) {
+    if (bridge.exposed_port.empty()) {
+        return signal_key::make_exposed_node_port_from_bridge_node(bridge.id);
+    }
+    const size_t sep = bridge.id.rfind(':');
+    if (sep == std::string::npos || sep == 0) {
+        return "";
+    }
+    return signal_key::make_node_port_key(bridge.id.substr(0, sep), bridge.exposed_port);
 }
 
 inline const std::string& connection_from(const std::pair<std::string, std::string>& conn) {
@@ -36,34 +51,28 @@ inline const std::string& connection_to(const Connection& conn) {
 }
 
 template <typename UnionFindT>
-void apply_bridge_unions(
+void apply_structural_bridge_unions(
     UnionFindT& uf,
-    const std::vector<DeviceInstance>& devices,
-    const std::unordered_map<std::string, uint32_t>& port_to_idx,
-    bool skip_visual_only
+    const std::vector<BridgePortDefinition>& bridges,
+    const std::unordered_map<std::string, uint32_t>& port_to_idx
 ) {
-    for (const auto& dev : devices) {
-         if (should_skip_device(dev, skip_visual_only) || !is_bridge_node(dev)) {
-             continue;
-         }
-
-         const std::string ext_key = signal_key::make_bridge_external_key(dev.name);
-         const std::string port_key = signal_key::make_bridge_internal_key(dev.name);
-         const std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(dev.name);
-         auto it_ext = port_to_idx.find(ext_key);
-         auto it_port = port_to_idx.find(port_key);
-         if (it_ext != port_to_idx.end() && it_port != port_to_idx.end()) {
-             uf.unite(it_ext->second, it_port->second);
-         }
-         if (!exposed_key.empty()) {
-             auto it_exposed = port_to_idx.find(exposed_key);
-             if (it_exposed != port_to_idx.end() && it_ext != port_to_idx.end()) {
-                 uf.unite(it_exposed->second, it_ext->second);
-             }
-         }
-     }
+    for (const auto& bridge : bridges) {
+        const std::string ext_key = bridge_external_key(bridge);
+        const std::string port_key = bridge_internal_key(bridge);
+        const std::string exposed_key = bridge_exposed_key(bridge);
+        auto it_ext = port_to_idx.find(ext_key);
+        auto it_port = port_to_idx.find(port_key);
+        if (it_ext != port_to_idx.end() && it_port != port_to_idx.end()) {
+            uf.unite(it_ext->second, it_port->second);
+        }
+        if (!exposed_key.empty()) {
+            auto it_exposed = port_to_idx.find(exposed_key);
+            if (it_exposed != port_to_idx.end() && it_ext != port_to_idx.end()) {
+                uf.unite(it_exposed->second, it_ext->second);
+            }
+        }
+    }
 }
-
 template <typename UnionFindT, typename ConnectionT, typename OnMissingFn>
 void apply_connection_unions(
     UnionFindT& uf,
@@ -123,7 +132,6 @@ void apply_signal_union_rules(
     bool skip_visual_only,
     OnMissingFn&& on_missing
 ) {
-    apply_bridge_unions(uf, devices, port_to_idx, skip_visual_only);
     apply_connection_unions(uf, connections, port_to_idx, std::forward<OnMissingFn>(on_missing));
     apply_alias_unions(uf, devices, port_to_idx, skip_visual_only);
 }

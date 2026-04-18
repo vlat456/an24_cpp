@@ -131,7 +131,7 @@ Each node must contain a `kind` field.
 | Field | Required | Type | Description |
 |---|---|---|---|
 | `id` | yes | string | Stable opaque identity unique within this blueprint |
-| `kind` | yes | string | One of `"component"`, `"blueprint_instance"` |
+| `kind` | yes | string | One of `"component"`, `"blueprint_instance"`, `"bridge_port"` |
 | `label` | no | string | User-facing label |
 | `layout` | yes | object | Layout object |
 
@@ -269,6 +269,34 @@ The document must not persist:
 - file path
 - nested-sidecar object
 
+### Bridge-port node
+
+`kind: "bridge_port"`
+
+| Field | Required | Type | Description |
+|---|---|---|---|
+| `exposed_port` | yes | string | Public interface port this bridge anchors |
+| `side` | yes | string | One of `"input"` or `"output"` |
+| `port_type` | yes | string | Canonical port type token |
+
+Bridge-port nodes are structural boundary anchors. They are not components.
+
+### Bridge-port authority
+
+- `exposed_port` identifies the authoritative public interface port.
+- `side` and `port_type` are authoritative persisted bridge semantics.
+- The bridge's local `ext` / `port` interface is derived from `side` and `port_type`.
+
+Bridge-port nodes must not persist:
+
+- `component`
+- `source`
+- `params`
+- `collapsed`
+- any interface mirror/cache
+
+Canonical blueprint documents must not encode bridge ports as pseudo-components such as `BlueprintInput`, `BlueprintOutput`, or `BridgePort`.
+
 ## Layout
 
 Every node has a `layout` object.
@@ -339,6 +367,7 @@ Port existence is resolved from the node's authoritative interface:
 
 - For `component` nodes: the component type registry interface
 - For `blueprint_instance` nodes: the source blueprint's `interface` (embedded inline, or resolved referenced blueprint)
+- For `bridge_port` nodes: the derived two-port bridge interface from `exposed_port`, `side`, and `port_type`
 
 ## Library Index
 

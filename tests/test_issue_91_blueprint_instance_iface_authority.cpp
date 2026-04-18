@@ -29,14 +29,15 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, EmbeddedBlueprintInstanceDeri
 
     // Create a blueprint-instance node with embedded source
     bp2::Blueprint::Node bi_node;
-    bi_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     bi_node.semantic.id = interner.intern("nested_instance");
     bi_node.semantic.type = interner.intern("inner_type");
     bi_node.view.name = "nested_instance";
-    // Issue #91: DO NOT set semantic.iface - it should be derived only
-    bi_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    // Issue #91: DO NOT set component().iface - it should be derived only
+    bi_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("inner_type"),
-        std::make_unique<bp2::Blueprint>(inner_bp));
+        std::make_unique<bp2::Blueprint>(inner_bp))
+    };
 
     bp2::Blueprint root;
     root = root.with_id(interner.intern("root"));
@@ -66,14 +67,15 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, CanonicalSaveEmitsNoIfaceMirr
 
     // Create blueprint-instance node
     bp2::Blueprint::Node bi_node;
-    bi_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     bi_node.semantic.id = interner.intern("bi1");
     bi_node.semantic.type = interner.intern("inner");
     bi_node.view.name = "bi1";
-    // Do NOT set semantic.iface
-    bi_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    // Do NOT set component().iface
+    bi_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("inner"),
-        std::make_unique<bp2::Blueprint>(inner_bp));
+        std::make_unique<bp2::Blueprint>(inner_bp))
+    };
 
     bp2::Blueprint root;
     root = root.with_id(interner.intern("root"));
@@ -111,28 +113,29 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, EffectiveNodeIfaceReturnsSour
     inner_bp = inner_bp.with_interface(inner_iface);
     inner_bp = inner_bp.with_id(interner.intern("inner"));
 
-    // Create blueprint-instance node without setting semantic.iface
+    // Create blueprint-instance node without setting component().iface
     bp2::Blueprint::Node bi_node;
-    bi_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     bi_node.semantic.id = interner.intern("bi");
     bi_node.semantic.type = interner.intern("inner");
     bi_node.view.name = "bi";
-    // Issue #91: Deliberately leave semantic.iface empty
-    EXPECT_EQ(bi_node.semantic.iface.ports().size(), 0u);
+    // Issue #91: Deliberately leave component().iface empty
+    EXPECT_EQ(bi_node.component().iface.ports().size(), 0u);
     
-    bi_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    bi_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("inner"),
-        std::make_unique<bp2::Blueprint>(inner_bp));
+        std::make_unique<bp2::Blueprint>(inner_bp))
+    };
 
     bp2::Blueprint root;
     root = root.with_id(interner.intern("root"));
     root = root.with_node(std::move(bi_node));
 
-    // Verify effective_node_iface returns the source authority, NOT the (empty) semantic.iface
+    // Verify effective_node_iface returns the source authority, NOT the (empty) component().iface
     const auto* bi = root.find_node(interner.intern("bi"));
     const auto& effective = root.effective_node_iface(*bi);
     
-    // Should match inner_iface, not the empty semantic.iface
+    // Should match inner_iface, not the empty component().iface
     ASSERT_EQ(effective.ports().size(), 2u);
     auto a = effective.find(interner.intern("a"));
     auto b = effective.find(interner.intern("b"));
@@ -142,15 +145,15 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, EffectiveNodeIfaceReturnsSour
     EXPECT_EQ(b->port_type, PortType::I);
 }
 
-// Issue #91 Test 4: Component nodes still use semantic.iface (unchanged)
+// Issue #91 Test 4: Component nodes still use component().iface (unchanged)
 TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, ComponentNodesStillUseSematicIface) {
-    // Create a component node with explicit semantic.iface
+    // Create a component node with explicit component().iface
     bp2::Blueprint::Node comp_node;
-    comp_node.kind = bp2::Blueprint::Node::Kind::Component;
+    comp_node.content = bp2::Blueprint::Node::ComponentData{};
     comp_node.semantic.id = interner.intern("comp1");
     comp_node.semantic.type = interner.intern("Battery");
     comp_node.view.name = "comp1";
-    comp_node.semantic.iface = bp2::Interface({
+    comp_node.component().iface = bp2::Interface({
         make_port(interner, "v", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
 
@@ -158,7 +161,7 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, ComponentNodesStillUseSematic
     root = root.with_id(interner.intern("root"));
     root = root.with_node(std::move(comp_node));
 
-    // effective_node_iface should return semantic.iface for component nodes
+    // effective_node_iface should return component().iface for component nodes
     const auto* comp = root.find_node(interner.intern("comp1"));
     const auto& effective = root.effective_node_iface(*comp);
     

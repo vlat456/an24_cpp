@@ -204,6 +204,7 @@ struct BuildResult {
 ///   - build_input_from_json(string)        — legacy JSON adapter (tests, CLI)
 struct JitBuildInput {
     std::vector<DeviceInstance> devices;
+    std::vector<BridgePortDefinition> bridge_ports;
     PortToSignal port_to_signal;
     uint32_t signal_count = 0;
     std::unordered_map<std::string, float> initial_values;  // Optional port overrides

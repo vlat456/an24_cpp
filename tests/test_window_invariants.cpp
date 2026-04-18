@@ -22,7 +22,7 @@ bp2::Blueprint::Node make_node(ui::StringInterner& interner,
     n.semantic.type = interner.intern(type);
     n.layout.x = x;
     n.layout.y = y;
-    n.semantic.iface = bp2::Interface({
+    n.component().iface = bp2::Interface({
         bp2::PortDescriptor{interner.intern("in"), Domain::Electrical, bp2::Direction::Input, PortType::V},
         bp2::PortDescriptor{interner.intern("out"), Domain::Electrical, bp2::Direction::Output, PortType::V},
     });
@@ -39,13 +39,14 @@ TEST(WindowInvariants, OpenEmbeddedWindowWithoutInlineDefIsRejected) {
     bp2::Blueprint empty_inline;
     
     bp2::Blueprint::Node nested_node;
-    nested_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     nested_node.semantic.id = interner.intern("nested_1");
     nested_node.semantic.type = interner.intern("SomeType");
-    nested_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    nested_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("SomeType"),
         std::make_unique<bp2::Blueprint>(empty_inline)
-    );
+    )
+    };
     
     bp2::Blueprint root;
     root = root.with_node(std::move(nested_node));
@@ -71,13 +72,14 @@ TEST(WindowInvariants, EmbeddedWindowUsesAuthoritativeInlineBlueprint) {
 
     // Create a blueprint-instance node with embedded source
     bp2::Blueprint::Node nested_node;
-    nested_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     nested_node.semantic.id = interner.intern("nested_ok");
     nested_node.semantic.type = interner.intern("NestedType");
-    nested_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    nested_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("NestedType"),
         std::make_unique<bp2::Blueprint>(inline_bp)
-    );
+    )
+    };
 
     bp2::Blueprint root;
     root = root.with_node(make_node(interner, "root_a", "Test", 100.0f, 200.0f));
@@ -93,8 +95,8 @@ TEST(WindowInvariants, EmbeddedWindowUsesAuthoritativeInlineBlueprint) {
     const auto* nested_instance = model.current().find_blueprint_instance(interner.lookup("nested_ok"));
     ASSERT_NE(nested_instance, nullptr);
     ASSERT_TRUE(nested_instance->has_embedded_blueprint());
-    ASSERT_NE(nested_instance->source->inline_def(), nullptr);
-    EXPECT_EQ(&win->rendered_blueprint(), nested_instance->source->inline_def());
+    ASSERT_NE(nested_instance->blueprint_instance().source.inline_def(), nullptr);
+    EXPECT_EQ(&win->rendered_blueprint(), nested_instance->blueprint_instance().source.inline_def());
     EXPECT_NE(&win->rendered_blueprint(), &model.current());
 }
 
@@ -146,13 +148,14 @@ TEST(WindowInvariants, EmbeddedWindowCanvasInputUsesEmptyGroupFilter) {
 
     // Create a blueprint-instance node with embedded source
     bp2::Blueprint::Node nested_node;
-    nested_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     nested_node.semantic.id = interner.intern("nested_input");
     nested_node.semantic.type = interner.intern("NestedType");
-    nested_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    nested_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("NestedType"),
         std::make_unique<bp2::Blueprint>(inline_bp)
-    );
+    )
+    };
 
     bp2::Blueprint root;
     root = root.with_node(std::move(nested_node));
@@ -175,13 +178,14 @@ TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
 
     // Create a blueprint-instance node with embedded source
     bp2::Blueprint::Node nested_node;
-    nested_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     nested_node.semantic.id = interner.intern("nested_edit");
     nested_node.semantic.type = interner.intern("NestedType");
-    nested_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    nested_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("NestedType"),
         std::make_unique<bp2::Blueprint>(inline_bp)
-    );
+    )
+    };
 
     bp2::Blueprint root;
     root = root.with_node(std::move(nested_node));
@@ -202,8 +206,8 @@ TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
     const auto* nested_instance = model.current().find_blueprint_instance(interner.lookup("nested_edit"));
     ASSERT_NE(nested_instance, nullptr);
     ASSERT_TRUE(nested_instance->has_embedded_blueprint());
-    ASSERT_NE(nested_instance->source->inline_def(), nullptr);
-    const auto* moved = nested_instance->source->inline_def()->find_node(node_id);
+    ASSERT_NE(nested_instance->blueprint_instance().source.inline_def(), nullptr);
+    const auto* moved = nested_instance->blueprint_instance().source.inline_def()->find_node(node_id);
     ASSERT_NE(moved, nullptr);
     EXPECT_FLOAT_EQ(moved->layout.x, 42.0f);
     EXPECT_FLOAT_EQ(moved->layout.y, 84.0f);
@@ -212,8 +216,8 @@ TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
     const auto* nested_after_undo = model.current().find_blueprint_instance(interner.lookup("nested_edit"));
     ASSERT_NE(nested_after_undo, nullptr);
     ASSERT_TRUE(nested_after_undo->has_embedded_blueprint());
-    ASSERT_NE(nested_after_undo->source->inline_def(), nullptr);
-    const auto* undone = nested_after_undo->source->inline_def()->find_node(node_id);
+    ASSERT_NE(nested_after_undo->blueprint_instance().source.inline_def(), nullptr);
+    const auto* undone = nested_after_undo->blueprint_instance().source.inline_def()->find_node(node_id);
     ASSERT_NE(undone, nullptr);
     EXPECT_FLOAT_EQ(undone->layout.x, 10.0f);
     EXPECT_FLOAT_EQ(undone->layout.y, 20.0f);
@@ -224,8 +228,8 @@ TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
     const auto* nested_after_redo = model.current().find_blueprint_instance(interner.lookup("nested_edit"));
     ASSERT_NE(nested_after_redo, nullptr);
     ASSERT_TRUE(nested_after_redo->has_embedded_blueprint());
-    ASSERT_NE(nested_after_redo->source->inline_def(), nullptr);
-    const auto* redone = nested_after_redo->source->inline_def()->find_node(node_id);
+    ASSERT_NE(nested_after_redo->blueprint_instance().source.inline_def(), nullptr);
+    const auto* redone = nested_after_redo->blueprint_instance().source.inline_def()->find_node(node_id);
     ASSERT_NE(redone, nullptr);
     EXPECT_FLOAT_EQ(redone->layout.x, 42.0f);
     EXPECT_FLOAT_EQ(redone->layout.y, 84.0f);
@@ -298,13 +302,14 @@ TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
     // Embedded window (needs a blueprint-instance node with embedded source)
     bp2::Blueprint inline_bp;
     bp2::Blueprint::Node nested_node;
-    nested_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     nested_node.semantic.id = interner.intern("emb_group");
     nested_node.semantic.type = interner.intern("SomeType");
-    nested_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    nested_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("SomeType"),
         std::make_unique<bp2::Blueprint>(inline_bp)
-    );
+    )
+    };
     
     bp2::Blueprint with_node = root_bp.with_node(std::move(nested_node));
     model.replace_current(std::move(with_node));
@@ -331,13 +336,14 @@ TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingEmbeddedHost) {
     bp2::PathArena arena(interner);
 
     bp2::Blueprint::Node nested_node;
-    nested_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     nested_node.semantic.id = interner.intern("nested_for_throw");
     nested_node.semantic.type = interner.intern("NestedType");
-    nested_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    nested_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("NestedType"),
         std::make_unique<bp2::Blueprint>()
-    );
+    )
+    };
     
     bp2::Blueprint root_bp;
     root_bp = root_bp.with_node(std::move(nested_node));
@@ -407,13 +413,14 @@ TEST(WindowInvariants, EmbeddedAndExternalWithSameKeyDoNotCollide) {
 
     bp2::Blueprint inline_bp;
     bp2::Blueprint::Node nested_node;
-    nested_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     nested_node.semantic.id = interner.intern("shared_key");
     nested_node.semantic.type = interner.intern("SomeType");
-    nested_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    nested_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("SomeType"),
         std::make_unique<bp2::Blueprint>(inline_bp)
-    );
+    )
+    };
     bp2::Blueprint root_bp;
     root_bp = root_bp.with_node(std::move(nested_node));
     bp2::EditorModel model(root_bp);

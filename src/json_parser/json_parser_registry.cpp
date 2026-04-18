@@ -15,6 +15,12 @@ using json = nlohmann::json;
 
 namespace {
 
+PortDirection bridge_side_from_string(const std::string& side) {
+    if (side == "input") return PortDirection::In;
+    if (side == "output") return PortDirection::Out;
+    throw std::runtime_error("Invalid bridge side '" + side + "'");
+}
+
 TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesystem::path& path) {
     TypeDefinition def;
     if (!j.contains("id") || !j["id"].is_string() || j["id"].get<std::string>().empty()) {
@@ -189,9 +195,33 @@ TypeDefinition parse_blueprint_type_definition(const json& j, const std::filesys
     // so that parse_json_impl can expand composites automatically.
     if (!def.cpp_class && j.contains("nodes") && j["nodes"].is_array()) {
         for (const auto& node : j["nodes"]) {
+            const std::string node_type = node.value("type", "");
+            if (node.value("kind", "") == "bridge_port") {
+                BridgePortDefinition bridge;
+                bridge.id = node.value("id", "");
+                bridge.exposed_port = node.value("exposed_port", bridge.id);
+                bridge.side = bridge_side_from_string(node.value("side", "input"));
+                bridge.type = json_parser_internal::parse_port_type_string(node.value("port_type", "Contextual"));
+                bridge.label = node.value("label", "");
+                if (node.contains("layout") && node["layout"].is_object()) {
+                    bridge.pos = {
+                        node["layout"].value("x", 0.0f),
+                        node["layout"].value("y", 0.0f)
+                    };
+                    if (node["layout"].contains("width") && node["layout"].contains("height")) {
+                        bridge.size = {
+                            node["layout"].value("width", 0.0f),
+                            node["layout"].value("height", 0.0f)
+                        };
+                    }
+                }
+                def.bridge_ports.push_back(std::move(bridge));
+                continue;
+            }
+
             DeviceInstance dev;
             dev.name = node.value("id", "");
-            dev.classname = node.value("type", "");
+            dev.classname = node_type;
             if (node.contains("params") && node["params"].is_object()) {
                 for (const auto& [k, v] : node["params"].items()) {
                     if (v.is_number()) {

@@ -135,15 +135,15 @@ bool append_selected_embedded_nested_for_inline(
         if (selected_set.find(source_node.semantic.id) == selected_set.end()) {
             continue;
         }
-        if (!source_node.has_embedded_blueprint() || !source_node.source || !source_node.source->inline_def()) {
+        if (!source_node.has_embedded_blueprint()) {
             continue;
         }
 
         bp2::Blueprint::Node updated = source_node;
-        bp2::Blueprint child_bp = *source_node.source->inline_def();
+        bp2::Blueprint child_bp = *source_node.blueprint_instance().source.inline_def();
 
         for (const auto& child_node : child_bp.nodes()) {
-            if (!child_node.has_referenced_blueprint() || !child_node.source) {
+            if (!child_node.has_referenced_blueprint()) {
                 continue;
             }
             if (!allow_nonembedded_descendant_refs) {
@@ -152,14 +152,14 @@ bool append_selected_embedded_nested_for_inline(
 
             const bp2::Blueprint* provider = nullptr;
             for (const auto& provider_node : source.nodes()) {
-                if (!provider_node.has_embedded_blueprint() || !provider_node.source || !provider_node.source->inline_def()) {
+                if (!provider_node.has_embedded_blueprint()) {
                     continue;
                 }
-                if (provider_node.source->blueprint_id() != child_node.source->blueprint_id()) {
+                if (provider_node.blueprint_instance().source.blueprint_id() != child_node.blueprint_instance().source.blueprint_id()) {
                     continue;
                 }
                 if (!provider || provider_node.semantic.id.raw() < provider->id().raw()) {
-                    provider = provider_node.source->inline_def();
+                    provider = provider_node.blueprint_instance().source.inline_def();
                 }
             }
 
@@ -168,15 +168,15 @@ bool append_selected_embedded_nested_for_inline(
             }
 
             bp2::Blueprint::Node remapped = child_node;
-            remapped.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-                child_node.source->blueprint_id(),
-                std::make_unique<bp2::Blueprint>(*provider));
-            // Issue #91: Blueprint-instance interface derives from source authority only.
-            // Do NOT mirror node.semantic.iface.
+            remapped.content = bp2::Blueprint::Node::BlueprintInstanceData{
+                bp2::Blueprint::Node::BlueprintSource::make_embedded(
+                    child_node.blueprint_instance().source.blueprint_id(),
+                    std::make_unique<bp2::Blueprint>(*provider))
+            };
             child_bp = bp2::replace_node_preserve_order(child_bp, std::move(remapped));
         }
 
-        updated.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(child_bp)));
+        updated.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(child_bp)));
         inline_bp = bp2::replace_node_preserve_order(inline_bp, std::move(updated));
     }
 
@@ -321,7 +321,11 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
 
     // -- Build blueprint-instance node with embedded source ---
     bp2::Blueprint::Node collapsed;
-    collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            blueprint_iid,
+            std::make_unique<bp2::Blueprint>(std::move(inline_bp)))
+    };
     collapsed.semantic.id = nested_instance_id;
     collapsed.semantic.type = blueprint_iid;
     collapsed.view.name = blueprint_name;
@@ -330,12 +334,6 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     collapsed.layout.y = plan.center_y;
     collapsed.layout.width = 160.0f;
     collapsed.layout.height = 64.0f;
-    
-    // Create embedded blueprint source
-    bp2::Blueprint::Node::BlueprintSource::Embedded embedded(
-        blueprint_iid,
-        std::make_unique<bp2::Blueprint>(std::move(inline_bp)));
-    collapsed.source = bp2::Blueprint::Node::BlueprintSource(std::move(embedded));
     
     std::vector<ExternalConnection> sorted_inputs = plan.inputs;
     std::vector<ExternalConnection> sorted_outputs = plan.outputs;

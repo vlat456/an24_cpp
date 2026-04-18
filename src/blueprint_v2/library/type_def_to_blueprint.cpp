@@ -66,6 +66,37 @@ Domain resolve_wire_domain(const Blueprint& bp,
     return src_desc->domain;
 }
 
+Blueprint::Node make_bridge_node(const BridgePortDefinition& bridge,
+                                 ui::StringInterner& interner) {
+    Blueprint::Node node;
+    node.semantic.id = interner.intern(bridge.id);
+    node.semantic.type = interner.intern("BridgePort");
+    node.view.name = bridge.label;
+
+    const bool is_input = bridge.side == PortDirection::In;
+    node.content = Blueprint::Node::BridgePortData{
+        interner.intern(bridge.exposed_port),
+        is_input ? Blueprint::Node::BridgePortSide::Input
+                 : Blueprint::Node::BridgePortSide::Output,
+        bridge.type,
+        Interface({
+            {interner.intern(is_input ? "ext" : "port"), domain_for_port_type(bridge.type), Direction::Input, bridge.type},
+            {interner.intern(is_input ? "port" : "ext"), domain_for_port_type(bridge.type), Direction::Output, bridge.type},
+        })
+    };
+
+    if (bridge.pos) {
+        node.layout.x = bridge.pos->first;
+        node.layout.y = bridge.pos->second;
+    }
+    if (bridge.size) {
+        node.layout.width = bridge.size->first;
+        node.layout.height = bridge.size->second;
+    }
+    node.layout.collapsed = true;
+    return node;
+}
+
 } // namespace
 
 Blueprint blueprint_from_type_definition(const TypeDefinition& def,
@@ -85,7 +116,7 @@ Blueprint blueprint_from_type_definition(const TypeDefinition& def,
     // --- Nodes from devices ---
     for (const auto& dev : def.devices) {
         Blueprint::Node node;
-        node.kind = Blueprint::Node::Kind::Component;
+        node.content = Blueprint::Node::ComponentData{};
         node.semantic.id = interner.intern(dev.name);
         node.semantic.type = interner.intern(dev.classname);
 
@@ -104,7 +135,7 @@ Blueprint blueprint_from_type_definition(const TypeDefinition& def,
         // canonical type definition to get the port list.
         const TypeDefinition* dev_def = registry.get(dev.classname);
         if (dev_def) {
-            node.semantic.iface = interface_from_type_definition(*dev_def, interner);
+            node.component().iface = interface_from_type_definition(*dev_def, interner);
         } else if (!dev.ports.empty()) {
             // Fallback: use device-level ports if somehow populated
             std::vector<PortDescriptor> node_ports;
@@ -113,7 +144,7 @@ Blueprint blueprint_from_type_definition(const TypeDefinition& def,
                 node_ports.push_back(
                     port_descriptor_from_type_port(interner.intern(pname), port));
             }
-            node.semantic.iface = Interface(std::move(node_ports));
+            node.component().iface = Interface(std::move(node_ports));
         }
 
         // Layout from position/size if available
@@ -128,6 +159,10 @@ Blueprint blueprint_from_type_definition(const TypeDefinition& def,
         node.layout.collapsed = true;
 
         bp = bp.with_node(std::move(node));
+    }
+
+    for (const auto& bridge : def.bridge_ports) {
+        bp = bp.with_node(make_bridge_node(bridge, interner));
     }
 
     // --- Wires from connections ---

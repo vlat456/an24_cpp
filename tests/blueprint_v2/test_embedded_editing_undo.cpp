@@ -18,10 +18,11 @@ TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
      bp2::Blueprint::Node collapsed;
      collapsed.semantic.id = interner.intern("comp_1");
      collapsed.semantic.type = interner.intern("FirstOrderLag");
-     collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-     collapsed.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+         bp2::Blueprint::Node::BlueprintSource::make_embedded(
          interner.intern("FirstOrderLag"),
-         std::make_unique<bp2::Blueprint>(inline_bp));
+         std::make_unique<bp2::Blueprint>(inline_bp))
+     };
      root = root.with_node(collapsed);
 
      bp2::EditorModel model(root);
@@ -29,9 +30,9 @@ TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
      const auto* before_node = model.current().find_node(interner.intern("comp_1"));
      ASSERT_NE(before_node, nullptr);
      ASSERT_TRUE(before_node->is_blueprint_instance());
-     ASSERT_TRUE(before_node->source.has_value());
-     ASSERT_NE(before_node->source->inline_def(), nullptr);
-     const auto* before_inner = before_node->source->inline_def()->find_node(interner.intern("inner_node"));
+     ASSERT_TRUE(before_node->is_blueprint_instance());
+     ASSERT_NE(before_node->blueprint_instance().source.inline_def(), nullptr);
+     const auto* before_inner = before_node->blueprint_instance().source.inline_def()->find_node(interner.intern("inner_node"));
      ASSERT_NE(before_inner, nullptr);
      EXPECT_FLOAT_EQ(before_inner->layout.x, 10.0f);
 
@@ -41,9 +42,9 @@ TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
      moved.layout.y = 99.0f;
 
      auto updated_inline = std::make_unique<bp2::Blueprint>(
-         bp2::replace_node_preserve_order(*before_node->source->inline_def(), std::move(moved)));
-     updated_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-         before_node->source->blueprint_id(),
+         bp2::replace_node_preserve_order(*before_node->blueprint_instance().source.inline_def(), std::move(moved)));
+     updated_node.blueprint_instance().source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+         before_node->blueprint_instance().source.blueprint_id(),
          std::move(updated_inline));
 
      model.push_checkpoint();
@@ -51,9 +52,9 @@ TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
 
      const auto* after_node = model.current().find_node(interner.intern("comp_1"));
      ASSERT_NE(after_node, nullptr);
-     ASSERT_TRUE(after_node->source.has_value());
-     ASSERT_NE(after_node->source->inline_def(), nullptr);
-     const auto* after_inner = after_node->source->inline_def()->find_node(interner.intern("inner_node"));
+     ASSERT_TRUE(after_node->is_blueprint_instance());
+     ASSERT_NE(after_node->blueprint_instance().source.inline_def(), nullptr);
+     const auto* after_inner = after_node->blueprint_instance().source.inline_def()->find_node(interner.intern("inner_node"));
      ASSERT_NE(after_inner, nullptr);
      EXPECT_FLOAT_EQ(after_inner->layout.x, 42.0f);
      EXPECT_FLOAT_EQ(after_inner->layout.y, 99.0f);
@@ -61,9 +62,9 @@ TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
      model.undo();
      const auto* undo_node = model.current().find_node(interner.intern("comp_1"));
      ASSERT_NE(undo_node, nullptr);
-     ASSERT_TRUE(undo_node->source.has_value());
-     ASSERT_NE(undo_node->source->inline_def(), nullptr);
-     const auto* undo_inner = undo_node->source->inline_def()->find_node(interner.intern("inner_node"));
+     ASSERT_TRUE(undo_node->is_blueprint_instance());
+     ASSERT_NE(undo_node->blueprint_instance().source.inline_def(), nullptr);
+     const auto* undo_inner = undo_node->blueprint_instance().source.inline_def()->find_node(interner.intern("inner_node"));
      ASSERT_NE(undo_inner, nullptr);
      EXPECT_FLOAT_EQ(undo_inner->layout.x, 10.0f);
      EXPECT_FLOAT_EQ(undo_inner->layout.y, 20.0f);
@@ -71,9 +72,9 @@ TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
      model.redo();
      const auto* redo_node = model.current().find_node(interner.intern("comp_1"));
      ASSERT_NE(redo_node, nullptr);
-     ASSERT_TRUE(redo_node->source.has_value());
-     ASSERT_NE(redo_node->source->inline_def(), nullptr);
-     const auto* redo_inner = redo_node->source->inline_def()->find_node(interner.intern("inner_node"));
+     ASSERT_TRUE(redo_node->is_blueprint_instance());
+     ASSERT_NE(redo_node->blueprint_instance().source.inline_def(), nullptr);
+     const auto* redo_inner = redo_node->blueprint_instance().source.inline_def()->find_node(interner.intern("inner_node"));
      ASSERT_NE(redo_inner, nullptr);
      EXPECT_FLOAT_EQ(redo_inner->layout.x, 42.0f);
      EXPECT_FLOAT_EQ(redo_inner->layout.y, 99.0f);

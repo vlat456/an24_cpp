@@ -15,6 +15,7 @@ using namespace jit_solver_impl;
 static void compute_signal_mapping(
     BuildResult& result,
     const std::vector<DeviceInstance>& devices,
+    const std::vector<BridgePortDefinition>& bridge_ports,
     const std::vector<std::pair<std::string, std::string>>& connections)
 {
     std::vector<std::string> all_ports;
@@ -33,15 +34,30 @@ static void compute_signal_mapping(
              port_to_idx[full_port] = idx;
          }
 
-         if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
-             const std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(dev.name);
-             if (!exposed_key.empty() && port_to_idx.count(exposed_key) == 0) {
-                 const uint32_t idx = static_cast<uint32_t>(all_ports.size());
-                 all_ports.push_back(exposed_key);
-                 port_to_idx[exposed_key] = idx;
-             }
-         }
      }
+
+    for (const auto& bridge : bridge_ports) {
+        const std::string ext_key = signal_union_rules::bridge_external_key(bridge);
+        const std::string port_key = signal_union_rules::bridge_internal_key(bridge);
+
+        if (port_to_idx.count(ext_key) == 0) {
+            const uint32_t idx = static_cast<uint32_t>(all_ports.size());
+            all_ports.push_back(ext_key);
+            port_to_idx[ext_key] = idx;
+        }
+        if (port_to_idx.count(port_key) == 0) {
+            const uint32_t idx = static_cast<uint32_t>(all_ports.size());
+            all_ports.push_back(port_key);
+            port_to_idx[port_key] = idx;
+        }
+
+        const std::string exposed_key = signal_union_rules::bridge_exposed_key(bridge);
+        if (!exposed_key.empty() && port_to_idx.count(exposed_key) == 0) {
+            const uint32_t idx = static_cast<uint32_t>(all_ports.size());
+            all_ports.push_back(exposed_key);
+            port_to_idx[exposed_key] = idx;
+        }
+    }
 
     if (all_ports.empty()) {
         result.signal_count = 1; // sentinel
@@ -49,6 +65,8 @@ static void compute_signal_mapping(
     }
 
     core::utils::UnionFind uf(all_ports.size());
+
+    signal_union_rules::apply_structural_bridge_unions(uf, bridge_ports, port_to_idx);
 
     // === PARITY GUARD: bridge/connection/alias unions ===
     // INVARIANT: this must stay behaviorally aligned with the AOT path.
@@ -137,11 +155,12 @@ JitBuildInput build_input_from_json(const std::string& json_str) {
 
     // Compute port_to_signal mapping
     BuildResult temp_result{};
-    compute_signal_mapping(temp_result, ctx.devices, connections);
+    compute_signal_mapping(temp_result, ctx.devices, ctx.bridge_ports, connections);
 
     // Return JitBuildInput with computed mapping and initial values
     return JitBuildInput{
         ctx.devices,
+        ctx.bridge_ports,
         temp_result.port_to_signal,
         temp_result.signal_count,
         ctx.initial_values  // Include initial values from JSON

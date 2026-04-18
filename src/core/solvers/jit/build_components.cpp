@@ -87,10 +87,6 @@ void build_and_register_components(
             continue;
         }
 
-        if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
-            continue;
-        }
-
         if (!has_component_metadata(metadata_classname_for(dev.classname))) {
             throw std::runtime_error("Missing generated port metadata for component class '" + dev.classname + "'");
         }

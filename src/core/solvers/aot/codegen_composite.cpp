@@ -18,10 +18,10 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(expanded.devices, all_ports, port_to_idx);
+    codegen_composite_detail::build_port_index_map(expanded.devices, expanded.bridge_ports, all_ports, port_to_idx);
 
     codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, expanded.devices, expanded.connections, port_to_idx);
+    codegen_composite_detail::apply_signal_allocation_rules(uf, expanded.devices, expanded.bridge_ports, expanded.connections, port_to_idx);
 
     uint32_t signal_count = 0;
     auto port_to_signal = codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);

@@ -78,7 +78,7 @@ static float get_voltage(const SimulationState& state, const BuildResult& result
 }
 
 // =============================================================================
-// Integration Tests - BlueprintInput/BlueprintOutput
+// Integration Tests - structural bridge and port behavior
 // =============================================================================
 
 

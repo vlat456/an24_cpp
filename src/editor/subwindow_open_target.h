@@ -21,7 +21,6 @@ enum class SubWindowOpenTargetFailure {
     None,
     UnknownNodeId,
     NotBlueprintInstance,
-    MissingBlueprintSource,
     MissingLibraryIndexEntry,
 };
 

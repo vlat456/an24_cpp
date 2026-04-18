@@ -119,21 +119,6 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     ui::StringInterner interner;
     TypeRegistry registry = make_registry();
 
-    TypeDefinition bridge_in;
-    bridge_in.classname = "BlueprintInput";
-    bridge_in.cpp_class = true;
-    Port ext;
-    ext.direction = PortDirection::In;
-    ext.type = PortType::Contextual;
-    ext.domain = Domain::Electrical;
-    bridge_in.ports["ext"] = ext;
-    Port port;
-    port.direction = PortDirection::Out;
-    port.type = PortType::Contextual;
-    port.domain = Domain::Electrical;
-    bridge_in.ports["port"] = port;
-    registry.types["BlueprintInput"] = bridge_in;
-
     TypeDefinition sink;
     sink.classname = "BoolSink";
     sink.cpp_class = true;
@@ -154,10 +139,12 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     exposed.domain = Domain::Logical;
     def.ports["other_flag"] = exposed;
 
-    DeviceInstance bridge_dev;
-    bridge_dev.name = "flag";
-    bridge_dev.classname = "BlueprintInput";
-    def.devices.push_back(bridge_dev);
+    BridgePortDefinition bridge;
+    bridge.id = "flag";
+    bridge.exposed_port = "flag";
+    bridge.side = PortDirection::In;
+    bridge.type = PortType::Contextual;
+    def.bridge_ports.push_back(bridge);
 
     DeviceInstance sink_dev;
     sink_dev.name = "sink";

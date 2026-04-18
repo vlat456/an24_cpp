@@ -70,6 +70,10 @@ JitBuildInput elaborate_for_jit(
             continue;
         }
 
+        if (!comp.exposed_port_name.empty()) {
+            continue;
+        }
+
         const std::string classname(interner.resolve(comp.type));
 
         DeviceInstance dev;
@@ -150,9 +154,9 @@ JitBuildInput elaborate_for_jit(
             result.port_to_signal[key] = it->second;
         }
 
-        // Bridge nodes: also register the exposed key (parent_scope:bridge_name)
-        const std::string classname(interner.resolve(comp.type));
-        if (classname == "BlueprintInput" || classname == "BlueprintOutput") {
+        // Structural bridge nodes are lowered away as runtime devices; only
+        // their exposed parent interface key remains in the signal map.
+        if (!comp.exposed_port_name.empty()) {
             const std::string exposed_key = exposed_key_for_component(comp, dev_id, interner);
             if (!exposed_key.empty()) {
                 // Find the ext port's signal to use for the exposed key

@@ -60,21 +60,23 @@ inline JitBuildInput make_jit_input(
 /// from explicit device and connection pairs.
 inline JitBuildInput make_jit_input_from_composite(
     std::vector<DeviceInstance> devices,
+    const std::vector<BridgePortDefinition>& bridge_ports,
     const std::vector<Connection>& connections)
 {
     JitBuildInput input;
     input.devices = std::move(devices);
+    input.bridge_ports = bridge_ports;
     
     // Build port index map from all declared device ports
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(input.devices, all_ports, port_to_idx);
+    codegen_composite_detail::build_port_index_map(input.devices, bridge_ports, all_ports, port_to_idx);
     
     // Construct union-find for signal allocation
     codegen_composite_detail::UnionFind uf(all_ports.size());
     
     // Apply signal allocation rules (connections, alias rules, etc.)
-    codegen_composite_detail::apply_signal_allocation_rules(uf, input.devices, connections, port_to_idx);
+    codegen_composite_detail::apply_signal_allocation_rules(uf, input.devices, bridge_ports, connections, port_to_idx);
     
     // Finalize signal indices from union-find result
     uint32_t signal_count = 0;

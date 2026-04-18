@@ -12,8 +12,6 @@ const char* to_string(SubWindowOpenTargetFailure failure) {
             return "unknown node id";
         case SubWindowOpenTargetFailure::NotBlueprintInstance:
             return "node is not a blueprint instance";
-        case SubWindowOpenTargetFailure::MissingBlueprintSource:
-            return "blueprint instance missing source";
         case SubWindowOpenTargetFailure::MissingLibraryIndexEntry:
             return "referenced blueprint id missing from library index";
     }
@@ -36,16 +34,13 @@ SubWindowOpenTargetResult resolve_subwindow_open_target(const bp2::Blueprint& bp
     if (!node->is_blueprint_instance()) {
         return {{}, SubWindowOpenTargetFailure::NotBlueprintInstance};
     }
-    if (!node->source.has_value()) {
-        return {{}, SubWindowOpenTargetFailure::MissingBlueprintSource};
-    }
-    if (node->source->is_embedded()) {
+    if (node->blueprint_instance().source.is_embedded()) {
         return {{SubWindowOpenTargetKind::EmbeddedNested, {}}, SubWindowOpenTargetFailure::None};
     }
-    if (node->source->is_reference()) {
+    if (node->blueprint_instance().source.is_reference()) {
         auto path = bp2::resolve_library_blueprint_path(
             library_index,
-            std::string(interner.resolve(node->source->blueprint_id())));
+            std::string(interner.resolve(node->blueprint_instance().source.blueprint_id())));
         if (!path.has_value()) {
             return {{}, SubWindowOpenTargetFailure::MissingLibraryIndexEntry};
         }
@@ -53,7 +48,8 @@ SubWindowOpenTargetResult resolve_subwindow_open_target(const bp2::Blueprint& bp
                 SubWindowOpenTargetFailure::None};
     }
 
-    return {{}, SubWindowOpenTargetFailure::MissingBlueprintSource};
+    // BlueprintSource is a variant<Embedded, Reference> — exhaustive above.
+    __builtin_unreachable();
 }
 
 } // namespace editor

@@ -120,23 +120,6 @@ static TypeRegistry make_canvas_input_test_registry() {
         def.ports.emplace("in", Port(PortDirection::In, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
     }
-    {
-        TypeDefinition def;
-        def.classname = "BlueprintInput";
-        def.cpp_class = true;
-        def.ports.emplace("ext", Port(PortDirection::In, PortType::Contextual, Domain::Electrical, false));
-        def.ports.emplace("port", Port(PortDirection::Out, PortType::Contextual, Domain::Electrical, false));
-        reg.types[def.classname] = std::move(def);
-    }
-    {
-        TypeDefinition def;
-        def.classname = "BlueprintOutput";
-        def.cpp_class = true;
-        def.ports.emplace("ext", Port(PortDirection::Out, PortType::Contextual, Domain::Electrical, false));
-        def.ports.emplace("port", Port(PortDirection::In, PortType::Contextual, Domain::Electrical, false));
-        reg.types[def.classname] = std::move(def);
-    }
-
     // Simple types
     add_simple("Battery");
     add_simple("Lamp");
@@ -654,12 +637,13 @@ TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
     }));
 
     bp2::Blueprint::Node host;
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("RPMIntertial"),
+            std::make_unique<bp2::Blueprint>(inner))
+    };
     host.semantic.id = I.intern("extract_inst_4");
     host.semantic.type = I.intern("RPMIntertial");
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("RPMIntertial"),
-        std::make_unique<bp2::Blueprint>(inner));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(slider));
@@ -710,12 +694,13 @@ TEST(CanvasInputReconnect, EmbeddedAnyInputUsesConcreteSourceDomain) {
     }));
 
     bp2::Blueprint::Node host;
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("RPMIntertial"),
+            std::make_unique<bp2::Blueprint>(inner))
+    };
     host.semantic.id = I.intern("extract_inst_4");
     host.semantic.type = I.intern("RPMIntertial");
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("RPMIntertial"),
-        std::make_unique<bp2::Blueprint>(inner));
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(slider));
@@ -1026,14 +1011,17 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
     bp2::PathArena arena(I);
 
     auto host_node = make_node(I, "host1", "CompositeType", 120.0f, 80.0f);
-    host_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    host_node.semantic.iface = bp2::Interface{};
+    host_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("CompositeType"),
+            std::make_unique<bp2::Blueprint>())
+    };
 
     auto inner_def = std::make_unique<bp2::Blueprint>();
     *inner_def = inner_def->with_id(I.intern("CompositeType"));
     *inner_def = inner_def->with_interface(bp2::Interface{});
     
-    host_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    host_node.blueprint_instance().source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("CompositeType"),
         std::move(inner_def)
     );
@@ -1214,10 +1202,11 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
 
     auto group = make_node(I, "grp1", "Composite", 120.0f, 80.0f);
     // Mark as blueprint instance (composite nodes can be expanded/opened)
-    group.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    group.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Composite"),
-        std::make_unique<bp2::Blueprint>());
+    group.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("Composite"),
+            std::make_unique<bp2::Blueprint>())
+    };
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(group));
 
@@ -1330,17 +1319,11 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
     set_iface(bat, {
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
-    bat.semantic.iface = bp2::Interface({
-        {I.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
-    });
 
     // Create a ref node to the right of the battery at (400, 200)
     auto ref = make_node(I, "gnd", "RefNode", 400.0f, 200.0f, "ref");
     set_iface(ref, {
         make_port(I, "v", Domain::Electrical, bp2::Direction::Input, PortType::V),
-    });
-    ref.semantic.iface = bp2::Interface({
-        {I.intern("v"), Domain::Electrical, bp2::Direction::Input},
     });
 
     auto w0 = make_wire(I, arena, "wire_0", "bat", "v_out", "gnd", "v");
@@ -2871,9 +2854,6 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
     set_iface(bat, {
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
-    bat.semantic.iface = bp2::Interface({
-        {I.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
-    });
     
     // Create a Value node with render_hint="ref" at (103, 103)
     // (not at a grid/half-grid boundary to test snap behavior)
@@ -2883,9 +2863,6 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
     auto ref_node = make_node(I, "ref1", "RefNode", 113.0f, 113.0f, "ref");
     set_iface(ref_node, {
         make_port(I, "v", Domain::Electrical, bp2::Direction::Input, PortType::V),
-    });
-    ref_node.semantic.iface = bp2::Interface({
-        {I.intern("v"), Domain::Electrical, bp2::Direction::Input},
     });
     
     auto wire = make_wire(I, arena, "w1", "bat", "v_out", "ref1", "v");
@@ -2985,15 +2962,17 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
     ui::StringInterner I;
     bp2::PathArena arena(I);
 
-    auto composite = make_node(I, "comp_1", "CompositeSwitch", 100.0f, 100.0f);
-    composite.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    composite.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("CompositeSwitch"),
-        std::make_unique<bp2::Blueprint>());
-    set_iface(composite, {
+    bp2::Interface composite_iface({
         make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
+
+    auto composite = make_node(I, "comp_1", "CompositeSwitch", 100.0f, 100.0f);
+    composite.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("CompositeSwitch"),
+            std::make_unique<bp2::Blueprint>())
+    };
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(composite));
@@ -3567,16 +3546,10 @@ TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
     set_iface(ref, {
         make_port(I, "v", Domain::Electrical, bp2::Direction::Input, PortType::V),
     });
-    ref.semantic.iface = bp2::Interface({
-        {I.intern("v"), Domain::Electrical, bp2::Direction::Input},
-    });
 
     auto bat = make_node(I, "bat", "Battery", 0.0f, 0.0f);
     set_iface(bat, {
         make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
-    });
-    bat.semantic.iface = bp2::Interface({
-        {I.intern("v_out"), Domain::Electrical, bp2::Direction::Output},
     });
 
     auto wire = make_wire(I, arena, "w1", "bat", "v_out", "ref1", "v");
@@ -3671,14 +3644,14 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelySelectable) {
     // --- Simulate addComponent: add a new node to the model ---
     {
         bp2::Blueprint::Node new_node;
-        new_node.kind = bp2::Blueprint::Node::Kind::Component;
+        new_node.content = bp2::Blueprint::Node::ComponentData{};
         new_node.semantic.id = I.intern("new_lamp");
         new_node.semantic.type = I.intern("Lamp");
         new_node.view.name = "new_lamp";
         new_node.layout.x = 300.0f;
         new_node.layout.y = 300.0f;
         // width/height intentionally left as nullopt — this is how addComponent works
-        new_node.semantic.iface = bp2::Interface({
+        new_node.component().iface = bp2::Interface({
             {I.intern("v_in"), Domain::Electrical, bp2::Direction::Input, PortType::V},
         });
 
@@ -3754,13 +3727,13 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelyResizable) {
     // --- Simulate addComponent ---
     {
         bp2::Blueprint::Node new_node;
-        new_node.kind = bp2::Blueprint::Node::Kind::Component;
+        new_node.content = bp2::Blueprint::Node::ComponentData{};
         new_node.semantic.id = I.intern("new_lamp");
         new_node.semantic.type = I.intern("Lamp");
         new_node.view.name = "new_lamp";
         new_node.layout.x = 300.0f;
         new_node.layout.y = 300.0f;
-        new_node.semantic.iface = bp2::Interface({
+        new_node.component().iface = bp2::Interface({
             {I.intern("v_in"), Domain::Electrical, bp2::Direction::Input, PortType::V},
         });
 
@@ -3876,10 +3849,11 @@ TEST(CanvasInputDoubleClick, DoubleClickOnBlueprintInstanceConsumesEvent) {
     bp2::PathArena arena(I);
 
     auto group = make_node(I, "grp1", "Composite", 120.0f, 80.0f);
-    group.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
-    group.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        I.intern("Composite"),
-        std::make_unique<bp2::Blueprint>());
+    group.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            I.intern("Composite"),
+            std::make_unique<bp2::Blueprint>())
+    };
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(group));
 

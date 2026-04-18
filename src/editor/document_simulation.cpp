@@ -34,7 +34,7 @@ const bp2::Blueprint::Node* find_node_in_scope(
     const bp2::Blueprint::Node* group_node = group_iid.empty()
         ? nullptr : model.current().find_node(group_iid);
     if (!group_node || !group_node->has_embedded_blueprint()) return nullptr;
-    if (auto* def = group_node->source->inline_def()) {
+    if (auto* def = group_node->blueprint_instance().source.inline_def()) {
         return def->find_node(node_iid);
     }
     return nullptr;
@@ -128,10 +128,10 @@ namespace editor {
 
 std::optional<std::string_view> select_slider_readback_port(const bp2::Blueprint::Node& node,
                                                             ui::StringInterner& interner) {
-    if (node.semantic.iface.has(interner.intern("out"))) {
+    if (node.component().iface.has(interner.intern("out"))) {
         return std::string_view{"out"};
     }
-    if (node.semantic.iface.has(interner.intern("control"))) {
+    if (node.component().iface.has(interner.intern("control"))) {
         return std::string_view{"control"};
     }
     return std::nullopt;
@@ -156,9 +156,9 @@ Document::ResolvedSignalScope Document::resolve_signal_scope(const WindowScopeId
     if (scope_id.is_embedded()) {
         const ui::InternedId group_iid = interner_.lookup(scope_id.key());
         const bp2::Blueprint::Node* node = group_iid.empty() ? nullptr : model_.current().find_node(group_iid);
-        if (node && node->has_embedded_blueprint() && node->source->inline_def()) {
+        if (node && node->has_embedded_blueprint() && node->blueprint_instance().source.inline_def()) {
             return {
-                node->source->inline_def(),
+                node->blueprint_instance().source.inline_def(),
                 &interner_,
                 editor::embedded_signal_context(scope_id.key())
             };
@@ -185,8 +185,8 @@ void Document::rebuild_window_scenes() {
                 ? nullptr
                 : model_.current().find_node(group_iid);
 
-            if (node && node->has_embedded_blueprint() && node->source->inline_def()) {
-                visual::mutations::rebuild(win->scene, *node->source->inline_def(),
+            if (node && node->has_embedded_blueprint() && node->blueprint_instance().source.inline_def()) {
+                visual::mutations::rebuild(win->scene, *node->blueprint_instance().source.inline_def(),
                                            interner_, arena_, "", reg);
                 win->input.rebuild_snapshot();
             } else {
@@ -283,9 +283,9 @@ void Document::updateNodeContentFromSimulation() {
 
     // Update nodes inside embedded blueprint instances
     for (const bp2::Blueprint::Node& parent_node : model_.current().nodes()) {
-        if (!parent_node.has_embedded_blueprint() || !parent_node.source->inline_def()) continue;
+        if (!parent_node.has_embedded_blueprint() || !parent_node.blueprint_instance().source.inline_def()) continue;
         const std::string parent_id = std::string(interner_.resolve(parent_node.semantic.id));
-        for (const bp2::Blueprint::Node& inner : parent_node.source->inline_def()->nodes()) {
+        for (const bp2::Blueprint::Node& inner : parent_node.blueprint_instance().source.inline_def()->nodes()) {
             update_node_content(inner, parent_id);
         }
     }

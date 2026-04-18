@@ -271,17 +271,18 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
      // Add a blueprint-instance node (lamp with embedded content)
      {
          bp2::Blueprint::Node bp_node;
-         bp_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
          bp_node.semantic.id = ts.interner.intern("lamp1");
          bp_node.semantic.type = ts.interner.intern("LampBlueprint");
          bp_node.view.name = "lamp1";
          
          // Create an empty inline blueprint (in new model, we don't create shadow nodes)
          auto inline_bp = std::make_unique<bp2::Blueprint>();
-         bp_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+         bp_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+             bp2::Blueprint::Node::BlueprintSource::make_embedded(
              ts.interner.intern("LampBlueprint"),
              std::move(inline_bp)
-         );
+         )
+         };
          
          ts.addNodeRaw(std::move(bp_node));
      }
@@ -319,7 +320,6 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
     // Add a blueprint-instance node (lamp1) with embedded content
     {
          bp2::Blueprint::Node bp_node;
-         bp_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
          bp_node.semantic.id = ts.interner.intern("lamp1");
          bp_node.semantic.type = ts.interner.intern("Lamp");
          bp_node.view.name = "lamp1";
@@ -348,20 +348,22 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
              inline_bp = inline_bp.with_node(std::move(res));
          }
          
-         bp_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+         bp_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+             bp2::Blueprint::Node::BlueprintSource::make_embedded(
              ts.interner.intern("Lamp"),
              std::make_unique<bp2::Blueprint>(inline_bp)
-         );
+         )
+         };
          
          ts.addNodeRaw(std::move(bp_node));
      }
 
     const auto* host = ts.bp.find_blueprint_instance(ts.interner.intern("lamp1"));
     ASSERT_NE(host, nullptr);
-    ASSERT_TRUE(host->source.has_value());
-    ASSERT_NE(host->source->inline_def(), nullptr);
+    ASSERT_TRUE(host->is_blueprint_instance());
+    ASSERT_NE(host->blueprint_instance().source.inline_def(), nullptr);
 
-    Inspector sub_inspector(host->source->inline_def(), &ts.arena, &ts.interner, WindowScopeId::embedded("lamp1"));
+    Inspector sub_inspector(host->blueprint_instance().source.inline_def(), &ts.arena, &ts.interner, WindowScopeId::embedded("lamp1"));
     sub_inspector.buildDisplayTree();
 
     // Sub-inspector for lamp1 should show LED and resistor
@@ -394,7 +396,6 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
      // Add a blueprint-instance node (lamp1) with internal structure
      {
          bp2::Blueprint::Node lamp;
-         lamp.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
          lamp.semantic.id = ts.interner.intern("lamp1");
          lamp.semantic.type = ts.interner.intern("Lamp");
          lamp.view.name = "lamp1";
@@ -433,10 +434,12 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
                inline_bp = inline_bp.with_wire(std::move(w));
           }
          
-         lamp.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+         lamp.content = bp2::Blueprint::Node::BlueprintInstanceData{
+             bp2::Blueprint::Node::BlueprintSource::make_embedded(
              ts.interner.intern("Lamp"),
              std::make_unique<bp2::Blueprint>(inline_bp)
-         );
+         )
+         };
          
          ts.addNodeRaw(std::move(lamp));
      }
@@ -457,10 +460,10 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
      // Sub inspector
       const auto* host = ts.bp.find_blueprint_instance(ts.interner.intern("lamp1"));
       ASSERT_NE(host, nullptr);
-      ASSERT_TRUE(host->source.has_value());
-      ASSERT_NE(host->source->inline_def(), nullptr);
+      ASSERT_TRUE(host->is_blueprint_instance());
+      ASSERT_NE(host->blueprint_instance().source.inline_def(), nullptr);
 
-      Inspector sub_inspector(host->source->inline_def(), &ts.arena, &ts.interner, WindowScopeId::embedded("lamp1"));
+      Inspector sub_inspector(host->blueprint_instance().source.inline_def(), &ts.arena, &ts.interner, WindowScopeId::embedded("lamp1"));
       sub_inspector.buildDisplayTree();
 
      const auto& sub_tree = sub_inspector.displayTree();

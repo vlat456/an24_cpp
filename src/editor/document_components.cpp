@@ -18,6 +18,41 @@
 
 namespace {
 
+std::optional<bp2::Blueprint::Node::BridgePortSide> bridge_side_from_type_definition(
+    const TypeDefinition& def) {
+    if (def.ports.find("ext") == def.ports.end() || def.ports.find("port") == def.ports.end()) {
+        return std::nullopt;
+    }
+
+    auto it = def.params.find("exposed_direction");
+    if (it == def.params.end()) {
+        return std::nullopt;
+    }
+    if (it->second == "In") {
+        return bp2::Blueprint::Node::BridgePortSide::Input;
+    }
+    if (it->second == "Out") {
+        return bp2::Blueprint::Node::BridgePortSide::Output;
+    }
+    return std::nullopt;
+}
+
+bp2::Interface make_bridge_iface(ui::StringInterner& interner,
+                                 bool is_input_bridge,
+                                 PortType port_type) {
+    const Domain domain = editor::common::domain_for_port_type(port_type);
+    if (is_input_bridge) {
+        return bp2::Interface({
+            bp2::PortDescriptor{interner.intern("ext"), domain, bp2::Direction::Input, port_type},
+            bp2::PortDescriptor{interner.intern("port"), domain, bp2::Direction::Output, port_type},
+        });
+    }
+    return bp2::Interface({
+        bp2::PortDescriptor{interner.intern("port"), domain, bp2::Direction::Input, port_type},
+        bp2::PortDescriptor{interner.intern("ext"), domain, bp2::Direction::Output, port_type},
+    });
+}
+
 PortType parse_exposed_port_type(const std::string& s) {
     if (s == "V") return PortType::V;
     if (s == "I") return PortType::I;
@@ -52,19 +87,19 @@ void add_bridge_port_to_composite(
     bp2::Blueprint bp = model.current();
 
     const auto* node = bp.find_node(group_iid);
-    if (!node || !node->has_embedded_blueprint() || !node->source->inline_def()) {
+    if (!node || !node->has_embedded_blueprint()) {
         spdlog::warn("[editor] add_bridge_port: embedded blueprint instance '{}' not found", scope_id);
         return;
     }
 
     // Extract, mutate, and restore the embedded blueprint's interface
-    std::vector<bp2::PortDescriptor> ports = node->source->inline_def()->iface().ports();
+    std::vector<bp2::PortDescriptor> ports = node->blueprint_instance().source.inline_def()->iface().ports();
     ports.push_back(pd);
-    bp2::Blueprint updated_inline = node->source->inline_def()->with_interface(bp2::Interface(std::move(ports)));
+    bp2::Blueprint updated_inline = node->blueprint_instance().source.inline_def()->with_interface(bp2::Interface(std::move(ports)));
 
     // Create updated node with mutated embedded blueprint
     bp2::Blueprint::Node updated_node = *node;
-    updated_node.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
+    updated_node.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
 
     bp = bp2::replace_node_preserve_order(bp, std::move(updated_node));
     model.replace_current(std::move(bp));
@@ -96,7 +131,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     Pt snapped_pos = editor_math::snap_to_grid(world_pos, viewport().grid_step);
 
     bp2::Blueprint::Node node;
-    node.kind = bp2::Blueprint::Node::Kind::Component;
+    node.content = bp2::Blueprint::Node::ComponentData{};
     node.semantic.id = interner_.intern(unique_id);
     node.semantic.type = interner_.intern(classname);
     node.view.name = unique_id;
@@ -119,7 +154,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         pd.port_type = port_def.type;
         iface_ports.push_back(std::move(pd));
     }
-    node.semantic.iface = bp2::Interface(std::move(iface_ports));
+    node.component().iface = bp2::Interface(std::move(iface_ports));
 
     for (const auto& [k, v] : def->params) {
         float parsed = 0.0f;
@@ -130,35 +165,42 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         }
     }
 
-    const bool is_bridge = (classname == "BlueprintInput" || classname == "BlueprintOutput");
+    const auto bridge_side = bridge_side_from_type_definition(*def);
+    const bool is_bridge = bridge_side.has_value();
     const bool bridge_in_group = is_bridge && !scope_id.empty()
         && model_.current().find_node(interner_.intern(scope_id)) != nullptr;
 
-    if (bridge_in_group) {
+    if (is_bridge) {
         std::string canonical_id = signal_key::make_child_scope_key(scope_id, node.view.name);
-        node.semantic.id = interner_.intern(canonical_id);
-        unique_id = canonical_id;
+        if (!scope_id.empty()) {
+            node.semantic.id = interner_.intern(canonical_id);
+            unique_id = canonical_id;
+        }
 
         PortType pt = PortType::Contextual;
         auto et_it = node.semantic.string_params.find("exposed_type");
         if (et_it != node.semantic.string_params.end()) {
             pt = parse_exposed_port_type(et_it->second);
         }
-        std::vector<bp2::PortDescriptor> ports = node.semantic.iface.ports();
-        for (auto& pd : ports) {
-            pd.port_type = pt;
-            pd.domain = editor::common::domain_for_port_type(pt);
-        }
-        node.semantic.iface = bp2::Interface(std::move(ports));
+        const bool is_input_bridge = *bridge_side == bp2::Blueprint::Node::BridgePortSide::Input;
+        node.content = bp2::Blueprint::Node::BridgePortData{
+            interner_.intern(node.view.name),
+            *bridge_side,
+            pt,
+            make_bridge_iface(interner_, is_input_bridge, pt),
+        };
+        node.semantic.type = interner_.intern("BridgePort");
+        node.semantic.string_params.erase("exposed_direction");
+        node.semantic.string_params.erase("exposed_type");
     }
 
     // Issue #105/#133: hydrate static semantics + initial dynamic defaults.
     editor::hydrate_node_view_full(node, def, interner_);
 
     const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
-    const bool bridge_is_input = (classname == "BlueprintInput");
+    const bool bridge_is_input = bridge_side == bp2::Blueprint::Node::BridgePortSide::Input;
     PortType bridge_port_type = PortType::Contextual;
-    if (bridge_in_group) {
+    if (is_bridge) {
         auto et_it = node.semantic.string_params.find("exposed_type");
         if (et_it != node.semantic.string_params.end()) {
             bridge_port_type = parse_exposed_port_type(et_it->second);
@@ -240,7 +282,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     const Pt snapped_pos = editor_math::snap_to_grid(world_pos, viewport().grid_step);
 
     bp2::Blueprint::Node collapsed;
-    collapsed.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     collapsed.semantic.id = interner_.intern(unique_id);
     collapsed.semantic.type = interner_.intern(blueprint_name);
     collapsed.view.name = unique_id;
@@ -260,8 +301,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         iface_ports.push_back(std::move(pd));
     }
     // Issue #91: Blueprint-instance interface derives from source authority only.
-    // Store port descriptors temporarily to set on inline blueprint interface,
-    // but do NOT mirror node.semantic.iface.
+    // Store port descriptors temporarily to set on inline blueprint interface.
     bp2::Interface inline_bp_iface = bp2::Interface(std::move(iface_ports));
 
     // Issue #105/#133: hydrate static semantics + initial dynamic defaults.
@@ -286,6 +326,11 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     bp2::Blueprint inline_bp = loaded.with_interface(inline_bp_iface);
     inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
     inline_bp = inline_bp.with_name(def->classname);
+    collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            interner_.intern(blueprint_name),
+            std::make_unique<bp2::Blueprint>(std::move(inline_bp)))
+    };
 
     const bp2::Blueprint before_add = model_.current();
 #ifndef NDEBUG
@@ -300,11 +345,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 #endif
     try {
         model_.mutate_atomically([&] {
-            // Create the blueprint-instance node with embedded blueprint source
-            bp2::Blueprint::Node::BlueprintSource::Embedded embedded(
-                interner_.intern(blueprint_name),
-                std::make_unique<bp2::Blueprint>(std::move(inline_bp)));
-            collapsed.source = bp2::Blueprint::Node::BlueprintSource(std::move(embedded));
 
             if (scope_id.empty()) {
                 execute(model_, interner_, cmd_add_node(std::move(collapsed)));
@@ -313,13 +353,13 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
             const ui::InternedId scope_iid = interner_.intern(scope_id);
             const auto* host_node = model_.current().find_node(scope_iid);
-            if (!host_node || !host_node->has_embedded_blueprint() || !host_node->source->inline_def()) {
+            if (!host_node || !host_node->has_embedded_blueprint() || !host_node->blueprint_instance().source.inline_def()) {
                 throw std::runtime_error("embedded blueprint instance '" + scope_id + "' not found");
             }
 
-            bp2::Blueprint next_inline = host_node->source->inline_def()->with_node(collapsed);
+            bp2::Blueprint next_inline = host_node->blueprint_instance().source.inline_def()->with_node(collapsed);
             bp2::Blueprint::Node updated_host = *host_node;
-            updated_host.source->set_inline_def(std::make_unique<bp2::Blueprint>(std::move(next_inline)));
+            updated_host.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(next_inline)));
             model_.replace_current(bp2::replace_node_preserve_order(model_.current(), std::move(updated_host)));
         });
 

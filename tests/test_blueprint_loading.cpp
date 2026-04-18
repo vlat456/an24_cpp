@@ -105,27 +105,23 @@ static float get_voltage(const SimulationState& state, const BuildResult& result
 // =============================================================================
 
 TEST(ExtractExposedPorts, MultipleBlueprints) {
-    // Create blueprint with multiple inputs/outputs
-    nlohmann::json bp;
-    bp["devices"] = nlohmann::json::array({
-        {{"name", "in1"}, {"classname", "BlueprintInput"}, {"params", {{"exposed_type", "V"}, {"exposed_direction", "In"}}}},
-        {{"name", "in2"}, {"classname", "BlueprintInput"}, {"params", {{"exposed_type", "I"}, {"exposed_direction", "In"}}}},
-        {{"name", "out1"}, {"classname", "BlueprintOutput"}, {"params", {{"exposed_type", "Bool"}, {"exposed_direction", "Out"}}}},
-        {{"name", "gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}}
-    });
-    bp["connections"] = nlohmann::json::array();
+    TypeDefinition bp;
+    bp.bridge_ports = {
+        BridgePortDefinition{"in1", "in1", PortDirection::In, PortType::V},
+        BridgePortDefinition{"in2", "in2", PortDirection::In, PortType::I},
+        BridgePortDefinition{"out1", "out1", PortDirection::Out, PortType::Bool},
+    };
 
-    ParserContext ctx = parse_json(bp.dump());
-    auto exposed = extract_exposed_ports(ctx);
+    auto exposed = extract_exposed_ports(bp);
 
     // Should have 3 exposed ports (in1, in2, out1), excluding gnd
     EXPECT_EQ(exposed.size(), 3);
 
-    // Verify BlueprintInput directions (data flows INTO blueprint)
+    // Verify input bridge directions (data flows INTO blueprint)
     EXPECT_EQ(exposed["in1"].direction, PortDirection::In);
     EXPECT_EQ(exposed["in2"].direction, PortDirection::In);
 
-    // Verify BlueprintOutput direction (data flows OUT OF blueprint)
+    // Verify output bridge direction (data flows OUT OF blueprint)
     EXPECT_EQ(exposed["out1"].direction, PortDirection::Out);
 
     // Verify types
@@ -135,40 +131,28 @@ TEST(ExtractExposedPorts, MultipleBlueprints) {
 }
 
 TEST(ExtractExposedPorts, EmptyBlueprint) {
-    // Blueprint with no BlueprintInput/BlueprintOutput
-    nlohmann::json bp;
-    bp["devices"] = nlohmann::json::array({
-        {{"name", "bat"}, {"classname", "ElectricalSource"}, {"params", {{"voltage", "28.0"}}}}
-    });
-    bp["connections"] = nlohmann::json::array();
-
-    ParserContext ctx = parse_json(bp.dump());
-    auto exposed = extract_exposed_ports(ctx);
+    TypeDefinition bp;
+    auto exposed = extract_exposed_ports(bp);
 
     // Should have 0 exposed ports
     EXPECT_EQ(exposed.size(), 0);
 }
 
 TEST(ExtractExposedPorts, DefaultValues) {
-    // BlueprintInput/BlueprintOutput without explicit params use TypeRegistry defaults
-    nlohmann::json bp;
-    bp["devices"] = nlohmann::json::array({
-        {{"name", "in"}, {"classname", "BlueprintInput"}},  // No params - uses component defaults
-        {{"name", "out"}, {"classname", "BlueprintOutput"}}  // No params - uses component defaults
-    });
-    bp["connections"] = nlohmann::json::array();
+    TypeDefinition bp;
+    bp.bridge_ports = {
+        BridgePortDefinition{"in", "in", PortDirection::In, PortType::Contextual},
+        BridgePortDefinition{"out", "out", PortDirection::Out, PortType::Contextual},
+    };
 
-    ParserContext ctx = parse_json(bp.dump());
-    auto exposed = extract_exposed_ports(ctx);
+    auto exposed = extract_exposed_ports(bp);
 
     EXPECT_EQ(exposed.size(), 2);
 
-    // Default from component definition: BlueprintInput has exposed_direction="In"
+    // Structural bridge defaults are explicit in bridge metadata.
     EXPECT_EQ(exposed["in"].direction, PortDirection::In);
-    // Default from component definition: BlueprintOutput has exposed_direction="Out"
     EXPECT_EQ(exposed["out"].direction, PortDirection::Out);
 
-    // Default type from component definition (both have "Contextual" as default)
     EXPECT_EQ(exposed["in"].type, PortType::Contextual);
     EXPECT_EQ(exposed["out"].type, PortType::Contextual);
 }

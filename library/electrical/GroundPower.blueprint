@@ -26,26 +26,15 @@
   "nodes": [
     {
       "id": "v_in",
-      "name": "v_in",
-      "ports": {
-        "ext": {
-          "direction": "In",
-          "type": 7
-        },
-        "port": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
+      "kind": "bridge_port",
+      "exposed_port": "v_in",
+      "side": "input",
+      "port_type": "V",
+      "layout": {
         "x": 0.0,
         "y": 160.0
       },
-      "string_params": {
-        "exposed_direction": "In",
-        "exposed_type": "V"
-      },
-      "type": "BlueprintInput"
+      "label": "v_in"
     },
     {
       "id": "k_voltage",
@@ -190,26 +179,15 @@
     },
     {
       "id": "v_out",
-      "name": "v_out",
-      "ports": {
-        "ext": {
-          "direction": "Out",
-          "type": 7
-        },
-        "port": {
-          "direction": "In",
-          "type": 7
-        }
-      },
-      "position": {
+      "kind": "bridge_port",
+      "exposed_port": "v_out",
+      "side": "output",
+      "port_type": "V",
+      "layout": {
         "x": 352.0,
         "y": 32.0
       },
-      "string_params": {
-        "exposed_direction": "Out",
-        "exposed_type": "V"
-      },
-      "type": "BlueprintOutput"
+      "label": "v_out"
     }
   ],
   "scheduler_source": false,

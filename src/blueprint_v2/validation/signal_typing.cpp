@@ -40,9 +40,8 @@ bool is_wildcard_port_type(PortType type) {
 }
 
 bool is_bridge_node(const Blueprint::Node& node,
-                    ui::StringInterner& interner) {
-    const std::string_view type_name = interner.resolve(node.semantic.type);
-    return type_name == "BlueprintInput" || type_name == "BlueprintOutput";
+                    ui::StringInterner& /*interner*/) {
+    return node.is_bridge_port();
 }
 
 bool is_bridge_port_name(ui::InternedId port_name,
@@ -52,14 +51,11 @@ bool is_bridge_port_name(ui::InternedId port_name,
 }
 
 std::optional<ui::InternedId> bridge_exposed_port_name(const Blueprint::Node& node,
-                                                       ui::StringInterner& interner) {
-    if (!node.view.name.empty()) {
-        return interner.intern(node.view.name);
+                                                       ui::StringInterner& /*interner*/) {
+    if (node.is_bridge_port() && !node.bridge_port().exposed_port.empty()) {
+        return node.bridge_port().exposed_port;
     }
-    if (node.semantic.id.empty()) {
-        return std::nullopt;
-    }
-    return node.semantic.id;
+    return std::nullopt;
 }
 
 std::optional<PortDescriptor> node_port_descriptor(const Blueprint::Node& node,

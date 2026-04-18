@@ -46,11 +46,11 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
             }
             // Find the blueprint-instance node with this ID
             const auto* bp_node = current_bp->find_blueprint_instance(seg.segment());
-            if (!bp_node || !bp_node->source) {
+            if (!bp_node) {
                 return std::nullopt;
             }
             // Only inline definitions allow traversal through ports
-            if (auto* def = bp_node->source->inline_def()) {
+            if (auto* def = bp_node->blueprint_instance().source.inline_def()) {
                 current_bp = def;
             } else {
                 return std::nullopt;

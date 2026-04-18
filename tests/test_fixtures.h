@@ -3,26 +3,17 @@
 #include "json_parser/json_parser.h"
 #include "test_helpers.h"
 
-inline TypeDefinition make_blueprint_input_type() {
-    TypeDefinition td;
-    td.classname = "BlueprintInput";
-    td.cpp_class = true;
-    td.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
-    td.ports["ext"] = Port{PortDirection::In, PortType::Any, std::string("port")};
-    td.domains = {{Domain::Electrical}};
-    td.execution = make_execution(true, false, true, false, false, false, true, true, true);
-    return td;
-}
-
-inline TypeDefinition make_blueprint_output_type() {
-    TypeDefinition td;
-    td.classname = "BlueprintOutput";
-    td.cpp_class = true;
-    td.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
-    td.ports["ext"] = Port{PortDirection::Out, PortType::Any, std::string("port")};
-    td.domains = {{Domain::Electrical}};
-    td.execution = make_execution(true, false, true, false, false, false, true, true, true);
-    return td;
+inline BridgePortDefinition make_bridge_port_def(const std::string& id,
+                                                 PortDirection side,
+                                                 PortType type = PortType::Any,
+                                                 const std::string& exposed_port = "") {
+    BridgePortDefinition bridge;
+    bridge.id = id;
+    bridge.exposed_port = exposed_port.empty() ? id : exposed_port;
+    bridge.side = side;
+    bridge.type = type;
+    bridge.label = bridge.exposed_port;
+    return bridge;
 }
 
 inline TypeDefinition make_indicator_light_type() {
@@ -202,8 +193,6 @@ inline TypeDefinition make_value_type() {
 }
 
 inline void register_lamp_composite_types(TypeRegistry& registry) {
-    registry.types["BlueprintInput"] = make_blueprint_input_type();
-    registry.types["BlueprintOutput"] = make_blueprint_output_type();
     registry.types["IndicatorLight"] = make_indicator_light_type();
 }
 

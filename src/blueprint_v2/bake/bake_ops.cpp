@@ -18,21 +18,18 @@ Blueprint bake_node_blueprint_instance(Blueprint const& bp,
     if (!node) {
         throw std::runtime_error("Blueprint instance node not found");
     }
-    if (!node->source.has_value()) {
-        throw std::runtime_error("Blueprint instance has no source");
-    }
-    if (node->source->is_embedded()) {
+    if (node->blueprint_instance().source.is_embedded()) {
         throw std::runtime_error("Already embedded");
     }
 
-    auto const* referenced = library.find(node->source->blueprint_id());
+    auto const* referenced = library.find(node->blueprint_instance().source.blueprint_id());
     if (!referenced) {
         throw std::runtime_error("Unknown blueprint reference");
     }
 
     auto updated_node = *node;
-    updated_node.source = Blueprint::Node::BlueprintSource::make_embedded(
-        node->source->blueprint_id(),
+    updated_node.blueprint_instance().source = Blueprint::Node::BlueprintSource::make_embedded(
+        node->blueprint_instance().source.blueprint_id(),
         std::make_unique<Blueprint>(referenced->clone(node_id)));
 
     return bp.without_node(node_id).with_node(std::move(updated_node));
@@ -44,15 +41,15 @@ Blueprint bake_all_impl(Blueprint const& bp,
     Blueprint result = bp;
 
     for (auto const& node : bp.nodes()) {
-        if (!node.is_blueprint_instance() || !node.source.has_value()) {
+        if (!node.is_blueprint_instance()) {
             continue;
         }
 
         bool inserted_ref = false;
         ui::InternedId ref_id;
 
-        if (node.source->is_reference()) {
-            ref_id = node.source->blueprint_id();
+        if (node.blueprint_instance().source.is_reference()) {
+            ref_id = node.blueprint_instance().source.blueprint_id();
             if (active_refs.count(ref_id) > 0) {
                 throw std::runtime_error("bake_all: cyclic blueprint reference detected");
             }
@@ -63,11 +60,11 @@ Blueprint bake_all_impl(Blueprint const& bp,
         }
 
         auto const* current_node = result.find_blueprint_instance(node.semantic.id);
-        if (current_node && current_node->source.has_value() && current_node->source->is_embedded()) {
-            Blueprint baked_child = bake_all_impl(*current_node->source->inline_def(), library, active_refs);
+        if (current_node && current_node->has_embedded_blueprint()) {
+            Blueprint baked_child = bake_all_impl(*current_node->blueprint_instance().source.inline_def(), library, active_refs);
 
             auto updated_node = *current_node;
-            updated_node.source->set_inline_def(std::make_unique<Blueprint>(std::move(baked_child)));
+            updated_node.blueprint_instance().source.set_inline_def(std::make_unique<Blueprint>(std::move(baked_child)));
             result = result.without_node(current_node->semantic.id).with_node(std::move(updated_node));
         }
 
@@ -85,18 +82,18 @@ std::optional<UnbakeResult> try_unbake(Blueprint const& bp,
                                        ui::InternedId node_id,
                                        BlueprintLibrary const& library) {
     auto const* node = bp.find_blueprint_instance(node_id);
-    if (!node || !node->source.has_value() || !node->source->is_embedded()) {
+    if (!node || !node->has_embedded_blueprint()) {
         return std::nullopt;
     }
 
     for (auto const& kv : library) {
         auto const& id = kv.first;
         auto const& referenced = kv.second;
-        if (referenced == *node->source->inline_def()) {
+        if (referenced == *node->blueprint_instance().source.inline_def()) {
             auto updated_node = *node;
-            updated_node.source = Blueprint::Node::BlueprintSource::make_reference(
+            updated_node.blueprint_instance().source = Blueprint::Node::BlueprintSource::make_reference(
                 id,
-                node->source->cached_iface());
+                node->blueprint_instance().source.cached_iface());
 
             UnbakeResult out;
             out.blueprint = bp.without_node(node_id).with_node(std::move(updated_node));

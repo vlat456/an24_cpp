@@ -23,25 +23,16 @@ bool is_solver_owned_electrical_propagator(std::string_view classname) {
 }
 
 bool requires_solver_role(std::string_view classname) {
-    if (classname == "BlueprintInput" || classname == "BlueprintOutput") {
-        return false;
-    }
     return requires_solver_role_component(metadata_classname_for(classname));
 }
 
 std::vector<std::string> active_source_writer_ports_for(std::string_view classname) {
-    if (classname == "BlueprintInput" || classname == "BlueprintOutput") {
-        return {};
-    }
     return get_source_writer_ports(
         metadata_classname_for(classname),
         static_cast<uint8_t>(Domain::Electrical));
 }
 
 std::unordered_set<std::string> output_ports_for_class(std::string_view classname) {
-    if (classname == "BlueprintInput" || classname == "BlueprintOutput") {
-        return {};
-    }
     auto outputs = get_output_ports(metadata_classname_for(classname));
     return std::unordered_set<std::string>(outputs.begin(), outputs.end());
 }

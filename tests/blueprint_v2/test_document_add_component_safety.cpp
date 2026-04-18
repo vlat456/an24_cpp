@@ -71,17 +71,45 @@ bp2::Blueprint::Node make_typed_node(ui::StringInterner& I,
     n.layout.y = y;
     const auto* def = registry.get(type);
     if (def) {
-        n.semantic.iface = bp2::interface_from_type_definition(*def, I);
+        n.component().iface = bp2::interface_from_type_definition(*def, I);
     }
+    return n;
+}
+
+bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+                                      const char* id,
+                                      bool input_bridge,
+                                      PortType t = PortType::V) {
+    bp2::Blueprint::Node n;
+    n.semantic.id = I.intern(id);
+    n.semantic.type = I.intern("BridgePort");
+    n.view.name = id;
+    n.layout.x = 0.0f;
+    n.layout.y = 0.0f;
+    n.content = bp2::Blueprint::Node::BridgePortData{
+        I.intern(id),
+        input_bridge ? bp2::Blueprint::Node::BridgePortSide::Input
+                     : bp2::Blueprint::Node::BridgePortSide::Output,
+        t,
+        input_bridge
+            ? bp2::Interface({
+                make_port(I, "ext", Domain::Electrical, bp2::Direction::Input, t),
+                make_port(I, "port", Domain::Electrical, bp2::Direction::Output, t),
+            })
+            : bp2::Interface({
+                make_port(I, "port", Domain::Electrical, bp2::Direction::Input, t),
+                make_port(I, "ext", Domain::Electrical, bp2::Direction::Output, t),
+            })
+    };
     return n;
 }
 
 /// Build an extract-roundtrip fixture using real registered types.
 ///
 /// Topology (all Electrical domain):
-///   ext_in (BlueprintInput)  --port-->  a (ElectricalSource) .v_in
+///   ext_in (bridge input)  --port-->  a (ElectricalSource) .v_in
 ///                                       a.v_out  -->  b (Resistor) .v_in
-///   ext_out (BlueprintOutput) <--port--  b.v_out
+///   ext_out (bridge output) <--port--  b.v_out
 ///
 /// Wire naming:
 ///   w0: ext_in.port  → a.v_in
@@ -92,17 +120,27 @@ bp2::Blueprint make_extract_roundtrip_fixture(ui::StringInterner& I,
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_doc"));
     bp = bp.with_name("ExtractDoc");
+    bp = bp.with_interface(bp2::Interface({
+        make_port(I, "ext_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "ext_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    }));
 
-    bp = bp.with_node(make_typed_node(I, registry, "ext_in",  "BlueprintInput",  0.0f,  0.0f));
+    auto ext_in = make_bridge_node(I, "ext_in", true);
+    ext_in.layout.x = 0.0f;
+    ext_in.layout.y = 0.0f;
+    bp = bp.with_node(std::move(ext_in));
     bp = bp.with_node(make_typed_node(I, registry, "a",       "ElectricalSource", 20.0f, 0.0f));
     bp = bp.with_node(make_typed_node(I, registry, "b",       "Resistor",        40.0f, 0.0f));
-    bp = bp.with_node(make_typed_node(I, registry, "ext_out", "BlueprintOutput", 60.0f, 0.0f));
+    auto ext_out = make_bridge_node(I, "ext_out", false);
+    ext_out.layout.x = 60.0f;
+    ext_out.layout.y = 0.0f;
+    bp = bp.with_node(std::move(ext_out));
 
-    // BlueprintInput.port → ElectricalSource.v_in
+    // bridge input port → ElectricalSource.v_in
     bp = bp.with_wire(make_wire(I, "w0", "ext_in", "port", "a",       "v_in"));
     // ElectricalSource.v_out → Resistor.v_in  (internal wire)
     bp = bp.with_wire(make_wire(I, "w1", "a",      "v_out", "b",      "v_in"));
-    // Resistor.v_out → BlueprintOutput.port
+    // Resistor.v_out → bridge output port
     bp = bp.with_wire(make_wire(I, "w2", "b",      "v_out", "ext_out", "port"));
     return bp;
 }
@@ -195,13 +233,14 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromTypeRegistry
     inline_bp = inline_bp.with_node(std::move(slider));
 
     bp2::Blueprint::Node host;
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     host.semantic.id = interner.intern("host1");
     host.semantic.type = interner.intern("Group");
     host.layout.collapsed = true;
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("Group"),
-        std::make_unique<bp2::Blueprint>(inline_bp));
+        std::make_unique<bp2::Blueprint>(inline_bp))
+    };
 
     bp2::Blueprint root;
     root = root.with_id(interner.intern("root_embedded_hydrate"));
@@ -214,11 +253,11 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromTypeRegistry
 
     const auto* loaded_host = require_node(doc.model().current(), doc.interner(), "host1");
     ASSERT_NE(loaded_host, nullptr);
-    ASSERT_TRUE(loaded_host->source.has_value());
-    ASSERT_TRUE(loaded_host->source->is_embedded());
-    ASSERT_NE(loaded_host->source->inline_def(), nullptr);
+    ASSERT_TRUE(loaded_host->is_blueprint_instance());
+    ASSERT_TRUE(loaded_host->blueprint_instance().source.is_embedded());
+    ASSERT_NE(loaded_host->blueprint_instance().source.inline_def(), nullptr);
 
-    const auto* loaded_slider = require_node(*loaded_host->source->inline_def(), doc.interner(), "inner_slider");
+    const auto* loaded_slider = require_node(*loaded_host->blueprint_instance().source.inline_def(), doc.interner(), "inner_slider");
     ASSERT_NE(loaded_slider, nullptr);
     EXPECT_EQ(loaded_slider->view.content_type, bp2::NodeContentType::Slider);
     EXPECT_FLOAT_EQ(loaded_slider->view.content_min, 0.0f);
@@ -645,7 +684,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedSta
 
     const auto* updated = require_node(doc.model().current(), I, "azs_apply");
     ASSERT_NE(updated, nullptr);
-    EXPECT_FLOAT_EQ(updated->semantic.params.at(I.intern("closed")), 1.0f);
+    ASSERT_TRUE(updated->semantic.string_params.count("closed") > 0);
+    EXPECT_EQ(updated->semantic.string_params.at("closed"), "true");
     EXPECT_TRUE(updated->view.content_state)
         << "AZS properties apply must immediately re-seed dynamic closed state on rebuild";
 
@@ -846,12 +886,13 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromTypeRegistry) {
     write_file(ext_path, bp2::BlueprintCodec::encode(ext_bp, ext_interner, ext_arena, &registry));
 
     bp2::Blueprint::Node ref_host;
-    ref_host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     ref_host.semantic.id = doc.interner().intern("external_node");
     ref_host.semantic.type = doc.interner().intern("external_test");
-    ref_host.source = bp2::Blueprint::Node::BlueprintSource::make_reference(
+    ref_host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
         doc.interner().intern("external_test"),
-        bp2::Interface{});
+        bp2::Interface{})
+    };
     doc.model().replace_current(doc.model().current().with_node(std::move(ref_host)));
 
     doc.openSubWindow("external_node");
@@ -1001,9 +1042,9 @@ TEST(DocumentSafety, ExtractSaveLoadRoundTripPreservesEmbeddedBlueprintStructure
     const auto* collapsed = require_node(loaded.model().current(), loaded.interner(), "extract_inst_1");
     ASSERT_NE(collapsed, nullptr);
     ASSERT_TRUE(collapsed->has_embedded_blueprint());
-    ASSERT_NE(collapsed->source->inline_def(), nullptr);
+    ASSERT_NE(collapsed->blueprint_instance().source.inline_def(), nullptr);
 
-    const auto& inner = *collapsed->source->inline_def();
+    const auto& inner = *collapsed->blueprint_instance().source.inline_def();
     EXPECT_NE(inner.find_node(loaded.interner().lookup("a")), nullptr);
     EXPECT_NE(inner.find_node(loaded.interner().lookup("b")), nullptr);
     // Internal wire a.v_out → b.v_in plus two bridge-to-internal wires
@@ -1027,7 +1068,10 @@ TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
     bp = bp.with_name("DeleteRoundtrip");
     bp = bp.with_node(make_typed_node(doc.interner(), registry, "bat", "ElectricalSource", 0.0f, 0.0f));
     bp = bp.with_node(make_typed_node(doc.interner(), registry, "res", "Resistor", 20.0f, 0.0f));
-    bp = bp.with_node(make_typed_node(doc.interner(), registry, "sink", "BlueprintOutput", 40.0f, 0.0f));
+    auto sink = make_bridge_node(doc.interner(), "sink", false);
+    sink.layout.x = 40.0f;
+    sink.layout.y = 0.0f;
+    bp = bp.with_node(std::move(sink));
     bp = bp.with_wire(make_wire(doc.interner(), "w0", "bat", "v_out", "res", "v_in"));
     bp = bp.with_wire(make_wire(doc.interner(), "w1", "res", "v_out", "sink", "port"));
     doc.model().replace_current(std::move(bp));
@@ -1446,13 +1490,14 @@ TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
     inner = inner.with_name("Inner");
 
     bp2::Blueprint::Node host;
-    host.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     host.semantic.id = I.intern("group_1");
     host.semantic.type = I.intern("Group");
     host.view.name = "group_1";
-    host.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("Group"),
-        std::make_unique<bp2::Blueprint>(inner));
+        std::make_unique<bp2::Blueprint>(inner))
+    };
 
     bp2::Blueprint root;
     root = root.with_id(I.intern("root_bp"));
@@ -1467,9 +1512,9 @@ TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
 
     const auto* updated_host = doc.model().current().find_node(I.lookup("group_1"));
     ASSERT_NE(updated_host, nullptr);
-    ASSERT_TRUE(updated_host->source.has_value());
-    ASSERT_TRUE(updated_host->source->is_embedded());
-    const auto* inline_bp = updated_host->source->inline_def();
+    ASSERT_TRUE(updated_host->is_blueprint_instance());
+    ASSERT_TRUE(updated_host->blueprint_instance().source.is_embedded());
+    const auto* inline_bp = updated_host->blueprint_instance().source.inline_def();
     ASSERT_NE(inline_bp, nullptr);
     EXPECT_NE(inline_bp->find_node(I.lookup("firstorderlag_1")), nullptr);
 }

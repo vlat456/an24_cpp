@@ -14,13 +14,13 @@ const TypeRegistry& shared_registry() {
     return registry;
 }
 
-DeviceInstance make_bridge_device(std::string name, std::string classname) {
-    DeviceInstance dev;
-    dev.name = std::move(name);
-    dev.classname = std::move(classname);
-    const TypeDefinition* def = shared_registry().get(dev.classname);
-    EXPECT_NE(def, nullptr);
-    return merge_device_instance(dev, *def);
+BridgePortDefinition make_bridge(std::string name, PortDirection side) {
+    BridgePortDefinition bridge;
+    bridge.id = std::move(name);
+    bridge.exposed_port = bridge.id;
+    bridge.side = side;
+    bridge.type = PortType::Any;
+    return bridge;
 }
 
 DeviceInstance make_resistor_device(std::string name) {
@@ -37,16 +37,18 @@ DeviceInstance make_resistor_device(std::string name) {
 
 TEST(BridgeLowering, BuildSkipsBridgeRuntimeComponents) {
     std::vector<DeviceInstance> devices;
-    devices.push_back(make_bridge_device("vin", "BlueprintInput"));
     devices.push_back(make_resistor_device("load"));
-    devices.push_back(make_bridge_device("vout", "BlueprintOutput"));
-
-    std::vector<std::vector<std::string>> signal_groups = {
-        {"vin.port", "load.v_in"},
-        {"load.v_out", "vout.port"},
+    std::vector<BridgePortDefinition> bridges = {
+        make_bridge("vin", PortDirection::In),
+        make_bridge("vout", PortDirection::Out),
     };
 
-    BuildResult result = build_systems_dev(make_jit_input(devices, signal_groups));
+    std::vector<Connection> connections = {
+        {"vin.port", "load.v_in", {}},
+        {"load.v_out", "vout.port", {}},
+    };
+
+    BuildResult result = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
 
     EXPECT_EQ(result.devices.count("vin"), 0u);
     EXPECT_EQ(result.devices.count("vout"), 0u);
@@ -55,14 +57,16 @@ TEST(BridgeLowering, BuildSkipsBridgeRuntimeComponents) {
 
 TEST(BridgeLowering, BridgeSignalsStillUnifiedForAliasContract) {
     std::vector<DeviceInstance> devices;
-    devices.push_back(make_bridge_device("vin", "BlueprintInput"));
     devices.push_back(make_resistor_device("load"));
-
-    std::vector<std::vector<std::string>> signal_groups = {
-        {"vin.ext", "vin.port", "load.v_in"},
+    std::vector<BridgePortDefinition> bridges = {
+        make_bridge("vin", PortDirection::In),
     };
 
-    BuildResult result = build_systems_dev(make_jit_input(devices, signal_groups));
+    std::vector<Connection> connections = {
+        {"vin.port", "load.v_in", {}},
+    };
+
+    BuildResult result = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
 
     ASSERT_TRUE(result.port_to_signal.count("vin.ext") > 0);
     ASSERT_TRUE(result.port_to_signal.count("vin.port") > 0);
@@ -74,16 +78,18 @@ TEST(BridgeLowering, BridgeSignalsStillUnifiedForAliasContract) {
 
 TEST(BridgeLowering, BridgeNodesDoNotEnterScheduler) {
     std::vector<DeviceInstance> devices;
-    devices.push_back(make_bridge_device("vin", "BlueprintInput"));
     devices.push_back(make_resistor_device("load"));
-    devices.push_back(make_bridge_device("vout", "BlueprintOutput"));
-
-    std::vector<std::vector<std::string>> signal_groups = {
-        {"vin.port", "load.v_in"},
-        {"load.v_out", "vout.port"},
+    std::vector<BridgePortDefinition> bridges = {
+        make_bridge("vin", PortDirection::In),
+        make_bridge("vout", PortDirection::Out),
     };
 
-    BuildResult result = build_systems_dev(make_jit_input(devices, signal_groups));
+    std::vector<Connection> connections = {
+        {"vin.port", "load.v_in", {}},
+        {"load.v_out", "vout.port", {}},
+    };
+
+    BuildResult result = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
 
     EXPECT_EQ(result.scheduler.source_count(), 0u);
     EXPECT_EQ(result.scheduler.consumer_count(), 0u);
@@ -91,14 +97,8 @@ TEST(BridgeLowering, BridgeNodesDoNotEnterScheduler) {
 
 TEST(BridgeLowering, AotFilterRemovesBridgeDevices) {
     std::vector<DeviceInstance> devices;
-
-    DeviceInstance bridge_in = make_bridge_device("vin", "BlueprintInput");
-    DeviceInstance bridge_out = make_bridge_device("vout", "BlueprintOutput");
     DeviceInstance resistor = make_resistor_device("load");
-
-    devices.push_back(bridge_in);
     devices.push_back(resistor);
-    devices.push_back(bridge_out);
 
     auto filtered = codegen_detail::filter_simulation_devices(devices);
 

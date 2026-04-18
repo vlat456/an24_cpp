@@ -197,7 +197,7 @@ bool EditorModel::bake_blueprint_instance(ui::InternedId node_id,
     auto const* node = current_.find_node(node_id);
     if (!node) return false;
     if (!node->is_blueprint_instance()) return false;
-    if (!node->source || !node->source->is_reference()) return false;
+    if (!node->has_referenced_blueprint()) return false;
 
     // TODO: Implement reference-to-embedded conversion for blueprint_instance nodes.
     // This will involve looking up the referenced blueprint and updating node.source.

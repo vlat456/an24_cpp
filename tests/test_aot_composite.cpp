@@ -20,19 +20,15 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
     TypeDefinition lamp;
     lamp.classname = "voltage_indicator";
     lamp.cpp_class = false;
-    DeviceInstance d_vin;
-    d_vin.name = "vin";
-    d_vin.classname = "BlueprintInput";
-    d_vin.execution = make_execution(true, false, true, false, false, false, true, true, true);
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
     d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    DeviceInstance d_vout;
-    d_vout.name = "vout";
-    d_vout.classname = "BlueprintOutput";
-    d_vout.execution = make_execution(true, false, true, false, false, false, true, true, true);
-    lamp.devices = {d_vin, d_lamp, d_vout};
+    lamp.devices = {d_lamp};
+    lamp.bridge_ports = {
+        make_bridge_port_def("vin", PortDirection::In, PortType::V),
+        make_bridge_port_def("vout", PortDirection::Out, PortType::V),
+    };
     lamp.connections = {{"vin.port", "lamp.v_in", {}}, {"lamp.v_out", "vout.port", {}}};
     registry.types["voltage_indicator"] = lamp;
 
@@ -48,9 +44,8 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
 
     // Bridge nodes are elaboration-only and must be lowered before runtime codegen.
     // AOT runtime fields should contain only simulation components.
-    EXPECT_EQ(result.header.find("BlueprintInput"), std::string::npos);
+    EXPECT_EQ(result.header.find("BridgePort"), std::string::npos);
     EXPECT_NE(result.header.find("IndicatorLight"), std::string::npos);
-    EXPECT_EQ(result.header.find("BlueprintOutput"), std::string::npos);
 
     // Should have solve_step and pre_load
     EXPECT_NE(result.header.find("solve_step"), std::string::npos);
@@ -217,7 +212,7 @@ TEST(AotComposite, PreLoad_CallsSubComposites) {
 // ============================================================
 // JIT vs AOT equivalence for composites
 // ============================================================
-// DISABLED: legacy solver-specific test checking BlueprintInput/Output alias unification.
+// DISABLED: legacy solver-specific test checking old bridge alias unification.
 // In push model, alias semantics differ (no union-find collapsing), so JIT
 // signal counts and port-to-signal mappings differ from AOT codegen.
 
@@ -239,21 +234,18 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     lamp.classname = "voltage_indicator";
     lamp.cpp_class = false;
 
-    DeviceInstance d_vin;
-    d_vin.name = "vin";
-    d_vin.classname = "BlueprintInput";
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
-    DeviceInstance d_vout;
-    d_vout.name = "vout";
-    d_vout.classname = "BlueprintOutput";
-    lamp.devices = {d_vin, d_lamp, d_vout};
+    lamp.devices = {d_lamp};
+    lamp.bridge_ports = {
+        make_bridge_port_def("vin", PortDirection::In, PortType::V),
+        make_bridge_port_def("vout", PortDirection::Out, PortType::V),
+    };
     lamp.connections = {
         {"vin.port", "lamp.v_in", {}},
         {"lamp.v_out", "vout.port", {}}
     };
-    // Expose external ports matching BlueprintInput/Output naming
     lamp.ports["vin"]  = Port{PortDirection::In, PortType::V, std::nullopt};
     lamp.ports["vout"] = Port{PortDirection::Out, PortType::V, std::nullopt};
     registry.types["voltage_indicator"] = lamp;
@@ -284,7 +276,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
         }
     }
 
-    BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.connections));
+    BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
 
     // ---- Compare signal topologies ----
 
@@ -297,10 +289,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     // Compare runtime-visible device sets (bridges excluded).
     std::set<std::string> aot_device_names;
     for (const auto& dev : expanded.devices) {
-        const bool is_bridge = dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput";
-        if (!is_bridge) {
-            aot_device_names.insert(dev.name);
-        }
+        aot_device_names.insert(dev.name);
     }
     std::set<std::string> jit_device_names;
     for (const auto& [name, _] : jit_result.devices) {
@@ -975,21 +964,13 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
 }
 
 // =============================================================================
-// Regression: AOT codegen must unify BlueprintInput/BlueprintOutput ext↔port
+    // Regression: AOT codegen must unify structural bridge ext↔port
 // signals via UnionFind, matching JIT solver behavior. Without this, composites
 // with bridge nodes have broken signal routing in AOT mode because ext and port
 // get allocated as separate signals instead of being unified.
 // =============================================================================
 TEST(AotComposite, BridgeNodeExtPortUnification) {
     TypeRegistry registry;
-
-    // BlueprintInput: port (Out, Any), ext (In, Any, alias→port)
-    TypeDefinition bp_in = make_blueprint_input_type();
-    registry.types["BlueprintInput"] = bp_in;
-
-    // BlueprintOutput: port (In, Any), ext (Out, Any, alias→port)
-    TypeDefinition bp_out = make_blueprint_output_type();
-    registry.types["BlueprintOutput"] = bp_out;
 
     // IndicatorLight (simple pass-through component)
     TypeDefinition light = make_indicator_light_type();
@@ -1000,16 +981,14 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     composite.classname = "bridge_test";
     composite.cpp_class = false;
 
-    DeviceInstance d_vin;
-    d_vin.name = "vin";
-    d_vin.classname = "BlueprintInput";
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
-    DeviceInstance d_vout;
-    d_vout.name = "vout";
-    d_vout.classname = "BlueprintOutput";
-    composite.devices = {d_vin, d_lamp, d_vout};
+    composite.devices = {d_lamp};
+    composite.bridge_ports = {
+        make_bridge_port_def("vin", PortDirection::In, PortType::V),
+        make_bridge_port_def("vout", PortDirection::Out, PortType::V),
+    };
     composite.connections = {
         {"vin.port", "lamp.v_in", {}},
         {"lamp.v_out", "vout.port", {}}
@@ -1036,7 +1015,7 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
         const auto* type_def = registry.get(dev.classname);
         if (type_def) dev = merge_device_instance(dev, *type_def);
     }
-    BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.connections));
+    BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
 
     // Key assertion: vin.ext and vin.port MUST share a signal in JIT
     auto jit_sig = [&](const std::string& port) -> uint32_t {
@@ -1046,9 +1025,9 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     };
 
     EXPECT_EQ(jit_sig("vin.ext"), jit_sig("vin.port"))
-        << "JIT must unify BlueprintInput ext↔port";
+        << "JIT must unify input bridge ext↔port";
     EXPECT_EQ(jit_sig("vout.ext"), jit_sig("vout.port"))
-        << "JIT must unify BlueprintOutput ext↔port";
+        << "JIT must unify output bridge ext↔port";
 
     // AOT signal count must match JIT exactly, including trailing sentinel slot.
     // Without bridge unification, AOT would allocate 2 extra signals (one for each bridge).

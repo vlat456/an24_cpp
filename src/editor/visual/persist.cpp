@@ -99,14 +99,14 @@ bool validate_blueprint_for_persist(
     }
 
      for (const auto& node : bp.nodes()) {
-         // Embedded blueprint instances carry a semantic type that matches
-         // the blueprint ID, not a registered component type. Skip validation.
-         if (node.has_embedded_blueprint()) {
-             continue;
-         }
-         std::string type_name(interner.resolve(node.semantic.type));
-         if (!parser_registry.has(type_name)) {
-             if (error_out) *error_out = "unknown node type: " + type_name;
+          // Embedded blueprint instances carry a semantic type that matches
+          // the blueprint ID, not a registered component type. Skip validation.
+          if (node.has_embedded_blueprint() || node.is_bridge_port()) {
+              continue;
+          }
+          std::string type_name(interner.resolve(node.semantic.type));
+          if (!parser_registry.has(type_name)) {
+              if (error_out) *error_out = "unknown node type: " + type_name;
              return false;
          }
      }

@@ -130,17 +130,14 @@ TEST(EmbeddedSubwindowScene, RootWindowStillShowsRootNodes) {
     inline_bp = inline_bp.with_node(make_node(interner, "composite_bat", "Battery"));
 
     bp2::Blueprint::Node group_node;
-    group_node.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     group_node.semantic.id = interner.intern("composite_1");
     group_node.semantic.type = interner.intern("Composite");
     group_node.view.name = "composite_1";
-    group_node.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    group_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("Composite"),
-        std::make_unique<bp2::Blueprint>(inline_bp));
-    set_iface(group_node, {
-        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
-        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V)
-    });
+        std::make_unique<bp2::Blueprint>(inline_bp))
+    };
 
     auto wire = make_wire(interner, arena, "wire_root",
                           "root_bat", "v_out", "composite_1", "v_in");
@@ -179,21 +176,18 @@ TEST(EmbeddedSubwindowScene, CompositeHostPortsUseNestedAuthorityNotCollapsedCac
 
     // Create a blueprint-instance node with embedded source
     bp2::Blueprint::Node composite;
-    composite.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     composite.semantic.id = interner.intern("composite_1");
     composite.semantic.type = interner.intern("CompositeType");
     composite.view.name = "composite_1";
-    // Set stale interface on the node (but effective_node_iface should use inline_bp)
-    set_iface(composite, {
-        make_port(interner, "stale_only", Domain::Electrical, bp2::Direction::Input, PortType::V),
-    });
-    
+
     // Attach the inline blueprint as source
     auto inline_bp_copy = std::make_unique<bp2::Blueprint>(inline_bp);
-    composite.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    composite.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         interner.intern("CompositeType"),
         std::move(inline_bp_copy)
-    );
+    )
+    };
 
     bp2::Blueprint root;
     root = root.with_node(std::move(composite));
@@ -204,10 +198,12 @@ TEST(EmbeddedSubwindowScene, CompositeHostPortsUseNestedAuthorityNotCollapsedCac
     auto* composite_widget = root_scene.find("composite_1");
     ASSERT_NE(composite_widget, nullptr);
     EXPECT_NE(composite_widget->portByName("inner_only"), nullptr);
-    EXPECT_EQ(composite_widget->portByName("stale_only"), nullptr);
 
     auto* composite_node = root.find_node(interner.intern("composite_1"));
     ASSERT_NE(composite_node, nullptr);
-    EXPECT_TRUE(composite_node->semantic.iface.has(interner.intern("stale_only")));
-    EXPECT_FALSE(composite_node->semantic.iface.has(interner.intern("inner_only")));
+    // With the sum-type design, a BlueprintInstance node's interface comes
+    // exclusively from its source — no stale semantic.iface can exist.
+    EXPECT_TRUE(composite_node->is_blueprint_instance());
+    const auto& effective = root.effective_node_iface(*composite_node);
+    EXPECT_TRUE(effective.has(interner.intern("inner_only")));
 }

@@ -141,32 +141,28 @@
           "name": "RN-180-Exciter",
           "nodes": [
             {
-              "component": "BlueprintInput",
+              "exposed_port": "feedback",
               "id": "bp_in_1",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "feedback",
               "layout": {
                 "x": 0.0,
                 "y": 32.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
-              "component": "BlueprintOutput",
+              "exposed_port": "output",
               "id": "bp_out_1",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "output",
               "layout": {
                 "x": 660.0,
                 "y": 32.0
               },
-              "params": {
-                "exposed_direction": "Out",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "output"
             },
             {
               "component": "LUT",
@@ -387,46 +383,40 @@
           "name": "LoadVoltageDrp",
           "nodes": [
             {
-              "component": "BlueprintInput",
+              "exposed_port": "v_in",
               "id": "bp_in_1",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "v_in",
               "layout": {
                 "x": 0.0,
                 "y": 160.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
-              "component": "BlueprintInput",
+              "exposed_port": "v_ref",
               "id": "bp_in_2",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "v_ref",
               "layout": {
                 "x": 0.0,
                 "y": 176.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
-              "component": "BlueprintOutput",
+              "exposed_port": "out",
               "id": "bp_out_1",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "out",
               "layout": {
                 "x": 800.0,
                 "y": 160.0
               },
-              "params": {
-                "exposed_direction": "Out",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "output"
             },
             {
               "component": "Clamp",
@@ -884,60 +874,52 @@
           "name": "DerateCtrl",
           "nodes": [
             {
-              "component": "BlueprintInput",
+              "exposed_port": "A_2",
               "id": "bp_in_1",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "A_2",
               "layout": {
                 "x": 0.0,
                 "y": 32.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
-              "component": "BlueprintInput",
+              "exposed_port": "B",
               "id": "bp_in_2",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "B",
               "layout": {
                 "x": 0.0,
                 "y": 48.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
-              "component": "BlueprintInput",
+              "exposed_port": "A",
               "id": "bp_in_3",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "A",
               "layout": {
                 "x": 0.0,
                 "y": 112.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
-              "component": "BlueprintOutput",
+              "exposed_port": "o",
               "id": "bp_out_1",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "o",
               "layout": {
                 "x": 1616.0,
                 "y": 80.0
               },
-              "params": {
-                "exposed_direction": "Out",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "output"
             },
             {
               "component": "Clamp",
@@ -1404,32 +1386,28 @@
           "name": "RPMIntertial",
           "nodes": [
             {
-              "component": "BlueprintInput",
+              "exposed_port": "Torque",
               "id": "bp_in_2",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "Torque",
               "layout": {
                 "x": 320.0,
                 "y": 528.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
-              "component": "BlueprintOutput",
+              "exposed_port": "out",
               "id": "bp_out_1",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "out",
               "layout": {
                 "x": 600.0,
                 "y": 528.0
               },
-              "params": {
-                "exposed_direction": "Out",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "output"
             },
             {
               "component": "InertiaNode",
@@ -1596,17 +1574,15 @@
               }
             },
             {
-              "component": "BlueprintInput",
+              "exposed_port": "in",
               "id": "in",
-              "kind": "component",
+              "kind": "bridge_port",
               "layout": {
                 "x": -360.0,
                 "y": 304.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
               "component": "Multiply",
@@ -1621,30 +1597,26 @@
               }
             },
             {
-              "component": "BlueprintOutput",
+              "exposed_port": "out",
               "id": "out",
-              "kind": "component",
+              "kind": "bridge_port",
               "layout": {
                 "x": 224.0,
                 "y": 80.0
               },
-              "params": {
-                "exposed_direction": "Out",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "output"
             },
             {
-              "component": "BlueprintInput",
+              "exposed_port": "rate",
               "id": "rate",
-              "kind": "component",
+              "kind": "bridge_port",
               "layout": {
                 "x": -360.0,
                 "y": 96.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
               "component": "Splitter",
@@ -1806,32 +1778,28 @@
           "name": "GroundPower",
           "nodes": [
             {
-              "component": "BlueprintInput",
+              "exposed_port": "v_in",
               "id": "groundpower_1:v_in",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "v_in",
               "layout": {
                 "x": 0.0,
                 "y": 160.0
               },
-              "params": {
-                "exposed_direction": "In",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "input"
             },
             {
-              "component": "BlueprintOutput",
+              "exposed_port": "v_out",
               "id": "groundpower_1:v_out",
-              "kind": "component",
+              "kind": "bridge_port",
               "label": "v_out",
               "layout": {
                 "x": 352.0,
                 "y": 32.0
               },
-              "params": {
-                "exposed_direction": "Out",
-                "exposed_type": "Contextual"
-              }
+              "port_type": "Contextual",
+              "side": "output"
             },
             {
               "component": "Value",

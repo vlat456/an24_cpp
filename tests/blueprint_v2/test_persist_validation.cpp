@@ -123,7 +123,9 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
     // Populate interface from registry
     const auto* def = parser_registry.get("ElectricalSource");
     if (def) {
-        n.semantic.iface = bp2::interface_from_type_definition(*def, interner);
+        n.content = bp2::Blueprint::Node::ComponentData{
+            bp2::interface_from_type_definition(*def, interner)
+        };
     }
     bp = bp.with_node(std::move(n));
 
@@ -146,7 +148,9 @@ TEST(PersistValidation, WireDomainMismatchFailsValidation) {
     a.semantic.type = interner.intern("ElectricalSource");
     const auto* def_a = parser_registry.get("ElectricalSource");
     if (def_a) {
-        a.semantic.iface = bp2::interface_from_type_definition(*def_a, interner);
+        a.content = bp2::Blueprint::Node::ComponentData{
+            bp2::interface_from_type_definition(*def_a, interner)
+        };
     }
     bp = bp.with_node(std::move(a));
 
@@ -155,7 +159,9 @@ TEST(PersistValidation, WireDomainMismatchFailsValidation) {
     b.semantic.type = interner.intern("Resistor");
     const auto* def_b = parser_registry.get("Resistor");
     if (def_b) {
-        b.semantic.iface = bp2::interface_from_type_definition(*def_b, interner);
+        b.content = bp2::Blueprint::Node::ComponentData{
+            bp2::interface_from_type_definition(*def_b, interner)
+        };
     }
     bp = bp.with_node(std::move(b));
 
@@ -184,4 +190,3 @@ TEST(PersistValidation, WireDomainMismatchFailsValidation) {
 // Strict v1 regression: legacy blueprints are intentionally rejected by the
 // canonical codec. Old schematic files have been deleted from the repository.
 // ===========================================================================
-

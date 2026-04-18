@@ -10,8 +10,6 @@
     { "blueprint_id": "Any_V_to_Bool", "path": "library/electrical/Any_V_to_Bool.blueprint" },
     { "blueprint_id": "AsymSlewRate", "path": "library/math/AsymSlewRate.blueprint" },
     { "blueprint_id": "AsymTMO", "path": "library/math/AsymTMO.blueprint" },
-    { "blueprint_id": "BlueprintInput", "path": "library/BlueprintInput.blueprint" },
-    { "blueprint_id": "BlueprintOutput", "path": "library/BlueprintOutput.blueprint" },
     { "blueprint_id": "Bus", "path": "library/Bus.blueprint" },
     { "blueprint_id": "Clamp", "path": "library/math/Clamp.blueprint" },
     { "blueprint_id": "Comparator", "path": "library/logical/Comparator.blueprint" },

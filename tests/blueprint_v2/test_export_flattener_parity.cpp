@@ -23,7 +23,7 @@ bp2::Blueprint::Node make_node(ui::StringInterner& I,
     bp2::Blueprint::Node n;
     n.semantic.id = I.intern(id);
     n.semantic.type = I.intern(type);
-    n.semantic.iface = bp2::Interface(ports);
+    n.component().iface = bp2::Interface(ports);
     return n;
 }
 
@@ -55,6 +55,33 @@ bool connected_on_same_signal(const JitBuildInput& jit_input,
     return it_a->second == it_b->second;
 }
 
+bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+                                      const char* id,
+                                      const char* exposed_port,
+                                      bool input_side,
+                                      PortType type = PortType::V) {
+    bp2::Blueprint::Node n;
+    n.semantic.id = I.intern(id);
+    n.semantic.type = I.intern("BridgePort");
+    n.view.name = exposed_port;
+    n.content = bp2::Blueprint::Node::BridgePortData{
+        I.intern(exposed_port),
+        input_side ? bp2::Blueprint::Node::BridgePortSide::Input
+                   : bp2::Blueprint::Node::BridgePortSide::Output,
+        type,
+        input_side
+            ? bp2::Interface({
+                in_port(I, "ext", type),
+                out_port(I, "port", type),
+            })
+            : bp2::Interface({
+                in_port(I, "port", type),
+                out_port(I, "ext", type),
+            })
+    };
+    return n;
+}
+
 } // namespace
 
 
@@ -64,7 +91,7 @@ bool connected_on_same_signal(const JitBuildInput& jit_input,
 //
 // Topology:
 //   root: bat ──v_out──→ [inst].vin
-//   inst: vin(BlueprintInput) ──ext──→ r1.v_in
+//   inst: vin(bridge_port) ──ext──→ r1.v_in
 //
 // Expected flat devices: bat, inst:vin, inst:r1
 // Expected connectivity: bat.v_out, inst:vin.ext, inst:r1.v_in all on same signal
@@ -79,15 +106,7 @@ TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
     bp2::Blueprint inner;
     inner = inner.with_interface(bp2::Interface({in_port(I, "vin")}));
 
-    // BlueprintInput bridge node for "vin"
-    bp2::Blueprint::Node bridge;
-    bridge.semantic.id = I.intern("vin");
-    bridge.semantic.type = I.intern("BlueprintInput");
-    bridge.semantic.iface = bp2::Interface({
-        in_port(I, "port"),
-        out_port(I, "ext"),
-    });
-    inner = inner.with_node(std::move(bridge));
+    inner = inner.with_node(make_bridge_node(I, "vin", "vin", true));
 
     // Leaf resistor
     inner = inner.with_node(make_node(I, "r1", "Resistor", {
@@ -113,12 +132,13 @@ TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
 
     // Blueprint-instance node "inst"
     bp2::Blueprint::Node inst;
-    inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     inst.semantic.id = I.intern("inst");
     inst.semantic.type = I.intern("EmbeddedType");
-    inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("EmbeddedType"),
-        std::make_unique<bp2::Blueprint>(inner));
+        std::make_unique<bp2::Blueprint>(inner))
+    };
     root = root.with_node(std::move(inst));
 
     // Root wire: bat.v_out → inst.vin
@@ -178,14 +198,7 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
     bp2::Blueprint sub_bp;
     sub_bp = sub_bp.with_interface(bp2::Interface({in_port(I, "pin")}));
 
-    bp2::Blueprint::Node sub_bridge;
-    sub_bridge.semantic.id = I.intern("pin");
-    sub_bridge.semantic.type = I.intern("BlueprintInput");
-    sub_bridge.semantic.iface = bp2::Interface({
-        in_port(I, "port"),
-        out_port(I, "ext"),
-    });
-    sub_bp = sub_bp.with_node(std::move(sub_bridge));
+    sub_bp = sub_bp.with_node(make_bridge_node(I, "pin", "pin", true));
 
     sub_bp = sub_bp.with_node(make_node(I, "r1", "Resistor", {
         in_port(I, "v_in"),
@@ -203,23 +216,17 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
     bp2::Blueprint mid_bp;
     mid_bp = mid_bp.with_interface(bp2::Interface({in_port(I, "vin")}));
 
-    bp2::Blueprint::Node mid_bridge;
-    mid_bridge.semantic.id = I.intern("vin");
-    mid_bridge.semantic.type = I.intern("BlueprintInput");
-    mid_bridge.semantic.iface = bp2::Interface({
-        in_port(I, "port"),
-        out_port(I, "ext"),
-    });
-    mid_bp = mid_bp.with_node(std::move(mid_bridge));
+    mid_bp = mid_bp.with_node(make_bridge_node(I, "vin", "vin", true));
 
     // Embedded sub instance
     bp2::Blueprint::Node sub_inst;
-    sub_inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     sub_inst.semantic.id = I.intern("sub");
     sub_inst.semantic.type = I.intern("SubType");
-    sub_inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    sub_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("SubType"),
-        std::make_unique<bp2::Blueprint>(sub_bp));
+        std::make_unique<bp2::Blueprint>(sub_bp))
+    };
     mid_bp = mid_bp.with_node(std::move(sub_inst));
 
     bp2::Blueprint::Wire mw;
@@ -237,12 +244,13 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
     }));
 
     bp2::Blueprint::Node mid_inst;
-    mid_inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     mid_inst.semantic.id = I.intern("mid");
     mid_inst.semantic.type = I.intern("MidType");
-    mid_inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    mid_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("MidType"),
-        std::make_unique<bp2::Blueprint>(mid_bp));
+        std::make_unique<bp2::Blueprint>(mid_bp))
+    };
     root = root.with_node(std::move(mid_inst));
 
     bp2::Blueprint::Wire rw;
@@ -285,16 +293,16 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
 
 
 // ==============================================================================
-// BlueprintOutput bridge: output side of a blueprint instance.
+// Output bridge_port: output side of a blueprint instance.
 //
 // Topology:
-//   inst: r1.v_out → vout(BlueprintOutput).ext
+//   inst: r1.v_out → vout(bridge_port).ext
 //   root: [inst].vout → led.v_in
 //
 // Expected connectivity: inst:vout.ext and led.v_in on same signal
 // ==============================================================================
 
-TEST(ExportFlattenerParity, BlueprintOutputBridgeRewrite) {
+TEST(ExportFlattenerParity, OutputBridgeRewrite) {
     ui::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
@@ -308,14 +316,7 @@ TEST(ExportFlattenerParity, BlueprintOutputBridgeRewrite) {
         out_port(I, "v_out"),
     }));
 
-    bp2::Blueprint::Node bridge;
-    bridge.semantic.id = I.intern("vout");
-    bridge.semantic.type = I.intern("BlueprintOutput");
-    bridge.semantic.iface = bp2::Interface({
-        in_port(I, "ext"),
-        out_port(I, "port"),
-    });
-    inner = inner.with_node(std::move(bridge));
+    inner = inner.with_node(make_bridge_node(I, "vout", "vout", false));
 
     bp2::Blueprint::Wire iw;
     iw.id = I.intern("iw1");
@@ -328,12 +329,13 @@ TEST(ExportFlattenerParity, BlueprintOutputBridgeRewrite) {
     bp2::Blueprint root;
 
     bp2::Blueprint::Node inst;
-    inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     inst.semantic.id = I.intern("inst");
     inst.semantic.type = I.intern("EmbeddedType");
-    inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("EmbeddedType"),
-        std::make_unique<bp2::Blueprint>(inner));
+        std::make_unique<bp2::Blueprint>(inner))
+    };
     root = root.with_node(std::move(inst));
 
     root = root.with_node(make_node(I, "led", "LED", {
@@ -357,10 +359,10 @@ TEST(ExportFlattenerParity, BlueprintOutputBridgeRewrite) {
     std::string led_v_in = signal_key::make_node_port_key("led", "v_in");
 
     EXPECT_TRUE(connected_on_same_signal(jit_input, inst_vout_ext, led_v_in))
-        << "BlueprintOutput bridge resolution failed: inst:vout.ext and led.v_in must share the same signal";
+        << "Output bridge resolution failed: inst:vout.ext and led.v_in must share the same signal";
 }
 
-TEST(ExportFlattenerParity, MigratedBlueprintOutputExposesCanonicalInterfacePortKey) {
+TEST(ExportFlattenerParity, StructuralOutputBridgeExposesCanonicalInterfacePortKey) {
     ui::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
@@ -372,15 +374,7 @@ TEST(ExportFlattenerParity, MigratedBlueprintOutputExposesCanonicalInterfacePort
         out_port(I, "rpm_out", PortType::RPM),
     }));
 
-    bp2::Blueprint::Node bridge;
-    bridge.semantic.id = I.intern("bp_out_1");
-    bridge.semantic.type = I.intern("BlueprintOutput");
-    bridge.view.name = "out";
-    bridge.semantic.iface = bp2::Interface({
-        in_port(I, "ext", PortType::RPM),
-        out_port(I, "port", PortType::RPM),
-    });
-    inner = inner.with_node(std::move(bridge));
+    inner = inner.with_node(make_bridge_node(I, "bp_out_1", "out", false, PortType::RPM));
 
     bp2::Blueprint::Wire iw;
     iw.id = I.intern("iw_rpm");
@@ -391,12 +385,13 @@ TEST(ExportFlattenerParity, MigratedBlueprintOutputExposesCanonicalInterfacePort
 
     bp2::Blueprint root;
     bp2::Blueprint::Node inst;
-    inst.kind = bp2::Blueprint::Node::Kind::BlueprintInstance;
     inst.semantic.id = I.intern("extract_inst_4");
     inst.semantic.type = I.intern("RPMIntertial");
-    inst.source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
+    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
         I.intern("RPMIntertial"),
-        std::make_unique<bp2::Blueprint>(inner));
+        std::make_unique<bp2::Blueprint>(inner))
+    };
     root = root.with_node(std::move(inst));
 
     bp2::Flattener flattener(library);

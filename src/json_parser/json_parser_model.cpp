@@ -123,6 +123,11 @@ TypeDefinition expand_sub_blueprint_references(
             conn.to = ref.id + ":" + conn.to;
             result.connections.push_back(std::move(conn));
         }
+
+        for (auto bridge : expanded.bridge_ports) {
+            bridge.id = ref.id + ":" + bridge.id;
+            result.bridge_ports.push_back(std::move(bridge));
+        }
     }
 
     loading_stack.erase(td.classname);
