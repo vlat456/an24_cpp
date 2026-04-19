@@ -57,9 +57,9 @@ bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
     return w;
 }
 
-/// Build a Component node whose interface matches the TypeRegistry exactly.
+/// Build a Component node whose interface matches the ComponentRegistry exactly.
 bp2::Blueprint::Node make_typed_node(ui::StringInterner& I,
-                                     const TypeRegistry& registry,
+                                     const ComponentRegistry& registry,
                                      const char* id,
                                      const char* type,
                                      float x,
@@ -116,7 +116,7 @@ bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
 ///   w1: a.v_out      → b.v_in       (internal to selection {a,b})
 ///   w2: b.v_out      → ext_out.port
 bp2::Blueprint make_extract_roundtrip_fixture(ui::StringInterner& I,
-                                              const TypeRegistry& registry) {
+                                              const ComponentRegistry& registry) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_doc"));
     bp = bp.with_name("ExtractDoc");
@@ -149,7 +149,7 @@ bp2::Blueprint make_extract_roundtrip_fixture(ui::StringInterner& I,
 
 TEST(DocumentSafety, AddComponentUnknownTypeDoesNotCrashOrMutate) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
 
     const size_t before_nodes = doc.model().current().nodes().size();
     const size_t before_wires = doc.model().current().wires().size();
@@ -160,12 +160,12 @@ TEST(DocumentSafety, AddComponentUnknownTypeDoesNotCrashOrMutate) {
     EXPECT_EQ(doc.model().current().wires().size(), before_wires);
 }
 
-TEST(DocumentSafety, LoadHydratesRootNodeViewFromTypeRegistry) {
+TEST(DocumentSafety, LoadHydratesRootNodeViewFromComponentRegistry) {
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_load_hydrate_root");
     const fs::path bp_path = dir / "root.blueprint";
@@ -208,12 +208,12 @@ TEST(DocumentSafety, LoadHydratesRootNodeViewFromTypeRegistry) {
     fs::remove_all(dir);
 }
 
-TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromTypeRegistry) {
+TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromComponentRegistry) {
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_load_hydrate_embedded");
     const fs::path bp_path = dir / "embedded.blueprint";
@@ -267,8 +267,8 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromTypeRegistry
 
 TEST(DocumentSafety, SetSliderValuePreservesCanonicalStaticContent) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -299,8 +299,8 @@ TEST(DocumentSafety, SetSliderValuePreservesCanonicalStaticContent) {
 
 TEST(DocumentSafety, SetKnobPositionPreservesCanonicalStaticContent) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -332,8 +332,8 @@ TEST(DocumentSafety, LoadHydratesNonDefaultKnobPositionsFromInstanceParams) {
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_knob_positions_load");
     const fs::path bp_path = dir / "knob_positions.blueprint";
@@ -369,8 +369,8 @@ TEST(DocumentSafety, LoadHydratesNonDefaultGaugeRangeAndUnitFromInstanceParams) 
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_gauge_params_load");
     const fs::path bp_path = dir / "gauge_params.blueprint";
@@ -412,8 +412,8 @@ TEST(DocumentSafety, LoadHydratesHoldButtonAsSwitchLikeContent) {
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_hold_button_load");
     const fs::path bp_path = dir / "hold_button.blueprint";
@@ -450,8 +450,8 @@ TEST(DocumentSafety, LoadHydratesHoldButtonAsSwitchLikeContent) {
 
 TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEditedParams) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -511,8 +511,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEdited
 
 TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedParams) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -568,8 +568,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedPa
 
 TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -615,8 +615,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
 
 TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -657,8 +657,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
 
 TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedState) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -700,8 +700,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedSta
 
 TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -740,7 +740,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
 
 TEST(DocumentSafety, SliderRuntimeReadbackUsesOutPortWhenPresent) {
     ui::StringInterner I;
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
 
     auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
     set_iface(slider, {
@@ -754,7 +754,7 @@ TEST(DocumentSafety, SliderRuntimeReadbackUsesOutPortWhenPresent) {
 
 TEST(DocumentSafety, SliderRuntimeReadbackUsesControlPortWhenOutMissing) {
     ui::StringInterner I;
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
 
     auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
     set_iface(slider, {
@@ -768,7 +768,7 @@ TEST(DocumentSafety, SliderRuntimeReadbackUsesControlPortWhenOutMissing) {
 
 TEST(DocumentSafety, SliderRuntimeReadbackPrefersOutOverControlWhenBothExist) {
     ui::StringInterner I;
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
 
     auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
     set_iface(slider, {
@@ -798,8 +798,8 @@ TEST(DocumentSafety, LoadNormalizesLegacyAutosizeWithoutDirtyingOrCreatingUndoHi
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_load_normalize_sizes");
     const fs::path bp_path = dir / "normalize.blueprint";
@@ -852,12 +852,12 @@ TEST(DocumentSafety, LoadNormalizesLegacyAutosizeWithoutDirtyingOrCreatingUndoHi
     fs::remove_all(dir);
 }
 
-TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromTypeRegistry) {
+TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromComponentRegistry) {
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     bp2::LibraryIndex index;
     const fs::path dir = make_temp_dir("an24_doc_load_hydrate_external");
@@ -912,8 +912,8 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromTypeRegistry) {
 
 TEST(DocumentSafety, ExplicitNormalizeNodeSizesCreatesUndoableShrinkAndClearsManualIntent) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     bp2::Blueprint bp;
     bp = bp.with_id(doc.interner().intern("normalize_manual_doc"));
@@ -934,7 +934,7 @@ TEST(DocumentSafety, ExplicitNormalizeNodeSizesCreatesUndoableShrinkAndClearsMan
     bp = bp.with_node(std::move(legacy));
     bp = bp.with_node(std::move(manual));
     doc.model().replace_current(std::move(bp));
-    visual::mutations::rebuild(doc.scene(), doc.blueprint(), doc.interner(), doc.arena(), "", TypeRegistry{});
+    visual::mutations::rebuild(doc.scene(), doc.blueprint(), doc.interner(), doc.arena(), "", ComponentRegistry{});
 
     ASSERT_TRUE(doc.normalizeNodeSizesToFit(false));
     EXPECT_TRUE(doc.canUndo());
@@ -970,8 +970,8 @@ TEST(DocumentSafety, SaveLoadDropsSessionOnlyNodeColor) {
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_save_load_color_session_only");
     const fs::path bp_path = dir / "color.blueprint";
@@ -1002,7 +1002,7 @@ TEST(DocumentSafety, SaveLoadDropsSessionOnlyNodeColor) {
     ASSERT_TRUE(doc.save(bp_path.string()));
 
     Document loaded;
-    loaded.setTypeRegistry(&registry);
+    loaded.setComponentRegistry(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* loaded_node = require_node(loaded.model().current(), loaded.interner(), "slider1");
@@ -1016,8 +1016,8 @@ TEST(DocumentSafety, ExtractSaveLoadRoundTripPreservesEmbeddedBlueprintStructure
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     doc.model().replace_current(make_extract_roundtrip_fixture(doc.interner(), registry));
 
@@ -1034,7 +1034,7 @@ TEST(DocumentSafety, ExtractSaveLoadRoundTripPreservesEmbeddedBlueprintStructure
     ASSERT_TRUE(doc.save(bp_path.string()));
 
     Document loaded;
-    loaded.setTypeRegistry(&registry);
+    loaded.setComponentRegistry(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* collapsed = require_node(loaded.model().current(), loaded.interner(), "extract_inst_1");
@@ -1058,8 +1058,8 @@ TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     bp2::Blueprint bp;
     bp = bp.with_id(doc.interner().intern("delete_roundtrip"));
@@ -1085,7 +1085,7 @@ TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
     ASSERT_TRUE(doc.save(bp_path.string()));
 
     Document loaded;
-    loaded.setTypeRegistry(&registry);
+    loaded.setComponentRegistry(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     EXPECT_EQ(loaded.model().current().find_node(loaded.interner().lookup("res")), nullptr);
@@ -1098,8 +1098,8 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -1161,7 +1161,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
     ASSERT_TRUE(doc.save(bp_path.string()));
 
     Document loaded;
-    loaded.setTypeRegistry(&registry);
+    loaded.setComponentRegistry(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* slider_loaded = require_node(loaded.model().current(), loaded.interner(), "slider_rt");
@@ -1271,8 +1271,8 @@ TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAut
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -1301,7 +1301,7 @@ TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAut
     ASSERT_TRUE(doc.save(bp_path.string()));
 
     Document loaded;
-    loaded.setTypeRegistry(&registry);
+    loaded.setComponentRegistry(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* loaded_azs = require_node(loaded.model().current(), loaded.interner(), "azs_rt");
@@ -1324,8 +1324,8 @@ TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -1354,7 +1354,7 @@ TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority
     ASSERT_TRUE(doc.save(bp_path.string()));
 
     Document loaded;
-    loaded.setTypeRegistry(&registry);
+    loaded.setComponentRegistry(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* loaded_relay = require_node(loaded.model().current(), loaded.interner(), "relay_rt");
@@ -1377,8 +1377,8 @@ TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLike
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -1409,7 +1409,7 @@ TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLike
     ASSERT_TRUE(doc.save(bp_path.string()));
 
     Document loaded;
-    loaded.setTypeRegistry(&registry);
+    loaded.setComponentRegistry(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* loaded_btn = require_node(loaded.model().current(), loaded.interner(), "btn_rt");
@@ -1434,8 +1434,8 @@ TEST(DocumentSafety, SaveEmitsCanonicalDocumentWithoutForbiddenFieldsAndSortedWi
     namespace fs = std::filesystem;
 
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
     doc.model().replace_current(make_extract_roundtrip_fixture(doc.interner(), registry));
 
     const fs::path dir = make_temp_dir("an24_doc_canonical_save_scan");
@@ -1478,8 +1478,8 @@ TEST(DocumentSafety, SaveEmitsCanonicalDocumentWithoutForbiddenFieldsAndSortedWi
 
 TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     ui::StringInterner& I = doc.interner();
 
@@ -1522,8 +1522,8 @@ TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
 
 TEST(DocumentSafety, NewlyAddedComponentIsImmediatelySelectableViaDocument) {
     Document doc;
-    TypeRegistry registry = load_type_registry("library/");
-    doc.setTypeRegistry(&registry);
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
 
     // Start with an empty blueprint
     bp2::Blueprint bp;

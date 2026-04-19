@@ -17,7 +17,7 @@ namespace {
 // causing these string searches to fail. This test validates codegen output
 // format rather than functional equivalence.
 TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     PrimitiveSpec gnd = make_refnode_type(bp2::Direction::Output);
     registry.types["RefNode"] = gnd;

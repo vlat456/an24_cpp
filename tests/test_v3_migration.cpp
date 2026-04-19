@@ -15,7 +15,7 @@ static std::string read_file(std::string const& path) {
 }
 
 TEST(StrictBlueprintPersistence, LibraryLoaderParsesCurrentLibraryBlueprints) {
-    TypeRegistry registry = load_type_registry("library");
+    ComponentRegistry registry = load_component_registry("library");
 
     EXPECT_TRUE(registry.has("ElectricalSource"));
     EXPECT_TRUE(registry.has("Generator"));
@@ -34,7 +34,7 @@ TEST(StrictBlueprintPersistence, CodecRejectsLegacyVersion2Json) {
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
     bp2::DecodeError err;
 
     auto bp = bp2::BlueprintCodec::decode(old_schema, interner, arena, registry, &err);
@@ -52,7 +52,7 @@ TEST(StrictBlueprintPersistence, GSCDecodesAsStrictBlueprintIfPresent) {
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
     bp2::DecodeError err;
 
     auto bp = bp2::BlueprintCodec::decode(content, interner, arena, registry, &err);

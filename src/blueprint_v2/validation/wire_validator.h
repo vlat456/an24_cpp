@@ -2,7 +2,7 @@
 
 #include "blueprint_v2/validation/path_resolver.h"
 
-struct TypeRegistry;
+struct ComponentRegistry;
 
 namespace bp2 {
 
@@ -16,7 +16,7 @@ public:
 
     static Result validate(Blueprint::Wire const& wire,
                            Blueprint const& bp,
-                           const ::TypeRegistry& parser_registry,
+                           const ::ComponentRegistry& parser_registry,
                            ui::StringInterner& interner);
 };
 

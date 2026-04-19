@@ -28,7 +28,7 @@ std::string encode_node_kind(Blueprint::Node const& node) {
 nlohmann::json encode_node_source(const Blueprint::Node& node,
                                   ui::StringInterner const& interner,
                                   PathArena const& arena,
-                                  ::TypeRegistry const* parser_registry) {
+                                  ::ComponentRegistry const* parser_registry) {
     const auto& node_source = node.blueprint_instance().source;
 
     nlohmann::json encoded_source;
@@ -85,7 +85,7 @@ nlohmann::json encode_interface(Interface const& iface,
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                             ui::StringInterner const& interner,
                             PathArena const& arena,
-                            ::TypeRegistry const* parser_registry) {
+                            ::ComponentRegistry const* parser_registry) {
     (void)parser_registry;
 
     std::vector<Blueprint::Node const*> sorted;

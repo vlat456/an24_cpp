@@ -22,8 +22,8 @@
 
 namespace {
 
-const TypeRegistry& test_registry() {
-    static const TypeRegistry registry = load_type_registry("library/");
+const ComponentRegistry& test_registry() {
+    static const ComponentRegistry registry = load_component_registry("library/");
     return registry;
 }
 
@@ -814,7 +814,7 @@ TEST(ElectricalPrimitives, MetadataPropagatedThroughLibraryPipeline) {
     // and produces correct solve results.
     //
     // This test proves that the end-to-end path works:
-    //   blueprint file -> load_type_registry() -> merge_device_instance() -> build -> solve
+    //   blueprint file -> load_component_registry() -> merge_device_instance() -> build -> solve
 
     // Primitive-only circuit through full pipeline
     const std::string json = R"({

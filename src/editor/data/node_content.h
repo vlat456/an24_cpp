@@ -58,7 +58,7 @@ struct PortLayoutOverride {
 // Node size utility (single source of truth)
 // =============================================================================
 
-struct TypeRegistry;
+struct ComponentRegistry;
 
 namespace ui {
 class StringInterner;
@@ -68,7 +68,7 @@ class StringInterner;
 /// @param type_name Component classname (e.g., "Battery", "Splitter", "Bus", "RefNode")
 /// @param registry Type registry to look up size from JSON definitions
 /// @return Default size in pixels
-inline ui::Pt get_default_node_size(const std::string& type_name, const TypeRegistry* registry) {
+inline ui::Pt get_default_node_size(const std::string& type_name, const ComponentRegistry* registry) {
     constexpr float GRID_UNIT = 20.0f;  // 1 grid unit = 20 pixels
 
     // Try to get size from presentation spec

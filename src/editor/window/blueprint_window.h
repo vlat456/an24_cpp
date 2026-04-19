@@ -13,7 +13,7 @@
 #include <optional>
 #include <string>
 
-struct TypeRegistry;
+struct ComponentRegistry;
 
 struct RootWindowTag {};
 struct EmbeddedWindowTag {};
@@ -87,14 +87,14 @@ struct BlueprintWindow {
     std::optional<bp2::Blueprint> external_blueprint;
     std::unique_ptr<ui::StringInterner> external_interner;
     std::unique_ptr<bp2::PathArena> external_arena;
-    const TypeRegistry* type_registry = nullptr;
+    const ComponentRegistry* type_registry = nullptr;
 
     BlueprintWindow(RootWindowTag,
                     bp2::EditorModel& model_,
                     ui::StringInterner& interner_,
                     bp2::PathArena& arena_,
                     const std::string& title_,
-                    const TypeRegistry* parser_registry = nullptr)
+                    const ComponentRegistry* parser_registry = nullptr)
         : title(title_)
         , scope(WindowScopeId::root())
         , root_model(model_)
@@ -105,8 +105,8 @@ struct BlueprintWindow {
         , host(create_editor_model_host(root_model))
         , input(scene, viewport, *host, interner_, arena_, "", parser_registry)
         , type_registry(parser_registry) {
-        TypeRegistry empty_reg;
-        const TypeRegistry& reg = parser_registry ? *parser_registry : empty_reg;
+        ComponentRegistry empty_reg;
+        const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
         visual::mutations::rebuild(scene, root_model.current(), interner_, arena_, "", reg);
         input.rebuild_snapshot();
     }
@@ -117,7 +117,7 @@ struct BlueprintWindow {
                     bp2::PathArena& arena_,
                     const std::string& embedded_scope_id,
                     const std::string& title_,
-                    const TypeRegistry* parser_registry = nullptr)
+                    const ComponentRegistry* parser_registry = nullptr)
         : title(title_)
         , scope(WindowScopeId::embedded(embedded_scope_id))
         , root_model(model_)
@@ -128,8 +128,8 @@ struct BlueprintWindow {
         , host(make_embedded_host(root_model, interner_, embedded_scope_id))
         , input(scene, viewport, *host, interner_, arena_, "", parser_registry)
         , type_registry(parser_registry) {
-        TypeRegistry empty_reg;
-        const TypeRegistry& reg = parser_registry ? *parser_registry : empty_reg;
+        ComponentRegistry empty_reg;
+        const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
         const auto& bp = require_embedded_blueprint(root_model, require_nested_id(interner_, embedded_scope_id));
         visual::mutations::rebuild(scene, bp, interner_, arena_, "", reg);
         input.rebuild_snapshot();
@@ -141,7 +141,7 @@ struct BlueprintWindow {
                     bp2::PathArena& arena_,
                     const std::string& parent_instance_id,
                     const std::string& title_,
-                    const TypeRegistry* parser_registry = nullptr)
+                    const ComponentRegistry* parser_registry = nullptr)
         : title(title_)
         , scope(WindowScopeId::external(parent_instance_id))
         , root_model(model_)

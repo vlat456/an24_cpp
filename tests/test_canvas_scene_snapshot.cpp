@@ -15,8 +15,8 @@
 #include "visual/wire/routing_point.h"
 #include "bp2_test_helpers.h"
 
-static TypeRegistry make_snapshot_test_registry() {
-    TypeRegistry reg;
+static ComponentRegistry make_snapshot_test_registry() {
+    ComponentRegistry reg;
     auto add = [&](const char* name, const char* hint = "",
                    const char* ct = "None",
                    std::initializer_list<std::pair<std::string,std::string>> params = {}) {
@@ -38,8 +38,8 @@ static TypeRegistry make_snapshot_test_registry() {
     return reg;
 }
 
-static const TypeRegistry& snapshot_reg() {
-    static const TypeRegistry r = make_snapshot_test_registry();
+static const ComponentRegistry& snapshot_reg() {
+    static const ComponentRegistry r = make_snapshot_test_registry();
     return r;
 }
 

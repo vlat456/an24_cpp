@@ -15,20 +15,20 @@ bool validate_blueprint_for_persist(
     const bp2::Blueprint& bp,
     ui::StringInterner& interner,
     const bp2::PathArena& arena,
-    const TypeRegistry& parser_registry,
+    const ComponentRegistry& parser_registry,
     std::string* error_out);
 
 bool validate_blueprint_integrity(
         const bp2::Blueprint& bp,
         ui::StringInterner& interner,
         const bp2::PathArena& arena,
-        const TypeRegistry& parser_registry,
+        const ComponentRegistry& parser_registry,
         std::string* error_out);
 
 bool save_blueprint_to_file(const bp2::Blueprint& bp,
                             ui::StringInterner& interner,
                             bp2::PathArena const& arena,
-                            const TypeRegistry& parser_registry,
+                            const ComponentRegistry& parser_registry,
                             const char* path) {
     std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena, &parser_registry);
     std::ofstream file(path);
@@ -41,7 +41,7 @@ std::optional<bp2::Blueprint> load_blueprint_from_file(
         const char* path,
         ui::StringInterner& interner,
         bp2::PathArena& arena,
-        const TypeRegistry& parser_registry) {
+        const ComponentRegistry& parser_registry) {
     std::ifstream file(path);
     if (!file.is_open()) return std::nullopt;
     std::stringstream buffer;
@@ -59,7 +59,7 @@ std::optional<bp2::Blueprint> load_blueprint_from_file_validated(
         const char* path,
         ui::StringInterner& interner,
         bp2::PathArena& arena,
-        const TypeRegistry& parser_registry) {
+        const ComponentRegistry& parser_registry) {
     auto bp = load_blueprint_from_file(path, interner, arena, parser_registry);
     if (!bp) {
         return std::nullopt;
@@ -78,7 +78,7 @@ std::optional<bp2::Blueprint> load_hydrated_blueprint_from_file(
         const char* path,
         ui::StringInterner& interner,
         bp2::PathArena& arena,
-        const TypeRegistry& parser_registry) {
+        const ComponentRegistry& parser_registry) {
     auto bp = load_blueprint_from_file_validated(path, interner, arena, parser_registry);
     if (!bp) {
         return std::nullopt;
@@ -90,7 +90,7 @@ bool validate_blueprint_for_persist(
         const bp2::Blueprint& bp,
         ui::StringInterner& interner,
         const bp2::PathArena& arena,
-        const TypeRegistry& parser_registry,
+        const ComponentRegistry& parser_registry,
         std::string* error_out) {
     std::string integrity_err;
     if (!validate_blueprint_integrity(bp, interner, arena, parser_registry, &integrity_err)) {
@@ -119,7 +119,7 @@ bool validate_blueprint_integrity(
         const bp2::Blueprint& bp,
         ui::StringInterner& interner,
         const bp2::PathArena& arena,
-        const TypeRegistry& parser_registry,
+        const ComponentRegistry& parser_registry,
         std::string* error_out) {
     auto inv = bp2::InvariantChecker::validate(bp, arena, parser_registry, interner);
     if (!inv.valid) {

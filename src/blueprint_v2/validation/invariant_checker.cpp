@@ -16,7 +16,7 @@ namespace bp2 {
 
 InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                                                     PathArena const& arena,
-                                                    const ::TypeRegistry& parser_registry,
+                                                    const ::ComponentRegistry& parser_registry,
                                                     ui::StringInterner& interner) {
     Result out;
     out.valid = false;

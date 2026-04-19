@@ -192,7 +192,7 @@ struct CatalogData {
                              const PresentationRegistry& presentation) const;
 };
 
-struct TypeRegistry {
+struct ComponentRegistry {
     std::unordered_map<std::string, ComponentSpec> types;
     PresentationRegistry presentation;
     CatalogData catalog;
@@ -302,7 +302,7 @@ struct SystemTemplate {
 
 /// Compilation context - holds all parsed data
 struct ParserContext {
-    TypeRegistry registry;               // Type registry
+    ComponentRegistry registry;               // Type registry
     std::unordered_map<std::string, SystemTemplate> templates;
     std::vector<DeviceInstance> devices;
     std::vector<Connection> connections;
@@ -343,7 +343,7 @@ std::unordered_map<std::string, Port> extract_exposed_ports(const ComponentSpec&
 std::string serialize_json(const ParserContext& ctx);
 
 /// Load type registry from library/ directory
-TypeRegistry load_type_registry(const std::string& library_dir = "library/");
+ComponentRegistry load_component_registry(const std::string& library_dir = "library/");
 
 /// Merge device instance with component spec defaults
 DeviceInstance merge_device_instance(
@@ -359,5 +359,5 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const nlohmann:
 /// loading_stack tracks ancestors for cycle detection — pass empty set at top call.
 CompositeSpec expand_sub_blueprint_references(
     const CompositeSpec& td,
-    const TypeRegistry& registry,
+    const ComponentRegistry& registry,
     std::set<std::string>& loading_stack);

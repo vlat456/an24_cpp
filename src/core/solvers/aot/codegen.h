@@ -107,8 +107,8 @@ public:
         const ElectricalPlanCodegen& electrical_plan = {}
     );
 
-    /// Generate port registry header from TypeRegistry
-    static void generate_port_registry(const TypeRegistry& registry, const std::string& output_path);
+    /// Generate port registry header from ComponentRegistry
+    static void generate_port_registry(const ComponentRegistry& registry, const std::string& output_path);
 
     /// Generate Systems class for a composite blueprint.
     /// Expands sub-blueprint references into flat devices + connections,
@@ -117,10 +117,10 @@ public:
     /// Throws on cycles or missing types.
     static CompositeCodegenResult generate_composite_systems(
         const CompositeSpec& td,
-        const TypeRegistry& registry);
+        const ComponentRegistry& registry);
 
     /// Generate all composites in topological order (leaves first).
     /// Returns map: classname → {header, source}.
     static std::map<std::string, CompositeCodegenResult> generate_all_composites(
-        const TypeRegistry& registry);
+        const ComponentRegistry& registry);
 };

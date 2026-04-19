@@ -71,7 +71,7 @@ class PropertiesWindowTest : public ::testing::Test {
 protected:
     ui::StringInterner interner;
     bp2::EditorModel   model;
-    TypeRegistry       registry;
+    ComponentRegistry       registry;
 
     void SetUp() override {
         // Register common types used in tests with content types and params

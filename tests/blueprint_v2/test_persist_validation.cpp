@@ -13,7 +13,7 @@ TEST(PersistValidation, RejectsInvalidWireEndpointOnLoad) {
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry parser_registry = load_type_registry("library/");
+    ComponentRegistry parser_registry = load_component_registry("library/");
 
     fs::path tmp = fs::temp_directory_path() / "bp2_invalid_wire.blueprint";
     {
@@ -52,7 +52,7 @@ TEST(PersistValidation, RejectsInvalidWireEndpointOnLoad) {
 TEST(PersistValidation, ValidateBlueprintForPersistRejectsUnknownType) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry parser_registry = load_type_registry("library/");
+    ComponentRegistry parser_registry = load_component_registry("library/");
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node n;
@@ -71,7 +71,7 @@ TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry parser_registry = load_type_registry("library/");
+    ComponentRegistry parser_registry = load_component_registry("library/");
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("persist_typed"));
@@ -109,7 +109,7 @@ TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
 TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry parser_registry = load_type_registry("library/");
+    ComponentRegistry parser_registry = load_component_registry("library/");
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("integrity_ok"));
@@ -137,7 +137,7 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
 TEST(PersistValidation, WireDomainMismatchFailsValidation) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry parser_registry = load_type_registry("library/");
+    ComponentRegistry parser_registry = load_component_registry("library/");
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("integrity_wire_domain_mismatch"));
@@ -181,7 +181,7 @@ TEST(PersistValidation, WireDomainMismatchFailsValidation) {
 
 // ===========================================================================
 // Regression: validate_blueprint_for_persist must accept embedded blueprint
-// proxy nodes whose type name is not in the parser TypeRegistry.
+// proxy nodes whose type name is not in the parser ComponentRegistry.
 // ===========================================================================
 
 

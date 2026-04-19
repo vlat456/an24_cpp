@@ -15,11 +15,11 @@ using json = nlohmann::json;
 
 namespace {
 
-/// Build a BlueprintLibrary from the TypeRegistry (composite blueprints).
+/// Build a BlueprintLibrary from the ComponentRegistry (composite blueprints).
 /// Used by build_jit_input().
 bp2::BlueprintLibrary build_library(
     const bp2::LibraryIndex* library_index,
-    const TypeRegistry* type_registry,
+    const ComponentRegistry* type_registry,
     ui::StringInterner& interner) {
 
     bp2::BlueprintLibrary library;

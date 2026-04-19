@@ -28,8 +28,8 @@
 #include "bp2_test_helpers.h"
 
 /// Registry with all types used in scene mutation tests.
-static TypeRegistry make_scene_test_registry() {
-    TypeRegistry reg;
+static ComponentRegistry make_scene_test_registry() {
+    ComponentRegistry reg;
     auto add = [&](const char* name, const char* hint = "") {
         CompositeSpec def;
         def.classname = name;
@@ -52,8 +52,8 @@ static TypeRegistry make_scene_test_registry() {
     return reg;
 }
 
-static const TypeRegistry& scene_reg() {
-    static const TypeRegistry r = make_scene_test_registry();
+static const ComponentRegistry& scene_reg() {
+    static const ComponentRegistry r = make_scene_test_registry();
     return r;
 }
 
@@ -351,7 +351,7 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
-    TypeRegistry parser_registry = load_type_registry("library/");
+    ComponentRegistry parser_registry = load_component_registry("library/");
     auto bp_opt = load_blueprint_from_file(gsc_path.c_str(), interner, arena, parser_registry);
     if (!bp_opt.has_value()) {
         GTEST_SKIP() << "GSC.blueprint present but not decodable under strict schema";
@@ -832,7 +832,7 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
-    TypeRegistry reg = scene_reg();
+    ComponentRegistry reg = scene_reg();
     reg.presentation.specs["Slider"].content_type = "Slider";
     spec_params_mut(reg.types["Slider"])["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
     spec_params_mut(reg.types["Slider"])["max"] = ParamSpec{ParamSchemaType::Float, "200"};

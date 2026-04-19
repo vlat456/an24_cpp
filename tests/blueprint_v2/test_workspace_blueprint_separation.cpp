@@ -18,7 +18,7 @@ TEST(WorkspaceSessionSeparation, BlueprintAndWorkspaceAreSeparate) {
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry parser_registry = load_type_registry("library/");
+    ComponentRegistry parser_registry = load_component_registry("library/");
 
     // Create a simple blueprint
     bp2::Blueprint bp;
@@ -96,7 +96,7 @@ TEST(BlueprintPersistenceSpec, NoForbiddenFieldsInSavedBlueprint) {
     
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry parser_registry = load_type_registry("library/");
+    ComponentRegistry parser_registry = load_component_registry("library/");
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("spec_test"));

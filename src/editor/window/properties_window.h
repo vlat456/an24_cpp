@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-struct TypeRegistry;
+struct ComponentRegistry;
 enum class PortType;
 
 /// Callback when properties are applied: receives the node ID
@@ -34,7 +34,7 @@ class PropertiesWindow {
 public:
     void open(const bp2::Blueprint::Node& node, const std::string& node_id_str,
               bp2::EditorModel& model, ui::StringInterner& interner,
-              const TypeRegistry* type_registry,
+              const ComponentRegistry* type_registry,
               PropertyCallback on_apply);
     void close();
     bool is_open() const { return open_; }
@@ -103,7 +103,7 @@ private:
     bool open_ = false;
     bp2::EditorModel*    model_    = nullptr;
     ui::StringInterner*  interner_ = nullptr;
-    const TypeRegistry*  type_registry_ = nullptr;
+    const ComponentRegistry*  type_registry_ = nullptr;
     std::string target_node_id_;
     PropertyCallback on_apply_;
 

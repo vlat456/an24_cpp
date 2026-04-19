@@ -98,7 +98,7 @@ bp2::Interface bridge_iface_for_json_node(const nlohmann::json& node, ui::String
 }
 
 
-void normalize_node_ports_recursive(nlohmann::json& root, const TypeRegistry& reg, ui::StringInterner& interner) {
+void normalize_node_ports_recursive(nlohmann::json& root, const ComponentRegistry& reg, ui::StringInterner& interner) {
      if (!root.contains("nodes") || !root["nodes"].is_array()) {
          return;
      }
@@ -137,7 +137,7 @@ void normalize_node_ports_recursive(nlohmann::json& root, const TypeRegistry& re
 
 bool canonicalize_wire_orientation(nlohmann::json& root,
                                     ui::StringInterner& interner,
-                                    const TypeRegistry& reg) {
+                                    const ComponentRegistry& reg) {
      if (!root.contains("wires") || !root["wires"].is_array()) {
          return false;
      }
@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry reg = load_type_registry("library/");
+    ComponentRegistry reg = load_component_registry("library/");
 
     std::ifstream file(argv[1]);
     if (!file.is_open()) {

@@ -17,7 +17,7 @@
 
 namespace {
 
-bp2::BlueprintLibrary build_library(const TypeRegistry& registry, ui::StringInterner& interner) {
+bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     for (const auto& [classname, spec] : registry.types) {
         try {
@@ -39,7 +39,7 @@ JitBuildInput build_input_from_blueprint_file(const std::string& blueprint_file)
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
     bp2::DecodeError err;
     auto bp = bp2::BlueprintCodec::decode(content, interner, arena, registry, &err);
     if (!bp) {

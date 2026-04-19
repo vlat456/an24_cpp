@@ -33,7 +33,7 @@ TEST(StrictBlueprintPersistence, ClosedCircuitDocumentLoadsThroughHydratedPath) 
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
 
     auto bp = load_hydrated_blueprint_from_file(path.c_str(), interner, arena, registry);
     ASSERT_TRUE(bp.has_value()) << "Failed to load strict closed_circuit.blueprint";

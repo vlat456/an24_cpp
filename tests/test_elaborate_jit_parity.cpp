@@ -70,7 +70,7 @@ static std::string find_library_dir() {
     return {};
 }
 
-bp2::BlueprintLibrary build_library(const TypeRegistry& registry, ui::StringInterner& interner) {
+bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     for (const auto& [classname, spec] : registry.types) {
         if (is_primitive(spec)) continue;
@@ -183,7 +183,7 @@ protected:
         raw_json_ = read_file_or_skip(fixture_path_);
         ASSERT_FALSE(raw_json_.empty()) << "Fixture file is empty";
 
-        registry_ = load_type_registry(library_dir_);
+        registry_ = load_component_registry(library_dir_);
 
         const char* update = std::getenv("AN24_UPDATE_ELABORATE_JIT_GOLDEN");
         if (update && std::string_view(update) == "1") {
@@ -218,7 +218,7 @@ protected:
     std::string golden_path_;
     std::string library_dir_;
     std::string raw_json_;
-    TypeRegistry registry_;
+    ComponentRegistry registry_;
     json golden_;
 };
 

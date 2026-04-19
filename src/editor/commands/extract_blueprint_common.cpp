@@ -8,7 +8,7 @@ namespace editor::commands::extract_detail {
 PortType find_port_type(const bp2::Blueprint& bp,
                         const bp2::Blueprint::Node* node,
                         ui::InternedId port_name,
-                        const TypeRegistry& registry,
+                        const ComponentRegistry& registry,
                         ui::StringInterner& interner) {
     if (!node) {
         return PortType::Any;

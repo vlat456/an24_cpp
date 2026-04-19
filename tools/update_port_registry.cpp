@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 
     std::string port_registry_path = "src/core/solvers/jit/components/port_registry.h";
 
-    auto registry = load_type_registry(library_dir);
+    auto registry = load_component_registry(library_dir);
     std::cout << "Loaded " << registry.types.size() << " types from " << library_dir << "/\n";
 
     CodeGen::generate_port_registry(registry, port_registry_path);

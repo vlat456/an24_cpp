@@ -42,7 +42,7 @@ bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_no
                                   bool allow_nonembedded_descendant_refs) {
     if (!type_registry_) {
         if (error_out) {
-            *error_out = "TypeRegistry is not configured on Document::extractToBlueprint";
+            *error_out = "ComponentRegistry is not configured on Document::extractToBlueprint";
         }
         return false;
     }

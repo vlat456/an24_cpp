@@ -97,12 +97,12 @@ static std::string find_library_dir() {
     throw std::runtime_error("Could not find library directory");
 }
 
-static const TypeRegistry& fixture_registry() {
-    static const TypeRegistry registry = load_type_registry(find_library_dir());
+static const ComponentRegistry& fixture_registry() {
+    static const ComponentRegistry registry = load_component_registry(find_library_dir());
     return registry;
 }
 
-static bp2::BlueprintLibrary build_library(const TypeRegistry& registry, ui::StringInterner& interner) {
+static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     for (const auto& [classname, spec] : registry.types) {
         if (::is_primitive(spec)) continue;
@@ -118,7 +118,7 @@ static bp2::BlueprintLibrary build_library(const TypeRegistry& registry, ui::Str
 static JitBuildInput build_input_from_blueprint_file(const std::string& blueprint_path) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    const TypeRegistry& registry = fixture_registry();
+    const ComponentRegistry& registry = fixture_registry();
     bp2::BlueprintLibrary library = build_library(registry, interner);
 
     const std::string raw = read_file_or_fail(blueprint_path);

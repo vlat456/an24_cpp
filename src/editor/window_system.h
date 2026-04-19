@@ -56,7 +56,7 @@ public:
 
     Inspector& inspector() { return inspector_; }
     PropertiesWindow& propertiesWindow() { return properties_window_; }
-    TypeRegistry& typeRegistry() { return type_registry_; }
+    ComponentRegistry& typeRegistry() { return type_registry_; }
     const bp2::LibraryIndex& libraryIndex() const { return library_index_; }
 
     // ── Context menu state (with source document) ──
@@ -185,7 +185,7 @@ private:
     std::vector<std::unique_ptr<Document>> documents_;
     Document* active_document_ = nullptr;
     Document* pending_tab_focus_ = nullptr;  ///< One-shot: set by create/open, consumed by tab bar
-    TypeRegistry type_registry_;
+    ComponentRegistry type_registry_;
     bp2::LibraryIndex library_index_;
     Inspector inspector_;
     PropertiesWindow properties_window_;

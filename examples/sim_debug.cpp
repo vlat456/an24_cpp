@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     // Blueprint file — canonical path via Flattener + elaborate_for_jit.
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
 
     bp2::DecodeError err;
     auto bp = bp2::BlueprintCodec::decode(raw_json, interner, arena, registry, &err);

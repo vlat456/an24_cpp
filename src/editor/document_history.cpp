@@ -14,10 +14,10 @@ bool Document::performUndo() {
     model_.undo();
 #ifndef NDEBUG
     if (!type_registry_) {
-        spdlog::error("[editor] TypeRegistry is not configured on Document::performUndo");
+        spdlog::error("[editor] ComponentRegistry is not configured on Document::performUndo");
         return false;
     }
-    const TypeRegistry& parser_registry = *type_registry_;
+    const ComponentRegistry& parser_registry = *type_registry_;
     {
         std::string err;
         if (!validate_blueprint_integrity(model_.current(), interner_, arena_, parser_registry, &err)) {
@@ -45,10 +45,10 @@ bool Document::performRedo() {
     model_.redo();
 #ifndef NDEBUG
     if (!type_registry_) {
-        spdlog::error("[editor] TypeRegistry is not configured on Document::performRedo");
+        spdlog::error("[editor] ComponentRegistry is not configured on Document::performRedo");
         return false;
     }
-    const TypeRegistry& parser_registry = *type_registry_;
+    const ComponentRegistry& parser_registry = *type_registry_;
     {
         std::string err;
         if (!validate_blueprint_integrity(model_.current(), interner_, arena_, parser_registry, &err)) {

@@ -82,8 +82,8 @@ static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
      return w;
 }
 
-static TypeRegistry make_canvas_input_test_registry() {
-    TypeRegistry reg;
+static ComponentRegistry make_canvas_input_test_registry() {
+    ComponentRegistry reg;
 
     auto add_simple = [&](const char* name, const char* hint = "",
                           const char* ct = "None",
@@ -145,8 +145,8 @@ static TypeRegistry make_canvas_input_test_registry() {
     return reg;
 }
 
-static const TypeRegistry& ci_reg() {
-    static const TypeRegistry r = make_canvas_input_test_registry();
+static const ComponentRegistry& ci_reg() {
+    static const ComponentRegistry r = make_canvas_input_test_registry();
     return r;
 }
 

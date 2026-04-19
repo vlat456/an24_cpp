@@ -6,7 +6,7 @@
 #include <string>
 #include <optional>
 
-struct TypeRegistry;
+struct ComponentRegistry;
 
 namespace bp2 {
 
@@ -20,13 +20,13 @@ public:
     static std::string encode(Blueprint const& bp,
                               ui::StringInterner const& interner,
                               PathArena const& arena,
-                              const ::TypeRegistry* parser_registry = nullptr);
+                              const ::ComponentRegistry* parser_registry = nullptr);
 
     static std::optional<Blueprint> decode(
         std::string_view json,
         ui::StringInterner& interner,
         PathArena& arena,
-        const ::TypeRegistry& parser_registry,
+        const ::ComponentRegistry& parser_registry,
         DecodeError* error_out = nullptr);
 };
 

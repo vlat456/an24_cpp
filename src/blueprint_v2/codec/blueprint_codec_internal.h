@@ -85,7 +85,7 @@ nlohmann::json encode_interface(Interface const& iface,
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                             ui::StringInterner const& interner,
                             PathArena const& arena,
-                            ::TypeRegistry const* parser_registry);
+                            ::ComponentRegistry const* parser_registry);
 
 nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
                             ui::StringInterner const& interner);
@@ -96,7 +96,7 @@ Interface decode_interface(nlohmann::json const& arr,
 Blueprint decode_nodes(Blueprint bp,
                        nlohmann::json const& arr,
                        ui::StringInterner& interner,
-                       ::TypeRegistry const& parser_registry);
+                       ::ComponentRegistry const& parser_registry);
 
 Blueprint decode_wires(Blueprint bp,
                        nlohmann::json const& arr,
@@ -106,7 +106,7 @@ Blueprint decode_wires(Blueprint bp,
 /// v1 format does not persist wire domain; this pass infers it from
 /// resolved endpoint ports so the invariant checker can verify it.
 Blueprint resolve_wire_domains(Blueprint bp,
-                               ::TypeRegistry const& parser_registry,
+                               ::ComponentRegistry const& parser_registry,
                                ui::StringInterner& interner);
 
 } // namespace bp2::codec_detail

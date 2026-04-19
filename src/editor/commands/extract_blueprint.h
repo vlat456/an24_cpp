@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-struct TypeRegistry;
+struct ComponentRegistry;
 
 namespace editor::commands {
 
@@ -31,7 +31,7 @@ std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     const WindowScopeId& scope_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
-    const TypeRegistry& parser_registry,
+    const ComponentRegistry& parser_registry,
     std::string* error_out = nullptr,
     bool allow_nonembedded_descendant_refs = false);
 
@@ -42,7 +42,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const WindowScopeId& scope_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
-    const TypeRegistry& parser_registry,
+    const ComponentRegistry& parser_registry,
     std::string* error_out = nullptr,
     bool allow_nonembedded_descendant_refs = false);
 

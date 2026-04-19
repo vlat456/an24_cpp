@@ -616,7 +616,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ExecutionUnknownKeyThrows) {
     EXPECT_THROW(parse_type_definition(j), std::runtime_error);
 }
 
-TEST(TypeRegistry, LoadRecursive_SubdirSetsCategory) {
+TEST(ComponentRegistry, LoadRecursive_SubdirSetsCategory) {
     namespace fs = std::filesystem;
     auto tmp = fs::temp_directory_path() / "test_lib_hierarchy";
     fs::remove_all(tmp);
@@ -625,7 +625,7 @@ TEST(TypeRegistry, LoadRecursive_SubdirSetsCategory) {
     std::ofstream(tmp / "ElectricalSource.blueprint") << minimal_blueprint_v2("ElectricalSource");
     std::ofstream(tmp / "electrical" / "Resistor.blueprint") << minimal_blueprint_v2("Resistor");
 
-    auto registry = load_type_registry(tmp.string());
+    auto registry = load_component_registry(tmp.string());
 
     ASSERT_TRUE(registry.has("ElectricalSource"));
     ASSERT_TRUE(registry.has("Resistor"));
@@ -684,7 +684,7 @@ TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
     EXPECT_THROW(merge_device_instance(inst, def), std::runtime_error);
 }
 
-TEST(TypeRegistry, LoadRecursive_DeepNesting) {
+TEST(ComponentRegistry, LoadRecursive_DeepNesting) {
     namespace fs = std::filesystem;
     auto tmp = fs::temp_directory_path() / "test_lib_deep";
     fs::remove_all(tmp);
@@ -692,7 +692,7 @@ TEST(TypeRegistry, LoadRecursive_DeepNesting) {
 
     std::ofstream(tmp / "electrical" / "generators" / "Generator.blueprint") << minimal_blueprint_v2("Generator");
 
-    auto registry = load_type_registry(tmp.string());
+    auto registry = load_component_registry(tmp.string());
 
     ASSERT_TRUE(registry.has("Generator"));
     ASSERT_EQ(registry.catalog.categories.count("Generator"), 1u);
@@ -701,8 +701,8 @@ TEST(TypeRegistry, LoadRecursive_DeepNesting) {
     fs::remove_all(tmp);
 }
 
-TEST(TypeRegistry, BuildMenuTree_FlatLibrary) {
-    TypeRegistry reg;
+TEST(ComponentRegistry, BuildMenuTree_FlatLibrary) {
+    ComponentRegistry reg;
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
     PrimitiveSpec res; res.classname = "Resistor";
@@ -716,8 +716,8 @@ TEST(TypeRegistry, BuildMenuTree_FlatLibrary) {
     EXPECT_TRUE(tree.children.empty());
 }
 
-TEST(TypeRegistry, BuildMenuTree_WithSubdirs) {
-    TypeRegistry reg;
+TEST(ComponentRegistry, BuildMenuTree_WithSubdirs) {
+    ComponentRegistry reg;
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
     reg.types["ElectricalSource"] = bat;
@@ -757,8 +757,8 @@ TEST(TypeRegistry, BuildMenuTree_WithSubdirs) {
     EXPECT_EQ(tree.children.at("logic").entries.size(), 1u);
 }
 
-TEST(TypeRegistry, BuildMenuTree_EntriesAreSorted) {
-    TypeRegistry reg;
+TEST(ComponentRegistry, BuildMenuTree_EntriesAreSorted) {
+    ComponentRegistry reg;
 
     for (const auto& name : {"Zebra", "Alpha", "Middle"}) {
         PrimitiveSpec d; d.classname = name;
@@ -773,8 +773,8 @@ TEST(TypeRegistry, BuildMenuTree_EntriesAreSorted) {
     EXPECT_EQ(tree.entries[2], "Zebra");
 }
 
-TEST(TypeRegistry, BuildMenuTree_BlueprintsInSameTree) {
-    TypeRegistry reg;
+TEST(ComponentRegistry, BuildMenuTree_BlueprintsInSameTree) {
+    ComponentRegistry reg;
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
     reg.types["ElectricalSource"] = bat;
@@ -790,8 +790,8 @@ TEST(TypeRegistry, BuildMenuTree_BlueprintsInSameTree) {
     EXPECT_EQ(tree.children.at("electrical").entries.size(), 2u);
 }
 
-TEST(TypeRegistry, ListClassnames_IncludesAllCategorized) {
-    TypeRegistry reg;
+TEST(ComponentRegistry, ListClassnames_IncludesAllCategorized) {
+    ComponentRegistry reg;
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
     reg.types["ElectricalSource"] = bat;
@@ -868,7 +868,7 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
      EXPECT_FALSE(spec_scheduler_source(def));
 }
 
-TEST(TypeRegistry, MissingSolverOwnedElectricalInV3BlueprintThrows) {
+TEST(ComponentRegistry, MissingSolverOwnedElectricalInV3BlueprintThrows) {
     namespace fs = std::filesystem;
     auto tmp = fs::temp_directory_path() / "test_missing_solver_owned";
     fs::remove_all(tmp);
@@ -884,7 +884,7 @@ TEST(TypeRegistry, MissingSolverOwnedElectricalInV3BlueprintThrows) {
         "interface": []
     })";
 
-    EXPECT_THROW(load_type_registry(tmp.string()), std::runtime_error);
+    EXPECT_THROW(load_component_registry(tmp.string()), std::runtime_error);
 
     fs::remove_all(tmp);
 }
@@ -908,7 +908,7 @@ TEST(JsonParserTest, CompositeParentPortRewrite_ToExt) {
 
     auto ctx = parse_json(json);
 
-    // FirstOrderLag is an expandable composite blueprint in TypeRegistry.
+    // FirstOrderLag is an expandable composite blueprint in ComponentRegistry.
     // The expansion adds internal connections, so total count > 2.
     ASSERT_GT(ctx.connections.size(), 2);
     
@@ -964,13 +964,13 @@ TEST(JsonParserTest, CompositeParentPortRewrite_EmptyPortIsSkippedWithWarning) {
 }
 
 // ============================================================================
-// Regression: load_type_registry must merge string_params into device params
+// Regression: load_component_registry must merge string_params into device params
 // ============================================================================
 
-TEST(TypeRegistry, V3CompositeStringParamsMergedIntoDeviceParams) {
+TEST(ComponentRegistry, V3CompositeStringParamsMergedIntoDeviceParams) {
     // Regression test: v3 composite blueprints store string-valued parameters
     // (e.g. LUT table) in "string_params" separate from "params".
-    // load_type_registry() must merge them so the simulation sees the full
+    // load_component_registry() must merge them so the simulation sees the full
     // parameter set.  Without this fix, LUT components lose their table and
     // fall back to default "0:0; 100:100", producing wrong output voltages
     // (e.g. 12SAM28 battery outputting ~1V instead of ~25V).
@@ -1003,7 +1003,7 @@ TEST(TypeRegistry, V3CompositeStringParamsMergedIntoDeviceParams) {
         "wires": []
     })";
 
-    auto registry = load_type_registry(tmp.string());
+    auto registry = load_component_registry(tmp.string());
     ASSERT_TRUE(registry.has("TestComposite"));
 
     const auto* def_ptr = registry.get("TestComposite");

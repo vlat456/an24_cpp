@@ -66,8 +66,8 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
         ui::StringInterner& rebuild_interner = win.rendered_interner();
         bp2::PathArena& rebuild_arena = win.rendered_arena();
         const std::string& rebuild_group = win.is_external_ref() ? "" : win.resolved_scope_id().key();
-        TypeRegistry empty_reg;
-        const TypeRegistry& reg = doc.type_registry() ? *doc.type_registry() : empty_reg;
+        ComponentRegistry empty_reg;
+        const ComponentRegistry& reg = doc.type_registry() ? *doc.type_registry() : empty_reg;
         visual::mutations::rebuild(win.scene, rebuild_bp,
                                    rebuild_interner, rebuild_arena, rebuild_group, reg);
         win.input.rebuild_snapshot();

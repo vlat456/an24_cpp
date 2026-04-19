@@ -9,8 +9,8 @@
 
 namespace {
 
-const TypeRegistry& shared_registry() {
-    static const TypeRegistry registry = load_type_registry("library/");
+const ComponentRegistry& shared_registry() {
+    static const ComponentRegistry registry = load_component_registry("library/");
     return registry;
 }
 

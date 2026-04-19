@@ -7,7 +7,7 @@ namespace bp2 {
 
 WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
                                               Blueprint const& bp,
-                                              const ::TypeRegistry& parser_registry,
+                                              const ::ComponentRegistry& parser_registry,
                                               ui::StringInterner& interner) {
     Result out;
     out.valid = false;

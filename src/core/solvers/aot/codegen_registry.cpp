@@ -23,7 +23,7 @@ struct ComponentPorts {
     bool has_solver_role = false;
 };
 
-std::vector<ComponentPorts> build_component_metadata(const TypeRegistry& registry) {
+std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& registry) {
     std::vector<ComponentPorts> all_components;
 
     for (const auto& [name, spec] : registry.types) {
@@ -364,7 +364,7 @@ void CodeGen::write_files(
     sfile.close();
 }
 
-void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::string& output_path) {
+void CodeGen::generate_port_registry(const ComponentRegistry& registry, const std::string& output_path) {
     auto all_components = build_component_metadata(registry);
 
     std::set<std::string> all_port_names;

@@ -196,7 +196,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
                                                    bool allow_nonembedded,
                                                    ui::StringInterner& interner,
                                                    const bp2::PathArena& arena,
-                                                   const TypeRegistry& registry,
+                                                   const ComponentRegistry& registry,
                                                    std::string* error_out) {
     if (selected_ids.size() < 2) {
         return set_error(error_out, "extract selection must include at least 2 nodes"), std::nullopt;

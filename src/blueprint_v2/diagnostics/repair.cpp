@@ -15,7 +15,7 @@ static std::string iid(ui::InternedId id) {
 
 RepairReport diagnose_and_repair(Blueprint& bp,
                                  PathArena& arena,
-                                 const ::TypeRegistry& parser_registry,
+                                 const ::ComponentRegistry& parser_registry,
                                  ui::StringInterner& interner) {
     RepairReport report;
 

@@ -102,7 +102,7 @@ static void orient_ref_node_ports(Scene& scene,
                                   const bp2::PathArena& arena,
                                   const ui::StringInterner& interner,
                                   std::string_view scope_id,
-                                  const TypeRegistry& registry) {
+                                  const ComponentRegistry& registry) {
     using editor::presentation::NodeFrameKind;
     std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
 
@@ -160,7 +160,7 @@ void rebuild(Scene& scene,
              ui::StringInterner& interner,
              bp2::PathArena& arena,
              std::string_view scope_id,
-             const TypeRegistry& registry) {
+             const ComponentRegistry& registry) {
     auto guard = scene.flushGuard();
     scene.clear();
 

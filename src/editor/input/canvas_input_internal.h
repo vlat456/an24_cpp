@@ -23,7 +23,7 @@ namespace canvas_input_impl {
 // ============================================================================
 
 inline bool is_bus_node(const bp2::Blueprint& bp, ui::InternedId node_id,
-                        const TypeRegistry& registry, const ui::StringInterner& interner) {
+                        const ComponentRegistry& registry, const ui::StringInterner& interner) {
     const bp2::Blueprint::Node* node = bp.find_node(node_id);
     if (!node) return false;
     const std::string type_name(interner.resolve(node->semantic.type));
@@ -34,7 +34,7 @@ inline bool is_bus_node(const bp2::Blueprint& bp, ui::InternedId node_id,
 }
 
 inline bool is_ref_node(const bp2::Blueprint::Node& node,
-                        const TypeRegistry& registry, const ui::StringInterner& interner) {
+                        const ComponentRegistry& registry, const ui::StringInterner& interner) {
     const std::string type_name(interner.resolve(node.semantic.type));
     const ComponentSpec* def = registry.get(type_name);
     const TypePresentation* pres = registry.presentation.get(type_name);
@@ -49,7 +49,7 @@ inline bool is_wire_alias_port_name(std::string_view port_name) {
 inline PortType resolve_port_type_from_model(const bp2::Blueprint& bp,
                                              ui::InternedId node_id,
                                              ui::InternedId port_name,
-                                             const TypeRegistry& registry,
+                                             const ComponentRegistry& registry,
                                              ui::StringInterner& interner) {
     const bp2::Blueprint::Node* node = bp.find_node(node_id);
     if (!node) return PortType::Any;
@@ -62,7 +62,7 @@ inline PortType resolve_port_type_from_model(const bp2::Blueprint& bp,
 inline void debug_validate_command_boundary(const bp2::Blueprint& bp,
                                             ui::StringInterner& interner,
                                             bp2::PathArena const& arena,
-                                            const TypeRegistry* parser_registry = nullptr) {
+                                            const ComponentRegistry* parser_registry = nullptr) {
 #ifndef NDEBUG
     if (!parser_registry) {
         return;

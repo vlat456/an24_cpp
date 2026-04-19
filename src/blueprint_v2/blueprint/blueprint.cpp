@@ -332,7 +332,7 @@ Interface const& Blueprint::effective_node_iface(Node const& node) const {
 }
 
 Interface Blueprint::effective_node_iface(ui::InternedId node_id,
-                                          ::TypeRegistry const& parser_registry,
+                                          ::ComponentRegistry const& parser_registry,
                                           ui::StringInterner& interner) const {
     const Node* node = find_node(node_id);
     if (!node) {
@@ -342,7 +342,7 @@ Interface Blueprint::effective_node_iface(ui::InternedId node_id,
 }
 
 Interface Blueprint::effective_node_iface(Node const& node,
-                                          ::TypeRegistry const& parser_registry,
+                                          ::ComponentRegistry const& parser_registry,
                                           ui::StringInterner& interner) const {
     if (!node.is_blueprint_instance()) {
         return effective_node_iface(node);
@@ -414,14 +414,14 @@ std::vector<std::pair<Path, PortDescriptor>> Blueprint::all_ports(PathArena& are
 }
 
 std::vector<std::pair<Path, PortDescriptor>> Blueprint::all_ports(PathArena& arena,
-                                                                  ::TypeRegistry const& parser_registry,
+                                                                  ::ComponentRegistry const& parser_registry,
                                                                   ui::StringInterner& interner) const {
     std::vector<std::pair<Path, PortDescriptor>> result;
     collect_ports_recursive(result, arena, arena.root(), parser_registry, interner);
     return result;
 }
 
-void Blueprint::validate(::TypeRegistry const& parser_registry, ui::StringInterner& interner) const {
+void Blueprint::validate(::ComponentRegistry const& parser_registry, ui::StringInterner& interner) const {
     PathArena arena(interner);
     auto result = InvariantChecker::validate(*this, arena, parser_registry, interner);
     if (!result.valid) {
@@ -429,7 +429,7 @@ void Blueprint::validate(::TypeRegistry const& parser_registry, ui::StringIntern
     }
 }
 
-void Blueprint::validate(::TypeRegistry const& parser_registry,
+void Blueprint::validate(::ComponentRegistry const& parser_registry,
                          ui::StringInterner& interner,
                          PathArena const& arena) const {
     auto result = InvariantChecker::validate(*this, arena, parser_registry, interner);
@@ -468,7 +468,7 @@ void Blueprint::collect_ports_recursive(
     std::vector<std::pair<Path, PortDescriptor>>& result,
     PathArena& arena,
     Path prefix,
-    ::TypeRegistry const& parser_registry,
+    ::ComponentRegistry const& parser_registry,
     ui::StringInterner& interner) const {
     for (auto const& port : iface_.ports()) {
         result.push_back({arena.make_port(prefix, port.name), port});

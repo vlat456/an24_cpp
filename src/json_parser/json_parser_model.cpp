@@ -45,7 +45,7 @@ MenuTree CatalogData::build_menu_tree(const std::unordered_map<std::string, Comp
     return root;
 }
 
-std::optional<std::string> TypeRegistry::validate_instance(const DeviceInstance& instance) const {
+std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInstance& instance) const {
     if (!has(instance.classname)) {
         return "Unknown classname '" + instance.classname + "' in device '" + instance.name + "'";
     }
@@ -81,7 +81,7 @@ std::optional<std::string> TypeRegistry::validate_instance(const DeviceInstance&
 
 CompositeSpec expand_sub_blueprint_references(
     const CompositeSpec& td,
-    const TypeRegistry& registry,
+    const ComponentRegistry& registry,
     std::set<std::string>& loading_stack)
 {
     // CompositeSpec is already composite, no cpp_class check needed
@@ -97,7 +97,7 @@ CompositeSpec expand_sub_blueprint_references(
         const auto* sub_td = registry.get(ref.type_name);
         if (!sub_td) {
             throw std::runtime_error(
-                "Sub-blueprint '" + ref.type_name + "' not found in TypeRegistry"
+                "Sub-blueprint '" + ref.type_name + "' not found in ComponentRegistry"
                 " (referenced by '" + td.classname + "' as '" + ref.id + "')");
         }
 
@@ -142,7 +142,7 @@ CompositeSpec expand_sub_blueprint_references(
     return result;
 }
 
-std::vector<std::string> TypeRegistry::get_composites_topo_sorted() const {
+std::vector<std::string> ComponentRegistry::get_composites_topo_sorted() const {
     std::vector<std::string> result;
     std::set<std::string> visited;
     std::set<std::string> in_stack;

@@ -124,7 +124,7 @@ Interface make_bridge_iface(ui::StringInterner& interner,
 
 Blueprint::Node::BlueprintSource decode_node_source(nlohmann::json const& source,
                                                     ui::StringInterner& interner,
-                                                    ::TypeRegistry const& parser_registry,
+                                                    ::ComponentRegistry const& parser_registry,
                                                     PathArena& arena) {
     static constexpr auto ctx = "invalid node entry: source";
     if (!source.is_object()) {
@@ -211,7 +211,7 @@ Interface decode_interface(nlohmann::json const& arr,
 Blueprint decode_nodes(Blueprint bp,
                        nlohmann::json const& arr,
                        ui::StringInterner& interner,
-                       ::TypeRegistry const& parser_registry) {
+                       ::ComponentRegistry const& parser_registry) {
     static constexpr auto ctx = "invalid node entry";
 
     PathArena local_arena(interner);
@@ -412,7 +412,7 @@ Blueprint decode_wires(Blueprint bp,
 }
 
 Blueprint resolve_wire_domains(Blueprint bp,
-                               ::TypeRegistry const& parser_registry,
+                               ::ComponentRegistry const& parser_registry,
                                ui::StringInterner& interner) {
     PathResolver resolver;
     Blueprint result = bp;

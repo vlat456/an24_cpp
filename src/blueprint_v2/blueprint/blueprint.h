@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <utility>
 
-struct TypeRegistry;
+struct ComponentRegistry;
 
 namespace bp2 {
 
@@ -165,7 +165,7 @@ public:
         //
         //   3. **Session/editor-only** — transient visual state that lives
         //      only in the running editor session.  NOT persisted; NOT
-        //      hydrated from TypeRegistry.  Fields: has_color, color_*.
+        //      hydrated from ComponentRegistry.  Fields: has_color, color_*.
         //
         // `canonical_eq()` compares only tier-1 fields and should be used
         // for persistence dirty-checking.  `operator==` compares all tiers
@@ -286,10 +286,10 @@ public:
     /// Resolve the authoritative interface for any node, including referenced
     /// blueprint instances, using the parser registry as authority.
     Interface effective_node_iface(Node const& node,
-                                   ::TypeRegistry const& parser_registry,
+                                   ::ComponentRegistry const& parser_registry,
                                    ui::StringInterner& interner) const;
     Interface effective_node_iface(ui::InternedId node_id,
-                                   ::TypeRegistry const& parser_registry,
+                                   ::ComponentRegistry const& parser_registry,
                                    ui::StringInterner& interner) const;
 
     Blueprint with_node(Node n) const;
@@ -304,12 +304,12 @@ public:
     /// Returns all (path, port) pairs reachable from this blueprint.
     std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena) const;
     std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena,
-                                                           ::TypeRegistry const& parser_registry,
+                                                           ::ComponentRegistry const& parser_registry,
                                                            ui::StringInterner& interner) const;
 
     /// Validates all invariants. Throws std::runtime_error on failure.
-    void validate(::TypeRegistry const& parser_registry, ui::StringInterner& interner) const;
-    void validate(::TypeRegistry const& parser_registry,
+    void validate(::ComponentRegistry const& parser_registry, ui::StringInterner& interner) const;
+    void validate(::ComponentRegistry const& parser_registry,
                   ui::StringInterner& interner,
                   PathArena const& arena) const;
 
@@ -340,7 +340,7 @@ private:
         std::vector<std::pair<Path, PortDescriptor>>& result,
         PathArena& arena,
         Path prefix,
-        ::TypeRegistry const& parser_registry,
+        ::ComponentRegistry const& parser_registry,
         ui::StringInterner& interner) const;
 };
 

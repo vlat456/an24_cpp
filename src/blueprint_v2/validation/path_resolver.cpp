@@ -11,7 +11,7 @@ namespace bp2 {
 std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
                                                   Blueprint const& root,
                                                   PathArena const& arena,
-                                                  const ::TypeRegistry& parser_registry,
+                                                  const ::ComponentRegistry& parser_registry,
                                                   ui::StringInterner& interner) const {
     if (path.kind() != PathKind::Port) {
         return std::nullopt;
@@ -134,7 +134,7 @@ bool PathResolver::direction_compatible(Direction source, Direction target) cons
 
 std::optional<ResolvedPort> PathResolver::resolve(WireEndpoint const& ep,
                                                   Blueprint const& root,
-                                                  const ::TypeRegistry& parser_registry,
+                                                  const ::ComponentRegistry& parser_registry,
                                                   ui::StringInterner& interner) const {
     const auto* node = root.find_node(ep.node);
     if (!node) {
@@ -168,7 +168,7 @@ std::optional<ResolvedPort> PathResolver::resolve(WireEndpoint const& ep,
 bool PathResolver::can_connect(WireEndpoint const& source,
                                WireEndpoint const& target,
                                Blueprint const& root,
-                               const ::TypeRegistry& parser_registry,
+                               const ::ComponentRegistry& parser_registry,
                                ui::StringInterner& interner) const {
     if (source == target) {
         return false;
@@ -195,7 +195,7 @@ bool PathResolver::can_connect(Path const& source,
                                Path const& target,
                                Blueprint const& root,
                                PathArena const& arena,
-                               const ::TypeRegistry& parser_registry,
+                               const ::ComponentRegistry& parser_registry,
                                ui::StringInterner& interner) const {
     if (source == target) {
         return false;

@@ -94,12 +94,12 @@ inline void hydrate_node_view_full(bp2::Blueprint::Node& node,
 /// Recursively hydrates embedded inline blueprints.
 /// @param bp Blueprint to hydrate
 /// @param interner StringInterner for resolving node type names
-/// @param registry TypeRegistry for looking up ComponentSpec
+/// @param registry ComponentRegistry for looking up ComponentSpec
 /// @return Hydrated blueprint
 inline bp2::Blueprint hydrate_runtime_node_view_data(
     bp2::Blueprint bp,
     ui::StringInterner& interner,
-    const TypeRegistry& registry) {
+    const ComponentRegistry& registry) {
     const std::vector<bp2::Blueprint::Node> snapshot = bp.nodes();
     for (const auto& node : snapshot) {
         bp2::Blueprint::Node updated = node;

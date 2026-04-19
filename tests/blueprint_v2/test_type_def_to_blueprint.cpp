@@ -44,8 +44,8 @@ out.direction = bp2::Direction::Output;
     return def;
 }
 
-TypeRegistry make_registry() {
-    TypeRegistry registry;
+ComponentRegistry make_registry() {
+    ComponentRegistry registry;
 
     PrimitiveSpec src;
     src.classname = "SourceNode";
@@ -73,7 +73,7 @@ TypeRegistry make_registry() {
 TEST(TypeDefToBlueprint, PreservesLayoutAndRoutingAndDomain) {
     ui::StringInterner interner;
     CompositeSpec def = make_composite_def();
-    TypeRegistry registry = make_registry();
+    ComponentRegistry registry = make_registry();
 
     bp2::Blueprint bp = bp2::blueprint_from_type_definition(def, interner, registry);
 
@@ -101,7 +101,7 @@ TEST(TypeDefToBlueprint, PreservesLayoutAndRoutingAndDomain) {
 TEST(TypeDefToBlueprint, WireDomainMatchesResolvedEndpointInterface) {
     ui::StringInterner interner;
     CompositeSpec def = make_composite_def();
-    TypeRegistry registry = make_registry();
+    ComponentRegistry registry = make_registry();
     auto* src_def = as_primitive_mut(registry.types.at("SourceNode"));
     ASSERT_NE(src_def, nullptr);
     src_def->ports["out"].type = PortType::V;
@@ -119,7 +119,7 @@ TEST(TypeDefToBlueprint, WireDomainMatchesResolvedEndpointInterface) {
 
 TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     ui::StringInterner interner;
-    TypeRegistry registry = make_registry();
+    ComponentRegistry registry = make_registry();
 
     PrimitiveSpec sink;
     sink.classname = "BoolSink";
@@ -164,7 +164,7 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
 TEST(TypeDefToBlueprint, Regression_PrimitivePortMutationUsesCorrectAccessor) {
     ui::StringInterner interner;
     CompositeSpec def = make_composite_def();
-    TypeRegistry registry = make_registry();
+    ComponentRegistry registry = make_registry();
 
     // Verify the registry entries are PrimitiveSpec, not CompositeSpec
     ASSERT_NE(as_primitive(registry.types.at("SourceNode")), nullptr);

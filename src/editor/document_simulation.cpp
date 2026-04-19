@@ -57,7 +57,7 @@ std::pair<const bp2::Blueprint::Wire*, std::string_view> find_wire_in_scope(
 
 NodeContent resolve_base_content(const bp2::Blueprint::Node& node,
                                   ui::StringInterner& interner,
-                                  const TypeRegistry* registry) {
+                                  const ComponentRegistry* registry) {
     const std::string type_name(interner.resolve(node.semantic.type));
     const auto* def = registry ? registry->get(type_name) : nullptr;
     const TypePresentation* pres = registry ? registry->presentation.get(type_name) : nullptr;
@@ -172,8 +172,8 @@ Document::ResolvedSignalScope Document::resolve_signal_scope(const WindowScopeId
 }
 
 void Document::rebuild_window_scenes() {
-    TypeRegistry empty_reg;
-    const TypeRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
+    ComponentRegistry empty_reg;
+    const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     for (auto& win : window_manager_.windows()) {
         if (win->is_external_ref() && win->external_blueprint
             && win->external_interner && win->external_arena) {
@@ -293,7 +293,7 @@ void Document::updateNodeContentFromSimulation() {
     }
 }
 
-void Document::resetNodeContent(const TypeRegistry& /*registry*/) {
+void Document::resetNodeContent(const ComponentRegistry& /*registry*/) {
     rebuildAllWindows();
 }
 

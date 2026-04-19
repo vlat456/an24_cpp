@@ -81,7 +81,7 @@ inline bool set_error(std::string* error_out, const char* msg) {
 PortType find_port_type(const bp2::Blueprint& bp,
                         const bp2::Blueprint::Node* node,
                         ui::InternedId port_name,
-                        const TypeRegistry& registry,
+                        const ComponentRegistry& registry,
                         ui::StringInterner& interner);
 
 bool path_to_node_port(const bp2::Path& path,
@@ -162,7 +162,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
                                                   bool allow_nonembedded_descendant_refs,
                                                   ui::StringInterner& interner,
                                                   const bp2::PathArena& arena,
-                                                  const TypeRegistry& registry,
+                                                  const ComponentRegistry& registry,
                                                   std::string* error_out);
 
 DescendantRemapStats collect_descendant_remap_stats(

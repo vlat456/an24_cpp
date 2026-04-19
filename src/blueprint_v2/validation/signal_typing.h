@@ -7,7 +7,7 @@
 #include <string>
 #include <unordered_map>
 
-struct TypeRegistry;
+struct ComponentRegistry;
 
 namespace bp2 {
 
@@ -30,7 +30,7 @@ struct SignalTypingResult {
 };
 
 SignalTypingResult resolve_signal_typing(const Blueprint& bp,
-                                         const TypeRegistry* parser_registry,
+                                         const ComponentRegistry* parser_registry,
                                          ui::StringInterner& interner,
                                          WireEndpoint endpoint_a,
                                          WireEndpoint endpoint_b = WireEndpoint{});

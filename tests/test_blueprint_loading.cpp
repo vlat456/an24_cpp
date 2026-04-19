@@ -15,7 +15,7 @@ using json = nlohmann::json;
 // =============================================================================
 
 TEST(BlueprintLoading, UnknownClassnameThrows) {
-    // "test_battery_module" is NOT in TypeRegistry — should throw
+    // "test_battery_module" is NOT in ComponentRegistry — should throw
     nlohmann::json root;
     root["devices"] = {
         {{"name", "bat1"}, {"classname", "test_battery_module"}}
@@ -38,7 +38,7 @@ TEST(BlueprintLoading, MissingBlueprintReturnsError) {
 
 TEST(BlueprintLoading, DirectBlueprintLoadWorks) {
     // 12SAM28 is a blueprint type in library/systems/ (composite)
-    TypeRegistry reg = load_type_registry("library/");
+    ComponentRegistry reg = load_component_registry("library/");
     ASSERT_TRUE(reg.has("12SAM28"));
     const auto* def = reg.get("12SAM28");
     ASSERT_TRUE(is_composite(*def));
@@ -262,9 +262,9 @@ TEST(BlueprintCycleDetection, ValidNesting_NoCycle) {
 // Regression: .blueprint extension standardization
 // =============================================================================
 
-// Verify load_type_registry scans only .blueprint files
+// Verify load_component_registry scans only .blueprint files
 TEST(BlueprintExtension, RegistryLoadsOnlyBlueprintFiles) {
-    TypeRegistry reg = load_type_registry("library/");
+    ComponentRegistry reg = load_component_registry("library/");
     // Registry must find at least some components
     EXPECT_GT(reg.types.size(), 10u) << "Registry should load many .blueprint files";
     // Battery is a well-known component
@@ -323,7 +323,7 @@ TEST(BlueprintExtension, RegistryIgnoresJsonFiles) {
         })";
     }
 
-    TypeRegistry reg = load_type_registry(tmp_dir.string());
+    ComponentRegistry reg = load_component_registry(tmp_dir.string());
     EXPECT_TRUE(reg.has("TestComp")) << ".blueprint file should be loaded";
     EXPECT_FALSE(reg.has("Ignored")) << ".json file must NOT be loaded";
 
@@ -335,7 +335,7 @@ TEST(BlueprintExtension, RegistryIgnoresJsonFiles) {
 TEST(BlueprintExtension, NoJsonFilesInLibrary) {
     namespace fs = std::filesystem;
 
-    // Find library path (same search logic as load_type_registry)
+    // Find library path (same search logic as load_component_registry)
     fs::path library_path = "library/";
     std::vector<fs::path> try_paths = {
         "library/", "../library/", "../../library/", "../../../library/"
@@ -432,7 +432,7 @@ TEST(BlueprintExtension, MainSaveFileUsesStrictBlueprintMarker) {
 TEST(BlueprintExtension, CodegenUsesBluprintExtension) {
     // The codegen generates source_file = classname + ".blueprint"
     // We verify by loading a composite type and checking it round-trips
-    TypeRegistry reg = load_type_registry("library/");
+    ComponentRegistry reg = load_component_registry("library/");
 
     // Find any composite type
     std::string composite_name;

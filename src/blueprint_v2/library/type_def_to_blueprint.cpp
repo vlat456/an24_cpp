@@ -24,7 +24,7 @@ std::pair<std::string, std::string> parse_endpoint(const std::string& ep,
 }
 
 Domain resolve_wire_domain(const Blueprint& bp,
-                           const TypeRegistry& registry,
+                           const ComponentRegistry& registry,
                            ui::StringInterner& interner,
                            const std::string& src_node,
                            const std::string& src_port,
@@ -101,7 +101,7 @@ Blueprint::Node make_bridge_node(const BridgePortDefinition& bridge,
 
 Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
                                          ui::StringInterner& interner,
-                                         const TypeRegistry& registry) {
+                                         const ComponentRegistry& registry) {
     const auto* comp = as_composite(spec);
     if (!comp) {
         throw std::runtime_error(
@@ -131,7 +131,7 @@ Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
             }
         }
 
-        // Build node interface from TypeRegistry definition for this device's class.
+        // Build node interface from ComponentRegistry definition for this device's class.
         // The v3 parser does not populate DeviceInstance.ports, so we look up the
         // canonical type definition to get the port list.
         const ComponentSpec* dev_def = registry.get(dev.classname);

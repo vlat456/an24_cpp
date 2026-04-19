@@ -11,7 +11,7 @@
 /// E-006: SimulationState must NOT use misleading alignas(64) on vector members.
 /// E-008: dt clamped to MAX_DT (0.1s) to prevent physics explosions.
 /// E-009: Single-solve pipeline with one-frame delay is correct for a game.
-/// E-010: Single canonical TypeRegistry from json_parser — no bp2::TypeRegistry.
+/// E-010: Single canonical ComponentRegistry from json_parser — no bp2::ComponentRegistry.
 
 #include <gtest/gtest.h>
 #include "core/solvers/jit/simulator.h"
@@ -31,8 +31,8 @@
 
 namespace {
 
-const TypeRegistry& test_registry() {
-    static const TypeRegistry registry = load_type_registry("library/");
+const ComponentRegistry& test_registry() {
+    static const ComponentRegistry registry = load_component_registry("library/");
     return registry;
 }
 
@@ -687,31 +687,31 @@ TEST(E009_SingleSolve, StepCountAndTimeConsistent) {
 }
 
 // =============================================================================
-// E-010 Regression: single canonical TypeRegistry (issue #24)
+// E-010 Regression: single canonical ComponentRegistry (issue #24)
 //
-// The project must have exactly ONE TypeRegistry type — the parser's
-// `struct TypeRegistry` from `json_parser/json_parser.h`. There must be
-// no `bp2::TypeRegistry` class. All subsystems (codec, validation,
-// flattener, bake, editor) must consume `const TypeRegistry&` from the
+// The project must have exactly ONE ComponentRegistry type — the parser's
+// `struct ComponentRegistry` from `json_parser/json_parser.h`. There must be
+// no `bp2::ComponentRegistry` class. All subsystems (codec, validation,
+// flattener, bake, editor) must consume `const ComponentRegistry&` from the
 // parser module.
 // =============================================================================
 
 TEST(E010_SingleRegistry, CanonicalRegistryLoadsFromLibrary) {
     // The canonical load path must succeed and contain known types.
-    TypeRegistry reg = load_type_registry("library/");
+    ComponentRegistry reg = load_component_registry("library/");
     EXPECT_GT(reg.types.size(), 50u)
-        << "Canonical TypeRegistry should have 50+ types from library/";
+        << "Canonical ComponentRegistry should have 50+ types from library/";
     EXPECT_TRUE(reg.has("ElectricalSource"))
-        << "TypeRegistry must contain ElectricalSource";
+        << "ComponentRegistry must contain ElectricalSource";
     EXPECT_TRUE(reg.has("AZS"))
-        << "TypeRegistry must contain AZS";
+        << "ComponentRegistry must contain AZS";
     EXPECT_TRUE(reg.has("Resistor"))
-        << "TypeRegistry must contain Resistor";
+        << "ComponentRegistry must contain Resistor";
 }
 
 TEST(E010_SingleRegistry, RegistryHasPortDefinitions) {
     // Verify the canonical registry provides port data (not just stubs).
-    TypeRegistry reg = load_type_registry("library/");
+    ComponentRegistry reg = load_component_registry("library/");
     const auto* src = reg.get("ElectricalSource");
     ASSERT_NE(src, nullptr);
     EXPECT_FALSE(spec_ports(*src).empty())
@@ -720,9 +720,9 @@ TEST(E010_SingleRegistry, RegistryHasPortDefinitions) {
 
 TEST(E010_SingleRegistry, RegistryHasCategoryMapping) {
     // The categories map is used for library path lookup (e.g. "electrical").
-    TypeRegistry reg = load_type_registry("library/");
+    ComponentRegistry reg = load_component_registry("library/");
     EXPECT_FALSE(reg.catalog.categories.empty())
-        << "TypeRegistry must populate categories for menu/path lookup";
+        << "ComponentRegistry must populate categories for menu/path lookup";
 
     // AZS should be in an "electrical" category subdirectory
     auto it = reg.catalog.categories.find("AZS");
@@ -731,15 +731,15 @@ TEST(E010_SingleRegistry, RegistryHasCategoryMapping) {
 }
 
 TEST(E010_SingleRegistry, NoSecondRegistryInBp2Namespace) {
-    // Compile-time structural check: bp2:: should not define a TypeRegistry.
-    // This test passes as long as no bp2::TypeRegistry class exists.
-    // If someone reintroduces bp2::TypeRegistry, adding the include for it
+    // Compile-time structural check: bp2:: should not define a ComponentRegistry.
+    // This test passes as long as no bp2::ComponentRegistry class exists.
+    // If someone reintroduces bp2::ComponentRegistry, adding the include for it
     // would be needed here, and this static_assert would need to be updated.
     // The real enforcement is that this test file includes json_parser.h
-    // and uses TypeRegistry unqualified — if a bp2::TypeRegistry existed,
+    // and uses ComponentRegistry unqualified — if a bp2::ComponentRegistry existed,
     // it would cause ambiguity errors in bp2-using translation units.
     static_assert(
-        std::is_same_v<decltype(TypeRegistry::types), std::unordered_map<std::string, ComponentSpec>>,
-        "TypeRegistry must be the parser struct with types map (not a bp2:: class)"
+        std::is_same_v<decltype(ComponentRegistry::types), std::unordered_map<std::string, ComponentSpec>>,
+        "ComponentRegistry must be the parser struct with types map (not a bp2:: class)"
     );
 }

@@ -47,7 +47,7 @@ TEST(LogicalSolverTest, LogicalDomain_ParsesFromString) {
     // Logical domain should parse from JSON string "Logical"
     // Try to load component registry (which will parse domains)
     // If "Logical" domain doesn't parse, this will fail
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
 
     // Verify that we loaded at least the Comparator component
     const auto* comp = registry.get("Comparator");
@@ -67,7 +67,7 @@ TEST(LogicalSolverTest, LogicalDomain_ParsesFromString) {
 
 TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
     // Component should be in registry with correct structure
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
 
     const auto* comp = registry.get("Comparator");
     if (!comp) {
@@ -102,7 +102,7 @@ TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
 
 TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
     // Comparator should be registered in Logical domain
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
 
     const auto* comp = registry.get("Comparator");
     if (!comp) {

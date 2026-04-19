@@ -9,7 +9,7 @@
 
 Inspector::Inspector(const bp2::Blueprint* bp, const bp2::PathArena* arena,
                      ui::StringInterner* interner, const WindowScopeId& scope_id,
-                     const TypeRegistry* registry)
+                     const ComponentRegistry* registry)
     : bp_(bp), arena_(arena), interner_(interner), registry_(registry), scope_id_(scope_id) {}
 
 std::string Inspector::consumeSelection() {

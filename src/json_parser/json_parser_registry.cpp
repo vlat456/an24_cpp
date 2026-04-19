@@ -327,8 +327,8 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
 
 } // namespace
 
-TypeRegistry load_type_registry(const std::string& library_dir) {
-    TypeRegistry registry;
+ComponentRegistry load_component_registry(const std::string& library_dir) {
+    ComponentRegistry registry;
 
     std::filesystem::path library_path(library_dir);
     if (!std::filesystem::exists(library_path) && library_path.is_relative()) {

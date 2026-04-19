@@ -12,20 +12,20 @@
 #include <unordered_set>
 #include <spdlog/spdlog.h>
 
-struct TypeRegistry;
+struct ComponentRegistry;
 
 class WindowManager {
 public:
     explicit WindowManager(bp2::EditorModel& model, ui::StringInterner& interner,
                            bp2::PathArena& arena,
-                           const TypeRegistry* parser_registry = nullptr)
+                           const ComponentRegistry* parser_registry = nullptr)
         : model_(model), interner_(interner), arena_(arena), parser_registry_(parser_registry)
     {
         windows_.push_back(std::make_unique<BlueprintWindow>(
             RootWindowTag{}, model_, interner_, arena_, "Root", parser_registry_));
     }
 
-    void set_parser_registry(const TypeRegistry* parser_registry) {
+    void set_parser_registry(const ComponentRegistry* parser_registry) {
         parser_registry_ = parser_registry;
         for (auto& w : windows_) {
             w->input.set_parser_registry(parser_registry_);
@@ -131,6 +131,6 @@ private:
     bp2::EditorModel& model_;
     ui::StringInterner& interner_;
     bp2::PathArena& arena_;
-    const TypeRegistry* parser_registry_ = nullptr;
+    const ComponentRegistry* parser_registry_ = nullptr;
     std::vector<std::unique_ptr<BlueprintWindow>> windows_;
 };

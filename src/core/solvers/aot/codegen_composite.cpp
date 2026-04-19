@@ -4,7 +4,7 @@
 
 CompositeCodegenResult CodeGen::generate_composite_systems(
     const CompositeSpec& td,
-    const TypeRegistry& registry)
+    const ComponentRegistry& registry)
 {
     std::set<std::string> loading_stack;
     auto expanded = expand_sub_blueprint_references(td, registry, loading_stack);
@@ -41,7 +41,7 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
     return result;
 }
 
-std::map<std::string, CompositeCodegenResult> CodeGen::generate_all_composites(const TypeRegistry& registry) {
+std::map<std::string, CompositeCodegenResult> CodeGen::generate_all_composites(const ComponentRegistry& registry) {
     std::map<std::string, CompositeCodegenResult> results;
 
     auto order = registry.get_composites_topo_sorted();

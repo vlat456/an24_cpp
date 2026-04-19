@@ -12,7 +12,7 @@ namespace bp2 {
 std::string BlueprintCodec::encode(Blueprint const& bp,
                                    ui::StringInterner const& interner,
                                    PathArena const& arena,
-                                   const ::TypeRegistry* parser_registry) {
+                                   const ::ComponentRegistry* parser_registry) {
     nlohmann::json j;
     const ComponentSpec* type_def = nullptr;
     if (parser_registry && !bp.id().empty()) {
@@ -34,7 +34,7 @@ std::optional<Blueprint> BlueprintCodec::decode(
     std::string_view json_str,
     ui::StringInterner& interner,
     PathArena& arena,
-    const ::TypeRegistry& parser_registry,
+    const ::ComponentRegistry& parser_registry,
     DecodeError* error_out) {
     try {
         auto j = nlohmann::json::parse(json_str);

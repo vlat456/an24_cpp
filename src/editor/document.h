@@ -112,13 +112,13 @@ public:
 
     /// Set the type registry used to filter visual-only params from simulation JSON.
     /// Must be called before startSimulation(). Pointer must outlive the Document.
-    void setTypeRegistry(const TypeRegistry* reg) {
+    void setComponentRegistry(const ComponentRegistry* reg) {
         type_registry_ = reg;
         window_manager_.set_parser_registry(reg);
     }
 
     /// Get the type registry (may be nullptr if not yet set).
-    const TypeRegistry* type_registry() const { return type_registry_; }
+    const ComponentRegistry* type_registry() const { return type_registry_; }
 
     /// Set the library index used for blueprint path resolution.
     /// Must be called before openSubWindow() or addBlueprint(). Pointer must outlive the Document.
@@ -141,7 +141,7 @@ public:
 
     /// Update node_content (gauges, switches, etc.) from simulation values.
     void updateNodeContentFromSimulation();
-    void resetNodeContent(const TypeRegistry& registry);
+    void resetNodeContent(const ComponentRegistry& registry);
 
     /// Build a set of wire IDs that are energized (have non-zero voltage).
     void buildEnergizedWireSet(
@@ -170,10 +170,10 @@ public:
 
     void addComponent(const std::string& classname, Pt world_pos,
                       const std::string& scope_id,
-                      TypeRegistry& registry);
+                      ComponentRegistry& registry);
     void addBlueprint(const std::string& blueprint_name, Pt world_pos,
                       const std::string& scope_id,
-                      TypeRegistry& registry);
+                      ComponentRegistry& registry);
 
     /// Recompute node sizes from the current layout minimum-size contract.
     /// When preserve_manual is true, nodes explicitly marked manual_size are left unchanged.
@@ -260,7 +260,7 @@ private:
 
     std::unordered_map<std::string, float> signal_overrides_;
     std::unordered_set<std::string> held_buttons_;
-    const TypeRegistry* type_registry_ = nullptr;
+    const ComponentRegistry* type_registry_ = nullptr;
     const bp2::LibraryIndex* library_index_ = nullptr;
 
     static int next_id_;

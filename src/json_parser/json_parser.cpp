@@ -161,7 +161,7 @@ spdlog::debug("[parser] Exposed port: {} ({}, {})",
 }
 
 static ParserContext parse_json_impl(const std::string& json_text,
-                                     TypeRegistry& registry,
+                                     ComponentRegistry& registry,
                                      std::set<std::string> expanding) {
     spdlog::debug("[json_parser] Parsing JSON text");
     auto j = json::parse(json_text);
@@ -217,7 +217,7 @@ static ParserContext parse_json_impl(const std::string& json_text,
                     "' is already being expanded (circular dependency)");
             }
 
-            spdlog::info("[json_parser] Expanding blueprint type '{}' as device '{}' from TypeRegistry",
+            spdlog::info("[json_parser] Expanding blueprint type '{}' as device '{}' from ComponentRegistry",
                         raw_dev.classname, raw_dev.name);
 
             // Build a ParserContext from the CompositeSpec's devices/connections
@@ -298,13 +298,13 @@ static ParserContext parse_json_impl(const std::string& json_text,
 }
 
 ParserContext parse_json(const std::string& json_text) {
-    auto registry = load_type_registry();
+    auto registry = load_component_registry();
     spdlog::info("[json_parser] Loaded {} type definitions", registry.types.size());
     return parse_json_impl(json_text, registry, {});
 }
 
 ParserContext parse_json(const std::string& json_text, const std::string& library_dir) {
-    auto registry = load_type_registry(library_dir);
+    auto registry = load_component_registry(library_dir);
     spdlog::info("[json_parser] Loaded {} type definitions from '{}'", registry.types.size(), library_dir);
     return parse_json_impl(json_text, registry, {});
 }
@@ -314,6 +314,6 @@ ParserContext parse_json(const std::string& json_text, const std::string& librar
 // Helper: parse TypeDefinition from JSON
 // parse_type_definition moved to json_parser_types.cpp
 
-// load_type_registry moved to json_parser_registry.cpp
+// load_component_registry moved to json_parser_registry.cpp
 
 // parse_type_definition/merge_device_instance/menu+validation helpers moved to json_parser_types.cpp

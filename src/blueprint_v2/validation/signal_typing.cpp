@@ -61,7 +61,7 @@ std::optional<ui::InternedId> bridge_exposed_port_name(const Blueprint::Node& no
 std::optional<PortDescriptor> node_port_descriptor(const Blueprint::Node& node,
                                                    ui::InternedId port_name,
                                                    const Blueprint& bp,
-                                                   const TypeRegistry* parser_registry,
+                                                   const ComponentRegistry* parser_registry,
                                                    ui::StringInterner& interner) {
     if (node.is_blueprint_instance() && parser_registry == nullptr && !node.has_embedded_blueprint()) {
         return std::nullopt;
@@ -101,7 +101,7 @@ std::optional<PortDescriptor> node_port_descriptor(const Blueprint::Node& node,
 
 std::optional<PortDescriptor> find_port_descriptor(const Blueprint& bp,
                                                    WireEndpoint endpoint,
-                                                   const TypeRegistry* parser_registry,
+                                                   const ComponentRegistry* parser_registry,
                                                    ui::StringInterner& interner) {
     const auto* node = bp.find_node(endpoint.node);
     if (!node) {
@@ -111,7 +111,7 @@ std::optional<PortDescriptor> find_port_descriptor(const Blueprint& bp,
 }
 
 IndexedSignalGraph build_indexed_signal_graph(const Blueprint& bp,
-                                              const TypeRegistry* parser_registry,
+                                              const ComponentRegistry* parser_registry,
                                               ui::StringInterner& interner) {
     std::vector<SignalPortRef> ports;
     ports.reserve(bp.nodes().size() * 4 + bp.iface().size());
@@ -287,7 +287,7 @@ SignalTypingResult resolve_signal_group_typing(const Blueprint& bp,
 } // namespace
 
 SignalTypingResult resolve_signal_typing(const Blueprint& bp,
-                                         const TypeRegistry* parser_registry,
+                                         const ComponentRegistry* parser_registry,
                                          ui::StringInterner& interner,
                                          WireEndpoint endpoint_a,
                                          WireEndpoint endpoint_b) {

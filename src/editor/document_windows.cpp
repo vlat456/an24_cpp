@@ -22,7 +22,7 @@ void Document::openExternalRefWindow(const std::string& instance_id,
     auto ext_interner = std::make_unique<ui::StringInterner>();
     auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
     if (!type_registry_) {
-        spdlog::error("[editor] Cannot open external ref window: TypeRegistry is not configured");
+        spdlog::error("[editor] Cannot open external ref window: ComponentRegistry is not configured");
         return;
     }
 
@@ -59,8 +59,8 @@ void Document::openExternalRefWindow(const std::string& instance_id,
     win->set_read_only(true);
     win->pending_auto_fit = true;
 
-    TypeRegistry empty_reg;
-    const TypeRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
+    ComponentRegistry empty_reg;
+    const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     visual::mutations::rebuild(win->scene, *win->external_blueprint,
                                *win->external_interner, *win->external_arena, "", reg);
     win->input.rebuild_snapshot();

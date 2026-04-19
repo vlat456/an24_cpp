@@ -15,7 +15,7 @@
 
 TEST(AotComposite, GeneratesSystemsForComposite) {
     // Setup: simple composite with 2 devices
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     CompositeSpec lamp;
     lamp.classname = "voltage_indicator";
@@ -52,7 +52,7 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
 }
 
 TEST(AotComposite, NestedComposite_ContainsSubSystems) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     // Inner composite
     CompositeSpec inner;
@@ -90,7 +90,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
 }
 
 TEST(AotComposite, ThreeLevelsDeep_FullHierarchy) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     // Level 2: leaf
     CompositeSpec leaf;
@@ -135,7 +135,7 @@ TEST(AotComposite, ThreeLevelsDeep_FullHierarchy) {
 // ============================================================
 
 TEST(AotComposite, TopoSort_LeavesFirst) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     CompositeSpec leaf;
     leaf.classname = "leaf";
@@ -166,7 +166,7 @@ TEST(AotComposite, TopoSort_LeavesFirst) {
 }
 
 TEST(AotComposite, PreLoad_CallsSubComposites) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     CompositeSpec inner;
     inner.classname = "inner_type";
@@ -216,7 +216,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
 
     // ---- Build a registry with full type definitions (ports + params) ----
 
-    TypeRegistry registry;
+    ComponentRegistry registry;
     register_lamp_composite_types(registry);
 
     // Composite: voltage_indicator (vin→lamp→vout)
@@ -342,7 +342,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
 // ============================================================
 
 TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
     registry.types["Generator"] = make_generator_type();
     registry.types["Resistor"] = make_resistor_type();
     registry.types["RefNode"] = make_refnode_type();
@@ -404,7 +404,7 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
 }
 
 TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
     registry.types["ElectricalSource"] = make_electrical_source_type();
     registry.types["IndicatorLight"] = make_indicator_light_type();
 
@@ -439,7 +439,7 @@ TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
 }
 
 TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     CompositeSpec no_elec;
     no_elec.classname = "no_electrical";
@@ -462,7 +462,7 @@ TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
 }
 
 TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     registry.types["Generator"] = make_generator_type();
     registry.types["CurrentSense"] = make_currentsense_type();
@@ -515,7 +515,7 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
 }
 
 TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
     register_generator_sense_ref_types(registry);
 
     auto make_circuit = [&](const std::vector<Connection>& conns, const std::string& name) {
@@ -584,7 +584,7 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
 }
 
 TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
     register_generator_sense_ref_types(registry);
 
     CompositeSpec circuit;
@@ -635,7 +635,7 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
 // Regression: when non-electrical devices are interleaved between electrical ones,
 // binding construction must still map to the correct device name (not devices[element_idx]).
 TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
     registry.types["Generator"] = make_generator_type();
 
     // Non-electrical device that sits between electrical devices in the list
@@ -704,7 +704,7 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
 }
 
 TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
     registry.types["ElectricalSource"] = make_electrical_source_type();
     registry.types["CurrentSense"] = make_currentsense_type();
     registry.types["RefNode"] = make_refnode_type();
@@ -752,7 +752,7 @@ TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
 }
 
 TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
     register_basic_electrical_types(registry);
 
     CompositeSpec circuit;
@@ -796,7 +796,7 @@ TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
 }
 
 TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
     register_basic_electrical_types(registry);
 
     CompositeSpec circuit;
@@ -841,7 +841,7 @@ TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
 // switch toggling, relay actuation, and AZS circuit breakers in AOT mode.
 // =============================================================================
 TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     PrimitiveSpec battery_type;
     battery_type.classname = "ElectricalSource";
@@ -912,7 +912,7 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
 }
 
 TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     registry.types["RefNode"] = make_refnode_type(bp2::Direction::Output);
 
@@ -965,7 +965,7 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
 // get allocated as separate signals instead of being unified.
 // =============================================================================
 TEST(AotComposite, BridgeNodeExtPortUnification) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     // IndicatorLight (simple pass-through component)
     PrimitiveSpec light = make_indicator_light_type();
@@ -1030,7 +1030,7 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
 }
 
 TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
 
     PrimitiveSpec cvs;
     cvs.classname = "ControlledVoltageSource";

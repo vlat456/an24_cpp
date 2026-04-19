@@ -39,7 +39,7 @@ constexpr float DISCRETE_DRAG_PIXELS_PER_STEP = 30.0f;
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
                          EditingHost& host, ui::StringInterner& interner,
                          bp2::PathArena& arena, const std::string& scope_id,
-                         const TypeRegistry* parser_registry)
+                         const ComponentRegistry* parser_registry)
     : scene_(scene), viewport_(viewport), host_(host),
       interner_(interner), arena_(arena),
       parser_registry_(parser_registry),
@@ -433,8 +433,8 @@ void CanvasInput::rebuild_scene() {
     rebuild_snapshot();
 }
 
-const TypeRegistry& CanvasInput::registry() const {
-    static const TypeRegistry empty_reg;
+const ComponentRegistry& CanvasInput::registry() const {
+    static const ComponentRegistry empty_reg;
     return parser_registry_ ? *parser_registry_ : empty_reg;
 }
 

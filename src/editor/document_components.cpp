@@ -112,7 +112,7 @@ void add_bridge_port_to_composite(
 
 void Document::addComponent(const std::string& classname, Pt world_pos,
                             const std::string& scope_id,
-                            TypeRegistry& registry)
+                            ComponentRegistry& registry)
 {
     if (!registry.has(classname)) {
         spdlog::error("[editor] Unknown component classname '{}'", classname);
@@ -216,10 +216,10 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 #ifndef NDEBUG
     std::string before_integrity_err;
     if (!type_registry_) {
-        spdlog::error("[editor] TypeRegistry is not configured on Document::addComponent");
+        spdlog::error("[editor] ComponentRegistry is not configured on Document::addComponent");
         return;
     }
-    const TypeRegistry& parser_registry = *type_registry_;
+    const ComponentRegistry& parser_registry = *type_registry_;
     const bool before_integrity_ok =
         validate_blueprint_integrity(before_add, interner_, arena_, parser_registry, &before_integrity_err);
 #endif
@@ -270,7 +270,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
 void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
                             const std::string& scope_id,
-                            TypeRegistry& registry)
+                            ComponentRegistry& registry)
 {
     if (!registry.has(blueprint_name)) {
         spdlog::error("[editor] Unknown blueprint '{}'", blueprint_name);
@@ -347,10 +347,10 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 #ifndef NDEBUG
     std::string before_integrity_err;
     if (!type_registry_) {
-        spdlog::error("[editor] TypeRegistry is not configured on Document::addBlueprint");
+        spdlog::error("[editor] ComponentRegistry is not configured on Document::addBlueprint");
         return;
     }
-    const TypeRegistry& parser_registry = *type_registry_;
+    const ComponentRegistry& parser_registry = *type_registry_;
     const bool before_integrity_ok =
         validate_blueprint_integrity(before_add, interner_, arena_, parser_registry, &before_integrity_err);
 #endif

@@ -70,7 +70,7 @@ void Document::applyWorkspaceSession(const WorkspaceSession& session) {
 
 bool Document::save(const std::string& path) {
     if (!type_registry_) {
-        spdlog::error("[persist] TypeRegistry is not configured on Document::save");
+        spdlog::error("[persist] ComponentRegistry is not configured on Document::save");
         return false;
     }
 
@@ -93,7 +93,7 @@ bool Document::save(const std::string& path) {
 
 bool Document::load(const std::string& path) {
     if (!type_registry_) {
-        spdlog::error("[persist] TypeRegistry is not configured on Document::load");
+        spdlog::error("[persist] ComponentRegistry is not configured on Document::load");
         return false;
     }
 
@@ -125,8 +125,8 @@ bool Document::load(const std::string& path) {
     // or trigger a full rebuild/simulation restart.
     this->apply_normalized_node_sizes(true, false, false);
 
-    TypeRegistry empty_reg;
-    const TypeRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
+    ComponentRegistry empty_reg;
+    const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().resolved_scope_id().sim_scope_prefix(), reg);
     root().input.rebuild_snapshot();
 

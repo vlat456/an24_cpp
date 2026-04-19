@@ -7,7 +7,7 @@
 #include "ui/core/interned_id.h"
 #include "window/window_scope_id.h"
 
-struct TypeRegistry;
+struct ComponentRegistry;
 #include <string>
 #include <vector>
 
@@ -30,13 +30,13 @@ public:
     /// Constructor with blueprint pointer and group filter
     Inspector(const bp2::Blueprint* bp, const bp2::PathArena* arena,
               ui::StringInterner* interner, const WindowScopeId& scope_id = WindowScopeId::root(),
-              const TypeRegistry* registry = nullptr);
+              const ComponentRegistry* registry = nullptr);
 
     /// Set the blueprint to inspect (for switching between documents)
     void setBlueprint(const bp2::Blueprint& bp, const bp2::PathArena& arena,
                       ui::StringInterner& interner,
                       const WindowScopeId& scope_id = WindowScopeId::root(),
-                      const TypeRegistry* registry = nullptr) {
+                      const ComponentRegistry* registry = nullptr) {
         bp_ = &bp;
         arena_ = &arena;
         interner_ = &interner;
@@ -71,7 +71,7 @@ private:
     const bp2::Blueprint*    bp_       = nullptr;
     const bp2::PathArena*    arena_    = nullptr;
     ui::StringInterner* interner_ = nullptr;
-    const TypeRegistry* registry_ = nullptr;
+    const ComponentRegistry* registry_ = nullptr;
     WindowScopeId scope_id_            = WindowScopeId::root();
     std::vector<DisplayNode> display_tree_;
 

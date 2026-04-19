@@ -9,8 +9,8 @@
 
 namespace {
 
-TypeRegistry build_registry_for_lamp() {
-    TypeRegistry registry;
+ComponentRegistry build_registry_for_lamp() {
+    ComponentRegistry registry;
     register_lamp_composite_types(registry);
 
     CompositeSpec lamp;
@@ -37,7 +37,7 @@ TypeRegistry build_registry_for_lamp() {
 } // anonymous namespace
 
 TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
-    TypeRegistry registry = build_registry_for_lamp();
+    ComponentRegistry registry = build_registry_for_lamp();
     const auto& lamp_variant = registry.types.at("voltage_indicator");
     const CompositeSpec& lamp = std::get<CompositeSpec>(lamp_variant);
 
@@ -71,7 +71,7 @@ TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
 }
 
 TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
-    TypeRegistry registry;
+    ComponentRegistry registry;
     register_basic_electrical_types(registry);
 
     CompositeSpec circuit;

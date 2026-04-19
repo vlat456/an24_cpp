@@ -12,8 +12,8 @@ bool Document::apply_normalized_node_sizes(bool preserve_manual,
 
     bp2::Blueprint updated = model_.current();
     visual::Scene probe_scene;
-    TypeRegistry empty_reg;
-    const TypeRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
+    ComponentRegistry empty_reg;
+    const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     visual::mutations::rebuild(probe_scene, updated, interner_, arena_, root().resolved_scope_id().sim_scope_prefix(), reg);
 
     for (const auto& node : model_.current().nodes()) {

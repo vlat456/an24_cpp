@@ -16,7 +16,7 @@ namespace bp2 {
 /// TypeDefinition.connections → Wire, using the existing
 /// interface_from_type_definition() helper for the blueprint interface.
 ///
-/// Node interfaces are resolved from the TypeRegistry so that flattening
+/// Node interfaces are resolved from the ComponentRegistry so that flattening
 /// and wire validation can see each node's ports.
 ///
 /// This is the canonical path for materialising library composite blueprints
@@ -28,6 +28,6 @@ namespace bp2 {
 ///   - a connection string cannot be parsed as "node.port"
 Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
                                          ui::StringInterner& interner,
-                                         const TypeRegistry& registry);
+                                         const ComponentRegistry& registry);
 
 } // namespace bp2

@@ -106,7 +106,7 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
                              const std::string& node_id_str,
                              bp2::EditorModel& model,
                              ui::StringInterner& interner,
-                             const TypeRegistry* type_registry,
+                             const ComponentRegistry* type_registry,
                              PropertyCallback on_apply) {
     // If already open editing a different node, just close (shadow editing
     // means no live mutations to revert).

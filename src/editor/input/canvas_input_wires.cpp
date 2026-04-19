@@ -39,7 +39,7 @@ Domain resolve_wire_domain_from_endpoints(const bp2::Blueprint& bp,
                                           ui::InternedId start_port,
                                           ui::InternedId end_node,
                                           ui::InternedId end_port,
-                                          const TypeRegistry* parser_registry,
+                                          const ComponentRegistry* parser_registry,
                                           ui::StringInterner& interner) {
     bp2::Blueprint::Wire probe;
     probe.source = bp2::WireEndpoint{start_node, start_port};

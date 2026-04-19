@@ -30,8 +30,8 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
     return n;
 }
 
-static TypeRegistry make_command_test_registry() {
-    TypeRegistry reg = load_type_registry("library/");
+static ComponentRegistry make_command_test_registry() {
+    ComponentRegistry reg = load_component_registry("library/");
 
     const std::vector<std::string> synthetic_types = {
         "Test",
@@ -282,7 +282,7 @@ static bp2::Blueprint make_extract_fixture_with_existing_blueprint_name_node_own
 class ExtractToBlueprintNodeOwnedTest : public ::testing::Test {
 protected:
     ui::StringInterner interner;
-    TypeRegistry parser_registry = make_command_test_registry();
+    ComponentRegistry parser_registry = make_command_test_registry();
 };
 
 TEST_F(ExtractToBlueprintNodeOwnedTest, BasicAtomicCreatesCollapsedEmbeddedNode) {

@@ -22,8 +22,8 @@ using json = nlohmann::json;
 
 namespace {
 
-const TypeRegistry& test_registry() {
-    static const TypeRegistry registry = load_type_registry("library/");
+const ComponentRegistry& test_registry() {
+    static const ComponentRegistry registry = load_component_registry("library/");
     return registry;
 }
 
@@ -89,7 +89,7 @@ static std::string scalar_json_to_param_string(const json& value) {
     return value.dump();
 }
 
-static bp2::BlueprintLibrary build_library(const TypeRegistry& registry, ui::StringInterner& interner) {
+static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     for (const auto& [classname, def] : registry.types) {
         if (!is_composite(def)) continue;
@@ -103,7 +103,7 @@ static bp2::BlueprintLibrary build_library(const TypeRegistry& registry, ui::Str
 }
 
 static JitBuildInput build_input_from_blueprint_file(const std::string& blueprint_path,
-                                                     const TypeRegistry& registry) {
+                                                     const ComponentRegistry& registry) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::BlueprintLibrary library = build_library(registry, interner);

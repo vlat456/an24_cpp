@@ -58,7 +58,7 @@ JitBuildInput elaborate_for_jit(
     const FlatNetlist& netlist,
     PathArena& arena,
     const ui::StringInterner& interner,
-    const TypeRegistry* type_registry) {
+    const ComponentRegistry* type_registry) {
 
     JitBuildInput result;
 

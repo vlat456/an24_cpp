@@ -455,7 +455,7 @@ TEST(EditorModel, IsDirtyAfterUndoStackTruncation) {
 TEST(EditorModel, RandomizedEditsMaintainInvariants) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    TypeRegistry registry = load_type_registry("library/");
+    ComponentRegistry registry = load_component_registry("library/");
     PrimitiveSpec battery;
     battery.classname = "Battery";
     battery.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};

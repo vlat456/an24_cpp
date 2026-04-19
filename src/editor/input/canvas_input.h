@@ -26,7 +26,7 @@ class Port;
 } // namespace visual
 
 struct Viewport;
-struct TypeRegistry;
+struct ComponentRegistry;
 
 /// Unified canvas input handler — one per editor window.
 /// Owns selection + FSM state, processes raw mouse/key events.
@@ -48,9 +48,9 @@ public:
     CanvasInput(visual::Scene& scene, Viewport& viewport,
                 EditingHost& host, ui::StringInterner& interner,
                 bp2::PathArena& arena, const std::string& scope_id,
-                const TypeRegistry* parser_registry = nullptr);
+                const ComponentRegistry* parser_registry = nullptr);
 
-    void set_parser_registry(const TypeRegistry* parser_registry) {
+    void set_parser_registry(const ComponentRegistry* parser_registry) {
         parser_registry_ = parser_registry;
     }
 
@@ -129,7 +129,7 @@ private:
     EditingHost& host_;
     ui::StringInterner& interner_;
     bp2::PathArena& arena_;
-    const TypeRegistry* parser_registry_ = nullptr;
+    const ComponentRegistry* parser_registry_ = nullptr;
     ui::InternedId group_iid_;  // interned handle for O(1) comparisons
     std::string_view scope_id_;  // resolved from interner (stable storage)
     
@@ -307,7 +307,7 @@ private:
     void rebuild_scene();
 
     /// Return the registry reference, safe even when parser_registry_ is null.
-    const TypeRegistry& registry() const;
+    const ComponentRegistry& registry() const;
 
     /// Find the data-layer index of a wire by its InternedId.
     size_t find_wire_index(ui::InternedId wire_id) const;
