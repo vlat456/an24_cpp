@@ -16,10 +16,9 @@ inline BridgePortDefinition make_bridge_port_def(const std::string& id,
     return bridge;
 }
 
-inline TypeDefinition make_indicator_light_type() {
-    TypeDefinition td;
+inline PrimitiveSpec make_indicator_light_type() {
+    PrimitiveSpec td;
     td.classname = "IndicatorLight";
-    td.cpp_class = true;
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.ports["brightness"] = Port{bp2::Direction::Output, PortType::I, std::nullopt};
@@ -37,10 +36,9 @@ inline TypeDefinition make_indicator_light_type() {
     return td;
 }
 
-inline TypeDefinition make_refnode_type(bp2::Direction direction = bp2::Direction::Input) {
-    TypeDefinition td;
+inline PrimitiveSpec make_refnode_type(bp2::Direction direction = bp2::Direction::Input) {
+    PrimitiveSpec td;
     td.classname = "RefNode";
-    td.cpp_class = true;
     td.ports["v"] = Port{direction, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
     td.execution = make_execution(true, false, false, false, false, false, false, false, false);
@@ -56,10 +54,10 @@ inline TypeDefinition make_refnode_type(bp2::Direction direction = bp2::Directio
     return td;
 }
 
-inline TypeDefinition make_electrical_source_type() {
-    TypeDefinition td;
+inline PrimitiveSpec make_electrical_source_type() {
+    PrimitiveSpec td;
     td.classname = "ElectricalSource";
-    td.cpp_class = true;
+    
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
@@ -78,10 +76,10 @@ inline TypeDefinition make_electrical_source_type() {
     return td;
 }
 
-inline TypeDefinition make_electrical_conductance_type() {
-    TypeDefinition td;
+inline PrimitiveSpec make_electrical_conductance_type() {
+    PrimitiveSpec td;
     td.classname = "ElectricalConductance";
-    td.cpp_class = true;
+    
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
@@ -98,10 +96,10 @@ inline TypeDefinition make_electrical_conductance_type() {
     return td;
 }
 
-inline TypeDefinition make_generator_type() {
-    TypeDefinition td;
+inline PrimitiveSpec make_generator_type() {
+    PrimitiveSpec td;
     td.classname = "Generator";
-    td.cpp_class = true;
+    
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
@@ -120,10 +118,10 @@ inline TypeDefinition make_generator_type() {
     return td;
 }
 
-inline TypeDefinition make_currentsense_type() {
-    TypeDefinition td;
+inline PrimitiveSpec make_currentsense_type() {
+    PrimitiveSpec td;
     td.classname = "CurrentSense";
-    td.cpp_class = true;
+    
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.ports["i_out"] = Port{bp2::Direction::Output, PortType::I, std::nullopt};
@@ -141,10 +139,10 @@ inline TypeDefinition make_currentsense_type() {
     return td;
 }
 
-inline TypeDefinition make_resistor_type() {
-    TypeDefinition td;
+inline PrimitiveSpec make_resistor_type() {
+    PrimitiveSpec td;
     td.classname = "Resistor";
-    td.cpp_class = true;
+    
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
@@ -160,10 +158,10 @@ inline TypeDefinition make_resistor_type() {
     return td;
 }
 
-inline TypeDefinition make_voltmeter_type() {
-    TypeDefinition td;
+inline PrimitiveSpec make_voltmeter_type() {
+    PrimitiveSpec td;
     td.classname = "Voltmeter";
-    td.cpp_class = true;
+    
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.domains = {{Domain::Electrical}};
@@ -171,10 +169,10 @@ inline TypeDefinition make_voltmeter_type() {
     return td;
 }
 
-inline TypeDefinition make_any_v_to_bool_type() {
-    TypeDefinition td;
+inline PrimitiveSpec make_any_v_to_bool_type() {
+    PrimitiveSpec td;
     td.classname = "Any_V_to_Bool";
-    td.cpp_class = true;
+    
     td.ports["Vin"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["o"] = Port{bp2::Direction::Output, PortType::Bool, std::nullopt};
     td.domains = {{Domain::Logical}};
@@ -182,10 +180,10 @@ inline TypeDefinition make_any_v_to_bool_type() {
     return td;
 }
 
-inline TypeDefinition make_value_type() {
-    TypeDefinition td;
+inline PrimitiveSpec make_value_type() {
+    PrimitiveSpec td;
     td.classname = "Value";
-    td.cpp_class = true;
+    
     td.ports["o"] = Port{bp2::Direction::Output, PortType::Any, std::nullopt};
     td.domains = {{Domain::Logical}};
     td.execution = make_execution(false, true, false, false, false, false, false, false, false);

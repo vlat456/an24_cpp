@@ -20,7 +20,7 @@ static TypeRegistry make_snapshot_test_registry() {
     auto add = [&](const char* name, const char* hint = "",
                    const char* ct = "None",
                    std::initializer_list<std::pair<std::string,std::string>> params = {}) {
-        TypeDefinition def;
+        PrimitiveSpec def;
         def.classname = name;
         for (auto& [k, v] : params) def.params[k] = ParamSpec{ParamSchemaType::String, v};
         reg.types[def.classname] = std::move(def);

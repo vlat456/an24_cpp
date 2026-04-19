@@ -19,11 +19,12 @@ inline PortDescriptor port_descriptor_from_type_port(ui::InternedId name, const 
     return pd;
 }
 
-inline Interface interface_from_type_definition(const TypeDefinition& def,
+inline Interface interface_from_type_definition(const ComponentSpec& spec,
                                                 ui::StringInterner& interner) {
+    const auto& ports = spec_ports(spec);
     std::vector<PortDescriptor> iface_ports;
-    iface_ports.reserve(def.ports.size());
-    for (const auto& [name, port] : def.ports) {
+    iface_ports.reserve(ports.size());
+    for (const auto& [name, port] : ports) {
         auto pd = port_descriptor_from_type_port(interner.intern(name), port);
         if (port.alias.has_value() && !port.alias->empty()) {
             pd.alias = interner.intern(*port.alias);

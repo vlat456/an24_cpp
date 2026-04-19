@@ -86,8 +86,9 @@ std::optional<PortDescriptor> node_port_descriptor(const Blueprint::Node& node,
     }
 
     const std::string port_name_str(interner.resolve(port_name));
-    auto it = def->ports.find(port_name_str);
-    if (it == def->ports.end()) {
+    const auto& ports = spec_ports(*def);
+    auto it = ports.find(port_name_str);
+    if (it == ports.end()) {
         return std::nullopt;
     }
 
@@ -147,7 +148,8 @@ IndexedSignalGraph build_indexed_signal_graph(const Blueprint& bp,
             continue;
         }
 
-        for (const auto& [port_name, type_port] : def->ports) {
+        const auto& ports_map = spec_ports(*def);
+        for (const auto& [port_name, type_port] : ports_map) {
             auto port = port_descriptor_from_type_port(interner.intern(port_name), type_port);
             if (type_port.alias.has_value() && !type_port.alias->empty()) {
                 port.alias = interner.intern(*type_port.alias);

@@ -456,9 +456,8 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     TypeRegistry registry = load_type_registry("library/");
-    TypeDefinition battery;
+    PrimitiveSpec battery;
     battery.classname = "Battery";
-    battery.cpp_class = true;
     battery.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
     battery.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
     registry.types["Battery"] = std::move(battery);

@@ -55,9 +55,8 @@ static TypeRegistry make_command_test_registry() {
     };
 
     for (const auto& type_name : synthetic_types) {
-        TypeDefinition def;
+        PrimitiveSpec def;
         def.classname = type_name;
-        def.cpp_class = true;
         for (const auto& port_name : synthetic_ports) {
             Port p;
             p.direction = bp2::Direction::InOut;

@@ -31,9 +31,9 @@
 static TypeRegistry make_scene_test_registry() {
     TypeRegistry reg;
     auto add = [&](const char* name, const char* hint = "") {
-        TypeDefinition def;
+        CompositeSpec def;
         def.classname = name;
-        reg.types[def.classname] = std::move(def);
+        reg.types[name] = std::move(def);
         if (hint && hint[0]) {
             reg.presentation.specs[name].render_hint = hint;
         }
@@ -834,8 +834,8 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
 
     TypeRegistry reg = scene_reg();
     reg.presentation.specs["Slider"].content_type = "Slider";
-    reg.types["Slider"].params["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
-    reg.types["Slider"].params["max"] = ParamSpec{ParamSchemaType::Float, "200"};
+    spec_params_mut(reg.types["Slider"])["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
+    spec_params_mut(reg.types["Slider"])["max"] = ParamSpec{ParamSchemaType::Float, "200"};
 
     auto slider = make_bp2_node(interner, "slider_live", "Slider");
     slider.view.name = "slider_live";
@@ -854,7 +854,7 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
         make_port(interner, "state", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
     reg.presentation.specs["Switch"].content_type = "Switch";
-    reg.types["Switch"].params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
+    spec_params_mut(reg.types["Switch"])["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(slider));

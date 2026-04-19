@@ -20,13 +20,15 @@
 namespace {
 
 std::optional<bp2::Blueprint::Node::BridgePortSide> bridge_side_from_type_definition(
-    const TypeDefinition& def) {
-    if (def.ports.find("ext") == def.ports.end() || def.ports.find("port") == def.ports.end()) {
+    const ComponentSpec& def) {
+    if (!is_composite(def)) return std::nullopt;
+    const auto* comp = as_composite(def);
+    if (comp->ports.find("ext") == comp->ports.end() || comp->ports.find("port") == comp->ports.end()) {
         return std::nullopt;
     }
 
-    auto it = def.params.find("exposed_direction");
-    if (it == def.params.end()) {
+    auto it = comp->params.find("exposed_direction");
+    if (it == comp->params.end()) {
         return std::nullopt;
     }
     if (it->second.default_value == "In") {
@@ -124,7 +126,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
     const auto* pres = registry.presentation.get(classname);
 
-    if (!def->cpp_class && !def->devices.empty()) {
+    if (const auto* comp = as_composite(*def)) {
         addBlueprint(classname, world_pos, scope_id, registry);
         return;
     }
@@ -140,8 +142,9 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     node.layout.x = snapped_pos.x;
     node.layout.y = snapped_pos.y;
     std::vector<bp2::PortDescriptor> iface_ports;
-    iface_ports.reserve(def->ports.size());
-    for (const auto& [port_name, port_def] : def->ports) {
+    const auto& def_ports = spec_ports(*def);
+    iface_ports.reserve(def_ports.size());
+    for (const auto& [port_name, port_def] : def_ports) {
         auto pid = interner_.intern(port_name);
         bp2::PortDescriptor pd;
         pd.name = pid;
@@ -158,7 +161,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
     node.component().iface = bp2::Interface(std::move(iface_ports));
 
-    for (const auto& [k, v] : def->params) {
+    for (const auto& [k, v] : spec_params(*def)) {
         float parsed = 0.0f;
         if (locale_safe::parse_float(v.default_value, parsed)) {
             node.semantic.params[interner_.intern(k)] = parsed;
@@ -275,7 +278,12 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     }
 
     const auto* def = registry.get(blueprint_name);
-    if (!def || def->cpp_class || def->devices.empty()) {
+    if (!def || is_primitive(*def)) {
+        spdlog::error("[editor] '{}' is not a composite blueprint", blueprint_name);
+        return;
+    }
+    const auto* comp_def = as_composite(*def);
+    if (!comp_def || comp_def->devices.empty()) {
         spdlog::error("[editor] '{}' is not a composite blueprint", blueprint_name);
         return;
     }
@@ -295,9 +303,10 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     collapsed.layout.collapsed = true;
 
     std::vector<bp2::PortDescriptor> iface_ports;
-    iface_ports.reserve(def->ports.size());
+    const auto& def_ports = spec_ports(*def);
+    iface_ports.reserve(def_ports.size());
 
-    for (const auto& [port_name, port_def] : def->ports) {
+    for (const auto& [port_name, port_def] : def_ports) {
         const ui::InternedId pid = interner_.intern(port_name);
         bp2::PortDescriptor pd = bp2::port_descriptor_from_type_port(pid, port_def);
         pd.domain = port_def.domain;
@@ -328,7 +337,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
     bp2::Blueprint inline_bp = loaded.with_interface(inline_bp_iface);
     inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
-    inline_bp = inline_bp.with_name(def->classname);
+    inline_bp = inline_bp.with_name(spec_classname(*def));
     collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
             std::make_unique<bp2::Blueprint>(std::move(inline_bp)))

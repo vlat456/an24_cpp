@@ -94,16 +94,18 @@ JitBuildInput elaborate_for_jit(
         }
 
         // Params: convert float params to strings, filtering visual-only
-        const TypeDefinition* type_def = type_registry ? type_registry->get(classname) : nullptr;
+        const ComponentSpec* type_def = type_registry ? type_registry->get(classname) : nullptr;
         auto is_visual_only = [&](const std::string& key) -> bool {
             if (!type_def) return false;
-            auto it = type_def->params.find(key);
-            return it != type_def->params.end() && it->second.visual_only;
+            const auto& params = spec_params(*type_def);
+            auto it = params.find(key);
+            return it != params.end() && it->second.visual_only;
         };
         auto is_int_param = [&](const std::string& key) -> bool {
             if (!type_def) return false;
-            auto it = type_def->params.find(key);
-            return it != type_def->params.end() && it->second.type == ParamSchemaType::Int;
+            const auto& params = spec_params(*type_def);
+            auto it = params.find(key);
+            return it != params.end() && it->second.type == ParamSchemaType::Int;
         };
 
         for (const auto& [k, v] : comp.params) {

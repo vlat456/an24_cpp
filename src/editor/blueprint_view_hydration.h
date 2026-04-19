@@ -23,16 +23,16 @@ namespace editor {
 /// first, then falls back to type definition defaults.
 ///
 /// @param node     The node to hydrate (mutated in-place).
-/// @param def      TypeDefinition for the node's component type (may be null).
+/// @param def      ComponentSpec for the node's component type (may be null).
 /// @param pres     TypePresentation for the node's component type (may be null).
 /// @param interner StringInterner for resolving param keys.
 inline void hydrate_node_view(bp2::Blueprint::Node& node,
-                              const TypeDefinition* def,
+                              const ComponentSpec* def,
                               const TypePresentation* pres,
                               ui::StringInterner& interner) {
     if (!def) return;
     node.view.render_hint = pres ? pres->render_hint : "";
-    NodeContent nc = create_node_content(def, pres, node.semantic.params, node.semantic.string_params, interner);
+    NodeContent nc = create_node_content(*def, pres, node.semantic.params, node.semantic.string_params, interner);
     // Static semantics only — single authority for widget configuration.
     node.view.content_type    = nc.type;
     node.view.content_label   = nc.label;
@@ -47,15 +47,15 @@ inline void hydrate_node_view(bp2::Blueprint::Node& node,
 /// on re-hydration after inspector edits.
 ///
 /// @param node     The node to initialize (mutated in-place).
-/// @param def      TypeDefinition for the node's component type (may be null).
+/// @param def      ComponentSpec for the node's component type (may be null).
 /// @param pres     TypePresentation for the node's component type (may be null).
 /// @param interner StringInterner for resolving param keys.
 inline void initialize_node_content_defaults(bp2::Blueprint::Node& node,
-                                             const TypeDefinition* def,
+                                             const ComponentSpec* def,
                                              const TypePresentation* pres,
                                              ui::StringInterner& interner) {
     if (!def) return;
-    NodeContent nc = create_node_content(def, pres, node.semantic.params, node.semantic.string_params, interner);
+    NodeContent nc = create_node_content(*def, pres, node.semantic.params, node.semantic.string_params, interner);
     node.view.content_value   = nc.value;
     node.view.content_state   = nc.state;
     node.view.content_tripped = nc.tripped;
@@ -67,16 +67,16 @@ inline void initialize_node_content_defaults(bp2::Blueprint::Node& node,
 /// `hydrate_node_view` + `initialize_node_content_defaults` separately.
 ///
 /// @param node     The node to hydrate (mutated in-place).
-/// @param def      TypeDefinition for the node's component type (may be null).
+/// @param def      ComponentSpec for the node's component type (may be null).
 /// @param pres     TypePresentation for the node's component type (may be null).
 /// @param interner StringInterner for resolving param keys.
 inline void hydrate_node_view_full(bp2::Blueprint::Node& node,
-                                   const TypeDefinition* def,
+                                   const ComponentSpec* def,
                                    const TypePresentation* pres,
                                    ui::StringInterner& interner) {
     if (!def) return;
     node.view.render_hint = pres ? pres->render_hint : "";
-    NodeContent nc = create_node_content(def, pres, node.semantic.params, node.semantic.string_params, interner);
+    NodeContent nc = create_node_content(*def, pres, node.semantic.params, node.semantic.string_params, interner);
     // Static semantics
     node.view.content_type    = nc.type;
     node.view.content_label   = nc.label;
@@ -94,7 +94,7 @@ inline void hydrate_node_view_full(bp2::Blueprint::Node& node,
 /// Recursively hydrates embedded inline blueprints.
 /// @param bp Blueprint to hydrate
 /// @param interner StringInterner for resolving node type names
-/// @param registry TypeRegistry for looking up TypeDefinition
+/// @param registry TypeRegistry for looking up ComponentSpec
 /// @return Hydrated blueprint
 inline bp2::Blueprint hydrate_runtime_node_view_data(
     bp2::Blueprint bp,
@@ -106,7 +106,7 @@ inline bp2::Blueprint hydrate_runtime_node_view_data(
 
         if (node.is_component()) {
             const std::string type_name(interner.resolve(node.semantic.type));
-            const TypeDefinition* def = registry.get(type_name);
+            const ComponentSpec* def = registry.get(type_name);
             const TypePresentation* pres = registry.presentation.get(type_name);
             hydrate_node_view_full(updated, def, pres, interner);
         }

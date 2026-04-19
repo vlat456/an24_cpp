@@ -256,7 +256,7 @@ Blueprint decode_nodes(Blueprint bp,
             if (component_name == "BlueprintInput" || component_name == "BlueprintOutput" || component_name == "BridgePort" || component_name == "LegacyPseudoBridge") {
                 throw std::runtime_error("invalid node entry: canonical bridge ports must use kind 'bridge_port'");
             }
-            if (const TypeDefinition* type_def = parser_registry.get(std::string(interner.resolve(node.semantic.type)))) {
+            if (const ComponentSpec* type_def = parser_registry.get(std::string(interner.resolve(node.semantic.type)))) {
                 node.component().iface = interface_from_type_definition(*type_def, interner);
                 // Issue #105: render_hint, content_* are runtime/editor-only
                 // (ViewData tier 2).  Hydration is the sole responsibility of
@@ -288,7 +288,7 @@ Blueprint decode_nodes(Blueprint bp,
             };
         }
 
-        const TypeDefinition* type_def = parser_registry.get(std::string(interner.resolve(node.semantic.type)));
+        const ComponentSpec* type_def = parser_registry.get(std::string(interner.resolve(node.semantic.type)));
         if (n.contains("params")) {
             if (decoded_kind != DecodedNodeKind::Component) {
                 throw std::runtime_error("invalid node entry: params only allowed on component nodes");
@@ -300,8 +300,9 @@ Blueprint decode_nodes(Blueprint bp,
                 if (!type_def) {
                     throw std::runtime_error("invalid node entry: params require known node type");
                 }
-                auto schema_it = type_def->params.find(key);
-                if (schema_it == type_def->params.end()) {
+                const auto& type_params = spec_params(*type_def);
+                auto schema_it = type_params.find(key);
+                if (schema_it == type_params.end()) {
                     throw std::runtime_error("invalid node entry: unknown param '" + key + "'");
                 }
                 assign_param_by_descriptor(node, interner, key, val, schema_it->second, type_def);
@@ -310,7 +311,8 @@ Blueprint decode_nodes(Blueprint bp,
 
         // Issue #88 Gap #2: Validate that all required parameters are present
         if (decoded_kind == DecodedNodeKind::Component && type_def) {
-            for (const auto& [param_key, param_spec] : type_def->params) {
+            const auto& type_params = spec_params(*type_def);
+            for (const auto& [param_key, param_spec] : type_params) {
                 if (param_spec.required && !param_spec.visual_only) {
                     // Check if param is present in the JSON or was assigned
                     bool param_found = false;

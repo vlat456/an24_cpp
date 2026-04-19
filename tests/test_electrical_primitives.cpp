@@ -36,20 +36,22 @@ DeviceInstance make_device(const std::string& name,
     dev.params = params;
     dev.execution = {};
 
-    if (const TypeDefinition* def = test_registry().get(classname)) {
-        // Use full ports from type definition
-        for (const auto& [port_name, port] : def->ports) {
-            dev.ports[port_name] = port;
-        }
-        for (const auto& [param_name, param_spec] : def->params) {
-            if (param_spec.visual_only) {
-                continue;
+    if (const ComponentSpec* spec = test_registry().get(classname)) {
+        if (const PrimitiveSpec* def = as_primitive(*spec)) {
+            // Use full ports from type definition
+            for (const auto& [port_name, port] : def->ports) {
+                dev.ports[port_name] = port;
             }
-            if (!dev.params.count(param_name)) {
-                dev.params[param_name] = param_spec.default_value;
+            for (const auto& [param_name, param_spec] : def->params) {
+                if (param_spec.visual_only) {
+                    continue;
+                }
+                if (!dev.params.count(param_name)) {
+                    dev.params[param_name] = param_spec.default_value;
+                }
             }
+            dev.solver_role = def->solver_role;
         }
-        dev.solver_role = def->solver_role;
     } else {
         auto ports = get_component_ports(classname);
         for (const auto& port_name : ports) {

@@ -28,7 +28,7 @@ DeviceInstance make_resistor_device(std::string name) {
     dev.name = std::move(name);
     dev.classname = "Resistor";
     dev.params["conductance"] = "1.0";
-    const TypeDefinition* def = shared_registry().get(dev.classname);
+    const PrimitiveSpec* def = as_primitive(*shared_registry().get(dev.classname));
     EXPECT_NE(def, nullptr);
     return merge_device_instance(dev, *def);
 }

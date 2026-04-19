@@ -56,12 +56,13 @@ std::pair<const bp2::Blueprint::Wire*, std::string_view> find_wire_in_scope(
 }
 
 NodeContent resolve_base_content(const bp2::Blueprint::Node& node,
-                                 ui::StringInterner& interner,
-                                 const TypeRegistry* registry) {
+                                  ui::StringInterner& interner,
+                                  const TypeRegistry* registry) {
     const std::string type_name(interner.resolve(node.semantic.type));
-    const TypeDefinition* def = registry ? registry->get(type_name) : nullptr;
+    const auto* def = registry ? registry->get(type_name) : nullptr;
     const TypePresentation* pres = registry ? registry->presentation.get(type_name) : nullptr;
-    return create_node_content(def, pres, node.semantic.params, node.semantic.string_params, interner);
+    if (!def) return NodeContent{};
+    return create_node_content(*def, pres, node.semantic.params, node.semantic.string_params, interner);
 }
 
 void dispatch_content_to_widget(WindowManager& window_manager,

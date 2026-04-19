@@ -662,15 +662,15 @@ TEST(JsonParserTest, ParseTypeDefinition_ParamSchemaParsed) {
     })");
 
     auto [def, pres] = parse_type_definition(j);
-    ASSERT_TRUE(def.params.count("r_internal") > 0);
-    EXPECT_EQ(def.params.at("r_internal").type, ParamSchemaType::Float);
-    EXPECT_TRUE(def.params.at("r_internal").required);
+    const auto& params = spec_params(def);
+    ASSERT_TRUE(params.count("r_internal") > 0);
+    EXPECT_EQ(params.at("r_internal").type, ParamSchemaType::Float);
+    EXPECT_TRUE(params.at("r_internal").required);
 }
 
 TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
-    TypeDefinition def;
+    PrimitiveSpec def;
     def.classname = "ElectricalSource";
-    def.cpp_class = true;
     def.domains = std::vector<Domain>{Domain::Electrical};
     def.execution = ExecutionPhases{true, false, false, false, false, false, false, false, false};
     def.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
@@ -704,8 +704,8 @@ TEST(TypeRegistry, LoadRecursive_DeepNesting) {
 TEST(TypeRegistry, BuildMenuTree_FlatLibrary) {
     TypeRegistry reg;
 
-    TypeDefinition bat; bat.classname = "ElectricalSource";
-    TypeDefinition res; res.classname = "Resistor";
+    PrimitiveSpec bat; bat.classname = "ElectricalSource";
+    PrimitiveSpec res; res.classname = "Resistor";
     reg.types["ElectricalSource"] = bat;
     reg.types["Resistor"] = res;
     // No categories — all root level
@@ -719,18 +719,18 @@ TEST(TypeRegistry, BuildMenuTree_FlatLibrary) {
 TEST(TypeRegistry, BuildMenuTree_WithSubdirs) {
     TypeRegistry reg;
 
-    TypeDefinition bat; bat.classname = "ElectricalSource";
+    PrimitiveSpec bat; bat.classname = "ElectricalSource";
     reg.types["ElectricalSource"] = bat;
 
-    TypeDefinition res; res.classname = "Resistor";
+    PrimitiveSpec res; res.classname = "Resistor";
     reg.types["Resistor"] = res;
     reg.categories["Resistor"] = "electrical";
 
-    TypeDefinition gen; gen.classname = "Generator";
+    PrimitiveSpec gen; gen.classname = "Generator";
     reg.types["Generator"] = gen;
     reg.categories["Generator"] = "electrical/generators";
 
-    TypeDefinition and_gate; and_gate.classname = "AND";
+    PrimitiveSpec and_gate; and_gate.classname = "AND";
     reg.types["AND"] = and_gate;
     reg.categories["AND"] = "logic";
 
@@ -761,7 +761,7 @@ TEST(TypeRegistry, BuildMenuTree_EntriesAreSorted) {
     TypeRegistry reg;
 
     for (const auto& name : {"Zebra", "Alpha", "Middle"}) {
-        TypeDefinition d; d.classname = name;
+        PrimitiveSpec d; d.classname = name;
         reg.types[name] = d;
     }
 
@@ -776,11 +776,11 @@ TEST(TypeRegistry, BuildMenuTree_EntriesAreSorted) {
 TEST(TypeRegistry, BuildMenuTree_BlueprintsInSameTree) {
     TypeRegistry reg;
 
-    TypeDefinition bat; bat.classname = "ElectricalSource"; bat.cpp_class = true;
+    PrimitiveSpec bat; bat.classname = "ElectricalSource";
     reg.types["ElectricalSource"] = bat;
     reg.categories["ElectricalSource"] = "electrical";
 
-    TypeDefinition lamp; lamp.classname = "LampPassThrough"; lamp.cpp_class = false;
+    CompositeSpec lamp; lamp.classname = "LampPassThrough";
     reg.types["LampPassThrough"] = lamp;
     reg.categories["LampPassThrough"] = "electrical";
 
@@ -793,11 +793,11 @@ TEST(TypeRegistry, BuildMenuTree_BlueprintsInSameTree) {
 TEST(TypeRegistry, ListClassnames_IncludesAllCategorized) {
     TypeRegistry reg;
 
-    TypeDefinition bat; bat.classname = "ElectricalSource";
+    PrimitiveSpec bat; bat.classname = "ElectricalSource";
     reg.types["ElectricalSource"] = bat;
     reg.categories["ElectricalSource"] = "electrical";
 
-    TypeDefinition and_gate; and_gate.classname = "AND";
+    PrimitiveSpec and_gate; and_gate.classname = "AND";
     reg.types["AND"] = and_gate;
     reg.categories["AND"] = "logic";
 
@@ -809,9 +809,8 @@ TEST(TypeRegistry, ListClassnames_IncludesAllCategorized) {
 // from the type definition when both instance and definition have the same port.
 // Previously only type and alias were copied, silently dropping metadata.
 TEST(JsonParserTest, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
-    TypeDefinition def;
+    PrimitiveSpec def;
     def.classname = "Generator";
-    def.cpp_class = true;
     def.domains = std::vector<Domain>{Domain::Electrical};
     // Definition port: domain=Mechanical, source_writer=true
     def.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Mechanical, true};
@@ -841,7 +840,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def, pres] = parse_type_definition(j);
-    EXPECT_TRUE(def.scheduler_source);
+    EXPECT_TRUE(spec_scheduler_source(def));
 
     // Also verify false case
     auto j2 = nlohmann::json::parse(R"({
@@ -853,7 +852,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def2, pres2] = parse_type_definition(j2);
-    EXPECT_FALSE(def2.scheduler_source);
+    EXPECT_FALSE(spec_scheduler_source(def2));
 }
 
 // Regression: parse_type_definition default when scheduler_source is absent.
@@ -866,7 +865,7 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
     })");
 
      auto [def, pres] = parse_type_definition(j);
-     EXPECT_FALSE(def.scheduler_source);
+     EXPECT_FALSE(spec_scheduler_source(def));
 }
 
 TEST(TypeRegistry, MissingSolverOwnedElectricalInV3BlueprintThrows) {
@@ -1007,9 +1006,12 @@ TEST(TypeRegistry, V3CompositeStringParamsMergedIntoDeviceParams) {
     auto registry = load_type_registry(tmp.string());
     ASSERT_TRUE(registry.has("TestComposite"));
 
-    const auto& def = registry.types.at("TestComposite");
-    ASSERT_EQ(def.devices.size(), 1u);
-    const auto& lut = def.devices[0];
+    const auto* def_ptr = registry.get("TestComposite");
+    ASSERT_NE(def_ptr, nullptr);
+    const auto* def = as_composite(*def_ptr);
+    ASSERT_NE(def, nullptr);
+    ASSERT_EQ(def->devices.size(), 1u);
+    const auto& lut = def->devices[0];
 
     // The table must be present in params, merged from string_params.
     auto it = lut.params.find("table");

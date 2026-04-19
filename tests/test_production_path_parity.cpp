@@ -13,13 +13,12 @@ TypeRegistry build_registry_for_lamp() {
     TypeRegistry registry;
     register_lamp_composite_types(registry);
 
-    TypeDefinition lamp;
+    CompositeSpec lamp;
     lamp.classname = "voltage_indicator";
-    lamp.cpp_class = false;
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
-    lamp.devices = {d_lamp};
+    lamp.devices.push_back(d_lamp);
     lamp.bridge_ports = {
         BridgePortDefinition{"vin", "vin", bp2::Direction::Input, PortType::V},
         BridgePortDefinition{"vout", "vout", bp2::Direction::Output, PortType::V},
@@ -39,7 +38,8 @@ TypeRegistry build_registry_for_lamp() {
 
 TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
     TypeRegistry registry = build_registry_for_lamp();
-    const TypeDefinition& lamp = registry.types.at("voltage_indicator");
+    const auto& lamp_variant = registry.types.at("voltage_indicator");
+    const CompositeSpec& lamp = std::get<CompositeSpec>(lamp_variant);
 
     auto aot_result = CodeGen::generate_composite_systems(lamp, registry);
     ASSERT_FALSE(aot_result.header.empty());
@@ -74,9 +74,8 @@ TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
     TypeRegistry registry;
     register_basic_electrical_types(registry);
 
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "multi_island_circuit";
-    circuit.cpp_class = false;
 
     DeviceInstance src_a;
     src_a.name = "src_a";
@@ -116,7 +115,12 @@ TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
     gnd_b.params["value"] = "0.0";
     gnd_b.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
-    circuit.devices = {src_a, load_a, gnd_a, src_b, load_b, gnd_b};
+    circuit.devices.push_back(src_a);
+    circuit.devices.push_back(load_a);
+    circuit.devices.push_back(gnd_a);
+    circuit.devices.push_back(src_b);
+    circuit.devices.push_back(load_b);
+    circuit.devices.push_back(gnd_b);
     circuit.connections = {
         {"src_a.v_out", "load_a.v_in", {}},
         {"load_a.v_out", "gnd_a.v", {}},

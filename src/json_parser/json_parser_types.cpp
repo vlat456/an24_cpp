@@ -144,42 +144,78 @@ PortType parse_port_type_for_parser(const std::string& s) {
 
 } // namespace json_parser_detail
 
-std::pair<TypeDefinition, TypePresentation> parse_type_definition(const json& j) {
-    TypeDefinition def;
+std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) {
+    ComponentSpec spec;
     TypePresentation pres;
 
-    if (j.contains("classname")) def.classname = j["classname"].get<std::string>();
+    std::string classname;
+    if (j.contains("classname")) classname = j["classname"].get<std::string>();
     else throw std::runtime_error("Type definition missing 'classname' field");
 
     if (j.contains("description")) pres.description = j["description"].get<std::string>();
-    if (j.contains("cpp_class")) def.cpp_class = j["cpp_class"].get<bool>();
+
+    // Determine if primitive (cpp_class=true) or composite (cpp_class=false)
+    bool is_cpp_class = j.value("cpp_class", false);
+
+    if (j.contains("priority")) {
+        if (is_cpp_class) {
+            spec = PrimitiveSpec{};
+            std::get<PrimitiveSpec>(spec).priority = j["priority"].get<std::string>();
+        } else {
+            spec = CompositeSpec{};
+            std::get<CompositeSpec>(spec).priority = j["priority"].get<std::string>();
+        }
+    } else if (is_cpp_class) {
+        spec = PrimitiveSpec{};
+    } else {
+        spec = CompositeSpec{};
+    }
+
+    // Set classname on the spec
+    if (is_cpp_class) {
+        std::get<PrimitiveSpec>(spec).classname = classname;
+    } else {
+        std::get<CompositeSpec>(spec).classname = classname;
+    }
 
     if (j.contains("ports")) {
         for (auto& [port_name, port_val] : j["ports"].items()) {
-            def.ports[port_name] = parse_port(port_val);
+            Port port = parse_port(port_val);
+            if (is_cpp_class) {
+                std::get<PrimitiveSpec>(spec).ports[port_name] = port;
+            } else {
+                std::get<CompositeSpec>(spec).ports[port_name] = port;
+            }
         }
     }
 
-    json_parser_internal::merge_params_and_schema(j, "params", def.params);
+    json_parser_internal::merge_params_and_schema(j, "params", is_cpp_class
+        ? std::get<PrimitiveSpec>(spec).params
+        : std::get<CompositeSpec>(spec).params);
 
     if (!j.contains("domains") || !j["domains"].is_array()) {
-        throw std::runtime_error("Type definition missing required 'domains' array for component '" + def.classname + "'");
+        throw std::runtime_error("Type definition missing required 'domains' array for component '" + classname + "'");
     }
     std::vector<Domain> domains;
     for (const auto& d : j["domains"]) {
         domains.push_back(json_parser_internal::parse_domain_string(d.get<std::string>()));
     }
     if (domains.empty()) {
-        throw std::runtime_error("Type definition has empty 'domains' array for component '" + def.classname + "'");
+        throw std::runtime_error("Type definition has empty 'domains' array for component '" + classname + "'");
     }
-    def.domains = std::move(domains);
-
-    if (j.contains("priority")) {
-        def.priority = j["priority"].get<std::string>();
+    if (is_cpp_class) {
+        std::get<PrimitiveSpec>(spec).domains = std::move(domains);
+    } else {
+        std::get<CompositeSpec>(spec).domains = std::move(domains);
     }
 
     if (j.contains("critical")) {
-        def.critical = j["critical"].get<bool>();
+        bool critical = j["critical"].get<bool>();
+        if (is_cpp_class) {
+            std::get<PrimitiveSpec>(spec).critical = critical;
+        } else {
+            std::get<CompositeSpec>(spec).critical = critical;
+        }
     }
 
     if (j.contains("content_type")) {
@@ -191,11 +227,67 @@ std::pair<TypeDefinition, TypePresentation> parse_type_definition(const json& j)
     }
 
     if (j.contains("visual_only")) {
-        def.visual_only = j["visual_only"].get<bool>();
+        bool visual_only = j["visual_only"].get<bool>();
+        if (is_cpp_class) {
+            std::get<PrimitiveSpec>(spec).visual_only = visual_only;
+        } else {
+            std::get<CompositeSpec>(spec).visual_only = visual_only;
+        }
     }
 
     if (j.contains("scheduler_source")) {
-        def.scheduler_source = j["scheduler_source"].get<bool>();
+        bool scheduler_source = j["scheduler_source"].get<bool>();
+        if (is_cpp_class) {
+            std::get<PrimitiveSpec>(spec).scheduler_source = scheduler_source;
+        } else {
+            std::get<CompositeSpec>(spec).scheduler_source = scheduler_source;
+        }
+    }
+
+    if (j.contains("solver_owned_electrical")) {
+        bool solver_owned = j["solver_owned_electrical"].get<bool>();
+        if (is_cpp_class) {
+            std::get<PrimitiveSpec>(spec).solver_owned_electrical = solver_owned;
+        } else {
+            std::get<CompositeSpec>(spec).solver_owned_electrical = solver_owned;
+        }
+    }
+
+    if (j.contains("execution") && j["execution"].is_object() && is_cpp_class) {
+        ExecutionPhases exec;
+        auto& e = j["execution"];
+        exec.electrical_passive = e.value("electrical_passive", false);
+        exec.electrical_observer = e.value("electrical_observer", false);
+        exec.logical = e.value("logical", false);
+        exec.control_commit = e.value("control_commit", false);
+        exec.electrical_actuator = e.value("electrical_actuator", false);
+        exec.finalize = e.value("finalize", false);
+        exec.mechanical = e.value("mechanical", false);
+        exec.hydraulic = e.value("hydraulic", false);
+        exec.thermal = e.value("thermal", false);
+        std::get<PrimitiveSpec>(spec).execution = exec;
+    }
+
+    if (j.contains("solver_role") && j["solver_role"].is_object() && is_cpp_class) {
+        SolverRole role;
+        const auto& sr = j["solver_role"];
+        role.kind = sr.value("kind", "");
+        if (sr.contains("port_map") && sr["port_map"].is_object()) {
+            for (auto& [k, v] : sr["port_map"].items()) {
+                role.port_map[k] = v.get<std::string>();
+            }
+        }
+        if (sr.contains("param_map") && sr["param_map"].is_object()) {
+            for (auto& [k, v] : sr["param_map"].items()) {
+                role.param_map[k] = v.get<std::string>();
+            }
+        }
+        if (sr.contains("value_map") && sr["value_map"].is_object()) {
+            for (auto& [k, v] : sr["value_map"].items()) {
+                role.value_map[k] = v.get<float>();
+            }
+        }
+        std::get<PrimitiveSpec>(spec).solver_role = role;
     }
 
     if (j.contains("size") && j["size"].is_object()) {
@@ -207,61 +299,69 @@ std::pair<TypeDefinition, TypePresentation> parse_type_definition(const json& j)
         }
     }
 
-    if (j.contains("devices") && j["devices"].is_array()) {
-        for (const auto& dev_j : j["devices"]) {
-            def.devices.push_back(parse_device(dev_j));
+    // Composite-only fields
+    if (!is_cpp_class) {
+        auto& composite = std::get<CompositeSpec>(spec);
+        
+        if (j.contains("devices") && j["devices"].is_array()) {
+            for (const auto& dev_j : j["devices"]) {
+                composite.devices.push_back(parse_device(dev_j));
+            }
         }
-    }
-    if (j.contains("connections") && j["connections"].is_array()) {
-        for (const auto& conn_j : j["connections"]) {
-            def.connections.push_back(parse_connection(conn_j));
+        if (j.contains("connections") && j["connections"].is_array()) {
+            for (const auto& conn_j : j["connections"]) {
+                composite.connections.push_back(parse_connection(conn_j));
+            }
         }
-    }
-    if (def.connections.empty() && j.contains("wires") && j["wires"].is_array()) {
-        for (const auto& wire_j : j["wires"]) {
-            Connection conn = parse_connection(wire_j);
-            if (wire_j.contains("routing_points") && wire_j["routing_points"].is_array()) {
-                for (const auto& rp : wire_j["routing_points"]) {
-                    if (rp.contains("x") && rp.contains("y")) {
-                        conn.routing_points.push_back({rp["x"].get<float>(), rp["y"].get<float>()});
+        if (composite.connections.empty() && j.contains("wires") && j["wires"].is_array()) {
+            for (const auto& wire_j : j["wires"]) {
+                Connection conn = parse_connection(wire_j);
+                if (wire_j.contains("routing_points") && wire_j["routing_points"].is_array()) {
+                    for (const auto& rp : wire_j["routing_points"]) {
+                        if (rp.contains("x") && rp.contains("y")) {
+                            conn.routing_points.push_back({rp["x"].get<float>(), rp["y"].get<float>()});
+                        }
                     }
                 }
+                composite.connections.push_back(std::move(conn));
             }
-            def.connections.push_back(std::move(conn));
+        }
+
+        if (j.contains("sub_blueprints") && j["sub_blueprints"].is_array()) {
+            for (const auto& sbj : j["sub_blueprints"]) {
+                SubBlueprintRef ref;
+                ref.id = sbj.value("id", "");
+                ref.blueprint_path = sbj.value("blueprint_path", "");
+                ref.type_name = sbj.value("type_name", "");
+                if (sbj.contains("pos"))
+                    ref.pos = {sbj["pos"].value("x", 0.0f), sbj["pos"].value("y", 0.0f)};
+                if (sbj.contains("size"))
+                    ref.size = {sbj["size"].value("x", 0.0f), sbj["size"].value("y", 0.0f)};
+                if (sbj.contains("params_override") && sbj["params_override"].is_object()) {
+                    for (auto& [k, v] : sbj["params_override"].items())
+                        ref.params_override[k] = v.get<std::string>();
+                }
+                composite.sub_blueprints.push_back(std::move(ref));
+            }
         }
     }
 
-    if (j.contains("sub_blueprints") && j["sub_blueprints"].is_array()) {
-        for (const auto& sbj : j["sub_blueprints"]) {
-            SubBlueprintRef ref;
-            ref.id = sbj.value("id", "");
-            ref.blueprint_path = sbj.value("blueprint_path", "");
-            ref.type_name = sbj.value("type_name", "");
-            if (sbj.contains("pos"))
-                ref.pos = {sbj["pos"].value("x", 0.0f), sbj["pos"].value("y", 0.0f)};
-            if (sbj.contains("size"))
-                ref.size = {sbj["size"].value("x", 0.0f), sbj["size"].value("y", 0.0f)};
-            if (sbj.contains("params_override") && sbj["params_override"].is_object()) {
-                for (auto& [k, v] : sbj["params_override"].items())
-                    ref.params_override[k] = v.get<std::string>();
-            }
-            def.sub_blueprints.push_back(std::move(ref));
-        }
-    }
-
-    return {def, pres};
+    return {spec, pres};
 }
 
 DeviceInstance merge_device_instance(
     const DeviceInstance& instance,
-    const TypeDefinition& definition)
+    const ComponentSpec& definition)
 {
     DeviceInstance merged = instance;
 
+    // Get ports based on spec type
+    const auto& ports = spec_ports(definition);
+    
     if (merged.ports.empty()) {
-        merged.ports = definition.ports;
+        merged.ports = ports;
     } else {
-        for (const auto& [port_name, port] : definition.ports) {
+        for (const auto& [port_name, port] : ports) {
             if (!merged.ports.count(port_name)) {
                 merged.ports[port_name] = port;
             } else {
@@ -273,7 +373,8 @@ DeviceInstance merge_device_instance(
         }
     }
 
-    for (const auto& [param_name, param_spec] : definition.params) {
+    const auto& params = spec_params(definition);
+    for (const auto& [param_name, param_spec] : params) {
         if (param_spec.visual_only) {
             continue;
         }
@@ -283,40 +384,47 @@ DeviceInstance merge_device_instance(
     }
 
     for (auto it = merged.params.begin(); it != merged.params.end(); ) {
-        auto spec_it = definition.params.find(it->first);
-        if (spec_it != definition.params.end() && spec_it->second.visual_only) {
+        auto spec_it = params.find(it->first);
+        if (spec_it != params.end() && spec_it->second.visual_only) {
             it = merged.params.erase(it);
         } else {
             ++it;
         }
     }
 
-    if (!definition.domains.has_value() || definition.domains->empty()) {
+    const auto& domains = spec_domains(definition);
+    if (domains.empty()) {
         throw std::runtime_error(
-            "Missing domains metadata in type definition for component '" + definition.classname + "'");
+            "Missing domains metadata in component spec for component '" + spec_classname(definition) + "'");
     }
-    merged.domains = *definition.domains;
+    merged.domains = domains;
 
-    if (merged.priority == "med" && definition.priority != "med") {
-        merged.priority = definition.priority;
+    if (merged.priority == "med" && spec_priority(definition) != "med") {
+        merged.priority = spec_priority(definition);
     }
 
-    if (!merged.critical && definition.critical) {
+    if (!merged.critical && spec_critical(definition)) {
         merged.critical = true;
     }
 
-    if (definition.visual_only) {
+    if (spec_visual_only(definition)) {
         merged.visual_only = true;
     }
 
-    merged.execution = definition.execution;
-    merged.scheduler_source = definition.scheduler_source;
-    merged.solver_owned_electrical = definition.solver_owned_electrical;
-    merged.solver_role = definition.solver_role;
+    // Primitive-specific fields
+    if (const auto* prim = as_primitive(definition)) {
+        merged.execution = prim->execution;
+        merged.scheduler_source = prim->scheduler_source;
+        merged.solver_owned_electrical = prim->solver_owned_electrical;
+        merged.solver_role = prim->solver_role;
+    } else {
+        merged.scheduler_source = spec_scheduler_source(definition);
+        merged.solver_owned_electrical = spec_solver_owned_electrical(definition);
+    }
 
     // Validate params against schema (using unified params map)
-    if (!definition.params.empty()) {
-        json_parser_internal::validate_params_against_schema(merged.params, definition.params, merged.name, merged.classname);
+    if (!params.empty()) {
+        json_parser_internal::validate_params_against_schema(merged.params, params, merged.name, merged.classname);
     }
 
     return merged;

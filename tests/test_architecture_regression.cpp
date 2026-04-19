@@ -52,8 +52,9 @@ DeviceInstance make_device(const std::string& name,
         dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
-    if (const TypeDefinition* def = test_registry().get(classname)) {
-        for (const auto& [param_name, param_spec] : def->params) {
+    if (const auto* def = test_registry().get(classname)) {
+        const auto& params = spec_params(*def);
+        for (const auto& [param_name, param_spec] : params) {
             if (param_spec.visual_only) {
                 continue;
             }
@@ -61,7 +62,9 @@ DeviceInstance make_device(const std::string& name,
                 dev.params[param_name] = param_spec.default_value;
             }
         }
-        dev.solver_role = def->solver_role;
+        if (const auto* prim = as_primitive(*def)) {
+            dev.solver_role = prim->solver_role;
+        }
     }
     return dev;
 }
@@ -709,9 +712,9 @@ TEST(E010_SingleRegistry, CanonicalRegistryLoadsFromLibrary) {
 TEST(E010_SingleRegistry, RegistryHasPortDefinitions) {
     // Verify the canonical registry provides port data (not just stubs).
     TypeRegistry reg = load_type_registry("library/");
-    const TypeDefinition* src = reg.get("ElectricalSource");
+    const auto* src = reg.get("ElectricalSource");
     ASSERT_NE(src, nullptr);
-    EXPECT_FALSE(src->ports.empty())
+    EXPECT_FALSE(spec_ports(*src).empty())
         << "ElectricalSource type definition must have port entries";
 }
 
@@ -736,7 +739,7 @@ TEST(E010_SingleRegistry, NoSecondRegistryInBp2Namespace) {
     // and uses TypeRegistry unqualified — if a bp2::TypeRegistry existed,
     // it would cause ambiguity errors in bp2-using translation units.
     static_assert(
-        std::is_same_v<decltype(TypeRegistry::types), std::unordered_map<std::string, TypeDefinition>>,
+        std::is_same_v<decltype(TypeRegistry::types), std::unordered_map<std::string, ComponentSpec>>,
         "TypeRegistry must be the parser struct with types map (not a bp2:: class)"
     );
 }

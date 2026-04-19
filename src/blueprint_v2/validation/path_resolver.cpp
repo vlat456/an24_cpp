@@ -110,8 +110,9 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
             return std::nullopt;
         }
         const std::string port_name_str(interner.resolve(port_name));
-        auto pit = def->ports.find(port_name_str);
-        if (pit == def->ports.end()) {
+        const auto& def_ports = spec_ports(*def);
+        auto pit = def_ports.find(port_name_str);
+        if (pit == def_ports.end()) {
             return std::nullopt;
         }
 
@@ -155,8 +156,9 @@ std::optional<ResolvedPort> PathResolver::resolve(WireEndpoint const& ep,
         return std::nullopt;
     }
     const std::string port_name_str(interner.resolve(ep.port));
-    auto pit = def->ports.find(port_name_str);
-    if (pit == def->ports.end()) {
+    const auto& def_ports = spec_ports(*def);
+    auto pit = def_ports.find(port_name_str);
+    if (pit == def_ports.end()) {
         return std::nullopt;
     }
 

@@ -19,12 +19,9 @@ namespace {
 
 bp2::BlueprintLibrary build_library(const TypeRegistry& registry, ui::StringInterner& interner) {
     bp2::BlueprintLibrary library;
-    for (const auto& [classname, def] : registry.types) {
-        if (def.cpp_class) {
-            continue;
-        }
+    for (const auto& [classname, spec] : registry.types) {
         try {
-            auto loaded = bp2::blueprint_from_type_definition(def, interner, registry);
+            auto loaded = bp2::blueprint_from_type_definition(spec, interner, registry);
             library.add(interner.intern(classname), std::move(loaded));
         } catch (...) {
         }

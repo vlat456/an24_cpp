@@ -36,8 +36,8 @@ DeviceInstance make_device(const std::string& name,
     dev.params = params;
     dev.execution = {};
 
-    // First try to get full TypeDefinition::ports if available.
-    if (const TypeDefinition* def = test_registry().get(classname)) {
+    // First try to get full ComponentSpec ports if available.
+    if (const PrimitiveSpec* def = as_primitive(*test_registry().get(classname))) {
         // Use full TypeDefinition::ports which includes input, output, and inout.
         for (const auto& [port_name, port_info] : def->ports) {
             dev.ports[port_name] = port_info;
@@ -92,7 +92,7 @@ static std::string scalar_json_to_param_string(const json& value) {
 static bp2::BlueprintLibrary build_library(const TypeRegistry& registry, ui::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     for (const auto& [classname, def] : registry.types) {
-        if (def.cpp_class) continue;
+        if (!is_composite(def)) continue;
         try {
             auto loaded = bp2::blueprint_from_type_definition(def, interner, registry);
             library.add(interner.intern(classname), std::move(loaded));

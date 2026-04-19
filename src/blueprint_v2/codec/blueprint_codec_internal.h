@@ -28,7 +28,7 @@ void assign_param_by_descriptor(Blueprint::Node& node,
                                 std::string const& key,
                                 nlohmann::json const& val,
                                 ParamSpec const& schema,
-                                TypeDefinition const* type_def);
+                                ComponentSpec const* type_def);
 
 bool is_known_port_type_value(int v);
 
@@ -80,7 +80,7 @@ std::optional<float> read_optional_float(nlohmann::json const& obj,
 
 nlohmann::json encode_interface(Interface const& iface,
                                 ui::StringInterner const& interner,
-                                TypeDefinition const* type_def);
+                                ComponentSpec const* type_def);
 
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                             ui::StringInterner const& interner,

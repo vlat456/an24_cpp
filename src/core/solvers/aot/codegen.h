@@ -116,7 +116,7 @@ public:
     /// Produces fully branchless ECS-like code identical to flat codegen.
     /// Throws on cycles or missing types.
     static CompositeCodegenResult generate_composite_systems(
-        const TypeDefinition& td,
+        const CompositeSpec& td,
         const TypeRegistry& registry);
 
     /// Generate all composites in topological order (leaves first).

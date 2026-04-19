@@ -14,7 +14,7 @@ std::string BlueprintCodec::encode(Blueprint const& bp,
                                    PathArena const& arena,
                                    const ::TypeRegistry* parser_registry) {
     nlohmann::json j;
-    const TypeDefinition* type_def = nullptr;
+    const ComponentSpec* type_def = nullptr;
     if (parser_registry && !bp.id().empty()) {
         type_def = parser_registry->get(std::string(interner.resolve(bp.id())));
     }

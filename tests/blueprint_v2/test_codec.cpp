@@ -41,9 +41,8 @@ void register_type(
     const bp2::Interface& iface = bp2::Interface(),
     std::unordered_map<std::string, ParamSpec> params = {})
 {
-    TypeDefinition def;
+    PrimitiveSpec def;
     def.classname = classname;
-    def.cpp_class = true;
     def.params = std::move(params);
 
     for (const auto& pd : iface.ports()) {
@@ -332,7 +331,7 @@ TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
 
 TEST(BlueprintCodec, DecodePopulatesNodeIfaceFromPorts) {
     // After decoding a component node, component().iface must be populated
-    // from the type registry's TypeDefinition ports (not from inline node ports).
+    // from the type registry's PrimitiveSpec ports (not from inline node ports).
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     TypeRegistry reg;
@@ -612,9 +611,8 @@ TEST(BlueprintCodec, DecodePseudoComponentBridgeEncodingRejectsBlueprint) {
     bp2::PathArena arena(interner);
     TypeRegistry reg = make_test_registry();
 
-    TypeDefinition sink;
+    PrimitiveSpec sink;
     sink.classname = "BoolSink";
-    sink.cpp_class = true;
     sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
     reg.types["BoolSink"] = std::move(sink);
 
@@ -834,8 +832,8 @@ TEST(BlueprintCodec, ExplicitHydrationPopulatesRuntimeViewFieldsRecursively) {
     TypeRegistry reg = make_test_registry();
     register_type(reg, interner, "Slider");
     reg.presentation.specs["Slider"].content_type = "Slider";
-    reg.types["Slider"].params["min"] = ParamSpec{ParamSchemaType::Float, "0.0"};
-    reg.types["Slider"].params["max"] = ParamSpec{ParamSchemaType::Float, "1.0"};
+    spec_params_mut(reg.types["Slider"])["min"] = ParamSpec{ParamSchemaType::Float, "0.0"};
+    spec_params_mut(reg.types["Slider"])["max"] = ParamSpec{ParamSchemaType::Float, "1.0"};
 
     bp2::Blueprint inner;
     inner = inner.with_id(interner.intern("inner"));
@@ -1367,7 +1365,7 @@ TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
     TypeRegistry reg;
 
     // Register a Knob type with default positions=2
-    TypeDefinition knob_def;
+    PrimitiveSpec knob_def;
     knob_def.classname = "Knob";
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "2"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
@@ -1403,7 +1401,7 @@ TEST(Issue132_HydrationFromInstanceParams, SliderMinMaxFromInstance) {
     TypeRegistry reg;
 
     // Register a Slider type with default min/max
-    TypeDefinition slider_def;
+    PrimitiveSpec slider_def;
     slider_def.classname = "Slider";
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
@@ -1432,7 +1430,7 @@ TEST(Issue132_HydrationFromInstanceParams, GaugeMinMaxFromInstance) {
     TypeRegistry reg;
 
     // Register a Gauge type with default min/max
-    TypeDefinition gauge_def;
+    PrimitiveSpec gauge_def;
     gauge_def.classname = "Voltmeter";
     gauge_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     gauge_def.params["max"] = ParamSpec{ParamSchemaType::Float, "28"};
@@ -1461,7 +1459,7 @@ TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
     TypeRegistry reg;
 
     // Register a Switch type with default closed=false
-    TypeDefinition switch_def;
+    PrimitiveSpec switch_def;
     switch_def.classname = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     reg.types["Switch"] = switch_def;
@@ -1489,7 +1487,7 @@ TEST(Issue132_HydrationFromInstanceParams, FallbackToTypeDefinitionWhenNoInstanc
     TypeRegistry reg;
 
     // Register a Slider type with defaults
-    TypeDefinition slider_def;
+    PrimitiveSpec slider_def;
     slider_def.classname = "Slider";
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "1"};
@@ -1519,7 +1517,7 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSliderValue) {
     ui::StringInterner interner;
     TypeRegistry reg;
 
-    TypeDefinition slider_def;
+    PrimitiveSpec slider_def;
     slider_def.classname = "Slider";
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
@@ -1556,7 +1554,7 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSwitchState) {
     ui::StringInterner interner;
     TypeRegistry reg;
 
-    TypeDefinition switch_def;
+    PrimitiveSpec switch_def;
     switch_def.classname = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     reg.types["Switch"] = switch_def;
@@ -1587,7 +1585,7 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesTrippedState) {
     ui::StringInterner interner;
     TypeRegistry reg;
 
-    TypeDefinition switch_def;
+    PrimitiveSpec switch_def;
     switch_def.classname = "AZS";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "true"};
     reg.types["AZS"] = switch_def;
@@ -1621,7 +1619,7 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesKnobPosition) {
     ui::StringInterner interner;
     TypeRegistry reg;
 
-    TypeDefinition knob_def;
+    PrimitiveSpec knob_def;
     knob_def.classname = "Knob";
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "3"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
@@ -1657,7 +1655,7 @@ TEST(Issue133_SingleAuthority, FullHydrationSetsStaticAndDynamic) {
     ui::StringInterner interner;
     TypeRegistry reg;
 
-    TypeDefinition knob_def;
+    PrimitiveSpec knob_def;
     knob_def.classname = "Knob";
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "4"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "1"};

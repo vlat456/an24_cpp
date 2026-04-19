@@ -52,7 +52,7 @@ nlohmann::json encode_node_source(const Blueprint::Node& node,
 
 nlohmann::json encode_interface(Interface const& iface,
                                 ui::StringInterner const& interner,
-                                TypeDefinition const* type_def) {
+                                ComponentSpec const* type_def) {
     std::vector<PortDescriptor> sorted = iface.ports();
     std::sort(sorted.begin(), sorted.end(), [&](const PortDescriptor& a, const PortDescriptor& b) {
         return interner.resolve(a.name) < interner.resolve(b.name);
@@ -68,8 +68,9 @@ nlohmann::json encode_interface(Interface const& iface,
 
         bool serialized_source_writer = false;
         if (type_def) {
-            auto it = type_def->ports.find(name);
-            if (it != type_def->ports.end()) {
+            const auto& ports = spec_ports(*type_def);
+            auto it = ports.find(name);
+            if (it != ports.end()) {
                 serialized_source_writer = it->second.source_writer;
             }
         }
@@ -119,7 +120,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
             n["port_type"] = port_type_to_string(node.bridge_port().port_type);
         }
 
-        const TypeDefinition* type_def = parser_registry
+        const ComponentSpec* type_def = parser_registry
             ? parser_registry->get(std::string(interner.resolve(node.semantic.type)))
             : nullptr;
 
@@ -127,8 +128,9 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         for (auto const& [k, v] : node.semantic.params) {
             const std::string key = std::string(interner.resolve(k));
             if (type_def) {
-                auto schema_it = type_def->params.find(key);
-                if (schema_it != type_def->params.end()) {
+                const auto& type_params = spec_params(*type_def);
+                auto schema_it = type_params.find(key);
+                if (schema_it != type_params.end()) {
                     switch (schema_it->second.type) {
                         case ParamSchemaType::Bool:
                             params[key] = (v != 0.0f);
@@ -146,8 +148,9 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         }
         for (auto const& [k, v] : node.semantic.string_params) {
             if (type_def) {
-                auto schema_it = type_def->params.find(k);
-                if (schema_it != type_def->params.end()) {
+                const auto& type_params = spec_params(*type_def);
+                auto schema_it = type_params.find(k);
+                if (schema_it != type_params.end()) {
                     if (schema_it->second.type == ParamSchemaType::Bool) {
                         params[k] = (v == "true" || v == "1");
                         continue;

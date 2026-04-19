@@ -24,11 +24,11 @@ bp2::BlueprintLibrary build_library(
 
     bp2::BlueprintLibrary library;
     if (library_index && type_registry) {
-        for (const auto& [classname, def] : type_registry->types) {
-            if (def.cpp_class) continue;
+        for (const auto& [classname, spec] : type_registry->types) {
+            if (!is_composite(spec)) continue;
             bp2::Blueprint loaded;
             try {
-                loaded = bp2::blueprint_from_type_definition(def, interner, *type_registry);
+                loaded = bp2::blueprint_from_type_definition(spec, interner, *type_registry);
             } catch (const std::exception& e) {
                 spdlog::warn("[editor] export flatten: failed to build blueprint '{}' from TypeDefinition: {}",
                              classname, e.what());

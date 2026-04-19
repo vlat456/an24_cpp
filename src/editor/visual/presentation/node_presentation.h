@@ -3,6 +3,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "ui/core/interned_id.h"
 #include "editor/presentation_spec.h"
+#include "json_parser/json_parser.h"
 #include <cassert>
 #include <string_view>
 #include <unordered_map>
@@ -10,8 +11,6 @@
 #include <variant>
 #include <vector>
 #include <cstdlib>
-
-struct TypeDefinition;
 
 namespace editor::presentation {
 
@@ -176,13 +175,13 @@ NodeFrameKind classify_frame_kind(std::string_view render_hint);
 
 /// Resolve NodeFrameKind from TypeDefinition + TypePresentation (canonical authority).
 /// Falls back to NodeFrameKind::Standard if both are null or render_hint is empty.
-NodeFrameKind resolve_frame_kind(const TypeDefinition* def, const TypePresentation* pres);
+NodeFrameKind resolve_frame_kind(const ComponentSpec* spec, const TypePresentation* pres);
 
-/// Build a CompiledPresentationSpec from TypeDefinition + TypePresentation + semantic data (canonical path).
+/// Build a CompiledPresentationSpec from ComponentSpec + TypePresentation + semantic data (canonical path).
 /// This is the sole authority — reads from the source of truth, not from
 /// hydrated view mirrors.
 CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
-                                                const TypeDefinition* def,
+                                                const ComponentSpec* def,
                                                 const TypePresentation* pres,
                                                 ui::StringInterner& interner);
 

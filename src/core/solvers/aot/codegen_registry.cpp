@@ -26,18 +26,19 @@ struct ComponentPorts {
 std::vector<ComponentPorts> build_component_metadata(const TypeRegistry& registry) {
     std::vector<ComponentPorts> all_components;
 
-    for (const auto& [name, def] : registry.types) {
+    for (const auto& [name, spec] : registry.types) {
         (void)name;
-        if (!def.cpp_class) {
+        const auto* def = as_primitive(spec);
+        if (!def) {
             continue;
         }
 
         ComponentPorts comp;
-        comp.classname = def.classname;
-        comp.scheduler_source = def.scheduler_source;
-        comp.solver_owned_electrical = def.solver_owned_electrical;
-        comp.has_solver_role = def.solver_role.has_value();
-        for (const auto& [port_name, port] : def.ports) {
+        comp.classname = def->classname;
+        comp.scheduler_source = def->scheduler_source;
+        comp.solver_owned_electrical = def->solver_owned_electrical;
+        comp.has_solver_role = def->solver_role.has_value();
+        for (const auto& [port_name, port] : def->ports) {
             PortMeta meta;
             meta.name = port_name;
             meta.direction = port.direction;

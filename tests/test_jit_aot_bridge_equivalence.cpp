@@ -19,16 +19,15 @@ namespace {
 TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     TypeRegistry registry;
 
-    TypeDefinition gnd = make_refnode_type(bp2::Direction::Output);
+    PrimitiveSpec gnd = make_refnode_type(bp2::Direction::Output);
     registry.types["RefNode"] = gnd;
 
-    TypeDefinition cmd = make_any_v_to_bool_type();
+    PrimitiveSpec cmd = make_any_v_to_bool_type();
     cmd.ports["v_in"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     registry.types["Any_V_to_Bool"] = cmd;
 
-    TypeDefinition src;
+    PrimitiveSpec src;
     src.classname = "ControlledVoltageSource";
-    src.cpp_class = true;
     src.domains = {Domain::Electrical};
     src.execution = make_execution(false, false, false, false, true, false, false, false, false);
     src.ports["cmd"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
@@ -53,10 +52,10 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     }
     registry.types["ControlledVoltageSource"] = src;
 
-    TypeDefinition val = make_value_type();
+    PrimitiveSpec val = make_value_type();
     registry.types["Value"] = val;
 
-    TypeDefinition meter = make_voltmeter_type();
+    PrimitiveSpec meter = make_voltmeter_type();
     registry.types["Voltmeter"] = meter;
 
     std::vector<DeviceInstance> devices;
@@ -175,7 +174,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
 
 TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     std::vector<DeviceInstance> devices;
-    TypeDefinition resistor_type = make_resistor_type();
+    PrimitiveSpec resistor_type = make_resistor_type();
     std::vector<BridgePortDefinition> bridges = {
         make_bridge_port_def("vin", bp2::Direction::Input),
         make_bridge_port_def("vout", bp2::Direction::Output),
@@ -237,8 +236,8 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
 
 TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     std::vector<DeviceInstance> devices;
-    TypeDefinition resistor_type = make_resistor_type();
-    TypeDefinition value_type = make_value_type();
+    PrimitiveSpec resistor_type = make_resistor_type();
+    PrimitiveSpec value_type = make_value_type();
     std::vector<BridgePortDefinition> bridges = {
         make_bridge_port_def("vin", bp2::Direction::Input),
         make_bridge_port_def("vout", bp2::Direction::Output),

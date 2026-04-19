@@ -39,7 +39,7 @@ static auto make_colon_circuit() {
     ref.ports["v"] = {bp2::Direction::Output};
     ref.domains = {Domain::Electrical};
     ref.execution = test_exec::electrical_passive();
-    if (const TypeDefinition* def = test_registry().get("RefNode")) {
+    if (const PrimitiveSpec* def = as_primitive(*test_registry().get("RefNode"))) {
         ref = merge_device_instance(ref, *def);
     }
     devices.push_back(ref);
@@ -52,7 +52,7 @@ static auto make_colon_circuit() {
     bat.ports["v_in"] = {bp2::Direction::Input};
     bat.domains = {Domain::Electrical};
     bat.execution = test_exec::electrical_passive();
-    if (const TypeDefinition* def = test_registry().get("ElectricalSource")) {
+    if (const PrimitiveSpec* def = as_primitive(*test_registry().get("ElectricalSource"))) {
         bat = merge_device_instance(bat, *def);
     }
     devices.push_back(bat);
@@ -63,7 +63,7 @@ static auto make_colon_circuit() {
     bus.ports["v"] = {bp2::Direction::InOut};
     bus.domains = {Domain::Electrical};
     bus.execution = test_exec::bus();
-    if (const TypeDefinition* def = test_registry().get("Bus")) {
+    if (const PrimitiveSpec* def = as_primitive(*test_registry().get("Bus"))) {
         bus = merge_device_instance(bus, *def);
     }
     devices.push_back(bus);
@@ -76,7 +76,7 @@ static auto make_colon_circuit() {
     load.ports["v_out"] = {bp2::Direction::Output};
     load.domains = {Domain::Electrical};
     load.execution = test_exec::electrical_passive();
-    if (const TypeDefinition* def = test_registry().get("Resistor")) {
+    if (const PrimitiveSpec* def = as_primitive(*test_registry().get("Resistor"))) {
         load = merge_device_instance(load, *def);
     }
     devices.push_back(load);

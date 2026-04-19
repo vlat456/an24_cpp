@@ -75,47 +75,44 @@ protected:
 
     void SetUp() override {
         // Register common types used in tests with content types and params
-        TypeDefinition battery_def;
+        PrimitiveSpec battery_def;
         battery_def.classname = "Battery";
-        battery_def.cpp_class = true;
         registry.types["Battery"] = battery_def;
 
-        TypeDefinition knob_def;
+        PrimitiveSpec knob_def;
         knob_def.classname = "KnobSwitch";
         knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "2"};
         knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
         registry.types["KnobSwitch"] = knob_def;
         registry.presentation.specs["KnobSwitch"].content_type = "Knob";
 
-        TypeDefinition slider_def;
+        PrimitiveSpec slider_def;
         slider_def.classname = "Slider";
         slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
         registry.types["Slider"] = slider_def;
         registry.presentation.specs["Slider"].content_type = "Slider";
 
-        TypeDefinition gauge_def;
+        PrimitiveSpec gauge_def;
         gauge_def.classname = "Gauge";
         gauge_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         gauge_def.params["max"] = ParamSpec{ParamSchemaType::Float, "30"};
         registry.types["Gauge"] = gauge_def;
         registry.presentation.specs["Gauge"].content_type = "Gauge";
 
-        TypeDefinition voltmeter_def;
+        PrimitiveSpec voltmeter_def;
         voltmeter_def.classname = "Voltmeter";
         voltmeter_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         voltmeter_def.params["max"] = ParamSpec{ParamSchemaType::Float, "30"};
         registry.types["Voltmeter"] = voltmeter_def;
         registry.presentation.specs["Voltmeter"].content_type = "Gauge";
 
-        TypeDefinition bus_def;
+        PrimitiveSpec bus_def;
         bus_def.classname = "Bus";
-        bus_def.cpp_class = true;
         registry.types["Bus"] = bus_def;
 
-        TypeDefinition lut_def;
+        PrimitiveSpec lut_def;
         lut_def.classname = "LookupTable";
-        lut_def.cpp_class = true;
         registry.types["LookupTable"] = lut_def;
     }
 };
@@ -1004,7 +1001,7 @@ TEST_F(PropertiesWindowTest, ApplySwitchClosedReseedsLiveContentState) {
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("switch1"));
     ASSERT_NE(node_ptr, nullptr);
 
-    TypeDefinition switch_def;
+    PrimitiveSpec switch_def;
     switch_def.classname = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     registry.types["Switch"] = switch_def;
@@ -1022,7 +1019,7 @@ TEST_F(PropertiesWindowTest, ApplySwitchClosedReseedsLiveContentState) {
 }
 
 TEST_F(PropertiesWindowTest, ApplyAzsClosedReseedsLiveVerticalToggleState) {
-    TypeDefinition azs_def;
+    PrimitiveSpec azs_def;
     azs_def.classname = "AZS";
     azs_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     registry.types["AZS"] = azs_def;
@@ -1052,7 +1049,7 @@ TEST_F(PropertiesWindowTest, ApplyAzsClosedReseedsLiveVerticalToggleState) {
 }
 
 TEST_F(PropertiesWindowTest, ApplyRelayClosedReseedsLiveSwitchState) {
-    TypeDefinition relay_def;
+    PrimitiveSpec relay_def;
     relay_def.classname = "Relay";
     relay_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     registry.types["Relay"] = relay_def;

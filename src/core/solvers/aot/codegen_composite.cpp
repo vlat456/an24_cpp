@@ -3,7 +3,7 @@
 #include <set>
 
 CompositeCodegenResult CodeGen::generate_composite_systems(
-    const TypeDefinition& td,
+    const CompositeSpec& td,
     const TypeRegistry& registry)
 {
     std::set<std::string> loading_stack;
@@ -48,8 +48,8 @@ std::map<std::string, CompositeCodegenResult> CodeGen::generate_all_composites(c
 
     for (const auto& name : order) {
         const auto* td = registry.get(name);
-        if (td && !td->cpp_class) {
-            results[name] = generate_composite_systems(*td, registry);
+        if (td && is_composite(*td)) {
+            results[name] = generate_composite_systems(*as_composite(*td), registry);
         }
     }
 

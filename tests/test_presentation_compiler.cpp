@@ -1813,11 +1813,12 @@ TEST(Issue133_SingleAuthority, ToggleUsesDynamicStateFromView) {
 
 TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
     // Test the canonical make_presentation_spec(node, def, pres, interner) path.
-    // TypeDefinition with content_type "Slider" and render_hint moved to TypePresentation.
+    // ComponentSpec (PrimitiveSpec) with content_type "Slider" and render_hint moved to TypePresentation.
     ui::StringInterner interner;
-    TypeDefinition def;
-    def.params["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
-    def.params["max"] = ParamSpec{ParamSchemaType::Float, "50"};
+    PrimitiveSpec prim;
+    prim.params["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
+    prim.params["max"] = ParamSpec{ParamSchemaType::Float, "50"};
+    ComponentSpec def = prim;
 
     TypePresentation pres;
     pres.render_hint = "ref";
@@ -1846,7 +1847,7 @@ TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
 
 TEST(PresentationSpec, CanonicalMakeFromDefExtractsAnnotationParams) {
     ui::StringInterner interner;
-    TypeDefinition def;
+    ComponentSpec def = PrimitiveSpec{};
 
     TypePresentation pres;
     pres.render_hint = "text";
@@ -1881,7 +1882,7 @@ TEST(PresentationSpec, CanonicalMakeWithNullDefFallsBackToStandard) {
 
 TEST(PresentationSpec, CanonicalMakeAnnotationFontSizeEdgeCases) {
     ui::StringInterner interner;
-    TypeDefinition def;
+    ComponentSpec def = PrimitiveSpec{};
 
     TypePresentation pres;
     pres.render_hint = "text";

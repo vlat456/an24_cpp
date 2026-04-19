@@ -137,10 +137,13 @@ static void merge_nested_blueprint(
 /// Extract exposed port metadata from structural bridge definitions
 /// For Editor: displays exposed ports on collapsed nested blueprint nodes
 /// Returns map: exposed_port_name -> Port metadata
-std::unordered_map<std::string, Port> extract_exposed_ports(const TypeDefinition& blueprint) {
+std::unordered_map<std::string, Port> extract_exposed_ports(const ComponentSpec& spec) {
+    const auto* comp = as_composite(spec);
+    if (!comp) return {};
+
     std::unordered_map<std::string, Port> exposed;
 
-    for (const auto& bridge : blueprint.bridge_ports) {
+    for (const auto& bridge : comp->bridge_ports) {
         Port port;
         port.direction = bridge.direction;
         port.type = bridge.type;
@@ -205,8 +208,9 @@ static ParserContext parse_json_impl(const std::string& json_text,
             throw std::runtime_error("Component definition not found: " + raw_dev.classname);
         }
 
-        // Blueprint types (cpp_class=false): expand from TypeDefinition
-        if (!def->cpp_class && !def->devices.empty()) {
+        // Blueprint types (composites): expand from ComponentSpec
+        const auto* comp = as_composite(*def);
+        if (comp && !comp->devices.empty()) {
             // Cycle detection: if we're already expanding this classname, it's a cycle
             if (expanding.count(raw_dev.classname)) {
                 throw std::runtime_error("Blueprint cycle detected: '" + raw_dev.classname +
@@ -216,11 +220,11 @@ static ParserContext parse_json_impl(const std::string& json_text,
             spdlog::info("[json_parser] Expanding blueprint type '{}' as device '{}' from TypeRegistry",
                         raw_dev.classname, raw_dev.name);
 
-            // Build a ParserContext from the TypeDefinition's devices/connections
+            // Build a ParserContext from the CompositeSpec's devices/connections
             // and recursively process them (handles nested blueprints)
             nlohmann::json nested_json;
             nested_json["devices"] = nlohmann::json::array();
-            for (const auto& inner_dev : def->devices) {
+            for (const auto& inner_dev : comp->devices) {
                 nlohmann::json dev_j;
                 dev_j["name"] = inner_dev.name;
                 dev_j["classname"] = inner_dev.classname;
@@ -230,14 +234,14 @@ static ParserContext parse_json_impl(const std::string& json_text,
                 nested_json["devices"].push_back(dev_j);
             }
             nested_json["connections"] = nlohmann::json::array();
-            for (const auto& conn : def->connections) {
+            for (const auto& conn : comp->connections) {
                 nested_json["connections"].push_back({{"from", conn.from}, {"to", conn.to}});
             }
 
             // Track this classname as being expanded, then recurse
             expanding.insert(raw_dev.classname);
             ParserContext nested = parse_json_impl(nested_json.dump(), registry, expanding);
-            for (auto bridge : def->bridge_ports) {
+            for (auto bridge : comp->bridge_ports) {
                 bridge.id = raw_dev.name + ":" + bridge.id;
                 ctx.bridge_ports.push_back(std::move(bridge));
             }

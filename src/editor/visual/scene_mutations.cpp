@@ -176,10 +176,10 @@ void rebuild(Scene& scene,
      for (const bp2::Blueprint::Node& n : bp.nodes()) {
          const bp2::Interface render_iface = bp.effective_node_iface(n, registry, interner);
          const std::string type_name(interner.resolve(n.semantic.type));
-         const TypeDefinition* def = registry.get(type_name);
+         const ComponentSpec* def = registry.get(type_name);
          const TypePresentation* pres = registry.presentation.get(type_name);
          auto frame_kind = editor::presentation::resolve_frame_kind(def, pres);
-         NodeContent content = create_runtime_node_content(n, def, pres, interner);
+         NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner) : NodeContent{};
          std::unique_ptr<Widget> widget = NodeFactory::create(n, frame_kind, render_iface, interner, content, bus_wires);
          scene.add(std::move(widget));
      }

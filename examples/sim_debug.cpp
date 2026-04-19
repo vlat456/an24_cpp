@@ -118,7 +118,6 @@ int main(int argc, char* argv[]) {
 
     bp2::BlueprintLibrary library;
     for (const auto& [classname, def] : registry.types) {
-        if (def.cpp_class) continue;
         try {
             auto loaded = bp2::blueprint_from_type_definition(def, interner, registry);
             library.add(interner.intern(classname), std::move(loaded));

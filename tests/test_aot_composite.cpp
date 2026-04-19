@@ -17,14 +17,13 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
     // Setup: simple composite with 2 devices
     TypeRegistry registry;
 
-    TypeDefinition lamp;
+    CompositeSpec lamp;
     lamp.classname = "voltage_indicator";
-    lamp.cpp_class = false;
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
     d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    lamp.devices = {d_lamp};
+    lamp.devices.push_back(d_lamp);
     lamp.bridge_ports = {
         make_bridge_port_def("vin", bp2::Direction::Input, PortType::V),
         make_bridge_port_def("vout", bp2::Direction::Output, PortType::V),
@@ -56,20 +55,18 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     TypeRegistry registry;
 
     // Inner composite
-    TypeDefinition inner;
+    CompositeSpec inner;
     inner.classname = "battery_wrapper";
-    inner.cpp_class = false;
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "ElectricalSource";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    inner.devices = {d_bat};
+    inner.devices.push_back(d_bat);
     registry.types["battery_wrapper"] = inner;
 
     // Outer composite references inner
-    TypeDefinition outer;
+    CompositeSpec outer;
     outer.classname = "battery_bank";
-    outer.cpp_class = false;
     SubBlueprintRef ref;
     ref.id = "sb_1";
     ref.type_name = "battery_wrapper";
@@ -78,7 +75,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     d_bus.name = "bus";
     d_bus.classname = "Bus";
     d_bus.execution = make_execution(true, false, true, false, false, false, false, false, false);
-    outer.devices = {d_bus};
+    outer.devices.push_back(d_bus);
     registry.types["battery_bank"] = outer;
 
     auto result = CodeGen::generate_composite_systems(outer, registry);
@@ -96,20 +93,18 @@ TEST(AotComposite, ThreeLevelsDeep_FullHierarchy) {
     TypeRegistry registry;
 
     // Level 2: leaf
-    TypeDefinition leaf;
+    CompositeSpec leaf;
     leaf.classname = "leaf_type";
-    leaf.cpp_class = false;
     DeviceInstance d_r;
     d_r.name = "r1";
     d_r.classname = "Resistor";
     d_r.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    leaf.devices = {d_r};
+    leaf.devices.push_back(d_r);
     registry.types["leaf_type"] = leaf;
 
     // Level 1: mid references leaf
-    TypeDefinition mid;
+    CompositeSpec mid;
     mid.classname = "mid_type";
-    mid.cpp_class = false;
     SubBlueprintRef ref_leaf;
     ref_leaf.id = "leaf_inst";
     ref_leaf.type_name = "leaf_type";
@@ -117,9 +112,8 @@ TEST(AotComposite, ThreeLevelsDeep_FullHierarchy) {
     registry.types["mid_type"] = mid;
 
     // Level 0: top references mid
-    TypeDefinition top;
+    CompositeSpec top;
     top.classname = "top_type";
-    top.cpp_class = false;
     SubBlueprintRef ref_mid;
     ref_mid.id = "mid_inst";
     ref_mid.type_name = "mid_type";
@@ -143,19 +137,17 @@ TEST(AotComposite, ThreeLevelsDeep_FullHierarchy) {
 TEST(AotComposite, TopoSort_LeavesFirst) {
     TypeRegistry registry;
 
-    TypeDefinition leaf;
+    CompositeSpec leaf;
     leaf.classname = "leaf";
-    leaf.cpp_class = false;
     DeviceInstance d;
     d.name = "d";
     d.classname = "ElectricalSource";
     d.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    leaf.devices = {d};
+    leaf.devices.push_back(d);
     registry.types["leaf"] = leaf;
 
-    TypeDefinition parent;
+    CompositeSpec parent;
     parent.classname = "parent";
-    parent.cpp_class = false;
     SubBlueprintRef ref;
     ref.id = "l1";
     ref.type_name = "leaf";
@@ -176,19 +168,17 @@ TEST(AotComposite, TopoSort_LeavesFirst) {
 TEST(AotComposite, PreLoad_CallsSubComposites) {
     TypeRegistry registry;
 
-    TypeDefinition inner;
+    CompositeSpec inner;
     inner.classname = "inner_type";
-    inner.cpp_class = false;
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "ElectricalSource";
     d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    inner.devices = {d_bat};
+    inner.devices.push_back(d_bat);
     registry.types["inner_type"] = inner;
 
-    TypeDefinition outer;
+    CompositeSpec outer;
     outer.classname = "outer_type";
-    outer.cpp_class = false;
     SubBlueprintRef ref;
     ref.id = "inner_inst";
     ref.type_name = "inner_type";
@@ -197,7 +187,7 @@ TEST(AotComposite, PreLoad_CallsSubComposites) {
     d_bus.name = "bus";
     d_bus.classname = "Bus";
     d_bus.execution = make_execution(true, false, true, false, false, false, false, false, false);
-    outer.devices = {d_bus};
+    outer.devices.push_back(d_bus);
     registry.types["outer_type"] = outer;
 
     auto result = CodeGen::generate_composite_systems(outer, registry);
@@ -230,14 +220,13 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     register_lamp_composite_types(registry);
 
     // Composite: voltage_indicator (vin→lamp→vout)
-    TypeDefinition lamp;
+    CompositeSpec lamp;
     lamp.classname = "voltage_indicator";
-    lamp.cpp_class = false;
 
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
-    lamp.devices = {d_lamp};
+    lamp.devices.push_back(d_lamp);
     lamp.bridge_ports = {
         make_bridge_port_def("vin", bp2::Direction::Input, PortType::V),
         make_bridge_port_def("vout", bp2::Direction::Output, PortType::V),
@@ -359,9 +348,8 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
     registry.types["RefNode"] = make_refnode_type();
 
     // Simple circuit: ElectricalSource -> Resistor -> RefNode (fixed voltage)
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "simple_circuit";
-    circuit.cpp_class = false;
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
@@ -382,7 +370,9 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
     d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
     d_ref.params["value"] = "0.0";
 
-    circuit.devices = {d_bat, d_res, d_ref};
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_res);
+    circuit.devices.push_back(d_ref);
     circuit.connections = {
         {"bat.v_out", "res.v_in", {}},
         {"res.v_out", "gnd.v", {}}
@@ -418,9 +408,8 @@ TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
     registry.types["ElectricalSource"] = make_electrical_source_type();
     registry.types["IndicatorLight"] = make_indicator_light_type();
 
-    TypeDefinition lamp_circuit;
+    CompositeSpec lamp_circuit;
     lamp_circuit.classname = "lamp_circuit";
-    lamp_circuit.cpp_class = false;
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
@@ -432,7 +421,8 @@ TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
     d_lamp.classname = "IndicatorLight";
     d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
-    lamp_circuit.devices = {d_bat, d_lamp};
+    lamp_circuit.devices.push_back(d_bat);
+    lamp_circuit.devices.push_back(d_lamp);
     lamp_circuit.connections = {
         {"bat.v_out", "lamp.v_in", {}},
         {"bat.v_in", "lamp.v_out", {}}
@@ -451,16 +441,15 @@ TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
 TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
     TypeRegistry registry;
 
-    TypeDefinition no_elec;
+    CompositeSpec no_elec;
     no_elec.classname = "no_electrical";
-    no_elec.cpp_class = false;
 
     DeviceInstance d_bus;
     d_bus.name = "bus";
     d_bus.classname = "Bus";
     d_bus.execution = make_execution(false, false, true, false, false, false, false, false, false);
 
-    no_elec.devices = {d_bus};
+    no_elec.devices.push_back(d_bus);
     registry.types["no_electrical"] = no_elec;
 
     auto result = CodeGen::generate_composite_systems(no_elec, registry);
@@ -480,9 +469,8 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     registry.types["IndicatorLight"] = make_indicator_light_type();
     registry.types["RefNode"] = make_refnode_type();
 
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "wrapper_binding_circuit";
-    circuit.cpp_class = false;
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
@@ -504,7 +492,10 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     d_ref.classname = "RefNode";
     d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
-    circuit.devices = {d_bat, d_sense, d_lamp, d_ref};
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_sense);
+    circuit.devices.push_back(d_lamp);
+    circuit.devices.push_back(d_ref);
     circuit.connections = {
         {"bat.v_out", "sense.v_in", {}},
         {"sense.v_out", "lamp.v_in", {}},
@@ -528,9 +519,8 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
     register_generator_sense_ref_types(registry);
 
     auto make_circuit = [&](const std::vector<Connection>& conns, const std::string& name) {
-        TypeDefinition td;
+        CompositeSpec td;
         td.classname = name;
-        td.cpp_class = false;
 
         DeviceInstance d_bat;
         d_bat.name = "bat";
@@ -547,7 +537,9 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
         d_ref.classname = "RefNode";
         d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
-        td.devices = {d_bat, d_sense, d_ref};
+        td.devices.push_back(d_bat);
+        td.devices.push_back(d_sense);
+        td.devices.push_back(d_ref);
         td.connections = conns;
         return td;
     };
@@ -595,9 +587,8 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
     TypeRegistry registry;
     register_generator_sense_ref_types(registry);
 
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "binding_fields_circuit";
-    circuit.cpp_class = false;
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
@@ -614,7 +605,9 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
     d_ref.classname = "RefNode";
     d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
-    circuit.devices = {d_bat, d_sense, d_ref};
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_sense);
+    circuit.devices.push_back(d_ref);
     circuit.connections = {
         {"bat.v_out", "sense.v_in", {}},
         {"sense.v_out", "gnd.v", {}},
@@ -651,9 +644,8 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
     registry.types["CurrentSense"] = make_currentsense_type();
     registry.types["RefNode"] = make_refnode_type();
 
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "mixed_device_circuit";
-    circuit.cpp_class = false;
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
@@ -678,7 +670,10 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
 
     // Key: logic device sits at index 1 in devices array, but is NOT electrical.
     // If binding code used devices[element_idx], sense would wrongly get logic's name.
-    circuit.devices = {d_bat, d_logic, d_sense, d_ref};
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_logic);
+    circuit.devices.push_back(d_sense);
+    circuit.devices.push_back(d_ref);
     circuit.connections = {
         {"bat.v_out", "sense.v_in", {}},
         {"sense.v_out", "gnd.v", {}},
@@ -714,9 +709,8 @@ TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
     registry.types["CurrentSense"] = make_currentsense_type();
     registry.types["RefNode"] = make_refnode_type();
 
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "debug_map_circuit";
-    circuit.cpp_class = false;
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
@@ -733,7 +727,9 @@ TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
     d_ref.classname = "RefNode";
     d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
-    circuit.devices = {d_bat, d_sense, d_ref};
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_sense);
+    circuit.devices.push_back(d_ref);
     circuit.connections = {
         {"bat.v_out", "sense.v_in", {}},
         {"sense.v_out", "gnd.v", {}},
@@ -759,9 +755,8 @@ TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
     TypeRegistry registry;
     register_basic_electrical_types(registry);
 
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "diag_warn_circuit";
-    circuit.cpp_class = false;
 
     DeviceInstance d_src;
     d_src.name = "src";
@@ -778,7 +773,9 @@ TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
     d_ref.classname = "RefNode";
     d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
-    circuit.devices = {d_src, d_load, d_ref};
+    circuit.devices.push_back(d_src);
+    circuit.devices.push_back(d_load);
+    circuit.devices.push_back(d_ref);
     circuit.connections = {
         {"src.v_out", "load.v_in", {}},
         {"load.v_out", "gnd.v", {}},
@@ -802,9 +799,8 @@ TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
     TypeRegistry registry;
     register_basic_electrical_types(registry);
 
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "debug_idx_circuit";
-    circuit.cpp_class = false;
 
     DeviceInstance d_src;
     d_src.name = "src";
@@ -821,7 +817,9 @@ TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
     d_ref.classname = "RefNode";
     d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
 
-    circuit.devices = {d_src, d_load, d_ref};
+    circuit.devices.push_back(d_src);
+    circuit.devices.push_back(d_load);
+    circuit.devices.push_back(d_ref);
     circuit.connections = {
         {"src.v_out", "load.v_in", {}},
         {"load.v_out", "gnd.v", {}},
@@ -845,33 +843,29 @@ TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
 TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
     TypeRegistry registry;
 
-    TypeDefinition battery_type;
+    PrimitiveSpec battery_type;
     battery_type.classname = "ElectricalSource";
-    battery_type.cpp_class = true;
     battery_type.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     battery_type.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     battery_type.domains = {{Domain::Electrical}};
     registry.types["ElectricalSource"] = battery_type;
 
-    TypeDefinition resistor_type;
+    PrimitiveSpec resistor_type;
     resistor_type.classname = "Resistor";
-    resistor_type.cpp_class = true;
     resistor_type.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     resistor_type.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     resistor_type.domains = {{Domain::Electrical}};
     registry.types["Resistor"] = resistor_type;
 
-    TypeDefinition ref_type;
+    PrimitiveSpec ref_type;
     ref_type.classname = "RefNode";
-    ref_type.cpp_class = true;
     ref_type.ports["v"] = Port{bp2::Direction::InOut, PortType::V, std::nullopt};
     ref_type.domains = {{Domain::Electrical}};
     ref_type.scheduler_source = true;
     registry.types["RefNode"] = ref_type;
 
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "test_circuit";
-    circuit.cpp_class = false;
 
     DeviceInstance d_bat;
     d_bat.name = "bat";
@@ -888,7 +882,9 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
     d_ref.classname = "RefNode";
     d_ref.ports = {{"v", Port{}}};
 
-    circuit.devices = {d_bat, d_load, d_ref};
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_load);
+    circuit.devices.push_back(d_ref);
     circuit.connections = {
         {"bat.v_out", "load.v_in", {}},
         {"load.v_out", "gnd.v", {}},
@@ -920,18 +916,16 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
 
     registry.types["RefNode"] = make_refnode_type(bp2::Direction::Output);
 
-    TypeDefinition consumer_type;
+    PrimitiveSpec consumer_type;
     consumer_type.classname = "Voltmeter";
-    consumer_type.cpp_class = true;
     consumer_type.ports["v"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     consumer_type.domains = {{Domain::Electrical}};
     consumer_type.scheduler_source = false;
     consumer_type.execution = make_execution(false, true, false, false, false, false, false, false, false);
     registry.types["Voltmeter"] = consumer_type;
 
-    TypeDefinition td;
+    CompositeSpec td;
     td.classname = "sched_order_test";
-    td.cpp_class = false;
 
     DeviceInstance meter;
     meter.name = "meter";
@@ -942,7 +936,8 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     src.classname = "RefNode";
 
     // Intentionally reversed declaration order: consumer first, source second.
-    td.devices = {meter, src};
+    td.devices.push_back(meter);
+    td.devices.push_back(src);
     td.connections = {{"src.v", "meter.v", {}}};
     registry.types[td.classname] = td;
 
@@ -973,18 +968,17 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     TypeRegistry registry;
 
     // IndicatorLight (simple pass-through component)
-    TypeDefinition light = make_indicator_light_type();
+    PrimitiveSpec light = make_indicator_light_type();
     registry.types["IndicatorLight"] = light;
 
     // Composite: vin→lamp→vout
-    TypeDefinition composite;
+    CompositeSpec composite;
     composite.classname = "bridge_test";
-    composite.cpp_class = false;
 
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
-    composite.devices = {d_lamp};
+    composite.devices.push_back(d_lamp);
     composite.bridge_ports = {
         make_bridge_port_def("vin", bp2::Direction::Input, PortType::V),
         make_bridge_port_def("vout", bp2::Direction::Output, PortType::V),
@@ -1038,9 +1032,8 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
 TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     TypeRegistry registry;
 
-    TypeDefinition cvs;
+    PrimitiveSpec cvs;
     cvs.classname = "ControlledVoltageSource";
-    cvs.cpp_class = true;
     cvs.ports["cmd"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     cvs.ports["gain"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     cvs.ports["offset"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
@@ -1052,9 +1045,8 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     cvs.execution = make_execution(true, false, false, false, false, false, false, false, false);
     registry.types["ControlledVoltageSource"] = cvs;
 
-    TypeDefinition vc;
+    PrimitiveSpec vc;
     vc.classname = "VariableConductance";
-    vc.cpp_class = true;
     vc.ports["cmd"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     vc.ports["g_min"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     vc.ports["g_max"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
@@ -1067,9 +1059,8 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     registry.types["RefNode"] = make_refnode_type();
     registry.types["Value"] = make_value_type();
 
-    TypeDefinition circuit;
+    CompositeSpec circuit;
     circuit.classname = "dynamic_patch_test";
-    circuit.cpp_class = false;
 
     DeviceInstance d_ref;
     d_ref.name = "gnd";
@@ -1118,7 +1109,16 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     d_gmax.classname = "Value";
     d_gmax.params["value"] = "1.0";
 
-    circuit.devices = {d_ref, d_cvs, d_vc, d_cmd, d_gain, d_offset, d_min, d_max, d_gmin, d_gmax};
+    circuit.devices.push_back(d_ref);
+    circuit.devices.push_back(d_cvs);
+    circuit.devices.push_back(d_vc);
+    circuit.devices.push_back(d_cmd);
+    circuit.devices.push_back(d_gain);
+    circuit.devices.push_back(d_offset);
+    circuit.devices.push_back(d_min);
+    circuit.devices.push_back(d_max);
+    circuit.devices.push_back(d_gmin);
+    circuit.devices.push_back(d_gmax);
     circuit.connections = {
         {"src.v_pos", "load.v_in", {}},
         {"load.v_out", "gnd.v", {}},

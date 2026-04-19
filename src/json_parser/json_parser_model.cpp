@@ -54,14 +54,15 @@ std::optional<std::string> TypeRegistry::validate_instance(const DeviceInstance&
         return "Type definition not found for '" + instance.classname + "'";
     }
 
+    const auto& ports = spec_ports(*def);
     for (const auto& [port_name, port] : instance.ports) {
         (void)port;
-        if (!def->ports.count(port_name)) {
+        if (!ports.count(port_name)) {
             return "Unknown port '" + port_name + "' in device '" + instance.name +
                    "' of type '" + instance.classname + "'. Valid ports: " +
                    [&]() {
                        std::string valid_ports;
-                       for (const auto& [name, _] : def->ports) {
+                       for (const auto& [name, _] : ports) {
                            if (!valid_ports.empty()) valid_ports += ", ";
                            valid_ports += name;
                        }
@@ -77,18 +78,18 @@ std::optional<std::string> TypeRegistry::validate_instance(const DeviceInstance&
     return std::nullopt;
 }
 
-TypeDefinition expand_sub_blueprint_references(
-    const TypeDefinition& td,
+CompositeSpec expand_sub_blueprint_references(
+    const CompositeSpec& td,
     const TypeRegistry& registry,
     std::set<std::string>& loading_stack)
 {
-    if (td.cpp_class) return td;
+    // CompositeSpec is already composite, no cpp_class check needed
 
     if (!loading_stack.insert(td.classname).second) {
         throw std::runtime_error("Circular sub-blueprint reference: " + td.classname);
     }
 
-    TypeDefinition result = td;
+    CompositeSpec result = td;
     result.sub_blueprints.clear();
 
     for (const auto& ref : td.sub_blueprints) {
@@ -99,7 +100,13 @@ TypeDefinition expand_sub_blueprint_references(
                 " (referenced by '" + td.classname + "' as '" + ref.id + "')");
         }
 
-        auto expanded = expand_sub_blueprint_references(*sub_td, registry, loading_stack);
+        const auto* sub_composite = as_composite(*sub_td);
+        if (!sub_composite) {
+            throw std::runtime_error(
+                "Sub-blueprint '" + ref.type_name + "' is not a composite (referenced by '" + td.classname + "')");
+        }
+
+        auto expanded = expand_sub_blueprint_references(*sub_composite, registry, loading_stack);
 
         for (auto& dev : expanded.devices) {
             dev.name = ref.id + ":" + dev.name;
@@ -146,10 +153,13 @@ std::vector<std::string> TypeRegistry::get_composites_topo_sorted() const {
         in_stack.insert(name);
 
         auto it = types.find(name);
-        if (it == types.end() || it->second.cpp_class) return;
+        if (it == types.end() || is_primitive(it->second)) return;
 
-        for (const auto& ref : it->second.sub_blueprints) {
-            visit(ref.type_name);
+        const auto* composite = as_composite(it->second);
+        if (composite) {
+            for (const auto& ref : composite->sub_blueprints) {
+                visit(ref.type_name);
+            }
         }
 
         in_stack.erase(name);
@@ -157,8 +167,8 @@ std::vector<std::string> TypeRegistry::get_composites_topo_sorted() const {
         result.push_back(name);
     };
 
-    for (const auto& [name, td] : types) {
-        if (!td.cpp_class) visit(name);
+    for (const auto& [name, spec] : types) {
+        if (is_composite(spec)) visit(name);
     }
     return result;
 }

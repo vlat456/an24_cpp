@@ -25,12 +25,14 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     dev.params = params;
     dev.execution = {};
     
-    if (const TypeDefinition* def = test_registry().get(classname)) {
-        for (const auto& [port_name, port] : def->ports) {
+    if (const auto* def = test_registry().get(classname)) {
+        const auto& ports = spec_ports(*def);
+        for (const auto& [port_name, port] : ports) {
             dev.ports[port_name] = port;
         }
         if (merge_defaults) {
-            for (const auto& [param_name, param_spec] : def->params) {
+            const auto& params = spec_params(*def);
+            for (const auto& [param_name, param_spec] : params) {
                 if (param_spec.visual_only) {
                     continue;
                 }
@@ -39,7 +41,9 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
                 }
             }
         }
-        dev.solver_role = def->solver_role;
+        if (const auto* prim = as_primitive(*def)) {
+            dev.solver_role = prim->solver_role;
+        }
     } else {
         auto ports = get_component_ports(classname);
         for (const auto& port_name : ports) {
@@ -730,8 +734,10 @@ TEST(PushBuildValidation, TypeDefinitionWithoutExecutionIsAccepted) {
         {"params", nlohmann::json::object()}
     };
 
-    std::pair<TypeDefinition, TypePresentation> result = parse_type_definition(td);
-    EXPECT_FALSE(result.first.execution.has_value());
+    auto [def, pres] = parse_type_definition(td);
+    const auto* prim = as_primitive(def);
+    ASSERT_NE(prim, nullptr);
+    EXPECT_FALSE(prim->execution.has_value());
 }
 
 TEST(PushBuildValidation, MaxSelectsHigherInput) {
@@ -952,13 +958,14 @@ TEST(PushBuildValidation, ParamSchemaVisualOnlyFlag) {
     })");
 
     auto [def, pres] = parse_type_definition(j);
+    const auto& params = spec_params(def);
 
-    ASSERT_TRUE(def.params.count("port_edge") > 0);
-    EXPECT_TRUE(def.params.at("port_edge").visual_only);
-    EXPECT_EQ(def.params.at("port_edge").type, ParamSchemaType::String);
+    ASSERT_TRUE(params.count("port_edge") > 0);
+    EXPECT_TRUE(params.at("port_edge").visual_only);
+    EXPECT_EQ(params.at("port_edge").type, ParamSchemaType::String);
 
-    ASSERT_TRUE(def.params.count("v_nominal") > 0);
-    EXPECT_FALSE(def.params.at("v_nominal").visual_only);
+    ASSERT_TRUE(params.count("v_nominal") > 0);
+    EXPECT_FALSE(params.at("v_nominal").visual_only);
 }
 
 
@@ -996,9 +1003,8 @@ TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
 // from the type definition when both instance and definition have the same port.
 // Previously only type and alias were copied, silently dropping metadata.
 TEST(PushBuildValidation, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
-    TypeDefinition def;
+    PrimitiveSpec def;
     def.classname = "Generator";
-    def.cpp_class = true;
     def.domains = std::vector<Domain>{Domain::Electrical};
     // Definition port: domain=Mechanical, source_writer=true
     def.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Mechanical, true};
@@ -1028,7 +1034,7 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def, pres] = parse_type_definition(j);
-    EXPECT_TRUE(def.scheduler_source);
+    EXPECT_TRUE(spec_scheduler_source(def));
 
     // Also verify false case
     auto j2 = nlohmann::json::parse(R"({
@@ -1040,7 +1046,7 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def2, pres2] = parse_type_definition(j2);
-    EXPECT_FALSE(def2.scheduler_source);
+    EXPECT_FALSE(spec_scheduler_source(def2));
 }
 
 // Regression: sentinel signal must be included in fixed_signals.

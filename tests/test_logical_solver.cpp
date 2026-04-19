@@ -52,10 +52,7 @@ TEST(LogicalSolverTest, LogicalDomain_ParsesFromString) {
     // Verify that we loaded at least the Comparator component
     const auto* comp = registry.get("Comparator");
     if (comp) {
-        ASSERT_TRUE(comp->domains.has_value())
-            << "Comparator should have default domains defined";
-
-        auto& domains = comp->domains.value();
+        const auto& domains = spec_domains(*comp);
         bool has_logical = std::find(domains.begin(), domains.end(), Domain::Logical) != domains.end();
         EXPECT_TRUE(has_logical) << "Comparator should be in Logical domain";
     } else {
@@ -84,23 +81,23 @@ TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
     EXPECT_TRUE(pres && !pres->description.empty()) << "Comparator should have a description";
 
     // Check ports exist (Von and Voff are parameters, not ports!)
-    EXPECT_TRUE(comp->ports.contains("Va")) << "Should have Va input";
-    EXPECT_TRUE(comp->ports.contains("Vb")) << "Should have Vb input";
-    EXPECT_TRUE(comp->ports.contains("o")) << "Should have o output";
+    EXPECT_TRUE(spec_ports(*comp).contains("Va")) << "Should have Va input";
+    EXPECT_TRUE(spec_ports(*comp).contains("Vb")) << "Should have Vb input";
+    EXPECT_TRUE(spec_ports(*comp).contains("o")) << "Should have o output";
 
     // Check port directions
-    EXPECT_EQ(comp->ports.at("Va").direction, bp2::Direction::Input);
-    EXPECT_EQ(comp->ports.at("Vb").direction, bp2::Direction::Input);
-    EXPECT_EQ(comp->ports.at("o").direction, bp2::Direction::Output);
+    EXPECT_EQ(spec_ports(*comp).at("Va").direction, bp2::Direction::Input);
+    EXPECT_EQ(spec_ports(*comp).at("Vb").direction, bp2::Direction::Input);
+    EXPECT_EQ(spec_ports(*comp).at("o").direction, bp2::Direction::Output);
 
     // Check port types (Va, Vb accept Signal type; o should be Bool)
-    EXPECT_EQ(comp->ports.at("Va").type, PortType::Signal);
-    EXPECT_EQ(comp->ports.at("Vb").type, PortType::Signal);
-    EXPECT_EQ(comp->ports.at("o").type, PortType::Bool);
+    EXPECT_EQ(spec_ports(*comp).at("Va").type, PortType::Signal);
+    EXPECT_EQ(spec_ports(*comp).at("Vb").type, PortType::Signal);
+    EXPECT_EQ(spec_ports(*comp).at("o").type, PortType::Bool);
 
     // Check parameters
-    EXPECT_TRUE(comp->params.contains("Von")) << "Should have Von parameter";
-    EXPECT_TRUE(comp->params.contains("Voff")) << "Should have Voff parameter";
+    EXPECT_TRUE(spec_params(*comp).contains("Von")) << "Should have Von parameter";
+    EXPECT_TRUE(spec_params(*comp).contains("Voff")) << "Should have Voff parameter";
 }
 
 TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
@@ -113,10 +110,7 @@ TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
         return;
     }
 
-    ASSERT_TRUE(comp->domains.has_value())
-        << "Comparator should have default domains defined";
-
-    auto& domains = comp->domains.value();
+    const auto& domains = spec_domains(*comp);
     bool has_logical = std::find(domains.begin(), domains.end(), Domain::Logical) != domains.end();
     EXPECT_TRUE(has_logical) << "Comparator should be in Logical domain";
 }

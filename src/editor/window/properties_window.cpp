@@ -614,7 +614,7 @@ void PropertiesWindow::apply() {
         // This guarantees a single undo step regardless of how many fields changed.
         bp2::Blueprint::Node updated = *target;
 
-        const TypeDefinition* def = nullptr;
+        const ComponentSpec* def = nullptr;
         const TypePresentation* pres = nullptr;
         if (type_registry_) {
             const std::string type_name(interner_->resolve(updated.semantic.type));
@@ -628,8 +628,9 @@ void PropertiesWindow::apply() {
         for (const auto& [key, new_value] : pending_params_) {
             bool handled_as_bool = false;
             if (def != nullptr) {
-                auto schema_it = def->params.find(key);
-                if (schema_it != def->params.end()
+                const auto& params = spec_params(*def);
+                auto schema_it = params.find(key);
+                if (schema_it != params.end()
                     && schema_it->second.type == ParamSchemaType::Bool) {
                     updated.semantic.string_params[key] = (new_value != 0.0f) ? "true" : "false";
                     handled_as_bool = true;

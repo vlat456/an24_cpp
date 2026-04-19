@@ -88,9 +88,8 @@ static TypeRegistry make_canvas_input_test_registry() {
     auto add_simple = [&](const char* name, const char* hint = "",
                           const char* ct = "None",
                           std::initializer_list<std::pair<std::string,std::string>> params = {}) {
-        TypeDefinition def;
+        PrimitiveSpec def;
         def.classname = name;
-        def.cpp_class = true;
         for (auto& [k, v] : params) def.params[k] = ParamSpec{ParamSchemaType::String, v};
         reg.types[def.classname] = std::move(def);
         if (hint && hint[0]) {
@@ -103,9 +102,8 @@ static TypeRegistry make_canvas_input_test_registry() {
 
     // Types with specific ports (used by wire-compatibility tests)
     {
-        TypeDefinition def;
+        PrimitiveSpec def;
         def.classname = "Slider";
-        def.cpp_class = true;
         def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         def.params["max"] = ParamSpec{ParamSchemaType::Float, "1"};
         def.ports.emplace("out", Port(bp2::Direction::Output, PortType::Bool, Domain::Logical, false));
@@ -113,16 +111,14 @@ static TypeRegistry make_canvas_input_test_registry() {
         reg.presentation.specs["Slider"].content_type = "Slider";
     }
     {
-        TypeDefinition def;
+        PrimitiveSpec def;
         def.classname = "BoolSrc";
-        def.cpp_class = true;
         def.ports.emplace("out", Port(bp2::Direction::Output, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
     }
     {
-        TypeDefinition def;
+        PrimitiveSpec def;
         def.classname = "BoolSink";
-        def.cpp_class = true;
         def.ports.emplace("in", Port(bp2::Direction::Input, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
     }

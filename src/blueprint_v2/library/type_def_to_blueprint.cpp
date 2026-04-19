@@ -99,22 +99,23 @@ Blueprint::Node make_bridge_node(const BridgePortDefinition& bridge,
 
 } // namespace
 
-Blueprint blueprint_from_type_definition(const TypeDefinition& def,
+Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
                                          ui::StringInterner& interner,
                                          const TypeRegistry& registry) {
-    if (def.cpp_class) {
+    const auto* comp = as_composite(spec);
+    if (!comp) {
         throw std::runtime_error(
-            "blueprint_from_type_definition: '" + def.classname
-            + "' is a cpp_class, not a composite blueprint");
+            "blueprint_from_type_definition: '" + spec_classname(spec)
+            + "' is not a composite blueprint");
     }
 
     Blueprint bp;
-    bp = bp.with_id(interner.intern(def.classname));
-    bp = bp.with_name(def.classname);
-    bp = bp.with_interface(interface_from_type_definition(def, interner));
+    bp = bp.with_id(interner.intern(comp->classname));
+    bp = bp.with_name(comp->classname);
+    bp = bp.with_interface(interface_from_type_definition(spec, interner));
 
     // --- Nodes from devices ---
-    for (const auto& dev : def.devices) {
+    for (const auto& dev : comp->devices) {
         Blueprint::Node node;
         node.content = Blueprint::Node::ComponentData{};
         node.semantic.id = interner.intern(dev.name);
@@ -133,7 +134,7 @@ Blueprint blueprint_from_type_definition(const TypeDefinition& def,
         // Build node interface from TypeRegistry definition for this device's class.
         // The v3 parser does not populate DeviceInstance.ports, so we look up the
         // canonical type definition to get the port list.
-        const TypeDefinition* dev_def = registry.get(dev.classname);
+        const ComponentSpec* dev_def = registry.get(dev.classname);
         if (dev_def) {
             node.component().iface = interface_from_type_definition(*dev_def, interner);
         } else if (!dev.ports.empty()) {
@@ -161,15 +162,15 @@ Blueprint blueprint_from_type_definition(const TypeDefinition& def,
         bp = bp.with_node(std::move(node));
     }
 
-    for (const auto& bridge : def.bridge_ports) {
+    for (const auto& bridge : comp->bridge_ports) {
         bp = bp.with_node(make_bridge_node(bridge, interner));
     }
 
     // --- Wires from connections ---
     int wire_idx = 0;
-    for (const auto& conn : def.connections) {
-        auto [src_node, src_port] = parse_endpoint(conn.from, def.classname);
-        auto [tgt_node, tgt_port] = parse_endpoint(conn.to, def.classname);
+    for (const auto& conn : comp->connections) {
+        auto [src_node, src_port] = parse_endpoint(conn.from, comp->classname);
+        auto [tgt_node, tgt_port] = parse_endpoint(conn.to, comp->classname);
 
         Blueprint::Wire wire;
         wire.id = interner.intern("w_td_" + std::to_string(wire_idx++));
@@ -178,14 +179,14 @@ Blueprint blueprint_from_type_definition(const TypeDefinition& def,
         wire.domain = resolve_wire_domain(bp, registry, interner,
                                           src_node, src_port,
                                           tgt_node, tgt_port,
-                                          def.classname);
+                                          comp->classname);
         wire.routing_points = conn.routing_points;
 
         bp = bp.with_wire(std::move(wire));
     }
 
     spdlog::debug("[type_def_to_blueprint] Built blueprint '{}': {} nodes, {} wires",
-                  def.classname, bp.nodes().size(), bp.wires().size());
+                  comp->classname, bp.nodes().size(), bp.wires().size());
 
     return bp;
 }

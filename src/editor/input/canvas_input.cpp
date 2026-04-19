@@ -293,7 +293,7 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
             state_ = InputState::DraggingSlider;
             float origin_local_x = content_bounds.x;
             const std::string type_name(interner_.resolve(node->semantic.type));
-            const TypeDefinition* def = parser_registry_ ? parser_registry_->get(type_name) : nullptr;
+            const ComponentSpec* def = parser_registry_ ? parser_registry_->get(type_name) : nullptr;
             const TypePresentation* pres = parser_registry_ ? parser_registry_->presentation.get(type_name) : nullptr;
             auto spec = editor::presentation::make_presentation_spec(*node, def, pres, interner_);
             semantic_canvas_controller_.set_active_scalar_mapping({
@@ -308,7 +308,7 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
         case CanvasInput::SemanticContentRole::DiscreteSelector: {
             state_ = InputState::DraggingKnob;
             const std::string type_name(interner_.resolve(node->semantic.type));
-            const TypeDefinition* def = parser_registry_ ? parser_registry_->get(type_name) : nullptr;
+            const ComponentSpec* def = parser_registry_ ? parser_registry_->get(type_name) : nullptr;
             const TypePresentation* pres = parser_registry_ ? parser_registry_->presentation.get(type_name) : nullptr;
             auto spec = editor::presentation::make_presentation_spec(*node, def, pres, interner_);
             int start_pos = static_cast<int>(spec.content_value);

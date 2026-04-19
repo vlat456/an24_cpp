@@ -37,11 +37,11 @@ TEST(BlueprintLoading, MissingBlueprintReturnsError) {
 }
 
 TEST(BlueprintLoading, DirectBlueprintLoadWorks) {
-    // 12SAM28 is a blueprint type in library/systems/ (cpp_class=false)
+    // 12SAM28 is a blueprint type in library/systems/ (composite)
     TypeRegistry reg = load_type_registry("library/");
     ASSERT_TRUE(reg.has("12SAM28"));
     const auto* def = reg.get("12SAM28");
-    ASSERT_FALSE(def->cpp_class);
+    ASSERT_TRUE(is_composite(*def));
 }
 
 // =============================================================================
@@ -105,7 +105,7 @@ static float get_voltage(const SimulationState& state, const BuildResult& result
 // =============================================================================
 
 TEST(ExtractExposedPorts, MultipleBlueprints) {
-    TypeDefinition bp;
+    CompositeSpec bp;
     bp.bridge_ports = {
         BridgePortDefinition{"in1", "in1", bp2::Direction::Input, PortType::V},
         BridgePortDefinition{"in2", "in2", bp2::Direction::Input, PortType::I},
@@ -131,7 +131,7 @@ TEST(ExtractExposedPorts, MultipleBlueprints) {
 }
 
 TEST(ExtractExposedPorts, EmptyBlueprint) {
-    TypeDefinition bp;
+    CompositeSpec bp;
     auto exposed = extract_exposed_ports(bp);
 
     // Should have 0 exposed ports
@@ -139,7 +139,7 @@ TEST(ExtractExposedPorts, EmptyBlueprint) {
 }
 
 TEST(ExtractExposedPorts, DefaultValues) {
-    TypeDefinition bp;
+    CompositeSpec bp;
     bp.bridge_ports = {
         BridgePortDefinition{"in", "in", bp2::Direction::Input, PortType::Contextual},
         BridgePortDefinition{"out", "out", bp2::Direction::Output, PortType::Contextual},
@@ -434,10 +434,10 @@ TEST(BlueprintExtension, CodegenUsesBluprintExtension) {
     // We verify by loading a composite type and checking it round-trips
     TypeRegistry reg = load_type_registry("library/");
 
-    // Find any composite (cpp_class=false) type
+    // Find any composite type
     std::string composite_name;
     for (const auto& [name, def] : reg.types) {
-        if (!def.cpp_class) {
+        if (is_composite(def)) {
             composite_name = name;
             break;
         }
@@ -447,8 +447,8 @@ TEST(BlueprintExtension, CodegenUsesBluprintExtension) {
     const auto* def = reg.get(composite_name);
     ASSERT_NE(def, nullptr);
     // Verify classname doesn't contain .json
-    EXPECT_EQ(def->classname.find(".json"), std::string::npos)
-        << "Classname should not contain .json: " << def->classname;
+    EXPECT_EQ(spec_classname(*def).find(".json"), std::string::npos)
+        << "Classname should not contain .json: " << spec_classname(*def);
 }
 
 // =============================================================================

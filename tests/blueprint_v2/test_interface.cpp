@@ -124,7 +124,7 @@ TEST(Interface, UnequalInterfaces) {
 TEST(TypeDefinitionInterface, InterfaceFromTypeDefinitionCoversAllPortTypes) {
     ui::StringInterner interner;
 
-    TypeDefinition def;
+    PrimitiveSpec def;
     def.classname = "AllPortTypes";
     def.ports["v"] = Port{bp2::Direction::Input, PortType::V};
     def.ports["i"] = Port{bp2::Direction::Output, PortType::I};

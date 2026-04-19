@@ -8,6 +8,7 @@
 #include <optional>
 #include <stdexcept>
 #include <utility>
+#include <variant>
 #include <nlohmann/json.hpp>
 
 #include "core/domain_types.h"
@@ -44,7 +45,7 @@ struct Connection {
     std::vector<std::pair<float,float>> routing_points;  // Editor layout (optional)
 };
 
-/// Minimal reference to a sub-blueprint (used in TypeDefinition for library definitions)
+/// Minimal reference to a sub-blueprint (used in CompositeSpec for library definitions)
 struct SubBlueprintRef {
     std::string id;
     std::string blueprint_path;
@@ -65,7 +66,7 @@ struct BridgePortDefinition {
 };
 
 /// Solver role metadata — describes how a component participates in a domain subsolver.
-/// Primitives declare this in their blueprint; wrappers rely on classname fallback.
+/// Declared in component blueprints.
 struct SolverRole {
     std::string kind;  // "ConductanceBranch", "TheveninSource", "FixedVoltageNode"
     std::unordered_map<std::string, std::string> port_map;   // role key -> port name (e.g. "a" -> "v_in")
@@ -103,27 +104,78 @@ struct ParamSpec {
     bool visual_only = false;
 };
 
-/// Type definition (ports, params, domains for a component class or blueprint)
-struct TypeDefinition {
-    std::string classname;                    // C++ class name or blueprint classname (e.g., "Battery", "SimpleBattery")
-    bool cpp_class = true;                    // true = C++ component, false = blueprint
-    std::unordered_map<std::string, Port> ports;  // Port definitions
-    std::unordered_map<std::string, ParamSpec> params;  // Combined parameter specs (default + schema)
-    std::optional<std::vector<Domain>> domains;    // Domains
-    std::string priority = "med";     // Priority
-    bool critical = false;            // Critical flag
-    bool visual_only = false;  // True = no simulation behavior (e.g. Group)
-    std::optional<ExecutionPhases> execution;      // Explicit execution-phase metadata
-    bool scheduler_source = false;                 // Explicit scheduler source classification
-    bool solver_owned_electrical = false;           // Explicit solver ownership for electrical propagation
-    std::optional<SolverRole> solver_role;          // Subsolver role metadata (primitives only)
-    // For blueprints only: internal devices and connections
-    std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
-    std::vector<Connection> connections;  // Internal connections (for blueprints)
-    std::vector<BridgePortDefinition> bridge_ports;  // Structural bridge nodes for composites
-    // Sub-blueprint references (cpp_class = false composites only)
+struct PrimitiveSpec {
+    std::string classname;
+    std::unordered_map<std::string, Port> ports;
+    std::unordered_map<std::string, ParamSpec> params;
+    std::vector<Domain> domains;
+    std::optional<ExecutionPhases> execution;
+    bool scheduler_source = false;
+    bool solver_owned_electrical = false;
+    std::optional<SolverRole> solver_role;
+    std::string priority = "med";
+    bool critical = false;
+    bool visual_only = false;
+};
+
+struct CompositeSpec {
+    std::string classname;
+    std::unordered_map<std::string, Port> ports;
+    std::unordered_map<std::string, ParamSpec> params;
+    std::vector<Domain> domains;
+    bool scheduler_source = false;
+    bool solver_owned_electrical = false;
+    std::string priority = "med";
+    bool critical = false;
+    bool visual_only = false;
+    std::vector<DeviceInstance> devices;
+    std::vector<Connection> connections;
+    std::vector<BridgePortDefinition> bridge_ports;
     std::vector<SubBlueprintRef> sub_blueprints;
 };
+
+using ComponentSpec = std::variant<PrimitiveSpec, CompositeSpec>;
+
+// -- Common accessors --
+inline const std::string& spec_classname(const ComponentSpec& s) {
+    return std::visit([](const auto& v) -> const std::string& { return v.classname; }, s);
+}
+inline const std::unordered_map<std::string, Port>& spec_ports(const ComponentSpec& s) {
+    return std::visit([](const auto& v) -> const std::unordered_map<std::string, Port>& { return v.ports; }, s);
+}
+inline std::unordered_map<std::string, Port>& spec_ports_mut(ComponentSpec& s) {
+    return std::visit([](auto& v) -> std::unordered_map<std::string, Port>& { return v.ports; }, s);
+}
+inline const std::unordered_map<std::string, ParamSpec>& spec_params(const ComponentSpec& s) {
+    return std::visit([](const auto& v) -> const std::unordered_map<std::string, ParamSpec>& { return v.params; }, s);
+}
+inline std::unordered_map<std::string, ParamSpec>& spec_params_mut(ComponentSpec& s) {
+    return std::visit([](auto& v) -> std::unordered_map<std::string, ParamSpec>& { return v.params; }, s);
+}
+inline const std::vector<Domain>& spec_domains(const ComponentSpec& s) {
+    return std::visit([](const auto& v) -> const std::vector<Domain>& { return v.domains; }, s);
+}
+inline const std::string& spec_priority(const ComponentSpec& s) {
+    return std::visit([](const auto& v) -> const std::string& { return v.priority; }, s);
+}
+inline bool spec_critical(const ComponentSpec& s) {
+    return std::visit([](const auto& v) { return v.critical; }, s);
+}
+inline bool spec_visual_only(const ComponentSpec& s) {
+    return std::visit([](const auto& v) { return v.visual_only; }, s);
+}
+inline bool spec_scheduler_source(const ComponentSpec& s) {
+    return std::visit([](const auto& v) { return v.scheduler_source; }, s);
+}
+inline bool spec_solver_owned_electrical(const ComponentSpec& s) {
+    return std::visit([](const auto& v) { return v.solver_owned_electrical; }, s);
+}
+inline bool is_primitive(const ComponentSpec& s) { return std::holds_alternative<PrimitiveSpec>(s); }
+inline bool is_composite(const ComponentSpec& s) { return std::holds_alternative<CompositeSpec>(s); }
+inline const PrimitiveSpec* as_primitive(const ComponentSpec& s) { return std::get_if<PrimitiveSpec>(&s); }
+inline const CompositeSpec* as_composite(const ComponentSpec& s) { return std::get_if<CompositeSpec>(&s); }
+inline PrimitiveSpec* as_primitive_mut(ComponentSpec& s) { return std::get_if<PrimitiveSpec>(&s); }
+inline CompositeSpec* as_composite_mut(ComponentSpec& s) { return std::get_if<CompositeSpec>(&s); }
 
 /// Tree structure mirroring library/ subdirectory hierarchy for menu building.
 struct MenuTree {
@@ -132,44 +184,30 @@ struct MenuTree {
     std::map<std::string, MenuTree> children;                // Subfolder name -> subtree (sorted by key)
 };
 
-/// Type registry - holds all type definitions loaded from library/
 struct TypeRegistry {
-    std::unordered_map<std::string, TypeDefinition> types;
-    std::unordered_map<std::string, std::string> categories;  // classname → relative subdir path (e.g., "electrical")
+    std::unordered_map<std::string, ComponentSpec> types;
+    std::unordered_map<std::string, std::string> categories;
     PresentationRegistry presentation;
 
-    /// Get type definition by classname
-    const TypeDefinition* get(const std::string& classname) const {
+    const ComponentSpec* get(const std::string& classname) const {
         auto it = types.find(classname);
-        if (it != types.end()) {
-            return &it->second;
-        }
+        if (it != types.end()) return &it->second;
         return nullptr;
     }
 
-    /// Check if classname exists
     bool has(const std::string& classname) const {
         return types.count(classname) > 0;
     }
 
-    /// Get all registered classnames
     std::vector<std::string> list_classnames() const {
         std::vector<std::string> names;
         names.reserve(types.size());
-        for (const auto& [name, _] : types) {
-            names.push_back(name);
-        }
+        for (const auto& [name, _] : types) names.push_back(name);
         return names;
     }
 
-    /// Build a menu tree from directory hierarchy
     MenuTree build_menu_tree() const;
-
-    /// Validate instance against definition
     std::optional<std::string> validate_instance(const DeviceInstance& instance) const;
-
-    /// Get all composites (cpp_class = false) in topological order (leaves first).
-    /// Used for AOT codegen to generate nested Systems classes.
     std::vector<std::string> get_composites_topo_sorted() const;
 };
 
@@ -291,7 +329,7 @@ ParserContext parse_json(const std::string& json_text, const std::string& librar
 
 /// Extract exposed port metadata from structural bridge definitions.
 /// For editor/library use when displaying a composite blueprint boundary.
-std::unordered_map<std::string, Port> extract_exposed_ports(const TypeDefinition& blueprint);
+std::unordered_map<std::string, Port> extract_exposed_ports(const ComponentSpec& spec);
 
 /// Serialize a ParserContext to pretty-printed JSON
 std::string serialize_json(const ParserContext& ctx);
@@ -299,19 +337,19 @@ std::string serialize_json(const ParserContext& ctx);
 /// Load type registry from library/ directory
 TypeRegistry load_type_registry(const std::string& library_dir = "library/");
 
-/// Merge device instance with type definition defaults
+/// Merge device instance with component spec defaults
 DeviceInstance merge_device_instance(
     const DeviceInstance& instance,
-    const TypeDefinition& definition
+    const ComponentSpec& definition
 );
 
-/// Parse a TypeDefinition from JSON (helper for testing)
-std::pair<TypeDefinition, TypePresentation> parse_type_definition(const nlohmann::json& j);
+/// Parse a ComponentSpec from JSON (helper for testing)
+std::pair<ComponentSpec, TypePresentation> parse_type_definition(const nlohmann::json& j);
 
 /// Expand sub_blueprint references into flat devices + connections.
 /// Throws std::runtime_error on circular references.
 /// loading_stack tracks ancestors for cycle detection — pass empty set at top call.
-TypeDefinition expand_sub_blueprint_references(
-    const TypeDefinition& td,
+CompositeSpec expand_sub_blueprint_references(
+    const CompositeSpec& td,
     const TypeRegistry& registry,
     std::set<std::string>& loading_stack);

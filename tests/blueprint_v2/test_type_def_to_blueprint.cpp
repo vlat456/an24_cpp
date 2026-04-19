@@ -4,10 +4,9 @@
 
 namespace {
 
-TypeDefinition make_composite_def() {
-    TypeDefinition def;
+CompositeSpec make_composite_def() {
+    CompositeSpec def;
     def.classname = "TestComposite";
-    def.cpp_class = false;
 
     Port in;
 in.direction = bp2::Direction::Input;
@@ -48,9 +47,8 @@ out.direction = bp2::Direction::Output;
 TypeRegistry make_registry() {
     TypeRegistry registry;
 
-    TypeDefinition src;
+    PrimitiveSpec src;
     src.classname = "SourceNode";
-    src.cpp_class = true;
     Port src_out;
     src_out.direction = bp2::Direction::Output;
     src_out.type = PortType::Bool;
@@ -58,9 +56,8 @@ TypeRegistry make_registry() {
     src.ports["out"] = src_out;
     registry.types[src.classname] = src;
 
-    TypeDefinition dst;
+    PrimitiveSpec dst;
     dst.classname = "SinkNode";
-    dst.cpp_class = true;
     Port dst_in;
     dst_in.direction = bp2::Direction::Input;
     dst_in.type = PortType::Bool;
@@ -75,7 +72,7 @@ TypeRegistry make_registry() {
 
 TEST(TypeDefToBlueprint, PreservesLayoutAndRoutingAndDomain) {
     ui::StringInterner interner;
-    TypeDefinition def = make_composite_def();
+    CompositeSpec def = make_composite_def();
     TypeRegistry registry = make_registry();
 
     bp2::Blueprint bp = bp2::blueprint_from_type_definition(def, interner, registry);
@@ -103,12 +100,17 @@ TEST(TypeDefToBlueprint, PreservesLayoutAndRoutingAndDomain) {
 
 TEST(TypeDefToBlueprint, WireDomainMatchesResolvedEndpointInterface) {
     ui::StringInterner interner;
-    TypeDefinition def = make_composite_def();
+    CompositeSpec def = make_composite_def();
     TypeRegistry registry = make_registry();
-    registry.types["SinkNode"].ports["in"].type = PortType::V;
-    registry.types["SinkNode"].ports["in"].domain = Domain::Electrical;
-    registry.types["SourceNode"].ports["out"].type = PortType::V;
-    registry.types["SourceNode"].ports["out"].domain = Domain::Electrical;
+    auto* src_def = as_primitive_mut(registry.types.at("SourceNode"));
+    ASSERT_NE(src_def, nullptr);
+    src_def->ports["out"].type = PortType::V;
+    src_def->ports["out"].domain = Domain::Electrical;
+
+    auto* dst_def = as_primitive_mut(registry.types.at("SinkNode"));
+    ASSERT_NE(dst_def, nullptr);
+    dst_def->ports["in"].type = PortType::V;
+    dst_def->ports["in"].domain = Domain::Electrical;
 
     bp2::Blueprint bp = bp2::blueprint_from_type_definition(def, interner, registry);
     ASSERT_EQ(bp.wires().size(), 1u);
@@ -119,9 +121,8 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     ui::StringInterner interner;
     TypeRegistry registry = make_registry();
 
-    TypeDefinition sink;
+    PrimitiveSpec sink;
     sink.classname = "BoolSink";
-    sink.cpp_class = true;
     Port sink_in;
     sink_in.direction = bp2::Direction::Input;
     sink_in.type = PortType::Bool;
@@ -129,9 +130,8 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     sink.ports["in"] = sink_in;
     registry.types["BoolSink"] = sink;
 
-    TypeDefinition def;
+    CompositeSpec def;
     def.classname = "BadComposite";
-    def.cpp_class = false;
 
     Port exposed;
     exposed.direction = bp2::Direction::Input;
@@ -157,4 +157,33 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     def.connections.push_back(conn);
 
     EXPECT_THROW(bp2::blueprint_from_type_definition(def, interner, registry), std::runtime_error);
+}
+
+// Regression: as_composite_mut was used on PrimitiveSpec entries, silently
+// skipping port mutations and producing wrong wire domain.
+TEST(TypeDefToBlueprint, Regression_PrimitivePortMutationUsesCorrectAccessor) {
+    ui::StringInterner interner;
+    CompositeSpec def = make_composite_def();
+    TypeRegistry registry = make_registry();
+
+    // Verify the registry entries are PrimitiveSpec, not CompositeSpec
+    ASSERT_NE(as_primitive(registry.types.at("SourceNode")), nullptr);
+    ASSERT_NE(as_primitive(registry.types.at("SinkNode")), nullptr);
+    ASSERT_EQ(as_composite(registry.types.at("SourceNode")), nullptr);
+    ASSERT_EQ(as_composite(registry.types.at("SinkNode")), nullptr);
+
+    // Mutate via correct accessor
+    auto* src = as_primitive_mut(registry.types.at("SourceNode"));
+    ASSERT_NE(src, nullptr);
+    src->ports["out"].type = PortType::V;
+    src->ports["out"].domain = Domain::Electrical;
+
+    auto* dst = as_primitive_mut(registry.types.at("SinkNode"));
+    ASSERT_NE(dst, nullptr);
+    dst->ports["in"].type = PortType::V;
+    dst->ports["in"].domain = Domain::Electrical;
+
+    bp2::Blueprint bp = bp2::blueprint_from_type_definition(def, interner, registry);
+    ASSERT_EQ(bp.wires().size(), 1u);
+    EXPECT_EQ(bp.wires().front().domain, Domain::Electrical);
 }

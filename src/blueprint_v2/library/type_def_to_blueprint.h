@@ -24,9 +24,9 @@ namespace bp2 {
 /// and must NOT be loaded through the strict v1 blueprint codec.
 ///
 /// Throws std::runtime_error if:
-///   - def.cpp_class is true (not a composite)
+///   - spec is not a CompositeSpec (primitive)
 ///   - a connection string cannot be parsed as "node.port"
-Blueprint blueprint_from_type_definition(const TypeDefinition& def,
+Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
                                          ui::StringInterner& interner,
                                          const TypeRegistry& registry);
 
