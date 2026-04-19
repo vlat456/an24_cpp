@@ -22,7 +22,7 @@ static void compute_signal_mapping(
     std::unordered_map<std::string, uint32_t> port_to_idx;
 
     for (const auto& dev : devices) {
-         if (dev.visual_only) {
+         if (dev.spec && spec_visual_only(*dev.spec)) {
              continue;
          }
 
@@ -163,6 +163,7 @@ JitBuildInput build_input_from_json(const std::string& json_str) {
         ctx.bridge_ports,
         temp_result.port_to_signal,
         temp_result.signal_count,
-        ctx.initial_values  // Include initial values from JSON
+        ctx.initial_values,
+        std::move(ctx.registry)
     };
 }

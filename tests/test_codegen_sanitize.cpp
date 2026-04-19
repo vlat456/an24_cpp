@@ -37,10 +37,9 @@ static auto make_colon_circuit() {
     ref.classname = "RefNode";
     ref.params = {{"value", "0"}};
     ref.ports["v"] = {bp2::Direction::Output};
-    ref.domains = {Domain::Electrical};
-    ref.execution = test_exec::electrical_passive();
+    ref.spec = test_registry().get("RefNode");
     if (const PrimitiveSpec* def = as_primitive(*test_registry().get("RefNode"))) {
-        ref = merge_device_instance(ref, *def);
+        ref = resolve_device(ref, *def);
     }
     devices.push_back(ref);
 
@@ -50,10 +49,9 @@ static auto make_colon_circuit() {
     bat.params = {{"voltage", "28"}, {"resistance", "0.01"}};
     bat.ports["v_out"] = {bp2::Direction::Output};
     bat.ports["v_in"] = {bp2::Direction::Input};
-    bat.domains = {Domain::Electrical};
-    bat.execution = test_exec::electrical_passive();
+    bat.spec = test_registry().get("ElectricalSource");
     if (const PrimitiveSpec* def = as_primitive(*test_registry().get("ElectricalSource"))) {
-        bat = merge_device_instance(bat, *def);
+        bat = resolve_device(bat, *def);
     }
     devices.push_back(bat);
 
@@ -61,10 +59,9 @@ static auto make_colon_circuit() {
     bus.name = "bp_1:main-bus";  // also has a hyphen
     bus.classname = "Bus";
     bus.ports["v"] = {bp2::Direction::InOut};
-    bus.domains = {Domain::Electrical};
-    bus.execution = test_exec::bus();
+    bus.spec = test_registry().get("Bus");
     if (const PrimitiveSpec* def = as_primitive(*test_registry().get("Bus"))) {
-        bus = merge_device_instance(bus, *def);
+        bus = resolve_device(bus, *def);
     }
     devices.push_back(bus);
 
@@ -74,10 +71,9 @@ static auto make_colon_circuit() {
     load.params = {{"conductance", "0.1"}};
     load.ports["v_in"] = {bp2::Direction::Input};
     load.ports["v_out"] = {bp2::Direction::Output};
-    load.domains = {Domain::Electrical};
-    load.execution = test_exec::electrical_passive();
+    load.spec = test_registry().get("Resistor");
     if (const PrimitiveSpec* def = as_primitive(*test_registry().get("Resistor"))) {
-        load = merge_device_instance(load, *def);
+        load = resolve_device(load, *def);
     }
     devices.push_back(load);
 
@@ -165,8 +161,7 @@ TEST(CodegenSanitize, SanitizeNameFunction) {
         dev.name = input;
         dev.classname = "RefNode";
         dev.ports["v"] = {bp2::Direction::Output};
-        dev.domains = {Domain::Electrical};
-        dev.execution = test_exec::electrical_passive();
+        dev.spec = test_registry().get("RefNode");
         devices.push_back(dev);
 
         std::unordered_map<std::string, uint32_t> port_to_signal;
@@ -197,8 +192,7 @@ TEST(CodegenSanitize, NoCollisionBetweenDotAndDashAndColon) {
         dev.name = name;
         dev.classname = "RefNode";
         dev.ports["v"] = {bp2::Direction::Output};
-        dev.domains = {Domain::Electrical};
-        dev.execution = test_exec::electrical_passive();
+        dev.spec = test_registry().get("RefNode");
         devices.push_back(dev);
 
         std::unordered_map<std::string, uint32_t> port_to_signal;

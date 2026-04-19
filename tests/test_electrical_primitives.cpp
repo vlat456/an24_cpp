@@ -27,6 +27,33 @@ const ComponentRegistry& test_registry() {
     return registry;
 }
 
+struct TestSpecStore {
+    std::vector<ComponentSpec> specs;
+    const ComponentSpec* add(ComponentSpec spec) {
+        specs.push_back(std::move(spec));
+        return &specs.back();
+    }
+    const ComponentSpec* add(PrimitiveSpec spec) {
+        specs.push_back(std::move(spec));
+        return &specs.back();
+    }
+};
+
+const ComponentSpec* make_spec_with_role(
+    TestSpecStore& store,
+    const std::string& classname,
+    SolverRole role)
+{
+    PrimitiveSpec prim;
+    const ComponentSpec* base = test_registry().get(classname);
+    if (base) {
+        if (const auto* p = as_primitive(*base)) prim = *p;
+    }
+    prim.classname = classname;
+    prim.solver_role = std::move(role);
+    return store.add(std::move(prim));
+}
+
 DeviceInstance make_device(const std::string& name,
                            const std::string& classname,
                            const std::unordered_map<std::string, std::string>& params = {}) {
@@ -34,11 +61,10 @@ DeviceInstance make_device(const std::string& name,
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.execution = {};
 
     if (const ComponentSpec* spec = test_registry().get(classname)) {
+        dev.spec = spec;
         if (const PrimitiveSpec* def = as_primitive(*spec)) {
-            // Use full ports from type definition
             for (const auto& [port_name, port] : def->ports) {
                 dev.ports[port_name] = port;
             }
@@ -50,7 +76,6 @@ DeviceInstance make_device(const std::string& name,
                     dev.params[param_name] = param_spec.default_value;
                 }
             }
-            dev.solver_role = def->solver_role;
         }
     } else {
         auto ports = get_component_ports(classname);
@@ -76,11 +101,7 @@ SimulationState make_state(uint32_t signal_count) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
-    // Circuit A: ElectricalSource -> Resistor -> RefNode (wrapper-based)
-    // Circuit B: ElectricalSource -> ElectricalConductance -> RefNode (primitive)
-    // Both use identical parameters. Solved voltages must match.
-
-    const float conductance = 0.5f;  // R = 2 ohm
+    const float conductance = 0.5f;
     const float voltage = 28.0f;
     const float resistance = 0.1f;
 
@@ -105,6 +126,9 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
         {"bat.v_out", "cond.v_in"},
         {"cond.v_out", "gnd.v", "bat.v_in"}
     };
+
+    ASSERT_NE(devices_a[0].spec, nullptr) << "bat spec should be non-null";
+    ASSERT_TRUE(as_primitive(*devices_a[0].spec)->solver_role.has_value()) << "bat solver_role should exist";
 
     auto result_a = build_systems_dev(make_jit_input(devices_a, signal_groups_a));
     auto result_b = build_systems_dev(make_jit_input(devices_b, signal_groups_b));
@@ -530,8 +554,8 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         DeviceInstance dev;
         dev.name = "cond_bad";
         dev.classname = "ElectricalConductance";
-        dev.params = {{"conductanse", "0.5"}};  // Typo
-        dev.execution = {};
+        dev.params = {{"conductanse", "0.5"}};
+        dev.spec = test_registry().get("ElectricalConductance");
         auto ports = get_component_ports("ElectricalConductance");
         for (const auto& p : ports) {
             dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
@@ -548,8 +572,8 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         DeviceInstance dev;
         dev.name = "src_bad";
         dev.classname = "ElectricalSource";
-        dev.params = {{"voltage", "28.0"}, {"resistanse", "0.01"}};  // Typo
-        dev.execution = {};
+        dev.params = {{"voltage", "28.0"}, {"resistanse", "0.01"}};
+        dev.spec = test_registry().get("ElectricalSource");
         auto ports = get_component_ports("ElectricalSource");
         for (const auto& p : ports) {
             dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
@@ -577,17 +601,18 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
+    TestSpecStore store;
     // Build devices with solver_role metadata manually set (simulating library-loaded state).
     // Verify that the metadata-driven path produces correct ElectricalElementKind.
 
     // -- ConductanceBranch via solver_role --
     {
         DeviceInstance dev = make_device("cond1", "ElectricalConductance", {{"conductance", "0.5"}});
-        dev.solver_role = SolverRole{
+        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
             "ConductanceBranch",
             {{"a", "v_in"}, {"b", "v_out"}},
             {{"g", "conductance"}}
-        };
+        });
 
         DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
         DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
@@ -617,11 +642,11 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
     // -- TheveninSource via solver_role --
     {
         DeviceInstance dev = make_device("src1", "ElectricalSource", {{"voltage", "12.0"}, {"resistance", "0.05"}});
-        dev.solver_role = SolverRole{
+        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
             "TheveninSource",
             {{"pos", "v_out"}, {"neg", "v_in"}},
             {{"voltage", "voltage"}, {"resistance", "resistance"}}
-        };
+        });
 
         DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
@@ -651,11 +676,11 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
     // -- FixedVoltageNode via solver_role --
     {
         DeviceInstance dev = make_device("ref1", "RefNode", {{"value", "5.0"}});
-        dev.solver_role = SolverRole{
+        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
             "FixedVoltageNode",
             {{"node", "v"}},
             {{"voltage", "value"}}
-        };
+        });
 
         DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
@@ -687,14 +712,15 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
+    TestSpecStore store;
     // ConductanceBranch requires port keys "a" and "b". Test with "a" missing.
     {
         DeviceInstance dev = make_device("cond1", "ElectricalConductance", {{"conductance", "0.5"}});
-        dev.solver_role = SolverRole{
+        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
             "ConductanceBranch",
             {{"b", "v_out"}},  // Missing "a" key
             {{"g", "conductance"}}
-        };
+        });
 
         DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
         DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
@@ -712,11 +738,11 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
     // TheveninSource requires "pos" and "neg". Test with "neg" missing.
     {
         DeviceInstance dev = make_device("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
-        dev.solver_role = SolverRole{
+        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
             "TheveninSource",
             {{"pos", "v_out"}},  // Missing "neg" key
             {{"voltage", "voltage"}, {"resistance", "resistance"}}
-        };
+        });
 
         DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
@@ -734,11 +760,11 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
     // FixedVoltageNode requires "node". Test with empty port_map.
     {
         DeviceInstance dev = make_device("ref1", "RefNode", {{"value", "0.0"}});
-        dev.solver_role = SolverRole{
+        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
             "FixedVoltageNode",
             {},  // Missing "node" key
             {{"voltage", "value"}}
-        };
+        });
 
         DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
@@ -759,14 +785,15 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
+    TestSpecStore store;
     // ConductanceBranch requires param key "g". Test with it missing.
     {
         DeviceInstance dev = make_device("cond1", "ElectricalConductance", {{"conductance", "0.5"}});
-        dev.solver_role = SolverRole{
+        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
             "ConductanceBranch",
             {{"a", "v_in"}, {"b", "v_out"}},
             {}  // Missing "g" key
-        };
+        });
 
         DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
         DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
@@ -784,11 +811,11 @@ TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
     // TheveninSource requires "voltage" and "resistance". Test with "resistance" missing.
     {
         DeviceInstance dev = make_device("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
-        dev.solver_role = SolverRole{
+        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
             "TheveninSource",
             {{"pos", "v_out"}, {"neg", "v_in"}},
             {{"voltage", "voltage"}}  // Missing "resistance" key
-        };
+        });
 
         DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
         DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
@@ -814,7 +841,7 @@ TEST(ElectricalPrimitives, MetadataPropagatedThroughLibraryPipeline) {
     // and produces correct solve results.
     //
     // This test proves that the end-to-end path works:
-    //   blueprint file -> load_component_registry() -> merge_device_instance() -> build -> solve
+    //   blueprint file -> load_component_registry() -> resolve_device() -> build -> solve
 
     // Primitive-only circuit through full pipeline
     const std::string json = R"({

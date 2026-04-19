@@ -30,7 +30,6 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     gnd.critical = false;
     gnd.ports["v"] = Port{bp2::Direction::Output, PortType::V};
     gnd.params["value"] = "0.0";
-    gnd.domains = {Domain::Electrical};
     ctx.devices.push_back(gnd);
 
     // Battery
@@ -40,7 +39,6 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     bat.priority = "high";
     bat.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
     bat.params["voltage"] = "28.0";
-    bat.domains = {Domain::Electrical};
     ctx.devices.push_back(bat);
 
     // Explicit connection
@@ -66,7 +64,6 @@ TEST(JsonParserTest, RoundTripWithTemplates) {
     DeviceInstance bat;
     bat.name = "bat";
     bat.classname = "ElectricalSource";
-    bat.domains = {Domain::Electrical};
     tpl.devices.push_back(bat);
 
     SubsystemCall sub;
@@ -112,9 +109,11 @@ TEST(JsonParserTest, ParseMultipleDomains) {
     auto ctx = parse_json(json);
     ASSERT_EQ(ctx.devices.size(), 1);
     const auto& dev = ctx.devices[0];
-    EXPECT_EQ(dev.domains.size(), 2);
-    EXPECT_EQ(dev.domains[0], Domain::Electrical);
-    EXPECT_EQ(dev.domains[1], Domain::Hydraulic);
+    ASSERT_TRUE(dev.spec != nullptr);
+    const auto& domains = spec_domains(*dev.spec);
+    EXPECT_EQ(domains.size(), 2);
+    EXPECT_EQ(domains[0], Domain::Electrical);
+    EXPECT_EQ(domains[1], Domain::Hydraulic);
 }
 
 TEST(JsonParserTest, ParseDevicesWithAllFields) {
@@ -153,11 +152,12 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     EXPECT_EQ(dev.priority, "high");
     EXPECT_EQ(dev.bucket.value(), 2);
     EXPECT_TRUE(dev.critical);
-    EXPECT_EQ(dev.domains.size(), 2);
-    EXPECT_EQ(dev.domains[0], Domain::Electrical);
+    ASSERT_TRUE(dev.spec != nullptr);
+    EXPECT_EQ(spec_domains(*dev.spec).size(), 2);
+    EXPECT_EQ(spec_domains(*dev.spec)[0], Domain::Electrical);
 
     // Relay blueprint defines 5 ports: v_in, v_out, control, state, hold_threshold
-    // merge_device_instance() enriches with library-defined ports
+    // resolve_device() enriches with library-defined ports
     EXPECT_EQ(dev.ports.size(), 5);
     auto it_in = dev.ports.find("v_in");
     ASSERT_NE(it_in, dev.ports.end());
@@ -210,7 +210,6 @@ TEST(JsonParserTest, SerializePreservesData) {
     dev.name = "test";
     dev.classname = "ElectricalSource";
     dev.params["voltage"] = "28.0";
-    dev.domains = {Domain::Electrical, Domain::Thermal};
     ctx.devices.push_back(dev);
 
     ctx.connections.push_back({"a.b", "c.d"});
@@ -405,7 +404,6 @@ TEST(JsonParserTest, PortTypeSerialization_RoundTrip) {
     DeviceInstance dev;
     dev.name = "test";
     dev.classname = "ElectricalSource";
-    dev.domains = {Domain::Electrical};
     dev.ports["v_in"] = Port{bp2::Direction::Input, PortType::V};
     dev.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
     ctx.devices.push_back(dev);
@@ -681,7 +679,7 @@ TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
     inst.classname = "ElectricalSource";
     inst.params["r_internal"] = "-0.5";
 
-    EXPECT_THROW(merge_device_instance(inst, def), std::runtime_error);
+    EXPECT_THROW(resolve_device(inst, def), std::runtime_error);
 }
 
 TEST(ComponentRegistry, LoadRecursive_DeepNesting) {
@@ -805,7 +803,7 @@ TEST(ComponentRegistry, ListClassnames_IncludesAllCategorized) {
     EXPECT_EQ(names.size(), 2u);
 }
 
-// Regression: merge_device_instance must propagate domain and source_writer
+// Regression: resolve_device must propagate domain and source_writer
 // from the type definition when both instance and definition have the same port.
 // Previously only type and alias were copied, silently dropping metadata.
 TEST(JsonParserTest, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
@@ -821,7 +819,7 @@ TEST(JsonParserTest, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
     // Instance port: same name, but with default domain/source_writer
     inst.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
 
-    DeviceInstance merged = merge_device_instance(inst, def);
+    DeviceInstance merged = resolve_device(inst, def);
 
     // domain and source_writer must come from the definition, not remain at defaults
     EXPECT_EQ(merged.ports.at("v_out").domain, Domain::Mechanical);

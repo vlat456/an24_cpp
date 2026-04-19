@@ -54,7 +54,7 @@ inline std::vector<DeviceInstance> filter_simulation_devices(
     std::vector<DeviceInstance> devices;
     devices.reserve(devices_unfiltered.size());
     for (const auto& d : devices_unfiltered) {
-        if (!d.visual_only) {
+        if (!d.spec || !spec_visual_only(*d.spec)) {
             devices.push_back(d);
         }
     }
@@ -80,29 +80,31 @@ inline void emit_device_execute_commit(
     std::ostringstream& oss,
     const std::vector<DeviceInstance>& devices
 ) {
-    // Match JIT scheduler semantics: source bucket before consumer bucket.
-    // Order within each bucket remains declaration order.
     for (const auto& dev : devices) {
-        if (!dev.scheduler_source) {
+        const bool is_source = dev.spec && spec_scheduler_source(*dev.spec);
+        if (!is_source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
     }
     for (const auto& dev : devices) {
-        if (dev.scheduler_source) {
+        const bool is_source = dev.spec && spec_scheduler_source(*dev.spec);
+        if (is_source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
     }
 
     for (const auto& dev : devices) {
-        if (!dev.scheduler_source) {
+        const bool is_source = dev.spec && spec_scheduler_source(*dev.spec);
+        if (!is_source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";
     }
     for (const auto& dev : devices) {
-        if (dev.scheduler_source) {
+        const bool is_source = dev.spec && spec_scheduler_source(*dev.spec);
+        if (is_source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";

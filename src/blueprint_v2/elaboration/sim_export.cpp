@@ -124,7 +124,7 @@ JitBuildInput elaborate_for_jit(
 
         // Merge with type definition to get domains, execution metadata, solver_role, etc.
         if (type_def) {
-            dev = merge_device_instance(dev, *type_def);
+            dev = resolve_device(dev, *type_def);
         }
 
         result.devices.push_back(std::move(dev));

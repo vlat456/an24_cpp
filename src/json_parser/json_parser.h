@@ -219,27 +219,20 @@ struct ComponentRegistry {
     std::vector<std::string> get_composites_topo_sorted() const;
 };
 
-/// Device instance at any level (primitive or composite)
 struct DeviceInstance {
     std::string name;
-    std::string template_name;  // template used to instantiate this device
-    std::string classname;      // component class name (e.g., "Battery")
-    std::string display_name;   // user-visible name (from FlatNode::display_name, empty = same as name)
-    std::string priority = "med";  // high, med, low
-    std::optional<size_t> bucket;  // computation bucket
+    std::string template_name;
+    std::string classname;
+    std::string display_name;
+    std::string priority = "med";
+    std::optional<size_t> bucket;
     bool critical = false;
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
-    std::vector<Domain> domains;  // From component definition only, NOT user-configurable
-    bool visual_only = false;      // True = no simulation behavior (e.g. Group)
-    std::optional<std::pair<float,float>> pos;   // Editor layout position (optional)
-    std::optional<std::pair<float,float>> size;  // Editor layout size (optional)
-    std::optional<ExecutionPhases> execution;    // Copied from type definition
-    bool scheduler_source = false;               // Copied from type definition
-    bool solver_owned_electrical = false;        // Copied from type definition
-    std::optional<SolverRole> solver_role;        // Copied from type definition
+    std::optional<std::pair<float,float>> pos;
+    std::optional<std::pair<float,float>> size;
+    const ComponentSpec* spec = nullptr;
 
-    // Default constructor
     DeviceInstance() = default;
 
     DeviceInstance(
@@ -271,16 +264,6 @@ struct DeviceInstance {
             else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
             ports[port_name] = Port{dir, type, domain_for_port_type(type), false, std::nullopt};
         }
-    }
-
-    /// Get domains for this device
-    std::vector<Domain> get_domains() const {
-        if (domains.empty()) {
-            throw std::runtime_error(
-                "Device '" + name + "' (" + classname + ") has no domains. "
-                "Type definition should have domains.");
-        }
-        return domains;
     }
 };
 
@@ -345,8 +328,7 @@ std::string serialize_json(const ParserContext& ctx);
 /// Load type registry from library/ directory
 ComponentRegistry load_component_registry(const std::string& library_dir = "library/");
 
-/// Merge device instance with component spec defaults
-DeviceInstance merge_device_instance(
+DeviceInstance resolve_device(
     const DeviceInstance& instance,
     const ComponentSpec& definition
 );

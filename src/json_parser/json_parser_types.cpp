@@ -349,15 +349,15 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
     return {spec, pres};
 }
 
-DeviceInstance merge_device_instance(
+DeviceInstance resolve_device(
     const DeviceInstance& instance,
     const ComponentSpec& definition)
 {
     DeviceInstance merged = instance;
+    merged.spec = &definition;
 
-    // Get ports based on spec type
     const auto& ports = spec_ports(definition);
-    
+
     if (merged.ports.empty()) {
         merged.ports = ports;
     } else {
@@ -397,7 +397,6 @@ DeviceInstance merge_device_instance(
         throw std::runtime_error(
             "Missing domains metadata in component spec for component '" + spec_classname(definition) + "'");
     }
-    merged.domains = domains;
 
     if (merged.priority == "med" && spec_priority(definition) != "med") {
         merged.priority = spec_priority(definition);
@@ -407,22 +406,6 @@ DeviceInstance merge_device_instance(
         merged.critical = true;
     }
 
-    if (spec_visual_only(definition)) {
-        merged.visual_only = true;
-    }
-
-    // Primitive-specific fields
-    if (const auto* prim = as_primitive(definition)) {
-        merged.execution = prim->execution;
-        merged.scheduler_source = prim->scheduler_source;
-        merged.solver_owned_electrical = prim->solver_owned_electrical;
-        merged.solver_role = prim->solver_role;
-    } else {
-        merged.scheduler_source = spec_scheduler_source(definition);
-        merged.solver_owned_electrical = spec_solver_owned_electrical(definition);
-    }
-
-    // Validate params against schema (using unified params map)
     if (!params.empty()) {
         json_parser_internal::validate_params_against_schema(merged.params, params, merged.name, merged.classname);
     }

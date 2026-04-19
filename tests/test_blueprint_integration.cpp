@@ -24,7 +24,7 @@ static DeviceInstance make_device(
     dev.ports = std::move(ports);
     dev.priority = "med";
     dev.critical = false;
-    dev.execution = test_exec::for_class(classname);
+    dev.spec = load_component_registry("library/").get(classname);
     return dev;
 }
 
@@ -99,7 +99,7 @@ TEST(BlueprintPorts, AliasPortUnification_JitAotParity) {
     dev.classname = "Bus";  // Bus is a no-op component (no execute body)
     dev.priority = "med";
     dev.critical = false;
-    dev.execution = test_exec::bus();
+    dev.spec = load_component_registry("library/").get("Bus");
 
     dev.ports["i"]  = Port{bp2::Direction::Input,  PortType::Any};
     dev.ports["o1"] = Port{bp2::Direction::Output, PortType::Any, std::string("i")};  // alias → "i"

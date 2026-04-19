@@ -12,7 +12,7 @@ void build_port_index_map(
     std::unordered_map<std::string, uint32_t>& out_port_to_idx
 ) {
     for (const auto& dev : expanded_devices) {
-        if (dev.visual_only) {
+        if (dev.spec && spec_visual_only(*dev.spec)) {
             continue;
         }
         for (const auto& [port_name, port] : dev.ports) {

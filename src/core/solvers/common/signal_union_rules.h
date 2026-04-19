@@ -12,7 +12,7 @@
 namespace signal_union_rules {
 
 inline bool should_skip_device(const DeviceInstance& dev, bool skip_visual_only) {
-    return skip_visual_only && dev.visual_only;
+    return skip_visual_only && dev.spec && spec_visual_only(*dev.spec);
 }
 
 inline std::string bridge_internal_key(const BridgePortDefinition& bridge) {

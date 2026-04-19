@@ -24,9 +24,7 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "gnd";
         dev.classname = "RefNode";
-        ExecutionPhases phases;
-        phases.electrical_passive = true;
-        dev.execution = phases;
+        dev.spec = load_component_registry("library/").get("RefNode");
         dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["gnd.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
@@ -37,9 +35,7 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "bat";
         dev.classname = "Battery";
-        ExecutionPhases phases;
-        phases.electrical_passive = true;
-        dev.execution = phases;
+        dev.spec = load_component_registry("library/").get("Battery");
         dev.params["domain"] = "Electrical";
         dev.params["emf"] = "28";
         dev.params["internal_r"] = "0.05";
@@ -55,10 +51,7 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "rad";
         dev.classname = "Radiator";
-        ExecutionPhases phases;
-        phases.electrical_passive = true;
-        phases.thermal = true;
-        dev.execution = phases;
+        dev.spec = load_component_registry("library/").get("Radiator");
         dev.params["domain"] = "Electrical,Thermal";
         dev.ports["v_in"] = {bp2::Direction::Input, PortType::V, std::nullopt};
         dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
@@ -72,11 +65,7 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "pump";
         dev.classname = "ElectricPump";
-        ExecutionPhases phases;
-        phases.electrical_passive = true;
-        phases.mechanical = true;
-        phases.hydraulic = true;
-        dev.execution = phases;
+        dev.spec = load_component_registry("library/").get("ElectricPump");
         dev.params["domain"] = "Electrical,Mechanical,Hydraulic";
         dev.ports["v_in"] = {bp2::Direction::Input, PortType::V, std::nullopt};
         dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};

@@ -17,7 +17,7 @@ DeviceInstance make_device(const std::string& name,
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.execution = {};
+    dev.spec = nullptr;
     for (const auto& p : get_component_ports(classname)) {
         dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
     }

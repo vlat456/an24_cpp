@@ -87,7 +87,9 @@ std::optional<RawElement> extract_solver_role_element(
     const ElectricalExtractOptions& options,
     size_t& element_idx
 ) {
-    const auto& role = *dev.solver_role;
+    const auto* prim = dev.spec ? as_primitive(*dev.spec) : nullptr;
+    if (!prim || !prim->solver_role.has_value()) return std::nullopt;
+    const auto& role = *prim->solver_role;
 
     auto resolve_port = [&](const std::string& port_name) -> std::optional<uint32_t> {
         const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
@@ -508,12 +510,12 @@ ElectricalPlanCodegen extract_electrical_plan(
     };
 
     for (const auto& dev : devices) {
-        if (dev.visual_only || !device_has_any_ports(dev)) {
+        if ((dev.spec && spec_visual_only(*dev.spec)) || !device_has_any_ports(dev)) {
             continue;
         }
 
-        // Extract from solver_role first (explicit specification)
-        if (dev.solver_role.has_value()) {
+        const auto* prim = dev.spec ? as_primitive(*dev.spec) : nullptr;
+        if (prim && prim->solver_role.has_value()) {
             auto elem_opt = extract_solver_role_element(dev, port_to_signal, options, element_idx);
             if (elem_opt.has_value()) {
                 raw_elements.push_back(std::move(*elem_opt));

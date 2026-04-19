@@ -136,12 +136,12 @@ BuildResult build_single_component(const std::string& classname,
     dev.name = "test_" + classname;
     dev.classname = classname;
     dev.params = merged_params;
-    dev.execution = make_execution_for_class(classname);
+    dev.spec = test_registry().get(classname);
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
     if (const PrimitiveSpec* def = as_primitive(*test_registry().get(classname))) {
-        dev = merge_device_instance(dev, *def);
+        dev = resolve_device(dev, *def);
     }
 
     // Ground reference so the system has at least one fixed signal
@@ -149,10 +149,10 @@ BuildResult build_single_component(const std::string& classname,
     gnd.name = "gnd";
     gnd.classname = "RefNode";
     gnd.params = {{"value", "0"}};
-    gnd.execution = make_execution_for_class("RefNode");
+    gnd.spec = test_registry().get("RefNode");
     gnd.ports["v"] = Port{bp2::Direction::Output, PortType::V};
     if (const PrimitiveSpec* def = as_primitive(*test_registry().get("RefNode"))) {
-        gnd = merge_device_instance(gnd, *def);
+        gnd = resolve_device(gnd, *def);
     }
 
     std::vector<DeviceInstance> devices = {dev, gnd};
@@ -265,11 +265,11 @@ TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
     DeviceInstance bat;
     bat.name = "bat";
     bat.classname = "ElectricalSource";
-    bat.execution = make_execution_for_class("ElectricalSource");
+    bat.spec = test_registry().get("ElectricalSource");
     bat.ports["v_in"] = Port{bp2::Direction::Input, PortType::V};
     bat.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
     if (const PrimitiveSpec* def = as_primitive(*test_registry().get("ElectricalSource"))) {
-        bat = merge_device_instance(bat, *def);
+        bat = resolve_device(bat, *def);
     }
 
     std::vector<DeviceInstance> devices = {bat};

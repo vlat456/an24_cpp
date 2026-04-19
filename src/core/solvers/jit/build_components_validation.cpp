@@ -14,7 +14,7 @@ void validate_source_writer_conflicts(
     std::unordered_map<uint32_t, std::vector<std::string>> writers_by_signal;
 
     for (const auto& dev : devices) {
-        if (dev.visual_only) {
+        if (dev.spec && spec_visual_only(*dev.spec)) {
             continue;
         }
 

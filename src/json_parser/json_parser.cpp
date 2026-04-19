@@ -253,7 +253,7 @@ static ParserContext parse_json_impl(const std::string& json_text,
         }
 
         // Merge instance with definition
-        DeviceInstance merged = merge_device_instance(raw_dev, *def);
+        DeviceInstance merged = resolve_device(raw_dev, *def);
 
         // Validate merged instance
         auto error = ctx.registry.validate_instance(merged);
@@ -316,4 +316,4 @@ ParserContext parse_json(const std::string& json_text, const std::string& librar
 
 // load_component_registry moved to json_parser_registry.cpp
 
-// parse_type_definition/merge_device_instance/menu+validation helpers moved to json_parser_types.cpp
+// parse_type_definition/resolve_device/menu+validation helpers moved to json_parser_types.cpp

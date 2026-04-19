@@ -38,7 +38,7 @@ inline JitBuildInput make_jit_input(
 
     uint32_t next_signal = static_cast<uint32_t>(signal_groups.size());
     for (const auto& dev : input.devices) {
-        if (dev.visual_only) {
+        if (dev.spec && spec_visual_only(*dev.spec)) {
             continue;
         }
         for (const auto& [port_name, port] : dev.ports) {

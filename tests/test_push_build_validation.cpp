@@ -23,9 +23,9 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.execution = {};
+    dev.spec = test_registry().get(classname);
     
-    if (const auto* def = test_registry().get(classname)) {
+    if (const auto* def = dev.spec) {
         const auto& ports = spec_ports(*def);
         for (const auto& [port_name, port] : ports) {
             dev.ports[port_name] = port;
@@ -40,9 +40,6 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
                     dev.params[param_name] = param_spec.default_value;
                 }
             }
-        }
-        if (const auto* prim = as_primitive(*def)) {
-            dev.solver_role = prim->solver_role;
         }
     } else {
         auto ports = get_component_ports(classname);
@@ -999,7 +996,7 @@ TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
 
 
 
-// Regression: merge_device_instance must propagate domain and source_writer
+// Regression: resolve_device must propagate domain and source_writer
 // from the type definition when both instance and definition have the same port.
 // Previously only type and alias were copied, silently dropping metadata.
 TEST(PushBuildValidation, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
@@ -1015,7 +1012,7 @@ TEST(PushBuildValidation, MergeDeviceInstance_PropagatesPortDomainAndSourceWrite
     // Instance port: same name, but with default domain/source_writer
     inst.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
 
-    DeviceInstance merged = merge_device_instance(inst, def);
+    DeviceInstance merged = resolve_device(inst, def);
 
     // domain and source_writer must come from the definition, not remain at defaults
     EXPECT_EQ(merged.ports.at("v_out").domain, Domain::Mechanical);

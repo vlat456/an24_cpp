@@ -207,7 +207,8 @@ struct JitBuildInput {
     std::vector<BridgePortDefinition> bridge_ports;
     PortToSignal port_to_signal;
     uint32_t signal_count = 0;
-    std::unordered_map<std::string, float> initial_values;  // Optional port overrides
+    std::unordered_map<std::string, float> initial_values;
+    ComponentRegistry owned_registry;
 };
 
 /// Build solver runtime from pre-computed input (canonical path).

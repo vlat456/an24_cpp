@@ -34,10 +34,10 @@ DeviceInstance make_device(const std::string& name,
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.execution = {};
+    dev.spec = test_registry().get(classname);
 
     // First try to get full ComponentSpec ports if available.
-    if (const PrimitiveSpec* def = as_primitive(*test_registry().get(classname))) {
+    if (const PrimitiveSpec* def = as_primitive(*dev.spec)) {
         // Use full TypeDefinition::ports which includes input, output, and inout.
         for (const auto& [port_name, port_info] : def->ports) {
             dev.ports[port_name] = port_info;
@@ -51,7 +51,6 @@ DeviceInstance make_device(const std::string& name,
                 dev.params[param_name] = param_spec.default_value;
             }
         }
-        dev.solver_role = def->solver_role;
     } else {
         // Fallback: get component ports generically.
         auto ports = get_component_ports(classname);
@@ -934,7 +933,7 @@ TEST(PushRuntime, StrictParamMissingThrowsForPID) {
     DeviceInstance dev;
     dev.name = "pid_bad";
     dev.classname = "PID";
-    dev.execution = {};
+    dev.spec = nullptr;
     dev.params = {};  // Missing all params
 
     auto ports = get_component_ports("PID");
@@ -962,7 +961,7 @@ TEST(PushRuntime, StrictParamMissingThrowsForSlewRate) {
     DeviceInstance dev;
     dev.name = "slew_bad";
     dev.classname = "SlewRate";
-    dev.execution = {};
+    dev.spec = nullptr;
     dev.params = {{"deadzone", "0.001"}};  // Missing max_rate
 
     auto ports = get_component_ports("SlewRate");
@@ -1030,7 +1029,7 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
         DeviceInstance dev;
         dev.name = "pid_bad";
         dev.classname = "PID";
-        dev.execution = {};
+        dev.spec = nullptr;
         dev.params = {
             {"Kpp", "2.0"},  // Typo: should be "Kp"
             {"Ki", "0.5"},
@@ -1060,13 +1059,13 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
         }
     }
     
-     // Test 3: Valid params should NOT throw
-     {
-         DeviceInstance dev;
-         dev.name = "pid_ok";
-         dev.classname = "PID";
-         dev.execution = {};
-         dev.params = {
+// Test 3: Valid params should NOT throw
+      {
+          DeviceInstance dev;
+          dev.name = "pid_ok";
+          dev.classname = "PID";
+          dev.spec = nullptr;
+          dev.params = {
              {"Kp", "2.0"},
              {"Ki", "0.5"},
              {"Kd", "0.1"},

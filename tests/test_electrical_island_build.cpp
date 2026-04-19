@@ -22,7 +22,7 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.execution = {};
+    dev.spec = test_registry().get(classname);
 
     std::vector<std::string> ports;
     if (!explicit_ports.empty()) {
@@ -34,7 +34,7 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
         dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
-    if (const auto* def = test_registry().get(classname)) {
+    if (const auto* def = dev.spec) {
         const auto& params = spec_params(*def);
         for (const auto& [param_name, param_spec] : params) {
             if (param_spec.visual_only) {
@@ -44,12 +44,18 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
                 dev.params[param_name] = param_spec.default_value;
             }
         }
-        if (const auto* prim = as_primitive(*def)) {
-            dev.solver_role = prim->solver_role;
-        }
     }
     return dev;
 }
+
+// Test spec store for creating modified specs without solver_role
+struct TestSpecStore {
+    std::vector<ComponentSpec> specs;
+    const ComponentSpec* add(ComponentSpec spec) {
+        specs.push_back(std::move(spec));
+        return &specs.back();
+    }
+};
 
 DeviceInstance make_device_without_solver_role(
     const std::string& name,
@@ -58,7 +64,13 @@ DeviceInstance make_device_without_solver_role(
     const std::vector<std::string>& explicit_ports = {}
 ) {
     DeviceInstance dev = make_device(name, classname, params, explicit_ports);
-    dev.solver_role.reset();
+    // Create a copy of the spec without solver_role
+    if (dev.spec) {
+        static TestSpecStore store;
+        PrimitiveSpec prim_copy = *as_primitive(*dev.spec);
+        prim_copy.solver_role = std::nullopt;
+        dev.spec = store.add(std::move(prim_copy));
+    }
     return dev;
 }
 
@@ -165,7 +177,7 @@ TEST(ElectricalIslandBuild, MissingRequiredPortThrows) {
     bad_refnode.name = "refnode";
     bad_refnode.classname = "RefNode";
     bad_refnode.params = {{"value", "0.0"}};
-    bad_refnode.execution = {};
+    bad_refnode.spec = nullptr;
     // NOTE: ports map is intentionally empty - this should cause resolve_port to fail
 
     std::vector<DeviceInstance> devices = {

@@ -30,7 +30,7 @@ DeviceInstance make_resistor_device(std::string name) {
     dev.params["conductance"] = "1.0";
     const PrimitiveSpec* def = as_primitive(*shared_registry().get(dev.classname));
     EXPECT_NE(def, nullptr);
-    return merge_device_instance(dev, *def);
+    return resolve_device(dev, *def);
 }
 
 } // namespace

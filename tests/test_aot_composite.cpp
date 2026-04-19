@@ -22,7 +22,7 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
-    d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_lamp.spec = registry.get("IndicatorLight");
     lamp.devices.push_back(d_lamp);
     lamp.bridge_ports = {
         make_bridge_port_def("vin", bp2::Direction::Input, PortType::V),
@@ -60,7 +60,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "ElectricalSource";
-    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_bat.spec = registry.get("Battery");
     inner.devices.push_back(d_bat);
     registry.types["battery_wrapper"] = inner;
 
@@ -74,7 +74,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     DeviceInstance d_bus;
     d_bus.name = "bus";
     d_bus.classname = "Bus";
-    d_bus.execution = make_execution(true, false, true, false, false, false, false, false, false);
+    d_bus.spec = registry.get("Bus");
     outer.devices.push_back(d_bus);
     registry.types["battery_bank"] = outer;
 
@@ -98,7 +98,7 @@ TEST(AotComposite, ThreeLevelsDeep_FullHierarchy) {
     DeviceInstance d_r;
     d_r.name = "r1";
     d_r.classname = "Resistor";
-    d_r.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_r.spec = registry.get("Resistor");
     leaf.devices.push_back(d_r);
     registry.types["leaf_type"] = leaf;
 
@@ -142,7 +142,7 @@ TEST(AotComposite, TopoSort_LeavesFirst) {
     DeviceInstance d;
     d.name = "d";
     d.classname = "ElectricalSource";
-    d.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d.spec = registry.get("RefNode");
     leaf.devices.push_back(d);
     registry.types["leaf"] = leaf;
 
@@ -173,7 +173,7 @@ TEST(AotComposite, PreLoad_CallsSubComposites) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "ElectricalSource";
-    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_bat.spec = registry.get("Battery");
     inner.devices.push_back(d_bat);
     registry.types["inner_type"] = inner;
 
@@ -186,7 +186,7 @@ TEST(AotComposite, PreLoad_CallsSubComposites) {
     DeviceInstance d_bus;
     d_bus.name = "bus";
     d_bus.classname = "Bus";
-    d_bus.execution = make_execution(true, false, true, false, false, false, false, false, false);
+    d_bus.spec = registry.get("Bus");
     outer.devices.push_back(d_bus);
     registry.types["outer_type"] = outer;
 
@@ -261,7 +261,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     for (auto& dev : expanded.devices) {
         const auto* type_def = registry.get(dev.classname);
         if (type_def) {
-            dev = merge_device_instance(dev, *type_def);
+            dev = resolve_device(dev, *type_def);
         }
     }
 
@@ -354,20 +354,20 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "Generator";
-    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_bat.spec = registry.get("Battery");
     d_bat.params["v_nominal"] = "28.0";
     d_bat.params["internal_r"] = "0.01";
 
     DeviceInstance d_res;
     d_res.name = "res";
     d_res.classname = "Resistor";
-    d_res.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_res.spec = registry.get("Resistor");
     d_res.params["conductance"] = "10.0";
 
     DeviceInstance d_ref;
     d_ref.name = "gnd";
     d_ref.classname = "RefNode";
-    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_ref.spec = registry.get("RefNode");
     d_ref.params["value"] = "0.0";
 
     circuit.devices.push_back(d_bat);
@@ -414,12 +414,12 @@ TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "ElectricalSource";
-    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_bat.spec = registry.get("Battery");
 
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
-    d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_lamp.spec = registry.get("IndicatorLight");
 
     lamp_circuit.devices.push_back(d_bat);
     lamp_circuit.devices.push_back(d_lamp);
@@ -447,7 +447,7 @@ TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
     DeviceInstance d_bus;
     d_bus.name = "bus";
     d_bus.classname = "Bus";
-    d_bus.execution = make_execution(false, false, true, false, false, false, false, false, false);
+    d_bus.spec = registry.get("Bus");
 
     no_elec.devices.push_back(d_bus);
     registry.types["no_electrical"] = no_elec;
@@ -475,22 +475,22 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "Generator";
-    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_bat.spec = registry.get("Battery");
 
     DeviceInstance d_sense;
     d_sense.name = "sense";
     d_sense.classname = "CurrentSense";
-    d_sense.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_sense.spec = registry.get("CurrentSense");
 
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
-    d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_lamp.spec = registry.get("IndicatorLight");
 
     DeviceInstance d_ref;
     d_ref.name = "gnd";
     d_ref.classname = "RefNode";
-    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_ref.spec = registry.get("RefNode");
 
     circuit.devices.push_back(d_bat);
     circuit.devices.push_back(d_sense);
@@ -525,17 +525,17 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
         DeviceInstance d_bat;
         d_bat.name = "bat";
         d_bat.classname = "Generator";
-        d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+        d_bat.spec = registry.get("Battery");
 
         DeviceInstance d_sense;
         d_sense.name = "sense";
         d_sense.classname = "CurrentSense";
-        d_sense.execution = make_execution(true, false, false, false, false, false, false, false, false);
+        d_sense.spec = registry.get("CurrentSense");
 
         DeviceInstance d_ref;
         d_ref.name = "gnd";
         d_ref.classname = "RefNode";
-        d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+        d_ref.spec = registry.get("RefNode");
 
         td.devices.push_back(d_bat);
         td.devices.push_back(d_sense);
@@ -593,17 +593,17 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "Generator";
-    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_bat.spec = registry.get("Battery");
 
     DeviceInstance d_sense;
     d_sense.name = "sense";
     d_sense.classname = "CurrentSense";
-    d_sense.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_sense.spec = registry.get("CurrentSense");
 
     DeviceInstance d_ref;
     d_ref.name = "gnd";
     d_ref.classname = "RefNode";
-    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_ref.spec = registry.get("RefNode");
 
     circuit.devices.push_back(d_bat);
     circuit.devices.push_back(d_sense);
@@ -650,23 +650,23 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "Generator";
-    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_bat.spec = registry.get("Battery");
 
     // Non-electrical device inserted between bat and sense
     DeviceInstance d_logic;
     d_logic.name = "logic";
     d_logic.classname = "Any_V_to_Bool";
-    d_logic.execution = make_execution(false, false, true, false, false, false, false, false, false);
+    d_logic.spec = registry.get("Any_V_to_Bool");
 
     DeviceInstance d_sense;
     d_sense.name = "sense";
     d_sense.classname = "CurrentSense";
-    d_sense.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_sense.spec = registry.get("CurrentSense");
 
     DeviceInstance d_ref;
     d_ref.name = "gnd";
     d_ref.classname = "RefNode";
-    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_ref.spec = registry.get("RefNode");
 
     // Key: logic device sits at index 1 in devices array, but is NOT electrical.
     // If binding code used devices[element_idx], sense would wrongly get logic's name.
@@ -715,17 +715,17 @@ TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "ElectricalSource";
-    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_bat.spec = registry.get("Battery");
 
     DeviceInstance d_sense;
     d_sense.name = "sense";
     d_sense.classname = "CurrentSense";
-    d_sense.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_sense.spec = registry.get("CurrentSense");
 
     DeviceInstance d_ref;
     d_ref.name = "gnd";
     d_ref.classname = "RefNode";
-    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_ref.spec = registry.get("RefNode");
 
     circuit.devices.push_back(d_bat);
     circuit.devices.push_back(d_sense);
@@ -761,17 +761,17 @@ TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
     DeviceInstance d_src;
     d_src.name = "src";
     d_src.classname = "ElectricalSource";
-    d_src.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_src.spec = registry.get("ElectricalSource");
 
     DeviceInstance d_load;
     d_load.name = "load";
     d_load.classname = "ElectricalConductance";
-    d_load.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_load.spec = registry.get("ElectricalConductance");
 
     DeviceInstance d_ref;
     d_ref.name = "gnd";
     d_ref.classname = "RefNode";
-    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_ref.spec = registry.get("RefNode");
 
     circuit.devices.push_back(d_src);
     circuit.devices.push_back(d_load);
@@ -805,17 +805,17 @@ TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
     DeviceInstance d_src;
     d_src.name = "src";
     d_src.classname = "ElectricalSource";
-    d_src.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_src.spec = registry.get("ElectricalSource");
 
     DeviceInstance d_load;
     d_load.name = "load";
     d_load.classname = "ElectricalConductance";
-    d_load.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_load.spec = registry.get("ElectricalConductance");
 
     DeviceInstance d_ref;
     d_ref.name = "gnd";
     d_ref.classname = "RefNode";
-    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_ref.spec = registry.get("RefNode");
 
     circuit.devices.push_back(d_src);
     circuit.devices.push_back(d_load);
@@ -1007,7 +1007,7 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     auto expanded = expand_sub_blueprint_references(composite, registry, loading_stack);
     for (auto& dev : expanded.devices) {
         const auto* type_def = registry.get(dev.classname);
-        if (type_def) dev = merge_device_instance(dev, *type_def);
+        if (type_def) dev = resolve_device(dev, *type_def);
     }
     BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
 

@@ -21,7 +21,7 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.execution = {};
+    dev.spec = test_registry().get(classname);
 
     std::vector<std::string> ports;
     if (!explicit_ports.empty()) {
@@ -33,7 +33,7 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
         dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
-    if (const auto* def = test_registry().get(classname)) {
+    if (const auto* def = dev.spec) {
         const auto& params = spec_params(*def);
         for (const auto& [param_name, param_spec] : params) {
             if (param_spec.visual_only) {
@@ -42,9 +42,6 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
             if (!dev.params.count(param_name)) {
                 dev.params[param_name] = param_spec.default_value;
             }
-        }
-        if (const auto* prim = as_primitive(*def)) {
-            dev.solver_role = prim->solver_role;
         }
     }
     return dev;
@@ -359,19 +356,13 @@ TEST(ElectricalHandleBuild, GeneratorWithParamsGetsValidHandle) {
 // handles are never assigned — breaking dynamic IndexSwitch patch ops.
 
 TEST(ElectricalHandleBuild, KnobSwitchMetadataGetsHandles) {
-    // Build a 3-position KnobSwitch using solver_role metadata (library-loaded path)
+    // Build a 3-position KnobSwitch using spec from registry
     DeviceInstance knob = make_device("knob", "KnobSwitch", {
         {"positions", "3"}, {"initial_position", "0"},
         {"g_open", "1e-6"}, {"g_closed", "1000.0"}
     }, {"wiper", "throw1", "throw2", "throw3", "throw4", "throw5", "control", "position"});
-    knob.solver_role = SolverRole{
-        "KnobSwitchBranches",
-        {{"wiper", "wiper"}, {"throw1", "throw1"}, {"throw2", "throw2"},
-         {"throw3", "throw3"}, {"throw4", "throw4"}, {"throw5", "throw5"}},
-        {{"positions", "positions"}, {"initial_position", "initial_position"},
-         {"g_open", "g_open"}, {"g_closed", "g_closed"}},
-        {{"bind_handle", 1.0f}}  // This is the key: enables handle assignment
-    };
+    // Use spec from registry which contains solver_role with bind_handle
+    knob.spec = test_registry().get("KnobSwitch");
 
     DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
     DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
@@ -414,14 +405,8 @@ TEST(ElectricalHandleBuild, KnobSwitchMetadataWithoutBindHandleGetsNoHandles) {
         {"positions", "2"}, {"initial_position", "0"},
         {"g_open", "1e-6"}, {"g_closed", "1000.0"}
     }, {"wiper", "throw1", "throw2", "throw3", "throw4", "throw5", "control", "position"});
-    knob.solver_role = SolverRole{
-        "KnobSwitchBranches",
-        {{"wiper", "wiper"}, {"throw1", "throw1"}, {"throw2", "throw2"},
-         {"throw3", "throw3"}, {"throw4", "throw4"}, {"throw5", "throw5"}},
-        {{"positions", "positions"}, {"initial_position", "initial_position"},
-         {"g_open", "g_open"}, {"g_closed", "g_closed"}},
-        {}  // No bind_handle — should result in no handle assignment
-    };
+    // Use spec from registry - the default KnobSwitch spec doesn't have bind_handle
+    knob.spec = test_registry().get("KnobSwitch");
 
     DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
     DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});

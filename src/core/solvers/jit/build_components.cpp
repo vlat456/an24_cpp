@@ -83,7 +83,7 @@ void build_and_register_components(
 
     // Phase 2 Slice 1: Create and register migrated components
     for (const auto& dev : devices) {
-        if (dev.visual_only) {
+        if (dev.spec && spec_visual_only(*dev.spec)) {
             continue;
         }
 

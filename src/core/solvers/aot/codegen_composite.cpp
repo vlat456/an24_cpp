@@ -12,7 +12,7 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
     for (auto& dev : expanded.devices) {
         const auto* type_def = registry.get(dev.classname);
         if (type_def) {
-            dev = merge_device_instance(dev, *type_def);
+            dev = resolve_device(dev, *type_def);
         }
     }
 

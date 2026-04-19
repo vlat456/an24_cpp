@@ -72,7 +72,7 @@ std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInst
         }
     }
 
-    if (instance.domains.empty()) {
+    if (!instance.spec || spec_domains(*instance.spec).empty()) {
         return "No domains specified for device '" + instance.name + "' of type '" + instance.classname + "'";
     }
 

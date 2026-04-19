@@ -92,13 +92,14 @@ void build_electrical_islands(
 
     size_t element_idx = 0;
     for (const auto& dev : devices) {
-        if (dev.visual_only) {
+        if (dev.spec && spec_visual_only(*dev.spec)) {
             continue;
         }
 
         const bool needs_solver_role = requires_solver_role(dev.classname);
 
-        if (!dev.solver_role.has_value()) {
+        const auto* prim = dev.spec ? as_primitive(*dev.spec) : nullptr;
+        if (!prim || !prim->solver_role.has_value()) {
             if (needs_solver_role) {
                 throw std::runtime_error(
                     "Missing required solver_role metadata for electrical component '" +
@@ -107,7 +108,7 @@ void build_electrical_islands(
             continue;
         }
 
-        const auto& role = *dev.solver_role;
+        const auto& role = *prim->solver_role;
 
         const bool bind_handle = [&]() {
             auto it_bind = role.value_map.find("bind_handle");

@@ -63,27 +63,27 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     DeviceInstance d_gnd;
     d_gnd.name = "gnd";
     d_gnd.classname = "RefNode";
-    d_gnd = merge_device_instance(d_gnd, gnd);
+    d_gnd = resolve_device(d_gnd, gnd);
     devices.push_back(d_gnd);
 
     DeviceInstance d_cmd_src;
     d_cmd_src.name = "cmd_src";
     d_cmd_src.classname = "RefNode";
     d_cmd_src.params["value"] = "1.0";
-    d_cmd_src = merge_device_instance(d_cmd_src, gnd);
+    d_cmd_src = resolve_device(d_cmd_src, gnd);
     devices.push_back(d_cmd_src);
 
     DeviceInstance d_bool;
     d_bool.name = "cmd_logic";
     d_bool.classname = "Any_V_to_Bool";
-    d_bool = merge_device_instance(d_bool, cmd);
+    d_bool = resolve_device(d_bool, cmd);
     devices.push_back(d_bool);
 
     DeviceInstance d_src;
     d_src.name = "src";
     d_src.classname = "ControlledVoltageSource";
     d_src.params["r_internal"] = "0.1";
-    d_src = merge_device_instance(d_src, src);
+    d_src = resolve_device(d_src, src);
     devices.push_back(d_src);
 
     // Value nodes for CVS port-based params
@@ -91,34 +91,34 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     d_gain.name = "src_gain";
     d_gain.classname = "Value";
     d_gain.params["value"] = "28.0";
-    d_gain = merge_device_instance(d_gain, val);
+    d_gain = resolve_device(d_gain, val);
     devices.push_back(d_gain);
 
     DeviceInstance d_offset;
     d_offset.name = "src_offset";
     d_offset.classname = "Value";
     d_offset.params["value"] = "0.0";
-    d_offset = merge_device_instance(d_offset, val);
+    d_offset = resolve_device(d_offset, val);
     devices.push_back(d_offset);
 
     DeviceInstance d_min_v;
     d_min_v.name = "src_min_v";
     d_min_v.classname = "Value";
     d_min_v.params["value"] = "0.0";
-    d_min_v = merge_device_instance(d_min_v, val);
+    d_min_v = resolve_device(d_min_v, val);
     devices.push_back(d_min_v);
 
     DeviceInstance d_max_v;
     d_max_v.name = "src_max_v";
     d_max_v.classname = "Value";
     d_max_v.params["value"] = "40.0";
-    d_max_v = merge_device_instance(d_max_v, val);
+    d_max_v = resolve_device(d_max_v, val);
     devices.push_back(d_max_v);
 
     DeviceInstance d_meter;
     d_meter.name = "meter";
     d_meter.classname = "Voltmeter";
-    d_meter = merge_device_instance(d_meter, meter);
+    d_meter = resolve_device(d_meter, meter);
     devices.push_back(d_meter);
 
     std::vector<Connection> connections = {
@@ -186,7 +186,7 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     pass.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     pass.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     pass.params["conductance"] = "1.0";
-    pass = merge_device_instance(pass, resistor_type);
+    pass = resolve_device(pass, resistor_type);
     devices.push_back(pass);
 
     std::vector<Connection> connections = {
@@ -249,16 +249,14 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     load.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     load.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     load.params["conductance"] = "1.0";
-    load = merge_device_instance(load, resistor_type);
+    load = resolve_device(load, resistor_type);
     devices.push_back(load);
 
     DeviceInstance visual;
     visual.name = "ui_only";
     visual.classname = "Value";
-    visual.visual_only = true;
     visual.ports["o"] = Port{bp2::Direction::Output, PortType::Any, std::nullopt};
-    visual = merge_device_instance(visual, value_type);
-    visual.visual_only = true;  // re-set after merge (value_type.visual_only is false)
+    visual = resolve_device(visual, value_type);
     devices.push_back(visual);
 
     std::vector<Connection> connections = {
