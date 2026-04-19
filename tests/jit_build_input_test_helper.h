@@ -55,18 +55,22 @@ inline JitBuildInput make_jit_input_from_resolved(
 inline JitBuildInput make_jit_input(
     std::vector<DeviceInstance> devices,
     const std::vector<std::vector<std::string>>& signal_groups,
-    std::unordered_map<std::string, float> initial_values = {})
+    std::unordered_map<std::string, float> initial_values = {},
+    const ComponentRegistry* registry = nullptr)
 {
     JitBuildInput input;
     input.initial_values = std::move(initial_values);
 
+    const ComponentRegistry& reg = registry ? *registry : load_component_registry("library/");
+
     input.devices.reserve(devices.size());
     for (const auto& dev : devices) {
-        if (dev.spec == nullptr) {
-            throw std::runtime_error("make_jit_input requires resolved spec for device '" + dev.name +
+        const ComponentSpec* spec = reg.get(dev.classname);
+        if (spec == nullptr) {
+            throw std::runtime_error("make_jit_input missing spec for device '" + dev.name +
                 "' (classname: " + dev.classname + ")");
         }
-        input.devices.push_back(resolve_component(dev, *dev.spec));
+        input.devices.push_back(resolve_component(dev, *spec));
     }
     
     std::unordered_set<std::string> seen_ports;
@@ -108,18 +112,22 @@ inline JitBuildInput make_jit_input(
 inline JitBuildInput make_jit_input_from_composite(
     std::vector<DeviceInstance> devices,
     const std::vector<BridgePortDefinition>& bridge_ports,
-    const std::vector<Connection>& connections)
+    const std::vector<Connection>& connections,
+    const ComponentRegistry* registry = nullptr)
 {
     JitBuildInput input;
     input.bridge_ports = bridge_ports;
 
+    const ComponentRegistry& reg = registry ? *registry : load_component_registry("library/");
+
     input.devices.reserve(devices.size());
     for (const auto& dev : devices) {
-        if (dev.spec == nullptr) {
-            throw std::runtime_error("make_jit_input_from_composite requires resolved spec for device '" + dev.name +
+        const ComponentSpec* spec = reg.get(dev.classname);
+        if (spec == nullptr) {
+            throw std::runtime_error("make_jit_input_from_composite missing spec for device '" + dev.name +
                 "' (classname: " + dev.classname + ")");
         }
-        input.devices.push_back(resolve_component(dev, *dev.spec));
+        input.devices.push_back(resolve_component(dev, *spec));
     }
     
     // Build port index map from all declared device ports

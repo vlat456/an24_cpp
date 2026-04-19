@@ -54,7 +54,7 @@ const ComponentSpec* make_spec_with_role(
     return store.add(std::move(prim));
 }
 
-DeviceInstance make_device(const std::string& name,
+ResolvedDevice make_device(const std::string& name,
                            const std::string& classname,
                            const std::unordered_map<std::string, std::string>& params = {}) {
     DeviceInstance dev;
@@ -63,27 +63,21 @@ DeviceInstance make_device(const std::string& name,
     dev.params = params;
 
     if (const ComponentSpec* spec = test_registry().get(classname)) {
-        dev.spec = spec;
-        if (const PrimitiveSpec* def = as_primitive(*spec)) {
-            for (const auto& [port_name, port] : def->ports) {
-                dev.ports[port_name] = port;
-            }
-            for (const auto& [param_name, param_spec] : def->params) {
-                if (param_spec.visual_only) {
-                    continue;
-                }
-                if (!dev.params.count(param_name)) {
-                    dev.params[param_name] = param_spec.default_value;
-                }
-            }
-        }
+        return resolve_component(dev, *spec);
     } else {
         auto ports = get_component_ports(classname);
         for (const auto& port_name : ports) {
             dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
         }
     }
-    return dev;
+
+    // Fallback: construct a minimal ResolvedDevice from the DeviceInstance
+    ResolvedDevice resolved;
+    resolved.name = dev.name;
+    resolved.classname = dev.classname;
+    resolved.params = dev.params;
+    resolved.ports = dev.ports;
+    return resolved;
 }
 
 SimulationState make_state(uint32_t signal_count) {

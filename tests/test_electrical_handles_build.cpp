@@ -16,13 +16,13 @@ const ComponentRegistry& test_registry() {
 
 // Helper to create a basic device instance with explicit ports
 DeviceInstance make_device(const std::string& name, const std::string& classname,
-                          const std::unordered_map<std::string, std::string>& params = {},
-                          const std::vector<std::string>& explicit_ports = {}) {
+                           const std::unordered_map<std::string, std::string>& params = {},
+                           const std::vector<std::string>& explicit_ports = {}) {
     DeviceInstance dev;
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.spec = test_registry().get(classname);
+    const ComponentSpec* def = test_registry().get(classname);
 
     std::vector<std::string> ports;
     if (!explicit_ports.empty()) {
@@ -34,7 +34,7 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
         dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
-    if (const auto* def = dev.spec) {
+    if (def) {
         const auto& params = spec_params(*def);
         for (const auto& [param_name, param_spec] : params) {
             if (param_spec.visual_only) {

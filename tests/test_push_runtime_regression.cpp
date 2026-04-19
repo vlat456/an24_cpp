@@ -909,7 +909,6 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
         DeviceInstance dev;
         dev.name = "pid_bad";
         dev.classname = "PID";
-        dev.spec = test_registry().get(dev.classname);
         dev.params = {
             {"Kpp", "2.0"},  // Typo: should be "Kp"
             {"Ki", "0.5"},
@@ -944,7 +943,6 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
           DeviceInstance dev;
           dev.name = "pid_ok";
           dev.classname = "PID";
-          dev.spec = test_registry().get(dev.classname);
           dev.params = {
              {"Kp", "2.0"},
              {"Ki", "0.5"},

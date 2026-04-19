@@ -16,6 +16,14 @@ const ComponentRegistry& test_registry() {
     return registry;
 }
 
+ResolvedDevice resolve_codegen_device(DeviceInstance dev) {
+    const ComponentSpec* spec = test_registry().get(dev.classname);
+    if (!spec) {
+        throw std::runtime_error("Missing test spec for " + dev.classname);
+    }
+    return resolve_component(dev, *spec);
+}
+
 } // namespace
 
 
@@ -121,11 +129,16 @@ static bool has_bad_identifier(const std::string& code) {
 
 TEST(CodegenSanitize, DeviceNamesWithColonsAreValidIdentifiers) {
     auto [devices, connections, port_to_signal, signal_count] = make_colon_circuit();
+    std::vector<ResolvedDevice> resolved_devices;
+    resolved_devices.reserve(devices.size());
+    for (auto& dev : devices) {
+        resolved_devices.push_back(resolve_codegen_device(std::move(dev)));
+    }
 
     std::string header = CodeGen::generate_header(
-        "test.json", devices, connections, port_to_signal, signal_count);
+        "test.json", resolved_devices, connections, port_to_signal, signal_count);
     std::string source = CodeGen::generate_source(
-        "test.h", devices, connections, port_to_signal, signal_count);
+        "test.h", resolved_devices, connections, port_to_signal, signal_count);
 
     // Colons in device names should be replaced with underscores
     EXPECT_FALSE(has_bad_identifier(header))
@@ -156,19 +169,19 @@ TEST(CodegenSanitize, SanitizeNameFunction) {
     // Colons, dots, and hyphens should all become underscores
     auto gen_and_check = [](const std::string& input, const std::string& expected_fragment) {
         // Create a minimal device with the given name and generate header
-        std::vector<DeviceInstance> devices;
         DeviceInstance dev;
         dev.name = input;
         dev.classname = "RefNode";
         dev.ports["v"] = {bp2::Direction::Output};
         dev.spec = test_registry().get("RefNode");
-        devices.push_back(dev);
+        std::vector<ResolvedDevice> resolved_devices;
+        resolved_devices.push_back(resolve_codegen_device(std::move(dev)));
 
         std::unordered_map<std::string, uint32_t> port_to_signal;
         port_to_signal[input + ".v"] = 0;
 
         std::string header = CodeGen::generate_header(
-            "test.json", devices, {}, port_to_signal, 1);
+            "test.json", resolved_devices, {}, port_to_signal, 1);
 
         EXPECT_NE(header.find(expected_fragment), std::string::npos)
             << "Expected '" << expected_fragment << "' in header for input '" << input << "'";
@@ -187,18 +200,18 @@ TEST(CodegenSanitize, NoCollisionBetweenDotAndDashAndColon) {
     // they produce distinct identifiers.
 
     auto sanitize_via_codegen = [](const std::string& name) -> std::string {
-        std::vector<DeviceInstance> devices;
         DeviceInstance dev;
         dev.name = name;
         dev.classname = "RefNode";
         dev.ports["v"] = {bp2::Direction::Output};
         dev.spec = test_registry().get("RefNode");
-        devices.push_back(dev);
+        std::vector<ResolvedDevice> resolved_devices;
+        resolved_devices.push_back(resolve_codegen_device(std::move(dev)));
 
         std::unordered_map<std::string, uint32_t> port_to_signal;
         port_to_signal[name + ".v"] = 0;
 
-        return CodeGen::generate_header("test.json", devices, {}, port_to_signal, 1);
+        return CodeGen::generate_header("test.json", resolved_devices, {}, port_to_signal, 1);
     };
 
     std::string h_dot   = sanitize_via_codegen("engine.temp");

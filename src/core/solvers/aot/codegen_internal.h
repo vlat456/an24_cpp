@@ -23,7 +23,7 @@ inline std::string to_upper(const std::string& s) {
 }
 
 inline std::string generate_aot_provider_type(
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count
 ) {
@@ -48,13 +48,13 @@ inline std::string generate_aot_provider_type(
 }
 
 /// Filter out visual-only devices, returning only simulation-active ones.
-inline std::vector<DeviceInstance> filter_simulation_devices(
-    const std::vector<DeviceInstance>& devices_unfiltered
+inline std::vector<ResolvedDevice> filter_simulation_devices(
+    const std::vector<ResolvedDevice>& devices_unfiltered
 ) {
-    std::vector<DeviceInstance> devices;
+    std::vector<ResolvedDevice> devices;
     devices.reserve(devices_unfiltered.size());
     for (const auto& d : devices_unfiltered) {
-        if (!d.spec || !spec_visual_only(*d.spec)) {
+        if (!d.visual_only) {
             devices.push_back(d);
         }
     }
@@ -78,17 +78,17 @@ inline void emit_electrical_debug_entry_struct(std::ostringstream& oss) {
 /// Emit execute() + commit() calls for all devices in a step body.
 inline void emit_device_execute_commit(
     std::ostringstream& oss,
-    const std::vector<DeviceInstance>& devices
+    const std::vector<ResolvedDevice>& devices
 ) {
     for (const auto& dev : devices) {
-        const bool is_source = dev.spec && spec_scheduler_source(*dev.spec);
+        const bool is_source = dev.scheduler_source;
         if (!is_source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
     }
     for (const auto& dev : devices) {
-        const bool is_source = dev.spec && spec_scheduler_source(*dev.spec);
+        const bool is_source = dev.scheduler_source;
         if (is_source) {
             continue;
         }
@@ -96,14 +96,14 @@ inline void emit_device_execute_commit(
     }
 
     for (const auto& dev : devices) {
-        const bool is_source = dev.spec && spec_scheduler_source(*dev.spec);
+        const bool is_source = dev.scheduler_source;
         if (!is_source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";
     }
     for (const auto& dev : devices) {
-        const bool is_source = dev.spec && spec_scheduler_source(*dev.spec);
+        const bool is_source = dev.scheduler_source;
         if (is_source) {
             continue;
         }

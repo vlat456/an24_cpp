@@ -15,9 +15,18 @@ namespace DomainSchedule {
 // Helper: build a minimal device set with multi-domain components
 // =============================================================================
 static auto make_multi_domain_devices() {
-    std::vector<DeviceInstance> devices;
+    std::vector<ResolvedDevice> devices;
     std::unordered_map<std::string, uint32_t> port_to_signal;
     uint32_t next_sig = 0;
+    const ComponentRegistry registry = load_component_registry("library/");
+
+    auto resolve_dev = [&](DeviceInstance dev) {
+        const ComponentSpec* spec = registry.get(dev.classname);
+        if (!spec) {
+            throw std::runtime_error("Missing test spec for " + dev.classname);
+        }
+        return resolve_component(dev, *spec);
+    };
 
     // RefNode (ground)
     {
@@ -27,7 +36,7 @@ static auto make_multi_domain_devices() {
         dev.spec = load_component_registry("library/").get("RefNode");
         dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["gnd.v_out"] = next_sig++;
-        devices.push_back(std::move(dev));
+        devices.push_back(resolve_dev(std::move(dev)));
     }
 
     // Battery (electrical)
@@ -43,7 +52,7 @@ static auto make_multi_domain_devices() {
         dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["bat.v_in"] = next_sig++;
         port_to_signal["bat.v_out"] = next_sig++;
-        devices.push_back(std::move(dev));
+        devices.push_back(resolve_dev(std::move(dev)));
     }
 
     // Radiator (thermal domain)
@@ -57,7 +66,7 @@ static auto make_multi_domain_devices() {
         dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["rad.v_in"] = next_sig++;
         port_to_signal["rad.v_out"] = next_sig++;
-        devices.push_back(std::move(dev));
+        devices.push_back(resolve_dev(std::move(dev)));
     }
 
     // ElectricPump (mechanical + hydraulic)
@@ -71,11 +80,11 @@ static auto make_multi_domain_devices() {
         dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["pump.v_in"] = next_sig++;
         port_to_signal["pump.v_out"] = next_sig++;
-        devices.push_back(std::move(dev));
+        devices.push_back(resolve_dev(std::move(dev)));
     }
 
     struct Result {
-        std::vector<DeviceInstance> devices;
+        std::vector<ResolvedDevice> devices;
         std::vector<Connection> connections;
         std::unordered_map<std::string, uint32_t> port_to_signal;
         uint32_t signal_count;
@@ -180,5 +189,4 @@ TEST(CodegenAccumulator, DispatchTableSizeMatchesCycleLength) {
     EXPECT_NE(source.find(last_step), std::string::npos)
         << "Last step method step_" << DomainSchedule::CYCLE_LENGTH - 1 << " must be generated";
 }
-
 

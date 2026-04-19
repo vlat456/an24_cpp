@@ -13,6 +13,14 @@ static const ComponentRegistry& lut_test_registry() {
     return registry;
 }
 
+static ResolvedDevice resolve_test_device(DeviceInstance dev) {
+    const ComponentSpec* spec = lut_test_registry().get(dev.classname);
+    if (!spec) {
+        throw std::runtime_error("Missing test spec for " + dev.classname);
+    }
+    return resolve_component(dev, *spec);
+}
+
 
 // =============================================================================
 // Helpers: construct LUT device instances for codegen tests
@@ -39,7 +47,7 @@ static auto make_ref_node() {
 }
 
 struct CodegenSetup {
-    std::vector<DeviceInstance> devices;
+    std::vector<ResolvedDevice> devices;
     std::vector<Connection> connections;
     std::unordered_map<std::string, uint32_t> port_to_signal;
     uint32_t signal_count;
@@ -52,13 +60,13 @@ static CodegenSetup make_setup(std::vector<DeviceInstance> extra_devices) {
     // Always need a RefNode
     auto gnd = make_ref_node();
     s.port_to_signal["gnd.v"] = next_sig++;
-    s.devices.push_back(std::move(gnd));
+    s.devices.push_back(resolve_test_device(std::move(gnd)));
 
     for (auto& dev : extra_devices) {
         for (const auto& [port_name, port] : dev.ports) {
             s.port_to_signal[dev.name + "." + port_name] = next_sig++;
         }
-        s.devices.push_back(std::move(dev));
+        s.devices.push_back(resolve_test_device(std::move(dev)));
     }
     s.signal_count = next_sig;
     return s;
@@ -239,7 +247,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
 
     auto gnd = make_ref_node();
     s.port_to_signal["gnd.v"] = next_sig++;
-    s.devices.push_back(std::move(gnd));
+    s.devices.push_back(resolve_test_device(std::move(gnd)));
 
     // Normal device
     DeviceInstance bat;
@@ -250,14 +258,14 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
     bat.spec = lut_test_registry().get("Battery");
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
-    s.devices.push_back(std::move(bat));
+    s.devices.push_back(resolve_test_device(std::move(bat)));
 
     // visual_only device — must NOT appear in generated code
     DeviceInstance grp;
     grp.name = "grp1";
     grp.classname = "Group";
     grp.spec = lut_test_registry().get("Group");
-    s.devices.push_back(std::move(grp));
+    s.devices.push_back(resolve_test_device(std::move(grp)));
 
     s.signal_count = next_sig;
 
@@ -279,7 +287,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
 
     auto gnd = make_ref_node();
     s.port_to_signal["gnd.v"] = next_sig++;
-    s.devices.push_back(std::move(gnd));
+    s.devices.push_back(resolve_test_device(std::move(gnd)));
 
     DeviceInstance bat;
     bat.name = "bat";
@@ -291,14 +299,14 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
     bat.spec = lut_test_registry().get("Battery");
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
-    s.devices.push_back(std::move(bat));
+    s.devices.push_back(resolve_test_device(std::move(bat)));
 
     // visual_only device
     DeviceInstance grp;
     grp.name = "grp1";
     grp.classname = "Group";
     grp.spec = lut_test_registry().get("Group");
-    s.devices.push_back(std::move(grp));
+    s.devices.push_back(resolve_test_device(std::move(grp)));
 
     s.signal_count = next_sig;
 
@@ -324,7 +332,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
 
     auto gnd = make_ref_node();
     s.port_to_signal["gnd.v"] = next_sig++;
-    s.devices.push_back(std::move(gnd));
+    s.devices.push_back(resolve_test_device(std::move(gnd)));
 
     DeviceInstance bat;
     bat.name = "bat";
@@ -334,7 +342,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     bat.spec = lut_test_registry().get("Battery");
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
-    s.devices.push_back(std::move(bat));
+    s.devices.push_back(resolve_test_device(std::move(bat)));
 
     // Text visual_only device — must NOT appear in generated code
     DeviceInstance txt;
@@ -343,7 +351,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     txt.spec = lut_test_registry().get("Text");
     txt.params["text"] = "annotation";
     txt.params["font_size"] = "large";
-    s.devices.push_back(std::move(txt));
+    s.devices.push_back(resolve_test_device(std::move(txt)));
 
     s.signal_count = next_sig;
 
@@ -365,7 +373,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
 
     auto gnd = make_ref_node();
     s.port_to_signal["gnd.v"] = next_sig++;
-    s.devices.push_back(std::move(gnd));
+    s.devices.push_back(resolve_test_device(std::move(gnd)));
 
     DeviceInstance bat;
     bat.name = "bat";
@@ -377,7 +385,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     bat.spec = lut_test_registry().get("Battery");
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
-    s.devices.push_back(std::move(bat));
+    s.devices.push_back(resolve_test_device(std::move(bat)));
 
     // Text visual_only device
     DeviceInstance txt;
@@ -386,7 +394,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     txt.spec = lut_test_registry().get("Text");
     txt.params["text"] = "note";
     txt.params["font_size"] = "medium";
-    s.devices.push_back(std::move(txt));
+    s.devices.push_back(resolve_test_device(std::move(txt)));
 
     s.signal_count = next_sig;
 

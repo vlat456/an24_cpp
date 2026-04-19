@@ -66,7 +66,7 @@ struct ElectricalExtractOptions {
 /// Extract electrical island plan from devices and port_to_signal mapping.
 /// Mirrors the island extraction logic in build_systems_dev().
 ElectricalPlanCodegen extract_electrical_plan(
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     const ElectricalExtractOptions& options = {}
 );
@@ -77,7 +77,7 @@ public:
     /// Generate C++ header file with Systems struct
     static std::string generate_header(
         const std::string& source_file,
-        const std::vector<DeviceInstance>& devices,
+        const std::vector<ResolvedDevice>& devices,
         const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
@@ -88,7 +88,7 @@ public:
     /// Generate C++ source file with implementations
     static std::string generate_source(
         const std::string& header_name,
-        const std::vector<DeviceInstance>& devices,
+        const std::vector<ResolvedDevice>& devices,
         const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
@@ -100,7 +100,7 @@ public:
     static void write_files(
         const std::string& out_dir,
         const std::string& source_file,
-        const std::vector<DeviceInstance>& devices,
+        const std::vector<ResolvedDevice>& devices,
         const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,

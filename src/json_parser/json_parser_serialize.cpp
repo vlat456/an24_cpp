@@ -61,6 +61,34 @@ json device_to_json(const DeviceInstance& dev) {
     return j;
 }
 
+json device_to_json(const ResolvedDevice& dev) {
+    json j;
+    if (!dev.name.empty()) j["name"] = dev.name;
+    if (!dev.template_name.empty()) j["template"] = dev.template_name;
+    if (!dev.classname.empty()) j["classname"] = dev.classname;
+    if (dev.priority != "med") j["priority"] = dev.priority;
+    if (dev.bucket.has_value()) j["bucket"] = dev.bucket.value();
+    if (dev.critical) j["critical"] = true;
+
+    if (!dev.ports.empty()) {
+        json ports;
+        for (const auto& [name, port] : dev.ports) {
+            ports[name] = port_to_json(port);
+        }
+        j["ports"] = ports;
+    }
+
+    if (!dev.params.empty()) {
+        json params;
+        for (const auto& [key, val] : dev.params) {
+            params[key] = val;
+        }
+        j["params"] = params;
+    }
+
+    return j;
+}
+
 json connection_to_json(const Connection& conn) {
     json j;
     j["from"] = conn.from;

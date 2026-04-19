@@ -114,13 +114,8 @@ static void merge_nested_blueprint(
 
     // Prefix all nested device names: "bat" -> "battery_module:bat"
     for (const auto& dev : nested.devices) {
-        DeviceInstance prefixed = dev;
+        ResolvedDevice prefixed = dev;
         prefixed.name = signal_key::make_child_scope_key(prefix, dev.name);
-        // Re-point spec into parent registry to avoid dangling pointers
-        // when nested context is destroyed.
-        if (prefixed.spec) {
-            prefixed.spec = parent.registry.get(prefixed.classname);
-        }
         parent.devices.push_back(prefixed);
     }
 
@@ -257,20 +252,20 @@ static ParserContext parse_json_impl(const std::string& json_text,
             continue;
         }
 
-        // Merge instance with definition
-        DeviceInstance merged = resolve_device(raw_dev, *def);
+        // Resolve instance against definition into the canonical runtime shape.
+        ResolvedDevice merged = resolve_component(raw_dev, *def);
 
-        // Validate merged instance
+        // Validate against the registry definition.
         auto error = ctx.registry.validate_instance(merged);
         if (error.has_value()) {
             spdlog::error("[json_parser] Validation failed for device '{}': {}",
-                         merged.name, error.value());
+                          merged.name, error.value());
             throw std::runtime_error("Device validation failed: " + error.value());
         }
 
-        ctx.devices.push_back(merged);
+        ctx.devices.push_back(std::move(merged));
         spdlog::debug("[json_parser] Merged device '{}' of type '{}' with component definition",
-                     merged.name, merged.classname);
+                     raw_dev.name, raw_dev.classname);
     }
 
     // Parse connections

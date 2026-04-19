@@ -50,7 +50,7 @@ void emit_electrical_plan_debug(
 void emit_systems_class_declaration(
     std::ostringstream& oss,
     const std::string& class_name,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,
     const ElectricalPlanCodegen& electrical_plan
@@ -127,7 +127,7 @@ void emit_systems_class_declaration(
 
 std::string CodeGen::generate_header(
     const std::string& source_file,
-    const std::vector<DeviceInstance>& devices_unfiltered,
+    const std::vector<ResolvedDevice>& devices_unfiltered,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,

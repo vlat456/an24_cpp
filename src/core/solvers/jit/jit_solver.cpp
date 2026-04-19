@@ -153,15 +153,7 @@ JitBuildInput build_input_from_json(const std::string& json_str) {
         connections.push_back({c.from, c.to});
     }
 
-    std::vector<ResolvedDevice> devices;
-    devices.reserve(ctx.devices.size());
-    for (const auto& dev : ctx.devices) {
-        const ComponentSpec* spec = ctx.registry.get(dev.classname);
-        if (!spec) {
-            throw std::runtime_error("Component definition not found: " + dev.classname);
-        }
-        devices.push_back(resolve_component(dev, *spec));
-    }
+    std::vector<ResolvedDevice> devices = ctx.devices;
 
     // Compute port_to_signal mapping
     BuildResult temp_result{};

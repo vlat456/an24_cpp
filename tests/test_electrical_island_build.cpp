@@ -17,13 +17,13 @@ const ComponentRegistry& test_registry() {
 
 // Helper to create a basic device instance with explicit ports
 DeviceInstance make_device(const std::string& name, const std::string& classname,
-                          const std::unordered_map<std::string, std::string>& params = {},
-                          const std::vector<std::string>& explicit_ports = {}) {
+                           const std::unordered_map<std::string, std::string>& params = {},
+                           const std::vector<std::string>& explicit_ports = {}) {
     DeviceInstance dev;
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.spec = test_registry().get(classname);
+    const ComponentSpec* def = test_registry().get(classname);
 
     std::vector<std::string> ports;
     if (!explicit_ports.empty()) {
@@ -35,7 +35,7 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
         dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
-    if (const auto* def = dev.spec) {
+    if (def) {
         const auto& params = spec_params(*def);
         for (const auto& [param_name, param_spec] : params) {
             if (param_spec.visual_only) {
@@ -65,13 +65,19 @@ DeviceInstance make_device_without_solver_role(
     const std::vector<std::string>& explicit_ports = {}
 ) {
     DeviceInstance dev = make_device(name, classname, params, explicit_ports);
-    // Create a copy of the spec without solver_role
-    if (dev.spec) {
-        static TestSpecStore store;
-        PrimitiveSpec prim_copy = *as_primitive(*dev.spec);
-        prim_copy.solver_role = std::nullopt;
-        dev.spec = store.add(std::move(prim_copy));
+    const ComponentSpec* def = test_registry().get(classname);
+    if (!def) {
+        return dev;
     }
+
+    static TestSpecStore store;
+    PrimitiveSpec prim_copy = *as_primitive(*def);
+    prim_copy.solver_role = std::nullopt;
+    const ComponentSpec* mutated = store.add(std::move(prim_copy));
+    ResolvedDevice resolved = resolve_component(dev, *mutated);
+
+    dev.ports = std::move(resolved.ports);
+    dev.params = std::move(resolved.params);
     return dev;
 }
 

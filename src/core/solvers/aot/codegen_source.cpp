@@ -57,7 +57,7 @@ std::string format_value(const std::string& value, const std::string& type) {
 void emit_source_prelude(
     std::ostringstream& oss,
     const std::string& header_name,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count
 ) {
@@ -84,7 +84,7 @@ struct LutEntry {
     std::vector<float> values;
 };
 
-std::optional<LutEntry> parse_lut_table(const DeviceInstance& dev) {
+std::optional<LutEntry> parse_lut_table(const ResolvedDevice& dev) {
     auto it = dev.params.find("table");
     if (it == dev.params.end()) {
         return std::nullopt;
@@ -128,7 +128,7 @@ std::optional<LutEntry> parse_lut_table(const DeviceInstance& dev) {
 
 void emit_constructor_params(
     std::ostringstream& oss,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const ElectricalPlanCodegen& electrical_plan,
     std::vector<LutEntry>& out_lut_entries
 ) {
@@ -175,7 +175,7 @@ void emit_constructor_params(
 void emit_preload_method(
     std::ostringstream& oss,
     const std::string& class_name,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const std::vector<LutEntry>& lut_entries
 ) {
     oss << "void " << class_name << "::pre_load() {\n";
@@ -273,7 +273,7 @@ void emit_step_electrical_diagnostics(std::ostringstream& oss) {
 
 void emit_dynamic_source_patching(
     std::ostringstream& oss,
-    const std::vector<DeviceInstance>& devices
+    const std::vector<ResolvedDevice>& devices
 ) {
     oss << "    if (electrical_rt_.element_value_a.empty()) {\n";
     oss << "        uint32_t max_element_id = 0;\n";
@@ -362,7 +362,7 @@ void emit_dynamic_source_patching(
 
 std::string CodeGen::generate_source(
     const std::string& header_name,
-    const std::vector<DeviceInstance>& devices_unfiltered,
+    const std::vector<ResolvedDevice>& devices_unfiltered,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,

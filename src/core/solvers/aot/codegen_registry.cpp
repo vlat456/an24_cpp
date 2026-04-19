@@ -316,7 +316,7 @@ void generate_port_names_header(const std::string& output_path, const std::set<s
 void CodeGen::write_files(
     const std::string& out_dir,
     const std::string& source_file,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,

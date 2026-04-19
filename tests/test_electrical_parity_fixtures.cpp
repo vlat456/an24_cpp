@@ -18,6 +18,10 @@ float rel_error(float a, float b) {
     return std::fabs(a - b) / denom;
 }
 
+std::vector<ResolvedDevice> resolve_all_devices(const ParserContext& ctx) {
+    return ctx.devices;
+}
+
 } // anonymous namespace
 
 // ============================================================================
@@ -250,7 +254,7 @@ TEST(ElectricalParityFixtures, NearShortHighConductance) {
 //
 // Helper: run AOT path (extract_electrical_plan + solve_electrical)
 static void run_aot_electrical(
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const std::vector<Connection>& connections,
     ElectricalBuildPlan& out_plan,
     SimulationState& out_state,
@@ -378,7 +382,7 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    run_aot_electrical(ctx.devices, ctx.connections,
+    run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal);
 
     // Compare signal values
@@ -430,7 +434,7 @@ TEST(ElectricalAotParity, SeriesChainTwoResistors) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    run_aot_electrical(ctx.devices, ctx.connections,
+    run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal);
 
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {
@@ -480,7 +484,7 @@ TEST(ElectricalAotParity, ParallelBranchSplit) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    run_aot_electrical(ctx.devices, ctx.connections,
+    run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal);
 
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {
@@ -528,7 +532,7 @@ TEST(ElectricalAotParity, MultiIsland) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    run_aot_electrical(ctx.devices, ctx.connections,
+    run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal);
 
     ASSERT_EQ(jit_result.electrical_plan.islands.size(), aot_plan.islands.size());
@@ -572,7 +576,7 @@ TEST(ElectricalAotParity, NearShortHighConductance) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    run_aot_electrical(ctx.devices, ctx.connections,
+    run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal);
 
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {

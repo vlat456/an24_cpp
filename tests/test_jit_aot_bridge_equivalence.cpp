@@ -10,6 +10,20 @@
 
 namespace {
 
+std::vector<ResolvedDevice> resolve_all_devices(const std::vector<DeviceInstance>& devices,
+                                                const ComponentRegistry& registry) {
+    std::vector<ResolvedDevice> resolved;
+    resolved.reserve(devices.size());
+    for (const auto& dev : devices) {
+        const ComponentSpec* spec = registry.get(dev.classname);
+        if (!spec) {
+            throw std::runtime_error("Missing test spec for " + dev.classname);
+        }
+        resolved.push_back(resolve_component(dev, *spec));
+    }
+    return resolved;
+}
+
 } // namespace
 
 // DISABLED: AOT codegen smoke test checking for legacy solver-specific method names.
@@ -143,10 +157,12 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
         }
     }
 
+    const std::vector<ResolvedDevice> resolved_devices = resolve_all_devices(devices, registry);
+
     const std::string aot_header =
-        CodeGen::generate_header("bridge_equivalence.json", devices, connections, port_to_signal, next_signal);
+        CodeGen::generate_header("bridge_equivalence.json", resolved_devices, connections, port_to_signal, next_signal);
     const std::string aot_source =
-        CodeGen::generate_source("bridge_equivalence.h", devices, connections, port_to_signal, next_signal);
+        CodeGen::generate_source("bridge_equivalence.h", resolved_devices, connections, port_to_signal, next_signal);
 
     ASSERT_FALSE(aot_header.empty());
     ASSERT_FALSE(aot_source.empty());
@@ -203,13 +219,14 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
         conn_pairs.emplace_back(c.from, c.to);
     }
     BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
+    const std::vector<ResolvedDevice> resolved_for_aot = resolve_all_devices(devices, registry);
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(devices, bridges, all_ports, port_to_idx);
+    codegen_composite_detail::build_port_index_map(resolved_for_aot, bridges, all_ports, port_to_idx);
 
     codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, bridges, connections, port_to_idx);
+    codegen_composite_detail::apply_signal_allocation_rules(uf, resolved_for_aot, bridges, connections, port_to_idx);
 
     uint32_t aot_signal_count = 0;
     auto aot_port_to_signal =
@@ -278,13 +295,14 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     }
 
     BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
+    const std::vector<ResolvedDevice> resolved_for_aot = resolve_all_devices(devices, registry);
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(devices, bridges, all_ports, port_to_idx);
+    codegen_composite_detail::build_port_index_map(resolved_for_aot, bridges, all_ports, port_to_idx);
 
     codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, bridges, connections, port_to_idx);
+    codegen_composite_detail::apply_signal_allocation_rules(uf, resolved_for_aot, bridges, connections, port_to_idx);
 
     uint32_t aot_signal_count = 0;
     auto aot_port_to_signal =

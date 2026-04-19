@@ -17,6 +17,7 @@
 
 // Forward declarations
 struct DeviceInstance;
+struct ResolvedDevice;
 struct ComponentInstance;
 
 /// Port direction — re-exported from direction.h for convenience.
@@ -217,6 +218,7 @@ struct ComponentRegistry {
 
     MenuTree build_menu_tree() const { return catalog.build_menu_tree(types, presentation); }
     std::optional<std::string> validate_instance(const DeviceInstance& instance) const;
+    std::optional<std::string> validate_instance(const ResolvedDevice& instance) const;
     std::vector<std::string> get_composites_topo_sorted() const;
 };
 
@@ -261,7 +263,6 @@ struct DeviceInstance {
     std::unordered_map<std::string, std::string> params;
     std::optional<std::pair<float,float>> pos;
     std::optional<std::pair<float,float>> size;
-    const ComponentSpec* spec = nullptr;
 
     DeviceInstance() = default;
 
@@ -297,10 +298,6 @@ struct DeviceInstance {
     }
 };
 
-inline bool device_visual_only(const DeviceInstance& dev) {
-    return dev.spec != nullptr && spec_visual_only(*dev.spec);
-}
-
 inline bool device_visual_only(const ResolvedDevice& dev) {
     return dev.visual_only;
 }
@@ -325,13 +322,13 @@ struct SystemTemplate {
 struct ParserContext {
     ComponentRegistry registry;               // Type registry
     std::unordered_map<std::string, SystemTemplate> templates;
-    std::vector<DeviceInstance> devices;
+    std::vector<ResolvedDevice> devices;
     std::vector<Connection> connections;
     std::vector<BridgePortDefinition> bridge_ports;
     std::unordered_map<std::string, float> initial_values;
 
     /// Find device by name
-    const DeviceInstance* find_device(const std::string& name) const {
+    const ResolvedDevice* find_device(const std::string& name) const {
         for (const auto& dev : devices) {
             if (dev.name == name) {
                 return &dev;
@@ -365,11 +362,6 @@ std::string serialize_json(const ParserContext& ctx);
 
 /// Load type registry from library/ directory
 ComponentRegistry load_component_registry(const std::string& library_dir = "library/");
-
-DeviceInstance resolve_device(
-    const DeviceInstance& instance,
-    const ComponentSpec& definition
-);
 
 ResolvedDevice resolve_component(
     const DeviceInstance& instance,

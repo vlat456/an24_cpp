@@ -23,7 +23,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     ParserContext ctx;
 
     // RefNode as a device (has only 'v' port)
-    DeviceInstance gnd;
+    ResolvedDevice gnd;
     gnd.name = "gnd1";
     gnd.classname = "RefNode";
     gnd.priority = "med";
@@ -33,7 +33,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     ctx.devices.push_back(gnd);
 
     // Battery
-    DeviceInstance bat;
+    ResolvedDevice bat;
     bat.name = "bat";
     bat.classname = "ElectricalSource";
     bat.priority = "high";
@@ -109,8 +109,7 @@ TEST(JsonParserTest, ParseMultipleDomains) {
     auto ctx = parse_json(json);
     ASSERT_EQ(ctx.devices.size(), 1);
     const auto& dev = ctx.devices[0];
-    ASSERT_TRUE(dev.spec != nullptr);
-    const auto& domains = spec_domains(*dev.spec);
+    const auto& domains = dev.domains;
     EXPECT_EQ(domains.size(), 2);
     EXPECT_EQ(domains[0], Domain::Electrical);
     EXPECT_EQ(domains[1], Domain::Hydraulic);
@@ -152,9 +151,8 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     EXPECT_EQ(dev.priority, "high");
     EXPECT_EQ(dev.bucket.value(), 2);
     EXPECT_TRUE(dev.critical);
-    ASSERT_TRUE(dev.spec != nullptr);
-    EXPECT_EQ(spec_domains(*dev.spec).size(), 2);
-    EXPECT_EQ(spec_domains(*dev.spec)[0], Domain::Electrical);
+    ASSERT_EQ(dev.domains.size(), 2u);
+    EXPECT_EQ(dev.domains[0], Domain::Electrical);
 
     // Relay blueprint defines 5 ports: v_in, v_out, control, state, hold_threshold
     // resolve_device() enriches with library-defined ports
@@ -206,7 +204,7 @@ TEST(JsonParserTest, ParseConnectionFormats) {
 TEST(JsonParserTest, SerializePreservesData) {
     ParserContext ctx;
 
-    DeviceInstance dev;
+    ResolvedDevice dev;
     dev.name = "test";
     dev.classname = "ElectricalSource";
     dev.params["voltage"] = "28.0";
@@ -226,7 +224,7 @@ TEST(JsonParserTest, SerializePreservesData) {
 TEST(JsonParserTest, InOutPortDirection_Roundtrip_g7h8) {
     ParserContext ctx;
 
-    DeviceInstance dev;
+    ResolvedDevice dev;
     dev.name = "test_dev";
     dev.classname = "ElectricalSource"; // use known component for validation
     dev.ports["v_in"] = Port{bp2::Direction::Input, PortType::V};
@@ -401,7 +399,7 @@ TEST(JsonParserTest, PortTypeSerialization_RoundTrip) {
     ParserContext ctx;
 
     // Use ElectricalSource which has voltage ports
-    DeviceInstance dev;
+    ResolvedDevice dev;
     dev.name = "test";
     dev.classname = "ElectricalSource";
     dev.ports["v_in"] = Port{bp2::Direction::Input, PortType::V};
@@ -679,7 +677,7 @@ TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
     inst.classname = "ElectricalSource";
     inst.params["r_internal"] = "-0.5";
 
-    EXPECT_THROW(resolve_device(inst, def), std::runtime_error);
+    EXPECT_THROW(resolve_component(inst, def), std::runtime_error);
 }
 
 TEST(ComponentRegistry, LoadRecursive_DeepNesting) {
@@ -819,7 +817,7 @@ TEST(JsonParserTest, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
     // Instance port: same name, but with default domain/source_writer
     inst.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
 
-    DeviceInstance merged = resolve_device(inst, def);
+    ResolvedDevice merged = resolve_component(inst, def);
 
     // domain and source_writer must come from the definition, not remain at defaults
     EXPECT_EQ(merged.ports.at("v_out").domain, Domain::Mechanical);

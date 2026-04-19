@@ -20,7 +20,7 @@ float parse_float_codegen(const std::string& value, float default_val) {
     return locale_safe::parse_float_or(value, default_val);
 }
 
-float read_param_or(const DeviceInstance& dev, const char* key, float default_val) {
+float read_param_or(const ResolvedDevice& dev, const char* key, float default_val) {
     auto it = dev.params.find(key);
     if (it == dev.params.end()) {
         return default_val;
@@ -82,14 +82,13 @@ std::string kind_to_role(ElectricalElementKindCodegen k) {
 // Extract electrical element from device with explicit solver_role.
 // Handles three element kinds: FixedVoltageNode, TheveninSource, ConductanceBranch.
 std::optional<RawElement> extract_solver_role_element(
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     const ElectricalExtractOptions& options,
     size_t& element_idx
 ) {
-    const auto* prim = dev.spec ? as_primitive(*dev.spec) : nullptr;
-    if (!prim || !prim->solver_role.has_value()) return std::nullopt;
-    const auto& role = *prim->solver_role;
+    if (!dev.solver_role.has_value()) return std::nullopt;
+    const auto& role = *dev.solver_role;
 
     auto resolve_port = [&](const std::string& port_name) -> std::optional<uint32_t> {
         const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
@@ -187,7 +186,7 @@ std::optional<RawElement> extract_solver_role_element(
 // ===== Section 3: Raw Element Collection (classname rule path) =====
 // Extract electrical element from device using classname-based rules.
 std::optional<RawElement> extract_classname_rule_element(
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     const ElectricalExtractOptions& options,
     size_t& element_idx
@@ -489,7 +488,7 @@ void build_component_debug(
 // Orchestrate extraction of electrical elements, island building, and binding generation.
 // LOC: ~80 (clean delegation to helpers, low complexity)
 ElectricalPlanCodegen extract_electrical_plan(
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     const ElectricalExtractOptions& options
 ) {
@@ -499,7 +498,7 @@ ElectricalPlanCodegen extract_electrical_plan(
     std::vector<RawElement> raw_elements;
     size_t element_idx = 0;
 
-    auto device_has_any_ports = [&](const DeviceInstance& dev) -> bool {
+    auto device_has_any_ports = [&](const ResolvedDevice& dev) -> bool {
         for (const auto& [port_name, _port] : dev.ports) {
             std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
             if (port_to_signal.find(full_port) != port_to_signal.end()) {
@@ -510,12 +509,11 @@ ElectricalPlanCodegen extract_electrical_plan(
     };
 
     for (const auto& dev : devices) {
-        if ((dev.spec && spec_visual_only(*dev.spec)) || !device_has_any_ports(dev)) {
+        if (dev.visual_only || !device_has_any_ports(dev)) {
             continue;
         }
 
-        const auto* prim = dev.spec ? as_primitive(*dev.spec) : nullptr;
-        if (prim && prim->solver_role.has_value()) {
+        if (dev.solver_role.has_value()) {
             auto elem_opt = extract_solver_role_element(dev, port_to_signal, options, element_idx);
             if (elem_opt.has_value()) {
                 raw_elements.push_back(std::move(*elem_opt));

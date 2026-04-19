@@ -22,7 +22,6 @@ DeviceInstance make_device(const std::string& name,
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.spec = benchmark_registry().get(classname);
     for (const auto& p : get_component_ports(classname)) {
         dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
     }
@@ -49,7 +48,11 @@ int main() {
     JitBuildInput input;
     input.devices.reserve(devices.size());
     for (const auto& dev : devices) {
-        input.devices.push_back(resolve_component(dev, *dev.spec));
+        const ComponentSpec* spec = benchmark_registry().get(dev.classname);
+        if (!spec) {
+            throw std::runtime_error("Missing component definition for " + dev.classname);
+        }
+        input.devices.push_back(resolve_component(dev, *spec));
     }
 
     uint32_t next_signal = 0;

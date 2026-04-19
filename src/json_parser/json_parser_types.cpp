@@ -349,15 +349,13 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
     return {spec, pres};
 }
 
-DeviceInstance resolve_device(
+ResolvedDevice resolve_component(
     const DeviceInstance& instance,
     const ComponentSpec& definition)
 {
     DeviceInstance merged = instance;
-    merged.spec = &definition;
 
     const auto& ports = spec_ports(definition);
-
     if (merged.ports.empty()) {
         merged.ports = ports;
     } else {
@@ -409,15 +407,6 @@ DeviceInstance resolve_device(
     if (!params.empty()) {
         json_parser_internal::validate_params_against_schema(merged.params, params, merged.name, merged.classname);
     }
-
-    return merged;
-}
-
-ResolvedDevice resolve_component(
-    const DeviceInstance& instance,
-    const ComponentSpec& definition)
-{
-    DeviceInstance merged = resolve_device(instance, definition);
 
     ResolvedDevice resolved;
     resolved.name = merged.name;
