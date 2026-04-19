@@ -518,6 +518,127 @@ TEST(Flattener, Regression112_V1LabelBasedBridgeMatch) {
         << "bp_in_1.ext and pi_1.feedback must be on same signal (via ext/port unification)";
 }
 
+TEST(Flattener, Regression112_ExposedPortTakesPrecedenceOverConflictingLegacyLabel) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+    bp2::BlueprintLibrary library;
+
+    bp2::Blueprint inner;
+    inner = inner.with_interface(bp2::Interface({
+        make_port(I, "feedback", Domain::Logical, bp2::Direction::Input),
+        make_port(I, "cmd", Domain::Logical, bp2::Direction::Input),
+    }));
+
+    bp2::Blueprint::Node bridge_feedback = make_bridge_node(I, "bp_in_1", true, Domain::Logical);
+    bridge_feedback.view.name = "cmd";
+    bridge_feedback.bridge_port().exposed_port = I.intern("feedback");
+    inner = inner.with_node(std::move(bridge_feedback));
+
+    bp2::Blueprint::Node bridge_cmd = make_bridge_node(I, "bp_in_2", true, Domain::Logical);
+    bridge_cmd.view.name = "feedback";
+    bridge_cmd.bridge_port().exposed_port = I.intern("cmd");
+    inner = inner.with_node(std::move(bridge_cmd));
+
+    bp2::Blueprint::Node leaf_feedback;
+    leaf_feedback.semantic.id = I.intern("leaf_feedback");
+    leaf_feedback.semantic.type = I.intern("Sink");
+    leaf_feedback.component().iface = bp2::Interface({
+        make_port(I, "in", Domain::Logical, bp2::Direction::Input),
+    });
+    inner = inner.with_node(std::move(leaf_feedback));
+
+    bp2::Blueprint::Node leaf_cmd;
+    leaf_cmd.semantic.id = I.intern("leaf_cmd");
+    leaf_cmd.semantic.type = I.intern("Sink");
+    leaf_cmd.component().iface = bp2::Interface({
+        make_port(I, "in", Domain::Logical, bp2::Direction::Input),
+    });
+    inner = inner.with_node(std::move(leaf_cmd));
+
+    bp2::Blueprint::Wire wf;
+    wf.id = I.intern("wf");
+    wf.source = {I.intern("bp_in_1"), I.intern("port")};
+    wf.target = {I.intern("leaf_feedback"), I.intern("in")};
+    wf.domain = Domain::Logical;
+    inner = inner.with_wire(std::move(wf));
+
+    bp2::Blueprint::Wire wc;
+    wc.id = I.intern("wc");
+    wc.source = {I.intern("bp_in_2"), I.intern("port")};
+    wc.target = {I.intern("leaf_cmd"), I.intern("in")};
+    wc.domain = Domain::Logical;
+    inner = inner.with_wire(std::move(wc));
+
+    bp2::Blueprint root;
+
+    bp2::Blueprint::Node src_feedback;
+    src_feedback.semantic.id = I.intern("src_feedback");
+    src_feedback.semantic.type = I.intern("Value");
+    src_feedback.component().iface = bp2::Interface({
+        make_port(I, "o", Domain::Logical, bp2::Direction::Output),
+    });
+    root = root.with_node(std::move(src_feedback));
+
+    bp2::Blueprint::Node src_cmd;
+    src_cmd.semantic.id = I.intern("src_cmd");
+    src_cmd.semantic.type = I.intern("Value");
+    src_cmd.component().iface = bp2::Interface({
+        make_port(I, "o", Domain::Logical, bp2::Direction::Output),
+    });
+    root = root.with_node(std::move(src_cmd));
+
+    bp2::Blueprint::Node inst;
+    inst.semantic.id = I.intern("inst");
+    inst.semantic.type = I.intern("Inner");
+    inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("Inner"))))
+    };
+    root = root.with_node(std::move(inst));
+
+    bp2::Blueprint::Wire rw_feedback;
+    rw_feedback.id = I.intern("rw_feedback");
+    rw_feedback.source = {I.intern("src_feedback"), I.intern("o")};
+    rw_feedback.target = {I.intern("inst"), I.intern("feedback")};
+    rw_feedback.domain = Domain::Logical;
+    root = root.with_wire(std::move(rw_feedback));
+
+    bp2::Blueprint::Wire rw_cmd;
+    rw_cmd.id = I.intern("rw_cmd");
+    rw_cmd.source = {I.intern("src_cmd"), I.intern("o")};
+    rw_cmd.target = {I.intern("inst"), I.intern("cmd")};
+    rw_cmd.domain = Domain::Logical;
+    root = root.with_wire(std::move(rw_cmd));
+
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(root, arena);
+
+    bp2::SignalIndex src_feedback_o = UINT32_MAX;
+    bp2::SignalIndex src_cmd_o = UINT32_MAX;
+    bp2::SignalIndex leaf_feedback_in = UINT32_MAX;
+    bp2::SignalIndex leaf_cmd_in = UINT32_MAX;
+
+    for (auto const& comp : netlist.components) {
+        const std::string cpath = arena.to_string(comp.path);
+        for (auto const& [pname, sig] : comp.port_signals) {
+            const std::string pstr(I.resolve(pname));
+            if (cpath == "/src_feedback" && pstr == "o") src_feedback_o = sig;
+            if (cpath == "/src_cmd" && pstr == "o") src_cmd_o = sig;
+            if (cpath == "/inst/leaf_feedback" && pstr == "in") leaf_feedback_in = sig;
+            if (cpath == "/inst/leaf_cmd" && pstr == "in") leaf_cmd_in = sig;
+        }
+    }
+
+    EXPECT_NE(src_feedback_o, UINT32_MAX);
+    EXPECT_NE(src_cmd_o, UINT32_MAX);
+    EXPECT_NE(leaf_feedback_in, UINT32_MAX);
+    EXPECT_NE(leaf_cmd_in, UINT32_MAX);
+    EXPECT_EQ(src_feedback_o, leaf_feedback_in);
+    EXPECT_EQ(src_cmd_o, leaf_cmd_in);
+    EXPECT_NE(src_feedback_o, leaf_cmd_in)
+        << "authoritative exposed_port must win over conflicting legacy label";
+}
+
 // ==================================================================
 // #112 Regression: 3-level nesting — no phantom paths at any level
 // ==================================================================

@@ -5,6 +5,7 @@
 #include "json_parser/json_parser.h"
 #include "jit_build_input_test_helper.h"
 #include <algorithm>
+#include <deque>
 
 namespace {
 
@@ -48,6 +49,17 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
 }
 
 } // anonymous namespace
+
+// Test spec store for creating modified specs
+namespace {
+struct TestSpecStore {
+    std::deque<ComponentSpec> specs;
+    const ComponentSpec* add(ComponentSpec spec) {
+        specs.push_back(std::move(spec));
+        return &specs.back();
+    }
+};
+} // namespace
 
 // ============================================================================
 // Electrical Primitive Handle Tests - Batch 3
@@ -405,8 +417,16 @@ TEST(ElectricalHandleBuild, KnobSwitchMetadataWithoutBindHandleGetsNoHandles) {
         {"positions", "2"}, {"initial_position", "0"},
         {"g_open", "1e-6"}, {"g_closed", "1000.0"}
     }, {"wiper", "throw1", "throw2", "throw3", "throw4", "throw5", "control", "position"});
-    // Use spec from registry - the default KnobSwitch spec doesn't have bind_handle
-    knob.spec = test_registry().get("KnobSwitch");
+
+    // Create a modified spec without bind_handle
+    static TestSpecStore no_bind_store;
+    {
+        PrimitiveSpec prim_copy = *as_primitive(*test_registry().get("KnobSwitch"));
+        if (prim_copy.solver_role) {
+            prim_copy.solver_role->value_map.erase("bind_handle");
+        }
+        knob.spec = no_bind_store.add(std::move(prim_copy));
+    }
 
     DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
     DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});

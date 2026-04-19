@@ -5,6 +5,16 @@
 
 
 // =============================================================================
+// Static registry for test helpers — keeps specs alive
+// =============================================================================
+
+static const ComponentRegistry& lut_test_registry() {
+    static const ComponentRegistry registry = load_component_registry("library/");
+    return registry;
+}
+
+
+// =============================================================================
 // Helpers: construct LUT device instances for codegen tests
 // =============================================================================
 
@@ -15,7 +25,7 @@ static auto make_lut_device(const std::string& name, const std::string& table) {
     dev.ports["input"]  = {bp2::Direction::Input,  PortType::Any, std::nullopt};
     dev.ports["output"] = {bp2::Direction::Output, PortType::Any, std::nullopt};
     dev.params["table"] = table;
-    dev.spec = load_component_registry("library/").get("LUT");
+    dev.spec = lut_test_registry().get("LUT");
     return dev;
 }
 
@@ -24,7 +34,7 @@ static auto make_ref_node() {
     dev.name = "gnd";
     dev.classname = "RefNode";
     dev.ports["v"] = {bp2::Direction::Output, PortType::V, std::nullopt};
-    dev.spec = load_component_registry("library/").get("RefNode");
+    dev.spec = lut_test_registry().get("RefNode");
     return dev;
 }
 
@@ -127,7 +137,7 @@ TEST(LUTCodegen, NoLUTs_NoArenaCode) {
     bat.params["internal_r"] = "0.1";
     bat.ports["v_in"]  = {bp2::Direction::Input,  PortType::V, std::nullopt};
     bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
-    bat.spec = load_component_registry("library/").get("Battery");
+    bat.spec = lut_test_registry().get("Battery");
 
     auto setup = make_setup({std::move(bat)});
 
@@ -204,7 +214,7 @@ TEST(LUTCodegen, GenericParamLoop_SkippedForLUT) {
     lut.ports["input"]  = {bp2::Direction::Input,  PortType::Any, std::nullopt};
     lut.ports["output"] = {bp2::Direction::Output, PortType::Any, std::nullopt};
     lut.params["table"] = "0:0; 100:100";
-    lut.spec = load_component_registry("library/").get("LUT");
+    lut.spec = lut_test_registry().get("LUT");
 
     auto setup = make_setup({std::move(lut)});
 
@@ -237,7 +247,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
     bat.classname = "Battery";
     bat.ports["v_in"]  = {bp2::Direction::Input,  PortType::V, std::nullopt};
     bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
-    bat.spec = load_component_registry("library/").get("Battery");
+    bat.spec = lut_test_registry().get("Battery");
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -246,7 +256,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
     DeviceInstance grp;
     grp.name = "grp1";
     grp.classname = "Group";
-    grp.spec = load_component_registry("library/").get("Group");
+    grp.spec = lut_test_registry().get("Group");
     s.devices.push_back(std::move(grp));
 
     s.signal_count = next_sig;
@@ -278,7 +288,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
     bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
     bat.params["emf"] = "24.0";
     bat.params["internal_r"] = "0.05";
-    bat.spec = load_component_registry("library/").get("Battery");
+    bat.spec = lut_test_registry().get("Battery");
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -287,7 +297,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
     DeviceInstance grp;
     grp.name = "grp1";
     grp.classname = "Group";
-    grp.spec = load_component_registry("library/").get("Group");
+    grp.spec = lut_test_registry().get("Group");
     s.devices.push_back(std::move(grp));
 
     s.signal_count = next_sig;
@@ -321,7 +331,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     bat.classname = "Battery";
     bat.ports["v_in"]  = {bp2::Direction::Input,  PortType::V, std::nullopt};
     bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
-    bat.spec = load_component_registry("library/").get("Battery");
+    bat.spec = lut_test_registry().get("Battery");
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -330,7 +340,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     DeviceInstance txt;
     txt.name = "txt1";
     txt.classname = "Text";
-    txt.spec = load_component_registry("library/").get("Text");
+    txt.spec = lut_test_registry().get("Text");
     txt.params["text"] = "annotation";
     txt.params["font_size"] = "large";
     s.devices.push_back(std::move(txt));
@@ -364,7 +374,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     bat.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
     bat.params["emf"] = "24.0";
     bat.params["internal_r"] = "0.05";
-    bat.spec = load_component_registry("library/").get("Battery");
+    bat.spec = lut_test_registry().get("Battery");
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -373,7 +383,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     DeviceInstance txt;
     txt.name = "txt1";
     txt.classname = "Text";
-    txt.spec = load_component_registry("library/").get("Text");
+    txt.spec = lut_test_registry().get("Text");
     txt.params["text"] = "note";
     txt.params["font_size"] = "medium";
     s.devices.push_back(std::move(txt));

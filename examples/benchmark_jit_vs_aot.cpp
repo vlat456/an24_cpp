@@ -49,7 +49,7 @@ JitBuildInput build_input_from_blueprint_file(const std::string& blueprint_file)
     bp2::BlueprintLibrary library = build_library(registry, interner);
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
-    return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
+    return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
 }
 
 } // namespace

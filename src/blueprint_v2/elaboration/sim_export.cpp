@@ -58,7 +58,7 @@ JitBuildInput elaborate_for_jit(
     const FlatNetlist& netlist,
     PathArena& arena,
     const ui::StringInterner& interner,
-    const ComponentRegistry* type_registry) {
+    const ComponentRegistry& type_registry) {
 
     JitBuildInput result;
 
@@ -94,15 +94,13 @@ JitBuildInput elaborate_for_jit(
         }
 
         // Params: convert float params to strings, filtering visual-only
-        const ComponentSpec* type_def = type_registry ? type_registry->get(classname) : nullptr;
+        const ComponentSpec* type_def = type_registry.get(classname);
         auto is_visual_only = [&](const std::string& key) -> bool {
-            if (!type_def) return false;
             const auto& params = spec_params(*type_def);
             auto it = params.find(key);
             return it != params.end() && it->second.visual_only;
         };
         auto is_int_param = [&](const std::string& key) -> bool {
-            if (!type_def) return false;
             const auto& params = spec_params(*type_def);
             auto it = params.find(key);
             return it != params.end() && it->second.type == ParamSchemaType::Int;
@@ -122,12 +120,11 @@ JitBuildInput elaborate_for_jit(
             dev.params[k] = v;
         }
 
-        // Merge with type definition to get domains, execution metadata, solver_role, etc.
-        if (type_def) {
-            dev = resolve_device(dev, *type_def);
+        if (!type_def) {
+            throw std::runtime_error("Component definition not found: " + classname);
         }
 
-        result.devices.push_back(std::move(dev));
+        result.devices.push_back(resolve_component(dev, *type_def));
     }
 
     // --- Build port_to_signal directly from FlatNetlist signal indices ---

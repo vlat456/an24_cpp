@@ -116,6 +116,11 @@ static void merge_nested_blueprint(
     for (const auto& dev : nested.devices) {
         DeviceInstance prefixed = dev;
         prefixed.name = signal_key::make_child_scope_key(prefix, dev.name);
+        // Re-point spec into parent registry to avoid dangling pointers
+        // when nested context is destroyed.
+        if (prefixed.spec) {
+            prefixed.spec = parent.registry.get(prefixed.classname);
+        }
         parent.devices.push_back(prefixed);
     }
 

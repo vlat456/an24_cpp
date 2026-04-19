@@ -413,4 +413,35 @@ DeviceInstance resolve_device(
     return merged;
 }
 
+ResolvedDevice resolve_component(
+    const DeviceInstance& instance,
+    const ComponentSpec& definition)
+{
+    DeviceInstance merged = resolve_device(instance, definition);
+
+    ResolvedDevice resolved;
+    resolved.name = merged.name;
+    resolved.template_name = merged.template_name;
+    resolved.classname = merged.classname;
+    resolved.display_name = merged.display_name;
+    resolved.priority = merged.priority;
+    resolved.bucket = merged.bucket;
+    resolved.critical = merged.critical;
+    resolved.ports = std::move(merged.ports);
+    resolved.params = std::move(merged.params);
+    resolved.pos = merged.pos;
+    resolved.size = merged.size;
+    resolved.visual_only = spec_visual_only(definition);
+    resolved.scheduler_source = spec_scheduler_source(definition);
+    resolved.solver_owned_electrical = spec_solver_owned_electrical(definition);
+    resolved.domains = spec_domains(definition);
+
+    if (const PrimitiveSpec* prim = as_primitive(definition)) {
+        resolved.execution = prim->execution;
+        resolved.solver_role = prim->solver_role;
+    }
+
+    return resolved;
+}
+
 // menu tree, validation, and composite expansion moved to json_parser_model.cpp

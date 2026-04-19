@@ -28,9 +28,9 @@ DeviceInstance make_resistor_device(std::string name) {
     dev.name = std::move(name);
     dev.classname = "Resistor";
     dev.params["conductance"] = "1.0";
-    const PrimitiveSpec* def = as_primitive(*shared_registry().get(dev.classname));
-    EXPECT_NE(def, nullptr);
-    return resolve_device(dev, *def);
+    const ComponentSpec* spec = shared_registry().get(dev.classname);
+    EXPECT_NE(spec, nullptr);
+    return resolve_device(dev, *spec);
 }
 
 } // namespace

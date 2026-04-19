@@ -77,13 +77,13 @@ namespace jit_solver_impl {
 
 void build_and_register_components(
     BuildResult& result,
-    const std::vector<DeviceInstance>& devices)
+    const std::vector<ResolvedDevice>& devices)
 {
     std::vector<std::string> consumer_device_names;
 
     // Phase 2 Slice 1: Create and register migrated components
     for (const auto& dev : devices) {
-        if (dev.spec && spec_visual_only(*dev.spec)) {
+        if (dev.visual_only) {
             continue;
         }
 

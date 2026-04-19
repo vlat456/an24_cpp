@@ -49,7 +49,7 @@ TEST(BlueprintLoading, DirectBlueprintLoadWorks) {
 // =============================================================================
 static SimulationState run_simulation(
     BuildResult& result,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     int steps = 50
 ) {
     SimulationState state;

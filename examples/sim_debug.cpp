@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
 
     if (dump_json) {
-        JitBuildInput jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
+        JitBuildInput jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
         
         // Build canonical JSON output
         nlohmann::json out = nlohmann::json::object();
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    JitBuildInput build_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
+    JitBuildInput build_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
 
     if (dump_map) {
         // Group by signal index

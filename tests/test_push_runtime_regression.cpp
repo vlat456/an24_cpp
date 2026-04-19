@@ -116,7 +116,24 @@ static JitBuildInput build_input_from_blueprint_file(const std::string& blueprin
 
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
-    return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
+    return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
+}
+
+static JitBuildInput build_input_from_blueprint_json(const std::string& raw,
+                                                     const ComponentRegistry& registry) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::BlueprintLibrary library = build_library(registry, interner);
+
+    bp2::DecodeError err;
+    auto bp = bp2::BlueprintCodec::decode(raw, interner, arena, registry, &err);
+    if (!bp.has_value()) {
+        throw std::runtime_error("Decode failed: " + err.message);
+    }
+
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
+    return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
 }
 
 /// Find the canonical strict closed_circuit blueprint fixture.
@@ -137,141 +154,6 @@ static std::string find_closed_circuit_blueprint() {
     }
     throw std::runtime_error(
         "Could not find closed_circuit.blueprint fixture in any of: " + tried);
-}
-
-/// Convert the legacy node/wire fixture format using node id as device key.
-/// These regression fixtures predate strict blueprint v1 and use "/node_id:port" endpoints.
-static std::string blueprint_to_simulation_json_by_id(const std::string& blueprint_path) {
-    std::string content = read_file_or_fail(blueprint_path);
-    json bp = json::parse(content);
-
-    json result;
-    result["devices"] = json::array();
-    result["connections"] = json::array();
-
-    if (bp.contains("nodes") && bp["nodes"].is_array()) {
-        for (const auto& node : bp["nodes"]) {
-            std::string node_id = node.value("id", "");
-            json dev;
-            dev["name"] = node_id;                            // key = id
-            dev["classname"] = node["type"].get<std::string>();
-            if (node.contains("params") && node["params"].is_object()) {
-                dev["params"] = json::object();
-                for (const auto& [k, v] : node["params"].items()) {
-                    dev["params"][k] = scalar_json_to_param_string(v);
-                }
-            }
-            // Merge string_params (e.g. LUT table, Bus port_edge) into params
-            if (node.contains("string_params") && node["string_params"].is_object()) {
-                if (!dev.contains("params")) {
-                    dev["params"] = json::object();
-                }
-                for (const auto& [k, v] : node["string_params"].items()) {
-                    dev["params"][k] = scalar_json_to_param_string(v);
-                }
-            }
-            result["devices"].push_back(dev);
-        }
-    }
-
-    if (bp.contains("wires") && bp["wires"].is_array()) {
-        for (const auto& wire : bp["wires"]) {
-            json conn;
-            std::string from = wire["source"].get<std::string>();
-            std::string to = wire["target"].get<std::string>();
-            // Strip leading '/' and replace ':' with '.'
-            if (!from.empty() && from[0] == '/') from = from.substr(1);
-            if (!to.empty() && to[0] == '/') to = to.substr(1);
-            std::replace(from.begin(), from.end(), ':', '.');
-            std::replace(to.begin(), to.end(), ':', '.');
-            conn["from"] = from;
-            conn["to"] = to;
-            result["connections"].push_back(conn);
-        }
-    }
-
-    return result.dump();
-}
-
-/// Convert the legacy node/wire fixture format to simulation JSON format (devices/connections).
-/// Legacy fixture wires use source/target like "/node:port" which are converted to "node.port".
-/// NOTE: This legacy helper uses node name as device key. The real editor uses node id.
-static std::string blueprint_to_simulation_json(const std::string& blueprint_path) {
-    std::string content = read_file_or_fail(blueprint_path);
-    json bp = json::parse(content);
-
-    json result;
-    result["devices"] = json::array();
-    result["connections"] = json::array();
-    std::unordered_map<std::string, std::string> id_to_name;
-
-    // Convert nodes to devices
-    if (bp.contains("nodes") && bp["nodes"].is_array()) {
-        for (const auto& node : bp["nodes"]) {
-            std::string node_id = node.value("id", "");
-            std::string node_name = node.value("name", node_id);
-            if (!node_id.empty()) {
-                id_to_name[node_id] = node_name;
-            }
-
-            json dev;
-            dev["name"] = node_name;
-            dev["classname"] = node["type"].get<std::string>();
-            if (node.contains("params") && node["params"].is_object()) {
-                dev["params"] = json::object();
-                for (const auto& [k, v] : node["params"].items()) {
-                    // Preserve legacy fixture scalar values as parser-friendly strings.
-                    dev["params"][k] = scalar_json_to_param_string(v);
-                }
-            }
-            // Merge string_params (e.g. LUT table, Bus port_edge) into params
-            if (node.contains("string_params") && node["string_params"].is_object()) {
-                if (!dev.contains("params")) {
-                    dev["params"] = json::object();
-                }
-                for (const auto& [k, v] : node["string_params"].items()) {
-                    dev["params"][k] = scalar_json_to_param_string(v);
-                }
-            }
-            result["devices"].push_back(dev);
-        }
-    }
-
-    // Convert wires to connections
-    if (bp.contains("wires") && bp["wires"].is_array()) {
-        for (const auto& wire : bp["wires"]) {
-            json conn;
-            std::string from = wire["source"].get<std::string>();
-            std::string to = wire["target"].get<std::string>();
-
-            // Convert "/node:port" format to "node.port"
-            if (!from.empty() && from[0] == '/') from = from.substr(1);
-            if (!to.empty() && to[0] == '/') to = to.substr(1);
-
-            auto remap_endpoint = [&](std::string& endpoint) {
-                size_t sep = endpoint.find(':');
-                if (sep == std::string::npos) {
-                    return;
-                }
-                std::string node_id = endpoint.substr(0, sep);
-                auto it = id_to_name.find(node_id);
-                if (it != id_to_name.end()) {
-                    endpoint.replace(0, sep, it->second);
-                }
-            };
-            remap_endpoint(from);
-            remap_endpoint(to);
-
-            std::replace(from.begin(), from.end(), ':', '.');
-            std::replace(to.begin(), to.end(), ':', '.');
-
-            conn["from"] = from;
-            conn["to"] = to;
-            result["connections"].push_back(conn);
-        }
-    }
-
-    return result.dump();
 }
 
 } // namespace
@@ -930,21 +812,18 @@ TEST(PushRuntime, LerpNodeCommitSemantics) {
 TEST(PushRuntime, StrictParamMissingThrowsForPID) {
     // Verify that missing required params for PID throws runtime_error
     // with component name and missing key.
-    DeviceInstance dev;
-    dev.name = "pid_bad";
-    dev.classname = "PID";
-    dev.spec = nullptr;
-    dev.params = {};  // Missing all params
-
-    auto ports = get_component_ports("PID");
-    for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
+    std::unordered_map<std::string, Port> device_ports;
+    for (const auto& port_name : get_component_ports("PID")) {
+        device_ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
-    std::vector<DeviceInstance> test_devs = {dev};
+    JitBuildInput input;
+    input = make_jit_input_from_resolved({
+        make_raw_resolved_device("pid_bad", "PID", {}, std::move(device_ports))
+    });
 
     try {
-        (void)build_systems_dev(make_jit_input(test_devs, {}));
+        (void)build_systems_dev(input);
         FAIL() << "Expected runtime_error for PID missing Kp";
     }
     catch (const std::runtime_error& e) {
@@ -958,21 +837,22 @@ TEST(PushRuntime, StrictParamMissingThrowsForPID) {
 
 TEST(PushRuntime, StrictParamMissingThrowsForSlewRate) {
     // Verify that missing required params for SlewRate throws runtime_error
-    DeviceInstance dev;
-    dev.name = "slew_bad";
-    dev.classname = "SlewRate";
-    dev.spec = nullptr;
-    dev.params = {{"deadzone", "0.001"}};  // Missing max_rate
-
-    auto ports = get_component_ports("SlewRate");
-    for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
+    std::unordered_map<std::string, Port> device_ports;
+    for (const auto& port_name : get_component_ports("SlewRate")) {
+        device_ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
-    std::vector<DeviceInstance> test_devs = {dev};
+    JitBuildInput input;
+    input = make_jit_input_from_resolved({
+        make_raw_resolved_device(
+            "slew_bad",
+            "SlewRate",
+            {{"deadzone", "0.001"}},
+            std::move(device_ports))
+    });
 
     try {
-        (void)build_systems_dev(make_jit_input(test_devs, {}));
+        (void)build_systems_dev(input);
         FAIL() << "Expected runtime_error for SlewRate missing max_rate";
     }
     catch (const std::runtime_error& e) {
@@ -1029,7 +909,7 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
         DeviceInstance dev;
         dev.name = "pid_bad";
         dev.classname = "PID";
-        dev.spec = nullptr;
+        dev.spec = test_registry().get(dev.classname);
         dev.params = {
             {"Kpp", "2.0"},  // Typo: should be "Kp"
             {"Ki", "0.5"},
@@ -1064,7 +944,7 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
           DeviceInstance dev;
           dev.name = "pid_ok";
           dev.classname = "PID";
-          dev.spec = nullptr;
+          dev.spec = test_registry().get(dev.classname);
           dev.params = {
              {"Kp", "2.0"},
              {"Ki", "0.5"},
@@ -1640,49 +1520,43 @@ TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
         << "CurrentSense should report non-zero current in closed-loop CVS circuit";
 }
 
-// Regression: editor readback must use node id (not display name) as simulation key.
-// In closed_circuit.blueprint, the CVS node has id="controlledvoltagesource_1"
-// but name="GEN". The canonical editor runtime path exports devices keyed
-// by id. The editor's updateNodeContentFromSimulation() must query by id too,
-// otherwise it reads 0 for a device named "GEN" that doesn't exist in the sim.
+// Regression: editor readback must use node id (not display label) as simulation key.
+// Canonical blueprint runtime identity is the node id. Labels are presentation only.
 TEST(PushRuntime, ClosedCircuit_EditorIdBasedLookup_NonZeroVoltage) {
-    std::string blueprint_path;
-    ASSERT_NO_THROW(blueprint_path = find_closed_circuit_blueprint())
-        << "Could not find closed_circuit.blueprint";
-
-    // Build JSON using node id as key (mirrors real editor path)
-    std::string json;
-    ASSERT_NO_THROW(json = blueprint_to_simulation_json_by_id(blueprint_path))
-        << "Failed to build id-keyed simulation JSON";
+    const std::string blueprint = R"({
+        "format": "blueprint",
+        "version": 1,
+        "blueprint_id": "test.id_lookup",
+        "name": "ID Lookup",
+        "interface": [],
+        "nodes": [
+            {
+                "kind": "component",
+                "id": "refnode_1",
+                "component": "RefNode",
+                "label": "GEN",
+                "layout": {"x": 0.0, "y": 0.0},
+                "params": {"value": 1.5}
+            }
+        ],
+        "wires": []
+    })";
 
     JIT_Simulator sim;
-    ASSERT_NO_THROW(sim.start(build_input_from_json(json)))
-        << "Failed to start simulation from id-keyed JSON";
+    ASSERT_NO_THROW(sim.start(build_input_from_blueprint_json(blueprint, test_registry())))
+        << "Failed to start simulation from canonical blueprint JSON";
 
     const double dt = 1.0 / 60.0;
-    for (int i = 0; i < 20; ++i) {
-        sim.step(dt);
-    }
+    sim.step(dt);
 
     // Query by interned id (what the fixed editor does)
-    float v_pos = sim.get_port_value("controlledvoltagesource_1", "v_pos");
-    float cs_vin = sim.get_port_value("currentsense_1", "v_in");
-    float cs_iout = sim.get_port_value("currentsense_1", "i_out");
-
-    // CVS v_pos is the source-side node — should be near v_source (~1.6 V).
-    EXPECT_GT(v_pos, 0.5f)
-        << "CVS v_pos should be non-zero when queried by node id";
-    // cs_vin sits after a 10 Ω resistor in series with a 0.1 Ω current-sense,
-    // so the voltage divider gives cs_vin ≈ v_source * 0.1/10.1 ≈ 0.016 V.
-    // We just check it is energised (non-zero).
-    EXPECT_GT(cs_vin, 0.001f)
-        << "CurrentSense v_in should be non-zero when queried by node id";
-    EXPECT_GT(std::fabs(cs_iout), 1e-3f)
-        << "CurrentSense i_out should be non-zero when queried by node id";
+    float by_id = sim.get_port_value("refnode_1", "v");
+    EXPECT_NEAR(by_id, 1.5f, 1e-4f)
+        << "Canonical runtime lookup must use node id";
 
     // Canonical identity uses only node_id.port lookup. Display-name alias lookup is removed.
-    float gen_vpos = sim.get_port_value("GEN", "v_pos");
-    EXPECT_FLOAT_EQ(gen_vpos, 0.0f)
+    float by_label = sim.get_port_value("GEN", "v");
+    EXPECT_FLOAT_EQ(by_label, 0.0f)
         << "Querying by non-canonical node id must return 0";
 }
 

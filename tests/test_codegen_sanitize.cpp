@@ -38,8 +38,8 @@ static auto make_colon_circuit() {
     ref.params = {{"value", "0"}};
     ref.ports["v"] = {bp2::Direction::Output};
     ref.spec = test_registry().get("RefNode");
-    if (const PrimitiveSpec* def = as_primitive(*test_registry().get("RefNode"))) {
-        ref = resolve_device(ref, *def);
+    if (const ComponentSpec* spec = test_registry().get("RefNode")) {
+        ref = resolve_device(ref, *spec);
     }
     devices.push_back(ref);
 
@@ -50,8 +50,8 @@ static auto make_colon_circuit() {
     bat.ports["v_out"] = {bp2::Direction::Output};
     bat.ports["v_in"] = {bp2::Direction::Input};
     bat.spec = test_registry().get("ElectricalSource");
-    if (const PrimitiveSpec* def = as_primitive(*test_registry().get("ElectricalSource"))) {
-        bat = resolve_device(bat, *def);
+    if (const ComponentSpec* spec = test_registry().get("ElectricalSource")) {
+        bat = resolve_device(bat, *spec);
     }
     devices.push_back(bat);
 
@@ -60,8 +60,8 @@ static auto make_colon_circuit() {
     bus.classname = "Bus";
     bus.ports["v"] = {bp2::Direction::InOut};
     bus.spec = test_registry().get("Bus");
-    if (const PrimitiveSpec* def = as_primitive(*test_registry().get("Bus"))) {
-        bus = resolve_device(bus, *def);
+    if (const ComponentSpec* spec = test_registry().get("Bus")) {
+        bus = resolve_device(bus, *spec);
     }
     devices.push_back(bus);
 
@@ -72,8 +72,8 @@ static auto make_colon_circuit() {
     load.ports["v_in"] = {bp2::Direction::Input};
     load.ports["v_out"] = {bp2::Direction::Output};
     load.spec = test_registry().get("Resistor");
-    if (const PrimitiveSpec* def = as_primitive(*test_registry().get("Resistor"))) {
-        load = resolve_device(load, *def);
+    if (const ComponentSpec* spec = test_registry().get("Resistor")) {
+        load = resolve_device(load, *spec);
     }
     devices.push_back(load);
 

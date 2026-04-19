@@ -624,6 +624,64 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibilit
     }
 }
 
+TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillAcceptsCompatibleTarget) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
+    set_iface(src, {
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto sink_a = make_node(I, "sink_a", "TypeSink", 420.0f, 120.0f);
+    set_iface(sink_a, {
+        make_port(I, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    auto sink_b = make_node(I, "sink_b", "TypeSink", 420.0f, 220.0f);
+    set_iface(sink_b, {
+        make_port(I, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(sink_a));
+    bp = bp.with_node(std::move(sink_b));
+    auto w = make_wire(I, arena, "wire_0", "src", "out", "sink_a", "in");
+    w.domain = Domain::Electrical;
+    w.routing_points.push_back({200.0f, 120.0f});
+    bp = bp.with_wire(std::move(w));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+
+    auto* sink_a_w = dynamic_cast<visual::Widget*>(scene.find("sink_a"));
+    auto* sink_b_w = dynamic_cast<visual::Widget*>(scene.find("sink_b"));
+    ASSERT_NE(sink_a_w, nullptr);
+    ASSERT_NE(sink_b_w, nullptr);
+    auto* sink_a_in = sink_a_w->portByName("in");
+    auto* sink_b_in = sink_b_w->portByName("in");
+    ASSERT_NE(sink_a_in, nullptr);
+    ASSERT_NE(sink_b_in, nullptr);
+
+    Viewport vp;
+    auto host = create_editor_model_host(model);
+
+    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    input.on_mouse_down(port_center(sink_a_in), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(sink_b_in), canvas_min);
+
+    const auto* wire_after = model.current().find_wire(I.intern("wire_0"));
+    ASSERT_NE(wire_after, nullptr);
+    auto [tgt_n, tgt_p] = endpoint_node_port(wire_after->target, arena);
+    EXPECT_EQ(tgt_n, I.intern("sink_b"));
+    EXPECT_EQ(tgt_p, I.intern("in"));
+    EXPECT_EQ(wire_after->routing_points.size(), 1u);
+}
+
 TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
     ui::StringInterner I;
     bp2::PathArena arena(I);

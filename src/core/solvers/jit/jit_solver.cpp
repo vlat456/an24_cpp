@@ -14,7 +14,7 @@ using namespace jit_solver_impl;
 /// Helper to compute port_to_signal mapping for JSON input
 static void compute_signal_mapping(
     BuildResult& result,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const std::vector<BridgePortDefinition>& bridge_ports,
     const std::vector<std::pair<std::string, std::string>>& connections)
 {
@@ -22,9 +22,9 @@ static void compute_signal_mapping(
     std::unordered_map<std::string, uint32_t> port_to_idx;
 
     for (const auto& dev : devices) {
-         if (dev.spec && spec_visual_only(*dev.spec)) {
-             continue;
-         }
+         if (dev.visual_only) {
+              continue;
+          }
 
          for (const auto& [port_name, port] : dev.ports) {
              (void)port;
@@ -103,7 +103,7 @@ static void compute_signal_mapping(
 /// Assumes result.port_to_signal and result.signal_count are already populated.
 static BuildResult build_from_signals(
     BuildResult result,
-    const std::vector<DeviceInstance>& devices
+    const std::vector<ResolvedDevice>& devices
 ) {
     if (result.signal_count <= 1) {
         // Empty system, sentinel only
@@ -153,17 +153,26 @@ JitBuildInput build_input_from_json(const std::string& json_str) {
         connections.push_back({c.from, c.to});
     }
 
+    std::vector<ResolvedDevice> devices;
+    devices.reserve(ctx.devices.size());
+    for (const auto& dev : ctx.devices) {
+        const ComponentSpec* spec = ctx.registry.get(dev.classname);
+        if (!spec) {
+            throw std::runtime_error("Component definition not found: " + dev.classname);
+        }
+        devices.push_back(resolve_component(dev, *spec));
+    }
+
     // Compute port_to_signal mapping
     BuildResult temp_result{};
-    compute_signal_mapping(temp_result, ctx.devices, ctx.bridge_ports, connections);
+    compute_signal_mapping(temp_result, devices, ctx.bridge_ports, connections);
 
     // Return JitBuildInput with computed mapping and initial values
     return JitBuildInput{
-        ctx.devices,
+        std::move(devices),
         ctx.bridge_ports,
         temp_result.port_to_signal,
         temp_result.signal_count,
-        ctx.initial_values,
-        std::move(ctx.registry)
+        ctx.initial_values
     };
 }

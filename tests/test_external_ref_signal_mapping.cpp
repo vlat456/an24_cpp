@@ -130,7 +130,7 @@ static JitBuildInput build_input_from_blueprint_file(const std::string& blueprin
 
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
-    return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry);
+    return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
 }
 
 /// Find the canonical strict closed_circuit blueprint fixture.

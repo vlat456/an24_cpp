@@ -209,7 +209,7 @@ protected:
 
         bp2::Flattener flattener(library);
         bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
-        JitBuildInput input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, &registry_);
+        JitBuildInput input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry_);
         maybe_regenerate_golden(golden_path_, input);
         return input;
     }

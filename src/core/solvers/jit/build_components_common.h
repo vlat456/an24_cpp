@@ -11,7 +11,7 @@ namespace jit_solver_impl {
 template <typename Comp>
 inline void setup_component_ports(
     BuildResult& result,
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     Comp& comp)
 {
     for (const auto& [port_name, port] : dev.ports) {
@@ -30,7 +30,7 @@ inline void setup_component_ports(
 template <typename Comp>
 inline void register_component(
     BuildResult& result,
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     ParamReader& param_reader,
     Comp&& comp)
 {
@@ -41,7 +41,7 @@ inline void register_component(
 template <typename Comp>
 inline void register_component_consumer(
     BuildResult& result,
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     ParamReader& param_reader,
     Comp&& comp)
 {
@@ -52,7 +52,7 @@ inline void register_component_consumer(
 template <typename Comp>
 inline void register_component_source(
     BuildResult& result,
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     ParamReader& param_reader,
     Comp&& comp)
 {

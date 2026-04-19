@@ -20,7 +20,7 @@ void execute_component_adapter(void* instance, SimulationState& st, double dt) {
 
 void build_electrical_islands(
     BuildResult& result,
-    const std::vector<DeviceInstance>& devices)
+    const std::vector<ResolvedDevice>& devices)
 {
     // == Batch 2: Electrical Island Extraction ==
     // Extract electrical primitive elements from supported components and partition
@@ -40,7 +40,7 @@ void build_electrical_islands(
     raw_elements.reserve(devices.size());
 
     // Helper to resolve port to signal index with fail-fast on missing mapping
-    auto resolve_port = [&](const DeviceInstance& dev, const std::string& port_name) -> uint32_t {
+    auto resolve_port = [&](const ResolvedDevice& dev, const std::string& port_name) -> uint32_t {
         const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
         auto it = result.port_to_signal.find(full_port);
         if (it == result.port_to_signal.end()) {
@@ -50,7 +50,7 @@ void build_electrical_islands(
         return it->second;
     };
 
-    auto read_param_float_required = [&](const DeviceInstance& dev, const std::string& param_key,
+    auto read_param_float_required = [&](const ResolvedDevice& dev, const std::string& param_key,
                                          const std::string& role_key) -> float {
         auto it = dev.params.find(param_key);
         if (it == dev.params.end()) {
@@ -62,8 +62,8 @@ void build_electrical_islands(
     };
 
     // Helper to resolve a solver_role port key to signal index
-    auto resolve_role_port = [&](const DeviceInstance& dev, const SolverRole& role,
-                                  const std::string& role_key) -> uint32_t {
+    auto resolve_role_port = [&](const ResolvedDevice& dev, const SolverRole& role,
+                                   const std::string& role_key) -> uint32_t {
         auto it = role.port_map.find(role_key);
         if (it == role.port_map.end()) {
             throw std::runtime_error("solver_role missing required port key '" + role_key +
@@ -74,7 +74,7 @@ void build_electrical_islands(
 
     // Helper to read a solver_role param by role key.
     // Resolution order: required param_map lookup in dev.params -> required literal value_map.
-    auto read_role_param_required = [&](const DeviceInstance& dev, const SolverRole& role,
+    auto read_role_param_required = [&](const ResolvedDevice& dev, const SolverRole& role,
                                         const std::string& role_key) -> float {
         auto it = role.param_map.find(role_key);
         if (it != role.param_map.end()) {
@@ -92,14 +92,13 @@ void build_electrical_islands(
 
     size_t element_idx = 0;
     for (const auto& dev : devices) {
-        if (dev.spec && spec_visual_only(*dev.spec)) {
+        if (dev.visual_only) {
             continue;
         }
 
         const bool needs_solver_role = requires_solver_role(dev.classname);
 
-        const auto* prim = dev.spec ? as_primitive(*dev.spec) : nullptr;
-        if (!prim || !prim->solver_role.has_value()) {
+        if (!dev.solver_role.has_value()) {
             if (needs_solver_role) {
                 throw std::runtime_error(
                     "Missing required solver_role metadata for electrical component '" +
@@ -108,7 +107,7 @@ void build_electrical_islands(
             continue;
         }
 
-        const auto& role = *prim->solver_role;
+        const auto& role = *dev.solver_role;
 
         const bool bind_handle = [&]() {
             auto it_bind = role.value_map.find("bind_handle");

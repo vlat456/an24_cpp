@@ -33,7 +33,7 @@ static DeviceInstance make_device(
 // =============================================================================
 static SimulationState run_simulation(
     BuildResult& result,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     int steps = 50
 ) {
     SimulationState state;
@@ -94,16 +94,23 @@ static float get_voltage(const SimulationState& state, const BuildResult& result
 TEST(BlueprintPorts, AliasPortUnification_JitAotParity) {
     // Create a simple device with three ports: "i", "o1", "o2".
     // Give "o1" an alias to "i" — meaning o1 should share i's signal.
+    ComponentSpec bus_spec = PrimitiveSpec{};
+    auto* prim = as_primitive_mut(bus_spec);
+    ASSERT_NE(prim, nullptr);
+    prim->classname = "Bus";
+    prim->domains = {Domain::Electrical};
+    prim->execution = ExecutionPhases{.electrical_passive = true};
+
     DeviceInstance dev;
     dev.name = "test_dev";
-    dev.classname = "Bus";  // Bus is a no-op component (no execute body)
+    dev.classname = "Bus";
     dev.priority = "med";
     dev.critical = false;
-    dev.spec = load_component_registry("library/").get("Bus");
 
     dev.ports["i"]  = Port{bp2::Direction::Input,  PortType::Any};
     dev.ports["o1"] = Port{bp2::Direction::Output, PortType::Any, std::string("i")};  // alias → "i"
     dev.ports["o2"] = Port{bp2::Direction::Output, PortType::Any};
+    dev = resolve_device(dev, bus_spec);
 
     std::vector<DeviceInstance> devices = { dev };
     std::vector<std::vector<std::string>> signal_groups = {

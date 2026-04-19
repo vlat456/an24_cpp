@@ -9,12 +9,12 @@ namespace jit_solver_impl {
 
 void validate_source_writer_conflicts(
     const BuildResult& result,
-    const std::vector<DeviceInstance>& devices)
+    const std::vector<ResolvedDevice>& devices)
 {
     std::unordered_map<uint32_t, std::vector<std::string>> writers_by_signal;
 
     for (const auto& dev : devices) {
-        if (dev.spec && spec_visual_only(*dev.spec)) {
+        if (dev.visual_only) {
             continue;
         }
 
@@ -46,13 +46,13 @@ void validate_source_writer_conflicts(
 void validate_consumer_guardrails(
     const BuildResult& result,
     const std::vector<std::string>& consumer_device_names,
-    const std::vector<DeviceInstance>& devices)
+    const std::vector<ResolvedDevice>& devices)
 {
     (void)result;
 
     for (const auto& name : consumer_device_names) {
         auto it_dev = std::find_if(devices.begin(), devices.end(),
-            [&name](const DeviceInstance& d) { return d.name == name; });
+            [&name](const ResolvedDevice& d) { return d.name == name; });
         if (it_dev != devices.end()) {
             if (is_solver_owned_electrical_propagator(it_dev->classname)) {
                 throw std::runtime_error(
@@ -68,13 +68,13 @@ void validate_consumer_guardrails(
 void topological_sort_consumers(
     BuildResult& result,
     std::vector<std::string>& consumer_device_names,
-    const std::vector<DeviceInstance>& devices)
+    const std::vector<ResolvedDevice>& devices)
 {
     if (consumer_device_names.empty()) {
         return;
     }
 
-    std::unordered_map<std::string, const DeviceInstance*> device_by_name;
+    std::unordered_map<std::string, const ResolvedDevice*> device_by_name;
     device_by_name.reserve(devices.size());
     for (const auto& dev : devices) {
         device_by_name[dev.name] = &dev;
@@ -93,7 +93,7 @@ void topological_sort_consumers(
             continue;
         }
 
-        const DeviceInstance& dev = *it_dev->second;
+        const ResolvedDevice& dev = *it_dev->second;
         const auto output_ports = output_ports_for_class(dev.classname);
         auto& io = io_by_consumer[name];
 

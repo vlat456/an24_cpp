@@ -23,7 +23,7 @@ bool parse_bool_param_value(const std::string& value);
 /// ParamReader class for parameter parsing
 class ParamReader {
 public:
-    ParamReader(const std::unordered_map<std::string, std::string>& params, const DeviceInstance& dev)
+    ParamReader(const std::unordered_map<std::string, std::string>& params, const ResolvedDevice& dev)
         : params_(params), dev_(dev) {}
 
     float consume_float_optional(const std::string& key, float default_val);
@@ -36,53 +36,53 @@ public:
 private:
     const std::string& get_required(const std::string& key) const;
     const std::unordered_map<std::string, std::string>& params_;
-    const DeviceInstance& dev_;
+    const ResolvedDevice& dev_;
     std::unordered_set<std::string> consumed_params_;
 };
 
 /// Component factory functions
 void build_and_register_components(
     BuildResult& result,
-    const std::vector<DeviceInstance>& devices);
+    const std::vector<ResolvedDevice>& devices);
 
 bool try_build_logic_component(
     BuildResult& result,
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     ParamReader& param_reader);
 
 bool try_build_control_component(
     BuildResult& result,
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     ParamReader& param_reader);
 
 bool try_build_utility_component(
     BuildResult& result,
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     ParamReader& param_reader);
 
 bool try_build_physical_component(
     BuildResult& result,
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     ParamReader& param_reader);
 
 void validate_source_writer_conflicts(
     const BuildResult& result,
-    const std::vector<DeviceInstance>& devices);
+    const std::vector<ResolvedDevice>& devices);
 
 void validate_consumer_guardrails(
     const BuildResult& result,
     const std::vector<std::string>& consumer_device_names,
-    const std::vector<DeviceInstance>& devices);
+    const std::vector<ResolvedDevice>& devices);
 
 void topological_sort_consumers(
     BuildResult& result,
     std::vector<std::string>& consumer_device_names,
-    const std::vector<DeviceInstance>& devices);
+    const std::vector<ResolvedDevice>& devices);
 
 /// Electrical building functions
 void build_electrical_islands(
     BuildResult& result,
-    const std::vector<DeviceInstance>& devices);
+    const std::vector<ResolvedDevice>& devices);
 
 void build_electrical_patch_ops(BuildResult& result);
 

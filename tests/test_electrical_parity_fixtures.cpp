@@ -317,7 +317,7 @@ static void run_aot_electrical(
 // Helper: set RefNode initial values in SimulationState
 static void set_refnode_values(
     SimulationState& st,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<ResolvedDevice>& devices,
     const PortToSignal& port_to_signal
 ) {
     for (const auto& dev : devices) {

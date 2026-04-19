@@ -58,9 +58,11 @@ private:
     /// Find the bridge node inside a blueprint_instance's inner blueprint
     /// that corresponds to an interface port name.
     ///
-    /// Matching strategy: first try label (node.view.name), then node ID.
-    /// Handles both v1 migrated files (bp_in_N with labels) and v3 library
-    /// composites (bridge node ID matches port name directly).
+    /// Matching strategy: authoritative exposed_port first, then legacy v1
+    /// label fallback via node.view.name.
+    /// Handles both canonical bridge nodes and migrated v1 files where the
+    /// bridge id stayed as bp_in_N / bp_out_N while the label carried the
+    /// public interface port name.
     Blueprint::Node const* find_bridge_for_port(
         Blueprint const& inner_bp,
         ui::InternedId port_name) const;

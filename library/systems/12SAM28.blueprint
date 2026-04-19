@@ -65,6 +65,7 @@
     },
     {
       "id": "charge_out",
+      "name": "charge_out",
       "kind": "bridge_port",
       "exposed_port": "charge_out",
       "side": "output",
@@ -391,6 +392,7 @@
     },
     {
       "id": "soc_out",
+      "name": "soc_out",
       "kind": "bridge_port",
       "exposed_port": "soc_out",
       "side": "output",
@@ -534,6 +536,7 @@
     },
     {
       "id": "v_in",
+      "name": "v_in",
       "kind": "bridge_port",
       "exposed_port": "v_in",
       "side": "input",
@@ -546,6 +549,7 @@
     },
     {
       "id": "v_out",
+      "name": "v_out",
       "kind": "bridge_port",
       "exposed_port": "v_out",
       "side": "output",

@@ -203,12 +203,11 @@ struct BuildResult {
 ///   - elaborate_for_jit(FlatNetlist, ...)  — canonical BP2 path (no JSON)
 ///   - build_input_from_json(string)        — legacy JSON adapter (tests, CLI)
 struct JitBuildInput {
-    std::vector<DeviceInstance> devices;
+    std::vector<ResolvedDevice> devices;
     std::vector<BridgePortDefinition> bridge_ports;
     PortToSignal port_to_signal;
     uint32_t signal_count = 0;
     std::unordered_map<std::string, float> initial_values;
-    ComponentRegistry owned_registry;
 };
 
 /// Build solver runtime from pre-computed input (canonical path).

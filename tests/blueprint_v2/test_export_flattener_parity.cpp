@@ -9,12 +9,62 @@
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/common/signal_key.h"
 #include "ui/core/interned_id.h"
+#include "json_parser/json_parser.h"
 
 #include <set>
 #include <string>
 #include <unordered_map>
 
 namespace {
+
+PrimitiveSpec make_primitive_spec(
+    const std::string& classname,
+    std::initializer_list<std::pair<const char*, Port>> ports,
+    std::vector<Domain> domains)
+{
+    PrimitiveSpec spec;
+    spec.classname = classname;
+    spec.domains = std::move(domains);
+    spec.execution = ExecutionPhases{.electrical_passive = true};
+    for (const auto& [name, port] : ports) {
+        spec.ports[name] = port;
+    }
+    return spec;
+}
+
+const ComponentRegistry& parity_registry() {
+    static const ComponentRegistry registry = [] {
+        ComponentRegistry reg;
+        reg.types["Battery"] = make_primitive_spec(
+            "Battery",
+            {
+                {"v_out", Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false}},
+                {"v_in", Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false}},
+            },
+            {Domain::Electrical});
+        reg.types["Resistor"] = make_primitive_spec(
+            "Resistor",
+            {
+                {"v_in", Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false}},
+                {"v_out", Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false}},
+            },
+            {Domain::Electrical});
+        reg.types["LED"] = make_primitive_spec(
+            "LED",
+            {
+                {"v_in", Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false}},
+            },
+            {Domain::Electrical});
+        reg.types["InertiaNode"] = make_primitive_spec(
+            "InertiaNode",
+            {
+                {"rpm_out", Port{bp2::Direction::Output, PortType::RPM, Domain::Mechanical, false}},
+            },
+            {Domain::Mechanical});
+        return reg;
+    }();
+    return registry;
+}
 
 bp2::Blueprint::Node make_node(ui::StringInterner& I,
                                const char* id,
@@ -93,8 +143,8 @@ bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
 //   root: bat ──v_out──→ [inst].vin
 //   inst: vin(bridge_port) ──ext──→ r1.v_in
 //
-// Expected flat devices: bat, inst:vin, inst:r1
-// Expected connectivity: bat.v_out, inst:vin.ext, inst:r1.v_in all on same signal
+// Expected runtime devices: bat, inst:r1
+// Expected connectivity: bat.v_out, inst.vin, inst:r1.v_in all on same signal
 // ==============================================================================
 
 TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
@@ -151,24 +201,23 @@ TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
     // Flatten and elaborate
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
-    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, nullptr);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, parity_registry());
 
     // Verify devices exist
     auto devices = collect_device_names(jit_input);
     EXPECT_TRUE(devices.count("bat")) << "Missing device: bat";
-    EXPECT_TRUE(devices.count("inst:vin")) << "Missing device: inst:vin";
     EXPECT_TRUE(devices.count("inst:r1")) << "Missing device: inst:r1";
 
     // Verify connectivity — all three endpoints must be on the same signal.
     std::string bat_v_out = signal_key::make_node_port_key("bat", "v_out");
-    std::string inst_vin_ext = signal_key::make_node_port_key("inst:vin", "ext");
+    std::string inst_vin = signal_key::make_node_port_key("inst", "vin");
     std::string inst_r1_v_in = signal_key::make_node_port_key("inst:r1", "v_in");
 
-    EXPECT_TRUE(connected_on_same_signal(jit_input, bat_v_out, inst_vin_ext))
-        << "bat.v_out and inst:vin.ext must share the same signal";
+    EXPECT_TRUE(connected_on_same_signal(jit_input, bat_v_out, inst_vin))
+        << "bat.v_out and inst.vin must share the same signal";
 
-    EXPECT_TRUE(connected_on_same_signal(jit_input, inst_vin_ext, inst_r1_v_in))
-        << "inst:vin.ext and inst:r1.v_in must share the same signal";
+    EXPECT_TRUE(connected_on_same_signal(jit_input, inst_vin, inst_r1_v_in))
+        << "inst.vin and inst:r1.v_in must share the same signal";
 
     EXPECT_TRUE(connected_on_same_signal(jit_input, bat_v_out, inst_r1_v_in))
         << "bat.v_out and inst:r1.v_in must share the same signal (transitively)";
@@ -183,8 +232,8 @@ TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
 //   mid:  vin(bridge) ──ext──→ [sub].pin
 //   sub:  pin(bridge) ──ext──→ r1.v_in
 //
-// Expected flat components: bat, mid:vin, mid:sub:pin, mid:sub:r1
-// Expected connectivity: bat.v_out, mid:vin.ext, mid:sub:pin.ext, mid:sub:r1.v_in
+// Expected runtime components: bat, mid:sub:r1
+// Expected connectivity: bat.v_out, mid.vin, mid:sub.pin, mid:sub:r1.v_in
 //                         all on same signal
 // ==============================================================================
 
@@ -260,32 +309,30 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
     // Flatten and elaborate
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
-    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, nullptr);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, parity_registry());
 
     // Verify devices
     auto devices = collect_device_names(jit_input);
     EXPECT_TRUE(devices.count("bat")) << "Missing device: bat";
-    EXPECT_TRUE(devices.count("mid:vin")) << "Missing device: mid:vin";
-    EXPECT_TRUE(devices.count("mid:sub:pin")) << "Missing device: mid:sub:pin";
     EXPECT_TRUE(devices.count("mid:sub:r1")) << "Missing device: mid:sub:r1";
 
     // Verify connectivity with bridge resolution at each level
     std::string bat_v_out = signal_key::make_node_port_key("bat", "v_out");
-    std::string mid_vin_ext = signal_key::make_node_port_key("mid:vin", "ext");
-    std::string mid_sub_pin_ext = signal_key::make_node_port_key("mid:sub:pin", "ext");
+    std::string mid_vin = signal_key::make_node_port_key("mid", "vin");
+    std::string mid_sub_pin = signal_key::make_node_port_key("mid:sub", "pin");
     std::string mid_sub_r1_v_in = signal_key::make_node_port_key("mid:sub:r1", "v_in");
 
-    // bat.v_out ↔ mid:vin.ext  (root→mid boundary)
-    EXPECT_TRUE(connected_on_same_signal(jit_input, bat_v_out, mid_vin_ext))
-        << "Level-1 boundary: bat.v_out and mid:vin.ext must share the same signal";
+    // bat.v_out ↔ mid.vin  (root→mid boundary)
+    EXPECT_TRUE(connected_on_same_signal(jit_input, bat_v_out, mid_vin))
+        << "Level-1 boundary: bat.v_out and mid.vin must share the same signal";
 
-    // mid:vin.ext ↔ mid:sub:pin.ext  (mid→sub boundary)
-    EXPECT_TRUE(connected_on_same_signal(jit_input, mid_vin_ext, mid_sub_pin_ext))
-        << "Level-2 boundary: mid:vin.ext and mid:sub:pin.ext must share the same signal";
+    // mid.vin ↔ mid:sub.pin  (mid→sub boundary)
+    EXPECT_TRUE(connected_on_same_signal(jit_input, mid_vin, mid_sub_pin))
+        << "Level-2 boundary: mid.vin and mid:sub.pin must share the same signal";
 
-    // mid:sub:pin.ext ↔ mid:sub:r1.v_in  (inner direct connection)
-    EXPECT_TRUE(connected_on_same_signal(jit_input, mid_sub_pin_ext, mid_sub_r1_v_in))
-        << "Inner connection: mid:sub:pin.ext and mid:sub:r1.v_in must share the same signal";
+    // mid:sub.pin ↔ mid:sub:r1.v_in  (inner direct connection)
+    EXPECT_TRUE(connected_on_same_signal(jit_input, mid_sub_pin, mid_sub_r1_v_in))
+        << "Inner connection: mid:sub.pin and mid:sub:r1.v_in must share the same signal";
 }
 
 
@@ -348,7 +395,7 @@ TEST(ExportFlattenerParity, OutputBridgeRewrite) {
     // Flatten and elaborate
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
-    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, nullptr);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, parity_registry());
 
     // inst:vout.ext must connect to led.v_in (bridge resolution on output side)
     std::string inst_vout_ext = signal_key::make_node_port_key("inst:vout", "ext");
@@ -391,7 +438,7 @@ inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
 
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
-    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, nullptr);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, parity_registry());
 
     ASSERT_EQ(jit_input.port_to_signal.count("extract_inst_4.out"), 1u);
     ASSERT_EQ(jit_input.port_to_signal.count("extract_inst_4:bp_out_1.ext"), 1u);

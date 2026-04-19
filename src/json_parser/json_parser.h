@@ -17,6 +17,7 @@
 
 // Forward declarations
 struct DeviceInstance;
+struct ComponentInstance;
 
 /// Port direction — re-exported from direction.h for convenience.
 using bp2::Direction;
@@ -219,6 +220,35 @@ struct ComponentRegistry {
     std::vector<std::string> get_composites_topo_sorted() const;
 };
 
+struct ComponentInstance {
+    std::string name;
+    std::string template_name;
+    std::string classname;
+    std::optional<std::pair<float, float>> pos;
+    std::optional<std::pair<float, float>> size;
+    std::unordered_map<std::string, std::string> params;
+};
+
+struct ResolvedDevice {
+    std::string name;
+    std::string template_name;
+    std::string classname;
+    std::string display_name;
+    std::string priority = "med";
+    std::optional<size_t> bucket;
+    bool critical = false;
+    bool visual_only = false;
+    bool scheduler_source = false;
+    bool solver_owned_electrical = false;
+    std::unordered_map<std::string, Port> ports;
+    std::unordered_map<std::string, std::string> params;
+    std::vector<Domain> domains;
+    std::optional<ExecutionPhases> execution;
+    std::optional<SolverRole> solver_role;
+    std::optional<std::pair<float, float>> pos;
+    std::optional<std::pair<float, float>> size;
+};
+
 struct DeviceInstance {
     std::string name;
     std::string template_name;
@@ -266,6 +296,14 @@ struct DeviceInstance {
         }
     }
 };
+
+inline bool device_visual_only(const DeviceInstance& dev) {
+    return dev.spec != nullptr && spec_visual_only(*dev.spec);
+}
+
+inline bool device_visual_only(const ResolvedDevice& dev) {
+    return dev.visual_only;
+}
 
 /// Subsystem call (template instantiation)
 struct SubsystemCall {
@@ -329,6 +367,11 @@ std::string serialize_json(const ParserContext& ctx);
 ComponentRegistry load_component_registry(const std::string& library_dir = "library/");
 
 DeviceInstance resolve_device(
+    const DeviceInstance& instance,
+    const ComponentSpec& definition
+);
+
+ResolvedDevice resolve_component(
     const DeviceInstance& instance,
     const ComponentSpec& definition
 );

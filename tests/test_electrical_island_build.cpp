@@ -6,6 +6,7 @@
 #include "json_parser/json_parser.h"
 #include "jit_build_input_test_helper.h"
 #include <algorithm>
+#include <deque>
 
 namespace {
 
@@ -50,7 +51,7 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
 
 // Test spec store for creating modified specs without solver_role
 struct TestSpecStore {
-    std::vector<ComponentSpec> specs;
+    std::deque<ComponentSpec> specs;
     const ComponentSpec* add(ComponentSpec spec) {
         specs.push_back(std::move(spec));
         return &specs.back();
@@ -177,7 +178,7 @@ TEST(ElectricalIslandBuild, MissingRequiredPortThrows) {
     bad_refnode.name = "refnode";
     bad_refnode.classname = "RefNode";
     bad_refnode.params = {{"value", "0.0"}};
-    bad_refnode.spec = nullptr;
+    bad_refnode.spec = test_registry().get(bad_refnode.classname);
     // NOTE: ports map is intentionally empty - this should cause resolve_port to fail
 
     std::vector<DeviceInstance> devices = {

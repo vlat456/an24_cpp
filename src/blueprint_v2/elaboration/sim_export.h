@@ -13,6 +13,6 @@ JitBuildInput elaborate_for_jit(
     const FlatNetlist& netlist,
     PathArena& arena,
     const ui::StringInterner& interner,
-    const ComponentRegistry* type_registry);
+    const ComponentRegistry& type_registry);
 
 } // namespace bp2::elaboration

@@ -49,7 +49,7 @@ JitBuildInput Document::build_jit_input() {
 
     bp2::Flattener flattener(library);
     bp2::FlatNetlist netlist = flattener.flatten(bp, arena_);
-    return bp2::elaboration::elaborate_for_jit(netlist, arena_, interner_, type_registry_);
+    return bp2::elaboration::elaborate_for_jit(netlist, arena_, interner_, *type_registry_);
 }
 
 std::pair<ui::InternedId, ui::InternedId>

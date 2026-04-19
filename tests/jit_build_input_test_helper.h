@@ -8,6 +8,45 @@
 #include <unordered_set>
 #include <stdexcept>
 
+inline ResolvedDevice make_raw_resolved_device(
+    std::string name,
+    std::string classname,
+    std::unordered_map<std::string, std::string> params,
+    std::unordered_map<std::string, Port> ports,
+    bool visual_only = false)
+{
+    ResolvedDevice dev;
+    dev.name = std::move(name);
+    dev.classname = std::move(classname);
+    dev.params = std::move(params);
+    dev.ports = std::move(ports);
+    dev.visual_only = visual_only;
+    return dev;
+}
+
+inline JitBuildInput make_jit_input_from_resolved(
+    std::vector<ResolvedDevice> devices,
+    std::unordered_map<std::string, float> initial_values = {})
+{
+    JitBuildInput input;
+    input.devices = std::move(devices);
+    input.initial_values = std::move(initial_values);
+
+    uint32_t next_signal = 0;
+    for (const auto& dev : input.devices) {
+        if (dev.visual_only) {
+            continue;
+        }
+        for (const auto& [port_name, port] : dev.ports) {
+            (void)port;
+            input.port_to_signal[dev.name + "." + port_name] = next_signal++;
+        }
+    }
+
+    input.signal_count = next_signal + 1;
+    return input;
+}
+
 /// Helper to construct JitBuildInput from explicit signal groups.
 /// Each group is a vector of port strings that must map to the same signal.
 /// Any declared device ports not mentioned in signal_groups are assigned their
@@ -19,8 +58,16 @@ inline JitBuildInput make_jit_input(
     std::unordered_map<std::string, float> initial_values = {})
 {
     JitBuildInput input;
-    input.devices = std::move(devices);
     input.initial_values = std::move(initial_values);
+
+    input.devices.reserve(devices.size());
+    for (const auto& dev : devices) {
+        if (dev.spec == nullptr) {
+            throw std::runtime_error("make_jit_input requires resolved spec for device '" + dev.name +
+                "' (classname: " + dev.classname + ")");
+        }
+        input.devices.push_back(resolve_component(dev, *dev.spec));
+    }
     
     std::unordered_set<std::string> seen_ports;
     
@@ -38,7 +85,7 @@ inline JitBuildInput make_jit_input(
 
     uint32_t next_signal = static_cast<uint32_t>(signal_groups.size());
     for (const auto& dev : input.devices) {
-        if (dev.spec && spec_visual_only(*dev.spec)) {
+        if (dev.visual_only) {
             continue;
         }
         for (const auto& [port_name, port] : dev.ports) {
@@ -64,8 +111,16 @@ inline JitBuildInput make_jit_input_from_composite(
     const std::vector<Connection>& connections)
 {
     JitBuildInput input;
-    input.devices = std::move(devices);
     input.bridge_ports = bridge_ports;
+
+    input.devices.reserve(devices.size());
+    for (const auto& dev : devices) {
+        if (dev.spec == nullptr) {
+            throw std::runtime_error("make_jit_input_from_composite requires resolved spec for device '" + dev.name +
+                "' (classname: " + dev.classname + ")");
+        }
+        input.devices.push_back(resolve_component(dev, *dev.spec));
+    }
     
     // Build port index map from all declared device ports
     std::vector<std::string> all_ports;

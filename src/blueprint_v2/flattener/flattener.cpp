@@ -6,12 +6,11 @@ namespace bp2 {
 
 namespace {
 
-ui::InternedId find_exposed_port_name_for_bridge(const Blueprint& bp,
-                                                 const Blueprint::Node& node,
-                                                 const PathArena& arena) {
-    (void)bp;
-    (void)arena;
-    return node.bridge_port().exposed_port;
+bool bridge_label_matches(const Blueprint::Node& node,
+                          ui::InternedId port_name,
+                          const PathArena& arena) {
+    const std::string_view label = node.view.name;
+    return !label.empty() && label == arena.resolve_id(port_name);
 }
 
 } // namespace
@@ -57,6 +56,13 @@ Blueprint::Node const* Flattener::find_bridge_for_port(
     for (auto const& n : inner_bp.nodes()) {
         if (!n.is_bridge_port()) continue;
         if (n.bridge_port().exposed_port == port_name) {
+            return &n;
+        }
+    }
+
+    for (auto const& n : inner_bp.nodes()) {
+        if (!n.is_bridge_port()) continue;
+        if (bridge_label_matches(n, port_name, *arena_)) {
             return &n;
         }
     }
@@ -175,7 +181,7 @@ void Flattener::emit_component(
     if (node.is_bridge_port()) {
         // Preserve the authoritative public interface port id represented by
         // this structural bridge node.
-        comp.exposed_port_name = find_exposed_port_name_for_bridge(bp, node, *arena_);
+        comp.exposed_port_name = node.bridge_port().exposed_port;
     }
 
     SignalIndex ext_sig = UINT32_MAX;

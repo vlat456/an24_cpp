@@ -5,7 +5,7 @@ namespace jit_solver_impl {
 
 bool try_build_utility_component(
     BuildResult& result,
-    const DeviceInstance& dev,
+    const ResolvedDevice& dev,
     ParamReader& param_reader)
 {
     if (dev.classname == "Normalize") {

@@ -10,6 +10,11 @@
 
 namespace {
 
+const ComponentRegistry& benchmark_registry() {
+    static const ComponentRegistry registry = load_component_registry("library/");
+    return registry;
+}
+
 DeviceInstance make_device(const std::string& name,
                            const std::string& classname,
                            const std::unordered_map<std::string, std::string>& params = {}) {
@@ -17,7 +22,7 @@ DeviceInstance make_device(const std::string& name,
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    dev.spec = nullptr;
+    dev.spec = benchmark_registry().get(classname);
     for (const auto& p : get_component_ports(classname)) {
         dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
     }
@@ -42,7 +47,10 @@ int main() {
     }
 
     JitBuildInput input;
-    input.devices = devices;
+    input.devices.reserve(devices.size());
+    for (const auto& dev : devices) {
+        input.devices.push_back(resolve_component(dev, *dev.spec));
+    }
 
     uint32_t next_signal = 0;
     input.port_to_signal["src.o"] = next_signal;
