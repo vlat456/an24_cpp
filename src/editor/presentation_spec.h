@@ -14,7 +14,7 @@ struct TypePresentation {
     std::optional<std::pair<float, float>> default_size;
 };
 
-struct TypePresentationRegistry {
+struct PresentationRegistry {
     std::unordered_map<std::string, TypePresentation> specs;
 
     const TypePresentation* get(const std::string& classname) const {
@@ -27,5 +27,3 @@ struct TypePresentationRegistry {
         return specs.count(classname) > 0;
     }
 };
-
-using PresentationRegistry = TypePresentationRegistry;
