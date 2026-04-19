@@ -721,12 +721,12 @@ TEST(E010_SingleRegistry, RegistryHasPortDefinitions) {
 TEST(E010_SingleRegistry, RegistryHasCategoryMapping) {
     // The categories map is used for library path lookup (e.g. "electrical").
     TypeRegistry reg = load_type_registry("library/");
-    EXPECT_FALSE(reg.categories.empty())
+    EXPECT_FALSE(reg.catalog.categories.empty())
         << "TypeRegistry must populate categories for menu/path lookup";
 
     // AZS should be in an "electrical" category subdirectory
-    auto it = reg.categories.find("AZS");
-    ASSERT_NE(it, reg.categories.end());
+    auto it = reg.catalog.categories.find("AZS");
+    ASSERT_NE(it, reg.catalog.categories.end());
     EXPECT_FALSE(it->second.empty());
 }
 

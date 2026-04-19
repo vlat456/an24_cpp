@@ -382,7 +382,7 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
             registry.types[classname] = std::move(spec);
             registry.presentation.specs[classname] = std::move(pres);
             if (!category.empty()) {
-                registry.categories[classname] = category;
+                registry.catalog.categories[classname] = category;
             }
             loaded_count++;
 

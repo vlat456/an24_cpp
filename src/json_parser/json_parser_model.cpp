@@ -4,7 +4,8 @@
 #include <functional>
 #include <set>
 
-MenuTree TypeRegistry::build_menu_tree() const {
+MenuTree CatalogData::build_menu_tree(const std::unordered_map<std::string, ComponentSpec>& types,
+                                     const PresentationRegistry& presentation) const {
     MenuTree root;
     for (const auto& [classname, _] : types) {
         if (classname.empty()) continue;

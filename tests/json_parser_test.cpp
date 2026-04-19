@@ -631,10 +631,10 @@ TEST(TypeRegistry, LoadRecursive_SubdirSetsCategory) {
     ASSERT_TRUE(registry.has("Resistor"));
 
     // Root-level file has no category entry
-    EXPECT_EQ(registry.categories.count("ElectricalSource"), 0u);
+    EXPECT_EQ(registry.catalog.categories.count("ElectricalSource"), 0u);
     // Subdir file gets category from directory path
-    ASSERT_EQ(registry.categories.count("Resistor"), 1u);
-    EXPECT_EQ(registry.categories.at("Resistor"), "electrical");
+    ASSERT_EQ(registry.catalog.categories.count("Resistor"), 1u);
+    EXPECT_EQ(registry.catalog.categories.at("Resistor"), "electrical");
 
     fs::remove_all(tmp);
 }
@@ -695,8 +695,8 @@ TEST(TypeRegistry, LoadRecursive_DeepNesting) {
     auto registry = load_type_registry(tmp.string());
 
     ASSERT_TRUE(registry.has("Generator"));
-    ASSERT_EQ(registry.categories.count("Generator"), 1u);
-    EXPECT_EQ(registry.categories.at("Generator"), "electrical/generators");
+    ASSERT_EQ(registry.catalog.categories.count("Generator"), 1u);
+    EXPECT_EQ(registry.catalog.categories.at("Generator"), "electrical/generators");
 
     fs::remove_all(tmp);
 }
@@ -724,15 +724,15 @@ TEST(TypeRegistry, BuildMenuTree_WithSubdirs) {
 
     PrimitiveSpec res; res.classname = "Resistor";
     reg.types["Resistor"] = res;
-    reg.categories["Resistor"] = "electrical";
+    reg.catalog.categories["Resistor"] = "electrical";
 
     PrimitiveSpec gen; gen.classname = "Generator";
     reg.types["Generator"] = gen;
-    reg.categories["Generator"] = "electrical/generators";
+    reg.catalog.categories["Generator"] = "electrical/generators";
 
     PrimitiveSpec and_gate; and_gate.classname = "AND";
     reg.types["AND"] = and_gate;
-    reg.categories["AND"] = "logic";
+    reg.catalog.categories["AND"] = "logic";
 
     auto tree = reg.build_menu_tree();
 
@@ -778,11 +778,11 @@ TEST(TypeRegistry, BuildMenuTree_BlueprintsInSameTree) {
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
     reg.types["ElectricalSource"] = bat;
-    reg.categories["ElectricalSource"] = "electrical";
+    reg.catalog.categories["ElectricalSource"] = "electrical";
 
     CompositeSpec lamp; lamp.classname = "LampPassThrough";
     reg.types["LampPassThrough"] = lamp;
-    reg.categories["LampPassThrough"] = "electrical";
+    reg.catalog.categories["LampPassThrough"] = "electrical";
 
     auto tree = reg.build_menu_tree();
 
@@ -795,11 +795,11 @@ TEST(TypeRegistry, ListClassnames_IncludesAllCategorized) {
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
     reg.types["ElectricalSource"] = bat;
-    reg.categories["ElectricalSource"] = "electrical";
+    reg.catalog.categories["ElectricalSource"] = "electrical";
 
     PrimitiveSpec and_gate; and_gate.classname = "AND";
     reg.types["AND"] = and_gate;
-    reg.categories["AND"] = "logic";
+    reg.catalog.categories["AND"] = "logic";
 
     auto names = reg.list_classnames();
     EXPECT_EQ(names.size(), 2u);

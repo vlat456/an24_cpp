@@ -179,15 +179,23 @@ inline CompositeSpec* as_composite_mut(ComponentSpec& s) { return std::get_if<Co
 
 /// Tree structure mirroring library/ subdirectory hierarchy for menu building.
 struct MenuTree {
-    std::vector<std::string> entries;                        // Classnames at this level (sorted)
-    std::unordered_map<std::string, std::string> labels;     // classname -> display label
-    std::map<std::string, MenuTree> children;                // Subfolder name -> subtree (sorted by key)
+    std::vector<std::string> entries;
+    std::unordered_map<std::string, std::string> labels;
+    std::map<std::string, MenuTree> children;
+};
+
+/// Catalog metadata — directory-based grouping and display labels.
+/// Populated during library loading, used by editor for palette/menu.
+struct CatalogData {
+    std::unordered_map<std::string, std::string> categories;  // classname → subdir path
+    MenuTree build_menu_tree(const std::unordered_map<std::string, ComponentSpec>& types,
+                             const PresentationRegistry& presentation) const;
 };
 
 struct TypeRegistry {
     std::unordered_map<std::string, ComponentSpec> types;
-    std::unordered_map<std::string, std::string> categories;
     PresentationRegistry presentation;
+    CatalogData catalog;
 
     const ComponentSpec* get(const std::string& classname) const {
         auto it = types.find(classname);
@@ -206,7 +214,7 @@ struct TypeRegistry {
         return names;
     }
 
-    MenuTree build_menu_tree() const;
+    MenuTree build_menu_tree() const { return catalog.build_menu_tree(types, presentation); }
     std::optional<std::string> validate_instance(const DeviceInstance& instance) const;
     std::vector<std::string> get_composites_topo_sorted() const;
 };
