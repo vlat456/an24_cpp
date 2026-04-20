@@ -29,45 +29,6 @@
 #include <variant>
 #include <limits>
 
-namespace {
-
-const ComponentRegistry& test_registry() {
-    static const ComponentRegistry registry = load_component_registry("library/");
-    return registry;
-}
-
-/// Helper to build a DeviceInstance with auto-populated ports from registry.
-/// Avoids ambiguous constructor overloads when ports param is {}.
-DeviceInstance make_device(const std::string& name,
-                           const std::string& classname,
-                           const std::unordered_map<std::string, std::string>& params = {}) {
-    DeviceInstance dev;
-    dev.name = name;
-    dev.classname = classname;
-    dev.params = params;
-    dev.spec = test_registry().get(classname);
-
-    auto ports = get_component_ports(classname);
-    for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
-    }
-
-    if (const auto* def = dev.spec) {
-        const auto& params = spec_params(*def);
-        for (const auto& [param_name, param_spec] : params) {
-            if (param_spec.visual_only) {
-                continue;
-            }
-            if (!dev.params.count(param_name)) {
-                dev.params[param_name] = param_spec.default_value;
-            }
-        }
-    }
-    return dev;
-}
-
-} // namespace
-
 // =============================================================================
 // E-001 Regression: solve_electrical is noexcept
 // =============================================================================

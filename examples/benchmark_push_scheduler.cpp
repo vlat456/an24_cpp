@@ -15,17 +15,19 @@ const ComponentRegistry& benchmark_registry() {
     return registry;
 }
 
-DeviceInstance make_device(const std::string& name,
+ResolvedDevice make_device(const std::string& name,
                            const std::string& classname,
                            const std::unordered_map<std::string, std::string>& params = {}) {
     DeviceInstance dev;
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    for (const auto& p : get_component_ports(classname)) {
-        dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
+
+    const ComponentSpec* spec = benchmark_registry().get(classname);
+    if (!spec) {
+        throw std::runtime_error("Missing component definition for " + classname);
     }
-    return dev;
+    return resolve_component(dev, *spec);
 }
 
 } // namespace
@@ -36,7 +38,7 @@ int main() {
     constexpr int measured_steps = 1000;
     constexpr double dt = 1.0 / 60.0;
 
-    std::vector<DeviceInstance> devices;
+    std::vector<ResolvedDevice> devices;
     devices.reserve(chain_len + 2);
     devices.push_back(make_device("src", "Value", {{"value", "1.0"}}));
     devices.push_back(make_device("k", "Value", {{"value", "0.5"}}));
@@ -46,14 +48,7 @@ int main() {
     }
 
     JitBuildInput input;
-    input.devices.reserve(devices.size());
-    for (const auto& dev : devices) {
-        const ComponentSpec* spec = benchmark_registry().get(dev.classname);
-        if (!spec) {
-            throw std::runtime_error("Missing component definition for " + dev.classname);
-        }
-        input.devices.push_back(resolve_component(dev, *spec));
-    }
+    input.devices = devices;
 
     uint32_t next_signal = 0;
     input.port_to_signal["src.o"] = next_signal;

@@ -6,57 +6,7 @@
 #include "json_parser/json_parser.h"
 #include "jit_build_input_test_helper.h"
 #include <algorithm>
-#include <deque>
-
 namespace {
-
-const ComponentRegistry& test_registry() {
-    static const ComponentRegistry registry = load_component_registry("library/");
-    return registry;
-}
-
-// Helper to create a basic device instance with explicit ports
-DeviceInstance make_device(const std::string& name, const std::string& classname,
-                           const std::unordered_map<std::string, std::string>& params = {},
-                           const std::vector<std::string>& explicit_ports = {}) {
-    DeviceInstance dev;
-    dev.name = name;
-    dev.classname = classname;
-    dev.params = params;
-    const ComponentSpec* def = test_registry().get(classname);
-
-    std::vector<std::string> ports;
-    if (!explicit_ports.empty()) {
-        ports = explicit_ports;
-    } else {
-        ports = get_component_ports(classname);
-    }
-    for (const auto& port_name : ports) {
-        dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
-    }
-
-    if (def) {
-        const auto& params = spec_params(*def);
-        for (const auto& [param_name, param_spec] : params) {
-            if (param_spec.visual_only) {
-                continue;
-            }
-            if (!dev.params.count(param_name)) {
-                dev.params[param_name] = param_spec.default_value;
-            }
-        }
-    }
-    return dev;
-}
-
-// Test spec store for creating modified specs without solver_role
-struct TestSpecStore {
-    std::deque<ComponentSpec> specs;
-    const ComponentSpec* add(ComponentSpec spec) {
-        specs.push_back(std::move(spec));
-        return &specs.back();
-    }
-};
 
 DeviceInstance make_device_without_solver_role(
     const std::string& name,

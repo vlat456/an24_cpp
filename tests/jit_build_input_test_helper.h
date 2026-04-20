@@ -2,11 +2,101 @@
 
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/aot/codegen_composite_helpers.h"
+#include "core/solvers/jit/state.h"
 #include "json_parser/json_parser.h"
+#include <deque>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
 #include <stdexcept>
+
+inline const ComponentRegistry& test_registry() {
+    static const ComponentRegistry registry = load_component_registry("library/");
+    return registry;
+}
+
+struct TestSpecStore {
+    std::deque<ComponentSpec> specs;
+
+    const ComponentSpec* add(ComponentSpec spec) {
+        specs.push_back(std::move(spec));
+        return &specs.back();
+    }
+
+    const ComponentSpec* add(PrimitiveSpec spec) {
+        specs.push_back(std::move(spec));
+        return &specs.back();
+    }
+};
+
+inline SimulationState make_state(uint32_t signal_count) {
+    SimulationState st;
+    for (uint32_t i = 0; i < signal_count; ++i) {
+        (void)st.allocate_signal(0.0f);
+    }
+    return st;
+}
+
+inline DeviceInstance make_device_with_ports(
+    const std::string& name,
+    const std::string& classname,
+    const std::unordered_map<std::string, std::string>& params = {},
+    const std::vector<std::string>& explicit_ports = {})
+{
+    DeviceInstance dev;
+    dev.name = name;
+    dev.classname = classname;
+    dev.params = params;
+    const ComponentSpec* def = test_registry().get(classname);
+
+    if (def && explicit_ports.empty()) {
+        for (const auto& [port_name, port] : spec_ports(*def)) {
+            dev.ports[port_name] = port;
+        }
+    } else {
+        std::vector<std::string> ports = explicit_ports.empty()
+            ? get_component_ports(classname)
+            : explicit_ports;
+        for (const auto& port_name : ports) {
+            dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
+        }
+    }
+
+    if (def) {
+        const auto& default_params = spec_params(*def);
+        for (const auto& [param_name, param_spec] : default_params) {
+            if (param_spec.visual_only) {
+                continue;
+            }
+            if (!dev.params.count(param_name)) {
+                dev.params[param_name] = param_spec.default_value;
+            }
+        }
+    }
+
+    return dev;
+}
+
+inline DeviceInstance make_device(
+    const std::string& name,
+    const std::string& classname,
+    const std::unordered_map<std::string, std::string>& params = {})
+{
+    return make_device_with_ports(name, classname, params);
+}
+
+inline ResolvedDevice make_resolved_device(
+    const std::string& name,
+    const std::string& classname,
+    const std::unordered_map<std::string, std::string>& params = {})
+{
+    DeviceInstance dev = make_device(name, classname, params);
+    const ComponentSpec* spec = test_registry().get(classname);
+    if (!spec) {
+        throw std::runtime_error("make_resolved_device missing spec for '" + classname + "'");
+    }
+    return resolve_component(dev, *spec);
+}
 
 inline ResolvedDevice make_raw_resolved_device(
     std::string name,
@@ -61,7 +151,7 @@ inline JitBuildInput make_jit_input(
     JitBuildInput input;
     input.initial_values = std::move(initial_values);
 
-    const ComponentRegistry& reg = registry ? *registry : load_component_registry("library/");
+    const ComponentRegistry& reg = registry ? *registry : test_registry();
 
     input.devices.reserve(devices.size());
     for (const auto& dev : devices) {
@@ -118,7 +208,7 @@ inline JitBuildInput make_jit_input_from_composite(
     JitBuildInput input;
     input.bridge_ports = bridge_ports;
 
-    const ComponentRegistry& reg = registry ? *registry : load_component_registry("library/");
+    const ComponentRegistry& reg = registry ? *registry : test_registry();
 
     input.devices.reserve(devices.size());
     for (const auto& dev : devices) {

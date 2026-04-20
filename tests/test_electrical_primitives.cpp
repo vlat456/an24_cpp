@@ -22,23 +22,6 @@
 
 namespace {
 
-const ComponentRegistry& test_registry() {
-    static const ComponentRegistry registry = load_component_registry("library/");
-    return registry;
-}
-
-struct TestSpecStore {
-    std::vector<ComponentSpec> specs;
-    const ComponentSpec* add(ComponentSpec spec) {
-        specs.push_back(std::move(spec));
-        return &specs.back();
-    }
-    const ComponentSpec* add(PrimitiveSpec spec) {
-        specs.push_back(std::move(spec));
-        return &specs.back();
-    }
-};
-
 const ComponentSpec* make_spec_with_role(
     TestSpecStore& store,
     const std::string& classname,
@@ -54,38 +37,27 @@ const ComponentSpec* make_spec_with_role(
     return store.add(std::move(prim));
 }
 
-ResolvedDevice make_device(const std::string& name,
-                           const std::string& classname,
-                           const std::unordered_map<std::string, std::string>& params = {}) {
+ResolvedDevice make_test_device_or_synthetic(const std::string& name,
+                                             const std::string& classname,
+                                             const std::unordered_map<std::string, std::string>& params = {}) {
+    if (const ComponentSpec* spec = test_registry().get(classname)) {
+        return make_resolved_device(name, classname, params);
+    }
+
     DeviceInstance dev;
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-
-    if (const ComponentSpec* spec = test_registry().get(classname)) {
-        return resolve_component(dev, *spec);
-    } else {
-        auto ports = get_component_ports(classname);
-        for (const auto& port_name : ports) {
-            dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
-        }
+    for (const auto& port_name : get_component_ports(classname)) {
+        dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
-    // Fallback for synthetic test-only classnames not present in the registry.
     ResolvedDevice resolved;
     resolved.name = dev.name;
     resolved.classname = dev.classname;
     resolved.params = dev.params;
     resolved.ports = dev.ports;
     return resolved;
-}
-
-SimulationState make_state(uint32_t signal_count) {
-    SimulationState st;
-    for (uint32_t i = 0; i < signal_count; ++i) {
-        (void)st.allocate_signal(0.0f);
-    }
-    return st;
 }
 
 } // anonymous namespace
@@ -101,9 +73,9 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
 
     // --- Circuit A: Wrapper Resistor ---
     std::vector<DeviceInstance> devices_a = {
-        make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}}),
-        make_device("res", "Resistor", {{"conductance", "0.5"}}),
-        make_device("gnd", "RefNode", {{"value", "0.0"}})
+        make_test_device_or_synthetic("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}}),
+        make_test_device_or_synthetic("res", "Resistor", {{"conductance", "0.5"}}),
+        make_test_device_or_synthetic("gnd", "RefNode", {{"value", "0.0"}})
     };
     std::vector<std::vector<std::string>> signal_groups_a = {
         {"bat.v_out", "res.v_in"},
@@ -112,9 +84,9 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
 
     // --- Circuit B: Primitive ElectricalConductance ---
     std::vector<DeviceInstance> devices_b = {
-        make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}}),
-        make_device("cond", "ElectricalConductance", {{"conductance", "0.5"}}),
-        make_device("gnd", "RefNode", {{"value", "0.0"}})
+        make_test_device_or_synthetic("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}}),
+        make_test_device_or_synthetic("cond", "ElectricalConductance", {{"conductance", "0.5"}}),
+        make_test_device_or_synthetic("gnd", "RefNode", {{"value", "0.0"}})
     };
     std::vector<std::vector<std::string>> signal_groups_b = {
         {"bat.v_out", "cond.v_in"},

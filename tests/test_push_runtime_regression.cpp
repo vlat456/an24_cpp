@@ -22,53 +22,6 @@ using json = nlohmann::json;
 
 namespace {
 
-const ComponentRegistry& test_registry() {
-    static const ComponentRegistry registry = load_component_registry("library/");
-    return registry;
-}
-
-DeviceInstance make_device(const std::string& name,
-                           const std::string& classname,
-                           const std::unordered_map<std::string, std::string>& params = {}) {
-    DeviceInstance dev;
-    dev.name = name;
-    dev.classname = classname;
-    dev.params = params;
-    dev.spec = test_registry().get(classname);
-
-    // First try to get full ComponentSpec ports if available.
-    if (const PrimitiveSpec* def = as_primitive(*dev.spec)) {
-        // Use full TypeDefinition::ports which includes input, output, and inout.
-        for (const auto& [port_name, port_info] : def->ports) {
-            dev.ports[port_name] = port_info;
-        }
-        // Fill in missing params from defaults.
-        for (const auto& [param_name, param_spec] : def->params) {
-            if (param_spec.visual_only) {
-                continue;
-            }
-            if (!dev.params.count(param_name)) {
-                dev.params[param_name] = param_spec.default_value;
-            }
-        }
-    } else {
-        // Fallback: get component ports generically.
-        auto ports = get_component_ports(classname);
-        for (const auto& port_name : ports) {
-            dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
-        }
-    }
-    return dev;
-}
-
-SimulationState make_state(uint32_t signal_count) {
-    SimulationState st;
-    for (uint32_t i = 0; i < signal_count; ++i) {
-        (void)st.allocate_signal(0.0f);
-    }
-    return st;
-}
-
 /// Read a file and return its contents as a string.
 /// Fails with a clear message if the file cannot be read.
 static std::string read_file_or_fail(const std::string& path) {

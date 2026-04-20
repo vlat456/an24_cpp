@@ -137,7 +137,7 @@ std::unordered_map<std::string, Port> extract_exposed_ports(const ComponentSpec&
 spdlog::debug("[parser] Exposed port: {} ({}, {})",
                       bridge.exposed_port,
                       (port.direction == bp2::Direction::Input) ? "In" : "Out",
-                      port_type_to_string(port.type));
+                      json_parser_internal::port_type_to_string(port.type));
     }
 
     return exposed;
