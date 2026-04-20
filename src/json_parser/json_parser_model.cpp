@@ -4,6 +4,46 @@
 #include <functional>
 #include <set>
 
+namespace {
+
+template <typename DeviceT>
+std::optional<std::string> validate_device_against_registry(const ComponentRegistry& registry,
+                                                            const DeviceT& instance) {
+    if (!registry.has(instance.classname)) {
+        return "Unknown classname '" + instance.classname + "' in device '" + instance.name + "'";
+    }
+
+    const auto* def = registry.get(instance.classname);
+    if (!def) {
+        return "Type definition not found for '" + instance.classname + "'";
+    }
+
+    const auto& ports = spec_ports(*def);
+    for (const auto& [port_name, port] : instance.ports) {
+        (void)port;
+        if (!ports.count(port_name)) {
+            return "Unknown port '" + port_name + "' in device '" + instance.name +
+                   "' of type '" + instance.classname + "'. Valid ports: " +
+                   [&]() {
+                       std::string valid_ports;
+                       for (const auto& [name, _] : ports) {
+                           if (!valid_ports.empty()) valid_ports += ", ";
+                           valid_ports += name;
+                       }
+                       return valid_ports;
+                   }();
+        }
+    }
+
+    if (spec_domains(*def).empty()) {
+        return "No domains specified for device '" + instance.name + "' of type '" + instance.classname + "'";
+    }
+
+    return std::nullopt;
+}
+
+} // namespace
+
 MenuTree CatalogData::build_menu_tree(const std::unordered_map<std::string, ComponentSpec>& types,
                                      const PresentationRegistry& presentation) const {
     MenuTree root;
@@ -46,71 +86,11 @@ MenuTree CatalogData::build_menu_tree(const std::unordered_map<std::string, Comp
 }
 
 std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInstance& instance) const {
-    if (!has(instance.classname)) {
-        return "Unknown classname '" + instance.classname + "' in device '" + instance.name + "'";
-    }
-
-    const auto* def = get(instance.classname);
-    if (!def) {
-        return "Type definition not found for '" + instance.classname + "'";
-    }
-
-    const auto& ports = spec_ports(*def);
-    for (const auto& [port_name, port] : instance.ports) {
-        (void)port;
-        if (!ports.count(port_name)) {
-            return "Unknown port '" + port_name + "' in device '" + instance.name +
-                   "' of type '" + instance.classname + "'. Valid ports: " +
-                   [&]() {
-                       std::string valid_ports;
-                       for (const auto& [name, _] : ports) {
-                           if (!valid_ports.empty()) valid_ports += ", ";
-                           valid_ports += name;
-                       }
-                       return valid_ports;
-                   }();
-        }
-    }
-
-    if (spec_domains(*def).empty()) {
-        return "No domains specified for device '" + instance.name + "' of type '" + instance.classname + "'";
-    }
-
-    return std::nullopt;
+    return validate_device_against_registry(*this, instance);
 }
 
 std::optional<std::string> ComponentRegistry::validate_instance(const ResolvedDevice& instance) const {
-    if (!has(instance.classname)) {
-        return "Unknown classname '" + instance.classname + "' in device '" + instance.name + "'";
-    }
-
-    const auto* def = get(instance.classname);
-    if (!def) {
-        return "Type definition not found for '" + instance.classname + "'";
-    }
-
-    const auto& ports = spec_ports(*def);
-    for (const auto& [port_name, port] : instance.ports) {
-        (void)port;
-        if (!ports.count(port_name)) {
-            return "Unknown port '" + port_name + "' in device '" + instance.name +
-                   "' of type '" + instance.classname + "'. Valid ports: " +
-                   [&]() {
-                       std::string valid_ports;
-                       for (const auto& [name, _] : ports) {
-                           if (!valid_ports.empty()) valid_ports += ", ";
-                           valid_ports += name;
-                       }
-                       return valid_ports;
-                   }();
-        }
-    }
-
-    if (spec_domains(*def).empty()) {
-        return "No domains specified for device '" + instance.name + "' of type '" + instance.classname + "'";
-    }
-
-    return std::nullopt;
+    return validate_device_against_registry(*this, instance);
 }
 
 CompositeSpec expand_sub_blueprint_references(
