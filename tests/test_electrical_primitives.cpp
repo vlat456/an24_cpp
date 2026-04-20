@@ -71,7 +71,7 @@ ResolvedDevice make_device(const std::string& name,
         }
     }
 
-    // Fallback: construct a minimal ResolvedDevice from the DeviceInstance
+    // Fallback for synthetic test-only classnames not present in the registry.
     ResolvedDevice resolved;
     resolved.name = dev.name;
     resolved.classname = dev.classname;
