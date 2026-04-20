@@ -29,23 +29,6 @@ static bool has_domain_in(const std::vector<Domain>& domains, Domain target) {
 
 // parse_port_direction/parse_port_type moved to json_parser_types.cpp
 
-// Helper: convert PortType to string
-static std::string port_type_to_string(PortType t) {
-    switch (t) {
-        case PortType::V: return "V";
-        case PortType::I: return "I";
-        case PortType::Signal: return "Signal";
-        case PortType::Bool: return "Bool";
-        case PortType::RPM: return "RPM";
-        case PortType::Temperature: return "Temperature";
-        case PortType::Pressure: return "Pressure";
-        case PortType::Position: return "Position";
-        case PortType::Contextual: return "Contextual";
-        case PortType::Any: return "Any";
-    }
-    return "Unknown";
-}
-
 // Check if two port types are compatible for connection
 static bool are_ports_compatible(PortType from_type, PortType to_type) {
     // Any is wildcard; Contextual participates in compatibility without

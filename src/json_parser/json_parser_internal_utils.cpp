@@ -89,6 +89,22 @@ PortType parse_port_type_string(const std::string& s) {
     throw std::runtime_error("Unknown port type: " + s);
 }
 
+std::string port_type_to_string(PortType t) {
+    switch (t) {
+        case PortType::V: return "V";
+        case PortType::I: return "I";
+        case PortType::Signal: return "Signal";
+        case PortType::Bool: return "Bool";
+        case PortType::RPM: return "RPM";
+        case PortType::Temperature: return "Temperature";
+        case PortType::Pressure: return "Pressure";
+        case PortType::Position: return "Position";
+        case PortType::Contextual: return "Contextual";
+        case PortType::Any: return "Any";
+    }
+    return "Unknown";
+}
+
 static ParamSpec to_param_spec(const ParamSchemaEntry& e, std::string default_value = {}) {
     ParamSpec spec;
     spec.type = e.type;

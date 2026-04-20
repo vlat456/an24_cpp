@@ -1,26 +1,11 @@
 #include "json_parser.h"
+#include "json_parser_internal_utils.h"
 
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
 namespace {
-
-std::string port_type_to_string(PortType t) {
-    switch (t) {
-        case PortType::V: return "V";
-        case PortType::I: return "I";
-        case PortType::Signal: return "Signal";
-        case PortType::Bool: return "Bool";
-        case PortType::RPM: return "RPM";
-        case PortType::Temperature: return "Temperature";
-        case PortType::Pressure: return "Pressure";
-        case PortType::Position: return "Position";
-        case PortType::Contextual: return "Contextual";
-        case PortType::Any: return "Any";
-    }
-    return "Unknown";
-}
 
 json port_to_json(const Port& port) {
     json j;
@@ -29,7 +14,7 @@ json port_to_json(const Port& port) {
         case bp2::Direction::InOut: j["direction"] = "InOut"; break;
         default:                     j["direction"] = "Out"; break;
     }
-    j["type"] = port_type_to_string(port.type);
+    j["type"] = json_parser_internal::port_type_to_string(port.type);
     return j;
 }
 
