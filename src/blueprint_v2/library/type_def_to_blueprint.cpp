@@ -131,9 +131,9 @@ Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
             }
         }
 
-        // Build node interface from ComponentRegistry definition for this device's class.
-        // The v3 parser does not populate DeviceInstance.ports, so we look up the
-        // canonical type definition to get the port list.
+        // Build node interface from the canonical component definition. Resolved
+        // devices also carry ports, but the registry definition remains the
+        // authoritative source for the blueprint-facing interface.
         const ComponentSpec* dev_def = registry.get(dev.classname);
         if (dev_def) {
             node.component().iface = interface_from_type_definition(*dev_def, interner);

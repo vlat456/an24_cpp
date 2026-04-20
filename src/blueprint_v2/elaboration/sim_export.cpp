@@ -62,7 +62,7 @@ JitBuildInput elaborate_for_jit(
 
     JitBuildInput result;
 
-    // --- Convert components to DeviceInstances ---
+    // --- Convert flat components to canonical resolved runtime devices ---
     std::set<std::string> emitted_ids;
     for (const auto& comp : netlist.components) {
         const std::string dev_id = node_id_from_path(comp.path, arena, interner);
@@ -76,7 +76,12 @@ JitBuildInput elaborate_for_jit(
 
         const std::string classname(interner.resolve(comp.type));
 
-        DeviceInstance dev;
+        const ComponentSpec* type_def = type_registry.get(classname);
+        if (!type_def) {
+            throw std::runtime_error("Component definition not found: " + classname);
+        }
+
+        ResolvedDevice dev;
         dev.name = dev_id;
         dev.classname = classname;
         dev.priority = "med";
@@ -94,7 +99,6 @@ JitBuildInput elaborate_for_jit(
         }
 
         // Params: convert float params to strings, filtering visual-only
-        const ComponentSpec* type_def = type_registry.get(classname);
         auto is_visual_only = [&](const std::string& key) -> bool {
             const auto& params = spec_params(*type_def);
             auto it = params.find(key);
@@ -120,11 +124,23 @@ JitBuildInput elaborate_for_jit(
             dev.params[k] = v;
         }
 
-        if (!type_def) {
-            throw std::runtime_error("Component definition not found: " + classname);
+        const auto& domains = spec_domains(*type_def);
+        if (domains.empty()) {
+            throw std::runtime_error(
+                "Missing domains metadata in component spec for component '" + spec_classname(*type_def) + "'");
         }
 
-        result.devices.push_back(resolve_component(dev, *type_def));
+        dev.display_name = spec_display_name(*type_def);
+        dev.visual_only = spec_visual_only(*type_def);
+        dev.scheduler_source = spec_scheduler_source(*type_def);
+        dev.solver_owned_electrical = spec_solver_owned_electrical(*type_def);
+        dev.domains = domains;
+        dev.execution = spec_execution(*type_def);
+        dev.solver_role = spec_solver_role(*type_def);
+        dev.priority = spec_priority(*type_def);
+        dev.critical = spec_critical(*type_def);
+
+        result.devices.push_back(std::move(dev));
     }
 
     // --- Build port_to_signal directly from FlatNetlist signal indices ---
