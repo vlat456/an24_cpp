@@ -310,51 +310,40 @@ void Document::updateSimulationStep(double dt) {
 void Document::updateNodeContentFromSimulation() {
     if (!simulation_running_) return;
 
-    // Helper: given a node, type name, and simulation ID prefix, update the content
-    auto update_node_content = [&](const bp2::Blueprint::Node& n,
-                                   const std::string& sim_id_prefix) {
-        const std::string local_id = std::string(interner_.resolve(n.semantic.id));
-        const std::string nid = sim_id_prefix.empty() ? local_id : signal_key::make_child_scope_key(sim_id_prefix, local_id);
-        const std::string type_name = std::string(interner_.resolve(n.semantic.type));
-        NodeContent content = resolve_base_content(n, interner_, type_registry_);
-        if (content.type == bp2::NodeContentType::None) return;
+    std::vector<ui::InternedId> instance_path;
+    editor::walk_blueprint_nodes(model_.current(), instance_path,
+        [&](const bp2::Blueprint::Node& n, std::span<const ui::InternedId> path) {
+            const std::string sim_id_prefix = editor::instance_path_to_scope_string(interner_, path);
+            const std::string local_id = std::string(interner_.resolve(n.semantic.id));
+            const std::string nid = sim_id_prefix.empty()
+                ? local_id
+                : signal_key::make_child_scope_key(sim_id_prefix, local_id);
+            const std::string type_name = std::string(interner_.resolve(n.semantic.type));
+            NodeContent content = resolve_base_content(n, interner_, type_registry_);
+            if (content.type == bp2::NodeContentType::None) return;
 
-        overlay_simulation_values(content, n, interner_, type_name, nid, simulation_);
-        const editor::NodeInstanceKey key = editor::make_node_instance_key(interner_, sim_id_prefix, n.semantic.id);
-        switch (content.type) {
-            case bp2::NodeContentType::Slider:
-            case bp2::NodeContentType::Gauge:
-            case bp2::NodeContentType::Indicator:
-                runtime_node_states_[key] = editor::ScalarNodeRuntimeState{content.value};
-                break;
-            case bp2::NodeContentType::Knob:
-                runtime_node_states_[key] = editor::DiscreteNodeRuntimeState{static_cast<int>(content.value)};
-                break;
-            case bp2::NodeContentType::Switch:
-            case bp2::NodeContentType::VerticalToggle:
-                runtime_node_states_[key] = (type_name == "AZS")
-                    ? editor::RuntimeNodeState(editor::BoolTrippedNodeRuntimeState{content.state, content.tripped})
-                    : editor::RuntimeNodeState(editor::BoolNodeRuntimeState{content.state});
-                break;
-            default:
-                break;
-        }
-        dispatch_content_to_widget(window_manager_, interner_, n.semantic.id, sim_id_prefix, content);
-    };
-
-    // Update root-level nodes
-    for (const bp2::Blueprint::Node& n : model_.current().nodes()) {
-        update_node_content(n, "");
-    }
-
-    // Update nodes inside embedded blueprint instances
-    for (const bp2::Blueprint::Node& parent_node : model_.current().nodes()) {
-        if (!parent_node.has_embedded_blueprint() || !parent_node.blueprint_instance().source.inline_def()) continue;
-        const std::string parent_id = std::string(interner_.resolve(parent_node.semantic.id));
-        for (const bp2::Blueprint::Node& inner : parent_node.blueprint_instance().source.inline_def()->nodes()) {
-            update_node_content(inner, parent_id);
-        }
-    }
+            overlay_simulation_values(content, n, interner_, type_name, nid, simulation_);
+            const editor::NodeInstanceKey key = editor::make_node_instance_key(path, n.semantic.id);
+            switch (content.type) {
+                case bp2::NodeContentType::Slider:
+                case bp2::NodeContentType::Gauge:
+                case bp2::NodeContentType::Indicator:
+                    runtime_node_states_[key] = editor::ScalarNodeRuntimeState{content.value};
+                    break;
+                case bp2::NodeContentType::Knob:
+                    runtime_node_states_[key] = editor::DiscreteNodeRuntimeState{static_cast<int>(content.value)};
+                    break;
+                case bp2::NodeContentType::Switch:
+                case bp2::NodeContentType::VerticalToggle:
+                    runtime_node_states_[key] = (type_name == "AZS")
+                        ? editor::RuntimeNodeState(editor::BoolTrippedNodeRuntimeState{content.state, content.tripped})
+                        : editor::RuntimeNodeState(editor::BoolNodeRuntimeState{content.state});
+                    break;
+                default:
+                    break;
+            }
+            dispatch_content_to_widget(window_manager_, interner_, n.semantic.id, sim_id_prefix, content);
+        });
 }
 
 /// Rebuild runtime node states from the current blueprint. Pure state reset —

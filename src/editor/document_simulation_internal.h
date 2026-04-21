@@ -22,4 +22,18 @@ void walk_blueprint_nodes(
     std::vector<ui::InternedId>& instance_path,
     const std::function<void(const bp2::Blueprint::Node&, std::span<const ui::InternedId>)>& fn);
 
+/// Convert a typed instance path to a colon-delimited scope string for
+/// simulation signal key construction. Returns "" for root scope (empty path).
+inline std::string instance_path_to_scope_string(
+    const ui::StringInterner& interner,
+    std::span<const ui::InternedId> path) {
+    if (path.empty()) return "";
+    std::string result;
+    for (size_t i = 0; i < path.size(); ++i) {
+        if (i > 0) result += ':';
+        result += interner.resolve(path[i]);
+    }
+    return result;
+}
+
 } // namespace editor
