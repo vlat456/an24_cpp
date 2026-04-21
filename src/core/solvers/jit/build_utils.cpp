@@ -14,18 +14,6 @@ bool is_knob_switch_family(std::string_view classname) {
            classname == "RotarySwitchNTo1";
 }
 
-bool is_scheduler_source_component_class(std::string_view classname) {
-    return is_scheduler_source_component(metadata_classname_for(classname));
-}
-
-bool is_solver_owned_electrical_propagator(std::string_view classname) {
-    return is_solver_owned_electrical_component(metadata_classname_for(classname));
-}
-
-bool requires_solver_role(std::string_view classname) {
-    return requires_solver_role_component(metadata_classname_for(classname));
-}
-
 std::vector<std::string> active_source_writer_ports_for(std::string_view classname) {
     return get_source_writer_ports(
         metadata_classname_for(classname),

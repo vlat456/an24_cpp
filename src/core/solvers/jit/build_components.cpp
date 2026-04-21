@@ -91,12 +91,12 @@ void build_and_register_components(
             throw std::runtime_error("Missing generated port metadata for component class '" + dev.classname + "'");
         }
 
-        bool is_source = is_scheduler_source_component_class(dev.classname);
-        bool is_solver_owned_electrical = is_solver_owned_electrical_propagator(dev.classname);
+        bool is_source = dev.scheduler_source;
+        bool is_solver_owned = dev.solver_owned_electrical;
 
         // Guard: solver-owned electrical propagators must NOT be added to scheduler
         // as consumers. They are handled by the electrical solver instead.
-        if (!is_source && !is_solver_owned_electrical) {
+        if (!is_source && !is_solver_owned) {
             consumer_device_names.push_back(dev.name);
         }
 

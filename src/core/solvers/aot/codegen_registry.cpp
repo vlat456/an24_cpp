@@ -18,8 +18,6 @@ struct PortMeta {
 struct ComponentPorts {
     std::string classname;
     std::vector<PortMeta> ports;
-    bool scheduler_source = false;
-    bool solver_owned_electrical = false;
     bool has_solver_role = false;
 };
 
@@ -35,8 +33,6 @@ std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& re
 
         ComponentPorts comp;
         comp.classname = def->classname;
-        comp.scheduler_source = def->scheduler_source;
-        comp.solver_owned_electrical = def->solver_owned_electrical;
         comp.has_solver_role = def->solver_role.has_value();
         for (const auto& [port_name, port] : def->ports) {
             PortMeta meta;
@@ -141,11 +137,6 @@ void emit_port_registry_metadata(std::ostringstream& oss, const std::vector<Comp
             }
         }
         oss << "};\n";
-
-        oss << "constexpr bool " << comp.classname << "_SCHEDULER_SOURCE = "
-            << (comp.scheduler_source ? "true" : "false") << ";\n\n";
-        oss << "constexpr bool " << comp.classname << "_SOLVER_OWNED_ELECTRICAL = "
-            << (comp.solver_owned_electrical ? "true" : "false") << ";\n\n";
     }
 }
 
@@ -196,42 +187,6 @@ void emit_port_registry_lookups(
     oss << "    if (!has_component_metadata(classname)) {\n";
     oss << "        throw std::runtime_error(std::string(\"Unknown component metadata class in \") + helper_name + \": \" + classname);\n";
     oss << "    }\n";
-    oss << "}\n\n";
-
-    oss << "inline bool is_scheduler_source_component(const std::string& classname) {\n";
-    oss << "    require_component_metadata(classname, \"is_scheduler_source_component\");\n";
-    oss << "    static const std::unordered_map<std::string, bool> registry = {\n";
-    for (const auto& comp : all_components) {
-        oss << "        {\"" << comp.classname << "\", " << (comp.scheduler_source ? "true" : "false") << "},\n";
-    }
-    oss << "    };\n";
-    oss << "    auto it = registry.find(classname);\n";
-    oss << "    if (it == registry.end()) throw std::runtime_error(\"Missing scheduler-source metadata entry for known class: \" + classname);\n";
-    oss << "    return it->second;\n";
-    oss << "}\n\n";
-
-    oss << "inline bool is_solver_owned_electrical_component(const std::string& classname) {\n";
-    oss << "    require_component_metadata(classname, \"is_solver_owned_electrical_component\");\n";
-    oss << "    static const std::unordered_map<std::string, bool> registry = {\n";
-    for (const auto& comp : all_components) {
-        oss << "        {\"" << comp.classname << "\", " << (comp.solver_owned_electrical ? "true" : "false") << "},\n";
-    }
-    oss << "    };\n";
-    oss << "    auto it = registry.find(classname);\n";
-    oss << "    if (it == registry.end()) throw std::runtime_error(\"Missing solver-owned metadata entry for known class: \" + classname);\n";
-    oss << "    return it->second;\n";
-    oss << "}\n\n";
-
-    oss << "inline bool requires_solver_role_component(const std::string& classname) {\n";
-    oss << "    require_component_metadata(classname, \"requires_solver_role_component\");\n";
-    oss << "    static const std::unordered_map<std::string, bool> registry = {\n";
-    for (const auto& comp : all_components) {
-        oss << "        {\"" << comp.classname << "\", " << (comp.has_solver_role ? "true" : "false") << "},\n";
-    }
-    oss << "    };\n";
-    oss << "    auto it = registry.find(classname);\n";
-    oss << "    if (it == registry.end()) throw std::runtime_error(\"Missing solver-role metadata entry for known class: \" + classname);\n";
-    oss << "    return it->second;\n";
     oss << "}\n\n";
 
     oss << "inline std::vector<std::string> get_output_ports(const std::string& classname) {\n";

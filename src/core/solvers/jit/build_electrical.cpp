@@ -97,14 +97,7 @@ void build_electrical_islands(
             continue;
         }
 
-        const bool needs_solver_role = requires_solver_role(dev.classname);
-
         if (!dev.solver_role.has_value()) {
-            if (needs_solver_role) {
-                throw std::runtime_error(
-                    "Missing required solver_role metadata for electrical component '" +
-                    dev.name + "' (classname: " + dev.classname + ")");
-            }
             continue;
         }
 

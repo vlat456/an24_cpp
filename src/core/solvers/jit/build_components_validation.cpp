@@ -54,7 +54,7 @@ void validate_consumer_guardrails(
         auto it_dev = std::find_if(devices.begin(), devices.end(),
             [&name](const ResolvedDevice& d) { return d.name == name; });
         if (it_dev != devices.end()) {
-            if (is_solver_owned_electrical_propagator(it_dev->classname)) {
+            if (it_dev->solver_owned_electrical) {
                 throw std::runtime_error(
                     std::string("Guardrail violation: solver-owned electrical propagator '") +
                     it_dev->classname + "' (device '" + it_dev->name +

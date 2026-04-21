@@ -10,23 +10,12 @@
 #include "core/model/resolved_device.h"
 #include "core/model/device_instance.h"
 #include "core/model/presentation_spec.h"
-
-struct MenuTree {
-    std::vector<std::string> entries;
-    std::unordered_map<std::string, std::string> labels;
-    std::map<std::string, MenuTree> children;
-};
-
-struct CatalogData {
-    std::unordered_map<std::string, std::string> categories;
-    MenuTree build_menu_tree(const std::unordered_map<std::string, ComponentSpec>& types,
-                             const PresentationRegistry& presentation) const;
-};
+#include "core/model/catalog_registry.h"
 
 struct ComponentRegistry {
     std::unordered_map<std::string, ComponentSpec> types;
     PresentationRegistry presentation;
-    CatalogData catalog;
+    CatalogRegistry catalog;
 
     const ComponentSpec* get(const std::string& classname) const {
         auto it = types.find(classname);
