@@ -11,10 +11,10 @@
 
 namespace bp2 {
 
-/// Build a bp2::Blueprint from a composite TypeDefinition (cpp_class == false).
+/// Build a bp2::Blueprint from a composite ComponentSpec.
 ///
-/// Maps TypeDefinition.devices → Node (Kind::Component) and
-/// TypeDefinition.connections → Wire, using the existing
+/// Maps CompositeSpec.devices → Node (Kind::Component) and
+/// CompositeSpec.connections → Wire, using the existing
 /// interface_from_type_definition() helper for the blueprint interface.
 ///
 /// Node interfaces are resolved from the ComponentRegistry so that flattening

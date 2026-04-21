@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 /// Editor-only presentation fields extracted from type definitions.
-/// This separates UI/presentation concerns from the solver's TypeDefinition.
+/// This separates UI/presentation concerns from the solver's ComponentSpec.
 struct TypePresentation {
     std::string description;
     std::string content_type = "None";

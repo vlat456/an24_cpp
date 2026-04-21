@@ -30,7 +30,7 @@ bp2::BlueprintLibrary build_library(
             try {
                 loaded = bp2::blueprint_from_type_definition(spec, interner, *type_registry);
             } catch (const std::exception& e) {
-                spdlog::warn("[editor] export flatten: failed to build blueprint '{}' from TypeDefinition: {}",
+                spdlog::warn("[editor] export flatten: failed to build blueprint '{}' from ComponentSpec: {}",
                              classname, e.what());
                 continue;
             }

@@ -293,12 +293,12 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     try {
         loaded = bp2::blueprint_from_type_definition(*def, interner_, registry);
     } catch (const std::exception& e) {
-        spdlog::error("[editor] addBlueprint('{}'): failed to build from TypeDefinition: {}",
+        spdlog::error("[editor] addBlueprint('{}'): failed to build from ComponentSpec: {}",
                       blueprint_name, e.what());
         return;
     }
 
-    spdlog::debug("[editor] addBlueprint('{}'): built {} nodes, {} wires from TypeDefinition",
+    spdlog::debug("[editor] addBlueprint('{}'): built {} nodes, {} wires from ComponentSpec",
         blueprint_name,
         loaded.nodes().size(),
         loaded.wires().size());

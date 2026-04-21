@@ -174,7 +174,7 @@ using PresentationSpec = CompiledPresentationSpec;
 /// This is the single authority for node visual classification.
 NodeFrameKind classify_frame_kind(std::string_view render_hint);
 
-/// Resolve NodeFrameKind from TypeDefinition + TypePresentation (canonical authority).
+/// Resolve NodeFrameKind from ComponentSpec + TypePresentation (canonical authority).
 /// Falls back to NodeFrameKind::Standard if both are null or render_hint is empty.
 NodeFrameKind resolve_frame_kind(const ComponentSpec* spec, const TypePresentation* pres);
 

@@ -322,7 +322,7 @@ void NodeWidget::build(const bp2::Blueprint::Node& data,
     // Footer
     footer_ = emplaceChild<FooterTypeLabel>(type_name_);
 
-    // Content geometry — from resolved NodeContent (source of truth: TypeDefinition + params)
+    // Content geometry — from resolved NodeContent (source of truth: ComponentSpec + params)
     cached_content_type_ = content.type;
     cached_content_min_ = content.min;
     cached_content_max_ = content.max;

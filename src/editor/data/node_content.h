@@ -115,7 +115,7 @@ inline bool get_param_bool_from_map(const std::unordered_map<ui::InternedId, flo
     return fallback;
 }
 
-/// [Issue #132] Create NodeContent from TypeDefinition and instance params
+/// Create NodeContent from ComponentSpec and instance params
 /// Resolves param-driven content (min/max/positions/initial_position/closed)
 /// using instance params first, then type definition defaults.
 inline NodeContent create_node_content(const ComponentSpec& def,

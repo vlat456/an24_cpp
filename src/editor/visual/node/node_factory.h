@@ -16,10 +16,10 @@ namespace visual {
 struct NodeFactory {
     /// Create a widget for the given node data.
     /// @param node       The node data
-    /// @param frame_kind Resolved frame kind (from TypeDefinition, not view.render_hint)
+    /// @param frame_kind Resolved frame kind (from ComponentSpec, not view.render_hint)
     /// @param render_iface The authoritative interface to project for rendering
     /// @param interner   String interner for resolving InternedId to strings
-    /// @param content    Resolved content semantics (from TypeDefinition + instance params)
+    /// @param content    Resolved content semantics (from ComponentSpec + instance params)
     /// @param wires      All wires in the blueprint (used by BusNodeWidget)
     /// @return Owning pointer to the created widget
     static std::unique_ptr<Widget> create(const bp2::Blueprint::Node& node,
