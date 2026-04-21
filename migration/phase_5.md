@@ -1,6 +1,6 @@
 # Phase 5: BlueprintCodec (JSON Serialization)
 
-Historical note: this phase description references legacy bp2 registry APIs that were removed; canonical registry lives in json_parser.
+Historical note: this phase description references legacy bp2 registry APIs that were removed. The current canonical registry model lives in `core/model/component_registry.h`, and the current JSON loader lives in `io/json/component_registry_json_loader.h`.
 
 ## Goal
 
@@ -833,3 +833,4 @@ tests/blueprint_v2/test_codec.cpp
 
 - `src/blueprint_v2/CMakeLists.txt`: add `codec/blueprint_codec.cpp`
 - `tests/CMakeLists.txt`: add `bp2_codec_tests` target
+Historical document note: this phase predates the #166 architecture cleanup. References to `src/json_parser/*`, `json_parser`, and `load_type_registry()` are historical and do not describe the current architecture.

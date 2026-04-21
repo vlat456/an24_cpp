@@ -3,53 +3,17 @@
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/state.h"
-#include "json_parser/json_parser.h"
+#include "io/json/parse_json_api.h"
+#include "io/json/type_definition_json.h"
+#include "core/registry/component_resolution.h"
+#include "core/registry/composite_expansion.h"
 #include "jit_build_input_test_helper.h"
+
+#include <nlohmann/json.hpp>
 #include <cmath>
 #include <algorithm>
 
 namespace {
-
-const ComponentRegistry& test_registry() {
-    static const ComponentRegistry registry = load_component_registry("library/");
-    return registry;
-}
-
-// Helper to create a basic device instance
-DeviceInstance make_device(const std::string& name, const std::string& classname,
-                          const std::unordered_map<std::string, std::string>& params = {},
-                          bool merge_defaults = true) {
-    DeviceInstance dev;
-    dev.name = name;
-    dev.classname = classname;
-    dev.params = params;
-    dev.spec = test_registry().get(classname);
-    
-    if (const auto* def = dev.spec) {
-        const auto& ports = spec_ports(*def);
-        for (const auto& [port_name, port] : ports) {
-            dev.ports[port_name] = port;
-        }
-        if (merge_defaults) {
-            const auto& params = spec_params(*def);
-            for (const auto& [param_name, param_spec] : params) {
-                if (param_spec.visual_only) {
-                    continue;
-                }
-                if (!dev.params.count(param_name)) {
-                    dev.params[param_name] = param_spec.default_value;
-                }
-            }
-        }
-    } else {
-        auto ports = get_component_ports(classname);
-        for (const auto& port_name : ports) {
-            dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
-        }
-    }
-    return dev;
-}
-
 } // anonymous namespace
 
 // ============================================================================
@@ -737,6 +701,45 @@ TEST(PushBuildValidation, TypeDefinitionWithoutExecutionIsAccepted) {
     EXPECT_FALSE(prim->execution.has_value());
 }
 
+TEST(PushBuildValidation, ExpandSubBlueprintReferences_CleansLoadingStackAfterFailure) {
+    ComponentRegistry registry;
+
+    CompositeSpec self_ref;
+    self_ref.classname = "SelfRef";
+    self_ref.domains = {Domain::Electrical};
+    self_ref.sub_blueprints.push_back(SubBlueprintRef{"inner", "", "SelfRef"});
+    registry.types["SelfRef"] = self_ref;
+
+    PrimitiveSpec leaf;
+    leaf.classname = "Leaf";
+    leaf.domains = {Domain::Electrical};
+    registry.types["Leaf"] = leaf;
+
+    CompositeSpec wrapper;
+    wrapper.classname = "Wrapper";
+    wrapper.domains = {Domain::Electrical};
+    wrapper.sub_blueprints.push_back(SubBlueprintRef{"nested", "", "LeafComposite"});
+    registry.types["Wrapper"] = wrapper;
+
+    CompositeSpec leaf_composite;
+    leaf_composite.classname = "LeafComposite";
+    leaf_composite.domains = {Domain::Electrical};
+    leaf_composite.devices.push_back(DeviceInstance{"leaf", "Leaf"});
+    registry.types["LeafComposite"] = leaf_composite;
+
+    std::set<std::string> loading_stack;
+    EXPECT_THROW(expand_sub_blueprint_references(self_ref, registry, loading_stack), std::runtime_error);
+    EXPECT_TRUE(loading_stack.empty()) << "failed expansion must not poison later calls";
+
+    EXPECT_NO_THROW({
+        auto expanded = expand_sub_blueprint_references(wrapper, registry, loading_stack);
+        EXPECT_EQ(expanded.devices.size(), 1u);
+        EXPECT_EQ(expanded.devices[0].classname, "Leaf");
+        EXPECT_EQ(expanded.devices[0].name, "nested:leaf");
+    });
+    EXPECT_TRUE(loading_stack.empty());
+}
+
 TEST(PushBuildValidation, MaxSelectsHigherInput) {
     std::vector<DeviceInstance> devices = {
         make_device("sel", "Max"),
@@ -872,10 +875,10 @@ TEST(PushBuildValidation, UnknownParamThrows) {
 
 TEST(PushBuildValidation, MissingRequiredParamThrows) {
     std::vector<DeviceInstance> devices = {
-        make_device("p", "P", {
+        make_device_with_ports("p", "P", {
             {"output_min", "-10.0"},
             {"output_max", "10.0"}
-        }, false),
+        }, {}, false),
         make_device("ref", "RefNode", {{"value", "1.0"}})
     };
 
@@ -996,7 +999,7 @@ TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
 
 
 
-// Regression: resolve_device must propagate domain and source_writer
+// Regression: resolve_component must propagate domain and source_writer
 // from the type definition when both instance and definition have the same port.
 // Previously only type and alias were copied, silently dropping metadata.
 TEST(PushBuildValidation, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
@@ -1012,7 +1015,7 @@ TEST(PushBuildValidation, MergeDeviceInstance_PropagatesPortDomainAndSourceWrite
     // Instance port: same name, but with default domain/source_writer
     inst.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
 
-    DeviceInstance merged = resolve_device(inst, def);
+    ResolvedDevice merged = resolve_component(inst, def);
 
     // domain and source_writer must come from the definition, not remain at defaults
     EXPECT_EQ(merged.ports.at("v_out").domain, Domain::Mechanical);
@@ -1031,7 +1034,7 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def, pres] = parse_type_definition(j);
-    EXPECT_TRUE(spec_scheduler_source(def));
+    EXPECT_TRUE(spec_meta(def).scheduler_source);
 
     // Also verify false case
     auto j2 = nlohmann::json::parse(R"({
@@ -1043,7 +1046,7 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def2, pres2] = parse_type_definition(j2);
-    EXPECT_FALSE(spec_scheduler_source(def2));
+    EXPECT_FALSE(spec_meta(def2).scheduler_source);
 }
 
 // Regression: sentinel signal must be included in fixed_signals.

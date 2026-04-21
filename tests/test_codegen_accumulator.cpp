@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include "core/solvers/aot/codegen.h"
+#include "io/json/component_registry_json_loader.h"
+#include "core/registry/component_resolution.h"
 
 // ==...== Domain schedule constants (formerly in legacy solver constants) ==...==
 // These are embedded as string literals in generated AOT code and must remain consistent.
@@ -38,14 +40,14 @@ static auto make_multi_domain_devices() {
         devices.push_back(resolve_dev(std::move(dev)));
     }
 
-    // Battery (electrical)
+    // Electrical source (electrical)
     {
         DeviceInstance dev;
         dev.name = "bat";
-        dev.classname = "Battery";
+        dev.classname = "ElectricalSource";
         dev.params["domain"] = "Electrical";
-        dev.params["emf"] = "28";
-        dev.params["internal_r"] = "0.05";
+        dev.params["voltage"] = "28.0";
+        dev.params["resistance"] = "0.05";
         dev.ports["v_in"] = {bp2::Direction::Input, PortType::V, std::nullopt};
         dev.ports["v_out"] = {bp2::Direction::Output, PortType::V, std::nullopt};
         port_to_signal["bat.v_in"] = next_sig++;

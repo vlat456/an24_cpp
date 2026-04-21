@@ -56,8 +56,8 @@ static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
     bridge.view.name = id;
     bridge.content = bp2::Blueprint::Node::BridgePortData{
         I.intern(id),
-        input_side ? bp2::Blueprint::Node::BridgePortSide::Input
-                   : bp2::Blueprint::Node::BridgePortSide::Output,
+        input_side ? bp2::BridgeDirection::Input
+                   : bp2::BridgeDirection::Output,
         type,
         input_side
             ? bp2::Interface({
@@ -429,19 +429,28 @@ TEST(Flattener, Regression112_SingleLevelNoPhantomPaths) {
 // #112 Regression: v1-style bridge matching by label (bp_in_N)
 // ==================================================================
 
-TEST(Flattener, Regression112_V1LabelBasedBridgeMatch) {
+TEST(Flattener, Regression112_BridgeMatchByExposedPort) {
     ui::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
-    // Inner blueprint: bp_in_1 (label="feedback") → leaf
     bp2::Blueprint inner;
     inner = inner.with_interface(bp2::Interface({
         make_port(I, "feedback", Domain::Logical, bp2::Direction::Input),
     }));
 
-    bp2::Blueprint::Node bridge = make_bridge_node(I, "bp_in_1", true, Domain::Logical);
-    bridge.view.name = "feedback";  // v1 label-based matching
+    bp2::Blueprint::Node bridge;
+    bridge.semantic.id = I.intern("bp_in_1");
+    bridge.semantic.type = I.intern("BridgePort");
+    bridge.content = bp2::Blueprint::Node::BridgePortData{
+        I.intern("feedback"),
+        bp2::BridgeDirection::Input,
+        PortType::Signal,
+        bp2::Interface({
+            make_port(I, "ext", Domain::Logical, bp2::Direction::Input, PortType::Signal),
+            make_port(I, "port", Domain::Logical, bp2::Direction::Output, PortType::Signal),
+        })
+    };
     inner = inner.with_node(std::move(bridge));
 
     bp2::Blueprint::Node leaf;

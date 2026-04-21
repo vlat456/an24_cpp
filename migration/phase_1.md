@@ -1,5 +1,7 @@
 # Phase 1: Path and PathArena
 
+Historical note: this phase document predates the parser/registry cleanup. References below to legacy `json_parser` paths or APIs are historical and do not describe the current architecture.
+
 ## Goal
 
 Create a typed hierarchical path system that replaces the current `"parent:child"` string concatenation. A `Path` is 12 bytes (kind + segment + parent_index), comparison is O(1), and it is impossible to construct an ambiguous or malformed path.

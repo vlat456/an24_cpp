@@ -11,11 +11,6 @@
 
 namespace {
 
-const ComponentRegistry& test_registry() {
-    static const ComponentRegistry registry = load_component_registry("library/");
-    return registry;
-}
-
 ExecutionPhases make_execution_for_class(const std::string& classname) {
     ExecutionPhases phases;
 
@@ -136,23 +131,15 @@ BuildResult build_single_component(const std::string& classname,
     dev.name = "test_" + classname;
     dev.classname = classname;
     dev.params = merged_params;
-    dev.spec = test_registry().get(classname);
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
-    }
-    if (const ComponentSpec* spec = test_registry().get(classname)) {
-        dev = resolve_device(dev, *spec);
     }
 
     DeviceInstance gnd;
     gnd.name = "gnd";
     gnd.classname = "RefNode";
     gnd.params = {{"value", "0"}};
-    gnd.spec = test_registry().get("RefNode");
     gnd.ports["v"] = Port{bp2::Direction::Output, PortType::V};
-    if (const ComponentSpec* spec = test_registry().get("RefNode")) {
-        gnd = resolve_device(gnd, *spec);
-    }
 
     std::vector<DeviceInstance> devices = {dev, gnd};
 
@@ -266,8 +253,6 @@ TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
     bat.classname = "ElectricalSource";
     bat.ports["v_in"] = Port{bp2::Direction::Input, PortType::V};
     bat.ports["v_out"] = Port{bp2::Direction::Output, PortType::V};
-    const ComponentSpec* spec = test_registry().get("ElectricalSource");
-    bat = resolve_device(bat, *spec);
 
     std::vector<DeviceInstance> devices = {bat};
 

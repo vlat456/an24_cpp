@@ -33,7 +33,7 @@ const std::unordered_set<std::string>& allowed_blueprint_instance_node_fields() 
 
 const std::unordered_set<std::string>& allowed_bridge_port_node_fields() {
     static const std::unordered_set<std::string> s = {
-        "id", "kind", "label", "exposed_port", "side", "port_type", "layout"
+        "id", "kind", "label", "exposed_port", "direction", "port_type", "layout"
     };
     return s;
 }
@@ -100,17 +100,17 @@ DecodedNodeKind decode_node_kind(std::string const& kind) {
     throw std::runtime_error("invalid node entry: unknown node kind");
 }
 
-Blueprint::Node::BridgePortSide decode_bridge_side(std::string const& side) {
-    if (side == "input") return Blueprint::Node::BridgePortSide::Input;
-    if (side == "output") return Blueprint::Node::BridgePortSide::Output;
-    throw std::runtime_error("invalid node entry: unknown bridge side");
+bp2::BridgeDirection decode_bridge_direction(std::string const& direction) {
+    if (direction == "input") return bp2::BridgeDirection::Input;
+    if (direction == "output") return bp2::BridgeDirection::Output;
+    throw std::runtime_error("invalid node entry: unknown bridge direction");
 }
 
 Interface make_bridge_iface(ui::StringInterner& interner,
-                            Blueprint::Node::BridgePortSide side,
+                            bp2::BridgeDirection direction,
                             PortType port_type) {
     const Domain domain = domain_for_port_type(port_type);
-    if (side == Blueprint::Node::BridgePortSide::Input) {
+    if (direction == bp2::BridgeDirection::Input) {
         return Interface({
             {interner.intern("ext"), domain, Direction::Input, port_type},
             {interner.intern("port"), domain, Direction::Output, port_type},
@@ -269,11 +269,11 @@ Blueprint decode_nodes(Blueprint bp,
             }
         } else {
             require_field(n, "exposed_port", &nlohmann::json::is_string, ctx, "string");
-            require_field(n, "side", &nlohmann::json::is_string, ctx, "string");
+            require_field(n, "direction", &nlohmann::json::is_string, ctx, "string");
             require_field(n, "port_type", &nlohmann::json::is_string, ctx, "string");
 
             const auto exposed_port = interner.intern(n["exposed_port"].get<std::string>());
-            const auto side = decode_bridge_side(n["side"].get<std::string>());
+            const auto direction = decode_bridge_direction(n["direction"].get<std::string>());
             const auto port_type = port_type_from_name(n["port_type"].get<std::string>());
             if (!port_type.has_value()) {
                 throw std::runtime_error("invalid node entry: unknown bridge port_type");
@@ -282,9 +282,9 @@ Blueprint decode_nodes(Blueprint bp,
             node.semantic.type = interner.intern("BridgePort");
             node.bridge_port() = Blueprint::Node::BridgePortData{
                 exposed_port,
-                side,
+                direction,
                 *port_type,
-                make_bridge_iface(interner, side, *port_type),
+                make_bridge_iface(interner, direction, *port_type),
             };
         }
 

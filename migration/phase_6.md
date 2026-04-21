@@ -1,6 +1,6 @@
 # Phase 6: Flattener (Hierarchy -> Flat Netlist)
 
-Historical note: this phase description references legacy bp2 registry APIs that were removed; canonical registry lives in json_parser.
+Historical note: this phase description references legacy bp2 registry APIs that were removed. The current canonical registry model lives in `core/model/component_registry.h`, and the current JSON loader lives in `io/json/component_registry_json_loader.h`.
 
 ## Goal
 
@@ -784,3 +784,4 @@ tests/blueprint_v2/test_flattener.cpp
 ## Domain Note: Logical Components on Electrical Layer
 
 Some components declared `Domain::Logical` (e.g., `Add`, `Multiply`, `LUT`) share the `st.across[]` signal array with `Domain::Electrical` components. During flattening, these get their own signals like any other component. The domain tag on the signal is set from the wire's domain. The Flattener does NOT special-case logical-on-electrical -- it treats all domains uniformly. The solver's domain-dispatch logic (which runs logical after SOR convergence) is unchanged by this migration and remains in the JIT solver / AOT codegen. This is intentional: the Flattener's job is to produce a flat netlist; domain scheduling is the solver's job.
+Historical document note: this phase predates the #166 architecture cleanup. References to `src/json_parser/*`, `json_parser`, and `load_type_registry()` are historical and do not describe the current architecture.

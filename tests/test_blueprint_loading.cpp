@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
-#include "json_parser/json_parser.h"
+#include "io/json/parse_json_api.h"
+#include "io/json/component_registry_json_loader.h"
+#include "core/registry/component_resolution.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/state.h"
 #include "core/solvers/jit/components/all.h"
@@ -107,9 +109,9 @@ static float get_voltage(const SimulationState& state, const BuildResult& result
 TEST(ExtractExposedPorts, MultipleBlueprints) {
     CompositeSpec bp;
     bp.bridge_ports = {
-        BridgePortDefinition{"in1", "in1", bp2::Direction::Input, PortType::V},
-        BridgePortDefinition{"in2", "in2", bp2::Direction::Input, PortType::I},
-        BridgePortDefinition{"out1", "out1", bp2::Direction::Output, PortType::Bool},
+        BridgePortDefinition{"in1", "in1", bp2::BridgeDirection::Input, PortType::V},
+        BridgePortDefinition{"in2", "in2", bp2::BridgeDirection::Input, PortType::I},
+        BridgePortDefinition{"out1", "out1", bp2::BridgeDirection::Output, PortType::Bool},
     };
 
     auto exposed = extract_exposed_ports(bp);
@@ -117,11 +119,9 @@ TEST(ExtractExposedPorts, MultipleBlueprints) {
     // Should have 3 exposed ports (in1, in2, out1), excluding gnd
     EXPECT_EQ(exposed.size(), 3);
 
-    // Verify input bridge directions (data flows INTO blueprint)
+    // Verify runtime port directions (converted from BridgeDirection via to_port_direction)
     EXPECT_EQ(exposed["in1"].direction, bp2::Direction::Input);
     EXPECT_EQ(exposed["in2"].direction, bp2::Direction::Input);
-
-    // Verify output bridge direction (data flows OUT OF blueprint)
     EXPECT_EQ(exposed["out1"].direction, bp2::Direction::Output);
 
     // Verify types
@@ -141,8 +141,8 @@ TEST(ExtractExposedPorts, EmptyBlueprint) {
 TEST(ExtractExposedPorts, DefaultValues) {
     CompositeSpec bp;
     bp.bridge_ports = {
-        BridgePortDefinition{"in", "in", bp2::Direction::Input, PortType::Contextual},
-        BridgePortDefinition{"out", "out", bp2::Direction::Output, PortType::Contextual},
+        BridgePortDefinition{"in", "in", bp2::BridgeDirection::Input, PortType::Contextual},
+        BridgePortDefinition{"out", "out", bp2::BridgeDirection::Output, PortType::Contextual},
     };
 
     auto exposed = extract_exposed_ports(bp);
@@ -150,6 +150,7 @@ TEST(ExtractExposedPorts, DefaultValues) {
     EXPECT_EQ(exposed.size(), 2);
 
     // Structural bridge defaults are explicit in bridge metadata.
+    // Runtime directions are converted from BridgeDirection to Direction.
     EXPECT_EQ(exposed["in"].direction, bp2::Direction::Input);
     EXPECT_EQ(exposed["out"].direction, bp2::Direction::Output);
 
@@ -490,13 +491,13 @@ static nlohmann::json load_blueprint_nodes(const std::string& classname) {
 }
 
 TEST(BlueprintConvention, AllNodesHaveName_12SAM28) {
-    // Every node in 12SAM28.blueprint must have a non-empty "name" field.
-    // Missing names cause subtle UI bugs (empty labels, broken inspector lookups).
     auto nodes = load_blueprint_nodes("12SAM28");
     ASSERT_FALSE(nodes.empty()) << "12SAM28.blueprint not found or has no nodes";
 
     for (const auto& node : nodes) {
         std::string id = node.value("id", "<missing_id>");
+        std::string kind = node.value("kind", "");
+        if (kind == "bridge_port") continue;
         ASSERT_TRUE(node.contains("name"))
             << "Node '" << id << "' is missing a 'name' field";
         std::string name = node["name"].get<std::string>();
@@ -527,13 +528,13 @@ TEST(BlueprintConvention, ValueNodesHaveRenderHint_12SAM28) {
 }
 
 TEST(BlueprintConvention, NodeNameMatchesId_12SAM28) {
-    // Convention: name field should match id field.  Mismatches indicate
-    // copy-paste errors or incomplete tooling updates.
     auto nodes = load_blueprint_nodes("12SAM28");
     ASSERT_FALSE(nodes.empty()) << "12SAM28.blueprint not found or has no nodes";
 
     for (const auto& node : nodes) {
         std::string id = node.value("id", "<missing_id>");
+        std::string kind = node.value("kind", "");
+        if (kind == "bridge_port") continue;
         std::string name = node.value("name", "<missing_name>");
         EXPECT_EQ(name, id)
             << "Node name '" << name << "' doesn't match id '" << id << "'";

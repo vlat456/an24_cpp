@@ -4,7 +4,8 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/components/port_registry.h"
 
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
+#include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
 
 namespace {
@@ -14,7 +15,7 @@ const ComponentRegistry& shared_registry() {
     return registry;
 }
 
-BridgePortDefinition make_bridge(std::string name, bp2::Direction direction) {
+BridgePortDefinition make_bridge(std::string name, bp2::BridgeDirection direction) {
     BridgePortDefinition bridge;
     bridge.id = std::move(name);
     bridge.exposed_port = bridge.id;
@@ -28,9 +29,7 @@ DeviceInstance make_resistor_device(std::string name) {
     dev.name = std::move(name);
     dev.classname = "Resistor";
     dev.params["conductance"] = "1.0";
-    const ComponentSpec* spec = shared_registry().get(dev.classname);
-    EXPECT_NE(spec, nullptr);
-    return resolve_device(dev, *spec);
+    return dev;
 }
 
 } // namespace
@@ -39,8 +38,8 @@ TEST(BridgeLowering, BuildSkipsBridgeRuntimeComponents) {
     std::vector<DeviceInstance> devices;
     devices.push_back(make_resistor_device("load"));
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge("vin", bp2::Direction::Input),
-        make_bridge("vout", bp2::Direction::Output),
+        make_bridge("vin", bp2::BridgeDirection::Input),
+        make_bridge("vout", bp2::BridgeDirection::Output),
     };
 
     std::vector<Connection> connections = {
@@ -59,7 +58,7 @@ TEST(BridgeLowering, BridgeSignalsStillUnifiedForAliasContract) {
     std::vector<DeviceInstance> devices;
     devices.push_back(make_resistor_device("load"));
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge("vin", bp2::Direction::Input),
+        make_bridge("vin", bp2::BridgeDirection::Input),
     };
 
     std::vector<Connection> connections = {
@@ -80,8 +79,8 @@ TEST(BridgeLowering, BridgeNodesDoNotEnterScheduler) {
     std::vector<DeviceInstance> devices;
     devices.push_back(make_resistor_device("load"));
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge("vin", bp2::Direction::Input),
-        make_bridge("vout", bp2::Direction::Output),
+        make_bridge("vin", bp2::BridgeDirection::Input),
+        make_bridge("vout", bp2::BridgeDirection::Output),
     };
 
     std::vector<Connection> connections = {
@@ -96,8 +95,9 @@ TEST(BridgeLowering, BridgeNodesDoNotEnterScheduler) {
 }
 
 TEST(BridgeLowering, AotFilterRemovesBridgeDevices) {
-    std::vector<DeviceInstance> devices;
-    DeviceInstance resistor = make_resistor_device("load");
+    std::vector<ResolvedDevice> devices;
+    ResolvedDevice resistor = resolve_component(make_resistor_device("load"),
+        *test_registry().get("Resistor"));
     devices.push_back(resistor);
 
     auto filtered = codegen_detail::filter_simulation_devices(devices);

@@ -67,12 +67,11 @@ add_executable(electrical_island_build_tests
 )
 target_include_directories(electrical_island_build_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(electrical_island_build_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(electrical_island_build_tests
@@ -85,12 +84,11 @@ add_executable(electrical_handle_build_tests
 )
 target_include_directories(electrical_handle_build_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(electrical_handle_build_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(electrical_handle_build_tests
@@ -103,7 +101,6 @@ add_executable(electrical_subsolver_tests
 )
 target_include_directories(electrical_subsolver_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(electrical_subsolver_tests PRIVATE
@@ -118,12 +115,11 @@ add_executable(architecture_regression_tests
 )
 target_include_directories(architecture_regression_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(architecture_regression_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(architecture_regression_tests)
@@ -134,12 +130,11 @@ add_executable(pid_tests
 )
 target_include_directories(pid_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(pid_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(pid_tests)
@@ -149,12 +144,11 @@ add_executable(pd_tests
 )
 target_include_directories(pd_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(pd_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(pd_tests)
@@ -164,12 +158,11 @@ add_executable(subtract_tests
 )
 target_include_directories(subtract_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(subtract_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(subtract_tests)
@@ -179,12 +172,11 @@ add_executable(logic_gates_tests
 )
 target_include_directories(logic_gates_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(logic_gates_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(logic_gates_tests)
@@ -194,12 +186,11 @@ add_executable(arithmetic_tests
 )
 target_include_directories(arithmetic_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(arithmetic_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(arithmetic_tests)
@@ -210,12 +201,11 @@ add_executable(splitter_tests
 )
 target_include_directories(splitter_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(splitter_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(splitter_tests)
@@ -226,7 +216,6 @@ add_executable(azs_tests
 )
 target_include_directories(azs_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(azs_tests PRIVATE
@@ -241,13 +230,12 @@ add_executable(logical_solver_tests
 )
 target_include_directories(logical_solver_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(logical_solver_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     blueprint_v2
     GTest::gtest_main
 )
@@ -260,13 +248,12 @@ add_executable(bridge_lowering_tests
 target_include_directories(bridge_lowering_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/core
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(bridge_lowering_tests PRIVATE
     an24_codegen
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(bridge_lowering_tests)
@@ -277,12 +264,11 @@ add_executable(current_sense_tests
 )
 target_include_directories(current_sense_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(current_sense_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(current_sense_tests)
@@ -293,11 +279,10 @@ add_executable(bug_hunt_regression_tests
 )
 target_include_directories(bug_hunt_regression_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(bug_hunt_regression_tests PRIVATE
-    json_parser
+    json_io
     jit_solver
     GTest::gtest_main
 )
@@ -309,12 +294,11 @@ add_executable(slew_rate_tests
 )
 target_include_directories(slew_rate_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(slew_rate_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(slew_rate_tests)
@@ -324,12 +308,11 @@ add_executable(lut_tests
 )
 target_include_directories(lut_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(lut_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(lut_tests)
@@ -339,12 +322,11 @@ add_executable(time_delay_tests
 )
 target_include_directories(time_delay_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(time_delay_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(time_delay_tests)
@@ -354,12 +336,11 @@ add_executable(monostable_tests
 )
 target_include_directories(monostable_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(monostable_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(monostable_tests)
@@ -369,12 +350,11 @@ add_executable(sample_hold_tests
 )
 target_include_directories(sample_hold_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(sample_hold_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(sample_hold_tests)
@@ -546,11 +526,10 @@ add_executable(visual_wire_tests
 target_include_directories(visual_wire_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(visual_wire_tests PRIVATE
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(visual_wire_tests)
@@ -594,7 +573,6 @@ target_include_directories(node_slot_layout_tests PRIVATE
 )
 target_link_libraries(node_slot_layout_tests PRIVATE
     editor_semantic_canvas
-    blueprint_v2
     GTest::gtest_main
 )
 gtest_discover_tests(node_slot_layout_tests)
@@ -609,7 +587,6 @@ target_include_directories(semantic_scene_snapshot_tests PRIVATE
 )
 target_link_libraries(semantic_scene_snapshot_tests PRIVATE
     editor_semantic_canvas
-    blueprint_v2
     GTest::gtest_main
 )
 gtest_discover_tests(semantic_scene_snapshot_tests)
@@ -624,7 +601,6 @@ target_include_directories(presentation_compiler_tests PRIVATE
 )
 target_link_libraries(presentation_compiler_tests PRIVATE
     editor_semantic_canvas
-    blueprint_v2
     GTest::gtest_main
 )
 gtest_discover_tests(presentation_compiler_tests)
@@ -639,7 +615,6 @@ target_include_directories(semantic_scene_hittest_tests PRIVATE
 )
 target_link_libraries(semantic_scene_hittest_tests PRIVATE
     editor_semantic_canvas
-    blueprint_v2
     GTest::gtest_main
 )
 gtest_discover_tests(semantic_scene_hittest_tests)
@@ -664,14 +639,10 @@ add_executable(scene_mutations_tests
 target_include_directories(scene_mutations_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(scene_mutations_tests PRIVATE
-    blueprint_v2
     editor_semantic_canvas
-    json_parser
-    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(scene_mutations_tests)
@@ -721,17 +692,13 @@ target_compile_definitions(document_safety_tests PRIVATE EDITOR_TESTING)
 target_include_directories(document_safety_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(document_safety_tests PRIVATE
-    blueprint_v2
     editor_semantic_canvas
     jit_solver
-    json_parser
-    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(document_safety_tests)
@@ -764,16 +731,12 @@ target_compile_definitions(canvas_input_tests PRIVATE EDITOR_TESTING)
 target_include_directories(canvas_input_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(canvas_input_tests PRIVATE
-    blueprint_v2
     editor_semantic_canvas
-    json_parser
-    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(canvas_input_tests)
@@ -805,16 +768,12 @@ target_compile_definitions(window_invariants_tests PRIVATE EDITOR_TESTING)
 target_include_directories(window_invariants_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(window_invariants_tests PRIVATE
-    blueprint_v2
     editor_semantic_canvas
-    json_parser
-    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(window_invariants_tests)
@@ -850,16 +809,12 @@ target_compile_definitions(canvas_scene_snapshot_tests PRIVATE EDITOR_TESTING)
 target_include_directories(canvas_scene_snapshot_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(canvas_scene_snapshot_tests PRIVATE
-    blueprint_v2
     editor_semantic_canvas
-    json_parser
-    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(canvas_scene_snapshot_tests)
@@ -882,14 +837,13 @@ add_executable(port_registry_tests
 )
 target_include_directories(port_registry_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_compile_definitions(port_registry_tests PRIVATE
     TEST_DATA_DIR="${CMAKE_SOURCE_DIR}"
 )
 target_link_libraries(port_registry_tests PRIVATE
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(port_registry_tests)
@@ -900,14 +854,13 @@ add_executable(port_macro_tests
 )
 target_include_directories(port_macro_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_compile_definitions(port_macro_tests PRIVATE
     TEST_DATA_DIR="${CMAKE_SOURCE_DIR}"
 )
 target_link_libraries(port_macro_tests PRIVATE
-    json_parser
+    json_io
     jit_solver
     GTest::gtest_main
 )
@@ -919,11 +872,10 @@ add_executable(editor_componentvariant_tests
 )
 target_include_directories(editor_componentvariant_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(editor_componentvariant_tests PRIVATE
-    json_parser
+    json_io
     jit_solver
     GTest::gtest_main
 )
@@ -954,7 +906,7 @@ target_include_directories(port_layout_resolver_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/ui/core
 )
 target_link_libraries(port_layout_resolver_tests PRIVATE
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(port_layout_resolver_tests)
@@ -1009,7 +961,7 @@ gtest_discover_tests(editor_viewport_tests)
 # )
 # target_link_libraries(editor_event_tests PRIVATE
 #     core
-#     json_parser
+#     json_io
 #     GTest::gtest_main
 # )
 # gtest_discover_tests(editor_event_tests)
@@ -1030,9 +982,9 @@ gtest_discover_tests(editor_viewport_tests)
 add_executable(json_parser_tests
     json_parser_test.cpp
 )
-target_include_directories(json_parser_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/json_parser)
+target_include_directories(json_parser_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(json_parser_tests PRIVATE
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(json_parser_tests)
@@ -1061,12 +1013,11 @@ add_executable(factory_validation_tests
 )
 target_include_directories(factory_validation_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(factory_validation_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(factory_validation_tests)
@@ -1078,12 +1029,10 @@ add_executable(blueprint_integration_tests
 target_include_directories(blueprint_integration_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/core
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(blueprint_integration_tests PRIVATE
     jit_solver
-    json_parser
     GTest::gtest_main
 )
 gtest_discover_tests(blueprint_integration_tests)
@@ -1095,11 +1044,9 @@ add_executable(blueprint_loading_tests
 target_include_directories(blueprint_loading_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/core
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(blueprint_loading_tests PRIVATE
-    json_parser
     jit_solver
     GTest::gtest_main
 )
@@ -1111,12 +1058,10 @@ add_executable(provider_pattern_tests
 )
 target_include_directories(provider_pattern_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(provider_pattern_tests PRIVATE
     jit_solver
-    json_parser
     GTest::gtest_main
 )
 gtest_discover_tests(provider_pattern_tests)
@@ -1127,12 +1072,11 @@ add_executable(asym_tmo_tests
 )
 target_include_directories(asym_tmo_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(asym_tmo_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(asym_tmo_tests)
@@ -1143,15 +1087,13 @@ add_executable(lut_codegen_tests
 )
 target_include_directories(lut_codegen_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(lut_codegen_tests PRIVATE
     an24_codegen
-    json_parser
+    json_io
     jit_solver
     GTest::gtest_main
-    spdlog::spdlog
 )
 gtest_discover_tests(lut_codegen_tests)
 
@@ -1161,12 +1103,11 @@ add_executable(port_map_regression_tests
 )
 target_include_directories(port_map_regression_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(port_map_regression_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(port_map_regression_tests)
@@ -1177,12 +1118,11 @@ add_executable(and_gate_debug_tests
 )
 target_include_directories(and_gate_debug_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(and_gate_debug_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(and_gate_debug_tests)
@@ -1193,13 +1133,12 @@ add_executable(codegen_sanitize_tests
 )
 target_include_directories(codegen_sanitize_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(codegen_sanitize_tests PRIVATE
     an24_codegen
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(codegen_sanitize_tests)
@@ -1210,12 +1149,11 @@ add_executable(v_to_bool_tests
 )
 target_include_directories(v_to_bool_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(v_to_bool_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(v_to_bool_tests)
@@ -1226,12 +1164,11 @@ add_executable(pi_p_tests
 )
 target_include_directories(pi_p_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(pi_p_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(pi_p_tests)
@@ -1247,12 +1184,11 @@ target_compile_definitions(inspector_tests PRIVATE EDITOR_TESTING)
 target_include_directories(inspector_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(inspector_tests PRIVATE
     blueprint_v2
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(inspector_tests)
@@ -1275,7 +1211,6 @@ target_compile_definitions(properties_window_tests PRIVATE EDITOR_TESTING)
 target_include_directories(properties_window_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/src/ui
     ${CMAKE_SOURCE_DIR}/src/ui/core
     ${CMAKE_SOURCE_DIR}/src/ui/math
@@ -1285,8 +1220,6 @@ target_include_directories(properties_window_tests PRIVATE
 )
 target_link_libraries(properties_window_tests PRIVATE
     blueprint_v2
-    json_parser
-    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(properties_window_tests)
@@ -1297,15 +1230,12 @@ add_executable(codegen_accumulator_tests
 )
 target_include_directories(codegen_accumulator_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(codegen_accumulator_tests PRIVATE
     an24_codegen
-    json_parser
     jit_solver
     GTest::gtest_main
-    spdlog::spdlog
 )
 gtest_discover_tests(codegen_accumulator_tests)
 
@@ -1319,9 +1249,7 @@ target_include_directories(aot_composite_tests PRIVATE
 )
 target_link_libraries(aot_composite_tests PRIVATE
     an24_codegen
-    json_parser
     jit_solver
-    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(aot_composite_tests
@@ -1334,14 +1262,11 @@ add_executable(jit_aot_bridge_equivalence_tests
 )
 target_include_directories(jit_aot_bridge_equivalence_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(jit_aot_bridge_equivalence_tests PRIVATE
     an24_codegen
-    json_parser
     jit_solver
-    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(jit_aot_bridge_equivalence_tests
@@ -1353,14 +1278,11 @@ add_executable(production_path_parity_tests
 )
 target_include_directories(production_path_parity_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(production_path_parity_tests PRIVATE
     an24_codegen
-    json_parser
     jit_solver
-    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(production_path_parity_tests
@@ -1372,12 +1294,10 @@ add_executable(production_path_port_map_tests
 )
 target_include_directories(production_path_port_map_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(production_path_port_map_tests PRIVATE
     jit_solver
-    json_parser
     GTest::gtest_main
 )
 gtest_discover_tests(production_path_port_map_tests
@@ -1389,12 +1309,11 @@ add_executable(production_path_push_runtime_tests
 )
 target_include_directories(production_path_push_runtime_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(production_path_push_runtime_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(production_path_push_runtime_tests
@@ -1416,12 +1335,11 @@ add_executable(asym_slew_rate_tests
 )
 target_include_directories(asym_slew_rate_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(asym_slew_rate_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(asym_slew_rate_tests)
@@ -1432,12 +1350,11 @@ add_executable(integrator_tests
 )
 target_include_directories(integrator_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(integrator_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(integrator_tests)
@@ -1448,12 +1365,11 @@ add_executable(accumulator_tests
 )
 target_include_directories(accumulator_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(accumulator_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(accumulator_tests)
@@ -1464,12 +1380,11 @@ add_executable(sam28_tests
 )
 target_include_directories(sam28_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(sam28_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(sam28_tests)
@@ -1480,12 +1395,11 @@ add_executable(clamp_normalize_tests
 )
 target_include_directories(clamp_normalize_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(clamp_normalize_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(clamp_normalize_tests)
@@ -1496,12 +1410,11 @@ add_executable(comparison_components_tests
 )
 target_include_directories(comparison_components_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(comparison_components_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(comparison_components_tests)
@@ -1512,12 +1425,11 @@ add_executable(spring_tests
 )
 target_include_directories(spring_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(spring_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(spring_tests)
@@ -1530,12 +1442,11 @@ add_executable(v3_migration_tests
 target_include_directories(v3_migration_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(v3_migration_tests PRIVATE
     blueprint_v2
-    json_parser
+    json_io
     spdlog::spdlog
     GTest::gtest_main
 )
@@ -1563,7 +1474,6 @@ add_executable(command_tests
 target_include_directories(command_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/src/ui
     ${CMAKE_SOURCE_DIR}/src/ui/core
     ${CMAKE_SOURCE_DIR}/src/ui/math
@@ -1574,7 +1484,7 @@ target_include_directories(command_tests PRIVATE
 target_link_libraries(command_tests PRIVATE
     blueprint_v2
     jit_solver
-    json_parser
+    json_io
     spdlog::spdlog
     GTest::gtest_main
 )
@@ -1584,12 +1494,11 @@ add_executable(unmapped_port_regression_tests
 )
 target_include_directories(unmapped_port_regression_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(unmapped_port_regression_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 
@@ -1613,7 +1522,7 @@ target_include_directories(bp2_interface_tests PRIVATE
 )
 target_link_libraries(bp2_interface_tests PRIVATE
     blueprint_v2
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(bp2_interface_tests)
@@ -1624,7 +1533,6 @@ add_executable(bp2_blueprint_tests
 )
 target_include_directories(bp2_blueprint_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
 )
 target_link_libraries(bp2_blueprint_tests PRIVATE
     blueprint_v2
@@ -1640,12 +1548,11 @@ add_executable(bp2_codec_tests
 )
 target_include_directories(bp2_codec_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(bp2_codec_tests PRIVATE
     blueprint_v2
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(bp2_codec_tests)
@@ -1656,7 +1563,6 @@ add_executable(bp2_flattener_tests
 )
 target_include_directories(bp2_flattener_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
 )
 target_link_libraries(bp2_flattener_tests PRIVATE
     blueprint_v2
@@ -1687,7 +1593,7 @@ target_include_directories(bp2_bake_tests PRIVATE
 )
 target_link_libraries(bp2_bake_tests PRIVATE
     blueprint_v2
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(bp2_bake_tests)
@@ -1705,7 +1611,7 @@ target_include_directories(bp2_validation_tests PRIVATE
 )
 target_link_libraries(bp2_validation_tests PRIVATE
     blueprint_v2
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(bp2_validation_tests)
@@ -1716,12 +1622,11 @@ add_executable(electrical_primitives_tests
 )
 target_include_directories(electrical_primitives_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(electrical_primitives_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(electrical_primitives_tests
@@ -1734,12 +1639,11 @@ add_executable(electrical_parity_fixtures_tests
 )
 target_include_directories(electrical_parity_fixtures_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(electrical_parity_fixtures_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     an24_codegen
     GTest::gtest_main
 )
@@ -1755,12 +1659,10 @@ add_executable(external_ref_signal_mapping_tests
 target_include_directories(external_ref_signal_mapping_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(external_ref_signal_mapping_tests PRIVATE
     jit_solver
-    json_parser
     blueprint_v2
     GTest::gtest_main
 )
@@ -1801,12 +1703,11 @@ add_executable(export_module_tests
 )
 target_include_directories(export_module_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(export_module_tests PRIVATE
     blueprint_v2
-    json_parser
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(export_module_tests)
@@ -1844,14 +1745,12 @@ add_executable(elaborate_jit_parity_tests
 )
 target_include_directories(elaborate_jit_parity_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(elaborate_jit_parity_tests PRIVATE
     blueprint_v2
     jit_solver
-    json_parser
-    spdlog::spdlog
+    json_io
     GTest::gtest_main
 )
 gtest_discover_tests(elaborate_jit_parity_tests

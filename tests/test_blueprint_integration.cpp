@@ -2,7 +2,7 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/state.h"
 #include "core/solvers/jit/components/all.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include "parse_number.h"
 #include "test_execution_phases.h"
 #include "jit_build_input_test_helper.h"
@@ -24,7 +24,6 @@ static DeviceInstance make_device(
     dev.ports = std::move(ports);
     dev.priority = "med";
     dev.critical = false;
-    dev.spec = load_component_registry("library/").get(classname);
     return dev;
 }
 
@@ -110,7 +109,6 @@ TEST(BlueprintPorts, AliasPortUnification_JitAotParity) {
     dev.ports["i"]  = Port{bp2::Direction::Input,  PortType::Any};
     dev.ports["o1"] = Port{bp2::Direction::Output, PortType::Any, std::string("i")};  // alias → "i"
     dev.ports["o2"] = Port{bp2::Direction::Output, PortType::Any};
-    dev = resolve_device(dev, bus_spec);
 
     std::vector<DeviceInstance> devices = { dev };
     std::vector<std::vector<std::string>> signal_groups = {

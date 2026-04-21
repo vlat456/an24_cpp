@@ -4,17 +4,12 @@
 #include <gtest/gtest.h>
 #include <regex>
 #include "core/solvers/aot/codegen.h"
-#include "json_parser/json_parser.h"
+#include "core/registry/component_resolution.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "test_execution_phases.h"
 #include "jit_build_input_test_helper.h"
 
 namespace {
-
-const ComponentRegistry& test_registry() {
-    static const ComponentRegistry registry = load_component_registry("library/");
-    return registry;
-}
 
 ResolvedDevice resolve_codegen_device(DeviceInstance dev) {
     const ComponentSpec* spec = test_registry().get(dev.classname);
@@ -45,10 +40,6 @@ static auto make_colon_circuit() {
     ref.classname = "RefNode";
     ref.params = {{"value", "0"}};
     ref.ports["v"] = {bp2::Direction::Output};
-    ref.spec = test_registry().get("RefNode");
-    if (const ComponentSpec* spec = test_registry().get("RefNode")) {
-        ref = resolve_device(ref, *spec);
-    }
     devices.push_back(ref);
 
     DeviceInstance bat;
@@ -57,20 +48,12 @@ static auto make_colon_circuit() {
     bat.params = {{"voltage", "28"}, {"resistance", "0.01"}};
     bat.ports["v_out"] = {bp2::Direction::Output};
     bat.ports["v_in"] = {bp2::Direction::Input};
-    bat.spec = test_registry().get("ElectricalSource");
-    if (const ComponentSpec* spec = test_registry().get("ElectricalSource")) {
-        bat = resolve_device(bat, *spec);
-    }
     devices.push_back(bat);
 
     DeviceInstance bus;
     bus.name = "bp_1:main-bus";  // also has a hyphen
     bus.classname = "Bus";
     bus.ports["v"] = {bp2::Direction::InOut};
-    bus.spec = test_registry().get("Bus");
-    if (const ComponentSpec* spec = test_registry().get("Bus")) {
-        bus = resolve_device(bus, *spec);
-    }
     devices.push_back(bus);
 
     DeviceInstance load;
@@ -79,10 +62,6 @@ static auto make_colon_circuit() {
     load.params = {{"conductance", "0.1"}};
     load.ports["v_in"] = {bp2::Direction::Input};
     load.ports["v_out"] = {bp2::Direction::Output};
-    load.spec = test_registry().get("Resistor");
-    if (const ComponentSpec* spec = test_registry().get("Resistor")) {
-        load = resolve_device(load, *spec);
-    }
     devices.push_back(load);
 
     // Signal groups representing the electrical nets
@@ -173,7 +152,6 @@ TEST(CodegenSanitize, SanitizeNameFunction) {
         dev.name = input;
         dev.classname = "RefNode";
         dev.ports["v"] = {bp2::Direction::Output};
-        dev.spec = test_registry().get("RefNode");
         std::vector<ResolvedDevice> resolved_devices;
         resolved_devices.push_back(resolve_codegen_device(std::move(dev)));
 
@@ -204,7 +182,6 @@ TEST(CodegenSanitize, NoCollisionBetweenDotAndDashAndColon) {
         dev.name = name;
         dev.classname = "RefNode";
         dev.ports["v"] = {bp2::Direction::Output};
-        dev.spec = test_registry().get("RefNode");
         std::vector<ResolvedDevice> resolved_devices;
         resolved_devices.push_back(resolve_codegen_device(std::move(dev)));
 

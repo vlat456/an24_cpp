@@ -1,63 +1,57 @@
-#include "json_parser.h"
-#include "json_parser_internal_utils.h"
+#include "io/json/component_registry_json_loader.h"
 
-#include "../parse_number.h"
+#include "io/json/json_internal_utils.h"
+#include "io/json/type_definition_json.h"
 
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include <set>
 #include <spdlog/spdlog.h>
-#include <string>
+#include <unordered_set>
 
 using json = nlohmann::json;
 
 namespace {
 
-bp2::Direction bridge_side_from_string(const std::string& side) {
-    if (side == "input") return bp2::Direction::Input;
-    if (side == "output") return bp2::Direction::Output;
-    throw std::runtime_error("Invalid bridge side '" + side + "'");
+bp2::BridgeDirection bridge_direction_from_string(const std::string& direction) {
+    if (direction == "input") return bp2::BridgeDirection::Input;
+    if (direction == "output") return bp2::BridgeDirection::Output;
+    throw std::runtime_error("Invalid bridge direction '" + direction + "'");
 }
 
-std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const json& j, const std::filesystem::path& path) {
+std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(
+    const json& j,
+    const std::filesystem::path& path)
+{
     TypePresentation pres;
 
-    // Parse classname
-    std::string classname;
     if (!j.contains("id") || !j["id"].is_string() || j["id"].get<std::string>().empty()) {
         throw std::runtime_error("Missing required non-empty 'id' in '" + path.string() + "'");
     }
-    classname = j["id"].get<std::string>();
+    std::string classname = j["id"].get<std::string>();
 
-    // Parse description/display_name
     if (j.contains("display_name") && j["display_name"].is_string()) {
         pres.description = j["display_name"].get<std::string>();
     } else if (j.contains("description") && j["description"].is_string()) {
         pres.description = j["description"].get<std::string>();
     }
 
-    // Parse cpp_class
-    bool is_cpp = false;
     if (!j.contains("cpp_class") || !j["cpp_class"].is_boolean()) {
         throw std::runtime_error("Missing required boolean 'cpp_class' for component '" + classname + "'");
     }
-    is_cpp = j["cpp_class"].get<bool>();
+    const bool is_cpp = j["cpp_class"].get<bool>();
 
-    // Parse priority
     std::string priority = "med";
     if (j.contains("priority") && j["priority"].is_string()) {
         priority = j["priority"].get<std::string>();
     }
 
-    // Parse critical
     bool critical = false;
     if (j.contains("critical") && j["critical"].is_boolean()) {
         critical = j["critical"].get<bool>();
     }
 
-    // Parse content_type and render_hint
     if (j.contains("content_type") && j["content_type"].is_string()) {
         pres.content_type = j["content_type"].get<std::string>();
     }
@@ -65,20 +59,16 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
         pres.render_hint = j["render_hint"].get<std::string>();
     }
 
-    // Parse visual_only
     bool visual_only = false;
     if (j.contains("visual_only") && j["visual_only"].is_boolean()) {
         visual_only = j["visual_only"].get<bool>();
     }
 
-    // Parse scheduler_source
-    bool scheduler_source = false;
     if (!j.contains("scheduler_source") || !j["scheduler_source"].is_boolean()) {
         throw std::runtime_error("Missing required boolean 'scheduler_source' for component '" + classname + "'");
     }
-    scheduler_source = j["scheduler_source"].get<bool>();
+    const bool scheduler_source = j["scheduler_source"].get<bool>();
 
-    // Parse solver_owned_electrical
     bool solver_owned_electrical = false;
     if (is_cpp) {
         if (!j.contains("solver_owned_electrical") || !j["solver_owned_electrical"].is_boolean()) {
@@ -92,7 +82,6 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
         solver_owned_electrical = j["solver_owned_electrical"].get<bool>();
     }
 
-    // Parse domains
     std::vector<Domain> domains;
     if (!j.contains("domains") || !j["domains"].is_array()) {
         throw std::runtime_error("Missing required 'domains' array for component '" + classname + "'");
@@ -101,13 +90,12 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
         if (!d.is_string()) {
             throw std::runtime_error("Invalid domain entry for component '" + classname + "': must be string");
         }
-        domains.push_back(json_parser_internal::parse_domain_string(d.get<std::string>()));
+        domains.push_back(json_io_internal::parse_domain_string(d.get<std::string>()));
     }
     if (domains.empty()) {
         throw std::runtime_error("Empty 'domains' array for component '" + classname + "'");
     }
 
-    // Parse interface (ports)
     std::unordered_map<std::string, Port> ports;
     if (!j.contains("interface") || !j["interface"].is_array()) {
         throw std::runtime_error("Missing required 'interface' array for component '" + classname + "'");
@@ -133,25 +121,21 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
         }
 
         Port port;
-        int dir = p["direction"].get<int>();
+        const int dir = p["direction"].get<int>();
         if (dir == 0) port.direction = bp2::Direction::Input;
         else if (dir == 1) port.direction = bp2::Direction::Output;
         else if (dir == 2) port.direction = bp2::Direction::InOut;
-        else {
-            throw std::runtime_error("Invalid interface direction value for component '" + classname + "'");
-        }
-        port.domain = json_parser_internal::parse_domain_mask_int(p["domain"].get<int>());
+        else throw std::runtime_error("Invalid interface direction value for component '" + classname + "'");
+        port.domain = json_io_internal::parse_domain_mask_int(p["domain"].get<int>());
         port.source_writer = p["source_writer"].get<bool>();
-        port.type = json_parser_internal::parse_port_type_string(p["type"].get<std::string>());
+        port.type = json_io_internal::parse_port_type_string(p["type"].get<std::string>());
 
         ports[p["name"].get<std::string>()] = port;
     }
 
-    // Parse params
     std::unordered_map<std::string, ParamSpec> params;
-    json_parser_internal::merge_params_and_schema(j, "param_defaults", params);
+    json_io_internal::merge_params_and_schema(j, "param_defaults", params);
 
-    // Parse solver_role (only valid for primitives)
     std::optional<SolverRole> solver_role;
     if (j.contains("solver_role")) {
         if (!j["solver_role"].is_object()) {
@@ -170,11 +154,11 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
             if (!sr["ports"].is_object()) {
                 throw std::runtime_error("solver_role field 'ports' must be object for component '" + classname + "'");
             }
-            for (const auto& [k, v] : sr["ports"].items()) {
-                if (!v.is_string()) {
-                    throw std::runtime_error("solver_role ports['" + k + "'] must be string for component '" + classname + "'");
+            for (const auto& [key, value] : sr["ports"].items()) {
+                if (!value.is_string()) {
+                    throw std::runtime_error("solver_role ports['" + key + "'] must be string for component '" + classname + "'");
                 }
-                role.port_map[k] = v.get<std::string>();
+                role.port_map[key] = value.get<std::string>();
             }
         }
 
@@ -182,11 +166,11 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
             if (!sr["params"].is_object()) {
                 throw std::runtime_error("solver_role field 'params' must be object for component '" + classname + "'");
             }
-            for (const auto& [k, v] : sr["params"].items()) {
-                if (!v.is_string()) {
-                    throw std::runtime_error("solver_role params['" + k + "'] must be string for component '" + classname + "'");
+            for (const auto& [key, value] : sr["params"].items()) {
+                if (!value.is_string()) {
+                    throw std::runtime_error("solver_role params['" + key + "'] must be string for component '" + classname + "'");
                 }
-                role.param_map[k] = v.get<std::string>();
+                role.param_map[key] = value.get<std::string>();
             }
         }
 
@@ -194,19 +178,17 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
             if (!sr["values"].is_object()) {
                 throw std::runtime_error("solver_role field 'values' must be object for component '" + classname + "'");
             }
-            for (const auto& [k, v] : sr["values"].items()) {
-                if (!v.is_number()) {
-                    throw std::runtime_error("solver_role values['" + k + "'] must be number for component '" + classname + "'");
+            for (const auto& [key, value] : sr["values"].items()) {
+                if (!value.is_number()) {
+                    throw std::runtime_error("solver_role values['" + key + "'] must be number for component '" + classname + "'");
                 }
-                role.value_map[k] = static_cast<float>(v.get<double>());
+                role.value_map[key] = static_cast<float>(value.get<double>());
             }
         }
 
         solver_role = std::move(role);
     }
 
-    // For non-cpp_class blueprints: convert v3 nodes/wires to devices/connections
-    // so that parse_json_impl can expand composites automatically.
     std::vector<DeviceInstance> devices;
     std::vector<Connection> connections;
     std::vector<BridgePortDefinition> bridge_ports;
@@ -214,11 +196,35 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
         for (const auto& node : j["nodes"]) {
             const std::string node_type = node.value("type", "");
             if (node.value("kind", "") == "bridge_port") {
+                static const std::unordered_set<std::string> allowed_bridge_fields = {
+                    "id", "kind", "exposed_port", "direction", "port_type", "layout", "label"
+                };
+                if (!node.is_object()) {
+                    throw std::runtime_error("Invalid bridge node for component '" + classname + "': must be object");
+                }
+                for (auto it = node.begin(); it != node.end(); ++it) {
+                    if (allowed_bridge_fields.find(it.key()) == allowed_bridge_fields.end()) {
+                        throw std::runtime_error("Unknown bridge node field '" + it.key() + "' for component '" + classname + "'");
+                    }
+                }
                 BridgePortDefinition bridge;
-                bridge.id = node.value("id", "");
-                bridge.exposed_port = node.value("exposed_port", bridge.id);
-                bridge.direction = bridge_side_from_string(node.value("side", "input"));
-                bridge.type = json_parser_internal::parse_port_type_string(node.value("port_type", "Contextual"));
+                if (!node.contains("id") || !node["id"].is_string() || node["id"].get<std::string>().empty()) {
+                    throw std::runtime_error("Bridge node missing required non-empty string 'id' for component '" + classname + "'");
+                }
+                bridge.id = node["id"].get<std::string>();
+                if (!node.contains("exposed_port") || !node["exposed_port"].is_string()
+                    || node["exposed_port"].get<std::string>().empty()) {
+                    throw std::runtime_error("Bridge node missing required non-empty string 'exposed_port' for component '" + classname + "'");
+                }
+                bridge.exposed_port = node["exposed_port"].get<std::string>();
+                if (!node.contains("direction") || !node["direction"].is_string()) {
+                    throw std::runtime_error("Bridge node missing required string 'direction' for component '" + classname + "'");
+                }
+                bridge.direction = bridge_direction_from_string(node["direction"].get<std::string>());
+                if (!node.contains("port_type") || !node["port_type"].is_string()) {
+                    throw std::runtime_error("Bridge node missing required string 'port_type' for component '" + classname + "'");
+                }
+                bridge.type = json_io_internal::parse_port_type_string(node["port_type"].get<std::string>());
                 bridge.label = node.value("label", "");
                 if (node.contains("layout") && node["layout"].is_object()) {
                     bridge.pos = {
@@ -240,17 +246,17 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
             dev.name = node.value("id", "");
             dev.classname = node_type;
             if (node.contains("params") && node["params"].is_object()) {
-                for (const auto& [k, v] : node["params"].items()) {
-                    if (v.is_number()) {
-                        dev.params[k] = json(v.get<double>()).dump();
-                    } else if (v.is_string()) {
-                        dev.params[k] = v.get<std::string>();
+                for (const auto& [key, value] : node["params"].items()) {
+                    if (value.is_number()) {
+                        dev.params[key] = json(value.get<double>()).dump();
+                    } else if (value.is_string()) {
+                        dev.params[key] = value.get<std::string>();
                     }
                 }
             }
             if (node.contains("string_params") && node["string_params"].is_object()) {
-                for (const auto& [k, v] : node["string_params"].items()) {
-                    dev.params[k] = v.get<std::string>();
+                for (const auto& [key, value] : node["string_params"].items()) {
+                    dev.params[key] = value.get<std::string>();
                 }
             }
             if (node.contains("position") && node["position"].is_object()) {
@@ -273,7 +279,6 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
                 Connection conn;
                 std::string src = wire.value("source", "");
                 std::string tgt = wire.value("target", "");
-                // Convert "/node:port" → "node.port"
                 if (!src.empty() && src[0] == '/') src = src.substr(1);
                 if (!tgt.empty() && tgt[0] == '/') tgt = tgt.substr(1);
                 std::replace(src.begin(), src.end(), ':', '.');
@@ -292,14 +297,13 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
         }
     }
 
-    // Construct the appropriate variant based on cpp_class
     if (is_cpp) {
         PrimitiveSpec prim;
         prim.classname = std::move(classname);
         prim.ports = std::move(ports);
         prim.params = std::move(params);
         prim.domains = std::move(domains);
-        prim.execution = std::nullopt; // not parsed from library blueprints
+        prim.execution = std::nullopt;
         prim.scheduler_source = scheduler_source;
         prim.solver_owned_electrical = solver_owned_electrical;
         prim.solver_role = std::move(solver_role);
@@ -307,22 +311,22 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(const
         prim.critical = critical;
         prim.visual_only = visual_only;
         return {ComponentSpec{std::move(prim)}, std::move(pres)};
-    } else {
-        CompositeSpec comp;
-        comp.classname = std::move(classname);
-        comp.ports = std::move(ports);
-        comp.params = std::move(params);
-        comp.domains = std::move(domains);
-        comp.scheduler_source = scheduler_source;
-        comp.solver_owned_electrical = solver_owned_electrical;
-        comp.priority = std::move(priority);
-        comp.critical = critical;
-        comp.visual_only = visual_only;
-        comp.devices = std::move(devices);
-        comp.connections = std::move(connections);
-        comp.bridge_ports = std::move(bridge_ports);
-        return {ComponentSpec{std::move(comp)}, std::move(pres)};
     }
+
+    CompositeSpec comp;
+    comp.classname = std::move(classname);
+    comp.ports = std::move(ports);
+    comp.params = std::move(params);
+    comp.domains = std::move(domains);
+    comp.scheduler_source = scheduler_source;
+    comp.solver_owned_electrical = solver_owned_electrical;
+    comp.priority = std::move(priority);
+    comp.critical = critical;
+    comp.visual_only = visual_only;
+    comp.devices = std::move(devices);
+    comp.connections = std::move(connections);
+    comp.bridge_ports = std::move(bridge_ports);
+    return {ComponentSpec{std::move(comp)}, std::move(pres)};
 }
 
 } // namespace
@@ -348,7 +352,7 @@ ComponentRegistry load_component_registry(const std::string& library_dir) {
     }
 
     if (!std::filesystem::exists(library_path)) {
-        spdlog::warn("[json_parser] Library directory '{}' does not exist, using empty registry", library_dir);
+        spdlog::warn("[json_io] Library directory '{}' does not exist, using empty registry", library_dir);
         return registry;
     }
 
@@ -386,15 +390,15 @@ ComponentRegistry load_component_registry(const std::string& library_dir) {
             }
             loaded_count++;
 
-            spdlog::debug("[json_parser] Loaded type definition: '{}' from {} (category: {})",
+            spdlog::debug("[json_io] Loaded type definition: '{}' from {} (category: {})",
                 classname, entry.path().filename().string(), category.empty() ? "root" : category);
         } catch (const std::exception& e) {
-            spdlog::error("[json_parser] Failed to parse type definition '{}': {}",
+            spdlog::error("[json_io] Failed to parse type definition '{}': {}",
                 entry.path().string(), e.what());
             throw;
         }
     }
 
-    spdlog::info("[json_parser] Loaded {} type definitions from '{}'", loaded_count, library_dir);
+    spdlog::info("[json_io] Loaded {} type definitions from '{}'", loaded_count, library_dir);
     return registry;
 }

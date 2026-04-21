@@ -2,6 +2,7 @@
 
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/library/library_path.h"
+#include "core/model/component_registry.h"
 #include <unordered_set>
 
 namespace {
@@ -97,6 +98,11 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 out.error = "bridge node missing exposed port at node id=" + iid_to_string(node.semantic.id);
                 return out;
             }
+            if (!bp.iface().has(bridge.exposed_port)) {
+                out.error = "bridge node exposed_port '" + iid_to_string(bridge.exposed_port)
+                    + "' not found in blueprint interface at node id=" + iid_to_string(node.semantic.id);
+                return out;
+            }
             if (bridge.iface.size() != 2 || !bridge.iface.has(ext_id) || !bridge.iface.has(port_id)) {
                 out.error = "bridge node iface malformed at node id=" + iid_to_string(node.semantic.id);
                 return out;
@@ -109,7 +115,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 out.error = "bridge node iface/type mismatch at node id=" + iid_to_string(node.semantic.id);
                 return out;
             }
-            const bool expected_input = bridge.side == Blueprint::Node::BridgePortSide::Input;
+            const bool expected_input = bridge.direction == bp2::BridgeDirection::Input;
             if (ext.direction != (expected_input ? Direction::Input : Direction::Output)
                 || port.direction != (expected_input ? Direction::Output : Direction::Input)) {
                 out.error = "bridge node iface/direction mismatch at node id=" + iid_to_string(node.semantic.id);

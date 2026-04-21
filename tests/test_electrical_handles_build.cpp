@@ -2,7 +2,7 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/subsolvers/subsolver_types.h"
 #include "core/solvers/jit/components/port_registry.h"
-#include "json_parser/json_parser.h"
+#include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
 #include <algorithm>
 
@@ -314,12 +314,10 @@ TEST(ElectricalHandleBuild, GeneratorWithParamsGetsValidHandle) {
 
 TEST(ElectricalHandleBuild, KnobSwitchMetadataGetsHandles) {
     // Build a 3-position KnobSwitch using spec from registry
-    DeviceInstance knob = make_device("knob", "KnobSwitch", {
+    DeviceInstance knob = make_device_with_ports("knob", "KnobSwitch", {
         {"positions", "3"}, {"initial_position", "0"},
         {"g_open", "1e-6"}, {"g_closed", "1000.0"}
     }, {"wiper", "throw1", "throw2", "throw3", "throw4", "throw5", "control", "position"});
-    // Use spec from registry which contains solver_role with bind_handle
-    knob.spec = test_registry().get("KnobSwitch");
 
     DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
     DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
@@ -358,32 +356,25 @@ TEST(ElectricalHandleBuild, KnobSwitchMetadataWithoutBindHandleGetsNoHandles) {
     // Same as above but WITHOUT bind_handle — handles should NOT be assigned.
     // This is the regression case: if blueprints lack bind_handle, knob switches
     // silently fail to get handles, breaking runtime conductance patching.
-    DeviceInstance knob = make_device("knob", "KnobSwitch", {
+    ResolvedDevice knob = make_resolved_device("knob", "KnobSwitch", {
         {"positions", "2"}, {"initial_position", "0"},
         {"g_open", "1e-6"}, {"g_closed", "1000.0"}
-    }, {"wiper", "throw1", "throw2", "throw3", "throw4", "throw5", "control", "position"});
-
-    // Create a modified spec without bind_handle
-    static TestSpecStore no_bind_store;
-    {
-        PrimitiveSpec prim_copy = *as_primitive(*test_registry().get("KnobSwitch"));
-        if (prim_copy.solver_role) {
-            prim_copy.solver_role->value_map.erase("bind_handle");
-        }
-        knob.spec = no_bind_store.add(std::move(prim_copy));
+    });
+    if (knob.solver_role) {
+        knob.solver_role->value_map.erase("bind_handle");
     }
 
-    DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
-    DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
+    ResolvedDevice bat = make_resolved_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
+    ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
 
-    std::vector<DeviceInstance> devices = {bat, knob, gnd};
+    std::vector<ResolvedDevice> devices = {bat, knob, gnd};
     std::vector<std::vector<std::string>> signal_groups = {
         {"bat.v_out", "knob.wiper"},
         {"knob.throw1", "knob.throw2", "gnd.v"},
         {"bat.v_in"}
     };
 
-    auto result = build_systems_dev(make_jit_input(devices, signal_groups));
+    auto result = build_systems_dev(make_jit_input_resolved(devices, signal_groups));
 
     const KnobSwitch<JitProvider>* ks = std::get_if<KnobSwitch<JitProvider>>(&result.devices.at("knob"));
     ASSERT_NE(ks, nullptr);

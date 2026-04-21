@@ -1,6 +1,6 @@
 #include "repair.h"
 #include "blueprint_v2/validation/path_resolver.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include <unordered_set>
 
 namespace bp2::diagnostics {

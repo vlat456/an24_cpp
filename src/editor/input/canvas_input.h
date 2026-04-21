@@ -9,7 +9,7 @@
 #include "ui/math/pt.h"
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/blueprint/node_port.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include "commands/commands.h"
 #include <optional>
 #include <string>

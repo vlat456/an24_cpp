@@ -94,7 +94,7 @@ src/
 │   ├── visual/              # Widgets, rendering
 │   ├── commands/            # Command pattern
 │   └── router/              # Wire routing
-├── json_parser/             # JSON config parsing
+├── io/json/                 # JSON loading/parsing adapters
 └── ui/                      # Generic UI framework
 
 library/                     # Component definitions (JSON)
@@ -126,9 +126,9 @@ The electrical subsolver handles closed electrical networks while the push sched
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |
 | Simulator | `src/core/simulator.h` |
 | Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
-| Canonical Type Registry (parser) | `src/json_parser/json_parser.h` |
+| Canonical Component Registry | `src/core/model/component_registry.h` |
 | Code Generator | `src/core/solvers/aot/codegen.h` |
-| JSON Parser | `src/json_parser/json_parser.h` |
+| JSON Parser | `src/io/json/parse_json_api.h` |
 
 ## Related Knowledge Notes
 

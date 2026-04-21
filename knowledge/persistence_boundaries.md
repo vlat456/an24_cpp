@@ -65,9 +65,9 @@ Rules:
 
 - library `.blueprint` files are **v3 type-definition assets**, not v1 blueprint documents
 - they carry `"version": "3.0"` with integer-encoded domains/directions
-- they are consumed exclusively by `load_type_registry()` in `json_parser_registry.cpp`
+- they are consumed exclusively by `load_component_registry()` in `src/io/json/component_registry_json_loader.cpp`
 - they must NOT be loaded through the strict v1 blueprint codec (`BlueprintCodec::decode()`)
-- when the editor needs a composite library type as a `bp2::Blueprint` (e.g. for embedding or flattening), it uses `bp2::blueprint_from_type_definition()` which builds the blueprint from the in-memory `TypeDefinition` already parsed by `load_type_registry()`
+- when the editor needs a composite library type as a `bp2::Blueprint` (e.g. for embedding or flattening), it uses `bp2::blueprint_from_type_definition()` which builds the blueprint from the in-memory type definition already parsed by `load_component_registry()`
 - the library index (`library_index.json`) is authoritative for id-to-path resolution
 - ad-hoc path guessing is not authoritative
 

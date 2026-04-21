@@ -55,14 +55,8 @@ private:
         Path scope_prefix,
         WireEndpoint const& ep);
 
-    /// Find the bridge node inside a blueprint_instance's inner blueprint
-    /// that corresponds to an interface port name.
-    ///
-    /// Matching strategy: authoritative exposed_port first, then legacy v1
-    /// label fallback via node.view.name.
-    /// Handles both canonical bridge nodes and migrated v1 files where the
-    /// bridge id stayed as bp_in_N / bp_out_N while the label carried the
-    /// public interface port name.
+    /// Find the bridge node inside a blueprint's nodes that corresponds
+    /// to an interface port name. Authoritative match on exposed_port only.
     Blueprint::Node const* find_bridge_for_port(
         Blueprint const& inner_bp,
         ui::InternedId port_name) const;

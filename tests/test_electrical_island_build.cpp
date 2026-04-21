@@ -3,7 +3,7 @@
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/state.h"
-#include "json_parser/json_parser.h"
+#include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
 #include <algorithm>
 namespace {
@@ -14,17 +14,15 @@ DeviceInstance make_device_without_solver_role(
     const std::unordered_map<std::string, std::string>& params = {},
     const std::vector<std::string>& explicit_ports = {}
 ) {
-    DeviceInstance dev = make_device(name, classname, params, explicit_ports);
+    DeviceInstance dev = make_device_with_ports(name, classname, params, explicit_ports);
     const ComponentSpec* def = test_registry().get(classname);
     if (!def) {
         return dev;
     }
 
-    static TestSpecStore store;
     PrimitiveSpec prim_copy = *as_primitive(*def);
     prim_copy.solver_role = std::nullopt;
-    const ComponentSpec* mutated = store.add(std::move(prim_copy));
-    ResolvedDevice resolved = resolve_component(dev, *mutated);
+    ResolvedDevice resolved = resolve_component(dev, prim_copy);
 
     dev.ports = std::move(resolved.ports);
     dev.params = std::move(resolved.params);
@@ -134,7 +132,6 @@ TEST(ElectricalIslandBuild, MissingRequiredPortThrows) {
     bad_refnode.name = "refnode";
     bad_refnode.classname = "RefNode";
     bad_refnode.params = {{"value", "0.0"}};
-    bad_refnode.spec = test_registry().get(bad_refnode.classname);
     // NOTE: ports map is intentionally empty - this should cause resolve_port to fail
 
     std::vector<DeviceInstance> devices = {

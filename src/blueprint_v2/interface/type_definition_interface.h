@@ -2,7 +2,8 @@
 
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_spec.h"
+#include "core/model/port.h"
 #include "ui/core/interned_id.h"
 
 #include <vector>

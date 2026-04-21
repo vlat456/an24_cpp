@@ -150,7 +150,7 @@
                 "y": 32.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "exposed_port": "output",
@@ -162,7 +162,7 @@
                 "y": 32.0
               },
               "port_type": "Contextual",
-              "side": "output"
+              "direction": "output"
             },
             {
               "component": "LUT",
@@ -392,7 +392,7 @@
                 "y": 160.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "exposed_port": "v_ref",
@@ -404,7 +404,7 @@
                 "y": 176.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "exposed_port": "out",
@@ -416,7 +416,7 @@
                 "y": 160.0
               },
               "port_type": "Contextual",
-              "side": "output"
+              "direction": "output"
             },
             {
               "component": "Clamp",
@@ -883,7 +883,7 @@
                 "y": 32.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "exposed_port": "B",
@@ -895,7 +895,7 @@
                 "y": 48.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "exposed_port": "A",
@@ -907,7 +907,7 @@
                 "y": 112.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "exposed_port": "o",
@@ -919,7 +919,7 @@
                 "y": 80.0
               },
               "port_type": "Contextual",
-              "side": "output"
+              "direction": "output"
             },
             {
               "component": "Clamp",
@@ -1396,7 +1396,7 @@
                 "y": 528.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "exposed_port": "out",
@@ -1408,7 +1408,7 @@
                 "y": 528.0
               },
               "port_type": "Contextual",
-              "side": "output"
+              "direction": "output"
             },
             {
               "component": "InertiaNode",
@@ -1583,7 +1583,7 @@
                 "y": 304.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "component": "Multiply",
@@ -1606,7 +1606,7 @@
                 "y": 80.0
               },
               "port_type": "Contextual",
-              "side": "output"
+              "direction": "output"
             },
             {
               "exposed_port": "rate",
@@ -1617,7 +1617,7 @@
                 "y": 96.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "component": "Splitter",
@@ -1788,7 +1788,7 @@
                 "y": 160.0
               },
               "port_type": "Contextual",
-              "side": "input"
+              "direction": "input"
             },
             {
               "exposed_port": "v_out",
@@ -1800,7 +1800,7 @@
                 "y": 32.0
               },
               "port_type": "Contextual",
-              "side": "output"
+              "direction": "output"
             },
             {
               "component": "Value",

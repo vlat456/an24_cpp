@@ -10,6 +10,7 @@
 #include "editor/signal_key_resolver.h"
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/jit_solver.h"
+#include "io/json/component_registry_json_loader.h"
 
 #include <fstream>
 #include <nlohmann/json.hpp>

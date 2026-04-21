@@ -3,7 +3,8 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/aot/codegen_composite_helpers.h"
 #include "core/solvers/jit/state.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
+#include "core/registry/component_resolution.h"
 #include <deque>
 #include <vector>
 #include <unordered_map>
@@ -14,20 +15,6 @@ inline const ComponentRegistry& test_registry() {
     static const ComponentRegistry registry = load_component_registry("library/");
     return registry;
 }
-
-struct TestSpecStore {
-    std::deque<ComponentSpec> specs;
-
-    const ComponentSpec* add(ComponentSpec spec) {
-        specs.push_back(std::move(spec));
-        return &specs.back();
-    }
-
-    const ComponentSpec* add(PrimitiveSpec spec) {
-        specs.push_back(std::move(spec));
-        return &specs.back();
-    }
-};
 
 inline SimulationState make_state(uint32_t signal_count) {
     SimulationState st;
@@ -41,7 +28,8 @@ inline DeviceInstance make_device_with_ports(
     const std::string& name,
     const std::string& classname,
     const std::unordered_map<std::string, std::string>& params = {},
-    const std::vector<std::string>& explicit_ports = {})
+    const std::vector<std::string>& explicit_ports = {},
+    bool merge_defaults = true)
 {
     DeviceInstance dev;
     dev.name = name;
@@ -62,7 +50,7 @@ inline DeviceInstance make_device_with_ports(
         }
     }
 
-    if (def) {
+    if (def && merge_defaults) {
         const auto& default_params = spec_params(*def);
         for (const auto& [param_name, param_spec] : default_params) {
             if (param_spec.visual_only) {
@@ -98,6 +86,26 @@ inline ResolvedDevice make_resolved_device(
     return resolve_component(dev, *spec);
 }
 
+inline ResolvedDevice make_resolved_device_with_role(
+    const std::string& name,
+    const std::string& classname,
+    const std::unordered_map<std::string, std::string>& params,
+    SolverRole role)
+{
+    DeviceInstance dev = make_device(name, classname, params);
+    const ComponentSpec* base = test_registry().get(classname);
+
+    ResolvedDevice resolved;
+    resolved.name = name;
+    resolved.classname = classname;
+    resolved.params = dev.params;
+    resolved.ports = dev.ports;
+    resolved.domains = base ? spec_domains(*base) : std::vector<Domain>{Domain::Electrical};
+    resolved.priority = base ? spec_meta(*base).priority : "med";
+    resolved.solver_role = std::move(role);
+    return resolved;
+}
+
 inline ResolvedDevice make_raw_resolved_device(
     std::string name,
     std::string classname,
@@ -130,6 +138,46 @@ inline JitBuildInput make_jit_input_from_resolved(
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
             input.port_to_signal[dev.name + "." + port_name] = next_signal++;
+        }
+    }
+
+    input.signal_count = next_signal + 1;
+    return input;
+}
+
+inline JitBuildInput make_jit_input_resolved(
+    std::vector<ResolvedDevice> devices,
+    const std::vector<std::vector<std::string>>& signal_groups,
+    std::unordered_map<std::string, float> initial_values = {})
+{
+    JitBuildInput input;
+    input.devices = std::move(devices);
+    input.initial_values = std::move(initial_values);
+
+    std::unordered_set<std::string> seen_ports;
+
+    for (size_t group_idx = 0; group_idx < signal_groups.size(); ++group_idx) {
+        const auto& group = signal_groups[group_idx];
+        for (const auto& port : group) {
+            if (seen_ports.count(port)) {
+                throw std::runtime_error("Duplicate port string across groups: " + port);
+            }
+            seen_ports.insert(port);
+            input.port_to_signal[port] = static_cast<uint32_t>(group_idx);
+        }
+    }
+
+    uint32_t next_signal = static_cast<uint32_t>(signal_groups.size());
+    for (const auto& dev : input.devices) {
+        if (dev.visual_only) {
+            continue;
+        }
+        for (const auto& [port_name, port] : dev.ports) {
+            (void)port;
+            const std::string full_port = dev.name + "." + port_name;
+            if (seen_ports.insert(full_port).second) {
+                input.port_to_signal[full_port] = next_signal++;
+            }
         }
     }
 

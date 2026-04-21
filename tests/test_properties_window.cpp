@@ -6,7 +6,7 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "ui/core/interned_id.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 
 // Shared bp2 test helpers (make_port, set_iface, count_inputs, count_outputs)
 #include "bp2_test_helpers.h"
@@ -47,8 +47,8 @@ static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
     n.view.name = id;
     n.content = bp2::Blueprint::Node::BridgePortData{
         I.intern(id),
-        input_bridge ? bp2::Blueprint::Node::BridgePortSide::Input
-                     : bp2::Blueprint::Node::BridgePortSide::Output,
+        input_bridge ? bp2::BridgeDirection::Input
+                     : bp2::BridgeDirection::Output,
         t,
         input_bridge
             ? bp2::Interface({

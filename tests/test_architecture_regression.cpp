@@ -14,6 +14,7 @@
 /// E-010: Single canonical ComponentRegistry from json_parser — no bp2::ComponentRegistry.
 
 #include <gtest/gtest.h>
+#include "core/model/component_registry.h"
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/components/provider.h"
@@ -21,6 +22,7 @@
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/subsolvers/electrical_subsolver.h"
 #include "core/solvers/jit/state.h"
+#include "io/json/component_registry_json_loader.h"
 #include "jit_build_input_test_helper.h"
 #include <cmath>
 #include <cstdint>
@@ -647,11 +649,11 @@ TEST(E009_SingleSolve, StepCountAndTimeConsistent) {
 // =============================================================================
 // E-010 Regression: single canonical ComponentRegistry (issue #24)
 //
-// The project must have exactly ONE ComponentRegistry type — the parser's
-// `struct ComponentRegistry` from `json_parser/json_parser.h`. There must be
+// The project must have exactly ONE ComponentRegistry type — the canonical
+// model type from `core/model/component_registry.h`. There must be
 // no `bp2::ComponentRegistry` class. All subsystems (codec, validation,
 // flattener, bake, editor) must consume `const ComponentRegistry&` from the
-// parser module.
+// core model, and the canonical loader from `io/json/component_registry_json_loader.h`.
 // =============================================================================
 
 TEST(E010_SingleRegistry, CanonicalRegistryLoadsFromLibrary) {
@@ -693,7 +695,8 @@ TEST(E010_SingleRegistry, NoSecondRegistryInBp2Namespace) {
     // This test passes as long as no bp2::ComponentRegistry class exists.
     // If someone reintroduces bp2::ComponentRegistry, adding the include for it
     // would be needed here, and this static_assert would need to be updated.
-    // The real enforcement is that this test file includes json_parser.h
+    // The real enforcement is that this test file includes the canonical
+    // registry headers directly
     // and uses ComponentRegistry unqualified — if a bp2::ComponentRegistry existed,
     // it would cause ambiguity errors in bp2-using translation units.
     static_assert(

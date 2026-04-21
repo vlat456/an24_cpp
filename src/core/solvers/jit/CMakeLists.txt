@@ -98,7 +98,7 @@ target_include_directories(jit_solver PUBLIC
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 
-target_link_libraries(jit_solver PUBLIC
+target_link_libraries(jit_solver PRIVATE
     spdlog::spdlog
-    json_parser
+    json_io
 )

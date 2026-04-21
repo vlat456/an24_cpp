@@ -2,8 +2,8 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "ui/core/interned_id.h"
-#include "editor/presentation_spec.h"
-#include "json_parser/json_parser.h"
+#include "core/model/presentation_spec.h"
+#include "core/model/component_spec.h"
 #include <cassert>
 #include <string_view>
 #include <unordered_map>

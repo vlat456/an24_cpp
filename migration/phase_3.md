@@ -1,5 +1,7 @@
 # Phase 3: Blueprint Canonical Type
 
+Historical note: this phase document predates the parser/registry cleanup. References below to legacy `json_parser` paths or APIs are historical and do not describe the current architecture.
+
 ## Goal
 
 Create the single canonical `bp2::Blueprint` type. It stores nodes, wires, nested instances, and an interface. Mutations return new values (immutable design). Indices are lazy and derived.
@@ -771,3 +773,4 @@ tests/blueprint_v2/test_blueprint.cpp
 - `src/blueprint_v2/CMakeLists.txt`: add `blueprint/blueprint.cpp`
 - `src/blueprint_v2/path/path.h`: add default constructor to `Path`
 - `tests/CMakeLists.txt`: add `bp2_blueprint_tests` target
+Historical document note: this phase predates the #166 architecture cleanup. References to `src/json_parser/*`, `json_parser`, and `load_type_registry()` are historical and do not describe the current architecture.

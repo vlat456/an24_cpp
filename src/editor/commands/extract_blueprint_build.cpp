@@ -371,6 +371,24 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
         return std::nullopt;
     }
 
+    // Extend parent interface with ports for the new bridges.
+    auto parent_ports = out.iface().ports();
+    for (const auto& ec : plan.inputs) {
+        auto name_iid = interner.intern(ec.iface_name);
+        if (!out.iface().has(name_iid)) {
+            parent_ports.push_back(bp2::PortDescriptor{
+                name_iid, ec.domain, bp2::Direction::Input, resolve_port_type(ec)});
+        }
+    }
+    for (const auto& ec : plan.outputs) {
+        auto name_iid = interner.intern(ec.iface_name);
+        if (!out.iface().has(name_iid)) {
+            parent_ports.push_back(bp2::PortDescriptor{
+                name_iid, ec.domain, bp2::Direction::Output, resolve_port_type(ec)});
+        }
+    }
+    out = out.with_interface(bp2::Interface(std::move(parent_ports)));
+
     // -- External reconnection wires -----------------------------------------
     create_external_reconnection_wires(out, plan.inputs, true,
                                        nested_instance_id, interner, arena, used_wire_ids);

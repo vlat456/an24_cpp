@@ -2,7 +2,7 @@
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "editor/blueprint_view_hydration.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include "ui/core/interned_id.h"
 #include <fstream>
 #include <sstream>

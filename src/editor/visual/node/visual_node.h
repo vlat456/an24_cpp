@@ -23,7 +23,7 @@ struct NodeVisualState {
 };
 
 /// Describes one port entry with its associated label widget, resolved layout
-/// side, and logical side. Owned as direct children of NodeWidget.
+/// side, and logical direction. Owned as direct children of NodeWidget.
 struct PortEntry {
     Port* port = nullptr;
     Label* label = nullptr;

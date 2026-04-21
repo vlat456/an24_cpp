@@ -1,6 +1,6 @@
 #pragma once
 
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 
 inline ExecutionPhases make_execution(
     bool electrical_passive,

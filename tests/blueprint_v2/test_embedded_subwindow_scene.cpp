@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 
 #include "editor/visual/scene_mutations.h"
 #include "editor/visual/scene.h"

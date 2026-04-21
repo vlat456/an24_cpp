@@ -3,7 +3,7 @@
 #include "editor/window_system.h"
 #include "editor/input/input_types.h"
 #include "editor/visual/scene_mutations.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include <imgui.h>
 #include <algorithm>
 

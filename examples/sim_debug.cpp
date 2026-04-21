@@ -27,8 +27,9 @@
 #include "blueprint_v2/library/type_def_to_blueprint.h"
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/common/signal_key.h"
+#include "io/json/component_registry_json_loader.h"
 #include "ui/core/interned_id.h"
-#include <spdlog/spdlog.h>
+#include <nlohmann/json.hpp>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -39,6 +40,16 @@
 #include <map>
 #include <algorithm>
 #include <cstring>
+
+namespace {
+
+void log_warning(bool quiet, const std::string& message) {
+    if (!quiet) {
+        std::cerr << "[sim_debug] warning: " << message << '\n';
+    }
+}
+
+} // namespace
 
 // ============================================================================
 // main
@@ -92,8 +103,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    if (quiet) spdlog::set_level(spdlog::level::off);
-
     // --- Load input file ---
     std::ifstream file(bp_path);
     if (!file.is_open()) {
@@ -122,7 +131,7 @@ int main(int argc, char* argv[]) {
             auto loaded = bp2::blueprint_from_type_definition(def, interner, registry);
             library.add(interner.intern(classname), std::move(loaded));
         } catch (const std::exception& e) {
-            spdlog::warn("[sim_debug] Failed to build blueprint '{}': {}", classname, e.what());
+            log_warning(quiet, "Failed to build blueprint '" + classname + "': " + e.what());
         }
     }
 

@@ -6,7 +6,7 @@
 /// port definitions, and writes the auto-generated port_registry.h.
 
 #include "core/solvers/aot/codegen.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include <iostream>
 
 int main(int argc, char** argv) {

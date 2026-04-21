@@ -1,6 +1,7 @@
 #include "signal_typing.h"
 
 #include "blueprint_v2/interface/type_definition_interface.h"
+#include "core/model/component_registry.h"
 #include "core/utils/union_find.h"
 
 #include <vector>

@@ -11,8 +11,8 @@
 #include "blueprint_v2/validation/wire_validator.h"
 #include "editor/blueprint_view_hydration.h"
 #include "editor/data/node_content.h"
-#include "editor/presentation_spec.h"
-#include "json_parser/json_parser.h"
+#include "core/model/presentation_spec.h"
+#include "io/json/component_registry_json_loader.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <sstream>
@@ -443,7 +443,7 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
                 "id": "in",
                 "kind": "bridge_port",
                 "exposed_port": "in",
-                "side": "input",
+                "direction": "input",
                 "port_type": "Any",
                 "layout": {"x": 0, "y": 0}
             },
@@ -451,7 +451,7 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
                 "id": "out",
                 "kind": "bridge_port",
                 "exposed_port": "out",
-                "side": "output",
+                "direction": "output",
                 "port_type": "Any",
                 "layout": {"x": 0, "y": 0}
             }
@@ -472,10 +472,10 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
 
     ASSERT_TRUE(result->nodes()[0].is_bridge_port());
     EXPECT_EQ(result->nodes()[0].bridge_port().exposed_port, interner.intern("in"));
-    EXPECT_EQ(result->nodes()[0].bridge_port().side, bp2::Blueprint::Node::BridgePortSide::Input);
+    EXPECT_EQ(result->nodes()[0].bridge_port().direction, bp2::BridgeDirection::Input);
     ASSERT_TRUE(result->nodes()[1].is_bridge_port());
     EXPECT_EQ(result->nodes()[1].bridge_port().exposed_port, interner.intern("out"));
-    EXPECT_EQ(result->nodes()[1].bridge_port().side, bp2::Blueprint::Node::BridgePortSide::Output);
+    EXPECT_EQ(result->nodes()[1].bridge_port().direction, bp2::BridgeDirection::Output);
 }
 
 
@@ -671,7 +671,7 @@ TEST(BlueprintCodec, BridgePortRoundTripPreservesStructuralFields) {
     bridge.view.name = "out";
     bridge.content = bp2::Blueprint::Node::BridgePortData{
         interner.intern("out"),
-        bp2::Blueprint::Node::BridgePortSide::Output,
+        bp2::BridgeDirection::Output,
         PortType::RPM,
         bp2::Interface({
             make_port(interner, "port", Domain::Mechanical, bp2::Direction::Input, PortType::RPM),
@@ -687,7 +687,7 @@ TEST(BlueprintCodec, BridgePortRoundTripPreservesStructuralFields) {
     ASSERT_EQ(j["nodes"].size(), 1u);
     EXPECT_EQ(j["nodes"][0]["kind"], "bridge_port");
     EXPECT_EQ(j["nodes"][0]["exposed_port"], "out");
-    EXPECT_EQ(j["nodes"][0]["side"], "output");
+    EXPECT_EQ(j["nodes"][0]["direction"], "output");
     EXPECT_EQ(j["nodes"][0]["port_type"], "RPM");
     EXPECT_FALSE(j["nodes"][0].contains("component"));
     EXPECT_FALSE(j["nodes"][0].contains("source"));
@@ -702,10 +702,76 @@ TEST(BlueprintCodec, BridgePortRoundTripPreservesStructuralFields) {
     EXPECT_EQ(node.semantic.id, interner.intern("bp_out_1"));
     EXPECT_EQ(node.semantic.type, interner.intern("BridgePort"));
     EXPECT_EQ(node.bridge_port().exposed_port, interner.intern("out"));
-    EXPECT_EQ(node.bridge_port().side, bp2::Blueprint::Node::BridgePortSide::Output);
+    EXPECT_EQ(node.bridge_port().direction, bp2::BridgeDirection::Output);
     EXPECT_EQ(node.bridge_port().port_type, PortType::RPM);
     EXPECT_TRUE(node.bridge_port().iface.has(interner.intern("ext")));
     EXPECT_TRUE(node.bridge_port().iface.has(interner.intern("port")));
+}
+
+// Strict negative coverage: canonical bridge_port rejects stale "side" field
+TEST(BlueprintCodec, DecodeRejectsStaleSideFieldOnBridgePort) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    ComponentRegistry reg = make_test_registry();
+    bp2::DecodeError err;
+
+    // Using deprecated "side" field instead of canonical "direction"
+    const std::string json = R"({
+        "format": "blueprint",
+        "version": 1,
+        "blueprint_id": "bridge_with_side",
+        "name": "Bridge With Side",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "bp_in",
+                "kind": "bridge_port",
+                "exposed_port": "in",
+                "side": "input",
+                "port_type": "V",
+                "layout": {"x": 0.0, "y": 0.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_FALSE(result.has_value());
+    EXPECT_TRUE(err.message.find("side") != std::string::npos
+                || err.message.find("unknown field") != std::string::npos);
+}
+
+// Strict negative coverage: canonical bridge_port rejects invalid direction token
+TEST(BlueprintCodec, DecodeRejectsInvalidBridgeDirectionToken) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    ComponentRegistry reg = make_test_registry();
+    bp2::DecodeError err;
+
+    // Using invalid "inout" direction token (bridge only supports input/output)
+    const std::string json = R"({
+        "format": "blueprint",
+        "version": 1,
+        "blueprint_id": "bridge_invalid_direction",
+        "name": "Bridge Invalid Direction",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "bp_bad",
+                "kind": "bridge_port",
+                "exposed_port": "bad",
+                "direction": "inout",
+                "port_type": "V",
+                "layout": {"x": 0.0, "y": 0.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_FALSE(result.has_value());
+    EXPECT_TRUE(err.message.find("direction") != std::string::npos
+                || err.message.find("invalid") != std::string::npos);
 }
 
 TEST(BlueprintCodec, DecodeRejectsComponentFieldOnBridgePort) {
@@ -726,7 +792,7 @@ TEST(BlueprintCodec, DecodeRejectsComponentFieldOnBridgePort) {
                 "kind": "bridge_port",
                 "component": "Battery",
                 "exposed_port": "n1",
-                "side": "input",
+                "direction": "input",
                 "port_type": "V",
                 "layout": {"x": 0.0, "y": 0.0}
             }
@@ -764,7 +830,7 @@ TEST(BlueprintCodec, DecodeRejectsMissingBridgePortFields) {
 
     auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
     EXPECT_FALSE(decoded.has_value());
-    EXPECT_NE(err.message.find("missing string field 'side'"), std::string::npos);
+    EXPECT_NE(err.message.find("missing string field 'direction'"), std::string::npos);
 }
 
 TEST(BlueprintCodec, DecodeClosedCircuitBlueprint) {

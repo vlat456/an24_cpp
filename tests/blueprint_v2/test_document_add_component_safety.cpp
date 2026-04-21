@@ -13,7 +13,7 @@
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/library/library_index.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 
 #include <filesystem>
 #include <fstream>
@@ -88,8 +88,8 @@ bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
     n.layout.y = 0.0f;
     n.content = bp2::Blueprint::Node::BridgePortData{
         I.intern(id),
-        input_bridge ? bp2::Blueprint::Node::BridgePortSide::Input
-                     : bp2::Blueprint::Node::BridgePortSide::Output,
+        input_bridge ? bp2::BridgeDirection::Input
+                    : bp2::BridgeDirection::Output,
         t,
         input_bridge
             ? bp2::Interface({
@@ -1064,6 +1064,9 @@ TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
     bp2::Blueprint bp;
     bp = bp.with_id(doc.interner().intern("delete_roundtrip"));
     bp = bp.with_name("DeleteRoundtrip");
+    bp = bp.with_interface(bp2::Interface({
+        make_port(doc.interner(), "sink", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    }));
     bp = bp.with_node(make_typed_node(doc.interner(), registry, "bat", "ElectricalSource", 0.0f, 0.0f));
     bp = bp.with_node(make_typed_node(doc.interner(), registry, "res", "Resistor", 20.0f, 0.0f));
     auto sink = make_bridge_node(doc.interner(), "sink", false);

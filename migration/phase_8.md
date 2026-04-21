@@ -1,5 +1,7 @@
 # Phase 8: Cleanup -- Remove Old Code
 
+Historical note: this phase document predates the parser/registry cleanup. References below to legacy `json_parser` paths or APIs are historical and do not describe the current architecture.
+
 ## Goal
 
 Remove the old blueprint system (`Blueprint`, `FlatBlueprint`, `TypeDefinition` in `src/editor/data/`) and redirect all consumers to use `bp2::` types. This is the final phase where we eliminate technical debt.
@@ -341,3 +343,4 @@ If Phase 8 reveals critical issues:
 4. Investigate and fix issues, then retry Phase 8
 
 Phase 8 can be done incrementally -- migrate one subsystem at a time, running tests after each change.
+Historical document note: this phase predates the #166 architecture cleanup. References to `src/json_parser/*`, `json_parser`, and `load_type_registry()` are historical and do not describe the current architecture.

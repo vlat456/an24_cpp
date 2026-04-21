@@ -107,20 +107,15 @@ public:
             }
         };
 
-        enum class BridgePortSide {
-            Input,
-            Output,
-        };
-
         struct BridgePortData {
             ui::InternedId exposed_port;
-            BridgePortSide side = BridgePortSide::Input;
+            bp2::BridgeDirection direction = bp2::BridgeDirection::Input;
             PortType port_type = PortType::Contextual;
             Interface iface;
 
             bool operator==(BridgePortData const& o) const {
                 return exposed_port == o.exposed_port
-                    && side == o.side
+                    && direction == o.direction
                     && port_type == o.port_type
                     && iface == o.iface;
             }

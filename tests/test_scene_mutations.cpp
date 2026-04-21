@@ -4,7 +4,7 @@
 #include "visual/scene_mutations.h"
 #include "visual/scene.h"
 #include "visual/persist.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "editor/blueprint_view_hydration.h"
 #include "visual/node/node_factory.h"
 #include "visual/node/visual_node.h"

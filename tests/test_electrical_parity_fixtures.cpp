@@ -4,6 +4,7 @@
 #include "core/solvers/aot/codegen_composite_helpers.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/subsolvers/electrical_subsolver.h"
+#include "io/json/parse_json_api.h"
 #include <cmath>
 
 namespace {

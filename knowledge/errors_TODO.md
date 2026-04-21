@@ -753,15 +753,15 @@ Old `commit_drag_node()` scanned all blueprint wires once per moved node (O(node
 
 ---
 
-### ~~28. SAM28 LUT string_params Not Parsed in load_type_registry()~~ ✓ FIXED
+### ~~28. SAM28 LUT string_params Not Parsed in registry loader~~ ✓ FIXED
 
 **Status:** CLOSED
 
-`load_type_registry()` in `json_parser.cpp` was reading `"params"` but ignoring `"string_params"` from v3 composite blueprints. LUT components inside 12SAM28 lost their lookup table data, outputting ~1V instead of ~25V.
+The component-registry loader was reading `"params"` but ignoring `"string_params"` from v3 composite blueprints. LUT components inside 12SAM28 lost their lookup table data, outputting ~1V instead of ~25V.
 
 **Root cause:** The v3 format stores string-valued parameters (like LUT `table`, Bus `port_edge`) in a separate `"string_params"` key. The registry loader only merged `"params"`.
 
-**Fix:** Added `string_params` merge loop in `load_type_registry()`:
+**Fix:** Added `string_params` merge loop in the registry loader:
 ```cpp
 if (n.contains("string_params") && n["string_params"].is_object()) {
     for (auto& [k, v] : n["string_params"].items()) {
@@ -772,7 +772,7 @@ if (n.contains("string_params") && n["string_params"].is_object()) {
 
 **Files changed:**
 
-- `src/json_parser/json_parser.cpp` — `load_type_registry()` now merges `string_params`
+- `src/io/json/component_registry_json_loader.cpp` — `load_component_registry()` now merges `string_params`
 - `tests/json_parser_test.cpp` — regression test `TypeRegistry.V3CompositeStringParamsMergedIntoDeviceParams`
 
 **Tests:** All 1462 pass (was 1452 before fix)
@@ -1193,7 +1193,7 @@ All scheduling constants centralized in codegen under `DomainSchedule` namespace
 
 ### ~~20. Unify Duplicate TypeDefinition Parse Paths~~ ✓ ADDRESSED
 
-**Files:** `src/json_parser/json_parser.cpp:parse_type_definition()`, `src/json_parser/json_parser.cpp:load_type_registry()`
+**Files:** `src/io/json/type_definition_json.cpp:parse_type_definition()`, `src/io/json/component_registry_json_loader.cpp:load_component_registry()`
 
 **Problem:** Two separate parsers with different strictness — scheduler_source was missing from lenient path.
 
@@ -1202,7 +1202,7 @@ All scheduling constants centralized in codegen under `DomainSchedule` namespace
 - `test_push_build_validation.cpp` lines 740-763: scheduler_source regression
 - `json_parser_test.cpp` lines 883-919: scheduler_source parity tests
 
-Remaining differences are intentional — `parse_type_definition` is a lenient test-only path for legacy format (`classname`, `ports`, `params`), while `load_type_registry` is the strict production path for v3 format (`id`, `interface`, `param_defaults`). Full unification would introduce medium risk with minimal gain.
+Remaining differences are intentional — `parse_type_definition` is a lenient test-only path for legacy format (`classname`, `ports`, `params`), while `load_component_registry` is the strict production path for v3 format (`id`, `interface`, `param_defaults`). Full unification would introduce medium risk with minimal gain.
 
 **Impact:** Resolved — no blocking drift risk with regression tests in place.
 
@@ -1454,7 +1454,7 @@ This caused at least 3 bugs and every new code path that touched composite bound
 
 **Fix — unified on colon convention as canonical:**
 
-1. **`document.cpp::addBlueprint()`** — Bridge nodes now use colon convention (`unique_id:original_name`). Internal (non-bridge) nodes continue to use underscore (`unique_id_original_name`). This aligns `addBlueprint()` with `addComponent()`, `json_parser.cpp`, and `simulator.cpp`.
+1. **`document.cpp::addBlueprint()`** — Bridge nodes now use colon convention (`unique_id:original_name`). Internal (non-bridge) nodes continue to use underscore (`unique_id_original_name`). This aligns `addBlueprint()` with `addComponent()`, `src/io/json/parse_json_api.cpp`, and `simulator.cpp`.
 
 2. **`document.cpp::build_simulation_json()`** — Removed two-pass bridge discovery workaround. Single-pass scan now works because all bridge nodes consistently use colon convention.
 
@@ -1466,7 +1466,7 @@ This caused at least 3 bugs and every new code path that touched composite bound
 
 | Location | Convention | Fallback? |
 |---|---|---|
-| `json_parser.cpp` (composite expansion) | Colon | No |
+| `src/io/json/parse_json_api.cpp` (composite expansion) | Colon | No |
 | `document.cpp::addBlueprint()` (bridge nodes) | Colon | No |
 | `document.cpp::addBlueprint()` (internal nodes) | Underscore | No |
 | `document.cpp::addComponent()` (bridge creation) | Colon | No |

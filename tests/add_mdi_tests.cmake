@@ -1,3 +1,12 @@
+# Historical helper note:
+# This snippet predates the current editor source layout and the removal of the
+# old MDI test files. It is preserved only as migration/reference material and
+# is not a current build recipe.
+#
+# The JSON module references below use the current `src/io/json` / `json_io`
+# names so the snippet does not silently point at the removed `json_parser`
+# module.
+#
 # MDI Document and WindowSystem tests
 add_executable(mdi_tests
     document_tests.cpp
@@ -26,12 +35,12 @@ add_executable(mdi_tests
 )
 target_include_directories(mdi_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/src/io/json
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(mdi_tests PRIVATE
     jit_solver
-    json_parser
+    json_io
     spdlog::spdlog
     GTest::gtest_main
 )

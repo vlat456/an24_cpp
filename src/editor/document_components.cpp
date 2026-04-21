@@ -1,7 +1,7 @@
 #include "document.h"
 
 #include "blueprint_view_hydration.h"
-#include "presentation_spec.h"
+#include "core/model/presentation_spec.h"
 #include "commands/commands.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/library/library_index.h"
@@ -19,7 +19,7 @@
 
 namespace {
 
-std::optional<bp2::Blueprint::Node::BridgePortSide> bridge_side_from_type_definition(
+std::optional<bp2::BridgeDirection> bridge_direction_from_type_definition(
     const ComponentSpec& def) {
     if (!is_composite(def)) return std::nullopt;
     const auto* comp = as_composite(def);
@@ -32,12 +32,12 @@ std::optional<bp2::Blueprint::Node::BridgePortSide> bridge_side_from_type_defini
         return std::nullopt;
     }
     if (it->second.default_value == "In") {
-        return bp2::Blueprint::Node::BridgePortSide::Input;
+        return bp2::BridgeDirection::Input;
     }
     if (it->second.default_value == "Out") {
-        return bp2::Blueprint::Node::BridgePortSide::Output;
+        return bp2::BridgeDirection::Output;
     }
-    return std::nullopt;
+    throw std::runtime_error("Invalid exposed_direction default for bridge component '" + spec_classname(def) + "'");
 }
 
 bp2::Interface make_bridge_iface(ui::StringInterner& interner,
@@ -59,13 +59,15 @@ bp2::Interface make_bridge_iface(ui::StringInterner& interner,
 PortType parse_exposed_port_type(const std::string& s) {
     if (s == "V") return PortType::V;
     if (s == "I") return PortType::I;
+    if (s == "Signal") return PortType::Signal;
     if (s == "Bool") return PortType::Bool;
     if (s == "RPM") return PortType::RPM;
     if (s == "Temperature") return PortType::Temperature;
     if (s == "Pressure") return PortType::Pressure;
     if (s == "Position") return PortType::Position;
     if (s == "Contextual") return PortType::Contextual;
-    return PortType::Contextual;
+    if (s == "Any") return PortType::Any;
+    throw std::runtime_error("Invalid exposed_type bridge param '" + s + "'");
 }
 
 /// Update the embedded blueprint-instance's inline blueprint interface to include a new bridge port.
@@ -170,10 +172,12 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         }
     }
 
-    const auto bridge_side = bridge_side_from_type_definition(*def);
-    const bool is_bridge = bridge_side.has_value();
+    const auto bridge_direction = bridge_direction_from_type_definition(*def);
+    const bool is_bridge = bridge_direction.has_value();
     const bool bridge_in_group = is_bridge && !scope_id.empty()
         && model_.current().find_node(interner_.intern(scope_id)) != nullptr;
+    const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
+    PortType bridge_port_type = PortType::Contextual;
 
     if (is_bridge) {
         std::string canonical_id = signal_key::make_child_scope_key(scope_id, node.view.name);
@@ -187,10 +191,11 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         if (et_it != node.semantic.string_params.end()) {
             pt = parse_exposed_port_type(et_it->second);
         }
-        const bool is_input_bridge = *bridge_side == bp2::Blueprint::Node::BridgePortSide::Input;
+        bridge_port_type = pt;
+        const bool is_input_bridge = *bridge_direction == bp2::BridgeDirection::Input;
         node.content = bp2::Blueprint::Node::BridgePortData{
             interner_.intern(node.view.name),
-            *bridge_side,
+            *bridge_direction,
             pt,
             make_bridge_iface(interner_, is_input_bridge, pt),
         };
@@ -202,15 +207,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     // Issue #105/#133: hydrate static semantics + initial dynamic defaults.
     editor::hydrate_node_view_full(node, def, pres, interner_);
 
-    const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
-    const bool bridge_is_input = bridge_side == bp2::Blueprint::Node::BridgePortSide::Input;
-    PortType bridge_port_type = PortType::Contextual;
-    if (is_bridge) {
-        auto et_it = node.semantic.string_params.find("exposed_type");
-        if (et_it != node.semantic.string_params.end()) {
-            bridge_port_type = parse_exposed_port_type(et_it->second);
-        }
-    }
+    const bool bridge_is_input = bridge_direction == bp2::BridgeDirection::Input;
 
     const bp2::Blueprint before_add = model_.current();
 #ifndef NDEBUG

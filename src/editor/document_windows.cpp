@@ -1,7 +1,7 @@
 #include "document.h"
 
 #include "blueprint_view_hydration.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include "visual/persist.h"
 #include "subwindow_open_target.h"
 #include "visual/scene_mutations.h"

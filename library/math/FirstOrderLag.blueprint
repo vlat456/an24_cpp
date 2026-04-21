@@ -52,7 +52,7 @@
       "id": "in",
       "kind": "bridge_port",
       "exposed_port": "in",
-      "side": "input",
+      "direction": "input",
       "port_type": "Signal",
       "layout": {
         "x": -336.0,
@@ -86,7 +86,7 @@
       "id": "out",
       "kind": "bridge_port",
       "exposed_port": "out",
-      "side": "output",
+      "direction": "output",
       "port_type": "Signal",
       "layout": {
         "x": 224.0,
@@ -98,7 +98,7 @@
       "id": "rate",
       "kind": "bridge_port",
       "exposed_port": "rate",
-      "side": "input",
+      "direction": "input",
       "port_type": "Signal",
       "layout": {
         "x": -336.0,

@@ -3,8 +3,8 @@
 #include "../../blueprint_v2/blueprint/node_content_type.h"
 #include "../../blueprint_v2/blueprint/blueprint.h"
 #include "../../blueprint_v2/blueprint/node_port.h"
-#include "../../json_parser/json_parser.h"
-#include "../../editor/presentation_spec.h"
+#include "core/model/component_registry.h"
+#include "core/model/presentation_spec.h"
 #include "../../ui/math/pt.h"
 #include "../../ui/core/interned_id.h"
 #include <string>
@@ -57,8 +57,6 @@ struct PortLayoutOverride {
 // =============================================================================
 // Node size utility (single source of truth)
 // =============================================================================
-
-struct ComponentRegistry;
 
 namespace ui {
 class StringInterner;

@@ -11,7 +11,7 @@
 #include "blueprint_v2/validation/wire_validator.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "blueprint_v2/diagnostics/repair.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 
 #include "../bp2_test_helpers.h"
 
@@ -53,16 +53,16 @@ static bp2::Blueprint::Node make_node_with_interface(ui::StringInterner& I,
 
 static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
                                              const char* exposed_port,
-                                             bp2::Blueprint::Node::BridgePortSide side,
+                                             bp2::BridgeDirection direction,
                                              PortType port_type) {
     bp2::Blueprint::Node n;
     n.semantic.id = I.intern(exposed_port);
     n.semantic.type = I.intern("BridgePort");
 
-    const bool is_input = side == bp2::Blueprint::Node::BridgePortSide::Input;
+    const bool is_input = direction == bp2::BridgeDirection::Input;
     n.content = bp2::Blueprint::Node::BridgePortData{
         I.intern(exposed_port),
-        side,
+        direction,
         port_type,
         bp2::Interface({
             {I.intern("ext"), domain_for_port_type(port_type), is_input ? Direction::Input : Direction::Output, port_type},
@@ -306,7 +306,7 @@ TEST(WireValidator, ContextualBridgeBindsToExposedRootPort) {
         {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
     }));
 
-    bp = bp.with_node(make_bridge_node(I, "flag", bp2::Blueprint::Node::BridgePortSide::Input, PortType::Contextual));
+    bp = bp.with_node(make_bridge_node(I, "flag", bp2::BridgeDirection::Input, PortType::Contextual));
     bp = bp.with_node(make_node(I, "sink", "BoolSink"));
 
     bp2::Blueprint::Wire w;
@@ -438,7 +438,7 @@ TEST(WireValidator, BridgeWithoutMatchingExposedRootPortFailsExplicitly) {
         {I.intern("other_flag"), Domain::Logical, Direction::Input, PortType::Bool},
     }));
 
-    bp = bp.with_node(make_bridge_node(I, "flag", bp2::Blueprint::Node::BridgePortSide::Input, PortType::Contextual));
+    bp = bp.with_node(make_bridge_node(I, "flag", bp2::BridgeDirection::Input, PortType::Contextual));
     bp = bp.with_node(make_node(I, "sink", "BoolSink"));
 
     bp2::Blueprint::Wire w;
@@ -468,7 +468,7 @@ TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor
         {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
     }));
 
-    leaf = leaf.with_node(make_bridge_node(I, "flag", bp2::Blueprint::Node::BridgePortSide::Input, PortType::Contextual));
+    leaf = leaf.with_node(make_bridge_node(I, "flag", bp2::BridgeDirection::Input, PortType::Contextual));
     leaf = leaf.with_node(make_node(I, "sink", "BoolSink"));
 
     bp2::Blueprint::Wire leaf_wire;
@@ -485,7 +485,7 @@ TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor
         {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
     }));
 
-    mid = mid.with_node(make_bridge_node(I, "flag", bp2::Blueprint::Node::BridgePortSide::Input, PortType::Contextual));
+    mid = mid.with_node(make_bridge_node(I, "flag", bp2::BridgeDirection::Input, PortType::Contextual));
 
     bp2::Blueprint::Node leaf_inst;
     leaf_inst.content = bp2::Blueprint::Node::BlueprintInstanceData{

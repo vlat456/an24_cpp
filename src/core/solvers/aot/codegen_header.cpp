@@ -1,5 +1,5 @@
 #include "codegen_internal.h"
-#include "../parse_number.h"
+#include "parse_number.h"
 
 #include <vector>
 

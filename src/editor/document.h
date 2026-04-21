@@ -7,7 +7,7 @@
 #include "visual/workspace_session.h"
 #include "input/canvas_input.h"
 #include "core/solvers/jit/simulator.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "blueprint_v2/library/library_index.h"
 #include "visual/render_context.h"
 #include "blueprint_v2/editor_model/editor_model.h"

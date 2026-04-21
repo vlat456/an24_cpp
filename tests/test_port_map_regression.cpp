@@ -3,7 +3,7 @@
 /// string_to_port_name, causing all logical gates to silently read signal[0].
 
 #include <gtest/gtest.h>
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/components/all.h"
 #include "core/solvers/jit/components/port_registry.h"

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <cstring>
-#include "json_parser/json_parser.h"
-#include "editor/presentation_spec.h"
+#include "core/model/component_registry.h"
+#include "core/model/presentation_spec.h"
 
 #include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "editor/layout_constants.h"

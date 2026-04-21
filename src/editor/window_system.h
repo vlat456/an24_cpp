@@ -5,7 +5,7 @@
 #include "visual/inspector/inspector.h"
 #include "window/properties_window.h"
 #include "window/window_scope_id.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include "blueprint_v2/library/library_index.h"
 #include "commands/extract_blueprint.h"
 #include "pi_zn_tuner.h"

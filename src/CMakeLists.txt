@@ -1,5 +1,6 @@
 add_subdirectory(core/solvers/jit)
-add_subdirectory(json_parser)
+add_subdirectory(core/registry)
+add_subdirectory(io/json)
 add_subdirectory(blueprint_v2)
 
 add_library(editor_semantic_canvas STATIC
@@ -19,4 +20,4 @@ target_include_directories(editor_semantic_canvas PUBLIC
     ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
-target_link_libraries(editor_semantic_canvas PUBLIC blueprint_v2 json_parser)
+target_link_libraries(editor_semantic_canvas PUBLIC blueprint_v2 spdlog::spdlog)

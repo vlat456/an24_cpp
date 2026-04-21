@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "editor/visual/persist.h"
 
 #include <filesystem>

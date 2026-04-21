@@ -1,7 +1,7 @@
 #pragma once
 
 #include "blueprint_codec.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 
 #include <nlohmann/json.hpp>
 #include <initializer_list>

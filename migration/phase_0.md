@@ -1,5 +1,7 @@
 # Phase 0: Ground Rules and Overview
 
+Historical note: this phase document predates the parser/registry cleanup. References below to legacy `json_parser` paths or APIs are historical and do not describe the current architecture.
+
 ## What This Migration Is
 
 We are replacing the current blueprint persistence system (3 representations, string-based scoping, fragile bake-in) with a single canonical `Blueprint` type that handles everything. See `BLUEPRINT_ARCHITECTURE_V2.md` for the full design.
@@ -99,3 +101,4 @@ Some components declared `Domain::Logical` (e.g., `Add`, `Multiply`, `LUT`) shar
 - [ ] No function exceeds 60 lines
 - [ ] All new files are in `src/blueprint_v2/<feature>/` or `tests/blueprint_v2/`
 - [ ] All new code is in `namespace bp2`
+Historical document note: this phase predates the #166 architecture cleanup. References to `src/json_parser/*`, `json_parser`, and `load_type_registry()` are historical and do not describe the current architecture.

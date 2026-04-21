@@ -5,7 +5,7 @@
 #include "viewport/viewport.h"
 #include "visual/scene.h"
 #include "visual/scene_mutations.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include "window/window_scope_id.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"

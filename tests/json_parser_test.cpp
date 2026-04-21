@@ -1,5 +1,10 @@
-#include "json_parser.h"
-#include "editor/presentation_spec.h"
+#include "io/json/parse_json_api.h"
+#include "io/json/component_registry_json_loader.h"
+#include "io/json/type_definition_json.h"
+#include "core/registry/component_resolution.h"
+#include "core/model/presentation_spec.h"
+
+#include <nlohmann/json.hpp>
 #include <gtest/gtest.h>
 #include <sstream>
 #include <filesystem>
@@ -17,6 +22,24 @@ TEST(JsonParserTest, ParseEmptyContext) {
 
 TEST(JsonParserTest, ParseErrorOnInvalidJson) {
     EXPECT_THROW(parse_json("not valid json {{{"), std::exception);
+}
+
+TEST(JsonParserTest, ParseRejectsInvalidPortDirection) {
+    std::string json = R"({
+        "devices": [
+            {
+                "name": "bad",
+                "classname": "ElectricalSource",
+                "ports": {
+                    "v_out": {"direction": "sideways", "type": "V"}
+                },
+                "params": {"voltage": "28.0", "resistance": "0.1"}
+            }
+        ],
+        "connections": []
+    })";
+
+    EXPECT_THROW(parse_json(json), std::runtime_error);
 }
 
 TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
@@ -155,7 +178,7 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     EXPECT_EQ(dev.domains[0], Domain::Electrical);
 
     // Relay blueprint defines 5 ports: v_in, v_out, control, state, hold_threshold
-    // resolve_device() enriches with library-defined ports
+    // resolve_component() enriches with library-defined ports
     EXPECT_EQ(dev.ports.size(), 5);
     auto it_in = dev.ports.find("v_in");
     ASSERT_NE(it_in, dev.ports.end());
@@ -801,7 +824,7 @@ TEST(ComponentRegistry, ListClassnames_IncludesAllCategorized) {
     EXPECT_EQ(names.size(), 2u);
 }
 
-// Regression: resolve_device must propagate domain and source_writer
+// Regression: resolve_component must propagate domain and source_writer
 // from the type definition when both instance and definition have the same port.
 // Previously only type and alias were copied, silently dropping metadata.
 TEST(JsonParserTest, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
@@ -836,7 +859,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def, pres] = parse_type_definition(j);
-    EXPECT_TRUE(spec_scheduler_source(def));
+    EXPECT_TRUE(spec_meta(def).scheduler_source);
 
     // Also verify false case
     auto j2 = nlohmann::json::parse(R"({
@@ -848,7 +871,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def2, pres2] = parse_type_definition(j2);
-    EXPECT_FALSE(spec_scheduler_source(def2));
+    EXPECT_FALSE(spec_meta(def2).scheduler_source);
 }
 
 // Regression: parse_type_definition default when scheduler_source is absent.
@@ -861,7 +884,51 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
     })");
 
      auto [def, pres] = parse_type_definition(j);
-     EXPECT_FALSE(spec_scheduler_source(def));
+     EXPECT_FALSE(spec_meta(def).scheduler_source);
+}
+
+TEST(JsonParserTest, ParseTypeDefinition_ExecutionRequiresAllCanonicalKeys) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "ElectricalSource",
+        "cpp_class": true,
+        "domains": ["Electrical"],
+        "ports": {"v_out": {"direction": "Out", "type": "V"}},
+        "execution": {
+            "electrical_passive": true,
+            "electrical_observer": false,
+            "logical": false,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false
+        }
+    })");
+
+    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
+}
+
+TEST(JsonParserTest, ParseTypeDefinition_ExecutionRejectsUnknownKeys) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "ElectricalSource",
+        "cpp_class": true,
+        "domains": ["Electrical"],
+        "ports": {"v_out": {"direction": "Out", "type": "V"}},
+        "execution": {
+            "electrical_passive": true,
+            "electrical_observer": false,
+            "logical": false,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false,
+            "thermal": false,
+            "extra": true
+        }
+    })");
+
+    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
 }
 
 TEST(ComponentRegistry, MissingSolverOwnedElectricalInV3BlueprintThrows) {
@@ -1018,6 +1085,72 @@ TEST(ComponentRegistry, V3CompositeStringParamsMergedIntoDeviceParams) {
     auto it2 = lut.params.find("input_min");
     ASSERT_NE(it2, lut.params.end());
     EXPECT_EQ(it2->second, "0.0");
+
+    fs::remove_all(tmp);
+}
+
+// === LOADER STRICTNESS: Bridge Port Direction Validation ===
+
+// Loader strictness: v3 bridge_port node must have "direction" field
+TEST(JsonParserTest, LoadRejectsBridgePortMissingDirection) {
+    namespace fs = std::filesystem;
+    auto tmp = fs::temp_directory_path() / "test_bridge_no_dir";
+    fs::remove_all(tmp);
+    fs::create_directories(tmp);
+
+    std::ofstream(tmp / "BridgeNoDir.blueprint") << R"({
+        "version": "3.0",
+        "id": "BridgeNoDir",
+        "display_name": "Bridge No Direction",
+        "cpp_class": false,
+        "scheduler_source": false,
+        "domains": ["Electrical"],
+        "interface": [],
+        "nodes": [
+            {
+                "id": "bp_in",
+                "kind": "bridge_port",
+                "exposed_port": "in",
+                "port_type": "V"
+            }
+        ],
+        "wires": []
+    })";
+
+    EXPECT_THROW(load_component_registry(tmp.string()), std::runtime_error);
+
+    fs::remove_all(tmp);
+}
+
+// Loader strictness: v3 bridge_port node must use canonical "direction", not "side"
+TEST(JsonParserTest, LoadRejectsBridgePortWithStaleSideField) {
+    namespace fs = std::filesystem;
+    auto tmp = fs::temp_directory_path() / "test_bridge_side";
+    fs::remove_all(tmp);
+    fs::create_directories(tmp);
+
+    std::ofstream(tmp / "BridgeSide.blueprint") << R"({
+        "version": "3.0",
+        "id": "BridgeSide",
+        "display_name": "Bridge With Side",
+        "cpp_class": false,
+        "scheduler_source": false,
+        "domains": ["Electrical"],
+        "interface": [],
+        "nodes": [
+            {
+                "id": "bp_in",
+                "kind": "bridge_port",
+                "exposed_port": "in",
+                "side": "input",
+                "port_type": "V"
+            }
+        ],
+        "wires": []
+    })";
+
+    // The loader should reject unknown field "side" - it requires "direction"
+    EXPECT_THROW(load_component_registry(tmp.string()), std::runtime_error);
 
     fs::remove_all(tmp);
 }

@@ -4,8 +4,8 @@
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "editor/blueprint_view_hydration.h"
 #include "editor/visual/presentation/node_presentation.h"
-#include "editor/presentation_spec.h"
-#include "json_parser/json_parser.h"
+#include "core/model/presentation_spec.h"
+#include "core/model/component_spec.h"
 #include "parse_number.h"
 
 #ifndef EDITOR_TESTING

@@ -5,7 +5,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "ui/core/interned_id.h"
 #include <cassert>
 #include <initializer_list>

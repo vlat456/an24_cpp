@@ -2,7 +2,7 @@
 
 #include "blueprint_v2/validation/signal_typing.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 
 #include <algorithm>
 

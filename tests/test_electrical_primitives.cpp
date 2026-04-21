@@ -22,21 +22,6 @@
 
 namespace {
 
-const ComponentSpec* make_spec_with_role(
-    TestSpecStore& store,
-    const std::string& classname,
-    SolverRole role)
-{
-    PrimitiveSpec prim;
-    const ComponentSpec* base = test_registry().get(classname);
-    if (base) {
-        if (const auto* p = as_primitive(*base)) prim = *p;
-    }
-    prim.classname = classname;
-    prim.solver_role = std::move(role);
-    return store.add(std::move(prim));
-}
-
 ResolvedDevice make_test_device_or_synthetic(const std::string& name,
                                              const std::string& classname,
                                              const std::unordered_map<std::string, std::string>& params = {}) {
@@ -72,7 +57,7 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
     const float resistance = 0.1f;
 
     // --- Circuit A: Wrapper Resistor ---
-    std::vector<DeviceInstance> devices_a = {
+    std::vector<ResolvedDevice> devices_a = {
         make_test_device_or_synthetic("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}}),
         make_test_device_or_synthetic("res", "Resistor", {{"conductance", "0.5"}}),
         make_test_device_or_synthetic("gnd", "RefNode", {{"value", "0.0"}})
@@ -83,7 +68,7 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
     };
 
     // --- Circuit B: Primitive ElectricalConductance ---
-    std::vector<DeviceInstance> devices_b = {
+    std::vector<ResolvedDevice> devices_b = {
         make_test_device_or_synthetic("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}}),
         make_test_device_or_synthetic("cond", "ElectricalConductance", {{"conductance", "0.5"}}),
         make_test_device_or_synthetic("gnd", "RefNode", {{"value", "0.0"}})
@@ -93,11 +78,10 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
         {"cond.v_out", "gnd.v", "bat.v_in"}
     };
 
-    ASSERT_NE(devices_a[0].spec, nullptr) << "bat spec should be non-null";
-    ASSERT_TRUE(as_primitive(*devices_a[0].spec)->solver_role.has_value()) << "bat solver_role should exist";
+    ASSERT_TRUE(devices_a[0].solver_role.has_value()) << "bat solver_role should exist";
 
-    auto result_a = build_systems_dev(make_jit_input(devices_a, signal_groups_a));
-    auto result_b = build_systems_dev(make_jit_input(devices_b, signal_groups_b));
+    auto result_a = build_systems_dev(make_jit_input_resolved(devices_a, signal_groups_a));
+    auto result_b = build_systems_dev(make_jit_input_resolved(devices_b, signal_groups_b));
 
     // Both should produce exactly 1 island
     ASSERT_EQ(result_a.electrical_plan.islands.size(), 1u);
@@ -521,7 +505,6 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         dev.name = "cond_bad";
         dev.classname = "ElectricalConductance";
         dev.params = {{"conductanse", "0.5"}};
-        dev.spec = test_registry().get("ElectricalConductance");
         auto ports = get_component_ports("ElectricalConductance");
         for (const auto& p : ports) {
             dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
@@ -539,7 +522,6 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         dev.name = "src_bad";
         dev.classname = "ElectricalSource";
         dev.params = {{"voltage", "28.0"}, {"resistanse", "0.01"}};
-        dev.spec = test_registry().get("ElectricalSource");
         auto ports = get_component_ports("ElectricalSource");
         for (const auto& p : ports) {
             dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
@@ -567,29 +549,27 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
-    TestSpecStore store;
     // Build devices with solver_role metadata manually set (simulating library-loaded state).
     // Verify that the metadata-driven path produces correct ElectricalElementKind.
 
     // -- ConductanceBranch via solver_role --
     {
-        DeviceInstance dev = make_device("cond1", "ElectricalConductance", {{"conductance", "0.5"}});
-        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
+        ResolvedDevice dev = make_resolved_device_with_role("cond1", "ElectricalConductance", {{"conductance", "0.5"}}, SolverRole{
             "ConductanceBranch",
             {{"a", "v_in"}, {"b", "v_out"}},
             {{"g", "conductance"}}
         });
 
-        DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
-        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
+        ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
+        ResolvedDevice bat = make_resolved_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
 
-        std::vector<DeviceInstance> devices = {bat, dev, gnd};
+        std::vector<ResolvedDevice> devices = {bat, dev, gnd};
         std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "cond1.v_in"},
             {"cond1.v_out", "gnd.v", "bat.v_in"}
         };
 
-        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
+        auto result = build_systems_dev(make_jit_input_resolved(devices, signal_groups));
         ASSERT_EQ(result.electrical_plan.islands.size(), 1);
         const auto& island = result.electrical_plan.islands[0];
 
@@ -607,23 +587,22 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
 
     // -- TheveninSource via solver_role --
     {
-        DeviceInstance dev = make_device("src1", "ElectricalSource", {{"voltage", "12.0"}, {"resistance", "0.05"}});
-        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
+        ResolvedDevice dev = make_resolved_device_with_role("src1", "ElectricalSource", {{"voltage", "12.0"}, {"resistance", "0.05"}}, SolverRole{
             "TheveninSource",
             {{"pos", "v_out"}, {"neg", "v_in"}},
             {{"voltage", "voltage"}, {"resistance", "resistance"}}
         });
 
-        DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
-        DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
+        ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
+        ResolvedDevice res = make_resolved_device("res", "Resistor", {{"conductance", "0.1"}});
 
-        std::vector<DeviceInstance> devices = {dev, res, gnd};
+        std::vector<ResolvedDevice> devices = {dev, res, gnd};
         std::vector<std::vector<std::string>> signal_groups = {
             {"src1.v_out", "res.v_in"},
             {"res.v_out", "gnd.v", "src1.v_in"}
         };
 
-        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
+        auto result = build_systems_dev(make_jit_input_resolved(devices, signal_groups));
         ASSERT_EQ(result.electrical_plan.islands.size(), 1);
         const auto& island = result.electrical_plan.islands[0];
 
@@ -641,23 +620,22 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
 
     // -- FixedVoltageNode via solver_role --
     {
-        DeviceInstance dev = make_device("ref1", "RefNode", {{"value", "5.0"}});
-        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
+        ResolvedDevice dev = make_resolved_device_with_role("ref1", "RefNode", {{"value", "5.0"}}, SolverRole{
             "FixedVoltageNode",
             {{"node", "v"}},
             {{"voltage", "value"}}
         });
 
-        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
-        DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
+        ResolvedDevice bat = make_resolved_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
+        ResolvedDevice res = make_resolved_device("res", "Resistor", {{"conductance", "0.1"}});
 
-        std::vector<DeviceInstance> devices = {bat, res, dev};
+        std::vector<ResolvedDevice> devices = {bat, res, dev};
         std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "res.v_in"},
             {"res.v_out", "ref1.v", "bat.v_in"}
         };
 
-        auto result = build_systems_dev(make_jit_input(devices, signal_groups));
+        auto result = build_systems_dev(make_jit_input_resolved(devices, signal_groups));
         ASSERT_EQ(result.electrical_plan.islands.size(), 1);
         const auto& island = result.electrical_plan.islands[0];
 
@@ -678,71 +656,67 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
-    TestSpecStore store;
     // ConductanceBranch requires port keys "a" and "b". Test with "a" missing.
     {
-        DeviceInstance dev = make_device("cond1", "ElectricalConductance", {{"conductance", "0.5"}});
-        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
+        ResolvedDevice dev = make_resolved_device_with_role("cond1", "ElectricalConductance", {{"conductance", "0.5"}}, SolverRole{
             "ConductanceBranch",
             {{"b", "v_out"}},  // Missing "a" key
             {{"g", "conductance"}}
         });
 
-        DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
-        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
+        ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
+        ResolvedDevice bat = make_resolved_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
 
-        std::vector<DeviceInstance> devices = {bat, dev, gnd};
+        std::vector<ResolvedDevice> devices = {bat, dev, gnd};
         std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "cond1.v_in"},
             {"cond1.v_out", "gnd.v"},
             {"bat.v_in", "gnd.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input_resolved(devices, signal_groups)), std::runtime_error);
     }
 
     // TheveninSource requires "pos" and "neg". Test with "neg" missing.
     {
-        DeviceInstance dev = make_device("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
-        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
+        ResolvedDevice dev = make_resolved_device_with_role("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}, SolverRole{
             "TheveninSource",
             {{"pos", "v_out"}},  // Missing "neg" key
             {{"voltage", "voltage"}, {"resistance", "resistance"}}
         });
 
-        DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
-        DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
+        ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
+        ResolvedDevice res = make_resolved_device("res", "Resistor", {{"conductance", "0.1"}});
 
-        std::vector<DeviceInstance> devices = {dev, res, gnd};
+        std::vector<ResolvedDevice> devices = {dev, res, gnd};
         std::vector<std::vector<std::string>> signal_groups = {
             {"src1.v_out", "res.v_in"},
             {"res.v_out", "gnd.v"},
             {"src1.v_in", "gnd.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input_resolved(devices, signal_groups)), std::runtime_error);
     }
 
     // FixedVoltageNode requires "node". Test with empty port_map.
     {
-        DeviceInstance dev = make_device("ref1", "RefNode", {{"value", "0.0"}});
-        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
+        ResolvedDevice dev = make_resolved_device_with_role("ref1", "RefNode", {{"value", "0.0"}}, SolverRole{
             "FixedVoltageNode",
             {},  // Missing "node" key
             {{"voltage", "value"}}
         });
 
-        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
-        DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
+        ResolvedDevice bat = make_resolved_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
+        ResolvedDevice res = make_resolved_device("res", "Resistor", {{"conductance", "0.1"}});
 
-        std::vector<DeviceInstance> devices = {bat, res, dev};
+        std::vector<ResolvedDevice> devices = {bat, res, dev};
         std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "res.v_in"},
             {"res.v_out", "ref1.v"},
             {"bat.v_in", "ref1.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input_resolved(devices, signal_groups)), std::runtime_error);
     }
 }
 
@@ -751,49 +725,46 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
 // ============================================================================
 
 TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
-    TestSpecStore store;
     // ConductanceBranch requires param key "g". Test with it missing.
     {
-        DeviceInstance dev = make_device("cond1", "ElectricalConductance", {{"conductance", "0.5"}});
-        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
+        ResolvedDevice dev = make_resolved_device_with_role("cond1", "ElectricalConductance", {{"conductance", "0.5"}}, SolverRole{
             "ConductanceBranch",
             {{"a", "v_in"}, {"b", "v_out"}},
             {}  // Missing "g" key
         });
 
-        DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
-        DeviceInstance bat = make_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
+        ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
+        ResolvedDevice bat = make_resolved_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
 
-        std::vector<DeviceInstance> devices = {bat, dev, gnd};
+        std::vector<ResolvedDevice> devices = {bat, dev, gnd};
         std::vector<std::vector<std::string>> signal_groups = {
             {"bat.v_out", "cond1.v_in"},
             {"cond1.v_out", "gnd.v"},
             {"bat.v_in", "gnd.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input_resolved(devices, signal_groups)), std::runtime_error);
     }
 
     // TheveninSource requires "voltage" and "resistance". Test with "resistance" missing.
     {
-        DeviceInstance dev = make_device("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}});
-        dev.spec = make_spec_with_role(store, dev.classname, SolverRole{
+        ResolvedDevice dev = make_resolved_device_with_role("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}, SolverRole{
             "TheveninSource",
             {{"pos", "v_out"}, {"neg", "v_in"}},
             {{"voltage", "voltage"}}  // Missing "resistance" key
         });
 
-        DeviceInstance gnd = make_device("gnd", "RefNode", {{"value", "0.0"}});
-        DeviceInstance res = make_device("res", "Resistor", {{"conductance", "0.1"}});
+        ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
+        ResolvedDevice res = make_resolved_device("res", "Resistor", {{"conductance", "0.1"}});
 
-        std::vector<DeviceInstance> devices = {dev, res, gnd};
+        std::vector<ResolvedDevice> devices = {dev, res, gnd};
         std::vector<std::vector<std::string>> signal_groups = {
             {"src1.v_out", "res.v_in"},
             {"res.v_out", "gnd.v"},
             {"src1.v_in", "gnd.v"}
         };
 
-        EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
+        EXPECT_THROW(build_systems_dev(make_jit_input_resolved(devices, signal_groups)), std::runtime_error);
     }
 }
 
@@ -807,7 +778,7 @@ TEST(ElectricalPrimitives, MetadataPropagatedThroughLibraryPipeline) {
     // and produces correct solve results.
     //
     // This test proves that the end-to-end path works:
-    //   blueprint file -> load_component_registry() -> resolve_device() -> build -> solve
+    //   blueprint file -> load_component_registry() -> resolve_component() -> build -> solve
 
     // Primitive-only circuit through full pipeline
     const std::string json = R"({

@@ -13,7 +13,7 @@ Canonical blueprint document authority lives in:
 - `knowledge/persistence_spec_v1.md`
 - `knowledge/persistence_boundaries.md`
 
-`library/**/*.blueprint` files stay on the library/type-definition path and are consumed by `load_type_registry()`.
+`library/**/*.blueprint` files stay on the library/type-definition path and are consumed by `load_component_registry()`.
 
 ## Directory Structure
 

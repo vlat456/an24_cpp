@@ -187,7 +187,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
 
         if (start.node_id == end_node_iid && start.port_id == end_port_iid) return result;
 
-        bool compatible = visual::Port::areSidesCompatible(start.direction, ph->direction);
+        bool compatible = visual::Port::areDirectionsCompatible(start.direction, ph->direction);
         if (!compatible) return result;
 
         if (!visual::Port::areTypesCompatible(start.type, ph->type)) {
@@ -295,7 +295,7 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
         const bool same_as_fixed = port_node_iid == fixed_node && hit_port_iid == fixed_port;
         bool compatible = !same_as_fixed &&
-            visual::Port::areSidesCompatible(ph->direction, fixed_direction);
+            visual::Port::areDirectionsCompatible(ph->direction, fixed_direction);
         if (compatible && !visual::Port::areTypesCompatible(hit_port_type, fixed_type)) {
             compatible = false;
         }

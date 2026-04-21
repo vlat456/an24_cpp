@@ -1,11 +1,10 @@
 #include <gtest/gtest.h>
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "editor/presentation_spec.h"
+#include "core/model/presentation_spec.h"
 #include "editor/visual/presentation/node_presentation.h"
 #include "editor/visual/presentation/node_slot_layout.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
-#include "json_parser/json_parser.h"
 #include "ui/core/interned_id.h"
 
 using namespace editor::presentation;

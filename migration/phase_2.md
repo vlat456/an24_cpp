@@ -1,5 +1,7 @@
 # Phase 2: PortDescriptor, Direction, and Interface
 
+Historical note: this phase document predates the parser/registry cleanup. References below to legacy `json_parser` paths or APIs are historical and do not describe the current architecture.
+
 ## Goal
 
 Create the port/interface system. A `PortDescriptor` is a typed connection point (name + domain + direction). An `Interface` is an ordered collection of ports with O(1) lookup by name. These types are used by Blueprint nodes, nested instances, and the flattener.
@@ -377,3 +379,4 @@ tests/blueprint_v2/test_interface.cpp
 
 - `src/blueprint_v2/CMakeLists.txt`: add `interface/interface.cpp` to sources
 - `tests/CMakeLists.txt`: add `bp2_interface_tests` target (~12 lines)
+Historical document note: this phase predates the #166 architecture cleanup. References to `src/json_parser/*`, `json_parser`, and `load_type_registry()` are historical and do not describe the current architecture.

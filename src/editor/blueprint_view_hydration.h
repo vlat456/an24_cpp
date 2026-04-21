@@ -3,9 +3,9 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "ui/core/interned_id.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_spec.h"
 #include "data/node_content.h"
-#include "presentation_spec.h"
+#include "core/model/presentation_spec.h"
 
 namespace editor {
 

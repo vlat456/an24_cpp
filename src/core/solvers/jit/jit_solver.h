@@ -3,15 +3,13 @@
 #include "components/port_registry.h"
 #include "scheduler.h"
 #include "subsolvers/subsolver_types.h"
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <memory>
+#include "core/model/resolved_device.h"
+#include <cstddef>
+#include <cstdint>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 #include <vector>
-
-// DeviceInstance is defined in json_parser/json_parser.h
-#include "../../../json_parser/json_parser.h"
 
 // Component forward declarations for SolverOwnedRefs typed pointers
 #include "components/controlled_voltage_source.h"

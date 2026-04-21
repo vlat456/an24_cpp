@@ -2,6 +2,7 @@
 
 #include "blueprint_v2/flattener/flat_netlist.h"
 #include "blueprint_v2/path/path.h"
+#include "core/model/component_registry.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "ui/core/interned_id.h"
 

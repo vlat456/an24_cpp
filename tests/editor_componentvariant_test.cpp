@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "json_parser/json_parser.h"
+#include "io/json/parse_json_api.h"
 #include "core/solvers/jit/jit_solver.h"
 
 

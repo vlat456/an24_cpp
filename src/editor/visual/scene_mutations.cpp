@@ -16,7 +16,7 @@
 #include "editor/visual/presentation/node_presentation.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include "ui/core/interned_id.h"
 #include "visual/snap.h"
 #include <algorithm>

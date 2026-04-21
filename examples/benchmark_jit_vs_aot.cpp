@@ -6,7 +6,7 @@
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/simulator.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "ui/core/interned_id.h"
 #include <iostream>
 #include <fstream>

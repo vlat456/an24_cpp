@@ -5,7 +5,7 @@
 #include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "editor/subwindow_open_target.h"
 #include <random>
 

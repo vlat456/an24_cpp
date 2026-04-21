@@ -130,15 +130,21 @@ JitBuildInput elaborate_for_jit(
                 "Missing domains metadata in component spec for component '" + spec_classname(*type_def) + "'");
         }
 
-        dev.display_name = spec_display_name(*type_def);
-        dev.visual_only = spec_visual_only(*type_def);
-        dev.scheduler_source = spec_scheduler_source(*type_def);
-        dev.solver_owned_electrical = spec_solver_owned_electrical(*type_def);
+        dev.display_name = classname;
+        if (auto* pres = type_registry.presentation.get(classname)) {
+            if (!pres->description.empty()) {
+                dev.display_name = pres->description;
+            }
+        }
+        const auto& meta = spec_meta(*type_def);
+        dev.visual_only = meta.visual_only;
+        dev.scheduler_source = meta.scheduler_source;
+        dev.solver_owned_electrical = meta.solver_owned_electrical;
         dev.domains = domains;
         dev.execution = spec_execution(*type_def);
         dev.solver_role = spec_solver_role(*type_def);
-        dev.priority = spec_priority(*type_def);
-        dev.critical = spec_critical(*type_def);
+        dev.priority = meta.priority;
+        dev.critical = meta.critical;
 
         result.devices.push_back(std::move(dev));
     }

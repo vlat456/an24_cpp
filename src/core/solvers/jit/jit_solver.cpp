@@ -3,6 +3,7 @@
 #include "../common/signal_union_rules.h"
 #include "../common/signal_key.h"
 #include "../../utils/union_find.h"
+#include "io/json/parse_json_api.h"
 
 #include <algorithm>
 #include <map>

@@ -3,7 +3,7 @@
 /// Shared test helper: canonical ExecutionPhases for each component class.
 /// Values must match the corresponding .blueprint files in library/.
 
-#include "json_parser/json_parser.h"
+#include "core/model/component_types.h"
 
 namespace test_exec {
 

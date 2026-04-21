@@ -4,17 +4,6 @@
 
 namespace bp2 {
 
-namespace {
-
-bool bridge_label_matches(const Blueprint::Node& node,
-                          ui::InternedId port_name,
-                          const PathArena& arena) {
-    const std::string_view label = node.view.name;
-    return !label.empty() && label == arena.resolve_id(port_name);
-}
-
-} // namespace
-
 Flattener::Flattener(BlueprintLibrary const& library)
     : library_(library) {}
 
@@ -59,14 +48,6 @@ Blueprint::Node const* Flattener::find_bridge_for_port(
             return &n;
         }
     }
-
-    for (auto const& n : inner_bp.nodes()) {
-        if (!n.is_bridge_port()) continue;
-        if (bridge_label_matches(n, port_name, *arena_)) {
-            return &n;
-        }
-    }
-
     return nullptr;
 }
 

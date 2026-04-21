@@ -4,7 +4,7 @@
 #include <string>
 
 #include "editor/visual/persist.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 
 namespace {
 

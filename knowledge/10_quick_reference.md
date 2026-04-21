@@ -32,7 +32,8 @@ cd build && ctest
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |
 | Simulator | `src/core/simulator.h` |
 | Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
-| Canonical Type Registry (parser) | `src/json_parser/json_parser.h` |
+| Canonical Component Registry | `src/core/model/component_registry.h` |
+| JSON Parser API | `src/io/json/parse_json_api.h` |
 | Flattener | `src/blueprint_v2/flattener/flattener.h` |
 | Code Generator | `src/core/solvers/aot/codegen.h` |
 | AOT common utilities | `src/core/solvers/common/signal_union_rules.h` |
@@ -156,7 +157,7 @@ for (int step = 0; step < total_steps; ++step) {
 Canonical blueprint documents are defined only by `knowledge/persistence_spec_v1.md`.
 
 - canonical blueprint document: strict v1, `format: "blueprint"`, `version: 1`
-- library asset: `library/**/*.blueprint` type-definition JSON loaded by `json_parser`
+- library asset: `library/**/*.blueprint` type-definition JSON loaded via `io/json/component_registry_json_loader.h`
 - workspace/session persistence: separate editor-only file, not part of canonical blueprint authority
 - legacy/reference schematics: preserved outside canonical authority
 
@@ -291,7 +292,7 @@ Current high-current warning bands:
 | `AotProvider` | Compile-time port lookup |
 | `ComponentVariant` | Type-safe component union |
 | `Blueprint` | Immutable circuit definition |
-| `TypeRegistry` | Component type database (in json_parser) |
+| `ComponentRegistry` | Canonical component type database |
 | `Flattener` | Hierarchy → flat netlist |
 | `EditorModel` | Undo/redo + dirty tracking |
 | `Document` | Open file + simulator |

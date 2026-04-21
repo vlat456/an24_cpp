@@ -58,8 +58,8 @@ public:
 
     uint32_t color() const;
 
-    /// Check if port sides allow connection (Input <-> Output, InOut connects to anything)
-    static bool areSidesCompatible(bp2::Direction a, bp2::Direction b) {
+    /// Check if port directions allow connection (Input <-> Output, InOut connects to anything)
+    static bool areDirectionsCompatible(bp2::Direction a, bp2::Direction b) {
         if (a == bp2::Direction::InOut || b == bp2::Direction::InOut) return true;
         return a != b;
     }

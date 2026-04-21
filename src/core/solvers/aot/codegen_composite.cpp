@@ -1,4 +1,6 @@
 #include "codegen_composite_helpers.h"
+#include "core/registry/component_resolution.h"
+#include "core/registry/composite_expansion.h"
 
 #include <set>
 

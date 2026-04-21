@@ -26,8 +26,8 @@ add_library(blueprint_v2 STATIC
 target_include_directories(blueprint_v2 PUBLIC
     ${CMAKE_SOURCE_DIR}/src
 )
-target_link_libraries(blueprint_v2 PUBLIC
+target_link_libraries(blueprint_v2 PRIVATE
     nlohmann_json::nlohmann_json
     spdlog::spdlog
-    json_parser
+    json_io
 )

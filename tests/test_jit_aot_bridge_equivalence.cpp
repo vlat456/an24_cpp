@@ -3,7 +3,7 @@
 #include "core/solvers/aot/codegen.h"
 #include "core/solvers/aot/codegen_composite_helpers.h"
 #include "core/solvers/jit/jit_solver.h"
-#include "json_parser/json_parser.h"
+#include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
 #include "test_fixtures.h"
 #include "test_helpers.h"
@@ -72,33 +72,28 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     PrimitiveSpec meter = make_voltmeter_type();
     registry.types["Voltmeter"] = meter;
 
-    // Resolve devices against registry (stable pointers)
     std::vector<DeviceInstance> devices;
 
     DeviceInstance d_gnd;
     d_gnd.name = "gnd";
     d_gnd.classname = "RefNode";
-    d_gnd = resolve_device(d_gnd, registry.types["RefNode"]);
     devices.push_back(d_gnd);
 
     DeviceInstance d_cmd_src;
     d_cmd_src.name = "cmd_src";
     d_cmd_src.classname = "RefNode";
     d_cmd_src.params["value"] = "1.0";
-    d_cmd_src = resolve_device(d_cmd_src, registry.types["RefNode"]);
     devices.push_back(d_cmd_src);
 
     DeviceInstance d_bool;
     d_bool.name = "cmd_logic";
     d_bool.classname = "Any_V_to_Bool";
-    d_bool = resolve_device(d_bool, registry.types["Any_V_to_Bool"]);
     devices.push_back(d_bool);
 
     DeviceInstance d_src;
     d_src.name = "src";
     d_src.classname = "ControlledVoltageSource";
     d_src.params["r_internal"] = "0.1";
-    d_src = resolve_device(d_src, registry.types["ControlledVoltageSource"]);
     devices.push_back(d_src);
 
     // Value nodes for CVS port-based params
@@ -106,34 +101,29 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     d_gain.name = "src_gain";
     d_gain.classname = "Value";
     d_gain.params["value"] = "28.0";
-    d_gain = resolve_device(d_gain, registry.types["Value"]);
     devices.push_back(d_gain);
 
     DeviceInstance d_offset;
     d_offset.name = "src_offset";
     d_offset.classname = "Value";
     d_offset.params["value"] = "0.0";
-    d_offset = resolve_device(d_offset, registry.types["Value"]);
     devices.push_back(d_offset);
 
     DeviceInstance d_min_v;
     d_min_v.name = "src_min_v";
     d_min_v.classname = "Value";
     d_min_v.params["value"] = "0.0";
-    d_min_v = resolve_device(d_min_v, registry.types["Value"]);
     devices.push_back(d_min_v);
 
     DeviceInstance d_max_v;
     d_max_v.name = "src_max_v";
     d_max_v.classname = "Value";
     d_max_v.params["value"] = "40.0";
-    d_max_v = resolve_device(d_max_v, registry.types["Value"]);
     devices.push_back(d_max_v);
 
     DeviceInstance d_meter;
     d_meter.name = "meter";
     d_meter.classname = "Voltmeter";
-    d_meter = resolve_device(d_meter, registry.types["Voltmeter"]);
     devices.push_back(d_meter);
 
     std::vector<Connection> connections = {
@@ -147,17 +137,17 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
         {"src_max_v.o", "src.max_v"},
     };
 
+    const std::vector<ResolvedDevice> resolved_devices = resolve_all_devices(devices, registry);
+
     // AOT side here is a structural codegen smoke test, not numeric parity:
     // we assign deterministic per-port indices directly (no union-find collapsing).
     std::unordered_map<std::string, uint32_t> port_to_signal;
     uint32_t next_signal = 0;
-    for (const auto& dev : devices) {
+    for (const auto& dev : resolved_devices) {
         for (const auto& [port_name, _] : dev.ports) {
             port_to_signal[dev.name + "." + port_name] = next_signal++;
         }
     }
-
-    const std::vector<ResolvedDevice> resolved_devices = resolve_all_devices(devices, registry);
 
     const std::string aot_header =
         CodeGen::generate_header("bridge_equivalence.json", resolved_devices, connections, port_to_signal, next_signal);
@@ -171,7 +161,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     for (const auto& c : connections) {
         conn_pairs.emplace_back(c.from, c.to);
     }
-    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, {}, connections));
+    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, {}, connections, &registry));
 
     auto signal_of = [&](const std::string& port) {
         auto it = jit.port_to_signal.find(port);
@@ -195,8 +185,8 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
 
     std::vector<DeviceInstance> devices;
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge_port_def("vin", bp2::Direction::Input),
-        make_bridge_port_def("vout", bp2::Direction::Output),
+        make_bridge_port_def("vin", bp2::BridgeDirection::Input),
+        make_bridge_port_def("vout", bp2::BridgeDirection::Output),
     };
 
     DeviceInstance pass;
@@ -205,7 +195,6 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     pass.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     pass.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     pass.params["conductance"] = "1.0";
-    pass = resolve_device(pass, registry.types["Resistor"]);
     devices.push_back(pass);
 
     std::vector<Connection> connections = {
@@ -263,8 +252,8 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
 
     std::vector<DeviceInstance> devices;
     std::vector<BridgePortDefinition> bridges = {
-        make_bridge_port_def("vin", bp2::Direction::Input),
-        make_bridge_port_def("vout", bp2::Direction::Output),
+        make_bridge_port_def("vin", bp2::BridgeDirection::Input),
+        make_bridge_port_def("vout", bp2::BridgeDirection::Output),
     };
 
     DeviceInstance load;
@@ -273,14 +262,12 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     load.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     load.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     load.params["conductance"] = "1.0";
-    load = resolve_device(load, registry.types["Resistor"]);
     devices.push_back(load);
 
     DeviceInstance visual;
     visual.name = "ui_only";
     visual.classname = "Value";
     visual.ports["o"] = Port{bp2::Direction::Output, PortType::Any, std::nullopt};
-    visual = resolve_device(visual, registry.types["Value"]);
     devices.push_back(visual);
 
     std::vector<Connection> connections = {
@@ -294,7 +281,7 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
         conn_pairs.emplace_back(c.from, c.to);
     }
 
-    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
+    BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections, &registry));
     const std::vector<ResolvedDevice> resolved_for_aot = resolve_all_devices(devices, registry);
 
     std::vector<std::string> all_ports;

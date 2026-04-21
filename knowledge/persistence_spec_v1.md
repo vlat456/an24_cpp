@@ -19,7 +19,8 @@ This specification intentionally does **not** preserve old format concepts.
 
 This specification is grounded by the current project concepts in:
 
-- `src/json_parser/json_parser.h`
+- `src/core/model/component_registry.h`
+- `src/io/json/parse_json_api.h`
 - `src/blueprint_v2/interface/port_descriptor.h`
 - `src/blueprint_v2/blueprint/node_content_type.h`
 
@@ -95,7 +96,7 @@ These old-format or non-canonical fields must not appear:
 |---|---|---|---|
 | `id` | yes | string | Unique port name within this interface |
 | `direction` | yes | string | One of `"In"`, `"Out"`, `"InOut"` |
-| `port_type` | yes | string | One of `"V"`, `"I"`, `"Bool"`, `"RPM"`, `"Temperature"`, `"Pressure"`, `"Position"`, `"Any"` |
+| `port_type` | yes | string | One of `"V"`, `"I"`, `"Signal"`, `"Bool"`, `"RPM"`, `"Temperature"`, `"Pressure"`, `"Position"`, `"Contextual"`, `"Any"` |
 | `source_writer` | no | boolean | Defaults to `false` |
 
 ### Interface authority
@@ -276,7 +277,7 @@ The document must not persist:
 | Field | Required | Type | Description |
 |---|---|---|---|
 | `exposed_port` | yes | string | Public interface port this bridge anchors |
-| `side` | yes | string | One of `"input"` or `"output"` |
+| `direction` | yes | string | One of `"input"` or `"output"` |
 | `port_type` | yes | string | Canonical port type token |
 
 Bridge-port nodes are structural boundary anchors. They are not components.
@@ -284,8 +285,8 @@ Bridge-port nodes are structural boundary anchors. They are not components.
 ### Bridge-port authority
 
 - `exposed_port` identifies the authoritative public interface port.
-- `side` and `port_type` are authoritative persisted bridge semantics.
-- The bridge's local `ext` / `port` interface is derived from `side` and `port_type`.
+- `direction` and `port_type` are authoritative persisted bridge semantics.
+- The bridge's local `ext` / `port` interface is derived from `direction` and `port_type`.
 
 Bridge-port nodes must not persist:
 
@@ -367,7 +368,7 @@ Port existence is resolved from the node's authoritative interface:
 
 - For `component` nodes: the component type registry interface
 - For `blueprint_instance` nodes: the source blueprint's `interface` (embedded inline, or resolved referenced blueprint)
-- For `bridge_port` nodes: the derived two-port bridge interface from `exposed_port`, `side`, and `port_type`
+- For `bridge_port` nodes: the derived two-port bridge interface from `exposed_port`, `direction`, and `port_type`
 
 ## Library Index
 

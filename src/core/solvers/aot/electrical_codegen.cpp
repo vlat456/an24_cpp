@@ -1,7 +1,7 @@
 #include "codegen.h"
 #include "codegen_utils.h"
 #include "../common/signal_key.h"
-#include "../parse_number.h"
+#include "parse_number.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cctype>

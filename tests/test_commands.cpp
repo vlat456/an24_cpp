@@ -5,7 +5,7 @@
 #include "editor/commands/extract_blueprint.h"
 #include "editor/commands/blueprint_checksum.h"
 #include "editor/visual/persist.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/blueprint/blueprint.h"
@@ -140,7 +140,7 @@ static bp2::Blueprint make_extract_with_bridge_node_fixture_node_owned(ui::Strin
     bridge.semantic.type = I.intern("BridgePort");
     bridge.content = bp2::Blueprint::Node::BridgePortData{
         I.intern("bridge_in"),
-        bp2::Blueprint::Node::BridgePortSide::Input,
+        bp2::Direction::Input,
         PortType::V,
         bp2::Interface({
             make_port(I.intern("ext"), bp2::Direction::Input, PortType::V),
@@ -419,10 +419,10 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, PreservesTypedBoundaryPorts) {
     const bp2::Blueprint::Node* bp_in_node = nullptr;
     const bp2::Blueprint::Node* bp_out_node = nullptr;
     for (const auto& n : inner.nodes()) {
-        if (n.is_bridge_port() && n.bridge_port().side == bp2::Blueprint::Node::BridgePortSide::Input) {
+        if (n.is_bridge_port() && n.bridge_port().direction == bp2::BridgeDirection::Input) {
             bp_in_node = &n;
         }
-        if (n.is_bridge_port() && n.bridge_port().side == bp2::Blueprint::Node::BridgePortSide::Output) {
+        if (n.is_bridge_port() && n.bridge_port().direction == bp2::BridgeDirection::Output) {
             bp_out_node = &n;
         }
     }

@@ -142,7 +142,7 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     BridgePortDefinition bridge;
     bridge.id = "flag";
     bridge.exposed_port = "flag";
-    bridge.direction = bp2::Direction::Input;
+    bridge.direction = bp2::BridgeDirection::Input;
     bridge.type = PortType::Contextual;
     def.bridge_ports.push_back(bridge);
 

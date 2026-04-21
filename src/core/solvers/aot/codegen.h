@@ -1,8 +1,16 @@
 #pragma once
 
-#include "../json_parser/json_parser.h"
-#include <string>
+#include "core/model/component_registry.h"
+#include "core/model/component_spec.h"
+#include "core/model/connection.h"
+#include "core/model/resolved_device.h"
+
+#include <cstdint>
 #include <map>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 /// Result of composite code generation
 struct CompositeCodegenResult {

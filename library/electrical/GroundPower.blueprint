@@ -28,7 +28,7 @@
       "id": "v_in",
       "kind": "bridge_port",
       "exposed_port": "v_in",
-      "side": "input",
+      "direction": "input",
       "port_type": "V",
       "layout": {
         "x": 0.0,
@@ -181,7 +181,7 @@
       "id": "v_out",
       "kind": "bridge_port",
       "exposed_port": "v_out",
-      "side": "output",
+      "direction": "output",
       "port_type": "V",
       "layout": {
         "x": 352.0,

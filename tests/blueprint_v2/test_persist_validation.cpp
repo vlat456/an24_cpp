@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
 #include "editor/visual/persist.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/interface/type_definition_interface.h"

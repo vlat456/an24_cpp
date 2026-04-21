@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "json_parser/json_parser.h"
+#include "core/registry/composite_expansion.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/aot/codegen.h"
 #include "test_helpers.h"
@@ -20,8 +20,8 @@ ComponentRegistry build_registry_for_lamp() {
     d_lamp.classname = "IndicatorLight";
     lamp.devices.push_back(d_lamp);
     lamp.bridge_ports = {
-        BridgePortDefinition{"vin", "vin", bp2::Direction::Input, PortType::V},
-        BridgePortDefinition{"vout", "vout", bp2::Direction::Output, PortType::V},
+        BridgePortDefinition{"vin", "vin", bp2::BridgeDirection::Input, PortType::V},
+        BridgePortDefinition{"vout", "vout", bp2::BridgeDirection::Output, PortType::V},
     };
     lamp.connections = {
         {"vin.port", "lamp.v_in", {}},
@@ -47,11 +47,6 @@ TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
 
     std::set<std::string> loading_stack;
     auto expanded = expand_sub_blueprint_references(lamp, registry, loading_stack);
-    for (auto& dev : expanded.devices) {
-        const auto* type_def = registry.get(dev.classname);
-        ASSERT_NE(type_def, nullptr);
-         dev = resolve_device(dev, *type_def);
-     }
 
      BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
 
@@ -82,38 +77,38 @@ TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
     src_a.classname = "ElectricalSource";
     src_a.params["voltage"] = "10.0";
     src_a.params["resistance"] = "1.0";
-    src_a.spec = registry.get("ElectricalSource");
+    
 
     DeviceInstance load_a;
     load_a.name = "load_a";
     load_a.classname = "ElectricalConductance";
     load_a.params["conductance"] = "1.0";
-    load_a.spec = registry.get("ElectricalConductance");
+    
 
     DeviceInstance gnd_a;
     gnd_a.name = "gnd_a";
     gnd_a.classname = "RefNode";
     gnd_a.params["value"] = "0.0";
-    gnd_a.spec = registry.get("RefNode");
+    
 
     DeviceInstance src_b;
     src_b.name = "src_b";
     src_b.classname = "ElectricalSource";
     src_b.params["voltage"] = "24.0";
     src_b.params["resistance"] = "0.0";
-    src_b.spec = registry.get("ElectricalSource");
+    
 
     DeviceInstance load_b;
     load_b.name = "load_b";
     load_b.classname = "ElectricalConductance";
     load_b.params["conductance"] = "2.0";
-    load_b.spec = registry.get("ElectricalConductance");
+    
 
     DeviceInstance gnd_b;
     gnd_b.name = "gnd_b";
     gnd_b.classname = "RefNode";
     gnd_b.params["value"] = "0.0";
-    gnd_b.spec = registry.get("RefNode");
+    
 
     circuit.devices.push_back(src_a);
     circuit.devices.push_back(load_a);
@@ -137,11 +132,6 @@ TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
 
     std::set<std::string> loading_stack;
     auto expanded = expand_sub_blueprint_references(circuit, registry, loading_stack);
-    for (auto& dev : expanded.devices) {
-        const auto* type_def = registry.get(dev.classname);
-        ASSERT_NE(type_def, nullptr);
-         dev = resolve_device(dev, *type_def);
-     }
 
       BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
 

@@ -15,8 +15,8 @@ std::string encode_direction(Direction direction) {
     return "Out";
 }
 
-std::string encode_bridge_side(Blueprint::Node::BridgePortSide side) {
-    return side == Blueprint::Node::BridgePortSide::Input ? "input" : "output";
+std::string encode_bridge_direction(bp2::BridgeDirection direction) {
+    return direction == bp2::BridgeDirection::Input ? "input" : "output";
 }
 
 std::string encode_node_kind(Blueprint::Node const& node) {
@@ -116,7 +116,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
             }
         } else {
             n["exposed_port"] = std::string(interner.resolve(node.bridge_port().exposed_port));
-            n["side"] = encode_bridge_side(node.bridge_port().side);
+            n["direction"] = encode_bridge_direction(node.bridge_port().direction);
             n["port_type"] = port_type_to_string(node.bridge_port().port_type);
         }
 

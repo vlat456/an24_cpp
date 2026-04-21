@@ -145,7 +145,7 @@ src/
 │   ├── simulator.h   # Simulator class
 │   ├── scheduler.h   # PushScheduler
 │   └── subsolvers/   # Electrical subsolver
-├── json_parser/     # JSON config parsing (DeviceInstance, Connection)
+├── io/json/         # JSON loading/parsing adapters
 ├── codegen/         # AOT code generation
 ├── editor/          # Visual blueprint editor (ImGui + OpenGL)
 ├── blueprint_v2/    # Blueprint model, registry, flattener

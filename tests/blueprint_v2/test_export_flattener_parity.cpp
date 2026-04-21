@@ -9,7 +9,7 @@
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/common/signal_key.h"
 #include "ui/core/interned_id.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 
 #include <set>
 #include <string>
@@ -116,8 +116,8 @@ bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
     n.view.name = exposed_port;
     n.content = bp2::Blueprint::Node::BridgePortData{
         I.intern(exposed_port),
-        input_side ? bp2::Blueprint::Node::BridgePortSide::Input
-                   : bp2::Blueprint::Node::BridgePortSide::Output,
+        input_side ? bp2::BridgeDirection::Input
+                   : bp2::BridgeDirection::Output,
         type,
         input_side
             ? bp2::Interface({

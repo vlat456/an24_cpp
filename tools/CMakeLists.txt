@@ -1,7 +1,7 @@
 # Standalone tool: regenerate port_registry.h from library/*.blueprint
 add_executable(update_port_registry update_port_registry.cpp)
 target_include_directories(update_port_registry PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(update_port_registry PRIVATE an24_codegen json_parser spdlog::spdlog)
+target_link_libraries(update_port_registry PRIVATE an24_codegen json_io)
 
 # Convenience target: run the tool from the project root so relative paths work
 # Usage: cmake --build build --target regenerate_port_registry

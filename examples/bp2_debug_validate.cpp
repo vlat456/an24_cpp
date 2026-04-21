@@ -6,7 +6,7 @@
 #include "blueprint_v2/validation/wire_validator.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "blueprint_v2/validation/path_resolver.h"
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "ui/core/interned_id.h"
 
 #include <fstream>
@@ -23,11 +23,13 @@ std::string port_type_name(PortType type) {
     switch (type) {
         case PortType::V: return "V";
         case PortType::I: return "I";
+        case PortType::Signal: return "Signal";
         case PortType::Bool: return "Bool";
         case PortType::RPM: return "RPM";
         case PortType::Temperature: return "Temperature";
         case PortType::Pressure: return "Pressure";
         case PortType::Position: return "Position";
+        case PortType::Contextual: return "Contextual";
         case PortType::Any: return "Any";
     }
     return "Any";

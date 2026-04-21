@@ -5,21 +5,13 @@
 ///   (HoldButton not pressed -> state = 0 -> AND should output 0)
 
 #include <gtest/gtest.h>
-#include "json_parser/json_parser.h"
+#include "io/json/component_registry_json_loader.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/components/all.h"
 #include "parse_number.h"
-#include <spdlog/spdlog.h>
 #include <cstdio>
 
-class ANDGateDebugTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        spdlog::set_level(spdlog::level::debug);
-    }
-};
-
-TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
+TEST(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     // Minimal circuit reproducing the blueprint:
     //   gnd(0V) -> bat.v_in
     //   bat.v_out -> bus.v

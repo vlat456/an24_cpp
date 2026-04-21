@@ -2,7 +2,8 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
+#include "core/model/component_spec.h"
 #include "ui/core/interned_id.h"
 
 #include <stdexcept>

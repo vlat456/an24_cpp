@@ -11,7 +11,7 @@ target_include_directories(an24_codegen PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
-target_link_libraries(an24_codegen PUBLIC spdlog::spdlog json_parser)
+target_link_libraries(an24_codegen PRIVATE spdlog::spdlog json_io)
 
 # Disabled for AOT-only refactor - needs template component instantiation
 # add_executable(test_generated
@@ -155,7 +155,6 @@ add_executable(an24_editor
 target_include_directories(an24_editor PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
@@ -168,31 +167,44 @@ target_link_libraries(an24_editor PRIVATE
     "-framework Foundation"
     "-framework AppKit"
     "-framework UniformTypeIdentifiers"
-    spdlog::spdlog
     nfd
     jit_solver
-    json_parser
     editor_semantic_canvas
-    blueprint_v2
     nlohmann_json::nlohmann_json
 )
 
 # Headless blueprint simulator with signal probing
 add_executable(sim_debug sim_debug.cpp)
 target_include_directories(sim_debug PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(sim_debug PRIVATE json_parser jit_solver blueprint_v2 spdlog::spdlog nlohmann_json::nlohmann_json)
+target_link_libraries(sim_debug PRIVATE
+    jit_solver
+    blueprint_v2
+    json_io
+    nlohmann_json::nlohmann_json
+)
 
 # Temporary strict blueprint validation debugger
 add_executable(bp2_debug_validate bp2_debug_validate.cpp)
 target_include_directories(bp2_debug_validate PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(bp2_debug_validate PRIVATE json_parser blueprint_v2 spdlog::spdlog nlohmann_json::nlohmann_json)
+target_link_libraries(bp2_debug_validate PRIVATE
+    blueprint_v2
+    json_io
+    nlohmann_json::nlohmann_json
+)
 
 # Benchmark JIT vs AOT
 add_executable(benchmark_jit_vs_aot benchmark_jit_vs_aot.cpp)
 target_include_directories(benchmark_jit_vs_aot PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver blueprint_v2 spdlog::spdlog nlohmann_json::nlohmann_json)
+target_link_libraries(benchmark_jit_vs_aot PRIVATE
+    jit_solver
+    blueprint_v2
+    json_io
+)
 
 # Push scheduler benchmark (single-pass)
 add_executable(benchmark_push_scheduler benchmark_push_scheduler.cpp)
 target_include_directories(benchmark_push_scheduler PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(benchmark_push_scheduler PRIVATE jit_solver spdlog::spdlog)
+target_link_libraries(benchmark_push_scheduler PRIVATE
+    jit_solver
+    json_io
+)

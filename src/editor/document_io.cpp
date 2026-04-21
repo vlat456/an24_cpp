@@ -1,7 +1,7 @@
 #include "document.h"
 
 #include "blueprint_view_hydration.h"
-#include "json_parser/json_parser.h"
+#include "core/model/component_registry.h"
 #include "blueprint_v2/library/library_path.h"
 #include "visual/persist.h"
 #include "visual/workspace_session_persist.h"

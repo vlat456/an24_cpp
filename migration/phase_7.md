@@ -1,6 +1,6 @@
 # Phase 7: EditorModel and Bridge Layer
 
-Historical note: this phase description references legacy bp2 registry APIs that were removed; canonical registry lives in json_parser.
+Historical note: this phase description references legacy bp2 registry APIs that were removed. The current canonical registry model lives in `core/model/component_registry.h`, and the current JSON loader lives in `io/json/component_registry_json_loader.h`.
 
 ## Goal
 
@@ -837,3 +837,4 @@ After this phase:
 - Old blueprint files can be loaded and converted to the new system
 - The new `Flattener` can produce netlists for the simulator
 - The bridge layer allows incremental migration without breaking existing code
+Historical document note: this phase predates the #166 architecture cleanup. References to `src/json_parser/*`, `json_parser`, and `load_type_registry()` are historical and do not describe the current architecture.

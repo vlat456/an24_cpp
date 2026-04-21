@@ -2,6 +2,7 @@
 
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/validation/invariant_checker.h"
+#include "core/model/component_registry.h"
 
 #include <algorithm>
 

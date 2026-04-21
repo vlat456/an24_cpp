@@ -71,8 +71,8 @@ bool create_bridge_nodes_for_side(
         bridge.content = bp2::Blueprint::Node::BridgePortData{
             interner.intern(ec.iface_name),
             p.is_input_side
-                ? bp2::Blueprint::Node::BridgePortSide::Input
-                : bp2::Blueprint::Node::BridgePortSide::Output,
+                ? bp2::BridgeDirection::Input
+                : bp2::BridgeDirection::Output,
             port_type,
             make_bridge_iface(interner, p.is_input_side, port_type),
         };

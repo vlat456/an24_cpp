@@ -1,6 +1,8 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/state.h"
+#include "io/json/component_registry_json_loader.h"
+#include "core/registry/component_resolution.h"
 
 #include <chrono>
 #include <iostream>
