@@ -1536,6 +1536,7 @@ add_executable(bp2_blueprint_tests
 )
 target_include_directories(bp2_blueprint_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(bp2_blueprint_tests PRIVATE
     blueprint_v2
