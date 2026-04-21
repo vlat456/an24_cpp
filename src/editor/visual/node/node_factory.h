@@ -27,6 +27,7 @@ struct NodeFactory {
                                           const bp2::Interface& render_iface,
                                           const ui::StringInterner& interner,
                                           const NodeContent& content,
+                                          std::optional<editor::NodeColor> color = std::nullopt,
                                           const std::vector<BusWireRef>& wires = {}) {
         using editor::presentation::NodeFrameKind;
         switch (frame_kind) {
@@ -38,17 +39,17 @@ struct NodeFactory {
                     else if (it->second == "left")   edge = PortEdge::Left;
                     else if (it->second == "right")  edge = PortEdge::Right;
                 }
-                return std::make_unique<BusNodeWidget>(node, interner, edge, wires);
+                return std::make_unique<BusNodeWidget>(node, interner, edge, wires, color);
             }
             case NodeFrameKind::Reference:
-                return std::make_unique<RefNodeWidget>(node, render_iface, interner);
+                return std::make_unique<RefNodeWidget>(node, render_iface, interner, color);
             case NodeFrameKind::Group:
-                return std::make_unique<GroupNodeWidget>(node, interner);
+                return std::make_unique<GroupNodeWidget>(node, interner, color);
             case NodeFrameKind::Annotation:
-                return std::make_unique<TextNodeWidget>(node, interner);
+                return std::make_unique<TextNodeWidget>(node, interner, color);
             case NodeFrameKind::Standard:
             default:
-                return std::make_unique<NodeWidget>(node, render_iface, interner, content);
+                return std::make_unique<NodeWidget>(node, render_iface, interner, content, color);
         }
     }
 };

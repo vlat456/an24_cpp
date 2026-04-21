@@ -7,6 +7,7 @@
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "ui/core/interned_id.h"
 #include "core/model/component_registry.h"
+#include "editor/data/node_content.h"
 
 // Shared bp2 test helpers (make_port, set_iface, count_inputs, count_outputs)
 #include "bp2_test_helpers.h"
@@ -52,6 +53,16 @@ static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
         t,
     };
     return n;
+}
+
+static NodeContent resolve_test_content(const bp2::Blueprint::Node& node,
+                                        ComponentRegistry& registry,
+                                        ui::StringInterner& interner) {
+    const std::string type_name(interner.resolve(node.semantic.type));
+    const auto* def = registry.get(type_name);
+    const auto* pres = registry.presentation.get(type_name);
+    EXPECT_NE(def, nullptr);
+    return create_node_content(*def, pres, node.semantic.params, node.semantic.string_params, interner);
 }
 
 // =============================================================================
@@ -568,7 +579,6 @@ TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
      bus.semantic.id = interner.intern("bus");
      bus.semantic.type = interner.intern("Bus");
      bus.view.name = "bus";
-     bus.view.render_hint = "bus";
      set_iface(bus, {
          make_port(interner, "v", Domain::Electrical, bp2::Direction::InOut, PortType::V),
          make_port(interner, "v", Domain::Electrical, bp2::Direction::InOut, PortType::V),
@@ -879,14 +889,12 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax) {
     n.semantic.id = interner.intern("knob1");
     n.semantic.type = interner.intern("KnobSwitch");
     n.view.name = "knob1";
-    n.view.content_type = bp2::NodeContentType::Knob;
-    n.view.content_max = 2.0f;  // Initial: 2 positions
     n.semantic.params[interner.intern("positions")] = 2.0f;
     model.add_node(std::move(n));
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("knob1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 2.0f);
+    EXPECT_FLOAT_EQ(resolve_test_content(*node_ptr, registry, interner).max, 2.0f);
 
     PropertiesWindow win;
     win.open(*node_ptr, "knob1", model, interner, &registry, [](const std::string&) {});
@@ -898,7 +906,7 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax) {
     node_ptr = model.current().find_node(interner.intern("knob1"));
     ASSERT_NE(node_ptr, nullptr);
     EXPECT_FLOAT_EQ(node_ptr->semantic.params.at(interner.intern("positions")), 5.0f);
-    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 5.0f)
+    EXPECT_FLOAT_EQ(resolve_test_content(*node_ptr, registry, interner).max, 5.0f)
         << "content_max must be synced from 'positions' param for Knob nodes";
 }
 
@@ -909,8 +917,6 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax_UndoReverts) {
     n.semantic.id = interner.intern("knob1");
     n.semantic.type = interner.intern("KnobSwitch");
     n.view.name = "knob1";
-    n.view.content_type = bp2::NodeContentType::Knob;
-    n.view.content_max = 2.0f;
     n.semantic.params[interner.intern("positions")] = 2.0f;
     model.add_node(std::move(n));
 
@@ -927,7 +933,7 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax_UndoReverts) {
 
     node_ptr = model.current().find_node(interner.intern("knob1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 2.0f)
+    EXPECT_FLOAT_EQ(resolve_test_content(*node_ptr, registry, interner).max, 2.0f)
         << "Undo must revert content_max for Knob nodes";
 }
 
@@ -938,9 +944,6 @@ TEST_F(PropertiesWindowTest, ApplySliderMinMaxSyncsContentRange) {
     n.semantic.id = interner.intern("slider1");
     n.semantic.type = interner.intern("Slider");
     n.view.name = "slider1";
-    n.view.content_type = bp2::NodeContentType::Slider;
-    n.view.content_min = 0.0f;
-    n.view.content_max = 100.0f;
     n.semantic.params[interner.intern("min")] = 0.0f;
     n.semantic.params[interner.intern("max")] = 100.0f;
     model.add_node(std::move(n));
@@ -956,9 +959,10 @@ TEST_F(PropertiesWindowTest, ApplySliderMinMaxSyncsContentRange) {
 
     node_ptr = model.current().find_node(interner.intern("slider1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->view.content_min, -10.0f)
+    const NodeContent content = resolve_test_content(*node_ptr, registry, interner);
+    EXPECT_FLOAT_EQ(content.min, -10.0f)
         << "content_min must be synced from 'min' param for Slider nodes";
-    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 200.0f)
+    EXPECT_FLOAT_EQ(content.max, 200.0f)
         << "content_max must be synced from 'max' param for Slider nodes";
 }
 
@@ -969,9 +973,6 @@ TEST_F(PropertiesWindowTest, ApplyGaugeMinMaxSyncsContentRange) {
     n.semantic.id = interner.intern("gauge1");
     n.semantic.type = interner.intern("Voltmeter");
     n.view.name = "gauge1";
-    n.view.content_type = bp2::NodeContentType::Gauge;
-    n.view.content_min = 0.0f;
-    n.view.content_max = 30.0f;
     n.semantic.params[interner.intern("min")] = 0.0f;
     n.semantic.params[interner.intern("max")] = 30.0f;
     model.add_node(std::move(n));
@@ -986,20 +987,18 @@ TEST_F(PropertiesWindowTest, ApplyGaugeMinMaxSyncsContentRange) {
 
     node_ptr = model.current().find_node(interner.intern("gauge1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->view.content_min, 0.0f)
+    const NodeContent content = resolve_test_content(*node_ptr, registry, interner);
+    EXPECT_FLOAT_EQ(content.min, 0.0f)
         << "content_min unchanged for Gauge nodes";
-    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 60.0f)
+    EXPECT_FLOAT_EQ(content.max, 60.0f)
         << "content_max must be synced from 'max' param for Gauge nodes";
 }
 
-TEST_F(PropertiesWindowTest, ApplyKnobPositionsPreservesLiveContentValue) {
+TEST_F(PropertiesWindowTest, ApplyKnobPositionsUpdatesCanonicalRangeOnly) {
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("knob1");
     n.semantic.type = interner.intern("KnobSwitch");
     n.view.name = "knob1";
-    n.view.content_type = bp2::NodeContentType::Knob;
-    n.view.content_value = 3.0f;
-    n.view.content_max = 5.0f;
     n.semantic.params[interner.intern("positions")] = 5.0f;
     model.add_node(std::move(n));
 
@@ -1013,19 +1012,15 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsPreservesLiveContentValue) {
 
     node_ptr = model.current().find_node(interner.intern("knob1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_FLOAT_EQ(node_ptr->view.content_value, 3.0f)
-        << "apply() must preserve live content_value while rehydrating static knob fields";
-    EXPECT_FLOAT_EQ(node_ptr->view.content_max, 7.0f)
-        << "apply() must still refresh static knob range from semantic params";
+    EXPECT_FLOAT_EQ(resolve_test_content(*node_ptr, registry, interner).max, 7.0f)
+        << "apply() must refresh knob range from canonical params";
 }
 
-TEST_F(PropertiesWindowTest, ApplySwitchClosedReseedsLiveContentState) {
+TEST_F(PropertiesWindowTest, ApplySwitchClosedUpdatesCanonicalDefaultOnly) {
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("switch1");
     n.semantic.type = interner.intern("Switch");
     n.view.name = "switch1";
-    n.view.content_type = bp2::NodeContentType::Switch;
-    n.view.content_state = false;
     n.semantic.params[interner.intern("closed")] = 0.0f;
     model.add_node(std::move(n));
 
@@ -1045,11 +1040,12 @@ TEST_F(PropertiesWindowTest, ApplySwitchClosedReseedsLiveContentState) {
 
     node_ptr = model.current().find_node(interner.intern("switch1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_TRUE(node_ptr->view.content_state)
-        << "apply() must reseed live switch state when the semantic default 'closed' changes";
+    EXPECT_EQ(node_ptr->semantic.string_params.at("closed"), "true");
+    EXPECT_TRUE(resolve_test_content(*node_ptr, registry, interner).state)
+        << "apply() must update canonical switch default; runtime state is external";
 }
 
-TEST_F(PropertiesWindowTest, ApplyAzsClosedReseedsLiveVerticalToggleState) {
+TEST_F(PropertiesWindowTest, ApplyAzsClosedUpdatesCanonicalVerticalToggleDefaultOnly) {
     PrimitiveSpec azs_def;
     azs_def.classname = "AZS";
     azs_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
@@ -1060,8 +1056,6 @@ TEST_F(PropertiesWindowTest, ApplyAzsClosedReseedsLiveVerticalToggleState) {
     n.semantic.id = interner.intern("azs1");
     n.semantic.type = interner.intern("AZS");
     n.view.name = "azs1";
-    n.view.content_type = bp2::NodeContentType::VerticalToggle;
-    n.view.content_state = false;
     n.semantic.params[interner.intern("closed")] = 0.0f;
     model.add_node(std::move(n));
 
@@ -1075,11 +1069,11 @@ TEST_F(PropertiesWindowTest, ApplyAzsClosedReseedsLiveVerticalToggleState) {
 
     node_ptr = model.current().find_node(interner.intern("azs1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_TRUE(node_ptr->view.content_state)
-        << "apply() must reseed live AZS toggle state when the semantic default 'closed' changes";
+    EXPECT_EQ(node_ptr->semantic.string_params.at("closed"), "true");
+    EXPECT_TRUE(resolve_test_content(*node_ptr, registry, interner).state);
 }
 
-TEST_F(PropertiesWindowTest, ApplyRelayClosedReseedsLiveSwitchState) {
+TEST_F(PropertiesWindowTest, ApplyRelayClosedUpdatesCanonicalSwitchDefaultOnly) {
     PrimitiveSpec relay_def;
     relay_def.classname = "Relay";
     relay_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
@@ -1090,8 +1084,6 @@ TEST_F(PropertiesWindowTest, ApplyRelayClosedReseedsLiveSwitchState) {
     n.semantic.id = interner.intern("relay1");
     n.semantic.type = interner.intern("Relay");
     n.view.name = "relay1";
-    n.view.content_type = bp2::NodeContentType::Switch;
-    n.view.content_state = false;
     n.semantic.params[interner.intern("closed")] = 0.0f;
     model.add_node(std::move(n));
 
@@ -1105,6 +1097,6 @@ TEST_F(PropertiesWindowTest, ApplyRelayClosedReseedsLiveSwitchState) {
 
     node_ptr = model.current().find_node(interner.intern("relay1"));
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_TRUE(node_ptr->view.content_state)
-        << "apply() must reseed live Relay switch state when the semantic default 'closed' changes";
+    EXPECT_EQ(node_ptr->semantic.string_params.at("closed"), "true");
+    EXPECT_TRUE(resolve_test_content(*node_ptr, registry, interner).state);
 }

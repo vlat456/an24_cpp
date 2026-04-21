@@ -17,18 +17,15 @@ namespace visual {
 // Construction
 // ============================================================================
 
-GroupNodeWidget::GroupNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
+GroupNodeWidget::GroupNodeWidget(const bp2::Blueprint::Node& data,
+                                 const ui::StringInterner& interner,
+                                 std::optional<editor::NodeColor> color)
     : node_iid_(data.semantic.id)
     , interner_(&interner)
     , name_(data.view.name)
 {
-    if (data.view.has_color) {
-        NodeColor c;
-        c.r = data.view.color_r;
-        c.g = data.view.color_g;
-        c.b = data.view.color_b;
-        c.a = data.view.color_a;
-        custom_fill_ = c.to_uint32();
+    if (color.has_value()) {
+        custom_fill_ = color->to_uint32();
     }
 
     setLocalPos(Pt(data.layout.x, data.layout.y));

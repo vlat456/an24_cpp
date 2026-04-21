@@ -28,14 +28,14 @@ std::string find_closed_circuit_blueprint() {
 
 } // namespace
 
-TEST(StrictBlueprintPersistence, ClosedCircuitDocumentLoadsThroughHydratedPath) {
+TEST(StrictBlueprintPersistence, ClosedCircuitDocumentLoadsThroughStrictCanonicalPath) {
     const std::string path = find_closed_circuit_blueprint();
 
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry registry = load_component_registry("library/");
 
-    auto bp = load_hydrated_blueprint_from_file(path.c_str(), interner, arena, registry);
+    auto bp = load_blueprint_from_file_validated(path.c_str(), interner, arena, registry);
     ASSERT_TRUE(bp.has_value()) << "Failed to load strict closed_circuit.blueprint";
     EXPECT_FALSE(bp->nodes().empty());
     EXPECT_FALSE(bp->wires().empty());

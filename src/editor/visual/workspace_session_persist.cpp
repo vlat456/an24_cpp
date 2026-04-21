@@ -1,7 +1,6 @@
 #include "workspace_session_persist.h"
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <nlohmann/json.hpp>
 
 namespace fs = std::filesystem;
@@ -10,12 +9,9 @@ namespace {
 
 const char* to_persisted_mode(BlueprintWindowMode mode) {
     switch (mode) {
-        case BlueprintWindowMode::RootDocument:
-            return "root";
-        case BlueprintWindowMode::EmbeddedScope:
-            return "embedded";
-        case BlueprintWindowMode::ExternalReference:
-            return "external";
+        case BlueprintWindowMode::RootDocument:   return "root";
+        case BlueprintWindowMode::EmbeddedScope:  return "embedded";
+        case BlueprintWindowMode::ExternalReference: return "external";
     }
     return "root";
 }
@@ -25,21 +21,13 @@ std::optional<BlueprintWindowMode> parse_persisted_mode(const nlohmann::json& j)
         return std::nullopt;
     }
     const std::string value = j.get<std::string>();
-    if (value == "root") {
-        return BlueprintWindowMode::RootDocument;
-    }
-    if (value == "embedded") {
-        return BlueprintWindowMode::EmbeddedScope;
-    }
-    if (value == "external") {
-        return BlueprintWindowMode::ExternalReference;
-    }
+    if (value == "root")     return BlueprintWindowMode::RootDocument;
+    if (value == "embedded") return BlueprintWindowMode::EmbeddedScope;
+    if (value == "external") return BlueprintWindowMode::ExternalReference;
     return std::nullopt;
 }
 
-} // namespace
-
-static std::string blueprint_path_to_workspace_path(const char* blueprint_path) {
+std::string blueprint_path_to_workspace_path(const char* blueprint_path) {
     std::string bp_str(blueprint_path);
     // Remove .blueprint extension if present
     if (bp_str.ends_with(".blueprint")) {
@@ -47,6 +35,12 @@ static std::string blueprint_path_to_workspace_path(const char* blueprint_path) 
     }
     return bp_str + ".workspace.json";
 }
+
+} // namespace
+
+// ============================================================================
+// Save
+// ============================================================================
 
 bool save_workspace_session(
     const WorkspaceSession& ws,
@@ -56,6 +50,7 @@ bool save_workspace_session(
     j["format"] = "an24.workspace_session";
     j["version"] = 2;
 
+    // Viewport
     nlohmann::json viewport;
     viewport["pan_x"] = ws.viewport_pan_x;
     viewport["pan_y"] = ws.viewport_pan_y;
@@ -63,6 +58,7 @@ bool save_workspace_session(
     viewport["grid_step"] = ws.grid_step;
     j["viewport"] = viewport;
 
+    // Editor state — open subwindow scopes
     nlohmann::json editor;
     nlohmann::json open_windows = nlohmann::json::array();
     for (const auto& scope : ws.open_windows) {
@@ -73,6 +69,26 @@ bool save_workspace_session(
     }
     editor["open_windows"] = std::move(open_windows);
     j["editor"] = editor;
+
+    // Per-node session colors (not part of canonical blueprint authority)
+    if (!ws.node_colors.empty()) {
+        nlohmann::json colors = nlohmann::json::array();
+        for (const auto& nc : ws.node_colors) {
+            nlohmann::json path_arr = nlohmann::json::array();
+            for (const auto& segment : nc.instance_path) {
+                path_arr.push_back(segment);
+            }
+            colors.push_back({
+                {"instance_path", std::move(path_arr)},
+                {"node_id", nc.node_id},
+                {"r", nc.color.r},
+                {"g", nc.color.g},
+                {"b", nc.color.b},
+                {"a", nc.color.a},
+            });
+        }
+        j["node_colors"] = std::move(colors);
+    }
 
     std::string ws_path = blueprint_path_to_workspace_path(blueprint_path);
     try {
@@ -87,12 +103,15 @@ bool save_workspace_session(
     }
 }
 
+// ============================================================================
+// Load
+// ============================================================================
+
 std::optional<WorkspaceSession> load_workspace_session(
     const char* blueprint_path)
 {
     std::string ws_path = blueprint_path_to_workspace_path(blueprint_path);
 
-    // Check if file exists
     if (!fs::exists(ws_path)) {
         return std::nullopt;
     }
@@ -106,7 +125,7 @@ std::optional<WorkspaceSession> load_workspace_session(
         nlohmann::json j;
         in >> j;
 
-        // Validate format
+        // Validate format marker and version
         if (!j.contains("format") || j["format"] != "an24.workspace_session") {
             return std::nullopt;
         }
@@ -116,29 +135,23 @@ std::optional<WorkspaceSession> load_workspace_session(
 
         WorkspaceSession ws;
 
-        // Load viewport state if present
+        // Viewport
         if (j.contains("viewport")) {
             const auto& vp = j["viewport"];
-            if (vp.contains("pan_x")) {
-                ws.viewport_pan_x = vp["pan_x"].get<float>();
-            }
-            if (vp.contains("pan_y")) {
-                ws.viewport_pan_y = vp["pan_y"].get<float>();
-            }
-            if (vp.contains("zoom")) {
-                ws.viewport_zoom = vp["zoom"].get<float>();
-            }
-            if (vp.contains("grid_step")) {
-                ws.grid_step = vp["grid_step"].get<float>();
-            }
+            if (vp.contains("pan_x"))    ws.viewport_pan_x = vp["pan_x"].get<float>();
+            if (vp.contains("pan_y"))    ws.viewport_pan_y = vp["pan_y"].get<float>();
+            if (vp.contains("zoom"))     ws.viewport_zoom  = vp["zoom"].get<float>();
+            if (vp.contains("grid_step")) ws.grid_step     = vp["grid_step"].get<float>();
         }
 
-        // Load editor state if present
+        // Editor state — open subwindow scopes
         if (j.contains("editor")) {
             const auto& ed = j["editor"];
             if (ed.contains("open_windows") && ed["open_windows"].is_array()) {
                 for (const auto& win_scope : ed["open_windows"]) {
-                    if (!win_scope.is_object() || !win_scope.contains("mode") || !win_scope.contains("key")) {
+                    if (!win_scope.is_object()
+                        || !win_scope.contains("mode")
+                        || !win_scope.contains("key")) {
                         return std::nullopt;
                     }
                     auto mode = parse_persisted_mode(win_scope["mode"]);
@@ -150,6 +163,35 @@ std::optional<WorkspaceSession> load_workspace_session(
                         win_scope["key"].get<std::string>(),
                     });
                 }
+            }
+        }
+
+        // Per-node session colors
+        if (j.contains("node_colors") && j["node_colors"].is_array()) {
+            for (const auto& nc : j["node_colors"]) {
+                if (!nc.is_object()
+                    || !nc.contains("node_id") || !nc["node_id"].is_string()
+                    || !nc.contains("instance_path") || !nc["instance_path"].is_array()
+                    || !nc.contains("r") || !nc.contains("g")
+                    || !nc.contains("b") || !nc.contains("a")) {
+                    return std::nullopt;
+                }
+
+                WorkspaceSession::PersistedNodeColor color;
+                color.node_id = nc["node_id"].get<std::string>();
+
+                for (const auto& segment : nc["instance_path"]) {
+                    if (!segment.is_string()) {
+                        return std::nullopt;
+                    }
+                    color.instance_path.push_back(segment.get<std::string>());
+                }
+
+                color.color.r = nc["r"].get<float>();
+                color.color.g = nc["g"].get<float>();
+                color.color.b = nc["b"].get<float>();
+                color.color.a = nc["a"].get<float>();
+                ws.node_colors.push_back(std::move(color));
             }
         }
 

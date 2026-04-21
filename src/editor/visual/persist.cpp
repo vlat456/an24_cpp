@@ -1,7 +1,6 @@
 #include "visual/persist.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/validation/invariant_checker.h"
-#include "editor/blueprint_view_hydration.h"
 #include "core/model/component_registry.h"
 #include "ui/core/interned_id.h"
 #include <fstream>
@@ -72,18 +71,6 @@ std::optional<bp2::Blueprint> load_blueprint_from_file_validated(
     }
 
     return bp;
-}
-
-std::optional<bp2::Blueprint> load_hydrated_blueprint_from_file(
-        const char* path,
-        ui::StringInterner& interner,
-        bp2::PathArena& arena,
-        const ComponentRegistry& parser_registry) {
-    auto bp = load_blueprint_from_file_validated(path, interner, arena, parser_registry);
-    if (!bp) {
-        return std::nullopt;
-    }
-    return editor::hydrate_runtime_node_view_data(std::move(*bp), interner, parser_registry);
 }
 
 bool validate_blueprint_for_persist(

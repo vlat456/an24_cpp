@@ -1827,11 +1827,9 @@ TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
     node.semantic.id = ui::InternedId(3000);
     node.semantic.type = interner.intern("TestType");
     node.view.name = "TestNode";
-    node.view.content_value = 25.0f;
-    node.view.content_state = true;
-    node.view.content_tripped = true;
+    editor::RuntimeNodeState runtime = editor::ScalarNodeRuntimeState{25.0f};
 
-    CompiledPresentationSpec spec = make_presentation_spec(node, &def, &pres, interner);
+    CompiledPresentationSpec spec = make_presentation_spec(node, &def, &pres, interner, &runtime);
 
     EXPECT_EQ(spec.node_id, ui::InternedId(3000));
     EXPECT_EQ(spec.title, "TestNode");
@@ -1840,8 +1838,8 @@ TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
     EXPECT_FLOAT_EQ(spec.content_min, -10.0f);
     EXPECT_FLOAT_EQ(spec.content_max, 50.0f);
     EXPECT_FLOAT_EQ(spec.content_value, 25.0f);
-    EXPECT_TRUE(spec.content_state);
-    EXPECT_TRUE(spec.content_tripped);
+    EXPECT_FALSE(spec.content_state);
+    EXPECT_FALSE(spec.content_tripped);
 }
 
 TEST(PresentationSpec, CanonicalMakeFromDefExtractsAnnotationParams) {

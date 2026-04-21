@@ -9,8 +9,8 @@
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/validation/path_resolver.h"
 #include "blueprint_v2/validation/wire_validator.h"
-#include "editor/blueprint_view_hydration.h"
 #include "editor/data/node_content.h"
+#include "editor/data/node_state.h"
 #include "core/model/presentation_spec.h"
 #include "io/json/component_registry_json_loader.h"
 #include <nlohmann/json.hpp>
@@ -491,13 +491,6 @@ TEST(BlueprintCodec, EncodeOmitsNodeContentAndColorWorkspaceFields) {
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("knob1");
     n.semantic.type = interner.intern("Battery");
-    n.view.content_type = bp2::NodeContentType::Knob;
-    n.view.content_label = "Knob";
-    n.view.has_color = true;
-    n.view.color_r = 0.1f;
-    n.view.color_g = 0.2f;
-    n.view.color_b = 0.3f;
-    n.view.color_a = 1.0f;
     bp = bp.with_node(std::move(n));
 
     const std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
@@ -882,15 +875,14 @@ TEST(BlueprintCodec, DecodeDoesNotHydrateRuntimeViewFields) {
 
     const auto* slider = decoded->find_node(interner.lookup("slider1"));
     ASSERT_NE(slider, nullptr);
-    EXPECT_EQ(slider->view.content_type, bp2::NodeContentType::None);
-    EXPECT_TRUE(slider->view.render_hint.empty());
+    EXPECT_TRUE(slider->view.name.empty());
 
     const auto* value = decoded->find_node(interner.lookup("value1"));
     ASSERT_NE(value, nullptr);
-    EXPECT_TRUE(value->view.render_hint.empty());
+    EXPECT_TRUE(value->view.name.empty());
 }
 
-TEST(BlueprintCodec, ExplicitHydrationPopulatesRuntimeViewFieldsRecursively) {
+TEST(BlueprintCodec, StaticContentSemanticsResolveRecursivelyWithoutHydration) {
     ui::StringInterner interner;
     ComponentRegistry reg = make_test_registry();
     register_type(reg, interner, "Slider");
@@ -922,14 +914,15 @@ TEST(BlueprintCodec, ExplicitHydrationPopulatesRuntimeViewFieldsRecursively) {
     host.semantic.type = interner.intern("Group");
     root = root.with_node(std::move(host));
 
-    bp2::Blueprint hydrated = editor::hydrate_runtime_node_view_data(std::move(root), interner, reg);
-    const auto* loaded_host = hydrated.find_node(interner.lookup("host"));
+    const auto* loaded_host = root.find_node(interner.lookup("host"));
     ASSERT_NE(loaded_host, nullptr);
     const auto* loaded_slider = loaded_host->blueprint_instance().source.inline_def()->find_node(interner.lookup("inner_slider"));
     ASSERT_NE(loaded_slider, nullptr);
-    EXPECT_EQ(loaded_slider->view.content_type, bp2::NodeContentType::Slider);
-    EXPECT_FLOAT_EQ(loaded_slider->view.content_min, 0.0f);
-    EXPECT_FLOAT_EQ(loaded_slider->view.content_max, 1.0f);
+    NodeContent content = create_node_content(*reg.get("Slider"), reg.presentation.get("Slider"),
+                                              loaded_slider->semantic.params, loaded_slider->semantic.string_params, interner);
+    EXPECT_EQ(content.type, bp2::NodeContentType::Slider);
+    EXPECT_FLOAT_EQ(content.min, 0.0f);
+    EXPECT_FLOAT_EQ(content.max, 1.0f);
 }
 
 
@@ -1442,19 +1435,10 @@ TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
     knob_node.semantic.params[interner.intern("positions")] = 5.0f;
     knob_node.semantic.params[interner.intern("initial_position")] = 2.0f;
 
-    // Hydrate static semantics
-    editor::hydrate_node_view(knob_node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
-
-    // Verify that content_max (static) comes from instance params
-    EXPECT_FLOAT_EQ(knob_node.view.content_max, 5.0f);
-    // content_value is NOT set by hydrate_node_view (it's dynamic)
-    EXPECT_FLOAT_EQ(knob_node.view.content_value, 0.0f);
-
-    // Initialize dynamic defaults
-    editor::initialize_node_content_defaults(knob_node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
-
-    // Now content_value should reflect initial_position
-    EXPECT_FLOAT_EQ(knob_node.view.content_value, 2.0f);
+    NodeContent content = create_node_content(*reg.get("Knob"), reg.presentation.get("Knob"),
+                                             knob_node.semantic.params, knob_node.semantic.string_params, interner);
+    EXPECT_FLOAT_EQ(content.max, 5.0f);
+    EXPECT_FLOAT_EQ(content.value, 2.0f);
 }
 
 // Regression 2: Slider with instance min/max != type definition
@@ -1478,12 +1462,10 @@ TEST(Issue132_HydrationFromInstanceParams, SliderMinMaxFromInstance) {
     slider_node.semantic.params[interner.intern("min")] = -50.0f;
     slider_node.semantic.params[interner.intern("max")] = 200.0f;
 
-    // Hydrate
-    editor::hydrate_node_view(slider_node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
-
-    // Verify instance params take precedence
-    EXPECT_FLOAT_EQ(slider_node.view.content_min, -50.0f);
-    EXPECT_FLOAT_EQ(slider_node.view.content_max, 200.0f);
+    NodeContent content = create_node_content(*reg.get("Slider"), reg.presentation.get("Slider"),
+                                             slider_node.semantic.params, slider_node.semantic.string_params, interner);
+    EXPECT_FLOAT_EQ(content.min, -50.0f);
+    EXPECT_FLOAT_EQ(content.max, 200.0f);
 }
 
 // Regression 3: Gauge with instance min/max != type definition
@@ -1507,12 +1489,10 @@ TEST(Issue132_HydrationFromInstanceParams, GaugeMinMaxFromInstance) {
     gauge_node.semantic.params[interner.intern("min")] = 10.0f;
     gauge_node.semantic.params[interner.intern("max")] = 50.0f;
 
-    // Hydrate
-    editor::hydrate_node_view(gauge_node, reg.get("Voltmeter"), reg.presentation.get("Voltmeter"), interner);
-
-    // Verify instance params take precedence
-    EXPECT_FLOAT_EQ(gauge_node.view.content_min, 10.0f);
-    EXPECT_FLOAT_EQ(gauge_node.view.content_max, 50.0f);
+    NodeContent content = create_node_content(*reg.get("Voltmeter"), reg.presentation.get("Voltmeter"),
+                                             gauge_node.semantic.params, gauge_node.semantic.string_params, interner);
+    EXPECT_FLOAT_EQ(content.min, 10.0f);
+    EXPECT_FLOAT_EQ(content.max, 50.0f);
 }
 
 // Regression 4: Switch with instance closed state != type definition
@@ -1534,13 +1514,9 @@ TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
     switch_node.semantic.type = interner.intern("Switch");
     switch_node.semantic.params[interner.intern("closed")] = 1.0f;  // non-zero = true
 
-    // hydrate_node_view only sets static fields — content_state is dynamic
-    editor::hydrate_node_view(switch_node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
-    EXPECT_FALSE(switch_node.view.content_state);  // not set by hydrate
-
-    // initialize_node_content_defaults sets initial dynamic state
-    editor::initialize_node_content_defaults(switch_node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
-    EXPECT_TRUE(switch_node.view.content_state);
+    NodeContent content = create_node_content(*reg.get("Switch"), reg.presentation.get("Switch"),
+                                             switch_node.semantic.params, switch_node.semantic.string_params, interner);
+    EXPECT_TRUE(content.state);
 }
 
 // Regression 5: Fallback to type definition when instance params absent
@@ -1563,20 +1539,17 @@ TEST(Issue132_HydrationFromInstanceParams, FallbackToTypeDefinitionWhenNoInstanc
     slider_node.semantic.type = interner.intern("Slider");
     // No params added
 
-    // Hydrate
-    editor::hydrate_node_view(slider_node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
-
-    // Verify type definition defaults are used
-    EXPECT_FLOAT_EQ(slider_node.view.content_min, 0.0f);
-    EXPECT_FLOAT_EQ(slider_node.view.content_max, 1.0f);
+    NodeContent content = create_node_content(*reg.get("Slider"), reg.presentation.get("Slider"),
+                                             slider_node.semantic.params, slider_node.semantic.string_params, interner);
+    EXPECT_FLOAT_EQ(content.min, 0.0f);
+    EXPECT_FLOAT_EQ(content.max, 1.0f);
 }
 
 // ============================================================================
-// Issue #133 regression tests: hydrate_node_view does NOT overwrite dynamic state
+// Issue #133 successor tests: runtime overlay is external to canonical blueprint
 // ============================================================================
 
-// Regression 1: Re-hydration after param edit preserves runtime value
-TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSliderValue) {
+TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSliderValueAcrossStaticChanges) {
     ui::StringInterner interner;
     ComponentRegistry reg;
 
@@ -1593,27 +1566,16 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSliderValue) {
     node.semantic.params[interner.intern("min")] = 0.0f;
     node.semantic.params[interner.intern("max")] = 100.0f;
 
-    // Initial hydration + defaults
-    editor::hydrate_node_view(node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
-    editor::initialize_node_content_defaults(node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
-    EXPECT_FLOAT_EQ(node.view.content_value, 0.0f);  // initial default
-
-    // Simulate runtime: slider moved to 75
-    node.view.content_value = 75.0f;
+    editor::RuntimeNodeState runtime = editor::ScalarNodeRuntimeState{75.0f};
 
     // Simulate inspector edit: change max to 200
     node.semantic.params[interner.intern("max")] = 200.0f;
-    editor::hydrate_node_view(node, reg.get("Slider"), reg.presentation.get("Slider"), interner);
-
-    // Static field updated
-    EXPECT_FLOAT_EQ(node.view.content_max, 200.0f);
-    // Dynamic value preserved — this is the core #133 guarantee
-    EXPECT_FLOAT_EQ(node.view.content_value, 75.0f)
-        << "hydrate_node_view must NOT overwrite runtime content_value";
+    NodeContent content = create_runtime_node_content(node, *reg.get("Slider"), reg.presentation.get("Slider"), interner, &runtime);
+    EXPECT_FLOAT_EQ(content.max, 200.0f);
+    EXPECT_FLOAT_EQ(content.value, 75.0f);
 }
 
-// Regression 2: Re-hydration after param edit preserves runtime switch state
-TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSwitchState) {
+TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSwitchStateAcrossStaticResolution) {
     ui::StringInterner interner;
     ComponentRegistry reg;
 
@@ -1627,24 +1589,12 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesRuntimeSwitchState) {
     node.semantic.id = interner.intern("sw1");
     node.semantic.type = interner.intern("Switch");
 
-    // Initial hydration + defaults
-    editor::hydrate_node_view(node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
-    editor::initialize_node_content_defaults(node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
-    EXPECT_FALSE(node.view.content_state);  // initial default: open
-
-    // Simulate runtime: user toggled switch ON
-    node.view.content_state = true;
-
-    // Re-hydrate (e.g., after inspector edit of some other param)
-    editor::hydrate_node_view(node, reg.get("Switch"), reg.presentation.get("Switch"), interner);
-
-    // Dynamic state preserved
-    EXPECT_TRUE(node.view.content_state)
-        << "hydrate_node_view must NOT overwrite runtime content_state";
+    editor::RuntimeNodeState runtime = editor::BoolNodeRuntimeState{true};
+    NodeContent content = create_runtime_node_content(node, *reg.get("Switch"), reg.presentation.get("Switch"), interner, &runtime);
+    EXPECT_TRUE(content.state);
 }
 
-// Regression 3: Re-hydration preserves tripped state (AZS scenario)
-TEST(Issue133_SingleAuthority, RehydrationPreservesTrippedState) {
+TEST(Issue133_RuntimeState, RuntimeOverlayPreservesTrippedState) {
     ui::StringInterner interner;
     ComponentRegistry reg;
 
@@ -1658,27 +1608,13 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesTrippedState) {
     node.semantic.id = interner.intern("azs1");
     node.semantic.type = interner.intern("AZS");
 
-    // Initial hydration + defaults
-    editor::hydrate_node_view(node, reg.get("AZS"), reg.presentation.get("AZS"), interner);
-    editor::initialize_node_content_defaults(node, reg.get("AZS"), reg.presentation.get("AZS"), interner);
-    EXPECT_FALSE(node.view.content_tripped);  // not tripped initially
-
-    // Simulate runtime: AZS trips
-    node.view.content_tripped = true;
-    node.view.content_state = false;
-
-    // Re-hydrate
-    editor::hydrate_node_view(node, reg.get("AZS"), reg.presentation.get("AZS"), interner);
-
-    // Dynamic state preserved
-    EXPECT_TRUE(node.view.content_tripped)
-        << "hydrate_node_view must NOT overwrite runtime content_tripped";
-    EXPECT_FALSE(node.view.content_state)
-        << "hydrate_node_view must NOT overwrite runtime content_state";
+    editor::RuntimeNodeState runtime = editor::BoolTrippedNodeRuntimeState{false, true};
+    NodeContent content = create_runtime_node_content(node, *reg.get("AZS"), reg.presentation.get("AZS"), interner, &runtime);
+    EXPECT_TRUE(content.tripped);
+    EXPECT_FALSE(content.state);
 }
 
-// Regression 4: Re-hydration preserves knob position during simulation
-TEST(Issue133_SingleAuthority, RehydrationPreservesKnobPosition) {
+TEST(Issue133_RuntimeState, RuntimeOverlayPreservesKnobPosition) {
     ui::StringInterner interner;
     ComponentRegistry reg;
 
@@ -1693,28 +1629,16 @@ TEST(Issue133_SingleAuthority, RehydrationPreservesKnobPosition) {
     node.semantic.id = interner.intern("knob1");
     node.semantic.type = interner.intern("Knob");
 
-    // Initial hydration + defaults
-    editor::hydrate_node_view(node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
-    editor::initialize_node_content_defaults(node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
-    EXPECT_FLOAT_EQ(node.view.content_value, 0.0f);  // initial_position=0
-    EXPECT_FLOAT_EQ(node.view.content_max, 3.0f);    // positions=3
-
-    // Simulate runtime: user rotated knob to position 2
-    node.view.content_value = 2.0f;
+    editor::RuntimeNodeState runtime = editor::DiscreteNodeRuntimeState{2};
 
     // Inspector edit: change positions to 5
     node.semantic.params[interner.intern("positions")] = 5.0f;
-    editor::hydrate_node_view(node, reg.get("Knob"), reg.presentation.get("Knob"), interner);
-
-    // Static field updated
-    EXPECT_FLOAT_EQ(node.view.content_max, 5.0f);
-    // Dynamic value preserved
-    EXPECT_FLOAT_EQ(node.view.content_value, 2.0f)
-        << "hydrate_node_view must NOT overwrite runtime content_value (knob position)";
+    NodeContent content = create_runtime_node_content(node, *reg.get("Knob"), reg.presentation.get("Knob"), interner, &runtime);
+    EXPECT_FLOAT_EQ(content.max, 5.0f);
+    EXPECT_FLOAT_EQ(content.value, 2.0f);
 }
 
-// Regression 5: Full hydrate_runtime_node_view_data sets both static + dynamic
-TEST(Issue133_SingleAuthority, FullHydrationSetsStaticAndDynamic) {
+TEST(Issue133_RuntimeState, CanonicalBlueprintStaysUnhydrated) {
     ui::StringInterner interner;
     ComponentRegistry reg;
 
@@ -1732,15 +1656,14 @@ TEST(Issue133_SingleAuthority, FullHydrationSetsStaticAndDynamic) {
     node.semantic.type = interner.intern("Knob");
     bp = bp.with_node(std::move(node));
 
-    // Full hydration (used at load time)
-    bp = editor::hydrate_runtime_node_view_data(std::move(bp), interner, reg);
-
     const auto* loaded = bp.find_node(interner.lookup("knob1"));
     ASSERT_NE(loaded, nullptr);
-    // Static
-    EXPECT_EQ(loaded->view.content_type, bp2::NodeContentType::Knob);
-    EXPECT_FLOAT_EQ(loaded->view.content_max, 4.0f);
-    EXPECT_FLOAT_EQ(loaded->view.content_min, 0.0f);
-    // Dynamic (initial defaults)
-    EXPECT_FLOAT_EQ(loaded->view.content_value, 1.0f);  // initial_position=1
+    EXPECT_TRUE(loaded->view.name.empty());
+
+    NodeContent static_content = create_node_content(*reg.get("Knob"), reg.presentation.get("Knob"),
+                                                     loaded->semantic.params, loaded->semantic.string_params, interner);
+    EXPECT_EQ(static_content.type, bp2::NodeContentType::Knob);
+    EXPECT_FLOAT_EQ(static_content.max, 4.0f);
+    EXPECT_FLOAT_EQ(static_content.min, 0.0f);
+    EXPECT_FLOAT_EQ(static_content.value, 1.0f);
 }

@@ -107,7 +107,7 @@ struct BlueprintWindow {
         , type_registry(parser_registry) {
         ComponentRegistry empty_reg;
         const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
-        visual::mutations::rebuild(scene, root_model.current(), interner_, arena_, "", reg);
+        visual::mutations::rebuild(scene, root_model.current(), interner_, arena_, "", reg, nullptr, nullptr);
         input.rebuild_snapshot();
     }
 
@@ -131,7 +131,7 @@ struct BlueprintWindow {
         ComponentRegistry empty_reg;
         const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
         const auto& bp = require_embedded_blueprint(root_model, require_nested_id(interner_, embedded_scope_id));
-        visual::mutations::rebuild(scene, bp, interner_, arena_, "", reg);
+        visual::mutations::rebuild(scene, bp, interner_, arena_, embedded_scope_id, reg, nullptr, nullptr);
         input.rebuild_snapshot();
     }
 

@@ -55,13 +55,10 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     Document* doc = ws.findDocumentById(ws.nodeContextMenu.source_doc_id);
     if (!doc) doc = ws.activeDocument();
 
-    // Resolve the node
+    // Resolve the node from the correct scoped blueprint
     const bp2::Blueprint::Node* node_ptr = nullptr;
     if (doc) {
-        ui::InternedId node_iid = doc->interner().lookup(ws.nodeContextMenu.node_id.str());
-        if (!node_iid.empty()) {
-            node_ptr = doc->blueprint().find_node(node_iid);
-        }
+        node_ptr = doc->find_node_in_scope(ws.nodeContextMenu.scope_id, ws.nodeContextMenu.node_id);
     }
 
     if (doc && node_ptr) {

@@ -45,19 +45,9 @@ void execute(bp2::EditorModel& model, ui::StringInterner& interner, Command cmd)
          } else if constexpr (std::is_same_v<T, CmdSetPortLayout>) {
              if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
                  n.layout.layout_overrides = std::move(c.overrides);
-            })) {
-                spdlog::warn("[cmd] node {} not found", c.node_id.raw());
-            }
-         } else if constexpr (std::is_same_v<T, CmdSetColor>) {
-             if (!model.update_node(c.node_id, [&](bp2::Blueprint::Node& n) {
-                 n.view.has_color = c.has_color;
-                 n.view.color_r = c.r;
-                 n.view.color_g = c.g;
-                 n.view.color_b = c.b;
-                 n.view.color_a = c.a;
-            })) {
-                spdlog::warn("[cmd] node {} not found", c.node_id.raw());
-            }
-        }
+             })) {
+                 spdlog::warn("[cmd] node {} not found", c.node_id.raw());
+             }
+         }
     }, std::move(cmd));
 }

@@ -6,6 +6,7 @@
 #include "visual/node/bounds.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "editor/visual/presentation/node_slot_layout.h"
+#include "editor/data/node_state.h"
 #include "ui/core/interned_id.h"
 #include "visual/node/port_layout_resolver.h"
 #include "data/node_content.h"
@@ -42,7 +43,8 @@ public:
     NodeWidget(const bp2::Blueprint::Node& data,
                const bp2::Interface& render_iface,
                const ui::StringInterner& interner,
-               const NodeContent& content);
+               const NodeContent& content,
+               std::optional<editor::NodeColor> color = std::nullopt);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }

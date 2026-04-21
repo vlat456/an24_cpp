@@ -5,6 +5,7 @@
 #include "signal_key_resolver.h"
 #include "visual/scene.h"
 #include "visual/workspace_session.h"
+#include "data/node_state.h"
 #include "input/canvas_input.h"
 #include "core/solvers/jit/simulator.h"
 #include "io/json/component_registry_json_loader.h"
@@ -142,6 +143,22 @@ public:
     /// Update node_content (gauges, switches, etc.) from simulation values.
     void updateNodeContentFromSimulation();
     void resetNodeContent(const ComponentRegistry& registry);
+    void purge_transient_node_state();
+
+    [[nodiscard]] std::optional<editor::NodeColor> node_color_for_scope(const WindowScopeId& scope_id,
+                                                                         ui::InternedId node_id) const;
+    [[nodiscard]] std::optional<editor::NodeColor> node_color_for_scope(const std::string& scope_id,
+                                                                         ui::InternedId node_id) const;
+    void set_node_color_for_scope(const std::string& scope_id,
+                                  ui::InternedId node_id,
+                                  std::optional<editor::NodeColor> color);
+
+    /// Find a node by id within a scoped blueprint (root, embedded, or external).
+    /// Returns nullptr if the scope or node does not exist.
+    [[nodiscard]] const bp2::Blueprint::Node* find_node_in_scope(
+        const std::string& scope_id, const editor::NodeId& node_id) const;
+
+    [[nodiscard]] const editor::RuntimeNodeStateStore& runtime_node_states() const { return runtime_node_states_; }
 
     /// Build a set of wire IDs that are energized (have non-zero voltage).
     void buildEnergizedWireSet(
@@ -260,6 +277,8 @@ private:
 
     std::unordered_map<std::string, float> signal_overrides_;
     std::unordered_set<std::string> held_buttons_;
+    editor::RuntimeNodeStateStore runtime_node_states_;
+    editor::SessionNodeAppearanceStore session_node_appearance_;
     const ComponentRegistry* type_registry_ = nullptr;
     const bp2::LibraryIndex* library_index_ = nullptr;
 

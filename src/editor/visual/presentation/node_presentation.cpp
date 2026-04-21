@@ -38,9 +38,10 @@ NodeFrameKind resolve_frame_kind(const ComponentSpec* def, const TypePresentatio
 // ============================================================================
 
 CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
-                                        const ComponentSpec* def,
-                                        const TypePresentation* pres,
-                                        ui::StringInterner& interner) {
+                                         const ComponentSpec* def,
+                                         const TypePresentation* pres,
+                                         ui::StringInterner& interner,
+                                         const editor::RuntimeNodeState* runtime_state) {
     CompiledPresentationSpec spec;
     spec.node_id = node.semantic.id;
     spec.type_id = node.semantic.type;
@@ -48,7 +49,7 @@ CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node
     spec.title = node.view.name;  // name is tier-1 canonical, OK to read from view
 
     // Full runtime content: canonical static semantics plus current dynamic state.
-    NodeContent nc = def ? create_runtime_node_content(node, *def, pres, interner) : NodeContent{};
+    NodeContent nc = def ? create_runtime_node_content(node, *def, pres, interner, runtime_state) : NodeContent{};
     spec.content_type = nc.type;
     spec.content_label = nc.label;
     spec.content_min = nc.min;

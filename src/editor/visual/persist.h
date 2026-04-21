@@ -30,14 +30,6 @@ struct ComponentRegistry;
     bp2::PathArena& arena,
     const ComponentRegistry& parser_registry);
 
-/// Editor/runtime load variant: strict decode + validation followed by the
-/// single explicit runtime node-view hydration step.
-[[nodiscard]] std::optional<bp2::Blueprint> load_hydrated_blueprint_from_file(
-    const char* path,
-    ui::StringInterner& interner,
-    bp2::PathArena& arena,
-    const ComponentRegistry& parser_registry);
-
 /// Shared integrity validation (bp2 invariants against runtime registry).
 [[nodiscard]] bool validate_blueprint_integrity(
     const bp2::Blueprint& bp,

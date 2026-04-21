@@ -2,6 +2,7 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
+#include "editor/data/node_state.h"
 #include "ui/core/interned_id.h"
 #include <string>
 #include <string_view>
@@ -23,6 +24,8 @@ void rebuild(Scene& scene, const bp2::Blueprint& bp,
              ui::StringInterner& interner,
              bp2::PathArena& arena,
              std::string_view scope_id,
-             const ComponentRegistry& registry);
+             const ComponentRegistry& registry,
+             const editor::RuntimeNodeStateStore* runtime_state_store = nullptr,
+             const editor::SessionNodeAppearanceStore* appearance_store = nullptr);
 
 } // namespace visual::mutations

@@ -263,21 +263,21 @@ void WindowSystem::openPropertiesForNode(const editor::NodeId& node_id, Document
 }
 
 void WindowSystem::openColorPickerForNode(const editor::NodeId& node_id, const std::string& scope_id, Document& doc) {
-    ui::InternedId iid = doc.interner().lookup(node_id.str());
-    if (iid.empty()) return;
-    const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
+    const bp2::Blueprint::Node* node = doc.find_node_in_scope(scope_id, node_id);
     if (!node) return;
+
+    ui::InternedId iid = doc.interner().lookup(node_id.str());
 
     colorPicker.node_id = node_id;
     colorPicker.scope_id = scope_id;
     colorPicker.source_doc_id = doc.id();
     colorPicker.show = true;
 
-    if (node->view.has_color) {
-        colorPicker.rgba[0] = node->view.color_r;
-        colorPicker.rgba[1] = node->view.color_g;
-        colorPicker.rgba[2] = node->view.color_b;
-        colorPicker.rgba[3] = node->view.color_a;
+    if (const std::optional<editor::NodeColor> color = doc.node_color_for_scope(scope_id, iid); color.has_value()) {
+        colorPicker.rgba[0] = color->r;
+        colorPicker.rgba[1] = color->g;
+        colorPicker.rgba[2] = color->b;
+        colorPicker.rgba[3] = color->a;
     } else {
         colorPicker.rgba[0] = 0.19f;
         colorPicker.rgba[1] = 0.19f;

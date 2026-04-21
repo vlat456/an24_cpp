@@ -1,7 +1,6 @@
 #include "color_picker_dialog.h"
 #include "editor/window_system.h"
 #include "editor/document.h"
-#include "editor/commands/commands.h"
 #include <imgui.h>
 #include <cstdint>
 
@@ -61,9 +60,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
                 float b = ws.colorPicker.rgba[2];
                 float a = ws.colorPicker.rgba[3];
 
-                doc->model().push_checkpoint();
-                execute(doc->model(), doc->interner(),
-                        cmd_set_color(node_iid, true, r, g, b, a));
+                doc->set_node_color_for_scope(ws.colorPicker.scope_id, node_iid, editor::NodeColor{r, g, b, a});
 
                 // Update visual widget immediately so the color change is
                 // visible without requiring a blueprint reload.
@@ -75,9 +72,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
             }
             ImGui::SameLine();
             if (ImGui::Button("Reset")) {
-                doc->model().push_checkpoint();
-                execute(doc->model(), doc->interner(),
-                        cmd_set_color(node_iid, false, 0.5f, 0.5f, 0.5f, 1.0f));
+                doc->set_node_color_for_scope(ws.colorPicker.scope_id, node_iid, std::nullopt);
 
                 // Clear custom color on the visual widget immediately.
                 if (auto* w = find_visual_widget(*doc, ws.colorPicker.node_id.str(),

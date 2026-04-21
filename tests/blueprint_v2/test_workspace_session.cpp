@@ -84,7 +84,6 @@ TEST_F(WorkspaceSessionTest, DefaultWorkspaceIsIdentified) {
     WorkspaceSession ws4;
     ws4.open_windows.push_back({BlueprintWindowMode::EmbeddedScope, "test"});
     EXPECT_FALSE(ws4.isDefault());
-
 }
 
 TEST_F(WorkspaceSessionTest, WorkspaceFileHasCorrectFormat) {

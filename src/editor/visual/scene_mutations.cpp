@@ -160,7 +160,9 @@ void rebuild(Scene& scene,
              ui::StringInterner& interner,
              bp2::PathArena& arena,
              std::string_view scope_id,
-             const ComponentRegistry& registry) {
+             const ComponentRegistry& registry,
+             const editor::RuntimeNodeStateStore* runtime_state_store,
+             const editor::SessionNodeAppearanceStore* appearance_store) {
     auto guard = scene.flushGuard();
     scene.clear();
 
@@ -178,13 +180,26 @@ void rebuild(Scene& scene,
              n,
              bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
          const std::string type_name(interner.resolve(n.semantic.type));
-         const ComponentSpec* def = registry.get(type_name);
-         const TypePresentation* pres = registry.presentation.get(type_name);
-         auto frame_kind = editor::presentation::resolve_frame_kind(def, pres);
-         NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner) : NodeContent{};
-         std::unique_ptr<Widget> widget = NodeFactory::create(n, frame_kind, render_iface, interner, content, bus_wires);
-         scene.add(std::move(widget));
-     }
+          const ComponentSpec* def = registry.get(type_name);
+          const TypePresentation* pres = registry.presentation.get(type_name);
+          auto frame_kind = editor::presentation::resolve_frame_kind(def, pres);
+          const editor::NodeInstanceKey instance_key = editor::make_node_instance_key(interner, scope_id, n.semantic.id);
+          const editor::RuntimeNodeState* runtime_state = nullptr;
+          if (runtime_state_store != nullptr) {
+              const auto it = runtime_state_store->find(instance_key);
+              if (it != runtime_state_store->end()) {
+                  runtime_state = &it->second;
+              }
+          }
+          NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner, runtime_state) : NodeContent{};
+          std::optional<editor::NodeColor> color = std::nullopt;
+          if (appearance_store != nullptr) {
+              color = editor::lookup_node_color(*appearance_store, instance_key);
+          }
+          std::unique_ptr<Widget> widget = NodeFactory::create(
+              n, frame_kind, render_iface, interner, content, color, bus_wires);
+          scene.add(std::move(widget));
+      }
 
     // Orient single-port ref/value nodes toward their connected node.
     orient_ref_node_ports(scene, bp, arena, interner, scope_id, registry);

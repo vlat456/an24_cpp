@@ -1,6 +1,5 @@
 #include "document.h"
 
-#include "blueprint_view_hydration.h"
 #include "core/model/component_registry.h"
 #include "blueprint_v2/library/library_path.h"
 #include "visual/persist.h"
@@ -23,6 +22,17 @@ WorkspaceSession Document::captureWorkspaceSession() const {
                 win->resolved_scope_id().key(),
             });
         }
+    }
+
+    for (const auto& [key, color] : session_node_appearance_) {
+        WorkspaceSession::PersistedNodeColor persisted;
+        persisted.node_id = std::string(interner_.resolve(key.local_node_id));
+        persisted.color = color;
+        persisted.instance_path.reserve(key.instance_path.size());
+        for (const ui::InternedId segment : key.instance_path) {
+            persisted.instance_path.push_back(std::string(interner_.resolve(segment)));
+        }
+        session.node_colors.push_back(std::move(persisted));
     }
 
     return session;
@@ -66,6 +76,23 @@ void Document::applyWorkspaceSession(const WorkspaceSession& session) {
             openExternalRefWindow(window_scope.key, *path);
         }
     }
+
+    session_node_appearance_.clear();
+    for (const auto& persisted : session.node_colors) {
+        editor::NodeInstanceKey key;
+        key.local_node_id = interner_.intern(persisted.node_id);
+        key.instance_path.reserve(persisted.instance_path.size());
+        for (const std::string& segment : persisted.instance_path) {
+            key.instance_path.push_back(interner_.intern(segment));
+        }
+        session_node_appearance_.insert_or_assign(std::move(key), persisted.color);
+    }
+
+    // Push restored session colors into live widgets by rebuilding all
+    // open window scenes. This does not restart the simulation.
+    if (!session.node_colors.empty()) {
+        rebuild_window_scenes();
+    }
 }
 
 bool Document::save(const std::string& path) {
@@ -97,7 +124,7 @@ bool Document::load(const std::string& path) {
         return false;
     }
 
-    auto bp = load_hydrated_blueprint_from_file(path.c_str(), interner_, arena_, *type_registry_);
+    auto bp = load_blueprint_from_file_validated(path.c_str(), interner_, arena_, *type_registry_);
     if (!bp.has_value()) {
         return false;
     }
@@ -109,6 +136,10 @@ bool Document::load(const std::string& path) {
         simulation_.stop();
         simulation_running_ = false;
     }
+
+    // Clear all editor-owned state from the previous document.
+    runtime_node_states_.clear();
+    session_node_appearance_.clear();
 
     {
         bp2::EditorModel fresh(std::move(*bp));
@@ -127,7 +158,12 @@ bool Document::load(const std::string& path) {
 
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
-    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().resolved_scope_id().sim_scope_prefix(), reg);
+    resetNodeContent(reg);
+
+    // Single authoritative scene rebuild for the root window.  Sub-windows
+    // were closed above, so only the root needs rebuilding here.
+    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().resolved_scope_id().sim_scope_prefix(), reg,
+                               &runtime_node_states_, &session_node_appearance_);
     root().input.rebuild_snapshot();
 
     filepath_ = path;

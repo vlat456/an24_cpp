@@ -5,6 +5,7 @@
 #include "../../blueprint_v2/blueprint/node_port.h"
 #include "core/model/component_registry.h"
 #include "core/model/presentation_spec.h"
+#include "editor/data/node_state.h"
 #include "../../ui/math/pt.h"
 #include "../../ui/core/interned_id.h"
 #include <string>
@@ -22,23 +23,6 @@ struct NodeContent {
     std::string unit;
     bool state = false;
     bool tripped = false;  ///< AZS thermal trip indicator (red button tint)
-};
-
-/// Optional per-node custom color (RGBA, 0.0–1.0)
-struct NodeColor {
-    float r = 0.5f, g = 0.5f, b = 0.5f, a = 1.0f;
-
-    /// Convert to ImGui uint32 ABGR format (0xAABBGGRR)
-    uint32_t to_uint32() const {
-        auto clamp01 = [](float v) -> float {
-            return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
-        };
-        uint8_t ri = static_cast<uint8_t>(clamp01(r) * 255.0f + 0.5f);
-        uint8_t gi = static_cast<uint8_t>(clamp01(g) * 255.0f + 0.5f);
-        uint8_t bi = static_cast<uint8_t>(clamp01(b) * 255.0f + 0.5f);
-        uint8_t ai = static_cast<uint8_t>(clamp01(a) * 255.0f + 0.5f);
-        return (uint32_t(ai) << 24) | (uint32_t(bi) << 16) | (uint32_t(gi) << 8) | uint32_t(ri);
-    }
 };
 
 /// Per-port layout override at the blueprint (instance) level.
@@ -214,10 +198,29 @@ inline NodeContent create_node_content(const ComponentSpec& def,
 inline NodeContent create_runtime_node_content(const bp2::Blueprint::Node& node,
                                                const ComponentSpec& def,
                                                const TypePresentation* pres,
-                                               ui::StringInterner& interner) {
+                                               ui::StringInterner& interner,
+                                               const editor::RuntimeNodeState* runtime_state = nullptr) {
     NodeContent content = create_node_content(def, pres, node.semantic.params, node.semantic.string_params, interner);
-    content.value = node.view.content_value;
-    content.state = node.view.content_state;
-    content.tripped = node.view.content_tripped;
+
+    if (runtime_state == nullptr) {
+        return content;
+    }
+
+    std::visit([
+        &content
+    ](const auto& state) {
+        using State = std::decay_t<decltype(state)>;
+        if constexpr (std::is_same_v<State, editor::ScalarNodeRuntimeState>) {
+            content.value = state.value;
+        } else if constexpr (std::is_same_v<State, editor::BoolNodeRuntimeState>) {
+            content.state = state.state;
+        } else if constexpr (std::is_same_v<State, editor::BoolTrippedNodeRuntimeState>) {
+            content.state = state.state;
+            content.tripped = state.tripped;
+        } else if constexpr (std::is_same_v<State, editor::DiscreteNodeRuntimeState>) {
+            content.value = static_cast<float>(state.position);
+        }
+    }, *runtime_state);
+
     return content;
 }

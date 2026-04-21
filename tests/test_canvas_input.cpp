@@ -41,7 +41,7 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
     n.semantic.type = I.intern(type);
     n.layout.x = x;
     n.layout.y = y;
-    n.view.render_hint = render_hint;
+    (void)render_hint;
     return n;
 }
 

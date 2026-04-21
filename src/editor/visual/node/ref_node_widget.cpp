@@ -27,7 +27,8 @@ static std::string format_value(float v) {
 
 RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data,
                              const bp2::Interface& render_iface,
-                             const ui::StringInterner& interner)
+                             const ui::StringInterner& interner,
+                             std::optional<editor::NodeColor> color)
     : node_iid_(data.semantic.id)
     , interner_(&interner)
     , name_(data.view.name)
@@ -37,13 +38,8 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data,
     if (type_name_ == "Value" && !data.semantic.params.empty()) {
         name_ = format_value(data.semantic.params.begin()->second);
     }
-    if (data.view.has_color) {
-        NodeColor c;
-        c.r = data.view.color_r;
-        c.g = data.view.color_g;
-        c.b = data.view.color_b;
-        c.a = data.view.color_a;
-        custom_fill_ = c.to_uint32();
+    if (color.has_value()) {
+        custom_fill_ = color->to_uint32();
     }
 
     setLocalPos(Pt(data.layout.x, data.layout.y));

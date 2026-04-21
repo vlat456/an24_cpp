@@ -1,6 +1,5 @@
 #include "document.h"
 
-#include "blueprint_view_hydration.h"
 #include "core/model/presentation_spec.h"
 #include "commands/commands.h"
 #include "blueprint_v2/editor_model/editor_model.h"
@@ -110,8 +109,6 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         spdlog::error("[editor] Component definition not found for '{}'", classname);
         return;
     }
-    const auto* pres = registry.presentation.get(classname);
-
     if (const auto* comp = as_composite(*def)) {
         addBlueprint(classname, world_pos, scope_id, registry);
         return;
@@ -187,9 +184,6 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         node.semantic.string_params.erase("exposed_type");
     }
 
-    // Issue #105/#133: hydrate static semantics + initial dynamic defaults.
-    editor::hydrate_node_view_full(node, def, pres, interner_);
-
     const bool bridge_is_input = bridge_direction == bp2::BridgeDirection::Input;
 
     const bp2::Blueprint before_add = model_.current();
@@ -236,6 +230,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         }
 #endif
 
+        resetNodeContent(registry);
         rebuildAllWindows();
 
         spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) group={}",
@@ -267,8 +262,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         spdlog::error("[editor] '{}' is not a composite blueprint", blueprint_name);
         return;
     }
-    const auto* pres = registry.presentation.get(blueprint_name);
-
     const std::string unique_id = model_.generate_unique_node_id(blueprint_name, interner_);
     const Pt snapped_pos = editor_math::snap_to_grid(world_pos, viewport().grid_step);
 
@@ -296,9 +289,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     // Store port descriptors temporarily to set on inline blueprint interface.
     bp2::Interface inline_bp_iface = bp2::Interface(std::move(iface_ports));
 
-    // Issue #105/#133: hydrate static semantics + initial dynamic defaults.
-    editor::hydrate_node_view_full(collapsed, def, pres, interner_);
-
     bp2::Blueprint loaded;
     try {
         loaded = bp2::blueprint_from_type_definition(*def, interner_, registry);
@@ -312,8 +302,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         blueprint_name,
         loaded.nodes().size(),
         loaded.wires().size());
-
-    loaded = editor::hydrate_runtime_node_view_data(std::move(loaded), interner_, registry);
 
     bp2::Blueprint inline_bp = loaded.with_interface(inline_bp_iface);
     inline_bp = inline_bp.with_id(interner_.intern(blueprint_name));
@@ -377,6 +365,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         }
 #endif
 
+        resetNodeContent(registry);
         rebuildAllWindows();
         spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) group={}",
             blueprint_name, unique_id, snapped_pos.x, snapped_pos.y,

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "editor/data/node_state.h"
 #include "ui/core/interned_id.h"
 #include "core/model/presentation_spec.h"
 #include "core/model/component_spec.h"
@@ -183,7 +184,8 @@ NodeFrameKind resolve_frame_kind(const ComponentSpec* spec, const TypePresentati
 CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
                                                 const ComponentSpec* def,
                                                 const TypePresentation* pres,
-                                                ui::StringInterner& interner);
+                                                ui::StringInterner& interner,
+                                                const editor::RuntimeNodeState* runtime_state = nullptr);
 
 // ============================================================================
 // Paint / Hit / Interaction primitives

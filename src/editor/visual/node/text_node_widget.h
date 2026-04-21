@@ -1,6 +1,7 @@
 #pragma once
 #include "visual/widget.h"
 #include "visual/render_context.h"
+#include "editor/data/node_state.h"
 #include "ui/core/interned_id.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
@@ -15,7 +16,9 @@ namespace visual {
 /// Resizable, no ports, renders multiline text with border.
 class TextNodeWidget : public Widget {
 public:
-    explicit TextNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    explicit TextNodeWidget(const bp2::Blueprint::Node& data,
+                            const ui::StringInterner& interner,
+                            std::optional<editor::NodeColor> color = std::nullopt);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }

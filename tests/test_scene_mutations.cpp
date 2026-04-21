@@ -5,7 +5,6 @@
 #include "visual/scene.h"
 #include "visual/persist.h"
 #include "io/json/component_registry_json_loader.h"
-#include "editor/blueprint_view_hydration.h"
 #include "visual/node/node_factory.h"
 #include "visual/node/visual_node.h"
 #include "visual/node/ref_node_widget.h"
@@ -242,14 +241,16 @@ TEST(SceneMutations, RebuildPreservesNodeColor) {
     bp2::PathArena arena(interner);
 
     auto n = make_bp2_node(interner, "bat1", "Battery");
-    n.view.has_color = true;
-    n.view.color_r = 0.8f; n.view.color_g = 0.2f; n.view.color_b = 0.1f; n.view.color_a = 1.0f;
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(n));
 
+    editor::SessionNodeAppearanceStore appearance;
+    appearance.emplace(editor::make_node_instance_key(interner, "", interner.lookup("bat1")),
+                       editor::NodeColor{0.8f, 0.2f, 0.1f, 1.0f});
+
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg(), nullptr, &appearance);
 
     auto* w = scene.find("bat1");
     ASSERT_NE(w, nullptr);
@@ -261,14 +262,16 @@ TEST(SceneMutations, RebuildPreservesBusNodeColor) {
     bp2::PathArena arena(interner);
 
     auto bus = make_bp2_node(interner, "bus1", "Bus");
-    bus.view.has_color = true;
-    bus.view.color_r = 0.1f; bus.view.color_g = 0.5f; bus.view.color_b = 0.9f; bus.view.color_a = 1.0f;
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(bus));
 
+    editor::SessionNodeAppearanceStore appearance;
+    appearance.emplace(editor::make_node_instance_key(interner, "", interner.lookup("bus1")),
+                       editor::NodeColor{0.1f, 0.5f, 0.9f, 1.0f});
+
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg(), nullptr, &appearance);
 
     auto* w = scene.find("bus1");
     ASSERT_NE(w, nullptr);
@@ -611,10 +614,8 @@ TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw3", Domain::Electrical, bp2::Direction::InOut, PortType::V),
     });
-     knob.view.content_type = bp2::NodeContentType::Knob;
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(knob));
+     bp2::Blueprint bp;
+     bp = bp.with_node(std::move(knob));
 
     visual::Scene scene;
     visual::mutations::rebuild(scene, bp, I, arena, "", scene_reg());
@@ -680,10 +681,8 @@ TEST(SceneMutations, KnobSwitchUsesWiperThrowNamesAndNoDuplication) {
         make_port(I, "throw1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
         make_port(I, "throw2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
     });
-     knob.view.content_type = bp2::NodeContentType::Knob;
-
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(knob));
+     bp2::Blueprint bp;
+     bp = bp.with_node(std::move(knob));
 
     visual::Scene scene;
     visual::mutations::rebuild(scene, bp, I, arena, "", scene_reg());
@@ -797,7 +796,6 @@ TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
 
     auto long_labels = make_bp2_node(interner, "light_long", "IndicatorLight");
     long_labels.view.name = "light_long";
-    long_labels.view.content_type = bp2::NodeContentType::Indicator;
     set_iface(long_labels, {
         make_port(interner, "brightness", Domain::Electrical, bp2::Direction::Output, PortType::I),
         make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
@@ -806,7 +804,6 @@ TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
 
     auto short_labels = make_bp2_node(interner, "light_short", "IndicatorLight");
     short_labels.view.name = "light_short";
-    short_labels.view.content_type = bp2::NodeContentType::Indicator;
     set_iface(short_labels, {
         make_port(interner, "b", Domain::Electrical, bp2::Direction::Output, PortType::I),
         make_port(interner, "a", Domain::Electrical, bp2::Direction::Input, PortType::V),
@@ -841,7 +838,6 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     slider.view.name = "slider_live";
     slider.semantic.params[interner.intern("min")] = -10.0f;
     slider.semantic.params[interner.intern("max")] = 200.0f;
-    slider.view.content_value = 42.0f;
     set_iface(slider, {
         make_port(interner, "ctrl", Domain::Electrical, bp2::Direction::Input, PortType::V),
         make_port(interner, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
@@ -849,7 +845,6 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
 
     auto sw = make_bp2_node(interner, "switch_live", "Switch");
     sw.view.name = "switch_live";
-    sw.view.content_state = true;
     set_iface(sw, {
         make_port(interner, "state", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
@@ -860,8 +855,14 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     bp = bp.with_node(std::move(slider));
     bp = bp.with_node(std::move(sw));
 
+    editor::RuntimeNodeStateStore runtime_state;
+    runtime_state.emplace(editor::make_node_instance_key(interner, "", interner.lookup("slider_live")),
+                          editor::ScalarNodeRuntimeState{42.0f});
+    runtime_state.emplace(editor::make_node_instance_key(interner, "", interner.lookup("switch_live")),
+                          editor::BoolNodeRuntimeState{true});
+
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", reg);
+    visual::mutations::rebuild(scene, bp, interner, arena, "", reg, &runtime_state, nullptr);
 
     auto* slider_widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_live"));
     auto* switch_widget = dynamic_cast<visual::NodeWidget*>(scene.find("switch_live"));

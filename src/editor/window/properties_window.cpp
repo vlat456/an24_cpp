@@ -2,10 +2,10 @@
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "editor/common/port_type_utils.h"
 #include "blueprint_v2/interface/node_port_projection.h"
-#include "editor/blueprint_view_hydration.h"
 #include "editor/visual/presentation/node_presentation.h"
 #include "core/model/presentation_spec.h"
 #include "core/model/component_spec.h"
+#include "core/model/component_registry.h"
 #include "parse_number.h"
 
 #ifndef EDITOR_TESTING
@@ -684,29 +684,6 @@ void PropertiesWindow::apply() {
             if (!handled_as_bool) {
                 ui::InternedId key_iid = interner_->intern(key);
                 updated.semantic.params[key_iid] = new_value;
-            }
-        }
-
-        // [Issue #133] Re-hydrate static content semantics from updated params.
-        // hydrate_node_view() now only touches static fields (type, label,
-        // min, max, unit) — dynamic runtime state (value, state, tripped)
-        // is preserved automatically without manual save/restore.
-        if (type_registry_) {
-            editor::hydrate_node_view(updated, def, pres, *interner_);
-
-            // Param-driven dynamic defaults remain runtime-owned in general, but
-            // when the user explicitly edits the semantic default itself we must
-            // reseed the corresponding live field so the rebuilt widget matches
-            // the newly requested default immediately.
-            if (def != nullptr) {
-                const std::string& content_type = pres ? pres->content_type : "None";
-                if ((content_type == "Switch" || content_type == "VerticalToggle")
-                    && float_param_changed(pending_params_, snapshot_params_, "closed")) {
-                    editor::initialize_node_content_defaults(updated, def, pres, *interner_);
-                } else if (content_type == "Knob"
-                           && float_param_changed(pending_params_, snapshot_params_, "initial_position")) {
-                    editor::initialize_node_content_defaults(updated, def, pres, *interner_);
-                }
             }
         }
 

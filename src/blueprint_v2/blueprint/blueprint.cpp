@@ -253,7 +253,7 @@ bool Blueprint::Node::canonical_eq(Node const& o) const {
         content_equal = bridge_port() == o.bridge_port();
     }
 
-    return semantic == o.semantic && content_equal && layout == o.layout && view.canonical_eq(o.view);
+    return semantic == o.semantic && content_equal && layout == o.layout && view == o.view;
 }
 
 Blueprint Blueprint::with_node(Node node) const {

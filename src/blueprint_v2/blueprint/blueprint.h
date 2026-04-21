@@ -142,73 +142,12 @@ public:
             }
         };
 
-        // === View/presentation data ===
-        //
-        // Design decision (#107): ViewData intentionally lives inside the
-        // core Blueprint::Node model as a pragmatic superset of canonical
-        // persistence authority.  The fields are grouped into three tiers:
-        //
-        //   1. **Canonical** — authored document state, persisted in strict
-        //      blueprint v1 JSON (e.g. `name` → JSON `label`).
-        //
-        //   2. **Runtime/editor hydrated** — NOT persisted; must never be
-        //      serialized.  Two sub-authorities (Issue #133):
-        //      - **Static semantics** (render_hint, content_type, label, min,
-        //        max, unit) — owned by `editor::hydrate_node_view()`.
-        //      - **Dynamic runtime state** (content_value, content_state,
-        //        content_tripped) — initial defaults set by
-        //        `editor::initialize_node_content_defaults()` at creation/load,
-        //        then owned exclusively by simulation runtime / user interaction.
-        //      Must NOT be set by BlueprintCodec::decode().
-        //
-        //   3. **Session/editor-only** — transient visual state that lives
-        //      only in the running editor session.  NOT persisted; NOT
-        //      hydrated from ComponentRegistry.  Fields: has_color, color_*.
-        //
-        // `canonical_eq()` compares only tier-1 fields and should be used
-        // for persistence dirty-checking.  `operator==` compares all tiers
-        // and is used for structural equality in tests and model diffing.
-        //
         struct ViewData {
-            // --- Tier 1: Canonical authored state (persisted) ---
             /// Canonical authored node label persisted as JSON `label`.
             std::string name;
 
-            // --- Tier 2: Runtime/editor hydrated state (NOT persisted) ---
-            // Static semantics — owned by editor::hydrate_node_view().
-            // Must NOT be set by BlueprintCodec::decode().
-            std::string render_hint;
-            NodeContentType content_type = NodeContentType::None;
-            std::string content_label;
-            float content_min = 0.0f;
-            float content_max = 1.0f;
-            std::string content_unit;
-            // Dynamic runtime state — initial defaults from
-            // editor::initialize_node_content_defaults(), then owned by
-            // simulation runtime / user interaction.
-            float content_value = 0.0f;
-            bool content_state = false;
-            bool content_tripped = false;
-
-            // --- Tier 3: Session/editor-only state (NOT persisted, NOT hydrated) ---
-            // Per-node custom color (has_color=false means use theme default).
-            bool has_color = false;
-            float color_r = 0.5f, color_g = 0.5f, color_b = 0.5f, color_a = 1.0f;
-
-            /// Compare only canonical persisted fields (tier 1).
-            bool canonical_eq(ViewData const& o) const {
-                return name == o.name;
-            }
-
-            /// Full structural equality across all tiers.
             bool operator==(ViewData const& o) const {
-                return name == o.name && render_hint == o.render_hint
-                    && content_type == o.content_type && content_label == o.content_label
-                    && content_value == o.content_value && content_min == o.content_min
-                    && content_max == o.content_max && content_unit == o.content_unit
-                    && content_state == o.content_state && content_tripped == o.content_tripped
-                    && has_color == o.has_color && color_r == o.color_r && color_g == o.color_g
-                    && color_b == o.color_b && color_a == o.color_a;
+                return name == o.name;
             }
         };
 

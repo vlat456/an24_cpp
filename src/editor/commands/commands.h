@@ -32,18 +32,12 @@ struct CmdSetPortLayout {
     ui::InternedId node_id;
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> overrides;
 };
-struct CmdSetColor {
-    ui::InternedId node_id;
-    bool has_color;
-    float r, g, b, a;
-};
 
 using Command = std::variant<
     CmdAddNode, CmdRemoveNode, CmdMoveNode,
     CmdAddWire, CmdRemoveWire,
     CmdSetParam, CmdResizeNode, CmdSetName,
-    CmdSetRoutingPoints, CmdSetPortLayout,
-    CmdSetColor
+    CmdSetRoutingPoints, CmdSetPortLayout
 >;
 
 /// Execute a command (takes by value for move semantics). Call push_checkpoint() before.
@@ -71,8 +65,4 @@ inline Command cmd_set_routing_points(ui::InternedId id, std::vector<std::pair<f
 inline Command cmd_set_port_layout(ui::InternedId node_id,
                                    std::vector<bp2::Blueprint::Node::PortLayoutOverride> overrides) {
     return CmdSetPortLayout{node_id, std::move(overrides)};
-}
-inline Command cmd_set_color(ui::InternedId node_id, bool has_color,
-                             float r, float g, float b, float a) {
-    return CmdSetColor{node_id, has_color, r, g, b, a};
 }

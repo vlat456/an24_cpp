@@ -47,5 +47,10 @@
   "param_defaults": {
     "closed": "false"
   },
+  "param_schema": {
+    "closed": {
+      "type": "bool"
+    }
+  },
   "content_type": "Switch"
 }

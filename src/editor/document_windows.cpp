@@ -1,6 +1,5 @@
 #include "document.h"
 
-#include "blueprint_view_hydration.h"
 #include "core/model/component_registry.h"
 #include "visual/persist.h"
 #include "subwindow_open_target.h"
@@ -26,7 +25,7 @@ void Document::openExternalRefWindow(const std::string& instance_id,
         return;
     }
 
-    auto bp = load_hydrated_blueprint_from_file(
+    auto bp = load_blueprint_from_file_validated(
         blueprint_file_path.c_str(), *ext_interner, *ext_arena, *type_registry_);
     if (!bp.has_value()) {
         spdlog::error("[editor] Failed to load external blueprint '{}' for instance '{}'",
@@ -62,7 +61,8 @@ void Document::openExternalRefWindow(const std::string& instance_id,
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     visual::mutations::rebuild(win->scene, *win->external_blueprint,
-                               *win->external_interner, *win->external_arena, "", reg);
+                               *win->external_interner, *win->external_arena, instance_id, reg,
+                               &runtime_node_states_, &session_node_appearance_);
     win->input.rebuild_snapshot();
 
     spdlog::info("[editor] Opened external-ref window for '{}' from '{}'",
