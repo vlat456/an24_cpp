@@ -108,7 +108,7 @@ void Inspector::buildDisplayTree() {
         // Collect ports (inputs then outputs)
         const bp2::Interface iface = registry_
             ? bp_->effective_node_iface(node, *registry_, *interner_)
-            : bp_->effective_node_iface(node);
+            : bp_->effective_node_iface(node, *interner_);
         const auto inputs = bp2::derive_input_ports(iface);
         const auto outputs = bp2::derive_output_ports(iface);
         for (const auto& port : inputs) {

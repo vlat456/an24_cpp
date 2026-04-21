@@ -50,15 +50,6 @@ static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
         input_bridge ? bp2::BridgeDirection::Input
                      : bp2::BridgeDirection::Output,
         t,
-        input_bridge
-            ? bp2::Interface({
-                make_port(I, "ext", Domain::Electrical, bp2::Direction::Input, t),
-                make_port(I, "port", Domain::Electrical, bp2::Direction::Output, t),
-            })
-            : bp2::Interface({
-                make_port(I, "port", Domain::Electrical, bp2::Direction::Input, t),
-                make_port(I, "ext", Domain::Electrical, bp2::Direction::Output, t),
-            })
     };
     return n;
 }
@@ -329,7 +320,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores)
 
     node_ptr = model.current().find_node(interner.intern("bp_in_1"));
     ASSERT_NE(node_ptr, nullptr);
-    const auto iface = model.current().effective_node_iface(*node_ptr);
+    const auto iface = model.current().effective_node_iface(*node_ptr, interner);
     ASSERT_EQ(count_inputs(iface), 1u);
     ASSERT_EQ(count_outputs(iface), 1u);
     EXPECT_EQ(get_input_type(iface, 0), PortType::RPM);
@@ -339,7 +330,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores)
     model.undo();
     node_ptr = model.current().find_node(interner.intern("bp_in_1"));
     ASSERT_NE(node_ptr, nullptr);
-    const auto undone_iface = model.current().effective_node_iface(*node_ptr);
+    const auto undone_iface = model.current().effective_node_iface(*node_ptr, interner);
     EXPECT_EQ(get_input_type(undone_iface, 0), PortType::V);
     EXPECT_EQ(get_output_type(undone_iface, 0), PortType::V);
 }
@@ -389,7 +380,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     
     // Issue #91: Query interface from source authority using effective_node_iface()
     // since component().iface is no longer mirrored for blueprint-instance nodes.
-    auto effective_iface = model.current().effective_node_iface(*collapsed_after);
+    auto effective_iface = model.current().effective_node_iface(*collapsed_after, interner);
     ASSERT_EQ(count_inputs(effective_iface), 1u);
     EXPECT_EQ(get_input_type(effective_iface, 0), PortType::RPM);
 
@@ -400,6 +391,46 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     auto pd = embedded_iface.find(interner.intern("in"));
     ASSERT_TRUE(pd.has_value());
     EXPECT_EQ(pd->domain, Domain::Mechanical);
+}
+
+TEST_F(PropertiesWindowTest, ApplyBridgePortTypeDoesNotTouchNonCanonicalColonIds) {
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("bp"));
+
+    bp2::Blueprint inner_bp;
+    inner_bp = inner_bp.with_interface(bp2::Interface({
+        make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    }));
+
+    bp2::Blueprint::Node collapsed;
+    collapsed.semantic.id = interner.intern("inst1");
+    collapsed.semantic.type = interner.intern("bp_type");
+    collapsed.view.name = "inst1";
+    collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(inner_bp.with_id(interner.intern("bp_type"))))
+    };
+
+    bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:iface:debug", true, PortType::V);
+
+    bp = bp.with_node(std::move(bridge));
+    bp = bp.with_node(std::move(collapsed));
+    model.replace_current(std::move(bp));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst1:iface:debug"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "inst1:iface:debug", model, interner, nullptr, [](const std::string&) {});
+    win.set_pending_bridge_port_type(PortType::RPM);
+    win.apply();
+
+    const auto* collapsed_after = model.current().find_node(interner.intern("inst1"));
+    ASSERT_NE(collapsed_after, nullptr);
+    auto effective_iface = model.current().effective_node_iface(*collapsed_after, interner);
+    ASSERT_EQ(count_inputs(effective_iface), 1u);
+    EXPECT_EQ(get_input_type(effective_iface, 0), PortType::V)
+        << "only canonical <instance>:<iface> bridge ids may propagate into embedded iface authority";
 }
 
 TEST_F(PropertiesWindowTest, ApplyThenUndoRevertsParam) {
@@ -830,7 +861,7 @@ TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
      // Verify the port type was updated on the node
      node_ptr = model.current().find_node(interner.intern("inst:my_output"));
      ASSERT_NE(node_ptr, nullptr);
-     const auto iface = model.current().effective_node_iface(*node_ptr);
+     const auto iface = model.current().effective_node_iface(*node_ptr, interner);
      ASSERT_GT(count_inputs(iface), 0u);
      EXPECT_EQ(get_input_type(iface, 0), PortType::Bool);
      EXPECT_TRUE(node_ptr->semantic.string_params.empty());

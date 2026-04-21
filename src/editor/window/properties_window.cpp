@@ -17,6 +17,61 @@
 #include <sstream>
 #include <vector>
 
+namespace {
+
+bool try_parse_nested_bridge_target(const std::string& bridge_node_id,
+                                   std::string& out_nested_id,
+                                   std::string& out_iface_name) {
+    const size_t sep = bridge_node_id.find(':');
+    if (sep == std::string::npos || sep == 0 || sep + 1 >= bridge_node_id.size()) {
+        return false;
+    }
+    if (bridge_node_id.find(':', sep + 1) != std::string::npos) {
+        return false;
+    }
+
+    out_nested_id = bridge_node_id.substr(0, sep);
+    out_iface_name = bridge_node_id.substr(sep + 1);
+    return true;
+}
+
+void apply_bridge_port_type_to_embedded_instance(bp2::Blueprint& blueprint,
+                                                 ui::InternedId nested_instance_id,
+                                                 ui::InternedId iface_id,
+                                                 PortType port_type) {
+    const auto* node = blueprint.find_node(nested_instance_id);
+    if (!node || !node->has_embedded_blueprint()) {
+        return;
+    }
+
+    const bp2::Blueprint* inline_bp = node->blueprint_instance().source.inline_def();
+    if (!inline_bp) {
+        return;
+    }
+
+    if (!inline_bp->iface().has(iface_id)) {
+        return;
+    }
+
+    const Domain domain = editor::common::domain_for_port_type(port_type);
+    std::vector<bp2::PortDescriptor> ports = inline_bp->iface().ports();
+    for (auto& pd : ports) {
+        if (pd.name == iface_id) {
+            pd.domain = domain;
+            pd.port_type = port_type;
+            break;
+        }
+    }
+
+    bp2::Blueprint::Node updated_node = *node;
+    updated_node.blueprint_instance().source.set_inline_def(
+        std::make_unique<bp2::Blueprint>(
+            inline_bp->with_interface(bp2::Interface(std::move(ports)))));
+    blueprint = bp2::replace_node_preserve_order(blueprint, std::move(updated_node));
+}
+
+} // namespace
+
 static const char* port_type_label(PortType t) {
     switch (t) {
         case PortType::V: return "Voltage (V)";
@@ -145,18 +200,8 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     snapshot_bridge_port_type_.reset();
     pending_bridge_port_type_.reset();
     if (node.is_bridge_port()) {
-        const bp2::Interface iface = type_registry_
-            ? model_->current().effective_node_iface(node, *type_registry_, *interner_)
-            : model_->current().effective_node_iface(node);
-        const auto in_ports = bp2::derive_input_ports(iface);
-        const auto out_ports = bp2::derive_output_ports(iface);
-        if (!in_ports.empty()) {
-            snapshot_bridge_port_type_ = in_ports.front().port_type;
-            pending_bridge_port_type_ = in_ports.front().port_type;
-        } else if (!out_ports.empty()) {
-            snapshot_bridge_port_type_ = out_ports.front().port_type;
-            pending_bridge_port_type_ = out_ports.front().port_type;
-        }
+        snapshot_bridge_port_type_ = node.bridge_port().port_type;
+        pending_bridge_port_type_ = node.bridge_port().port_type;
     }
 
     open_ = true;
@@ -503,7 +548,7 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
     // Skip if node has no ports
     const bp2::Interface iface = type_registry_
         ? model_->current().effective_node_iface(node, *type_registry_, *interner_)
-        : model_->current().effective_node_iface(node);
+        : model_->current().effective_node_iface(node, *interner_);
     const auto in_ports = bp2::derive_input_ports(iface);
     const auto out_ports = bp2::derive_output_ports(iface);
     if (in_ports.empty() && out_ports.empty()) return;
@@ -671,51 +716,31 @@ void PropertiesWindow::apply() {
         // Apply layout overrides change
         updated.layout.layout_overrides = pending_layout_overrides_;
 
-        // Apply bridge PortType change to all ports (ext/port share semantics).
+        // Apply bridge PortType change to the bridge semantics.
         if (pending_bridge_port_type_.has_value() && updated.is_bridge_port()) {
-            std::vector<bp2::PortDescriptor> ports = updated.bridge_port().iface.ports();
-            for (auto& pd : ports) {
-                pd.port_type = *pending_bridge_port_type_;
-                pd.domain = editor::common::domain_for_port_type(*pending_bridge_port_type_);
-            }
             updated.bridge_port().port_type = *pending_bridge_port_type_;
-            updated.bridge_port().iface = bp2::Interface(std::move(ports));
         }
 
         // Single atomic checkpoint + replace
         bp2::Blueprint next_bp = bp2::replace_node_preserve_order(model_->current(), std::move(updated));
 
         // If editing an extracted bridge node (<nested_id>:<iface_name>), propagate
-         // Update the bridge port domain/type on the embedded blueprint instance's source.
-         if (pending_bridge_port_type_.has_value()) {
-             const std::string& full_id = target_node_id_;
-             const size_t sep = full_id.find(':');
-             if (sep != std::string::npos && interner_) {
-                 const std::string nested_id_str = full_id.substr(0, sep);
-                 const std::string iface_name = full_id.substr(sep + 1);
-                 const ui::InternedId nested_iid = interner_->lookup(nested_id_str);
-                 const ui::InternedId iface_iid = interner_->lookup(iface_name);
-
-                 if (!nested_iid.empty() && !iface_iid.empty()) {
-                     if (const auto* node = next_bp.find_node(nested_iid)) {
-                         if (node->has_embedded_blueprint()) {
-                              bp2::Blueprint::Node updated_node = *node;
-                              std::vector<bp2::PortDescriptor> ports = updated_node.blueprint_instance().source.inline_def()->iface().ports();
-                              const Domain d = editor::common::domain_for_port_type(*pending_bridge_port_type_);
-                              for (auto& pd : ports) {
-                                  if (pd.name == iface_iid) {
-                                      pd.domain = d;
-                                      pd.port_type = *pending_bridge_port_type_;
-                                  }
-                              }
-                              bp2::Blueprint updated_inline = updated_node.blueprint_instance().source.inline_def()->with_interface(bp2::Interface(std::move(ports)));
-                              updated_node.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
-                              next_bp = bp2::replace_node_preserve_order(next_bp, std::move(updated_node));
-                         }
-                     }
-                 }
-             }
-         }
+        // the authoritative type update into the embedded blueprint interface.
+        if (pending_bridge_port_type_.has_value() && interner_) {
+            std::string nested_id_str;
+            std::string iface_name;
+            if (try_parse_nested_bridge_target(target_node_id_, nested_id_str, iface_name)) {
+                const ui::InternedId nested_iid = interner_->lookup(nested_id_str);
+                const ui::InternedId iface_iid = interner_->lookup(iface_name);
+                if (!nested_iid.empty() && !iface_iid.empty()) {
+                    apply_bridge_port_type_to_embedded_instance(
+                        next_bp,
+                        nested_iid,
+                        iface_iid,
+                        *pending_bridge_port_type_);
+                }
+            }
+        }
 
         model_->push_checkpoint();
         model_->replace_current(std::move(next_bp));

@@ -1,5 +1,6 @@
 #include "invariant_checker.h"
 
+#include "blueprint_v2/interface/bridge_port_interface.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/library/library_path.h"
 #include "core/model/component_registry.h"
@@ -89,8 +90,6 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
         }
     }
 
-    const ui::InternedId ext_id = interner.intern("ext");
-    const ui::InternedId port_id = interner.intern("port");
     for (auto const& node : bp.nodes()) {
         if (node.is_bridge_port()) {
             const auto& bridge = node.bridge_port();
@@ -98,17 +97,32 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 out.error = "bridge node missing exposed port at node id=" + iid_to_string(node.semantic.id);
                 return out;
             }
-            if (!bp.iface().has(bridge.exposed_port)) {
+            const auto exposed = bp.iface().find(bridge.exposed_port);
+            if (!exposed.has_value()) {
                 out.error = "bridge node exposed_port '" + iid_to_string(bridge.exposed_port)
                     + "' not found in blueprint interface at node id=" + iid_to_string(node.semantic.id);
                 return out;
             }
-            if (bridge.iface.size() != 2 || !bridge.iface.has(ext_id) || !bridge.iface.has(port_id)) {
-                out.error = "bridge node iface malformed at node id=" + iid_to_string(node.semantic.id);
+
+            size_t matching_bridge_count = 0;
+            for (auto const& candidate : bp.nodes()) {
+                if (candidate.is_bridge_port()
+                    && candidate.bridge_port().exposed_port == bridge.exposed_port) {
+                    ++matching_bridge_count;
+                }
+            }
+            if (matching_bridge_count != 1) {
+                out.error = "duplicate bridge node exposed_port '" + iid_to_string(bridge.exposed_port)
+                    + "' at node id=" + iid_to_string(node.semantic.id);
                 return out;
             }
-            const auto ext = bridge.iface.at(ext_id);
-            const auto port = bridge.iface.at(port_id);
+
+            const Interface bridge_iface = interface_from_bridge_port(
+                bridge.direction, bridge.port_type, interner);
+            const ui::InternedId ext_id = interner.intern("ext");
+            const ui::InternedId port_id = interner.intern("port");
+            const auto ext = bridge_iface.at(ext_id);
+            const auto port = bridge_iface.at(port_id);
             const Domain expected_domain = domain_for_port_type(bridge.port_type);
             if (ext.domain != expected_domain || port.domain != expected_domain
                 || ext.port_type != bridge.port_type || port.port_type != bridge.port_type) {
@@ -119,6 +133,12 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
             if (ext.direction != (expected_input ? Direction::Input : Direction::Output)
                 || port.direction != (expected_input ? Direction::Output : Direction::Input)) {
                 out.error = "bridge node iface/direction mismatch at node id=" + iid_to_string(node.semantic.id);
+                return out;
+            }
+            if (exposed->port_type != bridge.port_type
+                || exposed->domain != expected_domain
+                || exposed->direction != (expected_input ? Direction::Input : Direction::Output)) {
+                out.error = "bridge node exposed_port authority mismatch at node id=" + iid_to_string(node.semantic.id);
                 return out;
             }
             continue;

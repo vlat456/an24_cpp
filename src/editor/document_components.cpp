@@ -40,22 +40,6 @@ std::optional<bp2::BridgeDirection> bridge_direction_from_type_definition(
     throw std::runtime_error("Invalid exposed_direction default for bridge component '" + spec_classname(def) + "'");
 }
 
-bp2::Interface make_bridge_iface(ui::StringInterner& interner,
-                                 bool is_input_bridge,
-                                 PortType port_type) {
-    const Domain domain = editor::common::domain_for_port_type(port_type);
-    if (is_input_bridge) {
-        return bp2::Interface({
-            bp2::PortDescriptor{interner.intern("ext"), domain, bp2::Direction::Input, port_type},
-            bp2::PortDescriptor{interner.intern("port"), domain, bp2::Direction::Output, port_type},
-        });
-    }
-    return bp2::Interface({
-        bp2::PortDescriptor{interner.intern("port"), domain, bp2::Direction::Input, port_type},
-        bp2::PortDescriptor{interner.intern("ext"), domain, bp2::Direction::Output, port_type},
-    });
-}
-
 PortType parse_exposed_port_type(const std::string& s) {
     if (s == "V") return PortType::V;
     if (s == "I") return PortType::I;
@@ -197,7 +181,6 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
             interner_.intern(node.view.name),
             *bridge_direction,
             pt,
-            make_bridge_iface(interner_, is_input_bridge, pt),
         };
         node.semantic.type = interner_.intern("BridgePort");
         node.semantic.string_params.erase("exposed_direction");

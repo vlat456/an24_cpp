@@ -110,10 +110,13 @@ Note: for passive-contact electrical parts (for example `KnobSwitch` terminals `
 | Voltage | V | Electrical |
 | Current | I | Electrical |
 | Signal | Signal | Logical |
-| Pressure | P | Hydraulic |
-| Flow | Q | Hydraulic |
-| Temperature | T | Thermal |
-| Heat | H | Thermal |
+| Bool | Bool | Logical |
+| RPM | RPM | Mechanical |
+| Temperature | Temperature | Thermal |
+| Pressure | Pressure | Hydraulic |
+| Position | Position | Mechanical |
+| Contextual | Contextual | Derived by context |
+| Any | Any | Wildcard / compatibility boundary |
 
 ## Component Categories (Quick)
 
@@ -124,7 +127,7 @@ Note: for passive-contact electrical parts (for example `KnobSwitch` terminals `
 | Math | Add, Subtract, Multiply, Divide, Clamp, Normalize, Min, Max, SlewRate, AsymSlewRate, FastTMO, AsymTMO, Integrator, Accumulator, SampleHold, TimeDelay, Monostable, LerpNode, FirstOrderLag |
 | Thermal | TempSensor |
 | Mechanical | InertiaNode, Spring |
-| Structural | Bus, RefNode, Splitter, Merger, BlueprintInput, BlueprintOutput, Group, Text, Value |
+| Structural | Bus, RefNode, Splitter, Merger, Group, Text, Value, BridgePort |
 
 ```cpp
 template <typename Provider = JitProvider>
@@ -209,6 +212,7 @@ Canonical v1 blueprint documents persist node authority through the strict `node
 
 - component nodes use `kind`, `component`, optional typed `params`, and `layout`
 - blueprint-instance nodes use `kind`, `source`, optional `collapsed`, and `layout`
+- bridge-port nodes use `kind`, `exposed_port`, `direction`, `port_type`, and `layout`
 - runtime/editor-only hydrated fields like `render_hint`, `content_*`, window/session state, or interface mirrors are not canonical persisted authority
 
 ## Editor Grid Snapping

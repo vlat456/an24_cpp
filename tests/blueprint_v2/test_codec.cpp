@@ -673,10 +673,6 @@ TEST(BlueprintCodec, BridgePortRoundTripPreservesStructuralFields) {
         interner.intern("out"),
         bp2::BridgeDirection::Output,
         PortType::RPM,
-        bp2::Interface({
-            make_port(interner, "port", Domain::Mechanical, bp2::Direction::Input, PortType::RPM),
-            make_port(interner, "ext", Domain::Mechanical, bp2::Direction::Output, PortType::RPM),
-        })
     };
     bridge.layout.x = 12.0f;
     bridge.layout.y = 34.0f;
@@ -704,8 +700,9 @@ TEST(BlueprintCodec, BridgePortRoundTripPreservesStructuralFields) {
     EXPECT_EQ(node.bridge_port().exposed_port, interner.intern("out"));
     EXPECT_EQ(node.bridge_port().direction, bp2::BridgeDirection::Output);
     EXPECT_EQ(node.bridge_port().port_type, PortType::RPM);
-    EXPECT_TRUE(node.bridge_port().iface.has(interner.intern("ext")));
-    EXPECT_TRUE(node.bridge_port().iface.has(interner.intern("port")));
+    const auto iface = decoded->effective_node_iface(node, interner);
+    EXPECT_TRUE(iface.has(interner.intern("ext")));
+    EXPECT_TRUE(iface.has(interner.intern("port")));
 }
 
 // Strict negative coverage: canonical bridge_port rejects stale "side" field

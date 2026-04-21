@@ -77,6 +77,7 @@ public:
     /// Resolve an InternedId back to its string representation.
     /// Returns empty string_view for the empty ID.
     std::string_view resolve_id(ui::InternedId id) const { return interner_.resolve(id); }
+    ui::StringInterner& interner() const { return interner_; }
 
 private:
     ui::StringInterner& interner_;

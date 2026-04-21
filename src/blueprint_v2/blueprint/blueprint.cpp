@@ -1,5 +1,6 @@
 #include "blueprint.h"
 
+#include "blueprint_v2/interface/bridge_port_interface.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "core/model/component_registry.h"
@@ -327,7 +328,33 @@ Interface const& Blueprint::effective_node_iface(Node const& node) const {
         return embedded->iface();
     }
     if (node.is_bridge_port()) {
-        return node.bridge_port().iface;
+        throw std::logic_error("Blueprint::effective_node_iface requires explicit interner for bridge ports");
+    }
+    return node.component().iface;
+}
+
+Interface Blueprint::effective_node_iface(ui::InternedId node_id,
+                                          ui::StringInterner& interner) const {
+    const Node* node = find_node(node_id);
+    if (!node) {
+        throw std::logic_error("Blueprint::effective_node_iface: node not found");
+    }
+    return effective_node_iface(*node, interner);
+}
+
+Interface Blueprint::effective_node_iface(Node const& node,
+                                          ui::StringInterner& interner) const {
+    if (node.is_blueprint_instance()) {
+        const Blueprint* embedded = node.blueprint_instance().source.inline_def();
+        if (!embedded) {
+            throw std::logic_error("Blueprint::effective_node_iface requires explicit authority for referenced blueprint instances");
+        }
+        return embedded->iface();
+    }
+    if (node.is_bridge_port()) {
+        return interface_from_bridge_port(node.bridge_port().direction,
+                                          node.bridge_port().port_type,
+                                          interner);
     }
     return node.component().iface;
 }
@@ -346,7 +373,7 @@ Interface Blueprint::effective_node_iface(Node const& node,
                                           ::ComponentRegistry const& parser_registry,
                                           ui::StringInterner& interner) const {
     if (!node.is_blueprint_instance()) {
-        return effective_node_iface(node);
+        return effective_node_iface(node, interner);
     }
 
     if (const Blueprint* embedded = node.blueprint_instance().source.inline_def()) {
@@ -449,7 +476,7 @@ void Blueprint::collect_ports_recursive(
 
     for (auto const& node : nodes_) {
         Path node_path = arena.make_node(prefix, node.semantic.id);
-        for (auto const& port : effective_node_iface(node)) {
+        for (auto const& port : effective_node_iface(node, arena.interner())) {
             result.push_back({arena.make_port(node_path, port.name), port});
         }
 

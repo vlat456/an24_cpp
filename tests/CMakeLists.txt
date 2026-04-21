@@ -1189,6 +1189,7 @@ target_include_directories(inspector_tests PRIVATE
 target_link_libraries(inspector_tests PRIVATE
     blueprint_v2
     json_io
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(inspector_tests)
@@ -1220,6 +1221,7 @@ target_include_directories(properties_window_tests PRIVATE
 )
 target_link_libraries(properties_window_tests PRIVATE
     blueprint_v2
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(properties_window_tests)
@@ -1612,6 +1614,7 @@ target_include_directories(bp2_validation_tests PRIVATE
 target_link_libraries(bp2_validation_tests PRIVATE
     blueprint_v2
     json_io
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(bp2_validation_tests)

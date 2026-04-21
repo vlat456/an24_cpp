@@ -13,7 +13,12 @@ PortType find_port_type(const bp2::Blueprint& bp,
     if (!node) {
         return PortType::Any;
     }
-    for (const auto& p : bp.effective_node_iface(*node, registry, interner).ports()) {
+
+    const bp2::Interface iface = node->is_component()
+        ? bp.effective_node_iface(*node, interner)
+        : bp.effective_node_iface(*node, registry, interner);
+
+    for (const auto& p : iface.ports()) {
         if (p.name == port_name) {
             return p.port_type;
         }
@@ -100,6 +105,31 @@ bool compare_external(const ExternalConnection& a, const ExternalConnection& b) 
         < std::make_tuple(b.original_wire_id.raw(),
                           b.external_node_id.raw(), b.external_port.raw(),
                           b.internal_node_id.raw(), b.internal_port.raw());
+}
+
+std::vector<bp2::PortDescriptor> build_iface_ports(
+    const std::vector<ExternalConnection>& inputs,
+    const std::vector<ExternalConnection>& outputs,
+    ui::StringInterner& interner) {
+    std::vector<bp2::PortDescriptor> ports;
+    ports.reserve(inputs.size() + outputs.size());
+    for (const auto& ec : inputs) {
+        bp2::PortDescriptor pd;
+        pd.name = interner.intern(ec.iface_name);
+        pd.domain = ec.domain;
+        pd.direction = bp2::Direction::Input;
+        pd.port_type = resolve_port_type(ec);
+        ports.push_back(std::move(pd));
+    }
+    for (const auto& ec : outputs) {
+        bp2::PortDescriptor pd;
+        pd.name = interner.intern(ec.iface_name);
+        pd.domain = ec.domain;
+        pd.direction = bp2::Direction::Output;
+        pd.port_type = resolve_port_type(ec);
+        ports.push_back(std::move(pd));
+    }
+    return ports;
 }
 
 std::unordered_map<ui::InternedId, float> build_node_center_y_map(

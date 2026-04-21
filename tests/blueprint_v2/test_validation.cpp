@@ -64,10 +64,6 @@ static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
         I.intern(exposed_port),
         direction,
         port_type,
-        bp2::Interface({
-            {I.intern("ext"), domain_for_port_type(port_type), is_input ? Direction::Input : Direction::Output, port_type},
-            {I.intern("port"), domain_for_port_type(port_type), is_input ? Direction::Output : Direction::Input, port_type},
-        })
     };
     return n;
 }
@@ -878,8 +874,62 @@ TEST(InvariantChecker, ParserRegistryOverloadValidateBlueprint) {
      bp2::Blueprint bp;
      bp = bp.with_node(make_node_with_interface(I, "n1", known_type.c_str(), parser_registry));
  
-     auto result = bp2::InvariantChecker::validate(bp, arena, parser_registry, I);
-     EXPECT_TRUE(result.valid) << result.error;
+    auto result = bp2::InvariantChecker::validate(bp, arena, parser_registry, I);
+    EXPECT_TRUE(result.valid) << result.error;
+}
+
+TEST(InvariantChecker, BridgeExposedPortMustBelongToBlueprintInterface) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    ComponentRegistry parser_registry = make_validation_registry();
+
+    bp2::Blueprint bp;
+    bp = bp.with_interface(Interface({
+        {I.intern("actual"), Domain::Logical, Direction::Input, PortType::Bool},
+    }));
+    bp = bp.with_node(make_bridge_node(I, "missing", bp2::BridgeDirection::Input, PortType::Bool));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, parser_registry, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("exposed_port"), std::string::npos);
+    EXPECT_NE(result.error.find("not found in blueprint interface"), std::string::npos);
+}
+
+TEST(InvariantChecker, DuplicateBridgeExposedPortFails) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    ComponentRegistry parser_registry = make_validation_registry();
+
+    bp2::Blueprint bp;
+    bp = bp.with_interface(Interface({
+        {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
+    }));
+    auto bridge_a = make_bridge_node(I, "bridge_a", bp2::BridgeDirection::Input, PortType::Bool);
+    bridge_a.bridge_port().exposed_port = I.intern("flag");
+    auto bridge_b = make_bridge_node(I, "bridge_b", bp2::BridgeDirection::Input, PortType::Bool);
+    bridge_b.bridge_port().exposed_port = I.intern("flag");
+    bp = bp.with_node(std::move(bridge_a));
+    bp = bp.with_node(std::move(bridge_b));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, parser_registry, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("duplicate bridge node exposed_port"), std::string::npos);
+}
+
+TEST(InvariantChecker, BridgeExposedPortMustMatchInterfaceAuthority) {
+    ui::StringInterner I;
+    PathArena arena(I);
+    ComponentRegistry parser_registry = make_validation_registry();
+
+    bp2::Blueprint bp;
+    bp = bp.with_interface(Interface({
+        {I.intern("flag"), Domain::Logical, Direction::Input, PortType::Bool},
+    }));
+    bp = bp.with_node(make_bridge_node(I, "flag", bp2::BridgeDirection::Input, PortType::Signal));
+
+    auto result = bp2::InvariantChecker::validate(bp, arena, parser_registry, I);
+    EXPECT_FALSE(result.valid);
+    EXPECT_NE(result.error.find("exposed_port authority mismatch"), std::string::npos);
 }
 
 /// Wire declared as Electrical but ports are actually compatible and

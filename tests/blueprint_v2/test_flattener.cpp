@@ -59,15 +59,6 @@ static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
         input_side ? bp2::BridgeDirection::Input
                    : bp2::BridgeDirection::Output,
         type,
-        input_side
-            ? bp2::Interface({
-                make_port(I, "ext", domain, bp2::Direction::Input, type),
-                make_port(I, "port", domain, bp2::Direction::Output, type),
-            })
-            : bp2::Interface({
-                make_port(I, "port", domain, bp2::Direction::Input, type),
-                make_port(I, "ext", domain, bp2::Direction::Output, type),
-            })
     };
     return bridge;
 }
@@ -426,7 +417,7 @@ TEST(Flattener, Regression112_SingleLevelNoPhantomPaths) {
 }
 
 // ==================================================================
-// #112 Regression: v1-style bridge matching by label (bp_in_N)
+// #112 Regression: bridge matching must use authoritative exposed_port
 // ==================================================================
 
 TEST(Flattener, Regression112_BridgeMatchByExposedPort) {
@@ -446,10 +437,6 @@ TEST(Flattener, Regression112_BridgeMatchByExposedPort) {
         I.intern("feedback"),
         bp2::BridgeDirection::Input,
         PortType::Signal,
-        bp2::Interface({
-            make_port(I, "ext", Domain::Logical, bp2::Direction::Input, PortType::Signal),
-            make_port(I, "port", Domain::Logical, bp2::Direction::Output, PortType::Signal),
-        })
     };
     inner = inner.with_node(std::move(bridge));
 
@@ -646,6 +633,38 @@ TEST(Flattener, Regression112_ExposedPortTakesPrecedenceOverConflictingLegacyLab
     EXPECT_EQ(src_cmd_o, leaf_cmd_in);
     EXPECT_NE(src_feedback_o, leaf_cmd_in)
         << "authoritative exposed_port must win over conflicting legacy label";
+}
+
+TEST(Flattener, MissingWireNodeFailsLoudly) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+    bp2::BlueprintLibrary library;
+
+    bp2::Blueprint bp;
+    bp2::Blueprint::Node src;
+    src.semantic.id = I.intern("src");
+    src.semantic.type = I.intern("Value");
+    src.component().iface = bp2::Interface({
+        make_port(I, "out", Domain::Logical, bp2::Direction::Output),
+    });
+    bp = bp.with_node(std::move(src));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w1");
+    w.source = {I.intern("src"), I.intern("out")};
+    w.target = {I.intern("missing"), I.intern("in")};
+    w.domain = Domain::Logical;
+    bp = bp.with_wire(std::move(w));
+
+    bp2::Flattener flattener(library);
+    EXPECT_THROW({
+        try {
+            (void) flattener.flatten(bp, arena);
+        } catch (const std::logic_error& err) {
+            EXPECT_NE(std::string(err.what()).find("node not found"), std::string::npos);
+            throw;
+        }
+    }, std::logic_error);
 }
 
 // ==================================================================

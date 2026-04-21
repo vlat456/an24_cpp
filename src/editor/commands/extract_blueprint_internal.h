@@ -107,6 +107,11 @@ std::unordered_set<ui::InternedId> collect_used_wire_ids(const bp2::Blueprint& b
 
 bool compare_external(const ExternalConnection& a, const ExternalConnection& b);
 
+std::vector<bp2::PortDescriptor> build_iface_ports(
+    const std::vector<ExternalConnection>& inputs,
+    const std::vector<ExternalConnection>& outputs,
+    ui::StringInterner& interner);
+
 std::unordered_map<ui::InternedId, float> build_node_center_y_map(
     const std::vector<bp2::Blueprint::Node>& nodes);
 
@@ -132,12 +137,26 @@ struct BridgeSideBuildParams {
     const ui::InternedId* canonical_nested_instance_id = nullptr;
 };
 
+struct SynthesizedBoundary {
+    bp2::Interface child_interface;
+    std::vector<bp2::Blueprint::Node> child_bridge_nodes;
+    std::vector<bp2::Blueprint::Wire> child_bridge_wires;
+    std::vector<bp2::Blueprint::Wire> parent_reconnection_wires;
+};
+
 bool create_bridge_nodes_for_side(
     bp2::Blueprint& out,
     const BridgeSideBuildParams& p,
     ui::StringInterner& interner,
     std::unordered_set<ui::InternedId>& used_node_ids,
     std::unordered_map<std::string, ui::InternedId>& out_bridge_ids,
+    std::string* error_out);
+
+std::optional<SynthesizedBoundary> synthesize_extracted_boundary(
+    const ExtractionPlan& plan,
+    ui::InternedId nested_instance_id,
+    const std::vector<bp2::Blueprint::Node>& translated_nodes,
+    ui::StringInterner& interner,
     std::string* error_out);
 
 void append_bridge_to_internal_wires(
@@ -147,7 +166,6 @@ void append_bridge_to_internal_wires(
     const std::unordered_map<std::string, ui::InternedId>& bridge_ids,
     const char* wire_prefix,
     ui::StringInterner& interner,
-    bp2::PathArena& arena,
     std::unordered_set<ui::InternedId>& used_wire_ids);
 
 bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,

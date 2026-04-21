@@ -22,22 +22,6 @@ std::string encode_port_type(PortType type) {
     return "Any";
 }
 
-bp2::Interface make_bridge_iface(ui::StringInterner& interner,
-                                 bool is_input_side,
-                                 PortType port_type) {
-    const Domain domain = editor::common::domain_for_port_type(port_type);
-    if (is_input_side) {
-        return bp2::Interface({
-            bp2::PortDescriptor{interner.intern("ext"), domain, bp2::Direction::Input, port_type},
-            bp2::PortDescriptor{interner.intern("port"), domain, bp2::Direction::Output, port_type},
-        });
-    }
-    return bp2::Interface({
-        bp2::PortDescriptor{interner.intern("port"), domain, bp2::Direction::Input, port_type},
-        bp2::PortDescriptor{interner.intern("ext"), domain, bp2::Direction::Output, port_type},
-    });
-}
-
 } // namespace
 
 bool create_bridge_nodes_for_side(
@@ -74,7 +58,6 @@ bool create_bridge_nodes_for_side(
                 ? bp2::BridgeDirection::Input
                 : bp2::BridgeDirection::Output,
             port_type,
-            make_bridge_iface(interner, p.is_input_side, port_type),
         };
 
         out = out.with_node(std::move(bridge));
@@ -91,7 +74,6 @@ void append_bridge_to_internal_wires(
     const std::unordered_map<std::string, ui::InternedId>& bridge_ids,
     const char* wire_prefix,
     ui::StringInterner& interner,
-    bp2::PathArena& arena,
     std::unordered_set<ui::InternedId>& used_wire_ids) {
     for (const auto& ec : conns) {
         auto it = bridge_ids.find(ec.iface_name);
@@ -117,6 +99,75 @@ void append_bridge_to_internal_wires(
 
         out = out.with_wire(std::move(wire));
     }
+}
+
+std::optional<SynthesizedBoundary> synthesize_extracted_boundary(
+    const ExtractionPlan& plan,
+    ui::InternedId nested_instance_id,
+    const std::vector<bp2::Blueprint::Node>& translated_nodes,
+    ui::StringInterner& interner,
+    std::string* error_out) {
+    SynthesizedBoundary boundary;
+    boundary.child_interface = bp2::Interface(build_iface_ports(plan.inputs, plan.outputs, interner));
+
+    bp2::Blueprint bridge_host;
+    std::unordered_set<ui::InternedId> used_node_ids;
+    std::unordered_set<ui::InternedId> used_wire_ids;
+    std::unordered_map<std::string, ui::InternedId> input_bridge_ids;
+    std::unordered_map<std::string, ui::InternedId> output_bridge_ids;
+
+    const auto node_center_y = build_node_center_y_map(translated_nodes);
+    float max_internal_right = 0.0f;
+    for (const auto& node : translated_nodes) {
+        max_internal_right = std::max(
+            max_internal_right,
+            node.layout.x + node.layout.width.value_or(kDefaultNodeWidth));
+    }
+
+    BridgeSideBuildParams in_params{plan.inputs, true, node_center_y,
+                                    0.0f, 0.0f, WindowScopeId::root(),
+                                    "bp_in_", nullptr};
+    if (!create_bridge_nodes_for_side(bridge_host, in_params, interner,
+                                      used_node_ids, input_bridge_ids, error_out)) {
+        return std::nullopt;
+    }
+
+    BridgeSideBuildParams out_params{plan.outputs, false, node_center_y,
+                                     max_internal_right + kBridgeMarginX, 0.0f,
+                                     WindowScopeId::root(), "bp_out_", nullptr};
+    if (!create_bridge_nodes_for_side(bridge_host, out_params, interner,
+                                      used_node_ids, output_bridge_ids, error_out)) {
+        return std::nullopt;
+    }
+
+    append_bridge_to_internal_wires(bridge_host, plan.inputs, true, input_bridge_ids,
+                                    "bp_bridge_in_wire_", interner, used_wire_ids);
+    append_bridge_to_internal_wires(bridge_host, plan.outputs, false, output_bridge_ids,
+                                    "bp_bridge_out_wire_", interner, used_wire_ids);
+
+    boundary.child_bridge_nodes = bridge_host.nodes();
+    boundary.child_bridge_wires = bridge_host.wires();
+
+    for (const auto& ec : plan.inputs) {
+        bp2::Blueprint::Wire w;
+        w.id = next_unique_id(interner, used_wire_ids, "extract_wire_");
+        used_wire_ids.insert(w.id);
+        w.domain = ec.domain;
+        w.source = bp2::WireEndpoint{ec.external_node_id, ec.external_port};
+        w.target = bp2::WireEndpoint{nested_instance_id, interner.intern(ec.iface_name)};
+        boundary.parent_reconnection_wires.push_back(std::move(w));
+    }
+    for (const auto& ec : plan.outputs) {
+        bp2::Blueprint::Wire w;
+        w.id = next_unique_id(interner, used_wire_ids, "extract_wire_");
+        used_wire_ids.insert(w.id);
+        w.domain = ec.domain;
+        w.source = bp2::WireEndpoint{nested_instance_id, interner.intern(ec.iface_name)};
+        w.target = bp2::WireEndpoint{ec.external_node_id, ec.external_port};
+        boundary.parent_reconnection_wires.push_back(std::move(w));
+    }
+
+    return boundary;
 }
 
 } // namespace editor::commands::extract_detail

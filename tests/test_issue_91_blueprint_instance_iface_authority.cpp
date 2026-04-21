@@ -43,7 +43,7 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, EmbeddedBlueprintInstanceDeri
     root = root.with_node(std::move(bi_node));
 
     // Query authoritative interface via effective_node_iface()
-    const auto& iface = root.effective_node_iface(*root.find_node(interner.intern("nested_instance")));
+    const auto iface = root.effective_node_iface(*root.find_node(interner.intern("nested_instance")), interner);
     
     // Verify interface matches the inline blueprint's interface
     ASSERT_EQ(iface.ports().size(), 2u);
@@ -131,7 +131,7 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, EffectiveNodeIfaceReturnsSour
 
     // Verify effective_node_iface returns the source authority, NOT the (empty) component().iface
     const auto* bi = root.find_node(interner.intern("bi"));
-    const auto& effective = root.effective_node_iface(*bi);
+    const auto effective = root.effective_node_iface(*bi, interner);
     
     // Should match inner_iface, not the empty component().iface
     ASSERT_EQ(effective.ports().size(), 2u);
@@ -161,7 +161,7 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, ComponentNodesStillUseSematic
 
     // effective_node_iface should return component().iface for component nodes
     const auto* comp = root.find_node(interner.intern("comp1"));
-    const auto& effective = root.effective_node_iface(*comp);
+    const auto effective = root.effective_node_iface(*comp, interner);
     
     ASSERT_EQ(effective.ports().size(), 1u);
     auto v = effective.find(interner.intern("v"));

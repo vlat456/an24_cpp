@@ -300,7 +300,7 @@ TEST(Blueprint, EffectiveNodeIfaceUsesEmbeddedBlueprintWhenPresent) {
 
     const auto* found = bp.find_node(interner.intern("comp1"));
     ASSERT_NE(found, nullptr);
-    const auto& iface = bp.effective_node_iface(*found);
+    const auto iface = bp.effective_node_iface(*found, interner);
     EXPECT_TRUE(iface.find(interner.intern("authoritative")).has_value());
     EXPECT_FALSE(iface.find(interner.intern("stale")).has_value());
 }
@@ -320,7 +320,7 @@ TEST(Blueprint, EffectiveNodeIfaceFallsBackToNodeIfaceWithoutHostedNested) {
 
     const auto* found = bp.find_node(interner.intern("n1"));
     ASSERT_NE(found, nullptr);
-    const auto& iface = bp.effective_node_iface(*found);
+    const auto iface = bp.effective_node_iface(*found, interner);
     EXPECT_TRUE(iface.find(interner.intern("local")).has_value());
 }
 

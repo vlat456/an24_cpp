@@ -106,22 +106,6 @@ bp2::BridgeDirection decode_bridge_direction(std::string const& direction) {
     throw std::runtime_error("invalid node entry: unknown bridge direction");
 }
 
-Interface make_bridge_iface(ui::StringInterner& interner,
-                            bp2::BridgeDirection direction,
-                            PortType port_type) {
-    const Domain domain = domain_for_port_type(port_type);
-    if (direction == bp2::BridgeDirection::Input) {
-        return Interface({
-            {interner.intern("ext"), domain, Direction::Input, port_type},
-            {interner.intern("port"), domain, Direction::Output, port_type},
-        });
-    }
-    return Interface({
-        {interner.intern("port"), domain, Direction::Input, port_type},
-        {interner.intern("ext"), domain, Direction::Output, port_type},
-    });
-}
-
 Blueprint::Node::BlueprintSource decode_node_source(nlohmann::json const& source,
                                                     ui::StringInterner& interner,
                                                     ::ComponentRegistry const& parser_registry,
@@ -284,7 +268,6 @@ Blueprint decode_nodes(Blueprint bp,
                 exposed_port,
                 direction,
                 *port_type,
-                make_bridge_iface(interner, direction, *port_type),
             };
         }
 

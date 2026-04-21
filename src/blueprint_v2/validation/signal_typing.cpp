@@ -70,7 +70,7 @@ std::optional<PortDescriptor> node_port_descriptor(const Blueprint::Node& node,
 
     const Interface effective_iface = parser_registry
         ? bp.effective_node_iface(node, *parser_registry, interner)
-        : bp.effective_node_iface(node);
+        : bp.effective_node_iface(node, interner);
 
     if (!effective_iface.empty()) {
         return effective_iface.find(port_name);
@@ -128,7 +128,7 @@ IndexedSignalGraph build_indexed_signal_graph(const Blueprint& bp,
 
         const Interface effective_iface = parser_registry
             ? bp.effective_node_iface(node, *parser_registry, interner)
-            : bp.effective_node_iface(node);
+            : bp.effective_node_iface(node, interner);
         if (!effective_iface.empty()) {
             for (const auto& port : effective_iface.ports()) {
                 ports.push_back({

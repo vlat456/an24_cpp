@@ -35,6 +35,23 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
         + "' (blueprint_id='" + blueprint_id + "')");
 }
 
+[[noreturn]] void Flattener::throw_invalid_endpoint(Blueprint const& scope_bp,
+                                                    WireEndpoint const& ep,
+                                                    const char* reason) const {
+    const std::string scope_path = arena_->to_string(scope_bp.id().empty()
+        ? arena_->root()
+        : arena_->make_node(arena_->root(), scope_bp.id()));
+    const std::string node_name = ep.node.empty()
+        ? std::string{"<empty>"}
+        : std::string{arena_->resolve_id(ep.node)};
+    const std::string port_name = ep.port.empty()
+        ? std::string{"<empty>"}
+        : std::string{arena_->resolve_id(ep.port)};
+    throw std::logic_error(
+        "Flattener: invalid endpoint '" + node_name + "." + port_name
+        + "' in blueprint '" + scope_path + "': " + reason);
+}
+
 // ==================================================================
 // find_bridge_for_port — locate the bridge node matching an interface port
 // ==================================================================
@@ -67,8 +84,18 @@ Path Flattener::resolve_endpoint(
     Path scope_prefix,
     WireEndpoint const& ep) {
 
+    if (ep.node.empty()) {
+        throw_invalid_endpoint(scope_bp, ep, "missing node id");
+    }
+    if (ep.port.empty()) {
+        throw_invalid_endpoint(scope_bp, ep, "missing port id");
+    }
+
     auto const* node = scope_bp.find_node(ep.node);
-    if (!node || !node->is_blueprint_instance()) {
+    if (!node) {
+        throw_invalid_endpoint(scope_bp, ep, "node not found");
+    }
+    if (!node->is_blueprint_instance()) {
         // Leaf component — straightforward path
         Path node_path = arena_->make_node(scope_prefix, ep.node);
         return arena_->make_port(node_path, ep.port);
@@ -100,7 +127,7 @@ Path Flattener::resolve_endpoint(
 
     // Find the "ext" port ID from the bridge node's interface
     ui::InternedId ext_port_id{};
-    for (auto const& p : inner->effective_node_iface(*bridge)) {
+    for (auto const& p : inner->effective_node_iface(*bridge, arena_->interner())) {
         std::string_view pname = arena_->resolve_id(p.name);
         if (pname == "ext") {
             ext_port_id = p.name;
@@ -168,7 +195,7 @@ void Flattener::emit_component(
     SignalIndex ext_sig = UINT32_MAX;
     SignalIndex port_sig = UINT32_MAX;
 
-    for (auto const& port : bp.effective_node_iface(node)) {
+    for (auto const& port : bp.effective_node_iface(node, arena_->interner())) {
         Path port_path = arena_->make_port(node_path, port.name);
         SignalIndex sig = get_or_create_signal(
             port_path, port.domain, signals, out);
@@ -255,7 +282,7 @@ void Flattener::visit_blueprint_instance(
 
         // Find the "ext" port ID from the bridge's interface
         ui::InternedId ext_id{};
-        for (auto const& p : inner->effective_node_iface(*bridge)) {
+        for (auto const& p : inner->effective_node_iface(*bridge, arena_->interner())) {
             std::string_view pname = arena_->resolve_id(p.name);
             if (pname == "ext") {
                 ext_id = p.name;

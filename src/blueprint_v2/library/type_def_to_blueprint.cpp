@@ -78,10 +78,6 @@ Blueprint::Node make_bridge_node(const BridgePortDefinition& bridge,
         interner.intern(bridge.exposed_port),
         bridge.direction,
         bridge.type,
-        Interface({
-            {interner.intern(is_input ? "ext" : "port"), domain_for_port_type(bridge.type), Direction::Input, bridge.type},
-            {interner.intern(is_input ? "port" : "ext"), domain_for_port_type(bridge.type), Direction::Output, bridge.type},
-        })
     };
 
     if (bridge.pos) {

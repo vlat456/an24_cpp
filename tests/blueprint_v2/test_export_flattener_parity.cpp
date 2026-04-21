@@ -119,15 +119,6 @@ bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
         input_side ? bp2::BridgeDirection::Input
                    : bp2::BridgeDirection::Output,
         type,
-        input_side
-            ? bp2::Interface({
-                in_port(I, "ext", type),
-                out_port(I, "port", type),
-            })
-            : bp2::Interface({
-                in_port(I, "port", type),
-                out_port(I, "ext", type),
-            })
     };
     return n;
 }

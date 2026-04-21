@@ -111,13 +111,11 @@ public:
             ui::InternedId exposed_port;
             bp2::BridgeDirection direction = bp2::BridgeDirection::Input;
             PortType port_type = PortType::Contextual;
-            Interface iface;
 
             bool operator==(BridgePortData const& o) const {
                 return exposed_port == o.exposed_port
                     && direction == o.direction
-                    && port_type == o.port_type
-                    && iface == o.iface;
+                    && port_type == o.port_type;
             }
         };
 
@@ -277,6 +275,10 @@ public:
     /// will throw if queried through this overload.
     Interface const& effective_node_iface(ui::InternedId node_id) const;
     Interface const& effective_node_iface(Node const& node) const;
+    Interface effective_node_iface(ui::InternedId node_id,
+                                   ui::StringInterner& interner) const;
+    Interface effective_node_iface(Node const& node,
+                                   ui::StringInterner& interner) const;
 
     /// Resolve the authoritative interface for any node, including referenced
     /// blueprint instances, using the parser registry as authority.

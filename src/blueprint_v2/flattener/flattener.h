@@ -19,6 +19,9 @@ private:
     PathArena* arena_ = nullptr;
 
     [[noreturn]] void throw_unresolved_blueprint_instance(Blueprint::Node const& node, Path prefix) const;
+    [[noreturn]] void throw_invalid_endpoint(Blueprint const& scope_bp,
+                                            WireEndpoint const& ep,
+                                            const char* reason) const;
 
     void visit_blueprint(
         Blueprint const& bp,
