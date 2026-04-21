@@ -14,9 +14,9 @@ PortType find_port_type(const bp2::Blueprint& bp,
         return PortType::Any;
     }
 
-    const bp2::Interface iface = node->is_component()
-        ? bp.effective_node_iface(*node, interner)
-        : bp.effective_node_iface(*node, registry, interner);
+    const bp2::Interface iface = bp.resolve_node_iface(
+        *node,
+        bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
 
     for (const auto& p : iface.ports()) {
         if (p.name == port_name) {

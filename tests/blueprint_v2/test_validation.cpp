@@ -149,6 +149,28 @@ TEST(PathResolver, CanConnectAcceptsSameScopeWithCompatibleDirections) {
     EXPECT_TRUE(resolver.can_connect(src, tgt, bp, arena, reg, I));
 }
 
+TEST(PathResolver, ResolveReferencedPrimitiveBlueprintInstanceThrows) {
+    ui::StringInterner I;
+    ComponentRegistry reg = make_validation_registry();
+    PathArena arena(I);
+
+    bp2::Blueprint::Node instance;
+    instance.semantic.id = I.intern("inst");
+    instance.semantic.type = I.intern("Battery");
+    instance.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(I.intern("Battery"))
+    };
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(instance));
+
+    Path node = arena.make_node(arena.root(), I.intern("inst"));
+    Path port = arena.make_port(node, I.intern("v_out"));
+
+    PathResolver resolver;
+    EXPECT_THROW(resolver.resolve(port, bp, arena, reg, I), std::logic_error);
+}
+
 TEST(WireValidator, ValidWirePasses) {
     ui::StringInterner I;
     ComponentRegistry reg = make_validation_registry();

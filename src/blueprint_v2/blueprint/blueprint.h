@@ -19,6 +19,11 @@ namespace bp2 {
 
 class Blueprint {
 public:
+    struct NodeIfaceAuthority {
+        ui::StringInterner& interner;
+        ::ComponentRegistry const* registry = nullptr;
+    };
+
     struct Node {
         // Per-port layout overrides (used by LayoutData)
         struct PortLayoutOverride {
@@ -268,26 +273,11 @@ public:
     bool is_embedded_blueprint_instance(Node const& node) const;
     bool is_referenced_blueprint_instance(Node const& node) const;
 
-    /// Return the authoritative interface for a node when it is self-contained.
-    /// Component and structural bridge nodes always satisfy this. Embedded
-    /// blueprint instances do as well via their owned inline blueprint.
-    /// Referenced blueprint instances require explicit external authority and
-    /// will throw if queried through this overload.
-    Interface const& effective_node_iface(ui::InternedId node_id) const;
-    Interface const& effective_node_iface(Node const& node) const;
-    Interface effective_node_iface(ui::InternedId node_id,
-                                   ui::StringInterner& interner) const;
-    Interface effective_node_iface(Node const& node,
-                                   ui::StringInterner& interner) const;
-
-    /// Resolve the authoritative interface for any node, including referenced
-    /// blueprint instances, using the parser registry as authority.
-    Interface effective_node_iface(Node const& node,
-                                   ::ComponentRegistry const& parser_registry,
-                                   ui::StringInterner& interner) const;
-    Interface effective_node_iface(ui::InternedId node_id,
-                                   ::ComponentRegistry const& parser_registry,
-                                   ui::StringInterner& interner) const;
+    /// Resolve the authoritative interface for a node using explicit authority.
+    /// Bridge ports require `interner`; referenced blueprint instances also
+    /// require `registry`. Missing required authority throws.
+    Interface resolve_node_iface(Node const& node,
+                                 NodeIfaceAuthority authority) const;
 
     Blueprint with_node(Node n) const;
     Blueprint without_node(ui::InternedId id) const;
@@ -299,7 +289,6 @@ public:
     Blueprint clone(ui::InternedId new_id) const;
 
     /// Returns all (path, port) pairs reachable from this blueprint.
-    std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena) const;
     std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena,
                                                            ::ComponentRegistry const& parser_registry,
                                                            ui::StringInterner& interner) const;
@@ -329,10 +318,6 @@ private:
     void ensure_node_index() const;
     void ensure_wire_index() const;
 
-    void collect_ports_recursive(
-        std::vector<std::pair<Path, PortDescriptor>>& result,
-        PathArena& arena,
-        Path prefix) const;
     void collect_ports_recursive(
         std::vector<std::pair<Path, PortDescriptor>>& result,
         PathArena& arena,

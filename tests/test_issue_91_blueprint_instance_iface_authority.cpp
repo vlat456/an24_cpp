@@ -5,6 +5,7 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "ui/core/interned_id.h"
+#include <nlohmann/json.hpp>
 #include <unordered_set>
 
 // Shared bp2 test helpers
@@ -42,8 +43,8 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, EmbeddedBlueprintInstanceDeri
     root = root.with_id(interner.intern("root"));
     root = root.with_node(std::move(bi_node));
 
-    // Query authoritative interface via effective_node_iface()
-    const auto iface = root.effective_node_iface(*root.find_node(interner.intern("nested_instance")), interner);
+    // Query authoritative interface via resolve_node_iface()
+    const auto iface = root.resolve_node_iface(*root.find_node(interner.intern("nested_instance")), bp2::Blueprint::NodeIfaceAuthority{interner});
     
     // Verify interface matches the inline blueprint's interface
     ASSERT_EQ(iface.ports().size(), 2u);
@@ -72,7 +73,6 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, CanonicalSaveEmitsNoIfaceMirr
     // Do NOT set component().iface
     bi_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        interner.intern("inner"),
         std::make_unique<bp2::Blueprint>(inner_bp))
     };
 
@@ -131,7 +131,7 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, EffectiveNodeIfaceReturnsSour
 
     // Verify effective_node_iface returns the source authority, NOT the (empty) component().iface
     const auto* bi = root.find_node(interner.intern("bi"));
-    const auto effective = root.effective_node_iface(*bi, interner);
+    const auto effective = root.resolve_node_iface(*bi, bp2::Blueprint::NodeIfaceAuthority{interner});
     
     // Should match inner_iface, not the empty component().iface
     ASSERT_EQ(effective.ports().size(), 2u);
@@ -161,7 +161,7 @@ TEST_F(Issue91BlueprintInstanceIfaceAuthorityTest, ComponentNodesStillUseSematic
 
     // effective_node_iface should return component().iface for component nodes
     const auto* comp = root.find_node(interner.intern("comp1"));
-    const auto effective = root.effective_node_iface(*comp, interner);
+    const auto effective = root.resolve_node_iface(*comp, bp2::Blueprint::NodeIfaceAuthority{interner});
     
     ASSERT_EQ(effective.ports().size(), 1u);
     auto v = effective.find(interner.intern("v"));

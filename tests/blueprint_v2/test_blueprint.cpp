@@ -300,7 +300,7 @@ TEST(Blueprint, EffectiveNodeIfaceUsesEmbeddedBlueprintWhenPresent) {
 
     const auto* found = bp.find_node(interner.intern("comp1"));
     ASSERT_NE(found, nullptr);
-    const auto iface = bp.effective_node_iface(*found, interner);
+    const auto iface = bp.resolve_node_iface(*found, bp2::Blueprint::NodeIfaceAuthority{interner});
     EXPECT_TRUE(iface.find(interner.intern("authoritative")).has_value());
     EXPECT_FALSE(iface.find(interner.intern("stale")).has_value());
 }
@@ -320,18 +320,11 @@ TEST(Blueprint, EffectiveNodeIfaceFallsBackToNodeIfaceWithoutHostedNested) {
 
     const auto* found = bp.find_node(interner.intern("n1"));
     ASSERT_NE(found, nullptr);
-    const auto iface = bp.effective_node_iface(*found, interner);
+    const auto iface = bp.resolve_node_iface(*found, bp2::Blueprint::NodeIfaceAuthority{interner});
     EXPECT_TRUE(iface.find(interner.intern("local")).has_value());
 }
 
-TEST(Blueprint, EffectiveNodeIfaceThrowsForMissingNodeId) {
-    ui::StringInterner interner;
-    bp2::Blueprint bp;
-
-    EXPECT_THROW(bp.effective_node_iface(interner.intern("missing")), std::logic_error);
-}
-
-TEST(Blueprint, EffectiveNodeIfaceReferenceRequiresExplicitAuthority) {
+TEST(Blueprint, ResolveNodeIfaceReferenceRequiresRegistryAuthority) {
     ui::StringInterner interner;
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("ref1");
@@ -345,7 +338,33 @@ TEST(Blueprint, EffectiveNodeIfaceReferenceRequiresExplicitAuthority) {
 
     const auto* found = bp.find_node(interner.intern("ref1"));
     ASSERT_NE(found, nullptr);
-    EXPECT_THROW(bp.effective_node_iface(*found), std::logic_error);
+    EXPECT_THROW(bp.resolve_node_iface(*found, bp2::Blueprint::NodeIfaceAuthority{interner}), std::logic_error);
+}
+
+TEST(Blueprint, ResolveNodeIfaceRejectsReferencedPrimitiveAuthority) {
+    ui::StringInterner interner;
+    ComponentRegistry registry;
+
+    PrimitiveSpec primitive;
+    primitive.classname = "Battery";
+    primitive.ports["v"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
+    registry.types[primitive.classname] = primitive;
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("ref1");
+    node.semantic.type = interner.intern("Battery");
+    node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(interner.intern("Battery"))
+    };
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(node));
+
+    const auto* found = bp.find_node(interner.intern("ref1"));
+    ASSERT_NE(found, nullptr);
+    EXPECT_THROW(
+        bp.resolve_node_iface(*found, bp2::Blueprint::NodeIfaceAuthority{interner, &registry}),
+        std::logic_error);
 }
 
 TEST(Blueprint, WithNodeDoesNotMutateOriginal) {

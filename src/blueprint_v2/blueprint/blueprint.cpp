@@ -311,80 +311,31 @@ Blueprint Blueprint::without_wire(ui::InternedId id) const {
     return copy;
 }
 
-Interface const& Blueprint::effective_node_iface(ui::InternedId node_id) const {
-    const Node* node = find_node(node_id);
-    if (!node) {
-        throw std::logic_error("Blueprint::effective_node_iface: node not found");
-    }
-    return effective_node_iface(*node);
-}
-
-Interface const& Blueprint::effective_node_iface(Node const& node) const {
+Interface Blueprint::resolve_node_iface(Node const& node,
+                                        NodeIfaceAuthority authority) const {
     if (node.is_blueprint_instance()) {
         const Blueprint* embedded = node.blueprint_instance().source.inline_def();
         if (!embedded) {
-            throw std::logic_error("Blueprint::effective_node_iface requires explicit authority for referenced blueprint instances");
-        }
-        return embedded->iface();
-    }
-    if (node.is_bridge_port()) {
-        throw std::logic_error("Blueprint::effective_node_iface requires explicit interner for bridge ports");
-    }
-    return node.component().iface;
-}
-
-Interface Blueprint::effective_node_iface(ui::InternedId node_id,
-                                          ui::StringInterner& interner) const {
-    const Node* node = find_node(node_id);
-    if (!node) {
-        throw std::logic_error("Blueprint::effective_node_iface: node not found");
-    }
-    return effective_node_iface(*node, interner);
-}
-
-Interface Blueprint::effective_node_iface(Node const& node,
-                                          ui::StringInterner& interner) const {
-    if (node.is_blueprint_instance()) {
-        const Blueprint* embedded = node.blueprint_instance().source.inline_def();
-        if (!embedded) {
-            throw std::logic_error("Blueprint::effective_node_iface requires explicit authority for referenced blueprint instances");
+            if (!authority.registry) {
+                throw std::logic_error("Blueprint::resolve_node_iface requires registry authority for referenced blueprint instances");
+            }
+            const auto* def = authority.registry->get(std::string(authority.interner.resolve(node.blueprint_instance().source.blueprint_id())));
+            if (!def) {
+                throw std::logic_error("Blueprint::resolve_node_iface: unknown referenced blueprint_id");
+            }
+            if (!as_composite(*def)) {
+                throw std::logic_error("Blueprint::resolve_node_iface: referenced blueprint_id must resolve to composite blueprint");
+            }
+            return interface_from_type_definition(*def, authority.interner);
         }
         return embedded->iface();
     }
     if (node.is_bridge_port()) {
         return interface_from_bridge_port(node.bridge_port().direction,
                                           node.bridge_port().port_type,
-                                          interner);
+                                          authority.interner);
     }
     return node.component().iface;
-}
-
-Interface Blueprint::effective_node_iface(ui::InternedId node_id,
-                                          ::ComponentRegistry const& parser_registry,
-                                          ui::StringInterner& interner) const {
-    const Node* node = find_node(node_id);
-    if (!node) {
-        throw std::logic_error("Blueprint::effective_node_iface: node not found");
-    }
-    return effective_node_iface(*node, parser_registry, interner);
-}
-
-Interface Blueprint::effective_node_iface(Node const& node,
-                                          ::ComponentRegistry const& parser_registry,
-                                          ui::StringInterner& interner) const {
-    if (!node.is_blueprint_instance()) {
-        return effective_node_iface(node, interner);
-    }
-
-    if (const Blueprint* embedded = node.blueprint_instance().source.inline_def()) {
-        return embedded->iface();
-    }
-
-    const auto* def = parser_registry.get(std::string(interner.resolve(node.blueprint_instance().source.blueprint_id())));
-    if (!def) {
-        throw std::logic_error("Blueprint::effective_node_iface: unknown referenced blueprint_id");
-    }
-    return interface_from_type_definition(*def, interner);
 }
 
 Blueprint Blueprint::with_id(ui::InternedId id) const {
@@ -435,12 +386,6 @@ Blueprint Blueprint::clone(ui::InternedId new_id) const {
     return copy;
 }
 
-std::vector<std::pair<Path, PortDescriptor>> Blueprint::all_ports(PathArena& arena) const {
-    std::vector<std::pair<Path, PortDescriptor>> result;
-    collect_ports_recursive(result, arena, arena.root());
-    return result;
-}
-
 std::vector<std::pair<Path, PortDescriptor>> Blueprint::all_ports(PathArena& arena,
                                                                   ::ComponentRegistry const& parser_registry,
                                                                   ui::StringInterner& interner) const {
@@ -469,32 +414,6 @@ void Blueprint::validate(::ComponentRegistry const& parser_registry,
 void Blueprint::collect_ports_recursive(
     std::vector<std::pair<Path, PortDescriptor>>& result,
     PathArena& arena,
-    Path prefix) const {
-    for (auto const& port : iface_.ports()) {
-        result.push_back({arena.make_port(prefix, port.name), port});
-    }
-
-    for (auto const& node : nodes_) {
-        Path node_path = arena.make_node(prefix, node.semantic.id);
-        for (auto const& port : effective_node_iface(node, arena.interner())) {
-            result.push_back({arena.make_port(node_path, port.name), port});
-        }
-
-        if (!is_embedded_blueprint_instance(node)) {
-            continue;
-        }
-
-        const Blueprint* inline_bp = node.blueprint_instance().source.inline_def();
-        if (!inline_bp) {
-            throw std::logic_error("Blueprint::collect_ports_recursive: embedded blueprint instance missing inline blueprint");
-        }
-        inline_bp->collect_ports_recursive(result, arena, arena.make_nested(prefix, node.semantic.id));
-    }
-}
-
-void Blueprint::collect_ports_recursive(
-    std::vector<std::pair<Path, PortDescriptor>>& result,
-    PathArena& arena,
     Path prefix,
     ::ComponentRegistry const& parser_registry,
     ui::StringInterner& interner) const {
@@ -504,7 +423,7 @@ void Blueprint::collect_ports_recursive(
 
     for (auto const& node : nodes_) {
         Path node_path = arena.make_node(prefix, node.semantic.id);
-        for (auto const& port : effective_node_iface(node, parser_registry, interner)) {
+        for (auto const& port : resolve_node_iface(node, NodeIfaceAuthority{interner, &parser_registry})) {
             result.push_back({arena.make_port(node_path, port.name), port});
         }
 

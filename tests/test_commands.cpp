@@ -317,7 +317,7 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, BasicAtomicCreatesCollapsedEmbeddedNode)
     EXPECT_EQ(updated->find_node(interner.intern("extract_inst_1:in")), nullptr);
     EXPECT_EQ(updated->find_node(interner.intern("extract_inst_1:out")), nullptr);
 
-    auto collapsed_iface = updated->effective_node_iface(*collapsed, interner);
+    auto collapsed_iface = updated->resolve_node_iface(*collapsed, bp2::Blueprint::NodeIfaceAuthority{interner});
     ASSERT_EQ(collapsed_iface.size(), 2u);
     EXPECT_TRUE(collapsed_iface.has(interner.intern("in")));
     EXPECT_TRUE(collapsed_iface.has(interner.intern("out")));
@@ -410,7 +410,7 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, PreservesTypedBoundaryPorts) {
     ASSERT_TRUE(updated.has_value()) << err;
     const auto* collapsed = updated->find_blueprint_instance(interner.lookup("extract_inst_1"));
     ASSERT_NE(collapsed, nullptr);
-    auto collapsed_iface = updated->effective_node_iface(*collapsed, interner);
+    auto collapsed_iface = updated->resolve_node_iface(*collapsed, bp2::Blueprint::NodeIfaceAuthority{interner});
     ASSERT_EQ(count_inputs(collapsed_iface), 1u);
     ASSERT_EQ(count_outputs(collapsed_iface), 1u);
     EXPECT_EQ(get_input_type(collapsed_iface, 0), PortType::I);
@@ -429,10 +429,10 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, PreservesTypedBoundaryPorts) {
     }
     ASSERT_NE(bp_in_node, nullptr);
     ASSERT_NE(bp_out_node, nullptr);
-    EXPECT_EQ(get_input_type(inner.effective_node_iface(*bp_in_node, interner), 0), PortType::I);
-    EXPECT_EQ(get_output_type(inner.effective_node_iface(*bp_in_node, interner), 0), PortType::I);
-    EXPECT_EQ(get_input_type(inner.effective_node_iface(*bp_out_node, interner), 0), PortType::I);
-    EXPECT_EQ(get_output_type(inner.effective_node_iface(*bp_out_node, interner), 0), PortType::I);
+    EXPECT_EQ(get_input_type(inner.resolve_node_iface(*bp_in_node, bp2::Blueprint::NodeIfaceAuthority{interner}), 0), PortType::I);
+    EXPECT_EQ(get_output_type(inner.resolve_node_iface(*bp_in_node, bp2::Blueprint::NodeIfaceAuthority{interner}), 0), PortType::I);
+    EXPECT_EQ(get_input_type(inner.resolve_node_iface(*bp_out_node, bp2::Blueprint::NodeIfaceAuthority{interner}), 0), PortType::I);
+    EXPECT_EQ(get_output_type(inner.resolve_node_iface(*bp_out_node, bp2::Blueprint::NodeIfaceAuthority{interner}), 0), PortType::I);
 }
 
 TEST_F(ExtractToBlueprintNodeOwnedTest, PreviewRejectsEmptyName) {

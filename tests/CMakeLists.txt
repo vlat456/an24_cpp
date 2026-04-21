@@ -1532,6 +1532,7 @@ gtest_discover_tests(bp2_interface_tests)
 # Blueprint v2: Blueprint class tests (Phase 3)
 add_executable(bp2_blueprint_tests
     blueprint_v2/test_blueprint.cpp
+    test_issue_91_blueprint_instance_iface_authority.cpp
 )
 target_include_directories(bp2_blueprint_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src

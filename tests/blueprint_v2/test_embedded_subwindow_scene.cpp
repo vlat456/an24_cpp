@@ -201,6 +201,6 @@ TEST(EmbeddedSubwindowScene, CompositeHostPortsUseNestedAuthorityNotCollapsedCac
     // With the sum-type design, a BlueprintInstance node's interface comes
     // exclusively from its source — no stale semantic.iface can exist.
     EXPECT_TRUE(composite_node->is_blueprint_instance());
-    const auto effective = root.effective_node_iface(*composite_node, interner);
+    const auto effective = root.resolve_node_iface(*composite_node, bp2::Blueprint::NodeIfaceAuthority{interner});
     EXPECT_TRUE(effective.has(interner.intern("inner_only")));
 }

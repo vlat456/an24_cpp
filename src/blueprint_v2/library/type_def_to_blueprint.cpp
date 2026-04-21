@@ -38,8 +38,8 @@ Domain resolve_wire_domain(const Blueprint& bp,
             "blueprint_from_type_definition: unresolved wire node in " + context);
     }
 
-    const auto src_desc = bp.effective_node_iface(*src, registry, interner).find(interner.lookup(src_port));
-    const auto tgt_desc = bp.effective_node_iface(*tgt, registry, interner).find(interner.lookup(tgt_port));
+    const auto src_desc = bp.resolve_node_iface(*src, bp2::Blueprint::NodeIfaceAuthority{interner, &registry}).find(interner.lookup(src_port));
+    const auto tgt_desc = bp.resolve_node_iface(*tgt, bp2::Blueprint::NodeIfaceAuthority{interner, &registry}).find(interner.lookup(tgt_port));
     if (!src_desc || !tgt_desc) {
         throw std::runtime_error(
             "blueprint_from_type_definition: unresolved wire port in " + context);
@@ -126,22 +126,15 @@ Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
             }
         }
 
-        // Build node interface from the canonical component definition. Resolved
-        // devices also carry ports, but the registry definition remains the
-        // authoritative source for the blueprint-facing interface.
+        // Build node interface from the canonical component definition.
+        // The registry is the sole authority for component-node interfaces.
         const ComponentSpec* dev_def = registry.get(dev.classname);
-        if (dev_def) {
-            node.component().iface = interface_from_type_definition(*dev_def, interner);
-        } else if (!dev.ports.empty()) {
-            // Fallback: use device-level ports if somehow populated
-            std::vector<PortDescriptor> node_ports;
-            node_ports.reserve(dev.ports.size());
-            for (const auto& [pname, port] : dev.ports) {
-                node_ports.push_back(
-                    port_descriptor_from_type_port(interner.intern(pname), port));
-            }
-            node.component().iface = Interface(std::move(node_ports));
+        if (!dev_def) {
+            throw std::runtime_error(
+                "blueprint_from_type_definition: unknown device class '" + dev.classname
+                + "' in composite '" + comp->classname + "'");
         }
+        node.component().iface = interface_from_type_definition(*dev_def, interner);
 
         // Layout from position/size if available
         if (dev.pos) {

@@ -546,9 +546,9 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
     }
 
     // Skip if node has no ports
-    const bp2::Interface iface = type_registry_
-        ? model_->current().effective_node_iface(node, *type_registry_, *interner_)
-        : model_->current().effective_node_iface(node, *interner_);
+    const bp2::Interface iface = model_->current().resolve_node_iface(
+        node,
+        bp2::Blueprint::NodeIfaceAuthority{*interner_, type_registry_});
     const auto in_ports = bp2::derive_input_ports(iface);
     const auto out_ports = bp2::derive_output_ports(iface);
     if (in_ports.empty() && out_ports.empty()) return;

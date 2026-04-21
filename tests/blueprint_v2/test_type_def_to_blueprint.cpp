@@ -187,3 +187,19 @@ TEST(TypeDefToBlueprint, Regression_PrimitivePortMutationUsesCorrectAccessor) {
     ASSERT_EQ(bp.wires().size(), 1u);
     EXPECT_EQ(bp.wires().front().domain, Domain::Electrical);
 }
+
+TEST(TypeDefToBlueprint, RejectsUnknownDeviceClassInsteadOfSynthesizingIface) {
+    ui::StringInterner interner;
+    ComponentRegistry registry = make_registry();
+
+    CompositeSpec def;
+    def.classname = "BadComposite";
+
+    DeviceInstance missing;
+    missing.name = "ghost";
+    missing.classname = "MissingDevice";
+    missing.ports["out"] = Port{bp2::Direction::Output, PortType::Bool, Domain::Logical, false};
+    def.devices.push_back(std::move(missing));
+
+    EXPECT_THROW(bp2::blueprint_from_type_definition(def, interner, registry), std::runtime_error);
+}

@@ -174,7 +174,9 @@ void rebuild(Scene& scene,
 
      // 1) Create node widgets for all nodes in this group
      for (const bp2::Blueprint::Node& n : bp.nodes()) {
-         const bp2::Interface render_iface = bp.effective_node_iface(n, registry, interner);
+         const bp2::Interface render_iface = bp.resolve_node_iface(
+             n,
+             bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
          const std::string type_name(interner.resolve(n.semantic.type));
          const ComponentSpec* def = registry.get(type_name);
          const TypePresentation* pres = registry.presentation.get(type_name);

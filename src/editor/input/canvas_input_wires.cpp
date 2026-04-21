@@ -36,7 +36,9 @@ std::optional<bp2::PortDescriptor> resolve_port_descriptor_from_model(const bp2:
                                                                       ui::StringInterner& interner) {
     const bp2::Blueprint::Node* node = bp.find_node(node_id);
     if (!node) return std::nullopt;
-    const bp2::Interface iface = bp.effective_node_iface(*node, registry, interner);
+    const bp2::Interface iface = bp.resolve_node_iface(
+        *node,
+        bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
     return iface.find(port_name);
 }
 

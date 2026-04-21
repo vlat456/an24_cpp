@@ -700,7 +700,7 @@ TEST(BlueprintCodec, BridgePortRoundTripPreservesStructuralFields) {
     EXPECT_EQ(node.bridge_port().exposed_port, interner.intern("out"));
     EXPECT_EQ(node.bridge_port().direction, bp2::BridgeDirection::Output);
     EXPECT_EQ(node.bridge_port().port_type, PortType::RPM);
-    const auto iface = decoded->effective_node_iface(node, interner);
+    const auto iface = decoded->resolve_node_iface(node, bp2::Blueprint::NodeIfaceAuthority{interner});
     EXPECT_TRUE(iface.has(interner.intern("ext")));
     EXPECT_TRUE(iface.has(interner.intern("port")));
 }
