@@ -13,11 +13,6 @@
 
 namespace signal_union_rules {
 
-template <typename DeviceT>
-inline bool should_skip_device(const DeviceT& dev, bool skip_visual_only) {
-    return skip_visual_only && device_visual_only(dev);
-}
-
 inline std::string bridge_internal_key(const BridgePortDefinition& bridge) {
     return signal_key::make_bridge_internal_key(bridge.id);
 }
@@ -102,14 +97,9 @@ template <typename UnionFindT, typename DeviceT>
 void apply_alias_unions(
     UnionFindT& uf,
     const std::vector<DeviceT>& devices,
-    const std::unordered_map<std::string, uint32_t>& port_to_idx,
-    bool skip_visual_only
+    const std::unordered_map<std::string, uint32_t>& port_to_idx
 ) {
     for (const auto& dev : devices) {
-        if (should_skip_device(dev, skip_visual_only)) {
-            continue;
-        }
-
         for (const auto& [port_name, port] : dev.ports) {
              if (!port.alias.has_value() || port.alias->empty()) {
                  continue;
@@ -132,11 +122,10 @@ void apply_signal_union_rules(
     const std::vector<DeviceT>& devices,
     const std::vector<ConnectionT>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_idx,
-    bool skip_visual_only,
     OnMissingFn&& on_missing
 ) {
     apply_connection_unions(uf, connections, port_to_idx, std::forward<OnMissingFn>(on_missing));
-    apply_alias_unions(uf, devices, port_to_idx, skip_visual_only);
+    apply_alias_unions(uf, devices, port_to_idx);
 }
 
 } // namespace signal_union_rules

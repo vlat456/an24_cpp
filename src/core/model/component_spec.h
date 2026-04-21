@@ -17,15 +17,20 @@ struct ComponentMeta {
     std::unordered_map<std::string, ParamSpec> params;
     std::vector<Domain> domains;
     std::string priority = "med";
+    bool critical = false;
+};
+
+/// Solver-specific metadata that only applies to primitive components.
+/// Composites never have solver traits — they decompose into primitives.
+struct PrimitiveSolverMetadata {
+    std::optional<ExecutionPhases> execution;
+    std::optional<SolverRole> solver_role;
     bool scheduler_source = false;
     bool solver_owned_electrical = false;
-    bool critical = false;
-    bool visual_only = false;
 };
 
 struct PrimitiveSpec : ComponentMeta {
-    std::optional<ExecutionPhases> execution;
-    std::optional<SolverRole> solver_role;
+    PrimitiveSolverMetadata solver;
 };
 
 struct CompositeSpec : ComponentMeta {
@@ -70,12 +75,12 @@ inline const std::vector<Domain>& spec_domains(const ComponentSpec& s) {
 }
 
 inline std::optional<ExecutionPhases> spec_execution(const ComponentSpec& s) {
-    if (auto* p = std::get_if<PrimitiveSpec>(&s)) return p->execution;
+    if (auto* p = std::get_if<PrimitiveSpec>(&s)) return p->solver.execution;
     return std::nullopt;
 }
 
 inline std::optional<SolverRole> spec_solver_role(const ComponentSpec& s) {
-    if (auto* p = std::get_if<PrimitiveSpec>(&s)) return p->solver_role;
+    if (auto* p = std::get_if<PrimitiveSpec>(&s)) return p->solver.solver_role;
     return std::nullopt;
 }
 

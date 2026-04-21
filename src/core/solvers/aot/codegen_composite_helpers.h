@@ -16,9 +16,6 @@ void build_port_index_map(
     std::unordered_map<std::string, uint32_t>& out_port_to_idx
 ) {
     for (const auto& dev : expanded_devices) {
-        if (device_visual_only(dev)) {
-            continue;
-        }
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
             std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
@@ -63,7 +60,6 @@ void apply_signal_allocation_rules(
         expanded_devices,
         expanded_connections,
         port_to_idx,
-        /*skip_visual_only=*/true,
         [](const std::string&, const std::string&, bool, bool) {});
 }
 

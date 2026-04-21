@@ -194,9 +194,11 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
     meta.classname = classname;
     if (j.contains("priority")) meta.priority = j["priority"].get<std::string>();
     if (j.contains("critical")) meta.critical = j["critical"].get<bool>();
-    if (j.contains("visual_only")) meta.visual_only = j["visual_only"].get<bool>();
-    if (j.contains("scheduler_source")) meta.scheduler_source = j["scheduler_source"].get<bool>();
-    if (j.contains("solver_owned_electrical")) meta.solver_owned_electrical = j["solver_owned_electrical"].get<bool>();
+    // visual_only moved to TypePresentation
+    if (j.contains("visual_only")) pres.visual_only = j["visual_only"].get<bool>();
+    // scheduler_source and solver_owned_electrical moved to PrimitiveSolverMetadata
+    bool scheduler_source = j.value("scheduler_source", false);
+    bool solver_owned_electrical = j.value("solver_owned_electrical", false);
 
     if (j.contains("ports")) {
         for (auto& [port_name, port_val] : j["ports"].items()) {
@@ -223,8 +225,12 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
         PrimitiveSpec prim;
         static_cast<ComponentMeta&>(prim) = std::move(meta);
 
+        // Set solver metadata from fields that were hoisted to meta-level
+        prim.solver.scheduler_source = scheduler_source;
+        prim.solver.solver_owned_electrical = solver_owned_electrical;
+
         if (j.contains("execution") && j["execution"].is_object()) {
-            prim.execution = parse_execution_phases_strict(j["execution"], classname);
+            prim.solver.execution = parse_execution_phases_strict(j["execution"], classname);
         } else if (j.contains("execution")) {
             throw std::runtime_error("Type definition field 'execution' must be an object for component '" + classname + "'");
         }
@@ -248,7 +254,7 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
                     role.value_map[key] = value.get<float>();
                 }
             }
-            prim.solver_role = role;
+            prim.solver.solver_role = role;
         }
 
         spec = std::move(prim);

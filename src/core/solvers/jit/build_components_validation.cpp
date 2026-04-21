@@ -14,10 +14,6 @@ void validate_source_writer_conflicts(
     std::unordered_map<uint32_t, std::vector<std::string>> writers_by_signal;
 
     for (const auto& dev : devices) {
-        if (dev.visual_only) {
-            continue;
-        }
-
         const auto sw_ports = active_source_writer_ports_for(dev.classname);
         for (const auto& port_name : sw_ports) {
             const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);

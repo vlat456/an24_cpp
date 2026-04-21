@@ -23,10 +23,6 @@ static void compute_signal_mapping(
     std::unordered_map<std::string, uint32_t> port_to_idx;
 
     for (const auto& dev : devices) {
-         if (dev.visual_only) {
-              continue;
-          }
-
          for (const auto& [port_name, port] : dev.ports) {
              (void)port;
              const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
@@ -76,7 +72,6 @@ static void compute_signal_mapping(
         devices,
         connections,
         port_to_idx,
-        /*skip_visual_only=*/true,
         [](const std::string& from, const std::string& to, bool missing_from, bool missing_to) {
             if (missing_from) {
                 spdlog::warn("[build] Connection references non-existent port '{}' (connected to '{}')", from, to);

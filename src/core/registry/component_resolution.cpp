@@ -1,5 +1,6 @@
 #include "core/registry/component_resolution.h"
 
+#include "core/model/presentation_spec.h"
 #include "parse_number.h"
 
 #include <spdlog/spdlog.h>
@@ -149,14 +150,14 @@ ResolvedDevice resolve_component(
     resolved.params = std::move(merged.params);
     resolved.pos = merged.pos;
     resolved.size = merged.size;
-    resolved.visual_only = meta.visual_only;
-    resolved.scheduler_source = meta.scheduler_source;
-    resolved.solver_owned_electrical = meta.solver_owned_electrical;
+    // scheduler_source and solver_owned_electrical come from PrimitiveSpec.solver
     resolved.domains = spec_domains(definition);
 
     if (const PrimitiveSpec* prim = as_primitive(definition)) {
-        resolved.execution = prim->execution;
-        resolved.solver_role = prim->solver_role;
+        resolved.scheduler_source = prim->solver.scheduler_source;
+        resolved.solver_owned_electrical = prim->solver.solver_owned_electrical;
+        resolved.execution = prim->solver.execution;
+        resolved.solver_role = prim->solver.solver_role;
     }
 
     return resolved;

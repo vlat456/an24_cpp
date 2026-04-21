@@ -691,7 +691,7 @@ TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
     PrimitiveSpec def;
     def.classname = "ElectricalSource";
     def.domains = std::vector<Domain>{Domain::Electrical};
-    def.execution = ExecutionPhases{true, false, false, false, false, false, false, false, false};
+    def.solver.execution = ExecutionPhases{true, false, false, false, false, false, false, false, false};
     def.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     def.params["r_internal"] = ParamSpec{ParamSchemaType::Float, "0.1", 0.000001, std::nullopt, true, false};
 
@@ -859,7 +859,9 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def, pres] = parse_type_definition(j);
-    EXPECT_TRUE(spec_meta(def).scheduler_source);
+    const PrimitiveSpec* prim = as_primitive(def);
+    ASSERT_NE(prim, nullptr);
+    EXPECT_TRUE(prim->solver.scheduler_source);
 
     // Also verify false case
     auto j2 = nlohmann::json::parse(R"({
@@ -871,7 +873,9 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def2, pres2] = parse_type_definition(j2);
-    EXPECT_FALSE(spec_meta(def2).scheduler_source);
+    const PrimitiveSpec* prim2 = as_primitive(def2);
+    ASSERT_NE(prim2, nullptr);
+    EXPECT_FALSE(prim2->solver.scheduler_source);
 }
 
 // Regression: parse_type_definition default when scheduler_source is absent.
@@ -884,7 +888,9 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
     })");
 
      auto [def, pres] = parse_type_definition(j);
-     EXPECT_FALSE(spec_meta(def).scheduler_source);
+     const PrimitiveSpec* prim = as_primitive(def);
+     ASSERT_NE(prim, nullptr);
+     EXPECT_FALSE(prim->solver.scheduler_source);
 }
 
 TEST(JsonParserTest, ParseTypeDefinition_ExecutionRequiresAllCanonicalKeys) {

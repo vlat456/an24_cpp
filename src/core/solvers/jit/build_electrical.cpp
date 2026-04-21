@@ -93,10 +93,6 @@ void build_electrical_islands(
 
     size_t element_idx = 0;
     for (const auto& dev : devices) {
-        if (dev.visual_only) {
-            continue;
-        }
-
         if (!dev.solver_role.has_value()) {
             continue;
         }

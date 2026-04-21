@@ -369,7 +369,7 @@ std::string CodeGen::generate_source(
     const std::string& class_name,
     const ElectricalPlanCodegen& electrical_plan
 ) {
-    auto devices = codegen_detail::filter_simulation_devices(devices_unfiltered);
+    const std::vector<ResolvedDevice>& devices = devices_unfiltered;
     (void)connections;
 
     std::ostringstream oss;

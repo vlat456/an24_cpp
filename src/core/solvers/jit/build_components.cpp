@@ -83,10 +83,6 @@ void build_and_register_components(
 
     // Phase 2 Slice 1: Create and register migrated components
     for (const auto& dev : devices) {
-        if (dev.visual_only) {
-            continue;
-        }
-
         if (!has_component_metadata(metadata_classname_for(dev.classname))) {
             throw std::runtime_error("Missing generated port metadata for component class '" + dev.classname + "'");
         }

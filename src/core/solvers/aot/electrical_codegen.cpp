@@ -509,7 +509,7 @@ ElectricalPlanCodegen extract_electrical_plan(
     };
 
     for (const auto& dev : devices) {
-        if (dev.visual_only || !device_has_any_ports(dev)) {
+        if (!device_has_any_ports(dev)) {
             continue;
         }
 

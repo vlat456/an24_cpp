@@ -17,7 +17,6 @@ struct ResolvedDevice {
     std::string priority = "med";
     std::optional<size_t> bucket;
     bool critical = false;
-    bool visual_only = false;
     bool scheduler_source = false;
     bool solver_owned_electrical = false;
     std::unordered_map<std::string, Port> ports;
@@ -28,7 +27,3 @@ struct ResolvedDevice {
     std::optional<std::pair<float, float>> pos;
     std::optional<std::pair<float, float>> size;
 };
-
-inline bool device_visual_only(const ResolvedDevice& dev) {
-    return dev.visual_only;
-}

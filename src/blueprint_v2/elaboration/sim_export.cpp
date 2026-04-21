@@ -131,20 +131,28 @@ JitBuildInput elaborate_for_jit(
         }
 
         dev.display_name = classname;
+
+        // Filter out visual-only devices at the elaboration boundary
         if (auto* pres = type_registry.presentation.get(classname)) {
             if (!pres->description.empty()) {
                 dev.display_name = pres->description;
             }
+            if (pres->visual_only) {
+                continue;
+            }
         }
         const auto& meta = spec_meta(*type_def);
-        dev.visual_only = meta.visual_only;
-        dev.scheduler_source = meta.scheduler_source;
-        dev.solver_owned_electrical = meta.solver_owned_electrical;
         dev.domains = domains;
         dev.execution = spec_execution(*type_def);
         dev.solver_role = spec_solver_role(*type_def);
         dev.priority = meta.priority;
         dev.critical = meta.critical;
+
+        // scheduler_source and solver_owned_electrical come from PrimitiveSpec.solver
+        if (const PrimitiveSpec* prim = as_primitive(*type_def)) {
+            dev.scheduler_source = prim->solver.scheduler_source;
+            dev.solver_owned_electrical = prim->solver.solver_owned_electrical;
+        }
 
         result.devices.push_back(std::move(dev));
     }

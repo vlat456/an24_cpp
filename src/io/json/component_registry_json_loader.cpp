@@ -297,19 +297,21 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(
         }
     }
 
+    // visual_only goes to TypePresentation
+    pres.visual_only = visual_only;
+
     if (is_cpp) {
         PrimitiveSpec prim;
         prim.classname = std::move(classname);
         prim.ports = std::move(ports);
         prim.params = std::move(params);
         prim.domains = std::move(domains);
-        prim.execution = std::nullopt;
-        prim.scheduler_source = scheduler_source;
-        prim.solver_owned_electrical = solver_owned_electrical;
-        prim.solver_role = std::move(solver_role);
+        prim.solver.execution = std::nullopt;
+        prim.solver.scheduler_source = scheduler_source;
+        prim.solver.solver_owned_electrical = solver_owned_electrical;
+        prim.solver.solver_role = std::move(solver_role);
         prim.priority = std::move(priority);
         prim.critical = critical;
-        prim.visual_only = visual_only;
         return {ComponentSpec{std::move(prim)}, std::move(pres)};
     }
 
@@ -318,11 +320,8 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(
     comp.ports = std::move(ports);
     comp.params = std::move(params);
     comp.domains = std::move(domains);
-    comp.scheduler_source = scheduler_source;
-    comp.solver_owned_electrical = solver_owned_electrical;
     comp.priority = std::move(priority);
     comp.critical = critical;
-    comp.visual_only = visual_only;
     comp.devices = std::move(devices);
     comp.connections = std::move(connections);
     comp.bridge_ports = std::move(bridge_ports);

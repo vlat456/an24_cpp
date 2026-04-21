@@ -12,6 +12,7 @@ struct TypePresentation {
     std::string content_type = "None";
     std::string render_hint;
     std::optional<std::pair<float, float>> default_size;
+    bool visual_only = false;
 };
 
 struct PresentationRegistry {

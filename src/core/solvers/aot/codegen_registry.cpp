@@ -33,7 +33,7 @@ std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& re
 
         ComponentPorts comp;
         comp.classname = def->classname;
-        comp.has_solver_role = def->solver_role.has_value();
+        comp.has_solver_role = def->solver.solver_role.has_value();
         for (const auto& [port_name, port] : def->ports) {
             PortMeta meta;
             meta.name = port_name;

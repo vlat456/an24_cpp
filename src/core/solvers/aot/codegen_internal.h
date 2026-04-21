@@ -47,20 +47,6 @@ inline std::string generate_aot_provider_type(
     return oss.str();
 }
 
-/// Filter out visual-only devices, returning only simulation-active ones.
-inline std::vector<ResolvedDevice> filter_simulation_devices(
-    const std::vector<ResolvedDevice>& devices_unfiltered
-) {
-    std::vector<ResolvedDevice> devices;
-    devices.reserve(devices_unfiltered.size());
-    for (const auto& d : devices_unfiltered) {
-        if (!d.visual_only) {
-            devices.push_back(d);
-        }
-    }
-    return devices;
-}
-
 /// Emit the ElectricalDebugEntry struct definition.
 inline void emit_electrical_debug_entry_struct(std::ostringstream& oss) {
     oss << "struct ElectricalDebugEntry {\n";

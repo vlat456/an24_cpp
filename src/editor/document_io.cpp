@@ -88,11 +88,10 @@ void Document::applyWorkspaceSession(const WorkspaceSession& session) {
         session_node_appearance_.insert_or_assign(std::move(key), persisted.color);
     }
 
-    // Push restored session colors into live widgets by rebuilding all
-    // open window scenes. This does not restart the simulation.
-    if (!session.node_colors.empty()) {
-        rebuild_window_scenes();
-    }
+    // Rebuild all open window scenes to push restored session colors
+    // and runtime state into live widgets. Always rebuild — even without
+    // colors, reopened windows need seeded runtime/editor state.
+    rebuild_window_scenes();
 }
 
 bool Document::save(const std::string& path) {

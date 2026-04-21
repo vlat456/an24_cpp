@@ -18,6 +18,10 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
         if (!type_def) {
             throw std::runtime_error("Missing component definition for '" + dev.classname + "'");
         }
+        // Skip visual-only types — they don't participate in simulation
+        if (const auto* pres = registry.presentation.get(dev.classname); pres && pres->visual_only) {
+            continue;
+        }
         resolved_devices.push_back(resolve_component(dev, *type_def));
     }
 

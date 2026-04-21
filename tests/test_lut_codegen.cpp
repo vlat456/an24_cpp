@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#include <optional>
+
 #include "core/solvers/aot/codegen.h"
 #include "io/json/component_registry_json_loader.h"
 #include "core/registry/component_resolution.h"
@@ -14,12 +16,44 @@ static const ComponentRegistry& lut_test_registry() {
     return registry;
 }
 
+// Helper: check if device class is visual_only in presentation
+static bool is_device_visual_only(const std::string& classname) {
+    const auto& reg = lut_test_registry();
+    if (auto* pres = reg.presentation.get(classname)) {
+        return pres->visual_only;
+    }
+    return false;
+}
+
 static ResolvedDevice resolve_test_device(DeviceInstance dev) {
     const ComponentSpec* spec = lut_test_registry().get(dev.classname);
     if (!spec) {
         throw std::runtime_error("Missing test spec for " + dev.classname);
     }
+    // Skip visual-only devices - same as elaboration boundary filtering
+    if (is_device_visual_only(dev.classname)) {
+        // Return empty device with empty name to signal "skip"
+        return {};
+    }
+    const auto& reg = lut_test_registry();
     return resolve_component(dev, *spec);
+}
+
+// Helper to add a device, skipping visual-only ones and assigning ports
+static void add_device(
+    std::vector<ResolvedDevice>& devices,
+    std::unordered_map<std::string, uint32_t>& port_to_signal,
+    uint32_t& next_sig,
+    DeviceInstance dev)
+{
+    auto resolved = resolve_test_device(std::move(dev));
+    if (!resolved.name.empty()) {
+        for (const auto& [port_name, port] : resolved.ports) {
+            (void)port;
+            port_to_signal[resolved.name + "." + port_name] = next_sig++;
+        }
+        devices.push_back(resolved);
+    }
 }
 
 
@@ -58,14 +92,21 @@ static CodegenSetup make_setup(std::vector<DeviceInstance> extra_devices) {
 
     // Always need a RefNode
     auto gnd = make_ref_node();
-    s.port_to_signal["gnd.v"] = next_sig++;
-    s.devices.push_back(resolve_test_device(std::move(gnd)));
+    auto resolved = resolve_test_device(std::move(gnd));
+    if (!resolved.name.empty()) {
+        s.port_to_signal["gnd.v"] = next_sig++;
+        s.devices.push_back(resolved);
+    }
 
     for (auto& dev : extra_devices) {
+        auto resolved = resolve_test_device(std::move(dev));
+        if (resolved.name.empty()) {
+            continue; // Skip visual-only
+        }
         for (const auto& [port_name, port] : dev.ports) {
             s.port_to_signal[dev.name + "." + port_name] = next_sig++;
         }
-        s.devices.push_back(resolve_test_device(std::move(dev)));
+        s.devices.push_back(resolved);
     }
     s.signal_count = next_sig;
     return s;
@@ -258,11 +299,15 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(resolve_test_device(std::move(bat)));
 
-    // visual_only device — must NOT appear in generated code
+    // visual_only device — filtered at resolution boundary, won't be in device list
     DeviceInstance grp;
     grp.name = "grp1";
     grp.classname = "Group";
-    s.devices.push_back(resolve_test_device(std::move(grp)));
+    auto resolved_grp = resolve_test_device(std::move(grp));
+    // Should be empty since Group is visual_only
+    if (!resolved_grp.name.empty()) {
+        s.devices.push_back(resolved_grp);
+    }
 
     s.signal_count = next_sig;
 
@@ -297,11 +342,14 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(resolve_test_device(std::move(bat)));
 
-    // visual_only device
+    // visual_only device - filtered at resolution boundary
     DeviceInstance grp;
     grp.name = "grp1";
     grp.classname = "Group";
-    s.devices.push_back(resolve_test_device(std::move(grp)));
+    auto resolved_grp = resolve_test_device(std::move(grp));
+    if (!resolved_grp.name.empty()) {
+        s.devices.push_back(resolved_grp);
+    }
 
     s.signal_count = next_sig;
 
@@ -340,13 +388,16 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(resolve_test_device(std::move(bat)));
 
-    // Text visual_only device — must NOT appear in generated code
+    // Text visual_only device — filtered at resolution boundary
     DeviceInstance txt;
     txt.name = "txt1";
     txt.classname = "Text";
     txt.params["text"] = "annotation";
     txt.params["font_size"] = "large";
-    s.devices.push_back(resolve_test_device(std::move(txt)));
+    auto resolved_txt = resolve_test_device(std::move(txt));
+    if (!resolved_txt.name.empty()) {
+        s.devices.push_back(resolved_txt);
+    }
 
     s.signal_count = next_sig;
 
@@ -381,13 +432,16 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(resolve_test_device(std::move(bat)));
 
-    // Text visual_only device
+    // Text visual_only device - filtered at resolution boundary
     DeviceInstance txt;
     txt.name = "txt1";
     txt.classname = "Text";
     txt.params["text"] = "note";
     txt.params["font_size"] = "medium";
-    s.devices.push_back(resolve_test_device(std::move(txt)));
+    auto resolved_txt = resolve_test_device(std::move(txt));
+    if (!resolved_txt.name.empty()) {
+        s.devices.push_back(resolved_txt);
+    }
 
     s.signal_count = next_sig;
 

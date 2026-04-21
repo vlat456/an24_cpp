@@ -89,6 +89,14 @@ void expand_composite_into(
                 : signal_key::make_child_scope_key(raw_dev.name, inner_dev.name);
             expand_composite_into(ctx, prefixed_dev, *inner_comp, registry, expanding);
         } else {
+            // Skip visual-only devices at expansion boundary
+            if (auto* pres = registry.presentation.get(inner_dev.classname)) {
+                if (pres->visual_only) {
+                    spdlog::debug("[json_io] Skipping visual-only inner device '{}' of type '{}'",
+                        inner_dev.name.empty() ? raw_dev.name : inner_dev.name, inner_dev.classname);
+                    continue;
+                }
+            }
             ResolvedDevice resolved = resolve_component(inner_dev, *inner_def);
             auto error = ctx.registry.validate_instance(resolved);
             if (error.has_value()) {
@@ -164,6 +172,15 @@ ParserContext parse_json_impl(
         if (comp && !comp->devices.empty()) {
             expand_composite_into(ctx, raw_dev, *comp, registry, expanding);
             continue;
+        }
+
+        // Skip visual-only devices at resolution boundary
+        if (auto* pres = registry.presentation.get(raw_dev.classname)) {
+            if (pres->visual_only) {
+                spdlog::debug("[json_io] Skipping visual-only device '{}' of type '{}'",
+                    raw_dev.name, raw_dev.classname);
+                continue;
+            }
         }
 
         ResolvedDevice merged = resolve_component(raw_dev, *def);

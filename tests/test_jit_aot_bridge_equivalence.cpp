@@ -19,6 +19,12 @@ std::vector<ResolvedDevice> resolve_all_devices(const std::vector<DeviceInstance
         if (!spec) {
             throw std::runtime_error("Missing test spec for " + dev.classname);
         }
+        // Skip visual-only devices - same as elaboration boundary filtering
+        if (auto* pres = registry.presentation.get(dev.classname)) {
+            if (pres->visual_only) {
+                continue;
+            }
+        }
         resolved.push_back(resolve_component(dev, *spec));
     }
     return resolved;
@@ -43,7 +49,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     PrimitiveSpec src;
     src.classname = "ControlledVoltageSource";
     src.domains = {Domain::Electrical};
-    src.execution = make_execution(false, false, false, false, true, false, false, false, false);
+    src.solver.execution = make_execution(false, false, false, false, true, false, false, false, false);
     src.ports["cmd"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     src.ports["v_neg"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     src.ports["v_pos"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
@@ -53,7 +59,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     src.ports["min_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     src.ports["max_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     src.params["r_internal"] = ParamSpec{ParamSchemaType::Float, "0.1"};
-    src.solver_owned_electrical = true;
+    src.solver.solver_owned_electrical = true;
     {
         SolverRole role;
         role.kind = "TheveninSource";
@@ -62,7 +68,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
         role.param_map["resistance"] = "r_internal";
         role.value_map["voltage"] = 0.0f;
         role.value_map["bind_handle"] = 1.0f;
-        src.solver_role = role;
+        src.solver.solver_role = role;
     }
     registry.types["ControlledVoltageSource"] = src;
 
@@ -247,7 +253,9 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     ComponentRegistry registry;
     registry.types["Resistor"] = make_resistor_type();
     PrimitiveSpec value_type = make_value_type();
-    value_type.visual_only = true;  // Mark as visual-only for this test
+    // visual_only is now on TypePresentation
+    registry.presentation.specs["Value"] = TypePresentation{};
+    registry.presentation.specs["Value"].visual_only = true;
     registry.types["Value"] = value_type;
 
     std::vector<DeviceInstance> devices;

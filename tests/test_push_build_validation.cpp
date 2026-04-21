@@ -698,7 +698,7 @@ TEST(PushBuildValidation, TypeDefinitionWithoutExecutionIsAccepted) {
     auto [def, pres] = parse_type_definition(td);
     const auto* prim = as_primitive(def);
     ASSERT_NE(prim, nullptr);
-    EXPECT_FALSE(prim->execution.has_value());
+    EXPECT_FALSE(prim->solver.execution.has_value());
 }
 
 TEST(PushBuildValidation, ExpandSubBlueprintReferences_CleansLoadingStackAfterFailure) {
@@ -1034,7 +1034,9 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def, pres] = parse_type_definition(j);
-    EXPECT_TRUE(spec_meta(def).scheduler_source);
+    const PrimitiveSpec* prim = as_primitive(def);
+    ASSERT_NE(prim, nullptr);
+    EXPECT_TRUE(prim->solver.scheduler_source);
 
     // Also verify false case
     auto j2 = nlohmann::json::parse(R"({
@@ -1046,7 +1048,9 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
     })");
 
     auto [def2, pres2] = parse_type_definition(j2);
-    EXPECT_FALSE(spec_meta(def2).scheduler_source);
+    const PrimitiveSpec* prim2 = as_primitive(def2);
+    ASSERT_NE(prim2, nullptr);
+    EXPECT_FALSE(prim2->solver.scheduler_source);
 }
 
 // Regression: sentinel signal must be included in fixed_signals.

@@ -110,15 +110,13 @@ inline ResolvedDevice make_raw_resolved_device(
     std::string name,
     std::string classname,
     std::unordered_map<std::string, std::string> params,
-    std::unordered_map<std::string, Port> ports,
-    bool visual_only = false)
+    std::unordered_map<std::string, Port> ports)
 {
     ResolvedDevice dev;
     dev.name = std::move(name);
     dev.classname = std::move(classname);
     dev.params = std::move(params);
     dev.ports = std::move(ports);
-    dev.visual_only = visual_only;
     return dev;
 }
 
@@ -132,9 +130,6 @@ inline JitBuildInput make_jit_input_from_resolved(
 
     uint32_t next_signal = 0;
     for (const auto& dev : input.devices) {
-        if (dev.visual_only) {
-            continue;
-        }
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
             input.port_to_signal[dev.name + "." + port_name] = next_signal++;
@@ -169,9 +164,6 @@ inline JitBuildInput make_jit_input_resolved(
 
     uint32_t next_signal = static_cast<uint32_t>(signal_groups.size());
     for (const auto& dev : input.devices) {
-        if (dev.visual_only) {
-            continue;
-        }
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
             const std::string full_port = dev.name + "." + port_name;
@@ -227,9 +219,6 @@ inline JitBuildInput make_jit_input(
 
     uint32_t next_signal = static_cast<uint32_t>(signal_groups.size());
     for (const auto& dev : input.devices) {
-        if (dev.visual_only) {
-            continue;
-        }
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
             const std::string full_port = dev.name + "." + port_name;
@@ -264,6 +253,12 @@ inline JitBuildInput make_jit_input_from_composite(
         if (spec == nullptr) {
             throw std::runtime_error("make_jit_input_from_composite missing spec for device '" + dev.name +
                 "' (classname: " + dev.classname + ")");
+        }
+        // Skip visual-only devices - same as elaboration boundary filtering
+        if (auto* pres = reg.presentation.get(dev.classname)) {
+            if (pres->visual_only) {
+                continue;
+            }
         }
         input.devices.push_back(resolve_component(dev, *spec));
     }

@@ -21,7 +21,7 @@ DeviceInstance make_device_without_solver_role(
     }
 
     PrimitiveSpec prim_copy = *as_primitive(*def);
-    prim_copy.solver_role = std::nullopt;
+    prim_copy.solver.solver_role = std::nullopt;
     ResolvedDevice resolved = resolve_component(dev, prim_copy);
 
     dev.ports = std::move(resolved.ports);

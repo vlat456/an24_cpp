@@ -25,7 +25,7 @@ PrimitiveSpec make_primitive_spec(
     PrimitiveSpec spec;
     spec.classname = classname;
     spec.domains = std::move(domains);
-    spec.execution = ExecutionPhases{.electrical_passive = true};
+    spec.solver.execution = ExecutionPhases{.electrical_passive = true};
     for (const auto& [name, port] : ports) {
         spec.ports[name] = port;
     }

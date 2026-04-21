@@ -23,7 +23,7 @@ inline PrimitiveSpec make_indicator_light_type() {
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.ports["brightness"] = Port{bp2::Direction::Output, PortType::I, std::nullopt};
     td.domains = {Domain::Electrical};
-    td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.solver.execution = make_execution(true, false, false, false, false, false, false, false, false);
     td.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.002"};
     SolverRole role;
     role.kind = "ConductanceBranch";
@@ -31,8 +31,8 @@ inline PrimitiveSpec make_indicator_light_type() {
     role.port_map["b"] = "v_out";
     role.param_map["g"] = "conductance";
     role.value_map["bind_handle"] = 1.0f;
-    td.solver_role = role;
-    td.solver_owned_electrical = false;
+    td.solver.solver_role = role;
+    td.solver.solver_owned_electrical = false;
     return td;
 }
 
@@ -41,16 +41,16 @@ inline PrimitiveSpec make_refnode_type(bp2::Direction direction = bp2::Direction
     td.classname = "RefNode";
     td.ports["v"] = Port{direction, PortType::V, std::nullopt};
     td.domains = {Domain::Electrical};
-    td.execution = make_execution(true, false, false, false, false, false, false, false, false);
-    td.scheduler_source = true;
+    td.solver.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.solver.scheduler_source = true;
     td.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
     SolverRole role;
     role.kind = "FixedVoltageNode";
     role.port_map["node"] = "v";
     role.param_map["voltage"] = "value";
     role.value_map["bind_handle"] = 1.0f;
-    td.solver_role = role;
-    td.solver_owned_electrical = false;
+    td.solver.solver_role = role;
+    td.solver.solver_owned_electrical = false;
     return td;
 }
 
@@ -61,7 +61,7 @@ inline PrimitiveSpec make_electrical_source_type() {
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.domains = {Domain::Electrical};
-    td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.solver.execution = make_execution(true, false, false, false, false, false, false, false, false);
     td.params["voltage"] = ParamSpec{ParamSchemaType::Float, "28.0"};
     td.params["resistance"] = ParamSpec{ParamSchemaType::Float, "0.01"};
     SolverRole role;
@@ -71,8 +71,8 @@ inline PrimitiveSpec make_electrical_source_type() {
     role.param_map["voltage"] = "voltage";
     role.param_map["resistance"] = "resistance";
     role.value_map["bind_handle"] = 1.0f;
-    td.solver_role = role;
-    td.solver_owned_electrical = true;
+    td.solver.solver_role = role;
+    td.solver.solver_owned_electrical = true;
     return td;
 }
 
@@ -83,7 +83,7 @@ inline PrimitiveSpec make_electrical_conductance_type() {
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.domains = {Domain::Electrical};
-    td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.solver.execution = make_execution(true, false, false, false, false, false, false, false, false);
     td.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.1"};
     SolverRole role;
     role.kind = "ConductanceBranch";
@@ -91,8 +91,8 @@ inline PrimitiveSpec make_electrical_conductance_type() {
     role.port_map["b"] = "v_out";
     role.param_map["g"] = "conductance";
     role.value_map["bind_handle"] = 1.0f;
-    td.solver_role = role;
-    td.solver_owned_electrical = true;
+    td.solver.solver_role = role;
+    td.solver.solver_owned_electrical = true;
     return td;
 }
 
@@ -103,7 +103,7 @@ inline PrimitiveSpec make_generator_type() {
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.domains = {Domain::Electrical};
-    td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.solver.execution = make_execution(true, false, false, false, false, false, false, false, false);
     td.params["v_nominal"] = ParamSpec{ParamSchemaType::Float, "28.5"};
     td.params["internal_r"] = ParamSpec{ParamSchemaType::Float, "0.005"};
     SolverRole role;
@@ -113,8 +113,8 @@ inline PrimitiveSpec make_generator_type() {
     role.param_map["voltage"] = "v_nominal";
     role.param_map["resistance"] = "internal_r";
     role.value_map["bind_handle"] = 1.0f;
-    td.solver_role = role;
-    td.solver_owned_electrical = true;
+    td.solver.solver_role = role;
+    td.solver.solver_owned_electrical = true;
     return td;
 }
 
@@ -126,7 +126,7 @@ inline PrimitiveSpec make_currentsense_type() {
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.ports["i_out"] = Port{bp2::Direction::Output, PortType::I, std::nullopt};
     td.domains = {Domain::Electrical};
-    td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.solver.execution = make_execution(true, false, false, false, false, false, false, false, false);
     td.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.05"};
     SolverRole role;
     role.kind = "ConductanceBranch";
@@ -134,8 +134,8 @@ inline PrimitiveSpec make_currentsense_type() {
     role.port_map["b"] = "v_out";
     role.param_map["g"] = "conductance";
     role.value_map["bind_handle"] = 1.0f;
-    td.solver_role = role;
-    td.solver_owned_electrical = false;
+    td.solver.solver_role = role;
+    td.solver.solver_owned_electrical = false;
     return td;
 }
 
@@ -146,15 +146,15 @@ inline PrimitiveSpec make_resistor_type() {
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.domains = {Domain::Electrical};
-    td.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    td.solver.execution = make_execution(true, false, false, false, false, false, false, false, false);
     td.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.1"};
     SolverRole role;
     role.kind = "ConductanceBranch";
     role.port_map["a"] = "v_in";
     role.port_map["b"] = "v_out";
     role.param_map["g"] = "conductance";
-    td.solver_role = role;
-    td.solver_owned_electrical = true;
+    td.solver.solver_role = role;
+    td.solver.solver_owned_electrical = true;
     return td;
 }
 
@@ -165,7 +165,7 @@ inline PrimitiveSpec make_voltmeter_type() {
     td.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     td.domains = {Domain::Electrical};
-    td.execution = make_execution(false, true, false, false, false, false, false, false, false);
+    td.solver.execution = make_execution(false, true, false, false, false, false, false, false, false);
     return td;
 }
 
@@ -176,7 +176,7 @@ inline PrimitiveSpec make_any_v_to_bool_type() {
     td.ports["Vin"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     td.ports["o"] = Port{bp2::Direction::Output, PortType::Bool, std::nullopt};
     td.domains = {Domain::Logical};
-    td.execution = make_execution(false, false, true, false, false, false, false, false, false);
+    td.solver.execution = make_execution(false, false, true, false, false, false, false, false, false);
     return td;
 }
 
@@ -186,7 +186,7 @@ inline PrimitiveSpec make_value_type() {
     
     td.ports["o"] = Port{bp2::Direction::Output, PortType::Any, std::nullopt};
     td.domains = {Domain::Logical};
-    td.execution = make_execution(false, true, false, false, false, false, false, false, false);
+    td.solver.execution = make_execution(false, true, false, false, false, false, false, false, false);
     return td;
 }
 
@@ -195,18 +195,11 @@ inline PrimitiveSpec make_bus_type() {
     td.classname = "Bus";
     td.ports["v"] = Port{bp2::Direction::InOut, PortType::V, std::nullopt};
     td.domains = {Domain::Electrical};
-    td.execution = make_execution(false, true, false, false, false, false, false, false, false);
+    td.solver.execution = make_execution(false, true, false, false, false, false, false, false, false);
     return td;
 }
 
-inline PrimitiveSpec make_visual_bus_type() {
-    PrimitiveSpec td;
-    td.classname = "Bus";
-    td.ports["v"] = Port{bp2::Direction::InOut, PortType::V, std::nullopt};
-    td.domains = {Domain::Electrical};
-    td.visual_only = true;
-    return td;
-}
+// Note: visual_only type-level flag moved to TypePresentation - not set here
 
 inline void register_lamp_composite_types(ComponentRegistry& registry) {
     registry.types["IndicatorLight"] = make_indicator_light_type();

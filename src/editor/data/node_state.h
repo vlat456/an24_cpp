@@ -101,10 +101,10 @@ inline NodeInstanceKey make_node_instance_key(std::span<const ui::InternedId> in
 }
 
 /// Construct a NodeInstanceKey from a single-segment scope string (window scope key).
+/// IMPORTANT: Only handles single-segment scope keys (e.g. "group_5").
+/// For multi-segment paths, use the span<const InternedId> overload.
 /// For root scope (empty string), instance_path is empty.
-/// For embedded/external scope, instance_path contains one InternedId looked up from the scope string.
-/// If the scope_key is non-empty but not found in the interner, it is silently skipped
-/// (treated as root scope). This handles rebuild scenarios where the scope is a placeholder.
+/// If scope_key is non-empty but not in the interner, silently treated as root scope.
 inline NodeInstanceKey make_node_instance_key(ui::StringInterner& interner,
                                                std::string_view scope_key,
                                                ui::InternedId local_node_id) {

@@ -93,16 +93,3 @@ TEST(BridgeLowering, BridgeNodesDoNotEnterScheduler) {
     EXPECT_EQ(result.scheduler.source_count(), 0u);
     EXPECT_EQ(result.scheduler.consumer_count(), 0u);
 }
-
-TEST(BridgeLowering, AotFilterRemovesBridgeDevices) {
-    std::vector<ResolvedDevice> devices;
-    ResolvedDevice resistor = resolve_component(make_resistor_device("load"),
-        *test_registry().get("Resistor"));
-    devices.push_back(resistor);
-
-    auto filtered = codegen_detail::filter_simulation_devices(devices);
-
-    ASSERT_EQ(filtered.size(), 1u);
-    EXPECT_EQ(filtered.front().classname, "Resistor");
-    EXPECT_EQ(filtered.front().name, "load");
-}
