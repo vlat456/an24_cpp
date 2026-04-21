@@ -2,7 +2,7 @@
 
 #include "visual/inspector/display_tree.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/blueprint/node_port.h"
+#include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
 #include "window/window_scope_id.h"
@@ -105,7 +105,7 @@ private:
 
     // Data model helpers (inspector_core.cpp)
     std::string findConnectionFor(const bp2::Blueprint::Node& node,
-                                  const bp2::NodePort& port, bp2::Direction direction,
+                                  const bp2::PortDescriptor& port, bp2::Direction direction,
                                   const std::vector<DecodedWire>& wires) const;
     void sortDisplayTree();
     bool passesFilter(const bp2::Blueprint::Node& node) const;

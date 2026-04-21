@@ -59,8 +59,8 @@ struct ResolvedLayout {
 /// 4. Within each side: sort by position hint (overridden first), then append auto ports
 /// 5. Assign sequential final_position values
 inline ResolvedLayout resolve_port_layout(
-    const std::vector<bp2::NodePort>& inputs,
-    const std::vector<bp2::NodePort>& outputs,
+    const std::vector<bp2::PortDescriptor>& inputs,
+    const std::vector<bp2::PortDescriptor>& outputs,
     const std::vector<PortLayoutOverride>& overrides,
     const ui::StringInterner& interner)
 {
@@ -72,7 +72,7 @@ inline ResolvedLayout resolve_port_layout(
     for (const auto& p : inputs) {
         ResolvedPort rp;
         rp.port_name = interner.resolve(p.name);
-        rp.type = p.type;
+        rp.type = p.port_type;
         rp.logical_direction = p.direction;
         rp.layout_side = bp2::default_layout_side(p.direction);
         rp.final_position = 255;  // Will be assigned later
@@ -90,7 +90,7 @@ inline ResolvedLayout resolve_port_layout(
         
         ResolvedPort rp;
         rp.port_name = name;
-        rp.type = p.type;
+        rp.type = p.port_type;
         rp.logical_direction = p.direction;
         rp.layout_side = bp2::default_layout_side(p.direction);
         rp.final_position = 255;

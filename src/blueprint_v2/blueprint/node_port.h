@@ -51,18 +51,4 @@ inline PortLayoutSide default_layout_side(Direction direction) {
     return PortLayoutSide::Left;
 }
 
-struct NodePort {
-    ui::InternedId name;
-    Direction direction;
-    PortType type;
-
-    NodePort() : name(), direction(Direction::Input), type(PortType::Any) {}
-    NodePort(ui::InternedId name_, Direction direction_, PortType type_)
-        : name(name_), direction(direction_), type(type_) {}
-
-    bool operator==(const NodePort& o) const {
-        return name == o.name && direction == o.direction && type == o.type;
-    }
-};
-
 } // namespace bp2

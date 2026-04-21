@@ -341,8 +341,8 @@ void NodeWidget::build(const bp2::Blueprint::Node& data,
     }
 
     // Resolve port layout — always use the universal resolver.
-    const std::vector<bp2::NodePort> input_ports = bp2::derive_input_ports(render_iface);
-    const std::vector<bp2::NodePort> output_ports = bp2::derive_output_ports(render_iface);
+    const std::vector<bp2::PortDescriptor> input_ports = bp2::derive_input_ports(render_iface);
+    const std::vector<bp2::PortDescriptor> output_ports = bp2::derive_output_ports(render_iface);
     auto overrides = resolve_bp2_layout_overrides(data.layout.layout_overrides);
     resolved_layout_ = resolve_port_layout(input_ports, output_ports, overrides, interner);
 

@@ -133,7 +133,7 @@ void Inspector::buildDisplayTree() {
 }
 
 std::string Inspector::findConnectionFor(const bp2::Blueprint::Node& node,
-                                          const bp2::NodePort& port, bp2::Direction direction,
+                                          const bp2::PortDescriptor& port, bp2::Direction direction,
                                           const std::vector<DecodedWire>& wires) const {
     std::string result;
 

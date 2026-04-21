@@ -75,10 +75,10 @@ void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data,
     const auto in_ports = bp2::derive_input_ports(render_iface);
     if (!out_ports.empty()) {
         port_name = interner.resolve(out_ports[0].name);
-        port_type = out_ports[0].type;
+        port_type = out_ports[0].port_type;
     } else if (!in_ports.empty()) {
         port_name = interner.resolve(in_ports[0].name);
-        port_type = in_ports[0].type;
+        port_type = in_ports[0].port_type;
     }
 
     // Single port, centered on top edge

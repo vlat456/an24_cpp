@@ -985,7 +985,7 @@ TEST(Issue31_SingleSource, MutationSinglePath_DeriveReflectsSemanticIface) {
     ASSERT_EQ(outputs_after.size(), 1u);
     EXPECT_EQ(interner.resolve(inputs_after[0].name), "sig_in");
     EXPECT_EQ(interner.resolve(outputs_after[0].name), "sig_out");
-    EXPECT_EQ(outputs_after[0].type, PortType::V);
+    EXPECT_EQ(outputs_after[0].port_type, PortType::V);
     EXPECT_EQ(outputs_after[0].direction, bp2::Direction::Output);
 }
 

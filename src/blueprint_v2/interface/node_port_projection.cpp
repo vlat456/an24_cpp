@@ -2,27 +2,23 @@
 
 namespace bp2 {
 
-std::vector<NodePort> derive_input_ports(const Interface& iface) {
-    std::vector<NodePort> ports;
+std::vector<PortDescriptor> derive_input_ports(const Interface& iface) {
+    std::vector<PortDescriptor> ports;
     ports.reserve(iface.size());
     for (const auto& pd : iface.ports()) {
-        if (pd.direction == Direction::Input) {
-            ports.emplace_back(pd.name, Direction::Input, pd.port_type);
-        } else if (pd.direction == Direction::InOut) {
-            ports.emplace_back(pd.name, Direction::InOut, pd.port_type);
+        if (pd.direction == Direction::Input || pd.direction == Direction::InOut) {
+            ports.push_back(pd);
         }
     }
     return ports;
 }
 
-std::vector<NodePort> derive_output_ports(const Interface& iface) {
-    std::vector<NodePort> ports;
+std::vector<PortDescriptor> derive_output_ports(const Interface& iface) {
+    std::vector<PortDescriptor> ports;
     ports.reserve(iface.size());
     for (const auto& pd : iface.ports()) {
-        if (pd.direction == Direction::Output) {
-            ports.emplace_back(pd.name, Direction::Output, pd.port_type);
-        } else if (pd.direction == Direction::InOut) {
-            ports.emplace_back(pd.name, Direction::InOut, pd.port_type);
+        if (pd.direction == Direction::Output || pd.direction == Direction::InOut) {
+            ports.push_back(pd);
         }
     }
     return ports;

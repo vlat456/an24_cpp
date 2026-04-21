@@ -151,11 +151,11 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
         const auto in_ports = bp2::derive_input_ports(iface);
         const auto out_ports = bp2::derive_output_ports(iface);
         if (!in_ports.empty()) {
-            snapshot_bridge_port_type_ = in_ports.front().type;
-            pending_bridge_port_type_ = in_ports.front().type;
+            snapshot_bridge_port_type_ = in_ports.front().port_type;
+            pending_bridge_port_type_ = in_ports.front().port_type;
         } else if (!out_ports.empty()) {
-            snapshot_bridge_port_type_ = out_ports.front().type;
-            pending_bridge_port_type_ = out_ports.front().type;
+            snapshot_bridge_port_type_ = out_ports.front().port_type;
+            pending_bridge_port_type_ = out_ports.front().port_type;
         }
     }
 
