@@ -14,8 +14,8 @@ bool Document::apply_normalized_node_sizes(bool preserve_manual,
     visual::Scene probe_scene;
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
-    visual::mutations::rebuild(probe_scene, updated, interner_, arena_, root().resolved_scope_id().sim_scope_prefix(), reg,
-                               &runtime_node_states_, &session_node_appearance_);
+    visual::mutations::rebuild(probe_scene, updated, interner_, arena_, std::span<const ui::InternedId>{}, reg,
+                               &runtime_node_states_);
 
     for (const auto& node : model_.current().nodes()) {
         if (preserve_manual && node.layout.manual_size) {

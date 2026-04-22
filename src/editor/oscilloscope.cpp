@@ -10,9 +10,14 @@
 
 namespace {
 
-std::string make_probe_id(const WindowScopeId& scope_id, std::string_view wire_id) {
+std::string make_probe_id(const editor::DocumentId& doc_id,
+                           const WindowScopeId& scope_id,
+                           std::string_view wire_id) {
+    // Full identity: document + scope + wire → no cross-document collision.
     std::string probe_id;
-    probe_id.reserve(scope_id.key().size() + wire_id.size() + 8);
+    probe_id.reserve(doc_id.str().size() + scope_id.sim_scope_prefix().size() + wire_id.size() + 8);
+    probe_id.append(doc_id.str());
+    probe_id.push_back('/');
     if (scope_id.is_root()) {
         probe_id.append("root:");
     } else if (scope_id.is_embedded()) {
@@ -20,7 +25,7 @@ std::string make_probe_id(const WindowScopeId& scope_id, std::string_view wire_i
     } else {
         probe_id.append("ext:");
     }
-    probe_id.append(scope_id.key());
+    probe_id.append(scope_id.sim_scope_prefix());
     probe_id.push_back('|');
     probe_id.append(wire_id);
     return probe_id;
@@ -106,12 +111,61 @@ uint32_t OscilloscopeModel::color_for_index(size_t i) {
     return k[i % (sizeof(k) / sizeof(k[0]))];
 }
 
+void OscilloscopeModel::set_hover_signal(const editor::DocumentId& doc_id, std::string signal_key) {
+    hover_states_[doc_id.str()].signal_key = std::move(signal_key);
+}
+
+void OscilloscopeModel::clear_hover_signal(const editor::DocumentId& doc_id) {
+    auto it = hover_states_.find(doc_id.str());
+    if (it != hover_states_.end()) {
+        it->second.signal_key.clear();
+    }
+}
+
+const std::deque<float>& OscilloscopeModel::hover_samples(const editor::DocumentId& doc_id) const {
+    static const std::deque<float> empty;
+    auto it = hover_states_.find(doc_id.str());
+    return (it != hover_states_.end()) ? it->second.samples : empty;
+}
+
+const std::string& OscilloscopeModel::hover_signal_key(const editor::DocumentId& doc_id) const {
+    static const std::string empty;
+    auto it = hover_states_.find(doc_id.str());
+    return (it != hover_states_.end()) ? it->second.signal_key : empty;
+}
+
+void OscilloscopeModel::purge_hover_for(const editor::DocumentId& doc_id) {
+    hover_states_.erase(doc_id.str());
+}
+
+void OscilloscopeModel::purge_for(const editor::DocumentId& doc_id) {
+    // Remove probes owned by this document
+    std::vector<std::string> to_remove;
+    for (const auto& [probe_id, p] : probes_) {
+        if (p.document_id == doc_id) {
+            to_remove.push_back(probe_id);
+        }
+    }
+    for (const auto& id : to_remove) {
+        probes_.erase(id);
+        samples_.erase(id);
+    }
+
+    hover_states_.erase(doc_id.str());
+}
+
+void OscilloscopeModel::purge_all() {
+    probes_.clear();
+    samples_.clear();
+    hover_states_.clear();
+}
+
 void OscilloscopeModel::toggle_probe(Document& doc,
                                      const WindowScopeId& scope_id,
                                      const std::string& wire_id,
                                      const ui::Pt* click_world) {
     if (wire_id.empty()) return;
-    const std::string probe_id = make_probe_id(scope_id, wire_id);
+    const std::string probe_id = make_probe_id(doc.id(), scope_id, wire_id);
     auto it = probes_.find(probe_id);
     if (it != probes_.end()) {
         probes_.erase(it);
@@ -122,11 +176,16 @@ void OscilloscopeModel::toggle_probe(Document& doc,
     OscilloscopeProbe p;
     p.probe_id = probe_id;
     p.wire_id = wire_id;
-    p.doc_id = doc.id();
+    p.document_id = doc.id();
     p.scope_id = scope_id;
     if (!resolve_probe_signal(doc, scope_id, wire_id, p.signal_key, p.label)) return;
     if (!resolve_probe_anchor(doc, wire_id, scope_id, click_world, p.world_pos)) return;
-    p.color = color_for_index(probes_.size());
+    // Per-document color assignment: count existing probes for this doc.
+    size_t doc_probe_count = 0;
+    for (const auto& [pid, existing] : probes_) {
+        if (existing.document_id == doc.id()) ++doc_probe_count;
+    }
+    p.color = color_for_index(doc_probe_count);
 
     probes_[probe_id] = p;
     samples_[probe_id] = std::deque<float>{};
@@ -150,6 +209,9 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
     std::vector<std::string> to_remove;
     std::vector<std::pair<std::string, OscilloscopeProbe>> updates;
     for (const auto& [probe_id, p] : probes_) {
+        if (p.document_id != doc.id()) {
+            continue;
+        }
         OscilloscopeProbe updated = p;
         if (!resolve_probe_signal(doc, p.scope_id, p.wire_id, updated.signal_key, updated.label)) {
             to_remove.push_back(probe_id);
@@ -174,25 +236,35 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
 void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sample_dt_sec) {
     if (sample_dt_sec > 0.0f) sample_period_sec_ = sample_dt_sec;
     for (auto& [probe_id, p] : probes_) {
+        if (p.document_id != doc.id()) {
+            continue;
+        }
         auto& q = samples_[probe_id];
         float v = simulation_running ? doc.simulation().get_wire_voltage(p.signal_key) : 0.0f;
         q.push_back(v);
         while (q.size() > max_samples_) q.pop_front();
     }
 
-    if (!hover_signal_key_.empty()) {
-        const float v = simulation_running ? doc.simulation().get_wire_voltage(hover_signal_key_) : 0.0f;
-        hover_samples_.push_back(v);
-        while (hover_samples_.size() > max_samples_) hover_samples_.pop_front();
-    } else {
-        hover_samples_.clear();
+    // Per-document hover sampling
+    auto hover_it = hover_states_.find(doc.id().str());
+    if (hover_it != hover_states_.end() && !hover_it->second.signal_key.empty()) {
+        const float v = simulation_running
+            ? doc.simulation().get_wire_voltage(hover_it->second.signal_key) : 0.0f;
+        hover_it->second.samples.push_back(v);
+        while (hover_it->second.samples.size() > max_samples_) hover_it->second.samples.pop_front();
+    } else if (hover_it != hover_states_.end()) {
+        hover_it->second.samples.clear();
     }
 }
 
-std::vector<OscilloscopeModel::ChannelView> OscilloscopeModel::channels() const {
+std::vector<OscilloscopeModel::ChannelView> OscilloscopeModel::channels_for(
+        const editor::DocumentId& document_id) const {
     std::vector<ChannelView> out;
     out.reserve(probes_.size());
     for (const auto& [probe_id, p] : probes_) {
+        if (p.document_id != document_id) {
+            continue;
+        }
         auto it = samples_.find(probe_id);
         if (it == samples_.end()) continue;
         out.push_back(ChannelView{&p, &it->second});

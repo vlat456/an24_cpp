@@ -2,6 +2,7 @@
 
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/interface/interface.h"
+#include "blueprint_v2/blueprint/node_color.h"
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/blueprint/node_content_type.h"
 #include <variant>
@@ -145,9 +146,10 @@ public:
         struct ViewData {
             /// Canonical authored node label persisted as JSON `label`.
             std::string name;
+            std::optional<NodeColor> color;
 
             bool operator==(ViewData const& o) const {
-                return name == o.name;
+                return name == o.name && color == o.color;
             }
         };
 

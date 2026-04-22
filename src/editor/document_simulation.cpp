@@ -7,15 +7,38 @@
 #include "visual/scene_mutations.h"
 #include "identity.h"
 #include <algorithm>
+#include <array>
+#include <cassert>
 #include <cmath>
 #include <functional>
 #include <spdlog/spdlog.h>
 
 namespace {
 
-/// Build the simulation-level node ID: "scope_id:node_id" for embedded, or "node_id" for root.
-std::string make_sim_id(const editor::NodeId& node_id, const std::string& scope_id) {
-    return scope_id.empty() ? node_id.str() : signal_key::make_child_scope_key(scope_id, node_id.str());
+/// Build the simulation-level node ID: "scope_prefix:node_id" for scoped, or "node_id" for root.
+std::string make_sim_id(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
+    const std::string& prefix = scope_id.sim_scope_prefix();
+    return prefix.empty() ? node_id.str() : signal_key::make_child_scope_key(prefix, node_id.str());
+}
+
+/// Convert a WindowScopeId path to a typed InternedId instance_path.
+std::vector<ui::InternedId> scope_id_to_instance_path(const ui::StringInterner& interner,
+                                                       const WindowScopeId& scope_id) {
+    std::vector<ui::InternedId> result;
+    result.reserve(scope_id.path().size());
+    for (const std::string& segment : scope_id.path()) {
+        const ui::InternedId iid = interner.lookup(segment);
+        assert(!iid.empty() && "scope path segment not interned");
+        result.push_back(iid);
+    }
+    return result;
+}
+
+/// Build a NodeInstanceKey from a WindowScopeId + local node id.
+editor::NodeInstanceKey make_scoped_node_instance_key(const ui::StringInterner& interner,
+                                                      const WindowScopeId& scope_id,
+                                                      ui::InternedId local_node_id) {
+    return editor::make_node_instance_key(scope_id_to_instance_path(interner, scope_id), local_node_id);
 }
 
 std::pair<const bp2::Blueprint::Wire*, std::string_view> find_wire_in_scope(
@@ -34,8 +57,8 @@ std::pair<const bp2::Blueprint::Wire*, std::string_view> find_wire_in_scope(
 }
 
 NodeContent resolve_base_content(const bp2::Blueprint::Node& node,
-                                   ui::StringInterner& interner,
-                                   const ComponentRegistry* registry) {
+                                  ui::StringInterner& interner,
+                                  const ComponentRegistry* registry) {
     const std::string type_name(interner.resolve(node.semantic.type));
     const auto* def = registry ? registry->get(type_name) : nullptr;
     const TypePresentation* pres = registry ? registry->presentation.get(type_name) : nullptr;
@@ -71,38 +94,30 @@ editor::RuntimeNodeState build_runtime_state(const bp2::Blueprint::Node& node,
     return default_runtime_state(content.type, content);
 }
 
+/// Dispatch a node color update to all matching windows.
 void dispatch_color_to_widget(WindowManager& window_manager,
                               ui::StringInterner& interner,
                               ui::InternedId node_iid,
-                              const std::string& scope_id,
+                              const WindowScopeId& scope_id,
                               std::optional<editor::NodeColor> color) {
     std::string_view node_sv = interner.resolve(node_iid);
     for (const auto& win : window_manager.windows()) {
-        const std::string scope_key = win->resolved_scope_id().key();
-        if (scope_id.empty()) {
-            if (!scope_key.empty()) continue;
-        } else {
-            if (scope_key != scope_id) continue;
-        }
+        if (win->resolved_scope_id() != scope_id) continue;
         if (auto* widget = win->scene.find(node_sv)) {
             widget->setCustomColor(color.has_value() ? std::optional<uint32_t>(color->to_uint32()) : std::nullopt);
         }
     }
 }
 
+/// Dispatch a content update to all matching windows.
 void dispatch_content_to_widget(WindowManager& window_manager,
                                 ui::StringInterner& interner,
                                 ui::InternedId node_iid,
-                                const std::string& scope_id,
+                                const WindowScopeId& scope_id,
                                 const NodeContent& content) {
     std::string_view node_sv = interner.resolve(node_iid);
     for (const auto& win : window_manager.windows()) {
-        const std::string scope_key = win->resolved_scope_id().key();
-        if (scope_id.empty()) {
-            if (!scope_key.empty()) continue;
-        } else {
-            if (scope_key != scope_id) continue;
-        }
+        if (win->resolved_scope_id() != scope_id) continue;
         auto* widget = win->scene.find(node_sv);
         if (!widget) continue;
         auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
@@ -178,7 +193,16 @@ void walk_blueprint_nodes(const bp2::Blueprint& bp,
     }
 }
 
+// Path-walking utilities live in embedded_path_utils.cpp.
+// document_simulation.cpp only consumes them via the header.
+
+// ============================================================================
+
 } // namespace editor
+
+// ============================================================================
+// Document scope resolution
+// ============================================================================
 
 Document::ResolvedSignalScope Document::resolve_signal_scope(const WindowScopeId& scope_id) const {
     if (scope_id.is_external()) {
@@ -187,24 +211,23 @@ Document::ResolvedSignalScope Document::resolve_signal_scope(const WindowScopeId
                 return {
                     &*win->external_blueprint,
                     win->external_interner.get(),
-                    editor::external_ref_signal_context(scope_id.key())
+                    editor::external_ref_signal_context(scope_id.sim_scope_prefix())
                 };
             }
         }
-        return {nullptr, nullptr, editor::external_ref_signal_context(scope_id.key())};
+        return {nullptr, nullptr, editor::external_ref_signal_context(scope_id.sim_scope_prefix())};
     }
 
     if (scope_id.is_embedded()) {
-        const ui::InternedId group_iid = interner_.lookup(scope_id.key());
-        const bp2::Blueprint::Node* node = group_iid.empty() ? nullptr : model_.current().find_node(group_iid);
-        if (node && node->has_embedded_blueprint() && node->blueprint_instance().source.inline_def()) {
+        if (const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(
+                model_.current(), interner_, scope_id.path())) {
             return {
-                node->blueprint_instance().source.inline_def(),
+                embedded_bp,
                 &interner_,
-                editor::embedded_signal_context(scope_id.key())
+                editor::embedded_signal_context(scope_id.sim_scope_prefix())
             };
         }
-        return {nullptr, nullptr, editor::embedded_signal_context(scope_id.key())};
+        return {nullptr, nullptr, editor::embedded_signal_context(scope_id.sim_scope_prefix())};
     }
 
     return {&model_.current(), &interner_, editor::root_signal_context()};
@@ -214,39 +237,38 @@ void Document::rebuild_window_scenes() {
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     for (auto& win : window_manager_.windows()) {
-        const std::string scope_key = win->resolved_scope_id().sim_scope_prefix();
+        std::vector<ui::InternedId> instance_path = scope_id_to_instance_path(interner_, win->resolved_scope_id());
 
         if (win->is_external_ref() && win->external_blueprint
             && win->external_interner && win->external_arena) {
-            // External windows use the parent instance id as scope key —
-            // must match the scope used when the window was first opened.
             visual::mutations::rebuild(win->scene, *win->external_blueprint,
-                                       *win->external_interner, *win->external_arena, scope_key, reg,
-                                       &runtime_node_states_, &session_node_appearance_);
+                                       *win->external_interner, *win->external_arena, instance_path, reg,
+                                       &runtime_node_states_);
             win->input.rebuild_snapshot();
         } else if (win->resolved_scope_id().is_embedded()) {
-            const ui::InternedId group_iid = interner_.lookup(scope_key);
-            const bp2::Blueprint::Node* node = group_iid.empty()
-                ? nullptr
-                : model_.current().find_node(group_iid);
-
-            if (node && node->has_embedded_blueprint() && node->blueprint_instance().source.inline_def()) {
-                visual::mutations::rebuild(win->scene, *node->blueprint_instance().source.inline_def(),
-                                           interner_, arena_, scope_key, reg,
-                                           &runtime_node_states_, &session_node_appearance_);
+            if (const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(
+                    model_.current(), interner_, win->resolved_scope_id().path())) {
+                visual::mutations::rebuild(win->scene, *embedded_bp,
+                                           interner_, arena_, instance_path, reg,
+                                           &runtime_node_states_);
                 win->input.rebuild_snapshot();
             } else {
-                spdlog::error("[editor] Embedded window '{}' missing embedded blueprint during rebuild", scope_key);
+                spdlog::error("[editor] Embedded window '{}' missing embedded blueprint during rebuild",
+                              win->resolved_scope_id().sim_scope_prefix());
                 continue;
             }
         } else {
             visual::mutations::rebuild(win->scene, model_.current(),
-                                       interner_, arena_, scope_key, reg,
-                                       &runtime_node_states_, &session_node_appearance_);
+                                       interner_, arena_, instance_path, reg,
+                                       &runtime_node_states_);
             win->input.rebuild_snapshot();
         }
     }
 }
+
+// ============================================================================
+// Simulation lifecycle
+// ============================================================================
 
 void Document::startSimulation() {
     if (!simulation_running_) {
@@ -290,9 +312,14 @@ void Document::rebuildAllWindows() {
     for (auto& win : window_manager_.windows()) {
         win->input.cancel_gesture();
     }
+    window_manager_.remove_orphaned_windows();
     rebuild_window_scenes();
     rebuildSimulation();
 }
+
+// ============================================================================
+// Simulation step & content updates
+// ============================================================================
 
 void Document::updateSimulationStep(double dt) {
     if (!simulation_running_) return;
@@ -342,7 +369,17 @@ void Document::updateNodeContentFromSimulation() {
                 default:
                     break;
             }
-            dispatch_content_to_widget(window_manager_, interner_, n.semantic.id, sim_id_prefix, content);
+
+            // Build the WindowScopeId matching this node's depth for widget dispatch.
+            std::vector<std::string> widget_scope_path;
+            widget_scope_path.reserve(path.size());
+            for (ui::InternedId segment : path) {
+                widget_scope_path.push_back(std::string(interner_.resolve(segment)));
+            }
+            const WindowScopeId widget_scope = widget_scope_path.empty()
+                ? WindowScopeId::root()
+                : WindowScopeId::embedded(std::move(widget_scope_path));
+            dispatch_content_to_widget(window_manager_, interner_, n.semantic.id, widget_scope, content);
         });
 }
 
@@ -363,7 +400,6 @@ void Document::resetNodeContent(const ComponentRegistry& /*registry*/) {
 
 void Document::purge_transient_node_state() {
     editor::RuntimeNodeStateStore next_runtime;
-    editor::SessionNodeAppearanceStore next_appearance;
 
     std::vector<ui::InternedId> instance_path;
     editor::walk_blueprint_nodes(model_.current(), instance_path, [&](const bp2::Blueprint::Node& node, std::span<const ui::InternedId> path) {
@@ -371,56 +407,97 @@ void Document::purge_transient_node_state() {
         if (const auto rt = runtime_node_states_.find(key); rt != runtime_node_states_.end()) {
             next_runtime.emplace(rt->first, rt->second);
         }
-        if (const auto ap = session_node_appearance_.find(key); ap != session_node_appearance_.end()) {
-            next_appearance.emplace(ap->first, ap->second);
-        }
     });
 
     runtime_node_states_ = std::move(next_runtime);
-    session_node_appearance_ = std::move(next_appearance);
 }
+
+// ============================================================================
+// Per-node scope queries
+// ============================================================================
 
 std::optional<editor::NodeColor> Document::node_color_for_scope(const WindowScopeId& scope_id,
-                                                                ui::InternedId node_id) const {
-    const editor::NodeInstanceKey key = editor::make_node_instance_key(
-        const_cast<ui::StringInterner&>(interner_), scope_id.sim_scope_prefix(), node_id);
-    return editor::lookup_node_color(session_node_appearance_, key);
+                                                                 ui::InternedId node_id) const {
+    if (scope_id.is_external()) {
+        return std::nullopt;
+    }
+
+    if (scope_id.is_root()) {
+        const auto* node = model_.current().find_node(node_id);
+        return node ? node->view.color : std::nullopt;
+    }
+
+    const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(model_.current(), interner_, scope_id.path());
+    if (!embedded_bp) {
+        return std::nullopt;
+    }
+    const auto* node = embedded_bp->find_node(node_id);
+    return node ? node->view.color : std::nullopt;
 }
 
-std::optional<editor::NodeColor> Document::node_color_for_scope(const std::string& scope_id,
-                                                                ui::InternedId node_id) const {
-    return node_color_for_scope(scope_id.empty() ? WindowScopeId::root() : WindowScopeId::embedded(scope_id), node_id);
-}
-
-void Document::set_node_color_for_scope(const std::string& scope_id,
+void Document::set_node_color_for_scope(const WindowScopeId& scope_id,
                                         ui::InternedId node_id,
                                         std::optional<editor::NodeColor> color) {
-    const editor::NodeInstanceKey key = editor::make_node_instance_key(interner_, scope_id, node_id);
-    if (color.has_value()) {
-        session_node_appearance_[key] = *color;
-    } else {
-        session_node_appearance_.erase(key);
+    if (scope_id.is_external()) {
+        return;
     }
-    dispatch_color_to_widget(window_manager_, interner_, node_id, scope_id, color);
+
+    const std::optional<editor::NodeColor> canonical_color = color.has_value()
+        ? std::optional<editor::NodeColor>(editor::NodeColor::canonicalized(*color))
+        : std::nullopt;
+
+    auto assign_color = [canonical_color](bp2::Blueprint::Node& node) {
+        node.view.color = canonical_color;
+    };
+
+    bool resolved_target = false;
+
+    if (scope_id.is_root()) {
+        resolved_target = (model_.current().find_node(node_id) != nullptr);
+        if (!resolved_target) {
+            return;
+        }
+        model_.update_node(node_id, assign_color);
+    } else {
+        const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(model_.current(), interner_, scope_id.path());
+        resolved_target = embedded_bp && (embedded_bp->find_node(node_id) != nullptr);
+        if (!resolved_target) {
+            return;
+        }
+
+        const editor::EmbeddedMutationResult updated = editor::mutate_embedded_blueprint(
+            model_.current(), interner_, scope_id.path(),
+            [&](const bp2::Blueprint& embedded) {
+                bp2::Blueprint next = embedded;
+                (void)bp2::try_update_node(next, node_id, assign_color);
+                return next;
+            });
+        if (updated.kind == editor::EmbeddedMutationResultKind::Changed && updated.blueprint.has_value()) {
+            model_.push_checkpoint();
+            model_.replace_current(std::move(*updated.blueprint));
+        }
+    }
+
+    if (resolved_target) {
+        dispatch_color_to_widget(window_manager_, interner_, node_id, scope_id, canonical_color);
+    }
 }
 
 const bp2::Blueprint::Node* Document::find_node_in_scope(
-    const std::string& scope_id, const editor::NodeId& node_id) const {
-    const ui::InternedId node_iid = interner_.lookup(node_id.str());
-    if (node_iid.empty()) return nullptr;
+    const WindowScopeId& scope_id, const editor::NodeId& node_id) const {
+    const ResolvedSignalScope resolved = resolve_signal_scope(scope_id);
+    if (!resolved.blueprint || !resolved.interner) {
+        return nullptr;
+    }
 
-    if (scope_id.empty()) {
-        return model_.current().find_node(node_iid);
-    }
-    const ui::InternedId group_iid = interner_.lookup(scope_id);
-    const bp2::Blueprint::Node* group_node = group_iid.empty()
-        ? nullptr : model_.current().find_node(group_iid);
-    if (!group_node || !group_node->has_embedded_blueprint()) return nullptr;
-    if (const auto* def = group_node->blueprint_instance().source.inline_def()) {
-        return def->find_node(node_iid);
-    }
-    return nullptr;
+    const ui::InternedId node_iid = resolved.interner->lookup(node_id.str());
+    if (node_iid.empty()) return nullptr;
+    return resolved.blueprint->find_node(node_iid);
 }
+
+// ============================================================================
+// Signal key resolution
+// ============================================================================
 
 void Document::buildEnergizedWireSet(
     std::unordered_set<std::string_view, visual::StringViewHash>& out,
@@ -487,16 +564,20 @@ std::string Document::resolve_wire_signal_key(const WindowScopeId& scope_id,
         *resolved.blueprint, *resolved.interner, endpoint, resolved.context);
 }
 
-void Document::triggerSwitch(const editor::NodeId& node_id, const std::string& scope_id) {
-     const std::string sim_id = make_sim_id(node_id, scope_id);
-     float current = simulation_.get_port_value(sim_id, "control");
-     float next = (current < 0.5f) ? 1.0f : 0.0f;
-     signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = next;
- }
+// ============================================================================
+// Signal overrides (switch/button/knob interaction)
+// ============================================================================
 
-void Document::setSliderValue(const editor::NodeId& node_id, float value, const std::string& scope_id) {
-     const std::string sim_id = make_sim_id(node_id, scope_id);
-     signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = value;
+void Document::triggerSwitch(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
+    const std::string sim_id = make_sim_id(node_id, scope_id);
+    float current = simulation_.get_port_value(sim_id, "control");
+    float next = (current < 0.5f) ? 1.0f : 0.0f;
+    signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = next;
+}
+
+void Document::setSliderValue(const editor::NodeId& node_id, float value, const WindowScopeId& scope_id) {
+    const std::string sim_id = make_sim_id(node_id, scope_id);
+    signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = value;
 
     const bp2::Blueprint::Node* n = find_node_in_scope(scope_id, node_id);
     if (!n) return;
@@ -504,13 +585,13 @@ void Document::setSliderValue(const editor::NodeId& node_id, float value, const 
     NodeContent content = resolve_base_content(*n, interner_, type_registry_);
     if (content.type == bp2::NodeContentType::None) return;
     content.value = value;
-    runtime_node_states_[editor::make_node_instance_key(interner_, scope_id, n->semantic.id)] = editor::ScalarNodeRuntimeState{value};
+    runtime_node_states_[make_scoped_node_instance_key(interner_, scope_id, n->semantic.id)] = editor::ScalarNodeRuntimeState{value};
     dispatch_content_to_widget(window_manager_, interner_, n->semantic.id, scope_id, content);
 }
 
-void Document::setKnobPosition(const editor::NodeId& node_id, int position, const std::string& scope_id) {
-     const std::string sim_id = make_sim_id(node_id, scope_id);
-     signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = static_cast<float>(position);
+void Document::setKnobPosition(const editor::NodeId& node_id, int position, const WindowScopeId& scope_id) {
+    const std::string sim_id = make_sim_id(node_id, scope_id);
+    signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = static_cast<float>(position);
 
     const bp2::Blueprint::Node* n = find_node_in_scope(scope_id, node_id);
     if (!n) return;
@@ -518,16 +599,16 @@ void Document::setKnobPosition(const editor::NodeId& node_id, int position, cons
     NodeContent content = resolve_base_content(*n, interner_, type_registry_);
     if (content.type == bp2::NodeContentType::None) return;
     content.value = static_cast<float>(position);
-    runtime_node_states_[editor::make_node_instance_key(interner_, scope_id, n->semantic.id)] = editor::DiscreteNodeRuntimeState{position};
+    runtime_node_states_[make_scoped_node_instance_key(interner_, scope_id, n->semantic.id)] = editor::DiscreteNodeRuntimeState{position};
     dispatch_content_to_widget(window_manager_, interner_, n->semantic.id, scope_id, content);
 }
 
-void Document::holdButtonPress(const editor::NodeId& node_id, const std::string& scope_id) {
+void Document::holdButtonPress(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
     held_buttons_.insert(make_sim_id(node_id, scope_id));
 }
 
-void Document::holdButtonRelease(const editor::NodeId& node_id, const std::string& scope_id) {
-     const std::string sim_id = make_sim_id(node_id, scope_id);
-     held_buttons_.erase(sim_id);
-     signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = 2.0f;
- }
+void Document::holdButtonRelease(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
+    const std::string sim_id = make_sim_id(node_id, scope_id);
+    held_buttons_.erase(sim_id);
+    signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = 2.0f;
+}

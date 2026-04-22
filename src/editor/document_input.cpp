@@ -2,17 +2,8 @@
 #include "identity.h"
 
 Document::InputResultAction Document::applyInputResult(const InputResult& r,
-                                                        const std::string& scope_id) {
-    const WindowScopeId typed_scope = scope_id.empty()
-        ? WindowScopeId::root()
-        : WindowScopeId::embedded(scope_id);
-    return applyInputResult(r, typed_scope);
-}
-
-Document::InputResultAction Document::applyInputResult(const InputResult& r,
                                                         const WindowScopeId& scope_id) {
     InputResultAction action;
-    const std::string legacy_scope_id = scope_id.is_embedded() ? scope_id.key() : "";
 
     if (r.rebuild_simulation) {
         rebuildSimulation();
@@ -21,24 +12,24 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r,
     if (r.show_context_menu) {
         action.show_context_menu = true;
         action.context_menu_pos = r.context_menu_pos;
-        action.context_menu_scope_id = legacy_scope_id;
+        action.context_menu_scope_id = scope_id;
     }
     if (r.show_node_context_menu) {
         action.show_node_context_menu = true;
         action.context_menu_node_id = editor::NodeId::from_string(r.context_menu_node_id);
-        action.node_context_menu_scope_id = legacy_scope_id;
+        action.node_context_menu_scope_id = scope_id;
     }
     if (!r.open_sub_window.empty()) {
-        openSubWindow(r.open_sub_window);
+        openSubWindow(scope_id, r.open_sub_window);
     }
     if (!r.toggle_switch_node_id.empty()) {
-        triggerSwitch(editor::NodeId::from_string(r.toggle_switch_node_id), legacy_scope_id);
+        triggerSwitch(editor::NodeId::from_string(r.toggle_switch_node_id), scope_id);
     }
     if (!r.slider_node_id.empty()) {
-        setSliderValue(editor::NodeId::from_string(r.slider_node_id), r.slider_value, legacy_scope_id);
+        setSliderValue(editor::NodeId::from_string(r.slider_node_id), r.slider_value, scope_id);
     }
     if (!r.knob_node_id.empty()) {
-        setKnobPosition(editor::NodeId::from_string(r.knob_node_id), r.knob_position, legacy_scope_id);
+        setKnobPosition(editor::NodeId::from_string(r.knob_node_id), r.knob_position, scope_id);
     }
     if (!r.toggle_probe_wire_id.empty()) {
         action.toggle_probe_wire_id = r.toggle_probe_wire_id;
@@ -50,6 +41,7 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r,
     if (r.open_inline_value_editor && !r.inline_value_editor_node_id.empty()) {
         action.open_inline_value_editor = true;
         action.inline_value_editor_node_id = editor::NodeId::from_string(r.inline_value_editor_node_id);
+        action.inline_value_editor_scope_id = scope_id;
         action.has_inline_value_editor_screen_pos = r.has_inline_value_editor_screen_pos;
         action.inline_value_editor_screen_pos = r.inline_value_editor_screen_pos;
     }

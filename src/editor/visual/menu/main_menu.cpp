@@ -53,7 +53,7 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
             // If blueprint has no name yet, prompt for one before saving
             if (active_doc->blueprint().name().empty()) {
                 ws.setName.show = true;
-                ws.setName.doc_id = active_doc->id();
+                ws.setName.document_id = active_doc->id();
                 ws.setName.save_after = true;
                 std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
             } else if (active_doc->filepath().empty()) {
@@ -134,7 +134,7 @@ void MainMenu::renderEditMenu(WindowSystem& ws) {
 
     if (ImGui::MenuItem("Delete", "Del", false, has_sel)) {
         if (active_doc) {
-            auto action = active_doc->applyInputResult(active_doc->input().on_key(Key::Delete));
+            auto action = active_doc->applyInputResult(active_doc->input().on_key(Key::Delete), WindowScopeId::root());
             ws.handleInputAction(action, *active_doc);
         }
     }
@@ -197,7 +197,7 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
     if (ImGui::MenuItem("Set Name...", nullptr, false, active_doc != nullptr)) {
         if (active_doc) {
             ws.setName.show = true;
-            ws.setName.doc_id = active_doc->id();
+            ws.setName.document_id = active_doc->id();
             ws.setName.save_after = false;
             std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
             // Pre-fill with current name

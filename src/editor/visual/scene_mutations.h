@@ -4,8 +4,6 @@
 #include "blueprint_v2/path/path.h"
 #include "editor/data/node_state.h"
 #include "ui/core/interned_id.h"
-#include <string>
-#include <string_view>
 #include <vector>
 #include <cstddef>
 
@@ -23,9 +21,8 @@ namespace visual::mutations {
 void rebuild(Scene& scene, const bp2::Blueprint& bp,
              ui::StringInterner& interner,
              bp2::PathArena& arena,
-             std::string_view scope_id,
+             std::span<const ui::InternedId> instance_path,
              const ComponentRegistry& registry,
-             const editor::RuntimeNodeStateStore* runtime_state_store = nullptr,
-             const editor::SessionNodeAppearanceStore* appearance_store = nullptr);
+             const editor::RuntimeNodeStateStore* runtime_state_store = nullptr);
 
 } // namespace visual::mutations

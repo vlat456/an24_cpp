@@ -93,7 +93,7 @@ TEST(CanvasSceneSnapshot, RecursivelyProjectsPortsAndRoutingPoints) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
@@ -134,7 +134,7 @@ TEST(CanvasSceneSnapshot, ContentObjectsAreProjectedToAbsoluteCanvasCoordinates)
     bp = bp.with_node(std::move(knob));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob1"));
     ASSERT_NE(widget, nullptr);
@@ -185,7 +185,7 @@ TEST(CanvasSceneSnapshot, GroupNodeBorderOnlyHitSemantics) {
     bp = bp.with_node(std::move(group));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     auto* grp_widget = dynamic_cast<visual::GroupNodeWidget*>(scene.find("grp1"));
     ASSERT_NE(grp_widget, nullptr) << "Group widget must exist in scene";
@@ -259,7 +259,7 @@ TEST(CanvasSceneSnapshot, WireSegmentHitTestUsesDistanceThreshold) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     // Find the wire to read its polyline
     auto* wire_widget = dynamic_cast<visual::Wire*>(scene.find(interner.resolve(interner.lookup("w1"))));
@@ -307,7 +307,7 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForResizableGroupNode) {
     bp = bp.with_node(std::move(group));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
@@ -377,7 +377,7 @@ TEST(CanvasSceneSnapshot, RoutingPointHitAreaExtendsBeyondVisibleDot) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
@@ -408,7 +408,7 @@ TEST(CanvasSceneSnapshot, HitTestPriorityPortOverNode) {
     bp = bp.with_node(std::move(n1));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
@@ -455,7 +455,7 @@ TEST(CanvasSceneSnapshot, RoutingPointWinsOverWireWithinSharedHitTolerance) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
@@ -491,7 +491,7 @@ TEST(CanvasSceneSnapshot, WireSegmentUsesSharedHitTolerance) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     auto* wire_widget = dynamic_cast<visual::Wire*>(scene.find(interner.resolve(interner.lookup("w2"))));
     ASSERT_NE(wire_widget, nullptr);
@@ -535,7 +535,7 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForNodeWithoutExplicitSize) {
     bp = bp.with_node(std::move(n));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("new_node"));
     ASSERT_NE(widget, nullptr);

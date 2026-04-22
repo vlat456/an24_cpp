@@ -20,7 +20,7 @@ void OscilloscopeWindow::render(WindowSystem& ws) {
         return;
     }
 
-    auto channels = ws.oscilloscope.channels();
+    auto channels = ws.oscilloscope.channels_for(doc->id());
     if (channels.empty()) {
         ImGui::TextDisabled("Shift+click a wire to add probe");
         ImGui::End();
@@ -45,7 +45,7 @@ void OscilloscopeWindow::render(WindowSystem& ws) {
 
     for (const auto& ch : channels) {
         if (!ch.probe || !ch.samples) continue;
-        const std::string child_id = "##osc_row_" + ch.probe->wire_id;
+        const std::string child_id = "##osc_row_" + ch.probe->probe_id;
         ImGui::BeginChild(child_id.c_str(), ImVec2(0.0f, row_total_h), false,
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         visual::osc::render_channel_plot(*ch.probe, *ch.samples, min_v, max_v, plot_h);

@@ -27,6 +27,14 @@ enum class SubWindowOpenTargetFailure {
 struct SubWindowOpenTarget {
     SubWindowOpenTargetKind kind = SubWindowOpenTargetKind::Missing;
     std::string path;
+
+    bool operator==(const SubWindowOpenTarget& other) const {
+        return kind == other.kind && path == other.path;
+    }
+
+    bool operator!=(const SubWindowOpenTarget& other) const {
+        return !(*this == other);
+    }
 };
 
 struct SubWindowOpenTargetResult {

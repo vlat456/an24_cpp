@@ -1,5 +1,6 @@
 #pragma once
 
+#include "identity.h"
 #include "window/window_scope_id.h"
 #include "ui/math/pt.h"
 #include <algorithm>
@@ -14,7 +15,7 @@ class Document;
 struct OscilloscopeProbe {
     std::string probe_id;
     std::string wire_id;
-    std::string doc_id;
+    editor::DocumentId document_id;
     std::string signal_key;
     std::string label;
     WindowScopeId scope_id = WindowScopeId::root();
@@ -31,15 +32,24 @@ public:
     void remove_probe(const std::string& probe_id);
     bool has_probe(const std::string& probe_id) const;
 
+    /// Remove all probes and samples for a document being closed.
+    void purge_for(const editor::DocumentId& doc_id);
+
+    /// Remove all probes, samples, and hover state (for close-all).
+    void purge_all();
+
     const OscilloscopeProbe* probe(const std::string& probe_id) const;
     const std::unordered_map<std::string, OscilloscopeProbe>& probes() const { return probes_; }
 
     void on_blueprint_changed(Document& doc);
     void sample(Document& doc, bool simulation_running, float sample_dt_sec);
-    void set_hover_signal(std::string signal_key) { hover_signal_key_ = std::move(signal_key); }
-    void clear_hover_signal() { hover_signal_key_.clear(); }
-    const std::deque<float>& hover_samples() const { return hover_samples_; }
-    const std::string& hover_signal_key() const { return hover_signal_key_; }
+    void set_hover_signal(const editor::DocumentId& doc_id, std::string signal_key);
+    void clear_hover_signal(const editor::DocumentId& doc_id);
+    const std::deque<float>& hover_samples(const editor::DocumentId& doc_id) const;
+    const std::string& hover_signal_key(const editor::DocumentId& doc_id) const;
+
+    /// Clear all hover state for a document being closed.
+    void purge_hover_for(const editor::DocumentId& doc_id);
 
     size_t max_samples() const { return max_samples_; }
     float sample_period_sec() const { return sample_period_sec_; }
@@ -48,7 +58,7 @@ public:
         const OscilloscopeProbe* probe = nullptr;
         const std::deque<float>* samples = nullptr;
     };
-    std::vector<ChannelView> channels() const;
+    std::vector<ChannelView> channels_for(const editor::DocumentId& document_id) const;
     struct SampleStats {
         bool has_value = false;
         bool has_tu = false;
@@ -106,8 +116,13 @@ private:
     float sample_period_sec_ = 0.0f;
     std::unordered_map<std::string, OscilloscopeProbe> probes_;
     std::unordered_map<std::string, std::deque<float>> samples_;
-    std::string hover_signal_key_;
-    std::deque<float> hover_samples_;
+
+    /// Per-document hover state — keyed by DocumentId::str().
+    struct HoverState {
+        std::string signal_key;
+        std::deque<float> samples;
+    };
+    std::unordered_map<std::string, HoverState> hover_states_;
 
     static uint32_t color_for_index(size_t i);
 };

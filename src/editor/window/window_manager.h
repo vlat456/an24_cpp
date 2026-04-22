@@ -3,6 +3,7 @@
 #include "window/blueprint_window.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
+#include "embedded_path_utils.h"
 #include "ui/core/interned_id.h"
 #include <memory>
 #include <stdexcept>
@@ -10,6 +11,7 @@
 #include <utility>
 #include <vector>
 #include <unordered_set>
+#include <optional>
 #include <spdlog/spdlog.h>
 
 struct ComponentRegistry;
@@ -21,8 +23,7 @@ public:
                            const ComponentRegistry* parser_registry = nullptr)
         : model_(model), interner_(interner), arena_(arena), parser_registry_(parser_registry)
     {
-        windows_.push_back(std::make_unique<BlueprintWindow>(
-            RootWindowTag{}, model_, interner_, arena_, "Root", parser_registry_));
+        windows_.push_back(BlueprintWindow::create_root(context(), "Root"));
     }
 
     void set_parser_registry(const ComponentRegistry* parser_registry) {
@@ -66,17 +67,37 @@ public:
                 throw std::logic_error("WindowManager::open cannot create an additional root window");
             }
             if (scope_id.is_embedded()) {
-                windows_.push_back(std::make_unique<BlueprintWindow>(
-                    EmbeddedWindowTag{}, model_, interner_, arena_, scope_id.key(), title, parser_registry_));
+                windows_.push_back(BlueprintWindow::create_embedded(context(), scope_id, title));
             } else if (scope_id.is_external()) {
-                windows_.push_back(std::make_unique<BlueprintWindow>(
-                    ExternalWindowTag{}, model_, interner_, arena_, scope_id.key(), title, parser_registry_));
+                throw std::logic_error("WindowManager::open_external must be used for external scopes");
             } else {
                 throw std::logic_error("WindowManager::open received unknown WindowScopeId mode");
             }
         } catch (const std::logic_error& e) {
             spdlog::error("[editor] Failed to open window '{}' (scope '{}'): {}",
-                          title, scope_id.key(), e.what());
+                          title, scope_id.sim_scope_prefix(), e.what());
+            return {nullptr, false};
+        }
+        return {windows_.back().get(), true};
+    }
+
+    std::pair<BlueprintWindow*, bool> open_external(const WindowScopeId& scope_id,
+                                                    std::string title,
+                                                    BlueprintWindow::ExternalDocument external_document) {
+        if (auto* existing = find(scope_id)) {
+            existing->open = true;
+            return {existing, false};
+        }
+
+        try {
+            if (!scope_id.is_external()) {
+                throw std::logic_error("WindowManager::open_external requires external scope");
+            }
+            windows_.push_back(BlueprintWindow::create_external(
+                context(), scope_id, std::move(title), std::move(external_document)));
+        } catch (const std::logic_error& e) {
+            spdlog::error("[editor] Failed to open external window '{}' (scope '{}'): {}",
+                          title, scope_id.sim_scope_prefix(), e.what());
             return {nullptr, false};
         }
         return {windows_.back().get(), true};
@@ -102,20 +123,27 @@ public:
     }
 
     void remove_orphaned_windows() {
-        std::unordered_set<std::string> live;
-        // Collect all blueprint-instance node IDs
-        for (const auto& node : model_.current().nodes()) {
-            if (node.is_blueprint_instance()) {
-                live.insert(std::string(interner_.resolve(node.semantic.id)));
-            }
-        }
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
                 [&](const std::unique_ptr<BlueprintWindow>& w) {
-                    // External-ref windows are kept alive (not tied to blueprint instances)
-                    if (w->resolved_scope_id().is_external()) return false;
-                    const auto& typed_scope = w->resolved_scope_id();
-                    return typed_scope.is_embedded() && !live.count(typed_scope.key());
+                    if (w->resolved_scope_id().is_root()) return false;
+
+                    if (w->resolved_scope_id().is_embedded()) {
+                        // Embedded windows are orphaned when their path no longer resolves.
+                        return !editor::embedded_path_exists(
+                            model_.current(), interner_, w->resolved_scope_id().path());
+                    }
+
+                    if (w->resolved_scope_id().is_external()) {
+                        // External-ref windows are valid only while their owner
+                        // path still resolves to a referenced blueprint instance
+                        // with the same referenced blueprint id. If the owner is
+                        // baked in or retargeted, the stale external window must
+                        // self-close to avoid split-brain.
+                        return !external_window_still_valid(*w);
+                    }
+
+                    return false;
                 }),
             windows_.end());
     }
@@ -128,6 +156,62 @@ public:
     size_t count() const { return windows_.size(); }
 
 private:
+    bool external_window_still_valid(const BlueprintWindow& window) const {
+        const WindowScopeId& scope_id = window.resolved_scope_id();
+        if (!scope_id.is_external() || scope_id.path().empty()) {
+            return false;
+        }
+
+        const auto [bp, bp_interner] = resolve_parent_blueprint_for_child_scope(scope_id.path());
+        if (!bp || !bp_interner) {
+            return false;
+        }
+
+        const ui::InternedId local_node_id = bp_interner->lookup(scope_id.path().back());
+        const bp2::Blueprint::Node* node = local_node_id.empty() ? nullptr : bp->find_node(local_node_id);
+        if (!node || !node->is_blueprint_instance() || !node->has_referenced_blueprint()) {
+            return false;
+        }
+
+        if (!window.external_blueprint.has_value()) {
+            return false;
+        }
+
+        const std::string expected_blueprint_id =
+            std::string(bp_interner->resolve(node->blueprint_instance().source.blueprint_id()));
+        const std::string actual_blueprint_id =
+            std::string(window.rendered_interner().resolve(window.external_blueprint->id()));
+        return expected_blueprint_id == actual_blueprint_id;
+    }
+
+    std::pair<const bp2::Blueprint*, const ui::StringInterner*> resolve_parent_blueprint_for_child_scope(
+        const std::vector<std::string>& child_scope_path) const {
+        if (child_scope_path.empty()) {
+            return {nullptr, nullptr};
+        }
+
+        if (child_scope_path.size() == 1) {
+            return {&model_.current(), &interner_};
+        }
+
+        const std::vector<std::string> parent_path(child_scope_path.begin(), child_scope_path.end() - 1);
+
+        if (const BlueprintWindow* external_parent = find(WindowScopeId::external(parent_path))) {
+            return {&external_parent->rendered_blueprint(), &external_parent->rendered_interner()};
+        }
+
+        const bp2::Blueprint* embedded_parent =
+            editor::resolve_embedded_blueprint(model_.current(), interner_, parent_path);
+        if (!embedded_parent) {
+            return {nullptr, nullptr};
+        }
+        return {embedded_parent, &interner_};
+    }
+
+    BlueprintWindow::Context context() const {
+        return BlueprintWindow::Context{model_, interner_, arena_, parser_registry_};
+    }
+
     bp2::EditorModel& model_;
     ui::StringInterner& interner_;
     bp2::PathArena& arena_;

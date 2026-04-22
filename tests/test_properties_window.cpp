@@ -8,6 +8,7 @@
 #include "ui/core/interned_id.h"
 #include "core/model/component_registry.h"
 #include "editor/data/node_content.h"
+#include "input/editing_host.h"
 
 // Shared bp2 test helpers (make_port, set_iface, count_inputs, count_outputs)
 #include "bp2_test_helpers.h"
@@ -132,7 +133,7 @@ TEST_F(PropertiesWindowTest, OpenSetsTarget) {
     PropertiesWindow win;
     EXPECT_FALSE(win.is_open());
 
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
     EXPECT_TRUE(win.is_open());
     EXPECT_EQ(win.target_node_id_str(), "bat1");
 }
@@ -144,7 +145,7 @@ TEST_F(PropertiesWindowTest, OpenInitializesPendingState) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Pending state should mirror the node's current values
     EXPECT_EQ(win.pending_name(), "bat1");
@@ -164,7 +165,7 @@ TEST_F(PropertiesWindowTest, OpenKeepsLutTableAsStringParam) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "lut_1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "lut_1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     EXPECT_EQ(win.pending_string_params().count("table"), 1u)
         << "LUT table must be edited via string_params table editor";
@@ -180,7 +181,7 @@ TEST_F(PropertiesWindowTest, OpenInitializesPendingBridgePortType) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bp_in_1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bp_in_1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     ASSERT_TRUE(win.pending_bridge_port_type().has_value());
     EXPECT_EQ(*win.pending_bridge_port_type(), PortType::V);
@@ -193,7 +194,7 @@ TEST_F(PropertiesWindowTest, CancelDoesNotMutateLiveNode) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Simulate user editing pending state
     win.set_pending_param("v", 12.0f);
@@ -221,7 +222,7 @@ TEST_F(PropertiesWindowTest, LiveNodeUntouchedDuringEditing) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Edit pending params
     win.set_pending_param("v", 99.0f);
@@ -245,13 +246,13 @@ TEST_F(PropertiesWindowTest, OpenTwiceDiscardsFirstSession) {
     PropertiesWindow win;
 
     // First open
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
     win.set_pending_param("v", 12.0f);
 
     // Open again — first session's pending edits are discarded
     node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Live node was never mutated
     node_ptr = model.current().find_node(interner.intern("bat1"));
@@ -273,6 +274,44 @@ TEST_F(PropertiesWindowTest, OpenTwiceDiscardsFirstSession) {
     EXPECT_FLOAT_EQ(v_it->second, 28.0f);
 }
 
+TEST_F(PropertiesWindowTest, EmbeddedOwnedHostSurvivesWindowClosureAndAppliesToNestedBlueprint) {
+    bp2::Blueprint inner;
+    inner = inner.with_id(interner.intern("inner_bp"));
+    inner = inner.with_node(make_node(interner, "bat1", {{"v", 28.0f}}));
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("group_1");
+    host.semantic.type = interner.intern("Group");
+    host.view.name = "group_1";
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(inner.with_id(interner.intern("Group"))))
+    };
+
+    bp2::Blueprint root;
+    root = root.with_id(interner.intern("root_bp"));
+    root = root.with_node(std::move(host));
+    model.replace_current(std::move(root));
+
+    auto embedded_host = create_pathful_embedded_host(model, {interner.intern("group_1")});
+    const bp2::Blueprint::Node* node_ptr = embedded_host->find_node(interner.intern("bat1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "bat1", std::move(embedded_host), interner, nullptr, [](const std::string&) {});
+    win.set_pending_param("v", 14.0f);
+    win.apply();
+
+    const auto* host_after = model.current().find_node(interner.intern("group_1"));
+    ASSERT_NE(host_after, nullptr);
+    ASSERT_TRUE(host_after->has_embedded_blueprint());
+    const auto* inner_after = host_after->blueprint_instance().source.inline_def();
+    ASSERT_NE(inner_after, nullptr);
+    const auto* nested_after = inner_after->find_node(interner.intern("bat1"));
+    ASSERT_NE(nested_after, nullptr);
+    EXPECT_FLOAT_EQ(nested_after->semantic.params.at(interner.intern("v")), 14.0f);
+}
+
 TEST_F(PropertiesWindowTest, ClosedWindowIsNotOpen) {
     model.add_node(make_node(interner, "bat1", {}));
 
@@ -280,7 +319,7 @@ TEST_F(PropertiesWindowTest, ClosedWindowIsNotOpen) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
     EXPECT_TRUE(win.is_open());
 
     win.close();
@@ -298,7 +337,7 @@ TEST_F(PropertiesWindowTest, ApplyEmitsCmdSetParam) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Simulate user changing voltage via pending state
     win.set_pending_param("v", 14.0f);
@@ -325,7 +364,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores)
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bp_in_1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bp_in_1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
     win.set_pending_bridge_port_type(PortType::RPM);
     win.apply();
 
@@ -382,7 +421,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNest
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "inst1:in", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "inst1:in", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
     win.set_pending_bridge_port_type(PortType::RPM);
     win.apply();
 
@@ -432,7 +471,7 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeDoesNotTouchNonCanonicalColonIds
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "inst1:iface:debug", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "inst1:iface:debug", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
     win.set_pending_bridge_port_type(PortType::RPM);
     win.apply();
 
@@ -451,7 +490,7 @@ TEST_F(PropertiesWindowTest, ApplyThenUndoRevertsParam) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     win.set_pending_param("v", 14.0f);
     win.set_pending_param("r", 0.05f);
@@ -487,7 +526,7 @@ TEST_F(PropertiesWindowTest, ApplyNoChangesDoesNotPushUndo) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // No edits — just apply
     win.apply();
@@ -506,7 +545,7 @@ TEST_F(PropertiesWindowTest, ApplyInvokesCallback) {
     std::string callback_node_id;
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [&](const std::string& nid) {
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [&](const std::string& nid) {
             callback_invoked = true;
             callback_node_id = nid;
         });
@@ -527,7 +566,7 @@ TEST_F(PropertiesWindowTest, NameChangePushesUndo) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     win.set_pending_name("NewName");
     win.apply();
@@ -547,7 +586,7 @@ TEST_F(PropertiesWindowTest, NameChangeUndoRestoresOldName) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     win.set_pending_name("NewName");
     win.apply();
@@ -620,7 +659,7 @@ TEST_F(PropertiesWindowTest, NameChangePreservesNodeAndWireOrder) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bus", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bus", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
     win.set_pending_name("bus_renamed");
     win.apply();
 
@@ -644,7 +683,7 @@ TEST_F(PropertiesWindowTest, ParamAndNameChangeSingleUndo) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Change both param and name in one "Apply"
     win.set_pending_param("v", 14.0f);
@@ -678,7 +717,7 @@ TEST_F(PropertiesWindowTest, CloseGracefullyWhenNodeRemoved) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
     EXPECT_TRUE(win.is_open());
 
     // Simulate the node being removed (e.g. by undo of a CmdAddNode)
@@ -699,7 +738,7 @@ TEST_F(PropertiesWindowTest, ApplyGracefullyWhenNodeRemoved) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Remove node before apply (simulate node deleted externally)
     model.remove_node(interner.intern("bat1"));
@@ -712,6 +751,44 @@ TEST_F(PropertiesWindowTest, ApplyGracefullyWhenNodeRemoved) {
         << "No undo entry should be pushed when target node is gone";
 }
 
+TEST_F(PropertiesWindowTest, RenderClearsSourceIdWhenNodeRemoved) {
+    model.add_node(make_node(interner, "bat1", {{"v", 28.0f}}));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bat1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
+    win.set_owner_document_id(editor::DocumentId::from_string("doc-1"));
+
+    model.remove_node(interner.intern("bat1"));
+
+    win.render();
+
+    EXPECT_FALSE(win.is_open());
+    EXPECT_FALSE(win.owner_document_id().has_value())
+        << "Auto-closing a dead properties session must clear its owner tag";
+}
+
+TEST_F(PropertiesWindowTest, ApplyClearsSourceIdWhenNodeRemoved) {
+    model.add_node(make_node(interner, "bat1", {{"v", 28.0f}}));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bat1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
+    win.set_owner_document_id(editor::DocumentId::from_string("doc-1"));
+
+    model.remove_node(interner.intern("bat1"));
+
+    win.apply();
+
+    EXPECT_FALSE(win.is_open());
+    EXPECT_FALSE(win.owner_document_id().has_value())
+        << "Applying a dead properties session must clear its owner tag";
+}
+
 TEST_F(PropertiesWindowTest, CancelGracefullyWhenNodeRemoved) {
     model.add_node(make_node(interner, "bat1", {{"v", 28.0f}}));
 
@@ -719,7 +796,7 @@ TEST_F(PropertiesWindowTest, CancelGracefullyWhenNodeRemoved) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "bat1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "bat1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Remove node before cancel
     model.remove_node(interner.intern("bat1"));
@@ -749,7 +826,7 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_ApplyChanges) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "azs1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "azs1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Set port layout overrides
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> overrides;
@@ -786,7 +863,7 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_UndoRestoresOriginal) {
     EXPECT_TRUE(node_ptr->layout.layout_overrides.empty()) << "Initial layout_overrides should be empty";
 
     PropertiesWindow win;
-    win.open(*node_ptr, "azs1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "azs1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Add port layout override
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> overrides;
@@ -823,7 +900,7 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_NoChangesDoesNotPushUndo) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "azs1", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "azs1", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // No changes to layout overrides (still empty)
     win.apply();
@@ -843,7 +920,7 @@ TEST_F(PropertiesWindowTest, BridgeNodeUsesDedicatedPortTypeState) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "inst:my_input", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "inst:my_input", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     EXPECT_TRUE(win.pending_string_params().empty());
     EXPECT_TRUE(win.pending_bridge_port_type().has_value());
@@ -862,7 +939,7 @@ TEST_F(PropertiesWindowTest, BridgeNode_PortTypeChangeAppliesCleanly) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "inst:my_output", model, interner, nullptr, [](const std::string&) {});
+    win.open(*node_ptr, "inst:my_output", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
 
     // Change port type from V to Bool via the dropdown mechanism
     win.set_pending_bridge_port_type(PortType::Bool);
@@ -897,7 +974,7 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax) {
     EXPECT_FLOAT_EQ(resolve_test_content(*node_ptr, registry, interner).max, 2.0f);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "knob1", model, interner, &registry, [](const std::string&) {});
+    win.open(*node_ptr, "knob1", create_editor_model_host(model), interner, &registry, [](const std::string&) {});
 
     // User changes positions from 2 to 5
     win.set_pending_param("positions", 5.0f);
@@ -924,7 +1001,7 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsSyncsContentMax_UndoReverts) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "knob1", model, interner, &registry, [](const std::string&) {});
+    win.open(*node_ptr, "knob1", create_editor_model_host(model), interner, &registry, [](const std::string&) {});
     win.set_pending_param("positions", 5.0f);
     win.apply();
 
@@ -952,7 +1029,7 @@ TEST_F(PropertiesWindowTest, ApplySliderMinMaxSyncsContentRange) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "slider1", model, interner, &registry, [](const std::string&) {});
+    win.open(*node_ptr, "slider1", create_editor_model_host(model), interner, &registry, [](const std::string&) {});
     win.set_pending_param("min", -10.0f);
     win.set_pending_param("max", 200.0f);
     win.apply();
@@ -981,7 +1058,7 @@ TEST_F(PropertiesWindowTest, ApplyGaugeMinMaxSyncsContentRange) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "gauge1", model, interner, &registry, [](const std::string&) {});
+    win.open(*node_ptr, "gauge1", create_editor_model_host(model), interner, &registry, [](const std::string&) {});
     win.set_pending_param("max", 60.0f);
     win.apply();
 
@@ -1006,7 +1083,7 @@ TEST_F(PropertiesWindowTest, ApplyKnobPositionsUpdatesCanonicalRangeOnly) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "knob1", model, interner, &registry, [](const std::string&) {});
+    win.open(*node_ptr, "knob1", create_editor_model_host(model), interner, &registry, [](const std::string&) {});
     win.set_pending_param("positions", 7.0f);
     win.apply();
 
@@ -1034,7 +1111,7 @@ TEST_F(PropertiesWindowTest, ApplySwitchClosedUpdatesCanonicalDefaultOnly) {
     registry.presentation.specs["Switch"].content_type = "Switch";
 
     PropertiesWindow win;
-    win.open(*node_ptr, "switch1", model, interner, &registry, [](const std::string&) {});
+    win.open(*node_ptr, "switch1", create_editor_model_host(model), interner, &registry, [](const std::string&) {});
     win.set_pending_param("closed", 1.0f);
     win.apply();
 
@@ -1063,7 +1140,7 @@ TEST_F(PropertiesWindowTest, ApplyAzsClosedUpdatesCanonicalVerticalToggleDefault
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "azs1", model, interner, &registry, [](const std::string&) {});
+    win.open(*node_ptr, "azs1", create_editor_model_host(model), interner, &registry, [](const std::string&) {});
     win.set_pending_param("closed", 1.0f);
     win.apply();
 
@@ -1091,7 +1168,7 @@ TEST_F(PropertiesWindowTest, ApplyRelayClosedUpdatesCanonicalSwitchDefaultOnly) 
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "relay1", model, interner, &registry, [](const std::string&) {});
+    win.open(*node_ptr, "relay1", create_editor_model_host(model), interner, &registry, [](const std::string&) {});
     win.set_pending_param("closed", 1.0f);
     win.apply();
 

@@ -51,6 +51,7 @@ Rules:
 
 - viewport/window/session state lives here, not in canonical blueprint documents
 - these files are separate from blueprint authority
+- per-node authored color does **not** live here; it is canonical node state in the blueprint document
 
 ### 3. Library Assets
 

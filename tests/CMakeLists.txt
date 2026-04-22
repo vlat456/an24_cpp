@@ -649,6 +649,7 @@ gtest_discover_tests(scene_mutations_tests)
 
 add_executable(document_safety_tests
     blueprint_v2/test_document_add_component_safety.cpp
+    test_editor_ownership_isolation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_components.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_export.cpp
@@ -656,8 +657,11 @@ add_executable(document_safety_tests
     ${CMAKE_SOURCE_DIR}/src/editor/document_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_layout.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/document_io.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/embedded_path_utils.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/document_simulation.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/document_windows.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/oscilloscope.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_down.cpp
@@ -665,6 +669,7 @@ add_executable(document_safety_tests
      ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/window/blueprint_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/subwindow_open_target.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
@@ -711,7 +716,9 @@ add_executable(canvas_input_tests
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/window/blueprint_window.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/embedded_path_utils.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
@@ -748,7 +755,9 @@ add_executable(window_invariants_tests
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_drag.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/window/blueprint_window.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/embedded_path_utils.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
@@ -1206,6 +1215,8 @@ gtest_discover_tests(inspector_tests)
 add_executable(properties_window_tests
     test_properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+     ${CMAKE_SOURCE_DIR}/src/editor/embedded_path_utils.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
 )
 target_compile_definitions(properties_window_tests PRIVATE EDITOR_TESTING)

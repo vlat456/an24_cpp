@@ -10,6 +10,13 @@ struct UnbakeResult {
     ui::InternedId referenced_id;
 };
 
+/// Bake a single referenced blueprint-instance node into an embedded source.
+/// Throws std::runtime_error if the target is missing, not a blueprint
+/// instance, already embedded, or references an unknown blueprint.
+Blueprint bake_node_blueprint_instance(Blueprint const& bp,
+                                       ui::InternedId node_id,
+                                       BlueprintLibrary const& library);
+
 std::optional<UnbakeResult> try_unbake(Blueprint const& bp,
                                        ui::InternedId node_id,
                                        BlueprintLibrary const& library);

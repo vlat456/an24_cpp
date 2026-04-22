@@ -10,10 +10,12 @@
 #include "core/solvers/common/signal_key.h"
 #include "debug.h"
 #include "visual/persist.h"
+#include "embedded_path_utils.h"
 #include "parse_number.h"
 #include "visual/snap.h"
 
 #include <algorithm>
+#include <functional>
 #include <spdlog/spdlog.h>
 
 namespace {
@@ -54,15 +56,16 @@ PortType parse_exposed_port_type(const std::string& s) {
 }
 
 /// Update the embedded blueprint-instance's inline blueprint interface to include a new bridge port.
+/// Uses full scope path for resolution — supports nested embedded scopes.
 void add_bridge_port_to_composite(
     bp2::EditorModel& model,
     ui::StringInterner& interner,
-    const std::string& scope_id,
+    const WindowScopeId& scope_id,
     const std::string& iface_name,
     bool is_input_bridge,
     PortType port_type)
 {
-    const ui::InternedId group_iid = interner.intern(scope_id);
+    assert(scope_id.is_embedded());
     const ui::InternedId iface_iid = interner.intern(iface_name);
     const Domain domain = editor::common::domain_for_port_type(port_type);
 
@@ -72,31 +75,38 @@ void add_bridge_port_to_composite(
     pd.direction = is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output;
     pd.port_type = port_type;
 
-    bp2::Blueprint bp = model.current();
+    // Walk the full path to find the host node at the END of the scope path.
+    const bp2::Blueprint bp = model.current();
+    const editor::ResolvedEmbeddedNode resolved = editor::resolve_embedded_node(
+        bp, interner, scope_id.path());
 
-    const auto* node = bp.find_node(group_iid);
-    if (!node || !node->has_embedded_blueprint()) {
-        spdlog::warn("[editor] add_bridge_port: embedded blueprint instance '{}' not found", scope_id);
+    if (!resolved.node || !resolved.node->has_embedded_blueprint()) {
+        spdlog::warn("[editor] add_bridge_port: embedded blueprint instance at '{}' not found",
+                     scope_id.sim_scope_prefix());
         return;
     }
 
-    // Extract, mutate, and restore the embedded blueprint's interface
-    std::vector<bp2::PortDescriptor> ports = node->blueprint_instance().source.inline_def()->iface().ports();
+    // Extract, mutate, and restore the embedded blueprint's interface.
+    std::vector<bp2::PortDescriptor> ports = resolved.node->blueprint_instance().source.inline_def()->iface().ports();
     ports.push_back(pd);
-    bp2::Blueprint updated_inline = node->blueprint_instance().source.inline_def()->with_interface(bp2::Interface(std::move(ports)));
+    bp2::Blueprint updated_inline = resolved.node->blueprint_instance().source.inline_def()->with_interface(
+        bp2::Interface(std::move(ports)));
 
-    // Create updated node with mutated embedded blueprint
-    bp2::Blueprint::Node updated_node = *node;
-    updated_node.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(updated_inline)));
+    // Propagate the mutation back through the path chain.
+    const editor::EmbeddedMutationResult new_root = editor::mutate_embedded_blueprint(bp, interner, scope_id.path(),
+        [&](const bp2::Blueprint& /*inner*/) -> bp2::Blueprint {
+            return std::move(updated_inline);
+        });
 
-    bp = bp2::replace_node_preserve_order(bp, std::move(updated_node));
-    model.replace_current(std::move(bp));
+    if (new_root.kind == editor::EmbeddedMutationResultKind::Changed && new_root.blueprint.has_value()) {
+        model.replace_current(std::move(*new_root.blueprint));
+    }
 }
 
 } // namespace
 
 void Document::addComponent(const std::string& classname, Pt world_pos,
-                            const std::string& scope_id,
+                            const WindowScopeId& scope_id,
                             ComponentRegistry& registry)
 {
     if (!registry.has(classname)) {
@@ -155,14 +165,14 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
     const auto bridge_direction = bridge_direction_from_type_definition(*def);
     const bool is_bridge = bridge_direction.has_value();
-    const bool bridge_in_group = is_bridge && !scope_id.empty()
-        && model_.current().find_node(interner_.intern(scope_id)) != nullptr;
+    const bool bridge_in_group = is_bridge && scope_id.is_embedded()
+        && editor::resolve_embedded_node(model_.current(), interner_, scope_id.path()).node != nullptr;
     const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
     PortType bridge_port_type = PortType::Contextual;
 
     if (is_bridge) {
-        std::string canonical_id = signal_key::make_child_scope_key(scope_id, node.view.name);
-        if (!scope_id.empty()) {
+        std::string canonical_id = signal_key::make_child_scope_key(scope_id.sim_scope_prefix(), node.view.name);
+        if (!scope_id.is_root()) {
             node.semantic.id = interner_.intern(canonical_id);
             unique_id = canonical_id;
         }
@@ -233,9 +243,9 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         resetNodeContent(registry);
         rebuildAllWindows();
 
-        spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) group={}",
+        spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) scope={}",
             classname, unique_id, snapped_pos.x, snapped_pos.y,
-            scope_id.empty() ? "root" : scope_id);
+            scope_id.is_root() ? "root" : scope_id.sim_scope_prefix());
     } catch (const std::exception& e) {
         model_.replace_current(before_add);
         spdlog::error("[editor] addComponent('{}') failed safely: {}", classname, e.what());
@@ -244,7 +254,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 }
 
 void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
-                            const std::string& scope_id,
+                            const WindowScopeId& scope_id,
                             ComponentRegistry& registry)
 {
     if (!registry.has(blueprint_name)) {
@@ -325,21 +335,24 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     try {
         model_.mutate_atomically([&] {
 
-            if (scope_id.empty()) {
+            if (scope_id.is_root()) {
                 execute(model_, interner_, cmd_add_node(std::move(collapsed)));
                 return;
             }
 
-            const ui::InternedId scope_iid = interner_.intern(scope_id);
-            const auto* host_node = model_.current().find_node(scope_iid);
-            if (!host_node || !host_node->has_embedded_blueprint() || !host_node->blueprint_instance().source.inline_def()) {
-                throw std::runtime_error("embedded blueprint instance '" + scope_id + "' not found");
-            }
+            // Walk the full scope path to add the node inside the embedded blueprint.
+            const editor::EmbeddedMutationResult new_root = editor::mutate_embedded_blueprint(
+                model_.current(), interner_, scope_id.path(),
+                [&](const bp2::Blueprint& inner) -> bp2::Blueprint {
+                    return inner.with_node(collapsed);
+                });
 
-            bp2::Blueprint next_inline = host_node->blueprint_instance().source.inline_def()->with_node(collapsed);
-            bp2::Blueprint::Node updated_host = *host_node;
-            updated_host.blueprint_instance().source.set_inline_def(std::make_unique<bp2::Blueprint>(std::move(next_inline)));
-            model_.replace_current(bp2::replace_node_preserve_order(model_.current(), std::move(updated_host)));
+            if (new_root.kind == editor::EmbeddedMutationResultKind::PathNotFound || !new_root.blueprint.has_value()) {
+                throw std::runtime_error("embedded blueprint instance at '" + scope_id.sim_scope_prefix() + "' not found");
+            }
+            if (new_root.kind == editor::EmbeddedMutationResultKind::Changed) {
+                model_.replace_current(std::move(*new_root.blueprint));
+            }
         });
 
 #ifndef NDEBUG
@@ -367,9 +380,9 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
         resetNodeContent(registry);
         rebuildAllWindows();
-        spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) group={}",
+        spdlog::info("[editor] Added blueprint: {} (id={}) at ({:.1f}, {:.1f}) scope={}",
             blueprint_name, unique_id, snapped_pos.x, snapped_pos.y,
-            scope_id.empty() ? "root" : scope_id);
+            scope_id.is_root() ? "root" : scope_id.sim_scope_prefix());
     } catch (const std::exception& e) {
         model_.replace_current(before_add);
         spdlog::error("[editor] addBlueprint('{}') failed safely: {}", blueprint_name, e.what());

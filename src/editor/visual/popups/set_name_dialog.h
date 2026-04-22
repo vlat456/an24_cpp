@@ -18,6 +18,17 @@ public:
         }
 
         if (ImGui::BeginPopupModal("Set Blueprint Name", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            Document* doc = ws.setName.document_id
+                ? ws.findDocumentById(*ws.setName.document_id)
+                : nullptr;
+            if (!doc) {
+                ws.setName.document_id.reset();
+                ws.setName.show = false;
+                ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+                return;
+            }
+
             ImGui::Text("Enter a name for this blueprint:");
             ImGui::Separator();
 
@@ -40,12 +51,14 @@ public:
 
             if ((ImGui::Button("OK", ImVec2(120, 0)) || enter_pressed) && name_valid) {
                 apply(ws);
+                ws.setName.document_id.reset();
                 ImGui::CloseCurrentPopup();
             }
 
             ImGui::SameLine();
 
             if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+                ws.setName.document_id.reset();
                 ImGui::CloseCurrentPopup();
             }
 
@@ -55,7 +68,9 @@ public:
 
 private:
     void apply(WindowSystem& ws) {
-        Document* doc = ws.findDocumentById(ws.setName.doc_id);
+        Document* doc = ws.setName.document_id
+            ? ws.findDocumentById(*ws.setName.document_id)
+            : nullptr;
         if (!doc) return;
 
         // Update the blueprint name via EditorModel (immutable update)

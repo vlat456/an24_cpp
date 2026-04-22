@@ -60,7 +60,7 @@ TEST(EmbeddedSubwindowScene, RebuildFromInlineDefIndependent) {
 
     // Scene rebuild from inline_def should work without root shadow nodes
     visual::Scene scene;
-    visual::mutations::rebuild(scene, inline_bp, interner, arena, "", ComponentRegistry{});
+    visual::mutations::rebuild(scene, inline_bp, interner, arena, std::span<const ui::InternedId>{}, ComponentRegistry{});
 
     // Verify the internal nodes are rendered
     EXPECT_EQ(scene.roots().size(), 3u); // 2 nodes + 1 wire
@@ -98,12 +98,12 @@ TEST(EmbeddedSubwindowScene, InlineDefIndependentOfRootShadows) {
 
     // Rebuild the scene directly from the embedded definition used by the subwindow.
     visual::Scene inline_scene;
-    visual::mutations::rebuild(inline_scene, inline_bp, interner, arena, "", ComponentRegistry{});
+    visual::mutations::rebuild(inline_scene, inline_bp, interner, arena, std::span<const ui::InternedId>{}, ComponentRegistry{});
     EXPECT_EQ(inline_scene.roots().size(), 3u);
 
     // Rebuild the separate root blueprint to confirm it renders independently too.
     visual::Scene root_scene_filtered;
-    visual::mutations::rebuild(root_scene_filtered, root_bp, interner, arena, "composite_1", ComponentRegistry{});
+    visual::mutations::rebuild(root_scene_filtered, root_bp, interner, arena, std::span<const ui::InternedId>{}, ComponentRegistry{});
     EXPECT_EQ(root_scene_filtered.roots().size(), 3u);
 
     // Both should have the same rendered content (nodes + wires)
@@ -147,7 +147,7 @@ TEST(EmbeddedSubwindowScene, RootWindowStillShowsRootNodes) {
 
     // Root rebuild renders the root blueprint, not the embedded child blueprint.
     visual::Scene root_scene;
-    visual::mutations::rebuild(root_scene, bp, interner, arena, "", ComponentRegistry{});
+    visual::mutations::rebuild(root_scene, bp, interner, arena, std::span<const ui::InternedId>{}, ComponentRegistry{});
 
     EXPECT_EQ(root_scene.roots().size(), 2u);
     EXPECT_NE(root_scene.find("root_bat"), nullptr);
@@ -156,7 +156,7 @@ TEST(EmbeddedSubwindowScene, RootWindowStillShowsRootNodes) {
 
     // Embedded subwindow rebuild uses the inline child blueprint directly.
     visual::Scene sub_scene;
-    visual::mutations::rebuild(sub_scene, inline_bp, interner, arena, "", ComponentRegistry{});
+    visual::mutations::rebuild(sub_scene, inline_bp, interner, arena, std::span<const ui::InternedId>{}, ComponentRegistry{});
 
     EXPECT_EQ(sub_scene.roots().size(), 1u);
     EXPECT_EQ(sub_scene.find("root_bat"), nullptr);
@@ -190,7 +190,7 @@ TEST(EmbeddedSubwindowScene, CompositeHostPortsUseNestedAuthorityNotCollapsedCac
     root = root.with_node(std::move(composite));
 
     visual::Scene root_scene;
-    visual::mutations::rebuild(root_scene, root, interner, arena, "", ComponentRegistry{});
+    visual::mutations::rebuild(root_scene, root, interner, arena, std::span<const ui::InternedId>{}, ComponentRegistry{});
 
     auto* composite_widget = root_scene.find("composite_1");
     ASSERT_NE(composite_widget, nullptr);

@@ -38,13 +38,12 @@ constexpr float DISCRETE_DRAG_PIXELS_PER_STEP = 30.0f;
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
                          EditingHost& host, ui::StringInterner& interner,
-                         bp2::PathArena& arena, const std::string& scope_id,
+                         bp2::PathArena& arena, const WindowScopeId& scope_id,
                          const ComponentRegistry* parser_registry)
-    : scene_(scene), viewport_(viewport), host_(host),
-      interner_(interner), arena_(arena),
+    : scene_(scene), viewport_(viewport), host_(&host),
+      interner_(&interner), arena_(&arena),
       parser_registry_(parser_registry),
-      group_iid_(interner.intern(scope_id)),
-      scope_id_(interner.resolve(group_iid_))
+      scope_id_(scope_id)
 {
     rebuild_snapshot();
 }
@@ -57,14 +56,14 @@ void CanvasInput::snapshot_and_execute(Command cmd) {
     std::visit([&](auto c) {
         using T = std::decay_t<decltype(c)>;
         if constexpr (std::is_same_v<T, CmdSetRoutingPoints>) {
-            host_.update_wire(c.wire_id, [&](bp2::Blueprint::Wire& w) {
+            host_->update_wire(c.wire_id, [&](bp2::Blueprint::Wire& w) {
                 w.routing_points = std::move(c.points);
             });
         } else {
             throw std::logic_error("CanvasInput::snapshot_and_execute received unsupported command");
         }
     }, std::move(cmd));
-    debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
+    debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
 }
 
 // ============================================================================
@@ -73,12 +72,12 @@ void CanvasInput::snapshot_and_execute(Command cmd) {
 
 visual::Wire* CanvasInput::resolve_wire(ui::InternedId id) const {
     if (id.empty()) return nullptr;
-    return dynamic_cast<visual::Wire*>(scene_.find(interner_.resolve(id)));
+    return dynamic_cast<visual::Wire*>(scene_.find(interner_->resolve(id)));
 }
 
 visual::Widget* CanvasInput::resolve_node(ui::InternedId id) const {
     if (id.empty()) return nullptr;
-    return scene_.find(interner_.resolve(id));
+    return scene_.find(interner_->resolve(id));
 }
 
 // ============================================================================
@@ -106,22 +105,22 @@ std::vector<std::string_view> CanvasInput::selected_node_id_views() const {
     std::vector<std::string_view> result;
     result.reserve(selected_node_ids_.size());
     for (const auto& nid : selected_node_ids_) {
-        result.push_back(interner_.resolve(nid));
+        result.push_back(interner_->resolve(nid));
     }
     return result;
 }
 
 std::string_view CanvasInput::selected_wire_id() const {
-    return interner_.resolve(selected_wire_id_);
+    return interner_->resolve(selected_wire_id_);
 }
 
 std::string_view CanvasInput::hovered_wire_id() const {
-    return interner_.resolve(hovered_wire_id_);
+    return interner_->resolve(hovered_wire_id_);
 }
 
 bool CanvasInput::select_node_by_id(std::string_view node_id) {
-    ui::InternedId iid = interner_.intern(node_id);
-    const bp2::Blueprint::Node* node = host_.find_node(iid);
+    ui::InternedId iid = interner_->intern(node_id);
+    const bp2::Blueprint::Node* node = host_->find_node(iid);
     if (!node) return false;
 
     clear_selection();
@@ -153,13 +152,13 @@ void CanvasInput::update_hover(Pt world_pos) {
         return;
     }
 
-    auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world_pos, interner_);
+    auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world_pos, *interner_);
     if (auto* h = std::get_if<visual::HitWire>(&hit)) {
-        hovered_wire_id_ = interner_.intern(h->wire_id);
+        hovered_wire_id_ = interner_->intern(h->wire_id);
         hovered_rp_id_ = {};
     } else if (auto* h = std::get_if<visual::HitRoutingPoint>(&hit)) {
-        hovered_wire_id_ = interner_.intern(h->wire_id);
-        hovered_rp_id_ = {interner_.resolve(hovered_wire_id_), h->index};
+        hovered_wire_id_ = interner_->intern(h->wire_id);
+        hovered_rp_id_ = {interner_->resolve(hovered_wire_id_), h->index};
     } else {
         hovered_wire_id_ = {};
         hovered_rp_id_ = {};
@@ -202,7 +201,7 @@ void CanvasInput::enter_drag_node(ui::InternedId node_id, Pt world_pos, bool ctr
     drag_initial_positions_.clear();
     drag_current_positions_.clear();
     for (const auto& selected_id : selected_node_ids_) {
-        const bp2::Blueprint::Node* node = host_.find_node(selected_id);
+        const bp2::Blueprint::Node* node = host_->find_node(selected_id);
         if (!node) continue;
         Pt node_pos(node->layout.x, node->layout.y);
         drag_offsets_.push_back(node_pos - world_pos);
@@ -218,7 +217,7 @@ void CanvasInput::enter_drag_routing_point(ui::InternedId wire_id, size_t rp_idx
     drag_anchor_ = rp_world_pos;
     rp_drag_pos_ = rp_world_pos;
 
-    const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(rp_wire_id_);
+    const bp2::Blueprint::Wire* bp2_wire = host_->find_wire(rp_wire_id_);
     if (bp2_wire) {
         rp_initial_points_.clear();
         rp_initial_points_.reserve(bp2_wire->routing_points.size());
@@ -268,8 +267,8 @@ void CanvasInput::enter_marquee(Pt world_pos) {
 void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_hit,
                                                    const CanvasInput::SemanticContentTarget& target,
                                                    Pt world_pos) {
-    ui::InternedId node_id = interner_.intern(node_hit.node_id);
-    const bp2::Blueprint::Node* node = host_.find_node(node_id);
+    ui::InternedId node_id = interner_->intern(node_hit.node_id);
+    const bp2::Blueprint::Node* node = host_->find_node(node_id);
     if (!node) return;
 
     if (!node_hit.renders_content_from_semantic_snapshot || node_hit.content_snapshot.hit_objects.empty()) {
@@ -292,10 +291,10 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
         case CanvasInput::SemanticContentRole::ContinuousScalar: {
             state_ = InputState::DraggingSlider;
             float origin_local_x = content_bounds.x;
-            const std::string type_name(interner_.resolve(node->semantic.type));
+            const std::string type_name(interner_->resolve(node->semantic.type));
             const ComponentSpec* def = parser_registry_ ? parser_registry_->get(type_name) : nullptr;
             const TypePresentation* pres = parser_registry_ ? parser_registry_->presentation.get(type_name) : nullptr;
-            auto spec = editor::presentation::make_presentation_spec(*node, def, pres, interner_);
+            auto spec = editor::presentation::make_presentation_spec(*node, def, pres, *interner_);
             semantic_canvas_controller_.set_active_scalar_mapping({
                 origin_local_x,
                 target.primary_min,
@@ -307,10 +306,10 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
         }
         case CanvasInput::SemanticContentRole::DiscreteSelector: {
             state_ = InputState::DraggingKnob;
-            const std::string type_name(interner_.resolve(node->semantic.type));
+            const std::string type_name(interner_->resolve(node->semantic.type));
             const ComponentSpec* def = parser_registry_ ? parser_registry_->get(type_name) : nullptr;
             const TypePresentation* pres = parser_registry_ ? parser_registry_->presentation.get(type_name) : nullptr;
-            auto spec = editor::presentation::make_presentation_spec(*node, def, pres, interner_);
+            auto spec = editor::presentation::make_presentation_spec(*node, def, pres, *interner_);
             int start_pos = static_cast<int>(spec.content_value);
             int num_positions = target.steps;
             if (num_positions < 2) num_positions = 2;
@@ -368,14 +367,14 @@ bool CanvasInput::publish_semantic_control_result(
     InputResult& result) const {
     switch (semantic.control_event.kind) {
         case editor::presentation::SemanticControlEventKind::Toggle:
-            result.toggle_switch_node_id = std::string(interner_.resolve(semantic.control_event.node_id));
+            result.toggle_switch_node_id = std::string(interner_->resolve(semantic.control_event.node_id));
             return true;
         case editor::presentation::SemanticControlEventKind::SetScalar:
-            result.slider_node_id = std::string(interner_.resolve(semantic.control_event.node_id));
+            result.slider_node_id = std::string(interner_->resolve(semantic.control_event.node_id));
             result.slider_value = semantic.control_event.scalar_value;
             return true;
         case editor::presentation::SemanticControlEventKind::SetDiscrete:
-            result.knob_node_id = std::string(interner_.resolve(semantic.control_event.node_id));
+            result.knob_node_id = std::string(interner_->resolve(semantic.control_event.node_id));
             result.knob_position = semantic.control_event.discrete_value;
             return true;
         case editor::presentation::SemanticControlEventKind::None:
@@ -392,12 +391,12 @@ bool CanvasInput::state_uses_semantic_control_session() const {
 bool CanvasInput::handle_resolved_interaction(const visual::HitNode& node_hit,
                                               const CanvasInput::SemanticContentTarget& target,
                                               Pt world, InputResult& result) {
-    ui::InternedId node_id = interner_.intern(node_hit.node_id);
+    ui::InternedId node_id = interner_->intern(node_hit.node_id);
     if (node_id.empty()) {
         return false;
     }
 
-    if (!host_.find_node(node_id)) {
+    if (!host_->find_node(node_id)) {
         return false;
     }
 
@@ -429,7 +428,13 @@ void CanvasInput::snapshot_wire_routing_points(ui::InternedId wire_id,
 // ============================================================================
 
 void CanvasInput::rebuild_scene() {
-    visual::mutations::rebuild(scene_, host_.current_blueprint(), interner_, arena_, scope_id_, registry());
+    std::vector<ui::InternedId> instance_path;
+    for (const std::string& segment : scope_id_.path()) {
+        const ui::InternedId scope_iid = interner_->lookup(segment);
+        assert(!scope_iid.empty());
+        instance_path.push_back(scope_iid);
+    }
+    visual::mutations::rebuild(scene_, host_->current_blueprint(), *interner_, *arena_, instance_path, registry());
     rebuild_snapshot();
 }
 
@@ -439,7 +444,7 @@ const ComponentRegistry& CanvasInput::registry() const {
 }
 
 void CanvasInput::rebuild_snapshot() {
-    snapshot_ = editor::presentation::build_canvas_scene_snapshot(scene_, interner_);
+    snapshot_ = editor::presentation::build_canvas_scene_snapshot(scene_, *interner_);
 }
 
 void CanvasInput::cancel_gesture() {
@@ -464,7 +469,7 @@ InputResult CanvasInput::on_scroll(float delta, Pt screen_pos, Pt canvas_min) {
 
 size_t CanvasInput::find_wire_index(ui::InternedId wire_id) const {
     if (wire_id.empty()) return SIZE_MAX;
-    const auto& wires = host_.wires();
+    const auto& wires = host_->wires();
     for (size_t i = 0; i < wires.size(); ++i) {
         if (wires[i].id == wire_id) return i;
     }
@@ -473,7 +478,7 @@ size_t CanvasInput::find_wire_index(ui::InternedId wire_id) const {
 
 size_t CanvasInput::find_node_index(ui::InternedId node_id) const {
     if (node_id.empty()) return SIZE_MAX;
-    const auto& nodes = host_.nodes();
+    const auto& nodes = host_->nodes();
     for (size_t i = 0; i < nodes.size(); ++i) {
         if (nodes[i].semantic.id == node_id) return i;
     }

@@ -64,31 +64,11 @@ bool save_workspace_session(
     for (const auto& scope : ws.open_windows) {
         open_windows.push_back({
             {"mode", to_persisted_mode(scope.mode)},
-            {"key", scope.key},
+            {"path_segments", scope.path_segments},
         });
     }
     editor["open_windows"] = std::move(open_windows);
     j["editor"] = editor;
-
-    // Per-node session colors (not part of canonical blueprint authority)
-    if (!ws.node_colors.empty()) {
-        nlohmann::json colors = nlohmann::json::array();
-        for (const auto& nc : ws.node_colors) {
-            nlohmann::json path_arr = nlohmann::json::array();
-            for (const auto& segment : nc.instance_path) {
-                path_arr.push_back(segment);
-            }
-            colors.push_back({
-                {"instance_path", std::move(path_arr)},
-                {"node_id", nc.node_id},
-                {"r", nc.color.r},
-                {"g", nc.color.g},
-                {"b", nc.color.b},
-                {"a", nc.color.a},
-            });
-        }
-        j["node_colors"] = std::move(colors);
-    }
 
     std::string ws_path = blueprint_path_to_workspace_path(blueprint_path);
     try {
@@ -151,47 +131,25 @@ std::optional<WorkspaceSession> load_workspace_session(
                 for (const auto& win_scope : ed["open_windows"]) {
                     if (!win_scope.is_object()
                         || !win_scope.contains("mode")
-                        || !win_scope.contains("key")) {
+                        || !win_scope.contains("path_segments")) {
                         return std::nullopt;
                     }
                     auto mode = parse_persisted_mode(win_scope["mode"]);
-                    if (!mode.has_value() || !win_scope["key"].is_string()) {
+                    if (!mode.has_value() || !win_scope["path_segments"].is_array()) {
                         return std::nullopt;
+                    }
+                    std::vector<std::string> path_segments;
+                    for (const auto& segment : win_scope["path_segments"]) {
+                        if (!segment.is_string()) {
+                            return std::nullopt;
+                        }
+                        path_segments.push_back(segment.get<std::string>());
                     }
                     ws.open_windows.push_back(PersistedWindowScope{
                         *mode,
-                        win_scope["key"].get<std::string>(),
+                        std::move(path_segments),
                     });
                 }
-            }
-        }
-
-        // Per-node session colors
-        if (j.contains("node_colors") && j["node_colors"].is_array()) {
-            for (const auto& nc : j["node_colors"]) {
-                if (!nc.is_object()
-                    || !nc.contains("node_id") || !nc["node_id"].is_string()
-                    || !nc.contains("instance_path") || !nc["instance_path"].is_array()
-                    || !nc.contains("r") || !nc.contains("g")
-                    || !nc.contains("b") || !nc.contains("a")) {
-                    return std::nullopt;
-                }
-
-                WorkspaceSession::PersistedNodeColor color;
-                color.node_id = nc["node_id"].get<std::string>();
-
-                for (const auto& segment : nc["instance_path"]) {
-                    if (!segment.is_string()) {
-                        return std::nullopt;
-                    }
-                    color.instance_path.push_back(segment.get<std::string>());
-                }
-
-                color.color.r = nc["r"].get<float>();
-                color.color.g = nc["g"].get<float>();
-                color.color.b = nc["b"].get<float>();
-                color.color.a = nc["a"].get<float>();
-                ws.node_colors.push_back(std::move(color));
             }
         }
 

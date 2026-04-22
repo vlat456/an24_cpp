@@ -134,6 +134,7 @@ Each node must contain a `kind` field.
 | `id` | yes | string | Stable opaque identity unique within this blueprint |
 | `kind` | yes | string | One of `"component"`, `"blueprint_instance"`, `"bridge_port"` |
 | `label` | no | string | User-facing label |
+| `color` | no | object | Authored per-node RGBA custom color |
 | `layout` | yes | object | Layout object |
 
 ### Forbidden common node fields
@@ -156,10 +157,7 @@ These old-format or non-canonical node fields must not appear:
 - `content_unit`
 - `content_state`
 - `content_tripped`
-- `color_r`
-- `color_g`
-- `color_b`
-- `color_a`
+- legacy split color fields like `color_r`, `color_g`, `color_b`, `color_a`
 - any host interface mirror
 
 ### Component node
@@ -196,6 +194,20 @@ No other JSON types are valid as param values.
 - `params` values must match the declared parameter type
 
 Unknown params are errors.
+
+### Canonical node color
+
+If present, `color` must be exactly:
+
+| Field | Required | Type | Description |
+|---|---|---|---|
+| `r` | yes | number | Red channel, finite authored float |
+| `g` | yes | number | Green channel, finite authored float |
+| `b` | yes | number | Blue channel, finite authored float |
+| `a` | yes | number | Alpha channel, finite authored float |
+
+Node color is canonical authored document state.
+It is **not** workspace/session state.
 
 ### Blueprint-instance node
 

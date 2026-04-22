@@ -6,6 +6,7 @@
 #include "editor/visual/presentation/semantic_canvas_controller.h"
 #include "editor/visual/render_context.h"
 #include "editor/visual/node/bounds.h"
+#include "editor/window/window_scope_id.h"
 #include "ui/math/pt.h"
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/blueprint/node_port.h"
@@ -47,8 +48,17 @@ class CanvasInput {
 public:
     CanvasInput(visual::Scene& scene, Viewport& viewport,
                 EditingHost& host, ui::StringInterner& interner,
-                bp2::PathArena& arena, const std::string& scope_id,
+                bp2::PathArena& arena, const WindowScopeId& scope_id,
                 const ComponentRegistry* parser_registry = nullptr);
+
+    /// Rebind to a different EditingHost (used for external window host swap).
+    void rebind_host(EditingHost& host) { host_ = &host; }
+
+    /// Rebind identity context (used for external window interner/arena swap).
+    void rebind_identity_context(ui::StringInterner& interner, bp2::PathArena& arena) {
+        interner_ = &interner;
+        arena_ = &arena;
+    }
 
     void set_parser_registry(const ComponentRegistry* parser_registry) {
         parser_registry_ = parser_registry;
@@ -126,12 +136,11 @@ private:
     visual::Scene& scene_;
     editor::presentation::CanvasSceneSnapshot snapshot_;
     Viewport& viewport_;
-    EditingHost& host_;
-    ui::StringInterner& interner_;
-    bp2::PathArena& arena_;
+    EditingHost* host_;
+    ui::StringInterner* interner_;
+    bp2::PathArena* arena_;
     const ComponentRegistry* parser_registry_ = nullptr;
-    ui::InternedId group_iid_;  // interned handle for O(1) comparisons
-    std::string_view scope_id_;  // resolved from interner (stable storage)
+    WindowScopeId scope_id_ = WindowScopeId::root();
     
     // Initial positions for drag-to-command commit (from blueprint data at drag start).
     std::vector<Pt> drag_initial_positions_;
@@ -223,7 +232,7 @@ private:
      void leave_state();  // return to Idle (clean up transient data)
 
 public:
-    std::string_view scope_id_for_test() const { return scope_id_; }
+    const WindowScopeId& scope_id_for_test() const { return scope_id_; }
 
     /// Refresh the retained canvas snapshot from the current scene state.
     void rebuild_snapshot();

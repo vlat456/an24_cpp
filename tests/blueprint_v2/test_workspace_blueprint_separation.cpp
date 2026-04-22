@@ -57,7 +57,7 @@ TEST(WorkspaceSessionSeparation, BlueprintAndWorkspaceAreSeparate) {
     ws.viewport_pan_y = 75.0f;
     ws.viewport_zoom = 2.0f;
     ws.grid_step = 48;
-    ws.open_windows.push_back("win_1");
+    ws.open_windows.push_back({BlueprintWindowMode::EmbeddedScope, {"win_1"}});
 
     ASSERT_TRUE(save_workspace_session(ws, bp_path.c_str()));
 
@@ -70,13 +70,18 @@ TEST(WorkspaceSessionSeparation, BlueprintAndWorkspaceAreSeparate) {
     ws_in >> ws_j;
 
     EXPECT_EQ(ws_j["format"], "an24.workspace_session");
-    EXPECT_EQ(ws_j["version"], 1);
+    EXPECT_EQ(ws_j["version"], 2);
     EXPECT_TRUE(ws_j.contains("viewport"));
     EXPECT_TRUE(ws_j.contains("editor"));
     EXPECT_EQ(ws_j["viewport"]["pan_x"], 50.0f);
     EXPECT_EQ(ws_j["viewport"]["pan_y"], 75.0f);
     EXPECT_EQ(ws_j["viewport"]["zoom"], 2.0f);
     EXPECT_EQ(ws_j["viewport"]["grid_step"], 48);
+    ASSERT_TRUE(ws_j["editor"].contains("open_windows"));
+    ASSERT_EQ(ws_j["editor"]["open_windows"].size(), 1u);
+    EXPECT_EQ(ws_j["editor"]["open_windows"][0]["mode"], "embedded");
+    ASSERT_EQ(ws_j["editor"]["open_windows"][0]["path_segments"].size(), 1u);
+    EXPECT_EQ(ws_j["editor"]["open_windows"][0]["path_segments"][0], "win_1");
 
     // Verify blueprint file was NOT modified by workspace persistence
     std::ifstream bp_in2(bp_path);

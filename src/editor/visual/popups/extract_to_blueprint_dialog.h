@@ -24,8 +24,15 @@ public:
             "Allow non-embedded descendant references (advanced)",
             &ws.pendingExtract.allow_nonembedded_descendant_refs);
 
-        Document* doc_for_preview = ws.findDocumentById(ws.pendingExtract.doc_id);
-        if (!doc_for_preview) doc_for_preview = ws.activeDocument();
+        Document* doc_for_preview = ws.pendingExtract.document_id
+            ? ws.findDocumentById(*ws.pendingExtract.document_id)
+            : nullptr;
+        if (!doc_for_preview) {
+            ws.pendingExtract.reset();
+            ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+            return;
+        }
         const std::string current_name(ws.pendingExtract.name_buf);
         const bool needs_initial_preview = !ws.pendingExtract.has_preview
             && ws.pendingExtract.preview_error.empty();
@@ -104,8 +111,9 @@ public:
             ImGui::BeginDisabled();
         }
         if (ImGui::Button("Extract")) {
-            Document* doc = ws.findDocumentById(ws.pendingExtract.doc_id);
-            if (!doc) doc = ws.activeDocument();
+            Document* doc = ws.pendingExtract.document_id
+                ? ws.findDocumentById(*ws.pendingExtract.document_id)
+                : nullptr;
             if (doc) {
                 std::string err;
                 const bool ok = doc->extractToBlueprint(

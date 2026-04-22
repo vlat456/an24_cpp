@@ -15,11 +15,11 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
     drag_anchor_ = drag_anchor_ + world_delta;
 
     bool all_ref_nodes = true;
-    ui::InternedId value_type = interner_.intern("Value");
+    ui::InternedId value_type = interner_->intern("Value");
     for (const auto& nid : selected_node_ids()) {
         if (nid.empty()) continue;
-        const bp2::Blueprint::Node* n = host_.find_node(nid);
-        if (!n || !is_ref_node(*n, registry(), interner_) || n->semantic.type == value_type) {
+        const bp2::Blueprint::Node* n = host_->find_node(nid);
+        if (!n || !is_ref_node(*n, registry(), *interner_) || n->semantic.type == value_type) {
             all_ref_nodes = false;
             break;
         }
@@ -44,7 +44,7 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
         widget->setLocalPos(new_pos);
 
         if (!node_id.empty()) {
-            for (const bp2::Blueprint::Wire& w : host_.wires()) {
+            for (const bp2::Blueprint::Wire& w : host_->wires()) {
                 auto src_node = w.source.node;
                 auto tgt_node = w.target.node;
                 if (src_node == node_id || tgt_node == node_id) {
@@ -60,7 +60,7 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
 
     for (auto wid : connected_wire_ids) {
         auto* wire = dynamic_cast<visual::Wire*>(
-            scene_.find(interner_.resolve(wid)));
+            scene_.find(interner_->resolve(wid)));
         if (wire) {
             wire->invalidateGeometry();
             if (wire->isClickable()) {

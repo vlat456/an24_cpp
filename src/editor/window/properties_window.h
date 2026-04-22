@@ -1,7 +1,8 @@
 #pragma once
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/editor_model/editor_model.h"
+#include "editor/identity.h"
+#include "input/editing_host.h"
 #include "ui/core/interned_id.h"
 #include <functional>
 #include <optional>
@@ -30,17 +31,26 @@ using PropertyCallback = std::function<void(const std::string& node_id)>;
 /// The node pointer is resolved fresh from the Blueprint each frame via
 /// resolve_target(). This is safe across undo/redo which replaces the
 /// entire Blueprint contents.
+///
+/// Scope-aware: uses EditingHost for all resolution and mutation, so
+/// properties editing works correctly for both root and embedded nodes.
 class PropertiesWindow {
 public:
     void open(const bp2::Blueprint::Node& node, const std::string& node_id_str,
-              bp2::EditorModel& model, ui::StringInterner& interner,
+              std::unique_ptr<EditingHost> owned_host, ui::StringInterner& interner,
               const ComponentRegistry* type_registry,
               PropertyCallback on_apply);
+
     void close();
     bool is_open() const { return open_; }
 
+    /// Typed owner identity for the current session, if any.
+    const std::optional<editor::DocumentId>& owner_document_id() const { return owner_document_id_; }
+    void set_owner_document_id(editor::DocumentId id) { owner_document_id_ = std::move(id); }
+    void clear_owner_document_id() { owner_document_id_.reset(); }
+
     /// Apply changes and close. Diffs pending state against snapshot, emits
-    /// commands to the model, then invokes the on_apply callback.
+    /// commands to the host, then invokes the on_apply callback.
     void apply();
 
     /// Call every frame. Renders ImGui window when open.
@@ -100,11 +110,18 @@ public:
     const std::string& pending_name() const { return pending_name_; }
 
 private:
+    void initialize_from_node(const bp2::Blueprint::Node& node,
+                              const std::string& node_id_str,
+                              ui::StringInterner& interner,
+                              const ComponentRegistry* type_registry,
+                              PropertyCallback on_apply);
+
     bool open_ = false;
-    bp2::EditorModel*    model_    = nullptr;
-    ui::StringInterner*  interner_ = nullptr;
-    const ComponentRegistry*  type_registry_ = nullptr;
+    std::unique_ptr<EditingHost> owned_host_;
+    ui::StringInterner*  interner_     = nullptr;
+    const ComponentRegistry* type_registry_ = nullptr;
     std::string target_node_id_;
+    std::optional<editor::DocumentId> owner_document_id_;
     PropertyCallback on_apply_;
 
     // Shadow copies: edited by the UI, never touching the live node until apply().

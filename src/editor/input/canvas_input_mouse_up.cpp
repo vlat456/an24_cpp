@@ -23,7 +23,7 @@ void CanvasInput::commit_drag_node() {
      std::vector<ui::InternedId> moved_node_ids;
      size_t drag_idx = 0;
      for (const auto& node_id : selected_node_ids()) {
-         if (node_id.empty() || !host_.find_node(node_id)) continue;
+         if (node_id.empty() || !host_->find_node(node_id)) continue;
          if (drag_idx < drag_current_positions_.size() &&
              drag_idx < drag_initial_positions_.size() &&
              drag_current_positions_[drag_idx] != drag_initial_positions_[drag_idx]) {
@@ -33,12 +33,12 @@ void CanvasInput::commit_drag_node() {
          ++drag_idx;
      }
      if (!any_moved) return;
-     host_.mutate_atomically([&] {
+     host_->mutate_atomically([&] {
          size_t pos_idx = 0;
          for (const auto& node_id : selected_node_ids()) {
-             if (node_id.empty() || !host_.find_node(node_id)) continue;
+             if (node_id.empty() || !host_->find_node(node_id)) continue;
              if (pos_idx < drag_current_positions_.size()) {
-                 host_.update_node_position(node_id,
+                 host_->update_node_position(node_id,
                      drag_current_positions_[pos_idx].x,
                      drag_current_positions_[pos_idx].y);
              }
@@ -52,18 +52,18 @@ void CanvasInput::commit_drag_node() {
      }
 
      std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
-     for (const bp2::Blueprint::Wire& w : host_.wires()) {
+     for (const bp2::Blueprint::Wire& w : host_->wires()) {
          auto src_node = w.source.node;
          auto tgt_node = w.target.node;
 
-          const bp2::Blueprint::Node* src_n = host_.find_node(src_node);
-          const bp2::Blueprint::Node* tgt_n = host_.find_node(tgt_node);
+          const bp2::Blueprint::Node* src_n = host_->find_node(src_node);
+          const bp2::Blueprint::Node* tgt_n = host_->find_node(tgt_node);
           if (!src_n || !tgt_n) continue;
 
-          if (is_ref_node(*src_n, registry(), interner_) && ref_to_connected.count(src_node) == 0) {
+          if (is_ref_node(*src_n, registry(), *interner_) && ref_to_connected.count(src_node) == 0) {
               ref_to_connected.emplace(src_node, tgt_node);
           }
-          if (is_ref_node(*tgt_n, registry(), interner_) && ref_to_connected.count(tgt_node) == 0) {
+          if (is_ref_node(*tgt_n, registry(), *interner_) && ref_to_connected.count(tgt_node) == 0) {
               ref_to_connected.emplace(tgt_node, src_node);
           }
 
@@ -75,18 +75,18 @@ void CanvasInput::commit_drag_node() {
          orient_ref_node_port_impl(ref_id, connected_id);
      }
      for (ui::InternedId id : moved_node_ids) {
-         const bp2::Blueprint::Node* n = host_.find_node(id);
-         if (n && is_ref_node(*n, registry(), interner_) && ref_to_connected.count(id) == 0) {
+         const bp2::Blueprint::Node* n = host_->find_node(id);
+         if (n && is_ref_node(*n, registry(), *interner_) && ref_to_connected.count(id) == 0) {
              orient_ref_node_port_by_wire_scan(id);
          }
      }
 
-     debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
+    debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
 }
 
 bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedId connected_id) {
-    const bp2::Blueprint::Node* ref_node = host_.find_node(ref_id);
-    const bp2::Blueprint::Node* other_node = host_.find_node(connected_id);
+    const bp2::Blueprint::Node* ref_node = host_->find_node(ref_id);
+    const bp2::Blueprint::Node* other_node = host_->find_node(connected_id);
     if (!ref_node || !other_node) return false;
 
     // Use blueprint layout data for center computation.
@@ -115,13 +115,13 @@ bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedI
 
 void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) {
      if (ref_node_id.empty()) return;
-     const bp2::Blueprint::Node* ref_node = host_.find_node(ref_node_id);
-     if (!ref_node || !is_ref_node(*ref_node, registry(), interner_)) return;
+     const bp2::Blueprint::Node* ref_node = host_->find_node(ref_node_id);
+     if (!ref_node || !is_ref_node(*ref_node, registry(), *interner_)) return;
 
      ui::InternedId connected_node_id;
-     for (const bp2::Blueprint::Wire& w : host_.wires()) {
-         auto [src_node, _sp] = editor_math::path_to_node_port(w.source, arena_);
-         auto [tgt_node, _tp] = editor_math::path_to_node_port(w.target, arena_);
+     for (const bp2::Blueprint::Wire& w : host_->wires()) {
+         auto [src_node, _sp] = editor_math::path_to_node_port(w.source, *arena_);
+         auto [tgt_node, _tp] = editor_math::path_to_node_port(w.target, *arena_);
          if (src_node == ref_node_id) { connected_node_id = tgt_node; break; }
          if (tgt_node == ref_node_id) { connected_node_id = src_node; break; }
      }
@@ -130,7 +130,7 @@ void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) 
 }
 
 void CanvasInput::commit_drag_routing_point() {
-     const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(rp_wire_id_);
+     const bp2::Blueprint::Wire* bp2_wire = host_->find_wire(rp_wire_id_);
      if (!bp2_wire) return;
      Pt final_pos = rp_drag_pos_;
 
@@ -164,7 +164,7 @@ void CanvasInput::commit_resize_node() {
      Pt new_size = resize_current_size_;
      ui::InternedId node_iid = resize_widget_id_;
      if ((new_pos == resize_original_pos_ && new_size == resize_original_size_) || node_iid.empty()) return;
-     host_.update_node(node_iid, [&](bp2::Blueprint::Node& n) {
+     host_->update_node(node_iid, [&](bp2::Blueprint::Node& n) {
          n.layout.x = new_pos.x;
          n.layout.y = new_pos.y;
          n.layout.width = new_size.x;
@@ -232,12 +232,12 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     InputResult result;
     Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
 
-    auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world, interner_);
+    auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world, *interner_);
 
     if (!read_only && !simulation_mode) {
         if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
-            ui::InternedId wire_iid = interner_.intern(hrp->wire_id);
-            const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(wire_iid);
+            ui::InternedId wire_iid = interner_->intern(hrp->wire_id);
+            const bp2::Blueprint::Wire* bp2_wire = host_->find_wire(wire_iid);
             if (bp2_wire && hrp->index < bp2_wire->routing_points.size()) {
                 auto new_points = bp2_wire->routing_points;
                 new_points.erase(new_points.begin() + static_cast<long>(hrp->index));
@@ -262,9 +262,9 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
     if (!dbl_click_node_id.empty()) {
         std::string node_id(dbl_click_node_id);
-        ui::InternedId node_iid = interner_.lookup(dbl_click_node_id);
-        const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : host_.find_node(node_iid);
-        if (!read_only && !simulation_mode && node && std::string(interner_.resolve(node->semantic.type)) == "Value") {
+        ui::InternedId node_iid = interner_->lookup(dbl_click_node_id);
+        const bp2::Blueprint::Node* node = node_iid.empty() ? nullptr : host_->find_node(node_iid);
+        if (!read_only && !simulation_mode && node && std::string(interner_->resolve(node->semantic.type)) == "Value") {
             result.open_inline_value_editor = true;
             result.inline_value_editor_node_id = node_id;
             result.has_inline_value_editor_screen_pos = true;
@@ -281,8 +281,8 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
     if (!read_only && !simulation_mode) {
         if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-            ui::InternedId wire_iid = interner_.intern(hw->wire_id);
-            const bp2::Blueprint::Wire* bp2_wire = host_.find_wire(wire_iid);
+            ui::InternedId wire_iid = interner_->intern(hw->wire_id);
+            const bp2::Blueprint::Wire* bp2_wire = host_->find_wire(wire_iid);
             if (bp2_wire) {
                 auto new_points = bp2_wire->routing_points;
                 Pt snapped = editor_math::snap_to_grid(world, viewport_.grid_step);
@@ -331,23 +331,23 @@ InputResult CanvasInput::on_key(Key key) {
         case Key::Backspace: {
             if (selected_node_ids_.empty()) break;
 
-            host_.mutate_atomically([&] {
+            host_->mutate_atomically([&] {
                 for (const auto& nid : selected_node_ids_) {
                     if (!nid.empty()) {
                         std::vector<ui::InternedId> connected_wires;
-                        connected_wires.reserve(host_.wires().size());
-                        for (const auto& w : host_.wires()) {
-                            auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, arena_);
-                            auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, arena_);
+                        connected_wires.reserve(host_->wires().size());
+                        for (const auto& w : host_->wires()) {
+auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, *arena_);
+auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, *arena_);
                             if (src_node == nid || tgt_node == nid) {
                                 connected_wires.push_back(w.id);
                             }
                         }
-                        host_.remove_node(nid, std::move(connected_wires));
+                        host_->remove_node(nid, std::move(connected_wires));
                     }
                 }
             });
-            debug_validate_command_boundary(host_.current_blueprint(), interner_, arena_, parser_registry_);
+debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
             hovered_rp_id_ = {};
             rebuild_scene();
             clear_selection();
@@ -379,7 +379,7 @@ void CanvasInput::finish_marquee() {
 
     constexpr float DEFAULT_W = 64.0f;
     constexpr float DEFAULT_H = 32.0f;
-    for (const auto& node : host_.nodes()) {
+    for (const auto& node : host_->nodes()) {
         float w = node.layout.width.value_or(DEFAULT_W);
         float h = node.layout.height.value_or(DEFAULT_H);
         float cx = node.layout.x + w * 0.5f;

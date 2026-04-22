@@ -158,24 +158,32 @@ static std::string serialize_table_entries(const std::vector<float>& keys,
 }
 
 void PropertiesWindow::open(const bp2::Blueprint::Node& node,
-                             const std::string& node_id_str,
-                             bp2::EditorModel& model,
-                             ui::StringInterner& interner,
-                             const ComponentRegistry* type_registry,
-                             PropertyCallback on_apply) {
-    // If already open editing a different node, just close (shadow editing
-    // means no live mutations to revert).
-    if (open_) {
+                              const std::string& node_id_str,
+                              std::unique_ptr<EditingHost> owned_host,
+                              ui::StringInterner& interner,
+                              const ComponentRegistry* type_registry,
+                              PropertyCallback on_apply) {
+    if (!owned_host) {
         open_ = false;
+        owned_host_.reset();
+        return;
     }
 
+    owned_host_ = std::move(owned_host);
+    initialize_from_node(node, node_id_str, interner, type_registry, std::move(on_apply));
+}
+
+void PropertiesWindow::initialize_from_node(const bp2::Blueprint::Node& node,
+                                             const std::string& node_id_str,
+                                             ui::StringInterner& interner,
+                                             const ComponentRegistry* type_registry,
+                                             PropertyCallback on_apply) {
     target_node_id_ = node_id_str;
-    model_    = &model;
+    owner_document_id_.reset();
     interner_ = &interner;
     type_registry_ = type_registry;
     on_apply_ = std::move(on_apply);
 
-    // Build string→float maps from InternedId→float params
     snapshot_params_.clear();
     pending_params_.clear();
     snapshot_string_params_.clear();
@@ -183,18 +191,16 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     for (const auto& [key_iid, val] : node.semantic.params) {
         std::string key_str = std::string(interner_->resolve(key_iid));
         snapshot_params_[key_str] = val;
-        pending_params_[key_str]  = val;
+        pending_params_[key_str] = val;
     }
     for (const auto& [key, val] : node.semantic.string_params) {
         snapshot_string_params_[key] = val;
         pending_string_params_[key] = val;
     }
 
-    // Snapshot for diffing at apply() time
     snapshot_name_ = node.view.name;
     snapshot_layout_overrides_ = node.layout.layout_overrides;
 
-    // Initialize pending copies from the live node
     pending_name_ = node.view.name;
     pending_layout_overrides_ = node.layout.layout_overrides;
     snapshot_bridge_port_type_.reset();
@@ -208,10 +214,10 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
 }
 
 const bp2::Blueprint::Node* PropertiesWindow::resolve_target() const {
-    if (!model_ || !interner_) return nullptr;
+    if (!owned_host_ || !interner_) return nullptr;
     ui::InternedId iid = interner_->lookup(target_node_id_);
     if (iid.empty()) return nullptr;
-    return model_->current().find_node(iid);
+    return owned_host_->find_node(iid);
 }
 
 void PropertiesWindow::close() {
@@ -224,7 +230,7 @@ void PropertiesWindow::render() {
     const bp2::Blueprint::Node* target = resolve_target();
     if (!target) {
         // Node was deleted (e.g. by undo) while window was open — close silently
-        open_ = false;
+        cancel_and_close();
         return;
     }
 
@@ -546,7 +552,7 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
     }
 
     // Skip if node has no ports
-    const bp2::Interface iface = model_->current().resolve_node_iface(
+    const bp2::Interface iface = owned_host_->current_blueprint().resolve_node_iface(
         node,
         bp2::Blueprint::NodeIfaceAuthority{*interner_, type_registry_});
     const auto in_ports = bp2::derive_input_ports(iface);
@@ -593,8 +599,9 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
 
 void PropertiesWindow::apply() {
     const bp2::Blueprint::Node* target = resolve_target();
-    if (!target || !model_ || !interner_) {
+    if (!target || !owned_host_ || !interner_) {
         open_ = false;
+        owner_document_id_.reset();
         return;
     }
 
@@ -699,7 +706,7 @@ void PropertiesWindow::apply() {
         }
 
         // Single atomic checkpoint + replace
-        bp2::Blueprint next_bp = bp2::replace_node_preserve_order(model_->current(), std::move(updated));
+        bp2::Blueprint next_bp = bp2::replace_node_preserve_order(owned_host_->current_blueprint(), std::move(updated));
 
         // If editing an extracted bridge node (<nested_id>:<iface_name>), propagate
         // the authoritative type update into the embedded blueprint interface.
@@ -719,8 +726,8 @@ void PropertiesWindow::apply() {
             }
         }
 
-        model_->push_checkpoint();
-        model_->replace_current(std::move(next_bp));
+        owned_host_->push_checkpoint();
+        owned_host_->replace_current(std::move(next_bp));
     }
 
     if (on_apply_) {
@@ -728,11 +735,13 @@ void PropertiesWindow::apply() {
     }
 
     open_ = false;
+    owner_document_id_.reset();
 }
 
 void PropertiesWindow::cancel_and_close() {
     // Shadow editing: the live node was never touched, so no revert needed.
     open_ = false;
+    owner_document_id_.reset();
 }
 
 void PropertiesWindow::render_bridge_port_type_section() {

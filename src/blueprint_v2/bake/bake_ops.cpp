@@ -11,9 +11,11 @@ Blueprint bake_all_impl(Blueprint const& bp,
                         BlueprintLibrary const& library,
                         std::unordered_set<ui::InternedId>& active_refs);
 
+} // namespace
+
 Blueprint bake_node_blueprint_instance(Blueprint const& bp,
-                                      ui::InternedId node_id,
-                                      BlueprintLibrary const& library) {
+                                       ui::InternedId node_id,
+                                       BlueprintLibrary const& library) {
     auto const* node = bp.find_blueprint_instance(node_id);
     if (!node) {
         throw std::runtime_error("Blueprint instance node not found");
@@ -33,6 +35,8 @@ Blueprint bake_node_blueprint_instance(Blueprint const& bp,
 
     return bp.without_node(node_id).with_node(std::move(updated_node));
 }
+
+namespace {
 
 Blueprint bake_all_impl(Blueprint const& bp,
                         BlueprintLibrary const& library,

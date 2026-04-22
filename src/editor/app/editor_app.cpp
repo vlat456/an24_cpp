@@ -29,7 +29,7 @@ void save_active_document_with_existing_flow(WindowSystem& ws, Document* doc) {
     // Keep behavior aligned with File -> Save menu.
     if (doc->blueprint().name().empty()) {
         ws.setName.show = true;
-        ws.setName.doc_id = doc->id();
+        ws.setName.document_id = doc->id();
         ws.setName.save_after = true;
         std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
     } else if (doc->filepath().empty()) {
@@ -379,6 +379,8 @@ void EditorApp::render() {
     }
     
     float canvas_x = inspector_panel_.totalWidth();
+
+    ws_.reconcile_owner_bound_ui();
     
     auto doc_result = document_area_.render(ws_, canvas_x, menu_height, available_w - canvas_x, available_h);
     if (doc_result.close_requested) {

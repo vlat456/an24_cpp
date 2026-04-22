@@ -8,6 +8,7 @@
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
+#include "io/json/component_registry_json_loader.h"
 #include "ui/core/interned_id.h"
 
 namespace {
@@ -163,7 +164,7 @@ TEST(WindowInvariants, EmbeddedWindowCanvasInputUsesEmptyGroupFilter) {
     auto [win, created] = windows.open(WindowScopeId::embedded("nested_input"), "Nested Input");
     ASSERT_NE(win, nullptr);
     ASSERT_TRUE(created);
-    EXPECT_EQ(win->input.scope_id_for_test(), "");
+    EXPECT_EQ(win->input.scope_id_for_test(), WindowScopeId::embedded("nested_input"));
 }
 
 TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
@@ -316,7 +317,19 @@ TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
     EXPECT_EQ(emb_win->resolved_scope_id(), WindowScopeId::embedded("emb_group"));
     EXPECT_TRUE(emb_win->resolved_scope_id().is_embedded());
 
-    auto [ext_win, ext_created] = windows2.open(WindowScopeId::external("ref_group"), "External");
+    interner.intern("ref_group");
+    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
+    bp2::Blueprint ext_bp;
+    ext_bp = ext_bp.with_id(ext_interner->intern("RefType"));
+    auto [ext_win, ext_created] = windows2.open_external(
+        WindowScopeId::external("ref_group"),
+        "External",
+        BlueprintWindow::ExternalDocument{
+            std::move(ext_bp),
+            std::move(ext_interner),
+            std::move(ext_arena),
+        });
     ASSERT_NE(ext_win, nullptr);
     EXPECT_TRUE(ext_created);
     EXPECT_EQ(ext_win->resolved_scope_id(), WindowScopeId::external("ref_group"));
@@ -343,26 +356,71 @@ nested_node.semantic.id = interner.intern("nested_for_throw");
     root_bp = root_bp.with_node(std::move(nested_node));
     bp2::EditorModel model(root_bp);
 
-    auto win = std::make_unique<BlueprintWindow>(EmbeddedWindowTag{}, model, interner, arena, "nested_for_throw", "Test");
+    auto win = BlueprintWindow::create_embedded(
+        BlueprintWindow::Context{model, interner, arena, nullptr},
+        WindowScopeId::embedded("nested_for_throw"),
+        "Test");
     win->host.reset();
 
     EXPECT_THROW(win->rendered_blueprint(), std::logic_error);
 }
 
-/// Regression test for #58: rendered_blueprint() must throw std::logic_error
-/// when ExternalReference mode has no external_blueprint loaded.
-TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingExternalBlueprint) {
+/// External windows are fully initialized by the factory — invalid half-built
+/// external state is no longer representable through the public API.
+TEST(WindowInvariants, ExternalFactoryProducesRenderableBlueprint) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
+    interner.intern("ext_1");
 
     bp2::Blueprint root_bp;
     bp2::EditorModel model(root_bp);
 
-    // Create an external window without loading an external blueprint.
-    auto win = std::make_unique<BlueprintWindow>(ExternalWindowTag{}, model, interner, arena, "ext_1", "Test");
-    // external_blueprint is std::nullopt by default — invariant violation
+    auto external_interner = std::make_unique<ui::StringInterner>();
+    auto external_arena = std::make_unique<bp2::PathArena>(*external_interner);
+    bp2::Blueprint external_bp;
+    external_bp = external_bp.with_id(external_interner->intern("ExtType"));
 
-    EXPECT_THROW(win->rendered_blueprint(), std::logic_error);
+    auto win = BlueprintWindow::create_external(
+        BlueprintWindow::Context{model, interner, arena, nullptr},
+        WindowScopeId::external("ext_1"),
+        "Test",
+        BlueprintWindow::ExternalDocument{
+            std::move(external_bp),
+            std::move(external_interner),
+            std::move(external_arena),
+        });
+
+    EXPECT_NO_THROW((void)win->rendered_blueprint());
+}
+
+TEST(WindowInvariants, ExternalFactoryBindsInputIdentityToExternalDocument) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    interner.intern("ext_1");
+
+    bp2::Blueprint root_bp;
+    bp2::EditorModel model(root_bp);
+
+    auto external_interner = std::make_unique<ui::StringInterner>();
+    auto external_arena = std::make_unique<bp2::PathArena>(*external_interner);
+    bp2::Blueprint external_bp;
+    bp2::Blueprint::Node node;
+    node.semantic.id = external_interner->intern("n1");
+    node.semantic.type = external_interner->intern("Value");
+    node.view.name = "n1";
+    external_bp = external_bp.with_node(std::move(node));
+
+    auto win = BlueprintWindow::create_external(
+        BlueprintWindow::Context{model, interner, arena, nullptr},
+        WindowScopeId::external("ext_1"),
+        "Test",
+        BlueprintWindow::ExternalDocument{
+            std::move(external_bp),
+            std::move(external_interner),
+            std::move(external_arena),
+        });
+
+    EXPECT_TRUE(win->input.select_node_by_id("n1"));
 }
 
 /// Regression test for #58: WindowScopeId::embedded() must throw on empty scope host id
@@ -383,11 +441,23 @@ TEST(WindowInvariants, WindowScopeIdExternalThrowsOnEmptyParentInstanceId) {
 TEST(WindowInvariants, ExternalWindowScopeCarriesParentInstanceId) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
+    interner.intern("fol_1");
     bp2::Blueprint root_bp;
     bp2::EditorModel model(root_bp);
 
     WindowManager wm(model, interner, arena, nullptr);
-    auto [win, created] = wm.open(WindowScopeId::external("fol_1"), "External Test");
+    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
+    bp2::Blueprint ext_bp;
+    ext_bp = ext_bp.with_id(ext_interner->intern("ExtType"));
+    auto [win, created] = wm.open_external(
+        WindowScopeId::external("fol_1"),
+        "External Test",
+        BlueprintWindow::ExternalDocument{
+            std::move(ext_bp),
+            std::move(ext_interner),
+            std::move(ext_arena),
+        });
     ASSERT_NE(win, nullptr);
     ASSERT_TRUE(created);
 
@@ -426,7 +496,18 @@ TEST(WindowInvariants, EmbeddedAndExternalWithSameKeyDoNotCollide) {
     ASSERT_TRUE(created);
 
     // Open external window for the same key
-    auto [ext, ext_created] = wm.open(WindowScopeId::external("shared_key"), "External");
+    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
+    bp2::Blueprint ext_bp;
+    ext_bp = ext_bp.with_id(ext_interner->intern("ExtType"));
+    auto [ext, ext_created] = wm.open_external(
+        WindowScopeId::external("shared_key"),
+        "External",
+        BlueprintWindow::ExternalDocument{
+            std::move(ext_bp),
+            std::move(ext_interner),
+            std::move(ext_arena),
+        });
     ASSERT_NE(ext, nullptr);
     ASSERT_TRUE(ext_created);
 
@@ -441,4 +522,50 @@ TEST(WindowInvariants, EmbeddedAndExternalWithSameKeyDoNotCollide) {
 
     // Total: root + embedded + external = 3
     EXPECT_EQ(wm.count(), 3u);
+}
+
+TEST(WindowInvariants, ExternalWindowSelfClosesWhenOwnerBecomesEmbedded) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    ComponentRegistry registry = load_component_registry("library/");
+
+    bp2::Blueprint::Node owner_node;
+    owner_node.semantic.id = interner.intern("shared_key");
+    owner_node.semantic.type = interner.intern("12SAM28");
+    owner_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(interner.intern("12SAM28"))
+    };
+
+    bp2::Blueprint root_bp;
+    root_bp = root_bp.with_node(std::move(owner_node));
+    bp2::EditorModel model(root_bp);
+    WindowManager wm(model, interner, arena, &registry);
+
+    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
+    bp2::Blueprint ext_bp;
+    ext_bp = ext_bp.with_id(ext_interner->intern("12SAM28"));
+    auto [ext, created] = wm.open_external(
+        WindowScopeId::external("shared_key"),
+        "External",
+        BlueprintWindow::ExternalDocument{
+            std::move(ext_bp),
+            std::move(ext_interner),
+            std::move(ext_arena),
+        });
+    ASSERT_NE(ext, nullptr);
+    ASSERT_TRUE(created);
+    EXPECT_EQ(wm.count(), 2u);
+
+    ASSERT_TRUE(model.update_node(interner.lookup("shared_key"), [&](bp2::Blueprint::Node& node) {
+        node.content = bp2::Blueprint::Node::BlueprintInstanceData{
+            bp2::Blueprint::Node::BlueprintSource::make_embedded(
+                std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("12SAM28"))))
+        };
+    }));
+
+    wm.remove_orphaned_windows();
+
+    EXPECT_EQ(wm.count(), 1u);
+    EXPECT_EQ(wm.find(WindowScopeId::external("shared_key")), nullptr);
 }

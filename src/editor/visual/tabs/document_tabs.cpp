@@ -24,7 +24,7 @@ DocumentTabs::Result DocumentTabs::render(::WindowSystem& ws) {
         // invisible suffix to keep tab IDs unique.
         std::string tab_label = doc->title();
         tab_label += "###doc_tab_";
-        tab_label += doc->id();
+        tab_label += doc->id().str();
 
         bool tab_open = true;
         ImGuiTabItemFlags flags = ImGuiTabItemFlags_None;

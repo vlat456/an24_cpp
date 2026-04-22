@@ -221,6 +221,48 @@ TEST(EditorModel, UpdateNodePositionCreatesCheckpoint) {
     EXPECT_FLOAT_EQ(found->layout.x, 0.0f);  // Original position
 }
 
+TEST(EditorModel, UpdateNodeNoOpDoesNotCreateCheckpointOrDirtyState) {
+    ui::StringInterner interner;
+    bp2::EditorModel model;
+
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern("n1");
+    node.semantic.type = interner.intern("Battery");
+    model.add_node(std::move(node));
+    model.mark_saved();
+
+    EXPECT_FALSE(model.is_dirty());
+    EXPECT_EQ(model.undo_depth(), 1u);
+    EXPECT_FALSE(model.update_node(interner.intern("n1"), [](bp2::Blueprint::Node&) {}));
+    EXPECT_EQ(model.undo_depth(), 1u);
+    EXPECT_FALSE(model.is_dirty());
+}
+
+TEST(EditorModel, UpdateWireNoOpDoesNotCreateCheckpointOrDirtyState) {
+    ui::StringInterner interner;
+    bp2::EditorModel model;
+
+    bp2::Blueprint::Node n1, n2;
+    n1.semantic.id = interner.intern("b1");
+    n1.semantic.type = interner.intern("Battery");
+    n2.semantic.id = interner.intern("r1");
+    n2.semantic.type = interner.intern("Resistor");
+    model.add_node(std::move(n1));
+    model.add_node(std::move(n2));
+
+    bp2::Blueprint::Wire wire;
+    wire.id = interner.intern("w1");
+    wire.source = bp2::WireEndpoint{interner.intern("b1"), interner.intern("v_out")};
+    wire.target = bp2::WireEndpoint{interner.intern("r1"), interner.intern("in")};
+    ASSERT_TRUE(model.add_wire(std::move(wire)));
+    model.mark_saved();
+
+    const size_t undo_before = model.undo_depth();
+    EXPECT_FALSE(model.update_wire(interner.intern("w1"), [](bp2::Blueprint::Wire&) {}));
+    EXPECT_EQ(model.undo_depth(), undo_before);
+    EXPECT_FALSE(model.is_dirty());
+}
+
 
 TEST(EditorModel, UpdateNodeCannotOverrideEmbeddedCompositeIfaceAuthority) {
      ui::StringInterner interner;

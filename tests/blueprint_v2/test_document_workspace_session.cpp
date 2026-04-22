@@ -82,8 +82,8 @@ TEST(DocumentWorkspaceSession, SaveAndLoadRoundTripAppliesViewportAndReopensWind
     doc.viewport().pan.y = 222.0f;
     doc.viewport().zoom = 1.75f;
     doc.viewport().grid_step = 24.0f;
-    doc.openSubWindow("host1");
-    doc.openSubWindow("ref1");
+    doc.openSubWindow(WindowScopeId::embedded("host1"));
+    doc.openSubWindow(WindowScopeId::external("ref1"));
 
     ASSERT_TRUE(doc.saveWorkspaceSession());
 

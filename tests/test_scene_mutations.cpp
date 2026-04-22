@@ -103,7 +103,7 @@ TEST(SceneMutations, RebuildCreatesNodeWidgets) {
     bp = bp.with_node(std::move(n2));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     EXPECT_EQ(scene.roots().size(), 2u);
     EXPECT_NE(scene.find("bat1"), nullptr);
@@ -138,7 +138,7 @@ TEST(SceneMutations, RebuildFiltersGroupId) {
     bp = bp.with_node(std::move(host));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     // Only the root-level nodes should appear (bat1 + group_A host)
     EXPECT_EQ(scene.roots().size(), 2u);
@@ -169,7 +169,7 @@ TEST(SceneMutations, RebuildCreatesWireWidgets) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     // 2 nodes + 1 wire = 3 roots
     EXPECT_EQ(scene.roots().size(), 3u);
@@ -186,11 +186,11 @@ TEST(SceneMutations, RebuildClearsExistingScene) {
     bp = bp.with_node(std::move(n1));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
     EXPECT_EQ(scene.roots().size(), 1u);
 
     // Rebuild again — should clear first
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
     EXPECT_EQ(scene.roots().size(), 1u);
 }
 
@@ -224,7 +224,7 @@ TEST(SceneMutations, RebuildWithBusNodeCreatesAliasPortWires) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     // 2 nodes + 1 wire
     EXPECT_EQ(scene.roots().size(), 3u);
@@ -241,16 +241,13 @@ TEST(SceneMutations, RebuildPreservesNodeColor) {
     bp2::PathArena arena(interner);
 
     auto n = make_bp2_node(interner, "bat1", "Battery");
+    n.view.color = editor::NodeColor{0.8f, 0.2f, 0.1f, 1.0f};
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(n));
 
-    editor::SessionNodeAppearanceStore appearance;
-    appearance.emplace(editor::make_node_instance_key(interner, "", interner.lookup("bat1")),
-                       editor::NodeColor{0.8f, 0.2f, 0.1f, 1.0f});
-
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg(), nullptr, &appearance);
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* w = scene.find("bat1");
     ASSERT_NE(w, nullptr);
@@ -262,16 +259,13 @@ TEST(SceneMutations, RebuildPreservesBusNodeColor) {
     bp2::PathArena arena(interner);
 
     auto bus = make_bp2_node(interner, "bus1", "Bus");
+    bus.view.color = editor::NodeColor{0.1f, 0.5f, 0.9f, 1.0f};
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(bus));
 
-    editor::SessionNodeAppearanceStore appearance;
-    appearance.emplace(editor::make_node_instance_key(interner, "", interner.lookup("bus1")),
-                       editor::NodeColor{0.1f, 0.5f, 0.9f, 1.0f});
-
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg(), nullptr, &appearance);
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* w = scene.find("bus1");
     ASSERT_NE(w, nullptr);
@@ -289,7 +283,7 @@ TEST(SceneMutations, RebuildNoColorWhenNodeHasNoColor) {
     bp = bp.with_node(std::move(n));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* w = scene.find("bat1");
     ASSERT_NE(w, nullptr);
@@ -331,7 +325,7 @@ TEST(SceneMutations, RebuildMultipleBusWires) {
     bp = bp.with_wire(std::move(w1));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     // 3 nodes + 2 wires = 5
     EXPECT_EQ(scene.roots().size(), 5u);
@@ -361,7 +355,7 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
     }
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, *bp_opt, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, *bp_opt, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* pi_widget_base = scene.find("pi_1");
     ASSERT_NE(pi_widget_base, nullptr);
@@ -386,7 +380,7 @@ TEST(SceneMutations, RefNodePortCenteredOnNodeWidth) {
     bp = bp.with_node(std::move(ref));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -429,7 +423,7 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Right) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -466,7 +460,7 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Left) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -503,7 +497,7 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Bottom) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -528,7 +522,7 @@ TEST(SceneMutations, RefNodeWithoutWireKeepsDefaultTopOrientation) {
     bp = bp.with_node(std::move(ref));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -618,7 +612,7 @@ TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
      bp = bp.with_node(std::move(knob));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, I, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -653,7 +647,7 @@ TEST(SceneMutations, InOutPortsMixedWithRegularPorts) {
     bp = bp.with_node(std::move(node));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, I, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("mixed_1"));
     ASSERT_NE(widget, nullptr);
@@ -685,7 +679,7 @@ TEST(SceneMutations, KnobSwitchUsesWiperThrowNamesAndNoDuplication) {
      bp = bp.with_node(std::move(knob));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, I, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -741,7 +735,7 @@ TEST(SceneMutations, LongHeaderTextDoesNotInflateMinimumNodeWidth) {
     bp = bp.with_node(std::move(node_short));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* w_long  = dynamic_cast<visual::NodeWidget*>(scene.find("vc1"));
     auto* w_short = dynamic_cast<visual::NodeWidget*>(scene.find("s1"));
@@ -779,7 +773,7 @@ TEST(SceneMutations, LongInstanceNameDoesNotInflateMinimumNodeWidth) {
     bp = bp.with_node(std::move(node_short));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* w_long  = dynamic_cast<visual::NodeWidget*>(scene.find("long1"));
     auto* w_short = dynamic_cast<visual::NodeWidget*>(scene.find("short1"));
@@ -815,7 +809,7 @@ TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
     bp = bp.with_node(std::move(short_labels));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
 
     auto* long_widget = dynamic_cast<visual::NodeWidget*>(scene.find("light_long"));
     auto* short_widget = dynamic_cast<visual::NodeWidget*>(scene.find("light_short"));
@@ -856,13 +850,13 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     bp = bp.with_node(std::move(sw));
 
     editor::RuntimeNodeStateStore runtime_state;
-    runtime_state.emplace(editor::make_node_instance_key(interner, "", interner.lookup("slider_live")),
+    runtime_state.emplace(editor::make_node_instance_key(std::span<const ui::InternedId>{}, interner.lookup("slider_live")),
                           editor::ScalarNodeRuntimeState{42.0f});
-    runtime_state.emplace(editor::make_node_instance_key(interner, "", interner.lookup("switch_live")),
+    runtime_state.emplace(editor::make_node_instance_key(std::span<const ui::InternedId>{}, interner.lookup("switch_live")),
                           editor::BoolNodeRuntimeState{true});
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, "", reg, &runtime_state, nullptr);
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, reg, &runtime_state);
 
     auto* slider_widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_live"));
     auto* switch_widget = dynamic_cast<visual::NodeWidget*>(scene.find("switch_live"));

@@ -92,6 +92,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/document_layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_components.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_io.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/embedded_path_utils.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_windows.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/subwindow_open_target.cpp
@@ -107,6 +108,7 @@ add_executable(an24_editor
       ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_mouse_up.cpp
        ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input_wires.cpp
        ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+       ${CMAKE_SOURCE_DIR}/src/editor/window/blueprint_window.cpp
      ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp

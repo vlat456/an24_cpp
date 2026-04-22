@@ -106,6 +106,14 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         if (!node.view.name.empty()) {
             n["label"] = node.view.name;
         }
+        if (node.view.color.has_value()) {
+            n["color"] = {
+                {"r", node.view.color->r},
+                {"g", node.view.color->g},
+                {"b", node.view.color->b},
+                {"a", node.view.color->a},
+            };
+        }
 
         if (node.is_component()) {
             n["component"] = std::string(interner.resolve(node.semantic.type));

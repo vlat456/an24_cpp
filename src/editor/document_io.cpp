@@ -19,20 +19,9 @@ WorkspaceSession Document::captureWorkspaceSession() const {
         if (!win->resolved_scope_id().is_root() && win->open) {
             session.open_windows.push_back(PersistedWindowScope{
                 win->resolved_scope_id().mode(),
-                win->resolved_scope_id().key(),
+                win->resolved_scope_id().path(),
             });
         }
-    }
-
-    for (const auto& [key, color] : session_node_appearance_) {
-        WorkspaceSession::PersistedNodeColor persisted;
-        persisted.node_id = std::string(interner_.resolve(key.local_node_id));
-        persisted.color = color;
-        persisted.instance_path.reserve(key.instance_path.size());
-        for (const ui::InternedId segment : key.instance_path) {
-            persisted.instance_path.push_back(std::string(interner_.resolve(segment)));
-        }
-        session.node_colors.push_back(std::move(persisted));
     }
 
     return session;
@@ -47,13 +36,25 @@ void Document::applyWorkspaceSession(const WorkspaceSession& session) {
 
     for (const auto& window_scope : session.open_windows) {
         if (window_scope.mode == BlueprintWindowMode::EmbeddedScope) {
-            const ui::InternedId iid = interner_.lookup(window_scope.key);
-            const bp2::Blueprint::Node* node = iid.empty() ? nullptr : model_.current().find_node(iid);
-            if (!node || !node->has_embedded_blueprint()) {
+            if (window_scope.path_segments.empty()) {
                 continue;
             }
-            auto [win, created] = window_manager_.open(WindowScopeId::embedded(window_scope.key),
-                                                       std::string(interner_.resolve(node->semantic.type)) + " [" + window_scope.key + "]");
+            const WindowScopeId scope_id = WindowScopeId::embedded(window_scope.path_segments);
+
+            // Validate the full embedded path exists before opening the window.
+            if (!editor::embedded_path_exists(model_.current(), interner_, scope_id.path())) {
+                continue;
+            }
+
+            // Resolve the host node for the title.
+            const editor::ResolvedEmbeddedNode resolved = editor::resolve_embedded_node(
+                model_.current(), interner_, scope_id.path());
+            std::string title = scope_id.sim_scope_prefix();
+            if (resolved.node && !resolved.node->view.name.empty()) {
+                title = resolved.node->view.name + " [" + scope_id.sim_scope_prefix() + "]";
+            }
+
+            auto [win, created] = window_manager_.open(scope_id, title);
             if (win && created) {
                 win->set_read_only(false);
                 win->pending_auto_fit = true;
@@ -62,35 +63,28 @@ void Document::applyWorkspaceSession(const WorkspaceSession& session) {
         }
 
         if (window_scope.mode == BlueprintWindowMode::ExternalReference && library_index_) {
-            const ui::InternedId iid = interner_.lookup(window_scope.key);
-            const bp2::Blueprint::Node* node = iid.empty() ? nullptr : model_.current().find_node(iid);
-            if (!node || !node->has_referenced_blueprint()) {
+            if (window_scope.path_segments.empty()) {
+                continue;
+            }
+            const WindowScopeId scope_id = WindowScopeId::external(window_scope.path_segments);
+            // Resolve by full path — the last segment is the reference node id in its
+            // immediate parent blueprint, which itself may be nested.
+            const editor::ResolvedEmbeddedNode resolved = editor::resolve_embedded_node(
+                model_.current(), interner_, scope_id.path());
+            if (!resolved.node || !resolved.node->has_referenced_blueprint()) {
                 continue;
             }
             auto path = bp2::resolve_library_blueprint_path(
                 *library_index_,
-                std::string(interner_.resolve(node->blueprint_instance().source.blueprint_id())));
+                std::string(interner_.resolve(resolved.node->blueprint_instance().source.blueprint_id())));
             if (!path.has_value()) {
                 continue;
             }
-            openExternalRefWindow(window_scope.key, *path);
+            openExternalRefWindow(scope_id, *path);
         }
     }
 
-    session_node_appearance_.clear();
-    for (const auto& persisted : session.node_colors) {
-        editor::NodeInstanceKey key;
-        key.local_node_id = interner_.intern(persisted.node_id);
-        key.instance_path.reserve(persisted.instance_path.size());
-        for (const std::string& segment : persisted.instance_path) {
-            key.instance_path.push_back(interner_.intern(segment));
-        }
-        session_node_appearance_.insert_or_assign(std::move(key), persisted.color);
-    }
-
-    // Rebuild all open window scenes to push restored session colors
-    // and runtime state into live widgets. Always rebuild — even without
-    // colors, reopened windows need seeded runtime/editor state.
+    // Rebuild all open window scenes to push runtime/editor state into live widgets.
     rebuild_window_scenes();
 }
 
@@ -138,8 +132,6 @@ bool Document::load(const std::string& path) {
 
     // Clear all editor-owned state from the previous document.
     runtime_node_states_.clear();
-    session_node_appearance_.clear();
-
     {
         bp2::EditorModel fresh(std::move(*bp));
         model_ = std::move(fresh);
@@ -161,8 +153,8 @@ bool Document::load(const std::string& path) {
 
     // Single authoritative scene rebuild for the root window.  Sub-windows
     // were closed above, so only the root needs rebuilding here.
-    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, root().resolved_scope_id().sim_scope_prefix(), reg,
-                               &runtime_node_states_, &session_node_appearance_);
+    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, std::span<const ui::InternedId>{}, reg,
+                               &runtime_node_states_);
     root().input.rebuild_snapshot();
 
     filepath_ = path;

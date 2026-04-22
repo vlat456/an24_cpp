@@ -8,11 +8,12 @@
 #include "editor/input/canvas_input.h"
 #include "editor/input/editing_host.h"
 #include "editor/input/input_types.h"
+#include "editor/window_system.h"
 #include "editor/window/properties_window.h"
+#include "editor/visual/scene_mutations.h"
 #include "editor/data/node_content.h"
 #include "editor/data/node_state.h"
 #include "editor/visual/node/visual_node.h"
-#include "editor/visual/workspace_session_persist.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "blueprint_v2/library/library_index.h"
@@ -158,7 +159,7 @@ TEST(DocumentSafety, AddComponentUnknownTypeDoesNotCrashOrMutate) {
     const size_t before_nodes = doc.model().current().nodes().size();
     const size_t before_wires = doc.model().current().wires().size();
 
-    EXPECT_NO_THROW(doc.addComponent("DefinitelyUnknownComponent", Pt{64.0f, 64.0f}, "", registry));
+    EXPECT_NO_THROW(doc.addComponent("DefinitelyUnknownComponent", Pt{64.0f, 64.0f}, WindowScopeId::root(), registry));
 
     EXPECT_EQ(doc.model().current().nodes().size(), before_nodes);
     EXPECT_EQ(doc.model().current().wires().size(), before_wires);
@@ -481,7 +482,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEdited
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "slider_apply", doc.model(), doc.interner(), &registry,
+    props.open(*original, "slider_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
                [&doc](const std::string&) { doc.rebuildAllWindows(); });
     props.set_pending_param("min", -10.0f);
     props.set_pending_param("max", 200.0f);
@@ -545,7 +546,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedPa
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "knob_apply", doc.model(), doc.interner(), &registry,
+    props.open(*original, "knob_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
                [&doc](const std::string&) { doc.rebuildAllWindows(); });
     props.set_pending_param("positions", 5.0f);
     props.apply();
@@ -602,7 +603,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "gauge_apply", doc.model(), doc.interner(), &registry,
+    props.open(*original, "gauge_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
                [&doc](const std::string&) { doc.rebuildAllWindows(); });
     props.set_pending_param("min", -20.0f);
     props.set_pending_param("max", 60.0f);
@@ -651,7 +652,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "switch_apply", doc.model(), doc.interner(), &registry,
+    props.open(*original, "switch_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
                [&doc](const std::string&) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
@@ -692,7 +693,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedSta
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "azs_apply", doc.model(), doc.interner(), &registry,
+    props.open(*original, "azs_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
                [&doc](const std::string&) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
@@ -733,7 +734,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "relay_apply", doc.model(), doc.interner(), &registry,
+    props.open(*original, "relay_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
                [&doc](const std::string&) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
@@ -908,7 +909,7 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromComponentRegistry)
     };
     doc.model().replace_current(doc.model().current().with_node(std::move(ref_host)));
 
-    doc.openSubWindow("external_node");
+    doc.openSubWindow(WindowScopeId::external("external_node"));
 
     auto* win = doc.windowManager().find(WindowScopeId::external("external_node"));
     ASSERT_NE(win, nullptr);
@@ -926,6 +927,85 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromComponentRegistry)
               editor::presentation::NodeFrameKind::Reference);
 
     fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, NestedExternalRefWindowUsesNestedHostNodeTitle) {
+    namespace fs = std::filesystem;
+
+    Document doc;
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
+
+    bp2::LibraryIndex index;
+    const fs::path dir = make_temp_dir("an24_doc_nested_external_title");
+    const fs::path ext_path = dir / "external.blueprint";
+    index.entries["external_test"] = ext_path.string();
+    doc.setLibraryIndex(&index);
+
+    ui::StringInterner ext_interner;
+    bp2::PathArena ext_arena(ext_interner);
+    bp2::Blueprint ext_bp;
+    ext_bp = ext_bp.with_id(ext_interner.intern("external_test"));
+    ext_bp = ext_bp.with_name("External Test");
+    write_file(ext_path, bp2::BlueprintCodec::encode(ext_bp, ext_interner, ext_arena, &registry));
+
+    bp2::Blueprint inner;
+    inner = inner.with_id(doc.interner().intern("inner_bp"));
+    inner = inner.with_name("Inner");
+
+    bp2::Blueprint::Node nested_ref;
+    nested_ref.semantic.id = doc.interner().intern("nested_ref");
+    nested_ref.semantic.type = doc.interner().intern("external_test");
+    nested_ref.view.name = "Nested Ref";
+    nested_ref.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_reference(
+            doc.interner().intern("external_test"))
+    };
+    inner = inner.with_node(std::move(nested_ref));
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = doc.interner().intern("group_1");
+    host.semantic.type = doc.interner().intern("Group");
+    host.view.name = "group_1";
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(inner.with_id(doc.interner().intern("Group"))))
+    };
+
+    bp2::Blueprint root;
+    root = root.with_id(doc.interner().intern("root_bp"));
+    root = root.with_name("Root");
+    root = root.with_node(std::move(host));
+    doc.model().replace_current(std::move(root));
+
+    doc.openSubWindow(WindowScopeId::external(std::vector<std::string>{"group_1", "nested_ref"}));
+
+    auto* win = doc.windowManager().find(WindowScopeId::external(std::vector<std::string>{"group_1", "nested_ref"}));
+    ASSERT_NE(win, nullptr);
+    EXPECT_EQ(win->title, "Nested Ref [group_1:nested_ref]");
+
+    fs::remove_all(dir);
+}
+
+TEST(DocumentSafety, ClosingDocumentClosesPropertiesWindowOwnedByThatDocument) {
+    WindowSystem ws;
+
+    Document& first = *ws.activeDocument();
+    ui::StringInterner& interner = first.interner();
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("root_bp"));
+    bp = bp.with_node(make_typed_node(interner, ws.typeRegistry(), "node_a", "Battery", 0.0f, 0.0f));
+    first.model().replace_current(std::move(bp));
+
+    ws.openPropertiesForNode(editor::NodeId::from_string("node_a"), WindowScopeId::root(), first);
+    ASSERT_TRUE(ws.propertiesWindow().is_open());
+
+    Document& second = ws.createDocument();
+    (void)second;
+
+    ASSERT_TRUE(ws.closeDocument(first));
+    EXPECT_FALSE(ws.propertiesWindow().is_open());
 }
 
 TEST(DocumentSafety, ExplicitNormalizeNodeSizesCreatesUndoableShrinkAndClearsManualIntent) {
@@ -952,7 +1032,7 @@ TEST(DocumentSafety, ExplicitNormalizeNodeSizesCreatesUndoableShrinkAndClearsMan
     bp = bp.with_node(std::move(legacy));
     bp = bp.with_node(std::move(manual));
     doc.model().replace_current(std::move(bp));
-    visual::mutations::rebuild(doc.scene(), doc.blueprint(), doc.interner(), doc.arena(), "", ComponentRegistry{});
+    visual::mutations::rebuild(doc.scene(), doc.blueprint(), doc.interner(), doc.arena(), {}, ComponentRegistry{});
 
     ASSERT_TRUE(doc.normalizeNodeSizesToFit(false));
     EXPECT_TRUE(doc.canUndo());
@@ -984,7 +1064,7 @@ TEST(DocumentSafety, ExplicitNormalizeNodeSizesCreatesUndoableShrinkAndClearsMan
     EXPECT_TRUE(undone_manual->layout.manual_size);
 }
 
-TEST(DocumentSafety, SaveLoadDropsSessionOnlyNodeColor) {
+TEST(DocumentSafety, SaveLoadRoundTripPreservesCanonicalNodeColor) {
     namespace fs = std::filesystem;
 
     Document doc;
@@ -1008,7 +1088,8 @@ TEST(DocumentSafety, SaveLoadDropsSessionOnlyNodeColor) {
     write_file(bp_path, bp2::BlueprintCodec::encode(seed, interner, arena, &registry));
     ASSERT_TRUE(doc.load(bp_path.string()));
 
-    doc.set_node_color_for_scope("", doc.interner().intern("slider1"), editor::NodeColor{0.8f, 0.2f, 0.1f, 1.0f});
+    doc.set_node_color_for_scope(WindowScopeId::root(), doc.interner().intern("slider1"), editor::NodeColor{0.8f, 0.2f, 0.1f, 1.0f});
+    EXPECT_NE(doc.title().find('*'), std::string::npos);
 
     ASSERT_TRUE(doc.save(bp_path.string()));
 
@@ -1018,7 +1099,14 @@ TEST(DocumentSafety, SaveLoadDropsSessionOnlyNodeColor) {
 
     const auto* loaded_node = require_node(loaded.model().current(), loaded.interner(), "slider1");
     ASSERT_NE(loaded_node, nullptr);
-    EXPECT_FALSE(loaded.node_color_for_scope("", loaded.interner().intern("slider1")).has_value());
+    ASSERT_TRUE(loaded_node->view.color.has_value());
+    EXPECT_FLOAT_EQ(loaded_node->view.color->r, 0.8f);
+    EXPECT_FLOAT_EQ(loaded_node->view.color->g, 0.2f);
+    EXPECT_FLOAT_EQ(loaded_node->view.color->b, 0.1f);
+    EXPECT_FLOAT_EQ(loaded_node->view.color->a, 1.0f);
+    auto loaded_color = loaded.node_color_for_scope(WindowScopeId::root(), loaded.interner().intern("slider1"));
+    ASSERT_TRUE(loaded_color.has_value());
+    EXPECT_FLOAT_EQ(loaded_color->r, 0.8f);
 
     fs::remove_all(dir);
 }
@@ -1142,7 +1230,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         const auto* slider_node = require_node(doc.model().current(), I, "slider_rt");
         ASSERT_NE(slider_node, nullptr);
         PropertiesWindow props;
-        props.open(*slider_node, "slider_rt", doc.model(), doc.interner(), &registry,
+        props.open(*slider_node, "slider_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
                    [&doc](const std::string&) { doc.rebuildAllWindows(); });
         props.set_pending_param("min", -10.0f);
         props.set_pending_param("max", 200.0f);
@@ -1153,7 +1241,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         const auto* knob_node = require_node(doc.model().current(), I, "knob_rt");
         ASSERT_NE(knob_node, nullptr);
         PropertiesWindow props;
-        props.open(*knob_node, "knob_rt", doc.model(), doc.interner(), &registry,
+        props.open(*knob_node, "knob_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
                    [&doc](const std::string&) { doc.rebuildAllWindows(); });
         props.set_pending_param("positions", 5.0f);
         props.apply();
@@ -1163,7 +1251,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         const auto* gauge_node = require_node(doc.model().current(), I, "gauge_rt");
         ASSERT_NE(gauge_node, nullptr);
         PropertiesWindow props;
-        props.open(*gauge_node, "gauge_rt", doc.model(), doc.interner(), &registry,
+        props.open(*gauge_node, "gauge_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
                    [&doc](const std::string&) { doc.rebuildAllWindows(); });
         props.set_pending_param("min", -20.0f);
         props.set_pending_param("max", 60.0f);
@@ -1215,7 +1303,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
     vp.zoom = 1.0f;
     vp.pan = Pt(0.0f, 0.0f);
     auto host = create_editor_model_host(loaded.model());
-    CanvasInput input(loaded.scene(), vp, *host, loaded.interner(), loaded.arena(), "", &registry);
+    CanvasInput input(loaded.scene(), vp, *host, loaded.interner(), loaded.arena(), WindowScopeId::root(), &registry);
     input.simulation_mode = true;
     input.rebuild_snapshot();
     Pt canvas_min(0.0f, 0.0f);
@@ -1304,7 +1392,7 @@ TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAut
         const auto* azs_node = require_node(doc.model().current(), I, "azs_rt");
         ASSERT_NE(azs_node, nullptr);
         PropertiesWindow props;
-        props.open(*azs_node, "azs_rt", doc.model(), doc.interner(), &registry,
+        props.open(*azs_node, "azs_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
                    [&doc](const std::string&) { doc.rebuildAllWindows(); });
         props.set_pending_param("closed", 1.0f);
         props.apply();
@@ -1357,7 +1445,7 @@ TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority
         const auto* relay_node = require_node(doc.model().current(), I, "relay_rt");
         ASSERT_NE(relay_node, nullptr);
         PropertiesWindow props;
-        props.open(*relay_node, "relay_rt", doc.model(), doc.interner(), &registry,
+        props.open(*relay_node, "relay_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
                    [&doc](const std::string&) { doc.rebuildAllWindows(); });
         props.set_pending_param("closed", 1.0f);
         props.apply();
@@ -1411,7 +1499,7 @@ TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLike
         const auto* btn_node = require_node(doc.model().current(), I, "btn_rt");
         ASSERT_NE(btn_node, nullptr);
         PropertiesWindow props;
-        props.open(*btn_node, "btn_rt", doc.model(), doc.interner(), &registry,
+        props.open(*btn_node, "btn_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
                    [&doc](const std::string&) { doc.rebuildAllWindows(); });
         props.set_pending_param("idle", 2.5f);
         props.set_pending_param("g_closed", 321.0f);
@@ -1481,7 +1569,6 @@ TEST(DocumentSafety, SaveEmitsCanonicalDocumentWithoutForbiddenFieldsAndSortedWi
 
     for (const auto& node : j["nodes"]) {
         EXPECT_FALSE(node.contains("content"));
-        EXPECT_FALSE(node.contains("color"));
         EXPECT_FALSE(node.contains("render_hint"));
         EXPECT_FALSE(node.contains("resolved_iface"));
         EXPECT_FALSE(node.contains("blueprint_path"));
@@ -1516,7 +1603,7 @@ TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
     root = root.with_node(std::move(host));
     doc.model().replace_current(std::move(root));
 
-    ASSERT_NO_THROW(doc.addBlueprint("FirstOrderLag", Pt{64.0f, 64.0f}, "group_1", registry));
+    ASSERT_NO_THROW(doc.addBlueprint("FirstOrderLag", Pt{64.0f, 64.0f}, WindowScopeId::embedded("group_1"), registry));
 
     const auto* root_added = doc.model().current().find_node(I.lookup("firstorderlag_1"));
     EXPECT_EQ(root_added, nullptr);
@@ -1547,7 +1634,7 @@ TEST(DocumentSafety, NewlyAddedComponentIsImmediatelySelectableViaDocument) {
     doc.rebuildAllWindows();
 
     // Add a component through the full Document path
-    doc.addComponent("Resistor", Pt{200.0f, 200.0f}, "", registry);
+    doc.addComponent("Resistor", Pt{200.0f, 200.0f}, WindowScopeId::root(), registry);
 
     // After addComponent, the scene should have the new node widget
     const auto& scene = doc.scene();
@@ -1593,10 +1680,10 @@ TEST(DocumentSafety, NewlyAddedComponentIsImmediatelySelectableViaDocument) {
 }
 
 // ============================================================================
-// #174 + #173: Node color session persistence and reapply round-trip
+// Canonical node color persistence and widget reapply round-trip
 // ============================================================================
 
-TEST(DocumentSafety, WorkspaceSessionNodeColorsPersistAndReapplyRoundTrip) {
+TEST(DocumentSafety, CanonicalNodeColorsPersistAndReapplyRoundTrip) {
     ComponentRegistry registry = load_component_registry("library/");
     namespace fs = std::filesystem;
 
@@ -1619,14 +1706,13 @@ TEST(DocumentSafety, WorkspaceSessionNodeColorsPersistAndReapplyRoundTrip) {
         doc.rebuildAllWindows();
 
         // Set colors on both nodes
-        doc.set_node_color_for_scope("", doc.interner().intern("r1"),
+        doc.set_node_color_for_scope(WindowScopeId::root(), doc.interner().intern("r1"),
                                      editor::NodeColor{0.9f, 0.1f, 0.2f, 1.0f});
-        doc.set_node_color_for_scope("", doc.interner().intern("r2"),
+        doc.set_node_color_for_scope(WindowScopeId::root(), doc.interner().intern("r2"),
                                      editor::NodeColor{0.2f, 0.8f, 0.3f, 1.0f});
 
-        // Save blueprint (sets filepath_) then workspace session
+        // Save blueprint only — node color is canonical authored state.
         ASSERT_TRUE(doc.save(bp_path.string()));
-        ASSERT_TRUE(doc.saveWorkspaceSession());
     }
 
     // --- Phase 2: load into fresh document, verify colors restored ---
@@ -1635,22 +1721,21 @@ TEST(DocumentSafety, WorkspaceSessionNodeColorsPersistAndReapplyRoundTrip) {
         doc2.setComponentRegistry(&registry);
 
         ASSERT_TRUE(doc2.load(bp_path.string()));
-        ASSERT_TRUE(doc2.loadWorkspaceSession());
 
-        // Verify session colors were restored into the appearance store
-        auto r1_color = doc2.node_color_for_scope("", doc2.interner().intern("r1"));
+        // Verify canonical node colors were restored from the blueprint.
+        auto r1_color = doc2.node_color_for_scope(WindowScopeId::root(), doc2.interner().intern("r1"));
         ASSERT_TRUE(r1_color.has_value());
         EXPECT_FLOAT_EQ(r1_color->r, 0.9f);
         EXPECT_FLOAT_EQ(r1_color->g, 0.1f);
         EXPECT_FLOAT_EQ(r1_color->b, 0.2f);
 
-        auto r2_color = doc2.node_color_for_scope("", doc2.interner().intern("r2"));
+        auto r2_color = doc2.node_color_for_scope(WindowScopeId::root(), doc2.interner().intern("r2"));
         ASSERT_TRUE(r2_color.has_value());
         EXPECT_FLOAT_EQ(r2_color->r, 0.2f);
         EXPECT_FLOAT_EQ(r2_color->g, 0.8f);
         EXPECT_FLOAT_EQ(r2_color->b, 0.3f);
 
-        // Verify widgets reflect restored colors (scene was rebuilt via rebuild_window_scenes)
+        // Verify widgets reflect restored canonical colors after scene rebuild.
         auto* win = doc2.windowManager().find(WindowScopeId::root());
         ASSERT_NE(win, nullptr);
 
@@ -1670,7 +1755,7 @@ TEST(DocumentSafety, WorkspaceSessionNodeColorsPersistAndReapplyRoundTrip) {
     fs::remove_all(dir);
 }
 
-TEST(DocumentSafety, WorkspaceSessionNodeColorsOmittedWhenNoneSet) {
+TEST(DocumentSafety, WorkspaceSessionOmitsNodeColorsWhenNoneSet) {
     ComponentRegistry registry = load_component_registry("library/");
     namespace fs = std::filesystem;
 
@@ -1696,7 +1781,7 @@ TEST(DocumentSafety, WorkspaceSessionNodeColorsOmittedWhenNoneSet) {
         ASSERT_TRUE(doc.saveWorkspaceSession());
     }
 
-    // Verify workspace JSON has no node_colors key
+    // Verify workspace JSON has no node_colors key — color is no longer workspace authority.
     {
         fs::path ws_path = dir / "no_colors.workspace.json";
         std::ifstream in(ws_path);
@@ -1713,68 +1798,124 @@ TEST(DocumentSafety, WorkspaceSessionNodeColorsOmittedWhenNoneSet) {
         ASSERT_TRUE(doc2.load(bp_path.string()));
         ASSERT_TRUE(doc2.loadWorkspaceSession());
 
-        auto color = doc2.node_color_for_scope("", doc2.interner().intern("r1"));
+        auto color = doc2.node_color_for_scope(WindowScopeId::root(), doc2.interner().intern("r1"));
         EXPECT_FALSE(color.has_value());
     }
 
     fs::remove_all(dir);
 }
 
-TEST(DocumentSafety, WorkspaceSessionNodeColorsPersistLayerRoundTrip) {
-    // Pure persistence-layer test without Document involvement
+TEST(DocumentSafety, CanonicalNodeColorIsSerializedInBlueprintJson) {
+    ComponentRegistry registry = load_component_registry("library/");
     namespace fs = std::filesystem;
-    const fs::path dir = make_temp_dir("an24_ws_persist_colors");
+
+    const fs::path dir = make_temp_dir("an24_canonical_node_color_json");
     const fs::path bp_path = dir / "persist.blueprint";
 
-    WorkspaceSession ws;
-    ws.viewport_pan_x = 42.0f;
+    Document doc;
+    doc.setComponentRegistry(&registry);
 
-    // Root-level node
-    ws.node_colors.push_back({{}, "switch_1", {0.8f, 0.2f, 0.3f, 1.0f}});
+    bp2::Blueprint bp;
+    bp = bp.with_id(doc.interner().intern("persist_color"));
+    bp = bp.with_name("Persist Color");
+    bp = bp.with_node(make_typed_node(doc.interner(), registry, "switch_1", "Resistor", 10.0f, 20.0f));
+    doc.model().replace_current(std::move(bp));
 
-    // Nested node (inside embedded group)
-    ws.node_colors.push_back({{"group_5"}, "inner_slider", {0.1f, 0.9f, 0.4f, 0.8f}});
+    doc.set_node_color_for_scope(WindowScopeId::root(), doc.interner().intern("switch_1"),
+                                 editor::NodeColor{0.8f, 0.2f, 0.3f, 1.0f});
+    ASSERT_TRUE(doc.save(bp_path.string()));
 
-    ASSERT_TRUE(save_workspace_session(ws, bp_path.c_str()));
+    std::ifstream in(bp_path);
+    ASSERT_TRUE(in.is_open());
+    nlohmann::json j;
+    in >> j;
 
-    auto loaded = load_workspace_session(bp_path.c_str());
-    ASSERT_TRUE(loaded.has_value());
-    EXPECT_FLOAT_EQ(loaded->viewport_pan_x, 42.0f);
-    ASSERT_EQ(loaded->node_colors.size(), 2u);
-
-    EXPECT_EQ(loaded->node_colors[0].instance_path, std::vector<std::string>{});
-    EXPECT_EQ(loaded->node_colors[0].node_id, "switch_1");
-    EXPECT_FLOAT_EQ(loaded->node_colors[0].color.r, 0.8f);
-    EXPECT_FLOAT_EQ(loaded->node_colors[0].color.g, 0.2f);
-    EXPECT_FLOAT_EQ(loaded->node_colors[0].color.b, 0.3f);
-    EXPECT_FLOAT_EQ(loaded->node_colors[0].color.a, 1.0f);
-
-    ASSERT_EQ(loaded->node_colors[1].instance_path.size(), 1u);
-    EXPECT_EQ(loaded->node_colors[1].instance_path[0], "group_5");
-    EXPECT_EQ(loaded->node_colors[1].node_id, "inner_slider");
-    EXPECT_FLOAT_EQ(loaded->node_colors[1].color.a, 0.8f);
+    ASSERT_TRUE(j.contains("nodes"));
+    ASSERT_EQ(j["nodes"].size(), 1u);
+    ASSERT_TRUE(j["nodes"][0].contains("color"));
+    EXPECT_FLOAT_EQ(j["nodes"][0]["color"]["r"], 0.8f);
+    EXPECT_FLOAT_EQ(j["nodes"][0]["color"]["g"], 0.2f);
+    EXPECT_FLOAT_EQ(j["nodes"][0]["color"]["b"], 0.3f);
+    EXPECT_FLOAT_EQ(j["nodes"][0]["color"]["a"], 1.0f);
 
     fs::remove_all(dir);
 }
 
-TEST(DocumentSafety, WorkspaceSessionInvalidNodeColorReturnsEmpty) {
+TEST(DocumentSafety, SettingSameRootNodeColorTwiceDoesNotCreateExtraDirtyHistory) {
+    ComponentRegistry registry = load_component_registry("library/");
+
+    Document doc;
+    doc.setComponentRegistry(&registry);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(doc.interner().intern("same_color_root"));
+    bp = bp.with_name("Same Color Root");
+    bp = bp.with_node(make_typed_node(doc.interner(), registry, "n1", "Resistor", 10.0f, 20.0f));
+    doc.model().replace_current(std::move(bp));
+
+    doc.set_node_color_for_scope(WindowScopeId::root(), doc.interner().intern("n1"),
+                                 editor::NodeColor{0.4f, 0.5f, 0.6f, 1.0f});
+    const size_t undo_after_first = doc.model().undo_depth();
+    ASSERT_TRUE(doc.model().is_dirty());
+
+    doc.set_node_color_for_scope(WindowScopeId::root(), doc.interner().intern("n1"),
+                                 editor::NodeColor{0.4f, 0.5f, 0.6f, 1.0f});
+    EXPECT_EQ(doc.model().undo_depth(), undo_after_first);
+}
+
+TEST(DocumentSafety, EmbeddedNodeColorRoundTripMarksDirtyAndRestoresAfterLoad) {
     namespace fs = std::filesystem;
-    const fs::path dir = make_temp_dir("an24_ws_invalid_color");
-    const fs::path ws_path = dir / "bad.workspace.json";
 
-    // Missing required color fields
-    {
-        std::ofstream out(ws_path);
-        out << R"({
-            "format": "an24.workspace_session",
-            "version": 2,
-            "node_colors": [{"node_id": "x"}]
-        })";
-    }
+    ComponentRegistry registry = load_component_registry("library/");
+    Document doc;
+    doc.setComponentRegistry(&registry);
 
-    fs::path bp_path = dir / "bad.blueprint";
-    auto loaded = load_workspace_session(bp_path.c_str());
-    EXPECT_FALSE(loaded.has_value());
+    bp2::Blueprint inner;
+    inner = inner.with_id(doc.interner().intern("InnerColor"));
+    inner = inner.with_name("Inner Color");
+    inner = inner.with_node(make_typed_node(doc.interner(), registry, "inner_r", "Resistor", 30.0f, 40.0f));
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = doc.interner().intern("group_1");
+    host.semantic.type = doc.interner().intern("InnerColor");
+    host.view.name = "group_1";
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(std::move(inner)))
+    };
+
+    bp2::Blueprint root;
+    root = root.with_id(doc.interner().intern("embedded_color_root"));
+    root = root.with_name("Embedded Color Root");
+    root = root.with_node(std::move(host));
+    doc.model().replace_current(std::move(root));
+    doc.rebuildAllWindows();
+
+    doc.set_node_color_for_scope(WindowScopeId::embedded("group_1"), doc.interner().intern("inner_r"),
+                                 editor::NodeColor{0.7f, 0.3f, 0.2f, 1.0f});
+    EXPECT_TRUE(doc.model().is_dirty());
+
+    const auto* host_after = require_node(doc.model().current(), doc.interner(), "group_1");
+    ASSERT_NE(host_after, nullptr);
+    ASSERT_TRUE(host_after->has_embedded_blueprint());
+    const auto* inner_node = host_after->blueprint_instance().source.inline_def()->find_node(doc.interner().lookup("inner_r"));
+    ASSERT_NE(inner_node, nullptr);
+    ASSERT_TRUE(inner_node->view.color.has_value());
+
+    const fs::path dir = make_temp_dir("an24_embedded_color_roundtrip");
+    const fs::path bp_path = dir / "embedded_color.blueprint";
+    ASSERT_TRUE(doc.save(bp_path.string()));
+
+    Document loaded;
+    loaded.setComponentRegistry(&registry);
+    ASSERT_TRUE(loaded.load(bp_path.string()));
+
+    auto loaded_color = loaded.node_color_for_scope(WindowScopeId::embedded("group_1"), loaded.interner().intern("inner_r"));
+    ASSERT_TRUE(loaded_color.has_value());
+    EXPECT_FLOAT_EQ(loaded_color->r, 0.7f);
+    EXPECT_FLOAT_EQ(loaded_color->g, 0.3f);
+    EXPECT_FLOAT_EQ(loaded_color->b, 0.2f);
+    EXPECT_FLOAT_EQ(loaded_color->a, 1.0f);
 
     fs::remove_all(dir);
 }

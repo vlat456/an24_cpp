@@ -480,7 +480,7 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
 
 
 
-TEST(BlueprintCodec, EncodeOmitsNodeContentAndColorWorkspaceFields) {
+TEST(BlueprintCodec, EncodeOmitsNodeContentButPersistsCanonicalNodeColor) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
@@ -491,13 +491,18 @@ TEST(BlueprintCodec, EncodeOmitsNodeContentAndColorWorkspaceFields) {
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("knob1");
     n.semantic.type = interner.intern("Battery");
+    n.view.color = bp2::NodeColor{0.1f, 0.2f, 0.3f, 1.0f};
     bp = bp.with_node(std::move(n));
 
     const std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
     const auto j = nlohmann::json::parse(encoded);
     ASSERT_EQ(j["nodes"].size(), 1u);
     EXPECT_FALSE(j["nodes"][0].contains("content"));
-    EXPECT_FALSE(j["nodes"][0].contains("color"));
+    ASSERT_TRUE(j["nodes"][0].contains("color"));
+    EXPECT_FLOAT_EQ(j["nodes"][0]["color"]["r"], 0.1f);
+    EXPECT_FLOAT_EQ(j["nodes"][0]["color"]["g"], 0.2f);
+    EXPECT_FLOAT_EQ(j["nodes"][0]["color"]["b"], 0.3f);
+    EXPECT_FLOAT_EQ(j["nodes"][0]["color"]["a"], 1.0f);
 }
 
 TEST(BlueprintCodec, DecodeRejectsForbiddenContentField) {
@@ -530,7 +535,7 @@ TEST(BlueprintCodec, DecodeRejectsForbiddenContentField) {
     EXPECT_NE(err.message.find("unknown node field: content"), std::string::npos);
 }
 
-TEST(BlueprintCodec, DecodeRejectsForbiddenColorField) {
+TEST(BlueprintCodec, DecodeAcceptsCanonicalColorField) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
@@ -540,8 +545,8 @@ TEST(BlueprintCodec, DecodeRejectsForbiddenColorField) {
     const std::string json = R"({
         "format": "blueprint",
         "version": 1,
-        "blueprint_id": "forbidden_color",
-        "name": "Forbidden Color",
+        "blueprint_id": "canonical_color",
+        "name": "Canonical Color",
         "interface": [],
         "nodes": [
             {
@@ -556,8 +561,43 @@ TEST(BlueprintCodec, DecodeRejectsForbiddenColorField) {
     })";
 
     auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(decoded.has_value()) << err.message;
+    ASSERT_EQ(decoded->nodes().size(), 1u);
+    ASSERT_TRUE(decoded->nodes()[0].view.color.has_value());
+    EXPECT_FLOAT_EQ(decoded->nodes()[0].view.color->r, 0.1f);
+    EXPECT_FLOAT_EQ(decoded->nodes()[0].view.color->g, 0.2f);
+    EXPECT_FLOAT_EQ(decoded->nodes()[0].view.color->b, 0.3f);
+    EXPECT_FLOAT_EQ(decoded->nodes()[0].view.color->a, 1.0f);
+}
+
+TEST(BlueprintCodec, DecodeRejectsOutOfRangeCanonicalColorField) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    ComponentRegistry reg = make_test_registry();
+    register_type(reg, interner, "Battery");
+    bp2::DecodeError err;
+
+    const std::string json = R"({
+        "format": "blueprint",
+        "version": 1,
+        "blueprint_id": "bad_color",
+        "name": "Bad Color",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "kind": "component",
+                "component": "Battery",
+                "layout": {"x": 0.0, "y": 0.0},
+                "color": {"r": 1.2, "g": 0.2, "b": 0.3, "a": 1.0}
+            }
+        ],
+        "wires": []
+    })";
+
+    auto decoded = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
     EXPECT_FALSE(decoded.has_value());
-    EXPECT_NE(err.message.find("unknown node field: color"), std::string::npos);
+    EXPECT_NE(err.message.find("color channels must be within [0,1]"), std::string::npos);
 }
 
 

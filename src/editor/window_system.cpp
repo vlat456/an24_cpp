@@ -1,6 +1,7 @@
 #include "window_system.h"
 #include "visual/scene_mutations.h"
 #include "blueprint_v2/editor_model/editor_model.h"
+#include "editor/input/editing_host.h"
 #include <spdlog/spdlog.h>
 #include <cstdio>
 #include <filesystem>
@@ -20,6 +21,36 @@ std::string find_library_index_path() {
         }
     }
     return "library/library_index.json";  // fallback (will produce a clear error)
+}
+
+} // namespace
+
+namespace {
+
+std::unique_ptr<EditingHost> create_scoped_host(Document& doc, const WindowScopeId& scope_id) {
+    if (scope_id.is_external()) {
+        return nullptr;
+    }
+    if (scope_id.is_root()) {
+        return create_editor_model_host(doc.model());
+    }
+
+    std::vector<ui::InternedId> path;
+    path.reserve(scope_id.path().size());
+    for (const std::string& segment : scope_id.path()) {
+        const ui::InternedId iid = doc.interner().lookup(segment);
+        if (iid.empty()) {
+            return nullptr;
+        }
+        path.push_back(iid);
+    }
+    return create_pathful_embedded_host(doc.model(), std::move(path));
+}
+
+bool scoped_node_still_exists(Document& doc,
+                              const WindowScopeId& scope_id,
+                              const editor::NodeId& node_id) {
+    return doc.find_node_in_scope(scope_id, node_id) != nullptr;
 }
 
 } // namespace
@@ -115,43 +146,47 @@ bool WindowSystem::closeDocument(Document& doc) {
         }
     }
 
-    // Clear any context menu / color picker references to the closing doc
-    const std::string& closing_id = doc.id();
-    if (contextMenu.source_doc_id == closing_id) contextMenu.source_doc_id.clear();
-    if (nodeContextMenu.source_doc_id == closing_id) nodeContextMenu.source_doc_id.clear();
-    if (colorPicker.source_doc_id == closing_id) {
-        colorPicker.source_doc_id.clear();
+    // Force-close all popups/menu state owned by the closing document.
+    // If we only reset source_document_id without closing show, the render
+    // path falls back to activeDocument() and can mutate the wrong doc.
+    const editor::DocumentId& closing_id = doc.id();
+    if (contextMenu.source_document_id == closing_id) {
+        contextMenu.source_document_id.reset();
+        contextMenu.show = false;
+    }
+    if (nodeContextMenu.source_document_id == closing_id) {
+        nodeContextMenu.source_document_id.reset();
+        nodeContextMenu.show = false;
+    }
+    if (colorPicker.source_document_id == closing_id) {
+        colorPicker.source_document_id.reset();
         colorPicker.show = false;
     }
-    if (pendingBakeIn.doc_id == closing_id) {
-        pendingBakeIn.doc_id.clear();
-        pendingBakeIn.show_confirmation = false;
+    if (pendingBakeIn.document_id == closing_id) {
+        pendingBakeIn.reset();
     }
-    if (setName.doc_id == closing_id) {
-        setName.doc_id.clear();
+    if (setName.document_id == closing_id) {
+        setName.document_id.reset();
         setName.show = false;
     }
-    if (pendingExtract.doc_id == closing_id) {
+    if (pendingExtract.document_id == closing_id) {
         pendingExtract.reset();
     }
-    if (inlineValueEditor.doc_id == closing_id) {
+    if (inlineValueEditor.document_id == closing_id) {
         inlineValueEditor.open = false;
-        inlineValueEditor.doc_id.clear();
+        inlineValueEditor.document_id.reset();
     }
     if (pending_tab_focus_ == &doc) {
         pending_tab_focus_ = nullptr;
     }
 
-    // Close properties window if it targets this document's blueprint
-    if (properties_window_.is_open() && !properties_window_.target_node_id_str().empty()) {
-        // PropertiesWindow stores raw pointers into the document's model/interner.
-        // If the node it targets exists in the closing document, those pointers
-        // will dangle after destruction — close the window to be safe.
-        ui::InternedId iid = doc.interner().lookup(properties_window_.target_node_id_str());
-        if (!iid.empty() && doc.blueprint().find_node(iid)) {
-            properties_window_.close();
-        }
+    if (properties_window_.owner_document_id() == std::optional<editor::DocumentId>(closing_id)) {
+        properties_window_.close();
+        properties_window_.clear_owner_document_id();
     }
+
+    // Purge oscilloscope probes and hover state for the closing document
+    oscilloscope.purge_for(closing_id);
 
     documents_.erase(it);
 
@@ -180,20 +215,25 @@ bool WindowSystem::closeAllDocuments() {
     if (properties_window_.is_open()) {
         properties_window_.close();
     }
+    properties_window_.clear_owner_document_id();
 
     // Clear all dangling references to documents being destroyed
-    contextMenu.source_doc_id.clear();
+    contextMenu.source_document_id.reset();
     contextMenu.show = false;
-    nodeContextMenu.source_doc_id.clear();
+    nodeContextMenu.source_document_id.reset();
     nodeContextMenu.show = false;
-    colorPicker.source_doc_id.clear();
+    colorPicker.source_document_id.reset();
     colorPicker.show = false;
-    pendingBakeIn.doc_id.clear();
-    pendingBakeIn.show_confirmation = false;
+    pendingBakeIn.reset();
+    setName.document_id.reset();
+    setName.show = false;
     pendingExtract.reset();
     inlineValueEditor.open = false;
-    inlineValueEditor.doc_id.clear();
+    inlineValueEditor.document_id.reset();
     pending_tab_focus_ = nullptr;
+
+    // Purge all oscilloscope state (probes + hover) for every document.
+    oscilloscope.purge_all();
 
     documents_.clear();
     active_document_ = nullptr;
@@ -223,7 +263,7 @@ Document* WindowSystem::findDocumentByPath(const std::string& path) {
     return nullptr;
 }
 
-Document* WindowSystem::findDocumentById(const std::string& id) {
+Document* WindowSystem::findDocumentById(const editor::DocumentId& id) {
     if (id.empty()) return nullptr;
     for (auto& doc : documents_) {
         if (doc->id() == id) {
@@ -238,31 +278,60 @@ void WindowSystem::removeClosedDocuments() {
     // This method exists for future deferred removal if needed
 }
 
-void WindowSystem::openPropertiesForNode(const editor::NodeId& node_id, Document& doc) {
-    ui::InternedId iid = doc.interner().lookup(node_id.str());
-    if (iid.empty()) return;
-    const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
+void WindowSystem::openPropertiesForNode(const editor::NodeId& node_id,
+                                         const WindowScopeId& scope_id,
+                                         Document& doc) {
+    // External-scope windows are read-only references — property editing is
+    // rejected because their EditingHost resolves against the root model, not
+    // the external blueprint's own identity space.
+    if (scope_id.is_external()) {
+        return;
+    }
+
+    const bp2::Blueprint::Node* node = doc.find_node_in_scope(scope_id, node_id);
     if (!node) return;
 
-    Document* doc_ptr = &doc;
-    properties_window_.open(*node, node_id.str(), doc.model(), doc.interner(),
-        doc.type_registry(),
-        [this, doc_ptr](const std::string& nid) {
-            // Verify document still exists before using the pointer
-            for (const auto& d : documents_) {
-                if (d.get() == doc_ptr) {
-                    // Rebuild all windows (cancels gestures, syncs visual + simulation)
-                    doc_ptr->rebuildAllWindows();
-                    inspector_.markDirty();
-                    return;
-                }
+    std::unique_ptr<EditingHost> owned_host;
+    if (scope_id.is_root()) {
+        owned_host = create_editor_model_host(doc.model());
+    } else if (scope_id.is_embedded()) {
+        std::vector<ui::InternedId> path;
+        path.reserve(scope_id.path().size());
+        for (const std::string& segment : scope_id.path()) {
+            const ui::InternedId iid = doc.interner().lookup(segment);
+            if (iid.empty()) {
+                return;
             }
-            // Document was closed — just mark inspector dirty
+            path.push_back(iid);
+        }
+        owned_host = create_pathful_embedded_host(doc.model(), std::move(path));
+    }
+
+    if (!owned_host) {
+        return;
+    }
+
+    const editor::DocumentId owner_id = doc.id();
+    properties_window_.open(*node, node_id.str(), std::move(owned_host), doc.interner(),
+        doc.type_registry(),
+        [this, owner_id](const std::string& nid) {
+            (void)nid;
+            if (Document* owner = findDocumentById(owner_id)) {
+                owner->rebuildAllWindows();
+                inspector_.markDirty();
+                return;
+            }
+            properties_window_.clear_owner_document_id();
             inspector_.markDirty();
         });
+    properties_window_.set_owner_document_id(doc.id());
 }
 
-void WindowSystem::openColorPickerForNode(const editor::NodeId& node_id, const std::string& scope_id, Document& doc) {
+void WindowSystem::openColorPickerForNode(const editor::NodeId& node_id, const WindowScopeId& scope_id, Document& doc) {
+    if (scope_id.is_external()) {
+        return;
+    }
+
     const bp2::Blueprint::Node* node = doc.find_node_in_scope(scope_id, node_id);
     if (!node) return;
 
@@ -270,7 +339,7 @@ void WindowSystem::openColorPickerForNode(const editor::NodeId& node_id, const s
 
     colorPicker.node_id = node_id;
     colorPicker.scope_id = scope_id;
-    colorPicker.source_doc_id = doc.id();
+    colorPicker.source_document_id = doc.id();
     colorPicker.show = true;
 
     if (const std::optional<editor::NodeColor> color = doc.node_color_for_scope(scope_id, iid); color.has_value()) {
@@ -286,11 +355,11 @@ void WindowSystem::openColorPickerForNode(const editor::NodeId& node_id, const s
     }
 }
 
-void WindowSystem::openInlineValueEditorForNode(const editor::NodeId& node_id, Document& doc,
+void WindowSystem::openInlineValueEditorForNode(const editor::NodeId& node_id,
+                                                const WindowScopeId& scope_id,
+                                                Document& doc,
                                                 const ui::Pt* anchor_screen) {
-    ui::InternedId iid = doc.interner().lookup(node_id.str());
-    if (iid.empty()) return;
-    const bp2::Blueprint::Node* node = doc.blueprint().find_node(iid);
+    const bp2::Blueprint::Node* node = doc.find_node_in_scope(scope_id, node_id);
     if (!node) return;
     if (std::string(doc.interner().resolve(node->semantic.type)) != "Value") return;
 
@@ -302,8 +371,9 @@ void WindowSystem::openInlineValueEditorForNode(const editor::NodeId& node_id, D
     }
 
     inlineValueEditor.open = true;
-    inlineValueEditor.doc_id = doc.id();
+    inlineValueEditor.document_id = doc.id();
     inlineValueEditor.node_id = node_id;
+    inlineValueEditor.scope_id = scope_id;
     char buf[64];
     std::snprintf(buf, sizeof(buf), "%.6g", static_cast<double>(current));
     inlineValueEditor.buffer = buf;
@@ -319,13 +389,13 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
         contextMenu.show = true;
         contextMenu.position = action.context_menu_pos;
         contextMenu.scope_id = action.context_menu_scope_id;
-        contextMenu.source_doc_id = doc.id();
+        contextMenu.source_document_id = doc.id();
     }
     if (action.show_node_context_menu) {
         nodeContextMenu.show = true;
         nodeContextMenu.node_id = action.context_menu_node_id;
         nodeContextMenu.scope_id = action.node_context_menu_scope_id;
-        nodeContextMenu.source_doc_id = doc.id();
+        nodeContextMenu.source_document_id = doc.id();
     }
     if (!action.toggle_probe_wire_id.empty()) {
         const ui::Pt* click = action.has_toggle_probe_world_pos ? &action.toggle_probe_world_pos : nullptr;
@@ -335,6 +405,69 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
         const ui::Pt* anchor = action.has_inline_value_editor_screen_pos
             ? &action.inline_value_editor_screen_pos
             : nullptr;
-        openInlineValueEditorForNode(action.inline_value_editor_node_id, doc, anchor);
+        openInlineValueEditorForNode(action.inline_value_editor_node_id, action.inline_value_editor_scope_id, doc, anchor);
+    }
+}
+
+void WindowSystem::reconcile_owner_bound_ui() {
+    if (colorPicker.source_document_id) {
+        Document* doc = findDocumentById(*colorPicker.source_document_id);
+        if (!doc || !scoped_node_still_exists(*doc, colorPicker.scope_id, colorPicker.node_id)) {
+            colorPicker.source_document_id.reset();
+            colorPicker.show = false;
+        }
+    }
+
+    if (pendingBakeIn.document_id) {
+        Document* doc = findDocumentById(*pendingBakeIn.document_id);
+        if (!doc || pendingBakeIn.scope_id.is_external()
+            || !scoped_node_still_exists(*doc, pendingBakeIn.scope_id, pendingBakeIn.node_id)) {
+            pendingBakeIn.reset();
+        }
+    }
+
+    if (pendingExtract.document_id) {
+        Document* doc = findDocumentById(*pendingExtract.document_id);
+        if (!doc || pendingExtract.scope_id.is_external()) {
+            pendingExtract.reset();
+        } else {
+            std::unique_ptr<EditingHost> host = create_scoped_host(*doc, pendingExtract.scope_id);
+            if (!host) {
+                pendingExtract.reset();
+            } else {
+                bool all_selected_exist = true;
+                for (ui::InternedId iid : pendingExtract.selected_node_ids) {
+                    if (!host->find_node(iid)) {
+                        all_selected_exist = false;
+                        break;
+                    }
+                }
+                if (!all_selected_exist) {
+                    pendingExtract.reset();
+                }
+            }
+        }
+    }
+
+    if (setName.document_id && !findDocumentById(*setName.document_id)) {
+        setName.document_id.reset();
+        setName.show = false;
+    }
+
+    if (inlineValueEditor.document_id) {
+        Document* doc = findDocumentById(*inlineValueEditor.document_id);
+        if (!doc || inlineValueEditor.scope_id.is_external()
+            || !scoped_node_still_exists(*doc, inlineValueEditor.scope_id, inlineValueEditor.node_id)) {
+            inlineValueEditor.open = false;
+            inlineValueEditor.document_id.reset();
+        }
+    }
+
+    if (properties_window_.is_open()) {
+        const auto& owner_id = properties_window_.owner_document_id();
+        if (!owner_id.has_value() || !findDocumentById(*owner_id)) {
+            properties_window_.close();
+            properties_window_.clear_owner_document_id();
+        }
     }
 }

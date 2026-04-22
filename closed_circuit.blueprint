@@ -141,6 +141,7 @@
           "name": "RN-180-Exciter",
           "nodes": [
             {
+              "direction": "input",
               "exposed_port": "feedback",
               "id": "bp_in_1",
               "kind": "bridge_port",
@@ -149,10 +150,10 @@
                 "x": 0.0,
                 "y": 32.0
               },
-              "port_type": "Signal",
-              "direction": "input"
+              "port_type": "Signal"
             },
             {
+              "direction": "output",
               "exposed_port": "output",
               "id": "bp_out_1",
               "kind": "bridge_port",
@@ -161,8 +162,7 @@
                 "x": 660.0,
                 "y": 32.0
               },
-              "port_type": "Signal",
-              "direction": "output"
+              "port_type": "Signal"
             },
             {
               "component": "LUT",
@@ -383,6 +383,7 @@
           "name": "LoadVoltageDrp",
           "nodes": [
             {
+              "direction": "input",
               "exposed_port": "v_in",
               "id": "bp_in_1",
               "kind": "bridge_port",
@@ -391,10 +392,10 @@
                 "x": 0.0,
                 "y": 160.0
               },
-              "port_type": "V",
-              "direction": "input"
+              "port_type": "V"
             },
             {
+              "direction": "input",
               "exposed_port": "v_ref",
               "id": "bp_in_2",
               "kind": "bridge_port",
@@ -403,10 +404,10 @@
                 "x": 0.0,
                 "y": 176.0
               },
-              "port_type": "V",
-              "direction": "input"
+              "port_type": "V"
             },
             {
+              "direction": "output",
               "exposed_port": "out",
               "id": "bp_out_1",
               "kind": "bridge_port",
@@ -415,8 +416,7 @@
                 "x": 800.0,
                 "y": 160.0
               },
-              "port_type": "Signal",
-              "direction": "output"
+              "port_type": "Signal"
             },
             {
               "component": "Clamp",
@@ -874,6 +874,7 @@
           "name": "DerateCtrl",
           "nodes": [
             {
+              "direction": "input",
               "exposed_port": "A_2",
               "id": "bp_in_1",
               "kind": "bridge_port",
@@ -882,10 +883,10 @@
                 "x": 0.0,
                 "y": 32.0
               },
-              "port_type": "Signal",
-              "direction": "input"
+              "port_type": "Signal"
             },
             {
+              "direction": "input",
               "exposed_port": "B",
               "id": "bp_in_2",
               "kind": "bridge_port",
@@ -894,10 +895,10 @@
                 "x": 0.0,
                 "y": 48.0
               },
-              "port_type": "Signal",
-              "direction": "input"
+              "port_type": "Signal"
             },
             {
+              "direction": "input",
               "exposed_port": "A",
               "id": "bp_in_3",
               "kind": "bridge_port",
@@ -906,10 +907,10 @@
                 "x": 0.0,
                 "y": 112.0
               },
-              "port_type": "Signal",
-              "direction": "input"
+              "port_type": "Signal"
             },
             {
+              "direction": "output",
               "exposed_port": "o",
               "id": "bp_out_1",
               "kind": "bridge_port",
@@ -918,8 +919,7 @@
                 "x": 1616.0,
                 "y": 80.0
               },
-              "port_type": "Signal",
-              "direction": "output"
+              "port_type": "Signal"
             },
             {
               "component": "Clamp",
@@ -1387,6 +1387,7 @@
           "name": "RPMIntertial",
           "nodes": [
             {
+              "direction": "input",
               "exposed_port": "Torque",
               "id": "bp_in_2",
               "kind": "bridge_port",
@@ -1395,10 +1396,10 @@
                 "x": 240.0,
                 "y": 528.0
               },
-              "port_type": "Signal",
-              "direction": "input"
+              "port_type": "Signal"
             },
             {
+              "direction": "output",
               "exposed_port": "out",
               "id": "bp_out_1",
               "kind": "bridge_port",
@@ -1407,8 +1408,7 @@
                 "x": 720.0,
                 "y": 528.0
               },
-              "port_type": "Signal",
-              "direction": "output"
+              "port_type": "Signal"
             },
             {
               "component": "InertiaNode",
@@ -1575,6 +1575,7 @@
               }
             },
             {
+              "direction": "input",
               "exposed_port": "in",
               "id": "in",
               "kind": "bridge_port",
@@ -1582,8 +1583,7 @@
                 "x": -360.0,
                 "y": 304.0
               },
-              "port_type": "Signal",
-              "direction": "input"
+              "port_type": "Signal"
             },
             {
               "component": "Multiply",
@@ -1598,6 +1598,7 @@
               }
             },
             {
+              "direction": "output",
               "exposed_port": "out",
               "id": "out",
               "kind": "bridge_port",
@@ -1605,10 +1606,10 @@
                 "x": 224.0,
                 "y": 80.0
               },
-              "port_type": "Signal",
-              "direction": "output"
+              "port_type": "Signal"
             },
             {
+              "direction": "input",
               "exposed_port": "rate",
               "id": "rate",
               "kind": "bridge_port",
@@ -1616,8 +1617,7 @@
                 "x": -360.0,
                 "y": 96.0
               },
-              "port_type": "Signal",
-              "direction": "input"
+              "port_type": "Signal"
             },
             {
               "component": "Splitter",
@@ -1779,6 +1779,7 @@
           "name": "GroundPower",
           "nodes": [
             {
+              "direction": "input",
               "exposed_port": "v_in",
               "id": "groundpower_1:v_in",
               "kind": "bridge_port",
@@ -1787,10 +1788,10 @@
                 "x": 0.0,
                 "y": 160.0
               },
-              "port_type": "V",
-              "direction": "input"
+              "port_type": "V"
             },
             {
+              "direction": "output",
               "exposed_port": "v_out",
               "id": "groundpower_1:v_out",
               "kind": "bridge_port",
@@ -1799,8 +1800,7 @@
                 "x": 352.0,
                 "y": 32.0
               },
-              "port_type": "V",
-              "direction": "output"
+              "port_type": "V"
             },
             {
               "component": "Value",
@@ -2146,6 +2146,12 @@
       }
     },
     {
+      "color": {
+        "a": 1.0,
+        "b": 0.6591928005218506,
+        "g": 0.13302110135555267,
+        "r": 0.13302096724510193
+      },
       "component": "Slider",
       "id": "slider_1",
       "kind": "component",
@@ -2155,7 +2161,7 @@
         "manual_size": true,
         "width": 176.0,
         "x": -240.0,
-        "y": 256.0
+        "y": 272.0
       },
       "params": {
         "max": 1.0,

@@ -9,6 +9,7 @@
 
 namespace bp2 {
 class EditorModel;
+class BlueprintLibrary;
 }
 
 namespace ui {
@@ -72,6 +73,11 @@ public:
     virtual bool remove_node(ui::InternedId id,
                              std::vector<ui::InternedId> connected_wire_ids) = 0;
 
+    /// Bake a referenced blueprint-instance node into an embedded source inside
+    /// the current scoped blueprint.
+    virtual bool bake_blueprint_instance(ui::InternedId id,
+                                         const bp2::BlueprintLibrary& library) = 0;
+
     /// Allocate a unique wire ID.
     virtual std::string allocate_wire_id() = 0;
 };
@@ -84,3 +90,15 @@ std::unique_ptr<EditingHost> create_editor_model_host(bp2::EditorModel& model);
 /// Mutations are written through the authoritative root EditorModel.
 std::unique_ptr<EditingHost> create_embedded_inline_host(bp2::EditorModel& root_model,
                                                          ui::InternedId nested_id);
+
+/// Create editing host backed by a deeply-nested embedded inline blueprint.
+/// Walks the full instance path on every access; propagates mutations back
+/// up through all ancestor nodes to produce a new root Blueprint.
+std::unique_ptr<EditingHost> create_pathful_embedded_host(
+    bp2::EditorModel& root_model,
+    std::vector<ui::InternedId> instance_path);
+
+/// Create a read-only host backed by a const blueprint reference.
+/// All mutation operations are no-ops. Used for external-ref windows
+/// that render a blueprint they do not own.
+std::unique_ptr<EditingHost> create_read_only_host(const bp2::Blueprint& blueprint);

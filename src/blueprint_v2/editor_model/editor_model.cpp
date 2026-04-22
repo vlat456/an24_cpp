@@ -49,6 +49,42 @@ Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updat
     return rebuilt;
 }
 
+MutationResult try_update_node(Blueprint& bp,
+                               ui::InternedId id,
+                               const std::function<void(Blueprint::Node&)>& fn) {
+    const auto* existing = bp.find_node(id);
+    if (!existing) {
+        return MutationResult::NotFound;
+    }
+
+    Blueprint::Node updated = *existing;
+    fn(updated);
+    if (updated == *existing) {
+        return MutationResult::NoChange;
+    }
+
+    bp = replace_node_preserve_order(bp, std::move(updated));
+    return MutationResult::Changed;
+}
+
+MutationResult try_update_wire(Blueprint& bp,
+                               ui::InternedId id,
+                               const std::function<void(Blueprint::Wire&)>& fn) {
+    const auto* existing = bp.find_wire(id);
+    if (!existing) {
+        return MutationResult::NotFound;
+    }
+
+    Blueprint::Wire updated = *existing;
+    fn(updated);
+    if (updated == *existing) {
+        return MutationResult::NoChange;
+    }
+
+    bp = replace_wire_preserve_order(bp, std::move(updated));
+    return MutationResult::Changed;
+}
+
 EditorModel::EditorModel(Blueprint initial)
     : current_(std::move(initial)) {}  // Issue #91: No canonicalization of blueprint-instance iface
 
@@ -129,24 +165,25 @@ bool EditorModel::remove_wire(ui::InternedId id) {
 }
 
 bool EditorModel::update_node(ui::InternedId id, std::function<void(Blueprint::Node&)> fn) {
-    auto const* existing = current_.find_node(id);
-    if (!existing) return false;
-    Blueprint::Node updated = *existing;
-    fn(updated);
-    // Issue #91: No canonicalization of blueprint-instance iface. Update node as-is.
+    Blueprint next = current_;
+    const MutationResult result = try_update_node(next, id, fn);
+    if (result != MutationResult::Changed) {
+        return false;
+    }
     push_checkpoint_if_enabled();
-    current_ = replace_node_preserve_order(current_, std::move(updated));
+    current_ = std::move(next);
     invalidate_indices();
     return true;
 }
 
 bool EditorModel::update_wire(ui::InternedId id, std::function<void(Blueprint::Wire&)> fn) {
-    auto const* existing = current_.find_wire(id);
-    if (!existing) return false;
-    Blueprint::Wire updated = *existing;
-    fn(updated);
+    Blueprint next = current_;
+    const MutationResult result = try_update_wire(next, id, fn);
+    if (result != MutationResult::Changed) {
+        return false;
+    }
     push_checkpoint_if_enabled();
-    current_ = replace_wire_preserve_order(current_, std::move(updated));
+    current_ = std::move(next);
     invalidate_indices();
     return true;
 }
@@ -187,21 +224,6 @@ void EditorModel::redo() {
     current_ = std::move(redo_stack_.back());
     redo_stack_.pop_back();
      invalidate_indices();
-}
-
-bool EditorModel::bake_blueprint_instance(ui::InternedId node_id,
-                                        BlueprintLibrary const& library,
-                                        ui::StringInterner& interner) {
-    (void)interner;
-    (void)library;
-    auto const* node = current_.find_node(node_id);
-    if (!node) return false;
-    if (!node->is_blueprint_instance()) return false;
-    if (!node->has_referenced_blueprint()) return false;
-
-    // TODO: Implement reference-to-embedded conversion for blueprint_instance nodes.
-    // This will involve looking up the referenced blueprint and updating node.source.
-    return false;
 }
 
 void EditorModel::ensure_indices() const {

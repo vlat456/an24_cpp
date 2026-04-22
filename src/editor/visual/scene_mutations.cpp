@@ -101,7 +101,7 @@ static void orient_ref_node_ports(Scene& scene,
                                   const bp2::Blueprint& bp,
                                   const bp2::PathArena& arena,
                                   const ui::StringInterner& interner,
-                                  std::string_view scope_id,
+                                  std::span<const ui::InternedId> /*instance_path*/,
                                   const ComponentRegistry& registry) {
     using editor::presentation::NodeFrameKind;
     std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
@@ -159,10 +159,9 @@ void rebuild(Scene& scene,
              const bp2::Blueprint& bp,
              ui::StringInterner& interner,
              bp2::PathArena& arena,
-             std::string_view scope_id,
+             std::span<const ui::InternedId> instance_path,
              const ComponentRegistry& registry,
-             const editor::RuntimeNodeStateStore* runtime_state_store,
-             const editor::SessionNodeAppearanceStore* appearance_store) {
+             const editor::RuntimeNodeStateStore* runtime_state_store) {
     auto guard = scene.flushGuard();
     scene.clear();
 
@@ -183,7 +182,7 @@ void rebuild(Scene& scene,
           const ComponentSpec* def = registry.get(type_name);
           const TypePresentation* pres = registry.presentation.get(type_name);
           auto frame_kind = editor::presentation::resolve_frame_kind(def, pres);
-          const editor::NodeInstanceKey instance_key = editor::make_node_instance_key(interner, scope_id, n.semantic.id);
+           const editor::NodeInstanceKey instance_key = editor::make_node_instance_key(instance_path, n.semantic.id);
           const editor::RuntimeNodeState* runtime_state = nullptr;
           if (runtime_state_store != nullptr) {
               const auto it = runtime_state_store->find(instance_key);
@@ -192,17 +191,14 @@ void rebuild(Scene& scene,
               }
           }
           NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner, runtime_state) : NodeContent{};
-          std::optional<editor::NodeColor> color = std::nullopt;
-          if (appearance_store != nullptr) {
-              color = editor::lookup_node_color(*appearance_store, instance_key);
-          }
-          std::unique_ptr<Widget> widget = NodeFactory::create(
-              n, frame_kind, render_iface, interner, content, color, bus_wires);
+           std::optional<editor::NodeColor> color = n.view.color;
+           std::unique_ptr<Widget> widget = NodeFactory::create(
+               n, frame_kind, render_iface, interner, content, color, bus_wires);
           scene.add(std::move(widget));
       }
 
     // Orient single-port ref/value nodes toward their connected node.
-    orient_ref_node_ports(scene, bp, arena, interner, scope_id, registry);
+    orient_ref_node_ports(scene, bp, arena, interner, instance_path, registry);
 
     // 2) Create wire widgets for wires whose both endpoints are in this group
     for (const bp2::Blueprint::Wire& w : bp.wires()) {

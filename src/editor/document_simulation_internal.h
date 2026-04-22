@@ -1,5 +1,10 @@
 #pragma once
 
+/// Simulation-adjacent internal utilities.
+/// These are used by the simulation step, node content updates, and
+/// blueprint-level node walking. For embedded path resolution and mutation,
+/// see embedded_path_utils.h.
+
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "ui/core/interned_id.h"
 
@@ -11,6 +16,7 @@
 
 namespace editor {
 
+/// Select the appropriate readback port for a slider-type node.
 std::optional<std::string_view> select_slider_readback_port(const bp2::Blueprint::Node& node,
                                                              ui::StringInterner& interner);
 

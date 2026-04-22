@@ -12,6 +12,7 @@
 #include "oscilloscope.h"
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <vector>
 #include <string>
 
@@ -50,7 +51,7 @@ public:
     const std::vector<std::unique_ptr<Document>>& documents() const { return documents_; }
     size_t documentCount() const { return documents_.size(); }
     Document* findDocumentByPath(const std::string& path);
-    Document* findDocumentById(const std::string& id);
+    Document* findDocumentById(const editor::DocumentId& id);
 
     // ── Global panels ──
 
@@ -64,41 +65,49 @@ public:
     struct ContextMenuState {
         bool show = false;
         Pt position;
-        std::string scope_id;
-        std::string source_doc_id;  ///< Resolved via findDocumentById()
+        WindowScopeId scope_id = WindowScopeId::root();
+        std::optional<editor::DocumentId> source_document_id;
     } contextMenu;
 
     struct NodeContextMenuState {
         bool show = false;
         editor::NodeId node_id;
-        std::string scope_id;
-        std::string source_doc_id;  ///< Resolved via findDocumentById()
+        WindowScopeId scope_id = WindowScopeId::root();
+        std::optional<editor::DocumentId> source_document_id;
     } nodeContextMenu;
 
     struct ColorPickerState {
         bool show = false;
         editor::NodeId node_id;
-        std::string scope_id;
-        std::string source_doc_id;  ///< Resolved via findDocumentById()
+        WindowScopeId scope_id = WindowScopeId::root();
+        std::optional<editor::DocumentId> source_document_id;
         float rgba[4] = {0.5f, 0.5f, 0.5f, 1.0f};
     } colorPicker;
 
     struct PendingBakeIn {
         bool show_confirmation = false;
-        std::string doc_id;  ///< Resolved via findDocumentById()
-        std::string sub_blueprint_id;
+        std::optional<editor::DocumentId> document_id;
+        WindowScopeId scope_id = WindowScopeId::root();
+        editor::NodeId node_id;
+
+        void reset() {
+            show_confirmation = false;
+            document_id.reset();
+            scope_id = WindowScopeId::root();
+            node_id = {};
+        }
     } pendingBakeIn;
 
     struct SetNameState {
         bool show = false;
-        std::string doc_id;            ///< Document whose blueprint name to set
+        std::optional<editor::DocumentId> document_id;
         bool save_after = false;       ///< If true, trigger save after name is confirmed
         char buf[128] = {};            ///< ImGui input buffer
     } setName;
 
     struct PendingExtractToBlueprint {
         bool show_dialog = false;
-        std::string doc_id;
+        std::optional<editor::DocumentId> document_id;
         WindowScopeId scope_id = WindowScopeId::root();
         std::vector<ui::InternedId> selected_node_ids;
         char name_buf[128] = {};
@@ -111,7 +120,7 @@ public:
 
         void reset() {
             show_dialog = false;
-            doc_id.clear();
+            document_id.reset();
             scope_id = WindowScopeId::root();
             selected_node_ids.clear();
             std::memset(name_buf, 0, sizeof(name_buf));
@@ -155,8 +164,9 @@ public:
 
     struct InlineValueEditorState {
         bool open = false;
-        std::string doc_id;
+        std::optional<editor::DocumentId> document_id;
         editor::NodeId node_id;
+        WindowScopeId scope_id = WindowScopeId::root();
         std::string buffer;
         std::string error;
         Pt anchor_screen;
@@ -169,17 +179,21 @@ public:
     void removeClosedDocuments();
 
     /// Open properties for a node in the active document
-    void openPropertiesForNode(const editor::NodeId& node_id, Document& doc);
+    void openPropertiesForNode(const editor::NodeId& node_id, const WindowScopeId& scope_id, Document& doc);
 
     /// Open color picker for a node
-    void openColorPickerForNode(const editor::NodeId& node_id, const std::string& scope_id, Document& doc);
+    void openColorPickerForNode(const editor::NodeId& node_id, const WindowScopeId& scope_id, Document& doc);
 
     /// Open inline value editor for a Value node
-    void openInlineValueEditorForNode(const editor::NodeId& node_id, Document& doc,
+    void openInlineValueEditorForNode(const editor::NodeId& node_id, const WindowScopeId& scope_id, Document& doc,
                                       const ui::Pt* anchor_screen = nullptr);
 
     /// Dispatch InputResultAction from a document to the window system
     void handleInputAction(const Document::InputResultAction& action, Document& doc);
+
+    /// Reconcile all owner-bound transient UI against the current model state.
+    /// Any UI whose owner document/node/scope no longer exists must self-close.
+    void reconcile_owner_bound_ui();
 
 private:
     std::vector<std::unique_ptr<Document>> documents_;

@@ -42,7 +42,7 @@ public:
 
     // ── Identity ──
 
-    const std::string& id() const { return id_; }
+    const editor::DocumentId& id() const { return id_; }
     const std::string& filepath() const { return filepath_; }
     const std::string& displayName() const { return display_name_; }
 
@@ -147,16 +147,14 @@ public:
 
     [[nodiscard]] std::optional<editor::NodeColor> node_color_for_scope(const WindowScopeId& scope_id,
                                                                          ui::InternedId node_id) const;
-    [[nodiscard]] std::optional<editor::NodeColor> node_color_for_scope(const std::string& scope_id,
-                                                                         ui::InternedId node_id) const;
-    void set_node_color_for_scope(const std::string& scope_id,
+    void set_node_color_for_scope(const WindowScopeId& scope_id,
                                   ui::InternedId node_id,
                                   std::optional<editor::NodeColor> color);
 
     /// Find a node by id within a scoped blueprint (root, embedded, or external).
     /// Returns nullptr if the scope or node does not exist.
     [[nodiscard]] const bp2::Blueprint::Node* find_node_in_scope(
-        const std::string& scope_id, const editor::NodeId& node_id) const;
+        const WindowScopeId& scope_id, const editor::NodeId& node_id) const;
 
     [[nodiscard]] const editor::RuntimeNodeStateStore& runtime_node_states() const { return runtime_node_states_; }
 
@@ -177,19 +175,19 @@ public:
     std::unordered_map<std::string, float>& signalOverrides() { return signal_overrides_; }
     std::unordered_set<std::string>& heldButtons() { return held_buttons_; }
 
-    void triggerSwitch(const editor::NodeId& node_id, const std::string& scope_id = "");
-    void setSliderValue(const editor::NodeId& node_id, float value, const std::string& scope_id = "");
-    void setKnobPosition(const editor::NodeId& node_id, int position, const std::string& scope_id = "");
-    void holdButtonPress(const editor::NodeId& node_id, const std::string& scope_id = "");
-    void holdButtonRelease(const editor::NodeId& node_id, const std::string& scope_id = "");
+    void triggerSwitch(const editor::NodeId& node_id, const WindowScopeId& scope_id = WindowScopeId::root());
+    void setSliderValue(const editor::NodeId& node_id, float value, const WindowScopeId& scope_id = WindowScopeId::root());
+    void setKnobPosition(const editor::NodeId& node_id, int position, const WindowScopeId& scope_id = WindowScopeId::root());
+    void holdButtonPress(const editor::NodeId& node_id, const WindowScopeId& scope_id = WindowScopeId::root());
+    void holdButtonRelease(const editor::NodeId& node_id, const WindowScopeId& scope_id = WindowScopeId::root());
 
     // ── Component/blueprint addition ──
 
     void addComponent(const std::string& classname, Pt world_pos,
-                      const std::string& scope_id,
+                      const WindowScopeId& scope_id,
                       ComponentRegistry& registry);
     void addBlueprint(const std::string& blueprint_name, Pt world_pos,
-                      const std::string& scope_id,
+                      const WindowScopeId& scope_id,
                       ComponentRegistry& registry);
 
     /// Recompute node sizes from the current layout minimum-size contract.
@@ -204,24 +202,25 @@ public:
 
     // ── Sub-windows ──
 
-    void openSubWindow(const std::string& sub_blueprint_id);
+    void openSubWindow(const WindowScopeId& target_scope);
+    void openSubWindow(const WindowScopeId& parent_scope, const std::string& local_node_id);
 
     /// Open a parent-bound external reference window for a composite node.
     /// Loads the external blueprint and creates a read-only sub-window with
     /// signal keys mapped through the parent instance id.
-    void openExternalRefWindow(const std::string& instance_id,
-                                const std::string& blueprint_file_path);
+    void openExternalRefWindow(const WindowScopeId& instance_scope,
+                                 const std::string& blueprint_file_path);
 
     // ── Input result dispatch ──
 
     struct InputResultAction {
         bool show_context_menu = false;
         Pt context_menu_pos;
-        std::string context_menu_scope_id;
+        WindowScopeId context_menu_scope_id = WindowScopeId::root();
 
         bool show_node_context_menu = false;
         editor::NodeId context_menu_node_id;
-        std::string node_context_menu_scope_id;
+        WindowScopeId node_context_menu_scope_id = WindowScopeId::root();
 
         std::string toggle_probe_wire_id;
         WindowScopeId toggle_probe_scope_id = WindowScopeId::root();
@@ -230,10 +229,10 @@ public:
 
         bool open_inline_value_editor = false;
         editor::NodeId inline_value_editor_node_id;
+        WindowScopeId inline_value_editor_scope_id = WindowScopeId::root();
         bool has_inline_value_editor_screen_pos = false;
         Pt inline_value_editor_screen_pos;
     };
-    InputResultAction applyInputResult(const InputResult& r, const std::string& scope_id = "");
     InputResultAction applyInputResult(const InputResult& r, const WindowScopeId& scope_id);
 
 private:
@@ -264,7 +263,7 @@ private:
 
     // ── Private data ──
 
-    std::string id_;
+    editor::DocumentId id_;
     std::string filepath_;
     std::string display_name_ = "Untitled";
 
@@ -278,7 +277,6 @@ private:
     std::unordered_map<std::string, float> signal_overrides_;
     std::unordered_set<std::string> held_buttons_;
     editor::RuntimeNodeStateStore runtime_node_states_;
-    editor::SessionNodeAppearanceStore session_node_appearance_;
     const ComponentRegistry* type_registry_ = nullptr;
     const bp2::LibraryIndex* library_index_ = nullptr;
 

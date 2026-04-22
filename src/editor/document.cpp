@@ -6,7 +6,7 @@
 int Document::next_id_ = 1;
 
 Document::Document() {
-    id_ = "doc_" + std::to_string(next_id_++);
+    id_ = editor::DocumentId::from_string("doc_" + std::to_string(next_id_++));
 }
 
 std::string Document::title() const {

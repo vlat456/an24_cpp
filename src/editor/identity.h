@@ -4,6 +4,28 @@
 
 namespace editor {
 
+/// Typed wrapper for document identity strings.
+/// Prevents accidental mixing with arbitrary std::string values.
+class DocumentId {
+public:
+    static DocumentId from_string(std::string v) {
+        return DocumentId(std::move(v));
+    }
+
+    DocumentId() = default;
+
+    bool empty() const { return value_.empty(); }
+    const std::string& str() const { return value_; }
+
+    bool operator==(const DocumentId& other) const { return value_ == other.value_; }
+    bool operator!=(const DocumentId& other) const { return value_ != other.value_; }
+
+private:
+    std::string value_;
+
+    explicit DocumentId(std::string v) : value_(std::move(v)) {}
+};
+
 /// Typed wrapper for node identity strings.
 /// Prevents accidental implicit construction from raw std::string —
 /// callers must go through the explicit factory NodeId::from_string().

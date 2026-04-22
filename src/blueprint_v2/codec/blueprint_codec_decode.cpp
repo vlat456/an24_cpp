@@ -19,21 +19,21 @@ const std::unordered_set<std::string>& allowed_interface_fields() {
 
 const std::unordered_set<std::string>& allowed_component_node_fields() {
     static const std::unordered_set<std::string> s = {
-        "id", "kind", "label", "component", "params", "layout"
+        "id", "kind", "label", "color", "component", "params", "layout"
     };
     return s;
 }
 
 const std::unordered_set<std::string>& allowed_blueprint_instance_node_fields() {
     static const std::unordered_set<std::string> s = {
-        "id", "kind", "label", "source", "collapsed", "layout"
+        "id", "kind", "label", "color", "source", "collapsed", "layout"
     };
     return s;
 }
 
 const std::unordered_set<std::string>& allowed_bridge_port_node_fields() {
     static const std::unordered_set<std::string> s = {
-        "id", "kind", "label", "exposed_port", "direction", "port_type", "layout"
+        "id", "kind", "label", "color", "exposed_port", "direction", "port_type", "layout"
     };
     return s;
 }
@@ -231,6 +231,29 @@ Blueprint decode_nodes(Blueprint bp,
 
         if (auto v = read_optional_string(n, "label", ctx)) {
             node.view.name = std::move(*v);
+        }
+        if (n.contains("color")) {
+            if (!n["color"].is_object()) {
+                throw std::runtime_error("invalid node entry: color must be object");
+            }
+            const auto& color = n["color"];
+            static const std::unordered_set<std::string> allowed_color_fields = {
+                "r", "g", "b", "a"
+            };
+            check_allowed_fields(color, allowed_color_fields, "node color");
+            require_field(color, "r", &nlohmann::json::is_number, "invalid node entry: color", "number");
+            require_field(color, "g", &nlohmann::json::is_number, "invalid node entry: color", "number");
+            require_field(color, "b", &nlohmann::json::is_number, "invalid node entry: color", "number");
+            require_field(color, "a", &nlohmann::json::is_number, "invalid node entry: color", "number");
+            node.view.color = bp2::NodeColor{
+                parse_finite_float(color["r"], "color.r"),
+                parse_finite_float(color["g"], "color.g"),
+                parse_finite_float(color["b"], "color.b"),
+                parse_finite_float(color["a"], "color.a"),
+            };
+            if (!node.view.color->is_valid()) {
+                throw std::runtime_error("invalid node entry: color channels must be within [0,1]");
+            }
         }
 
         if (decoded_kind == DecodedNodeKind::Component) {

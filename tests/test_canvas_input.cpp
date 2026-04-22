@@ -5,6 +5,7 @@
 
 #include "editor/input/canvas_input.h"
 #include "editor/input/editing_host.h"
+#include "editor/window/window_scope_id.h"
 #include "editor/viewport/viewport.h"
 #include "editor/visual/scene.h"
 #include "editor/visual/scene_mutations.h"
@@ -205,7 +206,7 @@ TEST(CanvasInputBus, AliasReconnectUsesSelectedWireNotFirst) {
     bp2::EditorModel model(bp);
     model.next_wire_id_ = 1;
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* bus_widget = dynamic_cast<visual::BusNodeWidget*>(scene.find("bus"));
     ASSERT_NE(bus_widget, nullptr);
@@ -220,7 +221,7 @@ TEST(CanvasInputBus, AliasReconnectUsesSelectedWireNotFirst) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const ui::Pt canvas_min(0.0f, 0.0f);
     input.on_mouse_down(port_center(w2_alias), MouseButton::Left, canvas_min);
@@ -274,7 +275,7 @@ TEST(CanvasInputBus, AliasToAliasReconnectSwapsWireOrder) {
     bp2::EditorModel model(bp);
     model.next_wire_id_ = 1;
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* bus_widget = dynamic_cast<visual::BusNodeWidget*>(scene.find("bus"));
     ASSERT_NE(bus_widget, nullptr);
@@ -286,7 +287,7 @@ TEST(CanvasInputBus, AliasToAliasReconnectSwapsWireOrder) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const ui::Pt canvas_min(0.0f, 0.0f);
     input.on_mouse_down(port_center(w2_alias), MouseButton::Left, canvas_min);
@@ -322,7 +323,7 @@ TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
     bp2::EditorModel model(bp);
     model.next_wire_id_ = 1;
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* bus_widget = dynamic_cast<visual::BusNodeWidget*>(scene.find("bus"));
     ASSERT_NE(bus_widget, nullptr);
@@ -337,7 +338,7 @@ TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const ui::Pt canvas_min(0.0f, 0.0f);
     const size_t before = model.current().wires().size();
@@ -387,7 +388,7 @@ TEST(CanvasInputValidation, RejectsIncompatiblePortTypesOnWireCreate) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
     auto* sink_w = dynamic_cast<visual::Widget*>(scene.find("sink"));
@@ -401,7 +402,7 @@ TEST(CanvasInputValidation, RejectsIncompatiblePortTypesOnWireCreate) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
     input.on_mouse_down(port_center(src_out), MouseButton::Left, canvas_min);
     input.on_mouse_up(MouseButton::Left, port_center(sink_in), canvas_min);
@@ -429,7 +430,7 @@ TEST(CanvasInputValidation, RejectsCrossDomainWireCreate) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
     auto* sink_w = dynamic_cast<visual::Widget*>(scene.find("sink"));
@@ -443,7 +444,7 @@ TEST(CanvasInputValidation, RejectsCrossDomainWireCreate) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
     input.on_mouse_down(port_center(src_out), MouseButton::Left, canvas_min);
     input.on_mouse_up(MouseButton::Left, port_center(sink_in), canvas_min);
@@ -482,7 +483,7 @@ TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* l2_widget = dynamic_cast<visual::Widget*>(scene.find("l2"));
     ASSERT_NE(l2_widget, nullptr);
@@ -497,7 +498,7 @@ TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     // Reconnect wire_1 target from l2:v_in to l1:v_in
@@ -543,7 +544,7 @@ TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* l1_widget = dynamic_cast<visual::Widget*>(scene.find("l1"));
     ASSERT_NE(l1_widget, nullptr);
@@ -553,7 +554,7 @@ TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     ASSERT_EQ(model.current().wires().size(), 1u);
@@ -593,7 +594,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibilit
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* sink_ok_w = dynamic_cast<visual::Widget*>(scene.find("sink_ok"));
     auto* sink_bad_w = dynamic_cast<visual::Widget*>(scene.find("sink_bad"));
@@ -607,7 +608,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibilit
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     // Try reconnecting target to incompatible type (V -> I). Must be rejected.
@@ -654,7 +655,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillAcceptsCompatibleTarge
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* sink_a_w = dynamic_cast<visual::Widget*>(scene.find("sink_a"));
     auto* sink_b_w = dynamic_cast<visual::Widget*>(scene.find("sink_b"));
@@ -668,7 +669,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillAcceptsCompatibleTarge
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     input.on_mouse_down(port_center(sink_a_in), MouseButton::Left, canvas_min);
@@ -710,7 +711,7 @@ TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* slider_w = dynamic_cast<visual::Widget*>(scene.find("slider_1"));
     auto* host_w = dynamic_cast<visual::Widget*>(scene.find("extract_inst_4"));
@@ -723,7 +724,7 @@ TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
 
     Viewport vp;
     auto host_model = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host_model, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host_model, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     input.on_mouse_down(port_center(slider_out), MouseButton::Left, canvas_min);
@@ -770,7 +771,7 @@ TEST(CanvasInputReconnect, EmbeddedAnyInputUsesConcreteSourceDomain) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* sink_a_w = dynamic_cast<visual::Widget*>(scene.find("sink_a"));
     auto* host_w = dynamic_cast<visual::Widget*>(scene.find("extract_inst_4"));
@@ -783,7 +784,7 @@ TEST(CanvasInputReconnect, EmbeddedAnyInputUsesConcreteSourceDomain) {
 
     Viewport vp;
     auto host_model = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host_model, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host_model, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     input.on_mouse_down(port_center(sink_a_in), MouseButton::Left, canvas_min);
@@ -827,12 +828,12 @@ TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     ASSERT_TRUE(input.select_node_by_id("split"));
     input.on_key(Key::Delete);
@@ -879,7 +880,7 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* wire = dynamic_cast<visual::Wire*>(scene.find("wire_probe"));
     ASSERT_NE(wire, nullptr);
@@ -907,7 +908,7 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     Modifiers mods;
@@ -931,7 +932,7 @@ TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
     ASSERT_NE(widget, nullptr);
@@ -939,7 +940,7 @@ TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     const size_t undo_before = model.undo_depth();
@@ -975,14 +976,14 @@ TEST(CanvasInputDelete, DeleteNodeWithConnectedWiresIsSingleUndoStep) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     const size_t undo_before = model.undo_depth();
@@ -1025,11 +1026,11 @@ TEST(CanvasInputDelete, MultiNodeDeleteIsSingleUndoStep) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     // Select both n1 and n2 (n1 has a connected wire)
@@ -1088,11 +1089,11 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     ASSERT_TRUE(input.select_node_by_id("host1"));
     input.on_key(Key::Delete);
@@ -1112,7 +1113,7 @@ TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* w1 = dynamic_cast<visual::Widget*>(scene.find("n1"));
     auto* w2 = dynamic_cast<visual::Widget*>(scene.find("n2"));
@@ -1121,7 +1122,7 @@ TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     const size_t undo_before = model.undo_depth();
@@ -1139,7 +1140,7 @@ TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
     input.on_mouse_down(p1, MouseButton::Left, canvas_min);
     input.on_mouse_drag(MouseButton::Left, ui::Pt(40.0f, 20.0f), canvas_min);
     input.on_mouse_up(MouseButton::Left, p1 + ui::Pt(40.0f, 20.0f), canvas_min);
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     ASSERT_EQ(model.undo_depth(), undo_before + 1);
     ASSERT_NE(model.current().find_node(I.intern("n1")), nullptr);
@@ -1160,13 +1161,13 @@ TEST(CanvasInputGridStep, GridStepChangeDoesNotTouchBlueprintUndoHistory) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.grid_step = 16.0f;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const size_t undo_before = model.undo_depth();
 
     vp.grid_step_up();
@@ -1196,11 +1197,11 @@ TEST(CanvasInputRoutingPoints, RoutingPointChangeIsSingleUndoStep) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const size_t undo_before = model.undo_depth();
 
@@ -1236,7 +1237,7 @@ TEST(CanvasInputDoubleClick, ValueNodeOpensInlineValueEditor) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(widget, nullptr);
@@ -1244,7 +1245,7 @@ TEST(CanvasInputDoubleClick, ValueNodeOpensInlineValueEditor) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
     const ui::Pt click_pos = widget->worldPos() + ui::Pt(10.0f, 10.0f);
 
@@ -1268,7 +1269,7 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("grp1"));
     ASSERT_NE(widget, nullptr);
@@ -1276,7 +1277,7 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
     const ui::Pt click_pos = widget->worldPos() + ui::Pt(10.0f, 10.0f);
 
@@ -1392,7 +1393,7 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     // Verify initial orientation: ref is to the right of bat → port should face Left
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("gnd"));
@@ -1402,7 +1403,7 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
     vp.grid_step = 16.0f;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     // Select and start dragging the ref node
@@ -1420,7 +1421,7 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
     input.on_mouse_up(MouseButton::Left, click_pos + drag_delta, canvas_min);
 
     // Rebuild scene to reflect committed data
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     // After rebuild, the ref node should have its port oriented toward the battery
     // The ref node is now below the battery → port should face Top
@@ -1457,7 +1458,7 @@ TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -1495,14 +1496,14 @@ TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -1538,13 +1539,13 @@ TEST(CanvasInputContentToggle, EdgeClickOnVerticalToggleContentReturnsToggle) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -1575,7 +1576,7 @@ TEST(CanvasInputLayoutSizing, ExplicitUndersizedNodeExpandsToRequiredMinimum) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
@@ -1601,14 +1602,14 @@ TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
     ASSERT_NE(widget, nullptr);
@@ -1654,7 +1655,7 @@ TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum)
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     Viewport vp;
@@ -1662,7 +1663,7 @@ TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum)
     vp.pan = Pt(0, 0);
     vp.grid_step = 24.0f;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
     ASSERT_NE(widget, nullptr);
@@ -1702,7 +1703,7 @@ TEST(CanvasInputLayoutSizing, VerticalToggleMinimumHeightDoesNotAddFullContentSt
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -1728,7 +1729,7 @@ TEST(CanvasInputSimMode, SimModeBlocksNodeDrag) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
     ASSERT_NE(widget, nullptr);
@@ -1736,7 +1737,7 @@ TEST(CanvasInputSimMode, SimModeBlocksNodeDrag) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -1766,7 +1767,7 @@ TEST(CanvasInputSimMode, SimModeBlocksWireCreation) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
     ASSERT_NE(src_w, nullptr);
@@ -1776,7 +1777,7 @@ TEST(CanvasInputSimMode, SimModeBlocksWireCreation) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -1798,12 +1799,12 @@ TEST(CanvasInputSimMode, SimModeBlocksDeleteKey) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     ASSERT_TRUE(input.select_node_by_id("n1"));
@@ -1831,14 +1832,14 @@ TEST(CanvasInputSimMode, SimModeAllowsToggleInteraction) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
@@ -1873,14 +1874,14 @@ TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
@@ -1917,14 +1918,14 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -1959,14 +1960,14 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteractionAtEdge) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -1997,7 +1998,7 @@ TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -2035,7 +2036,7 @@ TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -2073,7 +2074,7 @@ TEST(HitTestInteractionTarget, KnobContentBoundsCoverVisibleKnobSize) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -2099,7 +2100,7 @@ TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -2137,7 +2138,7 @@ TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -2168,7 +2169,7 @@ TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 2.0f;
@@ -2211,7 +2212,7 @@ TEST(CanvasInputInteractionTarget, VerticalTogglePublishesToggleRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -2247,7 +2248,7 @@ TEST(CanvasInputSemanticRender, SwitchProducesRenderObjectsAndHitObjects) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("sw_1"));
     ASSERT_NE(widget, nullptr);
@@ -2283,7 +2284,7 @@ TEST(CanvasInputSemanticRender, VerticalToggleStandardLayoutProducesRenderObject
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "azs_1", [](NodeContent& c) { c.tripped = true; });
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
@@ -2314,7 +2315,7 @@ TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
 
      bp2::EditorModel model(std::move(bp));
      visual::Scene scene;
-     visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+     visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
      auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
      ASSERT_NE(widget, nullptr);
@@ -2347,7 +2348,7 @@ TEST(CanvasInputSemanticRender, ContentSnapshotObjectIdsAreUniqueAndFindable) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -2392,7 +2393,7 @@ TEST(CanvasInputSemanticRender, IndicatorAndKnobCirclesUseCenteredRadiusEncoding
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "ind_1", [](NodeContent& c) { c.value = 1.0f; });
 
     auto* indicator_widget = dynamic_cast<visual::NodeWidget*>(scene.find("ind_1"));
@@ -2447,7 +2448,7 @@ TEST(CanvasInputSemanticRender, GaugeRestoresLegacyTextStackAndFullComposition) 
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
@@ -2501,7 +2502,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -2528,7 +2529,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     
     Pt canvas_min(0, 0);
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
@@ -2555,7 +2556,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesConfiguredFiveStepsMetadata)
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_5"));
     ASSERT_NE(widget, nullptr);
@@ -2588,7 +2589,7 @@ TEST(CanvasInputInteractionTarget, SliderPublishesContinuousScalarRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -2624,7 +2625,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -2657,7 +2658,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     
     Pt canvas_min(0, 0);
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
@@ -2685,7 +2686,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinMax) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_custom"));
     ASSERT_NE(widget, nullptr);
@@ -2704,7 +2705,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinMax) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     Pt wpos = widget->worldPos();
@@ -2738,7 +2739,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinOnLeft
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_custom"));
     ASSERT_NE(widget, nullptr);
@@ -2748,7 +2749,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinOnLeft
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     Pt wpos = widget->worldPos();
@@ -2778,7 +2779,7 @@ TEST(CanvasInputSimMode, SimModeBlocksRightClickContextMenu) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
     ASSERT_NE(widget, nullptr);
@@ -2786,7 +2787,7 @@ TEST(CanvasInputSimMode, SimModeBlocksRightClickContextMenu) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -2807,12 +2808,12 @@ TEST(CanvasInputSimMode, SimModeAllowsPanning) {
     bp2::Blueprint bp;
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -2838,7 +2839,7 @@ TEST(CanvasInputSimMode, SimModeBlocksInlineValueEditor) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(widget, nullptr);
@@ -2846,7 +2847,7 @@ TEST(CanvasInputSimMode, SimModeBlocksInlineValueEditor) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -2870,7 +2871,7 @@ TEST(CanvasInputSimMode, ReadOnlyBlocksInlineValueEditor) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(widget, nullptr);
@@ -2878,7 +2879,7 @@ TEST(CanvasInputSimMode, ReadOnlyBlocksInlineValueEditor) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.read_only = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -2968,7 +2969,7 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
     // is snapped correctly.
     
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* val_widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(val_widget, nullptr) << "Value widget should exist in scene";
@@ -2980,7 +2981,7 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
     vp.grid_step = 10.0f;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
     
@@ -2998,7 +2999,7 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
         input.on_mouse_up(MouseButton::Left, ref_click + drag_delta, canvas_min);
         
         // Rebuild and check position
-        visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+        visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
         
          Pt ref_pos = dynamic_cast<visual::Widget*>(scene.find("ref1"))->worldPos();
         EXPECT_NEAR(ref_pos.x, 110.0f, 0.1f)
@@ -3034,14 +3035,14 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("comp_1"));
     ASSERT_NE(widget, nullptr);
@@ -3084,14 +3085,14 @@ TEST(CanvasInputSemanticGate, SliderDragOffHitStillEmitsThroughSemanticContinuat
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -3129,7 +3130,7 @@ TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "slider_1", [](NodeContent& c) { c.value = 50.0f; });
 
     Viewport vp;
@@ -3137,7 +3138,7 @@ TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -3174,14 +3175,14 @@ TEST(CanvasInputSemanticGate, KnobDragOffHitStillEmitsThroughSemanticContinuatio
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
@@ -3219,14 +3220,14 @@ TEST(CanvasInputSemanticGate, SliderReleaseOffHitEndsDragState) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -3263,14 +3264,14 @@ TEST(CanvasInputSemanticGate, KnobReleaseOffHitEndsDragState) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
@@ -3307,14 +3308,14 @@ TEST(CanvasInputSemanticGate, SimulationModeSliderDragStillEmitsWhenSemanticActi
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -3351,14 +3352,14 @@ TEST(CanvasInputSemanticGate, SimulationModeKnobDragStillEmitsWhenSemanticActive
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
@@ -3407,14 +3408,14 @@ TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "knob_1", [](NodeContent& c) { c.value = 1.0f; });
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -3467,14 +3468,14 @@ TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "slider_1", [](NodeContent& c) { c.value = 50.0f; });
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -3513,7 +3514,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAn
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "knob_1", [](NodeContent& c) { c.value = 1.0f; });
 
     Viewport vp;
@@ -3521,7 +3522,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAn
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -3556,7 +3557,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdle
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     update_dynamic(scene, "slider_1", [](NodeContent& c) { c.value = 50.0f; });
 
     Viewport vp;
@@ -3564,7 +3565,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdle
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -3617,7 +3618,7 @@ TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* ref_widget = dynamic_cast<visual::Widget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -3628,7 +3629,7 @@ TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
 
@@ -3688,13 +3689,13 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelySelectable) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     // --- Simulate addComponent: add a new node to the model ---
     {
@@ -3717,7 +3718,7 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelySelectable) {
     // --- Simulate rebuildAllWindows: cancel + rebuild scene + rebuild snapshot ---
     // (Document::rebuildAllWindows does: cancel_gesture → visual::mutations::rebuild → rebuild_snapshot)
     input.cancel_gesture();
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     input.rebuild_snapshot();
 
     // Verify the new node widget exists in the scene
@@ -3771,13 +3772,13 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelyResizable) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     // --- Simulate addComponent ---
     {
@@ -3797,7 +3798,7 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelyResizable) {
     }
 
     input.cancel_gesture();
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
     input.rebuild_snapshot();
 
     auto* new_widget = scene.find("new_lamp");
@@ -3844,14 +3845,14 @@ TEST(CanvasInputDoubleClick, DoubleClickOnRegularNodeDoesNotConsumeEvent) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
     Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
@@ -3880,14 +3881,14 @@ TEST(CanvasInputDoubleClick, DoubleClickOnValueNodeConsumesEvent) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(widget, nullptr);
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
     Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
@@ -3913,14 +3914,14 @@ TEST(CanvasInputDoubleClick, DoubleClickOnBlueprintInstanceConsumesEvent) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("grp1"));
     ASSERT_NE(widget, nullptr);
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
     Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
@@ -3940,11 +3941,11 @@ TEST(CanvasInputDoubleClick, DoubleClickOnEmptySpaceDoesNotConsume) {
     bp2::Blueprint bp;
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
 
@@ -3984,13 +3985,13 @@ TEST(CanvasInputSnapshotRegression, ResizeSelectResizeAgainStillWorks) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
@@ -4056,13 +4057,13 @@ TEST(CanvasInputSnapshotRegression, DragThenResizeStillWorks) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
@@ -4124,13 +4125,13 @@ TEST(CanvasInputSnapshotRegression, MultipleResizeCyclesAllSucceed) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, "", ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, "", &ci_reg());
+    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);

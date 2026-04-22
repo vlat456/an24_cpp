@@ -14,6 +14,12 @@ namespace bp2 {
 
 class BlueprintLibrary;
 
+enum class MutationResult {
+    NotFound,
+    NoChange,
+    Changed,
+};
+
 struct Rect {
     float x_min = 0.0f;
     float y_min = 0.0f;
@@ -80,10 +86,6 @@ public:
         invalidate_indices();
     }
 
-    /// Bake a referenced blueprint-instance node (convert to embedded).
-    bool bake_blueprint_instance(ui::InternedId node_id, BlueprintLibrary const& library,
-                                ui::StringInterner& interner);
-
     // === Derived queries ===
     std::vector<ui::InternedId> nodes_in_rect(Rect const& r) const;
     bool wire_exists(WireEndpoint const& source, WireEndpoint const& target) const;
@@ -122,5 +124,12 @@ private:
 
 Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updated);
 Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated);
+
+MutationResult try_update_node(Blueprint& bp,
+                               ui::InternedId id,
+                               const std::function<void(Blueprint::Node&)>& fn);
+MutationResult try_update_wire(Blueprint& bp,
+                               ui::InternedId id,
+                               const std::function<void(Blueprint::Wire&)>& fn);
 
 } // namespace bp2
