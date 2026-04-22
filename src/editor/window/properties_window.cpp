@@ -19,55 +19,26 @@
 
 namespace {
 
-bool try_parse_nested_bridge_target(const std::string& bridge_node_id,
-                                   std::string& out_nested_id,
-                                   std::string& out_iface_name) {
-    const size_t sep = bridge_node_id.find(':');
-    if (sep == std::string::npos || sep == 0 || sep + 1 >= bridge_node_id.size()) {
-        return false;
-    }
-    if (bridge_node_id.find(':', sep + 1) != std::string::npos) {
-        return false;
-    }
-
-    out_nested_id = bridge_node_id.substr(0, sep);
-    out_iface_name = bridge_node_id.substr(sep + 1);
-    return true;
-}
-
-void apply_bridge_port_type_to_embedded_instance(bp2::Blueprint& blueprint,
-                                                 ui::InternedId nested_instance_id,
-                                                 ui::InternedId iface_id,
-                                                 PortType port_type) {
-    const auto* node = blueprint.find_node(nested_instance_id);
-    if (!node || !node->has_embedded_blueprint()) {
-        return;
-    }
-
-    const bp2::Blueprint* inline_bp = node->blueprint_instance().source.inline_def();
-    if (!inline_bp) {
-        return;
-    }
-
-    if (!inline_bp->iface().has(iface_id)) {
-        return;
-    }
-
-    const Domain domain = editor::common::domain_for_port_type(port_type);
-    std::vector<bp2::PortDescriptor> ports = inline_bp->iface().ports();
+/// After a bridge-port type change inside an embedded blueprint, update the
+/// corresponding PortDescriptor in the blueprint's Interface so the parent's
+/// view of the embedded instance's ports stays consistent.
+void sync_iface_port_type(bp2::Blueprint& bp,
+                          ui::InternedId exposed_port_name,
+                          PortType new_type) {
+    const Domain new_domain = editor::common::domain_for_port_type(new_type);
+    std::vector<bp2::PortDescriptor> ports = bp.iface().ports();
+    bool changed = false;
     for (auto& pd : ports) {
-        if (pd.name == iface_id) {
-            pd.domain = domain;
-            pd.port_type = port_type;
+        if (pd.name == exposed_port_name) {
+            pd.domain = new_domain;
+            pd.port_type = new_type;
+            changed = true;
             break;
         }
     }
-
-    bp2::Blueprint::Node updated_node = *node;
-    updated_node.blueprint_instance().source.set_inline_def(
-        std::make_unique<bp2::Blueprint>(
-            inline_bp->with_interface(bp2::Interface(std::move(ports)))));
-    blueprint = bp2::replace_node_preserve_order(blueprint, std::move(updated_node));
+    if (changed) {
+        bp = bp.with_interface(bp2::Interface(std::move(ports)));
+    }
 }
 
 } // namespace
@@ -708,22 +679,12 @@ void PropertiesWindow::apply() {
         // Single atomic checkpoint + replace
         bp2::Blueprint next_bp = bp2::replace_node_preserve_order(owned_host_->current_blueprint(), std::move(updated));
 
-        // If editing an extracted bridge node (<nested_id>:<iface_name>), propagate
-        // the authoritative type update into the embedded blueprint interface.
-        if (pending_bridge_port_type_.has_value() && interner_) {
-            std::string nested_id_str;
-            std::string iface_name;
-            if (try_parse_nested_bridge_target(target_node_id_, nested_id_str, iface_name)) {
-                const ui::InternedId nested_iid = interner_->lookup(nested_id_str);
-                const ui::InternedId iface_iid = interner_->lookup(iface_name);
-                if (!nested_iid.empty() && !iface_iid.empty()) {
-                    apply_bridge_port_type_to_embedded_instance(
-                        next_bp,
-                        nested_iid,
-                        iface_iid,
-                        *pending_bridge_port_type_);
-                }
-            }
+        // When editing a bridge port inside an embedded blueprint, keep the
+        // embedded blueprint's Interface in sync with the bridge node's new
+        // type so the parent's view of instance ports stays consistent.
+        if (pending_bridge_port_type_.has_value() && target->is_bridge_port()) {
+            sync_iface_port_type(next_bp, target->bridge_port().exposed_port,
+                                 *pending_bridge_port_type_);
         }
 
         owned_host_->push_checkpoint();

@@ -22,16 +22,13 @@ std::string make_sim_id(const editor::NodeId& node_id, const WindowScopeId& scop
 }
 
 /// Convert a WindowScopeId path to a typed InternedId instance_path.
+/// Asserts that all segments are already interned (unlike intern_scope_path
+/// which returns nullopt for unknown segments).
 std::vector<ui::InternedId> scope_id_to_instance_path(const ui::StringInterner& interner,
                                                        const WindowScopeId& scope_id) {
-    std::vector<ui::InternedId> result;
-    result.reserve(scope_id.path().size());
-    for (const std::string& segment : scope_id.path()) {
-        const ui::InternedId iid = interner.lookup(segment);
-        assert(!iid.empty() && "scope path segment not interned");
-        result.push_back(iid);
-    }
-    return result;
+    auto result = editor::intern_scope_path(interner, scope_id.path());
+    assert(result.has_value() && "scope path segment not interned");
+    return std::move(*result);
 }
 
 /// Build a NodeInstanceKey from a WindowScopeId + local node id.
@@ -94,18 +91,24 @@ editor::RuntimeNodeState build_runtime_state(const bp2::Blueprint::Node& node,
     return default_runtime_state(content.type, content);
 }
 
-/// Dispatch a node color update to all matching windows.
+/// Dispatch a node color update to the window matching scope_id.
+///
+/// **Dual-path color contract (PUSH path):**
+/// This function pushes the canonical `node.view.color` directly to the live
+/// widget after a mutation, bypassing a full scene rebuild. The PULL path
+/// (scene rebuild) reads the same `n.view.color` in `scene_mutations.cpp`.
+/// Both paths must produce identical visual results via `NodeColor::to_uint32()`.
+/// Any change to the color model or widget color API must update both paths.
 void dispatch_color_to_widget(WindowManager& window_manager,
                               ui::StringInterner& interner,
                               ui::InternedId node_iid,
                               const WindowScopeId& scope_id,
                               std::optional<editor::NodeColor> color) {
+    BlueprintWindow* win = window_manager.find(scope_id);
+    if (!win) return;
     std::string_view node_sv = interner.resolve(node_iid);
-    for (const auto& win : window_manager.windows()) {
-        if (win->resolved_scope_id() != scope_id) continue;
-        if (auto* widget = win->scene.find(node_sv)) {
-            widget->setCustomColor(color.has_value() ? std::optional<uint32_t>(color->to_uint32()) : std::nullopt);
-        }
+    if (auto* widget = win->scene.find(node_sv)) {
+        widget->setCustomColor(color.has_value() ? std::optional<uint32_t>(color->to_uint32()) : std::nullopt);
     }
 }
 
@@ -115,14 +118,13 @@ void dispatch_content_to_widget(WindowManager& window_manager,
                                 ui::InternedId node_iid,
                                 const WindowScopeId& scope_id,
                                 const NodeContent& content) {
+    BlueprintWindow* win = window_manager.find(scope_id);
+    if (!win) return;
     std::string_view node_sv = interner.resolve(node_iid);
-    for (const auto& win : window_manager.windows()) {
-        if (win->resolved_scope_id() != scope_id) continue;
-        auto* widget = win->scene.find(node_sv);
-        if (!widget) continue;
-        auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
-        if (nw) nw->updateContent(content);
-    }
+    auto* widget = win->scene.find(node_sv);
+    if (!widget) return;
+    auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
+    if (nw) nw->updateContent(content);
 }
 
 void overlay_simulation_values(NodeContent& content,
@@ -465,17 +467,10 @@ void Document::set_node_color_for_scope(const WindowScopeId& scope_id,
             return;
         }
 
-        const editor::EmbeddedMutationResult updated = editor::mutate_embedded_blueprint(
-            model_.current(), interner_, scope_id.path(),
-            [&](const bp2::Blueprint& embedded) {
-                bp2::Blueprint next = embedded;
-                (void)bp2::try_update_node(next, node_id, assign_color);
-                return next;
-            });
-        if (updated.kind == editor::EmbeddedMutationResultKind::Changed && updated.blueprint.has_value()) {
-            model_.push_checkpoint();
-            model_.replace_current(std::move(*updated.blueprint));
-        }
+        // Convert string path to InternedId path for the typed API
+        auto iid_path = editor::intern_scope_path(interner_, scope_id.path());
+        if (!iid_path) return;
+        model_.update_embedded_node(*iid_path, node_id, assign_color);
     }
 
     if (resolved_target) {

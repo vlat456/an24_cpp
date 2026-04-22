@@ -1,11 +1,10 @@
 #pragma once
 
-/// Embedded-path resolution and mutation utilities.
-/// Provides canonical InternedId implementations and string-based convenience
-/// overloads for walking, resolving, and mutating deeply-nested embedded
-/// blueprints within a root Blueprint.
+/// String-based convenience overloads for embedded-path operations.
+/// Interns string paths and delegates to the canonical bp2:: implementations
+/// in blueprint_v2/blueprint/embedded_mutation.h.
 
-#include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/blueprint/embedded_mutation.h"
 #include "ui/core/interned_id.h"
 
 #include <functional>
@@ -14,56 +13,29 @@
 #include <string>
 #include <vector>
 
+namespace ui {
+class StringInterner;
+}
+
 namespace editor {
 
-enum class EmbeddedMutationResultKind {
-    PathNotFound,
-    NoChange,
-    Changed,
-};
-
-struct EmbeddedMutationResult {
-    EmbeddedMutationResultKind kind = EmbeddedMutationResultKind::PathNotFound;
-    std::optional<bp2::Blueprint> blueprint;
-};
-
-/// Result of resolving an embedded path to its terminal node.
-struct ResolvedEmbeddedNode {
-    const bp2::Blueprint* parent_blueprint = nullptr;
-    const bp2::Blueprint::Node* node = nullptr;
-};
+// Re-export bp2 types for backward compatibility with editor callers.
+using EmbeddedMutationResultKind = bp2::EmbeddedMutationResultKind;
+using EmbeddedMutationResult = bp2::EmbeddedMutationResult;
+using ResolvedEmbeddedNode = bp2::ResolvedEmbeddedNode;
 
 // ============================================================================
-// Typed InternedId path variants — canonical implementations.
-// String-based overloads below delegate here.
+// Path conversion helper
 // ============================================================================
 
-/// Resolve an embedded blueprint by walking a typed InternedId path.
-const bp2::Blueprint* resolve_embedded_blueprint_by_id(
-    const bp2::Blueprint& root_bp,
-    std::span<const ui::InternedId> path);
-
-/// Resolve the host node at the end of a typed InternedId path.
-ResolvedEmbeddedNode resolve_embedded_node_by_id(
-    const bp2::Blueprint& root_bp,
-    std::span<const ui::InternedId> path);
-
-/// Check whether a full typed InternedId path still exists in the root blueprint.
-bool embedded_path_exists_by_id(
-    const bp2::Blueprint& root_bp,
-    std::span<const ui::InternedId> path);
-
-/// Apply a mutation to the embedded blueprint at the end of an InternedId path,
-/// then propagate the change back up through all ancestor nodes to produce a
-/// new root Blueprint. Returns std::nullopt if the path cannot be resolved.
-EmbeddedMutationResult mutate_embedded_blueprint_by_id(
-    bp2::Blueprint root_bp,
-    std::span<const ui::InternedId> path,
-    const std::function<bp2::Blueprint(const bp2::Blueprint&)>& mutation);
+/// Convert a string-based scope path to InternedId path via lookup.
+/// Returns std::nullopt if any segment is not interned.
+std::optional<std::vector<ui::InternedId>> intern_scope_path(
+    const ui::StringInterner& interner,
+    std::span<const std::string> scope_path);
 
 // ============================================================================
-// String-based convenience overloads — intern and delegate to canonical
-// InternedId versions above.
+// String-based convenience overloads — intern and delegate to bp2::.
 // ============================================================================
 
 /// Resolve an embedded blueprint by walking a string scope path.

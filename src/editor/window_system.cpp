@@ -173,8 +173,7 @@ bool WindowSystem::closeDocument(Document& doc) {
         pendingExtract.reset();
     }
     if (inlineValueEditor.document_id == closing_id) {
-        inlineValueEditor.open = false;
-        inlineValueEditor.document_id.reset();
+        inlineValueEditor.close();
     }
     if (pending_tab_focus_ == &doc) {
         pending_tab_focus_ = nullptr;
@@ -228,8 +227,7 @@ bool WindowSystem::closeAllDocuments() {
     setName.document_id.reset();
     setName.show = false;
     pendingExtract.reset();
-    inlineValueEditor.open = false;
-    inlineValueEditor.document_id.reset();
+    inlineValueEditor.close();
     pending_tab_focus_ = nullptr;
 
     // Purge all oscilloscope state (probes + hover) for every document.
@@ -370,6 +368,20 @@ void WindowSystem::openInlineValueEditorForNode(const editor::NodeId& node_id,
         current = it->second;
     }
 
+    // Pre-build the EditingHost for embedded scopes so the dialog doesn't
+    // recreate it every render frame.
+    inlineValueEditor.cached_host.reset();
+    if (scope_id.is_embedded()) {
+        std::vector<ui::InternedId> path;
+        path.reserve(scope_id.path().size());
+        for (const std::string& segment : scope_id.path()) {
+            const ui::InternedId iid = doc.interner().lookup(segment);
+            if (iid.empty()) return;
+            path.push_back(iid);
+        }
+        inlineValueEditor.cached_host = create_pathful_embedded_host(doc.model(), std::move(path));
+    }
+
     inlineValueEditor.open = true;
     inlineValueEditor.document_id = doc.id();
     inlineValueEditor.node_id = node_id;
@@ -458,8 +470,7 @@ void WindowSystem::reconcile_owner_bound_ui() {
         Document* doc = findDocumentById(*inlineValueEditor.document_id);
         if (!doc || inlineValueEditor.scope_id.is_external()
             || !scoped_node_still_exists(*doc, inlineValueEditor.scope_id, inlineValueEditor.node_id)) {
-            inlineValueEditor.open = false;
-            inlineValueEditor.document_id.reset();
+            inlineValueEditor.close();
         }
     }
 

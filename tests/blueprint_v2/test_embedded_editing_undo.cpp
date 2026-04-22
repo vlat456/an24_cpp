@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/blueprint/embedded_mutation.h"
 
 TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
      ui::StringInterner interner;
@@ -179,4 +180,120 @@ TEST(EmbeddedEditingUndo, NestedMutateAtomicallyFullNoOpReturnsFalse) {
     EXPECT_FALSE(result);
     EXPECT_EQ(model.undo_depth(), 0u)
         << "Full no-op nested mutate_atomically must not leave stale checkpoint";
+}
+
+// Regression: mutate_embedded called inside mutate_atomically must NOT
+// push an extra checkpoint. This catches the bug where mutate_embedded()
+// used push_checkpoint() instead of push_checkpoint_if_enabled(), causing
+// double-checkpoint when called from within an atomic block (e.g. addBlueprint).
+TEST(EmbeddedEditingUndo, MutateEmbeddedInsideAtomicBlockProducesSingleUndoEntry) {
+    ui::StringInterner interner;
+
+    // Build a root with an embedded blueprint instance containing one inner node.
+    bp2::Blueprint inner;
+    inner = inner.with_id(interner.intern("inner_bp"));
+    bp2::Blueprint::Node inner_node;
+    inner_node.semantic.id = interner.intern("inner_1");
+    inner_node.semantic.type = interner.intern("Resistor");
+    inner_node.layout.x = 10.0f;
+    inner = inner.with_node(inner_node);
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("group_1");
+    host.semantic.type = interner.intern("Group");
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(inner))
+    };
+
+    bp2::Blueprint root;
+    root = root.with_node(host);
+
+    bp2::EditorModel model(root);
+    model.clear_history();
+    ASSERT_EQ(model.undo_depth(), 0u);
+
+    // Simulate addBlueprint pattern: mutate_embedded inside mutate_atomically.
+    const auto path = std::vector<ui::InternedId>{interner.intern("group_1")};
+
+    model.mutate_atomically([&] {
+        // Also do a root-level change alongside the embedded change.
+        bp2::Blueprint::Node root_node;
+        root_node.semantic.id = interner.intern("root_node");
+        root_node.semantic.type = interner.intern("Battery");
+        model.add_node(std::move(root_node));
+
+        // Embedded mutation — this must NOT push an extra checkpoint.
+        model.mutate_embedded(path,
+            [&](const bp2::Blueprint& embedded) -> bp2::Blueprint {
+                bp2::Blueprint::Node extra;
+                extra.semantic.id = interner.intern("inner_2");
+                extra.semantic.type = interner.intern("Switch");
+                return embedded.with_node(extra);
+            });
+    });
+
+    // Must produce exactly ONE undo entry, not two.
+    ASSERT_EQ(model.undo_depth(), 1u)
+        << "mutate_embedded inside mutate_atomically must not push extra checkpoint";
+
+    // Verify both changes applied.
+    EXPECT_NE(model.current().find_node(interner.intern("root_node")), nullptr);
+    const auto* host_after = model.current().find_node(interner.intern("group_1"));
+    ASSERT_NE(host_after, nullptr);
+    ASSERT_TRUE(host_after->has_embedded_blueprint());
+    const auto* inline_after = host_after->blueprint_instance().source.inline_def();
+    ASSERT_NE(inline_after, nullptr);
+    EXPECT_NE(inline_after->find_node(interner.intern("inner_1")), nullptr);
+    EXPECT_NE(inline_after->find_node(interner.intern("inner_2")), nullptr);
+
+    // Single undo reverts EVERYTHING.
+    model.undo();
+    EXPECT_EQ(model.current().find_node(interner.intern("root_node")), nullptr);
+    const auto* host_undo = model.current().find_node(interner.intern("group_1"));
+    ASSERT_NE(host_undo, nullptr);
+    ASSERT_TRUE(host_undo->has_embedded_blueprint());
+    const auto* inline_undo = host_undo->blueprint_instance().source.inline_def();
+    ASSERT_NE(inline_undo, nullptr);
+    EXPECT_NE(inline_undo->find_node(interner.intern("inner_1")), nullptr);
+    EXPECT_EQ(inline_undo->find_node(interner.intern("inner_2")), nullptr);
+}
+
+// Standalone mutate_embedded (not inside atomic block) must produce one checkpoint.
+TEST(EmbeddedEditingUndo, StandaloneMutateEmbeddedProducesOneCheckpoint) {
+    ui::StringInterner interner;
+
+    bp2::Blueprint inner;
+    inner = inner.with_id(interner.intern("inner_bp"));
+    bp2::Blueprint::Node inner_node;
+    inner_node.semantic.id = interner.intern("inner_1");
+    inner_node.semantic.type = interner.intern("Resistor");
+    inner = inner.with_node(inner_node);
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = interner.intern("group_1");
+    host.semantic.type = interner.intern("Group");
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(inner))
+    };
+
+    bp2::Blueprint root;
+    root = root.with_node(host);
+
+    bp2::EditorModel model(root);
+    model.clear_history();
+    ASSERT_EQ(model.undo_depth(), 0u);
+
+    const auto path = std::vector<ui::InternedId>{interner.intern("group_1")};
+    const bp2::MutationResult mr = model.mutate_embedded(path,
+        [&](const bp2::Blueprint& embedded) -> bp2::Blueprint {
+            bp2::Blueprint::Node extra;
+            extra.semantic.id = interner.intern("inner_2");
+            extra.semantic.type = interner.intern("Switch");
+            return embedded.with_node(extra);
+        });
+
+    EXPECT_EQ(mr, bp2::MutationResult::Changed);
+    EXPECT_EQ(model.undo_depth(), 1u);
 }

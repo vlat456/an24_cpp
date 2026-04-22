@@ -1,4 +1,5 @@
 #pragma once
+#include "blueprint_v2/blueprint/blueprint_replace.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/blueprint/canonicalize.h"
 #include "blueprint_v2/path/path.h"
@@ -9,16 +10,11 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <stdexcept>
+#include <span>
 
 namespace bp2 {
 
 class BlueprintLibrary;
-
-enum class MutationResult {
-    NotFound,
-    NoChange,
-    Changed,
-};
 
 struct Rect {
     float x_min = 0.0f;
@@ -46,6 +42,23 @@ public:
     bool update_node(ui::InternedId id, std::function<void(Blueprint::Node&)> fn);
     bool update_wire(ui::InternedId id, std::function<void(Blueprint::Wire&)> fn);
     bool update_node_position(ui::InternedId id, float x, float y);
+
+    // === Embedded-scope commands (handle checkpoint + propagation) ===
+
+    /// Apply a generic mutation to the embedded blueprint at the given path.
+    /// Handles undo checkpoint and root replacement automatically.
+    /// Returns NotFound if the path cannot be resolved, NoChange if the
+    /// mutation produced no changes, Changed if the root was updated.
+    MutationResult mutate_embedded(
+        std::span<const ui::InternedId> path,
+        const std::function<Blueprint(const Blueprint&)>& mutation);
+
+    /// Update a single node inside an embedded blueprint identified by path.
+    /// Convenience wrapper over mutate_embedded(). Returns true if changed.
+    bool update_embedded_node(
+        std::span<const ui::InternedId> path,
+        ui::InternedId node_id,
+        const std::function<void(Blueprint::Node&)>& fn);
 
     // === History ===
     bool can_undo() const { return !undo_stack_.empty(); }
@@ -117,19 +130,5 @@ private:
     mutable Indices indices_;
     int checkpoint_suppression_depth_ = 0;
 };
-
-// === Order-preserving blueprint replacement helpers ===
-// Rebuild a blueprint replacing (or appending) a single node/wire
-// while preserving the insertion order of all other elements.
-
-Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updated);
-Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated);
-
-MutationResult try_update_node(Blueprint& bp,
-                               ui::InternedId id,
-                               const std::function<void(Blueprint::Node&)>& fn);
-MutationResult try_update_wire(Blueprint& bp,
-                               ui::InternedId id,
-                               const std::function<void(Blueprint::Wire&)>& fn);
 
 } // namespace bp2

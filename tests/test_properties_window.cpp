@@ -386,71 +386,28 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores)
 }
 
 TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNestedIface) {
-    bp2::Blueprint bp;
-    bp = bp.with_id(interner.intern("bp"));
+    // Production-realistic scenario: bridge node lives INSIDE the embedded
+    // blueprint, not at root level.  Changing its type must update both the
+    // bridge node itself and the embedded blueprint's Interface so the parent's
+    // view of instance ports stays consistent.
 
-    // Create a blueprint-instance node with embedded source
-    // Issue #91: Blueprint-instance interface derives from source authority only.
-    // Initialize inner_bp with the interface that will be authoritative.
     bp2::Blueprint inner_bp;
     inner_bp = inner_bp.with_interface(bp2::Interface({
         make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
     }));
 
-    bp2::Blueprint::Node collapsed;
-    collapsed.semantic.id = interner.intern("inst1");
-    collapsed.semantic.type = interner.intern("bp_type");
-    collapsed.view.name = "inst1";
-    // Issue #91: Do NOT set component().iface on blueprint-instance nodes.
-    // The interface derives from source authority only.
-    
-    collapsed.content = bp2::Blueprint::Node::BlueprintInstanceData{
-        bp2::Blueprint::Node::BlueprintSource::make_embedded(
-        std::make_unique<bp2::Blueprint>(inner_bp.with_id(interner.intern("bp_type")))
-    )
+    // Bridge node inside the embedded blueprint — exposed_port matches the
+    // interface port name (production convention from create_bridge_nodes_for_side).
+    bp2::Blueprint::Node bridge;
+    bridge.semantic.id = interner.intern("bp_in_in");
+    bridge.semantic.type = interner.intern("BridgePort");
+    bridge.view.name = "in";
+    bridge.content = bp2::Blueprint::Node::BridgePortData{
+        interner.intern("in"),
+        bp2::BridgeDirection::Input,
+        PortType::V,
     };
-
-    // Create bridge node (now as a regular component node, not nested)
-    bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:in", true, PortType::V);
-
-    bp = bp.with_node(std::move(bridge));
-    bp = bp.with_node(std::move(collapsed));
-    model.replace_current(std::move(bp));
-
-    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst1:in"));
-    ASSERT_NE(node_ptr, nullptr);
-
-    PropertiesWindow win;
-    win.open(*node_ptr, "inst1:in", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
-    win.set_pending_bridge_port_type(PortType::RPM);
-    win.apply();
-
-    const auto* collapsed_after = model.current().find_node(interner.intern("inst1"));
-    ASSERT_NE(collapsed_after, nullptr);
-    
-    // Issue #91: Query interface from source authority using resolve_node_iface()
-    // since component().iface is no longer mirrored for blueprint-instance nodes.
-    auto effective_iface = model.current().resolve_node_iface(*collapsed_after, bp2::Blueprint::NodeIfaceAuthority{interner});
-    ASSERT_EQ(count_inputs(effective_iface), 1u);
-    EXPECT_EQ(get_input_type(effective_iface, 0), PortType::RPM);
-
-    // Check that the embedded blueprint's interface is also updated
-    ASSERT_TRUE(collapsed_after->has_embedded_blueprint());
-    ASSERT_NE(collapsed_after->blueprint_instance().source.inline_def(), nullptr);
-    auto embedded_iface = collapsed_after->blueprint_instance().source.inline_def()->iface();
-    auto pd = embedded_iface.find(interner.intern("in"));
-    ASSERT_TRUE(pd.has_value());
-    EXPECT_EQ(pd->domain, Domain::Mechanical);
-}
-
-TEST_F(PropertiesWindowTest, ApplyBridgePortTypeDoesNotTouchNonCanonicalColonIds) {
-    bp2::Blueprint bp;
-    bp = bp.with_id(interner.intern("bp"));
-
-    bp2::Blueprint inner_bp;
-    inner_bp = inner_bp.with_interface(bp2::Interface({
-        make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
-    }));
+    inner_bp = inner_bp.with_node(std::move(bridge));
 
     bp2::Blueprint::Node collapsed;
     collapsed.semantic.id = interner.intern("inst1");
@@ -461,26 +418,68 @@ TEST_F(PropertiesWindowTest, ApplyBridgePortTypeDoesNotTouchNonCanonicalColonIds
             std::make_unique<bp2::Blueprint>(inner_bp.with_id(interner.intern("bp_type"))))
     };
 
-    bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:iface:debug", true, PortType::V);
-
-    bp = bp.with_node(std::move(bridge));
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("bp"));
     bp = bp.with_node(std::move(collapsed));
     model.replace_current(std::move(bp));
 
-    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst1:iface:debug"));
-    ASSERT_NE(node_ptr, nullptr);
+    // Open properties for the bridge node inside the embedded blueprint
+    auto embedded_host = create_pathful_embedded_host(model, {interner.intern("inst1")});
+    const bp2::Blueprint::Node* bridge_ptr = embedded_host->find_node(interner.intern("bp_in_in"));
+    ASSERT_NE(bridge_ptr, nullptr);
 
     PropertiesWindow win;
-    win.open(*node_ptr, "inst1:iface:debug", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
+    win.open(*bridge_ptr, "bp_in_in", std::move(embedded_host), interner, nullptr, [](const std::string&) {});
     win.set_pending_bridge_port_type(PortType::RPM);
     win.apply();
 
+    // Verify the embedded blueprint's interface was updated to match
     const auto* collapsed_after = model.current().find_node(interner.intern("inst1"));
     ASSERT_NE(collapsed_after, nullptr);
-    auto effective_iface = model.current().resolve_node_iface(*collapsed_after, bp2::Blueprint::NodeIfaceAuthority{interner});
-    ASSERT_EQ(count_inputs(effective_iface), 1u);
-    EXPECT_EQ(get_input_type(effective_iface, 0), PortType::V)
-        << "only canonical <instance>:<iface> bridge ids may propagate into embedded iface authority";
+    ASSERT_TRUE(collapsed_after->has_embedded_blueprint());
+    ASSERT_NE(collapsed_after->blueprint_instance().source.inline_def(), nullptr);
+    auto embedded_iface = collapsed_after->blueprint_instance().source.inline_def()->iface();
+    auto pd = embedded_iface.find(interner.intern("in"));
+    ASSERT_TRUE(pd.has_value());
+    EXPECT_EQ(pd->domain, Domain::Mechanical);
+    EXPECT_EQ(pd->port_type, PortType::RPM);
+}
+
+TEST_F(PropertiesWindowTest, ApplyBridgePortTypeRootLevelBridgeUpdatesRootIface) {
+    // A bridge node at root level with a matching root interface port —
+    // sync_iface_port_type must update the root blueprint's interface.
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("bp"));
+    bp = bp.with_interface(bp2::Interface({
+        make_port(interner, "in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    }));
+
+    bp2::Blueprint::Node bridge;
+    bridge.semantic.id = interner.intern("bp_in_in");
+    bridge.semantic.type = interner.intern("BridgePort");
+    bridge.view.name = "in";
+    bridge.content = bp2::Blueprint::Node::BridgePortData{
+        interner.intern("in"),
+        bp2::BridgeDirection::Input,
+        PortType::V,
+    };
+    bp = bp.with_node(std::move(bridge));
+    model.replace_current(std::move(bp));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bp_in_in"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "bp_in_in", create_editor_model_host(model), interner, nullptr, [](const std::string&) {});
+    win.set_pending_bridge_port_type(PortType::Signal);
+    win.apply();
+
+    // Root interface must be updated
+    auto root_iface = model.current().iface();
+    auto pd = root_iface.find(interner.intern("in"));
+    ASSERT_TRUE(pd.has_value());
+    EXPECT_EQ(pd->port_type, PortType::Signal);
+    EXPECT_EQ(pd->domain, Domain::Logical);
 }
 
 TEST_F(PropertiesWindowTest, ApplyThenUndoRevertsParam) {

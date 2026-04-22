@@ -19,7 +19,7 @@ const char* to_string(SubWindowOpenTargetFailure failure) {
 }
 
 SubWindowOpenTargetResult resolve_subwindow_open_target(const bp2::Blueprint& bp,
-                                                        ui::StringInterner& interner,
+                                                        const ui::StringInterner& interner,
                                                         const bp2::LibraryIndex& library_index,
                                                         const std::string& sub_blueprint_id) {
     const auto lookup_id = interner.lookup(sub_blueprint_id);

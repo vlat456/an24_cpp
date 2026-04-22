@@ -3,6 +3,7 @@
 #include "document.h"
 #include "editor_settings.h"
 #include "visual/inspector/inspector.h"
+#include "editor/input/editing_host.h"
 #include "window/properties_window.h"
 #include "window/window_scope_id.h"
 #include "core/model/component_registry.h"
@@ -171,6 +172,17 @@ public:
         std::string error;
         Pt anchor_screen;
         bool has_anchor = false;
+
+        /// Cached EditingHost for embedded scopes — created once when the
+        /// dialog opens, reused every render frame. Null for root scope
+        /// (root uses doc->root().host directly).
+        std::unique_ptr<EditingHost> cached_host;
+
+        void close() {
+            open = false;
+            document_id.reset();
+            cached_host.reset();
+        }
     } inlineValueEditor;
 
     // ── Utility ──

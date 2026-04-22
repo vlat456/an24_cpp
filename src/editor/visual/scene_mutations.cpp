@@ -155,6 +155,13 @@ static void orient_ref_node_ports(Scene& scene,
 // Public API
 // ============================================================================
 
+/// Full scene rebuild from a Blueprint.
+///
+/// **Dual-path color contract (PULL path):**
+/// Node color is read from `n.view.color` and passed to `NodeFactory::create()`.
+/// The PUSH path (`dispatch_color_to_widget` in `document_simulation.cpp`) pushes
+/// the same `node.view.color` directly to live widgets after mutation. Both paths
+/// derive color via `NodeColor::to_uint32()` and must stay in sync.
 void rebuild(Scene& scene,
              const bp2::Blueprint& bp,
              ui::StringInterner& interner,

@@ -86,11 +86,6 @@ public:
 /// Owned by caller; expects model to outlive the host.
 std::unique_ptr<EditingHost> create_editor_model_host(bp2::EditorModel& model);
 
-/// Create editing host backed by an embedded nested inline blueprint.
-/// Mutations are written through the authoritative root EditorModel.
-std::unique_ptr<EditingHost> create_embedded_inline_host(bp2::EditorModel& root_model,
-                                                         ui::InternedId nested_id);
-
 /// Create editing host backed by a deeply-nested embedded inline blueprint.
 /// Walks the full instance path on every access; propagates mutations back
 /// up through all ancestor nodes to produce a new root Blueprint.

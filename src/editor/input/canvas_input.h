@@ -46,8 +46,10 @@ struct ComponentRegistry;
 /// manipulation are all suppressed.
 class CanvasInput {
 public:
+    /// Construct with optional host. Pass nullptr when the host isn't available
+    /// yet (e.g. external windows), then call rebind_host() before first use.
     CanvasInput(visual::Scene& scene, Viewport& viewport,
-                EditingHost& host, ui::StringInterner& interner,
+                EditingHost* host, ui::StringInterner& interner,
                 bp2::PathArena& arena, const WindowScopeId& scope_id,
                 const ComponentRegistry* parser_registry = nullptr);
 

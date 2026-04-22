@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 #include "ui/core/interned_id.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/blueprint/node_color.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include <algorithm>
+#include <cmath>
 
 // Helper to make a PortDescriptor for a semantic interface
 // Shared bp2 test helpers (make_port, set_iface, count_inputs, count_outputs)
@@ -638,4 +640,39 @@ TEST(BlueprintCanonicalEq, DependsOnlyOnCanonicalViewFields) {
 
     EXPECT_EQ(left, right);
     EXPECT_TRUE(left.canonical_eq(right));
+}
+
+// =============================================================================
+// NodeColor NaN-safety regression (#182)
+// =============================================================================
+
+TEST(NodeColor, CanonicalizedClampsNaNToZero) {
+    const bp2::NodeColor nan_color{std::nanf(""), std::nanf(""), std::nanf(""), std::nanf("")};
+    const bp2::NodeColor c = bp2::NodeColor::canonicalized(nan_color);
+    EXPECT_FLOAT_EQ(c.r, 0.0f);
+    EXPECT_FLOAT_EQ(c.g, 0.0f);
+    EXPECT_FLOAT_EQ(c.b, 0.0f);
+    EXPECT_FLOAT_EQ(c.a, 0.0f);
+}
+
+TEST(NodeColor, CanonicalizedClampsInfinityToZero) {
+    const bp2::NodeColor inf_color{INFINITY, -INFINITY, INFINITY, -INFINITY};
+    const bp2::NodeColor c = bp2::NodeColor::canonicalized(inf_color);
+    EXPECT_FLOAT_EQ(c.r, 1.0f);
+    EXPECT_FLOAT_EQ(c.g, 0.0f);
+    EXPECT_FLOAT_EQ(c.b, 1.0f);
+    EXPECT_FLOAT_EQ(c.a, 0.0f);
+}
+
+TEST(NodeColor, ToUint32IsNaNSafe) {
+    // Regression: NaN channels must not cause UB in static_cast<uint8_t>.
+    // canonicalized() must squash NaN to 0.0f before the conversion.
+    const bp2::NodeColor nan_color{std::nanf(""), 0.5f, 1.0f, std::nanf("")};
+    const uint32_t packed = nan_color.to_uint32();
+    // Alpha (NaN→0) shifted left 24, Blue=1.0→0xFF shifted left 16,
+    // Green=0.5→0x80 shifted left 8, Red (NaN→0).
+    EXPECT_EQ((packed >> 24) & 0xFF, 0u)   << "NaN alpha must map to 0";
+    EXPECT_EQ((packed >> 16) & 0xFF, 255u)  << "Blue 1.0 must map to 255";
+    EXPECT_EQ((packed >>  8) & 0xFF, 128u)  << "Green 0.5 must map to ~128";
+    EXPECT_EQ( packed        & 0xFF, 0u)    << "NaN red must map to 0";
 }

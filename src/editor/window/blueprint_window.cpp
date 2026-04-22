@@ -96,33 +96,6 @@ void rebuild_external_scene(BlueprintWindow& window, const ComponentRegistry* pa
 
 } // namespace
 
-/// A sentinel empty host for constructing CanvasInput before the real host
-/// is available (external windows set host after blueprint is stored).
-namespace {
-class NullHost : public EditingHost {
-public:
-    const bp2::Blueprint bp_;  // owns empty blueprint for safe returns
-    NullHost() = default;
-
-    const bp2::Blueprint& current_blueprint() const override { return bp_; }
-    const bp2::Blueprint::Node* find_node(ui::InternedId) const override { return nullptr; }
-    const bp2::Blueprint::Wire* find_wire(ui::InternedId) const override { return nullptr; }
-    const std::vector<bp2::Blueprint::Wire>& wires() const override { return bp_.wires(); }
-    const std::vector<bp2::Blueprint::Node>& nodes() const override { return bp_.nodes(); }
-    void push_checkpoint() override {}
-    bool mutate_atomically(const std::function<void()>&) override { return false; }
-    void replace_current(bp2::Blueprint) override {}
-    bool add_wire(bp2::Blueprint::Wire) override { return false; }
-    bool remove_wire(ui::InternedId) override { return false; }
-    bool update_wire(ui::InternedId, std::function<void(bp2::Blueprint::Wire&)>) override { return false; }
-    bool update_node_position(ui::InternedId, float, float) override { return false; }
-    bool update_node(ui::InternedId, std::function<void(bp2::Blueprint::Node&)>) override { return false; }
-    bool remove_node(ui::InternedId, std::vector<ui::InternedId>) override { return false; }
-    bool bake_blueprint_instance(ui::InternedId, const bp2::BlueprintLibrary&) override { return false; }
-    std::string allocate_wire_id() override { return {}; }
-};
-} // namespace
-
 BlueprintWindow::BlueprintWindow(bp2::EditorModel& model,
                                   ui::StringInterner& interner,
                                   bp2::PathArena& arena,
@@ -138,8 +111,8 @@ BlueprintWindow::BlueprintWindow(bp2::EditorModel& model,
     , arena(arena)
     , scene()
     , viewport()
-    , host(editing_host ? std::move(editing_host) : std::make_unique<NullHost>())
-    , input(scene, viewport, *this->host, this->interner, this->arena, this->scope, parser_registry)
+    , host(std::move(editing_host))  // may be nullptr for external windows
+    , input(scene, viewport, this->host.get(), this->interner, this->arena, this->scope, parser_registry)
     , read_only(read_only)
     , type_registry(parser_registry)
 {

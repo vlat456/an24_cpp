@@ -1,89 +1,8 @@
 #include "editor_model.h"
 #include "blueprint_v2/library/blueprint_library.h"
+#include "blueprint_v2/blueprint/embedded_mutation.h"
 
 namespace bp2 {
-
-Blueprint replace_node_preserve_order(const Blueprint& bp, Blueprint::Node updated) {
-    Blueprint rebuilt = clone_metadata(bp);
-
-    bool replaced = false;
-    for (const auto& n : bp.nodes()) {
-        if (n.semantic.id == updated.semantic.id) {
-            rebuilt = rebuilt.with_node(std::move(updated));
-            replaced = true;
-        } else {
-            rebuilt = rebuilt.with_node(n);
-        }
-    }
-    if (!replaced) {
-        rebuilt = rebuilt.with_node(std::move(updated));
-    }
-
-    for (const auto& w : bp.wires()) {
-        rebuilt = rebuilt.with_wire(w);
-    }
-
-    return rebuilt;
-}
-
-Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updated) {
-    Blueprint rebuilt = clone_metadata(bp);
-
-    for (const auto& n : bp.nodes()) {
-        rebuilt = rebuilt.with_node(n);
-    }
-
-    bool replaced = false;
-    for (const auto& w : bp.wires()) {
-        if (w.id == updated.id) {
-            rebuilt = rebuilt.with_wire(std::move(updated));
-            replaced = true;
-        } else {
-            rebuilt = rebuilt.with_wire(w);
-        }
-    }
-    if (!replaced) {
-        rebuilt = rebuilt.with_wire(std::move(updated));
-    }
-
-    return rebuilt;
-}
-
-MutationResult try_update_node(Blueprint& bp,
-                               ui::InternedId id,
-                               const std::function<void(Blueprint::Node&)>& fn) {
-    const auto* existing = bp.find_node(id);
-    if (!existing) {
-        return MutationResult::NotFound;
-    }
-
-    Blueprint::Node updated = *existing;
-    fn(updated);
-    if (updated == *existing) {
-        return MutationResult::NoChange;
-    }
-
-    bp = replace_node_preserve_order(bp, std::move(updated));
-    return MutationResult::Changed;
-}
-
-MutationResult try_update_wire(Blueprint& bp,
-                               ui::InternedId id,
-                               const std::function<void(Blueprint::Wire&)>& fn) {
-    const auto* existing = bp.find_wire(id);
-    if (!existing) {
-        return MutationResult::NotFound;
-    }
-
-    Blueprint::Wire updated = *existing;
-    fn(updated);
-    if (updated == *existing) {
-        return MutationResult::NoChange;
-    }
-
-    bp = replace_wire_preserve_order(bp, std::move(updated));
-    return MutationResult::Changed;
-}
 
 EditorModel::EditorModel(Blueprint initial)
     : current_(std::move(initial)) {}  // Issue #91: No canonicalization of blueprint-instance iface
@@ -272,6 +191,43 @@ std::string EditorModel::generate_unique_node_id(
         if (existing.empty()) return candidate;
         if (current_.find_node(existing) == nullptr) return candidate;
     }
+}
+
+MutationResult EditorModel::mutate_embedded(
+    std::span<const ui::InternedId> path,
+    const std::function<Blueprint(const Blueprint&)>& mutation)
+{
+    if (path.empty()) return MutationResult::NotFound;
+
+    const EmbeddedMutationResult result = mutate_embedded_blueprint(current_, path, mutation);
+
+    switch (result.kind) {
+        case EmbeddedMutationResultKind::PathNotFound:
+            return MutationResult::NotFound;
+        case EmbeddedMutationResultKind::NoChange:
+            return MutationResult::NoChange;
+        case EmbeddedMutationResultKind::Changed:
+            if (result.blueprint.has_value()) {
+                push_checkpoint_if_enabled();
+                replace_current(std::move(*result.blueprint));
+            }
+            return MutationResult::Changed;
+    }
+    return MutationResult::NotFound;
+}
+
+bool EditorModel::update_embedded_node(
+    std::span<const ui::InternedId> path,
+    ui::InternedId node_id,
+    const std::function<void(Blueprint::Node&)>& fn)
+{
+    const MutationResult result = mutate_embedded(path,
+        [&](const Blueprint& embedded) -> Blueprint {
+            Blueprint next = embedded;
+            (void)try_update_node(next, node_id, fn);
+            return next;
+        });
+    return result == MutationResult::Changed;
 }
 
 } // namespace bp2

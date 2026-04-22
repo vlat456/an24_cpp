@@ -48,7 +48,7 @@ struct SubWindowOpenTargetResult {
 };
 
 SubWindowOpenTargetResult resolve_subwindow_open_target(const bp2::Blueprint& bp,
-                                                        ui::StringInterner& interner,
+                                                        const ui::StringInterner& interner,
                                                         const bp2::LibraryIndex& library_index,
                                                         const std::string& sub_blueprint_id);
 

@@ -247,8 +247,8 @@ private:
     /// Walk the full instance path from root to reach the host node
     /// (the node whose inline_def() contains the embedded blueprint).
     const bp2::Blueprint::Node& walk_to_host_node() const {
-        const editor::ResolvedEmbeddedNode resolved =
-            editor::resolve_embedded_node_by_id(root_model_.current(), path_);
+        const bp2::ResolvedEmbeddedNode resolved =
+            bp2::resolve_embedded_node(root_model_.current(), path_);
         if (!resolved.node) {
             throw std::logic_error("EmbeddedInlineHost: path segment not found in blueprint");
         }
@@ -258,16 +258,16 @@ private:
     /// Replace the inline blueprint of the deepest host node and propagate
     /// the change back up through all ancestor nodes to produce a new root.
     void propagate_inline_change(bp2::Blueprint next_inline) {
-        const editor::EmbeddedMutationResult result = editor::mutate_embedded_blueprint_by_id(
+        const bp2::EmbeddedMutationResult result = bp2::mutate_embedded_blueprint(
             root_model_.current(), path_,
             [&next_inline](const bp2::Blueprint&) -> bp2::Blueprint {
                 return std::move(next_inline);
             });
 
-        if (result.kind == editor::EmbeddedMutationResultKind::PathNotFound || !result.blueprint.has_value()) {
+        if (result.kind == bp2::EmbeddedMutationResultKind::PathNotFound || !result.blueprint.has_value()) {
             throw std::logic_error("EmbeddedInlineHost: path broken during propagation");
         }
-        if (result.kind == editor::EmbeddedMutationResultKind::NoChange) {
+        if (result.kind == bp2::EmbeddedMutationResultKind::NoChange) {
             return;
         }
         root_model_.replace_current(std::move(*result.blueprint));
@@ -305,11 +305,6 @@ private:
 
 std::unique_ptr<EditingHost> create_editor_model_host(bp2::EditorModel& model) {
     return std::make_unique<EditorModelHost>(model);
-}
-
-std::unique_ptr<EditingHost> create_embedded_inline_host(bp2::EditorModel& root_model,
-                                                         ui::InternedId nested_id) {
-    return std::make_unique<EmbeddedInlineHost>(root_model, std::vector<ui::InternedId>{nested_id});
 }
 
 std::unique_ptr<EditingHost> create_pathful_embedded_host(

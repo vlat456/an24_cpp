@@ -56,7 +56,7 @@ PortType parse_exposed_port_type(const std::string& s) {
 }
 
 /// Update the embedded blueprint-instance's inline blueprint interface to include a new bridge port.
-/// Uses full scope path for resolution — supports nested embedded scopes.
+/// Single-pass: mutate_embedded walks the path once, the lambda receives the inline blueprint directly.
 void add_bridge_port_to_composite(
     bp2::EditorModel& model,
     ui::StringInterner& interner,
@@ -75,31 +75,19 @@ void add_bridge_port_to_composite(
     pd.direction = is_input_bridge ? bp2::Direction::Input : bp2::Direction::Output;
     pd.port_type = port_type;
 
-    // Walk the full path to find the host node at the END of the scope path.
-    const bp2::Blueprint bp = model.current();
-    const editor::ResolvedEmbeddedNode resolved = editor::resolve_embedded_node(
-        bp, interner, scope_id.path());
+    auto iid_path = editor::intern_scope_path(interner, scope_id.path());
+    if (!iid_path) return;
 
-    if (!resolved.node || !resolved.node->has_embedded_blueprint()) {
-        spdlog::warn("[editor] add_bridge_port: embedded blueprint instance at '{}' not found",
-                     scope_id.sim_scope_prefix());
-        return;
-    }
-
-    // Extract, mutate, and restore the embedded blueprint's interface.
-    std::vector<bp2::PortDescriptor> ports = resolved.node->blueprint_instance().source.inline_def()->iface().ports();
-    ports.push_back(pd);
-    bp2::Blueprint updated_inline = resolved.node->blueprint_instance().source.inline_def()->with_interface(
-        bp2::Interface(std::move(ports)));
-
-    // Propagate the mutation back through the path chain.
-    const editor::EmbeddedMutationResult new_root = editor::mutate_embedded_blueprint(bp, interner, scope_id.path(),
-        [&](const bp2::Blueprint& /*inner*/) -> bp2::Blueprint {
-            return std::move(updated_inline);
+    const bp2::MutationResult result = model.mutate_embedded(*iid_path,
+        [&](const bp2::Blueprint& inner) -> bp2::Blueprint {
+            auto ports = inner.iface().ports();
+            ports.push_back(pd);
+            return inner.with_interface(bp2::Interface(std::move(ports)));
         });
 
-    if (new_root.kind == editor::EmbeddedMutationResultKind::Changed && new_root.blueprint.has_value()) {
-        model.replace_current(std::move(*new_root.blueprint));
+    if (result == bp2::MutationResult::NotFound) {
+        spdlog::warn("[editor] add_bridge_port: embedded blueprint instance at '{}' not found",
+                     scope_id.sim_scope_prefix());
     }
 }
 
@@ -166,7 +154,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     const auto bridge_direction = bridge_direction_from_type_definition(*def);
     const bool is_bridge = bridge_direction.has_value();
     const bool bridge_in_group = is_bridge && scope_id.is_embedded()
-        && editor::resolve_embedded_node(model_.current(), interner_, scope_id.path()).node != nullptr;
+        && editor::embedded_path_exists(model_.current(), interner_, scope_id.path());
     const std::string bridge_iface_name = bridge_in_group ? node.view.name : "";
     PortType bridge_port_type = PortType::Contextual;
 
@@ -341,17 +329,16 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
             }
 
             // Walk the full scope path to add the node inside the embedded blueprint.
-            const editor::EmbeddedMutationResult new_root = editor::mutate_embedded_blueprint(
-                model_.current(), interner_, scope_id.path(),
+            auto iid_path = editor::intern_scope_path(interner_, scope_id.path());
+            if (!iid_path) {
+                throw std::runtime_error("embedded blueprint instance at '" + scope_id.sim_scope_prefix() + "' not found");
+            }
+            const bp2::MutationResult mr = model_.mutate_embedded(*iid_path,
                 [&](const bp2::Blueprint& inner) -> bp2::Blueprint {
                     return inner.with_node(collapsed);
                 });
-
-            if (new_root.kind == editor::EmbeddedMutationResultKind::PathNotFound || !new_root.blueprint.has_value()) {
+            if (mr == bp2::MutationResult::NotFound) {
                 throw std::runtime_error("embedded blueprint instance at '" + scope_id.sim_scope_prefix() + "' not found");
-            }
-            if (new_root.kind == editor::EmbeddedMutationResultKind::Changed) {
-                model_.replace_current(std::move(*new_root.blueprint));
             }
         });
 

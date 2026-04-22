@@ -1303,7 +1303,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
     vp.zoom = 1.0f;
     vp.pan = Pt(0.0f, 0.0f);
     auto host = create_editor_model_host(loaded.model());
-    CanvasInput input(loaded.scene(), vp, *host, loaded.interner(), loaded.arena(), WindowScopeId::root(), &registry);
+    CanvasInput input(loaded.scene(), vp, host.get(), loaded.interner(), loaded.arena(), WindowScopeId::root(), &registry);
     input.simulation_mode = true;
     input.rebuild_snapshot();
     Pt canvas_min(0.0f, 0.0f);

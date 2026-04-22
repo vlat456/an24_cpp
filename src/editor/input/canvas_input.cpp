@@ -37,10 +37,10 @@ constexpr float DISCRETE_DRAG_PIXELS_PER_STEP = 30.0f;
 // ============================================================================
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
-                         EditingHost& host, ui::StringInterner& interner,
+                         EditingHost* host, ui::StringInterner& interner,
                          bp2::PathArena& arena, const WindowScopeId& scope_id,
                          const ComponentRegistry* parser_registry)
-    : scene_(scene), viewport_(viewport), host_(&host),
+    : scene_(scene), viewport_(viewport), host_(host),
       interner_(&interner), arena_(&arena),
       parser_registry_(parser_registry),
       scope_id_(scope_id)

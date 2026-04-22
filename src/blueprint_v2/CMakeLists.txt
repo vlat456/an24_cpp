@@ -5,6 +5,8 @@ add_library(blueprint_v2 STATIC
     interface/node_port_projection.cpp
     blueprint/blueprint.cpp
     blueprint/canonicalize.cpp
+    blueprint/embedded_mutation.cpp
+    blueprint/blueprint_replace.cpp
     library/blueprint_library.cpp
     library/library_path.cpp
     library/library_index.cpp

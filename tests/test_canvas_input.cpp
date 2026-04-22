@@ -221,7 +221,7 @@ TEST(CanvasInputBus, AliasReconnectUsesSelectedWireNotFirst) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const ui::Pt canvas_min(0.0f, 0.0f);
     input.on_mouse_down(port_center(w2_alias), MouseButton::Left, canvas_min);
@@ -287,7 +287,7 @@ TEST(CanvasInputBus, AliasToAliasReconnectSwapsWireOrder) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const ui::Pt canvas_min(0.0f, 0.0f);
     input.on_mouse_down(port_center(w2_alias), MouseButton::Left, canvas_min);
@@ -338,7 +338,7 @@ TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const ui::Pt canvas_min(0.0f, 0.0f);
     const size_t before = model.current().wires().size();
@@ -402,7 +402,7 @@ TEST(CanvasInputValidation, RejectsIncompatiblePortTypesOnWireCreate) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
     input.on_mouse_down(port_center(src_out), MouseButton::Left, canvas_min);
     input.on_mouse_up(MouseButton::Left, port_center(sink_in), canvas_min);
@@ -444,7 +444,7 @@ TEST(CanvasInputValidation, RejectsCrossDomainWireCreate) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
     input.on_mouse_down(port_center(src_out), MouseButton::Left, canvas_min);
     input.on_mouse_up(MouseButton::Left, port_center(sink_in), canvas_min);
@@ -498,7 +498,7 @@ TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     // Reconnect wire_1 target from l2:v_in to l1:v_in
@@ -554,7 +554,7 @@ TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     ASSERT_EQ(model.current().wires().size(), 1u);
@@ -608,7 +608,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibilit
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     // Try reconnecting target to incompatible type (V -> I). Must be rejected.
@@ -669,7 +669,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillAcceptsCompatibleTarge
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     input.on_mouse_down(port_center(sink_a_in), MouseButton::Left, canvas_min);
@@ -724,7 +724,7 @@ TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
 
     Viewport vp;
     auto host_model = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host_model, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host_model.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     input.on_mouse_down(port_center(slider_out), MouseButton::Left, canvas_min);
@@ -784,7 +784,7 @@ TEST(CanvasInputReconnect, EmbeddedAnyInputUsesConcreteSourceDomain) {
 
     Viewport vp;
     auto host_model = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host_model, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host_model.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     input.on_mouse_down(port_center(sink_a_in), MouseButton::Left, canvas_min);
@@ -833,7 +833,7 @@ TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     ASSERT_TRUE(input.select_node_by_id("split"));
     input.on_key(Key::Delete);
@@ -908,7 +908,7 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     Modifiers mods;
@@ -940,7 +940,7 @@ TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     const size_t undo_before = model.undo_depth();
@@ -983,7 +983,7 @@ TEST(CanvasInputDelete, DeleteNodeWithConnectedWiresIsSingleUndoStep) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     const size_t undo_before = model.undo_depth();
@@ -1030,7 +1030,7 @@ TEST(CanvasInputDelete, MultiNodeDeleteIsSingleUndoStep) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     // Select both n1 and n2 (n1 has a connected wire)
@@ -1093,7 +1093,7 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     ASSERT_TRUE(input.select_node_by_id("host1"));
     input.on_key(Key::Delete);
@@ -1122,7 +1122,7 @@ TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     const size_t undo_before = model.undo_depth();
@@ -1167,7 +1167,7 @@ TEST(CanvasInputGridStep, GridStepChangeDoesNotTouchBlueprintUndoHistory) {
     vp.grid_step = 16.0f;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const size_t undo_before = model.undo_depth();
 
     vp.grid_step_up();
@@ -1201,7 +1201,7 @@ TEST(CanvasInputRoutingPoints, RoutingPointChangeIsSingleUndoStep) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const size_t undo_before = model.undo_depth();
 
@@ -1245,7 +1245,7 @@ TEST(CanvasInputDoubleClick, ValueNodeOpensInlineValueEditor) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
     const ui::Pt click_pos = widget->worldPos() + ui::Pt(10.0f, 10.0f);
 
@@ -1277,7 +1277,7 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
     const ui::Pt click_pos = widget->worldPos() + ui::Pt(10.0f, 10.0f);
 
@@ -1403,7 +1403,7 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
     vp.grid_step = 16.0f;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     const ui::Pt canvas_min(0.0f, 0.0f);
 
     // Select and start dragging the ref node
@@ -1503,7 +1503,7 @@ TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -1545,7 +1545,7 @@ TEST(CanvasInputContentToggle, EdgeClickOnVerticalToggleContentReturnsToggle) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -1609,7 +1609,7 @@ TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
     ASSERT_NE(widget, nullptr);
@@ -1663,7 +1663,7 @@ TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum)
     vp.pan = Pt(0, 0);
     vp.grid_step = 24.0f;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
     ASSERT_NE(widget, nullptr);
@@ -1737,7 +1737,7 @@ TEST(CanvasInputSimMode, SimModeBlocksNodeDrag) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -1777,7 +1777,7 @@ TEST(CanvasInputSimMode, SimModeBlocksWireCreation) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -1804,7 +1804,7 @@ TEST(CanvasInputSimMode, SimModeBlocksDeleteKey) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     ASSERT_TRUE(input.select_node_by_id("n1"));
@@ -1839,7 +1839,7 @@ TEST(CanvasInputSimMode, SimModeAllowsToggleInteraction) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
@@ -1881,7 +1881,7 @@ TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
@@ -1925,7 +1925,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -1967,7 +1967,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteractionAtEdge) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -2529,7 +2529,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     
     Pt canvas_min(0, 0);
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
@@ -2658,7 +2658,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     
     Pt canvas_min(0, 0);
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
@@ -2705,7 +2705,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinMax) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     Pt wpos = widget->worldPos();
@@ -2749,7 +2749,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinOnLeft
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     Pt wpos = widget->worldPos();
@@ -2787,7 +2787,7 @@ TEST(CanvasInputSimMode, SimModeBlocksRightClickContextMenu) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -2813,7 +2813,7 @@ TEST(CanvasInputSimMode, SimModeAllowsPanning) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -2847,7 +2847,7 @@ TEST(CanvasInputSimMode, SimModeBlocksInlineValueEditor) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -2879,7 +2879,7 @@ TEST(CanvasInputSimMode, ReadOnlyBlocksInlineValueEditor) {
     Viewport vp;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.read_only = true;
 
     const Pt canvas_min(0.0f, 0.0f);
@@ -2981,7 +2981,7 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
     vp.grid_step = 10.0f;
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
     
@@ -3042,7 +3042,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("comp_1"));
     ASSERT_NE(widget, nullptr);
@@ -3092,7 +3092,7 @@ TEST(CanvasInputSemanticGate, SliderDragOffHitStillEmitsThroughSemanticContinuat
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -3138,7 +3138,7 @@ TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -3182,7 +3182,7 @@ TEST(CanvasInputSemanticGate, KnobDragOffHitStillEmitsThroughSemanticContinuatio
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
@@ -3227,7 +3227,7 @@ TEST(CanvasInputSemanticGate, SliderReleaseOffHitEndsDragState) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -3271,7 +3271,7 @@ TEST(CanvasInputSemanticGate, KnobReleaseOffHitEndsDragState) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
@@ -3315,7 +3315,7 @@ TEST(CanvasInputSemanticGate, SimulationModeSliderDragStillEmitsWhenSemanticActi
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
@@ -3359,7 +3359,7 @@ TEST(CanvasInputSemanticGate, SimulationModeKnobDragStillEmitsWhenSemanticActive
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
     input.simulation_mode = true;
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
@@ -3415,7 +3415,7 @@ TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -3475,7 +3475,7 @@ TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -3522,7 +3522,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAn
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -3565,7 +3565,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdle
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -3629,7 +3629,7 @@ TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
 
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
 
@@ -3695,7 +3695,7 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelySelectable) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     // --- Simulate addComponent: add a new node to the model ---
     {
@@ -3778,7 +3778,7 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelyResizable) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     // --- Simulate addComponent ---
     {
@@ -3852,7 +3852,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnRegularNodeDoesNotConsumeEvent) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
     Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
@@ -3888,7 +3888,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnValueNodeConsumesEvent) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
     Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
@@ -3921,7 +3921,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnBlueprintInstanceConsumesEvent) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
     Pt click_pos = widget->worldPos() + Pt(10.0f, 10.0f);
@@ -3945,7 +3945,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnEmptySpaceDoesNotConsume) {
 
     Viewport vp;
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     const Pt canvas_min(0.0f, 0.0f);
 
@@ -3991,7 +3991,7 @@ TEST(CanvasInputSnapshotRegression, ResizeSelectResizeAgainStillWorks) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
@@ -4063,7 +4063,7 @@ TEST(CanvasInputSnapshotRegression, DragThenResizeStillWorks) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
@@ -4131,7 +4131,7 @@ TEST(CanvasInputSnapshotRegression, MultipleResizeCyclesAllSucceed) {
     vp.zoom = 1.0f;
     vp.pan = Pt(0, 0);
     auto host = create_editor_model_host(model);
-    CanvasInput input(scene, vp, *host, I, arena, WindowScopeId::root(), &ci_reg());
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);

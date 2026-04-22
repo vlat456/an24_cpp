@@ -19,57 +19,39 @@ public:
             ? ws.findDocumentById(*ws.inlineValueEditor.document_id)
             : nullptr;
         if (!doc) {
-            ws.inlineValueEditor.open = false;
-            ws.inlineValueEditor.document_id.reset();
+            ws.inlineValueEditor.close();
             return;
         }
 
         const WindowScopeId& scope_id = ws.inlineValueEditor.scope_id;
 
-        // Resolve the EditingHost for the correct scope — this ensures
-        // embedded nodes are found and mutated through the proper path.
-        std::unique_ptr<EditingHost> owned_host;
+        // Resolve the EditingHost: root scopes use the document's root host;
+        // embedded scopes use the cached host created when the dialog opened.
         EditingHost* host = nullptr;
         if (scope_id.is_root()) {
             host = doc->root().host.get();
         } else if (scope_id.is_embedded()) {
-            std::vector<ui::InternedId> path;
-            path.reserve(scope_id.path().size());
-            for (const std::string& segment : scope_id.path()) {
-                const ui::InternedId iid = doc->interner().lookup(segment);
-                if (iid.empty()) {
-                    ws.inlineValueEditor.open = false;
-                    ws.inlineValueEditor.document_id.reset();
-                    return;
-                }
-                path.push_back(iid);
-            }
-            owned_host = create_pathful_embedded_host(doc->model(), std::move(path));
-            host = owned_host.get();
+            host = ws.inlineValueEditor.cached_host.get();
         } else {
             // External scopes are read-only — inline value editing is rejected.
-            ws.inlineValueEditor.open = false;
-            ws.inlineValueEditor.document_id.reset();
+            ws.inlineValueEditor.close();
             return;
         }
 
         if (!host) {
-            ws.inlineValueEditor.open = false;
-            ws.inlineValueEditor.document_id.reset();
+            ws.inlineValueEditor.close();
             return;
         }
 
         const ui::InternedId node_iid = doc->interner().lookup(ws.inlineValueEditor.node_id.str());
         if (node_iid.empty()) {
-            ws.inlineValueEditor.open = false;
-            ws.inlineValueEditor.document_id.reset();
+            ws.inlineValueEditor.close();
             return;
         }
 
         const bp2::Blueprint::Node* node = host->find_node(node_iid);
         if (!node) {
-            ws.inlineValueEditor.open = false;
-            ws.inlineValueEditor.document_id.reset();
+            ws.inlineValueEditor.close();
             return;
         }
 
@@ -124,12 +106,10 @@ public:
                     });
                     doc->rebuildAllWindows();
                     ws.inspector().markDirty();
-                    ws.inlineValueEditor.open = false;
-                    ws.inlineValueEditor.document_id.reset();
+                    ws.inlineValueEditor.close();
                 }
             } else if (cancel || !open || (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))) {
-                ws.inlineValueEditor.open = false;
-                ws.inlineValueEditor.document_id.reset();
+                ws.inlineValueEditor.close();
             }
         }
         ImGui::End();

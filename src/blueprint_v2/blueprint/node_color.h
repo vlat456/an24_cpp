@@ -30,6 +30,10 @@ struct NodeColor {
 
     [[nodiscard]] static NodeColor canonicalized(NodeColor color) {
         auto clamp01 = [](float v) -> float {
+            // NaN is unordered — all comparisons return false, so std::clamp
+            // passes it through unchanged.  Detect and replace with a safe
+            // default before clamping.  ±Inf clamps correctly to [0,1].
+            if (std::isnan(v)) return min_channel;
             return std::clamp(v, min_channel, max_channel);
         };
         color.r = clamp01(color.r);
@@ -40,16 +44,14 @@ struct NodeColor {
     }
 
     /// Convert to ImGui uint32 ABGR format (0xAABBGGRR).
+    /// Canonicalizes first to guarantee NaN-safety on all channels.
     uint32_t to_uint32() const {
-        auto clamp01 = [](float v) -> float {
-            return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+        const NodeColor c = canonicalized(*this);
+        auto to_u8 = [](float v) -> uint8_t {
+            return static_cast<uint8_t>(v * 255.0f + 0.5f);
         };
-
-        const uint8_t ri = static_cast<uint8_t>(clamp01(r) * 255.0f + 0.5f);
-        const uint8_t gi = static_cast<uint8_t>(clamp01(g) * 255.0f + 0.5f);
-        const uint8_t bi = static_cast<uint8_t>(clamp01(b) * 255.0f + 0.5f);
-        const uint8_t ai = static_cast<uint8_t>(clamp01(a) * 255.0f + 0.5f);
-        return (uint32_t(ai) << 24) | (uint32_t(bi) << 16) | (uint32_t(gi) << 8) | uint32_t(ri);
+        return (uint32_t(to_u8(c.a)) << 24) | (uint32_t(to_u8(c.b)) << 16)
+             | (uint32_t(to_u8(c.g)) << 8) | uint32_t(to_u8(c.r));
     }
 };
 

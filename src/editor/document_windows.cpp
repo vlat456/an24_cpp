@@ -74,7 +74,7 @@ void Document::openSubWindow(const WindowScopeId& parent_scope, const std::strin
 
 void Document::openSubWindow(const WindowScopeId& target_scope) {
     const bp2::Blueprint* bp = nullptr;
-    ui::StringInterner* bp_interner = nullptr;
+    const ui::StringInterner* bp_interner = nullptr;
 
     if (target_scope.is_root()) {
         return;
@@ -96,12 +96,12 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
         const ResolvedSignalScope external_parent = resolve_signal_scope(external_parent_scope);
         if (external_parent.blueprint && external_parent.interner) {
             bp = external_parent.blueprint;
-            bp_interner = const_cast<ui::StringInterner*>(external_parent.interner);
+            bp_interner = external_parent.interner;
         } else {
             WindowScopeId embedded_parent_scope = WindowScopeId::embedded(parent_path);
             const ResolvedSignalScope embedded_parent = resolve_signal_scope(embedded_parent_scope);
             bp = embedded_parent.blueprint;
-            bp_interner = const_cast<ui::StringInterner*>(embedded_parent.interner);
+            bp_interner = embedded_parent.interner;
         }
     }
 
