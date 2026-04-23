@@ -32,10 +32,14 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data,
     : node_iid_(data.semantic.id)
     , interner_(&interner)
     , name_(data.view.name)
-    , type_name_(std::string(interner.resolve(data.semantic.type)))
+    , type_iid_(data.semantic.type)
 {
-    // For Value nodes, display the numeric value instead of the name
-    if (type_name_ == "Value" && !data.semantic.params.empty()) {
+    // For Value nodes, display the numeric value instead of the name.
+    // type_iid_ compared against a pre-interned sentinel — zero string in the constructor.
+    // The "Value" sentinel must come from a mutable interner, so we look up from the
+    // node's own type InternedId. If the blueprint was loaded, "Value" is already interned.
+    const ui::InternedId value_iid = interner.lookup("Value");
+    if (!value_iid.empty() && type_iid_ == value_iid && !data.semantic.params.empty()) {
         name_ = format_value(data.semantic.params.begin()->second);
     }
     if (color.has_value()) {

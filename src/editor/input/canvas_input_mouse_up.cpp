@@ -262,7 +262,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
     if (!dbl_click_node_iid.empty()) {
         const bp2::Blueprint::Node* node = host_->find_node(dbl_click_node_iid);
-        if (!read_only && !simulation_mode && node && std::string(interner_->resolve(node->semantic.type)) == "Value") {
+        if (!read_only && !simulation_mode && node && node->semantic.type == interner_->intern("Value")) {
             result.open_inline_value_editor = true;
             result.inline_value_editor_node_id = dbl_click_node_iid;
             result.has_inline_value_editor_screen_pos = true;

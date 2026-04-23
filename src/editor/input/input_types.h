@@ -2,7 +2,6 @@
 
 #include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
-#include <string>
 
 /// Mouse buttons
 enum class MouseButton {

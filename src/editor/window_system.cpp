@@ -342,7 +342,7 @@ void WindowSystem::openInlineValueEditorForNode(ui::InternedId node_id,
                                                 const ui::Pt* anchor_screen) {
     const bp2::Blueprint::Node* node = doc.find_node_in_scope(scope_id, node_id);
     if (!node) return;
-    if (std::string(doc.interner().resolve(node->semantic.type)) != "Value") return;
+    if (node->semantic.type != doc.interner().intern("Value")) return;
 
     const ui::InternedId value_key = doc.interner().intern("value");
     float current = 0.0f;

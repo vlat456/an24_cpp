@@ -48,7 +48,7 @@ private:
     ui::InternedId node_iid_;
     const ui::StringInterner* interner_;
     std::string name_;
-    std::string type_name_;
+    ui::InternedId type_iid_;
 
     Port* port_ = nullptr;
     std::optional<uint32_t> custom_fill_;
