@@ -31,5 +31,8 @@
   ],
   "param_defaults": {
     "duration": "30.0"
+  },
+  "param_schema": {
+    "duration": {"type": "float"}
   }
 }

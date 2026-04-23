@@ -63,8 +63,7 @@ bool try_build_control_component(
     case ComponentKind::Accumulator: {
         Accumulator<JitProvider> comp;
         comp.initial_val = param_reader.consume_float_optional("initial_val", 0.0f);
-        comp.state = comp.initial_val;
-        comp.next_state = comp.initial_val;
+        comp.pre_load(); // initializes state + next_state from initial_val
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
@@ -72,8 +71,7 @@ bool try_build_control_component(
     case ComponentKind::Integrator: {
         Integrator<JitProvider> comp;
         comp.initial_val = param_reader.consume_float_required("initial_val");
-        comp.accumulator = comp.initial_val;
-        comp.next_accumulator = comp.initial_val;
+        comp.pre_load(); // initializes accumulator + next_accumulator from initial_val
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;

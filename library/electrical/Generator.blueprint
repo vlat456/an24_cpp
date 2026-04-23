@@ -32,6 +32,10 @@
     "internal_r": "0.005",
     "v_nominal": "28.5"
   },
+  "param_schema": {
+    "internal_r": {"type": "float"},
+    "v_nominal": {"type": "float"}
+  },
   "solver_role": {
     "kind": "TheveninSource",
     "ports": {

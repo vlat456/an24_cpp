@@ -44,5 +44,13 @@
     "filter_alpha": "0.2",
     "output_max": "1000.0",
     "output_min": "-1000.0"
+  },
+  "param_schema": {
+    "Kd": {"type": "float"},
+    "Ki": {"type": "float"},
+    "Kp": {"type": "float"},
+    "filter_alpha": {"type": "float"},
+    "output_max": {"type": "float"},
+    "output_min": {"type": "float"}
   }
 }

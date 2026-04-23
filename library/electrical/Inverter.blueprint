@@ -32,5 +32,9 @@
   "param_defaults": {
     "efficiency": "0.95",
     "frequency": "400.0"
+  },
+  "param_schema": {
+    "efficiency": {"type": "float"},
+    "frequency": {"type": "float"}
   }
 }

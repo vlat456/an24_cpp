@@ -41,5 +41,10 @@
     "Kp": "1.0",
     "output_max": "1000.0",
     "output_min": "-1000.0"
+  },
+  "param_schema": {
+    "Kp": {"type": "float"},
+    "output_max": {"type": "float"},
+    "output_min": {"type": "float"}
   }
 }

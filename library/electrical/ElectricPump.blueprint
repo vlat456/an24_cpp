@@ -39,5 +39,8 @@
   ],
   "param_defaults": {
     "max_pressure": "1000.0"
+  },
+  "param_schema": {
+    "max_pressure": {"type": "float"}
   }
 }

@@ -32,5 +32,9 @@
   "param_defaults": {
     "deadzone": "0.001",
     "factor": "0.05"
+  },
+  "param_schema": {
+    "deadzone": {"type": "float"},
+    "factor": {"type": "float"}
   }
 }

@@ -104,11 +104,10 @@ void build_and_register_components(
 
             CompType comp;
             comp.positions = static_cast<int>(param_reader.consume_float_optional("positions", 2.0f));
-            comp.positions = std::clamp(comp.positions, 2, KnobSwitch<JitProvider>::MAX_POSITIONS);
             comp.selected = static_cast<int>(param_reader.consume_float_optional("initial_position", 0.0f));
             comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
             comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
-            comp.pre_load();
+            comp.pre_load(); // clamps positions and selected
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
 

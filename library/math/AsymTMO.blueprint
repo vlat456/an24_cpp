@@ -33,5 +33,10 @@
     "deadzone": "0.001",
     "tau_down": "0.5",
     "tau_up": "0.1"
+  },
+  "param_schema": {
+    "deadzone": {"type": "float"},
+    "tau_down": {"type": "float"},
+    "tau_up": {"type": "float"}
   }
 }

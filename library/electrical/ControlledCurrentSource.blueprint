@@ -41,5 +41,11 @@
     "min_i": "0.0",
     "max_i": "100.0",
     "g_shunt": "0.001"
+  },
+  "param_schema": {
+    "gain": {"type": "float"},
+    "min_i": {"type": "float"},
+    "max_i": {"type": "float"},
+    "g_shunt": {"type": "float"}
   }
 }

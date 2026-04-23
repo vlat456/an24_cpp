@@ -24,5 +24,8 @@
   ],
   "param_defaults": {
     "conductance": "0.035"
+  },
+  "param_schema": {
+    "conductance": {"type": "float"}
   }
 }

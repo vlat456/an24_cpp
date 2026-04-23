@@ -32,5 +32,9 @@
   "param_defaults": {
     "deadzone": "0.0001",
     "max_rate": "1.0"
+  },
+  "param_schema": {
+    "deadzone": {"type": "float"},
+    "max_rate": {"type": "float"}
   }
 }

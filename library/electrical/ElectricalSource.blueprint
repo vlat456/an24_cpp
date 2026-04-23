@@ -32,6 +32,10 @@
     "voltage": "28.0",
     "resistance": "0.01"
   },
+  "param_schema": {
+    "voltage": {"type": "float"},
+    "resistance": {"type": "float"}
+  },
   "solver_role": {
     "kind": "TheveninSource",
     "ports": {

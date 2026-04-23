@@ -31,5 +31,8 @@
   ],
   "param_defaults": {
     "sensitivity": "1.0"
+  },
+  "param_schema": {
+    "sensitivity": {"type": "float"}
   }
 }

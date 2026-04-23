@@ -26,5 +26,10 @@ public:
 
     void execute(SimulationState& st, double dt);
     void commit(SimulationState& st, double dt);
-    void pre_load() {}
+    /// Initialize committed + staged state from initial_val param.
+    void pre_load() {
+        accumulator = next_accumulator = static_cast<double>(initial_val);
+        first_frame_mask = 1.0f;
+        next_first_frame_mask = 1.0f;
+    }
 };

@@ -5,7 +5,8 @@
 
 template <typename Provider>
 void KnobSwitch<Provider>::pre_load() {
-    // Clamp initial position
+    // Clamp positions count and initial position
+    positions = std::clamp(positions, 2, MAX_POSITIONS);
     selected = std::clamp(selected, 0, positions - 1);
 }
 

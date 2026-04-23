@@ -41,5 +41,11 @@
     "compression_only": "true",
     "k": "1000.0",
     "rest_length": "0.1"
+  },
+  "param_schema": {
+    "c": {"type": "float"},
+    "compression_only": {"type": "bool"},
+    "k": {"type": "float"},
+    "rest_length": {"type": "float"}
   }
 }

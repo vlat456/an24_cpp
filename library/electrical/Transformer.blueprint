@@ -31,5 +31,8 @@
   ],
   "param_defaults": {
     "ratio": "1.0"
+  },
+  "param_schema": {
+    "ratio": {"type": "float"}
   }
 }

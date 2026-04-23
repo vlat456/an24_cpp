@@ -33,5 +33,9 @@
   "param_defaults": {
     "efficiency": "0.9",
     "max_power": "1000.0"
+  },
+  "param_schema": {
+    "efficiency": {"type": "float"},
+    "max_power": {"type": "float"}
   }
 }

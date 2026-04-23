@@ -31,5 +31,8 @@
   ],
   "param_defaults": {
     "cooling_capacity": "1000.0"
+  },
+  "param_schema": {
+    "cooling_capacity": {"type": "float"}
   }
 }

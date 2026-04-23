@@ -33,5 +33,10 @@
     "gas_volume": "10.0",
     "precharge_pressure": "50.0",
     "volume": "10.0"
+  },
+  "param_schema": {
+    "gas_volume": {"type": "float"},
+    "precharge_pressure": {"type": "float"},
+    "volume": {"type": "float"}
   }
 }

@@ -33,5 +33,10 @@
     "deadzone": "0.0001",
     "rate_down": "0.5",
     "rate_up": "1.0"
+  },
+  "param_schema": {
+    "deadzone": {"type": "float"},
+    "rate_down": {"type": "float"},
+    "rate_up": {"type": "float"}
   }
 }
