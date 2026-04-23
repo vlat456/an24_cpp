@@ -291,6 +291,10 @@ private:
     // Typed signal overrides — InternedId resolved once at interaction time.
     std::vector<std::pair<ui::InternedId, float>> typed_overrides_;
 
+    // Persistent merge buffer for overrides — cleared each frame, capacity preserved.
+    // Avoids per-frame heap allocation in updateSimulationStep().
+    std::vector<std::pair<ui::InternedId, float>> override_buffer_;
+
     // Held buttons — key is NodeInstanceKey, value is pre-resolved
     // control port InternedId (resolved at press time, not per-frame).
     std::unordered_map<editor::NodeInstanceKey, ui::InternedId, editor::NodeInstanceKeyHash> held_buttons_;

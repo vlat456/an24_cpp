@@ -452,15 +452,14 @@ void Document::updateSimulationStep(double dt) {
     if (!simulation_running_) return;
 
     // Merge held-button overrides (pre-resolved InternedIds) with interaction overrides.
-    std::vector<std::pair<ui::InternedId, float>> all_overrides;
-    all_overrides.reserve(typed_overrides_.size() + held_buttons_.size());
-
+    // Reuse persistent buffer — capacity preserved across frames, zero allocation after warmup.
+    override_buffer_.clear();
     for (const auto& [key, control_iid] : held_buttons_) {
-        if (!control_iid.empty()) all_overrides.push_back({control_iid, 1.0f});
+        if (!control_iid.empty()) override_buffer_.push_back({control_iid, 1.0f});
     }
-    all_overrides.insert(all_overrides.end(), typed_overrides_.begin(), typed_overrides_.end());
+    override_buffer_.insert(override_buffer_.end(), typed_overrides_.begin(), typed_overrides_.end());
 
-    simulation_.apply_typed_overrides(all_overrides);
+    simulation_.apply_typed_overrides(override_buffer_);
     simulation_.step(dt);
     typed_overrides_.clear();
 }
