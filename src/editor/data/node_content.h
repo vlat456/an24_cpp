@@ -14,13 +14,15 @@
 #include <unordered_map>
 
 /// Per-node display content payload consumed by widget rendering.
+/// label and unit are string_view — must point to stable storage
+/// (string literals, interner strings, or blueprint param strings).
 struct NodeContent {
     bp2::NodeContentType type = bp2::NodeContentType::None;
-    std::string label;
+    std::string_view label;
     float value = 0.0f;
     float min = 0.0f;
     float max = 1.0f;
-    std::string unit;
+    std::string_view unit;
     bool state = false;
 };
 
