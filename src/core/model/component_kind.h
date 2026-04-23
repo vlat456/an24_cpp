@@ -89,7 +89,7 @@ enum class ComponentKind : uint8_t {
 
 /// Resolve a string classname to ComponentKind. Returns std::nullopt for unknown names.
 inline std::optional<ComponentKind> parse_component_kind(std::string_view name) {
-    // Alphabetical switch — matches the codegen order.
+    // Alphabetical if-chain — matches the codegen order.
     // This is a one-time cost at load/elaboration, not in the hot path.
     if (name == "AND") return ComponentKind::AND;
     if (name == "AZS") return ComponentKind::AZS;
