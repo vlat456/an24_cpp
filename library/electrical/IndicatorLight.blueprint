@@ -36,10 +36,14 @@
     "Electrical"
   ],
   "param_defaults": {
-    "conductance": "0.002"
+    "conductance": "0.002",
+    "rated_voltage": "28.0"
   },
   "param_schema": {
     "conductance": {
+      "type": "float"
+    },
+    "rated_voltage": {
       "type": "float"
     }
   },

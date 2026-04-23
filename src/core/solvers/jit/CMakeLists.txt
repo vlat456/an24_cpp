@@ -1,11 +1,7 @@
 add_library(jit_solver
     jit_solver.cpp
     build_utils.cpp
-    build_components.cpp
-    build_components_logic.cpp
-    build_components_control.cpp
-    build_components_utility.cpp
-    build_components_physical.cpp
+    build_factory.cpp
     build_components_validation.cpp
     build_electrical.cpp
     simulator.cpp

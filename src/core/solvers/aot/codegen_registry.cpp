@@ -15,10 +15,21 @@ struct PortMeta {
     bool source_writer = false;
 };
 
+/// Codegen representation of a param entry from param_schema.
+struct CodegenParam {
+    std::string name;             ///< JSON param key (e.g. "v_nominal")
+    std::string field;            ///< C++ field name override (empty = same as name)
+    ParamSchemaType type;         ///< float/int/bool/string/table
+    std::string default_value;    ///< From param_defaults (string form)
+    std::string arena_field_offset; ///< For table type: component field receiving arena offset
+    std::string arena_field_size;   ///< For table type: component field receiving entry count
+};
+
 struct ComponentPorts {
     std::string classname;
     std::vector<PortMeta> ports;
-    bool has_solver_role = false;
+    std::vector<CodegenParam> params;
+    std::string solver_role_kind;  ///< Empty if no solver_role, else e.g. "FixedVoltageNode"
     bool scheduler_source = false;
     bool solver_owned_electrical = false;
 };
@@ -35,9 +46,26 @@ std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& re
 
         ComponentPorts comp;
         comp.classname = def->classname;
-        comp.has_solver_role = def->solver.solver_role.has_value();
+        comp.solver_role_kind = def->solver.solver_role.has_value()
+            ? def->solver.solver_role->kind : "";
         comp.scheduler_source = def->solver.scheduler_source;
         comp.solver_owned_electrical = def->solver.solver_owned_electrical;
+
+        // Collect non-visual-only params sorted by name for deterministic codegen
+        for (const auto& [param_name, param_spec] : def->params) {
+            if (param_spec.visual_only) continue;
+            CodegenParam cp;
+            cp.name = param_name;
+            cp.field = param_spec.field.empty() ? param_name : param_spec.field;
+            cp.type = param_spec.type;
+            cp.default_value = param_spec.default_value;
+            cp.arena_field_offset = param_spec.arena_field_offset;
+            cp.arena_field_size = param_spec.arena_field_size;
+            comp.params.push_back(std::move(cp));
+        }
+        std::sort(comp.params.begin(), comp.params.end(),
+            [](const CodegenParam& a, const CodegenParam& b) { return a.name < b.name; });
+
         for (const auto& [port_name, port] : def->ports) {
             PortMeta meta;
             meta.name = port_name;
@@ -236,7 +264,7 @@ void emit_port_registry_component_traits(
     // requires_solver_role: component has solver_role defined
     oss << "constexpr bool COMPONENT_REQUIRES_SOLVER_ROLE[] = {\n";
     for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << (all_components[i].has_solver_role ? "true" : "false")
+        oss << "    " << (!all_components[i].solver_role_kind.empty() ? "true" : "false")
             << (i < all_components.size() - 1 ? ",\n" : "\n");
     }
     oss << "};\n\n";
@@ -314,6 +342,240 @@ void generate_port_names_header(const std::string& output_path, const std::set<s
         pn_out << pn.str();
         pn_out.close();
     }
+}
+
+// ======================================================================
+// Build factory codegen — all helpers in anonymous namespace
+// ======================================================================
+
+/// Build a param signature key — used to detect components sharing the same
+/// param set (e.g. KnobSwitch/RotarySwitch1ToN/RotarySwitchNTo1).
+static std::string param_signature(const ComponentPorts& comp) {
+    std::string sig;
+    for (const auto& p : comp.params) {
+        sig += p.name + ":" + std::to_string(static_cast<int>(p.type)) + ",";
+    }
+    return sig;
+}
+
+/// Emit a single param assignment line with given indentation.
+/// Returns true if code was emitted (false for table params, handled separately).
+static bool emit_param_assignment(std::ostringstream& oss, const CodegenParam& p, const char* indent = "            ") {
+    const std::string& def = p.default_value;
+
+    /// Convert a default value string (e.g. "0.005", "2", "1e-6") to a valid C++ float literal.
+    auto float_literal = [](const std::string& v) -> std::string {
+        if (v.empty()) return "0.0f";
+        // If value contains '.' or 'e'/'E', it's already float-like — append 'f'
+        if (v.find('.') != std::string::npos || v.find('e') != std::string::npos || v.find('E') != std::string::npos) {
+            return v + "f";
+        }
+        // Pure integer — add ".0f" to make it a valid float literal
+        return v + ".0f";
+    };
+
+    switch (p.type) {
+    case ParamSchemaType::Float:
+        oss << indent << "comp." << p.field << " = param_reader.consume_float_optional(\""
+            << p.name << "\", " << float_literal(def) << ");\n";
+        return true;
+    case ParamSchemaType::Int:
+        oss << indent << "comp." << p.field << " = static_cast<int>(param_reader.consume_float_optional(\""
+            << p.name << "\", " << float_literal(def) << "));\n";
+        return true;
+    case ParamSchemaType::Bool:
+        oss << indent << "comp." << p.field << " = param_reader.consume_bool_optional(\""
+            << p.name << "\", " << (def == "true" || def == "1" ? "true" : "false") << ");\n";
+        return true;
+    case ParamSchemaType::String:
+        oss << indent << "param_reader.consume_string_optional(\""
+            << p.name << "\", \"\");\n";
+        return true;
+    case ParamSchemaType::Table:
+        return false;
+    }
+    return false;
+}
+
+/// Emit LUT-style table arena allocation block (indented for switch-case body).
+static void emit_table_arena_block(std::ostringstream& oss, const ComponentPorts& comp) {
+    for (const auto& p : comp.params) {
+        if (p.type != ParamSchemaType::Table) continue;
+        oss << "            if (auto it = dev.params.find(\"" << p.name << "\"); it != dev.params.end()) {\n";
+        oss << "                const std::string " << p.name << "_str = param_reader.consume_string_optional(\""
+            << p.name << "\", \"\");\n";
+        oss << "                std::vector<float> keys, vals;\n";
+        oss << "                if (" << comp.classname << "<JitProvider>::parse_table(" << p.name << "_str, keys, vals)) {\n";
+        oss << "                    comp." << p.arena_field_offset
+            << " = static_cast<uint32_t>(result.lut_keys.size());\n";
+        oss << "                    comp." << p.arena_field_size
+            << " = static_cast<uint16_t>(keys.size());\n";
+        oss << "                    result.lut_keys.insert(result.lut_keys.end(), keys.begin(), keys.end());\n";
+        oss << "                    result.lut_values.insert(result.lut_values.end(), vals.begin(), vals.end());\n";
+        oss << "                }\n";
+        oss << "            }\n";
+    }
+}
+
+/// Emit FixedVoltageNode post-registration logic (indented for switch-case body).
+static void emit_fixed_voltage_node_block(std::ostringstream& oss, const ComponentPorts& comp) {
+    if (comp.solver_role_kind != "FixedVoltageNode") return;
+    oss << "            {\n";
+    oss << "                const std::string key = dev.name + \".v\";\n";
+    oss << "                const ui::InternedId iid = result.signal_key_interner.lookup(key);\n";
+    oss << "                auto it_sig = result.port_to_signal.find(iid);\n";
+    oss << "                if (it_sig != result.port_to_signal.end()) {\n";
+    oss << "                    result.fixed_signals.push_back(it_sig->second);\n";
+    oss << "                }\n";
+    oss << "            }\n";
+}
+
+/// Emit a single switch case for a component.
+static void emit_build_case(std::ostringstream& oss, const ComponentPorts& comp, bool use_helper) {
+    const std::string& cn = comp.classname;
+
+    if (use_helper) {
+        oss << "        case ComponentKind::" << cn << ":\n";
+        oss << "            build_knob_switch_impl<" << cn << "<JitProvider>>(result, dev, param_reader);\n";
+        oss << "            break;\n";
+        return;
+    }
+
+    oss << "        case ComponentKind::" << cn << ": {\n";
+    oss << "            " << cn << "<JitProvider> comp;\n";
+
+    // Emit param assignments (non-table first, then table arena block)
+    for (const auto& p : comp.params) {
+        if (p.type != ParamSchemaType::Table) {
+            emit_param_assignment(oss, p);
+        }
+    }
+    emit_table_arena_block(oss, comp);
+
+    oss << "            comp.pre_load();\n";
+    oss << "            setup_component_ports(result, dev, comp);\n";
+    oss << "            param_reader.validate_all_consumed();\n";
+    oss << "            result.devices[dev.name] = std::move(comp);\n";
+
+    // Registration: solver_owned_electrical takes priority (handled by electrical solver)
+    if (comp.solver_owned_electrical) {
+        // no scheduler registration — managed by electrical subsolver
+    } else if (comp.scheduler_source) {
+        oss << "            result.scheduler.add_source(&std::get<"
+            << cn << "<JitProvider>>(result.devices[dev.name]));\n";
+    } else {
+        oss << "            result.scheduler.add_consumer(&std::get<"
+            << cn << "<JitProvider>>(result.devices[dev.name]));\n";
+    }
+
+    // Post-registration special blocks
+    emit_fixed_voltage_node_block(oss, comp);
+
+    oss << "            break;\n";
+    oss << "        }\n";
+}
+
+/// Detect knob-switch families — components sharing identical param schema
+/// and solver_role.kind == "KnobSwitchBranches".
+static std::map<std::string, std::vector<const ComponentPorts*>>
+group_knob_switch_families(const std::vector<ComponentPorts>& all_components) {
+    std::map<std::string, std::vector<const ComponentPorts*>> families;
+    for (const auto& comp : all_components) {
+        if (comp.solver_role_kind == "KnobSwitchBranches") {
+            families[param_signature(comp)].push_back(&comp);
+        }
+    }
+    return families;
+}
+
+/// Generate the full build_factory.cpp content into oss.
+static void emit_build_factory_content(std::ostringstream& oss, const std::vector<ComponentPorts>& all_components) {
+    // Detect KnobSwitch families for helper function generation
+    auto families = group_knob_switch_families(all_components);
+    std::set<std::string> helper_classnames;
+    for (const auto& [sig, members] : families) {
+        if (members.size() > 1) {
+            for (const auto* m : members) {
+                helper_classnames.insert(m->classname);
+            }
+        }
+    }
+
+    oss << "// Auto-generated by codegen from library/*.blueprint\n";
+    oss << "// DO NOT EDIT - changes will be overwritten\n\n";
+    oss << "#include \"jit_solver_internal.h\"\n";
+    oss << "#include \"build_components_common.h\"\n";
+    oss << "#include \"components/all.h\"\n";
+    oss << "\n";
+    oss << "#include <algorithm>\n";
+    oss << "#include <spdlog/spdlog.h>\n";
+    oss << "\n";
+    oss << "namespace jit_solver_impl {\n\n";
+
+    // Emit KnobSwitch template helper (only if needed)
+    if (!helper_classnames.empty()) {
+        oss << "/// Template helper for KnobSwitch-family components.\n";
+        oss << "/// Generated because multiple ComponentKinds share identical params.\n";
+        oss << "template <typename CompType>\n";
+        oss << "static void build_knob_switch_impl(\n";
+        oss << "    BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader)\n";
+        oss << "{\n";
+        oss << "    CompType comp;\n";
+
+        // Use first family member's params — they're all identical
+        const auto& first_family = families.begin()->second;
+        const auto& ref = *first_family[0];
+        for (const auto& p : ref.params) {
+            emit_param_assignment(oss, p, "    ");
+        }
+        oss << "    comp.pre_load();\n";
+        oss << "    setup_component_ports(result, dev, comp);\n";
+        oss << "    param_reader.validate_all_consumed();\n";
+        oss << "    result.devices[dev.name] = std::move(comp);\n";
+        oss << "}\n\n";
+    }
+
+    oss << "void build_and_register_components(\n";
+    oss << "    BuildResult& result,\n";
+    oss << "    const std::vector<ResolvedDevice>& devices)\n";
+    oss << "{\n";
+    oss << "    std::vector<std::string> consumer_device_names;\n\n";
+    oss << "    for (const auto& dev : devices) {\n";
+    oss << "        if (!has_component_metadata(dev.kind)) {\n";
+    oss << "            throw std::runtime_error(\"Missing generated port metadata for component class '\" + dev.classname + \"'\");\n";
+    oss << "        }\n\n";
+    oss << "        const bool is_source = dev.scheduler_source;\n";
+    oss << "        const bool is_solver_owned = dev.solver_owned_electrical;\n\n";
+    oss << "        if (!is_source && !is_solver_owned) {\n";
+    oss << "            consumer_device_names.push_back(dev.name);\n";
+    oss << "        }\n\n";
+    oss << "        ParamReader param_reader(dev.params, dev);\n\n";
+    oss << "        switch (dev.kind) {\n";
+
+    for (const auto& comp : all_components) {
+        bool use_helper = helper_classnames.count(comp.classname) > 0;
+        emit_build_case(oss, comp, use_helper);
+    }
+
+    oss << "        default:\n";
+    oss << "            throw std::runtime_error(\"Unknown component class '\" + std::string(dev.classname)\n";
+    oss << "                + \"' for device '\" + dev.name + \"'. No factory handler registered.\");\n";
+    oss << "        }\n";
+    oss << "    }\n\n";
+
+    // Post-pass: deduplicate fixed signals + validation
+    oss << "    // Post-registration pass: Deduplicate fixed signals\n";
+    oss << "    std::sort(result.fixed_signals.begin(), result.fixed_signals.end());\n";
+    oss << "    result.fixed_signals.erase(\n";
+    oss << "        std::unique(result.fixed_signals.begin(), result.fixed_signals.end()),\n";
+    oss << "        result.fixed_signals.end());\n\n";
+    oss << "    // Sentinel is a fixed signal: always allocated at the end, never changes\n";
+    oss << "    result.fixed_signals.push_back(result.signal_count - 1);\n\n";
+    oss << "    validate_source_writer_conflicts(result, devices);\n";
+    oss << "    validate_consumer_guardrails(result, consumer_device_names, devices);\n";
+    oss << "    topological_sort_consumers(result, consumer_device_names, devices);\n";
+    oss << "}\n\n";
+    oss << "}  // namespace jit_solver_impl\n";
 }
 
 } // namespace
@@ -395,4 +657,21 @@ void CodeGen::generate_port_registry(const ComponentRegistry& registry, const st
     out.close();
 
     generate_port_names_header(output_path, all_port_names);
+}
+
+void CodeGen::generate_build_factory(const ComponentRegistry& registry, const std::string& output_path) {
+    auto all_components = build_component_metadata(registry);
+
+    std::ostringstream oss;
+    emit_build_factory_content(oss, all_components);
+
+    std::ofstream out(output_path);
+    if (!out.is_open()) {
+        std::cerr << "[codegen] Error: could not write to " << output_path << "\n";
+        return;
+    }
+    out << oss.str();
+    out.close();
+
+    std::cerr << "[codegen] Generated build factory: " << output_path << "\n";
 }

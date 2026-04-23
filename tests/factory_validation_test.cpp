@@ -123,7 +123,6 @@ BuildResult build_single_component(const std::string& classname,
         merged_params.try_emplace("factor", "0.5");
         merged_params.try_emplace("deadzone", "1e-6");
     } else if (classname == "TimeDelay") {
-        merged_params.try_emplace("delay", "0.1");
         merged_params.try_emplace("delay_on", "0.1");
         merged_params.try_emplace("delay_off", "0.1");
     }

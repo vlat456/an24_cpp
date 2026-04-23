@@ -76,6 +76,9 @@ std::unordered_map<std::string, ParamSchemaEntry> parse_param_schema(const nlohm
         if (entry.contains("arena_field_size")) {
             schema.arena_field_size = entry["arena_field_size"].get<std::string>();
         }
+        if (entry.contains("field")) {
+            schema.field = entry["field"].get<std::string>();
+        }
         out[name] = schema;
     }
     return out;
@@ -106,6 +109,7 @@ static ParamSpec to_param_spec(const ParamSchemaEntry& schema, std::string defau
     spec.visual_only = schema.visual_only;
     spec.arena_field_offset = schema.arena_field_offset;
     spec.arena_field_size = schema.arena_field_size;
+    spec.field = schema.field;
     return spec;
 }
 
@@ -129,6 +133,7 @@ void merge_params_and_schema(
             spec.visual_only = it->second.visual_only;
             spec.arena_field_offset = it->second.arena_field_offset;
             spec.arena_field_size = it->second.arena_field_size;
+            spec.field = it->second.field;
         }
     };
 

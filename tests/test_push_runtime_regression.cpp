@@ -763,9 +763,9 @@ TEST(PushRuntime, LerpNodeCommitSemantics) {
     EXPECT_TRUE(std::isfinite(out2));
 }
 
-TEST(PushRuntime, StrictParamMissingThrowsForPID) {
-    // Verify that missing required params for PID throws runtime_error
-    // with component name and missing key.
+TEST(PushRuntime, StrictParamUsesDefaultsWhenMissing) {
+    // Codegen factory uses param_schema defaults when params are absent.
+    // Verify that PID with no params builds successfully using defaults.
     std::unordered_map<std::string, Port> device_ports;
     for (const auto& port_name : get_component_ports(ComponentKind::PID)) {
         device_ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
@@ -773,24 +773,16 @@ TEST(PushRuntime, StrictParamMissingThrowsForPID) {
 
     JitBuildInput input;
     input = make_jit_input_from_resolved({
-        make_raw_resolved_device("pid_bad", "PID", {}, std::move(device_ports))
+        make_raw_resolved_device("pid_default", "PID", {}, std::move(device_ports))
     });
 
-    try {
-        (void)build_systems_dev(input);
-        FAIL() << "Expected runtime_error for PID missing Kp";
-    }
-    catch (const std::runtime_error& e) {
-        const std::string msg = e.what();
-        EXPECT_NE(msg.find("pid_bad"), std::string::npos)
-            << "Error message should contain component name";
-        EXPECT_NE(msg.find("Kp"), std::string::npos)
-            << "Error message should contain missing key 'Kp'";
-    }
+    // Should NOT throw — defaults from param_schema are used
+    auto result = build_systems_dev(input);
+    ASSERT_TRUE(result.devices.count("pid_default"));
 }
 
-TEST(PushRuntime, StrictParamMissingThrowsForSlewRate) {
-    // Verify that missing required params for SlewRate throws runtime_error
+TEST(PushRuntime, StrictParamUsesSlewRateDefaultsWhenMissing) {
+    // Verify that SlewRate with only deadzone provided uses defaults for max_rate.
     std::unordered_map<std::string, Port> device_ports;
     for (const auto& port_name : get_component_ports(ComponentKind::SlewRate)) {
         device_ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
@@ -799,23 +791,14 @@ TEST(PushRuntime, StrictParamMissingThrowsForSlewRate) {
     JitBuildInput input;
     input = make_jit_input_from_resolved({
         make_raw_resolved_device(
-            "slew_bad",
+            "slew_default",
             "SlewRate",
             {{"deadzone", "0.001"}},
             std::move(device_ports))
     });
 
-    try {
-        (void)build_systems_dev(input);
-        FAIL() << "Expected runtime_error for SlewRate missing max_rate";
-    }
-    catch (const std::runtime_error& e) {
-        const std::string msg = e.what();
-        EXPECT_NE(msg.find("slew_bad"), std::string::npos)
-            << "Error message should contain component name";
-        EXPECT_NE(msg.find("max_rate"), std::string::npos)
-            << "Error message should contain missing key 'max_rate'";
-    }
+    auto result = build_systems_dev(input);
+    ASSERT_TRUE(result.devices.count("slew_default"));
 }
 
 TEST(PushRuntime, StrictParamUsesCanonicalKey) {

@@ -82,7 +82,8 @@
       "type": "int"
     },
     "initial_position": {
-      "type": "int"
+      "type": "int",
+      "field": "selected"
     },
     "g_open": {
       "type": "float"

@@ -48,6 +48,9 @@ struct ParamSpec {
     std::string arena_field_offset;
     /// For Table type: component field that receives the entry count.
     std::string arena_field_size;
+    /// Component field name override. Empty means param_name == field_name.
+    /// Used when the JSON param name differs from the C++ member name.
+    std::string field;
 };
 
 struct BridgePortDefinition {

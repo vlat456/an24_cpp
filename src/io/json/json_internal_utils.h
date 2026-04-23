@@ -14,6 +14,7 @@ struct ParamSchemaEntry {
     bool visual_only = false;
     std::string arena_field_offset;
     std::string arena_field_size;
+    std::string field;
 };
 
 Domain parse_domain_string(const std::string& s);

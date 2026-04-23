@@ -118,6 +118,10 @@ public:
     /// Generate port registry header from ComponentRegistry
     static void generate_port_registry(const ComponentRegistry& registry, const std::string& output_path);
 
+    /// Generate build_factory.cpp from ComponentRegistry.
+    /// Replaces hand-written build_components*.cpp switch files.
+    static void generate_build_factory(const ComponentRegistry& registry, const std::string& output_path);
+
     /// Generate Systems class for a composite blueprint.
     /// Expands sub-blueprint references into flat devices + connections,
     /// runs union-find signal allocation, then delegates to generate_header/source.

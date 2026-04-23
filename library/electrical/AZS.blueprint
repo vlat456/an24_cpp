@@ -62,7 +62,8 @@
     "closed": "false",
     "i_nominal": "20.0",
     "g_open": "1e-6",
-    "g_closed": "1000.0"
+    "g_closed": "1000.0",
+    "k_cool": "1.0"
   },
   "param_schema": {
     "closed": {
@@ -75,6 +76,9 @@
       "type": "float"
     },
     "g_closed": {
+      "type": "float"
+    },
+    "k_cool": {
       "type": "float"
     }
   },
