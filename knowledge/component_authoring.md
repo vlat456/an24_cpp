@@ -4,11 +4,11 @@ This guide is for writing components that behave well in the current solver.
 
 Relevant code:
 
-- `/Users/vladimir/an24_cpp/src/jit_solver/components/all.h`
-- `/Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp`
-- `/Users/vladimir/an24_cpp/src/jit_solver/components/provider.h`
-- `/Users/vladimir/an24_cpp/src/jit_solver/state.h`
-- `/Users/vladimir/an24_cpp/src/jit_solver/state.cpp`
+- `src/core/solvers/jit/components/all.h`
+- `src/core/solvers/jit/components/provider.h`
+- `src/core/solvers/jit/state.h`
+- `src/core/solvers/jit/build_factory.cpp` (AUTO-GENERATED — do not edit)
+- `src/core/solvers/aot/codegen_registry.cpp` (codegen tool that produces the factory)
 
 ## Main rule
 
@@ -154,55 +154,112 @@ These should be computed simply from available solved state.
 
 ## Recommended workflow for new components
 
-### Step 1. Determine the component role
+> **Zero factory code required.** The component factory (`build_factory.cpp`) is auto-generated from `param_schema`. Adding a new component needs only blueprint + header + codegen rerun.
 
-For electrical components, decide:
-- **Solver-owned**: contributes to electrical subsolver (Battery, Generator, Resistor, etc.)
-- **Push component**: runs in scheduler, reads solved values
+### Step 0. Checklist before starting
 
-See `knowledge/how_to_create_electrical_components.md`.
+- Can the behavior be expressed as a **composite** of existing primitives? → Don't create a new C++ class.
+- If a C++ class is needed, decide: **solver-owned electrical** (uses subsolver) or **push component** (runs in scheduler).
 
-### Step 2. Implement push component pattern
+### Step 1. Create the blueprint
+
+Place in `library/<category>/MyComponent.blueprint`:
+
+```json
+{
+  "version": "3.0",
+  "id": "MyComponent",
+  "display_name": "My Component",
+  "scheduler_source": false,
+  "solver_owned_electrical": false,
+  "interface": [
+    {"name": "in", "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "out", "domain": 2, "direction": 1, "type": "Signal", "source_writer": false}
+  ],
+  "cpp_class": true,
+  "domains": ["Logical"],
+  "param_defaults": {"gain": "1.0"},
+  "param_schema": {
+    "gain": {"type": "float"}
+  }
+}
+```
+
+**Key `param_schema` fields:**
+- `"type"`: `"float"` | `"int"` | `"bool"` | `"string"` | `"table"`
+- `"field"`: override C++ member name (if param name ≠ field name, e.g. `"initial_position"` → `"field": "selected"`)
+- `"visual_only": true`: param is editor-only, never reaches factory
+- `"arena_field_offset"` / `"arena_field_size"`: for `"type": "table"` only (LUT pattern)
+
+### Step 2. Create the C++ header
+
+Place in `src/core/solvers/jit/components/my_component.h`:
 
 ```cpp
-template <typename Provider>
-void MyComponent<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float in = st.values[provider.get(PortNames::v_in)];
-    st.values[provider.get(PortNames::v_out)] = in * param;
-}
+#pragma once
+#include "provider.h"
+#include "component_enums.h"
+#include "../state.h"
 
-template <typename Provider>
-void MyComponent<Provider>::commit(SimulationState& st, double dt) {
-    if (state_transition_condition) {
-        next_state = new_state;
+template <typename Provider = JitProvider>
+class MyComponent {
+public:
+    static constexpr Domain domain = Domain::Logical;
+    Provider provider;
+    float gain = 1.0f;
+
+    void execute(SimulationState& st, double /*dt*/) {
+        float in = st.values[provider.get(PortNames::in)];
+        st.values[provider.get(PortNames::out)] = in * gain;
     }
-    state = next_state;
+    void commit(SimulationState& st, double dt) {}
+    void pre_load() {}  // Always define — called by generated factory
+};
+```
+
+### Step 3. Register in all.h and component_kind.h
+
+Add `#include "my_component.h"` to `src/core/solvers/jit/components/all.h`.
+
+Add `MyComponent,` to `ComponentKind` enum in `src/core/model/component_kind.h` (alphabetical position). Also add entries to `parse_component_kind()` and `component_kind_classname()`.
+
+### Step 4. Run codegen + rebuild
+
+```bash
+./build/tools/update_port_registry
+cmake --build build -j$(nproc)
+cd build && ctest
+```
+
+The codegen emits:
+- `port_registry.h` — ComponentVariant entry + port metadata
+- `port_names.h` — PortNames enum entries
+- `build_factory.cpp` — construction switch case with param assignment + registration
+
+**No factory code changes needed.** The codegen derives everything from `param_schema`.
+
+### Registration rules (automatic)
+
+The codegen emits scheduler registration based on blueprint flags:
+
+| `scheduler_source` | `solver_owned_electrical` | Registration |
+|---|---|---|
+| any | `true` | **None** (electrical subsolver manages it) |
+| `true` | `false` | `add_source` |
+| `false` | `false` | `add_consumer` |
+
+### Pre-load for computed state
+
+If the component needs to derive computed fields from params (clamping, precomputed reciprocals, etc.), put logic in `pre_load()`:
+
+```cpp
+void pre_load() {
+    inv_gain = 1.0f / std::max(gain, 1e-6f);
+    positions = std::clamp(positions, 2, MAX_POSITIONS);
 }
 ```
 
-### Step 3. Add state machine for stateful components
-
-```cpp
-void MyComponent::execute(SimulationState& st, double /*dt*/) {
-    // Read inputs from committed state
-    float ctrl = st.values[provider.get(PortNames::ctrl)];
-    
-    // Compute outputs
-    float g = closed ? on_conductance : off_conductance;
-    st.values[provider.get(PortNames::v_out)] = g;
-}
-
-void MyComponent::commit(SimulationState& st, double /*dt*/) {
-    // Stage transition
-    if (st.values[provider.get(PortNames::ctrl)] > threshold) {
-        next_closed = true;
-    } else {
-        next_closed = false;
-    }
-    // Apply for next frame
-    closed = next_closed;
-}
-```
+The generated factory always calls `comp.pre_load()` after param assignment.
 
 ## Red flags
 

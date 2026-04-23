@@ -1696,7 +1696,8 @@ inline std::vector<std::string> get_component_ports(ComponentKind kind) {
 }
 
 inline bool has_component_metadata(ComponentKind kind) {
-    return kind != ComponentKind::_COUNT;
+    const auto idx = static_cast<size_t>(kind);
+    return idx < static_cast<size_t>(ComponentKind::_COUNT);
 }
 
 inline std::vector<std::string> get_output_ports(ComponentKind kind) {

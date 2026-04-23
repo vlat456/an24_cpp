@@ -134,17 +134,18 @@ AOT code generator applies NASA C++ coding standards with strategic refactoring 
 
 **Failing tests**: `PushBuildValidation.MultipleSourcesSameWireErrors`, `MultipleSourceLikeComponentsConflict`, `BatteryAndGeneratorOnSameWire`, `ControlledCurrentSourceConflict`, `ControlledVoltageSourcesShareVPos_Throws`, `TwoBatteriesDirectConnection`, `PushRuntime.SourceConflictErrorMessageReadable`
 
-**Root cause**: Source conflict validation logic was MISSING from `build_components.cpp`. Tests expected `build_systems_dev()` to throw `std::runtime_error` when multiple source-writer components connect to the same signal, but no such check existed.
+**Root cause**: Source conflict validation logic was MISSING from the factory build pipeline. Tests expected `build_systems_dev()` to throw `std::runtime_error` when multiple source-writer components connect to the same signal, but no such check existed.
 
-**Fix**: Added `validate_source_writer_conflicts()` function in `build_components.cpp`:
-- Iterates all devices, gets `active_source_writer_ports_for(classname)` for each
+**Fix**: Added `validate_source_writer_conflicts()` function in `build_components_validation.cpp`:
+- Iterates all devices, gets `active_source_writer_ports_for(kind)` for each
 - Maps source-writer ports to their signal indices via `result.port_to_signal`
 - If any signal has >1 source-writer port, throws `std::runtime_error` with device/port names
-- Called right before `validate_consumer_guardrails()` in `build_and_register_components()`
+- Called by the generated factory at the end of `build_and_register_components()`
 
 **Files changed**:
 - `src/core/solvers/jit/jit_solver_internal.h` — declared `validate_source_writer_conflicts()`
-- `src/core/solvers/jit/build_components.cpp` — implemented + called in build pipeline
+- `src/core/solvers/jit/build_components_validation.cpp` — implemented
+- `src/core/solvers/jit/build_factory.cpp` — called in generated build pipeline (AUTO-GENERATED)
 - `tests/port_registry_test.cpp` — fixed include path
 
 ### Pragmatic Exceptions

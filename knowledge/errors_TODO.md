@@ -1140,32 +1140,15 @@ All scheduling constants centralized in codegen under `DomainSchedule` namespace
 
 ---
 
-### 18. Remove ParamReader Forwarding Lambdas in `build_systems_dev()`
+### ~~18. Remove ParamReader Forwarding Lambdas in `build_systems_dev()`~~ ✓ DONE (via codegen factory)
 
-**File:** `src/core/solvers/jit/build_components.cpp` (component build loop)
+**File:** ~~`src/core/solvers/jit/build_components.cpp`~~ (deleted — replaced by codegen factory)
 
-**Problem:**
+**Resolution (2026-04-23):**
 
-- After introducing `ParamReader`, several local lambdas only forward calls (`consume_float_optional`, `consume_bool_optional`, etc.).
-- This adds indirection and boilerplate without behavior/value.
+The hand-written `build_components.cpp` and its 5 category split files have been replaced by the codegen factory (`build_factory.cpp`). The generated factory emits direct `param_reader.consume_*()` calls with no forwarding lambdas. This TODO is resolved.
 
-**Detailed TODO plan:**
-
-1. Replace forwarding lambdas with direct calls to `param_reader` at component assignment sites.
-2. Keep strict-consumption behavior unchanged (`validate_all_consumed()` still called once per component path).
-3. For LUT/table and other special-case params, use explicit `param_reader.consume_*` calls directly.
-4. Run focused tests:
-   - `PushBuildValidation.*`
-   - `push_runtime_regression_tests`
-   - full suite
-
-**Acceptance criteria:**
-
-- Forwarding lambdas removed.
-- Param parsing behavior and error messages unchanged.
-- All tests remain green.
-
-**Impact:** Low effort, small readability and maintenance win.
+**Impact:** Done. No forwarding lambdas remain.
 
 ---
 
@@ -1210,7 +1193,7 @@ Remaining differences are intentional — `parse_type_definition` is a lenient t
 
 ### 21. Strengthen Unknown-Class Fail-Fast in Metadata API
 
-**Files:** generated `src/core/solvers/jit/components/port_registry.h`, `src/core/solvers/jit/build_components.cpp`
+**Files:** generated `src/core/solvers/jit/components/port_registry.h`, `src/core/solvers/jit/build_factory.cpp` (AUTO-GENERATED)
 
 **Problem:**
 

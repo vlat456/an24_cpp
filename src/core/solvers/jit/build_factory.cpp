@@ -358,9 +358,10 @@ void build_and_register_components(
             result.scheduler.add_consumer(&std::get<Inverter<JitProvider>>(result.devices[dev.name]));
             break;
         }
-        case ComponentKind::KnobSwitch:
+        case ComponentKind::KnobSwitch: {
             build_knob_switch_impl<KnobSwitch<JitProvider>>(result, dev, param_reader);
             break;
+        }
         case ComponentKind::LUT: {
             LUT<JitProvider> comp;
             if (auto it = dev.params.find("table"); it != dev.params.end()) {
@@ -598,12 +599,14 @@ void build_and_register_components(
             result.devices[dev.name] = std::move(comp);
             break;
         }
-        case ComponentKind::RotarySwitch1ToN:
+        case ComponentKind::RotarySwitch1ToN: {
             build_knob_switch_impl<RotarySwitch1ToN<JitProvider>>(result, dev, param_reader);
             break;
-        case ComponentKind::RotarySwitchNTo1:
+        }
+        case ComponentKind::RotarySwitchNTo1: {
             build_knob_switch_impl<RotarySwitchNTo1<JitProvider>>(result, dev, param_reader);
             break;
+        }
         case ComponentKind::SampleHold: {
             SampleHold<JitProvider> comp;
             comp.pre_load();

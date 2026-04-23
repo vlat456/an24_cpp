@@ -152,24 +152,10 @@ BuildResult build_single_component(const std::string& classname,
 // Test that all known component types can be built without throwing
 // ---------------------------------------------------------------------------
 TEST(FactoryValidationTest, Factory_CreatesAllKnownComponents) {
-    std::vector<std::string> component_types = {
-        "ElectricalSource", "Switch", "HoldButton", "Relay", "Resistor",
-        "RefNode", "Bus", "Generator", "Gyroscope", "Transformer", "Inverter",
-        "LerpNode", "IndicatorLight", "ElectricPump",
-        "SolenoidValve", "InertiaNode", "TempSensor", "ElectricHeater",
-        "Radiator", "Comparator", "AZS",
-        "AND", "OR", "NOT", "NAND", "XOR",
-        "Add", "Subtract", "Multiply", "Divide",
-        "Splitter", "Merger",
-        "Integrator", "SlewRate", "AsymSlewRate",
-        "FastTMO", "AsymTMO", "TimeDelay", "Monostable", "SampleHold",
-        "LUT", "Voltmeter",
-        "Any_V_to_Bool", "Positive_V_to_Bool",
-        "P", "PI", "PD", "PID",
-        "GreaterEq", "LesserEq", "Greater", "Lesser"
-    };
+    for (size_t i = 0; i < static_cast<size_t>(ComponentKind::_COUNT); ++i) {
+        auto kind = static_cast<ComponentKind>(i);
+        std::string classname(component_kind_classname(kind));
 
-    for (const auto& classname : component_types) {
         EXPECT_NO_THROW({
             auto result = build_single_component(classname);
             // The device must appear in the built system
@@ -213,33 +199,18 @@ TEST(FactoryValidationTest, PortRegistryConstants_AreCorrect) {
 // string_to_port_name() (i.e. no stale entries in the registry)
 // ---------------------------------------------------------------------------
 TEST(FactoryValidationTest, AllRegistryPortsAreRecognized) {
-    // Collect all component types from the registry
-    std::vector<std::string> types = {
-        "ElectricalSource", "Switch", "HoldButton", "Relay", "Resistor",
-        "RefNode", "Bus", "Generator", "Gyroscope", "Transformer", "Inverter",
-        "LerpNode", "IndicatorLight", "ElectricPump",
-        "SolenoidValve", "InertiaNode", "TempSensor", "ElectricHeater",
-        "Radiator", "Comparator", "AZS",
-        "AND", "OR", "NOT", "NAND", "XOR",
-        "Add", "Subtract", "Multiply", "Divide",
-        "Splitter", "Merger",
-        "Integrator", "SlewRate", "AsymSlewRate",
-        "FastTMO", "AsymTMO", "TimeDelay", "Monostable", "SampleHold",
-        "LUT", "Voltmeter",
-        "Any_V_to_Bool", "Positive_V_to_Bool",
-        "P", "PI", "PD", "PID",
-        "GreaterEq", "LesserEq", "Greater", "Lesser"
-    };
+    for (size_t i = 0; i < static_cast<size_t>(ComponentKind::_COUNT); ++i) {
+        auto kind = static_cast<ComponentKind>(i);
+        std::string classname(component_kind_classname(kind));
 
-    for (const auto& type : types) {
-        auto ports = get_component_ports(parse_component_kind(type).value_or(ComponentKind::_COUNT));
+        auto ports = get_component_ports(kind);
         EXPECT_FALSE(ports.empty())
-            << "Component '" << type << "' has no ports in registry";
+            << "Component '" << classname << "' has no ports in registry";
 
         for (const auto& port : ports) {
             auto port_enum = string_to_port_name(port);
             EXPECT_TRUE(port_enum.has_value())
-                << "Port '" << port << "' of component '" << type
+                << "Port '" << port << "' of component '" << classname
                 << "' is not recognized by string_to_port_name()";
         }
     }

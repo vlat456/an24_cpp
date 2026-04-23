@@ -199,9 +199,10 @@ void emit_port_registry_lookups(
     oss << "    }\n";
     oss << "}\n\n";
 
-    // has_component_metadata: any valid ComponentKind is known
+    // has_component_metadata: bounds-checked enum validity
     oss << "inline bool has_component_metadata(ComponentKind kind) {\n";
-    oss << "    return kind != ComponentKind::_COUNT;\n";
+    oss << "    const auto idx = static_cast<size_t>(kind);\n";
+    oss << "    return idx < static_cast<size_t>(ComponentKind::_COUNT);\n";
     oss << "}\n\n";
 
     // get_output_ports: switch on ComponentKind (O(1) jump table)
@@ -391,7 +392,7 @@ static bool emit_param_assignment(std::ostringstream& oss, const CodegenParam& p
         return true;
     case ParamSchemaType::String:
         oss << indent << "comp." << p.field << " = param_reader.consume_string_optional(\""
-            << p.name << "\", \"\");\n";
+            << p.name << "\", \"" << p.default_value << "\");\n";
         return true;
     case ParamSchemaType::Table:
         return false;

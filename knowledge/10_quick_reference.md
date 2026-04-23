@@ -27,8 +27,9 @@ cd build && ctest
 | JIT Solver | `src/core/solvers/jit/jit_solver.h` |
 | JIT signal building | `src/core/solvers/jit/build_signals.cpp` |
 | JIT electrical building | `src/core/solvers/jit/build_electrical.cpp` |
-| JIT component dispatcher | `src/core/solvers/jit/build_components.cpp` |
-| JIT component categories | `src/core/solvers/jit/build_components_*.cpp` |
+| JIT component factory | `src/core/solvers/jit/build_factory.cpp` (AUTO-GENERATED) |
+| JIT validation/topo sort | `src/core/solvers/jit/build_components_validation.cpp` |
+| JIT port setup helper | `src/core/solvers/jit/build_components_common.h` |
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |
 | Simulator | `src/core/simulator.h` |
 | Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
@@ -52,7 +53,9 @@ cd build && ctest
 
 | File/Path | Notes |
 |------|------|
-| `src/core/solvers/jit/components/port_registry.h` | Auto-generated from library blueprints (`update_port_registry`) |
+| `src/core/solvers/jit/components/port_registry.h` | Auto-generated from library blueprints |
+| `src/core/solvers/jit/build_factory.cpp` | Auto-generated component factory from library blueprints |
+| `src/core/solvers/jit/components/port_names.h` | Auto-generated port enum from library blueprints |
 | `generated/*.cpp, generated/*.h` | AOT-generated outputs |
 | `build*/`, `Testing/Temporary/*`, `.cache/clangd/*` | Build/cache artifacts, never hand-edit/commit |
 
@@ -69,16 +72,31 @@ cd build && ctest
 | Editor internals | `knowledge/05_editor.md` |
 | Errors/TODO | `knowledge/errors_TODO.md` |
 
-## AOT Code Generation
+## Code Generation
 
-The code generator (`src/core/solvers/aot/codegen.cpp`) produces optimized C++ from blueprints:
-- `port_registry.h` — auto-generated from library, do not edit
-- `generated/` — AOT output directory
+The code generator (`src/core/solvers/aot/codegen_registry.cpp`) produces C++ from library blueprints:
 
-Run codegen after library changes:
+- `port_registry.h` — ComponentVariant, port metadata, trait lookups
+- `port_names.h` — PortNames enum
+- `build_factory.cpp` — Component construction factory (switch on ComponentKind)
+
+Run codegen after ANY library blueprint change:
 ```bash
 cmake --build build --target update_port_registry
+./build/tools/update_port_registry
+cmake --build build -j$(nproc)
 ```
+
+### Adding a new component
+
+1. Create `library/<category>/MyComponent.blueprint` with `param_schema`
+2. Create `src/core/solvers/jit/components/my_component.h` with `pre_load()`
+3. Add `#include "my_component.h"` to `src/core/solvers/jit/components/all.h`
+4. Add `ComponentKind::MyComponent` entry to `src/core/model/component_kind.h`
+5. Run codegen: `./build/tools/update_port_registry`
+6. Rebuild and test
+
+Zero factory code changes. The codegen emits construction + param assignment + registration automatically.
 
 ## Domain Values
 
