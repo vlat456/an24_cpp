@@ -34,7 +34,9 @@
   },
   "param_schema": {
     "table": {
-      "type": "string"
+      "type": "table",
+      "arena_field_offset": "table_offset",
+      "arena_field_size": "table_size"
     }
   }
 }

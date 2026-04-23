@@ -148,6 +148,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                             continue;
                         case ParamSchemaType::Float:
                         case ParamSchemaType::String:
+                        case ParamSchemaType::Table:
                             break;
                     }
                 }

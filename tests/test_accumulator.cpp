@@ -221,3 +221,20 @@ TEST(AccumulatorTest, Precision_MaintainedOverTime)
     // Should be 60.0 (1.0 * 60)
     EXPECT_NEAR(st.values[1], 60.0f, 0.5f);
 }
+
+// Regression: pre_load() must initialize committed + staged state from initial_val.
+// Without pre_load(), state/next_state stay at 0.0 and the cold-start mask
+// mechanism alone handles initialization. With pre_load(), state is pre-set
+// and the cold-start mask becomes a no-op (identity). Both paths must produce
+// identical simulation output.
+TEST(AccumulatorTest, PreLoad_InitializesStateFromParam)
+{
+    auto comp = make_accumulator(42.0f);
+    comp.pre_load();
+
+    // pre_load must set both committed and staged state
+    EXPECT_DOUBLE_EQ(comp.state, 42.0);
+    EXPECT_DOUBLE_EQ(comp.next_state, 42.0);
+    EXPECT_FLOAT_EQ(comp.first_frame_mask, 1.0f);
+    EXPECT_FLOAT_EQ(comp.next_first_frame_mask, 1.0f);
+}

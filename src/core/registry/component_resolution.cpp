@@ -72,6 +72,7 @@ void validate_params_against_schema(
                 }
                 break;
             case ParamSchemaType::String:
+            case ParamSchemaType::Table:
                 break;
         }
     }

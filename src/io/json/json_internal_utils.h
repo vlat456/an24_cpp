@@ -12,6 +12,8 @@ struct ParamSchemaEntry {
     std::optional<double> max;
     bool required = false;
     bool visual_only = false;
+    std::string arena_field_offset;
+    std::string arena_field_size;
 };
 
 Domain parse_domain_string(const std::string& s);

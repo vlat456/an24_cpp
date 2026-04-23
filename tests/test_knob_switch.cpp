@@ -180,3 +180,19 @@ TEST_F(KnobSwitchTestFixture, ElectricalHandlesArray) {
         EXPECT_TRUE(is_valid(knob.electrical_handles[i]));
     }
 }
+
+// Regression: pre_load() must clamp positions to [2, MAX_POSITIONS]
+// and selected to [0, positions-1].
+TEST_F(KnobSwitchTestFixture, PreLoad_ClampsPositionsAndSelected) {
+    knob.positions = 10;  // exceeds MAX_POSITIONS=5
+    knob.selected = 8;
+    knob.pre_load();
+    EXPECT_EQ(knob.positions, 5);
+    EXPECT_EQ(knob.selected, 4);
+
+    knob.positions = 1;  // below minimum of 2
+    knob.selected = -1;
+    knob.pre_load();
+    EXPECT_EQ(knob.positions, 2);
+    EXPECT_EQ(knob.selected, 0);
+}

@@ -511,3 +511,15 @@ TEST(IntegratorTest, IntegrationContinuesAfterReset)
     // Should have accumulated again
     EXPECT_NEAR(st.values[2], 10.0f, 0.5f);
 }
+
+// Regression: pre_load() must initialize committed + staged accumulator from initial_val.
+TEST(IntegratorTest, PreLoad_InitializesAccumulatorFromParam)
+{
+    auto comp = make_integrator(42.0f);
+    comp.pre_load();
+
+    EXPECT_DOUBLE_EQ(comp.accumulator, 42.0);
+    EXPECT_DOUBLE_EQ(comp.next_accumulator, 42.0);
+    EXPECT_FLOAT_EQ(comp.first_frame_mask, 1.0f);
+    EXPECT_FLOAT_EQ(comp.next_first_frame_mask, 1.0f);
+}

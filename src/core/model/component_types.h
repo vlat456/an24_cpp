@@ -34,6 +34,7 @@ enum class ParamSchemaType {
     Int,
     Bool,
     String,
+    Table,  ///< Arena-allocated breakpoint table (key:value pairs)
 };
 
 struct ParamSpec {
@@ -43,6 +44,10 @@ struct ParamSpec {
     std::optional<double> max;
     bool required = false;
     bool visual_only = false;
+    /// For Table type: component field that receives the arena offset.
+    std::string arena_field_offset;
+    /// For Table type: component field that receives the entry count.
+    std::string arena_field_size;
 };
 
 struct BridgePortDefinition {

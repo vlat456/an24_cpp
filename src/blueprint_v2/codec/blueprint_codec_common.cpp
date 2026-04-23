@@ -154,7 +154,8 @@ void assign_param_by_descriptor(Blueprint::Node& node,
             }
             throw std::runtime_error("invalid node entry: param '" + key + "' must be bool");
         }
-        case ParamSchemaType::String: {
+        case ParamSchemaType::String:
+        case ParamSchemaType::Table: {
             if (!val.is_string()) {
                 throw std::runtime_error("invalid node entry: param '" + key + "' must be string");
             }

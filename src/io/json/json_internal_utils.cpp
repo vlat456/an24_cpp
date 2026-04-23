@@ -25,6 +25,7 @@ ParamSchemaType parse_param_schema_type(const std::string& s) {
     if (s == "int") return ParamSchemaType::Int;
     if (s == "bool") return ParamSchemaType::Bool;
     if (s == "string") return ParamSchemaType::String;
+    if (s == "table") return ParamSchemaType::Table;
     throw std::runtime_error("Unknown param schema type: " + s);
 }
 
@@ -69,6 +70,12 @@ std::unordered_map<std::string, ParamSchemaEntry> parse_param_schema(const nlohm
             }
             schema.visual_only = entry["visual_only"].get<bool>();
         }
+        if (entry.contains("arena_field_offset")) {
+            schema.arena_field_offset = entry["arena_field_offset"].get<std::string>();
+        }
+        if (entry.contains("arena_field_size")) {
+            schema.arena_field_size = entry["arena_field_size"].get<std::string>();
+        }
         out[name] = schema;
     }
     return out;
@@ -97,6 +104,8 @@ static ParamSpec to_param_spec(const ParamSchemaEntry& schema, std::string defau
     spec.max = schema.max;
     spec.required = schema.required;
     spec.visual_only = schema.visual_only;
+    spec.arena_field_offset = schema.arena_field_offset;
+    spec.arena_field_size = schema.arena_field_size;
     return spec;
 }
 
@@ -118,6 +127,8 @@ void merge_params_and_schema(
             spec.max = it->second.max;
             spec.required = it->second.required;
             spec.visual_only = it->second.visual_only;
+            spec.arena_field_offset = it->second.arena_field_offset;
+            spec.arena_field_size = it->second.arena_field_size;
         }
     };
 
