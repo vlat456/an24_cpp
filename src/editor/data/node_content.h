@@ -115,7 +115,8 @@ inline bool get_param_bool_from_map(const std::unordered_map<ui::InternedId, flo
     return fallback;
 }
 
-/// Create NodeContent from ComponentSpec and instance params
+/// Create NodeContent from ComponentSpec and instance params.
+/// Dispatches on typed NodeContentType enum — zero string comparison.
 /// Resolves param-driven content (min/max/positions/initial_position/closed)
 /// using instance params first, then type definition defaults.
 inline NodeContent create_node_content(const ComponentSpec& def,
@@ -124,77 +125,88 @@ inline NodeContent create_node_content(const ComponentSpec& def,
                                        const std::unordered_map<std::string, std::string>& instance_string_params,
                                        ui::StringInterner& interner) {
     NodeContent content;
-    content.type = bp2::NodeContentType::None;
-
-    const std::string& ct = pres ? pres->content_type : "None";
+    const bp2::NodeContentType ct = pres ? pres->content_type : bp2::NodeContentType::None;
+    content.type = ct;
     const auto& params = spec_params(def);
 
-    if (ct == "Gauge") {
-        content.type = bp2::NodeContentType::Gauge;
-        content.label = "V";
-        content.value = 0.0f;
+    switch (ct) {
+        case bp2::NodeContentType::Gauge: {
+            content.label = "V";
+            content.value = 0.0f;
 
-        auto min_it = params.find("min");
-        float def_min = (min_it != params.end()) ? std::stof(min_it->second.default_value) : 0.0f;
-        content.min = get_param_float_from_map(instance_params, instance_string_params, "min", interner, def_min);
+            auto min_it = params.find("min");
+            float def_min = (min_it != params.end()) ? std::stof(min_it->second.default_value) : 0.0f;
+            content.min = get_param_float_from_map(instance_params, instance_string_params, "min", interner, def_min);
 
-        auto max_it = params.find("max");
-        float def_max = (max_it != params.end()) ? std::stof(max_it->second.default_value) : 28.0f;
-        content.max = get_param_float_from_map(instance_params, instance_string_params, "max", interner, def_max);
+            auto max_it = params.find("max");
+            float def_max = (max_it != params.end()) ? std::stof(max_it->second.default_value) : 28.0f;
+            content.max = get_param_float_from_map(instance_params, instance_string_params, "max", interner, def_max);
 
-        content.unit = "V";
-    } else if (ct == "Switch") {
-        content.type = bp2::NodeContentType::Switch;
-        content.label = "ON";
-        auto it = params.find("closed");
-        bool def_state = (it != params.end() && it->second.default_value == "true");
-        content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
-    } else if (ct == "VerticalToggle") {
-        content.type = bp2::NodeContentType::VerticalToggle;
-        content.label = "";
-        auto it = params.find("closed");
-        bool def_state = (it != params.end() && it->second.default_value == "true");
-        content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
-    } else if (ct == "HoldButton") {
-        content.type = bp2::NodeContentType::Switch;
-        content.label = "RELEASED";
-        content.state = false;
-    } else if (ct == "Text") {
-        content.type = bp2::NodeContentType::Text;
-        content.label = "OFF";
-    } else if (ct == "Slider") {
-        content.type = bp2::NodeContentType::Slider;
-        content.value = 0.0f;
+            content.unit = "V";
+            break;
+        }
+        case bp2::NodeContentType::Switch: {
+            content.label = "ON";
+            auto it = params.find("closed");
+            bool def_state = (it != params.end() && it->second.default_value == "true");
+            content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
+            break;
+        }
+        case bp2::NodeContentType::VerticalToggle: {
+            content.label = "";
+            auto it = params.find("closed");
+            bool def_state = (it != params.end() && it->second.default_value == "true");
+            content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
+            break;
+        }
+        case bp2::NodeContentType::Text:
+            content.label = "OFF";
+            break;
 
-        auto min_it = params.find("min");
-        float def_min = (min_it != params.end()) ? std::stof(min_it->second.default_value) : 0.0f;
-        content.min = get_param_float_from_map(instance_params, instance_string_params, "min", interner, def_min);
+        case bp2::NodeContentType::Slider: {
+            content.value = 0.0f;
 
-        auto max_it = params.find("max");
-        float def_max = (max_it != params.end()) ? std::stof(max_it->second.default_value) : 1.0f;
-        content.max = get_param_float_from_map(instance_params, instance_string_params, "max", interner, def_max);
-    } else if (ct == "Indicator") {
-        content.type = bp2::NodeContentType::Indicator;
-        content.value = 0.0f;
-    } else if (ct == "Knob") {
-        content.type = bp2::NodeContentType::Knob;
-        content.value = 0.0f;
+            auto min_it = params.find("min");
+            float def_min = (min_it != params.end()) ? std::stof(min_it->second.default_value) : 0.0f;
+            content.min = get_param_float_from_map(instance_params, instance_string_params, "min", interner, def_min);
 
-        auto pos_it = params.find("positions");
-        float def_positions = (pos_it != params.end()) ? std::stof(pos_it->second.default_value) : 2.0f;
-        content.max = get_param_float_from_map(instance_params, instance_string_params, "positions", interner, def_positions);
+            auto max_it = params.find("max");
+            float def_max = (max_it != params.end()) ? std::stof(max_it->second.default_value) : 1.0f;
+            content.max = get_param_float_from_map(instance_params, instance_string_params, "max", interner, def_max);
+            break;
+        }
+        case bp2::NodeContentType::Indicator:
+            content.value = 0.0f;
+            break;
 
-        content.min = 0.0f;
+        case bp2::NodeContentType::Knob: {
+            content.value = 0.0f;
 
-        auto init_it = params.find("initial_position");
-        float def_initial = (init_it != params.end()) ? std::stof(init_it->second.default_value) : 0.0f;
-        content.value = get_param_float_from_map(instance_params, instance_string_params, "initial_position", interner, def_initial);
-    }
+            auto pos_it = params.find("positions");
+            float def_positions = (pos_it != params.end()) ? std::stof(pos_it->second.default_value) : 2.0f;
+            content.max = get_param_float_from_map(instance_params, instance_string_params, "positions", interner, def_positions);
 
-    // AZS components get their own content type (they have a tripped port).
-    const std::string& classname = spec_classname(def);
-    if (content.type == bp2::NodeContentType::Switch && classname == "AZS") {
-        content.type = bp2::NodeContentType::Azs;
+            content.min = 0.0f;
+
+            auto init_it = params.find("initial_position");
+            float def_initial = (init_it != params.end()) ? std::stof(init_it->second.default_value) : 0.0f;
+            content.value = get_param_float_from_map(instance_params, instance_string_params, "initial_position", interner, def_initial);
+            break;
+        }
+
+        case bp2::NodeContentType::Azs: {
+            // AZS is a switch with tripped port — inherits Switch param handling.
+            content.label = "ON";
+            auto it = params.find("closed");
+            bool def_state = (it != params.end() && it->second.default_value == "true");
+            content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
+            break;
+        }
+
+        case bp2::NodeContentType::Value:
+        case bp2::NodeContentType::None:
+        case bp2::NodeContentType::Count:
+            break;
     }
 
     return content;

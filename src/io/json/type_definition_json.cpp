@@ -180,7 +180,7 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
     else throw std::runtime_error("Type definition missing 'classname' field");
 
     if (j.contains("description")) pres.description = j["description"].get<std::string>();
-    if (j.contains("content_type")) pres.content_type = j["content_type"].get<std::string>();
+    if (j.contains("content_type")) pres.content_type = bp2::parse_node_content_type(j["content_type"].get<std::string_view>());
     if (j.contains("render_hint")) pres.render_hint = j["render_hint"].get<std::string>();
 
     if (j.contains("size") && j["size"].is_object()) {

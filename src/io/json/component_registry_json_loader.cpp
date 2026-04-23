@@ -53,7 +53,7 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(
     }
 
     if (j.contains("content_type") && j["content_type"].is_string()) {
-        pres.content_type = j["content_type"].get<std::string>();
+        pres.content_type = bp2::parse_node_content_type(j["content_type"].get<std::string_view>());
     }
     if (j.contains("render_hint") && j["render_hint"].is_string()) {
         pres.render_hint = j["render_hint"].get<std::string>();

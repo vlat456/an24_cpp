@@ -6,6 +6,7 @@
 #include "editor/visual/presentation/node_slot_layout.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "ui/core/interned_id.h"
+#include "blueprint_v2/blueprint/node_content_type.h"
 
 using namespace editor::presentation;
 
@@ -1821,7 +1822,7 @@ TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
 
     TypePresentation pres;
     pres.render_hint = "ref";
-    pres.content_type = "Slider";
+    pres.content_type = bp2::NodeContentType::Slider;
 
     bp2::Blueprint::Node node;
     node.semantic.id = ui::InternedId(3000);

@@ -14,6 +14,7 @@
 #include "visual/wire/wire.h"
 #include "visual/wire/routing_point.h"
 #include "bp2_test_helpers.h"
+#include "blueprint_v2/blueprint/node_content_type.h"
 
 static ComponentRegistry make_snapshot_test_registry() {
     ComponentRegistry reg;
@@ -28,7 +29,7 @@ static ComponentRegistry make_snapshot_test_registry() {
             reg.presentation.specs[name].render_hint = hint;
         }
         if (ct && ct[0] && strcmp(ct, "None") != 0) {
-            reg.presentation.specs[name].content_type = ct;
+            reg.presentation.specs[name].content_type = bp2::parse_node_content_type(ct);
         }
     };
     add("Battery");

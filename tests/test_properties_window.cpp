@@ -8,6 +8,7 @@
 #include "ui/core/interned_id.h"
 #include "core/model/component_registry.h"
 #include "editor/data/node_content.h"
+#include "blueprint_v2/blueprint/node_content_type.h"
 #include "input/editing_host.h"
 
 // Shared bp2 test helpers (make_port, set_iface, count_inputs, count_outputs)
@@ -87,28 +88,28 @@ protected:
         knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "2"};
         knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
         registry.types["KnobSwitch"] = knob_def;
-        registry.presentation.specs["KnobSwitch"].content_type = "Knob";
+        registry.presentation.specs["KnobSwitch"].content_type = bp2::NodeContentType::Knob;
 
         PrimitiveSpec slider_def;
         slider_def.classname = "Slider";
         slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
         registry.types["Slider"] = slider_def;
-        registry.presentation.specs["Slider"].content_type = "Slider";
+        registry.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
 
         PrimitiveSpec gauge_def;
         gauge_def.classname = "Gauge";
         gauge_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         gauge_def.params["max"] = ParamSpec{ParamSchemaType::Float, "30"};
         registry.types["Gauge"] = gauge_def;
-        registry.presentation.specs["Gauge"].content_type = "Gauge";
+        registry.presentation.specs["Gauge"].content_type = bp2::NodeContentType::Gauge;
 
         PrimitiveSpec voltmeter_def;
         voltmeter_def.classname = "Voltmeter";
         voltmeter_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         voltmeter_def.params["max"] = ParamSpec{ParamSchemaType::Float, "30"};
         registry.types["Voltmeter"] = voltmeter_def;
-        registry.presentation.specs["Voltmeter"].content_type = "Gauge";
+        registry.presentation.specs["Voltmeter"].content_type = bp2::NodeContentType::Gauge;
 
         PrimitiveSpec bus_def;
         bus_def.classname = "Bus";
@@ -1107,7 +1108,7 @@ TEST_F(PropertiesWindowTest, ApplySwitchClosedUpdatesCanonicalDefaultOnly) {
     switch_def.classname = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     registry.types["Switch"] = switch_def;
-    registry.presentation.specs["Switch"].content_type = "Switch";
+    registry.presentation.specs["Switch"].content_type = bp2::NodeContentType::Switch;
 
     PropertiesWindow win;
     win.open(*node_ptr, interner.intern("switch1"), create_editor_model_host(model), interner, &registry, [](ui::InternedId) {});
@@ -1126,7 +1127,7 @@ TEST_F(PropertiesWindowTest, ApplyAzsClosedUpdatesCanonicalVerticalToggleDefault
     azs_def.classname = "AZS";
     azs_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     registry.types["AZS"] = azs_def;
-    registry.presentation.specs["AZS"].content_type = "VerticalToggle";
+    registry.presentation.specs["AZS"].content_type = bp2::NodeContentType::VerticalToggle;
 
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("azs1");
@@ -1154,7 +1155,7 @@ TEST_F(PropertiesWindowTest, ApplyRelayClosedUpdatesCanonicalSwitchDefaultOnly) 
     relay_def.classname = "Relay";
     relay_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     registry.types["Relay"] = relay_def;
-    registry.presentation.specs["Relay"].content_type = "Switch";
+    registry.presentation.specs["Relay"].content_type = bp2::NodeContentType::Switch;
 
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("relay1");

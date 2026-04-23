@@ -18,6 +18,7 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
+#include "blueprint_v2/blueprint/node_content_type.h"
 
 // ============================================================================
 // Helpers
@@ -824,7 +825,7 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     bp2::PathArena arena(interner);
 
     ComponentRegistry reg = scene_reg();
-    reg.presentation.specs["Slider"].content_type = "Slider";
+    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
     spec_params_mut(reg.types["Slider"])["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
     spec_params_mut(reg.types["Slider"])["max"] = ParamSpec{ParamSchemaType::Float, "200"};
 
@@ -842,7 +843,7 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     set_iface(sw, {
         make_port(interner, "state", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
-    reg.presentation.specs["Switch"].content_type = "Switch";
+    reg.presentation.specs["Switch"].content_type = bp2::NodeContentType::Switch;
     spec_params_mut(reg.types["Switch"])["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
 
     bp2::Blueprint bp;

@@ -20,6 +20,7 @@
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "editor/visual/presentation/semantic_scene_hittest.h"
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/blueprint/node_content_type.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/editor_model/editor_model.h"
@@ -112,7 +113,7 @@ static ComponentRegistry make_canvas_input_test_registry() {
             reg.presentation.specs[name].render_hint = hint;
         }
         if (ct && ct[0] && strcmp(ct, "None") != 0) {
-            reg.presentation.specs[name].content_type = ct;
+            reg.presentation.specs[name].content_type = bp2::parse_node_content_type(ct);
         }
     };
 
@@ -124,7 +125,7 @@ static ComponentRegistry make_canvas_input_test_registry() {
         def.params["max"] = ParamSpec{ParamSchemaType::Float, "1"};
         def.ports.emplace("out", Port(bp2::Direction::Output, PortType::Bool, Domain::Logical, false));
         reg.types[def.classname] = std::move(def);
-        reg.presentation.specs["Slider"].content_type = "Slider";
+        reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
     }
     {
         PrimitiveSpec def;

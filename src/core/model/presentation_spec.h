@@ -1,5 +1,6 @@
 #pragma once
 
+#include "blueprint_v2/blueprint/node_content_type.h"
 #include <string>
 #include <optional>
 #include <utility>
@@ -9,7 +10,7 @@
 /// This separates UI/presentation concerns from the solver's ComponentSpec.
 struct TypePresentation {
     std::string description;
-    std::string content_type = "None";
+    bp2::NodeContentType content_type = bp2::NodeContentType::None;
     std::string render_hint;
     std::optional<std::pair<float, float>> default_size;
     bool visual_only = false;

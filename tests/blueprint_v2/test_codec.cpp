@@ -10,6 +10,7 @@
 #include "blueprint_v2/validation/path_resolver.h"
 #include "blueprint_v2/validation/wire_validator.h"
 #include "editor/data/node_content.h"
+#include "blueprint_v2/blueprint/node_content_type.h"
 #include "editor/data/node_state.h"
 #include "core/model/presentation_spec.h"
 #include "io/json/component_registry_json_loader.h"
@@ -926,7 +927,7 @@ TEST(BlueprintCodec, StaticContentSemanticsResolveRecursivelyWithoutHydration) {
     ui::StringInterner interner;
     ComponentRegistry reg = make_test_registry();
     register_type(reg, interner, "Slider");
-    reg.presentation.specs["Slider"].content_type = "Slider";
+    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
     spec_params_mut(reg.types["Slider"])["min"] = ParamSpec{ParamSchemaType::Float, "0.0"};
     spec_params_mut(reg.types["Slider"])["max"] = ParamSpec{ParamSchemaType::Float, "1.0"};
 
@@ -1466,7 +1467,7 @@ TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "2"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
     reg.types["Knob"] = knob_def;
-    reg.presentation.specs["Knob"].content_type = "Knob";
+    reg.presentation.specs["Knob"].content_type = bp2::NodeContentType::Knob;
 
     // Create a node instance with positions=5 (override)
     bp2::Blueprint::Node knob_node;
@@ -1493,7 +1494,7 @@ TEST(Issue132_HydrationFromInstanceParams, SliderMinMaxFromInstance) {
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
     reg.types["Slider"] = slider_def;
-    reg.presentation.specs["Slider"].content_type = "Slider";
+    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
 
     // Create a node instance with custom min/max
     bp2::Blueprint::Node slider_node;
@@ -1520,7 +1521,7 @@ TEST(Issue132_HydrationFromInstanceParams, GaugeMinMaxFromInstance) {
     gauge_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     gauge_def.params["max"] = ParamSpec{ParamSchemaType::Float, "28"};
     reg.types["Voltmeter"] = gauge_def;
-    reg.presentation.specs["Voltmeter"].content_type = "Gauge";
+    reg.presentation.specs["Voltmeter"].content_type = bp2::NodeContentType::Gauge;
 
     // Create a node instance with custom min/max
     bp2::Blueprint::Node gauge_node;
@@ -1546,7 +1547,7 @@ TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
     switch_def.classname = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     reg.types["Switch"] = switch_def;
-    reg.presentation.specs["Switch"].content_type = "Switch";
+    reg.presentation.specs["Switch"].content_type = bp2::NodeContentType::Switch;
 
     // Create a node instance with closed=true (override)
     bp2::Blueprint::Node switch_node;
@@ -1571,7 +1572,7 @@ TEST(Issue132_HydrationFromInstanceParams, FallbackToTypeDefinitionWhenNoInstanc
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "1"};
     reg.types["Slider"] = slider_def;
-    reg.presentation.specs["Slider"].content_type = "Slider";
+    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
 
     // Create a node instance with NO instance params
     bp2::Blueprint::Node slider_node;
@@ -1598,7 +1599,7 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSliderValueAcrossStaticChange
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
     reg.types["Slider"] = slider_def;
-    reg.presentation.specs["Slider"].content_type = "Slider";
+    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("slider1");
@@ -1623,7 +1624,7 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSwitchStateAcrossStaticResolu
     switch_def.classname = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
     reg.types["Switch"] = switch_def;
-    reg.presentation.specs["Switch"].content_type = "Switch";
+    reg.presentation.specs["Switch"].content_type = bp2::NodeContentType::Switch;
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("sw1");
@@ -1643,7 +1644,7 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesKnobPosition) {
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "3"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
     reg.types["Knob"] = knob_def;
-    reg.presentation.specs["Knob"].content_type = "Knob";
+    reg.presentation.specs["Knob"].content_type = bp2::NodeContentType::Knob;
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("knob1");
@@ -1667,7 +1668,7 @@ TEST(Issue133_RuntimeState, CanonicalBlueprintStaysUnhydrated) {
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "4"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "1"};
     reg.types["Knob"] = knob_def;
-    reg.presentation.specs["Knob"].content_type = "Knob";
+    reg.presentation.specs["Knob"].content_type = bp2::NodeContentType::Knob;
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test_bp"));
