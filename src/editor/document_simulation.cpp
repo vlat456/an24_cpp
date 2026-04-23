@@ -41,7 +41,8 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 /// Extract the control InternedId from a ContentPorts variant.
 /// Returns empty InternedId for non-interactive content types.
-ui::InternedId extract_control_port(const editor::ContentPorts& ports) {
+/// Caller must check for .empty() before use.
+[[nodiscard]] ui::InternedId extract_control_port(const editor::ContentPorts& ports) {
     return std::visit(overloaded{
         [](std::monostate) { return ui::InternedId{}; },
         [](const editor::GaugePorts&) { return ui::InternedId{}; },
