@@ -116,7 +116,8 @@ void build_and_register_components(
         };
 
         // Handle each component type
-        if (dev.classname == "Generator") {
+        switch (dev.kind) {
+        case ComponentKind::Generator: {
             Generator<JitProvider> comp;
             comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.5f);
             comp.internal_r = param_reader.consume_float_optional("internal_r", 0.005f);
@@ -124,8 +125,9 @@ void build_and_register_components(
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
+            break;
         }
-        else if (dev.classname == "RefNode") {
+        case ComponentKind::RefNode: {
             RefNode<JitProvider> comp;
             comp.value = param_reader.consume_float_optional("value", 0.0f);
             setup_component_ports(result, dev, comp);
@@ -138,24 +140,27 @@ void build_and_register_components(
             if (it_sig != result.port_to_signal.end()) {
                 result.fixed_signals.push_back(it_sig->second);
             }
+            break;
         }
-        else if (dev.classname == "Value") {
+        case ComponentKind::Value: {
             Value<JitProvider> comp;
             comp.value = param_reader.consume_float_optional("value", 0.0f);
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<Value<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (dev.classname == "Switch") {
+        case ComponentKind::Switch: {
             Switch<JitProvider> comp;
             comp.closed = param_reader.consume_bool_optional("closed", false);
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Switch<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (dev.classname == "Relay") {
+        case ComponentKind::Relay: {
             Relay<JitProvider> comp;
             comp.closed = param_reader.consume_bool_optional("closed", false);
             comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
@@ -163,19 +168,21 @@ void build_and_register_components(
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
+            break;
         }
-        else if (is_knob_switch_kind(dev.kind)) {
-            if (dev.kind == ComponentKind::KnobSwitch) {
-                build_knob_switch(KnobSwitch<JitProvider>{});
-            }
-            else if (dev.kind == ComponentKind::RotarySwitch1ToN) {
-                build_knob_switch(RotarySwitch1ToN<JitProvider>{});
-            }
-            else {
-                build_knob_switch(RotarySwitchNTo1<JitProvider>{});
-            }
+        case ComponentKind::KnobSwitch: {
+            build_knob_switch(KnobSwitch<JitProvider>{});
+            break;
         }
-        else if (dev.classname == "HoldButton") {
+        case ComponentKind::RotarySwitch1ToN: {
+            build_knob_switch(RotarySwitch1ToN<JitProvider>{});
+            break;
+        }
+        case ComponentKind::RotarySwitchNTo1: {
+            build_knob_switch(RotarySwitchNTo1<JitProvider>{});
+            break;
+        }
+        case ComponentKind::HoldButton: {
             HoldButton<JitProvider> comp;
             comp.idle = param_reader.consume_float_optional("idle", 0.0f);
             comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
@@ -183,15 +190,17 @@ void build_and_register_components(
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
+            break;
         }
-        else if (dev.classname == "Bus") {
+        case ComponentKind::Bus: {
             Bus<JitProvider> comp;
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Bus<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (dev.classname == "Comparator") {
+        case ComponentKind::Comparator: {
             Comparator<JitProvider> comp;
             comp.Von = param_reader.consume_float_optional("Von", 5.0f);
             comp.Voff = param_reader.consume_float_optional("Voff", 2.0f);
@@ -199,8 +208,9 @@ void build_and_register_components(
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Comparator<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (dev.classname == "CurrentSense") {
+        case ComponentKind::CurrentSense: {
             CurrentSense<JitProvider> comp;
             comp.conductance = param_reader.consume_float_optional("conductance", 1000.0f);
             comp.pre_load();
@@ -208,8 +218,9 @@ void build_and_register_components(
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<CurrentSense<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (dev.classname == "AZS") {
+        case ComponentKind::AZS: {
             AZS<JitProvider> comp;
             comp.closed = param_reader.consume_bool_optional("closed", false);
             comp.i_nominal = param_reader.consume_float_optional("i_nominal", 20.0f);
@@ -220,30 +231,34 @@ void build_and_register_components(
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
+            break;
         }
-        else if (dev.classname == "Resistor") {
+        case ComponentKind::Resistor: {
             Resistor<JitProvider> comp;
             comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
+            break;
         }
-        else if (dev.classname == "ElectricalConductance") {
+        case ComponentKind::ElectricalConductance: {
             ElectricalConductance<JitProvider> comp;
             comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
+            break;
         }
-        else if (dev.classname == "ElectricalSource") {
+        case ComponentKind::ElectricalSource: {
             ElectricalSource<JitProvider> comp;
             comp.voltage = param_reader.consume_float_optional("voltage", 28.0f);
             comp.resistance = param_reader.consume_float_optional("resistance", 0.01f);
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
+            break;
         }
-        else if (dev.classname == "Voltmeter") {
+        case ComponentKind::Voltmeter: {
             Voltmeter<JitProvider> comp;
             comp.min = param_reader.consume_float_optional("min", 0.0f);
             comp.max = param_reader.consume_float_optional("max", 28.0f);
@@ -251,8 +266,9 @@ void build_and_register_components(
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Voltmeter<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (dev.classname == "IndicatorLight") {
+        case ComponentKind::IndicatorLight: {
             IndicatorLight<JitProvider> comp;
             comp.conductance = param_reader.consume_float_optional("conductance", 1.0f);
             comp.rated_voltage = param_reader.consume_float_optional("rated_voltage", 28.0f);
@@ -261,47 +277,50 @@ void build_and_register_components(
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<IndicatorLight<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (try_build_logic_component(result, dev, param_reader)) {
+        case ComponentKind::Add: {
+            Add<JitProvider> comp;
+            setup_component_ports(result, dev, comp);
+            param_reader.validate_all_consumed();
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Add<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        // Math/logical components
-        else if (dev.classname == "Min") {
+        case ComponentKind::Min: {
             Min<JitProvider> comp;
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Min<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (dev.classname == "Max") {
+        case ComponentKind::Max: {
             Max<JitProvider> comp;
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Max<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (dev.classname == "Clamp") {
+        case ComponentKind::Clamp: {
             Clamp<JitProvider> comp;
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Clamp<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (try_build_control_component(result, dev, param_reader)) {
-        }
-        else if (try_build_utility_component(result, dev, param_reader)) {
-        }
-        else if (try_build_physical_component(result, dev, param_reader)) {
-        }
-        // Controlled source / conductance components
-        else if (dev.classname == "ControlledVoltageSource") {
+        case ComponentKind::ControlledVoltageSource: {
             ControlledVoltageSource<JitProvider> comp;
             comp.r_internal = param_reader.consume_float_optional("r_internal", 0.1f);
             comp.pre_load();
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
+            break;
         }
-        else if (dev.classname == "ControlledCurrentSource") {
+        case ComponentKind::ControlledCurrentSource: {
             ControlledCurrentSource<JitProvider> comp;
             comp.gain = param_reader.consume_float_optional("gain", 1.0f);
             comp.min_i = param_reader.consume_float_optional("min_i", 0.0f);
@@ -312,16 +331,32 @@ void build_and_register_components(
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ControlledCurrentSource<JitProvider>>(result.devices[dev.name]));
+            break;
         }
-        else if (dev.classname == "VariableConductance") {
+        case ComponentKind::VariableConductance: {
             VariableConductance<JitProvider> comp;
             setup_component_ports(result, dev, comp);
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
+            break;
         }
-        else {
+        default: {
+            // Try logic/control/utility/physical component families
+            if (try_build_logic_component(result, dev, param_reader)) {
+                break;
+            }
+            if (try_build_control_component(result, dev, param_reader)) {
+                break;
+            }
+            if (try_build_utility_component(result, dev, param_reader)) {
+                break;
+            }
+            if (try_build_physical_component(result, dev, param_reader)) {
+                break;
+            }
             throw std::runtime_error("Unknown component class '" + std::string(dev.classname) +
                 "' for device '" + dev.name + "'. No factory handler registered.");
+        }
         }
     }
 

@@ -134,7 +134,7 @@ void emit_constructor_params(
 ) {
     uint32_t lut_offset = 0;
     for (const auto& dev : devices) {
-        if (dev.classname == "LUT") {
+        if (dev.kind == ComponentKind::LUT) {
             auto lut_opt = parse_lut_table(dev);
             if (lut_opt.has_value()) {
                 auto& entry = *lut_opt;
@@ -299,7 +299,7 @@ void emit_dynamic_source_patching(
     for (const auto& dev : devices) {
         const std::string field = codegen_detail::sanitize_name(dev.name);
 
-        if (dev.classname == "ControlledVoltageSource") {
+        if (dev.kind == ComponentKind::ControlledVoltageSource) {
             oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
             oss << "        float cmd = st->values[" << field << "_cmd_idx];\n";
             oss << "        float gain = st->values[" << field << "_gain_idx];\n";
@@ -312,7 +312,7 @@ void emit_dynamic_source_patching(
             continue;
         }
 
-        if (dev.classname == "VariableConductance") {
+        if (dev.kind == ComponentKind::VariableConductance) {
             oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
             oss << "        float cmd = st->values[" << field << "_cmd_idx];\n";
             oss << "        float g_min = st->values[" << field << "_g_min_idx];\n";
@@ -323,7 +323,7 @@ void emit_dynamic_source_patching(
             continue;
         }
 
-        if (dev.classname == "AZS") {
+        if (dev.kind == ComponentKind::AZS) {
             oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
             oss << "        electrical_rt_.element_value_a[" << field << ".electrical_handle.element_id] = "
                 << field << ".closed ? " << field << ".g_closed : " << field << ".g_open;\n";
@@ -331,7 +331,7 @@ void emit_dynamic_source_patching(
             continue;
         }
 
-        if (dev.classname == "HoldButton") {
+        if (dev.kind == ComponentKind::HoldButton) {
             oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
             oss << "        electrical_rt_.element_value_a[" << field << ".electrical_handle.element_id] = "
                 << field << ".is_pressed ? " << field << ".g_closed : " << field << ".g_open;\n";
@@ -339,7 +339,7 @@ void emit_dynamic_source_patching(
             continue;
         }
 
-        if (dev.classname == "Relay") {
+        if (dev.kind == ComponentKind::Relay) {
             oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
             oss << "        electrical_rt_.element_value_a[" << field << ".electrical_handle.element_id] = "
                 << field << ".closed ? " << field << ".g_closed : " << field << ".g_open;\n";
@@ -347,7 +347,7 @@ void emit_dynamic_source_patching(
             continue;
         }
 
-        if (dev.classname == "KnobSwitch" || dev.classname == "RotarySwitch1ToN" || dev.classname == "RotarySwitchNTo1") {
+        if (is_knob_switch_kind(dev.kind)) {
             oss << "    for (int i = 0; i < " << field << ".num_handles; ++i) {\n";
             oss << "        if (" << field << ".electrical_handles[i].element_id < electrical_rt_.element_value_a.size()) {\n";
             oss << "            electrical_rt_.element_value_a[" << field << ".electrical_handles[i].element_id] = "

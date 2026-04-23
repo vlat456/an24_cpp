@@ -130,7 +130,7 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
 
     // Initialize RefNode and Value devices from their params.
     for (const auto& dev : input.devices) {
-        if (dev.classname == "RefNode") {
+        if (dev.kind == ComponentKind::RefNode) {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) {
@@ -143,7 +143,7 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
                 state_.values[it_sig->second] = value;
             }
         }
-        else if (dev.classname == "Value") {
+        else if (dev.kind == ComponentKind::Value) {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) {

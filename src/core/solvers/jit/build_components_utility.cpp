@@ -1,5 +1,17 @@
 #include "jit_solver_internal.h"
 #include "build_components_common.h"
+#include "components/normalize.h"
+#include "components/lut.h"
+#include "components/greater.h"
+#include "components/lesser.h"
+#include "components/greater_eq.h"
+#include "components/lesser_eq.h"
+#include "components/any_v_to_bool.h"
+#include "components/positive_v_to_bool.h"
+#include "components/lerp_node.h"
+#include "components/slider.h"
+#include "components/splitter.h"
+#include "components/merger.h"
 
 namespace jit_solver_impl {
 
@@ -8,13 +20,14 @@ bool try_build_utility_component(
     const ResolvedDevice& dev,
     ParamReader& param_reader)
 {
-    if (dev.classname == "Normalize") {
+    switch (dev.kind) {
+    case ComponentKind::Normalize: {
         Normalize<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "LUT") {
+    case ComponentKind::LUT: {
         LUT<JitProvider> comp;
         if (auto it = dev.params.find("table"); it != dev.params.end()) {
             const std::string table = param_reader.consume_string_optional("table", "");
@@ -30,43 +43,43 @@ bool try_build_utility_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Greater") {
+    case ComponentKind::Greater: {
         Greater<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Lesser") {
+    case ComponentKind::Lesser: {
         Lesser<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "GreaterEq") {
+    case ComponentKind::GreaterEq: {
         GreaterEq<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "LesserEq") {
+    case ComponentKind::LesserEq: {
         LesserEq<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Any_V_to_Bool") {
+    case ComponentKind::Any_V_to_Bool: {
         Any_V_to_Bool<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Positive_V_to_Bool") {
+    case ComponentKind::Positive_V_to_Bool: {
         Positive_V_to_Bool<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "LerpNode") {
+    case ComponentKind::LerpNode: {
         LerpNode<JitProvider> comp;
         comp.factor = param_reader.consume_float_required("factor");
         comp.deadzone = param_reader.consume_float_required("deadzone");
@@ -74,7 +87,7 @@ bool try_build_utility_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Slider") {
+    case ComponentKind::Slider: {
         Slider<JitProvider> comp;
         comp.min = param_reader.consume_float_optional("min", 0.0f);
         comp.max = param_reader.consume_float_optional("max", 1.0f);
@@ -82,20 +95,21 @@ bool try_build_utility_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Splitter") {
+    case ComponentKind::Splitter: {
         Splitter<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Merger") {
+    case ComponentKind::Merger: {
         Merger<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-
-    return false;
+    default:
+        return false;
+    }
 }
 
 } // namespace jit_solver_impl

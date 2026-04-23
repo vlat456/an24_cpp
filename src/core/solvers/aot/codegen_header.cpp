@@ -174,7 +174,7 @@ std::string CodeGen::generate_header(
     oss << "constexpr uint32_t FIXED_SIGNALS[] = {";
     bool first = true;
     for (const auto& dev : devices) {
-        if (dev.classname == "RefNode") {
+        if (dev.kind == ComponentKind::RefNode) {
             std::string port_key = dev.name + ".v";
             if (port_to_signal.count(port_key)) {
                 if (!first) {

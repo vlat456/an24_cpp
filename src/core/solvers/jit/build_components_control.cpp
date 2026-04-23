@@ -1,5 +1,18 @@
 #include "jit_solver_internal.h"
 #include "build_components_common.h"
+#include "components/pid.h"
+#include "components/pi.h"
+#include "components/pd.h"
+#include "components/p.h"
+#include "components/integrator.h"
+#include "components/accumulator.h"
+#include "components/sample_hold.h"
+#include "components/time_delay.h"
+#include "components/monostable.h"
+#include "components/slew_rate.h"
+#include "components/asym_slew_rate.h"
+#include "components/fast_tmo.h"
+#include "components/asym_tmo.h"
 
 namespace jit_solver_impl {
 
@@ -8,7 +21,8 @@ bool try_build_control_component(
     const ResolvedDevice& dev,
     ParamReader& param_reader)
 {
-    if (dev.classname == "PID") {
+    switch (dev.kind) {
+    case ComponentKind::PID: {
         PID<JitProvider> comp;
         comp.Kp = param_reader.consume_float_required("Kp");
         comp.Ki = param_reader.consume_float_required("Ki");
@@ -20,13 +34,13 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "PI") {
+    case ComponentKind::PI: {
         PI<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "PD") {
+    case ComponentKind::PD: {
         PD<JitProvider> comp;
         comp.Kp = param_reader.consume_float_required("Kp");
         comp.Kd = param_reader.consume_float_required("Kd");
@@ -37,7 +51,7 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "P") {
+    case ComponentKind::P: {
         P<JitProvider> comp;
         comp.Kp = param_reader.consume_float_required("Kp");
         comp.output_min = param_reader.consume_float_required("output_min");
@@ -46,7 +60,7 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Accumulator") {
+    case ComponentKind::Accumulator: {
         Accumulator<JitProvider> comp;
         comp.initial_val = param_reader.consume_float_optional("initial_val", 0.0f);
         comp.state = comp.initial_val;
@@ -55,7 +69,7 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Integrator") {
+    case ComponentKind::Integrator: {
         Integrator<JitProvider> comp;
         comp.initial_val = param_reader.consume_float_required("initial_val");
         comp.accumulator = comp.initial_val;
@@ -64,13 +78,13 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "SampleHold") {
+    case ComponentKind::SampleHold: {
         SampleHold<JitProvider> comp;
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "TimeDelay") {
+    case ComponentKind::TimeDelay: {
         TimeDelay<JitProvider> comp;
         bool has_delay = dev.params.find("delay") != dev.params.end();
         bool has_delay_on = dev.params.find("delay_on") != dev.params.end();
@@ -94,14 +108,14 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "Monostable") {
+    case ComponentKind::Monostable: {
         Monostable<JitProvider> comp;
         comp.duration = param_reader.consume_float_required("duration");
         setup_component_ports(result, dev, comp);
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "SlewRate") {
+    case ComponentKind::SlewRate: {
         SlewRate<JitProvider> comp;
         comp.max_rate = param_reader.consume_float_required("max_rate");
         comp.deadzone = param_reader.consume_float_required("deadzone");
@@ -109,7 +123,7 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "AsymSlewRate") {
+    case ComponentKind::AsymSlewRate: {
         AsymSlewRate<JitProvider> comp;
         comp.rate_up = param_reader.consume_float_required("rate_up");
         comp.rate_down = param_reader.consume_float_required("rate_down");
@@ -118,7 +132,7 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "FastTMO") {
+    case ComponentKind::FastTMO: {
         FastTMO<JitProvider> comp;
         comp.tau = param_reader.consume_float_required("tau");
         comp.deadzone = param_reader.consume_float_optional("deadzone", 0.001f);
@@ -127,7 +141,7 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-    if (dev.classname == "AsymTMO") {
+    case ComponentKind::AsymTMO: {
         AsymTMO<JitProvider> comp;
         comp.tau_up = param_reader.consume_float_required("tau_up");
         comp.tau_down = param_reader.consume_float_required("tau_down");
@@ -137,8 +151,9 @@ bool try_build_control_component(
         register_component_consumer(result, dev, param_reader, std::move(comp));
         return true;
     }
-
-    return false;
+    default:
+        return false;
+    }
 }
 
 } // namespace jit_solver_impl
