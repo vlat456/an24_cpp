@@ -361,7 +361,7 @@ bp_node.content = bp2::Blueprint::Node::BlueprintInstanceData{
     ASSERT_TRUE(host->is_blueprint_instance());
     ASSERT_NE(host->blueprint_instance().source.inline_def(), nullptr);
 
-    Inspector sub_inspector(host->blueprint_instance().source.inline_def(), &ts.arena, &ts.interner, WindowScopeId::embedded("lamp1"));
+    Inspector sub_inspector(host->blueprint_instance().source.inline_def(), &ts.arena, &ts.interner, WindowScopeId::embedded({ts.interner.intern("lamp1")}));
     sub_inspector.buildDisplayTree();
 
     // Sub-inspector for lamp1 should show LED and resistor
@@ -460,7 +460,7 @@ lamp.content = bp2::Blueprint::Node::BlueprintInstanceData{
       ASSERT_TRUE(host->is_blueprint_instance());
       ASSERT_NE(host->blueprint_instance().source.inline_def(), nullptr);
 
-      Inspector sub_inspector(host->blueprint_instance().source.inline_def(), &ts.arena, &ts.interner, WindowScopeId::embedded("lamp1"));
+      Inspector sub_inspector(host->blueprint_instance().source.inline_def(), &ts.arena, &ts.interner, WindowScopeId::embedded({ts.interner.intern("lamp1")}));
       sub_inspector.buildDisplayTree();
 
      const auto& sub_tree = sub_inspector.displayTree();

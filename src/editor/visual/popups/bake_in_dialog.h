@@ -20,16 +20,8 @@ inline std::unique_ptr<EditingHost> create_bake_host_for_scope(Document& doc,
         return create_editor_model_host(doc.model());
     }
 
-    std::vector<ui::InternedId> path;
-    path.reserve(scope_id.path().size());
-    for (const std::string& segment : scope_id.path()) {
-        const ui::InternedId iid = doc.interner().lookup(segment);
-        if (iid.empty()) {
-            return nullptr;
-        }
-        path.push_back(iid);
-    }
-    return create_pathful_embedded_host(doc.model(), std::move(path));
+    // scope_id.path() already returns InternedId vector - use directly
+    return create_pathful_embedded_host(doc.model(), std::vector<ui::InternedId>(scope_id.path().begin(), scope_id.path().end()));
 }
 
 inline bp2::BlueprintLibrary build_bake_library(Document& doc) {
@@ -86,7 +78,7 @@ public:
                     create_bake_host_for_scope(*bake_doc, ws.pendingBakeIn.scope_id);
                 if (!host) {
                     spdlog::warn("[bake-in] rejected for unavailable or read-only scope '{}'",
-                                 ws.pendingBakeIn.scope_id.sim_scope_prefix());
+                                 editor::instance_path_to_scope_string(bake_doc->interner(), ws.pendingBakeIn.scope_id.path()));
                     ws.pendingBakeIn.reset();
                     ImGui::CloseCurrentPopup();
                     ImGui::EndPopup();
@@ -103,7 +95,7 @@ public:
                 if (!ok) {
                     spdlog::warn("[bake-in] bake_blueprint_instance failed for '{}' in scope '{}'",
                                  ws.pendingBakeIn.node_id.str(),
-                                 ws.pendingBakeIn.scope_id.sim_scope_prefix());
+                                 editor::instance_path_to_scope_string(bake_doc->interner(), ws.pendingBakeIn.scope_id.path()));
                 } else {
                     bake_doc->rebuildAllWindows();
                 }

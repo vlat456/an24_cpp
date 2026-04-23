@@ -428,12 +428,8 @@ void CanvasInput::snapshot_wire_routing_points(ui::InternedId wire_id,
 // ============================================================================
 
 void CanvasInput::rebuild_scene() {
-    std::vector<ui::InternedId> instance_path;
-    for (const std::string& segment : scope_id_.path()) {
-        const ui::InternedId scope_iid = interner_->lookup(segment);
-        assert(!scope_iid.empty());
-        instance_path.push_back(scope_iid);
-    }
+    // scope_id_.path() already returns InternedId vector - use directly
+    std::vector<ui::InternedId> instance_path(scope_id_.path().begin(), scope_id_.path().end());
     visual::mutations::rebuild(scene_, host_->current_blueprint(), *interner_, *arena_, instance_path, registry());
     rebuild_snapshot();
 }

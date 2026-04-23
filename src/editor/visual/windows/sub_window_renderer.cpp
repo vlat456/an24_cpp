@@ -30,7 +30,7 @@ void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, ::Wind
     // Include mode prefix in ImGui hash to prevent ID collision between
     // embedded and external windows that share the same scope key string.
     const char* mode_prefix = win.is_external_ref() ? "ext:" : "emb:";
-    const std::string win_hash_key = win.resolved_scope_id().sim_scope_prefix();
+    const std::string win_hash_key = editor::instance_path_to_scope_string(doc.interner(), win.resolved_scope_id().path());
     win_title += " [" + doc.displayName() + "]###" + doc.id().str() + ":" + mode_prefix + win_hash_key;
     
     if (!ImGui::Begin(win_title.c_str(), &win.open,
@@ -65,13 +65,8 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
         const bp2::Blueprint& rebuild_bp = win.rendered_blueprint();
         ui::StringInterner& rebuild_interner = win.rendered_interner();
         bp2::PathArena& rebuild_arena = win.rendered_arena();
-        std::vector<ui::InternedId> instance_path;
-        for (const std::string& segment : win.resolved_scope_id().path()) {
-            const ui::InternedId scope_iid = doc.interner().lookup(segment);
-            if (!scope_iid.empty()) {
-                instance_path.push_back(scope_iid);
-            }
-        }
+        // scope_id.path() already returns InternedId vector - use directly
+        std::vector<ui::InternedId> instance_path(win.resolved_scope_id().path().begin(), win.resolved_scope_id().path().end());
         ComponentRegistry empty_reg;
         const ComponentRegistry& reg = doc.type_registry() ? *doc.type_registry() : empty_reg;
         visual::mutations::rebuild(win.scene, rebuild_bp,
@@ -96,7 +91,7 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
 void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, ::WindowSystem& ws) {
     ImVec2 content_size = ImGui::GetContentRegionAvail();
     const char* mode_prefix = win.is_external_ref() ? "ext:" : "emb:";
-    const std::string canvas_key = win.resolved_scope_id().sim_scope_prefix();
+    const std::string canvas_key = editor::instance_path_to_scope_string(doc.interner(), win.resolved_scope_id().path());
     ImGui::InvisibleButton(("##canvas_" + doc.id().str() + "_" + mode_prefix + canvas_key).c_str(), content_size);
     bool hovered = ImGui::IsItemHovered();
     

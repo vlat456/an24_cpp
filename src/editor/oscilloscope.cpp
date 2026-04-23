@@ -10,12 +10,14 @@
 
 namespace {
 
-std::string make_probe_id(const editor::DocumentId& doc_id,
+std::string make_probe_id(const ui::StringInterner& interner,
+                           const editor::DocumentId& doc_id,
                            const WindowScopeId& scope_id,
                            std::string_view wire_id) {
+    const std::string scope_str = editor::instance_path_to_scope_string(interner, scope_id.path());
     // Full identity: document + scope + wire → no cross-document collision.
     std::string probe_id;
-    probe_id.reserve(doc_id.str().size() + scope_id.sim_scope_prefix().size() + wire_id.size() + 8);
+    probe_id.reserve(doc_id.str().size() + scope_str.size() + wire_id.size() + 8);
     probe_id.append(doc_id.str());
     probe_id.push_back('/');
     if (scope_id.is_root()) {
@@ -25,7 +27,7 @@ std::string make_probe_id(const editor::DocumentId& doc_id,
     } else {
         probe_id.append("ext:");
     }
-    probe_id.append(scope_id.sim_scope_prefix());
+    probe_id.append(scope_str);
     probe_id.push_back('|');
     probe_id.append(wire_id);
     return probe_id;
@@ -167,7 +169,7 @@ void OscilloscopeModel::toggle_probe(Document& doc,
                                      const std::string& wire_id,
                                      const ui::Pt* click_world) {
     if (wire_id.empty()) return;
-    const std::string probe_id = make_probe_id(doc.id(), scope_id, wire_id);
+    const std::string probe_id = make_probe_id(doc.interner(), doc.id(), scope_id, wire_id);
     auto it = probes_.find(probe_id);
     if (it != probes_.end()) {
         probes_.erase(it);

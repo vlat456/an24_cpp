@@ -3,6 +3,7 @@
 #include "window/blueprint_window.h"
 
 #include "core/model/component_registry.h"
+#include "document_simulation_internal.h"
 #include "embedded_path_utils.h"
 #include "visual/scene_mutations.h"
 
@@ -24,23 +25,11 @@ const EditingHost& require_host(const std::unique_ptr<EditingHost>& host) {
     return *host;
 }
 
-ui::InternedId require_nested_id(ui::StringInterner& interner, const std::string& scope_id) {
-    const ui::InternedId nested_id = interner.lookup(scope_id);
-    if (nested_id.empty()) {
-        throw std::logic_error("Embedded window construction failed: nested instance not found");
-    }
-    return nested_id;
-}
-
+// No conversion needed - scope_id.path() already returns InternedId
 std::unique_ptr<EditingHost> make_embedded_host(bp2::EditorModel& root_model,
-                                                ui::StringInterner& interner,
-                                                std::span<const std::string> scope_path) {
-    std::vector<ui::InternedId> path;
-    path.reserve(scope_path.size());
-    for (const std::string& segment : scope_path) {
-        path.push_back(require_nested_id(interner, segment));
-    }
-    return create_pathful_embedded_host(root_model, std::move(path));
+                                                ui::StringInterner& /*interner*/,
+                                                std::span<const ui::InternedId> scope_path) {
+    return create_pathful_embedded_host(root_model, std::vector<ui::InternedId>(scope_path.begin(), scope_path.end()));
 }
 
 void rebuild_root_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry) {
@@ -56,18 +45,15 @@ void rebuild_embedded_scene(BlueprintWindow& window, const ComponentRegistry* pa
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
 
     const bp2::Blueprint* embedded_bp =
-        editor::resolve_embedded_blueprint(window.root_model.current(), window.interner, window.scope.path());
+        editor::resolve_embedded_blueprint(window.root_model.current(), window.scope.path());
     if (!embedded_bp) {
         throw std::logic_error(
             "Embedded window construction failed: cannot resolve path '"
-            + window.scope.sim_scope_prefix() + "'");
+            + editor::instance_path_to_scope_string(window.interner, window.scope.path()) + "'");
     }
 
-    std::vector<ui::InternedId> instance_path;
-    instance_path.reserve(window.scope.path().size());
-    for (const std::string& segment : window.scope.path()) {
-        instance_path.push_back(window.interner.lookup(segment));
-    }
+    // window.scope.path() already returns InternedId vector - use directly
+    std::vector<ui::InternedId> instance_path(window.scope.path().begin(), window.scope.path().end());
     visual::mutations::rebuild(window.scene, *embedded_bp, window.interner,
         window.arena, instance_path, reg, nullptr);
     window.input.rebuild_snapshot();
@@ -77,17 +63,8 @@ void rebuild_external_scene(BlueprintWindow& window, const ComponentRegistry* pa
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
 
-    std::vector<ui::InternedId> instance_path;
-    instance_path.reserve(window.scope.path().size());
-    for (const std::string& segment : window.scope.path()) {
-        const ui::InternedId scope_iid = window.interner.lookup(segment);
-        if (scope_iid.empty()) {
-            throw std::logic_error(
-                "External window construction failed: unknown instance path '"
-                + window.scope.sim_scope_prefix() + "'");
-        }
-        instance_path.push_back(scope_iid);
-    }
+    // window.scope.path() already returns InternedId vector - use directly
+    std::vector<ui::InternedId> instance_path(window.scope.path().begin(), window.scope.path().end());
 
     visual::mutations::rebuild(window.scene, require_external_blueprint(window.external_blueprint),
         window.rendered_interner(), window.rendered_arena(), instance_path, reg, nullptr);

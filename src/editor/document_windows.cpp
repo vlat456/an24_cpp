@@ -15,7 +15,7 @@ void Document::openExternalRefWindow(const WindowScopeId& instance_scope,
     // to avoid expensive file I/O for the already-loaded case.
     if (auto* existing = window_manager_.find(instance_scope)) {
         existing->open = true;
-        spdlog::info("[editor] Reactivated external-ref window for '{}'", instance_scope.sim_scope_prefix());
+        spdlog::info("[editor] Reactivated external-ref window for '{}'", editor::instance_path_to_scope_string(interner_, instance_scope.path()));
         return;
     }
 
@@ -30,17 +30,17 @@ void Document::openExternalRefWindow(const WindowScopeId& instance_scope,
         blueprint_file_path.c_str(), *ext_interner, *ext_arena, *type_registry_);
     if (!bp.has_value()) {
         spdlog::error("[editor] Failed to load external blueprint '{}' for instance '{}'",
-                      blueprint_file_path, instance_scope.sim_scope_prefix());
+                      blueprint_file_path, editor::instance_path_to_scope_string(interner_, instance_scope.path()));
         return;
     }
 
-    std::string title = instance_scope.sim_scope_prefix();
+    std::string title = editor::instance_path_to_scope_string(interner_, instance_scope.path());
     // Resolve the full path so nested external-ref windows use the correct host
     // node title rather than accidentally probing the root blueprint only.
     if (const editor::ResolvedEmbeddedNode resolved = editor::resolve_embedded_node(
-            model_.current(), interner_, instance_scope.path());
+            model_.current(), instance_scope.path());
         resolved.node && !resolved.node->view.name.empty()) {
-        title = resolved.node->view.name + " [" + instance_scope.sim_scope_prefix() + "]";
+        title = resolved.node->view.name + " [" + editor::instance_path_to_scope_string(interner_, instance_scope.path()) + "]";
     }
 
     BlueprintWindow::ExternalDocument external_document{
@@ -52,11 +52,11 @@ void Document::openExternalRefWindow(const WindowScopeId& instance_scope,
     auto [win, created] = window_manager_.open_external(
         instance_scope, title, std::move(external_document));
     if (!win) {
-        spdlog::error("[editor] Failed to create external-ref window for '{}'", instance_scope.sim_scope_prefix());
+        spdlog::error("[editor] Failed to create external-ref window for '{}'", editor::instance_path_to_scope_string(interner_, instance_scope.path()));
         return;
     }
     if (!created) {
-        spdlog::info("[editor] Reactivated external-ref window for '{}'", instance_scope.sim_scope_prefix());
+        spdlog::info("[editor] Reactivated external-ref window for '{}'", editor::instance_path_to_scope_string(interner_, instance_scope.path()));
         return;
     }
 
@@ -64,12 +64,13 @@ void Document::openExternalRefWindow(const WindowScopeId& instance_scope,
     win->pending_auto_fit = true;
 
     spdlog::info("[editor] Opened external-ref window for '{}' from '{}'",
-                 instance_scope.sim_scope_prefix(), blueprint_file_path);
+                 editor::instance_path_to_scope_string(interner_, instance_scope.path()), blueprint_file_path);
 }
 
 void Document::openSubWindow(const WindowScopeId& parent_scope, const std::string& local_node_id) {
-    openSubWindow(parent_scope.is_root() ? WindowScopeId::embedded(local_node_id)
-                                         : parent_scope.append(local_node_id));
+    openSubWindow(parent_scope.is_root()
+        ? WindowScopeId::embedded({interner_.intern(local_node_id)})
+        : parent_scope.append(interner_.intern(local_node_id)));
 }
 
 void Document::openSubWindow(const WindowScopeId& target_scope) {
@@ -84,7 +85,7 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
         bp = &model_.current();
         bp_interner = &interner_;
     } else {
-        const std::vector<std::string> parent_path(
+        const std::vector<ui::InternedId> parent_path(
             target_scope.path().begin(), target_scope.path().end() - 1);
         // Parent resolution depends on what actually exists now:
         // - embedded ancestry always resolves through the root document model
@@ -106,44 +107,43 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
     }
 
     if (!bp || !bp_interner) {
-        spdlog::error("[editor] Cannot open sub-window '{}': unresolved parent scope", target_scope.sim_scope_prefix());
+        spdlog::error("[editor] Cannot open sub-window '{}': unresolved parent scope", editor::instance_path_to_scope_string(interner_, target_scope.path()));
         return;
     }
 
     // Handle embedded blueprints directly — no LibraryIndex needed.
-    const std::string& local_node_id = target_scope.path().back();
-    auto lookup_id = bp_interner->lookup(local_node_id);
-    const bp2::Blueprint::Node* node = lookup_id.empty() ? nullptr : bp->find_node(lookup_id);
+    const ui::InternedId local_node_id = target_scope.path().back();
+    const bp2::Blueprint::Node* node = local_node_id.empty() ? nullptr : bp->find_node(local_node_id);
 
     if (node && node->is_blueprint_instance() && node->has_embedded_blueprint()) {
         std::string type_name = std::string(bp_interner->resolve(node->semantic.type));
         auto [win, created] = window_manager_.open(target_scope,
-                                                   type_name + " [" + target_scope.sim_scope_prefix() + "]");
+                                                   type_name + " [" + editor::instance_path_to_scope_string(interner_, target_scope.path()) + "]");
         if (!win) {
-            spdlog::error("[editor] Failed to open sub-window '{}'", target_scope.sim_scope_prefix());
+            spdlog::error("[editor] Failed to open sub-window '{}'", editor::instance_path_to_scope_string(interner_, target_scope.path()));
             return;
         }
         if (!created) {
-            spdlog::info("[editor] Reactivated sub-window for '{}'", target_scope.sim_scope_prefix());
+            spdlog::info("[editor] Reactivated sub-window for '{}'", editor::instance_path_to_scope_string(interner_, target_scope.path()));
             return;
         }
 
         win->set_read_only(false);
         win->pending_auto_fit = true;
 
-        spdlog::info("[editor] Opened sub-window for '{}'", target_scope.sim_scope_prefix());
+        spdlog::info("[editor] Opened sub-window for '{}'", editor::instance_path_to_scope_string(interner_, target_scope.path()));
         return;
     }
 
     // Referenced / external blueprints require a LibraryIndex.
     if (!library_index_) {
         spdlog::error("[editor] Cannot open sub-window '{}': LibraryIndex is not configured",
-                      target_scope.sim_scope_prefix());
+                      editor::instance_path_to_scope_string(interner_, target_scope.path()));
         return;
     }
 
     const auto result = editor::resolve_subwindow_open_target(
-        *bp, *bp_interner, *library_index_, local_node_id);
+        *bp, *bp_interner, *library_index_, std::string(bp_interner->resolve(local_node_id)));
     const auto& target = result.target;
 
     if (target.kind == editor::SubWindowOpenTargetKind::EmbeddedNested && node && node->is_blueprint_instance()) {
@@ -152,27 +152,27 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
         // has_embedded_blueprint). Open as read-only scope.
         std::string type_name = std::string(bp_interner->resolve(node->semantic.type));
         auto [win, created] = window_manager_.open(target_scope,
-                                                   type_name + " [" + target_scope.sim_scope_prefix() + "]");
+                                                   type_name + " [" + editor::instance_path_to_scope_string(interner_, target_scope.path()) + "]");
         if (!win) {
-            spdlog::error("[editor] Failed to open sub-window '{}'", target_scope.sim_scope_prefix());
+            spdlog::error("[editor] Failed to open sub-window '{}'", editor::instance_path_to_scope_string(interner_, target_scope.path()));
             return;
         }
         if (!created) {
-            spdlog::info("[editor] Reactivated sub-window for '{}'", target_scope.sim_scope_prefix());
+            spdlog::info("[editor] Reactivated sub-window for '{}'", editor::instance_path_to_scope_string(interner_, target_scope.path()));
             return;
         }
 
         win->set_read_only(!node->has_embedded_blueprint());
         win->pending_auto_fit = true;
 
-        spdlog::info("[editor] Opened sub-window for '{}'", target_scope.sim_scope_prefix());
+        spdlog::info("[editor] Opened sub-window for '{}'", editor::instance_path_to_scope_string(interner_, target_scope.path()));
         return;
     }
 
     if (target.kind == editor::SubWindowOpenTargetKind::ReferencedNested) {
         if (target.path.empty()) {
             spdlog::error("[editor] Cannot open referenced nested sub-window '{}': missing blueprint path",
-                          target_scope.sim_scope_prefix());
+                          editor::instance_path_to_scope_string(interner_, target_scope.path()));
             return;
         }
         openExternalRefWindow(WindowScopeId::external(target_scope.path()), target.path);
@@ -185,6 +185,6 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
     }
 
     spdlog::error("[editor] Cannot open sub-window '{}': {}",
-                  target_scope.sim_scope_prefix(),
+                  editor::instance_path_to_scope_string(interner_, target_scope.path()),
                   editor::to_string(result.failure));
 }

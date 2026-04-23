@@ -146,7 +146,8 @@ TEST(OwnershipIsolation, PurgeHoverRemovesEntireState) {
 // == External scope rejection for properties ==
 
 TEST(OwnershipIsolation, ExternalScopeIdIsExternal) {
-    const auto ext = WindowScopeId::external("inst_1");
+    ui::StringInterner interner;
+    const auto ext = WindowScopeId::external({interner.intern("inst_1")});
     EXPECT_TRUE(ext.is_external());
     EXPECT_FALSE(ext.is_root());
     EXPECT_FALSE(ext.is_embedded());
@@ -193,7 +194,7 @@ TEST(OwnershipIsolation, ExternalScopeColorPickerOpenIsRejected) {
     WindowSystem ws;
     Document& doc = *ws.activeDocument();
 
-    ws.openColorPickerForNode(editor::NodeId::from_string("missing"), WindowScopeId::external("ext_1"), doc);
+    ws.openColorPickerForNode(editor::NodeId::from_string("missing"), WindowScopeId::external({doc.interner().intern("ext_1")}), doc);
 
     EXPECT_FALSE(ws.colorPicker.show);
     EXPECT_FALSE(ws.colorPicker.source_document_id.has_value());
@@ -205,11 +206,11 @@ TEST(OwnershipIsolation, PendingBakeInCarriesScope) {
 
     ws.pendingBakeIn.show_confirmation = true;
     ws.pendingBakeIn.document_id = doc.id();
-    ws.pendingBakeIn.scope_id = WindowScopeId::embedded("group_1");
+    ws.pendingBakeIn.scope_id = WindowScopeId::embedded({doc.interner().intern("group_1")});
     ws.pendingBakeIn.node_id = editor::NodeId::from_string("node_a");
 
     EXPECT_TRUE(ws.pendingBakeIn.show_confirmation);
-    EXPECT_EQ(ws.pendingBakeIn.scope_id, WindowScopeId::embedded("group_1"));
+    EXPECT_EQ(ws.pendingBakeIn.scope_id, WindowScopeId::embedded({doc.interner().intern("group_1")}));
     EXPECT_EQ(ws.pendingBakeIn.node_id, editor::NodeId::from_string("node_a"));
 }
 
@@ -219,7 +220,7 @@ TEST(OwnershipIsolation, PendingBakeInResetClearsTypedState) {
 
     ws.pendingBakeIn.show_confirmation = true;
     ws.pendingBakeIn.document_id = doc.id();
-    ws.pendingBakeIn.scope_id = WindowScopeId::embedded("group_1");
+    ws.pendingBakeIn.scope_id = WindowScopeId::embedded({doc.interner().intern("group_1")});
     ws.pendingBakeIn.node_id = editor::NodeId::from_string("node_a");
 
     ws.pendingBakeIn.reset();

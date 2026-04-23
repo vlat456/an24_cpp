@@ -909,9 +909,9 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromComponentRegistry)
     };
     doc.model().replace_current(doc.model().current().with_node(std::move(ref_host)));
 
-    doc.openSubWindow(WindowScopeId::external("external_node"));
+    doc.openSubWindow(WindowScopeId::external({doc.interner().intern("external_node")}));
 
-    auto* win = doc.windowManager().find(WindowScopeId::external("external_node"));
+    auto* win = doc.windowManager().find(WindowScopeId::external({doc.interner().intern("external_node")}));
     ASSERT_NE(win, nullptr);
     ASSERT_TRUE(win->external_blueprint.has_value());
 
@@ -978,9 +978,9 @@ TEST(DocumentSafety, NestedExternalRefWindowUsesNestedHostNodeTitle) {
     root = root.with_node(std::move(host));
     doc.model().replace_current(std::move(root));
 
-    doc.openSubWindow(WindowScopeId::external(std::vector<std::string>{"group_1", "nested_ref"}));
+    doc.openSubWindow(WindowScopeId::external({doc.interner().intern("group_1"), doc.interner().intern("nested_ref")}));
 
-    auto* win = doc.windowManager().find(WindowScopeId::external(std::vector<std::string>{"group_1", "nested_ref"}));
+    auto* win = doc.windowManager().find(WindowScopeId::external({doc.interner().intern("group_1"), doc.interner().intern("nested_ref")}));
     ASSERT_NE(win, nullptr);
     EXPECT_EQ(win->title, "Nested Ref [group_1:nested_ref]");
 
@@ -1603,7 +1603,7 @@ TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
     root = root.with_node(std::move(host));
     doc.model().replace_current(std::move(root));
 
-    ASSERT_NO_THROW(doc.addBlueprint("FirstOrderLag", Pt{64.0f, 64.0f}, WindowScopeId::embedded("group_1"), registry));
+    ASSERT_NO_THROW(doc.addBlueprint("FirstOrderLag", Pt{64.0f, 64.0f}, WindowScopeId::embedded({doc.interner().intern("group_1")}), registry));
 
     const auto* root_added = doc.model().current().find_node(I.lookup("firstorderlag_1"));
     EXPECT_EQ(root_added, nullptr);
@@ -1891,7 +1891,7 @@ TEST(DocumentSafety, EmbeddedNodeColorRoundTripMarksDirtyAndRestoresAfterLoad) {
     doc.model().replace_current(std::move(root));
     doc.rebuildAllWindows();
 
-    doc.set_node_color_for_scope(WindowScopeId::embedded("group_1"), doc.interner().intern("inner_r"),
+    doc.set_node_color_for_scope(WindowScopeId::embedded({doc.interner().intern("group_1")}), doc.interner().intern("inner_r"),
                                  editor::NodeColor{0.7f, 0.3f, 0.2f, 1.0f});
     EXPECT_TRUE(doc.model().is_dirty());
 
@@ -1910,7 +1910,7 @@ TEST(DocumentSafety, EmbeddedNodeColorRoundTripMarksDirtyAndRestoresAfterLoad) {
     loaded.setComponentRegistry(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
-    auto loaded_color = loaded.node_color_for_scope(WindowScopeId::embedded("group_1"), loaded.interner().intern("inner_r"));
+    auto loaded_color = loaded.node_color_for_scope(WindowScopeId::embedded({loaded.interner().intern("group_1")}), loaded.interner().intern("inner_r"));
     ASSERT_TRUE(loaded_color.has_value());
     EXPECT_FLOAT_EQ(loaded_color->r, 0.7f);
     EXPECT_FLOAT_EQ(loaded_color->g, 0.3f);

@@ -82,8 +82,8 @@ TEST(DocumentWorkspaceSession, SaveAndLoadRoundTripAppliesViewportAndReopensWind
     doc.viewport().pan.y = 222.0f;
     doc.viewport().zoom = 1.75f;
     doc.viewport().grid_step = 24.0f;
-    doc.openSubWindow(WindowScopeId::embedded("host1"));
-    doc.openSubWindow(WindowScopeId::external("ref1"));
+    doc.openSubWindow(WindowScopeId::embedded({doc.interner().intern("host1")}));
+    doc.openSubWindow(WindowScopeId::external({doc.interner().intern("ref1")}));
 
     ASSERT_TRUE(doc.saveWorkspaceSession());
 
@@ -97,8 +97,8 @@ TEST(DocumentWorkspaceSession, SaveAndLoadRoundTripAppliesViewportAndReopensWind
     EXPECT_FLOAT_EQ(restored.viewport().pan.y, 222.0f);
     EXPECT_FLOAT_EQ(restored.viewport().zoom, 1.75f);
     EXPECT_FLOAT_EQ(restored.viewport().grid_step, 24.0f);
-    EXPECT_NE(restored.windowManager().find(WindowScopeId::embedded("host1")), nullptr);
-    EXPECT_NE(restored.windowManager().find(WindowScopeId::external("ref1")), nullptr);
+    EXPECT_NE(restored.windowManager().find(WindowScopeId::embedded({restored.interner().intern("host1")})), nullptr);
+    EXPECT_NE(restored.windowManager().find(WindowScopeId::external({restored.interner().intern("ref1")})), nullptr);
 
     fs::remove_all(dir);
 }

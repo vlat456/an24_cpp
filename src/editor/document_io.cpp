@@ -17,9 +17,14 @@ WorkspaceSession Document::captureWorkspaceSession() const {
 
     for (const auto& win : window_manager_.windows()) {
         if (!win->resolved_scope_id().is_root() && win->open) {
+            std::vector<std::string> path_segments;
+            path_segments.reserve(win->resolved_scope_id().path().size());
+            for (const auto& seg : win->resolved_scope_id().path()) {
+                path_segments.push_back(std::string(interner_.resolve(seg)));
+            }
             session.open_windows.push_back(PersistedWindowScope{
                 win->resolved_scope_id().mode(),
-                win->resolved_scope_id().path(),
+                std::move(path_segments),
             });
         }
     }
@@ -39,19 +44,20 @@ void Document::applyWorkspaceSession(const WorkspaceSession& session) {
             if (window_scope.path_segments.empty()) {
                 continue;
             }
-            const WindowScopeId scope_id = WindowScopeId::embedded(window_scope.path_segments);
 
             // Validate the full embedded path exists before opening the window.
-            if (!editor::embedded_path_exists(model_.current(), interner_, scope_id.path())) {
+            auto interned_path = editor::intern_scope_path(interner_, window_scope.path_segments);
+            if (!interned_path) {
                 continue;
             }
+            const WindowScopeId scope_id = WindowScopeId::embedded(*std::move(interned_path));
 
             // Resolve the host node for the title.
             const editor::ResolvedEmbeddedNode resolved = editor::resolve_embedded_node(
-                model_.current(), interner_, scope_id.path());
-            std::string title = scope_id.sim_scope_prefix();
+                model_.current(), scope_id.path());
+            std::string title = editor::instance_path_to_scope_string(interner_, scope_id.path());
             if (resolved.node && !resolved.node->view.name.empty()) {
-                title = resolved.node->view.name + " [" + scope_id.sim_scope_prefix() + "]";
+                title = resolved.node->view.name + " [" + editor::instance_path_to_scope_string(interner_, scope_id.path()) + "]";
             }
 
             auto [win, created] = window_manager_.open(scope_id, title);
@@ -66,11 +72,15 @@ void Document::applyWorkspaceSession(const WorkspaceSession& session) {
             if (window_scope.path_segments.empty()) {
                 continue;
             }
-            const WindowScopeId scope_id = WindowScopeId::external(window_scope.path_segments);
+            auto interned_path = editor::intern_scope_path(interner_, window_scope.path_segments);
+            if (!interned_path) {
+                continue;
+            }
+            const WindowScopeId scope_id = WindowScopeId::external(*std::move(interned_path));
             // Resolve by full path — the last segment is the reference node id in its
             // immediate parent blueprint, which itself may be nested.
             const editor::ResolvedEmbeddedNode resolved = editor::resolve_embedded_node(
-                model_.current(), interner_, scope_id.path());
+                model_.current(), scope_id.path());
             if (!resolved.node || !resolved.node->has_referenced_blueprint()) {
                 continue;
             }

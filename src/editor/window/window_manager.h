@@ -3,6 +3,7 @@
 #include "window/blueprint_window.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
+#include "document_simulation_internal.h"
 #include "embedded_path_utils.h"
 #include "ui/core/interned_id.h"
 #include <memory>
@@ -75,7 +76,7 @@ public:
             }
         } catch (const std::logic_error& e) {
             spdlog::error("[editor] Failed to open window '{}' (scope '{}'): {}",
-                          title, scope_id.sim_scope_prefix(), e.what());
+                          title, editor::instance_path_to_scope_string(interner_, scope_id.path()), e.what());
             return {nullptr, false};
         }
         return {windows_.back().get(), true};
@@ -97,7 +98,7 @@ public:
                 context(), scope_id, std::move(title), std::move(external_document)));
         } catch (const std::logic_error& e) {
             spdlog::error("[editor] Failed to open external window '{}' (scope '{}'): {}",
-                          title, scope_id.sim_scope_prefix(), e.what());
+                          title, editor::instance_path_to_scope_string(interner_, scope_id.path()), e.what());
             return {nullptr, false};
         }
         return {windows_.back().get(), true};
@@ -131,7 +132,7 @@ public:
                     if (w->resolved_scope_id().is_embedded()) {
                         // Embedded windows are orphaned when their path no longer resolves.
                         return !editor::embedded_path_exists(
-                            model_.current(), interner_, w->resolved_scope_id().path());
+                            model_.current(), w->resolved_scope_id().path());
                     }
 
                     if (w->resolved_scope_id().is_external()) {
@@ -167,7 +168,8 @@ private:
             return false;
         }
 
-        const ui::InternedId local_node_id = bp_interner->lookup(scope_id.path().back());
+        // scope_id.path().back() now returns InternedId - use directly to find node
+        const ui::InternedId local_node_id = scope_id.path().back();
         const bp2::Blueprint::Node* node = local_node_id.empty() ? nullptr : bp->find_node(local_node_id);
         if (!node || !node->is_blueprint_instance() || !node->has_referenced_blueprint()) {
             return false;
@@ -185,7 +187,7 @@ private:
     }
 
     std::pair<const bp2::Blueprint*, const ui::StringInterner*> resolve_parent_blueprint_for_child_scope(
-        const std::vector<std::string>& child_scope_path) const {
+        std::span<const ui::InternedId> child_scope_path) const {
         if (child_scope_path.empty()) {
             return {nullptr, nullptr};
         }
@@ -194,14 +196,14 @@ private:
             return {&model_.current(), &interner_};
         }
 
-        const std::vector<std::string> parent_path(child_scope_path.begin(), child_scope_path.end() - 1);
+        const std::vector<ui::InternedId> parent_path(child_scope_path.begin(), child_scope_path.end() - 1);
 
         if (const BlueprintWindow* external_parent = find(WindowScopeId::external(parent_path))) {
             return {&external_parent->rendered_blueprint(), &external_parent->rendered_interner()};
         }
 
         const bp2::Blueprint* embedded_parent =
-            editor::resolve_embedded_blueprint(model_.current(), interner_, parent_path);
+            editor::resolve_embedded_blueprint(model_.current(), parent_path);
         if (!embedded_parent) {
             return {nullptr, nullptr};
         }

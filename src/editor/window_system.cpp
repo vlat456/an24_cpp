@@ -35,16 +35,8 @@ std::unique_ptr<EditingHost> create_scoped_host(Document& doc, const WindowScope
         return create_editor_model_host(doc.model());
     }
 
-    std::vector<ui::InternedId> path;
-    path.reserve(scope_id.path().size());
-    for (const std::string& segment : scope_id.path()) {
-        const ui::InternedId iid = doc.interner().lookup(segment);
-        if (iid.empty()) {
-            return nullptr;
-        }
-        path.push_back(iid);
-    }
-    return create_pathful_embedded_host(doc.model(), std::move(path));
+    // scope_id.path() already returns InternedId vector - use directly
+    return create_pathful_embedded_host(doc.model(), std::vector<ui::InternedId>(scope_id.path().begin(), scope_id.path().end()));
 }
 
 bool scoped_node_still_exists(Document& doc,
@@ -293,16 +285,9 @@ void WindowSystem::openPropertiesForNode(const editor::NodeId& node_id,
     if (scope_id.is_root()) {
         owned_host = create_editor_model_host(doc.model());
     } else if (scope_id.is_embedded()) {
-        std::vector<ui::InternedId> path;
-        path.reserve(scope_id.path().size());
-        for (const std::string& segment : scope_id.path()) {
-            const ui::InternedId iid = doc.interner().lookup(segment);
-            if (iid.empty()) {
-                return;
-            }
-            path.push_back(iid);
-        }
-        owned_host = create_pathful_embedded_host(doc.model(), std::move(path));
+        // scope_id.path() already returns InternedId vector - use directly
+        owned_host = create_pathful_embedded_host(doc.model(),
+            std::vector<ui::InternedId>(scope_id.path().begin(), scope_id.path().end()));
     }
 
     if (!owned_host) {
@@ -372,14 +357,9 @@ void WindowSystem::openInlineValueEditorForNode(const editor::NodeId& node_id,
     // recreate it every render frame.
     inlineValueEditor.cached_host.reset();
     if (scope_id.is_embedded()) {
-        std::vector<ui::InternedId> path;
-        path.reserve(scope_id.path().size());
-        for (const std::string& segment : scope_id.path()) {
-            const ui::InternedId iid = doc.interner().lookup(segment);
-            if (iid.empty()) return;
-            path.push_back(iid);
-        }
-        inlineValueEditor.cached_host = create_pathful_embedded_host(doc.model(), std::move(path));
+        // scope_id.path() already returns InternedId vector - use directly
+        inlineValueEditor.cached_host = create_pathful_embedded_host(doc.model(),
+            std::vector<ui::InternedId>(scope_id.path().begin(), scope_id.path().end()));
     }
 
     inlineValueEditor.open = true;

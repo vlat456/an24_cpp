@@ -16,26 +16,23 @@
 namespace {
 
 /// Build the simulation-level node ID: "scope_prefix:node_id" for scoped, or "node_id" for root.
-std::string make_sim_id(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const std::string& prefix = scope_id.sim_scope_prefix();
+std::string make_sim_id(const ui::StringInterner& interner,
+                        const editor::NodeId& node_id,
+                        const WindowScopeId& scope_id) {
+    const std::string prefix = editor::instance_path_to_scope_string(interner, scope_id.path());
     return prefix.empty() ? node_id.str() : signal_key::make_child_scope_key(prefix, node_id.str());
 }
 
 /// Convert a WindowScopeId path to a typed InternedId instance_path.
-/// Asserts that all segments are already interned (unlike intern_scope_path
-/// which returns nullopt for unknown segments).
-std::vector<ui::InternedId> scope_id_to_instance_path(const ui::StringInterner& interner,
-                                                       const WindowScopeId& scope_id) {
-    auto result = editor::intern_scope_path(interner, scope_id.path());
-    assert(result.has_value() && "scope path segment not interned");
-    return std::move(*result);
+/// Now just forwards the path since WindowScopeId already stores InternedIds.
+std::vector<ui::InternedId> scope_id_to_instance_path(const WindowScopeId& scope_id) {
+    return std::vector<ui::InternedId>(scope_id.path().begin(), scope_id.path().end());
 }
 
 /// Build a NodeInstanceKey from a WindowScopeId + local node id.
-editor::NodeInstanceKey make_scoped_node_instance_key(const ui::StringInterner& interner,
-                                                      const WindowScopeId& scope_id,
+editor::NodeInstanceKey make_scoped_node_instance_key(const WindowScopeId& scope_id,
                                                       ui::InternedId local_node_id) {
-    return editor::make_node_instance_key(scope_id_to_instance_path(interner, scope_id), local_node_id);
+    return editor::make_node_instance_key(scope_id_to_instance_path(scope_id), local_node_id);
 }
 
 /// Resolve an InternedId for a (sim_node_id, port_name) pair against the simulation interner.
@@ -220,23 +217,23 @@ Document::ResolvedSignalScope Document::resolve_signal_scope(const WindowScopeId
                 return {
                     &*win->external_blueprint,
                     win->external_interner.get(),
-                    editor::external_ref_signal_context(scope_id.sim_scope_prefix())
+                    editor::external_ref_signal_context(editor::instance_path_to_scope_string(interner_, scope_id.path()))
                 };
             }
         }
-        return {nullptr, nullptr, editor::external_ref_signal_context(scope_id.sim_scope_prefix())};
+        return {nullptr, nullptr, editor::external_ref_signal_context(editor::instance_path_to_scope_string(interner_, scope_id.path()))};
     }
 
     if (scope_id.is_embedded()) {
         if (const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(
-                model_.current(), interner_, scope_id.path())) {
+                model_.current(), scope_id.path())) {
             return {
                 embedded_bp,
                 &interner_,
-                editor::embedded_signal_context(scope_id.sim_scope_prefix())
+                editor::embedded_signal_context(editor::instance_path_to_scope_string(interner_, scope_id.path()))
             };
         }
-        return {nullptr, nullptr, editor::embedded_signal_context(scope_id.sim_scope_prefix())};
+        return {nullptr, nullptr, editor::embedded_signal_context(editor::instance_path_to_scope_string(interner_, scope_id.path()))};
     }
 
     return {&model_.current(), &interner_, editor::root_signal_context()};
@@ -246,7 +243,7 @@ void Document::rebuild_window_scenes() {
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     for (auto& win : window_manager_.windows()) {
-        std::vector<ui::InternedId> instance_path = scope_id_to_instance_path(interner_, win->resolved_scope_id());
+        std::vector<ui::InternedId> instance_path = scope_id_to_instance_path(win->resolved_scope_id());
 
         if (win->is_external_ref() && win->external_blueprint
             && win->external_interner && win->external_arena) {
@@ -256,14 +253,14 @@ void Document::rebuild_window_scenes() {
             win->input.rebuild_snapshot();
         } else if (win->resolved_scope_id().is_embedded()) {
             if (const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(
-                    model_.current(), interner_, win->resolved_scope_id().path())) {
+                    model_.current(), win->resolved_scope_id().path())) {
                 visual::mutations::rebuild(win->scene, *embedded_bp,
                                            interner_, arena_, instance_path, reg,
                                            &runtime_node_states_);
                 win->input.rebuild_snapshot();
             } else {
                 spdlog::error("[editor] Embedded window '{}' missing embedded blueprint during rebuild",
-                              win->resolved_scope_id().sim_scope_prefix());
+                              editor::instance_path_to_scope_string(interner_, win->resolved_scope_id().path()));
                 continue;
             }
         } else {
@@ -416,12 +413,7 @@ void Document::build_signal_cache() {
             // Build the WindowScopeId once — avoids per-frame string construction.
             WindowScopeId scope = WindowScopeId::root();
             if (!path.empty()) {
-                std::vector<std::string> scope_path;
-                scope_path.reserve(path.size());
-                for (const auto& seg : path) {
-                    scope_path.emplace_back(interner_.resolve(seg));
-                }
-                scope = WindowScopeId::embedded(std::move(scope_path));
+                scope = WindowScopeId::embedded(std::vector<ui::InternedId>(path.begin(), path.end()));
             }
 
             signal_cache_[key] = editor::NodeSignalCache{
@@ -537,7 +529,7 @@ std::optional<editor::NodeColor> Document::node_color_for_scope(const WindowScop
         return node ? node->view.color : std::nullopt;
     }
 
-    const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(model_.current(), interner_, scope_id.path());
+    const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(model_.current(), scope_id.path());
     if (!embedded_bp) {
         return std::nullopt;
     }
@@ -569,16 +561,14 @@ void Document::set_node_color_for_scope(const WindowScopeId& scope_id,
         }
         model_.update_node(node_id, assign_color);
     } else {
-        const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(model_.current(), interner_, scope_id.path());
+        const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(model_.current(), scope_id.path());
         resolved_target = embedded_bp && (embedded_bp->find_node(node_id) != nullptr);
         if (!resolved_target) {
             return;
         }
 
-        // Convert string path to InternedId path for the typed API
-        auto iid_path = editor::intern_scope_path(interner_, scope_id.path());
-        if (!iid_path) return;
-        model_.update_embedded_node(*iid_path, node_id, assign_color);
+        // scope_id.path() already returns InternedId vector - use directly
+        model_.update_embedded_node(scope_id.path(), node_id, assign_color);
     }
 
     if (resolved_target) {
@@ -672,7 +662,7 @@ std::string Document::resolve_wire_signal_key(const WindowScopeId& scope_id,
 // ============================================================================
 
 void Document::triggerSwitch(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(node_id, scope_id);
+    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
     const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
     float current = simulation_.get_signal_value(control_key);
     float next = (current < 0.5f) ? 1.0f : 0.0f;
@@ -680,7 +670,7 @@ void Document::triggerSwitch(const editor::NodeId& node_id, const WindowScopeId&
 }
 
 void Document::setSliderValue(const editor::NodeId& node_id, float value, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(node_id, scope_id);
+    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
     const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
     typed_overrides_.push_back({control_key, value});
 
@@ -690,12 +680,12 @@ void Document::setSliderValue(const editor::NodeId& node_id, float value, const 
     NodeContent content = resolve_base_content(*n, interner_, type_registry_);
     if (content.type == bp2::NodeContentType::None) return;
     content.value = value;
-    runtime_node_states_[make_scoped_node_instance_key(interner_, scope_id, n->semantic.id)] = editor::ScalarNodeRuntimeState{value};
+    runtime_node_states_[make_scoped_node_instance_key(scope_id, n->semantic.id)] = editor::ScalarNodeRuntimeState{value};
     dispatch_content_to_widget(window_manager_, interner_, n->semantic.id, scope_id, content);
 }
 
 void Document::setKnobPosition(const editor::NodeId& node_id, int position, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(node_id, scope_id);
+    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
     const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
     typed_overrides_.push_back({control_key, static_cast<float>(position)});
 
@@ -705,18 +695,18 @@ void Document::setKnobPosition(const editor::NodeId& node_id, int position, cons
     NodeContent content = resolve_base_content(*n, interner_, type_registry_);
     if (content.type == bp2::NodeContentType::None) return;
     content.value = static_cast<float>(position);
-    runtime_node_states_[make_scoped_node_instance_key(interner_, scope_id, n->semantic.id)] = editor::DiscreteNodeRuntimeState{position};
+    runtime_node_states_[make_scoped_node_instance_key(scope_id, n->semantic.id)] = editor::DiscreteNodeRuntimeState{position};
     dispatch_content_to_widget(window_manager_, interner_, n->semantic.id, scope_id, content);
 }
 
 void Document::holdButtonPress(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(node_id, scope_id);
+    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
     const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
     held_buttons_[sim_id] = control_key;
 }
 
 void Document::holdButtonRelease(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(node_id, scope_id);
+    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
     auto it = held_buttons_.find(sim_id);
     if (it != held_buttons_.end()) {
         // Send release override using the pre-resolved InternedId.
