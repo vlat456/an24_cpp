@@ -307,6 +307,7 @@ void Document::startSimulation() {
 void Document::stopSimulation() {
     simulation_.stop();
     signal_cache_.clear();
+    wire_signal_cache_.clear();
     typed_overrides_.clear();
     held_buttons_.clear();
     simulation_running_ = false;
@@ -434,6 +435,28 @@ void Document::build_signal_cache() {
                 .scope = std::move(scope)
             };
         });
+
+    // Pre-resolve wire energization signal InternedIds for ALL scopes.
+    // Wire IDs are globally unique (InternedId), so a single flat cache works.
+    wire_signal_cache_.clear();
+    for (auto& win : window_manager_.windows()) {
+        const WindowScopeId& scope_id = win->resolved_scope_id();
+        const ResolvedSignalScope resolved = resolve_signal_scope(scope_id);
+        if (!resolved.blueprint || !resolved.interner) continue;
+
+        for (const bp2::Blueprint::Wire& w : resolved.blueprint->wires()) {
+            auto [src_node_id, src_port_id] = bp2_path_to_node_port(w.source);
+            if (src_node_id.empty() || src_port_id.empty()) continue;
+
+            const bp2::Blueprint::Node* node = resolved.blueprint->find_node(src_node_id);
+            editor::SignalEndpoint endpoint{node, src_node_id, src_port_id};
+            ui::InternedId signal_iid = editor::resolve_runtime_signal_key(
+                *resolved.blueprint, *resolved.interner, sim_interner, endpoint, resolved.context);
+            if (!signal_iid.empty()) {
+                wire_signal_cache_[w.id] = signal_iid;
+            }
+        }
+    }
 }
 
 // ============================================================================
@@ -615,17 +638,12 @@ void Document::buildEnergizedWireSet(
         return;
     }
 
+    // Use pre-resolved wire cache — zero resolver calls per-frame.
     for (const bp2::Blueprint::Wire& w : resolved.blueprint->wires()) {
-        auto [src_node_id, src_port_id] = bp2_path_to_node_port(w.source);
-        if (src_node_id.empty() || src_port_id.empty()) continue;
+        auto it = wire_signal_cache_.find(w.id);
+        if (it == wire_signal_cache_.end()) continue;
 
-        const bp2::Blueprint::Node* node = resolved.blueprint->find_node(src_node_id);
-        editor::SignalEndpoint endpoint{node, src_node_id, src_port_id};
-        ui::InternedId port_iid = editor::resolve_runtime_signal_key(
-            *resolved.blueprint, *resolved.interner, simulation_.signal_key_interner(), endpoint, resolved.context);
-        if (port_iid.empty()) continue;
-
-        if (std::abs(simulation_.get_signal_value(port_iid)) > 0.5f) {
+        if (std::abs(simulation_.get_signal_value(it->second)) > 0.5f) {
             out.insert(resolved.interner->resolve(w.id));
         }
     }

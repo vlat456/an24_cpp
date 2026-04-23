@@ -284,6 +284,10 @@ private:
     // Built at simulation start, cleared on stop.
     editor::SignalCache signal_cache_;
 
+    // Pre-resolved wire signal keys — zero resolver calls per frame.
+    // Built at simulation start, cleared on stop.
+    editor::WireSignalCache wire_signal_cache_;
+
     // Typed signal overrides — InternedId resolved once at interaction time.
     std::vector<std::pair<ui::InternedId, float>> typed_overrides_;
 

@@ -121,4 +121,9 @@ struct NodeSignalCache {
 /// Built at simulation start, cleared on stop.
 using SignalCache = std::unordered_map<NodeInstanceKey, NodeSignalCache, NodeInstanceKeyHash>;
 
+/// Pre-resolved wire energization InternedId — built once at simulation start.
+/// Maps wire InternedId → signal InternedId for the wire's source endpoint.
+/// buildEnergizedWireSet() iterates this cache per-frame — zero resolver calls.
+using WireSignalCache = std::unordered_map<ui::InternedId, ui::InternedId, std::hash<ui::InternedId>>;
+
 } // namespace editor
