@@ -4,6 +4,7 @@
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "core/solvers/common/signal_key.h"
 #include "core/solvers/jit/jit_solver.h"
+#include "core/model/component_kind.h"
 
 #include <set>
 #include <string>
@@ -85,6 +86,7 @@ JitBuildInput elaborate_for_jit(
         ResolvedDevice dev;
         dev.name = dev_id;
         dev.classname = classname;
+        dev.kind = parse_component_kind(classname).value_or(ComponentKind::_COUNT);
         dev.priority = "med";
         dev.critical = false;
 

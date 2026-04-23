@@ -4,24 +4,12 @@
 
 namespace jit_solver_impl {
 
-std::string metadata_classname_for(std::string_view classname) {
-    return std::string(classname);
+std::vector<std::string> active_source_writer_ports_for(ComponentKind kind) {
+    return get_source_writer_ports(kind, static_cast<uint8_t>(Domain::Electrical));
 }
 
-bool is_knob_switch_family(std::string_view classname) {
-    return classname == "KnobSwitch" ||
-           classname == "RotarySwitch1ToN" ||
-           classname == "RotarySwitchNTo1";
-}
-
-std::vector<std::string> active_source_writer_ports_for(std::string_view classname) {
-    return get_source_writer_ports(
-        metadata_classname_for(classname),
-        static_cast<uint8_t>(Domain::Electrical));
-}
-
-std::unordered_set<std::string> output_ports_for_class(std::string_view classname) {
-    auto outputs = get_output_ports(metadata_classname_for(classname));
+std::unordered_set<std::string> output_ports_for_class(ComponentKind kind) {
+    auto outputs = get_output_ports(kind);
     return std::unordered_set<std::string>(outputs.begin(), outputs.end());
 }
 

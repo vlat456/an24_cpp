@@ -11,10 +11,8 @@
 namespace jit_solver_impl {
 
 /// Helper functions and utilities for build_systems_dev
-std::string metadata_classname_for(std::string_view classname);
-bool is_knob_switch_family(std::string_view classname);
-std::vector<std::string> active_source_writer_ports_for(std::string_view classname);
-std::unordered_set<std::string> output_ports_for_class(std::string_view classname);
+std::vector<std::string> active_source_writer_ports_for(ComponentKind kind);
+std::unordered_set<std::string> output_ports_for_class(ComponentKind kind);
 bool parse_bool_param_value(const std::string& value);
 
 /// ParamReader class for parameter parsing

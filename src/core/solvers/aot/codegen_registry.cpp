@@ -19,6 +19,8 @@ struct ComponentPorts {
     std::string classname;
     std::vector<PortMeta> ports;
     bool has_solver_role = false;
+    bool scheduler_source = false;
+    bool solver_owned_electrical = false;
 };
 
 std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& registry) {
@@ -34,6 +36,8 @@ std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& re
         ComponentPorts comp;
         comp.classname = def->classname;
         comp.has_solver_role = def->solver.solver_role.has_value();
+        comp.scheduler_source = def->solver.scheduler_source;
+        comp.solver_owned_electrical = def->solver.solver_owned_electrical;
         for (const auto& [port_name, port] : def->ports) {
             PortMeta meta;
             meta.name = port_name;
@@ -60,21 +64,17 @@ void emit_port_registry_prelude(std::ostringstream& oss, const std::vector<Compo
     oss << "#include <cstdint>\n";
     oss << "#include <string>\n";
     oss << "#include <unordered_map>\n";
-    oss << "#include <unordered_set>\n";
     oss << "#include <optional>\n";
     oss << "#include <stdexcept>\n";
     oss << "#include <vector>\n";
     oss << "#include <variant>\n\n";
     oss << "#include \"provider.h\"\n";
     oss << "#include \"all.h\"\n";
-    oss << "#include \"port_names.h\"\n\n";
+    oss << "#include \"port_names.h\"\n";
+    oss << "#include \"core/model/component_kind.h\"\n\n";
 
-    oss << "enum class ComponentType {\n";
-    for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << all_components[i].classname << ",\n";
-    }
-    oss << "    _COUNT\n";
-    oss << "};\n\n";
+    // Backward-compat alias: existing code may still reference ComponentType.
+    oss << "using ComponentType = ComponentKind;\n\n";
 
     for (const auto& comp : all_components) {
         oss << "constexpr size_t " << comp.classname << "_PORT_COUNT = " << comp.ports.size() << ";\n";
@@ -145,6 +145,7 @@ void emit_port_registry_lookups(
     const std::vector<ComponentPorts>& all_components,
     const std::set<std::string>& all_port_names
 ) {
+    // Port name string → PortNames enum (used at setup time only)
     oss << "inline std::optional<PortNames> string_to_port_name(const std::string& name) {\n";
     oss << "    static const std::unordered_map<std::string, PortNames> map = {\n";
     for (const auto& port_name : all_port_names) {
@@ -156,66 +157,107 @@ void emit_port_registry_lookups(
     oss << "    return std::nullopt;\n";
     oss << "}\n\n";
 
-    oss << "inline std::vector<std::string> get_component_ports(const std::string& classname) {\n";
-    oss << "    static const std::unordered_map<std::string, std::vector<std::string>> registry = {\n";
+    // ComponentKind → port list (switch dispatch, no hash map)
+    oss << "inline std::vector<std::string> get_component_ports(ComponentKind kind) {\n";
+    oss << "    switch (kind) {\n";
     for (const auto& comp : all_components) {
-        oss << "        {\"" << comp.classname << "\", {";
+        oss << "        case ComponentKind::" << comp.classname << ": return {";
         for (size_t i = 0; i < comp.ports.size(); ++i) {
             oss << "\"" << comp.ports[i].name << "\"";
             if (i < comp.ports.size() - 1) {
                 oss << ", ";
             }
         }
-        oss << "}},\n";
+        oss << "};\n";
     }
-    oss << "    };\n";
-    oss << "    auto it = registry.find(classname);\n";
-    oss << "    if (it != registry.end()) return it->second;\n";
-    oss << "    return {};\n";
-    oss << "}\n\n";
-
-    oss << "inline bool has_component_metadata(const std::string& classname) {\n";
-    oss << "    static const std::unordered_set<std::string> known = {\n";
-    for (const auto& comp : all_components) {
-        oss << "        \"" << comp.classname << "\",\n";
-    }
-    oss << "    };\n";
-    oss << "    return known.count(classname) > 0;\n";
-    oss << "}\n\n";
-
-    oss << "inline void require_component_metadata(const std::string& classname, const char* helper_name) {\n";
-    oss << "    if (!has_component_metadata(classname)) {\n";
-    oss << "        throw std::runtime_error(std::string(\"Unknown component metadata class in \") + helper_name + \": \" + classname);\n";
+    oss << "        default: return {};\n";
     oss << "    }\n";
     oss << "}\n\n";
 
-    oss << "inline std::vector<std::string> get_output_ports(const std::string& classname) {\n";
-    oss << "    require_component_metadata(classname, \"get_output_ports\");\n";
-    oss << "    std::vector<std::string> result;\n";
-    for (const auto& comp : all_components) {
-        oss << "    if (classname == \"" << comp.classname << "\") {\n";
-        oss << "        for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
-        oss << "            if (" << comp.classname << "_PORT_DIRECTIONS[i] == bp2::Direction::Output || "
-            << comp.classname << "_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(" << comp.classname << "_PORTS[i]);\n";
-        oss << "        }\n";
-        oss << "        return result;\n";
-        oss << "    }\n";
-    }
-    oss << "    throw std::runtime_error(\"Missing output-port metadata entry for known class: \" + classname);\n";
+    // has_component_metadata: any valid ComponentKind is known
+    oss << "inline bool has_component_metadata(ComponentKind kind) {\n";
+    oss << "    return kind != ComponentKind::_COUNT;\n";
     oss << "}\n\n";
 
-    oss << "inline std::vector<std::string> get_source_writer_ports(const std::string& classname, uint8_t domain_mask) {\n";
-    oss << "    require_component_metadata(classname, \"get_source_writer_ports\");\n";
+    // get_output_ports: switch on ComponentKind (O(1) jump table)
+    oss << "inline std::vector<std::string> get_output_ports(ComponentKind kind) {\n";
     oss << "    std::vector<std::string> result;\n";
+    oss << "    switch (kind) {\n";
     for (const auto& comp : all_components) {
-        oss << "    if (classname == \"" << comp.classname << "\") {\n";
-        oss << "        for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
-        oss << "            if (" << comp.classname << "_PORT_SOURCE_WRITER[i] && ((" << comp.classname << "_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(" << comp.classname << "_PORTS[i]);\n";
-        oss << "        }\n";
-        oss << "        return result;\n";
-        oss << "    }\n";
+        oss << "        case ComponentKind::" << comp.classname << ":\n";
+        oss << "            for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
+        oss << "                if (" << comp.classname << "_PORT_DIRECTIONS[i] == bp2::Direction::Output || "
+            << comp.classname << "_PORT_DIRECTIONS[i] == bp2::Direction::InOut)\n";
+        oss << "                    result.push_back(" << comp.classname << "_PORTS[i]);\n";
+        oss << "            }\n";
+        oss << "            return result;\n";
     }
-    oss << "    throw std::runtime_error(\"Missing source-writer metadata entry for known class: \" + classname);\n";
+    oss << "        default: return result;\n";
+    oss << "    }\n";
+    oss << "}\n\n";
+
+    // get_source_writer_ports: switch on ComponentKind (O(1) jump table)
+    oss << "inline std::vector<std::string> get_source_writer_ports(ComponentKind kind, uint8_t domain_mask) {\n";
+    oss << "    std::vector<std::string> result;\n";
+    oss << "    switch (kind) {\n";
+    for (const auto& comp : all_components) {
+        oss << "        case ComponentKind::" << comp.classname << ":\n";
+        oss << "            for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
+        oss << "                if (" << comp.classname << "_PORT_SOURCE_WRITER[i] && ((" << comp.classname << "_PORT_DOMAINS[i] & domain_mask) != 0))\n";
+        oss << "                    result.push_back(" << comp.classname << "_PORTS[i]);\n";
+        oss << "            }\n";
+        oss << "            return result;\n";
+    }
+    oss << "        default: return result;\n";
+    oss << "    }\n";
+    oss << "}\n\n";
+}
+
+void emit_port_registry_component_traits(
+    std::ostringstream& oss,
+    const std::vector<ComponentPorts>& all_components
+) {
+    // Per-component constexpr booleans (already emitted as part of metadata).
+    // Now emit indexed lookup arrays for fast enum → trait queries.
+
+    // scheduler_source: indexed by ComponentKind
+    oss << "constexpr bool COMPONENT_SCHEDULER_SOURCE[] = {\n";
+    for (size_t i = 0; i < all_components.size(); ++i) {
+        oss << "    " << (all_components[i].scheduler_source ? "true" : "false")
+            << (i < all_components.size() - 1 ? ",\n" : "\n");
+    }
+    oss << "};\n\n";
+
+    // solver_owned_electrical: indexed by ComponentKind
+    oss << "constexpr bool COMPONENT_SOLVER_OWNED_ELECTRICAL[] = {\n";
+    for (size_t i = 0; i < all_components.size(); ++i) {
+        oss << "    " << (all_components[i].solver_owned_electrical ? "true" : "false")
+            << (i < all_components.size() - 1 ? ",\n" : "\n");
+    }
+    oss << "};\n\n";
+
+    // requires_solver_role: component has solver_role defined
+    oss << "constexpr bool COMPONENT_REQUIRES_SOLVER_ROLE[] = {\n";
+    for (size_t i = 0; i < all_components.size(); ++i) {
+        oss << "    " << (all_components[i].has_solver_role ? "true" : "false")
+            << (i < all_components.size() - 1 ? ",\n" : "\n");
+    }
+    oss << "};\n\n";
+
+    // Lookup functions — O(1) array index, zero string comparison
+    oss << "inline bool is_scheduler_source_component(ComponentKind kind) {\n";
+    oss << "    const auto idx = static_cast<size_t>(kind);\n";
+    oss << "    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_SCHEDULER_SOURCE[idx];\n";
+    oss << "}\n\n";
+
+    oss << "inline bool is_solver_owned_electrical_component(ComponentKind kind) {\n";
+    oss << "    const auto idx = static_cast<size_t>(kind);\n";
+    oss << "    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_SOLVER_OWNED_ELECTRICAL[idx];\n";
+    oss << "}\n\n";
+
+    oss << "inline bool requires_solver_role_component(ComponentKind kind) {\n";
+    oss << "    const auto idx = static_cast<size_t>(kind);\n";
+    oss << "    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_REQUIRES_SOLVER_ROLE[idx];\n";
     oss << "}\n\n";
 }
 
@@ -232,8 +274,8 @@ void emit_port_registry_variant(std::ostringstream& oss, const std::vector<Compo
     oss << ">;\n\n";
 
     oss << "static_assert(\n";
-    oss << "    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentType::_COUNT),\n";
-    oss << "    \"ComponentType enum and ComponentVariant are out of sync — regenerate port_registry.h\"\n";
+    oss << "    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentKind::_COUNT),\n";
+    oss << "    \"ComponentKind enum and ComponentVariant are out of sync — regenerate port_registry.h\"\n";
     oss << ");\n\n";
 }
 
@@ -333,6 +375,7 @@ void CodeGen::generate_port_registry(const ComponentRegistry& registry, const st
     emit_port_registry_prelude(oss, all_components);
     emit_port_registry_metadata(oss, all_components);
     emit_port_registry_lookups(oss, all_components, all_port_names);
+    emit_port_registry_component_traits(oss, all_components);
     emit_port_registry_variant(oss, all_components);
 
     std::ofstream out(output_path);

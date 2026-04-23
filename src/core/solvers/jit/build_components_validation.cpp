@@ -14,7 +14,7 @@ void validate_source_writer_conflicts(
     std::unordered_map<uint32_t, std::vector<std::string>> writers_by_signal;
 
     for (const auto& dev : devices) {
-        const auto sw_ports = active_source_writer_ports_for(dev.classname);
+        const auto sw_ports = active_source_writer_ports_for(dev.kind);
         for (const auto& port_name : sw_ports) {
             const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
             const ui::InternedId key = result.signal_key_interner.lookup(full_port);
@@ -92,7 +92,7 @@ void topological_sort_consumers(
         }
 
         const ResolvedDevice& dev = *it_dev->second;
-        const auto output_ports = output_ports_for_class(dev.classname);
+        const auto output_ports = output_ports_for_class(dev.kind);
         auto& io = io_by_consumer[name];
 
         for (const auto& [port_name, port] : dev.ports) {

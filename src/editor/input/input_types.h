@@ -66,7 +66,7 @@ struct InputResult {
     bool show_node_context_menu = false;    ///< Right-click on node
     ui::InternedId context_menu_node_id;    ///< ID of the right-clicked node
     ui::InternedId open_sub_window;         ///< non-empty = open this collapsed group
-    ui::InternedId toggle_switch_node_id;   ///< non-empty = toggle this Switch/AZS node
+    ui::InternedId toggle_switch_node_id;   ///< non-empty = toggle this Switch node
     ui::InternedId toggle_probe_wire_id;    ///< non-empty = toggle oscilloscope probe on wire
     bool has_toggle_probe_world_pos = false;
     ui::Pt toggle_probe_world_pos;

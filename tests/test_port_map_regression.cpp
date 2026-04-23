@@ -3,6 +3,7 @@
 /// string_to_port_name, causing all logical gates to silently read signal[0].
 
 #include <gtest/gtest.h>
+#include "core/model/component_kind.h"
 #include "core/model/component_registry.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/components/all.h"
@@ -31,7 +32,7 @@ TEST(PortMapRegression, AllComponentPortsAreInStringToPortName) {
     };
 
     for (const auto& cls : classnames) {
-        auto ports = get_component_ports(cls);
+        auto ports = get_component_ports(parse_component_kind(cls).value_or(ComponentKind::_COUNT));
         ASSERT_FALSE(ports.empty()) << "No ports for component: " << cls;
         for (const auto& port : ports) {
             auto result = string_to_port_name(port);

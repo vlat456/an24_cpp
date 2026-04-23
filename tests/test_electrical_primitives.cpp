@@ -33,13 +33,14 @@ ResolvedDevice make_test_device_or_synthetic(const std::string& name,
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    for (const auto& port_name : get_component_ports(classname)) {
+    for (const auto& port_name : get_component_ports(parse_component_kind(classname).value_or(ComponentKind::_COUNT))) {
         dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
     ResolvedDevice resolved;
     resolved.name = dev.name;
     resolved.classname = dev.classname;
+    resolved.kind = parse_component_kind(dev.classname).value_or(ComponentKind::_COUNT);
     resolved.params = dev.params;
     resolved.ports = dev.ports;
     return resolved;
@@ -505,7 +506,7 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         dev.name = "cond_bad";
         dev.classname = "ElectricalConductance";
         dev.params = {{"conductanse", "0.5"}};
-        auto ports = get_component_ports("ElectricalConductance");
+        auto ports = get_component_ports(ComponentKind::ElectricalConductance);
         for (const auto& p : ports) {
             dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
         }
@@ -522,7 +523,7 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
         dev.name = "src_bad";
         dev.classname = "ElectricalSource";
         dev.params = {{"voltage", "28.0"}, {"resistanse", "0.01"}};
-        auto ports = get_component_ports("ElectricalSource");
+        auto ports = get_component_ports(ComponentKind::ElectricalSource);
         for (const auto& p : ports) {
             dev.ports[p] = Port{bp2::Direction::InOut, PortType::Any};
         }

@@ -156,7 +156,6 @@ These old-format or non-canonical node fields must not appear:
 - `content_max`
 - `content_unit`
 - `content_state`
-- `content_tripped`
 - legacy split color fields like `color_r`, `color_g`, `color_b`, `color_a`
 - any host interface mirror
 

@@ -767,7 +767,7 @@ TEST(PushRuntime, StrictParamMissingThrowsForPID) {
     // Verify that missing required params for PID throws runtime_error
     // with component name and missing key.
     std::unordered_map<std::string, Port> device_ports;
-    for (const auto& port_name : get_component_ports("PID")) {
+    for (const auto& port_name : get_component_ports(ComponentKind::PID)) {
         device_ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
@@ -792,7 +792,7 @@ TEST(PushRuntime, StrictParamMissingThrowsForPID) {
 TEST(PushRuntime, StrictParamMissingThrowsForSlewRate) {
     // Verify that missing required params for SlewRate throws runtime_error
     std::unordered_map<std::string, Port> device_ports;
-    for (const auto& port_name : get_component_ports("SlewRate")) {
+    for (const auto& port_name : get_component_ports(ComponentKind::SlewRate)) {
         device_ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
@@ -872,7 +872,7 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
             {"filter_alpha", "0.3"}
         };
         
-        auto ports = get_component_ports("PID");
+        auto ports = get_component_ports(ComponentKind::PID);
         for (const auto& port_name : ports) {
             dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
         }
@@ -906,7 +906,7 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
              {"filter_alpha", "0.3"}
          };
          
-         auto ports = get_component_ports("PID");
+         auto ports = get_component_ports(ComponentKind::PID);
          for (const auto& port_name : ports) {
              dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
          }

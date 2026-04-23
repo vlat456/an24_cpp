@@ -8,12 +8,14 @@
 
 #include "core/model/port.h"
 #include "core/model/component_types.h"
+#include "core/model/component_kind.h"
 
 struct ResolvedDevice {
     std::string name;
     std::string template_name;
     std::string classname;
     std::string display_name;
+    ComponentKind kind = ComponentKind::_COUNT; // resolved at elaboration time
     std::string priority = "med";
     std::optional<size_t> bucket;
     bool critical = false;

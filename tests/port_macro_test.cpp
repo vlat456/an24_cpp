@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "core/model/component_kind.h"
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/component.h"
 #include <type_traits>
@@ -42,7 +43,7 @@ TEST(PortMacroTest, AllComponentsHavePortCounts) {
 
 // Test port name lookup
 TEST(PortMacroTest, GetPortNamesReturnsCorrectData) {
-    auto es_ports = get_component_ports("ElectricalSource");
+    auto es_ports = get_component_ports(ComponentKind::ElectricalSource);
     EXPECT_EQ(es_ports.size(), ElectricalSource_PORT_COUNT);
 }
 

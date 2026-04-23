@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <optional>
 #include <stdexcept>
 #include <vector>
@@ -15,81 +14,9 @@
 #include "provider.h"
 #include "all.h"
 #include "port_names.h"
+#include "core/model/component_kind.h"
 
-enum class ComponentType {
-    AND,
-    AZS,
-    Accumulator,
-    Add,
-    Any_V_to_Bool,
-    AsymSlewRate,
-    AsymTMO,
-    Bus,
-    Clamp,
-    Comparator,
-    ControlledCurrentSource,
-    ControlledVoltageSource,
-    CurrentSense,
-    Divide,
-    ElectricHeater,
-    ElectricPump,
-    ElectricalConductance,
-    ElectricalSource,
-    FastTMO,
-    FuelTank,
-    Generator,
-    GidroAccumulator,
-    Greater,
-    GreaterEq,
-    Gyroscope,
-    HoldButton,
-    IndicatorLight,
-    InertiaNode,
-    Integrator,
-    Inverter,
-    KnobSwitch,
-    LUT,
-    LerpNode,
-    Lesser,
-    LesserEq,
-    Max,
-    Merger,
-    Min,
-    Monostable,
-    Multiply,
-    NAND,
-    NOT,
-    Normalize,
-    OR,
-    P,
-    PD,
-    PI,
-    PID,
-    Positive_V_to_Bool,
-    Radiator,
-    RefNode,
-    Relay,
-    Resistor,
-    RotarySwitch1ToN,
-    RotarySwitchNTo1,
-    SampleHold,
-    SlewRate,
-    Slider,
-    SolenoidValve,
-    Splitter,
-    Spring,
-    Subtract,
-    Switch,
-    TempSensor,
-    TimeDelay,
-    Transformer,
-    Value,
-    VariableConductance,
-    VoltageSense,
-    Voltmeter,
-    XOR,
-    _COUNT
-};
+using ComponentType = ComponentKind;
 
 constexpr size_t AND_PORT_COUNT = 3;
 constexpr size_t AZS_PORT_COUNT = 6;
@@ -542,10 +469,6 @@ constexpr bool AND_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool AND_SCHEDULER_SOURCE = false;
-
-constexpr bool AND_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction AZS_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -570,10 +493,6 @@ constexpr bool AZS_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool AZS_SCHEDULER_SOURCE = false;
-
-constexpr bool AZS_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction Accumulator_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -586,10 +505,6 @@ constexpr bool Accumulator_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Accumulator_SCHEDULER_SOURCE = false;
-
-constexpr bool Accumulator_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Add_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -605,10 +520,6 @@ constexpr bool Add_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Add_SCHEDULER_SOURCE = false;
-
-constexpr bool Add_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Any_V_to_Bool_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -621,10 +532,6 @@ constexpr bool Any_V_to_Bool_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Any_V_to_Bool_SCHEDULER_SOURCE = false;
-
-constexpr bool Any_V_to_Bool_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction AsymSlewRate_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -637,10 +544,6 @@ constexpr bool AsymSlewRate_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool AsymSlewRate_SCHEDULER_SOURCE = false;
-
-constexpr bool AsymSlewRate_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction AsymTMO_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -653,10 +556,6 @@ constexpr bool AsymTMO_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool AsymTMO_SCHEDULER_SOURCE = false;
-
-constexpr bool AsymTMO_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Bus_PORT_DIRECTIONS[] = {
     bp2::Direction::InOut
 };
@@ -666,10 +565,6 @@ constexpr uint8_t Bus_PORT_DOMAINS[] = {
 constexpr bool Bus_PORT_SOURCE_WRITER[] = {
     false
 };
-constexpr bool Bus_SCHEDULER_SOURCE = false;
-
-constexpr bool Bus_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Clamp_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -688,10 +583,6 @@ constexpr bool Clamp_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Clamp_SCHEDULER_SOURCE = false;
-
-constexpr bool Clamp_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Comparator_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -707,10 +598,6 @@ constexpr bool Comparator_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Comparator_SCHEDULER_SOURCE = false;
-
-constexpr bool Comparator_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction ControlledCurrentSource_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -726,10 +613,6 @@ constexpr bool ControlledCurrentSource_PORT_SOURCE_WRITER[] = {
     false,
     true
 };
-constexpr bool ControlledCurrentSource_SCHEDULER_SOURCE = false;
-
-constexpr bool ControlledCurrentSource_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction ControlledVoltageSource_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -760,10 +643,6 @@ constexpr bool ControlledVoltageSource_PORT_SOURCE_WRITER[] = {
     false,
     true
 };
-constexpr bool ControlledVoltageSource_SCHEDULER_SOURCE = false;
-
-constexpr bool ControlledVoltageSource_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction CurrentSense_PORT_DIRECTIONS[] = {
     bp2::Direction::Output,
     bp2::Direction::Input,
@@ -779,10 +658,6 @@ constexpr bool CurrentSense_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool CurrentSense_SCHEDULER_SOURCE = false;
-
-constexpr bool CurrentSense_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Divide_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -798,10 +673,6 @@ constexpr bool Divide_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Divide_SCHEDULER_SOURCE = false;
-
-constexpr bool Divide_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction ElectricHeater_PORT_DIRECTIONS[] = {
     bp2::Direction::Output,
     bp2::Direction::Input
@@ -814,10 +685,6 @@ constexpr bool ElectricHeater_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool ElectricHeater_SCHEDULER_SOURCE = false;
-
-constexpr bool ElectricHeater_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction ElectricPump_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -833,10 +700,6 @@ constexpr bool ElectricPump_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool ElectricPump_SCHEDULER_SOURCE = false;
-
-constexpr bool ElectricPump_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction ElectricalConductance_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -849,10 +712,6 @@ constexpr bool ElectricalConductance_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool ElectricalConductance_SCHEDULER_SOURCE = false;
-
-constexpr bool ElectricalConductance_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction ElectricalSource_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -865,10 +724,6 @@ constexpr bool ElectricalSource_PORT_SOURCE_WRITER[] = {
     false,
     true
 };
-constexpr bool ElectricalSource_SCHEDULER_SOURCE = false;
-
-constexpr bool ElectricalSource_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction FastTMO_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -881,10 +736,6 @@ constexpr bool FastTMO_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool FastTMO_SCHEDULER_SOURCE = false;
-
-constexpr bool FastTMO_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction FuelTank_PORT_DIRECTIONS[] = {
     bp2::Direction::Output,
     bp2::Direction::Output
@@ -897,10 +748,6 @@ constexpr bool FuelTank_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool FuelTank_SCHEDULER_SOURCE = false;
-
-constexpr bool FuelTank_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Generator_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -913,10 +760,6 @@ constexpr bool Generator_PORT_SOURCE_WRITER[] = {
     false,
     true
 };
-constexpr bool Generator_SCHEDULER_SOURCE = true;
-
-constexpr bool Generator_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction GidroAccumulator_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -929,10 +772,6 @@ constexpr bool GidroAccumulator_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool GidroAccumulator_SCHEDULER_SOURCE = false;
-
-constexpr bool GidroAccumulator_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Greater_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -948,10 +787,6 @@ constexpr bool Greater_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Greater_SCHEDULER_SOURCE = false;
-
-constexpr bool Greater_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction GreaterEq_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -967,10 +802,6 @@ constexpr bool GreaterEq_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool GreaterEq_SCHEDULER_SOURCE = false;
-
-constexpr bool GreaterEq_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Gyroscope_PORT_DIRECTIONS[] = {
     bp2::Direction::Input
 };
@@ -980,10 +811,6 @@ constexpr uint8_t Gyroscope_PORT_DOMAINS[] = {
 constexpr bool Gyroscope_PORT_SOURCE_WRITER[] = {
     false
 };
-constexpr bool Gyroscope_SCHEDULER_SOURCE = false;
-
-constexpr bool Gyroscope_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction HoldButton_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1002,10 +829,6 @@ constexpr bool HoldButton_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool HoldButton_SCHEDULER_SOURCE = false;
-
-constexpr bool HoldButton_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction IndicatorLight_PORT_DIRECTIONS[] = {
     bp2::Direction::Output,
     bp2::Direction::Input,
@@ -1021,10 +844,6 @@ constexpr bool IndicatorLight_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool IndicatorLight_SCHEDULER_SOURCE = false;
-
-constexpr bool IndicatorLight_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction InertiaNode_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1046,10 +865,6 @@ constexpr bool InertiaNode_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool InertiaNode_SCHEDULER_SOURCE = false;
-
-constexpr bool InertiaNode_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Integrator_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1068,10 +883,6 @@ constexpr bool Integrator_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Integrator_SCHEDULER_SOURCE = false;
-
-constexpr bool Integrator_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Inverter_PORT_DIRECTIONS[] = {
     bp2::Direction::Output,
     bp2::Direction::Input
@@ -1084,10 +895,6 @@ constexpr bool Inverter_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Inverter_SCHEDULER_SOURCE = false;
-
-constexpr bool Inverter_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction KnobSwitch_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1118,10 +925,6 @@ constexpr bool KnobSwitch_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool KnobSwitch_SCHEDULER_SOURCE = false;
-
-constexpr bool KnobSwitch_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction LUT_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1134,10 +937,6 @@ constexpr bool LUT_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool LUT_SCHEDULER_SOURCE = false;
-
-constexpr bool LUT_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction LerpNode_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1150,10 +949,6 @@ constexpr bool LerpNode_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool LerpNode_SCHEDULER_SOURCE = false;
-
-constexpr bool LerpNode_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Lesser_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1169,10 +964,6 @@ constexpr bool Lesser_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Lesser_SCHEDULER_SOURCE = false;
-
-constexpr bool Lesser_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction LesserEq_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1188,10 +979,6 @@ constexpr bool LesserEq_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool LesserEq_SCHEDULER_SOURCE = false;
-
-constexpr bool LesserEq_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Max_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1207,10 +994,6 @@ constexpr bool Max_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Max_SCHEDULER_SOURCE = false;
-
-constexpr bool Max_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Merger_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1226,10 +1009,6 @@ constexpr bool Merger_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Merger_SCHEDULER_SOURCE = false;
-
-constexpr bool Merger_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Min_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1245,10 +1024,6 @@ constexpr bool Min_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Min_SCHEDULER_SOURCE = false;
-
-constexpr bool Min_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Monostable_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1261,10 +1036,6 @@ constexpr bool Monostable_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Monostable_SCHEDULER_SOURCE = false;
-
-constexpr bool Monostable_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Multiply_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1280,10 +1051,6 @@ constexpr bool Multiply_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Multiply_SCHEDULER_SOURCE = false;
-
-constexpr bool Multiply_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction NAND_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1299,10 +1066,6 @@ constexpr bool NAND_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool NAND_SCHEDULER_SOURCE = false;
-
-constexpr bool NAND_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction NOT_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1315,10 +1078,6 @@ constexpr bool NOT_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool NOT_SCHEDULER_SOURCE = false;
-
-constexpr bool NOT_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Normalize_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1337,10 +1096,6 @@ constexpr bool Normalize_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Normalize_SCHEDULER_SOURCE = false;
-
-constexpr bool Normalize_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction OR_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1356,10 +1111,6 @@ constexpr bool OR_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool OR_SCHEDULER_SOURCE = false;
-
-constexpr bool OR_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction P_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1375,10 +1126,6 @@ constexpr bool P_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool P_SCHEDULER_SOURCE = false;
-
-constexpr bool P_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction PD_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1394,10 +1141,6 @@ constexpr bool PD_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool PD_SCHEDULER_SOURCE = false;
-
-constexpr bool PD_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction PI_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1425,10 +1168,6 @@ constexpr bool PI_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool PI_SCHEDULER_SOURCE = false;
-
-constexpr bool PI_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction PID_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1444,10 +1183,6 @@ constexpr bool PID_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool PID_SCHEDULER_SOURCE = false;
-
-constexpr bool PID_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Positive_V_to_Bool_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1460,10 +1195,6 @@ constexpr bool Positive_V_to_Bool_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Positive_V_to_Bool_SCHEDULER_SOURCE = false;
-
-constexpr bool Positive_V_to_Bool_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Radiator_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1476,10 +1207,6 @@ constexpr bool Radiator_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Radiator_SCHEDULER_SOURCE = false;
-
-constexpr bool Radiator_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction RefNode_PORT_DIRECTIONS[] = {
     bp2::Direction::Output
 };
@@ -1489,10 +1216,6 @@ constexpr uint8_t RefNode_PORT_DOMAINS[] = {
 constexpr bool RefNode_PORT_SOURCE_WRITER[] = {
     false
 };
-constexpr bool RefNode_SCHEDULER_SOURCE = true;
-
-constexpr bool RefNode_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Relay_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1514,10 +1237,6 @@ constexpr bool Relay_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Relay_SCHEDULER_SOURCE = false;
-
-constexpr bool Relay_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction Resistor_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1530,10 +1249,6 @@ constexpr bool Resistor_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Resistor_SCHEDULER_SOURCE = false;
-
-constexpr bool Resistor_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction RotarySwitch1ToN_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1564,10 +1279,6 @@ constexpr bool RotarySwitch1ToN_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool RotarySwitch1ToN_SCHEDULER_SOURCE = false;
-
-constexpr bool RotarySwitch1ToN_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction RotarySwitchNTo1_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1598,10 +1309,6 @@ constexpr bool RotarySwitchNTo1_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool RotarySwitchNTo1_SCHEDULER_SOURCE = false;
-
-constexpr bool RotarySwitchNTo1_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction SampleHold_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1617,10 +1324,6 @@ constexpr bool SampleHold_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool SampleHold_SCHEDULER_SOURCE = false;
-
-constexpr bool SampleHold_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction SlewRate_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1633,10 +1336,6 @@ constexpr bool SlewRate_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool SlewRate_SCHEDULER_SOURCE = false;
-
-constexpr bool SlewRate_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Slider_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1649,10 +1348,6 @@ constexpr bool Slider_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Slider_SCHEDULER_SOURCE = false;
-
-constexpr bool Slider_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction SolenoidValve_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1668,10 +1363,6 @@ constexpr bool SolenoidValve_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool SolenoidValve_SCHEDULER_SOURCE = false;
-
-constexpr bool SolenoidValve_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Splitter_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1687,10 +1378,6 @@ constexpr bool Splitter_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Splitter_SCHEDULER_SOURCE = false;
-
-constexpr bool Splitter_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Spring_PORT_DIRECTIONS[] = {
     bp2::Direction::Output,
     bp2::Direction::Input,
@@ -1706,10 +1393,6 @@ constexpr bool Spring_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Spring_SCHEDULER_SOURCE = false;
-
-constexpr bool Spring_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Subtract_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1725,10 +1408,6 @@ constexpr bool Subtract_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Subtract_SCHEDULER_SOURCE = false;
-
-constexpr bool Subtract_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Switch_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output,
@@ -1747,10 +1426,6 @@ constexpr bool Switch_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Switch_SCHEDULER_SOURCE = false;
-
-constexpr bool Switch_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction TempSensor_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1763,10 +1438,6 @@ constexpr bool TempSensor_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool TempSensor_SCHEDULER_SOURCE = false;
-
-constexpr bool TempSensor_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction TimeDelay_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1779,10 +1450,6 @@ constexpr bool TimeDelay_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool TimeDelay_SCHEDULER_SOURCE = false;
-
-constexpr bool TimeDelay_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Transformer_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Output
@@ -1795,10 +1462,6 @@ constexpr bool Transformer_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool Transformer_SCHEDULER_SOURCE = false;
-
-constexpr bool Transformer_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Value_PORT_DIRECTIONS[] = {
     bp2::Direction::Output
 };
@@ -1808,10 +1471,6 @@ constexpr uint8_t Value_PORT_DOMAINS[] = {
 constexpr bool Value_PORT_SOURCE_WRITER[] = {
     false
 };
-constexpr bool Value_SCHEDULER_SOURCE = true;
-
-constexpr bool Value_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction VariableConductance_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1833,10 +1492,6 @@ constexpr bool VariableConductance_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool VariableConductance_SCHEDULER_SOURCE = false;
-
-constexpr bool VariableConductance_SOLVER_OWNED_ELECTRICAL = true;
-
 constexpr bp2::Direction VoltageSense_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1858,10 +1513,6 @@ constexpr bool VoltageSense_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool VoltageSense_SCHEDULER_SOURCE = false;
-
-constexpr bool VoltageSense_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction Voltmeter_PORT_DIRECTIONS[] = {
     bp2::Direction::Input
 };
@@ -1871,10 +1522,6 @@ constexpr uint8_t Voltmeter_PORT_DOMAINS[] = {
 constexpr bool Voltmeter_PORT_SOURCE_WRITER[] = {
     false
 };
-constexpr bool Voltmeter_SCHEDULER_SOURCE = false;
-
-constexpr bool Voltmeter_SOLVER_OWNED_ELECTRICAL = false;
-
 constexpr bp2::Direction XOR_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,
     bp2::Direction::Input,
@@ -1890,10 +1537,6 @@ constexpr bool XOR_PORT_SOURCE_WRITER[] = {
     false,
     false
 };
-constexpr bool XOR_SCHEDULER_SOURCE = false;
-
-constexpr bool XOR_SOLVER_OWNED_ELECTRICAL = false;
-
 inline std::optional<PortNames> string_to_port_name(const std::string& name) {
     static const std::unordered_map<std::string, PortNames> map = {
         {"A", PortNames::A},
@@ -1977,1270 +1620,1188 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
     return std::nullopt;
 }
 
-inline std::vector<std::string> get_component_ports(const std::string& classname) {
-    static const std::unordered_map<std::string, std::vector<std::string>> registry = {
-        {"AND", {"A", "B", "o"}},
-        {"AZS", {"control", "state", "temp", "tripped", "v_in", "v_out"}},
-        {"Accumulator", {"in", "out"}},
-        {"Add", {"A", "B", "o"}},
-        {"Any_V_to_Bool", {"Vin", "o"}},
-        {"AsymSlewRate", {"in", "out"}},
-        {"AsymTMO", {"in", "out"}},
-        {"Bus", {"v"}},
-        {"Clamp", {"in", "max", "min", "out"}},
-        {"Comparator", {"Va", "Vb", "o"}},
-        {"ControlledCurrentSource", {"cmd", "v_neg", "v_pos"}},
-        {"ControlledVoltageSource", {"cmd", "gain", "i_out", "max_v", "min_v", "offset", "v_neg", "v_pos"}},
-        {"CurrentSense", {"i_out", "v_in", "v_out"}},
-        {"Divide", {"A", "B", "o"}},
-        {"ElectricHeater", {"heat_out", "power"}},
-        {"ElectricPump", {"p_in", "p_out", "v_in"}},
-        {"ElectricalConductance", {"v_in", "v_out"}},
-        {"ElectricalSource", {"v_in", "v_out"}},
-        {"FastTMO", {"in", "out"}},
-        {"FuelTank", {"flow_out", "level_out"}},
-        {"Generator", {"v_in", "v_out"}},
-        {"GidroAccumulator", {"p_in", "p_out"}},
-        {"Greater", {"A", "B", "o"}},
-        {"GreaterEq", {"A", "B", "o"}},
-        {"Gyroscope", {"input"}},
-        {"HoldButton", {"control", "state", "v_in", "v_out"}},
-        {"IndicatorLight", {"brightness", "v_in", "v_out"}},
-        {"InertiaNode", {"damping", "inv_inertia", "mass", "rpm_out", "torque_in"}},
-        {"Integrator", {"gain", "in", "out", "reset"}},
-        {"Inverter", {"ac_out", "dc_in"}},
-        {"KnobSwitch", {"control", "position", "throw1", "throw2", "throw3", "throw4", "throw5", "wiper"}},
-        {"LUT", {"input", "output"}},
-        {"LerpNode", {"input", "output"}},
-        {"Lesser", {"A", "B", "o"}},
-        {"LesserEq", {"A", "B", "o"}},
-        {"Max", {"A", "B", "o"}},
-        {"Merger", {"i1", "i2", "o"}},
-        {"Min", {"A", "B", "o"}},
-        {"Monostable", {"in", "out"}},
-        {"Multiply", {"A", "B", "o"}},
-        {"NAND", {"A", "B", "o"}},
-        {"NOT", {"A", "o"}},
-        {"Normalize", {"in", "max", "min", "out"}},
-        {"OR", {"A", "B", "o"}},
-        {"P", {"feedback", "output", "setpoint"}},
-        {"PD", {"feedback", "output", "setpoint"}},
-        {"PI", {"Ki", "Kp", "feedback", "output", "output_max", "output_min", "setpoint"}},
-        {"PID", {"feedback", "output", "setpoint"}},
-        {"Positive_V_to_Bool", {"Vin", "o"}},
-        {"Radiator", {"heat_in", "heat_out"}},
-        {"RefNode", {"v"}},
-        {"Relay", {"control", "hold_threshold", "state", "v_in", "v_out"}},
-        {"Resistor", {"v_in", "v_out"}},
-        {"RotarySwitch1ToN", {"control", "position", "throw1", "throw2", "throw3", "throw4", "throw5", "wiper"}},
-        {"RotarySwitchNTo1", {"control", "position", "throw1", "throw2", "throw3", "throw4", "throw5", "wiper"}},
-        {"SampleHold", {"in", "out", "trigger"}},
-        {"SlewRate", {"in", "out"}},
-        {"Slider", {"control", "out"}},
-        {"SolenoidValve", {"ctrl", "flow_in", "flow_out"}},
-        {"Splitter", {"i", "o1", "o2"}},
-        {"Spring", {"force_out", "pos_a", "pos_b"}},
-        {"Subtract", {"A", "B", "o"}},
-        {"Switch", {"control", "state", "v_in", "v_out"}},
-        {"TempSensor", {"temp_in", "temp_out"}},
-        {"TimeDelay", {"in", "out"}},
-        {"Transformer", {"primary", "secondary"}},
-        {"Value", {"o"}},
-        {"VariableConductance", {"cmd", "g_max", "g_min", "v_in", "v_out"}},
-        {"VoltageSense", {"gain", "offset", "out", "v_in", "v_ref"}},
-        {"Voltmeter", {"v_in"}},
-        {"XOR", {"A", "B", "o"}},
-    };
-    auto it = registry.find(classname);
-    if (it != registry.end()) return it->second;
-    return {};
-}
-
-inline bool has_component_metadata(const std::string& classname) {
-    static const std::unordered_set<std::string> known = {
-        "AND",
-        "AZS",
-        "Accumulator",
-        "Add",
-        "Any_V_to_Bool",
-        "AsymSlewRate",
-        "AsymTMO",
-        "Bus",
-        "Clamp",
-        "Comparator",
-        "ControlledCurrentSource",
-        "ControlledVoltageSource",
-        "CurrentSense",
-        "Divide",
-        "ElectricHeater",
-        "ElectricPump",
-        "ElectricalConductance",
-        "ElectricalSource",
-        "FastTMO",
-        "FuelTank",
-        "Generator",
-        "GidroAccumulator",
-        "Greater",
-        "GreaterEq",
-        "Gyroscope",
-        "HoldButton",
-        "IndicatorLight",
-        "InertiaNode",
-        "Integrator",
-        "Inverter",
-        "KnobSwitch",
-        "LUT",
-        "LerpNode",
-        "Lesser",
-        "LesserEq",
-        "Max",
-        "Merger",
-        "Min",
-        "Monostable",
-        "Multiply",
-        "NAND",
-        "NOT",
-        "Normalize",
-        "OR",
-        "P",
-        "PD",
-        "PI",
-        "PID",
-        "Positive_V_to_Bool",
-        "Radiator",
-        "RefNode",
-        "Relay",
-        "Resistor",
-        "RotarySwitch1ToN",
-        "RotarySwitchNTo1",
-        "SampleHold",
-        "SlewRate",
-        "Slider",
-        "SolenoidValve",
-        "Splitter",
-        "Spring",
-        "Subtract",
-        "Switch",
-        "TempSensor",
-        "TimeDelay",
-        "Transformer",
-        "Value",
-        "VariableConductance",
-        "VoltageSense",
-        "Voltmeter",
-        "XOR",
-    };
-    return known.count(classname) > 0;
-}
-
-inline void require_component_metadata(const std::string& classname, const char* helper_name) {
-    if (!has_component_metadata(classname)) {
-        throw std::runtime_error(std::string("Unknown component metadata class in ") + helper_name + ": " + classname);
+inline std::vector<std::string> get_component_ports(ComponentKind kind) {
+    switch (kind) {
+        case ComponentKind::AND: return {"A", "B", "o"};
+        case ComponentKind::AZS: return {"control", "state", "temp", "tripped", "v_in", "v_out"};
+        case ComponentKind::Accumulator: return {"in", "out"};
+        case ComponentKind::Add: return {"A", "B", "o"};
+        case ComponentKind::Any_V_to_Bool: return {"Vin", "o"};
+        case ComponentKind::AsymSlewRate: return {"in", "out"};
+        case ComponentKind::AsymTMO: return {"in", "out"};
+        case ComponentKind::Bus: return {"v"};
+        case ComponentKind::Clamp: return {"in", "max", "min", "out"};
+        case ComponentKind::Comparator: return {"Va", "Vb", "o"};
+        case ComponentKind::ControlledCurrentSource: return {"cmd", "v_neg", "v_pos"};
+        case ComponentKind::ControlledVoltageSource: return {"cmd", "gain", "i_out", "max_v", "min_v", "offset", "v_neg", "v_pos"};
+        case ComponentKind::CurrentSense: return {"i_out", "v_in", "v_out"};
+        case ComponentKind::Divide: return {"A", "B", "o"};
+        case ComponentKind::ElectricHeater: return {"heat_out", "power"};
+        case ComponentKind::ElectricPump: return {"p_in", "p_out", "v_in"};
+        case ComponentKind::ElectricalConductance: return {"v_in", "v_out"};
+        case ComponentKind::ElectricalSource: return {"v_in", "v_out"};
+        case ComponentKind::FastTMO: return {"in", "out"};
+        case ComponentKind::FuelTank: return {"flow_out", "level_out"};
+        case ComponentKind::Generator: return {"v_in", "v_out"};
+        case ComponentKind::GidroAccumulator: return {"p_in", "p_out"};
+        case ComponentKind::Greater: return {"A", "B", "o"};
+        case ComponentKind::GreaterEq: return {"A", "B", "o"};
+        case ComponentKind::Gyroscope: return {"input"};
+        case ComponentKind::HoldButton: return {"control", "state", "v_in", "v_out"};
+        case ComponentKind::IndicatorLight: return {"brightness", "v_in", "v_out"};
+        case ComponentKind::InertiaNode: return {"damping", "inv_inertia", "mass", "rpm_out", "torque_in"};
+        case ComponentKind::Integrator: return {"gain", "in", "out", "reset"};
+        case ComponentKind::Inverter: return {"ac_out", "dc_in"};
+        case ComponentKind::KnobSwitch: return {"control", "position", "throw1", "throw2", "throw3", "throw4", "throw5", "wiper"};
+        case ComponentKind::LUT: return {"input", "output"};
+        case ComponentKind::LerpNode: return {"input", "output"};
+        case ComponentKind::Lesser: return {"A", "B", "o"};
+        case ComponentKind::LesserEq: return {"A", "B", "o"};
+        case ComponentKind::Max: return {"A", "B", "o"};
+        case ComponentKind::Merger: return {"i1", "i2", "o"};
+        case ComponentKind::Min: return {"A", "B", "o"};
+        case ComponentKind::Monostable: return {"in", "out"};
+        case ComponentKind::Multiply: return {"A", "B", "o"};
+        case ComponentKind::NAND: return {"A", "B", "o"};
+        case ComponentKind::NOT: return {"A", "o"};
+        case ComponentKind::Normalize: return {"in", "max", "min", "out"};
+        case ComponentKind::OR: return {"A", "B", "o"};
+        case ComponentKind::P: return {"feedback", "output", "setpoint"};
+        case ComponentKind::PD: return {"feedback", "output", "setpoint"};
+        case ComponentKind::PI: return {"Ki", "Kp", "feedback", "output", "output_max", "output_min", "setpoint"};
+        case ComponentKind::PID: return {"feedback", "output", "setpoint"};
+        case ComponentKind::Positive_V_to_Bool: return {"Vin", "o"};
+        case ComponentKind::Radiator: return {"heat_in", "heat_out"};
+        case ComponentKind::RefNode: return {"v"};
+        case ComponentKind::Relay: return {"control", "hold_threshold", "state", "v_in", "v_out"};
+        case ComponentKind::Resistor: return {"v_in", "v_out"};
+        case ComponentKind::RotarySwitch1ToN: return {"control", "position", "throw1", "throw2", "throw3", "throw4", "throw5", "wiper"};
+        case ComponentKind::RotarySwitchNTo1: return {"control", "position", "throw1", "throw2", "throw3", "throw4", "throw5", "wiper"};
+        case ComponentKind::SampleHold: return {"in", "out", "trigger"};
+        case ComponentKind::SlewRate: return {"in", "out"};
+        case ComponentKind::Slider: return {"control", "out"};
+        case ComponentKind::SolenoidValve: return {"ctrl", "flow_in", "flow_out"};
+        case ComponentKind::Splitter: return {"i", "o1", "o2"};
+        case ComponentKind::Spring: return {"force_out", "pos_a", "pos_b"};
+        case ComponentKind::Subtract: return {"A", "B", "o"};
+        case ComponentKind::Switch: return {"control", "state", "v_in", "v_out"};
+        case ComponentKind::TempSensor: return {"temp_in", "temp_out"};
+        case ComponentKind::TimeDelay: return {"in", "out"};
+        case ComponentKind::Transformer: return {"primary", "secondary"};
+        case ComponentKind::Value: return {"o"};
+        case ComponentKind::VariableConductance: return {"cmd", "g_max", "g_min", "v_in", "v_out"};
+        case ComponentKind::VoltageSense: return {"gain", "offset", "out", "v_in", "v_ref"};
+        case ComponentKind::Voltmeter: return {"v_in"};
+        case ComponentKind::XOR: return {"A", "B", "o"};
+        default: return {};
     }
 }
 
-inline bool is_scheduler_source_component(const std::string& classname) {
-    require_component_metadata(classname, "is_scheduler_source_component");
-    static const std::unordered_map<std::string, bool> registry = {
-        {"AND", false},
-        {"AZS", false},
-        {"Accumulator", false},
-        {"Add", false},
-        {"Any_V_to_Bool", false},
-        {"AsymSlewRate", false},
-        {"AsymTMO", false},
-        {"Bus", false},
-        {"Clamp", false},
-        {"Comparator", false},
-        {"ControlledCurrentSource", false},
-        {"ControlledVoltageSource", false},
-        {"CurrentSense", false},
-        {"Divide", false},
-        {"ElectricHeater", false},
-        {"ElectricPump", false},
-        {"ElectricalConductance", false},
-        {"ElectricalSource", false},
-        {"FastTMO", false},
-        {"FuelTank", false},
-        {"Generator", true},
-        {"GidroAccumulator", false},
-        {"Greater", false},
-        {"GreaterEq", false},
-        {"Gyroscope", false},
-        {"HoldButton", false},
-        {"IndicatorLight", false},
-        {"InertiaNode", false},
-        {"Integrator", false},
-        {"Inverter", false},
-        {"KnobSwitch", false},
-        {"LUT", false},
-        {"LerpNode", false},
-        {"Lesser", false},
-        {"LesserEq", false},
-        {"Max", false},
-        {"Merger", false},
-        {"Min", false},
-        {"Monostable", false},
-        {"Multiply", false},
-        {"NAND", false},
-        {"NOT", false},
-        {"Normalize", false},
-        {"OR", false},
-        {"P", false},
-        {"PD", false},
-        {"PI", false},
-        {"PID", false},
-        {"Positive_V_to_Bool", false},
-        {"Radiator", false},
-        {"RefNode", true},
-        {"Relay", false},
-        {"Resistor", false},
-        {"RotarySwitch1ToN", false},
-        {"RotarySwitchNTo1", false},
-        {"SampleHold", false},
-        {"SlewRate", false},
-        {"Slider", false},
-        {"SolenoidValve", false},
-        {"Splitter", false},
-        {"Spring", false},
-        {"Subtract", false},
-        {"Switch", false},
-        {"TempSensor", false},
-        {"TimeDelay", false},
-        {"Transformer", false},
-        {"Value", true},
-        {"VariableConductance", false},
-        {"VoltageSense", false},
-        {"Voltmeter", false},
-        {"XOR", false},
-    };
-    auto it = registry.find(classname);
-    if (it == registry.end()) throw std::runtime_error("Missing scheduler-source metadata entry for known class: " + classname);
-    return it->second;
+inline bool has_component_metadata(ComponentKind kind) {
+    return kind != ComponentKind::_COUNT;
 }
 
-inline bool is_solver_owned_electrical_component(const std::string& classname) {
-    require_component_metadata(classname, "is_solver_owned_electrical_component");
-    static const std::unordered_map<std::string, bool> registry = {
-        {"AND", false},
-        {"AZS", true},
-        {"Accumulator", false},
-        {"Add", false},
-        {"Any_V_to_Bool", false},
-        {"AsymSlewRate", false},
-        {"AsymTMO", false},
-        {"Bus", false},
-        {"Clamp", false},
-        {"Comparator", false},
-        {"ControlledCurrentSource", false},
-        {"ControlledVoltageSource", true},
-        {"CurrentSense", false},
-        {"Divide", false},
-        {"ElectricHeater", false},
-        {"ElectricPump", false},
-        {"ElectricalConductance", true},
-        {"ElectricalSource", true},
-        {"FastTMO", false},
-        {"FuelTank", false},
-        {"Generator", true},
-        {"GidroAccumulator", false},
-        {"Greater", false},
-        {"GreaterEq", false},
-        {"Gyroscope", false},
-        {"HoldButton", true},
-        {"IndicatorLight", false},
-        {"InertiaNode", false},
-        {"Integrator", false},
-        {"Inverter", false},
-        {"KnobSwitch", true},
-        {"LUT", false},
-        {"LerpNode", false},
-        {"Lesser", false},
-        {"LesserEq", false},
-        {"Max", false},
-        {"Merger", false},
-        {"Min", false},
-        {"Monostable", false},
-        {"Multiply", false},
-        {"NAND", false},
-        {"NOT", false},
-        {"Normalize", false},
-        {"OR", false},
-        {"P", false},
-        {"PD", false},
-        {"PI", false},
-        {"PID", false},
-        {"Positive_V_to_Bool", false},
-        {"Radiator", false},
-        {"RefNode", false},
-        {"Relay", true},
-        {"Resistor", true},
-        {"RotarySwitch1ToN", true},
-        {"RotarySwitchNTo1", true},
-        {"SampleHold", false},
-        {"SlewRate", false},
-        {"Slider", false},
-        {"SolenoidValve", false},
-        {"Splitter", false},
-        {"Spring", false},
-        {"Subtract", false},
-        {"Switch", false},
-        {"TempSensor", false},
-        {"TimeDelay", false},
-        {"Transformer", false},
-        {"Value", false},
-        {"VariableConductance", true},
-        {"VoltageSense", false},
-        {"Voltmeter", false},
-        {"XOR", false},
-    };
-    auto it = registry.find(classname);
-    if (it == registry.end()) throw std::runtime_error("Missing solver-owned metadata entry for known class: " + classname);
-    return it->second;
-}
-
-inline bool requires_solver_role_component(const std::string& classname) {
-    require_component_metadata(classname, "requires_solver_role_component");
-    static const std::unordered_map<std::string, bool> registry = {
-        {"AND", false},
-        {"AZS", true},
-        {"Accumulator", false},
-        {"Add", false},
-        {"Any_V_to_Bool", false},
-        {"AsymSlewRate", false},
-        {"AsymTMO", false},
-        {"Bus", false},
-        {"Clamp", false},
-        {"Comparator", false},
-        {"ControlledCurrentSource", false},
-        {"ControlledVoltageSource", true},
-        {"CurrentSense", true},
-        {"Divide", false},
-        {"ElectricHeater", false},
-        {"ElectricPump", false},
-        {"ElectricalConductance", true},
-        {"ElectricalSource", true},
-        {"FastTMO", false},
-        {"FuelTank", false},
-        {"Generator", true},
-        {"GidroAccumulator", false},
-        {"Greater", false},
-        {"GreaterEq", false},
-        {"Gyroscope", false},
-        {"HoldButton", true},
-        {"IndicatorLight", true},
-        {"InertiaNode", false},
-        {"Integrator", false},
-        {"Inverter", false},
-        {"KnobSwitch", true},
-        {"LUT", false},
-        {"LerpNode", false},
-        {"Lesser", false},
-        {"LesserEq", false},
-        {"Max", false},
-        {"Merger", false},
-        {"Min", false},
-        {"Monostable", false},
-        {"Multiply", false},
-        {"NAND", false},
-        {"NOT", false},
-        {"Normalize", false},
-        {"OR", false},
-        {"P", false},
-        {"PD", false},
-        {"PI", false},
-        {"PID", false},
-        {"Positive_V_to_Bool", false},
-        {"Radiator", false},
-        {"RefNode", true},
-        {"Relay", true},
-        {"Resistor", true},
-        {"RotarySwitch1ToN", true},
-        {"RotarySwitchNTo1", true},
-        {"SampleHold", false},
-        {"SlewRate", false},
-        {"Slider", false},
-        {"SolenoidValve", false},
-        {"Splitter", false},
-        {"Spring", false},
-        {"Subtract", false},
-        {"Switch", false},
-        {"TempSensor", false},
-        {"TimeDelay", false},
-        {"Transformer", false},
-        {"Value", false},
-        {"VariableConductance", true},
-        {"VoltageSense", false},
-        {"Voltmeter", false},
-        {"XOR", false},
-    };
-    auto it = registry.find(classname);
-    if (it == registry.end()) throw std::runtime_error("Missing solver-role metadata entry for known class: " + classname);
-    return it->second;
-}
-
-inline std::vector<std::string> get_output_ports(const std::string& classname) {
-    require_component_metadata(classname, "get_output_ports");
+inline std::vector<std::string> get_output_ports(ComponentKind kind) {
     std::vector<std::string> result;
-    if (classname == "AND") {
-        for (size_t i = 0; i < AND_PORT_COUNT; ++i) {
-            if (AND_PORT_DIRECTIONS[i] == bp2::Direction::Output || AND_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(AND_PORTS[i]);
-        }
-        return result;
+    switch (kind) {
+        case ComponentKind::AND:
+            for (size_t i = 0; i < AND_PORT_COUNT; ++i) {
+                if (AND_PORT_DIRECTIONS[i] == bp2::Direction::Output || AND_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(AND_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::AZS:
+            for (size_t i = 0; i < AZS_PORT_COUNT; ++i) {
+                if (AZS_PORT_DIRECTIONS[i] == bp2::Direction::Output || AZS_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(AZS_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Accumulator:
+            for (size_t i = 0; i < Accumulator_PORT_COUNT; ++i) {
+                if (Accumulator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Accumulator_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Accumulator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Add:
+            for (size_t i = 0; i < Add_PORT_COUNT; ++i) {
+                if (Add_PORT_DIRECTIONS[i] == bp2::Direction::Output || Add_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Add_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Any_V_to_Bool:
+            for (size_t i = 0; i < Any_V_to_Bool_PORT_COUNT; ++i) {
+                if (Any_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::Output || Any_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Any_V_to_Bool_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::AsymSlewRate:
+            for (size_t i = 0; i < AsymSlewRate_PORT_COUNT; ++i) {
+                if (AsymSlewRate_PORT_DIRECTIONS[i] == bp2::Direction::Output || AsymSlewRate_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(AsymSlewRate_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::AsymTMO:
+            for (size_t i = 0; i < AsymTMO_PORT_COUNT; ++i) {
+                if (AsymTMO_PORT_DIRECTIONS[i] == bp2::Direction::Output || AsymTMO_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(AsymTMO_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Bus:
+            for (size_t i = 0; i < Bus_PORT_COUNT; ++i) {
+                if (Bus_PORT_DIRECTIONS[i] == bp2::Direction::Output || Bus_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Bus_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Clamp:
+            for (size_t i = 0; i < Clamp_PORT_COUNT; ++i) {
+                if (Clamp_PORT_DIRECTIONS[i] == bp2::Direction::Output || Clamp_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Clamp_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Comparator:
+            for (size_t i = 0; i < Comparator_PORT_COUNT; ++i) {
+                if (Comparator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Comparator_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Comparator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ControlledCurrentSource:
+            for (size_t i = 0; i < ControlledCurrentSource_PORT_COUNT; ++i) {
+                if (ControlledCurrentSource_PORT_DIRECTIONS[i] == bp2::Direction::Output || ControlledCurrentSource_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(ControlledCurrentSource_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ControlledVoltageSource:
+            for (size_t i = 0; i < ControlledVoltageSource_PORT_COUNT; ++i) {
+                if (ControlledVoltageSource_PORT_DIRECTIONS[i] == bp2::Direction::Output || ControlledVoltageSource_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(ControlledVoltageSource_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::CurrentSense:
+            for (size_t i = 0; i < CurrentSense_PORT_COUNT; ++i) {
+                if (CurrentSense_PORT_DIRECTIONS[i] == bp2::Direction::Output || CurrentSense_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(CurrentSense_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Divide:
+            for (size_t i = 0; i < Divide_PORT_COUNT; ++i) {
+                if (Divide_PORT_DIRECTIONS[i] == bp2::Direction::Output || Divide_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Divide_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ElectricHeater:
+            for (size_t i = 0; i < ElectricHeater_PORT_COUNT; ++i) {
+                if (ElectricHeater_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricHeater_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(ElectricHeater_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ElectricPump:
+            for (size_t i = 0; i < ElectricPump_PORT_COUNT; ++i) {
+                if (ElectricPump_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricPump_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(ElectricPump_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ElectricalConductance:
+            for (size_t i = 0; i < ElectricalConductance_PORT_COUNT; ++i) {
+                if (ElectricalConductance_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricalConductance_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(ElectricalConductance_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ElectricalSource:
+            for (size_t i = 0; i < ElectricalSource_PORT_COUNT; ++i) {
+                if (ElectricalSource_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricalSource_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(ElectricalSource_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::FastTMO:
+            for (size_t i = 0; i < FastTMO_PORT_COUNT; ++i) {
+                if (FastTMO_PORT_DIRECTIONS[i] == bp2::Direction::Output || FastTMO_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(FastTMO_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::FuelTank:
+            for (size_t i = 0; i < FuelTank_PORT_COUNT; ++i) {
+                if (FuelTank_PORT_DIRECTIONS[i] == bp2::Direction::Output || FuelTank_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(FuelTank_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Generator:
+            for (size_t i = 0; i < Generator_PORT_COUNT; ++i) {
+                if (Generator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Generator_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Generator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::GidroAccumulator:
+            for (size_t i = 0; i < GidroAccumulator_PORT_COUNT; ++i) {
+                if (GidroAccumulator_PORT_DIRECTIONS[i] == bp2::Direction::Output || GidroAccumulator_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(GidroAccumulator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Greater:
+            for (size_t i = 0; i < Greater_PORT_COUNT; ++i) {
+                if (Greater_PORT_DIRECTIONS[i] == bp2::Direction::Output || Greater_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Greater_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::GreaterEq:
+            for (size_t i = 0; i < GreaterEq_PORT_COUNT; ++i) {
+                if (GreaterEq_PORT_DIRECTIONS[i] == bp2::Direction::Output || GreaterEq_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(GreaterEq_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Gyroscope:
+            for (size_t i = 0; i < Gyroscope_PORT_COUNT; ++i) {
+                if (Gyroscope_PORT_DIRECTIONS[i] == bp2::Direction::Output || Gyroscope_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Gyroscope_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::HoldButton:
+            for (size_t i = 0; i < HoldButton_PORT_COUNT; ++i) {
+                if (HoldButton_PORT_DIRECTIONS[i] == bp2::Direction::Output || HoldButton_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(HoldButton_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::IndicatorLight:
+            for (size_t i = 0; i < IndicatorLight_PORT_COUNT; ++i) {
+                if (IndicatorLight_PORT_DIRECTIONS[i] == bp2::Direction::Output || IndicatorLight_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(IndicatorLight_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::InertiaNode:
+            for (size_t i = 0; i < InertiaNode_PORT_COUNT; ++i) {
+                if (InertiaNode_PORT_DIRECTIONS[i] == bp2::Direction::Output || InertiaNode_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(InertiaNode_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Integrator:
+            for (size_t i = 0; i < Integrator_PORT_COUNT; ++i) {
+                if (Integrator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Integrator_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Integrator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Inverter:
+            for (size_t i = 0; i < Inverter_PORT_COUNT; ++i) {
+                if (Inverter_PORT_DIRECTIONS[i] == bp2::Direction::Output || Inverter_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Inverter_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::KnobSwitch:
+            for (size_t i = 0; i < KnobSwitch_PORT_COUNT; ++i) {
+                if (KnobSwitch_PORT_DIRECTIONS[i] == bp2::Direction::Output || KnobSwitch_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(KnobSwitch_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::LUT:
+            for (size_t i = 0; i < LUT_PORT_COUNT; ++i) {
+                if (LUT_PORT_DIRECTIONS[i] == bp2::Direction::Output || LUT_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(LUT_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::LerpNode:
+            for (size_t i = 0; i < LerpNode_PORT_COUNT; ++i) {
+                if (LerpNode_PORT_DIRECTIONS[i] == bp2::Direction::Output || LerpNode_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(LerpNode_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Lesser:
+            for (size_t i = 0; i < Lesser_PORT_COUNT; ++i) {
+                if (Lesser_PORT_DIRECTIONS[i] == bp2::Direction::Output || Lesser_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Lesser_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::LesserEq:
+            for (size_t i = 0; i < LesserEq_PORT_COUNT; ++i) {
+                if (LesserEq_PORT_DIRECTIONS[i] == bp2::Direction::Output || LesserEq_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(LesserEq_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Max:
+            for (size_t i = 0; i < Max_PORT_COUNT; ++i) {
+                if (Max_PORT_DIRECTIONS[i] == bp2::Direction::Output || Max_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Max_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Merger:
+            for (size_t i = 0; i < Merger_PORT_COUNT; ++i) {
+                if (Merger_PORT_DIRECTIONS[i] == bp2::Direction::Output || Merger_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Merger_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Min:
+            for (size_t i = 0; i < Min_PORT_COUNT; ++i) {
+                if (Min_PORT_DIRECTIONS[i] == bp2::Direction::Output || Min_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Min_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Monostable:
+            for (size_t i = 0; i < Monostable_PORT_COUNT; ++i) {
+                if (Monostable_PORT_DIRECTIONS[i] == bp2::Direction::Output || Monostable_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Monostable_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Multiply:
+            for (size_t i = 0; i < Multiply_PORT_COUNT; ++i) {
+                if (Multiply_PORT_DIRECTIONS[i] == bp2::Direction::Output || Multiply_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Multiply_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::NAND:
+            for (size_t i = 0; i < NAND_PORT_COUNT; ++i) {
+                if (NAND_PORT_DIRECTIONS[i] == bp2::Direction::Output || NAND_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(NAND_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::NOT:
+            for (size_t i = 0; i < NOT_PORT_COUNT; ++i) {
+                if (NOT_PORT_DIRECTIONS[i] == bp2::Direction::Output || NOT_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(NOT_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Normalize:
+            for (size_t i = 0; i < Normalize_PORT_COUNT; ++i) {
+                if (Normalize_PORT_DIRECTIONS[i] == bp2::Direction::Output || Normalize_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Normalize_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::OR:
+            for (size_t i = 0; i < OR_PORT_COUNT; ++i) {
+                if (OR_PORT_DIRECTIONS[i] == bp2::Direction::Output || OR_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(OR_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::P:
+            for (size_t i = 0; i < P_PORT_COUNT; ++i) {
+                if (P_PORT_DIRECTIONS[i] == bp2::Direction::Output || P_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(P_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::PD:
+            for (size_t i = 0; i < PD_PORT_COUNT; ++i) {
+                if (PD_PORT_DIRECTIONS[i] == bp2::Direction::Output || PD_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(PD_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::PI:
+            for (size_t i = 0; i < PI_PORT_COUNT; ++i) {
+                if (PI_PORT_DIRECTIONS[i] == bp2::Direction::Output || PI_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(PI_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::PID:
+            for (size_t i = 0; i < PID_PORT_COUNT; ++i) {
+                if (PID_PORT_DIRECTIONS[i] == bp2::Direction::Output || PID_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(PID_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Positive_V_to_Bool:
+            for (size_t i = 0; i < Positive_V_to_Bool_PORT_COUNT; ++i) {
+                if (Positive_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::Output || Positive_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Positive_V_to_Bool_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Radiator:
+            for (size_t i = 0; i < Radiator_PORT_COUNT; ++i) {
+                if (Radiator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Radiator_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Radiator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::RefNode:
+            for (size_t i = 0; i < RefNode_PORT_COUNT; ++i) {
+                if (RefNode_PORT_DIRECTIONS[i] == bp2::Direction::Output || RefNode_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(RefNode_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Relay:
+            for (size_t i = 0; i < Relay_PORT_COUNT; ++i) {
+                if (Relay_PORT_DIRECTIONS[i] == bp2::Direction::Output || Relay_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Relay_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Resistor:
+            for (size_t i = 0; i < Resistor_PORT_COUNT; ++i) {
+                if (Resistor_PORT_DIRECTIONS[i] == bp2::Direction::Output || Resistor_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Resistor_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::RotarySwitch1ToN:
+            for (size_t i = 0; i < RotarySwitch1ToN_PORT_COUNT; ++i) {
+                if (RotarySwitch1ToN_PORT_DIRECTIONS[i] == bp2::Direction::Output || RotarySwitch1ToN_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(RotarySwitch1ToN_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::RotarySwitchNTo1:
+            for (size_t i = 0; i < RotarySwitchNTo1_PORT_COUNT; ++i) {
+                if (RotarySwitchNTo1_PORT_DIRECTIONS[i] == bp2::Direction::Output || RotarySwitchNTo1_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(RotarySwitchNTo1_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::SampleHold:
+            for (size_t i = 0; i < SampleHold_PORT_COUNT; ++i) {
+                if (SampleHold_PORT_DIRECTIONS[i] == bp2::Direction::Output || SampleHold_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(SampleHold_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::SlewRate:
+            for (size_t i = 0; i < SlewRate_PORT_COUNT; ++i) {
+                if (SlewRate_PORT_DIRECTIONS[i] == bp2::Direction::Output || SlewRate_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(SlewRate_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Slider:
+            for (size_t i = 0; i < Slider_PORT_COUNT; ++i) {
+                if (Slider_PORT_DIRECTIONS[i] == bp2::Direction::Output || Slider_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Slider_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::SolenoidValve:
+            for (size_t i = 0; i < SolenoidValve_PORT_COUNT; ++i) {
+                if (SolenoidValve_PORT_DIRECTIONS[i] == bp2::Direction::Output || SolenoidValve_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(SolenoidValve_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Splitter:
+            for (size_t i = 0; i < Splitter_PORT_COUNT; ++i) {
+                if (Splitter_PORT_DIRECTIONS[i] == bp2::Direction::Output || Splitter_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Splitter_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Spring:
+            for (size_t i = 0; i < Spring_PORT_COUNT; ++i) {
+                if (Spring_PORT_DIRECTIONS[i] == bp2::Direction::Output || Spring_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Spring_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Subtract:
+            for (size_t i = 0; i < Subtract_PORT_COUNT; ++i) {
+                if (Subtract_PORT_DIRECTIONS[i] == bp2::Direction::Output || Subtract_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Subtract_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Switch:
+            for (size_t i = 0; i < Switch_PORT_COUNT; ++i) {
+                if (Switch_PORT_DIRECTIONS[i] == bp2::Direction::Output || Switch_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Switch_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::TempSensor:
+            for (size_t i = 0; i < TempSensor_PORT_COUNT; ++i) {
+                if (TempSensor_PORT_DIRECTIONS[i] == bp2::Direction::Output || TempSensor_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(TempSensor_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::TimeDelay:
+            for (size_t i = 0; i < TimeDelay_PORT_COUNT; ++i) {
+                if (TimeDelay_PORT_DIRECTIONS[i] == bp2::Direction::Output || TimeDelay_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(TimeDelay_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Transformer:
+            for (size_t i = 0; i < Transformer_PORT_COUNT; ++i) {
+                if (Transformer_PORT_DIRECTIONS[i] == bp2::Direction::Output || Transformer_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Transformer_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Value:
+            for (size_t i = 0; i < Value_PORT_COUNT; ++i) {
+                if (Value_PORT_DIRECTIONS[i] == bp2::Direction::Output || Value_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Value_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::VariableConductance:
+            for (size_t i = 0; i < VariableConductance_PORT_COUNT; ++i) {
+                if (VariableConductance_PORT_DIRECTIONS[i] == bp2::Direction::Output || VariableConductance_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(VariableConductance_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::VoltageSense:
+            for (size_t i = 0; i < VoltageSense_PORT_COUNT; ++i) {
+                if (VoltageSense_PORT_DIRECTIONS[i] == bp2::Direction::Output || VoltageSense_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(VoltageSense_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Voltmeter:
+            for (size_t i = 0; i < Voltmeter_PORT_COUNT; ++i) {
+                if (Voltmeter_PORT_DIRECTIONS[i] == bp2::Direction::Output || Voltmeter_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(Voltmeter_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::XOR:
+            for (size_t i = 0; i < XOR_PORT_COUNT; ++i) {
+                if (XOR_PORT_DIRECTIONS[i] == bp2::Direction::Output || XOR_PORT_DIRECTIONS[i] == bp2::Direction::InOut)
+                    result.push_back(XOR_PORTS[i]);
+            }
+            return result;
+        default: return result;
     }
-    if (classname == "AZS") {
-        for (size_t i = 0; i < AZS_PORT_COUNT; ++i) {
-            if (AZS_PORT_DIRECTIONS[i] == bp2::Direction::Output || AZS_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(AZS_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Accumulator") {
-        for (size_t i = 0; i < Accumulator_PORT_COUNT; ++i) {
-            if (Accumulator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Accumulator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Accumulator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Add") {
-        for (size_t i = 0; i < Add_PORT_COUNT; ++i) {
-            if (Add_PORT_DIRECTIONS[i] == bp2::Direction::Output || Add_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Add_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Any_V_to_Bool") {
-        for (size_t i = 0; i < Any_V_to_Bool_PORT_COUNT; ++i) {
-            if (Any_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::Output || Any_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Any_V_to_Bool_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "AsymSlewRate") {
-        for (size_t i = 0; i < AsymSlewRate_PORT_COUNT; ++i) {
-            if (AsymSlewRate_PORT_DIRECTIONS[i] == bp2::Direction::Output || AsymSlewRate_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(AsymSlewRate_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "AsymTMO") {
-        for (size_t i = 0; i < AsymTMO_PORT_COUNT; ++i) {
-            if (AsymTMO_PORT_DIRECTIONS[i] == bp2::Direction::Output || AsymTMO_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(AsymTMO_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Bus") {
-        for (size_t i = 0; i < Bus_PORT_COUNT; ++i) {
-            if (Bus_PORT_DIRECTIONS[i] == bp2::Direction::Output || Bus_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Bus_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Clamp") {
-        for (size_t i = 0; i < Clamp_PORT_COUNT; ++i) {
-            if (Clamp_PORT_DIRECTIONS[i] == bp2::Direction::Output || Clamp_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Clamp_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Comparator") {
-        for (size_t i = 0; i < Comparator_PORT_COUNT; ++i) {
-            if (Comparator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Comparator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Comparator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ControlledCurrentSource") {
-        for (size_t i = 0; i < ControlledCurrentSource_PORT_COUNT; ++i) {
-            if (ControlledCurrentSource_PORT_DIRECTIONS[i] == bp2::Direction::Output || ControlledCurrentSource_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ControlledCurrentSource_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ControlledVoltageSource") {
-        for (size_t i = 0; i < ControlledVoltageSource_PORT_COUNT; ++i) {
-            if (ControlledVoltageSource_PORT_DIRECTIONS[i] == bp2::Direction::Output || ControlledVoltageSource_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ControlledVoltageSource_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "CurrentSense") {
-        for (size_t i = 0; i < CurrentSense_PORT_COUNT; ++i) {
-            if (CurrentSense_PORT_DIRECTIONS[i] == bp2::Direction::Output || CurrentSense_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(CurrentSense_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Divide") {
-        for (size_t i = 0; i < Divide_PORT_COUNT; ++i) {
-            if (Divide_PORT_DIRECTIONS[i] == bp2::Direction::Output || Divide_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Divide_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ElectricHeater") {
-        for (size_t i = 0; i < ElectricHeater_PORT_COUNT; ++i) {
-            if (ElectricHeater_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricHeater_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ElectricHeater_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ElectricPump") {
-        for (size_t i = 0; i < ElectricPump_PORT_COUNT; ++i) {
-            if (ElectricPump_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricPump_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ElectricPump_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ElectricalConductance") {
-        for (size_t i = 0; i < ElectricalConductance_PORT_COUNT; ++i) {
-            if (ElectricalConductance_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricalConductance_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ElectricalConductance_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ElectricalSource") {
-        for (size_t i = 0; i < ElectricalSource_PORT_COUNT; ++i) {
-            if (ElectricalSource_PORT_DIRECTIONS[i] == bp2::Direction::Output || ElectricalSource_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(ElectricalSource_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "FastTMO") {
-        for (size_t i = 0; i < FastTMO_PORT_COUNT; ++i) {
-            if (FastTMO_PORT_DIRECTIONS[i] == bp2::Direction::Output || FastTMO_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(FastTMO_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "FuelTank") {
-        for (size_t i = 0; i < FuelTank_PORT_COUNT; ++i) {
-            if (FuelTank_PORT_DIRECTIONS[i] == bp2::Direction::Output || FuelTank_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(FuelTank_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Generator") {
-        for (size_t i = 0; i < Generator_PORT_COUNT; ++i) {
-            if (Generator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Generator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Generator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "GidroAccumulator") {
-        for (size_t i = 0; i < GidroAccumulator_PORT_COUNT; ++i) {
-            if (GidroAccumulator_PORT_DIRECTIONS[i] == bp2::Direction::Output || GidroAccumulator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(GidroAccumulator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Greater") {
-        for (size_t i = 0; i < Greater_PORT_COUNT; ++i) {
-            if (Greater_PORT_DIRECTIONS[i] == bp2::Direction::Output || Greater_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Greater_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "GreaterEq") {
-        for (size_t i = 0; i < GreaterEq_PORT_COUNT; ++i) {
-            if (GreaterEq_PORT_DIRECTIONS[i] == bp2::Direction::Output || GreaterEq_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(GreaterEq_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Gyroscope") {
-        for (size_t i = 0; i < Gyroscope_PORT_COUNT; ++i) {
-            if (Gyroscope_PORT_DIRECTIONS[i] == bp2::Direction::Output || Gyroscope_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Gyroscope_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "HoldButton") {
-        for (size_t i = 0; i < HoldButton_PORT_COUNT; ++i) {
-            if (HoldButton_PORT_DIRECTIONS[i] == bp2::Direction::Output || HoldButton_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(HoldButton_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "IndicatorLight") {
-        for (size_t i = 0; i < IndicatorLight_PORT_COUNT; ++i) {
-            if (IndicatorLight_PORT_DIRECTIONS[i] == bp2::Direction::Output || IndicatorLight_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(IndicatorLight_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "InertiaNode") {
-        for (size_t i = 0; i < InertiaNode_PORT_COUNT; ++i) {
-            if (InertiaNode_PORT_DIRECTIONS[i] == bp2::Direction::Output || InertiaNode_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(InertiaNode_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Integrator") {
-        for (size_t i = 0; i < Integrator_PORT_COUNT; ++i) {
-            if (Integrator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Integrator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Integrator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Inverter") {
-        for (size_t i = 0; i < Inverter_PORT_COUNT; ++i) {
-            if (Inverter_PORT_DIRECTIONS[i] == bp2::Direction::Output || Inverter_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Inverter_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "KnobSwitch") {
-        for (size_t i = 0; i < KnobSwitch_PORT_COUNT; ++i) {
-            if (KnobSwitch_PORT_DIRECTIONS[i] == bp2::Direction::Output || KnobSwitch_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(KnobSwitch_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "LUT") {
-        for (size_t i = 0; i < LUT_PORT_COUNT; ++i) {
-            if (LUT_PORT_DIRECTIONS[i] == bp2::Direction::Output || LUT_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(LUT_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "LerpNode") {
-        for (size_t i = 0; i < LerpNode_PORT_COUNT; ++i) {
-            if (LerpNode_PORT_DIRECTIONS[i] == bp2::Direction::Output || LerpNode_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(LerpNode_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Lesser") {
-        for (size_t i = 0; i < Lesser_PORT_COUNT; ++i) {
-            if (Lesser_PORT_DIRECTIONS[i] == bp2::Direction::Output || Lesser_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Lesser_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "LesserEq") {
-        for (size_t i = 0; i < LesserEq_PORT_COUNT; ++i) {
-            if (LesserEq_PORT_DIRECTIONS[i] == bp2::Direction::Output || LesserEq_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(LesserEq_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Max") {
-        for (size_t i = 0; i < Max_PORT_COUNT; ++i) {
-            if (Max_PORT_DIRECTIONS[i] == bp2::Direction::Output || Max_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Max_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Merger") {
-        for (size_t i = 0; i < Merger_PORT_COUNT; ++i) {
-            if (Merger_PORT_DIRECTIONS[i] == bp2::Direction::Output || Merger_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Merger_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Min") {
-        for (size_t i = 0; i < Min_PORT_COUNT; ++i) {
-            if (Min_PORT_DIRECTIONS[i] == bp2::Direction::Output || Min_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Min_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Monostable") {
-        for (size_t i = 0; i < Monostable_PORT_COUNT; ++i) {
-            if (Monostable_PORT_DIRECTIONS[i] == bp2::Direction::Output || Monostable_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Monostable_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Multiply") {
-        for (size_t i = 0; i < Multiply_PORT_COUNT; ++i) {
-            if (Multiply_PORT_DIRECTIONS[i] == bp2::Direction::Output || Multiply_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Multiply_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "NAND") {
-        for (size_t i = 0; i < NAND_PORT_COUNT; ++i) {
-            if (NAND_PORT_DIRECTIONS[i] == bp2::Direction::Output || NAND_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(NAND_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "NOT") {
-        for (size_t i = 0; i < NOT_PORT_COUNT; ++i) {
-            if (NOT_PORT_DIRECTIONS[i] == bp2::Direction::Output || NOT_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(NOT_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Normalize") {
-        for (size_t i = 0; i < Normalize_PORT_COUNT; ++i) {
-            if (Normalize_PORT_DIRECTIONS[i] == bp2::Direction::Output || Normalize_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Normalize_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "OR") {
-        for (size_t i = 0; i < OR_PORT_COUNT; ++i) {
-            if (OR_PORT_DIRECTIONS[i] == bp2::Direction::Output || OR_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(OR_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "P") {
-        for (size_t i = 0; i < P_PORT_COUNT; ++i) {
-            if (P_PORT_DIRECTIONS[i] == bp2::Direction::Output || P_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(P_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "PD") {
-        for (size_t i = 0; i < PD_PORT_COUNT; ++i) {
-            if (PD_PORT_DIRECTIONS[i] == bp2::Direction::Output || PD_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(PD_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "PI") {
-        for (size_t i = 0; i < PI_PORT_COUNT; ++i) {
-            if (PI_PORT_DIRECTIONS[i] == bp2::Direction::Output || PI_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(PI_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "PID") {
-        for (size_t i = 0; i < PID_PORT_COUNT; ++i) {
-            if (PID_PORT_DIRECTIONS[i] == bp2::Direction::Output || PID_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(PID_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Positive_V_to_Bool") {
-        for (size_t i = 0; i < Positive_V_to_Bool_PORT_COUNT; ++i) {
-            if (Positive_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::Output || Positive_V_to_Bool_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Positive_V_to_Bool_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Radiator") {
-        for (size_t i = 0; i < Radiator_PORT_COUNT; ++i) {
-            if (Radiator_PORT_DIRECTIONS[i] == bp2::Direction::Output || Radiator_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Radiator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "RefNode") {
-        for (size_t i = 0; i < RefNode_PORT_COUNT; ++i) {
-            if (RefNode_PORT_DIRECTIONS[i] == bp2::Direction::Output || RefNode_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(RefNode_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Relay") {
-        for (size_t i = 0; i < Relay_PORT_COUNT; ++i) {
-            if (Relay_PORT_DIRECTIONS[i] == bp2::Direction::Output || Relay_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Relay_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Resistor") {
-        for (size_t i = 0; i < Resistor_PORT_COUNT; ++i) {
-            if (Resistor_PORT_DIRECTIONS[i] == bp2::Direction::Output || Resistor_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Resistor_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "RotarySwitch1ToN") {
-        for (size_t i = 0; i < RotarySwitch1ToN_PORT_COUNT; ++i) {
-            if (RotarySwitch1ToN_PORT_DIRECTIONS[i] == bp2::Direction::Output || RotarySwitch1ToN_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(RotarySwitch1ToN_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "RotarySwitchNTo1") {
-        for (size_t i = 0; i < RotarySwitchNTo1_PORT_COUNT; ++i) {
-            if (RotarySwitchNTo1_PORT_DIRECTIONS[i] == bp2::Direction::Output || RotarySwitchNTo1_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(RotarySwitchNTo1_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "SampleHold") {
-        for (size_t i = 0; i < SampleHold_PORT_COUNT; ++i) {
-            if (SampleHold_PORT_DIRECTIONS[i] == bp2::Direction::Output || SampleHold_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(SampleHold_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "SlewRate") {
-        for (size_t i = 0; i < SlewRate_PORT_COUNT; ++i) {
-            if (SlewRate_PORT_DIRECTIONS[i] == bp2::Direction::Output || SlewRate_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(SlewRate_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Slider") {
-        for (size_t i = 0; i < Slider_PORT_COUNT; ++i) {
-            if (Slider_PORT_DIRECTIONS[i] == bp2::Direction::Output || Slider_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Slider_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "SolenoidValve") {
-        for (size_t i = 0; i < SolenoidValve_PORT_COUNT; ++i) {
-            if (SolenoidValve_PORT_DIRECTIONS[i] == bp2::Direction::Output || SolenoidValve_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(SolenoidValve_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Splitter") {
-        for (size_t i = 0; i < Splitter_PORT_COUNT; ++i) {
-            if (Splitter_PORT_DIRECTIONS[i] == bp2::Direction::Output || Splitter_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Splitter_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Spring") {
-        for (size_t i = 0; i < Spring_PORT_COUNT; ++i) {
-            if (Spring_PORT_DIRECTIONS[i] == bp2::Direction::Output || Spring_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Spring_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Subtract") {
-        for (size_t i = 0; i < Subtract_PORT_COUNT; ++i) {
-            if (Subtract_PORT_DIRECTIONS[i] == bp2::Direction::Output || Subtract_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Subtract_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Switch") {
-        for (size_t i = 0; i < Switch_PORT_COUNT; ++i) {
-            if (Switch_PORT_DIRECTIONS[i] == bp2::Direction::Output || Switch_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Switch_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "TempSensor") {
-        for (size_t i = 0; i < TempSensor_PORT_COUNT; ++i) {
-            if (TempSensor_PORT_DIRECTIONS[i] == bp2::Direction::Output || TempSensor_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(TempSensor_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "TimeDelay") {
-        for (size_t i = 0; i < TimeDelay_PORT_COUNT; ++i) {
-            if (TimeDelay_PORT_DIRECTIONS[i] == bp2::Direction::Output || TimeDelay_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(TimeDelay_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Transformer") {
-        for (size_t i = 0; i < Transformer_PORT_COUNT; ++i) {
-            if (Transformer_PORT_DIRECTIONS[i] == bp2::Direction::Output || Transformer_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Transformer_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Value") {
-        for (size_t i = 0; i < Value_PORT_COUNT; ++i) {
-            if (Value_PORT_DIRECTIONS[i] == bp2::Direction::Output || Value_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Value_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "VariableConductance") {
-        for (size_t i = 0; i < VariableConductance_PORT_COUNT; ++i) {
-            if (VariableConductance_PORT_DIRECTIONS[i] == bp2::Direction::Output || VariableConductance_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(VariableConductance_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "VoltageSense") {
-        for (size_t i = 0; i < VoltageSense_PORT_COUNT; ++i) {
-            if (VoltageSense_PORT_DIRECTIONS[i] == bp2::Direction::Output || VoltageSense_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(VoltageSense_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Voltmeter") {
-        for (size_t i = 0; i < Voltmeter_PORT_COUNT; ++i) {
-            if (Voltmeter_PORT_DIRECTIONS[i] == bp2::Direction::Output || Voltmeter_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(Voltmeter_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "XOR") {
-        for (size_t i = 0; i < XOR_PORT_COUNT; ++i) {
-            if (XOR_PORT_DIRECTIONS[i] == bp2::Direction::Output || XOR_PORT_DIRECTIONS[i] == bp2::Direction::InOut) result.push_back(XOR_PORTS[i]);
-        }
-        return result;
-    }
-    throw std::runtime_error("Missing output-port metadata entry for known class: " + classname);
 }
 
-inline std::vector<std::string> get_source_writer_ports(const std::string& classname, uint8_t domain_mask) {
-    require_component_metadata(classname, "get_source_writer_ports");
+inline std::vector<std::string> get_source_writer_ports(ComponentKind kind, uint8_t domain_mask) {
     std::vector<std::string> result;
-    if (classname == "AND") {
-        for (size_t i = 0; i < AND_PORT_COUNT; ++i) {
-            if (AND_PORT_SOURCE_WRITER[i] && ((AND_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(AND_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "AZS") {
-        for (size_t i = 0; i < AZS_PORT_COUNT; ++i) {
-            if (AZS_PORT_SOURCE_WRITER[i] && ((AZS_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(AZS_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Accumulator") {
-        for (size_t i = 0; i < Accumulator_PORT_COUNT; ++i) {
-            if (Accumulator_PORT_SOURCE_WRITER[i] && ((Accumulator_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Accumulator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Add") {
-        for (size_t i = 0; i < Add_PORT_COUNT; ++i) {
-            if (Add_PORT_SOURCE_WRITER[i] && ((Add_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Add_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Any_V_to_Bool") {
-        for (size_t i = 0; i < Any_V_to_Bool_PORT_COUNT; ++i) {
-            if (Any_V_to_Bool_PORT_SOURCE_WRITER[i] && ((Any_V_to_Bool_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Any_V_to_Bool_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "AsymSlewRate") {
-        for (size_t i = 0; i < AsymSlewRate_PORT_COUNT; ++i) {
-            if (AsymSlewRate_PORT_SOURCE_WRITER[i] && ((AsymSlewRate_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(AsymSlewRate_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "AsymTMO") {
-        for (size_t i = 0; i < AsymTMO_PORT_COUNT; ++i) {
-            if (AsymTMO_PORT_SOURCE_WRITER[i] && ((AsymTMO_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(AsymTMO_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Bus") {
-        for (size_t i = 0; i < Bus_PORT_COUNT; ++i) {
-            if (Bus_PORT_SOURCE_WRITER[i] && ((Bus_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Bus_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Clamp") {
-        for (size_t i = 0; i < Clamp_PORT_COUNT; ++i) {
-            if (Clamp_PORT_SOURCE_WRITER[i] && ((Clamp_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Clamp_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Comparator") {
-        for (size_t i = 0; i < Comparator_PORT_COUNT; ++i) {
-            if (Comparator_PORT_SOURCE_WRITER[i] && ((Comparator_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Comparator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ControlledCurrentSource") {
-        for (size_t i = 0; i < ControlledCurrentSource_PORT_COUNT; ++i) {
-            if (ControlledCurrentSource_PORT_SOURCE_WRITER[i] && ((ControlledCurrentSource_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(ControlledCurrentSource_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ControlledVoltageSource") {
-        for (size_t i = 0; i < ControlledVoltageSource_PORT_COUNT; ++i) {
-            if (ControlledVoltageSource_PORT_SOURCE_WRITER[i] && ((ControlledVoltageSource_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(ControlledVoltageSource_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "CurrentSense") {
-        for (size_t i = 0; i < CurrentSense_PORT_COUNT; ++i) {
-            if (CurrentSense_PORT_SOURCE_WRITER[i] && ((CurrentSense_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(CurrentSense_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Divide") {
-        for (size_t i = 0; i < Divide_PORT_COUNT; ++i) {
-            if (Divide_PORT_SOURCE_WRITER[i] && ((Divide_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Divide_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ElectricHeater") {
-        for (size_t i = 0; i < ElectricHeater_PORT_COUNT; ++i) {
-            if (ElectricHeater_PORT_SOURCE_WRITER[i] && ((ElectricHeater_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(ElectricHeater_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ElectricPump") {
-        for (size_t i = 0; i < ElectricPump_PORT_COUNT; ++i) {
-            if (ElectricPump_PORT_SOURCE_WRITER[i] && ((ElectricPump_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(ElectricPump_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ElectricalConductance") {
-        for (size_t i = 0; i < ElectricalConductance_PORT_COUNT; ++i) {
-            if (ElectricalConductance_PORT_SOURCE_WRITER[i] && ((ElectricalConductance_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(ElectricalConductance_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "ElectricalSource") {
-        for (size_t i = 0; i < ElectricalSource_PORT_COUNT; ++i) {
-            if (ElectricalSource_PORT_SOURCE_WRITER[i] && ((ElectricalSource_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(ElectricalSource_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "FastTMO") {
-        for (size_t i = 0; i < FastTMO_PORT_COUNT; ++i) {
-            if (FastTMO_PORT_SOURCE_WRITER[i] && ((FastTMO_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(FastTMO_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "FuelTank") {
-        for (size_t i = 0; i < FuelTank_PORT_COUNT; ++i) {
-            if (FuelTank_PORT_SOURCE_WRITER[i] && ((FuelTank_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(FuelTank_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Generator") {
-        for (size_t i = 0; i < Generator_PORT_COUNT; ++i) {
-            if (Generator_PORT_SOURCE_WRITER[i] && ((Generator_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Generator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "GidroAccumulator") {
-        for (size_t i = 0; i < GidroAccumulator_PORT_COUNT; ++i) {
-            if (GidroAccumulator_PORT_SOURCE_WRITER[i] && ((GidroAccumulator_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(GidroAccumulator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Greater") {
-        for (size_t i = 0; i < Greater_PORT_COUNT; ++i) {
-            if (Greater_PORT_SOURCE_WRITER[i] && ((Greater_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Greater_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "GreaterEq") {
-        for (size_t i = 0; i < GreaterEq_PORT_COUNT; ++i) {
-            if (GreaterEq_PORT_SOURCE_WRITER[i] && ((GreaterEq_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(GreaterEq_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Gyroscope") {
-        for (size_t i = 0; i < Gyroscope_PORT_COUNT; ++i) {
-            if (Gyroscope_PORT_SOURCE_WRITER[i] && ((Gyroscope_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Gyroscope_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "HoldButton") {
-        for (size_t i = 0; i < HoldButton_PORT_COUNT; ++i) {
-            if (HoldButton_PORT_SOURCE_WRITER[i] && ((HoldButton_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(HoldButton_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "IndicatorLight") {
-        for (size_t i = 0; i < IndicatorLight_PORT_COUNT; ++i) {
-            if (IndicatorLight_PORT_SOURCE_WRITER[i] && ((IndicatorLight_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(IndicatorLight_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "InertiaNode") {
-        for (size_t i = 0; i < InertiaNode_PORT_COUNT; ++i) {
-            if (InertiaNode_PORT_SOURCE_WRITER[i] && ((InertiaNode_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(InertiaNode_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Integrator") {
-        for (size_t i = 0; i < Integrator_PORT_COUNT; ++i) {
-            if (Integrator_PORT_SOURCE_WRITER[i] && ((Integrator_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Integrator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Inverter") {
-        for (size_t i = 0; i < Inverter_PORT_COUNT; ++i) {
-            if (Inverter_PORT_SOURCE_WRITER[i] && ((Inverter_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Inverter_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "KnobSwitch") {
-        for (size_t i = 0; i < KnobSwitch_PORT_COUNT; ++i) {
-            if (KnobSwitch_PORT_SOURCE_WRITER[i] && ((KnobSwitch_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(KnobSwitch_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "LUT") {
-        for (size_t i = 0; i < LUT_PORT_COUNT; ++i) {
-            if (LUT_PORT_SOURCE_WRITER[i] && ((LUT_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(LUT_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "LerpNode") {
-        for (size_t i = 0; i < LerpNode_PORT_COUNT; ++i) {
-            if (LerpNode_PORT_SOURCE_WRITER[i] && ((LerpNode_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(LerpNode_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Lesser") {
-        for (size_t i = 0; i < Lesser_PORT_COUNT; ++i) {
-            if (Lesser_PORT_SOURCE_WRITER[i] && ((Lesser_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Lesser_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "LesserEq") {
-        for (size_t i = 0; i < LesserEq_PORT_COUNT; ++i) {
-            if (LesserEq_PORT_SOURCE_WRITER[i] && ((LesserEq_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(LesserEq_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Max") {
-        for (size_t i = 0; i < Max_PORT_COUNT; ++i) {
-            if (Max_PORT_SOURCE_WRITER[i] && ((Max_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Max_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Merger") {
-        for (size_t i = 0; i < Merger_PORT_COUNT; ++i) {
-            if (Merger_PORT_SOURCE_WRITER[i] && ((Merger_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Merger_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Min") {
-        for (size_t i = 0; i < Min_PORT_COUNT; ++i) {
-            if (Min_PORT_SOURCE_WRITER[i] && ((Min_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Min_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Monostable") {
-        for (size_t i = 0; i < Monostable_PORT_COUNT; ++i) {
-            if (Monostable_PORT_SOURCE_WRITER[i] && ((Monostable_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Monostable_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Multiply") {
-        for (size_t i = 0; i < Multiply_PORT_COUNT; ++i) {
-            if (Multiply_PORT_SOURCE_WRITER[i] && ((Multiply_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Multiply_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "NAND") {
-        for (size_t i = 0; i < NAND_PORT_COUNT; ++i) {
-            if (NAND_PORT_SOURCE_WRITER[i] && ((NAND_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(NAND_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "NOT") {
-        for (size_t i = 0; i < NOT_PORT_COUNT; ++i) {
-            if (NOT_PORT_SOURCE_WRITER[i] && ((NOT_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(NOT_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Normalize") {
-        for (size_t i = 0; i < Normalize_PORT_COUNT; ++i) {
-            if (Normalize_PORT_SOURCE_WRITER[i] && ((Normalize_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Normalize_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "OR") {
-        for (size_t i = 0; i < OR_PORT_COUNT; ++i) {
-            if (OR_PORT_SOURCE_WRITER[i] && ((OR_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(OR_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "P") {
-        for (size_t i = 0; i < P_PORT_COUNT; ++i) {
-            if (P_PORT_SOURCE_WRITER[i] && ((P_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(P_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "PD") {
-        for (size_t i = 0; i < PD_PORT_COUNT; ++i) {
-            if (PD_PORT_SOURCE_WRITER[i] && ((PD_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(PD_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "PI") {
-        for (size_t i = 0; i < PI_PORT_COUNT; ++i) {
-            if (PI_PORT_SOURCE_WRITER[i] && ((PI_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(PI_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "PID") {
-        for (size_t i = 0; i < PID_PORT_COUNT; ++i) {
-            if (PID_PORT_SOURCE_WRITER[i] && ((PID_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(PID_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Positive_V_to_Bool") {
-        for (size_t i = 0; i < Positive_V_to_Bool_PORT_COUNT; ++i) {
-            if (Positive_V_to_Bool_PORT_SOURCE_WRITER[i] && ((Positive_V_to_Bool_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Positive_V_to_Bool_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Radiator") {
-        for (size_t i = 0; i < Radiator_PORT_COUNT; ++i) {
-            if (Radiator_PORT_SOURCE_WRITER[i] && ((Radiator_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Radiator_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "RefNode") {
-        for (size_t i = 0; i < RefNode_PORT_COUNT; ++i) {
-            if (RefNode_PORT_SOURCE_WRITER[i] && ((RefNode_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(RefNode_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Relay") {
-        for (size_t i = 0; i < Relay_PORT_COUNT; ++i) {
-            if (Relay_PORT_SOURCE_WRITER[i] && ((Relay_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Relay_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Resistor") {
-        for (size_t i = 0; i < Resistor_PORT_COUNT; ++i) {
-            if (Resistor_PORT_SOURCE_WRITER[i] && ((Resistor_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Resistor_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "RotarySwitch1ToN") {
-        for (size_t i = 0; i < RotarySwitch1ToN_PORT_COUNT; ++i) {
-            if (RotarySwitch1ToN_PORT_SOURCE_WRITER[i] && ((RotarySwitch1ToN_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(RotarySwitch1ToN_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "RotarySwitchNTo1") {
-        for (size_t i = 0; i < RotarySwitchNTo1_PORT_COUNT; ++i) {
-            if (RotarySwitchNTo1_PORT_SOURCE_WRITER[i] && ((RotarySwitchNTo1_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(RotarySwitchNTo1_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "SampleHold") {
-        for (size_t i = 0; i < SampleHold_PORT_COUNT; ++i) {
-            if (SampleHold_PORT_SOURCE_WRITER[i] && ((SampleHold_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(SampleHold_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "SlewRate") {
-        for (size_t i = 0; i < SlewRate_PORT_COUNT; ++i) {
-            if (SlewRate_PORT_SOURCE_WRITER[i] && ((SlewRate_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(SlewRate_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Slider") {
-        for (size_t i = 0; i < Slider_PORT_COUNT; ++i) {
-            if (Slider_PORT_SOURCE_WRITER[i] && ((Slider_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Slider_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "SolenoidValve") {
-        for (size_t i = 0; i < SolenoidValve_PORT_COUNT; ++i) {
-            if (SolenoidValve_PORT_SOURCE_WRITER[i] && ((SolenoidValve_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(SolenoidValve_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Splitter") {
-        for (size_t i = 0; i < Splitter_PORT_COUNT; ++i) {
-            if (Splitter_PORT_SOURCE_WRITER[i] && ((Splitter_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Splitter_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Spring") {
-        for (size_t i = 0; i < Spring_PORT_COUNT; ++i) {
-            if (Spring_PORT_SOURCE_WRITER[i] && ((Spring_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Spring_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Subtract") {
-        for (size_t i = 0; i < Subtract_PORT_COUNT; ++i) {
-            if (Subtract_PORT_SOURCE_WRITER[i] && ((Subtract_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Subtract_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Switch") {
-        for (size_t i = 0; i < Switch_PORT_COUNT; ++i) {
-            if (Switch_PORT_SOURCE_WRITER[i] && ((Switch_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Switch_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "TempSensor") {
-        for (size_t i = 0; i < TempSensor_PORT_COUNT; ++i) {
-            if (TempSensor_PORT_SOURCE_WRITER[i] && ((TempSensor_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(TempSensor_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "TimeDelay") {
-        for (size_t i = 0; i < TimeDelay_PORT_COUNT; ++i) {
-            if (TimeDelay_PORT_SOURCE_WRITER[i] && ((TimeDelay_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(TimeDelay_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Transformer") {
-        for (size_t i = 0; i < Transformer_PORT_COUNT; ++i) {
-            if (Transformer_PORT_SOURCE_WRITER[i] && ((Transformer_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Transformer_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Value") {
-        for (size_t i = 0; i < Value_PORT_COUNT; ++i) {
-            if (Value_PORT_SOURCE_WRITER[i] && ((Value_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Value_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "VariableConductance") {
-        for (size_t i = 0; i < VariableConductance_PORT_COUNT; ++i) {
-            if (VariableConductance_PORT_SOURCE_WRITER[i] && ((VariableConductance_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(VariableConductance_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "VoltageSense") {
-        for (size_t i = 0; i < VoltageSense_PORT_COUNT; ++i) {
-            if (VoltageSense_PORT_SOURCE_WRITER[i] && ((VoltageSense_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(VoltageSense_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "Voltmeter") {
-        for (size_t i = 0; i < Voltmeter_PORT_COUNT; ++i) {
-            if (Voltmeter_PORT_SOURCE_WRITER[i] && ((Voltmeter_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(Voltmeter_PORTS[i]);
-        }
-        return result;
-    }
-    if (classname == "XOR") {
-        for (size_t i = 0; i < XOR_PORT_COUNT; ++i) {
-            if (XOR_PORT_SOURCE_WRITER[i] && ((XOR_PORT_DOMAINS[i] & domain_mask) != 0)) result.push_back(XOR_PORTS[i]);
-        }
-        return result;
-    }
-    throw std::runtime_error("Missing source-writer metadata entry for known class: " + classname);
+    switch (kind) {
+        case ComponentKind::AND:
+            for (size_t i = 0; i < AND_PORT_COUNT; ++i) {
+                if (AND_PORT_SOURCE_WRITER[i] && ((AND_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(AND_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::AZS:
+            for (size_t i = 0; i < AZS_PORT_COUNT; ++i) {
+                if (AZS_PORT_SOURCE_WRITER[i] && ((AZS_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(AZS_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Accumulator:
+            for (size_t i = 0; i < Accumulator_PORT_COUNT; ++i) {
+                if (Accumulator_PORT_SOURCE_WRITER[i] && ((Accumulator_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Accumulator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Add:
+            for (size_t i = 0; i < Add_PORT_COUNT; ++i) {
+                if (Add_PORT_SOURCE_WRITER[i] && ((Add_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Add_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Any_V_to_Bool:
+            for (size_t i = 0; i < Any_V_to_Bool_PORT_COUNT; ++i) {
+                if (Any_V_to_Bool_PORT_SOURCE_WRITER[i] && ((Any_V_to_Bool_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Any_V_to_Bool_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::AsymSlewRate:
+            for (size_t i = 0; i < AsymSlewRate_PORT_COUNT; ++i) {
+                if (AsymSlewRate_PORT_SOURCE_WRITER[i] && ((AsymSlewRate_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(AsymSlewRate_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::AsymTMO:
+            for (size_t i = 0; i < AsymTMO_PORT_COUNT; ++i) {
+                if (AsymTMO_PORT_SOURCE_WRITER[i] && ((AsymTMO_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(AsymTMO_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Bus:
+            for (size_t i = 0; i < Bus_PORT_COUNT; ++i) {
+                if (Bus_PORT_SOURCE_WRITER[i] && ((Bus_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Bus_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Clamp:
+            for (size_t i = 0; i < Clamp_PORT_COUNT; ++i) {
+                if (Clamp_PORT_SOURCE_WRITER[i] && ((Clamp_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Clamp_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Comparator:
+            for (size_t i = 0; i < Comparator_PORT_COUNT; ++i) {
+                if (Comparator_PORT_SOURCE_WRITER[i] && ((Comparator_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Comparator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ControlledCurrentSource:
+            for (size_t i = 0; i < ControlledCurrentSource_PORT_COUNT; ++i) {
+                if (ControlledCurrentSource_PORT_SOURCE_WRITER[i] && ((ControlledCurrentSource_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(ControlledCurrentSource_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ControlledVoltageSource:
+            for (size_t i = 0; i < ControlledVoltageSource_PORT_COUNT; ++i) {
+                if (ControlledVoltageSource_PORT_SOURCE_WRITER[i] && ((ControlledVoltageSource_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(ControlledVoltageSource_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::CurrentSense:
+            for (size_t i = 0; i < CurrentSense_PORT_COUNT; ++i) {
+                if (CurrentSense_PORT_SOURCE_WRITER[i] && ((CurrentSense_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(CurrentSense_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Divide:
+            for (size_t i = 0; i < Divide_PORT_COUNT; ++i) {
+                if (Divide_PORT_SOURCE_WRITER[i] && ((Divide_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Divide_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ElectricHeater:
+            for (size_t i = 0; i < ElectricHeater_PORT_COUNT; ++i) {
+                if (ElectricHeater_PORT_SOURCE_WRITER[i] && ((ElectricHeater_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(ElectricHeater_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ElectricPump:
+            for (size_t i = 0; i < ElectricPump_PORT_COUNT; ++i) {
+                if (ElectricPump_PORT_SOURCE_WRITER[i] && ((ElectricPump_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(ElectricPump_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ElectricalConductance:
+            for (size_t i = 0; i < ElectricalConductance_PORT_COUNT; ++i) {
+                if (ElectricalConductance_PORT_SOURCE_WRITER[i] && ((ElectricalConductance_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(ElectricalConductance_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::ElectricalSource:
+            for (size_t i = 0; i < ElectricalSource_PORT_COUNT; ++i) {
+                if (ElectricalSource_PORT_SOURCE_WRITER[i] && ((ElectricalSource_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(ElectricalSource_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::FastTMO:
+            for (size_t i = 0; i < FastTMO_PORT_COUNT; ++i) {
+                if (FastTMO_PORT_SOURCE_WRITER[i] && ((FastTMO_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(FastTMO_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::FuelTank:
+            for (size_t i = 0; i < FuelTank_PORT_COUNT; ++i) {
+                if (FuelTank_PORT_SOURCE_WRITER[i] && ((FuelTank_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(FuelTank_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Generator:
+            for (size_t i = 0; i < Generator_PORT_COUNT; ++i) {
+                if (Generator_PORT_SOURCE_WRITER[i] && ((Generator_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Generator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::GidroAccumulator:
+            for (size_t i = 0; i < GidroAccumulator_PORT_COUNT; ++i) {
+                if (GidroAccumulator_PORT_SOURCE_WRITER[i] && ((GidroAccumulator_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(GidroAccumulator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Greater:
+            for (size_t i = 0; i < Greater_PORT_COUNT; ++i) {
+                if (Greater_PORT_SOURCE_WRITER[i] && ((Greater_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Greater_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::GreaterEq:
+            for (size_t i = 0; i < GreaterEq_PORT_COUNT; ++i) {
+                if (GreaterEq_PORT_SOURCE_WRITER[i] && ((GreaterEq_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(GreaterEq_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Gyroscope:
+            for (size_t i = 0; i < Gyroscope_PORT_COUNT; ++i) {
+                if (Gyroscope_PORT_SOURCE_WRITER[i] && ((Gyroscope_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Gyroscope_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::HoldButton:
+            for (size_t i = 0; i < HoldButton_PORT_COUNT; ++i) {
+                if (HoldButton_PORT_SOURCE_WRITER[i] && ((HoldButton_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(HoldButton_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::IndicatorLight:
+            for (size_t i = 0; i < IndicatorLight_PORT_COUNT; ++i) {
+                if (IndicatorLight_PORT_SOURCE_WRITER[i] && ((IndicatorLight_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(IndicatorLight_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::InertiaNode:
+            for (size_t i = 0; i < InertiaNode_PORT_COUNT; ++i) {
+                if (InertiaNode_PORT_SOURCE_WRITER[i] && ((InertiaNode_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(InertiaNode_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Integrator:
+            for (size_t i = 0; i < Integrator_PORT_COUNT; ++i) {
+                if (Integrator_PORT_SOURCE_WRITER[i] && ((Integrator_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Integrator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Inverter:
+            for (size_t i = 0; i < Inverter_PORT_COUNT; ++i) {
+                if (Inverter_PORT_SOURCE_WRITER[i] && ((Inverter_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Inverter_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::KnobSwitch:
+            for (size_t i = 0; i < KnobSwitch_PORT_COUNT; ++i) {
+                if (KnobSwitch_PORT_SOURCE_WRITER[i] && ((KnobSwitch_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(KnobSwitch_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::LUT:
+            for (size_t i = 0; i < LUT_PORT_COUNT; ++i) {
+                if (LUT_PORT_SOURCE_WRITER[i] && ((LUT_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(LUT_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::LerpNode:
+            for (size_t i = 0; i < LerpNode_PORT_COUNT; ++i) {
+                if (LerpNode_PORT_SOURCE_WRITER[i] && ((LerpNode_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(LerpNode_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Lesser:
+            for (size_t i = 0; i < Lesser_PORT_COUNT; ++i) {
+                if (Lesser_PORT_SOURCE_WRITER[i] && ((Lesser_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Lesser_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::LesserEq:
+            for (size_t i = 0; i < LesserEq_PORT_COUNT; ++i) {
+                if (LesserEq_PORT_SOURCE_WRITER[i] && ((LesserEq_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(LesserEq_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Max:
+            for (size_t i = 0; i < Max_PORT_COUNT; ++i) {
+                if (Max_PORT_SOURCE_WRITER[i] && ((Max_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Max_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Merger:
+            for (size_t i = 0; i < Merger_PORT_COUNT; ++i) {
+                if (Merger_PORT_SOURCE_WRITER[i] && ((Merger_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Merger_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Min:
+            for (size_t i = 0; i < Min_PORT_COUNT; ++i) {
+                if (Min_PORT_SOURCE_WRITER[i] && ((Min_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Min_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Monostable:
+            for (size_t i = 0; i < Monostable_PORT_COUNT; ++i) {
+                if (Monostable_PORT_SOURCE_WRITER[i] && ((Monostable_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Monostable_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Multiply:
+            for (size_t i = 0; i < Multiply_PORT_COUNT; ++i) {
+                if (Multiply_PORT_SOURCE_WRITER[i] && ((Multiply_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Multiply_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::NAND:
+            for (size_t i = 0; i < NAND_PORT_COUNT; ++i) {
+                if (NAND_PORT_SOURCE_WRITER[i] && ((NAND_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(NAND_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::NOT:
+            for (size_t i = 0; i < NOT_PORT_COUNT; ++i) {
+                if (NOT_PORT_SOURCE_WRITER[i] && ((NOT_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(NOT_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Normalize:
+            for (size_t i = 0; i < Normalize_PORT_COUNT; ++i) {
+                if (Normalize_PORT_SOURCE_WRITER[i] && ((Normalize_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Normalize_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::OR:
+            for (size_t i = 0; i < OR_PORT_COUNT; ++i) {
+                if (OR_PORT_SOURCE_WRITER[i] && ((OR_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(OR_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::P:
+            for (size_t i = 0; i < P_PORT_COUNT; ++i) {
+                if (P_PORT_SOURCE_WRITER[i] && ((P_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(P_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::PD:
+            for (size_t i = 0; i < PD_PORT_COUNT; ++i) {
+                if (PD_PORT_SOURCE_WRITER[i] && ((PD_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(PD_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::PI:
+            for (size_t i = 0; i < PI_PORT_COUNT; ++i) {
+                if (PI_PORT_SOURCE_WRITER[i] && ((PI_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(PI_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::PID:
+            for (size_t i = 0; i < PID_PORT_COUNT; ++i) {
+                if (PID_PORT_SOURCE_WRITER[i] && ((PID_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(PID_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Positive_V_to_Bool:
+            for (size_t i = 0; i < Positive_V_to_Bool_PORT_COUNT; ++i) {
+                if (Positive_V_to_Bool_PORT_SOURCE_WRITER[i] && ((Positive_V_to_Bool_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Positive_V_to_Bool_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Radiator:
+            for (size_t i = 0; i < Radiator_PORT_COUNT; ++i) {
+                if (Radiator_PORT_SOURCE_WRITER[i] && ((Radiator_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Radiator_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::RefNode:
+            for (size_t i = 0; i < RefNode_PORT_COUNT; ++i) {
+                if (RefNode_PORT_SOURCE_WRITER[i] && ((RefNode_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(RefNode_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Relay:
+            for (size_t i = 0; i < Relay_PORT_COUNT; ++i) {
+                if (Relay_PORT_SOURCE_WRITER[i] && ((Relay_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Relay_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Resistor:
+            for (size_t i = 0; i < Resistor_PORT_COUNT; ++i) {
+                if (Resistor_PORT_SOURCE_WRITER[i] && ((Resistor_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Resistor_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::RotarySwitch1ToN:
+            for (size_t i = 0; i < RotarySwitch1ToN_PORT_COUNT; ++i) {
+                if (RotarySwitch1ToN_PORT_SOURCE_WRITER[i] && ((RotarySwitch1ToN_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(RotarySwitch1ToN_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::RotarySwitchNTo1:
+            for (size_t i = 0; i < RotarySwitchNTo1_PORT_COUNT; ++i) {
+                if (RotarySwitchNTo1_PORT_SOURCE_WRITER[i] && ((RotarySwitchNTo1_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(RotarySwitchNTo1_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::SampleHold:
+            for (size_t i = 0; i < SampleHold_PORT_COUNT; ++i) {
+                if (SampleHold_PORT_SOURCE_WRITER[i] && ((SampleHold_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(SampleHold_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::SlewRate:
+            for (size_t i = 0; i < SlewRate_PORT_COUNT; ++i) {
+                if (SlewRate_PORT_SOURCE_WRITER[i] && ((SlewRate_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(SlewRate_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Slider:
+            for (size_t i = 0; i < Slider_PORT_COUNT; ++i) {
+                if (Slider_PORT_SOURCE_WRITER[i] && ((Slider_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Slider_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::SolenoidValve:
+            for (size_t i = 0; i < SolenoidValve_PORT_COUNT; ++i) {
+                if (SolenoidValve_PORT_SOURCE_WRITER[i] && ((SolenoidValve_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(SolenoidValve_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Splitter:
+            for (size_t i = 0; i < Splitter_PORT_COUNT; ++i) {
+                if (Splitter_PORT_SOURCE_WRITER[i] && ((Splitter_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Splitter_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Spring:
+            for (size_t i = 0; i < Spring_PORT_COUNT; ++i) {
+                if (Spring_PORT_SOURCE_WRITER[i] && ((Spring_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Spring_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Subtract:
+            for (size_t i = 0; i < Subtract_PORT_COUNT; ++i) {
+                if (Subtract_PORT_SOURCE_WRITER[i] && ((Subtract_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Subtract_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Switch:
+            for (size_t i = 0; i < Switch_PORT_COUNT; ++i) {
+                if (Switch_PORT_SOURCE_WRITER[i] && ((Switch_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Switch_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::TempSensor:
+            for (size_t i = 0; i < TempSensor_PORT_COUNT; ++i) {
+                if (TempSensor_PORT_SOURCE_WRITER[i] && ((TempSensor_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(TempSensor_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::TimeDelay:
+            for (size_t i = 0; i < TimeDelay_PORT_COUNT; ++i) {
+                if (TimeDelay_PORT_SOURCE_WRITER[i] && ((TimeDelay_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(TimeDelay_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Transformer:
+            for (size_t i = 0; i < Transformer_PORT_COUNT; ++i) {
+                if (Transformer_PORT_SOURCE_WRITER[i] && ((Transformer_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Transformer_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Value:
+            for (size_t i = 0; i < Value_PORT_COUNT; ++i) {
+                if (Value_PORT_SOURCE_WRITER[i] && ((Value_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Value_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::VariableConductance:
+            for (size_t i = 0; i < VariableConductance_PORT_COUNT; ++i) {
+                if (VariableConductance_PORT_SOURCE_WRITER[i] && ((VariableConductance_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(VariableConductance_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::VoltageSense:
+            for (size_t i = 0; i < VoltageSense_PORT_COUNT; ++i) {
+                if (VoltageSense_PORT_SOURCE_WRITER[i] && ((VoltageSense_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(VoltageSense_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::Voltmeter:
+            for (size_t i = 0; i < Voltmeter_PORT_COUNT; ++i) {
+                if (Voltmeter_PORT_SOURCE_WRITER[i] && ((Voltmeter_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(Voltmeter_PORTS[i]);
+            }
+            return result;
+        case ComponentKind::XOR:
+            for (size_t i = 0; i < XOR_PORT_COUNT; ++i) {
+                if (XOR_PORT_SOURCE_WRITER[i] && ((XOR_PORT_DOMAINS[i] & domain_mask) != 0))
+                    result.push_back(XOR_PORTS[i]);
+            }
+            return result;
+        default: return result;
+    }
+}
+
+constexpr bool COMPONENT_SCHEDULER_SOURCE[] = {
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false
+};
+
+constexpr bool COMPONENT_SOLVER_OWNED_ELECTRICAL[] = {
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false
+};
+
+constexpr bool COMPONENT_REQUIRES_SOLVER_ROLE[] = {
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false
+};
+
+inline bool is_scheduler_source_component(ComponentKind kind) {
+    const auto idx = static_cast<size_t>(kind);
+    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_SCHEDULER_SOURCE[idx];
+}
+
+inline bool is_solver_owned_electrical_component(ComponentKind kind) {
+    const auto idx = static_cast<size_t>(kind);
+    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_SOLVER_OWNED_ELECTRICAL[idx];
+}
+
+inline bool requires_solver_role_component(ComponentKind kind) {
+    const auto idx = static_cast<size_t>(kind);
+    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_REQUIRES_SOLVER_ROLE[idx];
 }
 
 using ComponentVariant = std::variant<
@@ -3318,7 +2879,7 @@ using ComponentVariant = std::variant<
 >;
 
 static_assert(
-    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentType::_COUNT),
-    "ComponentType enum and ComponentVariant are out of sync — regenerate port_registry.h"
+    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentKind::_COUNT),
+    "ComponentKind enum and ComponentVariant are out of sync — regenerate port_registry.h"
 );
 

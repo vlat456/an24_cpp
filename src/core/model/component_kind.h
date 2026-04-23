@@ -1,0 +1,252 @@
+#pragma once
+
+/// ComponentKind — enumeration of every primitive component type.
+///
+/// Resolved once at load/elaboration time from the string classname.
+/// All downstream dispatch uses this enum instead of string comparison.
+///
+/// NOTE: This enum must stay in sync with the component library.
+/// When adding new components, update this enum AND regenerate port_registry.h.
+
+#include <cstdint>
+#include <optional>
+#include <string_view>
+
+enum class ComponentKind : uint8_t {
+    AND,
+    AZS,
+    Accumulator,
+    Add,
+    Any_V_to_Bool,
+    AsymSlewRate,
+    AsymTMO,
+    Bus,
+    Clamp,
+    Comparator,
+    ControlledCurrentSource,
+    ControlledVoltageSource,
+    CurrentSense,
+    Divide,
+    ElectricHeater,
+    ElectricPump,
+    ElectricalConductance,
+    ElectricalSource,
+    FastTMO,
+    FuelTank,
+    Generator,
+    GidroAccumulator,
+    Greater,
+    GreaterEq,
+    Gyroscope,
+    HoldButton,
+    IndicatorLight,
+    InertiaNode,
+    Integrator,
+    Inverter,
+    KnobSwitch,
+    LUT,
+    LerpNode,
+    Lesser,
+    LesserEq,
+    Max,
+    Merger,
+    Min,
+    Monostable,
+    Multiply,
+    NAND,
+    NOT,
+    Normalize,
+    OR,
+    P,
+    PD,
+    PI,
+    PID,
+    Positive_V_to_Bool,
+    Radiator,
+    RefNode,
+    Relay,
+    Resistor,
+    RotarySwitch1ToN,
+    RotarySwitchNTo1,
+    SampleHold,
+    SlewRate,
+    Slider,
+    SolenoidValve,
+    Splitter,
+    Spring,
+    Subtract,
+    Switch,
+    TempSensor,
+    TimeDelay,
+    Transformer,
+    Value,
+    VariableConductance,
+    VoltageSense,
+    Voltmeter,
+    XOR,
+    _COUNT
+};
+
+/// Resolve a string classname to ComponentKind. Returns std::nullopt for unknown names.
+inline std::optional<ComponentKind> parse_component_kind(std::string_view name) {
+    // Alphabetical switch — matches the codegen order.
+    // This is a one-time cost at load/elaboration, not in the hot path.
+    if (name == "AND") return ComponentKind::AND;
+    if (name == "AZS") return ComponentKind::AZS;
+    if (name == "Accumulator") return ComponentKind::Accumulator;
+    if (name == "Add") return ComponentKind::Add;
+    if (name == "Any_V_to_Bool") return ComponentKind::Any_V_to_Bool;
+    if (name == "AsymSlewRate") return ComponentKind::AsymSlewRate;
+    if (name == "AsymTMO") return ComponentKind::AsymTMO;
+    if (name == "Bus") return ComponentKind::Bus;
+    if (name == "Clamp") return ComponentKind::Clamp;
+    if (name == "Comparator") return ComponentKind::Comparator;
+    if (name == "ControlledCurrentSource") return ComponentKind::ControlledCurrentSource;
+    if (name == "ControlledVoltageSource") return ComponentKind::ControlledVoltageSource;
+    if (name == "CurrentSense") return ComponentKind::CurrentSense;
+    if (name == "Divide") return ComponentKind::Divide;
+    if (name == "ElectricHeater") return ComponentKind::ElectricHeater;
+    if (name == "ElectricPump") return ComponentKind::ElectricPump;
+    if (name == "ElectricalConductance") return ComponentKind::ElectricalConductance;
+    if (name == "ElectricalSource") return ComponentKind::ElectricalSource;
+    if (name == "FastTMO") return ComponentKind::FastTMO;
+    if (name == "FuelTank") return ComponentKind::FuelTank;
+    if (name == "Generator") return ComponentKind::Generator;
+    if (name == "GidroAccumulator") return ComponentKind::GidroAccumulator;
+    if (name == "Greater") return ComponentKind::Greater;
+    if (name == "GreaterEq") return ComponentKind::GreaterEq;
+    if (name == "Gyroscope") return ComponentKind::Gyroscope;
+    if (name == "HoldButton") return ComponentKind::HoldButton;
+    if (name == "IndicatorLight") return ComponentKind::IndicatorLight;
+    if (name == "InertiaNode") return ComponentKind::InertiaNode;
+    if (name == "Integrator") return ComponentKind::Integrator;
+    if (name == "Inverter") return ComponentKind::Inverter;
+    if (name == "KnobSwitch") return ComponentKind::KnobSwitch;
+    if (name == "LUT") return ComponentKind::LUT;
+    if (name == "LerpNode") return ComponentKind::LerpNode;
+    if (name == "Lesser") return ComponentKind::Lesser;
+    if (name == "LesserEq") return ComponentKind::LesserEq;
+    if (name == "Max") return ComponentKind::Max;
+    if (name == "Merger") return ComponentKind::Merger;
+    if (name == "Min") return ComponentKind::Min;
+    if (name == "Monostable") return ComponentKind::Monostable;
+    if (name == "Multiply") return ComponentKind::Multiply;
+    if (name == "NAND") return ComponentKind::NAND;
+    if (name == "NOT") return ComponentKind::NOT;
+    if (name == "Normalize") return ComponentKind::Normalize;
+    if (name == "OR") return ComponentKind::OR;
+    if (name == "P") return ComponentKind::P;
+    if (name == "PD") return ComponentKind::PD;
+    if (name == "PI") return ComponentKind::PI;
+    if (name == "PID") return ComponentKind::PID;
+    if (name == "Positive_V_to_Bool") return ComponentKind::Positive_V_to_Bool;
+    if (name == "Radiator") return ComponentKind::Radiator;
+    if (name == "RefNode") return ComponentKind::RefNode;
+    if (name == "Relay") return ComponentKind::Relay;
+    if (name == "Resistor") return ComponentKind::Resistor;
+    if (name == "RotarySwitch1ToN") return ComponentKind::RotarySwitch1ToN;
+    if (name == "RotarySwitchNTo1") return ComponentKind::RotarySwitchNTo1;
+    if (name == "SampleHold") return ComponentKind::SampleHold;
+    if (name == "SlewRate") return ComponentKind::SlewRate;
+    if (name == "Slider") return ComponentKind::Slider;
+    if (name == "SolenoidValve") return ComponentKind::SolenoidValve;
+    if (name == "Splitter") return ComponentKind::Splitter;
+    if (name == "Spring") return ComponentKind::Spring;
+    if (name == "Subtract") return ComponentKind::Subtract;
+    if (name == "Switch") return ComponentKind::Switch;
+    if (name == "TempSensor") return ComponentKind::TempSensor;
+    if (name == "TimeDelay") return ComponentKind::TimeDelay;
+    if (name == "Transformer") return ComponentKind::Transformer;
+    if (name == "Value") return ComponentKind::Value;
+    if (name == "VariableConductance") return ComponentKind::VariableConductance;
+    if (name == "VoltageSense") return ComponentKind::VoltageSense;
+    if (name == "Voltmeter") return ComponentKind::Voltmeter;
+    if (name == "XOR") return ComponentKind::XOR;
+    return std::nullopt;
+}
+
+/// Inverse mapping: ComponentKind → string_view classname (for diagnostics/serialization).
+inline constexpr std::string_view component_kind_classname(ComponentKind kind) {
+    switch (kind) {
+        case ComponentKind::AND: return "AND";
+        case ComponentKind::AZS: return "AZS";
+        case ComponentKind::Accumulator: return "Accumulator";
+        case ComponentKind::Add: return "Add";
+        case ComponentKind::Any_V_to_Bool: return "Any_V_to_Bool";
+        case ComponentKind::AsymSlewRate: return "AsymSlewRate";
+        case ComponentKind::AsymTMO: return "AsymTMO";
+        case ComponentKind::Bus: return "Bus";
+        case ComponentKind::Clamp: return "Clamp";
+        case ComponentKind::Comparator: return "Comparator";
+        case ComponentKind::ControlledCurrentSource: return "ControlledCurrentSource";
+        case ComponentKind::ControlledVoltageSource: return "ControlledVoltageSource";
+        case ComponentKind::CurrentSense: return "CurrentSense";
+        case ComponentKind::Divide: return "Divide";
+        case ComponentKind::ElectricHeater: return "ElectricHeater";
+        case ComponentKind::ElectricPump: return "ElectricPump";
+        case ComponentKind::ElectricalConductance: return "ElectricalConductance";
+        case ComponentKind::ElectricalSource: return "ElectricalSource";
+        case ComponentKind::FastTMO: return "FastTMO";
+        case ComponentKind::FuelTank: return "FuelTank";
+        case ComponentKind::Generator: return "Generator";
+        case ComponentKind::GidroAccumulator: return "GidroAccumulator";
+        case ComponentKind::Greater: return "Greater";
+        case ComponentKind::GreaterEq: return "GreaterEq";
+        case ComponentKind::Gyroscope: return "Gyroscope";
+        case ComponentKind::HoldButton: return "HoldButton";
+        case ComponentKind::IndicatorLight: return "IndicatorLight";
+        case ComponentKind::InertiaNode: return "InertiaNode";
+        case ComponentKind::Integrator: return "Integrator";
+        case ComponentKind::Inverter: return "Inverter";
+        case ComponentKind::KnobSwitch: return "KnobSwitch";
+        case ComponentKind::LUT: return "LUT";
+        case ComponentKind::LerpNode: return "LerpNode";
+        case ComponentKind::Lesser: return "Lesser";
+        case ComponentKind::LesserEq: return "LesserEq";
+        case ComponentKind::Max: return "Max";
+        case ComponentKind::Merger: return "Merger";
+        case ComponentKind::Min: return "Min";
+        case ComponentKind::Monostable: return "Monostable";
+        case ComponentKind::Multiply: return "Multiply";
+        case ComponentKind::NAND: return "NAND";
+        case ComponentKind::NOT: return "NOT";
+        case ComponentKind::Normalize: return "Normalize";
+        case ComponentKind::OR: return "OR";
+        case ComponentKind::P: return "P";
+        case ComponentKind::PD: return "PD";
+        case ComponentKind::PI: return "PI";
+        case ComponentKind::PID: return "PID";
+        case ComponentKind::Positive_V_to_Bool: return "Positive_V_to_Bool";
+        case ComponentKind::Radiator: return "Radiator";
+        case ComponentKind::RefNode: return "RefNode";
+        case ComponentKind::Relay: return "Relay";
+        case ComponentKind::Resistor: return "Resistor";
+        case ComponentKind::RotarySwitch1ToN: return "RotarySwitch1ToN";
+        case ComponentKind::RotarySwitchNTo1: return "RotarySwitchNTo1";
+        case ComponentKind::SampleHold: return "SampleHold";
+        case ComponentKind::SlewRate: return "SlewRate";
+        case ComponentKind::Slider: return "Slider";
+        case ComponentKind::SolenoidValve: return "SolenoidValve";
+        case ComponentKind::Splitter: return "Splitter";
+        case ComponentKind::Spring: return "Spring";
+        case ComponentKind::Subtract: return "Subtract";
+        case ComponentKind::Switch: return "Switch";
+        case ComponentKind::TempSensor: return "TempSensor";
+        case ComponentKind::TimeDelay: return "TimeDelay";
+        case ComponentKind::Transformer: return "Transformer";
+        case ComponentKind::Value: return "Value";
+        case ComponentKind::VariableConductance: return "VariableConductance";
+        case ComponentKind::VoltageSense: return "VoltageSense";
+        case ComponentKind::Voltmeter: return "Voltmeter";
+        case ComponentKind::XOR: return "XOR";
+        case ComponentKind::_COUNT: return "_COUNT";
+    }
+    return "Unknown";
+}
+
+/// Utility predicates for component families.
+inline constexpr bool is_knob_switch_kind(ComponentKind kind) {
+    return kind == ComponentKind::KnobSwitch ||
+           kind == ComponentKind::RotarySwitch1ToN ||
+           kind == ComponentKind::RotarySwitchNTo1;
+}

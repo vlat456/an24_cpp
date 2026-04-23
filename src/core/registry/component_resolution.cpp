@@ -1,6 +1,6 @@
 #include "core/registry/component_resolution.h"
-
 #include "core/model/presentation_spec.h"
+#include "core/model/component_kind.h"
 #include "parse_number.h"
 
 #include <spdlog/spdlog.h>
@@ -150,6 +150,7 @@ ResolvedDevice resolve_component(
     resolved.params = std::move(merged.params);
     resolved.pos = merged.pos;
     resolved.size = merged.size;
+    resolved.kind = parse_component_kind(merged.classname).value_or(ComponentKind::_COUNT);
     // scheduler_source and solver_owned_electrical come from PrimitiveSpec.solver
     resolved.domains = spec_domains(definition);
 

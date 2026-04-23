@@ -399,21 +399,21 @@ TEST(PushBuildValidation, RotarySwitchAliasesAreNotInPushScheduler) {
 TEST(PushBuildValidation, SolverOwnedElectricalClassification_MetadataDrivenCoverage) {
     // Regression coverage: solver-owned electrical classification must be driven
     // by generated metadata for all currently expected classes/aliases.
-    EXPECT_TRUE(is_solver_owned_electrical_component("Generator"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("Resistor"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("ElectricalConductance"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("ElectricalSource"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("ControlledVoltageSource"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("VariableConductance"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("AZS"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("HoldButton"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("Relay"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("KnobSwitch"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("RotarySwitch1ToN"));
-    EXPECT_TRUE(is_solver_owned_electrical_component("RotarySwitchNTo1"));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::Generator));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::Resistor));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::ElectricalConductance));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::ElectricalSource));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::ControlledVoltageSource));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::VariableConductance));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::AZS));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::HoldButton));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::Relay));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::KnobSwitch));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::RotarySwitch1ToN));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::RotarySwitchNTo1));
 
     // A non-solver-owned electrical observer should stay false.
-    EXPECT_FALSE(is_solver_owned_electrical_component("CurrentSense"));
+    EXPECT_FALSE(is_solver_owned_electrical_component(ComponentKind::CurrentSense));
 }
 
 TEST(PushBuildValidation, RotarySwitchAliasesInstantiateDistinctVariantTypes) {
@@ -448,8 +448,8 @@ TEST(PushBuildValidation, RotarySwitchAliasesInstantiateDistinctVariantTypes) {
 }
 
 TEST(PushBuildValidation, RotarySwitchAliasPortDirectionsMatchTopologyIntent) {
-    auto out_1_to_n = get_output_ports("RotarySwitch1ToN");
-    auto out_n_to_1 = get_output_ports("RotarySwitchNTo1");
+    auto out_1_to_n = get_output_ports(ComponentKind::RotarySwitch1ToN);
+    auto out_n_to_1 = get_output_ports(ComponentKind::RotarySwitchNTo1);
 
     std::unordered_set<std::string> s1(out_1_to_n.begin(), out_1_to_n.end());
     std::unordered_set<std::string> s2(out_n_to_1.begin(), out_n_to_1.end());
@@ -813,33 +813,12 @@ TEST(PushBuildValidation, UnknownClassnameThrows) {
 }
 
 TEST(PushBuildValidation, MetadataHelpersUnknownClassFailFast) {
-    EXPECT_THROW(
-        {
-            (void)is_scheduler_source_component("NoSuchComponent");
-        },
-        std::runtime_error
-    );
-
-    EXPECT_THROW(
-        {
-            (void)is_solver_owned_electrical_component("NoSuchComponent");
-        },
-        std::runtime_error
-    );
-
-    EXPECT_THROW(
-        {
-            (void)get_output_ports("NoSuchComponent");
-        },
-        std::runtime_error
-    );
-
-    EXPECT_THROW(
-        {
-            (void)get_source_writer_ports("NoSuchComponent", static_cast<uint8_t>(Domain::Electrical));
-        },
-        std::runtime_error
-    );
+    // Metadata helpers return false for unknown component kinds (no throw)
+    // Note: _COUNT is the sentinel value - functions return false, no throw
+    EXPECT_FALSE(is_scheduler_source_component(ComponentKind::_COUNT));
+    EXPECT_FALSE(is_solver_owned_electrical_component(ComponentKind::_COUNT));
+    EXPECT_TRUE(get_output_ports(ComponentKind::_COUNT).empty());
+    EXPECT_TRUE(get_source_writer_ports(ComponentKind::_COUNT, static_cast<uint8_t>(Domain::Electrical)).empty());
 }
 
 TEST(PushBuildValidation, WhitelistParamsRejected) {
@@ -985,9 +964,9 @@ TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    EXPECT_FALSE(is_scheduler_source_component("ElectricalSource"));
-    EXPECT_TRUE(is_scheduler_source_component("RefNode"));
-    EXPECT_FALSE(is_scheduler_source_component("Resistor"));
+    EXPECT_FALSE(is_scheduler_source_component(ComponentKind::ElectricalSource));
+    EXPECT_TRUE(is_scheduler_source_component(ComponentKind::RefNode));
+    EXPECT_FALSE(is_scheduler_source_component(ComponentKind::Resistor));
 
     SimulationState st;
     for (uint32_t i = 0; i < result.signal_count; ++i) {

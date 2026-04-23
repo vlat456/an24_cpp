@@ -83,7 +83,7 @@ void build_and_register_components(
 
     // Phase 2 Slice 1: Create and register migrated components
     for (const auto& dev : devices) {
-        if (!has_component_metadata(metadata_classname_for(dev.classname))) {
+        if (!has_component_metadata(dev.kind)) {
             throw std::runtime_error("Missing generated port metadata for component class '" + dev.classname + "'");
         }
 
@@ -164,11 +164,11 @@ void build_and_register_components(
             param_reader.validate_all_consumed();
             result.devices[dev.name] = comp;
         }
-        else if (is_knob_switch_family(dev.classname)) {
-            if (dev.classname == "KnobSwitch") {
+        else if (is_knob_switch_kind(dev.kind)) {
+            if (dev.kind == ComponentKind::KnobSwitch) {
                 build_knob_switch(KnobSwitch<JitProvider>{});
             }
-            else if (dev.classname == "RotarySwitch1ToN") {
+            else if (dev.kind == ComponentKind::RotarySwitch1ToN) {
                 build_knob_switch(RotarySwitch1ToN<JitProvider>{});
             }
             else {
