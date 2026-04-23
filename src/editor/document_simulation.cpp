@@ -46,44 +46,38 @@ ui::InternedId resolve_port_key(const ui::StringInterner& sim_interner,
     return sim_interner.lookup(signal_key::make_node_port_key(sim_node_id, port_name));
 }
 
-/// Overlay simulation values onto NodeContent using pre-resolved InternedId cache.
+/// std::visit overload set helper — standard C++ idiom for variant dispatch.
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+/// Overlay simulation values onto NodeContent using variant-dispatched port reads.
 /// Zero string construction, zero hash table lookup — pure integer reads.
+/// Each content type only accesses its own ports; no cross-contamination.
 void overlay_from_cache(NodeContent& content,
                         const editor::NodeSignalCache& cache,
                         const Simulator<JIT_Solver>& simulation) {
-    switch (cache.content_type) {
-        case bp2::NodeContentType::Gauge:
-            // Voltmeter
-            content.value = simulation.get_signal_value(cache.v_in);
-            break;
-        case bp2::NodeContentType::Indicator:
-            // IndicatorLight
-            content.value = std::clamp(simulation.get_signal_value(cache.brightness), 0.0f, 1.0f);
-            break;
-        case bp2::NodeContentType::Switch:
-        case bp2::NodeContentType::VerticalToggle:
-            content.state = simulation.get_signal_value(cache.state) > 0.5f;
-            if (cache.is_azs) {
-                content.tripped = simulation.get_signal_value(cache.tripped) > 0.5f;
-            }
-            break;
-        case bp2::NodeContentType::Slider: {
-            float val = simulation.get_signal_value(cache.slider_readback);
-            if (std::isfinite(val)) {
+    std::visit(overloaded{
+        [](std::monostate) {},
+        [&](const editor::GaugePorts& p) {
+            content.value = simulation.get_signal_value(p.v_in);
+        },
+        [&](const editor::IndicatorPorts& p) {
+            content.value = std::clamp(simulation.get_signal_value(p.brightness), 0.0f, 1.0f);
+        },
+        [&](const editor::SwitchPorts& p) {
+            content.state = simulation.get_signal_value(p.state) > 0.5f;
+        },
+        [&](const editor::SliderPorts& p) {
+            if (float val = simulation.get_signal_value(p.readback); std::isfinite(val)) {
                 content.value = val;
             }
-            break;
-        }
-        case bp2::NodeContentType::Knob: {
-            float val = simulation.get_signal_value(cache.position);
-            if (std::isfinite(val)) {
+        },
+        [&](const editor::KnobPorts& p) {
+            if (float val = simulation.get_signal_value(p.position); std::isfinite(val)) {
                 content.value = val;
             }
-            break;
         }
-        default:
-            break;
-    }
+    }, cache.ports);
 }
 
 std::pair<const bp2::Blueprint::Wire*, std::string_view> find_wire_in_scope(
@@ -355,50 +349,72 @@ void Document::build_signal_cache() {
             const std::string nid = sim_id_prefix.empty()
                 ? local_id
                 : signal_key::make_child_scope_key(sim_id_prefix, local_id);
-            const std::string type_name = std::string(interner_.resolve(n.semantic.type));
 
-            editor::NodeSignalCache cache;
-            cache.content_type = base.type;
-            cache.is_azs = (type_name == "AZS");
-
-            // Resolve InternedIds for all ports this node type might read.
-            // Empty InternedId = port doesn't exist; get_signal_value(empty) returns 0.
-            if (base.type == bp2::NodeContentType::Switch ||
-                base.type == bp2::NodeContentType::VerticalToggle) {
-                cache.state = resolve_port_key(sim_interner, nid, "state");
-                cache.control = resolve_port_key(sim_interner, nid, "control");
-                if (cache.is_azs) {
-                    cache.tripped = resolve_port_key(sim_interner, nid, "tripped");
+            // Resolve content-type-specific ports into a discriminated variant.
+            // Each branch constructs only the ports relevant to its content type.
+            editor::ContentPorts ports = std::monostate{};
+            switch (base.type) {
+                case bp2::NodeContentType::Switch:
+                case bp2::NodeContentType::VerticalToggle: {
+                    editor::SwitchPorts sp;
+                    sp.state   = resolve_port_key(sim_interner, nid, "state");
+                    sp.control = resolve_port_key(sim_interner, nid, "control");
+                    ports = sp;
+                    break;
                 }
-            } else if (base.type == bp2::NodeContentType::Indicator) {
-                cache.brightness = resolve_port_key(sim_interner, nid, "brightness");
-            } else if (base.type == bp2::NodeContentType::Gauge) {
-                cache.v_in = resolve_port_key(sim_interner, nid, "v_in");
-            } else if (base.type == bp2::NodeContentType::Slider) {
-                if (auto port = editor::select_slider_readback_port(n, interner_)) {
-                    cache.slider_readback = resolve_port_key(sim_interner, nid, *port);
+                case bp2::NodeContentType::Indicator: {
+                    editor::IndicatorPorts ip;
+                    ip.brightness = resolve_port_key(sim_interner, nid, "brightness");
+                    ports = ip;
+                    break;
                 }
-                cache.control = resolve_port_key(sim_interner, nid, "control");
-            } else if (base.type == bp2::NodeContentType::Knob) {
-                cache.position = resolve_port_key(sim_interner, nid, "position");
-                cache.control = resolve_port_key(sim_interner, nid, "control");
+                case bp2::NodeContentType::Gauge: {
+                    editor::GaugePorts gp;
+                    gp.v_in = resolve_port_key(sim_interner, nid, "v_in");
+                    ports = gp;
+                    break;
+                }
+                case bp2::NodeContentType::Slider: {
+                    editor::SliderPorts slp;
+                    if (auto port = editor::select_slider_readback_port(n, interner_)) {
+                        slp.readback = resolve_port_key(sim_interner, nid, *port);
+                    }
+                    slp.control = resolve_port_key(sim_interner, nid, "control");
+                    ports = slp;
+                    break;
+                }
+                case bp2::NodeContentType::Knob: {
+                    editor::KnobPorts kp;
+                    kp.position = resolve_port_key(sim_interner, nid, "position");
+                    kp.control  = resolve_port_key(sim_interner, nid, "control");
+                    ports = kp;
+                    break;
+                }
+                default:
+                    break;
             }
+
+            // Skip if no ports were resolved (unhandled content type).
+            if (std::holds_alternative<std::monostate>(ports)) return;
 
             const editor::NodeInstanceKey key = editor::make_node_instance_key(path, n.semantic.id);
 
             // Build the WindowScopeId once — avoids per-frame string construction.
-            if (path.empty()) {
-                cache.scope = WindowScopeId::root();
-            } else {
+            WindowScopeId scope = WindowScopeId::root();
+            if (!path.empty()) {
                 std::vector<std::string> scope_path;
                 scope_path.reserve(path.size());
                 for (const auto& seg : path) {
                     scope_path.emplace_back(interner_.resolve(seg));
                 }
-                cache.scope = WindowScopeId::embedded(std::move(scope_path));
+                scope = WindowScopeId::embedded(std::move(scope_path));
             }
 
-            signal_cache_[key] = std::move(cache);
+            signal_cache_[key] = editor::NodeSignalCache{
+                .base_content = base,
+                .ports = std::move(ports),
+                .scope = std::move(scope)
+            };
         });
 }
 
@@ -429,28 +445,31 @@ void Document::updateNodeContentFromSimulation() {
     // Iterate the pre-resolved signal cache — zero string construction.
     // The cache was built at simulation start with all InternedIds resolved.
     for (auto& [key, cache] : signal_cache_) {
-        NodeContent content;
-        content.type = cache.content_type;
+        // Start from static base content (has min/max/positions/label/etc.),
+        // then overlay live simulation values on top.
+        NodeContent content = cache.base_content;
         overlay_from_cache(content, cache, simulation_);
 
-        switch (cache.content_type) {
-            case bp2::NodeContentType::Slider:
-            case bp2::NodeContentType::Gauge:
-            case bp2::NodeContentType::Indicator:
+        // Update runtime state — variant dispatch ensures each content type
+        // produces the correct state variant.
+        std::visit(overloaded{
+            [](std::monostate) {},
+            [&](const editor::GaugePorts&) {
                 runtime_node_states_[key] = editor::ScalarNodeRuntimeState{content.value};
-                break;
-            case bp2::NodeContentType::Knob:
+            },
+            [&](const editor::IndicatorPorts&) {
+                runtime_node_states_[key] = editor::ScalarNodeRuntimeState{content.value};
+            },
+            [&](const editor::SliderPorts&) {
+                runtime_node_states_[key] = editor::ScalarNodeRuntimeState{content.value};
+            },
+            [&](const editor::KnobPorts&) {
                 runtime_node_states_[key] = editor::DiscreteNodeRuntimeState{static_cast<int>(content.value)};
-                break;
-            case bp2::NodeContentType::Switch:
-            case bp2::NodeContentType::VerticalToggle:
-                runtime_node_states_[key] = cache.is_azs
-                    ? editor::RuntimeNodeState(editor::BoolTrippedNodeRuntimeState{content.state, content.tripped})
-                    : editor::RuntimeNodeState(editor::BoolNodeRuntimeState{content.state});
-                break;
-            default:
-                break;
-        }
+            },
+            [&](const editor::SwitchPorts&) {
+                runtime_node_states_[key] = editor::BoolNodeRuntimeState{content.state};
+            }
+        }, cache.ports);
 
         // Dispatch to widget using pre-built scope — zero string construction.
         dispatch_content_to_widget(window_manager_, interner_, key.local_node_id, cache.scope, content);

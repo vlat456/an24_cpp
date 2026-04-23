@@ -214,9 +214,6 @@ inline NodeContent create_runtime_node_content(const bp2::Blueprint::Node& node,
             content.value = state.value;
         } else if constexpr (std::is_same_v<State, editor::BoolNodeRuntimeState>) {
             content.state = state.state;
-        } else if constexpr (std::is_same_v<State, editor::BoolTrippedNodeRuntimeState>) {
-            content.state = state.state;
-            content.tripped = state.tripped;
         } else if constexpr (std::is_same_v<State, editor::DiscreteNodeRuntimeState>) {
             content.value = static_cast<float>(state.position);
         }

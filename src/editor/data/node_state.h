@@ -44,11 +44,6 @@ struct BoolNodeRuntimeState {
     bool state = false;
 };
 
-struct BoolTrippedNodeRuntimeState {
-    bool state = false;
-    bool tripped = false;
-};
-
 struct DiscreteNodeRuntimeState {
     int position = 0;
 };
@@ -57,7 +52,6 @@ using RuntimeNodeState = std::variant<
     std::monostate,
     ScalarNodeRuntimeState,
     BoolNodeRuntimeState,
-    BoolTrippedNodeRuntimeState,
     DiscreteNodeRuntimeState>;
 
 using RuntimeNodeStateStore = std::unordered_map<NodeInstanceKey, RuntimeNodeState, NodeInstanceKeyHash>;

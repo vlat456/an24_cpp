@@ -15,6 +15,7 @@
 #include <span>
 #include <string_view>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace editor {
@@ -46,35 +47,65 @@ inline std::string instance_path_to_scope_string(
 }
 
 // ===========================================================================
-// NodeSignalCache — pre-resolved InternedIds for per-frame signal reads
+// Content-typed port caches — per-content-type resolved InternedIds
 // ===========================================================================
+//
+// Each content type (Gauge, Indicator, Switch, Slider, Knob) gets its own
+// port struct with exactly the ports it needs. This eliminates cross-type
+// contamination — a Gauge cannot accidentally read a "brightness" port,
+// and AZS-specific ports ("tripped") don't pollute the generic path.
 //
 // Built once at simulation start by walking all animated nodes and resolving
 // their signal port InternedIds against the build-scoped StringInterner.
 // The per-frame update loop reads cached InternedIds directly — zero string
 // construction, zero hash table lookup.
-//
-// Empty InternedId fields mean the port doesn't exist for this node type.
-// get_signal_value(empty) returns 0.0f, so reads on absent ports are safe.
+
+struct GaugePorts {
+    ui::InternedId v_in;
+};
+
+struct IndicatorPorts {
+    ui::InternedId brightness;
+};
+
+struct SwitchPorts {
+    ui::InternedId state;
+    ui::InternedId control;
+};
+
+struct SliderPorts {
+    ui::InternedId readback;   ///< Either "out" or "control", resolved at cache build
+    ui::InternedId control;
+};
+
+struct KnobPorts {
+    ui::InternedId position;
+    ui::InternedId control;
+};
+
+/// Discriminated union of per-content-type port sets.
+/// std::monostate = unhandled/non-animated content type.
+using ContentPorts = std::variant<
+    std::monostate,
+    GaugePorts,
+    IndicatorPorts,
+    SwitchPorts,
+    SliderPorts,
+    KnobPorts
+>;
 
 struct NodeSignalCache {
-    // Readback ports (empty = port doesn't exist for this node type)
-    ui::InternedId state;           ///< Switch, HoldButton, AZS
-    ui::InternedId brightness;      ///< IndicatorLight
-    ui::InternedId tripped;         ///< AZS
-    ui::InternedId v_in;            ///< Voltmeter
-    ui::InternedId slider_readback; ///< Slider (either "out" or "control")
-    ui::InternedId position;        ///< KnobSwitch, RotarySwitch*
+    /// Static content from blueprint params — populated once at cache build.
+    /// Contains min, max (positions for Knob), label, unit, etc.
+    /// Per-frame code copies this and overlays dynamic simulation values.
+    NodeContent base_content;
 
-    // Override port
-    ui::InternedId control;         ///< Switch, HoldButton, Slider, KnobSwitch
+    /// Content-type-specific resolved ports. The variant tag determines
+    /// which ports are read per-frame — no dead fields, no cross-contamination.
+    ContentPorts ports;
 
-    // Metadata for dispatch (avoids type-name string comparison)
-    bp2::NodeContentType content_type = bp2::NodeContentType::None;
-    bool is_azs = false;
-
-    // Pre-built scope for widget dispatch — constructed once at cache build,
-    // reused every frame. Eliminates per-frame string → WindowScopeId conversion.
+    /// Pre-built scope for widget dispatch — constructed once at cache build,
+    /// reused every frame. Eliminates per-frame string → WindowScopeId conversion.
     WindowScopeId scope = WindowScopeId::root();
 };
 

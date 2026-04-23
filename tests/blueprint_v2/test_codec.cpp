@@ -1634,26 +1634,6 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSwitchStateAcrossStaticResolu
     EXPECT_TRUE(content.state);
 }
 
-TEST(Issue133_RuntimeState, RuntimeOverlayPreservesTrippedState) {
-    ui::StringInterner interner;
-    ComponentRegistry reg;
-
-    PrimitiveSpec switch_def;
-    switch_def.classname = "AZS";
-    switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "true"};
-    reg.types["AZS"] = switch_def;
-    reg.presentation.specs["AZS"].content_type = "Switch";
-
-    bp2::Blueprint::Node node;
-    node.semantic.id = interner.intern("azs1");
-    node.semantic.type = interner.intern("AZS");
-
-    editor::RuntimeNodeState runtime = editor::BoolTrippedNodeRuntimeState{false, true};
-    NodeContent content = create_runtime_node_content(node, *reg.get("AZS"), reg.presentation.get("AZS"), interner, &runtime);
-    EXPECT_TRUE(content.tripped);
-    EXPECT_FALSE(content.state);
-}
-
 TEST(Issue133_RuntimeState, RuntimeOverlayPreservesKnobPosition) {
     ui::StringInterner interner;
     ComponentRegistry reg;
