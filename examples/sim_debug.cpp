@@ -154,8 +154,9 @@ int main(int argc, char* argv[]) {
         
         // Signals grouped by signal index
         std::map<uint32_t, std::vector<std::string>> sig_to_ports;
-        for (const auto& [port, sig] : jit_input.port_to_signal) {
-            sig_to_ports[sig].push_back(port);
+        for (const auto& [port_id, sig] : jit_input.port_to_signal) {
+            std::string_view port = jit_input.signal_key_interner.resolve(port_id);
+            sig_to_ports[sig].push_back(std::string(port));
         }
         nlohmann::json signals_obj = nlohmann::json::object();
         for (const auto& [sig_idx, ports] : sig_to_ports) {
@@ -176,8 +177,10 @@ int main(int argc, char* argv[]) {
     if (dump_map) {
         // Group by signal index
         std::map<uint32_t, std::vector<std::string>> sig_to_ports;
-        for (const auto& [port, sig] : build_input.port_to_signal)
-            sig_to_ports[sig].push_back(port);
+        for (const auto& [port_id, sig] : build_input.port_to_signal) {
+            std::string_view port = build_input.signal_key_interner.resolve(port_id);
+            sig_to_ports[sig].push_back(std::string(port));
+        }
 
         std::cout << "=== Port → Signal Map ===\n";
         std::cout << "Signals: " << build_input.signal_count << "\n\n";
@@ -212,14 +215,17 @@ int main(int argc, char* argv[]) {
     // If probe_all, collect all unique port names
     if (probe_all) {
         std::set<std::string> all;
-        for (const auto& [port, sig] : build_input.port_to_signal)
-            all.insert(port);
+        for (const auto& [port_id, sig] : build_input.port_to_signal) {
+            std::string_view port = build_input.signal_key_interner.resolve(port_id);
+            all.insert(std::string(port));
+        }
         probes.assign(all.begin(), all.end());
     }
 
     // Validate probes
     for (const auto& p : probes) {
-        if (build_input.port_to_signal.find(p) == build_input.port_to_signal.end()) {
+        const ui::InternedId key = build_input.signal_key_interner.lookup(p);
+        if (build_input.port_to_signal.find(key) == build_input.port_to_signal.end()) {
             std::cerr << "WARNING: probe '" << p << "' not found in signal map.\n";
         }
     }
@@ -244,7 +250,7 @@ int main(int argc, char* argv[]) {
         std::cout << std::setw(8) << step_num
                   << std::setw(10) << std::setprecision(4) << sim.get_time();
         for (const auto& p : probes) {
-            float v = sim.get_wire_voltage(p);
+            float v = sim.get_signal_value(sim.signal_key_interner().lookup(p));
             std::cout << std::setw(20) << std::setprecision(6) << v;
         }
         std::cout << "\n";

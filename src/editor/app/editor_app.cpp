@@ -265,6 +265,11 @@ void EditorApp::update() {
     if (Document* doc = ws_.activeDocument()) {
         doc->updateSimulationStep(io.DeltaTime);
         doc->updateNodeContentFromSimulation();
+        // NOTE: on_blueprint_changed re-resolves probe signal keys via string
+        // construction. With 0-5 probes this is negligible. The main per-frame
+        // allocation win comes from the NodeSignalCache (10-50 animated nodes,
+        // now zero-allocation). Moving this to mutation sites only would require
+        // Document → Oscilloscope coupling that doesn't currently exist.
         ws_.oscilloscope.on_blueprint_changed(*doc);
         ws_.oscilloscope.sample(*doc, doc->isSimulationRunning(), io.DeltaTime);
     }

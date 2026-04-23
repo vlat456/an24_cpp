@@ -7,6 +7,7 @@
 #include "io/json/component_registry_json_loader.h"
 #include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
+#include "ui/core/interned_id.h"
 
 namespace {
 
@@ -67,12 +68,12 @@ TEST(BridgeLowering, BridgeSignalsStillUnifiedForAliasContract) {
 
     BuildResult result = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
 
-    ASSERT_TRUE(result.port_to_signal.count("vin.ext") > 0);
-    ASSERT_TRUE(result.port_to_signal.count("vin.port") > 0);
-    ASSERT_TRUE(result.port_to_signal.count("load.v_in") > 0);
+    ASSERT_TRUE(result.port_to_signal.count(result.signal_key_interner.lookup("vin.ext")) > 0);
+    ASSERT_TRUE(result.port_to_signal.count(result.signal_key_interner.lookup("vin.port")) > 0);
+    ASSERT_TRUE(result.port_to_signal.count(result.signal_key_interner.lookup("load.v_in")) > 0);
 
-    EXPECT_EQ(result.port_to_signal.at("vin.ext"), result.port_to_signal.at("vin.port"));
-    EXPECT_EQ(result.port_to_signal.at("vin.port"), result.port_to_signal.at("load.v_in"));
+    EXPECT_EQ(result.port_to_signal.at(result.signal_key_interner.lookup("vin.ext")), result.port_to_signal.at(result.signal_key_interner.lookup("vin.port")));
+    EXPECT_EQ(result.port_to_signal.at(result.signal_key_interner.lookup("vin.port")), result.port_to_signal.at(result.signal_key_interner.lookup("load.v_in")));
 }
 
 TEST(BridgeLowering, BridgeNodesDoNotEnterScheduler) {

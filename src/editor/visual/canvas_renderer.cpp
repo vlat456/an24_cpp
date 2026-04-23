@@ -183,7 +183,8 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         if (signal_key.empty()) return;
         
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-        float current_value = doc.simulation().get_wire_voltage(signal_key);
+        float current_value = doc.simulation().get_signal_value(
+            doc.simulation().signal_key_interner().lookup(signal_key));
         maybe_log_hover_signal_resolution(std::string(node_id), std::string(port_name), signal_key, current_value);
         
         ws.oscilloscope.set_hover_signal(doc.id(), std::move(signal_key));
@@ -196,7 +197,8 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         if (signal_key.empty()) return;
 
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-        float current_value = doc.simulation().get_wire_voltage(signal_key);
+        float current_value = doc.simulation().get_signal_value(
+            doc.simulation().signal_key_interner().lookup(signal_key));
         maybe_log_hover_signal_resolution(std::string(hw->wire_id), "src", signal_key, current_value);
            
         // Project mouse onto wire segment for tooltip anchor

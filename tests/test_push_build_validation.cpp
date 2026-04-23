@@ -8,6 +8,7 @@
 #include "core/registry/component_resolution.h"
 #include "core/registry/composite_expansion.h"
 #include "jit_build_input_test_helper.h"
+#include "ui/core/interned_id.h"
 
 #include <nlohmann/json.hpp>
 #include <cmath>
@@ -296,18 +297,18 @@ TEST(PushBuildValidation, KnobSwitchPortNamesAreWiperAndThrowsOnly) {
     EXPECT_GT(result.signal_count, 0u);
 
     // Verify new port names exist
-    EXPECT_EQ(result.port_to_signal.count("knob.wiper"), 1u);
-    EXPECT_EQ(result.port_to_signal.count("knob.throw1"), 1u);
+    EXPECT_EQ(result.port_to_signal.count(result.signal_key_interner.lookup("knob.wiper")), 1u);
+    EXPECT_EQ(result.port_to_signal.count(result.signal_key_interner.lookup("knob.throw1")), 1u);
 
     // Verify new names are actually connected (unified with src/res ports)
-    EXPECT_EQ(result.port_to_signal["knob.throw1"],
-              result.port_to_signal["src.v_out"]);
-    EXPECT_EQ(result.port_to_signal["knob.wiper"],
-              result.port_to_signal["res.v_in"]);
+    EXPECT_EQ(result.port_to_signal.at(result.signal_key_interner.lookup("knob.throw1")),
+              result.port_to_signal.at(result.signal_key_interner.lookup("src.v_out")));
+    EXPECT_EQ(result.port_to_signal.at(result.signal_key_interner.lookup("knob.wiper")),
+              result.port_to_signal.at(result.signal_key_interner.lookup("res.v_in")));
 
     // Legacy port names (common, t1..t5) do NOT exist as device ports
-    EXPECT_EQ(result.port_to_signal.count("knob.common"), 0u);
-    EXPECT_EQ(result.port_to_signal.count("knob.t1"), 0u);
+    EXPECT_EQ(result.port_to_signal.count(result.signal_key_interner.lookup("knob.common")), 0u);
+    EXPECT_EQ(result.port_to_signal.count(result.signal_key_interner.lookup("knob.t1")), 0u);
 }
 
 TEST(PushBuildValidation, KnobSwitchLegacyPortNamesAreNotConnected) {
@@ -337,13 +338,13 @@ TEST(PushBuildValidation, KnobSwitchLegacyPortNamesAreNotConnected) {
     auto legacy_result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // The new ports exist (from device port metadata) but are NOT connected to src/res
-    EXPECT_EQ(legacy_result.port_to_signal.count("knob.wiper"), 1u);
-    EXPECT_EQ(legacy_result.port_to_signal.count("knob.throw1"), 1u);
-    EXPECT_NE(legacy_result.port_to_signal["knob.throw1"],
-              legacy_result.port_to_signal["src.v_out"])
+    EXPECT_EQ(legacy_result.port_to_signal.count(legacy_result.signal_key_interner.lookup("knob.wiper")), 1u);
+    EXPECT_EQ(legacy_result.port_to_signal.count(legacy_result.signal_key_interner.lookup("knob.throw1")), 1u);
+    EXPECT_NE(legacy_result.port_to_signal.at(legacy_result.signal_key_interner.lookup("knob.throw1")),
+              legacy_result.port_to_signal.at(legacy_result.signal_key_interner.lookup("src.v_out")))
         << "Legacy connection 'knob.t1' should NOT unify with 'src.v_out'";
-    EXPECT_NE(legacy_result.port_to_signal["knob.wiper"],
-              legacy_result.port_to_signal["res.v_in"])
+    EXPECT_NE(legacy_result.port_to_signal.at(legacy_result.signal_key_interner.lookup("knob.wiper")),
+              legacy_result.port_to_signal.at(legacy_result.signal_key_interner.lookup("res.v_in")))
         << "Legacy connection 'knob.common' should NOT unify with 'res.v_in'";
 }
 
@@ -607,7 +608,7 @@ TEST(PushBuildValidation, TopologicalOrder_LinearChain) {
 
     result.scheduler.step(st, 1.0f / 60.0f);
 
-    const uint32_t mul_out_sig = result.port_to_signal.at("mul.o");
+    const uint32_t mul_out_sig = result.port_to_signal.at(result.signal_key_interner.lookup("mul.o"));
     EXPECT_NEAR(st.values[mul_out_sig], 18.0f, 1e-4f);
 }
 
@@ -637,8 +638,8 @@ TEST(PushBuildValidation, TopologicalOrder_CycleFallsBackNoThrow) {
         }
 
         EXPECT_NO_THROW(result.scheduler.step(st, 1.0f / 60.0f));
-        EXPECT_TRUE(std::isfinite(st.values[result.port_to_signal.at("add1.o")]));
-        EXPECT_TRUE(std::isfinite(st.values[result.port_to_signal.at("add2.o")]));
+        EXPECT_TRUE(std::isfinite(st.values[result.port_to_signal.at(result.signal_key_interner.lookup("add1.o"))]));
+        EXPECT_TRUE(std::isfinite(st.values[result.port_to_signal.at(result.signal_key_interner.lookup("add2.o"))]));
     });
 }
 
@@ -679,7 +680,7 @@ TEST(PushBuildValidation, SimulatorAppliesInitialValuesBeforeStep) {
     JIT_Simulator sim;
     sim.start(build_input_from_json(json));
 
-    EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 19.5f, 1e-5f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("bat", "v_out")), 19.5f, 1e-5f);
 }
 
 TEST(PushBuildValidation, TypeDefinitionWithoutExecutionIsAccepted) {
@@ -760,7 +761,7 @@ TEST(PushBuildValidation, MaxSelectsHigherInput) {
     }
 
     result.scheduler.step(st, 1.0f / 60.0f);
-    const uint32_t out_sig = result.port_to_signal.at("sel.o");
+    const uint32_t out_sig = result.port_to_signal.at(result.signal_key_interner.lookup("sel.o"));
     EXPECT_NEAR(st.values[out_sig], 5.0f, 1e-5f);
 }
 
@@ -789,11 +790,11 @@ TEST(PushBuildValidation, MaxAvoidsSourceConflict) {
         // Battery and Generator are solver-owned; their execute() does not run
         // via the push scheduler. Seed the output voltages manually (as the
         // electrical solver would in a full simulation).
-        st.values[result.port_to_signal.at("bat.v_out")] = 28.0f;
-        st.values[result.port_to_signal.at("gen.v_out")] = 28.5f;
+        st.values[result.port_to_signal.at(result.signal_key_interner.lookup("bat.v_out"))] = 28.0f;
+        st.values[result.port_to_signal.at(result.signal_key_interner.lookup("gen.v_out"))] = 28.5f;
 
         result.scheduler.step(st, 1.0f / 60.0f);
-        const uint32_t out_sig = result.port_to_signal.at("sel.o");
+        const uint32_t out_sig = result.port_to_signal.at(result.signal_key_interner.lookup("sel.o"));
         EXPECT_NEAR(st.values[out_sig], 28.5f, 1e-4f);
     });
 }

@@ -83,7 +83,13 @@ static auto make_colon_circuit() {
         }
     }
 
-    return Result{devices, connections, sys.port_to_signal, sys.signal_count};
+    // Convert InternedId-keyed port_to_signal to string-keyed for test assertions
+    std::unordered_map<std::string, uint32_t> string_p2s;
+    for (const auto& [key_id, sig] : sys.port_to_signal) {
+        string_p2s[std::string(sys.signal_key_interner.resolve(key_id))] = sig;
+    }
+
+    return Result{devices, connections, string_p2s, sys.signal_count};
 }
 
 // Regex that matches a C++ identifier character that is NOT valid

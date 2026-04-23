@@ -29,10 +29,10 @@ TEST(ProductionPathPortMap, AndGateReadsWiredInputs) {
         sim.step(1.0f / 60.0f);
     }
 
-    EXPECT_GT(sim.get_port_value("bus", "v"), 20.0f);
-    EXPECT_NEAR(sim.get_port_value("v2b", "o"), 1.0f, 0.01f);
-    EXPECT_NEAR(sim.get_port_value("hb", "state"), 0.0f, 0.01f);
-    EXPECT_NEAR(sim.get_port_value("and_1", "o"), 0.0f, 0.01f)
+    EXPECT_GT(sim.get_signal_value(sim.resolve_signal_key("bus", "v")), 20.0f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("v2b", "o")), 1.0f, 0.01f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("hb", "state")), 0.0f, 0.01f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("and_1", "o")), 0.0f, 0.01f)
         << "AND(1,0) must output 0 on production path";
 }
 
@@ -59,8 +59,8 @@ TEST(ProductionPathPortMap, NotGateReadsCorrectInput) {
         sim.step(1.0f / 60.0f);
     }
 
-    EXPECT_NEAR(sim.get_port_value("v2b", "o"), 1.0f, 0.01f);
-    EXPECT_NEAR(sim.get_port_value("not_1", "o"), 0.0f, 0.01f)
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("v2b", "o")), 1.0f, 0.01f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("not_1", "o")), 0.0f, 0.01f)
         << "NOT(1) must output 0 on production path";
 }
 
@@ -86,6 +86,6 @@ TEST(ProductionPathPortMap, SubtractReadsBothInputs) {
         sim.step(1.0f / 60.0f);
     }
 
-    EXPECT_GT(sim.get_port_value("sub", "o"), 20.0f)
+    EXPECT_GT(sim.get_signal_value(sim.resolve_signal_key("sub", "o")), 20.0f)
         << "Subtract(28, 0) must output ~28 on production path";
 }

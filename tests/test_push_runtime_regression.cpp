@@ -12,6 +12,7 @@
 #include "core/solvers/jit/components/port_registry.h"
 #include "core/solvers/jit/state.h"
 #include "jit_build_input_test_helper.h"
+#include "ui/core/interned_id.h"
 
 #include <cmath>
 #include <stdexcept>
@@ -138,7 +139,7 @@ TEST(PushRuntime, SinglePassSettlesLinearChain) {
 
     result.scheduler.step(st, 1.0f / 60.0f);
 
-    const uint32_t out_sig = result.port_to_signal.at("clamp.out");
+    const uint32_t out_sig = result.port_to_signal.at(result.signal_key_interner.lookup("clamp.out"));
     EXPECT_NEAR(st.values[out_sig], 18.0f, 1e-4f);
 }
 
@@ -164,8 +165,8 @@ TEST(PushRuntime, CycleUsesOneFrameDelay) {
         EXPECT_NO_THROW(result.scheduler.step(st, 1.0f / 60.0f));
     }
 
-    EXPECT_TRUE(std::isfinite(st.values[result.port_to_signal.at("add1.o")]));
-    EXPECT_TRUE(std::isfinite(st.values[result.port_to_signal.at("add2.o")]));
+    EXPECT_TRUE(std::isfinite(st.values[result.port_to_signal.at(result.signal_key_interner.lookup("add1.o"))]));
+    EXPECT_TRUE(std::isfinite(st.values[result.port_to_signal.at(result.signal_key_interner.lookup("add2.o"))]));
 }
 
 TEST(PushRuntime, DynamicEnableDisableStable) {
@@ -184,23 +185,23 @@ TEST(PushRuntime, DynamicEnableDisableStable) {
     JIT_Simulator sim;
     sim.start(build_input_from_json(json));
 
-    sim.apply_overrides({{"sw.control", 0.0f}});
+    sim.apply_typed_overrides({{sim.signal_key_interner().lookup("sw.control"), 0.0f}});
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 0.0f, 1e-4f);
 
-    sim.apply_overrides({{"sw.control", 1.0f}});
+    sim.apply_typed_overrides({{sim.signal_key_interner().lookup("sw.control"), 1.0f}});
     // Frame N: execute uses previous closed state, commit toggles at end of frame.
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 0.0f, 1e-4f);
     // Frame N+1: new state is visible.
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 28.0f, 1e-3f);
 
-    sim.apply_overrides({{"sw.control", 0.0f}});
+    sim.apply_typed_overrides({{sim.signal_key_interner().lookup("sw.control"), 0.0f}});
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 28.0f, 1e-3f);
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 0.0f, 1e-4f);
 }
 
 TEST(PushRuntime, InitialValuesSeedState) {
@@ -220,9 +221,9 @@ TEST(PushRuntime, InitialValuesSeedState) {
     JIT_Simulator sim;
     sim.start(build_input_from_json(json));
 
-    EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 11.5f, 1e-5f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("bat", "v_out")), 11.5f, 1e-5f);
     sim.step(1.0 / 60.0);
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("bat", "v_out")));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("bat", "v_out"))));
 }
 
 TEST(PushRuntime, SourceConflictErrorMessageReadable) {
@@ -269,7 +270,7 @@ TEST(PushRuntime, LerpNodeExecuteProducesOutput) {
 
     // With factor=1.0 and deadzone=0.0, LerpNode should converge immediately
     // to the input value. A no-op execute() would leave output at 0.0.
-    EXPECT_NEAR(sim.get_port_value("lerp", "output"), 10.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("lerp", "output")), 10.0f, 1e-4f);
 }
 
 TEST(PushRuntime, DynamicFeedbackLoopStableAndBounded) {
@@ -295,7 +296,7 @@ TEST(PushRuntime, DynamicFeedbackLoopStableAndBounded) {
 
     for (int i = 0; i < 180; ++i) {
         sim.step(1.0 / 60.0);
-        const float v = sim.get_port_value("sw", "v_out");
+        const float v = sim.get_signal_value(sim.resolve_signal_key("sw", "v_out"));
         EXPECT_TRUE(std::isfinite(v));
         EXPECT_GE(v, -0.1f);
         EXPECT_LE(v, 28.1f);
@@ -322,16 +323,16 @@ TEST(PushRuntime, CommitHookRunsAfterExecute) {
 
     // Initially switch is open, v_out should be 0
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 0.0f, 1e-4f);
 
     // Apply control to close the switch
-    sim.apply_overrides({{"sw.control", 1.0f}});
+    sim.apply_typed_overrides({{sim.signal_key_interner().lookup("sw.control"), 1.0f}});
     sim.step(1.0 / 60.0);
     // First frame after edge: old state still used during execute.
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 0.0f, 1e-4f);
     // Next frame: committed state is visible.
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 28.0f, 1e-3f);
 }
 
 TEST(PushRuntime, StatefulComponentOneFrameDelaySemantic) {
@@ -353,27 +354,27 @@ TEST(PushRuntime, StatefulComponentOneFrameDelaySemantic) {
 
     // Initial: switch open, output = 0
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 0.0f, 1e-4f);
 
     // Toggle control (edge detect requires change)
-    sim.apply_overrides({{"sw.control", 1.0f}});
+    sim.apply_typed_overrides({{sim.signal_key_interner().lookup("sw.control"), 1.0f}});
     sim.step(1.0 / 60.0);
 
     // Frame N: execute still sees previous open state.
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 0.0f, 1e-4f);
     // Frame N+1: committed state visible.
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 28.0f, 1e-3f);
 
     // Toggle back
-    sim.apply_overrides({{"sw.control", 0.0f}});
+    sim.apply_typed_overrides({{sim.signal_key_interner().lookup("sw.control"), 0.0f}});
     sim.step(1.0 / 60.0);
 
     // Frame M: still previous closed state.
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 28.0f, 1e-3f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 28.0f, 1e-3f);
     // Frame M+1: committed open state visible.
     sim.step(1.0 / 60.0);
-    EXPECT_NEAR(sim.get_port_value("sw", "v_out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out")), 0.0f, 1e-4f);
 }
 
 TEST(PushRuntime, IntegratorComputesCorrectAccumulation) {
@@ -398,17 +399,17 @@ TEST(PushRuntime, IntegratorComputesCorrectAccumulation) {
 
     // Frame 0: output = committed accumulator (initial_val=0); integration is staged
     sim.step(dt);
-    float out0 = sim.get_port_value("integ", "out");
+    float out0 = sim.get_signal_value(sim.resolve_signal_key("integ", "out"));
     EXPECT_NEAR(out0, 0.0f, 1e-6f);
 
     // Frame 1: output = committed accumulator from frame 0 = 10 * dt * 1
     sim.step(dt);
-    float out1 = sim.get_port_value("integ", "out");
+    float out1 = sim.get_signal_value(sim.resolve_signal_key("integ", "out"));
     EXPECT_NEAR(out1, 10.0f * dt * 1.0f, 0.02f);
 
     // Frame 2: output = committed accumulator from frame 1 = 10 * dt * 2
     sim.step(dt);
-    float out2 = sim.get_port_value("integ", "out");
+    float out2 = sim.get_signal_value(sim.resolve_signal_key("integ", "out"));
     EXPECT_NEAR(out2, 10.0f * dt * 2.0f, 0.02f);
 
     // Verify monotonic increase (out0 is zero, so out1 > out0)
@@ -436,12 +437,12 @@ TEST(PushRuntime, SampleHoldBasicOperation) {
 
     // Initial: no trigger (default 0), output should be 0
     sim.step(dt);
-    EXPECT_NEAR(sim.get_port_value("sh", "out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sh", "out")), 0.0f, 1e-4f);
 
     // Multiple steps with no trigger should still be 0
     sim.step(dt);
     sim.step(dt);
-    EXPECT_NEAR(sim.get_port_value("sh", "out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("sh", "out")), 0.0f, 1e-4f);
 }
 
 TEST(PushRuntime, SlewRateConvergesToInput) {
@@ -465,7 +466,7 @@ TEST(PushRuntime, SlewRateConvergesToInput) {
     std::vector<float> outputs;
     for (int i = 0; i < 30; ++i) {
         sim.step(dt);
-        outputs.push_back(sim.get_port_value("slew", "out"));
+        outputs.push_back(sim.get_signal_value(sim.resolve_signal_key("slew", "out")));
     }
 
     // Verify monotonically increasing (rate limited toward 10.0)
@@ -526,12 +527,12 @@ TEST(PushRuntime, ComponentApiCommitHookCoverageSmoke) {
     }
 
     // Verify all outputs are finite
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("bat", "v_out")));
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("sw", "v_out")));
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("add", "o")));
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("pid", "output")));
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("slew", "out")));
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("integ", "out")));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("bat", "v_out"))));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("sw", "v_out"))));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("add", "o"))));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("pid", "output"))));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("slew", "out"))));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("integ", "out"))));
 }
 
 // == Push Migration: Two-Phase State Semantics Tests ==
@@ -556,7 +557,7 @@ TEST(PushRuntime, TimeDelayCommitSemantics) {
     // Run several steps - should be stable without NaN or crashes
     for (int i = 0; i < 10; ++i) {
         sim.step(dt);
-        float out = sim.get_port_value("td", "out");
+        float out = sim.get_signal_value(sim.resolve_signal_key("td", "out"));
         EXPECT_GE(out, 0.0f);
         EXPECT_LE(out, 1.0f);
         EXPECT_TRUE(std::isfinite(out));
@@ -582,16 +583,16 @@ TEST(PushRuntime, MonostableCommitSemantics) {
 
     // Initial: output should be 0
     sim.step(dt);
-    EXPECT_NEAR(sim.get_port_value("mono", "out"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("mono", "out")), 0.0f, 1e-4f);
 
     // Rising edge trigger happens at step 0. Frame 0 output stays 0 (committed timer=0).
     // After commit, timer = duration. Frame 1 output = 1 (committed timer > 0).
     sim.step(dt);
-    EXPECT_NEAR(sim.get_port_value("mono", "out"), 1.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("mono", "out")), 1.0f, 1e-4f);
 
     // Timer continues to count down in subsequent frames
     sim.step(dt);
-    EXPECT_NEAR(sim.get_port_value("mono", "out"), 1.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("mono", "out")), 1.0f, 1e-4f);
 }
 
 TEST(PushRuntime, SlewRateCommitSemantics) {
@@ -615,7 +616,7 @@ TEST(PushRuntime, SlewRateCommitSemantics) {
     std::vector<float> outputs;
     for (int i = 0; i < 20; ++i) {
         sim.step(dt);
-        outputs.push_back(sim.get_port_value("slew", "out"));
+        outputs.push_back(sim.get_signal_value(sim.resolve_signal_key("slew", "out")));
     }
 
     // Verify outputs are valid and monotonically increasing (cold start converges immediately)
@@ -648,7 +649,7 @@ TEST(PushRuntime, AsymSlewRateCommitSemantics) {
     std::vector<float> outputs;
     for (int i = 0; i < 20; ++i) {
         sim.step(dt);
-        outputs.push_back(sim.get_port_value("asym", "out"));
+        outputs.push_back(sim.get_signal_value(sim.resolve_signal_key("asym", "out")));
     }
 
     // Verify monotonically increasing (rate_up is high, should converge quickly)
@@ -680,17 +681,17 @@ TEST(PushRuntime, IntegratorCommitOneFrameDelay) {
     // Frame N: output = committed accumulator from frame N-1
     // Frame 0: out = initial_val = 0.0
     sim.step(dt);
-    float out0 = sim.get_port_value("integ", "out");
+    float out0 = sim.get_signal_value(sim.resolve_signal_key("integ", "out"));
     EXPECT_NEAR(out0, 0.0f, 1e-6f);
 
     // Frame 1: out = committed accumulator from frame 0 = 5.0 * dt * 1.0
     sim.step(dt);
-    float out1 = sim.get_port_value("integ", "out");
+    float out1 = sim.get_signal_value(sim.resolve_signal_key("integ", "out"));
     EXPECT_NEAR(out1, 5.0f * dt, 0.02f);
 
     // Frame 2: out = committed accumulator from frame 1 = 5.0 * dt * 2.0
     sim.step(dt);
-    float out2 = sim.get_port_value("integ", "out");
+    float out2 = sim.get_signal_value(sim.resolve_signal_key("integ", "out"));
     EXPECT_NEAR(out2, 5.0f * dt * 2.0f, 0.02f);
 
     // Verify monotonic increase
@@ -719,7 +720,7 @@ TEST(PushRuntime, SampleHoldCommitSemantics) {
     // Without trigger, output should be 0 (initial stored_value)
     for (int i = 0; i < 5; ++i) {
         sim.step(dt);
-        float out = sim.get_port_value("sh", "out");
+        float out = sim.get_signal_value(sim.resolve_signal_key("sh", "out"));
         EXPECT_GE(out, 0.0f);
         EXPECT_LT(out, 8.0f);
     }
@@ -744,16 +745,16 @@ TEST(PushRuntime, LerpNodeCommitSemantics) {
 
     // Frame 0: cold start, output = input via committed state
     sim.step(dt);
-    float out0 = sim.get_port_value("lerp", "output");
+    float out0 = sim.get_signal_value(sim.resolve_signal_key("lerp", "output"));
     EXPECT_NEAR(out0, 10.0f, 0.1f);
 
     // Subsequent frames: should stay at converged value (factor=1.0, deadzone=0.0)
     sim.step(dt);
-    float out1 = sim.get_port_value("lerp", "output");
+    float out1 = sim.get_signal_value(sim.resolve_signal_key("lerp", "output"));
     EXPECT_NEAR(out1, 10.0f, 0.1f);
 
     sim.step(dt);
-    float out2 = sim.get_port_value("lerp", "output");
+    float out2 = sim.get_signal_value(sim.resolve_signal_key("lerp", "output"));
     EXPECT_NEAR(out2, 10.0f, 0.1f);
 
     // All outputs should be finite and valid
@@ -843,7 +844,7 @@ TEST(PushRuntime, StrictParamUsesCanonicalKey) {
     }
 
     // PID output should be non-zero and bounded by output_min/output_max
-    float pid_out = sim.get_port_value("pid", "output");
+    float pid_out = sim.get_signal_value(sim.resolve_signal_key("pid", "output"));
     EXPECT_GE(pid_out, -100.0f);
     EXPECT_LE(pid_out, 100.0f);
 
@@ -977,10 +978,10 @@ TEST(PushRuntime, ClosedLoopNoRunawayAfterManySteps) {
     for (int i = 0; i < 500; ++i) {
         sim.step(dt);
 
-        float bat_vout = sim.get_port_value("bat", "v_out");
-        float res_vout = sim.get_port_value("res", "v_out");
-        float ind_vout = sim.get_port_value("ind", "v_out");
-        float gnd_v = sim.get_port_value("gnd", "v");
+        float bat_vout = sim.get_signal_value(sim.resolve_signal_key("bat", "v_out"));
+        float res_vout = sim.get_signal_value(sim.resolve_signal_key("res", "v_out"));
+        float ind_vout = sim.get_signal_value(sim.resolve_signal_key("ind", "v_out"));
+        float gnd_v = sim.get_signal_value(sim.resolve_signal_key("gnd", "v"));
 
         // All voltages should be finite and bounded
         EXPECT_TRUE(std::isfinite(bat_vout)) << "Source v_out should be finite at frame " << i;
@@ -1022,17 +1023,17 @@ TEST(PushRuntime, IndicatorLightDoesNotOverwriteSolvedNode) {
     sim.step(dt);
 
     // gnd.v should still be 0.0 (not overwritten by indicator pass-through)
-    float gnd_v = sim.get_port_value("gnd", "v");
+    float gnd_v = sim.get_signal_value(sim.resolve_signal_key("gnd", "v"));
     EXPECT_NEAR(gnd_v, 0.0f, 1e-4f)
         << "RefNode should remain at fixed value (not overwritten by IndicatorLight)";
 
     // Source should still be at its fixed value
-    float src_v = sim.get_port_value("src", "v");
+    float src_v = sim.get_signal_value(sim.resolve_signal_key("src", "v"));
     EXPECT_NEAR(src_v, 10.0f, 1e-4f)
         << "Source RefNode should remain at fixed value";
 
     // Brightness should still compute correctly
-    float brightness = sim.get_port_value("ind", "brightness");
+    float brightness = sim.get_signal_value(sim.resolve_signal_key("ind", "brightness"));
     EXPECT_GT(brightness, 0.0f) << "IndicatorLight brightness should be > 0";
     EXPECT_LE(brightness, 1.0f) << "IndicatorLight brightness should be <= 1";
 }
@@ -1059,7 +1060,7 @@ TEST(PushRuntime, IndicatorLightBrightnessStillFunctional) {
     sim.step(dt);
 
     // At 14V input with 28V rated, brightness should be 0.5 (normalized)
-    float brightness = sim.get_port_value("ind", "brightness");
+    float brightness = sim.get_signal_value(sim.resolve_signal_key("ind", "brightness"));
     EXPECT_NEAR(brightness, 0.5f, 1e-3f)
         << "IndicatorLight brightness should be 0.5 (14V/28V normalized)";
 }
@@ -1113,7 +1114,7 @@ TEST(PushRuntime, IndicatorLightBlueprintNormalizedBrightness) {
         sim.step(dt);
     }
 
-    float brightness = sim.get_port_value("ind", "brightness");
+    float brightness = sim.get_signal_value(sim.resolve_signal_key("ind", "brightness"));
     // With 28V source driving IndicatorLight rated at 28V through a 0.01Ω
     // internal resistance, brightness should be close to 1.0 (full voltage
     // across the indicator after voltage divider).
@@ -1148,7 +1149,7 @@ TEST(PushRuntime, IndicatorLightNoBrightnessWithoutGround) {
 
     // With v_out disconnected (no return path), brightness should be 0
     // because there is no voltage drop across the indicator.
-    float brightness = sim.get_port_value("ind", "brightness");
+    float brightness = sim.get_signal_value(sim.resolve_signal_key("ind", "brightness"));
     EXPECT_NEAR(brightness, 0.0f, 0.05f)
         << "IndicatorLight without ground connection should have no brightness";
 }
@@ -1175,7 +1176,7 @@ TEST(PushRuntime, IndicatorLightBrightnessFromVoltageDrop) {
     sim.step(dt);
 
     // Drop = 28 - 14 = 14V across 28V rated → brightness = 0.5
-    float brightness = sim.get_port_value("ind", "brightness");
+    float brightness = sim.get_signal_value(sim.resolve_signal_key("ind", "brightness"));
     EXPECT_NEAR(brightness, 0.5f, 1e-3f)
         << "IndicatorLight brightness should reflect voltage drop, not absolute v_in";
 }
@@ -1201,13 +1202,13 @@ TEST(PushRuntime, ClosedCircuitBlueprint_NoRunawayVoltage) {
     for (int i = 0; i < 600; ++i) {
         sim.step(dt);
 
-        float gen_vpos = sim.get_port_value("controlledvoltagesource_1", "v_pos");
-        float bus_2_v = sim.get_port_value("bus_2", "v");
-        float cs_vin = sim.get_port_value("currentsense_1", "v_in");
-        float cs_vout = sim.get_port_value("currentsense_1", "v_out");
-        float cs_iout = sim.get_port_value("currentsense_1", "i_out");
-        float bus_1_v = sim.get_port_value("bus_1", "v");
-        float gnd_v = sim.get_port_value("refnode_4", "v");
+        float gen_vpos = sim.get_signal_value(sim.resolve_signal_key("controlledvoltagesource_1", "v_pos"));
+        float bus_2_v = sim.get_signal_value(sim.resolve_signal_key("bus_2", "v"));
+        float cs_vin = sim.get_signal_value(sim.resolve_signal_key("currentsense_1", "v_in"));
+        float cs_vout = sim.get_signal_value(sim.resolve_signal_key("currentsense_1", "v_out"));
+        float cs_iout = sim.get_signal_value(sim.resolve_signal_key("currentsense_1", "i_out"));
+        float bus_1_v = sim.get_signal_value(sim.resolve_signal_key("bus_1", "v"));
+        float gnd_v = sim.get_signal_value(sim.resolve_signal_key("refnode_4", "v"));
 
         // All key electrical ports must be finite
         EXPECT_TRUE(std::isfinite(gen_vpos)) << "GEN.v_pos should be finite at frame " << i;
@@ -1247,10 +1248,10 @@ TEST(PushRuntime, ClosedCircuitBlueprint_RN180GeneratorRemainsDormantWithoutActi
         sim.step(dt);
     }
 
-    float gen_vpos = sim.get_port_value("controlledvoltagesource_2", "v_pos");
-    float cs_vin = sim.get_port_value("currentsense_1", "v_in");
-    float cs_vout = sim.get_port_value("currentsense_1", "v_out");
-    float i_out = sim.get_port_value("currentsense_1", "i_out");
+    float gen_vpos = sim.get_signal_value(sim.resolve_signal_key("controlledvoltagesource_2", "v_pos"));
+    float cs_vin = sim.get_signal_value(sim.resolve_signal_key("currentsense_1", "v_in"));
+    float cs_vout = sim.get_signal_value(sim.resolve_signal_key("currentsense_1", "v_out"));
+    float i_out = sim.get_signal_value(sim.resolve_signal_key("currentsense_1", "i_out"));
 
     ASSERT_TRUE(std::isfinite(gen_vpos));
     ASSERT_TRUE(std::isfinite(cs_vin));
@@ -1300,13 +1301,13 @@ TEST(PushRuntime, SimulationStateElectricalRtPointerClearedOutsideStep) {
     // and checking voltages are still correct (would be wrong if pointer stale).
     for (int i = 0; i < 10; ++i) {
         sim.step(dt);
-        float v = sim.get_port_value("sw", "v_out");
+        float v = sim.get_signal_value(sim.resolve_signal_key("sw", "v_out"));
         EXPECT_TRUE(std::isfinite(v)) << "Voltage should be valid after step " << i;
     }
 
     // Verify circuit still produces correct steady-state voltage
     // (would diverge if electrical_rt pointer issue caused stale solves)
-     EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 28.0f, 0.5f)
+     EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("bat", "v_out")), 28.0f, 0.5f)
          << "Source should maintain nominal voltage";
 }
 
@@ -1398,14 +1399,14 @@ TEST(PushRuntime, RelayElectricalSolverPath_ClosedProducesSag) {
 
     // Open relay: output stays near 0V.
     for (int i = 0; i < 5; ++i) sim_open.step(dt);
-    float v_open = sim_open.get_port_value("relay", "v_out");
+    float v_open = sim_open.get_signal_value(sim_open.resolve_signal_key("relay", "v_out"));
     EXPECT_LT(v_open, 1.0f);
 
     JIT_Simulator sim_closed;
     ASSERT_NO_THROW(sim_closed.start(build_input_from_json(json_closed)));
     for (int i = 0; i < 5; ++i) sim_closed.step(dt);
 
-    float v_closed = sim_closed.get_port_value("relay", "v_out");
+    float v_closed = sim_closed.get_signal_value(sim_closed.resolve_signal_key("relay", "v_out"));
     EXPECT_GT(v_closed, 5.0f)
         << "Closed relay should conduct through electrical solver path";
     EXPECT_LT(v_closed, 28.0f)
@@ -1459,9 +1460,9 @@ TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
         sim.step(dt);
     }
 
-    float v_in = sim.get_port_value("cs", "v_in");
-    float v_out = sim.get_port_value("cs", "v_out");
-    float i_out = sim.get_port_value("cs", "i_out");
+    float v_in = sim.get_signal_value(sim.resolve_signal_key("cs", "v_in"));
+    float v_out = sim.get_signal_value(sim.resolve_signal_key("cs", "v_out"));
+    float i_out = sim.get_signal_value(sim.resolve_signal_key("cs", "i_out"));
 
     EXPECT_GT(v_in, 0.5f)
         << "ControlledVoltageSource should energize CurrentSense input";
@@ -1501,12 +1502,12 @@ TEST(PushRuntime, ClosedCircuit_EditorIdBasedLookup_NonZeroVoltage) {
     sim.step(dt);
 
     // Query by interned id (what the fixed editor does)
-    float by_id = sim.get_port_value("refnode_1", "v");
+    float by_id = sim.get_signal_value(sim.resolve_signal_key("refnode_1", "v"));
     EXPECT_NEAR(by_id, 1.5f, 1e-4f)
         << "Canonical runtime lookup must use node id";
 
     // Canonical identity uses only node_id.port lookup. Display-name alias lookup is removed.
-    float by_label = sim.get_port_value("GEN", "v");
+    float by_label = sim.get_signal_value(sim.resolve_signal_key("GEN", "v"));
     EXPECT_FLOAT_EQ(by_label, 0.0f)
         << "Querying by non-canonical node id must return 0";
 }
@@ -1542,7 +1543,7 @@ TEST(PushRuntime, AZS_ElectricalSolverPath_ClosedProducesSag) {
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 5; ++i) sim.step(dt);
 
-    float v_hot = sim.get_wire_voltage("src.v_out");
+    float v_hot = sim.get_signal_value(sim.signal_key_interner().lookup("src.v_out"));
     ASSERT_TRUE(std::isfinite(v_hot));
     EXPECT_LT(v_hot, 27.0f)
         << "AZS closed should insert heavy load branch into electrical solver and produce sag";
@@ -1577,10 +1578,10 @@ TEST(PushRuntime, HoldButton_ElectricalSolverPath_PressProducesSag) {
 
     const double dt = 1.0 / 60.0;
     sim.step(dt); // first frame: button state updates after solve
-    float v_step1 = sim.get_wire_voltage("src.v_out");
+    float v_step1 = sim.get_signal_value(sim.signal_key_interner().lookup("src.v_out"));
 
     for (int i = 0; i < 5; ++i) sim.step(dt);
-    float v_pressed = sim.get_wire_voltage("src.v_out");
+    float v_pressed = sim.get_signal_value(sim.signal_key_interner().lookup("src.v_out"));
 
     ASSERT_TRUE(std::isfinite(v_step1));
     ASSERT_TRUE(std::isfinite(v_pressed));
@@ -1620,8 +1621,8 @@ TEST(PushRuntime, AZS_OpenState_ParasiticConductance_StaysFinite) {
     const double dt = 1.0 / 60.0;
     for (int i = 0; i < 5; ++i) sim.step(dt);
 
-    float v_src = sim.get_wire_voltage("src.v_out");
-    float v_load = sim.get_wire_voltage("azs.v_out");
+    float v_src = sim.get_signal_value(sim.signal_key_interner().lookup("src.v_out"));
+    float v_load = sim.get_signal_value(sim.signal_key_interner().lookup("azs.v_out"));
 
     ASSERT_TRUE(std::isfinite(v_src))
         << "Source voltage must be finite with parasitic g_open";
@@ -1665,9 +1666,9 @@ TEST(PushRuntime, AZS_ThermalTripRunsInFullSimulator) {
     bool tripped = false;
     for (int i = 0; i < 300; ++i) {
         sim.step(dt);
-        float state = sim.get_wire_voltage("azs.state");
+        float state = sim.get_signal_value(sim.signal_key_interner().lookup("azs.state"));
         if (i == 0) {
-            v_before_trip = sim.get_wire_voltage("azs.v_out");
+            v_before_trip = sim.get_signal_value(sim.signal_key_interner().lookup("azs.v_out"));
             EXPECT_GT(v_before_trip, 1.0f) << "AZS should initially be closed and passing voltage";
         }
         if (state < 0.5f && i > 0) {

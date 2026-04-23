@@ -112,7 +112,9 @@ uint32_t OscilloscopeModel::color_for_index(size_t i) {
 }
 
 void OscilloscopeModel::set_hover_signal(const editor::DocumentId& doc_id, std::string signal_key) {
-    hover_states_[doc_id.str()].signal_key = std::move(signal_key);
+    auto& state = hover_states_[doc_id.str()];
+    state.signal_key = std::move(signal_key);
+    state.signal_iid = ui::InternedId{}; // Resolved lazily in sample() if simulation is running.
 }
 
 void OscilloscopeModel::clear_hover_signal(const editor::DocumentId& doc_id) {
@@ -179,6 +181,9 @@ void OscilloscopeModel::toggle_probe(Document& doc,
     p.document_id = doc.id();
     p.scope_id = scope_id;
     if (!resolve_probe_signal(doc, scope_id, wire_id, p.signal_key, p.label)) return;
+    if (doc.isSimulationRunning()) {
+        p.signal_iid = doc.simulation().signal_key_interner().lookup(p.signal_key);
+    }
     if (!resolve_probe_anchor(doc, wire_id, scope_id, click_world, p.world_pos)) return;
     // Per-document color assignment: count existing probes for this doc.
     size_t doc_probe_count = 0;
@@ -217,6 +222,12 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
             to_remove.push_back(probe_id);
             continue;
         }
+        // Re-resolve InternedId after blueprint change (sim may have rebuilt).
+        if (doc.isSimulationRunning()) {
+            updated.signal_iid = doc.simulation().signal_key_interner().lookup(updated.signal_key);
+        } else {
+            updated.signal_iid = ui::InternedId{};
+        }
 
         if (!resolve_probe_anchor(doc, p.wire_id, p.scope_id, &p.world_pos, updated.world_pos)) {
             to_remove.push_back(probe_id);
@@ -231,6 +242,13 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
     for (const auto& id : to_remove) {
         remove_probe(id);
     }
+
+    // Invalidate hover InternedId — it may be stale after a sim rebuild.
+    // Will be re-resolved lazily on next sample() call.
+    auto hover_it = hover_states_.find(doc.id().str());
+    if (hover_it != hover_states_.end()) {
+        hover_it->second.signal_iid = ui::InternedId{};
+    }
 }
 
 void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sample_dt_sec) {
@@ -240,16 +258,33 @@ void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sam
             continue;
         }
         auto& q = samples_[probe_id];
-        float v = simulation_running ? doc.simulation().get_wire_voltage(p.signal_key) : 0.0f;
+        // Use pre-resolved InternedId when available (zero string work),
+        // fall back to interner lookup if stale (after sim rebuild).
+        float v = 0.0f;
+        if (simulation_running) {
+            if (!p.signal_iid.empty()) {
+                v = doc.simulation().get_signal_value(p.signal_iid);
+            } else {
+                v = doc.simulation().get_signal_value(
+                    doc.simulation().signal_key_interner().lookup(p.signal_key));
+            }
+        }
         q.push_back(v);
         while (q.size() > max_samples_) q.pop_front();
     }
 
-    // Per-document hover sampling
+    // Per-document hover sampling — resolve InternedId lazily on first sample.
     auto hover_it = hover_states_.find(doc.id().str());
     if (hover_it != hover_states_.end() && !hover_it->second.signal_key.empty()) {
-        const float v = simulation_running
-            ? doc.simulation().get_wire_voltage(hover_it->second.signal_key) : 0.0f;
+        float v = 0.0f;
+        if (simulation_running) {
+            // Lazy InternedId resolution: resolve once, reuse on subsequent frames.
+            if (hover_it->second.signal_iid.empty()) {
+                hover_it->second.signal_iid = doc.simulation().signal_key_interner().lookup(
+                    hover_it->second.signal_key);
+            }
+            v = doc.simulation().get_signal_value(hover_it->second.signal_iid);
+        }
         hover_it->second.samples.push_back(v);
         while (hover_it->second.samples.size() > max_samples_) hover_it->second.samples.pop_front();
     } else if (hover_it != hover_states_.end()) {

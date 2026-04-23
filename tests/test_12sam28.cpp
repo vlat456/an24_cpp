@@ -35,9 +35,9 @@ TEST(SAM28Composite, InitialOutputsAreSane) {
     sim.step(1.0 / 60.0);
     sim.step(1.0 / 60.0);
 
-    const float charge = sim.get_port_value("sb", "charge_out");
-    const float soc = sim.get_port_value("sb", "soc_out");
-    const float v_out = sim.get_port_value("sb", "v_out");
+    const float charge = sim.get_signal_value(sim.resolve_signal_key("sb", "charge_out"));
+    const float soc = sim.get_signal_value(sim.resolve_signal_key("sb", "soc_out"));
+    const float v_out = sim.get_signal_value(sim.resolve_signal_key("sb", "v_out"));
 
     EXPECT_NEAR(charge, 28.0f, 1e-3f);
     EXPECT_NEAR(soc, 1.0f, 1e-3f);
@@ -52,15 +52,15 @@ TEST(SAM28Composite, DischargeDecreasesChargeAndSoc) {
     // Two warmup steps for CVS to receive LUT→cmd
     sim.step(1.0 / 60.0);
     sim.step(1.0 / 60.0);
-    const float charge_0 = sim.get_port_value("sb", "charge_out");
-    const float soc_0 = sim.get_port_value("sb", "soc_out");
+    const float charge_0 = sim.get_signal_value(sim.resolve_signal_key("sb", "charge_out"));
+    const float soc_0 = sim.get_signal_value(sim.resolve_signal_key("sb", "soc_out"));
 
     for (int i = 0; i < 600; ++i) {
         sim.step(1.0 / 60.0);
     }
 
-    const float charge_1 = sim.get_port_value("sb", "charge_out");
-    const float soc_1 = sim.get_port_value("sb", "soc_out");
+    const float charge_1 = sim.get_signal_value(sim.resolve_signal_key("sb", "charge_out"));
+    const float soc_1 = sim.get_signal_value(sim.resolve_signal_key("sb", "soc_out"));
 
     EXPECT_LT(charge_1, charge_0 - 0.05f);
     EXPECT_LT(soc_1, soc_0 - 0.001f);
@@ -73,14 +73,14 @@ TEST(SAM28Composite, SocToOcvFeedbackCausesVoltageDrop) {
     // Two warmup steps for CVS to receive LUT→cmd
     sim.step(1.0 / 60.0);
     sim.step(1.0 / 60.0);
-    const float v_0 = sim.get_port_value("sb", "v_out");
+    const float v_0 = sim.get_signal_value(sim.resolve_signal_key("sb", "v_out"));
 
     for (int i = 0; i < 1800; ++i) {
         sim.step(1.0 / 60.0);
     }
 
-    const float v_1 = sim.get_port_value("sb", "v_out");
-    const float soc_1 = sim.get_port_value("sb", "soc_out");
+    const float v_1 = sim.get_signal_value(sim.resolve_signal_key("sb", "v_out"));
+    const float soc_1 = sim.get_signal_value(sim.resolve_signal_key("sb", "soc_out"));
 
     EXPECT_LT(soc_1, 1.0f);
     EXPECT_LT(v_1, v_0 - 0.05f);

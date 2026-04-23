@@ -7,6 +7,7 @@
 #include "visual/workspace_session.h"
 #include "data/node_state.h"
 #include "input/canvas_input.h"
+#include "document_simulation_internal.h"
 #include "core/solvers/jit/simulator.h"
 #include "io/json/component_registry_json_loader.h"
 #include "blueprint_v2/library/library_index.h"
@@ -172,8 +173,10 @@ public:
 
     // ── Signal overrides (switch/button clicks) ──
 
-    std::unordered_map<std::string, float>& signalOverrides() { return signal_overrides_; }
-    std::unordered_set<std::string>& heldButtons() { return held_buttons_; }
+    /// Direct access to typed overrides for edge cases.
+    /// InternedId must be resolved against simulation's signal_key_interner().
+    std::vector<std::pair<ui::InternedId, float>>& typedOverrides() { return typed_overrides_; }
+    std::unordered_map<std::string, ui::InternedId>& heldButtons() { return held_buttons_; }
 
     void triggerSwitch(const editor::NodeId& node_id, const WindowScopeId& scope_id = WindowScopeId::root());
     void setSliderValue(const editor::NodeId& node_id, float value, const WindowScopeId& scope_id = WindowScopeId::root());
@@ -257,6 +260,10 @@ private:
     std::pair<ui::InternedId, ui::InternedId>
     bp2_path_to_node_port(const bp2::Path& path) const;
 
+    /// Build the pre-resolved signal cache from current blueprint + simulation interner.
+    /// Called after simulation_.start(). String work happens here (once), not per-frame.
+    void build_signal_cache();
+
     /// Overload for WireEndpoint — trivially extracts node/port.
     std::pair<ui::InternedId, ui::InternedId>
     bp2_path_to_node_port(const bp2::WireEndpoint& ep) const;
@@ -274,8 +281,17 @@ private:
     Simulator<JIT_Solver> simulation_;
     bool simulation_running_ = false;
 
-    std::unordered_map<std::string, float> signal_overrides_;
-    std::unordered_set<std::string> held_buttons_;
+    // Pre-resolved signal keys — zero allocation per frame.
+    // Built at simulation start, cleared on stop.
+    editor::SignalCache signal_cache_;
+
+    // Typed signal overrides — InternedId resolved once at interaction time.
+    std::vector<std::pair<ui::InternedId, float>> typed_overrides_;
+
+    // Held buttons — key is sim_id (for erase matching), value is pre-resolved
+    // control port InternedId (resolved at press time, not per-frame).
+    std::unordered_map<std::string, ui::InternedId> held_buttons_;
+
     editor::RuntimeNodeStateStore runtime_node_states_;
     const ComponentRegistry* type_registry_ = nullptr;
     const bp2::LibraryIndex* library_index_ = nullptr;

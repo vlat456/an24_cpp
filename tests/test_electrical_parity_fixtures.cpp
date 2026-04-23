@@ -66,8 +66,8 @@ TEST(ElectricalParityFixtures, SimpleTheveninDivider) {
     ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
-    float v_gnd = sim.get_port_value("gnd", "v");
-    float v_src_out = sim.get_port_value("src", "v_out");
+    float v_gnd = sim.get_signal_value(sim.resolve_signal_key("gnd", "v"));
+    float v_src_out = sim.get_signal_value(sim.resolve_signal_key("src", "v_out"));
 
     EXPECT_NEAR(v_gnd, 0.0f, 1e-4f) << "Ground node must hold at 0V";
     EXPECT_NEAR(v_src_out, 14.0f, 1e-3f) << "Junction voltage: Vth * g/(g+1/Rint) = 28 * 1/(1+1) = 14V";
@@ -101,9 +101,9 @@ TEST(ElectricalParityFixtures, SeriesChainTwoResistors) {
     ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
-    float v_gnd = sim.get_port_value("gnd", "v");
-    float v_r1_out = sim.get_port_value("r1", "v_out");
-    float v_src_out = sim.get_port_value("src", "v_out");
+    float v_gnd = sim.get_signal_value(sim.resolve_signal_key("gnd", "v"));
+    float v_r1_out = sim.get_signal_value(sim.resolve_signal_key("r1", "v_out"));
+    float v_src_out = sim.get_signal_value(sim.resolve_signal_key("src", "v_out"));
 
     EXPECT_NEAR(v_gnd, 0.0f, 1e-4f);
     EXPECT_NEAR(v_r1_out, 14.0f, 1e-3f) << "Voltage drop: 28V across 2 equal resistors = 14V at middle";
@@ -140,8 +140,8 @@ TEST(ElectricalParityFixtures, ParallelBranchSplit) {
     ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
-    float v_gnd = sim.get_port_value("gnd", "v");
-    float v_src_out = sim.get_port_value("src", "v_out");
+    float v_gnd = sim.get_signal_value(sim.resolve_signal_key("gnd", "v"));
+    float v_src_out = sim.get_signal_value(sim.resolve_signal_key("src", "v_out"));
 
     EXPECT_NEAR(v_gnd, 0.0f, 1e-4f);
     // R_int=2Ω in series with parallel combination of two 2Ω resistors (eq R=1Ω)
@@ -183,8 +183,8 @@ TEST(ElectricalParityFixtures, MultiIsland) {
     ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
-    float v_src_a = sim.get_port_value("src_a", "v_out");
-    float v_src_b = sim.get_port_value("src_b", "v_out");
+    float v_src_a = sim.get_signal_value(sim.resolve_signal_key("src_a", "v_out"));
+    float v_src_b = sim.get_signal_value(sim.resolve_signal_key("src_b", "v_out"));
 
     // Island A: R_int=1Ω, g=1S (R=1Ω), Vth=10V
     // I = 10/(1+1) = 5A, V_node = I * 1 = 5V
@@ -219,8 +219,8 @@ TEST(ElectricalParityFixtures, NearShortHighConductance) {
     ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
-    float v_gnd = sim.get_port_value("gnd", "v");
-    float v_src_out = sim.get_port_value("src", "v_out");
+    float v_gnd = sim.get_signal_value(sim.resolve_signal_key("gnd", "v"));
+    float v_src_out = sim.get_signal_value(sim.resolve_signal_key("src", "v_out"));
 
     EXPECT_NEAR(v_gnd, 0.0f, 1e-4f);
     // R_int = 0.001Ω, g = 1000S (R = 0.001Ω), perfectly matched
@@ -260,7 +260,8 @@ static void run_aot_electrical(
     ElectricalBuildPlan& out_plan,
     SimulationState& out_state,
     ElectricalRuntimeState& out_rt,
-    PortToSignal& out_port_to_signal
+    PortToSignal& out_port_to_signal,
+    ui::StringInterner& out_interner
 ) {
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
@@ -270,13 +271,20 @@ static void run_aot_electrical(
     codegen_composite_detail::apply_signal_allocation_rules(uf, devices, {}, connections, port_to_idx);
 
     uint32_t signal_count = 0;
-    out_port_to_signal = codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
+    // AOT codegen pipeline works with string keys internally
+    const auto string_p2s = codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
 
-    // Extract plan using codegen's extract_electrical_plan
+    // Extract plan using codegen's extract_electrical_plan (string-keyed)
     ElectricalExtractOptions options;
     options.strict_port_resolution = true;
     options.warn_on_missing_ports = false;
-    ElectricalPlanCodegen codegen_plan = extract_electrical_plan(devices, out_port_to_signal, options);
+    ElectricalPlanCodegen codegen_plan = extract_electrical_plan(devices, string_p2s, options);
+
+    // Convert string-keyed map to InternedId-keyed for output
+    out_port_to_signal.clear();
+    for (const auto& [port_str, sig] : string_p2s) {
+        out_port_to_signal[out_interner.intern(port_str)] = sig;
+    }
 
     // Convert ElectricalPlanCodegen to ElectricalBuildPlan (same as AotElectricalPlan constructor)
     out_plan.islands.clear();
@@ -323,7 +331,8 @@ static void run_aot_electrical(
 static void set_refnode_values(
     SimulationState& st,
     const std::vector<ResolvedDevice>& devices,
-    const PortToSignal& port_to_signal
+    const PortToSignal& port_to_signal,
+    const ui::StringInterner& interner
 ) {
     for (const auto& dev : devices) {
         if (dev.classname == "RefNode") {
@@ -333,7 +342,7 @@ static void set_refnode_values(
                 value = std::stof(it->second);
             }
             std::string port_key = dev.name + ".v";
-            auto it_sig = port_to_signal.find(port_key);
+            auto it_sig = port_to_signal.find(interner.lookup(port_key));
             if (it_sig != port_to_signal.end()) {
                 st.values[it_sig->second] = value;
             }
@@ -343,9 +352,10 @@ static void set_refnode_values(
 
 // Helper: get voltage at a port from SimulationState
 static float get_voltage(const SimulationState& st, const PortToSignal& port_to_signal,
+                         const ui::StringInterner& interner,
                          const std::string& device_name, const std::string& port_name) {
     std::string key = device_name + "." + port_name;
-    auto it = port_to_signal.find(key);
+    auto it = port_to_signal.find(interner.lookup(key));
     if (it == port_to_signal.end()) return 0.0f;
     return st.values[it->second];
 }
@@ -373,7 +383,7 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 
@@ -383,21 +393,22 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
+    ui::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
-                       aot_plan, aot_state, aot_rt, aot_port_to_signal);
+                       aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 
     // Compare signal values
     ASSERT_EQ(jit_result.electrical_plan.islands.size(), aot_plan.islands.size());
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {
         auto it_aot = aot_port_to_signal.find(port);
-        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port;
+        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port.raw();
         EXPECT_NEAR(jit_state.values[jit_sig], aot_state.values[it_aot->second], 1e-6f)
-            << "Port voltage mismatch at " << port;
+            << "Port voltage mismatch at " << port.raw();
     }
 
     // Compare specific known voltages
-    float jit_v_src_out = get_voltage(jit_state, jit_result.port_to_signal, "src", "v_out");
-    float aot_v_src_out = get_voltage(aot_state, aot_port_to_signal, "src", "v_out");
+    float jit_v_src_out = get_voltage(jit_state, jit_result.port_to_signal, jit_result.signal_key_interner, "src", "v_out");
+    float aot_v_src_out = get_voltage(aot_state, aot_port_to_signal, aot_interner, "src", "v_out");
     EXPECT_NEAR(jit_v_src_out, 14.0f, 1e-3f);
     EXPECT_NEAR(jit_v_src_out, aot_v_src_out, 1e-6f);
 }
@@ -427,7 +438,7 @@ TEST(ElectricalAotParity, SeriesChainTwoResistors) {
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 
@@ -435,18 +446,19 @@ TEST(ElectricalAotParity, SeriesChainTwoResistors) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
+    ui::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
-                       aot_plan, aot_state, aot_rt, aot_port_to_signal);
+                       aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {
         auto it_aot = aot_port_to_signal.find(port);
-        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port;
+        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port.raw();
         EXPECT_NEAR(jit_state.values[jit_sig], aot_state.values[it_aot->second], 1e-6f)
-            << "Port voltage mismatch at " << port;
+            << "Port voltage mismatch at " << port.raw();
     }
 
-    float jit_v_r1 = get_voltage(jit_state, jit_result.port_to_signal, "r1", "v_out");
-    float aot_v_r1 = get_voltage(aot_state, aot_port_to_signal, "r1", "v_out");
+    float jit_v_r1 = get_voltage(jit_state, jit_result.port_to_signal, jit_result.signal_key_interner, "r1", "v_out");
+    float aot_v_r1 = get_voltage(aot_state, aot_port_to_signal, aot_interner, "r1", "v_out");
     EXPECT_NEAR(jit_v_r1, 14.0f, 1e-3f);
     EXPECT_NEAR(jit_v_r1, aot_v_r1, 1e-6f);
 }
@@ -477,7 +489,7 @@ TEST(ElectricalAotParity, ParallelBranchSplit) {
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 
@@ -485,14 +497,15 @@ TEST(ElectricalAotParity, ParallelBranchSplit) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
+    ui::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
-                       aot_plan, aot_state, aot_rt, aot_port_to_signal);
+                       aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {
         auto it_aot = aot_port_to_signal.find(port);
-        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port;
+        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port.raw();
         EXPECT_NEAR(jit_state.values[jit_sig], aot_state.values[it_aot->second], 1e-6f)
-            << "Port voltage mismatch at " << port;
+            << "Port voltage mismatch at " << port.raw();
     }
 }
 
@@ -525,7 +538,7 @@ TEST(ElectricalAotParity, MultiIsland) {
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 
@@ -533,16 +546,17 @@ TEST(ElectricalAotParity, MultiIsland) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
+    ui::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
-                       aot_plan, aot_state, aot_rt, aot_port_to_signal);
+                       aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 
     ASSERT_EQ(jit_result.electrical_plan.islands.size(), aot_plan.islands.size());
 
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {
         auto it_aot = aot_port_to_signal.find(port);
-        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port;
+        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port.raw();
         EXPECT_NEAR(jit_state.values[jit_sig], aot_state.values[it_aot->second], 1e-6f)
-            << "Port voltage mismatch at " << port;
+            << "Port voltage mismatch at " << port.raw();
     }
 }
 
@@ -569,7 +583,7 @@ TEST(ElectricalAotParity, NearShortHighConductance) {
     SimulationState jit_state;
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
-    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal);
+    set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
     solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
 
@@ -577,13 +591,14 @@ TEST(ElectricalAotParity, NearShortHighConductance) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
+    ui::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
-                       aot_plan, aot_state, aot_rt, aot_port_to_signal);
+                       aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {
         auto it_aot = aot_port_to_signal.find(port);
-        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port;
+        ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port.raw();
         EXPECT_NEAR(jit_state.values[jit_sig], aot_state.values[it_aot->second], 1e-6f)
-            << "Port voltage mismatch at " << port;
+            << "Port voltage mismatch at " << port.raw();
     }
 }

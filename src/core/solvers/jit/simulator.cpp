@@ -136,7 +136,9 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
             if (it_val != dev.params.end()) {
                 value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
-            auto it_sig = build_result_->port_to_signal.find(signal_key::make_node_port_key(dev.name, "v"));
+            const ui::InternedId key = build_result_->signal_key_interner.lookup(
+                signal_key::make_node_port_key(dev.name, "v"));
+            auto it_sig = build_result_->port_to_signal.find(key);
             if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
                 state_.values[it_sig->second] = value;
             }
@@ -147,7 +149,9 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
             if (it_val != dev.params.end()) {
                 value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
-            auto it_sig = build_result_->port_to_signal.find(signal_key::make_node_port_key(dev.name, "o"));
+            const ui::InternedId key = build_result_->signal_key_interner.lookup(
+                signal_key::make_node_port_key(dev.name, "o"));
+            auto it_sig = build_result_->port_to_signal.find(key);
             if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
                 state_.values[it_sig->second] = value;
             }
@@ -155,9 +159,10 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
     }
 
     // Apply explicit initial values from JitBuildInput (if any).
-    // Keys are port references like "device.port".
+    // Keys are port references like "device.port" — interned for typed lookup.
     for (const auto& [port_ref, value] : input.initial_values) {
-        auto it_sig = build_result_->port_to_signal.find(port_ref);
+        const ui::InternedId key = build_result_->signal_key_interner.lookup(port_ref);
+        auto it_sig = build_result_->port_to_signal.find(key);
         if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
             state_.values[it_sig->second] = value;
         }
@@ -267,50 +272,26 @@ void Simulator<SolverTag>::step(double dt) {
 }
 
 template <typename SolverTag>
-float Simulator<SolverTag>::get_wire_voltage(const std::string& port_name) const {
-    if (!build_result_.has_value()) {
+float Simulator<SolverTag>::get_signal_value(ui::InternedId key) const {
+    if (!build_result_.has_value() || key.empty()) {
         return 0.0f;
     }
-
-    auto it = build_result_->port_to_signal.find(port_name);
-    if (it == build_result_->port_to_signal.end()) {
-        return 0.0f;
-    }
-
-    if (it->second >= state_.values.size()) {
-        return 0.0f;
-    }
-    return state_.values[it->second];
-}
-
-template <typename SolverTag>
-float Simulator<SolverTag>::get_port_value(const std::string& node_id, const std::string& port_name) const {
-    if (!build_result_.has_value()) {
-        return 0.0f;
-    }
-
-    const std::string key = signal_key::make_node_port_key(node_id, port_name);
     auto it = build_result_->port_to_signal.find(key);
     if (it != build_result_->port_to_signal.end() && it->second < state_.values.size()) {
         return state_.values[it->second];
     }
-
     return 0.0f;
 }
 
 template <typename SolverTag>
-bool Simulator<SolverTag>::wire_is_energized(const std::string& port_name, float threshold) const {
-    return std::abs(get_wire_voltage(port_name)) > threshold;
-}
-
-template <typename SolverTag>
-void Simulator<SolverTag>::apply_overrides(const std::unordered_map<std::string, float>& overrides) {
+void Simulator<SolverTag>::apply_typed_overrides(
+    const std::vector<std::pair<ui::InternedId, float>>& overrides) {
     if (!build_result_.has_value()) {
         return;
     }
-
-    for (const auto& [port_ref, value] : overrides) {
-        auto it = build_result_->port_to_signal.find(port_ref);
+    for (const auto& [key, value] : overrides) {
+        if (key.empty()) continue;
+        auto it = build_result_->port_to_signal.find(key);
         if (it != build_result_->port_to_signal.end() && it->second < state_.values.size()) {
             state_.values[it->second] = value;
         }
@@ -318,13 +299,20 @@ void Simulator<SolverTag>::apply_overrides(const std::unordered_map<std::string,
 }
 
 template <typename SolverTag>
-bool Simulator<SolverTag>::get_boolean_output(const std::string& port_name) const {
-    return get_wire_voltage(port_name) > 0.5f;
+const ui::StringInterner& Simulator<SolverTag>::signal_key_interner() const {
+    if (build_result_.has_value()) {
+        return build_result_->signal_key_interner;
+    }
+    static const ui::StringInterner empty;
+    return empty;
 }
 
 template <typename SolverTag>
-bool Simulator<SolverTag>::get_component_state_as_bool(const std::string& node_id, const std::string& port_name) const {
-    return get_boolean_output(signal_key::make_node_port_key(node_id, port_name));
+ui::InternedId Simulator<SolverTag>::resolve_signal_key(
+    std::string_view node_id, std::string_view port_name) const {
+    if (!build_result_.has_value()) return {};
+    const std::string key = signal_key::make_node_port_key(node_id, port_name);
+    return build_result_->signal_key_interner.lookup(key);
 }
 
 template class Simulator<JIT_Solver>;

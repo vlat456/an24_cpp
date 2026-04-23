@@ -50,24 +50,26 @@ int main() {
     }
 
     JitBuildInput input;
-    input.devices = devices;
+    auto intern = [&input](const std::string& s) -> ui::InternedId {
+        return input.signal_key_interner.intern(s);
+    };
 
     uint32_t next_signal = 0;
-    input.port_to_signal["src.o"] = next_signal;
-    input.port_to_signal["add0.A"] = next_signal;
+    input.port_to_signal[intern("src.o")] = next_signal;
+    input.port_to_signal[intern("add0.A")] = next_signal;
     ++next_signal;
 
-    input.port_to_signal["k.o"] = next_signal;
+    input.port_to_signal[intern("k.o")] = next_signal;
     for (int i = 0; i < chain_len; ++i) {
-        input.port_to_signal["add" + std::to_string(i) + ".B"] = next_signal;
+        input.port_to_signal[intern("add" + std::to_string(i) + ".B")] = next_signal;
     }
     ++next_signal;
 
     for (int i = 0; i < chain_len; ++i) {
         const std::string curr = "add" + std::to_string(i);
-        input.port_to_signal[curr + ".o"] = next_signal;
+        input.port_to_signal[intern(curr + ".o")] = next_signal;
         if (i + 1 < chain_len) {
-            input.port_to_signal["add" + std::to_string(i + 1) + ".A"] = next_signal;
+            input.port_to_signal[intern("add" + std::to_string(i + 1) + ".A")] = next_signal;
         }
         ++next_signal;
     }
@@ -95,7 +97,8 @@ int main() {
     const double us_per_step = (total_ms * 1000.0) / static_cast<double>(measured_steps);
 
     const std::string last = "add" + std::to_string(chain_len - 1) + ".o";
-    const float last_value = st.values[result.port_to_signal.at(last)];
+    const ui::InternedId last_key = result.signal_key_interner.lookup(last);
+    const float last_value = st.values[result.port_to_signal.at(last_key)];
 
     std::cout << "push_benchmark"
               << " components=" << devices.size()

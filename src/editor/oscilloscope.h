@@ -2,6 +2,7 @@
 
 #include "identity.h"
 #include "window/window_scope_id.h"
+#include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
 #include <algorithm>
 #include <cmath>
@@ -17,6 +18,7 @@ struct OscilloscopeProbe {
     std::string wire_id;
     editor::DocumentId document_id;
     std::string signal_key;
+    ui::InternedId signal_iid; ///< Pre-resolved InternedId for zero-lookup sampling. Invalid after sim rebuild.
     std::string label;
     WindowScopeId scope_id = WindowScopeId::root();
     ui::Pt world_pos;
@@ -120,6 +122,7 @@ private:
     /// Per-document hover state — keyed by DocumentId::str().
     struct HoverState {
         std::string signal_key;
+        ui::InternedId signal_iid; ///< Pre-resolved for zero-lookup sampling.
         std::deque<float> samples;
     };
     std::unordered_map<std::string, HoverState> hover_states_;

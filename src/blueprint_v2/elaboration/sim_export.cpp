@@ -3,6 +3,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "core/solvers/common/signal_key.h"
+#include "core/solvers/jit/jit_solver.h"
 
 #include <set>
 #include <string>
@@ -163,6 +164,9 @@ JitBuildInput elaborate_for_jit(
     //
     // We remap FlatNetlist signal indices to a compact contiguous range,
     // since merge_signals may leave gaps in the original index space.
+    //
+    // Keys are interned via signal_key_interner — string construction happens
+    // once at build time, runtime lookups use InternedId (integer comparison).
     std::unordered_map<SignalIndex, uint32_t> signal_remap;
     uint32_t next_signal = 0;
 
@@ -176,7 +180,7 @@ JitBuildInput elaborate_for_jit(
             if (inserted) {
                 next_signal++;
             }
-            result.port_to_signal[key] = it->second;
+            result.port_to_signal[result.signal_key_interner.intern(key)] = it->second;
         }
 
         // Structural bridge nodes are lowered away as runtime devices; only
@@ -192,7 +196,7 @@ JitBuildInput elaborate_for_jit(
                         if (inserted) {
                             next_signal++;
                         }
-                        result.port_to_signal[exposed_key] = it->second;
+                        result.port_to_signal[result.signal_key_interner.intern(exposed_key)] = it->second;
                         break;
                     }
                 }

@@ -3,6 +3,7 @@
 ///   - Oscilloscope probes include DocumentId in identity (no cross-doc collision).
 ///   - Oscilloscope hover state is per-document.
 ///   - Document close purges probes and hover state.
+///   - Hover InternedId is invalidated on blueprint change (stale-after-rebuild bug).
 
 #include <gtest/gtest.h>
 #include "editor/oscilloscope.h"
@@ -98,6 +99,48 @@ TEST(OwnershipIsolation, HoverSamplesPerDocument) {
     // Initially empty for both
     EXPECT_TRUE(model.hover_samples(doc_a).empty());
     EXPECT_TRUE(model.hover_samples(doc_b).empty());
+}
+
+// == Hover InternedId invalidation regression tests ==
+// Regression: after sim rebuild, hover InternedId could become stale because
+// on_blueprint_changed() did not invalidate it. The lazy resolution guard
+// (if !signal_iid.empty()) would never trigger, causing get_signal_value()
+// to silently return 0.0f for the stale key.
+
+TEST(OwnershipIsolation, SetHoverSignalResetsInternedId) {
+    OscilloscopeModel model;
+    const auto doc_id = editor::DocumentId::from_string("hover_iid_doc");
+
+    // First hover — sets key and clears InternedId (lazy resolve later).
+    model.set_hover_signal(doc_id, "node.port");
+    EXPECT_EQ(model.hover_signal_key(doc_id), "node.port");
+
+    // Second hover — should also reset the InternedId for the new key.
+    model.set_hover_signal(doc_id, "other.port");
+    EXPECT_EQ(model.hover_signal_key(doc_id), "other.port");
+}
+
+TEST(OwnershipIsolation, ClearHoverSignalEmptiesKey) {
+    OscilloscopeModel model;
+    const auto doc_id = editor::DocumentId::from_string("hover_clear_doc");
+
+    model.set_hover_signal(doc_id, "sig_a");
+    ASSERT_EQ(model.hover_signal_key(doc_id), "sig_a");
+
+    model.clear_hover_signal(doc_id);
+    EXPECT_TRUE(model.hover_signal_key(doc_id).empty());
+}
+
+TEST(OwnershipIsolation, PurgeHoverRemovesEntireState) {
+    OscilloscopeModel model;
+    const auto doc_id = editor::DocumentId::from_string("hover_purge_doc");
+
+    model.set_hover_signal(doc_id, "sig_x");
+    ASSERT_EQ(model.hover_signal_key(doc_id), "sig_x");
+
+    model.purge_hover_for(doc_id);
+    EXPECT_TRUE(model.hover_signal_key(doc_id).empty());
+    EXPECT_TRUE(model.hover_samples(doc_id).empty());
 }
 
 // == External scope rejection for properties ==

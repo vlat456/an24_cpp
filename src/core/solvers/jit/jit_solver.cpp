@@ -12,7 +12,9 @@
 
 using namespace jit_solver_impl;
 
-/// Helper to compute port_to_signal mapping for JSON input
+/// Helper to compute port_to_signal mapping for JSON input.
+/// Uses string-keyed port_to_idx internally (UnionFind operates on strings),
+/// then converts to InternedId keys at the output boundary.
 static void compute_signal_mapping(
     BuildResult& result,
     const std::vector<ResolvedDevice>& devices,
@@ -81,15 +83,16 @@ static void compute_signal_mapping(
             }
         });
 
+    // UnionFind produces signal indices. Intern the string keys for typed output.
     std::map<uint32_t, uint32_t> root_to_signal;
     uint32_t next_signal = 0;
-    for (const auto& [port, idx] : port_to_idx) {
+    for (const auto& [port_str, idx] : port_to_idx) {
         const uint32_t root = uf.find(idx);
         auto [it, inserted] = root_to_signal.emplace(root, next_signal);
         if (inserted) {
             next_signal++;
         }
-        result.port_to_signal[port] = it->second;
+        result.port_to_signal[result.signal_key_interner.intern(port_str)] = it->second;
     }
 
     result.signal_count = next_signal + 1; // sentinel at end
@@ -134,6 +137,7 @@ static BuildResult build_from_signals(
 BuildResult build_systems_dev(const JitBuildInput& input) {
     BuildResult result{};
     result.port_to_signal = input.port_to_signal;
+    result.signal_key_interner = input.signal_key_interner;
     result.signal_count = input.signal_count;
     return build_from_signals(std::move(result), input.devices);
 }
@@ -159,7 +163,8 @@ JitBuildInput build_input_from_json(const std::string& json_str) {
     return JitBuildInput{
         std::move(devices),
         ctx.bridge_ports,
-        temp_result.port_to_signal,
+        std::move(temp_result.port_to_signal),
+        std::move(temp_result.signal_key_interner),
         temp_result.signal_count,
         ctx.initial_values
     };

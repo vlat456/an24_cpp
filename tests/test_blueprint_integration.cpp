@@ -52,7 +52,7 @@ static SimulationState run_simulation(
             if (it_val != dev.params.end()) value = locale_safe::parse_float_or(it_val->second, 0.0f);
 
             std::string port = dev.name + ".v";
-            auto it_sig = result.port_to_signal.find(port);
+            auto it_sig = result.port_to_signal.find(result.signal_key_interner.lookup(port));
             if (it_sig != result.port_to_signal.end()) {
                 state.values[it_sig->second] = value;
             }
@@ -71,7 +71,7 @@ static SimulationState run_simulation(
 // Helper to get signal voltage by port name
 static float get_voltage(const SimulationState& state, const BuildResult& result,
                           const std::string& port_name) {
-    auto it = result.port_to_signal.find(port_name);
+    auto it = result.port_to_signal.find(result.signal_key_interner.lookup(port_name));
     EXPECT_NE(it, result.port_to_signal.end()) << "Port not found: " << port_name;
     return state.values[it->second];
 }
@@ -118,9 +118,9 @@ TEST(BlueprintPorts, AliasPortUnification_JitAotParity) {
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Ports "test_dev.i" and "test_dev.o1" must map to the same signal
-    auto it_i  = result.port_to_signal.find("test_dev.i");
-    auto it_o1 = result.port_to_signal.find("test_dev.o1");
-    auto it_o2 = result.port_to_signal.find("test_dev.o2");
+    auto it_i  = result.port_to_signal.find(result.signal_key_interner.lookup("test_dev.i"));
+    auto it_o1 = result.port_to_signal.find(result.signal_key_interner.lookup("test_dev.o1"));
+    auto it_o2 = result.port_to_signal.find(result.signal_key_interner.lookup("test_dev.o2"));
 
     ASSERT_NE(it_i,  result.port_to_signal.end()) << "Port 'test_dev.i' not found";
     ASSERT_NE(it_o1, result.port_to_signal.end()) << "Port 'test_dev.o1' not found";

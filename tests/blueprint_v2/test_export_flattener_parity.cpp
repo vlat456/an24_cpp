@@ -97,8 +97,11 @@ std::set<std::string> collect_device_names(const JitBuildInput& jit_input) {
 bool connected_on_same_signal(const JitBuildInput& jit_input,
                               const std::string& a,
                               const std::string& b) {
-    auto it_a = jit_input.port_to_signal.find(a);
-    auto it_b = jit_input.port_to_signal.find(b);
+    const ui::InternedId key_a = jit_input.signal_key_interner.lookup(a);
+    const ui::InternedId key_b = jit_input.signal_key_interner.lookup(b);
+    if (key_a.empty() || key_b.empty()) return false;
+    auto it_a = jit_input.port_to_signal.find(key_a);
+    auto it_b = jit_input.port_to_signal.find(key_b);
     if (it_a == jit_input.port_to_signal.end() || it_b == jit_input.port_to_signal.end()) {
         return false;
     }
@@ -431,8 +434,12 @@ inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
     auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, parity_registry());
 
-    ASSERT_EQ(jit_input.port_to_signal.count("extract_inst_4.out"), 1u);
-    ASSERT_EQ(jit_input.port_to_signal.count("extract_inst_4:bp_out_1.ext"), 1u);
-    EXPECT_EQ(jit_input.port_to_signal.at("extract_inst_4.out"),
-              jit_input.port_to_signal.at("extract_inst_4:bp_out_1.ext"));
+    const ui::InternedId key_out = jit_input.signal_key_interner.lookup("extract_inst_4.out");
+    const ui::InternedId key_ext = jit_input.signal_key_interner.lookup("extract_inst_4:bp_out_1.ext");
+    ASSERT_FALSE(key_out.empty());
+    ASSERT_FALSE(key_ext.empty());
+    ASSERT_EQ(jit_input.port_to_signal.count(key_out), 1u);
+    ASSERT_EQ(jit_input.port_to_signal.count(key_ext), 1u);
+    EXPECT_EQ(jit_input.port_to_signal.at(key_out),
+              jit_input.port_to_signal.at(key_ext));
 }

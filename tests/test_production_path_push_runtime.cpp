@@ -29,7 +29,7 @@ TEST(ProductionPathPushRuntime, SinglePassSettlesLinearChain) {
     ASSERT_NO_THROW(sim.start(build_input_from_json(json)));
     sim.step(1.0f / 60.0f);
 
-    EXPECT_NEAR(sim.get_port_value("clamp", "out"), 18.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("clamp", "out")), 18.0f, 1e-4f);
 }
 
 TEST(ProductionPathPushRuntime, CycleRemainsFinite) {
@@ -54,6 +54,6 @@ TEST(ProductionPathPushRuntime, CycleRemainsFinite) {
         sim.step(1.0f / 60.0f);
     }
 
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("add1", "o")));
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("add2", "o")));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("add1", "o"))));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("add2", "o"))));
 }

@@ -13,6 +13,7 @@
 #include "io/json/component_registry_json_loader.h"
 
 #include <fstream>
+#include <cmath>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -197,12 +198,12 @@ TEST(ExternalRefIntegration, ClosedCircuitFirstOrderLagSignalsNonZero) {
 
     // Verify that these mapped keys resolve to non-zero values in the simulator
     // (proving the mapping matches what the parser creates)
-    float in_port_v  = sim.get_wire_voltage(in_port_key);
-    float in_ext_v   = sim.get_wire_voltage(in_ext_key);
-    float acc_out_v  = sim.get_wire_voltage(acc_out_key);
-    float out_port_v = sim.get_wire_voltage(out_port_key);
-    float out_ext_v  = sim.get_wire_voltage(out_ext_key);
-    float mul_o_v    = sim.get_wire_voltage(mul_o_key);
+    float in_port_v  = sim.get_signal_value(sim.signal_key_interner().lookup(in_port_key));
+    float in_ext_v   = sim.get_signal_value(sim.signal_key_interner().lookup(in_ext_key));
+    float acc_out_v  = sim.get_signal_value(sim.signal_key_interner().lookup(acc_out_key));
+    float out_port_v = sim.get_signal_value(sim.signal_key_interner().lookup(out_port_key));
+    float out_ext_v  = sim.get_signal_value(sim.signal_key_interner().lookup(out_ext_key));
+    float mul_o_v    = sim.get_signal_value(sim.signal_key_interner().lookup(mul_o_key));
 
     // Diagnostic: print all values
     printf("[DIAG] in.port=%f  in.ext=%f  acc.out=%f  out.port=%f  out.ext=%f  mul.o=%f\n",
@@ -235,7 +236,7 @@ TEST(ExternalRefIntegration, ClosedCircuitFirstOrderLagSignalsNonZero) {
 
     // Canonical root endpoint should mirror bridge external value.
     std::string canonical_in_key = editor::map_composite_port_key("firstorderlag_1", "in");
-    float canonical_in_v = sim.get_wire_voltage(canonical_in_key);
+    float canonical_in_v = sim.get_signal_value(sim.signal_key_interner().lookup(canonical_in_key));
     EXPECT_NEAR(canonical_in_v, in_ext_v, 1e-5f)
         << "Canonical root endpoint must alias bridge external endpoint";
 }
@@ -258,11 +259,11 @@ TEST(ExternalRefIntegration, WireIsEnergizedMappedKey) {
     // should be energized (matching the rendering code's energization check)
     std::string acc_out_key = editor::resolve_external_ref_signal_key(
         "firstorderlag_1", "accumulator.out");
-    float acc_out_v = sim.get_wire_voltage(acc_out_key);
+    float acc_out_v = sim.get_signal_value(sim.signal_key_interner().lookup(acc_out_key));
 
     // If accumulator output is non-zero, wire_is_energized should match
     if (std::abs(acc_out_v) > 0.5f) {
-        EXPECT_TRUE(sim.wire_is_energized(acc_out_key))
+        EXPECT_TRUE(std::abs(sim.get_signal_value(sim.signal_key_interner().lookup(acc_out_key))) > 0.5f)
             << "wire_is_energized returned false for a non-zero mapped signal key";
     }
 }
@@ -309,13 +310,13 @@ TEST(CompositePortMapping, RootLevelOutputResolves) {
         sim.step(dt);
     }
 
-    float naive_value = sim.get_wire_voltage("firstorderlag_1.out");
+    float naive_value = sim.get_signal_value(sim.signal_key_interner().lookup("firstorderlag_1.out"));
     std::string mapped_key = editor::map_composite_port_key("firstorderlag_1", "out");
     EXPECT_EQ(mapped_key, "firstorderlag_1.out");
-    EXPECT_NEAR(naive_value, sim.get_wire_voltage(mapped_key), 1e-6f)
+    EXPECT_NEAR(naive_value, sim.get_signal_value(sim.signal_key_interner().lookup(mapped_key)), 1e-6f)
         << "Direct node.port and resolver key must match for canonical identity";
 
-    float mapped_value = sim.get_wire_voltage(mapped_key);
+    float mapped_value = sim.get_signal_value(sim.signal_key_interner().lookup(mapped_key));
     printf("[DIAG] canonical 'firstorderlag_1.out' = %f\n", mapped_value);
 
     EXPECT_GT(std::abs(mapped_value), 0.01f)
@@ -325,7 +326,7 @@ TEST(CompositePortMapping, RootLevelOutputResolves) {
     // Also verify the input port mapping
     std::string in_mapped = editor::map_composite_port_key("firstorderlag_1", "in");
     EXPECT_EQ(in_mapped, "firstorderlag_1.in");
-    float in_value = sim.get_wire_voltage(in_mapped);
+    float in_value = sim.get_signal_value(sim.signal_key_interner().lookup(in_mapped));
     printf("[DIAG] mapped 'firstorderlag_1.in' = %f\n", in_value);
     EXPECT_GT(std::abs(in_value), 0.01f)
         << "Mapped input key should be non-zero (parent circuit feeds it)";
@@ -350,9 +351,9 @@ TEST(CompositePortMapping, RootLevelWireEnergizedWithMapping) {
     // Canonical key is node.port.
     std::string mapped = editor::map_composite_port_key("firstorderlag_1", "out");
     EXPECT_EQ(mapped, "firstorderlag_1.out");
-    EXPECT_TRUE(sim.wire_is_energized(mapped))
+    EXPECT_TRUE(std::abs(sim.get_signal_value(sim.signal_key_interner().lookup(mapped))) > 0.5f)
         << "Mapped key 'firstorderlag_1.out' should be energized.\n"
-        << "  value=" << sim.get_wire_voltage(mapped);
+        << "  value=" << sim.get_signal_value(sim.signal_key_interner().lookup(mapped));
 }
 
 // ===========================================================================
@@ -373,9 +374,9 @@ TEST(ExternalRefIntegration, RootExpandableRawVsMappedKey) {
         sim.step(dt);
     }
 
-    float raw_value = sim.get_wire_voltage("firstorderlag_1.out");
+    float raw_value = sim.get_signal_value(sim.signal_key_interner().lookup("firstorderlag_1.out"));
     std::string mapped_key = editor::map_composite_port_key("firstorderlag_1", "out");
-    float mapped_value = sim.get_wire_voltage(mapped_key);
+    float mapped_value = sim.get_signal_value(sim.signal_key_interner().lookup(mapped_key));
     EXPECT_NEAR(raw_value, mapped_value, 1e-6f)
         << "Raw node.port and mapped key must resolve to the same canonical signal";
     EXPECT_GT(std::abs(mapped_value), 0.01f)
@@ -405,12 +406,12 @@ TEST(ExternalRefIntegration, RootExpandableResolvedKeyMatchesParserRewriteContra
         << "Resolver must map root expandable to canonical node.port format";
 
     // === CONTRACT CHECK 2: resolved signal must exist and be non-zero ===
-    float mapped_value = sim.get_wire_voltage(mapped_key);
+    float mapped_value = sim.get_signal_value(sim.signal_key_interner().lookup(mapped_key));
     EXPECT_GT(std::abs(mapped_value), 0.01f)
         << "Mapped key from resolver contract must reference active signal: " << mapped_key;
 
     // === CONTRACT CHECK 3: direct node.port query is identical ===
-    float raw_value = sim.get_wire_voltage("firstorderlag_1.out");
+    float raw_value = sim.get_signal_value(sim.signal_key_interner().lookup("firstorderlag_1.out"));
     EXPECT_NEAR(raw_value, mapped_value, 1e-6f)
         << "Direct node.port and resolver mapped key must be identical";
 }

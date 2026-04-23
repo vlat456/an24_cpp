@@ -133,7 +133,8 @@ void build_and_register_components(
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<RefNode<JitProvider>>(result.devices[dev.name]));
             const std::string key = dev.name + ".v";
-            auto it_sig = result.port_to_signal.find(key);
+            const ui::InternedId iid = result.signal_key_interner.lookup(key);
+            auto it_sig = result.port_to_signal.find(iid);
             if (it_sig != result.port_to_signal.end()) {
                 result.fixed_signals.push_back(it_sig->second);
             }

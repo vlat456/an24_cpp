@@ -38,6 +38,54 @@ editor::NodeInstanceKey make_scoped_node_instance_key(const ui::StringInterner& 
     return editor::make_node_instance_key(scope_id_to_instance_path(interner, scope_id), local_node_id);
 }
 
+/// Resolve an InternedId for a (sim_node_id, port_name) pair against the simulation interner.
+/// Called only at cache-build time (simulation start) and interaction time — never per-frame.
+ui::InternedId resolve_port_key(const ui::StringInterner& sim_interner,
+                                const std::string& sim_node_id,
+                                std::string_view port_name) {
+    return sim_interner.lookup(signal_key::make_node_port_key(sim_node_id, port_name));
+}
+
+/// Overlay simulation values onto NodeContent using pre-resolved InternedId cache.
+/// Zero string construction, zero hash table lookup — pure integer reads.
+void overlay_from_cache(NodeContent& content,
+                        const editor::NodeSignalCache& cache,
+                        const Simulator<JIT_Solver>& simulation) {
+    switch (cache.content_type) {
+        case bp2::NodeContentType::Gauge:
+            // Voltmeter
+            content.value = simulation.get_signal_value(cache.v_in);
+            break;
+        case bp2::NodeContentType::Indicator:
+            // IndicatorLight
+            content.value = std::clamp(simulation.get_signal_value(cache.brightness), 0.0f, 1.0f);
+            break;
+        case bp2::NodeContentType::Switch:
+        case bp2::NodeContentType::VerticalToggle:
+            content.state = simulation.get_signal_value(cache.state) > 0.5f;
+            if (cache.is_azs) {
+                content.tripped = simulation.get_signal_value(cache.tripped) > 0.5f;
+            }
+            break;
+        case bp2::NodeContentType::Slider: {
+            float val = simulation.get_signal_value(cache.slider_readback);
+            if (std::isfinite(val)) {
+                content.value = val;
+            }
+            break;
+        }
+        case bp2::NodeContentType::Knob: {
+            float val = simulation.get_signal_value(cache.position);
+            if (std::isfinite(val)) {
+                content.value = val;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 std::pair<const bp2::Blueprint::Wire*, std::string_view> find_wire_in_scope(
     const Document::ResolvedSignalScope& resolved,
     std::string_view wire_id) {
@@ -125,45 +173,6 @@ void dispatch_content_to_widget(WindowManager& window_manager,
     if (!widget) return;
     auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
     if (nw) nw->updateContent(content);
-}
-
-void overlay_simulation_values(NodeContent& content,
-                               const bp2::Blueprint::Node& node,
-                               ui::StringInterner& interner,
-                               const std::string& type_name,
-                               const std::string& sim_node_id,
-                               Simulator<JIT_Solver>& simulation) {
-    if (type_name == "Voltmeter") {
-        content.value = simulation.get_port_value(sim_node_id, "v_in");
-    } else if (type_name == "IndicatorLight") {
-        float brightness = simulation.get_port_value(sim_node_id, "brightness");
-        content.value = std::clamp(brightness, 0.0f, 1.0f);
-    } else if (type_name == "Switch") {
-        float state_voltage = simulation.get_port_value(sim_node_id, "state");
-        content.state = (state_voltage > 0.5f);
-    } else if (type_name == "HoldButton") {
-        float state_voltage = simulation.get_port_value(sim_node_id, "state");
-        content.state = (state_voltage > 0.5f);
-    } else if (type_name == "AZS") {
-        float state_voltage = simulation.get_port_value(sim_node_id, "state");
-        content.state = (state_voltage > 0.5f);
-        float tripped_voltage = simulation.get_port_value(sim_node_id, "tripped");
-        content.tripped = (tripped_voltage > 0.5f);
-    } else if (type_name == "Slider") {
-        if (auto port = editor::select_slider_readback_port(node, interner)) {
-            float val = simulation.get_port_value(sim_node_id, std::string(*port));
-            if (std::isfinite(val)) {
-                content.value = val;
-            }
-        }
-    } else if (type_name == "KnobSwitch"
-               || type_name == "RotarySwitch1ToN"
-               || type_name == "RotarySwitchNTo1") {
-        float pos_val = simulation.get_port_value(sim_node_id, "position");
-        if (std::isfinite(pos_val)) {
-            content.value = pos_val;
-        }
-    }
 }
 
 } // namespace
@@ -276,6 +285,7 @@ void Document::startSimulation() {
     if (!simulation_running_) {
         try {
             simulation_.start(build_jit_input());
+            build_signal_cache();
             simulation_running_ = true;
             for (auto& win : window_manager_.windows()) {
                 win->set_simulation_mode(true);
@@ -289,6 +299,9 @@ void Document::startSimulation() {
 
 void Document::stopSimulation() {
     simulation_.stop();
+    signal_cache_.clear();
+    typed_overrides_.clear();
+    held_buttons_.clear();
     simulation_running_ = false;
     for (auto& win : window_manager_.windows()) {
         win->set_simulation_mode(false);
@@ -300,8 +313,10 @@ void Document::rebuildSimulation() {
         simulation_.stop();
         try {
             simulation_.start(build_jit_input());
+            build_signal_cache();
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to rebuild simulation: {}", e.what());
+            signal_cache_.clear();
             simulation_running_ = false;
             for (auto& win : window_manager_.windows()) {
                 win->set_simulation_mode(false);
@@ -319,6 +334,74 @@ void Document::rebuildAllWindows() {
     rebuildSimulation();
 }
 
+// ===========================================================================
+// Signal cache — pre-resolve InternedIds at simulation start
+// ===========================================================================
+
+void Document::build_signal_cache() {
+    signal_cache_.clear();
+    const auto& sim_interner = simulation_.signal_key_interner();
+
+    std::vector<ui::InternedId> instance_path;
+    editor::walk_blueprint_nodes(model_.current(), instance_path,
+        [&](const bp2::Blueprint::Node& n, std::span<const ui::InternedId> path) {
+            const NodeContent base = resolve_base_content(n, interner_, type_registry_);
+            if (base.type == bp2::NodeContentType::None) return;
+
+            // Build simulation node ID (string construction here is fine —
+            // this runs once at simulation start, not per-frame).
+            const std::string sim_id_prefix = editor::instance_path_to_scope_string(interner_, path);
+            const std::string local_id = std::string(interner_.resolve(n.semantic.id));
+            const std::string nid = sim_id_prefix.empty()
+                ? local_id
+                : signal_key::make_child_scope_key(sim_id_prefix, local_id);
+            const std::string type_name = std::string(interner_.resolve(n.semantic.type));
+
+            editor::NodeSignalCache cache;
+            cache.content_type = base.type;
+            cache.is_azs = (type_name == "AZS");
+
+            // Resolve InternedIds for all ports this node type might read.
+            // Empty InternedId = port doesn't exist; get_signal_value(empty) returns 0.
+            if (base.type == bp2::NodeContentType::Switch ||
+                base.type == bp2::NodeContentType::VerticalToggle) {
+                cache.state = resolve_port_key(sim_interner, nid, "state");
+                cache.control = resolve_port_key(sim_interner, nid, "control");
+                if (cache.is_azs) {
+                    cache.tripped = resolve_port_key(sim_interner, nid, "tripped");
+                }
+            } else if (base.type == bp2::NodeContentType::Indicator) {
+                cache.brightness = resolve_port_key(sim_interner, nid, "brightness");
+            } else if (base.type == bp2::NodeContentType::Gauge) {
+                cache.v_in = resolve_port_key(sim_interner, nid, "v_in");
+            } else if (base.type == bp2::NodeContentType::Slider) {
+                if (auto port = editor::select_slider_readback_port(n, interner_)) {
+                    cache.slider_readback = resolve_port_key(sim_interner, nid, *port);
+                }
+                cache.control = resolve_port_key(sim_interner, nid, "control");
+            } else if (base.type == bp2::NodeContentType::Knob) {
+                cache.position = resolve_port_key(sim_interner, nid, "position");
+                cache.control = resolve_port_key(sim_interner, nid, "control");
+            }
+
+            const editor::NodeInstanceKey key = editor::make_node_instance_key(path, n.semantic.id);
+
+            // Build the WindowScopeId once — avoids per-frame string construction.
+            if (path.empty()) {
+                cache.scope = WindowScopeId::root();
+            } else {
+                std::vector<std::string> scope_path;
+                scope_path.reserve(path.size());
+                for (const auto& seg : path) {
+                    scope_path.emplace_back(interner_.resolve(seg));
+                }
+                cache.scope = WindowScopeId::embedded(std::move(scope_path));
+            }
+
+            signal_cache_[key] = std::move(cache);
+        });
+}
+
 // ============================================================================
 // Simulation step & content updates
 // ============================================================================
@@ -326,63 +409,52 @@ void Document::rebuildAllWindows() {
 void Document::updateSimulationStep(double dt) {
     if (!simulation_running_) return;
 
-    for (const auto& node_id : held_buttons_) {
-         std::string control_port = signal_key::make_node_port_key(node_id, "control");
-         signal_overrides_[control_port] = 1.0f;
-     }
+    // Merge held-button overrides (pre-resolved InternedIds) with interaction overrides.
+    std::vector<std::pair<ui::InternedId, float>> all_overrides;
+    all_overrides.reserve(typed_overrides_.size() + held_buttons_.size());
 
-    simulation_.apply_overrides(signal_overrides_);
+    for (const auto& [sim_id, control_iid] : held_buttons_) {
+        if (!control_iid.empty()) all_overrides.push_back({control_iid, 1.0f});
+    }
+    all_overrides.insert(all_overrides.end(), typed_overrides_.begin(), typed_overrides_.end());
+
+    simulation_.apply_typed_overrides(all_overrides);
     simulation_.step(dt);
-    signal_overrides_.clear();
+    typed_overrides_.clear();
 }
 
 void Document::updateNodeContentFromSimulation() {
     if (!simulation_running_) return;
 
-    std::vector<ui::InternedId> instance_path;
-    editor::walk_blueprint_nodes(model_.current(), instance_path,
-        [&](const bp2::Blueprint::Node& n, std::span<const ui::InternedId> path) {
-            const std::string sim_id_prefix = editor::instance_path_to_scope_string(interner_, path);
-            const std::string local_id = std::string(interner_.resolve(n.semantic.id));
-            const std::string nid = sim_id_prefix.empty()
-                ? local_id
-                : signal_key::make_child_scope_key(sim_id_prefix, local_id);
-            const std::string type_name = std::string(interner_.resolve(n.semantic.type));
-            NodeContent content = resolve_base_content(n, interner_, type_registry_);
-            if (content.type == bp2::NodeContentType::None) return;
+    // Iterate the pre-resolved signal cache — zero string construction.
+    // The cache was built at simulation start with all InternedIds resolved.
+    for (auto& [key, cache] : signal_cache_) {
+        NodeContent content;
+        content.type = cache.content_type;
+        overlay_from_cache(content, cache, simulation_);
 
-            overlay_simulation_values(content, n, interner_, type_name, nid, simulation_);
-            const editor::NodeInstanceKey key = editor::make_node_instance_key(path, n.semantic.id);
-            switch (content.type) {
-                case bp2::NodeContentType::Slider:
-                case bp2::NodeContentType::Gauge:
-                case bp2::NodeContentType::Indicator:
-                    runtime_node_states_[key] = editor::ScalarNodeRuntimeState{content.value};
-                    break;
-                case bp2::NodeContentType::Knob:
-                    runtime_node_states_[key] = editor::DiscreteNodeRuntimeState{static_cast<int>(content.value)};
-                    break;
-                case bp2::NodeContentType::Switch:
-                case bp2::NodeContentType::VerticalToggle:
-                    runtime_node_states_[key] = (type_name == "AZS")
-                        ? editor::RuntimeNodeState(editor::BoolTrippedNodeRuntimeState{content.state, content.tripped})
-                        : editor::RuntimeNodeState(editor::BoolNodeRuntimeState{content.state});
-                    break;
-                default:
-                    break;
-            }
+        switch (cache.content_type) {
+            case bp2::NodeContentType::Slider:
+            case bp2::NodeContentType::Gauge:
+            case bp2::NodeContentType::Indicator:
+                runtime_node_states_[key] = editor::ScalarNodeRuntimeState{content.value};
+                break;
+            case bp2::NodeContentType::Knob:
+                runtime_node_states_[key] = editor::DiscreteNodeRuntimeState{static_cast<int>(content.value)};
+                break;
+            case bp2::NodeContentType::Switch:
+            case bp2::NodeContentType::VerticalToggle:
+                runtime_node_states_[key] = cache.is_azs
+                    ? editor::RuntimeNodeState(editor::BoolTrippedNodeRuntimeState{content.state, content.tripped})
+                    : editor::RuntimeNodeState(editor::BoolNodeRuntimeState{content.state});
+                break;
+            default:
+                break;
+        }
 
-            // Build the WindowScopeId matching this node's depth for widget dispatch.
-            std::vector<std::string> widget_scope_path;
-            widget_scope_path.reserve(path.size());
-            for (ui::InternedId segment : path) {
-                widget_scope_path.push_back(std::string(interner_.resolve(segment)));
-            }
-            const WindowScopeId widget_scope = widget_scope_path.empty()
-                ? WindowScopeId::root()
-                : WindowScopeId::embedded(std::move(widget_scope_path));
-            dispatch_content_to_widget(window_manager_, interner_, n.semantic.id, widget_scope, content);
-        });
+        // Dispatch to widget using pre-built scope — zero string construction.
+        dispatch_content_to_widget(window_manager_, interner_, key.local_node_id, cache.scope, content);
+    }
 }
 
 /// Rebuild runtime node states from the current blueprint. Pure state reset —
@@ -515,7 +587,7 @@ void Document::buildEnergizedWireSet(
             *resolved.blueprint, *resolved.interner, endpoint, resolved.context);
         if (port_key.empty()) continue;
 
-        if (simulation_.wire_is_energized(port_key)) {
+        if (std::abs(simulation_.get_signal_value(simulation_.signal_key_interner().lookup(port_key))) > 0.5f) {
             out.insert(resolved.interner->resolve(w.id));
         }
     }
@@ -565,14 +637,16 @@ std::string Document::resolve_wire_signal_key(const WindowScopeId& scope_id,
 
 void Document::triggerSwitch(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
     const std::string sim_id = make_sim_id(node_id, scope_id);
-    float current = simulation_.get_port_value(sim_id, "control");
+    const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
+    float current = simulation_.get_signal_value(control_key);
     float next = (current < 0.5f) ? 1.0f : 0.0f;
-    signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = next;
+    typed_overrides_.push_back({control_key, next});
 }
 
 void Document::setSliderValue(const editor::NodeId& node_id, float value, const WindowScopeId& scope_id) {
     const std::string sim_id = make_sim_id(node_id, scope_id);
-    signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = value;
+    const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
+    typed_overrides_.push_back({control_key, value});
 
     const bp2::Blueprint::Node* n = find_node_in_scope(scope_id, node_id);
     if (!n) return;
@@ -586,7 +660,8 @@ void Document::setSliderValue(const editor::NodeId& node_id, float value, const 
 
 void Document::setKnobPosition(const editor::NodeId& node_id, int position, const WindowScopeId& scope_id) {
     const std::string sim_id = make_sim_id(node_id, scope_id);
-    signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = static_cast<float>(position);
+    const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
+    typed_overrides_.push_back({control_key, static_cast<float>(position)});
 
     const bp2::Blueprint::Node* n = find_node_in_scope(scope_id, node_id);
     if (!n) return;
@@ -599,11 +674,19 @@ void Document::setKnobPosition(const editor::NodeId& node_id, int position, cons
 }
 
 void Document::holdButtonPress(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    held_buttons_.insert(make_sim_id(node_id, scope_id));
+    const std::string sim_id = make_sim_id(node_id, scope_id);
+    const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
+    held_buttons_[sim_id] = control_key;
 }
 
 void Document::holdButtonRelease(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
     const std::string sim_id = make_sim_id(node_id, scope_id);
-    held_buttons_.erase(sim_id);
-    signal_overrides_[signal_key::make_node_port_key(sim_id, "control")] = 2.0f;
+    auto it = held_buttons_.find(sim_id);
+    if (it != held_buttons_.end()) {
+        // Send release override using the pre-resolved InternedId.
+        if (!it->second.empty()) {
+            typed_overrides_.push_back({it->second, 2.0f});
+        }
+        held_buttons_.erase(it);
+    }
 }

@@ -43,7 +43,12 @@ void build_electrical_islands(
     // Helper to resolve port to signal index with fail-fast on missing mapping
     auto resolve_port = [&](const ResolvedDevice& dev, const std::string& port_name) -> uint32_t {
         const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
-        auto it = result.port_to_signal.find(full_port);
+        const ui::InternedId key = result.signal_key_interner.lookup(full_port);
+        if (key.empty()) {
+            throw std::runtime_error("Missing required port mapping '" + full_port +
+                "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
+        }
+        auto it = result.port_to_signal.find(key);
         if (it == result.port_to_signal.end()) {
             throw std::runtime_error("Missing required port mapping '" + full_port +
                 "' for component '" + dev.name + "' (classname: " + dev.classname + ")");

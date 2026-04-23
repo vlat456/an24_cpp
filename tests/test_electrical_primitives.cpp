@@ -133,14 +133,14 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
     sim_b.step(dt);
 
     // Source v_out in both circuits should be identical
-    float v_out_a = sim_a.get_port_value("bat", "v_out");
-    float v_out_b = sim_b.get_port_value("bat", "v_out");
+    float v_out_a = sim_a.get_signal_value(sim_a.resolve_signal_key("bat", "v_out"));
+    float v_out_b = sim_b.get_signal_value(sim_b.resolve_signal_key("bat", "v_out"));
     EXPECT_NEAR(v_out_a, v_out_b, 1e-6f)
         << "Wrapper Resistor and primitive ElectricalConductance should produce identical source v_out";
 
     // Ground should be 0V in both
-    EXPECT_NEAR(sim_a.get_port_value("gnd", "v"), 0.0f, 1e-4f);
-    EXPECT_NEAR(sim_b.get_port_value("gnd", "v"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim_a.get_signal_value(sim_a.resolve_signal_key("gnd", "v")), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim_b.get_signal_value(sim_b.resolve_signal_key("gnd", "v")), 0.0f, 1e-4f);
 
     // Verify the solved value makes physical sense:
     // V = Vth * (Rload / (Rload + Rseries)) = 28.0 * (2.0 / (2.0 + 0.1)) = 28.0 * 0.9524 ≈ 26.67V
@@ -181,17 +181,17 @@ TEST(ElectricalPrimitives, PrimitiveOnlyCircuitSolvesCorrectly) {
     sim.step(dt);
 
     // Ground = 0V
-    EXPECT_NEAR(sim.get_port_value("gnd", "v"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("gnd", "v")), 0.0f, 1e-4f);
 
     // Junction voltage (src.v_out = load.v_in):
     // Thevenin divider: V = 28 * (0.5 / (0.5 + 0.5)) = 14V
-    float v_junction = sim.get_port_value("src", "v_out");
+    float v_junction = sim.get_signal_value(sim.resolve_signal_key("src", "v_out"));
     EXPECT_NEAR(v_junction, 14.0f, 0.1f)
         << "Primitive-only circuit should solve to correct voltage divider result";
 
     // All values finite
     EXPECT_TRUE(std::isfinite(v_junction));
-    EXPECT_TRUE(std::isfinite(sim.get_port_value("load", "v_out")));
+    EXPECT_TRUE(std::isfinite(sim.get_signal_value(sim.resolve_signal_key("load", "v_out"))));
 }
 
 // ============================================================================
@@ -224,7 +224,7 @@ TEST(ElectricalPrimitives, PrimitiveOnlyCircuitStableOverTime) {
 
     for (int i = 0; i < 500; ++i) {
         sim.step(dt);
-        float v = sim.get_port_value("src", "v_out");
+        float v = sim.get_signal_value(sim.resolve_signal_key("src", "v_out"));
         EXPECT_TRUE(std::isfinite(v)) << "Voltage should be finite at frame " << i;
         EXPECT_NEAR(v, expected_v, 0.1f) << "Voltage should remain stable at frame " << i;
     }
@@ -343,7 +343,7 @@ TEST(ElectricalPrimitives, MixedWrapperAndPrimitiveInSameIsland) {
     double dt = 1.0 / 60.0;
     sim.step(dt);
 
-    float v_out = sim.get_port_value("bat", "v_out");
+    float v_out = sim.get_signal_value(sim.resolve_signal_key("bat", "v_out"));
     EXPECT_TRUE(std::isfinite(v_out));
     // V = 28 * (2.0 / (2.0 + 0.01)) ≈ 27.86V
     EXPECT_NEAR(v_out, 28.0f * (2.0f / (2.0f + 0.01f)), 0.1f)
@@ -394,8 +394,8 @@ TEST(ElectricalPrimitives, SourceAndBatteryEquivalent) {
 
     // Both should produce same junction voltage
     // V = 24 * (1.0 / (1.0 + 0.5)) = 16V
-    float v_bat = sim_bat.get_port_value("bat", "v_out");
-    float v_src = sim_src.get_port_value("src", "v_out");
+    float v_bat = sim_bat.get_signal_value(sim_bat.resolve_signal_key("bat", "v_out"));
+    float v_src = sim_src.get_signal_value(sim_src.resolve_signal_key("src", "v_out"));
 
     EXPECT_NEAR(v_bat, v_src, 1e-6f)
         << "Equivalent source configurations should produce identical results";
@@ -440,15 +440,15 @@ TEST(ElectricalPrimitives, TwoConductancesInSeries) {
     sim.step(dt);
 
     // Source output should be 28V (ideal source, R_series = 0)
-    float v_src = sim.get_port_value("src", "v_out");
+    float v_src = sim.get_signal_value(sim.resolve_signal_key("src", "v_out"));
     EXPECT_NEAR(v_src, 28.0f, 0.1f) << "Ideal source output should be 28V";
 
     // Middle node (r1.v_out = r2.v_in) should be 14V
-    float v_mid = sim.get_port_value("r1", "v_out");
+    float v_mid = sim.get_signal_value(sim.resolve_signal_key("r1", "v_out"));
     EXPECT_NEAR(v_mid, 14.0f, 0.1f) << "Mid-point should be 14V (equal series resistors)";
 
     // Ground should be 0V
-    EXPECT_NEAR(sim.get_port_value("gnd", "v"), 0.0f, 1e-4f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("gnd", "v")), 0.0f, 1e-4f);
 }
 
 // ============================================================================
@@ -801,8 +801,8 @@ TEST(ElectricalPrimitives, MetadataPropagatedThroughLibraryPipeline) {
 
     // Check solved voltages make physical sense
     // V = Vsrc * Rload / (Rload + Rint) = 24.0 * 2.0 / (2.0 + 0.1) = 22.857
-    float v_gnd = sim.get_port_value("gnd", "v");
-    float v_src_out = sim.get_port_value("src", "v_out");
+    float v_gnd = sim.get_signal_value(sim.resolve_signal_key("gnd", "v"));
+    float v_src_out = sim.get_signal_value(sim.resolve_signal_key("src", "v_out"));
 
     EXPECT_NEAR(v_gnd, 0.0f, 1e-4f);
     EXPECT_GT(v_src_out, 20.0f);  // Should be ~22.857 V

@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 /// Empty tag type for JIT solver specialization.
 struct JIT_Solver {};
@@ -37,14 +38,21 @@ public:
 
     size_t get_signal_count() const { return state_.values.size(); }
 
-    float get_wire_voltage(const std::string& port_name) const;
-    float get_port_value(const std::string& node_id, const std::string& port_name) const;
-    bool wire_is_energized(const std::string& port_name, float threshold = 0.5f) const;
+    // === Typed signal API (zero allocation at steady state) ===
 
-    void apply_overrides(const std::unordered_map<std::string, float>& overrides);
+    /// Look up signal value by interned key. O(1) integer hash lookup.
+    float get_signal_value(ui::InternedId key) const;
 
-    bool get_boolean_output(const std::string& port_name) const;
-    bool get_component_state_as_bool(const std::string& node_id, const std::string& port_name) const;
+    /// Apply signal overrides by interned key.
+    void apply_typed_overrides(const std::vector<std::pair<ui::InternedId, float>>& overrides);
+
+    /// Access the build-scoped signal key interner.
+    const ui::StringInterner& signal_key_interner() const;
+
+    /// Resolve a (node_id, port_name) pair to an InternedId via the interner.
+    /// Returns empty InternedId if not found. String construction is required
+    /// here — use only at setup time, not in the hot path.
+    ui::InternedId resolve_signal_key(std::string_view node_id, std::string_view port_name) const;
 
 private:
     std::optional<BuildResult> build_result_;

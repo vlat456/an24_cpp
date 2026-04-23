@@ -142,37 +142,37 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
 
     // Test 1: Initial state (all zeros) -> output FALSE (diff=0, not > Von)
     simulator.step(0.016f);  // 60Hz = 16.67ms
-    bool output1 = simulator.get_component_state_as_bool("comp1", "o");
+    bool output1 = simulator.get_signal_value(simulator.resolve_signal_key("comp1", "o")) > 0.5f;
     EXPECT_FALSE(output1) << "Initial output should be FALSE when all inputs are zero";
 
     // Test 2: Set Va=10, Vb=0 -> (10-0) > Von(5) -> TRUE
-    simulator.apply_overrides({{"comp1.Va", 10.0f}, {"comp1.Vb", 0.0f}});
+    simulator.apply_typed_overrides({{simulator.signal_key_interner().lookup("comp1.Va"), 10.0f}, {simulator.signal_key_interner().lookup("comp1.Vb"), 0.0f}});
     simulator.step(0.016f);
-    bool output2 = simulator.get_component_state_as_bool("comp1", "o");
+    bool output2 = simulator.get_signal_value(simulator.resolve_signal_key("comp1", "o")) > 0.5f;
     EXPECT_TRUE(output2) << "Output should be TRUE when (Va - Vb) > Von";
 
     // Test 3: Reduce Va to 4 -> (4-0) = 4, in hysteresis band [2, 5] -> maintain TRUE
-    simulator.apply_overrides({{"comp1.Va", 4.0f}});
+    simulator.apply_typed_overrides({{simulator.signal_key_interner().lookup("comp1.Va"), 4.0f}});
     simulator.step(0.016f);
-    bool output3 = simulator.get_component_state_as_bool("comp1", "o");
+    bool output3 = simulator.get_signal_value(simulator.resolve_signal_key("comp1", "o")) > 0.5f;
     EXPECT_TRUE(output3) << "Output should maintain TRUE when in hysteresis band";
 
     // Test 4: Reduce Va to 1 -> (1-0) < Voff(2) -> FALSE
-    simulator.apply_overrides({{"comp1.Va", 1.0f}});
+    simulator.apply_typed_overrides({{simulator.signal_key_interner().lookup("comp1.Va"), 1.0f}});
     simulator.step(0.016f);
-    bool output4 = simulator.get_component_state_as_bool("comp1", "o");
+    bool output4 = simulator.get_signal_value(simulator.resolve_signal_key("comp1", "o")) > 0.5f;
     EXPECT_FALSE(output4) << "Output should be FALSE when (Va - Vb) < Voff";
 
     // Test 5: Increase Va to 3 -> (3-0) = 3, in hysteresis band -> maintain FALSE
-    simulator.apply_overrides({{"comp1.Va", 3.0f}});
+    simulator.apply_typed_overrides({{simulator.signal_key_interner().lookup("comp1.Va"), 3.0f}});
     simulator.step(0.016f);
-    bool output5 = simulator.get_component_state_as_bool("comp1", "o");
+    bool output5 = simulator.get_signal_value(simulator.resolve_signal_key("comp1", "o")) > 0.5f;
     EXPECT_FALSE(output5) << "Output should maintain FALSE when in hysteresis band";
 
     // Test 6: Increase Va to 6 -> (6-0) > Von(5) -> TRUE
-    simulator.apply_overrides({{"comp1.Va", 6.0f}});
+    simulator.apply_typed_overrides({{simulator.signal_key_interner().lookup("comp1.Va"), 6.0f}});
     simulator.step(0.016f);
-    bool output6 = simulator.get_component_state_as_bool("comp1", "o");
+    bool output6 = simulator.get_signal_value(simulator.resolve_signal_key("comp1", "o")) > 0.5f;
     EXPECT_TRUE(output6) << "Output should be TRUE when (Va - Vb) > Von";
 
     simulator.stop();
@@ -185,18 +185,18 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_WithVbOffset) {
 
     // Using default params: Von=5, Voff=2
     // Set Vb=10, Va=15 -> (15-10) = 5, at Von threshold -> TRUE
-    simulator.apply_overrides({
-        {"comp1.Vb", 10.0f},
-        {"comp1.Va", 15.0f}
+    simulator.apply_typed_overrides({
+        {simulator.signal_key_interner().lookup("comp1.Vb"), 10.0f},
+        {simulator.signal_key_interner().lookup("comp1.Va"), 15.0f}
     });
     simulator.step(0.016f);
-    bool output1 = simulator.get_component_state_as_bool("comp1", "o");
+    bool output1 = simulator.get_signal_value(simulator.resolve_signal_key("comp1", "o")) > 0.5f;
     EXPECT_TRUE(output1) << "At Von threshold, output should be TRUE";
 
     // Va=12 -> (12-10) = 2, at Voff threshold -> FALSE
-    simulator.apply_overrides({{"comp1.Va", 12.0f}});
+    simulator.apply_typed_overrides({{simulator.signal_key_interner().lookup("comp1.Va"), 12.0f}});
     simulator.step(0.016f);
-    bool output2 = simulator.get_component_state_as_bool("comp1", "o");
+    bool output2 = simulator.get_signal_value(simulator.resolve_signal_key("comp1", "o")) > 0.5f;
     EXPECT_FALSE(output2) << "At Voff threshold, output should be FALSE";
 
     simulator.stop();

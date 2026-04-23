@@ -58,7 +58,7 @@ TEST(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     for (const auto& dev : input.devices) {
         if (dev.classname == "RefNode") {
             float value = locale_safe::parse_float_or(dev.params.at("value"), 0.0f);
-            auto it = result.port_to_signal.find(dev.name + ".v");
+            auto it = result.port_to_signal.find(result.signal_key_interner.lookup(dev.name + ".v"));
             if (it != result.port_to_signal.end()) {
                 state.values[it->second] = value;
             }
@@ -70,20 +70,21 @@ TEST(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     // isolate port mapping / logical gate wiring. Seeding bat.v_out to 28V
     // is equivalent to what the electrical solver would produce.
     {
-        auto it = result.port_to_signal.find("bat.v_out");
+        auto it = result.port_to_signal.find(result.signal_key_interner.lookup("bat.v_out"));
         ASSERT_NE(it, result.port_to_signal.end()) << "bat.v_out must exist";
         state.values[it->second] = 28.0f;
     }
 
     // Print signal mapping
     printf("\n=== SIGNAL MAP ===\n");
-    for (auto& [port, sig] : result.port_to_signal) {
+    for (auto& [port_id, sig] : result.port_to_signal) {
+        std::string port(result.signal_key_interner.resolve(port_id));
         printf("  %-30s -> signal[%u]\n", port.c_str(), sig);
     }
 
     // Get signal indices for the signals we care about
     auto get_sig = [&](const std::string& port) -> uint32_t {
-        auto it = result.port_to_signal.find(port);
+        auto it = result.port_to_signal.find(result.signal_key_interner.lookup(port));
         EXPECT_NE(it, result.port_to_signal.end()) << "Missing: " << port;
         return it->second;
     };

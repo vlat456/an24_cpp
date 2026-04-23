@@ -5,6 +5,7 @@
 #include "test_helpers.h"
 #include "test_fixtures.h"
 #include "jit_build_input_test_helper.h"
+#include "ui/core/interned_id.h"
 #include <set>
 
 namespace {
@@ -51,7 +52,7 @@ TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
      BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
 
      auto jit_sig = [&](const std::string& port) -> uint32_t {
-        auto it = jit_result.port_to_signal.find(port);
+        auto it = jit_result.port_to_signal.find(jit_result.signal_key_interner.lookup(port));
         EXPECT_NE(it, jit_result.port_to_signal.end()) << port << " should exist in JIT map";
         return it != jit_result.port_to_signal.end() ? it->second : UINT32_MAX;
     };

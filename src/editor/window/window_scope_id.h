@@ -90,23 +90,24 @@ public:
 
     /// Scope prefix for simulation signal routing.
     /// Root returns "", non-root scopes join all path segments with ':'.
-    std::string sim_scope_prefix() const {
-        if (path_segments_.empty()) {
-            return "";
-        }
-
-        std::string joined = path_segments_.front();
-        for (size_t i = 1; i < path_segments_.size(); ++i) {
-            joined.push_back(':');
-            joined += path_segments_[i];
-        }
-        return joined;
-    }
+    /// Pre-computed at construction — zero allocation per call.
+    const std::string& sim_scope_prefix() const { return cached_prefix_; }
 
 private:
     BlueprintWindowMode mode_;
     std::vector<std::string> path_segments_;
+    std::string cached_prefix_;
 
     explicit WindowScopeId(BlueprintWindowMode mode, std::vector<std::string> path_segments)
-        : mode_(mode), path_segments_(std::move(path_segments)) {}
+        : mode_(mode), path_segments_(std::move(path_segments)), cached_prefix_(compute_prefix(path_segments_)) {}
+
+    static std::string compute_prefix(const std::vector<std::string>& segments) {
+        if (segments.empty()) return "";
+        std::string joined = segments.front();
+        for (size_t i = 1; i < segments.size(); ++i) {
+            joined.push_back(':');
+            joined += segments[i];
+        }
+        return joined;
+    }
 };

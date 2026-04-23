@@ -132,7 +132,8 @@ inline JitBuildInput make_jit_input_from_resolved(
     for (const auto& dev : input.devices) {
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
-            input.port_to_signal[dev.name + "." + port_name] = next_signal++;
+            const std::string full_port = dev.name + "." + port_name;
+            input.port_to_signal[input.signal_key_interner.intern(full_port)] = next_signal++;
         }
     }
 
@@ -158,7 +159,7 @@ inline JitBuildInput make_jit_input_resolved(
                 throw std::runtime_error("Duplicate port string across groups: " + port);
             }
             seen_ports.insert(port);
-            input.port_to_signal[port] = static_cast<uint32_t>(group_idx);
+            input.port_to_signal[input.signal_key_interner.intern(port)] = static_cast<uint32_t>(group_idx);
         }
     }
 
@@ -168,7 +169,7 @@ inline JitBuildInput make_jit_input_resolved(
             (void)port;
             const std::string full_port = dev.name + "." + port_name;
             if (seen_ports.insert(full_port).second) {
-                input.port_to_signal[full_port] = next_signal++;
+                input.port_to_signal[input.signal_key_interner.intern(full_port)] = next_signal++;
             }
         }
     }
@@ -213,7 +214,7 @@ inline JitBuildInput make_jit_input(
                 throw std::runtime_error("Duplicate port string across groups: " + port);
             }
             seen_ports.insert(port);
-            input.port_to_signal[port] = static_cast<uint32_t>(group_idx);
+            input.port_to_signal[input.signal_key_interner.intern(port)] = static_cast<uint32_t>(group_idx);
         }
     }
 
@@ -223,7 +224,7 @@ inline JitBuildInput make_jit_input(
             (void)port;
             const std::string full_port = dev.name + "." + port_name;
             if (seen_ports.insert(full_port).second) {
-                input.port_to_signal[full_port] = next_signal++;
+                input.port_to_signal[input.signal_key_interner.intern(full_port)] = next_signal++;
             }
         }
     }
@@ -276,9 +277,13 @@ inline JitBuildInput make_jit_input_from_composite(
     
     // Finalize signal indices from union-find result
     uint32_t signal_count = 0;
-    input.port_to_signal =
+    const auto string_p2s =
         codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
-    
+    // Convert string-keyed map to InternedId-keyed map
+    for (const auto& [port_str, sig] : string_p2s) {
+        input.port_to_signal[input.signal_key_interner.intern(port_str)] = sig;
+    }
+
     input.signal_count = signal_count;
     
     return input;

@@ -7,6 +7,7 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/components/all.h"
 #include "core/solvers/jit/components/port_registry.h"
+#include "ui/core/interned_id.h"
 
 // =============================================================================
 // Regression: string_to_port_name covers every port in every component
@@ -80,13 +81,13 @@ TEST(PortMapRegression, AND_Gate_Reads_Correct_Signals) {
     }
 
     // Init ground
-    auto gnd_it = result.port_to_signal.find("gnd.v");
+    auto gnd_it = result.port_to_signal.find(result.signal_key_interner.lookup("gnd.v"));
     if (gnd_it != result.port_to_signal.end())
         state.values[gnd_it->second] = 0.0f;
 
     // Seed battery output: Battery is solver-owned (voltage from solve_electrical),
     // which this port-mapping test intentionally skips.
-    auto bat_it = result.port_to_signal.find("bat.v_out");
+    auto bat_it = result.port_to_signal.find(result.signal_key_interner.lookup("bat.v_out"));
     ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
     state.values[bat_it->second] = 28.0f;
 
@@ -95,15 +96,15 @@ TEST(PortMapRegression, AND_Gate_Reads_Correct_Signals) {
         result.scheduler.step(state, dt);
 
     auto get = [&](const std::string& port) {
-        return state.values[result.port_to_signal.at(port)];
+        return state.values[result.port_to_signal.at(result.signal_key_interner.lookup(port))];
     };
 
     // Wired signals must share indices
-    EXPECT_EQ(result.port_to_signal.at("v2b.Vin"), result.port_to_signal.at("bus.v"))
+    EXPECT_EQ(result.port_to_signal.at(result.signal_key_interner.lookup("v2b.Vin")), result.port_to_signal.at(result.signal_key_interner.lookup("bus.v")))
         << "v2b.Vin must be wired to bus.v";
-    EXPECT_EQ(result.port_to_signal.at("and_1.A"), result.port_to_signal.at("v2b.o"))
+    EXPECT_EQ(result.port_to_signal.at(result.signal_key_interner.lookup("and_1.A")), result.port_to_signal.at(result.signal_key_interner.lookup("v2b.o")))
         << "and_1.A must be wired to v2b.o";
-    EXPECT_EQ(result.port_to_signal.at("and_1.B"), result.port_to_signal.at("hb.state"))
+    EXPECT_EQ(result.port_to_signal.at(result.signal_key_interner.lookup("and_1.B")), result.port_to_signal.at(result.signal_key_interner.lookup("hb.state")))
         << "and_1.B must be wired to hb.state";
 
     // Bus should have ~28V (seeded via bat.v_out which aliases bus.v)
@@ -147,13 +148,13 @@ TEST(PortMapRegression, NOT_Gate_Reads_Correct_Input) {
             result.fixed_signals.begin(), result.fixed_signals.end(), i);
         (void)state.allocate_signal(0.0f);
     }
-    auto gnd_it = result.port_to_signal.find("gnd.v");
+    auto gnd_it = result.port_to_signal.find(result.signal_key_interner.lookup("gnd.v"));
     if (gnd_it != result.port_to_signal.end())
         state.values[gnd_it->second] = 0.0f;
 
     // Seed battery output: Battery is solver-owned (voltage from solve_electrical),
     // which this port-mapping test intentionally skips.
-    auto bat_it = result.port_to_signal.find("bat.v_out");
+    auto bat_it = result.port_to_signal.find(result.signal_key_interner.lookup("bat.v_out"));
     ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
     state.values[bat_it->second] = 28.0f;
 
@@ -162,7 +163,7 @@ TEST(PortMapRegression, NOT_Gate_Reads_Correct_Input) {
         result.scheduler.step(state, dt);
 
     auto get = [&](const std::string& port) {
-        return state.values[result.port_to_signal.at(port)];
+        return state.values[result.port_to_signal.at(result.signal_key_interner.lookup(port))];
     };
 
     // V_to_Bool reads 28V -> outputs 1.0
@@ -197,13 +198,13 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
             result.fixed_signals.begin(), result.fixed_signals.end(), i);
         (void)state.allocate_signal(0.0f);
     }
-    auto gnd_it = result.port_to_signal.find("gnd.v");
+    auto gnd_it = result.port_to_signal.find(result.signal_key_interner.lookup("gnd.v"));
     if (gnd_it != result.port_to_signal.end())
         state.values[gnd_it->second] = 0.0f;
 
     // Seed battery output: Battery is solver-owned (voltage from solve_electrical),
     // which this port-mapping test intentionally skips.
-    auto bat_it = result.port_to_signal.find("bat.v_out");
+    auto bat_it = result.port_to_signal.find(result.signal_key_interner.lookup("bat.v_out"));
     ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
     state.values[bat_it->second] = 28.0f;
 
@@ -212,7 +213,7 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
         result.scheduler.step(state, dt);
 
     auto get = [&](const std::string& port) {
-        return state.values[result.port_to_signal.at(port)];
+        return state.values[result.port_to_signal.at(result.signal_key_interner.lookup(port))];
     };
 
     // A=~28V, B=0V -> o = 28

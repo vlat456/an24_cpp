@@ -74,7 +74,7 @@ static SimulationState run_simulation(
             if (it_val != dev.params.end()) {
                 value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
-            auto it_sig = result.port_to_signal.find(dev.name + ".v");
+            auto it_sig = result.port_to_signal.find(result.signal_key_interner.lookup(dev.name + ".v"));
             if (it_sig != result.port_to_signal.end()) {
                 state.values[it_sig->second] = value;
             }
@@ -93,7 +93,7 @@ static SimulationState run_simulation(
 // Helper to get signal voltage by port name
 static float get_voltage(const SimulationState& state, const BuildResult& result,
                           const std::string& port_name) {
-    auto it = result.port_to_signal.find(port_name);
+    auto it = result.port_to_signal.find(result.signal_key_interner.lookup(port_name));
     EXPECT_NE(it, result.port_to_signal.end()) << "Port not found: " << port_name;
     return state.values[it->second];
 }

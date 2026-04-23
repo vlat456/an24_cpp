@@ -58,8 +58,8 @@ TEST(EditorComponentVariant, BuildSimpleBatteryResistorCircuit) {
     EXPECT_NE(build_result.devices.find("load1"), build_result.devices.end());
 
     // Check port mapping
-    EXPECT_NE(build_result.port_to_signal.find("bat1.v_out"), build_result.port_to_signal.end());
-    EXPECT_NE(build_result.port_to_signal.find("load1.v_in"), build_result.port_to_signal.end());
+    EXPECT_NE(build_result.port_to_signal.find(build_result.signal_key_interner.lookup("bat1.v_out")), build_result.port_to_signal.end());
+    EXPECT_NE(build_result.port_to_signal.find(build_result.signal_key_interner.lookup("load1.v_in")), build_result.port_to_signal.end());
 }
 
 /// Test that multi-domain components work correctly

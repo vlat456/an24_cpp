@@ -170,7 +170,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, {}, connections, &registry));
 
     auto signal_of = [&](const std::string& port) {
-        auto it = jit.port_to_signal.find(port);
+        auto it = jit.port_to_signal.find(jit.signal_key_interner.lookup(port));
         EXPECT_NE(it, jit.port_to_signal.end()) << port;
         return it == jit.port_to_signal.end() ? UINT32_MAX : it->second;
     };
@@ -228,7 +228,7 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
         codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, aot_signal_count);
 
     for (const auto& [port, aot_sig] : aot_port_to_signal) {
-        auto it_jit = jit.port_to_signal.find(port);
+        auto it_jit = jit.port_to_signal.find(jit.signal_key_interner.lookup(port));
         ASSERT_NE(it_jit, jit.port_to_signal.end()) << "Missing JIT signal for port " << port;
         (void)aot_sig;
     }
@@ -236,16 +236,16 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     for (const auto& [port_a, aot_sig_a] : aot_port_to_signal) {
         for (const auto& [port_b, aot_sig_b] : aot_port_to_signal) {
             const bool aot_same = (aot_sig_a == aot_sig_b);
-            const bool jit_same = (jit.port_to_signal.at(port_a) == jit.port_to_signal.at(port_b));
+            const bool jit_same = (jit.port_to_signal.at(jit.signal_key_interner.lookup(port_a)) == jit.port_to_signal.at(jit.signal_key_interner.lookup(port_b)));
             EXPECT_EQ(jit_same, aot_same)
                 << "Partition mismatch for ports '" << port_a << "' and '" << port_b << "'";
         }
     }
 
-    EXPECT_EQ(jit.port_to_signal.at("vin.ext"), jit.port_to_signal.at("vin.port"));
-    EXPECT_EQ(jit.port_to_signal.at("vout.ext"), jit.port_to_signal.at("vout.port"));
-    EXPECT_EQ(jit.port_to_signal.at("vin.port"), jit.port_to_signal.at("pass.v_in"));
-    EXPECT_EQ(jit.port_to_signal.at("pass.v_out"), jit.port_to_signal.at("vout.port"));
+    EXPECT_EQ(jit.port_to_signal.at(jit.signal_key_interner.lookup("vin.ext")), jit.port_to_signal.at(jit.signal_key_interner.lookup("vin.port")));
+    EXPECT_EQ(jit.port_to_signal.at(jit.signal_key_interner.lookup("vout.ext")), jit.port_to_signal.at(jit.signal_key_interner.lookup("vout.port")));
+    EXPECT_EQ(jit.port_to_signal.at(jit.signal_key_interner.lookup("vin.port")), jit.port_to_signal.at(jit.signal_key_interner.lookup("pass.v_in")));
+    EXPECT_EQ(jit.port_to_signal.at(jit.signal_key_interner.lookup("pass.v_out")), jit.port_to_signal.at(jit.signal_key_interner.lookup("vout.port")));
     EXPECT_EQ(jit.signal_count, aot_signal_count);
 }
 
@@ -306,13 +306,13 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     // Bridges are elaboration-only for runtime component execution and AOT codegen,
     // but their ports remain part of signal allocation in both paths.
     EXPECT_EQ(jit.signal_count, aot_signal_count);
-    EXPECT_EQ(jit.port_to_signal.count("ui_only.o"), 0u)
+    EXPECT_EQ(jit.port_to_signal.count(jit.signal_key_interner.lookup("ui_only.o")), 0u)
         << "JIT should ignore visual-only device ports";
     EXPECT_EQ(aot_port_to_signal.count("ui_only.o"), 0u)
         << "AOT should ignore visual-only device ports";
 
-    EXPECT_EQ(jit.port_to_signal.at("vin.ext"), jit.port_to_signal.at("vin.port"));
-    EXPECT_EQ(jit.port_to_signal.at("vout.ext"), jit.port_to_signal.at("vout.port"));
+    EXPECT_EQ(jit.port_to_signal.at(jit.signal_key_interner.lookup("vin.ext")), jit.port_to_signal.at(jit.signal_key_interner.lookup("vin.port")));
+    EXPECT_EQ(jit.port_to_signal.at(jit.signal_key_interner.lookup("vout.ext")), jit.port_to_signal.at(jit.signal_key_interner.lookup("vout.port")));
     EXPECT_EQ(aot_port_to_signal.at("vin.ext"), aot_port_to_signal.at("vin.port"));
     EXPECT_EQ(aot_port_to_signal.at("vout.ext"), aot_port_to_signal.at("vout.port"));
 

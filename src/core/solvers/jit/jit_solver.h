@@ -4,6 +4,7 @@
 #include "scheduler.h"
 #include "subsolvers/subsolver_types.h"
 #include "core/model/resolved_device.h"
+#include "ui/core/interned_id.h"
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
@@ -24,8 +25,9 @@
 // Forward declarations
 struct SimulationState;
 
-/// Port-to-signal mapping
-using PortToSignal = std::unordered_map<std::string, uint32_t>;
+/// Typed port-to-signal mapping. Keys are interned "node_id.port_name" strings.
+/// Runtime lookups are integer-only (InternedId comparison, no string hashing).
+using PortToSignal = std::unordered_map<ui::InternedId, uint32_t>;
 
 /// Guarded component storage.
 ///
@@ -162,6 +164,10 @@ struct BuildResult {
     std::vector<uint32_t> fixed_signals;
     PortToSignal port_to_signal;
 
+    /// Build-scoped interner for signal keys. Owns the string storage backing
+    /// the InternedIds in port_to_signal. Destroyed on rebuild.
+    ui::StringInterner signal_key_interner;
+
     /// Dynamic components for JIT mode (Editor).
     /// Storage: device name -> ComponentVariant (type-safe storage container).
     /// Mutable APIs are build-only; `build_systems_dev()` seals storage before
@@ -204,6 +210,7 @@ struct JitBuildInput {
     std::vector<ResolvedDevice> devices;
     std::vector<BridgePortDefinition> bridge_ports;
     PortToSignal port_to_signal;
+    ui::StringInterner signal_key_interner;
     uint32_t signal_count = 0;
     std::unordered_map<std::string, float> initial_values;
 };

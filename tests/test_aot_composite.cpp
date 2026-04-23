@@ -295,7 +295,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     // vin.port and lamp.v_in should share a signal (they are connected).
     // lamp.v_out and vout.port should share a signal.
     auto jit_sig = [&](const std::string& port) -> uint32_t {
-        auto it = jit_result.port_to_signal.find(port);
+        auto it = jit_result.port_to_signal.find(jit_result.signal_key_interner.lookup(port));
         EXPECT_NE(it, jit_result.port_to_signal.end()) << port << " should exist in JIT map";
         return it != jit_result.port_to_signal.end() ? it->second : UINT32_MAX;
     };
@@ -309,11 +309,11 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
         << "Connected ports lamp.v_out and vout.port should share a signal";
 
     // Alias mapping strategy is implementation-defined in push path.
-    if (jit_result.port_to_signal.count("vin.ext") && jit_result.port_to_signal.count("vin.port")) {
+    if (jit_result.port_to_signal.count(jit_result.signal_key_interner.lookup("vin.ext")) && jit_result.port_to_signal.count(jit_result.signal_key_interner.lookup("vin.port"))) {
         EXPECT_NE(jit_sig("vin.ext"), UINT32_MAX);
         EXPECT_NE(jit_sig("vin.port"), UINT32_MAX);
     }
-    if (jit_result.port_to_signal.count("vout.ext") && jit_result.port_to_signal.count("vout.port")) {
+    if (jit_result.port_to_signal.count(jit_result.signal_key_interner.lookup("vout.ext")) && jit_result.port_to_signal.count(jit_result.signal_key_interner.lookup("vout.port"))) {
         EXPECT_NE(jit_sig("vout.ext"), UINT32_MAX);
         EXPECT_NE(jit_sig("vout.port"), UINT32_MAX);
     }
@@ -1015,7 +1015,7 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
 
     // Key assertion: vin.ext and vin.port MUST share a signal in JIT
     auto jit_sig = [&](const std::string& port) -> uint32_t {
-        auto it = jit_result.port_to_signal.find(port);
+        auto it = jit_result.port_to_signal.find(jit_result.signal_key_interner.lookup(port));
         EXPECT_NE(it, jit_result.port_to_signal.end()) << port << " should exist in JIT map";
         return it != jit_result.port_to_signal.end() ? it->second : UINT32_MAX;
     };

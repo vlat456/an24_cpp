@@ -84,10 +84,11 @@ bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::Strin
     return library;
 }
 
-std::set<std::set<std::string>> extract_topology(const PortToSignal& p2s) {
+std::set<std::set<std::string>> extract_topology(const PortToSignal& p2s,
+                                                const ui::StringInterner& interner) {
     std::map<uint32_t, std::set<std::string>> groups;
-    for (const auto& [port, sig] : p2s) {
-        groups[sig].insert(port);
+    for (const auto& [port_id, sig] : p2s) {
+        groups[sig].insert(std::string(interner.resolve(port_id)));
     }
 
     std::set<std::set<std::string>> topo;
@@ -111,10 +112,10 @@ std::set<std::set<std::string>> parse_topology(const json& topology_json) {
     return topo;
 }
 
-json make_topology_json(const PortToSignal& p2s) {
+json make_topology_json(const PortToSignal& p2s, const ui::StringInterner& interner) {
     std::map<uint32_t, std::vector<std::string>> groups;
-    for (const auto& [port, sig] : p2s) {
-        groups[sig].push_back(port);
+    for (const auto& [port_id, sig] : p2s) {
+        groups[sig].push_back(std::string(interner.resolve(port_id)));
     }
 
     json topology = json::array();
@@ -150,7 +151,7 @@ void maybe_regenerate_golden(const std::string& golden_path, const JitBuildInput
         devices[d.name] = d.classname;
     }
     golden["devices"] = devices;
-    golden["topology"] = make_topology_json(input.port_to_signal);
+    golden["topology"] = make_topology_json(input.port_to_signal, input.signal_key_interner);
 
     JIT_Simulator sim;
     sim.start(input);
@@ -160,8 +161,9 @@ void maybe_regenerate_golden(const std::string& golden_path, const JitBuildInput
     }
 
     std::map<std::string, float> values;
-    for (const auto& [port, _sig] : input.port_to_signal) {
-        values[port] = sim.get_wire_voltage(port);
+    for (const auto& [port_id, _sig] : input.port_to_signal) {
+        std::string port_str(input.signal_key_interner.resolve(port_id));
+        values[port_str] = sim.get_signal_value(sim.signal_key_interner().lookup(port_str));
     }
     golden["values"] = make_values_json(values);
 
@@ -225,7 +227,7 @@ protected:
 
 TEST_F(ElaborateJitParityTest, SignalTopologyMatchesGolden) {
     JitBuildInput input = build_input();
-    auto actual_topology = extract_topology(input.port_to_signal);
+    auto actual_topology = extract_topology(input.port_to_signal, input.signal_key_interner);
     auto expected_topology = parse_topology(golden_["topology"]);
 
     EXPECT_EQ(actual_topology, expected_topology)
@@ -263,7 +265,7 @@ TEST_F(ElaborateJitParityTest, RepresentativeSimulationOutputsMatchGolden) {
 
     for (const auto& [port, expected_json] : golden_["values"].items()) {
         float expected = expected_json.get<float>();
-        float actual = sim.get_wire_voltage(port);
+        float actual = sim.get_signal_value(sim.signal_key_interner().lookup(port));
         EXPECT_NEAR(actual, expected, 1e-4f)
             << "Representative value mismatch at '" << port << "'";
     }

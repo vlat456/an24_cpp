@@ -609,7 +609,7 @@ TEST(E009_SingleSolve, PipelineProducesConsistentElectricalResults) {
 
     // With AZS closed and a resistive load, the mid-bus node should have
     // significant voltage (close to 28V, minus small drops).
-    float v_bus = sim.get_port_value("azs1", "v_out");
+    float v_bus = sim.get_signal_value(sim.resolve_signal_key("azs1", "v_out"));
 
     // The bus should be energized — pipeline ran electrical solve at least once
     EXPECT_GT(v_bus, 10.0f)
