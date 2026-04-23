@@ -25,7 +25,7 @@ namespace visual {
     };
 
     struct HitNode {
-        std::string_view node_id;
+        ui::InternedId node_id;
         ui::Pt world_pos{};
         ui::Pt size{};
         Bounds content_bounds{};
@@ -34,23 +34,23 @@ namespace visual {
         std::optional<HitContentInteraction> content_interaction;
     };
     struct HitPort {
-        std::string_view node_id;
-        std::string_view port_name;
+        ui::InternedId node_id;
+        ui::InternedId port_name;
         bp2::Direction direction = bp2::Direction::Input;
         PortType type = PortType::Any;
         ui::Pt center{};
     };
     struct HitWire {
-        std::string_view wire_id;
+        ui::InternedId wire_id;
         size_t segment = 0;
     };
     struct HitRoutingPoint {
-        std::string_view wire_id;
+        ui::InternedId wire_id;
         size_t index = 0;
         ui::Pt world_pos{};
     };
     struct HitResizeHandle {
-        std::string_view node_id;
+        ui::InternedId node_id;
         ResizeCorner corner = ResizeCorner::BottomRight;
         ui::Pt world_pos{};
         ui::Pt size{};
@@ -148,11 +148,9 @@ CanvasSceneSnapshot build_canvas_scene_snapshot(const visual::Scene& scene, ui::
 
 /// Primary hit test against snapshot: returns highest-priority object under world_pos.
 /// Priority: Port > RoutingPoint > ResizeHandle > Node (with content interaction) > WireSegment > Empty.
-visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui::Pt world_pos,
-                                        const ui::StringInterner& interner);
+visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui::Pt world_pos);
 
 /// Port-only hit test against snapshot: returns HitPort if a port is under world_pos, else HitEmpty.
-visual::HitResult hit_test_canvas_scene_ports(const CanvasSceneSnapshot& snapshot, ui::Pt world_pos,
-                                              const ui::StringInterner& interner);
+visual::HitResult hit_test_canvas_scene_ports(const CanvasSceneSnapshot& snapshot, ui::Pt world_pos);
 
 } // namespace editor::presentation

@@ -208,21 +208,21 @@ TEST(CanvasSceneSnapshot, GroupNodeBorderOnlyHitSemantics) {
     const float title_h = editor_constants::GROUP_TITLE_PADDING * 2
                         + editor_constants::Font::Medium;
     ui::Pt title_click(200.0f, 100.0f + title_h * 0.5f);  // middle of title
-    auto title_result = editor::presentation::hit_test_canvas_scene(snapshot, title_click, interner);
+    auto title_result = editor::presentation::hit_test_canvas_scene(snapshot, title_click);
     ASSERT_TRUE(std::holds_alternative<visual::HitNode>(title_result))
         << "Clicking title bar of group must return HitNode";
-    EXPECT_EQ(std::get<visual::HitNode>(title_result).node_id, "grp1");
+    EXPECT_EQ(std::get<visual::HitNode>(title_result).node_id, interner.intern("grp1"));
 
     // Left border click → should hit the group
     const float m = editor_constants::GROUP_BORDER_HIT_MARGIN;
     ui::Pt left_border(100.0f + m * 0.5f, 200.0f);  // inside left margin
-    auto left_result = editor::presentation::hit_test_canvas_scene(snapshot, left_border, interner);
+    auto left_result = editor::presentation::hit_test_canvas_scene(snapshot, left_border);
     ASSERT_TRUE(std::holds_alternative<visual::HitNode>(left_result))
         << "Clicking left border of group must return HitNode";
 
     // Interior click (well inside all borders) → should NOT hit the group
     ui::Pt interior(200.0f, 250.0f);  // center of group, far from any border
-    auto interior_result = editor::presentation::hit_test_canvas_scene(snapshot, interior, interner);
+    auto interior_result = editor::presentation::hit_test_canvas_scene(snapshot, interior);
     EXPECT_TRUE(std::holds_alternative<visual::HitEmpty>(interior_result))
         << "Clicking interior of group must pass through (HitEmpty)";
 }
@@ -275,13 +275,13 @@ TEST(CanvasSceneSnapshot, WireSegmentHitTestUsesDistanceThreshold) {
 
     // 1 pixel off the segment (within tolerance) → should hit wire
     ui::Pt near_wire(seg_mid.x, seg_mid.y + 2.0f);
-    auto near_result = editor::presentation::hit_test_canvas_scene(snapshot, near_wire, interner);
+    auto near_result = editor::presentation::hit_test_canvas_scene(snapshot, near_wire);
     EXPECT_TRUE(std::holds_alternative<visual::HitWire>(near_result))
         << "Point within WIRE_TOLERANCE of segment must return HitWire";
 
     // 20 pixels off the segment (well outside tolerance) → should NOT hit wire
     ui::Pt far_from_wire(seg_mid.x, seg_mid.y + 20.0f);
-    auto far_result = editor::presentation::hit_test_canvas_scene(snapshot, far_from_wire, interner);
+    auto far_result = editor::presentation::hit_test_canvas_scene(snapshot, far_from_wire);
     EXPECT_FALSE(std::holds_alternative<visual::HitWire>(far_result))
         << "Point far from segment must NOT return HitWire";
 }
@@ -338,13 +338,13 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForResizableGroupNode) {
     auto* grp_widget = dynamic_cast<visual::GroupNodeWidget*>(scene.find("grp2"));
     ASSERT_NE(grp_widget, nullptr);
     ui::Pt br_corner = grp_widget->worldMax() - ui::Pt(2.0f, 2.0f);  // inside handle
-    auto br_result = editor::presentation::hit_test_canvas_scene(snapshot, br_corner, interner);
+    auto br_result = editor::presentation::hit_test_canvas_scene(snapshot, br_corner);
     ASSERT_TRUE(std::holds_alternative<visual::HitResizeHandle>(br_result))
         << "Clicking bottom-right corner of resizable group must return HitResizeHandle";
     EXPECT_EQ(std::get<visual::HitResizeHandle>(br_result).corner, ResizeCorner::BottomRight);
 
     ui::Pt near_br_corner = grp_widget->worldMax() + ui::Pt(8.0f, 0.0f);
-    auto near_br_result = editor::presentation::hit_test_canvas_scene(snapshot, near_br_corner, interner);
+    auto near_br_result = editor::presentation::hit_test_canvas_scene(snapshot, near_br_corner);
     ASSERT_TRUE(std::holds_alternative<visual::HitResizeHandle>(near_br_result))
         << "Resize handle hit area should extend beyond the exact node corner";
     EXPECT_EQ(std::get<visual::HitResizeHandle>(near_br_result).corner, ResizeCorner::BottomRight);
@@ -382,10 +382,10 @@ TEST(CanvasSceneSnapshot, RoutingPointHitAreaExtendsBeyondVisibleDot) {
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
     ui::Pt near_routing_point(68.0f, 24.0f);
-    auto result = editor::presentation::hit_test_canvas_scene(snapshot, near_routing_point, interner);
+    auto result = editor::presentation::hit_test_canvas_scene(snapshot, near_routing_point);
     ASSERT_TRUE(std::holds_alternative<visual::HitRoutingPoint>(result))
         << "Routing point hit area should be larger than the visible dot";
-    EXPECT_EQ(std::get<visual::HitRoutingPoint>(result).wire_id, "wire2");
+    EXPECT_EQ(std::get<visual::HitRoutingPoint>(result).wire_id, interner.intern("wire2"));
 }
 
 // ============================================================================
@@ -422,10 +422,10 @@ TEST(CanvasSceneSnapshot, HitTestPriorityPortOverNode) {
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
     // Click exactly on the port center — port overlaps node body
-    auto result = editor::presentation::hit_test_canvas_scene(snapshot, port_center, interner);
+    auto result = editor::presentation::hit_test_canvas_scene(snapshot, port_center);
     ASSERT_TRUE(std::holds_alternative<visual::HitPort>(result))
         << "Port must have higher priority than NodeBody in hit testing";
-    EXPECT_EQ(std::get<visual::HitPort>(result).port_name, "v_out");
+    EXPECT_EQ(std::get<visual::HitPort>(result).port_name, interner.intern("v_out"));
 }
 
 TEST(CanvasSceneSnapshot, RoutingPointWinsOverWireWithinSharedHitTolerance) {
@@ -459,10 +459,10 @@ TEST(CanvasSceneSnapshot, RoutingPointWinsOverWireWithinSharedHitTolerance) {
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
-    auto result = editor::presentation::hit_test_canvas_scene(snapshot, ui::Pt(68.0f, 24.0f), interner);
+    auto result = editor::presentation::hit_test_canvas_scene(snapshot, ui::Pt(68.0f, 24.0f));
     ASSERT_TRUE(std::holds_alternative<visual::HitRoutingPoint>(result))
         << "Routing point should outrank its parent wire when both are within the shared hit tolerance";
-    EXPECT_EQ(std::get<visual::HitRoutingPoint>(result).wire_id, "wire3");
+    EXPECT_EQ(std::get<visual::HitRoutingPoint>(result).wire_id, interner.intern("wire3"));
 }
 
 TEST(CanvasSceneSnapshot, WireSegmentUsesSharedHitTolerance) {
@@ -503,10 +503,10 @@ TEST(CanvasSceneSnapshot, WireSegmentUsesSharedHitTolerance) {
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
-    auto edge_hit = editor::presentation::hit_test_canvas_scene(snapshot, ui::Pt(seg_mid.x, seg_mid.y + 4.0f), interner);
+    auto edge_hit = editor::presentation::hit_test_canvas_scene(snapshot, ui::Pt(seg_mid.x, seg_mid.y + 4.0f));
     EXPECT_TRUE(std::holds_alternative<visual::HitWire>(edge_hit));
 
-    auto miss_hit = editor::presentation::hit_test_canvas_scene(snapshot, ui::Pt(seg_mid.x, seg_mid.y + 6.0f), interner);
+    auto miss_hit = editor::presentation::hit_test_canvas_scene(snapshot, ui::Pt(seg_mid.x, seg_mid.y + 6.0f));
     EXPECT_FALSE(std::holds_alternative<visual::HitWire>(miss_hit));
 }
 
@@ -565,14 +565,14 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForNodeWithoutExplicitSize) {
 
     // Hit test: click near bottom-right corner → must get HitResizeHandle
     ui::Pt br = widget->worldMax() - ui::Pt(2.0f, 2.0f);
-    auto result = editor::presentation::hit_test_canvas_scene(snapshot, br, interner);
+    auto result = editor::presentation::hit_test_canvas_scene(snapshot, br);
     ASSERT_TRUE(std::holds_alternative<visual::HitResizeHandle>(result))
         << "Bottom-right corner of node without explicit size must return HitResizeHandle";
-    EXPECT_EQ(std::get<visual::HitResizeHandle>(result).node_id, "new_node");
+    EXPECT_EQ(std::get<visual::HitResizeHandle>(result).node_id, interner.intern("new_node"));
 
     ui::Pt near_br = widget->worldMax() + ui::Pt(8.0f, -2.0f);
-    auto near_result = editor::presentation::hit_test_canvas_scene(snapshot, near_br, interner);
+    auto near_result = editor::presentation::hit_test_canvas_scene(snapshot, near_br);
     ASSERT_TRUE(std::holds_alternative<visual::HitResizeHandle>(near_result))
         << "Node resize handle hit area should extend beyond the exact widget bounds";
-    EXPECT_EQ(std::get<visual::HitResizeHandle>(near_result).node_id, "new_node");
+    EXPECT_EQ(std::get<visual::HitResizeHandle>(near_result).node_id, interner.intern("new_node"));
 }

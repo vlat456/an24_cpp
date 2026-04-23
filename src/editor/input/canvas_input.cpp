@@ -152,12 +152,12 @@ void CanvasInput::update_hover(Pt world_pos) {
         return;
     }
 
-    auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world_pos, *interner_);
+    auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world_pos);
     if (auto* h = std::get_if<visual::HitWire>(&hit)) {
-        hovered_wire_id_ = interner_->intern(h->wire_id);
+        hovered_wire_id_ = h->wire_id;
         hovered_rp_id_ = {};
     } else if (auto* h = std::get_if<visual::HitRoutingPoint>(&hit)) {
-        hovered_wire_id_ = interner_->intern(h->wire_id);
+        hovered_wire_id_ = h->wire_id;
         hovered_rp_id_ = {interner_->resolve(hovered_wire_id_), h->index};
     } else {
         hovered_wire_id_ = {};
@@ -267,7 +267,7 @@ void CanvasInput::enter_marquee(Pt world_pos) {
 void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_hit,
                                                    const CanvasInput::SemanticContentTarget& target,
                                                    Pt world_pos) {
-    ui::InternedId node_id = interner_->intern(node_hit.node_id);
+    ui::InternedId node_id = node_hit.node_id;
     const bp2::Blueprint::Node* node = host_->find_node(node_id);
     if (!node) return;
 
@@ -391,7 +391,7 @@ bool CanvasInput::state_uses_semantic_control_session() const {
 bool CanvasInput::handle_resolved_interaction(const visual::HitNode& node_hit,
                                               const CanvasInput::SemanticContentTarget& target,
                                               Pt world, InputResult& result) {
-    ui::InternedId node_id = interner_->intern(node_hit.node_id);
+    ui::InternedId node_id = node_hit.node_id;
     if (node_id.empty()) {
         return false;
     }

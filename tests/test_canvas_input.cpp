@@ -62,11 +62,26 @@ static void update_dynamic(visual::Scene& scene, const char* node_id,
     widget->updateContent(c);
 }
 
+/// Compare hit result node_id with expected string via interner
+static testing::AssertionResult hit_node_id_matches(
+    const char* /*expr*/,
+    ui::InternedId actual_id,
+    ui::StringInterner& I,
+    const char* expected_str) {
+    ui::InternedId expected_id = I.intern(expected_str);
+    if (actual_id == expected_id) {
+        return testing::AssertionSuccess();
+    }
+    return testing::AssertionFailure()
+        << "Hit node_id " << actual_id.raw() << " (interned) doesn't match expected \""
+        << expected_str << "\" (id " << expected_id.raw() << ")";
+}
+
 static visual::HitResult snapshot_hit_test(const visual::Scene& scene,
-                                           ui::StringInterner& interner,
-                                           Pt world) {
-    auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
-    return editor::presentation::hit_test_canvas_scene(snapshot, world, interner);
+                                            ui::StringInterner& I,
+                                            Pt world) {
+    auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, I);
+    return editor::presentation::hit_test_canvas_scene(snapshot, world);
 }
 
 static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
@@ -2010,7 +2025,7 @@ TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
      auto hit = snapshot_hit_test(scene, I, click_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
-     EXPECT_EQ(hit_node->node_id, std::string_view("azs_1"));
+     EXPECT_EQ(hit_node->node_id, I.intern("azs_1"));
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
      auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
@@ -2048,7 +2063,7 @@ TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
      auto hit = snapshot_hit_test(scene, I, click_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
-     EXPECT_EQ(hit_node->node_id, std::string_view("knob_1"));
+     EXPECT_EQ(hit_node->node_id, I.intern("knob_1"));
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
      auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
@@ -2112,7 +2127,7 @@ TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
      auto hit = snapshot_hit_test(scene, I, click_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr) << "hit_test should return HitNode for interactive content";
-     EXPECT_EQ(hit_node->node_id, std::string_view("slider_1"));
+     EXPECT_EQ(hit_node->node_id, I.intern("slider_1"));
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
      auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));
@@ -2151,7 +2166,7 @@ TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
     EXPECT_TRUE(std::holds_alternative<visual::HitNode>(hit));
     auto* hit_node = std::get_if<visual::HitNode>(&hit);
     ASSERT_NE(hit_node, nullptr);
-    EXPECT_EQ(hit_node->node_id, std::string_view("slider_1"));
+    EXPECT_EQ(hit_node->node_id, I.intern("slider_1"));
 }
 
 TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
@@ -2187,7 +2202,7 @@ TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
      auto hit = snapshot_hit_test(scene, I, roundtrip_world);
      auto* hit_node = std::get_if<visual::HitNode>(&hit);
      ASSERT_NE(hit_node, nullptr);
-     EXPECT_EQ(hit_node->node_id, std::string_view("azs_1"));
+     EXPECT_EQ(hit_node->node_id, I.intern("azs_1"));
      
      const auto& sem_snapshot = widget->content_semantic_snapshot();
      auto sem_hit = editor::presentation::hit_test_semantic_scene(sem_snapshot, Pt(cb.x + cb.w * 0.5f, cb.y + cb.h * 0.5f));

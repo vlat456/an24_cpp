@@ -1330,10 +1330,10 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         ASSERT_LE(click_world.x, node_max.x);
         ASSERT_LE(click_world.y, node_max.y);
         auto scene_snapshot = editor::presentation::build_canvas_scene_snapshot(loaded.scene(), loaded.interner());
-        auto scene_hit = editor::presentation::hit_test_canvas_scene(scene_snapshot, click_world, loaded.interner());
+        auto scene_hit = editor::presentation::hit_test_canvas_scene(scene_snapshot, click_world);
         auto* scene_hit_node = std::get_if<visual::HitNode>(&scene_hit);
         ASSERT_NE(scene_hit_node, nullptr);
-        EXPECT_EQ(scene_hit_node->node_id, std::string_view("slider_rt"));
+        EXPECT_EQ(scene_hit_node->node_id, loaded.interner().intern("slider_rt"));
         ASSERT_TRUE(scene_hit_node->content_interaction.has_value());
         EXPECT_EQ(scene_hit_node->content_interaction->kind,
                   editor::presentation::InteractionKind::DragScalar);

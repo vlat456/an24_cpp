@@ -328,8 +328,7 @@ CanvasSceneSnapshot build_canvas_scene_snapshot(const visual::Scene& scene, ui::
 // Snapshot-based hit testing
 // ============================================================
 
-visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui::Pt world_pos,
-                                        const ui::StringInterner& interner) {
+visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui::Pt world_pos) {
     // We scan all hit objects and track best match per priority level.
     // Priority (descending): Port > RoutingPoint > ResizeHandle > NodeBody > WireSegment.
 
@@ -396,8 +395,8 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
         float cx = best_port->bounds.x + best_port->bounds.w * 0.5f;
         float cy = best_port->bounds.y + best_port->bounds.h * 0.5f;
         return visual::HitPort{
-            .node_id = interner.resolve(best_port->node_id),
-            .port_name = interner.resolve(best_port->element_id),
+            .node_id = best_port->node_id,
+            .port_name = best_port->element_id,
             .direction = best_port->port_direction,
             .type = best_port->port_type,
             .center = ui::Pt(cx, cy),
@@ -409,7 +408,7 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
         float cx = best_routing_point->bounds.x + best_routing_point->bounds.w * 0.5f;
         float cy = best_routing_point->bounds.y + best_routing_point->bounds.h * 0.5f;
         return visual::HitRoutingPoint{
-            .wire_id = interner.resolve(best_routing_point->rp_wire_id),
+            .wire_id = best_routing_point->rp_wire_id,
             .index = best_routing_point->rp_index,
             .world_pos = ui::Pt(cx, cy),
         };
@@ -418,7 +417,7 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
     // --- Priority 3: Resize handles ---
     if (best_resize_handle) {
         return visual::HitResizeHandle{
-            .node_id = interner.resolve(best_resize_handle->node_id),
+            .node_id = best_resize_handle->node_id,
             .corner = best_resize_handle->corner,
             .world_pos = best_resize_handle->node_world_pos,
             .size = best_resize_handle->node_size,
@@ -428,7 +427,7 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
     // --- Priority 4: Nodes ---
     if (best_node) {
         visual::HitNode hit{};
-        hit.node_id = interner.resolve(best_node->node_id);
+        hit.node_id = best_node->node_id;
         hit.world_pos = best_node->node_world_pos;
         hit.size = best_node->node_size;
         hit.content_bounds = best_node->content_bounds;
@@ -460,7 +459,7 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
     // --- Priority 5: Wire segments ---
     if (best_wire) {
         return visual::HitWire{
-            .wire_id = interner.resolve(best_wire->element_id),
+            .wire_id = best_wire->element_id,
             .segment = best_wire->segment_index,
         };
     }
@@ -468,8 +467,7 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
     return visual::HitEmpty{};
 }
 
-visual::HitResult hit_test_canvas_scene_ports(const CanvasSceneSnapshot& snapshot, ui::Pt world_pos,
-                                              const ui::StringInterner& interner) {
+visual::HitResult hit_test_canvas_scene_ports(const CanvasSceneSnapshot& snapshot, ui::Pt world_pos) {
     for (const auto& obj : snapshot.hit_objects) {
         if (obj.kind != CanvasHitObjectKind::Port) continue;
 
@@ -478,8 +476,8 @@ visual::HitResult hit_test_canvas_scene_ports(const CanvasSceneSnapshot& snapsho
         ui::Pt center(cx, cy);
         if (hit_geometry::distance(world_pos, center) <= hit_geometry::port_hit_radius()) {
             return visual::HitPort{
-                .node_id = interner.resolve(obj.node_id),
-                .port_name = interner.resolve(obj.element_id),
+                .node_id = obj.node_id,
+                .port_name = obj.element_id,
                 .direction = obj.port_direction,
                 .type = obj.port_type,
                 .center = center,

@@ -178,14 +178,14 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 
     ui::StringInterner& rendered_interner = win.rendered_interner();
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(win.scene, rendered_interner);
-    auto hit = editor::presentation::hit_test_canvas_scene(snapshot, mouse_world, rendered_interner);
+    auto hit = editor::presentation::hit_test_canvas_scene(snapshot, mouse_world);
     ws.oscilloscope.clear_hover_signal(doc.id());
 
     if (auto* hp = std::get_if<visual::HitPort>(&hit)) {
-        std::string_view node_id = hp->node_id;
+        std::string_view node_id = rendered_interner.resolve(hp->node_id);
         if (node_id.empty()) return;
 
-        std::string_view port_name = hp->port_name;
+        std::string_view port_name = rendered_interner.resolve(hp->port_name);
         Pt port_screen = win.viewport.world_to_screen(hp->center - Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS), cmin);
         ui::InternedId signal_iid = doc.resolve_endpoint_signal_key(
             win.resolved_scope_id(), node_id, port_name);
@@ -200,16 +200,17 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         return;
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
+        std::string_view wire_id = rendered_interner.resolve(hw->wire_id);
         ui::InternedId signal_iid = doc.resolve_wire_signal_key(
-            win.resolved_scope_id(), hw->wire_id);
+            win.resolved_scope_id(), wire_id);
         if (signal_iid.empty()) return;
 
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
         float current_value = doc.simulation().get_signal_value(signal_iid);
-        maybe_log_hover_signal_resolution(std::string(hw->wire_id), "src", signal_iid, current_value);
+        maybe_log_hover_signal_resolution(std::string(wire_id), "src", signal_iid, current_value);
            
         // Project mouse onto wire segment for tooltip anchor
-        auto* wire = dynamic_cast<visual::Wire*>(win.scene.find(hw->wire_id));
+        auto* wire = dynamic_cast<visual::Wire*>(win.scene.find(wire_id));
         if (!wire) return;
         const auto& poly = wire->polyline();
         size_t seg = hw->segment;

@@ -104,10 +104,10 @@ bool endpoints_form_valid_wire(const bp2::Blueprint& bp,
 
 bool is_bus_alias_hit(const bp2::Blueprint& bp,
                       ui::InternedId node_id,
-                      std::string_view port_name,
+                      ui::InternedId port_name,
                       const ComponentRegistry& registry,
                       ui::StringInterner& interner) {
-    return is_bus_node(bp, node_id, registry, interner) && is_wire_alias_port_name(port_name);
+    return is_bus_node(bp, node_id, registry, interner) && is_wire_alias_port_name(interner.resolve(port_name));
 }
 
 ui::InternedId canonicalize_bus_port(const bp2::Blueprint& bp,
@@ -178,14 +178,14 @@ Domain resolve_reconnected_wire_domain(const bp2::Blueprint& bp,
 InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
     InputResult result;
     Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
-    auto port_hit = editor::presentation::hit_test_canvas_scene_ports(snapshot_, world, *interner_);
+    auto port_hit = editor::presentation::hit_test_canvas_scene_ports(snapshot_, world);
 
     if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
         if (!wire_start_endpoint_.has_value()) return result;
 
         CanvasInput::WireStartEndpoint start = *wire_start_endpoint_;
-        ui::InternedId end_node_iid = interner_->intern(ph->node_id);
-        ui::InternedId end_port_iid = interner_->intern(ph->port_name);
+        ui::InternedId end_node_iid = ph->node_id;
+        ui::InternedId end_port_iid = ph->port_name;
 
         if (start.node_id == end_node_iid && start.port_id == end_port_iid) return result;
 
@@ -196,9 +196,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
             return result;
         }
 
-        std::string_view end_node_sv = ph->node_id;
-
-        if (start.node_id.empty() || end_node_sv.empty()) return result;
+        if (start.node_id.empty() || end_node_iid.empty()) return result;
 
         ui::InternedId start_node_iid = start.node_id;
         ui::InternedId start_port_iid = start.port_id;
@@ -256,7 +254,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
 InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) {
     InputResult result;
     Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
-    auto port_hit = editor::presentation::hit_test_canvas_scene_ports(snapshot_, world, *interner_);
+    auto port_hit = editor::presentation::hit_test_canvas_scene_ports(snapshot_, world);
 
     bool reconnected = false;
 
@@ -269,8 +267,8 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
     auto [wire_tgt_node, wire_tgt_port] = editor_math::path_to_node_port(wire.target, *arena_);
 
     if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
-        const ui::InternedId port_node_iid = interner_->intern(ph->node_id);
-        const ui::InternedId hit_port_iid = interner_->intern(ph->port_name);
+        const ui::InternedId port_node_iid = ph->node_id;
+        const ui::InternedId hit_port_iid = ph->port_name;
         const PortType hit_port_type = resolve_effective_port_type(
             bp,
             port_node_iid,
