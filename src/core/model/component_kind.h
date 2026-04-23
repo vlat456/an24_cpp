@@ -11,6 +11,10 @@
 /// Resolved once at load/elaboration time from the string classname.
 /// All downstream dispatch uses this enum instead of string comparison.
 ///
+/// Unknown — valid sentinel for "not resolved". In-bounds, safe in switch,
+/// but has_component_metadata(Unknown) == false.
+/// _COUNT — array sizing only. Never used as a value.
+///
 /// NOTE: This file is auto-generated. To add a new component, add a
 /// .blueprint to the library and re-run update_port_registry.
 
@@ -86,6 +90,7 @@ enum class ComponentKind : uint8_t {
     VoltageSense,
     Voltmeter,
     XOR,
+    Unknown,
     _COUNT
 };
 
@@ -239,14 +244,16 @@ inline constexpr std::string_view component_kind_classname(ComponentKind kind) {
         case ComponentKind::VoltageSense: return "VoltageSense";
         case ComponentKind::Voltmeter: return "Voltmeter";
         case ComponentKind::XOR: return "XOR";
+        case ComponentKind::Unknown: return "Unknown";
         case ComponentKind::_COUNT: return "_COUNT";
     }
     return "Unknown";
 }
 
-/// KnobSwitch family: all components with solver_role.kind == "KnobSwitchBranches".
+/// KnobSwitch family: solver_role.kind == "KnobSwitchBranches".
 inline constexpr bool is_knob_switch_kind(ComponentKind kind) {
     return kind == ComponentKind::KnobSwitch ||
            kind == ComponentKind::RotarySwitch1ToN ||
            kind == ComponentKind::RotarySwitchNTo1;
 }
+

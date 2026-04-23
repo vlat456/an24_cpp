@@ -32,7 +32,7 @@ TEST(PortMapRegression, AllComponentPortsAreInStringToPortName) {
     };
 
     for (const auto& cls : classnames) {
-        auto ports = get_component_ports(parse_component_kind(cls).value_or(ComponentKind::_COUNT));
+        auto ports = get_component_ports(parse_component_kind(cls).value_or(ComponentKind::Unknown));
         ASSERT_FALSE(ports.empty()) << "No ports for component: " << cls;
         for (const auto& port : ports) {
             auto result = string_to_port_name(port);

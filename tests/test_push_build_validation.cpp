@@ -812,11 +812,20 @@ TEST(PushBuildValidation, UnknownClassnameThrows) {
     EXPECT_THROW(build_systems_dev(make_jit_input(devices, signal_groups)), std::runtime_error);
 }
 
-TEST(PushBuildValidation, MetadataHelpersUnknownClassFailFast) {
-    // Metadata helpers return false for unknown component kinds (no throw)
-    // Note: _COUNT is the sentinel value - functions return false, no throw
+TEST(PushBuildValidation, MetadataHelpersUnknownAndSentinelFailFast) {
+    // Unknown: valid enum value but not a real component
+    EXPECT_FALSE(has_component_metadata(ComponentKind::Unknown));
+    EXPECT_FALSE(is_scheduler_source_component(ComponentKind::Unknown));
+    EXPECT_FALSE(is_solver_owned_electrical_component(ComponentKind::Unknown));
+    EXPECT_FALSE(requires_solver_role_component(ComponentKind::Unknown));
+    EXPECT_TRUE(get_output_ports(ComponentKind::Unknown).empty());
+    EXPECT_TRUE(get_source_writer_ports(ComponentKind::Unknown, static_cast<uint8_t>(Domain::Electrical)).empty());
+
+    // _COUNT: out of bounds sentinel — same safe behavior
+    EXPECT_FALSE(has_component_metadata(ComponentKind::_COUNT));
     EXPECT_FALSE(is_scheduler_source_component(ComponentKind::_COUNT));
     EXPECT_FALSE(is_solver_owned_electrical_component(ComponentKind::_COUNT));
+    EXPECT_FALSE(requires_solver_role_component(ComponentKind::_COUNT));
     EXPECT_TRUE(get_output_ports(ComponentKind::_COUNT).empty());
     EXPECT_TRUE(get_source_writer_ports(ComponentKind::_COUNT, static_cast<uint8_t>(Domain::Electrical)).empty());
 }

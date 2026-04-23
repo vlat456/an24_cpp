@@ -15,7 +15,7 @@ struct ResolvedDevice {
     std::string template_name;
     std::string classname;
     std::string display_name;
-    ComponentKind kind = ComponentKind::_COUNT; // resolved at elaboration time
+    ComponentKind kind = ComponentKind::Unknown; // Unknown until resolved at elaboration time
     std::string priority = "med";
     std::optional<size_t> bucket;
     bool critical = false;

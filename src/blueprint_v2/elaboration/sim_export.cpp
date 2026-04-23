@@ -86,7 +86,7 @@ JitBuildInput elaborate_for_jit(
         ResolvedDevice dev;
         dev.name = dev_id;
         dev.classname = classname;
-        dev.kind = parse_component_kind(classname).value_or(ComponentKind::_COUNT);
+        dev.kind = parse_component_kind(classname).value_or(ComponentKind::Unknown);
         dev.priority = "med";
         dev.critical = false;
 

@@ -33,14 +33,14 @@ ResolvedDevice make_test_device_or_synthetic(const std::string& name,
     dev.name = name;
     dev.classname = classname;
     dev.params = params;
-    for (const auto& port_name : get_component_ports(parse_component_kind(classname).value_or(ComponentKind::_COUNT))) {
+    for (const auto& port_name : get_component_ports(parse_component_kind(classname).value_or(ComponentKind::Unknown))) {
         dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
     }
 
     ResolvedDevice resolved;
     resolved.name = dev.name;
     resolved.classname = dev.classname;
-    resolved.kind = parse_component_kind(dev.classname).value_or(ComponentKind::_COUNT);
+    resolved.kind = parse_component_kind(dev.classname).value_or(ComponentKind::Unknown);
     resolved.params = dev.params;
     resolved.ports = dev.ports;
     return resolved;

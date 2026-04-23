@@ -202,10 +202,9 @@ void emit_port_registry_lookups(
     oss << "    }\n";
     oss << "}\n\n";
 
-    // has_component_metadata: bounds-checked enum validity
+    // has_component_metadata: Unknown and _COUNT are not valid components
     oss << "inline bool has_component_metadata(ComponentKind kind) {\n";
-    oss << "    const auto idx = static_cast<size_t>(kind);\n";
-    oss << "    return idx < static_cast<size_t>(ComponentKind::_COUNT);\n";
+    oss << "    return kind != ComponentKind::Unknown && static_cast<size_t>(kind) < static_cast<size_t>(ComponentKind::_COUNT);\n";
     oss << "}\n\n";
 
     // get_output_ports: switch on ComponentKind (O(1) jump table)
@@ -248,45 +247,43 @@ void emit_port_registry_component_traits(
 ) {
     // Per-component constexpr booleans (already emitted as part of metadata).
     // Now emit indexed lookup arrays for fast enum → trait queries.
+    // Unknown slot: all false (safe defaults for unresolved kind).
 
     // scheduler_source: indexed by ComponentKind
     oss << "constexpr bool COMPONENT_SCHEDULER_SOURCE[] = {\n";
     for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << (all_components[i].scheduler_source ? "true" : "false")
-            << (i < all_components.size() - 1 ? ",\n" : "\n");
+        oss << "    " << (all_components[i].scheduler_source ? "true" : "false") << ",\n";
     }
+    oss << "    false // Unknown\n";
     oss << "};\n\n";
 
     // solver_owned_electrical: indexed by ComponentKind
     oss << "constexpr bool COMPONENT_SOLVER_OWNED_ELECTRICAL[] = {\n";
     for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << (all_components[i].solver_owned_electrical ? "true" : "false")
-            << (i < all_components.size() - 1 ? ",\n" : "\n");
+        oss << "    " << (all_components[i].solver_owned_electrical ? "true" : "false") << ",\n";
     }
+    oss << "    false // Unknown\n";
     oss << "};\n\n";
 
     // requires_solver_role: component has solver_role defined
     oss << "constexpr bool COMPONENT_REQUIRES_SOLVER_ROLE[] = {\n";
     for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << (!all_components[i].solver_role_kind.empty() ? "true" : "false")
-            << (i < all_components.size() - 1 ? ",\n" : "\n");
+        oss << "    " << (!all_components[i].solver_role_kind.empty() ? "true" : "false") << ",\n";
     }
+    oss << "    false // Unknown\n";
     oss << "};\n\n";
 
-    // Lookup functions — O(1) array index, zero string comparison
+    // Lookup functions — use has_component_metadata() for consistent guard
     oss << "inline bool is_scheduler_source_component(ComponentKind kind) {\n";
-    oss << "    const auto idx = static_cast<size_t>(kind);\n";
-    oss << "    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_SCHEDULER_SOURCE[idx];\n";
+    oss << "    return has_component_metadata(kind) && COMPONENT_SCHEDULER_SOURCE[static_cast<size_t>(kind)];\n";
     oss << "}\n\n";
 
     oss << "inline bool is_solver_owned_electrical_component(ComponentKind kind) {\n";
-    oss << "    const auto idx = static_cast<size_t>(kind);\n";
-    oss << "    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_SOLVER_OWNED_ELECTRICAL[idx];\n";
+    oss << "    return has_component_metadata(kind) && COMPONENT_SOLVER_OWNED_ELECTRICAL[static_cast<size_t>(kind)];\n";
     oss << "}\n\n";
 
     oss << "inline bool requires_solver_role_component(ComponentKind kind) {\n";
-    oss << "    const auto idx = static_cast<size_t>(kind);\n";
-    oss << "    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_REQUIRES_SOLVER_ROLE[idx];\n";
+    oss << "    return has_component_metadata(kind) && COMPONENT_REQUIRES_SOLVER_ROLE[static_cast<size_t>(kind)];\n";
     oss << "}\n\n";
 }
 
@@ -303,8 +300,8 @@ void emit_port_registry_variant(std::ostringstream& oss, const std::vector<Compo
     oss << ">;\n\n";
 
     oss << "static_assert(\n";
-    oss << "    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentKind::_COUNT),\n";
-    oss << "    \"ComponentKind enum and ComponentVariant are out of sync — regenerate port_registry.h\"\n";
+    oss << "    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentKind::Unknown),\n";
+    oss << "    \"ComponentVariant size doesn't match real component count — re-run update_port_registry\"\n";
     oss << ");\n\n";
 
     // Round-trip validation: ensures ComponentKind enum ordering matches the
@@ -661,9 +658,15 @@ void CodeGen::generate_component_kind(const ComponentRegistry& registry, const s
     oss << "#include <string_view>\n\n";
 
     // Enum — alphabetical order matches codegen iteration order.
+    // Unknown: valid sentinel for "not resolved" (in-bounds, safe in switch).
+    // _COUNT: array sizing only — never used as a value.
     oss << "/// ComponentKind — enumeration of every primitive component type.\n";
     oss << "/// Resolved once at load/elaboration time from the string classname.\n";
     oss << "/// All downstream dispatch uses this enum instead of string comparison.\n";
+    oss << "///\n";
+    oss << "/// Unknown — valid sentinel for \"not resolved\". In-bounds, safe in switch,\n";
+    oss << "/// but has_component_metadata(Unknown) == false.\n";
+    oss << "/// _COUNT — array sizing only. Never used as a value.\n";
     oss << "///\n";
     oss << "/// NOTE: This file is auto-generated. To add a new component, add a\n";
     oss << "/// .blueprint to the library and re-run update_port_registry.\n\n";
@@ -671,6 +674,7 @@ void CodeGen::generate_component_kind(const ComponentRegistry& registry, const s
     for (size_t i = 0; i < all_components.size(); ++i) {
         oss << "    " << all_components[i].classname << ",\n";
     }
+    oss << "    Unknown,\n";
     oss << "    _COUNT\n";
     oss << "};\n\n";
 
@@ -690,36 +694,47 @@ void CodeGen::generate_component_kind(const ComponentRegistry& registry, const s
     for (const auto& comp : all_components) {
         oss << "        case ComponentKind::" << comp.classname << ": return \"" << comp.classname << "\";\n";
     }
+    oss << "        case ComponentKind::Unknown: return \"Unknown\";\n";
     oss << "        case ComponentKind::_COUNT: return \"_COUNT\";\n";
     oss << "    }\n";
     oss << "    return \"Unknown\";\n";
     oss << "}\n\n";
 
-    // Family predicates — derived from solver_role_kind metadata
-    // KnobSwitch family: solver_role.kind == "KnobSwitchBranches"
-    std::vector<std::string> knob_family;
-    for (const auto& comp : all_components) {
-        if (comp.solver_role_kind == KNOB_SWITCH_BRANCHES_ROLE) {
-            knob_family.push_back(comp.classname);
-        }
-    }
+    // Family predicates — data-driven from solver_role_kind metadata.
+    // Each entry: {predicate_name, doc_string, filter}.  New families just add a row.
+    struct FamilyDef {
+        const char* predicate_name;
+        const char* doc_string;
+        std::string role_kind;  // solver_role_kind to match
+    };
+    const FamilyDef families[] = {
+        {"is_knob_switch_kind", "KnobSwitch family", std::string(KNOB_SWITCH_BRANCHES_ROLE)},
+    };
 
-    if (!knob_family.empty()) {
-        oss << "/// KnobSwitch family: all components with solver_role.kind == \"KnobSwitchBranches\".\n";
-        oss << "inline constexpr bool is_knob_switch_kind(ComponentKind kind) {\n";
-        if (knob_family.size() == 1) {
-            oss << "    return kind == ComponentKind::" << knob_family[0] << ";\n";
+    for (const auto& fam : families) {
+        std::vector<std::string> members;
+        for (const auto& comp : all_components) {
+            if (comp.solver_role_kind == fam.role_kind) {
+                members.push_back(comp.classname);
+            }
+        }
+        if (members.empty()) continue;
+
+        oss << "/// " << fam.doc_string << ": solver_role.kind == \"" << fam.role_kind << "\".\n";
+        oss << "inline constexpr bool " << fam.predicate_name << "(ComponentKind kind) {\n";
+        if (members.size() == 1) {
+            oss << "    return kind == ComponentKind::" << members[0] << ";\n";
         } else {
             oss << "    return ";
-            for (size_t i = 0; i < knob_family.size(); ++i) {
-                oss << "kind == ComponentKind::" << knob_family[i];
-                if (i < knob_family.size() - 1) {
+            for (size_t i = 0; i < members.size(); ++i) {
+                oss << "kind == ComponentKind::" << members[i];
+                if (i < members.size() - 1) {
                     oss << " ||\n           ";
                 }
             }
             oss << ";\n";
         }
-        oss << "}\n";
+        oss << "}\n\n";
     }
 
     std::ofstream out(output_path);

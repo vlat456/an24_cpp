@@ -44,7 +44,7 @@ inline DeviceInstance make_device_with_ports(
         }
     } else {
         std::vector<std::string> ports = explicit_ports.empty()
-            ? get_component_ports(parse_component_kind(classname).value_or(ComponentKind::_COUNT))
+            ? get_component_ports(parse_component_kind(classname).value_or(ComponentKind::Unknown))
             : explicit_ports;
         for (const auto& port_name : ports) {
             dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
@@ -99,7 +99,7 @@ inline ResolvedDevice make_resolved_device_with_role(
     ResolvedDevice resolved;
     resolved.name = name;
     resolved.classname = classname;
-    resolved.kind = parse_component_kind(classname).value_or(ComponentKind::_COUNT);
+    resolved.kind = parse_component_kind(classname).value_or(ComponentKind::Unknown);
     resolved.params = dev.params;
     resolved.ports = dev.ports;
     resolved.domains = base ? spec_domains(*base) : std::vector<Domain>{Domain::Electrical};
@@ -117,7 +117,7 @@ inline ResolvedDevice make_raw_resolved_device(
     ResolvedDevice dev;
     dev.name = std::move(name);
     dev.classname = std::move(classname);
-    dev.kind = parse_component_kind(dev.classname).value_or(ComponentKind::_COUNT);
+    dev.kind = parse_component_kind(dev.classname).value_or(ComponentKind::Unknown);
     dev.params = std::move(params);
     dev.ports = std::move(ports);
     return dev;

@@ -77,7 +77,7 @@ ExecutionPhases make_execution_for_class(const std::string& classname) {
 /// plus a ground RefNode so signal allocation succeeds.
 BuildResult build_single_component(const std::string& classname,
                                    const std::unordered_map<std::string, std::string>& params = {}) {
-    auto ports = get_component_ports(parse_component_kind(classname).value_or(ComponentKind::_COUNT));
+    auto ports = get_component_ports(parse_component_kind(classname).value_or(ComponentKind::Unknown));
 
     std::unordered_map<std::string, std::string> merged_params = params;
     // Strict-param components must provide canonical keys.
@@ -152,7 +152,8 @@ BuildResult build_single_component(const std::string& classname,
 // Test that all known component types can be built without throwing
 // ---------------------------------------------------------------------------
 TEST(FactoryValidationTest, Factory_CreatesAllKnownComponents) {
-    for (size_t i = 0; i < static_cast<size_t>(ComponentKind::_COUNT); ++i) {
+    // Iterate real components only (Unknown and _COUNT are not buildable)
+    for (size_t i = 0; i < static_cast<size_t>(ComponentKind::Unknown); ++i) {
         auto kind = static_cast<ComponentKind>(i);
         std::string classname(component_kind_classname(kind));
 
@@ -199,7 +200,8 @@ TEST(FactoryValidationTest, PortRegistryConstants_AreCorrect) {
 // string_to_port_name() (i.e. no stale entries in the registry)
 // ---------------------------------------------------------------------------
 TEST(FactoryValidationTest, AllRegistryPortsAreRecognized) {
-    for (size_t i = 0; i < static_cast<size_t>(ComponentKind::_COUNT); ++i) {
+    // Iterate real components only (Unknown has no ports)
+    for (size_t i = 0; i < static_cast<size_t>(ComponentKind::Unknown); ++i) {
         auto kind = static_cast<ComponentKind>(i);
         std::string classname(component_kind_classname(kind));
 

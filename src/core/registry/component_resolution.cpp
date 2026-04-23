@@ -151,7 +151,7 @@ ResolvedDevice resolve_component(
     resolved.params = std::move(merged.params);
     resolved.pos = merged.pos;
     resolved.size = merged.size;
-    resolved.kind = parse_component_kind(merged.classname).value_or(ComponentKind::_COUNT);
+    resolved.kind = parse_component_kind(merged.classname).value_or(ComponentKind::Unknown);
     // scheduler_source and solver_owned_electrical come from PrimitiveSpec.solver
     resolved.domains = spec_domains(definition);
 

@@ -1696,8 +1696,7 @@ inline std::vector<std::string> get_component_ports(ComponentKind kind) {
 }
 
 inline bool has_component_metadata(ComponentKind kind) {
-    const auto idx = static_cast<size_t>(kind);
-    return idx < static_cast<size_t>(ComponentKind::_COUNT);
+    return kind != ComponentKind::Unknown && static_cast<size_t>(kind) < static_cast<size_t>(ComponentKind::_COUNT);
 }
 
 inline std::vector<std::string> get_output_ports(ComponentKind kind) {
@@ -2637,7 +2636,8 @@ constexpr bool COMPONENT_SCHEDULER_SOURCE[] = {
     false,
     false,
     false,
-    false
+    false,
+    false // Unknown
 };
 
 constexpr bool COMPONENT_SOLVER_OWNED_ELECTRICAL[] = {
@@ -2711,7 +2711,8 @@ constexpr bool COMPONENT_SOLVER_OWNED_ELECTRICAL[] = {
     true,
     false,
     false,
-    false
+    false,
+    false // Unknown
 };
 
 constexpr bool COMPONENT_REQUIRES_SOLVER_ROLE[] = {
@@ -2785,22 +2786,20 @@ constexpr bool COMPONENT_REQUIRES_SOLVER_ROLE[] = {
     true,
     false,
     false,
-    false
+    false,
+    false // Unknown
 };
 
 inline bool is_scheduler_source_component(ComponentKind kind) {
-    const auto idx = static_cast<size_t>(kind);
-    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_SCHEDULER_SOURCE[idx];
+    return has_component_metadata(kind) && COMPONENT_SCHEDULER_SOURCE[static_cast<size_t>(kind)];
 }
 
 inline bool is_solver_owned_electrical_component(ComponentKind kind) {
-    const auto idx = static_cast<size_t>(kind);
-    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_SOLVER_OWNED_ELECTRICAL[idx];
+    return has_component_metadata(kind) && COMPONENT_SOLVER_OWNED_ELECTRICAL[static_cast<size_t>(kind)];
 }
 
 inline bool requires_solver_role_component(ComponentKind kind) {
-    const auto idx = static_cast<size_t>(kind);
-    return idx < static_cast<size_t>(ComponentKind::_COUNT) && COMPONENT_REQUIRES_SOLVER_ROLE[idx];
+    return has_component_metadata(kind) && COMPONENT_REQUIRES_SOLVER_ROLE[static_cast<size_t>(kind)];
 }
 
 using ComponentVariant = std::variant<
@@ -2878,8 +2877,8 @@ using ComponentVariant = std::variant<
 >;
 
 static_assert(
-    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentKind::_COUNT),
-    "ComponentKind enum and ComponentVariant are out of sync — regenerate port_registry.h"
+    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentKind::Unknown),
+    "ComponentVariant size doesn't match real component count — re-run update_port_registry"
 );
 
 // Compile-time ordering check: enum ↔ classname round-trip
