@@ -73,9 +73,6 @@ void emit_port_registry_prelude(std::ostringstream& oss, const std::vector<Compo
     oss << "#include \"port_names.h\"\n";
     oss << "#include \"core/model/component_kind.h\"\n\n";
 
-    // Backward-compat alias: existing code may still reference ComponentType.
-    oss << "using ComponentType = ComponentKind;\n\n";
-
     for (const auto& comp : all_components) {
         oss << "constexpr size_t " << comp.classname << "_PORT_COUNT = " << comp.ports.size() << ";\n";
     }
@@ -277,6 +274,17 @@ void emit_port_registry_variant(std::ostringstream& oss, const std::vector<Compo
     oss << "    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentKind::_COUNT),\n";
     oss << "    \"ComponentKind enum and ComponentVariant are out of sync — regenerate port_registry.h\"\n";
     oss << ");\n\n";
+
+    // Round-trip validation: ensures the hand-written ComponentKind enum ordering
+    // matches the codegen-sorted component list. Catches silent misindexing if
+    // a new component is inserted in the wrong position.
+    oss << "// Compile-time ordering check: enum ↔ classname round-trip\n";
+    for (size_t i = 0; i < all_components.size(); ++i) {
+        oss << "static_assert(static_cast<size_t>(ComponentKind::" << all_components[i].classname
+            << ") == " << i << "ull, \""
+            << all_components[i].classname << " enum position mismatch — regenerate port_registry.h or update component_kind.h\");\n";
+    }
+    oss << "\n";
 }
 
 void generate_port_names_header(const std::string& output_path, const std::set<std::string>& all_port_names) {

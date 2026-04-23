@@ -16,8 +16,6 @@
 #include "port_names.h"
 #include "core/model/component_kind.h"
 
-using ComponentType = ComponentKind;
-
 constexpr size_t AND_PORT_COUNT = 3;
 constexpr size_t AZS_PORT_COUNT = 6;
 constexpr size_t Accumulator_PORT_COUNT = 2;
@@ -2882,4 +2880,77 @@ static_assert(
     std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentKind::_COUNT),
     "ComponentKind enum and ComponentVariant are out of sync — regenerate port_registry.h"
 );
+
+// Compile-time ordering check: enum ↔ classname round-trip
+static_assert(static_cast<size_t>(ComponentKind::AND) == 0ull, "AND enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::AZS) == 1ull, "AZS enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Accumulator) == 2ull, "Accumulator enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Add) == 3ull, "Add enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Any_V_to_Bool) == 4ull, "Any_V_to_Bool enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::AsymSlewRate) == 5ull, "AsymSlewRate enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::AsymTMO) == 6ull, "AsymTMO enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Bus) == 7ull, "Bus enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Clamp) == 8ull, "Clamp enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Comparator) == 9ull, "Comparator enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::ControlledCurrentSource) == 10ull, "ControlledCurrentSource enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::ControlledVoltageSource) == 11ull, "ControlledVoltageSource enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::CurrentSense) == 12ull, "CurrentSense enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Divide) == 13ull, "Divide enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::ElectricHeater) == 14ull, "ElectricHeater enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::ElectricPump) == 15ull, "ElectricPump enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::ElectricalConductance) == 16ull, "ElectricalConductance enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::ElectricalSource) == 17ull, "ElectricalSource enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::FastTMO) == 18ull, "FastTMO enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::FuelTank) == 19ull, "FuelTank enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Generator) == 20ull, "Generator enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::GidroAccumulator) == 21ull, "GidroAccumulator enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Greater) == 22ull, "Greater enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::GreaterEq) == 23ull, "GreaterEq enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Gyroscope) == 24ull, "Gyroscope enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::HoldButton) == 25ull, "HoldButton enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::IndicatorLight) == 26ull, "IndicatorLight enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::InertiaNode) == 27ull, "InertiaNode enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Integrator) == 28ull, "Integrator enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Inverter) == 29ull, "Inverter enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::KnobSwitch) == 30ull, "KnobSwitch enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::LUT) == 31ull, "LUT enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::LerpNode) == 32ull, "LerpNode enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Lesser) == 33ull, "Lesser enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::LesserEq) == 34ull, "LesserEq enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Max) == 35ull, "Max enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Merger) == 36ull, "Merger enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Min) == 37ull, "Min enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Monostable) == 38ull, "Monostable enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Multiply) == 39ull, "Multiply enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::NAND) == 40ull, "NAND enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::NOT) == 41ull, "NOT enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Normalize) == 42ull, "Normalize enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::OR) == 43ull, "OR enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::P) == 44ull, "P enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::PD) == 45ull, "PD enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::PI) == 46ull, "PI enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::PID) == 47ull, "PID enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Positive_V_to_Bool) == 48ull, "Positive_V_to_Bool enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Radiator) == 49ull, "Radiator enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::RefNode) == 50ull, "RefNode enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Relay) == 51ull, "Relay enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Resistor) == 52ull, "Resistor enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::RotarySwitch1ToN) == 53ull, "RotarySwitch1ToN enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::RotarySwitchNTo1) == 54ull, "RotarySwitchNTo1 enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::SampleHold) == 55ull, "SampleHold enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::SlewRate) == 56ull, "SlewRate enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Slider) == 57ull, "Slider enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::SolenoidValve) == 58ull, "SolenoidValve enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Splitter) == 59ull, "Splitter enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Spring) == 60ull, "Spring enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Subtract) == 61ull, "Subtract enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Switch) == 62ull, "Switch enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::TempSensor) == 63ull, "TempSensor enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::TimeDelay) == 64ull, "TimeDelay enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Transformer) == 65ull, "Transformer enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Value) == 66ull, "Value enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::VariableConductance) == 67ull, "VariableConductance enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::VoltageSense) == 68ull, "VoltageSense enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::Voltmeter) == 69ull, "Voltmeter enum position mismatch — regenerate port_registry.h or update component_kind.h");
+static_assert(static_cast<size_t>(ComponentKind::XOR) == 70ull, "XOR enum position mismatch — regenerate port_registry.h or update component_kind.h");
 
