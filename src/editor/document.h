@@ -176,7 +176,6 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
     /// Direct access to typed overrides for edge cases.
     /// InternedId must be resolved against simulation's signal_key_interner().
     std::vector<std::pair<ui::InternedId, float>>& typedOverrides() { return typed_overrides_; }
-    std::unordered_map<std::string, ui::InternedId>& heldButtons() { return held_buttons_; }
 
     void triggerSwitch(const editor::NodeId& node_id, const WindowScopeId& scope_id = WindowScopeId::root());
     void setSliderValue(const editor::NodeId& node_id, float value, const WindowScopeId& scope_id = WindowScopeId::root());
@@ -288,9 +287,9 @@ private:
     // Typed signal overrides — InternedId resolved once at interaction time.
     std::vector<std::pair<ui::InternedId, float>> typed_overrides_;
 
-    // Held buttons — key is sim_id (for erase matching), value is pre-resolved
+    // Held buttons — key is NodeInstanceKey, value is pre-resolved
     // control port InternedId (resolved at press time, not per-frame).
-    std::unordered_map<std::string, ui::InternedId> held_buttons_;
+    std::unordered_map<editor::NodeInstanceKey, ui::InternedId, editor::NodeInstanceKeyHash> held_buttons_;
 
     editor::RuntimeNodeStateStore runtime_node_states_;
     const ComponentRegistry* type_registry_ = nullptr;

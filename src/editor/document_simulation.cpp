@@ -15,14 +15,6 @@
 
 namespace {
 
-/// Build the simulation-level node ID: "scope_prefix:node_id" for scoped, or "node_id" for root.
-std::string make_sim_id(const ui::StringInterner& interner,
-                        const editor::NodeId& node_id,
-                        const WindowScopeId& scope_id) {
-    const std::string prefix = editor::instance_path_to_scope_string(interner, scope_id.path());
-    return prefix.empty() ? node_id.str() : signal_key::make_child_scope_key(prefix, node_id.str());
-}
-
 /// Convert a WindowScopeId path to a typed InternedId instance_path.
 /// Now just forwards the path since WindowScopeId already stores InternedIds.
 std::vector<ui::InternedId> scope_id_to_instance_path(const WindowScopeId& scope_id) {
@@ -46,6 +38,20 @@ ui::InternedId resolve_port_key(const ui::StringInterner& sim_interner,
 /// std::visit overload set helper — standard C++ idiom for variant dispatch.
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+/// Extract the control InternedId from a ContentPorts variant.
+/// Returns empty InternedId for non-interactive content types.
+ui::InternedId extract_control_port(const editor::ContentPorts& ports) {
+    return std::visit(overloaded{
+        [](std::monostate) { return ui::InternedId{}; },
+        [](const editor::GaugePorts&) { return ui::InternedId{}; },
+        [](const editor::IndicatorPorts&) { return ui::InternedId{}; },
+        [](const editor::SwitchPorts& p) { return p.control; },
+        [](const editor::AzsPorts& p) { return p.control; },
+        [](const editor::SliderPorts& p) { return p.control; },
+        [](const editor::KnobPorts& p) { return p.control; }
+    }, ports);
+}
 
 /// Overlay simulation values onto NodeContent using variant-dispatched port reads.
 /// Zero string construction, zero hash table lookup — pure integer reads.
@@ -440,7 +446,7 @@ void Document::updateSimulationStep(double dt) {
     std::vector<std::pair<ui::InternedId, float>> all_overrides;
     all_overrides.reserve(typed_overrides_.size() + held_buttons_.size());
 
-    for (const auto& [sim_id, control_iid] : held_buttons_) {
+    for (const auto& [key, control_iid] : held_buttons_) {
         if (!control_iid.empty()) all_overrides.push_back({control_iid, 1.0f});
     }
     all_overrides.insert(all_overrides.end(), typed_overrides_.begin(), typed_overrides_.end());
@@ -667,17 +673,29 @@ ui::InternedId Document::resolve_wire_signal_key(const WindowScopeId& scope_id,
 // ============================================================================
 
 void Document::triggerSwitch(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
-    const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
+    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+    const auto it = signal_cache_.find(key);
+    if (it == signal_cache_.end()) return;
+
+    const ui::InternedId control_key = extract_control_port(it->second.ports);
+    if (control_key.empty()) return;
+
     float current = simulation_.get_signal_value(control_key);
     float next = (current < 0.5f) ? 1.0f : 0.0f;
     typed_overrides_.push_back({control_key, next});
 }
 
 void Document::setSliderValue(const editor::NodeId& node_id, float value, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
-    const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
-    typed_overrides_.push_back({control_key, value});
+    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+    const auto it = signal_cache_.find(key);
+
+    // Send override to simulation if the node has a cached control port.
+    if (it != signal_cache_.end()) {
+        const ui::InternedId control_key = extract_control_port(it->second.ports);
+        if (!control_key.empty()) {
+            typed_overrides_.push_back({control_key, value});
+        }
+    }
 
     const bp2::Blueprint::Node* n = find_node_in_scope(scope_id, node_id);
     if (!n) return;
@@ -690,9 +708,16 @@ void Document::setSliderValue(const editor::NodeId& node_id, float value, const 
 }
 
 void Document::setKnobPosition(const editor::NodeId& node_id, int position, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
-    const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
-    typed_overrides_.push_back({control_key, static_cast<float>(position)});
+    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+    const auto it = signal_cache_.find(key);
+
+    // Send override to simulation if the node has a cached control port.
+    if (it != signal_cache_.end()) {
+        const ui::InternedId control_key = extract_control_port(it->second.ports);
+        if (!control_key.empty()) {
+            typed_overrides_.push_back({control_key, static_cast<float>(position)});
+        }
+    }
 
     const bp2::Blueprint::Node* n = find_node_in_scope(scope_id, node_id);
     if (!n) return;
@@ -705,16 +730,20 @@ void Document::setKnobPosition(const editor::NodeId& node_id, int position, cons
 }
 
 void Document::holdButtonPress(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
-    const ui::InternedId control_key = resolve_port_key(simulation_.signal_key_interner(), sim_id, "control");
-    held_buttons_[sim_id] = control_key;
+    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+    const auto it = signal_cache_.find(key);
+    if (it == signal_cache_.end()) return;
+
+    const ui::InternedId control_key = extract_control_port(it->second.ports);
+    if (control_key.empty()) return;
+
+    held_buttons_[key] = control_key;
 }
 
 void Document::holdButtonRelease(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const std::string sim_id = make_sim_id(interner_, node_id, scope_id);
-    auto it = held_buttons_.find(sim_id);
+    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+    auto it = held_buttons_.find(key);
     if (it != held_buttons_.end()) {
-        // Send release override using the pre-resolved InternedId.
         if (!it->second.empty()) {
             typed_overrides_.push_back({it->second, 2.0f});
         }
