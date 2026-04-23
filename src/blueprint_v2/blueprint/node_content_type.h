@@ -47,7 +47,6 @@ inline constexpr const char* node_content_type_to_string(NodeContentType t) {
         case NodeContentType::Slider:         return "Slider";
         case NodeContentType::Indicator:      return "Indicator";
         case NodeContentType::Knob:           return "Knob";
-        case NodeContentType::Azs:            return "Azs";
         case NodeContentType::Count:          return "None";
     }
     return "None";

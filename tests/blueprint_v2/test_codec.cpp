@@ -1713,4 +1713,3 @@ TEST(NodeContentTypeConversion, ParseSpecialMappings) {
     EXPECT_EQ(bp2::parse_node_content_type("Unknown"),   bp2::NodeContentType::None);
     EXPECT_EQ(bp2::parse_node_content_type("gauge"),     bp2::NodeContentType::None);  // case-sensitive
 }
->>>>>>> 5329e569 (refactor: purge AZS tripped from editor — AZS is just a Switch (#214))
