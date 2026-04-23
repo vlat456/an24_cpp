@@ -67,10 +67,10 @@ void Document::openExternalRefWindow(const WindowScopeId& instance_scope,
                  editor::instance_path_to_scope_string(interner_, instance_scope.path()), blueprint_file_path);
 }
 
-void Document::openSubWindow(const WindowScopeId& parent_scope, const std::string& local_node_id) {
+void Document::openSubWindow(const WindowScopeId& parent_scope, ui::InternedId local_node_id) {
     openSubWindow(parent_scope.is_root()
-        ? WindowScopeId::embedded({interner_.intern(local_node_id)})
-        : parent_scope.append(interner_.intern(local_node_id)));
+        ? WindowScopeId::embedded({local_node_id})
+        : parent_scope.append(local_node_id));
 }
 
 void Document::openSubWindow(const WindowScopeId& target_scope) {

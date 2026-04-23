@@ -930,7 +930,7 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
     mods.shift = true;
     InputResult r = input.on_mouse_down(probe_pos, MouseButton::Left, canvas_min, mods);
 
-    EXPECT_EQ(r.toggle_probe_wire_id, "wire_probe");
+    EXPECT_EQ(r.toggle_probe_wire_id, I.intern("wire_probe"));
     EXPECT_TRUE(r.has_toggle_probe_world_pos);
     EXPECT_NEAR(r.toggle_probe_world_pos.x, probe_pos.x, 1.5f);
     EXPECT_NEAR(r.toggle_probe_world_pos.y, probe_pos.y, 1.5f);
@@ -1266,7 +1266,7 @@ TEST(CanvasInputDoubleClick, ValueNodeOpensInlineValueEditor) {
 
     InputResult r = input.on_double_click(click_pos, canvas_min);
     EXPECT_TRUE(r.open_inline_value_editor);
-    EXPECT_EQ(r.inline_value_editor_node_id, "val1");
+    EXPECT_EQ(r.inline_value_editor_node_id, I.intern("val1"));
 }
 
 TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
@@ -1298,7 +1298,7 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
 
     InputResult r = input.on_double_click(click_pos, canvas_min);
     EXPECT_FALSE(r.open_inline_value_editor);
-    EXPECT_EQ(r.open_sub_window, "grp1");
+    EXPECT_EQ(r.open_sub_window, I.intern("grp1"));
 }
 
 // ============================================================================
@@ -1535,7 +1535,7 @@ TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
     EXPECT_FALSE(result.toggle_switch_node_id.empty())
         << "Clicking center of VerticalToggle content area should trigger toggle";
     if (!result.toggle_switch_node_id.empty()) {
-        EXPECT_EQ(result.toggle_switch_node_id, "azs_1");
+        EXPECT_EQ(result.toggle_switch_node_id, I.intern("azs_1"));
     }
 }
 
@@ -1571,7 +1571,7 @@ TEST(CanvasInputContentToggle, EdgeClickOnVerticalToggleContentReturnsToggle) {
 
     Pt canvas_min(0, 0);
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    EXPECT_EQ(result.toggle_switch_node_id, "azs_1");
+    EXPECT_EQ(result.toggle_switch_node_id, I.intern("azs_1"));
 }
 
 TEST(CanvasInputLayoutSizing, ExplicitUndersizedNodeExpandsToRequiredMinimum) {
@@ -1867,7 +1867,7 @@ TEST(CanvasInputSimMode, SimModeAllowsToggleInteraction) {
     Pt canvas_min(0, 0);
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
 
-    EXPECT_EQ(result.toggle_switch_node_id, "azs_1")
+    EXPECT_EQ(result.toggle_switch_node_id, I.intern("azs_1"))
         << "simulation_mode must allow toggle interaction";
 }
 
@@ -1909,7 +1909,7 @@ TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
     Pt canvas_min(0, 0);
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
 
-    EXPECT_EQ(result.knob_node_id, "knob_1")
+    EXPECT_EQ(result.knob_node_id, I.intern("knob_1"))
         << "simulation_mode must allow knob interaction";
     EXPECT_EQ(input.state(), InputState::DraggingKnob)
         << "simulation_mode must allow knob drag state";
@@ -1953,7 +1953,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
      Pt canvas_min(0, 0);
      auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
 
-     EXPECT_EQ(result.slider_node_id, "slider_1")
+     EXPECT_EQ(result.slider_node_id, I.intern("slider_1"))
          << "simulation_mode must allow slider interaction";
     EXPECT_EQ(input.state(), InputState::DraggingSlider)
         << "simulation_mode must allow slider drag state";
@@ -1994,7 +1994,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteractionAtEdge) {
 
     Pt canvas_min(0, 0);
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    EXPECT_EQ(result.slider_node_id, "slider_1");
+    EXPECT_EQ(result.slider_node_id, I.intern("slider_1"));
     EXPECT_EQ(input.state(), InputState::DraggingSlider);
 }
 
@@ -2620,7 +2620,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
     Pt canvas_min(0, 0);
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
     
-    EXPECT_EQ(result.knob_node_id, "knob_1")
+    EXPECT_EQ(result.knob_node_id, I.intern("knob_1"))
         << "CanvasInput must handle knob interaction via semantic target metadata";
     EXPECT_EQ(input.state(), InputState::DraggingKnob)
         << "CanvasInput must enter DraggingKnob state via semantic metadata";
@@ -2750,7 +2750,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
     auto result = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
     
     // Verify the slider interaction was handled without accessing concrete geometry.
-    EXPECT_EQ(result.slider_node_id, "slider_1")
+    EXPECT_EQ(result.slider_node_id, I.intern("slider_1"))
         << "CanvasInput must handle slider interaction via semantic target mapping";
     EXPECT_EQ(input.state(), InputState::DraggingSlider)
         << "CanvasInput must enter DraggingSlider state via semantic mapping";
@@ -2799,11 +2799,11 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinMax) {
     Pt canvas_min(0, 0);
 
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.slider_node_id, "slider_custom");
+    ASSERT_EQ(down.slider_node_id, I.intern("slider_custom"));
     ASSERT_EQ(input.state(), InputState::DraggingSlider);
 
     auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
-    EXPECT_EQ(drag.slider_node_id, "slider_custom");
+    EXPECT_EQ(drag.slider_node_id, I.intern("slider_custom"));
     EXPECT_FLOAT_EQ(drag.slider_value, 200.0f);
 
     input.on_mouse_up(MouseButton::Left, click_world + Pt(500.0f, 0.0f), canvas_min);
@@ -2843,11 +2843,11 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinOnLeft
     Pt canvas_min(0, 0);
 
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.slider_node_id, "slider_custom");
+    ASSERT_EQ(down.slider_node_id, I.intern("slider_custom"));
     ASSERT_EQ(input.state(), InputState::DraggingSlider);
 
     auto drag = input.on_mouse_drag(MouseButton::Left, Pt(-500.0f, 0.0f), canvas_min);
-    EXPECT_EQ(drag.slider_node_id, "slider_custom");
+    EXPECT_EQ(drag.slider_node_id, I.intern("slider_custom"));
     EXPECT_FLOAT_EQ(drag.slider_value, -10.0f);
 
     input.on_mouse_up(MouseButton::Left, click_world + Pt(-500.0f, 0.0f), canvas_min);
@@ -3146,7 +3146,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
     Pt canvas_min(0, 0);
     auto result = input.on_double_click(click_world, canvas_min);
 
-    EXPECT_EQ(result.open_sub_window, "comp_1")
+    EXPECT_EQ(result.open_sub_window, I.intern("comp_1"))
         << "Double-clicking interactive content of a BlueprintInstance "
            "should still open the sub-window";
 }
@@ -3190,13 +3190,13 @@ TEST(CanvasInputSemanticGate, SliderDragOffHitStillEmitsThroughSemanticContinuat
 
     Pt canvas_min(0, 0);
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.slider_node_id, "slider_1");
+    ASSERT_EQ(down.slider_node_id, I.intern("slider_1"));
     ASSERT_EQ(input.state(), InputState::DraggingSlider);
 
     auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
 
     EXPECT_EQ(input.state(), InputState::DraggingSlider);
-    EXPECT_EQ(drag.slider_node_id, "slider_1");
+    EXPECT_EQ(drag.slider_node_id, I.intern("slider_1"));
     EXPECT_GE(drag.slider_value, 0.0f);
 }
 
@@ -3236,12 +3236,12 @@ TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
 
     Pt canvas_min(0, 0);
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.slider_node_id, "slider_1");
+    ASSERT_EQ(down.slider_node_id, I.intern("slider_1"));
     ASSERT_EQ(input.state(), InputState::DraggingSlider);
 
     auto drag = input.on_mouse_drag(MouseButton::Left, Pt(-20.0f, 0.0f), canvas_min);
 
-    EXPECT_EQ(drag.slider_node_id, "slider_1");
+    EXPECT_EQ(drag.slider_node_id, I.intern("slider_1"));
     EXPECT_LT(drag.slider_value, 100.0f);
 }
 
@@ -3280,13 +3280,13 @@ TEST(CanvasInputSemanticGate, KnobDragOffHitStillEmitsThroughSemanticContinuatio
 
     Pt canvas_min(0, 0);
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.knob_node_id, "knob_1");
+    ASSERT_EQ(down.knob_node_id, I.intern("knob_1"));
     ASSERT_EQ(input.state(), InputState::DraggingKnob);
 
     auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
 
     EXPECT_EQ(input.state(), InputState::DraggingKnob);
-    EXPECT_EQ(drag.knob_node_id, "knob_1");
+    EXPECT_EQ(drag.knob_node_id, I.intern("knob_1"));
     EXPECT_GE(drag.knob_position, 0);
 }
 
@@ -3325,7 +3325,7 @@ TEST(CanvasInputSemanticGate, SliderReleaseOffHitEndsDragState) {
 
     Pt canvas_min(0, 0);
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.slider_node_id, "slider_1");
+    ASSERT_EQ(down.slider_node_id, I.intern("slider_1"));
     ASSERT_EQ(input.state(), InputState::DraggingSlider);
 
     input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
@@ -3369,7 +3369,7 @@ TEST(CanvasInputSemanticGate, KnobReleaseOffHitEndsDragState) {
 
     Pt canvas_min(0, 0);
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.knob_node_id, "knob_1");
+    ASSERT_EQ(down.knob_node_id, I.intern("knob_1"));
     ASSERT_EQ(input.state(), InputState::DraggingKnob);
 
     input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
@@ -3413,12 +3413,12 @@ TEST(CanvasInputSemanticGate, SimulationModeSliderDragStillEmitsWhenSemanticActi
 
     Pt canvas_min(0, 0);
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.slider_node_id, "slider_1");
+    ASSERT_EQ(down.slider_node_id, I.intern("slider_1"));
     ASSERT_EQ(input.state(), InputState::DraggingSlider);
 
     auto drag = input.on_mouse_drag(MouseButton::Left, Pt(50.0f, 0.0f), canvas_min);
 
-    EXPECT_EQ(drag.slider_node_id, "slider_1");
+    EXPECT_EQ(drag.slider_node_id, I.intern("slider_1"));
     EXPECT_GE(drag.slider_value, 0.0f);
 }
 
@@ -3457,12 +3457,12 @@ TEST(CanvasInputSemanticGate, SimulationModeKnobDragStillEmitsWhenSemanticActive
 
      Pt canvas_min(0, 0);
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.knob_node_id, "knob_1");
+    ASSERT_EQ(down.knob_node_id, I.intern("knob_1"));
     ASSERT_EQ(input.state(), InputState::DraggingKnob);
 
     auto drag = input.on_mouse_drag(MouseButton::Left, Pt(50.0f, 0.0f), canvas_min);
 
-    EXPECT_EQ(drag.knob_node_id, "knob_1");
+    EXPECT_EQ(drag.knob_node_id, I.intern("knob_1"));
     EXPECT_GE(drag.knob_position, 0);
 }
 
@@ -4015,7 +4015,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnBlueprintInstanceConsumesEvent) {
     InputResult dbl_result = input.on_double_click(click_pos, canvas_min);
     EXPECT_TRUE(dbl_result.double_click_consumed)
         << "on_double_click on BlueprintInstance must consume the event (opens sub-window)";
-    EXPECT_EQ(dbl_result.open_sub_window, "grp1");
+    EXPECT_EQ(dbl_result.open_sub_window, I.intern("grp1"));
 }
 
 TEST(CanvasInputDoubleClick, DoubleClickOnEmptySpaceDoesNotConsume) {

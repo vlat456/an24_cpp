@@ -13,8 +13,8 @@
 struct ComponentRegistry;
 enum class PortType;
 
-/// Callback when properties are applied: receives the node ID
-using PropertyCallback = std::function<void(const std::string& node_id)>;
+/// Callback when properties are applied: receives the node InternedId
+using PropertyCallback = std::function<void(ui::InternedId node_id)>;
 
 /// Modal properties window for editing bp2::Blueprint::Node params via ImGui.
 /// Lifecycle: open(node, callback) → render() each frame → OK or Cancel.
@@ -36,7 +36,7 @@ using PropertyCallback = std::function<void(const std::string& node_id)>;
 /// properties editing works correctly for both root and embedded nodes.
 class PropertiesWindow {
 public:
-    void open(const bp2::Blueprint::Node& node, const std::string& node_id_str,
+    void open(const bp2::Blueprint::Node& node, ui::InternedId node_id,
               std::unique_ptr<EditingHost> owned_host, ui::StringInterner& interner,
               const ComponentRegistry* type_registry,
               PropertyCallback on_apply);
@@ -56,8 +56,11 @@ public:
     /// Call every frame. Renders ImGui window when open.
     void render();
 
-    // Test accessors
-    const std::string& target_node_id_str() const { return target_node_id_; }
+    /// Test accessor — returns string_view resolved from InternedId (for display/debug).
+    std::string_view target_node_id_str() const {
+        return target_node_id_.empty() ? std::string_view{}
+            : (interner_ ? interner_->resolve(target_node_id_) : std::string_view{});
+    }
 
     /// Set a pending param value (for testing without ImGui).
     void set_pending_param(const std::string& key, float value) {
@@ -111,16 +114,16 @@ public:
 
 private:
     void initialize_from_node(const bp2::Blueprint::Node& node,
-                              const std::string& node_id_str,
-                              ui::StringInterner& interner,
-                              const ComponentRegistry* type_registry,
-                              PropertyCallback on_apply);
+                               ui::InternedId node_id,
+                               ui::StringInterner& interner,
+                               const ComponentRegistry* type_registry,
+                               PropertyCallback on_apply);
 
     bool open_ = false;
     std::unique_ptr<EditingHost> owned_host_;
     ui::StringInterner*  interner_     = nullptr;
     const ComponentRegistry* type_registry_ = nullptr;
-    std::string target_node_id_;
+    ui::InternedId target_node_id_;
     std::optional<editor::DocumentId> owner_document_id_;
     PropertyCallback on_apply_;
 

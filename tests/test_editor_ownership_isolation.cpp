@@ -173,7 +173,7 @@ TEST(OwnershipIsolation, ExternalScopeColorPickerOpenIsRejected) {
     WindowSystem ws;
     Document& doc = *ws.activeDocument();
 
-    ws.openColorPickerForNode(editor::NodeId::from_string("missing"), WindowScopeId::external({doc.interner().intern("ext_1")}), doc);
+    ws.openColorPickerForNode(doc.interner().intern("missing"), WindowScopeId::external({doc.interner().intern("ext_1")}), doc);
 
     EXPECT_FALSE(ws.colorPicker.show);
     EXPECT_FALSE(ws.colorPicker.source_document_id.has_value());
@@ -186,11 +186,11 @@ TEST(OwnershipIsolation, PendingBakeInCarriesScope) {
     ws.pendingBakeIn.show_confirmation = true;
     ws.pendingBakeIn.document_id = doc.id();
     ws.pendingBakeIn.scope_id = WindowScopeId::embedded({doc.interner().intern("group_1")});
-    ws.pendingBakeIn.node_id = editor::NodeId::from_string("node_a");
+    ws.pendingBakeIn.node_id = doc.interner().intern("node_a");
 
     EXPECT_TRUE(ws.pendingBakeIn.show_confirmation);
     EXPECT_EQ(ws.pendingBakeIn.scope_id, WindowScopeId::embedded({doc.interner().intern("group_1")}));
-    EXPECT_EQ(ws.pendingBakeIn.node_id, editor::NodeId::from_string("node_a"));
+    EXPECT_EQ(ws.pendingBakeIn.node_id, doc.interner().intern("node_a"));
 }
 
 TEST(OwnershipIsolation, PendingBakeInResetClearsTypedState) {
@@ -200,7 +200,7 @@ TEST(OwnershipIsolation, PendingBakeInResetClearsTypedState) {
     ws.pendingBakeIn.show_confirmation = true;
     ws.pendingBakeIn.document_id = doc.id();
     ws.pendingBakeIn.scope_id = WindowScopeId::embedded({doc.interner().intern("group_1")});
-    ws.pendingBakeIn.node_id = editor::NodeId::from_string("node_a");
+    ws.pendingBakeIn.node_id = doc.interner().intern("node_a");
 
     ws.pendingBakeIn.reset();
 
@@ -215,17 +215,17 @@ TEST(OwnershipIsolation, ReconcileOwnerBoundUiClearsStaleNodeOwnedState) {
     Document& doc = *ws.activeDocument();
 
     ws.colorPicker.source_document_id = doc.id();
-    ws.colorPicker.node_id = editor::NodeId::from_string("missing_node");
+    ws.colorPicker.node_id = doc.interner().intern("missing_node");
     ws.colorPicker.scope_id = WindowScopeId::root();
 
     ws.pendingBakeIn.document_id = doc.id();
     ws.pendingBakeIn.scope_id = WindowScopeId::root();
-    ws.pendingBakeIn.node_id = editor::NodeId::from_string("missing_node");
+    ws.pendingBakeIn.node_id = doc.interner().intern("missing_node");
 
     ws.inlineValueEditor.open = true;
     ws.inlineValueEditor.document_id = doc.id();
     ws.inlineValueEditor.scope_id = WindowScopeId::root();
-    ws.inlineValueEditor.node_id = editor::NodeId::from_string("missing_node");
+    ws.inlineValueEditor.node_id = doc.interner().intern("missing_node");
 
     ws.reconcile_owner_bound_ui();
 

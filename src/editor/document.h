@@ -155,7 +155,7 @@ public:
     /// Find a node by id within a scoped blueprint (root, embedded, or external).
     /// Returns nullptr if the scope or node does not exist.
     [[nodiscard]] const bp2::Blueprint::Node* find_node_in_scope(
-        const WindowScopeId& scope_id, const editor::NodeId& node_id) const;
+        const WindowScopeId& scope_id, ui::InternedId node_id) const;
 
     [[nodiscard]] const editor::RuntimeNodeStateStore& runtime_node_states() const { return runtime_node_states_; }
 
@@ -177,11 +177,11 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
     /// InternedId must be resolved against simulation's signal_key_interner().
     std::vector<std::pair<ui::InternedId, float>>& typedOverrides() { return typed_overrides_; }
 
-    void triggerSwitch(const editor::NodeId& node_id, const WindowScopeId& scope_id = WindowScopeId::root());
-    void setSliderValue(const editor::NodeId& node_id, float value, const WindowScopeId& scope_id = WindowScopeId::root());
-    void setKnobPosition(const editor::NodeId& node_id, int position, const WindowScopeId& scope_id = WindowScopeId::root());
-    void holdButtonPress(const editor::NodeId& node_id, const WindowScopeId& scope_id = WindowScopeId::root());
-    void holdButtonRelease(const editor::NodeId& node_id, const WindowScopeId& scope_id = WindowScopeId::root());
+    void triggerSwitch(ui::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
+    void setSliderValue(ui::InternedId node_id, float value, const WindowScopeId& scope_id = WindowScopeId::root());
+    void setKnobPosition(ui::InternedId node_id, int position, const WindowScopeId& scope_id = WindowScopeId::root());
+    void holdButtonPress(ui::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
+    void holdButtonRelease(ui::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
 
     // ── Component/blueprint addition ──
 
@@ -205,7 +205,7 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
     // ── Sub-windows ──
 
     void openSubWindow(const WindowScopeId& target_scope);
-    void openSubWindow(const WindowScopeId& parent_scope, const std::string& local_node_id);
+    void openSubWindow(const WindowScopeId& parent_scope, ui::InternedId local_node_id);
 
     /// Open a parent-bound external reference window for a composite node.
     /// Loads the external blueprint and creates a read-only sub-window with
@@ -221,16 +221,16 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
         WindowScopeId context_menu_scope_id = WindowScopeId::root();
 
         bool show_node_context_menu = false;
-        editor::NodeId context_menu_node_id;
+        ui::InternedId context_menu_node_id;
         WindowScopeId node_context_menu_scope_id = WindowScopeId::root();
 
-        std::string toggle_probe_wire_id;
+        ui::InternedId toggle_probe_wire_id;
         WindowScopeId toggle_probe_scope_id = WindowScopeId::root();
         bool has_toggle_probe_world_pos = false;
         Pt toggle_probe_world_pos;
 
         bool open_inline_value_editor = false;
-        editor::NodeId inline_value_editor_node_id;
+        ui::InternedId inline_value_editor_node_id;
         WindowScopeId inline_value_editor_scope_id = WindowScopeId::root();
         bool has_inline_value_editor_screen_pos = false;
         Pt inline_value_editor_screen_pos;

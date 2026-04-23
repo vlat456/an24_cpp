@@ -367,14 +367,14 @@ bool CanvasInput::publish_semantic_control_result(
     InputResult& result) const {
     switch (semantic.control_event.kind) {
         case editor::presentation::SemanticControlEventKind::Toggle:
-            result.toggle_switch_node_id = std::string(interner_->resolve(semantic.control_event.node_id));
+            result.toggle_switch_node_id = semantic.control_event.node_id;
             return true;
         case editor::presentation::SemanticControlEventKind::SetScalar:
-            result.slider_node_id = std::string(interner_->resolve(semantic.control_event.node_id));
+            result.slider_node_id = semantic.control_event.node_id;
             result.slider_value = semantic.control_event.scalar_value;
             return true;
         case editor::presentation::SemanticControlEventKind::SetDiscrete:
-            result.knob_node_id = std::string(interner_->resolve(semantic.control_event.node_id));
+            result.knob_node_id = semantic.control_event.node_id;
             result.knob_position = semantic.control_event.discrete_value;
             return true;
         case editor::presentation::SemanticControlEventKind::None:

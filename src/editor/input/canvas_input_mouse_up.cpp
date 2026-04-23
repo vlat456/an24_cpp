@@ -261,18 +261,17 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     }
 
     if (!dbl_click_node_iid.empty()) {
-        std::string node_id(interner_->resolve(dbl_click_node_iid));
         const bp2::Blueprint::Node* node = host_->find_node(dbl_click_node_iid);
         if (!read_only && !simulation_mode && node && std::string(interner_->resolve(node->semantic.type)) == "Value") {
             result.open_inline_value_editor = true;
-            result.inline_value_editor_node_id = node_id;
+            result.inline_value_editor_node_id = dbl_click_node_iid;
             result.has_inline_value_editor_screen_pos = true;
             result.inline_value_editor_screen_pos = screen_pos;
             result.double_click_consumed = true;
             return result;
         }
         if (node && node->is_blueprint_instance()) {
-            result.open_sub_window = node_id;
+            result.open_sub_window = dbl_click_node_iid;
             result.double_click_consumed = true;
             return result;
         }

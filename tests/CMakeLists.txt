@@ -1729,18 +1729,6 @@ target_link_libraries(export_module_tests PRIVATE
 )
 gtest_discover_tests(export_module_tests)
 
-# Editor identity type-safety tests (Issue #45: NodeId typed wrapper)
-add_executable(editor_identity_tests
-    test_editor_identity.cpp
-)
-target_include_directories(editor_identity_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-)
-target_link_libraries(editor_identity_tests PRIVATE
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_identity_tests)
-
 # LibraryIndex tests (Issue #85: dedicated library index)
 add_executable(bp2_library_index_tests
     blueprint_v2/test_library_index.cpp

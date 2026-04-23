@@ -297,7 +297,7 @@ TEST(DocumentSafety, SetSliderValuePreservesCanonicalStaticContent) {
     auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("slider1"));
     ASSERT_NE(widget, nullptr);
 
-    doc.setSliderValue(editor::NodeId::from_string("slider1"), 42.0f);
+    doc.setSliderValue(I.intern("slider1"), 42.0f);
 
     NodeContent content = widget->currentContent();
     EXPECT_EQ(content.type, bp2::NodeContentType::Slider);
@@ -328,7 +328,7 @@ TEST(DocumentSafety, SetKnobPositionPreservesCanonicalStaticContent) {
     auto* widget = dynamic_cast<visual::NodeWidget*>(win->scene.find("knob1"));
     ASSERT_NE(widget, nullptr);
 
-    doc.setKnobPosition(editor::NodeId::from_string("knob1"), 3);
+    doc.setKnobPosition(I.intern("knob1"), 3);
 
     NodeContent content = widget->currentContent();
     EXPECT_EQ(content.type, bp2::NodeContentType::Knob);
@@ -482,8 +482,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEdited
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "slider_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.open(*original, I.intern("slider_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("min", -10.0f);
     props.set_pending_param("max", 200.0f);
     props.apply();
@@ -515,11 +515,11 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEdited
     Pt canvas_min(0.0f, 0.0f);
 
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.slider_node_id, "slider_apply");
+    ASSERT_EQ(down.slider_node_id, I.intern("slider_apply"));
     ASSERT_EQ(input.state(), InputState::DraggingSlider);
 
     auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
-    EXPECT_EQ(drag.slider_node_id, "slider_apply");
+    EXPECT_EQ(drag.slider_node_id, I.intern("slider_apply"));
     EXPECT_FLOAT_EQ(drag.slider_value, 200.0f)
         << "Slider interaction must immediately use inspector-edited max after rebuild";
 }
@@ -546,8 +546,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedPa
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "knob_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.open(*original, I.intern("knob_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("positions", 5.0f);
     props.apply();
 
@@ -572,11 +572,11 @@ TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedPa
     Pt canvas_min(0.0f, 0.0f);
 
     auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-    ASSERT_EQ(down.knob_node_id, "knob_apply");
+    ASSERT_EQ(down.knob_node_id, I.intern("knob_apply"));
     ASSERT_EQ(input.state(), InputState::DraggingKnob);
 
     auto drag = input.on_mouse_drag(MouseButton::Left, Pt(120.0f, 0.0f), canvas_min);
-    EXPECT_EQ(drag.knob_node_id, "knob_apply");
+    EXPECT_EQ(drag.knob_node_id, I.intern("knob_apply"));
     EXPECT_EQ(drag.knob_position, 4)
         << "Knob interaction must immediately use inspector-edited positions after rebuild";
 }
@@ -603,8 +603,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "gauge_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.open(*original, I.intern("gauge_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("min", -20.0f);
     props.set_pending_param("max", 60.0f);
     props.apply();
@@ -652,8 +652,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "switch_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.open(*original, I.intern("switch_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
 
@@ -693,8 +693,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedSta
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "azs_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.open(*original, I.intern("azs_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
 
@@ -734,8 +734,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, "relay_apply", create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](const std::string&) { doc.rebuildAllWindows(); });
+    props.open(*original, I.intern("relay_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
 
@@ -998,7 +998,7 @@ TEST(DocumentSafety, ClosingDocumentClosesPropertiesWindowOwnedByThatDocument) {
     bp = bp.with_node(make_typed_node(interner, ws.typeRegistry(), "node_a", "Battery", 0.0f, 0.0f));
     first.model().replace_current(std::move(bp));
 
-    ws.openPropertiesForNode(editor::NodeId::from_string("node_a"), WindowScopeId::root(), first);
+    ws.openPropertiesForNode(interner.intern("node_a"), WindowScopeId::root(), first);
     ASSERT_TRUE(ws.propertiesWindow().is_open());
 
     Document& second = ws.createDocument();
@@ -1230,8 +1230,8 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         const auto* slider_node = require_node(doc.model().current(), I, "slider_rt");
         ASSERT_NE(slider_node, nullptr);
         PropertiesWindow props;
-        props.open(*slider_node, "slider_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.open(*slider_node, I.intern("slider_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("min", -10.0f);
         props.set_pending_param("max", 200.0f);
         props.apply();
@@ -1241,8 +1241,8 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         const auto* knob_node = require_node(doc.model().current(), I, "knob_rt");
         ASSERT_NE(knob_node, nullptr);
         PropertiesWindow props;
-        props.open(*knob_node, "knob_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.open(*knob_node, I.intern("knob_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("positions", 5.0f);
         props.apply();
     }
@@ -1251,8 +1251,8 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         const auto* gauge_node = require_node(doc.model().current(), I, "gauge_rt");
         ASSERT_NE(gauge_node, nullptr);
         PropertiesWindow props;
-        props.open(*gauge_node, "gauge_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.open(*gauge_node, I.intern("gauge_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("min", -20.0f);
         props.set_pending_param("max", 60.0f);
         props.apply();
@@ -1338,7 +1338,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         EXPECT_EQ(scene_hit_node->content_interaction->kind,
                   editor::presentation::InteractionKind::DragScalar);
         auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-        ASSERT_EQ(down.slider_node_id, "slider_rt");
+        ASSERT_EQ(down.slider_node_id, loaded.interner().intern("slider_rt"));
         auto drag = input.on_mouse_drag(MouseButton::Left, Pt(500.0f, 0.0f), canvas_min);
         EXPECT_FLOAT_EQ(drag.slider_value, 200.0f);
         input.on_mouse_up(MouseButton::Left, click_world + Pt(500.0f, 0.0f), canvas_min);
@@ -1360,7 +1360,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         Pt wpos = knob_widget->worldPos();
         Pt click_world(wpos.x + cb.x + cb.w * 0.5f, wpos.y + cb.y + cb.h * 0.5f);
         auto down = input.on_mouse_down(click_world, MouseButton::Left, canvas_min);
-        ASSERT_EQ(down.knob_node_id, "knob_rt");
+        ASSERT_EQ(down.knob_node_id, loaded.interner().intern("knob_rt"));
         auto drag = input.on_mouse_drag(MouseButton::Left, Pt(120.0f, 0.0f), canvas_min);
         EXPECT_EQ(drag.knob_position, 4);
         input.on_mouse_up(MouseButton::Left, click_world + Pt(120.0f, 0.0f), canvas_min);
@@ -1392,8 +1392,8 @@ TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAut
         const auto* azs_node = require_node(doc.model().current(), I, "azs_rt");
         ASSERT_NE(azs_node, nullptr);
         PropertiesWindow props;
-        props.open(*azs_node, "azs_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.open(*azs_node, I.intern("azs_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("closed", 1.0f);
         props.apply();
     }
@@ -1445,8 +1445,8 @@ TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority
         const auto* relay_node = require_node(doc.model().current(), I, "relay_rt");
         ASSERT_NE(relay_node, nullptr);
         PropertiesWindow props;
-        props.open(*relay_node, "relay_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.open(*relay_node, I.intern("relay_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("closed", 1.0f);
         props.apply();
     }
@@ -1499,8 +1499,8 @@ TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLike
         const auto* btn_node = require_node(doc.model().current(), I, "btn_rt");
         ASSERT_NE(btn_node, nullptr);
         PropertiesWindow props;
-        props.open(*btn_node, "btn_rt", create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](const std::string&) { doc.rebuildAllWindows(); });
+        props.open(*btn_node, I.intern("btn_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("idle", 2.5f);
         props.set_pending_param("g_closed", 321.0f);
         props.apply();

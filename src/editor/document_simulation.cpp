@@ -612,15 +612,14 @@ void Document::set_node_color_for_scope(const WindowScopeId& scope_id,
 }
 
 const bp2::Blueprint::Node* Document::find_node_in_scope(
-    const WindowScopeId& scope_id, const editor::NodeId& node_id) const {
+    const WindowScopeId& scope_id, ui::InternedId node_id) const {
     const ResolvedSignalScope resolved = resolve_signal_scope(scope_id);
     if (!resolved.blueprint || !resolved.interner) {
         return nullptr;
     }
 
-    const ui::InternedId node_iid = resolved.interner->lookup(node_id.str());
-    if (node_iid.empty()) return nullptr;
-    return resolved.blueprint->find_node(node_iid);
+    if (node_id.empty()) return nullptr;
+    return resolved.blueprint->find_node(node_id);
 }
 
 // ============================================================================
@@ -691,8 +690,8 @@ ui::InternedId Document::resolve_wire_signal_key(const WindowScopeId& scope_id,
 // Signal overrides (switch/button/knob interaction)
 // ============================================================================
 
-void Document::triggerSwitch(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+void Document::triggerSwitch(ui::InternedId node_id, const WindowScopeId& scope_id) {
+    const auto key = make_scoped_node_instance_key(scope_id, node_id);
     const auto it = signal_cache_.find(key);
     if (it == signal_cache_.end()) return;
 
@@ -704,8 +703,8 @@ void Document::triggerSwitch(const editor::NodeId& node_id, const WindowScopeId&
     typed_overrides_.push_back({control_key, next});
 }
 
-void Document::setSliderValue(const editor::NodeId& node_id, float value, const WindowScopeId& scope_id) {
-    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+void Document::setSliderValue(ui::InternedId node_id, float value, const WindowScopeId& scope_id) {
+    const auto key = make_scoped_node_instance_key(scope_id, node_id);
     const auto it = signal_cache_.find(key);
 
     // Send override to simulation if the node has a cached control port.
@@ -726,8 +725,8 @@ void Document::setSliderValue(const editor::NodeId& node_id, float value, const 
     dispatch_content_to_widget(window_manager_, interner_, n->semantic.id, scope_id, content);
 }
 
-void Document::setKnobPosition(const editor::NodeId& node_id, int position, const WindowScopeId& scope_id) {
-    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+void Document::setKnobPosition(ui::InternedId node_id, int position, const WindowScopeId& scope_id) {
+    const auto key = make_scoped_node_instance_key(scope_id, node_id);
     const auto it = signal_cache_.find(key);
 
     // Send override to simulation if the node has a cached control port.
@@ -748,8 +747,8 @@ void Document::setKnobPosition(const editor::NodeId& node_id, int position, cons
     dispatch_content_to_widget(window_manager_, interner_, n->semantic.id, scope_id, content);
 }
 
-void Document::holdButtonPress(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+void Document::holdButtonPress(ui::InternedId node_id, const WindowScopeId& scope_id) {
+    const auto key = make_scoped_node_instance_key(scope_id, node_id);
     const auto it = signal_cache_.find(key);
     if (it == signal_cache_.end()) return;
 
@@ -759,8 +758,8 @@ void Document::holdButtonPress(const editor::NodeId& node_id, const WindowScopeI
     held_buttons_[key] = control_key;
 }
 
-void Document::holdButtonRelease(const editor::NodeId& node_id, const WindowScopeId& scope_id) {
-    const auto key = make_scoped_node_instance_key(scope_id, interner_.lookup(node_id.str()));
+void Document::holdButtonRelease(ui::InternedId node_id, const WindowScopeId& scope_id) {
+    const auto key = make_scoped_node_instance_key(scope_id, node_id);
     auto it = held_buttons_.find(key);
     if (it != held_buttons_.end()) {
         if (!it->second.empty()) {

@@ -172,7 +172,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
                 ws.openDocument(target.path);
             } else {
-                doc->openSubWindow(ws.nodeContextMenu.scope_id, node_id_str);
+                doc->openSubWindow(ws.nodeContextMenu.scope_id, node.semantic.id);
             }
         }
         

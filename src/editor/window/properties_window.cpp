@@ -129,7 +129,7 @@ static std::string serialize_table_entries(const std::vector<float>& keys,
 }
 
 void PropertiesWindow::open(const bp2::Blueprint::Node& node,
-                              const std::string& node_id_str,
+                              ui::InternedId node_id,
                               std::unique_ptr<EditingHost> owned_host,
                               ui::StringInterner& interner,
                               const ComponentRegistry* type_registry,
@@ -141,15 +141,15 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     }
 
     owned_host_ = std::move(owned_host);
-    initialize_from_node(node, node_id_str, interner, type_registry, std::move(on_apply));
+    initialize_from_node(node, node_id, interner, type_registry, std::move(on_apply));
 }
 
 void PropertiesWindow::initialize_from_node(const bp2::Blueprint::Node& node,
-                                             const std::string& node_id_str,
+                                             ui::InternedId node_id,
                                              ui::StringInterner& interner,
                                              const ComponentRegistry* type_registry,
                                              PropertyCallback on_apply) {
-    target_node_id_ = node_id_str;
+    target_node_id_ = node_id;
     owner_document_id_.reset();
     interner_ = &interner;
     type_registry_ = type_registry;
@@ -185,10 +185,8 @@ void PropertiesWindow::initialize_from_node(const bp2::Blueprint::Node& node,
 }
 
 const bp2::Blueprint::Node* PropertiesWindow::resolve_target() const {
-    if (!owned_host_ || !interner_) return nullptr;
-    ui::InternedId iid = interner_->lookup(target_node_id_);
-    if (iid.empty()) return nullptr;
-    return owned_host_->find_node(iid);
+    if (!owned_host_ || target_node_id_.empty()) return nullptr;
+    return owned_host_->find_node(target_node_id_);
 }
 
 void PropertiesWindow::close() {
@@ -208,10 +206,11 @@ void PropertiesWindow::render() {
     #ifndef EDITOR_TESTING
     ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
     bool window_open = true;
-    if (ImGui::Begin(("Properties: " + target_node_id_).c_str(), &window_open)) {
+    std::string node_id_label(interner_->resolve(target_node_id_));
+    if (ImGui::Begin(("Properties: " + node_id_label).c_str(), &window_open)) {
         // Header: resolve type name from InternedId
         std::string type_str = std::string(interner_->resolve(target->semantic.type));
-        ImGui::Text("%s (%s)", target_node_id_.c_str(), type_str.c_str());
+        ImGui::Text("%s (%s)", node_id_label.c_str(), type_str.c_str());
         ImGui::Separator();
 
         // Name field — edits pending_name_, not the live node
@@ -576,7 +575,7 @@ void PropertiesWindow::apply() {
         return;
     }
 
-    ui::InternedId node_iid = interner_->intern(target_node_id_);
+    ui::InternedId node_iid = target_node_id_;
 
     bool has_changes = false;
 

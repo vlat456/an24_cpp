@@ -21,7 +21,7 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         if (mods.shift) {
             auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world);
             if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-                result.toggle_probe_wire_id = std::string(interner_->resolve(hw->wire_id));
+                result.toggle_probe_wire_id = hw->wire_id;
                 result.has_toggle_probe_world_pos = true;
                 result.toggle_probe_world_pos = world;
                 return result;
@@ -141,7 +141,7 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world);
         if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
             result.show_node_context_menu = true;
-            result.context_menu_node_id = std::string(interner_->resolve(hn->node_id));
+            result.context_menu_node_id = hn->node_id;
         } else if (std::holds_alternative<visual::HitEmpty>(hit)) {
             result.show_context_menu = true;
             result.context_menu_pos = world;

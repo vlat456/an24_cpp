@@ -5,7 +5,10 @@
 namespace editor {
 
 /// Typed wrapper for document identity strings.
-/// Prevents accidental mixing with arbitrary std::string values.
+///
+/// Cross-Document identity: survives the InternedId Purity Law because
+/// OscilloscopeModel is global and indexes by DocumentId. Strings are the
+/// correct wire format for cross-Document boundaries.
 class DocumentId {
 public:
     static DocumentId from_string(std::string v) {
@@ -20,34 +23,13 @@ public:
     bool operator==(const DocumentId& other) const { return value_ == other.value_; }
     bool operator!=(const DocumentId& other) const { return value_ != other.value_; }
 
+    // std::map / std::unordered_map support
+    bool operator<(const DocumentId& other) const { return value_ < other.value_; }
+
 private:
     std::string value_;
 
     explicit DocumentId(std::string v) : value_(std::move(v)) {}
-};
-
-/// Typed wrapper for node identity strings.
-/// Prevents accidental implicit construction from raw std::string —
-/// callers must go through the explicit factory NodeId::from_string().
-class NodeId {
-public:
-    static NodeId from_string(std::string v) {
-        return NodeId(std::move(v));
-    }
-
-    /// Default-constructed NodeId is empty (sentinel).
-    NodeId() = default;
-
-    bool empty() const { return value_.empty(); }
-    const std::string& str() const { return value_; }
-
-    bool operator==(const NodeId& other) const { return value_ == other.value_; }
-    bool operator!=(const NodeId& other) const { return value_ != other.value_; }
-
-private:
-    std::string value_;
-
-    explicit NodeId(std::string v) : value_(std::move(v)) {}
 };
 
 } // namespace editor

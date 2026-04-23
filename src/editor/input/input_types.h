@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
 #include <string>
 
@@ -56,23 +57,26 @@ enum class InputState {
 
 /// Actions the canvas input wants the host (Document / WindowSystem) to perform.
 /// Returned from every input method; host checks and executes.
+///
+/// All identity fields are InternedId — zero string allocation in the input path.
+/// Empty InternedId (default-constructed) is the sentinel for "no action."
 struct InputResult {
     bool rebuild_simulation = false;
     bool show_context_menu = false;
     ui::Pt context_menu_pos;
     bool show_node_context_menu = false;    ///< Right-click on node
-    std::string context_menu_node_id;       ///< ID of the right-clicked node
-    std::string open_sub_window;   ///< non-empty = open this collapsed group
-    std::string toggle_switch_node_id;  ///< non-empty = toggle this Switch/AZS node
-    std::string toggle_probe_wire_id;   ///< non-empty = toggle oscilloscope probe on wire
+    ui::InternedId context_menu_node_id;    ///< ID of the right-clicked node
+    ui::InternedId open_sub_window;         ///< non-empty = open this collapsed group
+    ui::InternedId toggle_switch_node_id;   ///< non-empty = toggle this Switch/AZS node
+    ui::InternedId toggle_probe_wire_id;    ///< non-empty = toggle oscilloscope probe on wire
     bool has_toggle_probe_world_pos = false;
     ui::Pt toggle_probe_world_pos;
-    std::string slider_node_id;         ///< non-empty = set this Slider node's value
-    float slider_value = 0.0f;          ///< raw value (already mapped from min..max)
-    std::string knob_node_id;           ///< non-empty = set this Knob node's position
-    int knob_position = 0;              ///< 0-based position index
+    ui::InternedId slider_node_id;          ///< non-empty = set this Slider node's value
+    float slider_value = 0.0f;              ///< raw value (already mapped from min..max)
+    ui::InternedId knob_node_id;            ///< non-empty = set this Knob node's position
+    int knob_position = 0;                  ///< 0-based position index
     bool open_inline_value_editor = false;  ///< true if inline value editor should open
-    std::string inline_value_editor_node_id;  ///< non-empty = open inline value editor for a node
+    ui::InternedId inline_value_editor_node_id;  ///< non-empty = open inline value editor for a node
     bool has_inline_value_editor_screen_pos = false;
     ui::Pt inline_value_editor_screen_pos;
 

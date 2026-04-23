@@ -85,7 +85,7 @@ public:
                     return;
                 }
 
-                const ui::InternedId node_iid = bake_doc->interner().lookup(ws.pendingBakeIn.node_id.str());
+                const ui::InternedId node_iid = ws.pendingBakeIn.node_id;
                 bool ok = false;
                 if (!node_iid.empty()) {
                     bp2::BlueprintLibrary library = build_bake_library(*bake_doc);
@@ -94,7 +94,7 @@ public:
 
                 if (!ok) {
                     spdlog::warn("[bake-in] bake_blueprint_instance failed for '{}' in scope '{}'",
-                                 ws.pendingBakeIn.node_id.str(),
+                                 std::string(bake_doc->interner().resolve(ws.pendingBakeIn.node_id)),
                                  editor::instance_path_to_scope_string(bake_doc->interner(), ws.pendingBakeIn.scope_id.path()));
                 } else {
                     bake_doc->rebuildAllWindows();

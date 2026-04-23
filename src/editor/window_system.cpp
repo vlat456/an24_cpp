@@ -41,7 +41,7 @@ std::unique_ptr<EditingHost> create_scoped_host(Document& doc, const WindowScope
 
 bool scoped_node_still_exists(Document& doc,
                               const WindowScopeId& scope_id,
-                              const editor::NodeId& node_id) {
+                              ui::InternedId node_id) {
     return doc.find_node_in_scope(scope_id, node_id) != nullptr;
 }
 
@@ -268,7 +268,7 @@ void WindowSystem::removeClosedDocuments() {
     // This method exists for future deferred removal if needed
 }
 
-void WindowSystem::openPropertiesForNode(const editor::NodeId& node_id,
+void WindowSystem::openPropertiesForNode(ui::InternedId node_id,
                                          const WindowScopeId& scope_id,
                                          Document& doc) {
     // External-scope windows are read-only references — property editing is
@@ -295,9 +295,9 @@ void WindowSystem::openPropertiesForNode(const editor::NodeId& node_id,
     }
 
     const editor::DocumentId owner_id = doc.id();
-    properties_window_.open(*node, node_id.str(), std::move(owned_host), doc.interner(),
+    properties_window_.open(*node, node_id, std::move(owned_host), doc.interner(),
         doc.type_registry(),
-        [this, owner_id](const std::string& nid) {
+        [this, owner_id](ui::InternedId nid) {
             (void)nid;
             if (Document* owner = findDocumentById(owner_id)) {
                 owner->rebuildAllWindows();
@@ -310,7 +310,7 @@ void WindowSystem::openPropertiesForNode(const editor::NodeId& node_id,
     properties_window_.set_owner_document_id(doc.id());
 }
 
-void WindowSystem::openColorPickerForNode(const editor::NodeId& node_id, const WindowScopeId& scope_id, Document& doc) {
+void WindowSystem::openColorPickerForNode(ui::InternedId node_id, const WindowScopeId& scope_id, Document& doc) {
     if (scope_id.is_external()) {
         return;
     }
@@ -318,14 +318,12 @@ void WindowSystem::openColorPickerForNode(const editor::NodeId& node_id, const W
     const bp2::Blueprint::Node* node = doc.find_node_in_scope(scope_id, node_id);
     if (!node) return;
 
-    ui::InternedId iid = doc.interner().lookup(node_id.str());
-
     colorPicker.node_id = node_id;
     colorPicker.scope_id = scope_id;
     colorPicker.source_document_id = doc.id();
     colorPicker.show = true;
 
-    if (const std::optional<editor::NodeColor> color = doc.node_color_for_scope(scope_id, iid); color.has_value()) {
+    if (const std::optional<editor::NodeColor> color = doc.node_color_for_scope(scope_id, node_id); color.has_value()) {
         colorPicker.rgba[0] = color->r;
         colorPicker.rgba[1] = color->g;
         colorPicker.rgba[2] = color->b;
@@ -338,7 +336,7 @@ void WindowSystem::openColorPickerForNode(const editor::NodeId& node_id, const W
     }
 }
 
-void WindowSystem::openInlineValueEditorForNode(const editor::NodeId& node_id,
+void WindowSystem::openInlineValueEditorForNode(ui::InternedId node_id,
                                                 const WindowScopeId& scope_id,
                                                 Document& doc,
                                                 const ui::Pt* anchor_screen) {
@@ -391,7 +389,9 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
     }
     if (!action.toggle_probe_wire_id.empty()) {
         const ui::Pt* click = action.has_toggle_probe_world_pos ? &action.toggle_probe_world_pos : nullptr;
-        oscilloscope.toggle_probe(doc, action.toggle_probe_scope_id, action.toggle_probe_wire_id, click);
+        // Oscilloscope is cross-document (issue #199) — resolve at boundary
+        oscilloscope.toggle_probe(doc, action.toggle_probe_scope_id,
+                                  std::string(doc.interner().resolve(action.toggle_probe_wire_id)), click);
     }
     if (action.open_inline_value_editor && !action.inline_value_editor_node_id.empty()) {
         const ui::Pt* anchor = action.has_inline_value_editor_screen_pos

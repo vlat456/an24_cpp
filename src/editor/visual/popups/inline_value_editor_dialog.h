@@ -43,7 +43,7 @@ public:
             return;
         }
 
-        const ui::InternedId node_iid = doc->interner().lookup(ws.inlineValueEditor.node_id.str());
+        const ui::InternedId node_iid = ws.inlineValueEditor.node_id;
         if (node_iid.empty()) {
             ws.inlineValueEditor.close();
             return;
@@ -64,7 +64,7 @@ public:
             );
         }
 
-        const std::string title = "Value##inline_" + ws.inlineValueEditor.node_id.str();
+        const std::string title = "Value##inline_" + std::to_string(ws.inlineValueEditor.node_id.raw());
         bool open = true;
         if (ImGui::Begin(title.c_str(), &open,
                          ImGuiWindowFlags_AlwaysAutoResize |
