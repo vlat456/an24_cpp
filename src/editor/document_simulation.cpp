@@ -124,6 +124,7 @@ editor::RuntimeNodeState default_runtime_state(const bp2::NodeContentType conten
             return editor::DiscreteNodeRuntimeState{static_cast<int>(content.value)};
         case bp2::NodeContentType::Switch:
         case bp2::NodeContentType::VerticalToggle:
+        case bp2::NodeContentType::Azs:
             return editor::BoolNodeRuntimeState{content.state};
         case bp2::NodeContentType::Text:
         case bp2::NodeContentType::None:
@@ -366,24 +367,23 @@ void Document::build_signal_cache() {
 
             // Resolve content-type-specific ports into a discriminated variant.
             // Each branch constructs only the ports relevant to its content type.
-            // AZS gets its own variant (AzsPorts) with the tripped port.
-            const std::string type_name(interner_.resolve(n.semantic.type));
+            // Azs has its own variant (AzsPorts) with the tripped port.
             editor::ContentPorts ports = std::monostate{};
             switch (base.type) {
                 case bp2::NodeContentType::Switch:
                 case bp2::NodeContentType::VerticalToggle: {
-                    if (type_name == "AZS") {
-                        editor::AzsPorts ap;
-                        ap.state   = resolve_port_key(sim_interner, nid, "state");
-                        ap.control = resolve_port_key(sim_interner, nid, "control");
-                        ap.tripped = resolve_port_key(sim_interner, nid, "tripped");
-                        ports = ap;
-                    } else {
-                        editor::SwitchPorts sp;
-                        sp.state   = resolve_port_key(sim_interner, nid, "state");
-                        sp.control = resolve_port_key(sim_interner, nid, "control");
-                        ports = sp;
-                    }
+                    editor::SwitchPorts sp;
+                    sp.state   = resolve_port_key(sim_interner, nid, "state");
+                    sp.control = resolve_port_key(sim_interner, nid, "control");
+                    ports = sp;
+                    break;
+                }
+                case bp2::NodeContentType::Azs: {
+                    editor::AzsPorts ap;
+                    ap.state   = resolve_port_key(sim_interner, nid, "state");
+                    ap.control = resolve_port_key(sim_interner, nid, "control");
+                    ap.tripped = resolve_port_key(sim_interner, nid, "tripped");
+                    ports = ap;
                     break;
                 }
                 case bp2::NodeContentType::Indicator: {

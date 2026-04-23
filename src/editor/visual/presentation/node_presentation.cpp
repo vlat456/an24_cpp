@@ -445,6 +445,9 @@ PresentationNode default_content_presenter(const PresentationSpec& spec) {
         case bp2::NodeContentType::VerticalToggle:
             build_switch_content(root, ids, spec, true);
             break;
+        case bp2::NodeContentType::Azs:
+            build_switch_content(root, ids, spec, false);  // Same as Switch but with tripped tracking
+            break;
         case bp2::NodeContentType::Slider:
             build_slider_content(root, ids, spec);
             break;

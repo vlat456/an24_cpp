@@ -15,6 +15,7 @@ enum class NodeContentType {
     Slider,
     Indicator,
     Knob,
+    Azs,       // AZS fault-indicator switch (distinct from Switch due to tripped port)
     Count
 };
 
@@ -33,6 +34,7 @@ inline std::optional<NodeContentType> node_content_type_from_int(int value) {
         case 6: return NodeContentType::Slider;
         case 7: return NodeContentType::Indicator;
         case 8: return NodeContentType::Knob;
+        case 9: return NodeContentType::Azs;
         default: return std::nullopt;
     }
 }

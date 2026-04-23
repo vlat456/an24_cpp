@@ -190,6 +190,13 @@ inline NodeContent create_node_content(const ComponentSpec& def,
         float def_initial = (init_it != params.end()) ? std::stof(init_it->second.default_value) : 0.0f;
         content.value = get_param_float_from_map(instance_params, instance_string_params, "initial_position", interner, def_initial);
     }
+
+    // AZS components get their own content type (they have a tripped port).
+    const std::string& classname = spec_classname(def);
+    if (content.type == bp2::NodeContentType::Switch && classname == "AZS") {
+        content.type = bp2::NodeContentType::Azs;
+    }
+
     return content;
 }
 

@@ -147,6 +147,9 @@ NodeShellContentPolicy compile_node_shell_content_policy(bp2::NodeContentType co
         case bp2::NodeContentType::Switch:
             policy.preferred_size = ui::Pt(48.0f, 20.0f);
             break;
+        case bp2::NodeContentType::Azs:
+            policy.preferred_size = ui::Pt(48.0f, 20.0f);  // Same as Switch
+            break;
         case bp2::NodeContentType::VerticalToggle:
             policy.preferred_size = ui::Pt(16.0f, 48.0f);
             policy.reserve_width = false;
