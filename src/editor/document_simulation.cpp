@@ -212,28 +212,33 @@ void walk_blueprint_nodes(const bp2::Blueprint& bp,
 
 Document::ResolvedSignalScope Document::resolve_signal_scope(const WindowScopeId& scope_id) const {
     if (scope_id.is_external()) {
+        // For external scopes, use the first path element as parent instance.
+        // Multi-segment paths need externally pre-interned keys (not supported here).
+        ui::InternedId scope_iid = scope_id.path().empty() ? ui::InternedId{} : scope_id.path()[0];
         if (const BlueprintWindow* win = window_manager_.find(scope_id)) {
             if (win->external_blueprint && win->external_interner) {
                 return {
                     &*win->external_blueprint,
                     win->external_interner.get(),
-                    editor::external_ref_signal_context(editor::instance_path_to_scope_string(interner_, scope_id.path()))
+                    editor::external_ref_signal_context(scope_iid)
                 };
             }
         }
-        return {nullptr, nullptr, editor::external_ref_signal_context(editor::instance_path_to_scope_string(interner_, scope_id.path()))};
+        return {nullptr, nullptr, editor::external_ref_signal_context(scope_iid)};
     }
 
     if (scope_id.is_embedded()) {
+        // For embedded scopes, use the first path element as parent instance.
+        ui::InternedId scope_iid = scope_id.path().empty() ? ui::InternedId{} : scope_id.path()[0];
         if (const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(
                 model_.current(), scope_id.path())) {
             return {
                 embedded_bp,
                 &interner_,
-                editor::embedded_signal_context(editor::instance_path_to_scope_string(interner_, scope_id.path()))
+                editor::embedded_signal_context(scope_iid)
             };
         }
-        return {nullptr, nullptr, editor::embedded_signal_context(editor::instance_path_to_scope_string(interner_, scope_id.path()))};
+        return {nullptr, nullptr, editor::embedded_signal_context(scope_iid)};
     }
 
     return {&model_.current(), &interner_, editor::root_signal_context()};
@@ -609,52 +614,52 @@ void Document::buildEnergizedWireSet(
 
         const bp2::Blueprint::Node* node = resolved.blueprint->find_node(src_node_id);
         editor::SignalEndpoint endpoint{node, src_node_id, src_port_id};
-        std::string port_key = editor::resolve_runtime_signal_key(
-            *resolved.blueprint, *resolved.interner, endpoint, resolved.context);
-        if (port_key.empty()) continue;
+        ui::InternedId port_iid = editor::resolve_runtime_signal_key(
+            *resolved.blueprint, *resolved.interner, simulation_.signal_key_interner(), endpoint, resolved.context);
+        if (port_iid.empty()) continue;
 
-        if (std::abs(simulation_.get_signal_value(simulation_.signal_key_interner().lookup(port_key))) > 0.5f) {
+        if (std::abs(simulation_.get_signal_value(port_iid)) > 0.5f) {
             out.insert(resolved.interner->resolve(w.id));
         }
     }
 }
 
-std::string Document::resolve_endpoint_signal_key(const WindowScopeId& scope_id,
+ui::InternedId Document::resolve_endpoint_signal_key(const WindowScopeId& scope_id,
                                                   std::string_view node_id,
                                                   std::string_view port_name) const {
     const ResolvedSignalScope resolved = resolve_signal_scope(scope_id);
     if (!resolved.blueprint || !resolved.interner) {
-        return "";
+        return {};
     }
 
     const ui::InternedId node_iid = resolved.interner->lookup(node_id);
     const ui::InternedId port_iid = resolved.interner->lookup(port_name);
     if (node_iid.empty() || port_iid.empty()) {
-        return "";
+        return {};
     }
 
     const bp2::Blueprint::Node* node = resolved.blueprint->find_node(node_iid);
     const editor::SignalEndpoint endpoint{node, node_iid, port_iid};
     return editor::resolve_runtime_signal_key(
-        *resolved.blueprint, *resolved.interner, endpoint, resolved.context);
+        *resolved.blueprint, *resolved.interner, simulation_.signal_key_interner(), endpoint, resolved.context);
 }
 
-std::string Document::resolve_wire_signal_key(const WindowScopeId& scope_id,
-                                              std::string_view wire_id) const {
+ui::InternedId Document::resolve_wire_signal_key(const WindowScopeId& scope_id,
+                                               std::string_view wire_id) const {
     const ResolvedSignalScope resolved = resolve_signal_scope(scope_id);
     const auto [wire, resolved_wire_id] = find_wire_in_scope(resolved, wire_id);
     if (!wire || resolved_wire_id.empty()) {
-        return "";
+        return {};
     }
 
     if (wire->source.node.empty() || wire->source.port.empty()) {
-        return "";
+        return {};
     }
 
     const bp2::Blueprint::Node* node = resolved.blueprint->find_node(wire->source.node);
     const editor::SignalEndpoint endpoint{node, wire->source.node, wire->source.port};
     return editor::resolve_runtime_signal_key(
-        *resolved.blueprint, *resolved.interner, endpoint, resolved.context);
+        *resolved.blueprint, *resolved.interner, simulation_.signal_key_interner(), endpoint, resolved.context);
 }
 
 // ============================================================================

@@ -36,11 +36,12 @@ std::string make_probe_id(const ui::StringInterner& interner,
 static bool resolve_probe_signal(Document& doc,
                                  const WindowScopeId& scope_id,
                                  std::string_view wire_id,
-                                 std::string& out_key,
+                                 ui::InternedId& out_key,
                                  std::string& out_label) {
-    out_key = doc.resolve_wire_signal_key(scope_id, wire_id);
-    if (out_key.empty()) return false;
-    out_label = out_key;
+    ui::InternedId key_iid = doc.resolve_wire_signal_key(scope_id, wire_id);
+    if (key_iid.empty()) return false;
+    out_key = key_iid;
+    out_label = std::string{wire_id};
     return true;
 }
 
@@ -113,16 +114,15 @@ uint32_t OscilloscopeModel::color_for_index(size_t i) {
     return k[i % (sizeof(k) / sizeof(k[0]))];
 }
 
-void OscilloscopeModel::set_hover_signal(const editor::DocumentId& doc_id, std::string signal_key) {
+void OscilloscopeModel::set_hover_signal(const editor::DocumentId& doc_id, ui::InternedId signal_iid) {
     auto& state = hover_states_[doc_id.str()];
-    state.signal_key = std::move(signal_key);
-    state.signal_iid = ui::InternedId{}; // Resolved lazily in sample() if simulation is running.
+    state.signal_iid = signal_iid;
 }
 
 void OscilloscopeModel::clear_hover_signal(const editor::DocumentId& doc_id) {
     auto it = hover_states_.find(doc_id.str());
     if (it != hover_states_.end()) {
-        it->second.signal_key.clear();
+        it->second.signal_iid = ui::InternedId{};
     }
 }
 
@@ -132,10 +132,9 @@ const std::deque<float>& OscilloscopeModel::hover_samples(const editor::Document
     return (it != hover_states_.end()) ? it->second.samples : empty;
 }
 
-const std::string& OscilloscopeModel::hover_signal_key(const editor::DocumentId& doc_id) const {
-    static const std::string empty;
+ui::InternedId OscilloscopeModel::hover_signal_key(const editor::DocumentId& doc_id) const {
     auto it = hover_states_.find(doc_id.str());
-    return (it != hover_states_.end()) ? it->second.signal_key : empty;
+    return (it != hover_states_.end()) ? it->second.signal_iid : ui::InternedId{};
 }
 
 void OscilloscopeModel::purge_hover_for(const editor::DocumentId& doc_id) {
@@ -182,10 +181,8 @@ void OscilloscopeModel::toggle_probe(Document& doc,
     p.wire_id = wire_id;
     p.document_id = doc.id();
     p.scope_id = scope_id;
-    if (!resolve_probe_signal(doc, scope_id, wire_id, p.signal_key, p.label)) return;
-    if (doc.isSimulationRunning()) {
-        p.signal_iid = doc.simulation().signal_key_interner().lookup(p.signal_key);
-    }
+    if (!resolve_probe_signal(doc, scope_id, wire_id, p.signal_iid, p.label)) return;
+    // signal_iid already resolved by resolve_probe_signal()
     if (!resolve_probe_anchor(doc, wire_id, scope_id, click_world, p.world_pos)) return;
     // Per-document color assignment: count existing probes for this doc.
     size_t doc_probe_count = 0;
@@ -220,16 +217,11 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
             continue;
         }
         OscilloscopeProbe updated = p;
-        if (!resolve_probe_signal(doc, p.scope_id, p.wire_id, updated.signal_key, updated.label)) {
+        if (!resolve_probe_signal(doc, p.scope_id, p.wire_id, updated.signal_iid, updated.label)) {
             to_remove.push_back(probe_id);
             continue;
         }
-        // Re-resolve InternedId after blueprint change (sim may have rebuilt).
-        if (doc.isSimulationRunning()) {
-            updated.signal_iid = doc.simulation().signal_key_interner().lookup(updated.signal_key);
-        } else {
-            updated.signal_iid = ui::InternedId{};
-        }
+        // signal_iid already resolved by resolve_probe_signal()
 
         if (!resolve_probe_anchor(doc, p.wire_id, p.scope_id, &p.world_pos, updated.world_pos)) {
             to_remove.push_back(probe_id);
@@ -260,31 +252,20 @@ void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sam
             continue;
         }
         auto& q = samples_[probe_id];
-        // Use pre-resolved InternedId when available (zero string work),
-        // fall back to interner lookup if stale (after sim rebuild).
+        // Use pre-resolved InternedId when available
         float v = 0.0f;
-        if (simulation_running) {
-            if (!p.signal_iid.empty()) {
-                v = doc.simulation().get_signal_value(p.signal_iid);
-            } else {
-                v = doc.simulation().get_signal_value(
-                    doc.simulation().signal_key_interner().lookup(p.signal_key));
-            }
+        if (simulation_running && !p.signal_iid.empty()) {
+            v = doc.simulation().get_signal_value(p.signal_iid);
         }
         q.push_back(v);
         while (q.size() > max_samples_) q.pop_front();
     }
 
-    // Per-document hover sampling — resolve InternedId lazily on first sample.
+    // Per-document hover sampling — use already-resolved InternedId
     auto hover_it = hover_states_.find(doc.id().str());
-    if (hover_it != hover_states_.end() && !hover_it->second.signal_key.empty()) {
+    if (hover_it != hover_states_.end() && !hover_it->second.signal_iid.empty()) {
         float v = 0.0f;
         if (simulation_running) {
-            // Lazy InternedId resolution: resolve once, reuse on subsequent frames.
-            if (hover_it->second.signal_iid.empty()) {
-                hover_it->second.signal_iid = doc.simulation().signal_key_interner().lookup(
-                    hover_it->second.signal_key);
-            }
             v = doc.simulation().get_signal_value(hover_it->second.signal_iid);
         }
         hover_it->second.samples.push_back(v);

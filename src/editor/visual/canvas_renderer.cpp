@@ -22,23 +22,25 @@
 static bool maybe_log_hover_signal_resolution(
     const std::string& visual_node,
     const std::string& visual_port,
-    const std::string& resolved_key,
+    ui::InternedId resolved_key,
     float value) {
     static bool initialized = false;
     static bool enabled = false;
-    
+
     if (!initialized) {
         const char* env = std::getenv("AN24_EDITOR_DEBUG_SIGNAL_KEYS");
         enabled = (env != nullptr && env[0] == '1');
         initialized = true;
     }
-    
+
     if (enabled) {
-        fprintf(stdout, "[DBG-HOVER] %s.%s => %s (%.2fV)\n",
-                visual_node.c_str(), visual_port.c_str(), resolved_key.c_str(), value);
+        std::string_view key_sv = resolved_key.empty() ? std::string_view{} : std::string_view{"(resolved)"};
+        fprintf(stdout, "[DBG-HOVER] %s.%s => %.*s (%.2fV)\n",
+                visual_node.c_str(), visual_port.c_str(),
+                static_cast<int>(key_sv.size()), key_sv.data(), value);
         fflush(stdout);
     }
-    
+
     return enabled;
 }
 
@@ -56,10 +58,17 @@ static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSyst
 
 static void render_hover_scope_tooltip(Document& doc,
                                        WindowSystem& ws,
-                                       const std::string& label,
+                                       ui::InternedId signal_iid,
                                        const Pt& anchor_screen) {
     const std::deque<float>& samples = ws.oscilloscope.hover_samples(doc.id());
     if (samples.empty()) return;
+
+    // Resolve label from signal InternedId for display.
+    std::string label = "<signal>";
+    if (!signal_iid.empty()) {
+        std::string_view sv = doc.simulation().signal_key_interner().resolve(signal_iid);
+        label = std::string{sv};
+    }
 
     OscilloscopeProbe pseudo;
     pseudo.label = label;
@@ -178,28 +187,26 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 
         std::string_view port_name = hp->port_name;
         Pt port_screen = win.viewport.world_to_screen(hp->center - Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS), cmin);
-        std::string signal_key = doc.resolve_endpoint_signal_key(
+        ui::InternedId signal_iid = doc.resolve_endpoint_signal_key(
             win.resolved_scope_id(), node_id, port_name);
-        if (signal_key.empty()) return;
-        
+        if (signal_iid.empty()) return;
+
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-        float current_value = doc.simulation().get_signal_value(
-            doc.simulation().signal_key_interner().lookup(signal_key));
-        maybe_log_hover_signal_resolution(std::string(node_id), std::string(port_name), signal_key, current_value);
-        
-        ws.oscilloscope.set_hover_signal(doc.id(), std::move(signal_key));
+        float current_value = doc.simulation().get_signal_value(signal_iid);
+        maybe_log_hover_signal_resolution(std::string(node_id), std::string(port_name), signal_iid, current_value);
+
+        ws.oscilloscope.set_hover_signal(doc.id(), signal_iid);
         render_hover_scope_tooltip(doc, ws, ws.oscilloscope.hover_signal_key(doc.id()), port_screen);
         return;
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-        std::string signal_key = doc.resolve_wire_signal_key(
+        ui::InternedId signal_iid = doc.resolve_wire_signal_key(
             win.resolved_scope_id(), hw->wire_id);
-        if (signal_key.empty()) return;
+        if (signal_iid.empty()) return;
 
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-        float current_value = doc.simulation().get_signal_value(
-            doc.simulation().signal_key_interner().lookup(signal_key));
-        maybe_log_hover_signal_resolution(std::string(hw->wire_id), "src", signal_key, current_value);
+        float current_value = doc.simulation().get_signal_value(signal_iid);
+        maybe_log_hover_signal_resolution(std::string(hw->wire_id), "src", signal_iid, current_value);
            
         // Project mouse onto wire segment for tooltip anchor
         auto* wire = dynamic_cast<visual::Wire*>(win.scene.find(hw->wire_id));
@@ -221,7 +228,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         }
 
          const Pt tip_screen = win.viewport.world_to_screen(anchor, cmin);
-         ws.oscilloscope.set_hover_signal(doc.id(), std::move(signal_key));
+         ws.oscilloscope.set_hover_signal(doc.id(), signal_iid);
          render_hover_scope_tooltip(doc, ws, ws.oscilloscope.hover_signal_key(doc.id()), tip_screen);
         return;
     }

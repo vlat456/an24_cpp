@@ -17,9 +17,8 @@ struct OscilloscopeProbe {
     std::string probe_id;
     std::string wire_id;
     editor::DocumentId document_id;
-    std::string signal_key;
-    ui::InternedId signal_iid; ///< Pre-resolved InternedId for zero-lookup sampling. Invalid after sim rebuild.
-    std::string label;
+    ui::InternedId signal_iid;  ///< Resolved InternedId for zero-lookup sampling. Invalid after sim rebuild.
+    std::string label;         ///< Display label (wire_id or resolved key string)
     WindowScopeId scope_id = WindowScopeId::root();
     ui::Pt world_pos;
     uint32_t color = 0;
@@ -45,10 +44,10 @@ public:
 
     void on_blueprint_changed(Document& doc);
     void sample(Document& doc, bool simulation_running, float sample_dt_sec);
-    void set_hover_signal(const editor::DocumentId& doc_id, std::string signal_key);
+    void set_hover_signal(const editor::DocumentId& doc_id, ui::InternedId signal_iid);
     void clear_hover_signal(const editor::DocumentId& doc_id);
     const std::deque<float>& hover_samples(const editor::DocumentId& doc_id) const;
-    const std::string& hover_signal_key(const editor::DocumentId& doc_id) const;
+    ui::InternedId hover_signal_key(const editor::DocumentId& doc_id) const;
 
     /// Clear all hover state for a document being closed.
     void purge_hover_for(const editor::DocumentId& doc_id);
@@ -121,8 +120,8 @@ private:
 
     /// Per-document hover state — keyed by DocumentId::str().
     struct HoverState {
-        std::string signal_key;
-        ui::InternedId signal_iid; ///< Pre-resolved for zero-lookup sampling.
+        ui::InternedId signal_iid;   ///< Resolved for zero-lookup sampling.
+        std::string label;          ///< Display label.
         std::deque<float> samples;
     };
     std::unordered_map<std::string, HoverState> hover_states_;

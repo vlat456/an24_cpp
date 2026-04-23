@@ -164,11 +164,11 @@ public:
         std::unordered_set<std::string_view, visual::StringViewHash>& out,
         const WindowScopeId& scope_id) const;
 
-    ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
-    std::string resolve_endpoint_signal_key(const WindowScopeId& scope_id,
-                                           std::string_view node_id,
-                                           std::string_view port_name) const;
-    std::string resolve_wire_signal_key(const WindowScopeId& scope_id,
+ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
+    ui::InternedId resolve_endpoint_signal_key(const WindowScopeId& scope_id,
+                                               std::string_view node_id,
+                                               std::string_view port_name) const;
+    ui::InternedId resolve_wire_signal_key(const WindowScopeId& scope_id,
                                         std::string_view wire_id) const;
 
     // ── Signal overrides (switch/button clicks) ──
