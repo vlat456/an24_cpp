@@ -650,7 +650,6 @@ gtest_discover_tests(scene_mutations_tests)
 add_executable(document_safety_tests
     blueprint_v2/test_document_add_component_safety.cpp
     test_editor_ownership_isolation.cpp
-    test_signal_cache_variant.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_components.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_export.cpp

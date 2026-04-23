@@ -1688,3 +1688,29 @@ TEST(Issue133_RuntimeState, CanonicalBlueprintStaysUnhydrated) {
     EXPECT_FLOAT_EQ(static_content.min, 0.0f);
     EXPECT_FLOAT_EQ(static_content.value, 1.0f);
 }
+
+// ============================================================================
+// parse_node_content_type tests
+// ============================================================================
+
+TEST(NodeContentTypeConversion, ParseAllValidStrings) {
+    EXPECT_EQ(bp2::parse_node_content_type("Gauge"),          bp2::NodeContentType::Gauge);
+    EXPECT_EQ(bp2::parse_node_content_type("Switch"),         bp2::NodeContentType::Switch);
+    EXPECT_EQ(bp2::parse_node_content_type("VerticalToggle"), bp2::NodeContentType::VerticalToggle);
+    EXPECT_EQ(bp2::parse_node_content_type("Value"),          bp2::NodeContentType::Value);
+    EXPECT_EQ(bp2::parse_node_content_type("Text"),           bp2::NodeContentType::Text);
+    EXPECT_EQ(bp2::parse_node_content_type("Slider"),         bp2::NodeContentType::Slider);
+    EXPECT_EQ(bp2::parse_node_content_type("Indicator"),      bp2::NodeContentType::Indicator);
+    EXPECT_EQ(bp2::parse_node_content_type("Knob"),           bp2::NodeContentType::Knob);
+    EXPECT_EQ(bp2::parse_node_content_type("Azs"),            bp2::NodeContentType::Switch);  // AZS renders as Switch
+}
+
+TEST(NodeContentTypeConversion, ParseSpecialMappings) {
+    // HoldButton maps to Switch (rendered as switch)
+    EXPECT_EQ(bp2::parse_node_content_type("HoldButton"), bp2::NodeContentType::Switch);
+    // Unknown values return None
+    EXPECT_EQ(bp2::parse_node_content_type(""),          bp2::NodeContentType::None);
+    EXPECT_EQ(bp2::parse_node_content_type("Unknown"),   bp2::NodeContentType::None);
+    EXPECT_EQ(bp2::parse_node_content_type("gauge"),     bp2::NodeContentType::None);  // case-sensitive
+}
+>>>>>>> 5329e569 (refactor: purge AZS tripped from editor — AZS is just a Switch (#214))

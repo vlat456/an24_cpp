@@ -57,7 +57,6 @@ CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node
     spec.content_unit = nc.unit;
     spec.content_value = nc.value;
     spec.content_state = nc.state;
-    spec.content_tripped = nc.tripped;
 
     // Annotation params from semantic string_params
     if (spec.frame_kind == NodeFrameKind::Annotation) {
@@ -139,7 +138,6 @@ constexpr uint32_t COLOR_NEEDLE = 0xFF2A70C8;
 constexpr uint32_t COLOR_TICK_MAJOR = 0xFFDCD5D4;
 constexpr uint32_t COLOR_TICK_MINOR = 0xFF606070;
 constexpr uint32_t COLOR_GAUGE_TEXT = 0xFFDCD5D4;
-constexpr uint32_t COLOR_TRIPPED = 0xFF4040FF;
 constexpr uint32_t COLOR_BUS_BORDER = 0xFF606068;
 constexpr uint32_t COLOR_TEXT_DIM = 0xFF808080;
 
@@ -218,14 +216,13 @@ void append_interaction(PresentationNode& parent,
 void build_switch_content(PresentationNode& root, ElementIdAllocator& ids,
                           const PresentationSpec& spec, bool vertical) {
     const bool state = spec.content_state;
-    const bool tripped = spec.content_tripped;
 
     const float bg_w = vertical ? VERTICAL_TOGGLE_WIDTH : SWITCH_WIDTH;
     const float bg_h = vertical ? VERTICAL_TOGGLE_HEIGHT : SWITCH_HEIGHT;
 
     // Background — fills entire element bounds
     append_painted(root, ids, PaintPrimitiveKind::Rectangle, [&](PaintCommand& paint) {
-        paint.fill_color = tripped ? COLOR_TRIPPED : (state ? 0xFF3A6830 : 0xFF1C1D24);
+        paint.fill_color = state ? 0xFF3A6830 : 0xFF1C1D24;
         paint.stroke_color = COLOR_BUS_BORDER;
         paint.stroke_width = 1.0f;
         paint.geometry = RectGeometry{0.0f, 0.0f, bg_w, bg_h};
@@ -236,7 +233,7 @@ void build_switch_content(PresentationNode& root, ElementIdAllocator& ids,
         ? RectGeometry{0.0f, state ? (bg_h * 0.15f) : (bg_h * 0.70f), bg_w, bg_h * 0.24f}
         : RectGeometry{state ? (bg_w - bg_w * 0.40f) : 0.0f, 0.0f, bg_w * 0.40f, bg_h};
     append_painted(root, ids, PaintPrimitiveKind::Rectangle, [&](PaintCommand& paint) {
-        paint.fill_color = tripped ? COLOR_TRIPPED : (state ? 0xFF3A6830 : 0xFF2C3038);
+        paint.fill_color = state ? 0xFF3A6830 : 0xFF2C3038;
         paint.stroke_color = 0xFF1C1D24;
         paint.stroke_width = 1.0f;
         paint.geometry = handle_geo;
@@ -444,9 +441,6 @@ PresentationNode default_content_presenter(const PresentationSpec& spec) {
             break;
         case bp2::NodeContentType::VerticalToggle:
             build_switch_content(root, ids, spec, true);
-            break;
-        case bp2::NodeContentType::Azs:
-            build_switch_content(root, ids, spec, false);  // Same as Switch but with tripped tracking
             break;
         case bp2::NodeContentType::Slider:
             build_slider_content(root, ids, spec);

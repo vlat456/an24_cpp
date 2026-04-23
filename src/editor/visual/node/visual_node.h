@@ -99,7 +99,6 @@ public:
         c.value = cached_content_value_;
         c.label = cached_content_label_;
         c.state = cached_content_state_;
-        c.tripped = cached_content_tripped_;
         c.unit = cached_content_unit_;
         return c;
     }
@@ -132,7 +131,6 @@ private:
     float cached_content_value_ = 0.0f;
     std::string cached_content_label_;
     bool cached_content_state_ = false;
-    bool cached_content_tripped_ = false;
     std::string cached_content_unit_;
 
     std::optional<uint32_t> custom_fill_;

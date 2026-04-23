@@ -252,41 +252,6 @@ TEST(DefaultContentPresenter, VerticalToggleProducesRectanglesAndClickInteractio
     ASSERT_NE(click, nullptr);
 }
 
-TEST(DefaultContentPresenter, SwitchTrippedChangesColor) {
-    auto spec_normal = make_spec(ui::InternedId(22), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
-    spec_normal.content_state = true;
-    spec_normal.content_tripped = false;
-
-    auto spec_tripped = make_spec(ui::InternedId(23), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
-    spec_tripped.content_state = true;
-    spec_tripped.content_tripped = true;
-
-    NodePresentation p_normal = compile_node_presentation(spec_normal);
-    NodePresentation p_tripped = compile_node_presentation(spec_tripped);
-
-    // Both should have paint commands but with different colors
-    EXPECT_GE(count_total_paints(p_normal.content), 2u);
-    EXPECT_GE(count_total_paints(p_tripped.content), 2u);
-
-    // Verify tripped state actually uses different fill color on background rect
-    std::vector<const PaintCommand*> normal_paints, tripped_paints;
-    collect_paints(p_normal.content, normal_paints);
-    collect_paints(p_tripped.content, tripped_paints);
-
-    // First Rectangle paint is the background — colors must differ
-    const PaintCommand* normal_bg = nullptr;
-    const PaintCommand* tripped_bg = nullptr;
-    for (const auto* p : normal_paints) {
-        if (p->kind == PaintPrimitiveKind::Rectangle) { normal_bg = p; break; }
-    }
-    for (const auto* p : tripped_paints) {
-        if (p->kind == PaintPrimitiveKind::Rectangle) { tripped_bg = p; break; }
-    }
-    ASSERT_NE(normal_bg, nullptr);
-    ASSERT_NE(tripped_bg, nullptr);
-    EXPECT_NE(normal_bg->fill_color, tripped_bg->fill_color);
-}
-
 TEST(DefaultContentPresenter, SwitchRectanglesCarryExplicitRectGeometry) {
     auto spec = make_spec(ui::InternedId(24), "AZS", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
     spec.content_state = false;
@@ -1768,11 +1733,9 @@ TEST(Issue133_SingleAuthority, ToggleUsesDynamicStateFromView) {
     // and that the handle position changes with state.
     auto spec_off = make_spec(ui::InternedId(2030), "Switch", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
     spec_off.content_state = false;
-    spec_off.content_tripped = false;
 
     auto spec_on = make_spec(ui::InternedId(2031), "Switch", NodeFrameKind::Standard, bp2::NodeContentType::Switch);
     spec_on.content_state = true;
-    spec_on.content_tripped = false;
 
     NodePresentation p_off = compile_node_presentation(spec_off);
     NodePresentation p_on = compile_node_presentation(spec_on);
@@ -1840,7 +1803,6 @@ TEST(PresentationSpec, CanonicalMakeFromDefPreservesIdentity) {
     EXPECT_FLOAT_EQ(spec.content_max, 50.0f);
     EXPECT_FLOAT_EQ(spec.content_value, 25.0f);
     EXPECT_FALSE(spec.content_state);
-    EXPECT_FALSE(spec.content_tripped);
 }
 
 TEST(PresentationSpec, CanonicalMakeFromDefExtractsAnnotationParams) {
@@ -1998,7 +1960,7 @@ TEST(PresentationSpec, RegistryLookupUsesSpecTypeId) {
 
 TEST(Issue133_SingleAuthority, DynamicStateIndependentOfStaticSemantics) {
     // Core regression test: changing static semantics (min/max) via
-    // hydrate_node_view does NOT reset dynamic state (value/state/tripped).
+    // hydrate_node_view does NOT reset dynamic state (value/state).
     // This is the exact bug that issue #133 fixes.
     auto spec = make_spec(ui::InternedId(2040), "Slider", NodeFrameKind::Standard, bp2::NodeContentType::Slider);
     spec.content_min = 0.0f;

@@ -329,7 +329,6 @@ void NodeWidget::build(const bp2::Blueprint::Node& data,
     cached_content_value_ = content.value;
     cached_content_label_ = content.label;
     cached_content_state_ = content.state;
-    cached_content_tripped_ = content.tripped;
     cached_content_unit_ = content.unit;
 
     if (cached_content_type_ != bp2::NodeContentType::None) {
@@ -390,7 +389,6 @@ void NodeWidget::updateContent(const ::NodeContent& content) {
     cached_content_value_ = content.value;
     cached_content_label_ = content.label;
     cached_content_state_ = content.state;
-    cached_content_tripped_ = content.tripped;
     cached_content_unit_ = content.unit;
     refresh_content_semantic_snapshot();
 }
@@ -422,7 +420,6 @@ void NodeWidget::refresh_content_semantic_snapshot() {
     spec.content_value = cached_content_value_;
     spec.content_label = cached_content_label_;
     spec.content_state = cached_content_state_;
-    spec.content_tripped = cached_content_tripped_;
     spec.content_unit = cached_content_unit_;
 
     // Compile content through the single-authority compiler path

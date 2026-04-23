@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-/// Содержимое узла (пока placeholder)
+/// Per-node display content payload consumed by widget rendering.
 struct NodeContent {
     bp2::NodeContentType type = bp2::NodeContentType::None;
     std::string label;
@@ -22,7 +22,6 @@ struct NodeContent {
     float max = 1.0f;
     std::string unit;
     bool state = false;
-    bool tripped = false;  ///< AZS thermal trip indicator (red button tint)
 };
 
 /// Per-port layout override at the blueprint (instance) level.
@@ -191,15 +190,6 @@ inline NodeContent create_node_content(const ComponentSpec& def,
             auto init_it = params.find("initial_position");
             float def_initial = (init_it != params.end()) ? std::stof(init_it->second.default_value) : 0.0f;
             content.value = get_param_float_from_map(instance_params, instance_string_params, "initial_position", interner, def_initial);
-            break;
-        }
-
-        case bp2::NodeContentType::Azs: {
-            // AZS is a switch with tripped port — inherits Switch param handling.
-            content.label = "ON";
-            auto it = params.find("closed");
-            bool def_state = (it != params.end() && it->second.default_value == "true");
-            content.state = get_param_bool_from_map(instance_params, instance_string_params, "closed", interner, def_state);
             break;
         }
 

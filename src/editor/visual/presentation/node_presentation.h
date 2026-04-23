@@ -156,7 +156,6 @@ struct CompiledPresentationSpec {
     float content_value = 0.0f;
     std::string content_unit;
     bool content_state = false;
-    bool content_tripped = false;
 
     // Annotation (only meaningful when frame_kind == Annotation)
     std::string annotation_text;

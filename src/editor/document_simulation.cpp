@@ -48,7 +48,6 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
         [](const editor::GaugePorts&) { return ui::InternedId{}; },
         [](const editor::IndicatorPorts&) { return ui::InternedId{}; },
         [](const editor::SwitchPorts& p) { return p.control; },
-        [](const editor::AzsPorts& p) { return p.control; },
         [](const editor::SliderPorts& p) { return p.control; },
         [](const editor::KnobPorts& p) { return p.control; }
     }, ports);
@@ -70,10 +69,6 @@ void overlay_from_cache(NodeContent& content,
         },
         [&](const editor::SwitchPorts& p) {
             content.state = simulation.get_signal_value(p.state) > 0.5f;
-        },
-        [&](const editor::AzsPorts& p) {
-            content.state = simulation.get_signal_value(p.state) > 0.5f;
-            content.tripped = simulation.get_signal_value(p.tripped) > 0.5f;
         },
         [&](const editor::SliderPorts& p) {
             if (float val = simulation.get_signal_value(p.readback); std::isfinite(val)) {
@@ -124,7 +119,6 @@ editor::RuntimeNodeState default_runtime_state(const bp2::NodeContentType conten
             return editor::DiscreteNodeRuntimeState{static_cast<int>(content.value)};
         case bp2::NodeContentType::Switch:
         case bp2::NodeContentType::VerticalToggle:
-        case bp2::NodeContentType::Azs:
             return editor::BoolNodeRuntimeState{content.state};
         case bp2::NodeContentType::Text:
         case bp2::NodeContentType::None:
@@ -367,7 +361,6 @@ void Document::build_signal_cache() {
 
             // Resolve content-type-specific ports into a discriminated variant.
             // Each branch constructs only the ports relevant to its content type.
-            // Azs has its own variant (AzsPorts) with the tripped port.
             editor::ContentPorts ports = std::monostate{};
             switch (base.type) {
                 case bp2::NodeContentType::Switch:
@@ -376,14 +369,6 @@ void Document::build_signal_cache() {
                     sp.state   = resolve_port_key(sim_interner, nid, "state");
                     sp.control = resolve_port_key(sim_interner, nid, "control");
                     ports = sp;
-                    break;
-                }
-                case bp2::NodeContentType::Azs: {
-                    editor::AzsPorts ap;
-                    ap.state   = resolve_port_key(sim_interner, nid, "state");
-                    ap.control = resolve_port_key(sim_interner, nid, "control");
-                    ap.tripped = resolve_port_key(sim_interner, nid, "tripped");
-                    ports = ap;
                     break;
                 }
                 case bp2::NodeContentType::Indicator: {
@@ -508,9 +493,6 @@ void Document::updateNodeContentFromSimulation() {
                 runtime_node_states_[key] = editor::DiscreteNodeRuntimeState{static_cast<int>(content.value)};
             },
             [&](const editor::SwitchPorts&) {
-                runtime_node_states_[key] = editor::BoolNodeRuntimeState{content.state};
-            },
-            [&](const editor::AzsPorts&) {
                 runtime_node_states_[key] = editor::BoolNodeRuntimeState{content.state};
             }
         }, cache.ports);

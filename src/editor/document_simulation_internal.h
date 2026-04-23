@@ -53,8 +53,7 @@ inline std::string instance_path_to_scope_string(
 //
 // Each content type (Gauge, Indicator, Switch, Slider, Knob) gets its own
 // port struct with exactly the ports it needs. This eliminates cross-type
-// contamination — a Gauge cannot accidentally read a "brightness" port,
-// and AZS-specific ports ("tripped") don't pollute the generic path.
+// contamination — a Gauge cannot accidentally read a "brightness" port.
 //
 // Built once at simulation start by walking all animated nodes and resolving
 // their signal port InternedIds against the build-scoped StringInterner.
@@ -74,12 +73,6 @@ struct SwitchPorts {
     ui::InternedId control;
 };
 
-struct AzsPorts {
-    ui::InternedId state;
-    ui::InternedId control;
-    ui::InternedId tripped;
-};
-
 struct SliderPorts {
     ui::InternedId readback;   ///< Either "out" or "control", resolved at cache build
     ui::InternedId control;
@@ -97,7 +90,6 @@ using ContentPorts = std::variant<
     GaugePorts,
     IndicatorPorts,
     SwitchPorts,
-    AzsPorts,
     SliderPorts,
     KnobPorts
 >;
