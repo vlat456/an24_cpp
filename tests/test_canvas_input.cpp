@@ -2299,6 +2299,77 @@ TEST(CanvasInputSemanticRender, VerticalToggleStandardLayoutProducesRenderObject
         << "VerticalToggle (standard layout) must set render flag";
 }
 
+TEST(CanvasInputSemanticRender, AzsTrippedStateProducesTrippedColor) {
+    // Regression: AZS thermal trip must produce COLOR_TRIPPED (red tint).
+    // This verifies the visual pipeline from NodeContent::tripped →
+    // PresentationSpec::content_tripped → COLOR_TRIPPED in build_switch_content.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
+    set_iface(azs, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+
+    // Set tripped = true (simulates what overlay_from_cache does for AzsPorts)
+    update_dynamic(scene, "azs_1", [](NodeContent& c) { c.tripped = true; });
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
+    ASSERT_NE(widget, nullptr);
+
+    // Verify tripped flag round-trips through the widget
+    NodeContent roundtrip = widget->currentContent();
+    EXPECT_TRUE(roundtrip.tripped) << "AZS tripped flag must round-trip through NodeWidget";
+
+    // Verify the visual snapshot uses COLOR_TRIPPED for the fill
+    const auto& snap = widget->content_semantic_snapshot();
+    ASSERT_GE(snap.render_objects.size(), 2u) << "AZS switch must have body + handle";
+
+    // COLOR_TRIPPED = 0xFF4040FF — distinct from state-on green (0xFF3A6830)
+    // and state-off dark (0xFF1C1D24)
+    const uint32_t body_fill = snap.render_objects[0].fill_color;
+    EXPECT_EQ(body_fill, 0xFF4040FF)
+        << "Tripped AZS body must use COLOR_TRIPPED, got: " << std::hex << body_fill;
+}
+
+TEST(CanvasInputSemanticRender, AzsNonTrippedStateUsesNormalColors) {
+    // Companion: when tripped = false, AZS uses standard switch colors.
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto azs = make_node(I, "azs_2", "AZS", 100.0f, 100.0f);
+    set_iface(azs, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(azs));
+    bp2::EditorModel model(std::move(bp));
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+
+    // Explicitly tripped = false (default)
+    update_dynamic(scene, "azs_2", [](NodeContent& c) { c.tripped = false; });
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_2"));
+    ASSERT_NE(widget, nullptr);
+
+    const auto& snap = widget->content_semantic_snapshot();
+    ASSERT_GE(snap.render_objects.size(), 2u);
+
+    const uint32_t body_fill = snap.render_objects[0].fill_color;
+    EXPECT_NE(body_fill, 0xFF4040FF)
+        << "Non-tripped AZS must NOT use COLOR_TRIPPED, got: " << std::hex << body_fill;
+}
+
 TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
      ui::StringInterner I;
      bp2::PathArena arena(I);

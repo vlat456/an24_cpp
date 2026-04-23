@@ -6,6 +6,7 @@
 /// see embedded_path_utils.h.
 
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "data/node_content.h"
 #include "data/node_state.h"
 #include "ui/core/interned_id.h"
 #include "window/window_scope_id.h"
@@ -73,6 +74,12 @@ struct SwitchPorts {
     ui::InternedId control;
 };
 
+struct AzsPorts {
+    ui::InternedId state;
+    ui::InternedId control;
+    ui::InternedId tripped;
+};
+
 struct SliderPorts {
     ui::InternedId readback;   ///< Either "out" or "control", resolved at cache build
     ui::InternedId control;
@@ -90,6 +97,7 @@ using ContentPorts = std::variant<
     GaugePorts,
     IndicatorPorts,
     SwitchPorts,
+    AzsPorts,
     SliderPorts,
     KnobPorts
 >;

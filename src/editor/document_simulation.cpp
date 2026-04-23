@@ -67,6 +67,10 @@ void overlay_from_cache(NodeContent& content,
         [&](const editor::SwitchPorts& p) {
             content.state = simulation.get_signal_value(p.state) > 0.5f;
         },
+        [&](const editor::AzsPorts& p) {
+            content.state = simulation.get_signal_value(p.state) > 0.5f;
+            content.tripped = simulation.get_signal_value(p.tripped) > 0.5f;
+        },
         [&](const editor::SliderPorts& p) {
             if (float val = simulation.get_signal_value(p.readback); std::isfinite(val)) {
                 content.value = val;
@@ -352,14 +356,24 @@ void Document::build_signal_cache() {
 
             // Resolve content-type-specific ports into a discriminated variant.
             // Each branch constructs only the ports relevant to its content type.
+            // AZS gets its own variant (AzsPorts) with the tripped port.
+            const std::string type_name(interner_.resolve(n.semantic.type));
             editor::ContentPorts ports = std::monostate{};
             switch (base.type) {
                 case bp2::NodeContentType::Switch:
                 case bp2::NodeContentType::VerticalToggle: {
-                    editor::SwitchPorts sp;
-                    sp.state   = resolve_port_key(sim_interner, nid, "state");
-                    sp.control = resolve_port_key(sim_interner, nid, "control");
-                    ports = sp;
+                    if (type_name == "AZS") {
+                        editor::AzsPorts ap;
+                        ap.state   = resolve_port_key(sim_interner, nid, "state");
+                        ap.control = resolve_port_key(sim_interner, nid, "control");
+                        ap.tripped = resolve_port_key(sim_interner, nid, "tripped");
+                        ports = ap;
+                    } else {
+                        editor::SwitchPorts sp;
+                        sp.state   = resolve_port_key(sim_interner, nid, "state");
+                        sp.control = resolve_port_key(sim_interner, nid, "control");
+                        ports = sp;
+                    }
                     break;
                 }
                 case bp2::NodeContentType::Indicator: {
@@ -467,6 +481,9 @@ void Document::updateNodeContentFromSimulation() {
                 runtime_node_states_[key] = editor::DiscreteNodeRuntimeState{static_cast<int>(content.value)};
             },
             [&](const editor::SwitchPorts&) {
+                runtime_node_states_[key] = editor::BoolNodeRuntimeState{content.state};
+            },
+            [&](const editor::AzsPorts&) {
                 runtime_node_states_[key] = editor::BoolNodeRuntimeState{content.state};
             }
         }, cache.ports);
