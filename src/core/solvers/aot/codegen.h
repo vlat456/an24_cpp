@@ -122,6 +122,11 @@ public:
     /// Replaces hand-written build_components*.cpp switch files.
     static void generate_build_factory(const ComponentRegistry& registry, const std::string& output_path);
 
+    /// Generate component_kind.h from ComponentRegistry.
+    /// Emits enum, parse_component_kind(), component_kind_classname(), and family predicates.
+    /// Eliminates the last manual sync point when adding new components.
+    static void generate_component_kind(const ComponentRegistry& registry, const std::string& output_path);
+
     /// Generate Systems class for a composite blueprint.
     /// Expands sub-blueprint references into flat devices + connections,
     /// runs union-find signal allocation, then delegates to generate_header/source.

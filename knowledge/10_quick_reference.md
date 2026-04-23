@@ -30,6 +30,7 @@ cd build && ctest
 | JIT component factory | `src/core/solvers/jit/build_factory.cpp` (AUTO-GENERATED) |
 | JIT validation/topo sort | `src/core/solvers/jit/build_components_validation.cpp` |
 | JIT port setup helper | `src/core/solvers/jit/build_components_common.h` |
+| Component Kind enum | `src/core/model/component_kind.h` (AUTO-GENERATED) |
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |
 | Simulator | `src/core/simulator.h` |
 | Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
@@ -53,6 +54,7 @@ cd build && ctest
 
 | File/Path | Notes |
 |------|------|
+| `src/core/model/component_kind.h` | Auto-generated ComponentKind enum from library blueprints |
 | `src/core/solvers/jit/components/port_registry.h` | Auto-generated from library blueprints |
 | `src/core/solvers/jit/build_factory.cpp` | Auto-generated component factory from library blueprints |
 | `src/core/solvers/jit/components/port_names.h` | Auto-generated port enum from library blueprints |
@@ -76,6 +78,7 @@ cd build && ctest
 
 The code generator (`src/core/solvers/aot/codegen_registry.cpp`) produces C++ from library blueprints:
 
+- `component_kind.h` — ComponentKind enum, parse_component_kind(), component_kind_classname(), family predicates
 - `port_registry.h` — ComponentVariant, port metadata, trait lookups
 - `port_names.h` — PortNames enum
 - `build_factory.cpp` — Component construction factory (switch on ComponentKind)
@@ -92,11 +95,10 @@ cmake --build build -j$(nproc)
 1. Create `library/<category>/MyComponent.blueprint` with `param_schema`
 2. Create `src/core/solvers/jit/components/my_component.h` with `pre_load()`
 3. Add `#include "my_component.h"` to `src/core/solvers/jit/components/all.h`
-4. Add `ComponentKind::MyComponent` entry to `src/core/model/component_kind.h`
-5. Run codegen: `./build/tools/update_port_registry`
-6. Rebuild and test
+4. Run codegen: `./build/tools/update_port_registry`
+5. Rebuild and test
 
-Zero factory code changes. The codegen emits construction + param assignment + registration automatically.
+Zero factory code changes. The codegen emits enum entries, construction, param assignment, and registration automatically.
 
 ## Domain Values
 
