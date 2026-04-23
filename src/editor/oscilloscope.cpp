@@ -210,6 +210,16 @@ const OscilloscopeProbe* OscilloscopeModel::probe(const std::string& probe_id) c
 }
 
 void OscilloscopeModel::on_blueprint_changed(Document& doc) {
+    // Fast path: skip entirely when no probes exist for this document.
+    // Avoids allocating to_remove/updates vectors on every frame.
+    if (probes_.empty()) return;
+
+    bool has_doc_probes = false;
+    for (const auto& [probe_id, p] : probes_) {
+        if (p.document_id == doc.id()) { has_doc_probes = true; break; }
+    }
+    if (!has_doc_probes) return;
+
     std::vector<std::string> to_remove;
     std::vector<std::pair<std::string, OscilloscopeProbe>> updates;
     for (const auto& [probe_id, p] : probes_) {
