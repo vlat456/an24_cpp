@@ -350,10 +350,12 @@ void generate_port_names_header(const std::string& output_path, const std::set<s
 
 /// Build a param signature key — used to detect components sharing the same
 /// param set (e.g. KnobSwitch/RotarySwitch1ToN/RotarySwitchNTo1).
+/// Includes field name so components with identical JSON params but different
+/// C++ field mappings are NOT grouped together.
 static std::string param_signature(const ComponentPorts& comp) {
     std::string sig;
     for (const auto& p : comp.params) {
-        sig += p.name + ":" + std::to_string(static_cast<int>(p.type)) + ",";
+        sig += p.name + ":" + std::to_string(static_cast<int>(p.type)) + ":" + p.field + ",";
     }
     return sig;
 }
@@ -388,7 +390,7 @@ static bool emit_param_assignment(std::ostringstream& oss, const CodegenParam& p
             << p.name << "\", " << (def == "true" || def == "1" ? "true" : "false") << ");\n";
         return true;
     case ParamSchemaType::String:
-        oss << indent << "param_reader.consume_string_optional(\""
+        oss << indent << "comp." << p.field << " = param_reader.consume_string_optional(\""
             << p.name << "\", \"\");\n";
         return true;
     case ParamSchemaType::Table:
@@ -435,9 +437,21 @@ static void emit_build_case(std::ostringstream& oss, const ComponentPorts& comp,
     const std::string& cn = comp.classname;
 
     if (use_helper) {
-        oss << "        case ComponentKind::" << cn << ":\n";
+        oss << "        case ComponentKind::" << cn << ": {\n";
         oss << "            build_knob_switch_impl<" << cn << "<JitProvider>>(result, dev, param_reader);\n";
+        // Registration: same logic as non-helper path
+        if (comp.solver_owned_electrical) {
+            // no scheduler registration — managed by electrical subsolver
+        } else if (comp.scheduler_source) {
+            oss << "            result.scheduler.add_source(&std::get<"
+                << cn << "<JitProvider>>(result.devices[dev.name]));\n";
+        } else {
+            oss << "            result.scheduler.add_consumer(&std::get<"
+                << cn << "<JitProvider>>(result.devices[dev.name]));\n";
+        }
+        emit_fixed_voltage_node_block(oss, comp);
         oss << "            break;\n";
+        oss << "        }\n";
         return;
     }
 
