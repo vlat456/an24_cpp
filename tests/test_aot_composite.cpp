@@ -927,7 +927,7 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     consumer_type.ports["v"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     consumer_type.domains = {Domain::Electrical};
     consumer_type.solver.scheduler_source = false;
-    consumer_type.solver.execution = make_execution(false, true, false, false, false, false, false, false, false);
+    consumer_type.solver.execution = {.electrical_observer = true};
     registry.types["Voltmeter"] = consumer_type;
 
     CompositeSpec td;
@@ -1044,7 +1044,7 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     cvs.ports["v_pos"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     cvs.ports["v_neg"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     cvs.domains = {Domain::Electrical};
-    cvs.solver.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    cvs.solver.execution = {.electrical_passive = true};
     registry.types["ControlledVoltageSource"] = cvs;
 
     PrimitiveSpec vc;
@@ -1055,7 +1055,7 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     vc.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     vc.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     vc.domains = {Domain::Electrical};
-    vc.solver.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    vc.solver.execution = {.electrical_passive = true};
     registry.types["VariableConductance"] = vc;
 
     registry.types["RefNode"] = make_refnode_type();

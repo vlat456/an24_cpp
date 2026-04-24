@@ -49,7 +49,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     PrimitiveSpec src;
     src.classname = "ControlledVoltageSource";
     src.domains = {Domain::Electrical};
-    src.solver.execution = make_execution(false, false, false, false, true, false, false, false, false);
+    src.solver.execution = {.electrical_actuator = true};
     src.ports["cmd"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     src.ports["v_neg"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     src.ports["v_pos"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
