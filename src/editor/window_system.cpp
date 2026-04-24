@@ -389,9 +389,8 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
     }
     if (!action.toggle_probe_wire_id.empty()) {
         const ui::Pt* click = action.has_toggle_probe_world_pos ? &action.toggle_probe_world_pos : nullptr;
-        // Oscilloscope is cross-document (issue #199) — resolve at boundary
         oscilloscope.toggle_probe(doc, action.toggle_probe_scope_id,
-                                  std::string(doc.interner().resolve(action.toggle_probe_wire_id)), click);
+                                  action.toggle_probe_wire_id, click);
     }
     if (action.open_inline_value_editor && !action.inline_value_editor_node_id.empty()) {
         const ui::Pt* anchor = action.has_inline_value_editor_screen_pos

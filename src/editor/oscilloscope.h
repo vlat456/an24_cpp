@@ -7,31 +7,79 @@
 #include <algorithm>
 #include <cmath>
 #include <deque>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 class Document;
 
-struct OscilloscopeProbe {
-    std::string probe_id;
-    std::string wire_id;
-    editor::DocumentId document_id;
-    ui::InternedId signal_iid;  ///< Resolved InternedId for zero-lookup sampling. Invalid after sim rebuild.
-    std::string label;         ///< Display label (wire_id or resolved key string)
-    WindowScopeId scope_id = WindowScopeId::root();
-    ui::Pt world_pos;
-    uint32_t color = 0;
+// =============================================================================
+// WindowScopeId hash — used by ProbeKey
+// =============================================================================
+
+struct WindowScopeIdHash {
+    size_t operator()(const WindowScopeId& id) const noexcept {
+        size_t h = static_cast<size_t>(id.mode());
+        for (auto seg : id.path()) {
+            h = h * 31 + std::hash<ui::InternedId>{}(seg);
+        }
+        return h;
+    }
 };
+
+// =============================================================================
+// OscilloscopeProbe
+// =============================================================================
+
+/// A single oscilloscope probe, co-located with its sample buffer.
+///
+/// Identity within a per-document partition: (scope_id, wire_iid).
+/// No probe_id string, no document_id field — the partition owns those.
+/// scope_id lives in the ProbeKey (map key), not duplicated here.
+struct OscilloscopeProbe {
+    ui::InternedId wire_iid;       ///< Interned wire identity from the document's interner.
+    ui::InternedId signal_iid;     ///< Resolved InternedId for zero-lookup sampling. Invalid after sim rebuild.
+    std::string label;             ///< Display label (wire_id or resolved key string).
+    ui::Pt world_pos;              ///< Anchor position on the wire for marker rendering.
+    uint32_t color = 0;
+    std::deque<float> samples;     ///< Co-located sample buffer.
+};
+
+// =============================================================================
+// ProbeKey — identity for probe lookup within a document partition
+// =============================================================================
+
+/// Composite key: a probe is uniquely identified by its scope + wire.
+struct ProbeKey {
+    WindowScopeId scope_id;
+    ui::InternedId wire_iid;
+
+    bool operator==(const ProbeKey& other) const {
+        return scope_id == other.scope_id && wire_iid == other.wire_iid;
+    }
+};
+
+struct ProbeKeyHash {
+    size_t operator()(const ProbeKey& k) const noexcept {
+        // boost::hash_combine: h ^= std::hash<T>{}(v) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        size_t h = WindowScopeIdHash{}(k.scope_id);
+        h ^= std::hash<ui::InternedId>{}(k.wire_iid) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        return h;
+    }
+};
+
+// =============================================================================
+// OscilloscopeModel
+// =============================================================================
 
 class OscilloscopeModel {
 public:
+    /// Toggle a probe on/off for a wire within a scope.
     void toggle_probe(Document& doc,
                       const WindowScopeId& scope_id,
-                      const std::string& wire_id,
+                      ui::InternedId wire_iid,
                       const ui::Pt* click_world = nullptr);
-    void remove_probe(const std::string& probe_id);
-    bool has_probe(const std::string& probe_id) const;
 
     /// Remove all probes and samples for a document being closed.
     void purge_for(const editor::DocumentId& doc_id);
@@ -39,11 +87,14 @@ public:
     /// Remove all probes, samples, and hover state (for close-all).
     void purge_all();
 
-    const OscilloscopeProbe* probe(const std::string& probe_id) const;
-    const std::unordered_map<std::string, OscilloscopeProbe>& probes() const { return probes_; }
-
+    /// Resolves signal keys and anchors after a blueprint rebuild.
     void on_blueprint_changed(Document& doc);
+
+    /// Sample all probes for a document + hover state.
     void sample(Document& doc, bool simulation_running, float sample_dt_sec);
+
+    // -- Hover state (per-document) --
+
     void set_hover_signal(const editor::DocumentId& doc_id, ui::InternedId signal_iid);
     void clear_hover_signal(const editor::DocumentId& doc_id);
     const std::deque<float>& hover_samples(const editor::DocumentId& doc_id) const;
@@ -52,14 +103,26 @@ public:
     /// Clear all hover state for a document being closed.
     void purge_hover_for(const editor::DocumentId& doc_id);
 
+    // -- Accessors --
+
     size_t max_samples() const { return max_samples_; }
     float sample_period_sec() const { return sample_period_sec_; }
 
+    /// View onto a probe + its samples for rendering.
     struct ChannelView {
         const OscilloscopeProbe* probe = nullptr;
-        const std::deque<float>* samples = nullptr;
     };
     std::vector<ChannelView> channels_for(const editor::DocumentId& document_id) const;
+
+    /// Iterate probes matching (doc_id, scope_id) — used by canvas_renderer
+    /// for probe marker rendering.
+    void for_each_probe_in_scope(
+        const editor::DocumentId& doc_id,
+        const WindowScopeId& scope_id,
+        const std::function<void(const OscilloscopeProbe&)>& fn) const;
+
+    // -- Stats computation (stateless) --
+
     struct SampleStats {
         bool has_value = false;
         bool has_tu = false;
@@ -115,16 +178,25 @@ public:
 private:
     size_t max_samples_ = 1200;
     float sample_period_sec_ = 0.0f;
-    std::unordered_map<std::string, OscilloscopeProbe> probes_;
-    std::unordered_map<std::string, std::deque<float>> samples_;
 
-    /// Per-document hover state — keyed by DocumentId::str().
+    // -- Per-document probe partition --
+
+    struct DocumentProbes {
+        std::unordered_map<ProbeKey, OscilloscopeProbe, ProbeKeyHash> probes;
+    };
+    std::unordered_map<editor::DocumentId, DocumentProbes> docs_;
+
+    DocumentProbes* find_doc(const editor::DocumentId& doc_id);
+    const DocumentProbes* find_doc(const editor::DocumentId& doc_id) const;
+
+    // -- Hover state (per-document) --
+
     struct HoverState {
         ui::InternedId signal_iid;   ///< Resolved for zero-lookup sampling.
-        std::string label;          ///< Display label.
+        std::string label;           ///< Display label.
         std::deque<float> samples;
     };
-    std::unordered_map<std::string, HoverState> hover_states_;
+    std::unordered_map<editor::DocumentId, HoverState> hover_states_;
 
     static uint32_t color_for_index(size_t i);
 };

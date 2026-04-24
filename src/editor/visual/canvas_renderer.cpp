@@ -47,13 +47,11 @@ static bool maybe_log_hover_signal_resolution(
 static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSystem& ws,
                                  Pt cmin, ImDrawList* draw_list) {
     if (!ws.showOscilloscope) return;
-    for (const auto& [wire_id, probe] : ws.oscilloscope.probes()) {
-        if (probe.document_id != doc.id()) continue;
-        if (probe.scope_id != win.resolved_scope_id()) continue;
-
-        Pt sp = win.viewport.world_to_screen(probe.world_pos, cmin);
-        visual::osc::draw_probe_marker(draw_list, sp, probe.color);
-    }
+    ws.oscilloscope.for_each_probe_in_scope(doc.id(), win.resolved_scope_id(),
+        [&](const OscilloscopeProbe& probe) {
+            Pt sp = win.viewport.world_to_screen(probe.world_pos, cmin);
+            visual::osc::draw_probe_marker(draw_list, sp, probe.color);
+        });
 }
 
 static void render_hover_scope_tooltip(Document& doc,
@@ -72,8 +70,9 @@ static void render_hover_scope_tooltip(Document& doc,
 
     OscilloscopeProbe pseudo;
     pseudo.label = label;
-    pseudo.wire_id = "hover_scope";
+    pseudo.wire_iid = ui::InternedId{0};  // synthetic — no real wire
     pseudo.color = IM_COL32(80, 200, 255, 255);
+    pseudo.samples = samples;  // Copy hover samples into pseudo for rendering.
 
     const ImVec2 display = ImGui::GetIO().DisplaySize;
     constexpr float kWindowW = 380.0f;
@@ -94,12 +93,12 @@ static void render_hover_scope_tooltip(Document& doc,
                      ImGuiWindowFlags_NoFocusOnAppearing |
                      ImGuiWindowFlags_NoNav)) {
         std::vector<OscilloscopeModel::ChannelView> one;
-        one.push_back({&pseudo, &samples});
+        one.push_back({&pseudo});
         float min_v = 0.0f;
         float max_v = 0.0f;
         visual::osc::compute_range(one, min_v, max_v);
-        visual::osc::render_channel_plot(pseudo, samples, min_v, max_v, 72.0f, -1.0f);
-        visual::osc::render_stats_row(OscilloscopeModel::compute_stats(samples, ws.oscilloscope.sample_period_sec()));
+        visual::osc::render_channel_plot(pseudo, pseudo.samples, min_v, max_v, 72.0f, -1.0f);
+        visual::osc::render_stats_row(OscilloscopeModel::compute_stats(pseudo.samples, ws.oscilloscope.sample_period_sec()));
     }
     ImGui::End();
 }

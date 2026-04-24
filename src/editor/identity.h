@@ -33,3 +33,10 @@ private:
 };
 
 } // namespace editor
+
+template <>
+struct std::hash<editor::DocumentId> {
+    size_t operator()(const editor::DocumentId& id) const noexcept {
+        return std::hash<std::string>{}(id.str());
+    }
+};

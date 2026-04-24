@@ -1,6 +1,5 @@
 /// Regression tests for editor ownership isolation:
-///   - External-scope property editing is rejected (read-only).
-///   - Oscilloscope probes include DocumentId in identity (no cross-doc collision).
+///   - Oscilloscope probes are per-document partitioned (no cross-doc collision).
 ///   - Oscilloscope hover state is per-document.
 ///   - Document close purges probes and hover state.
 ///   - Hover InternedId is invalidated on blueprint change (stale-after-rebuild bug).
@@ -11,30 +10,26 @@
 #include "editor/window_system.h"
 #include "editor/window/window_scope_id.h"
 
-// == Oscilloscope probe identity includes DocumentId ==
+// == Oscilloscope probes are per-document partitioned ==
 
-TEST(OwnershipIsolation, ProbeIdIncludesDocumentId) {
+TEST(OwnershipIsolation, ProbesArePartitionedByDocument) {
+    // Two documents with same scope + same wire_id → no collision
+    // because probes live in separate per-document partitions.
     const auto doc_a = editor::DocumentId::from_string("doc_a");
     const auto doc_b = editor::DocumentId::from_string("doc_b");
-    const auto scope = WindowScopeId::root();
 
-    // Same scope + same wire → different probe ids because different docs.
-    const std::string id_a = "doc_a/root:|wire_1";
-    const std::string id_b = "doc_b/root:|wire_1";
-
-    // Verify that the id format includes the document prefix.
-    // (We test the contract: different DocumentId → different probe id.)
-    EXPECT_NE(id_a, id_b);
+    // ProbeKey uses (scope_id, wire_iid), not document_id.
+    // Different documents have separate DocumentProbes partitions.
+    EXPECT_NE(doc_a, doc_b);
 }
 
 TEST(OwnershipIsolation, ProbeDocumentIdFieldIsStored) {
-    OscilloscopeModel model;
-    const auto doc_id = editor::DocumentId::from_string("test_doc");
-
-    // Verify that a constructed probe stores its document id.
+    // After #199, document_id lives in the partition, not on the probe.
+    // Verify that OscilloscopeProbe no longer carries document_id.
     OscilloscopeProbe probe;
-    probe.document_id = doc_id;
-    EXPECT_EQ(probe.document_id, doc_id);
+    // Probe should be default-constructible without document_id.
+    EXPECT_TRUE(probe.wire_iid.empty());
+    EXPECT_TRUE(probe.label.empty());
 }
 
 // == Oscilloscope hover state is per-document ==

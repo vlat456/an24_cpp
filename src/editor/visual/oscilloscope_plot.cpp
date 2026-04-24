@@ -10,20 +10,21 @@ void render_channel_plot(const OscilloscopeProbe& probe,
                          float max_v,
                          float row_h,
                          float width) {
-    const std::string title = "##" + probe.wire_id;
+    ImGui::PushID(static_cast<int>(probe.wire_iid.raw()));
     ImGui::PushStyleColor(ImGuiCol_PlotLines, probe.color);
     ImGui::TextUnformatted(probe.label.c_str());
     if (samples.empty()) {
         std::vector<float> vals(static_cast<size_t>(kVisibleSamples), 0.0f);
-        ImGui::PlotLines(title.c_str(), vals.data(), kVisibleSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
+        ImGui::PlotLines("##plot", vals.data(), kVisibleSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
     } else {
         std::vector<float> vals(static_cast<size_t>(kVisibleSamples), 0.0f);
         const size_t copy_n = std::min(samples.size(), static_cast<size_t>(kVisibleSamples));
         auto src_begin = samples.end() - static_cast<std::ptrdiff_t>(copy_n);
         std::copy(src_begin, samples.end(), vals.end() - static_cast<std::ptrdiff_t>(copy_n));
-        ImGui::PlotLines(title.c_str(), vals.data(), kVisibleSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
+        ImGui::PlotLines("##plot", vals.data(), kVisibleSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
     }
     ImGui::PopStyleColor();
+    ImGui::PopID();
 }
 
 std::deque<float> visible_tail(const std::deque<float>& samples) {
@@ -39,8 +40,8 @@ void compute_range(const std::vector<OscilloscopeModel::ChannelView>& channels,
     float min_v = 0.0f;
     float max_v = 0.0f;
     for (const auto& ch : channels) {
-        if (!ch.samples || ch.samples->empty()) continue;
-        const std::deque<float> tail = visible_tail(*ch.samples);
+        if (!ch.probe || ch.probe->samples.empty()) continue;
+        const std::deque<float> tail = visible_tail(ch.probe->samples);
         for (float v : tail) {
             if (!has_val) {
                 min_v = max_v = v;

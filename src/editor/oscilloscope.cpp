@@ -10,46 +10,30 @@
 
 namespace {
 
-std::string make_probe_id(const ui::StringInterner& interner,
-                           const editor::DocumentId& doc_id,
-                           const WindowScopeId& scope_id,
-                           std::string_view wire_id) {
-    const std::string scope_str = editor::instance_path_to_scope_string(interner, scope_id.path());
-    // Full identity: document + scope + wire → no cross-document collision.
-    std::string probe_id;
-    probe_id.reserve(doc_id.str().size() + scope_str.size() + wire_id.size() + 8);
-    probe_id.append(doc_id.str());
-    probe_id.push_back('/');
-    if (scope_id.is_root()) {
-        probe_id.append("root:");
-    } else if (scope_id.is_embedded()) {
-        probe_id.append("emb:");
-    } else {
-        probe_id.append("ext:");
-    }
-    probe_id.append(scope_str);
-    probe_id.push_back('|');
-    probe_id.append(wire_id);
-    return probe_id;
-}
-
-static bool resolve_probe_signal(Document& doc,
+/// Resolve the signal InternedId for a wire probe. Returns false if wire
+/// has no resolvable signal key (e.g. wire deleted from blueprint).
+bool resolve_probe_signal(Document& doc,
                                  const WindowScopeId& scope_id,
-                                 std::string_view wire_id,
+                                 ui::InternedId wire_iid,
                                  ui::InternedId& out_key,
                                  std::string& out_label) {
-    ui::InternedId key_iid = doc.resolve_wire_signal_key(scope_id, wire_id);
+    const std::string_view wire_sv = doc.interner().resolve(wire_iid);
+    if (wire_sv.empty()) return false;
+    ui::InternedId key_iid = doc.resolve_wire_signal_key(scope_id, wire_sv);
     if (key_iid.empty()) return false;
     out_key = key_iid;
-    out_label = std::string{wire_id};
+    out_label = std::string{wire_sv};
     return true;
 }
 
-static bool resolve_probe_anchor(Document& doc,
-                                 std::string_view wire_id,
+/// Find the world-space anchor point on a wire's polyline.
+bool resolve_probe_anchor(Document& doc,
+                                 ui::InternedId wire_iid,
                                  const WindowScopeId& scope_id,
                                  const ui::Pt* preferred_world,
                                  ui::Pt& out_world) {
+    const std::string_view wire_sv = doc.interner().resolve(wire_iid);
+
     BlueprintWindow* win = nullptr;
     for (auto& wptr : doc.windowManager().windows()) {
         if (wptr && wptr->resolved_scope_id() == scope_id) {
@@ -58,7 +42,7 @@ static bool resolve_probe_anchor(Document& doc,
         }
     }
     if (!win) return false;
-    auto* vw = dynamic_cast<visual::Wire*>(win->scene.find(wire_id));
+    auto* vw = dynamic_cast<visual::Wire*>(win->scene.find(wire_sv));
     if (!vw) return false;
     const auto& poly = vw->polyline();
     if (poly.size() < 2) return false;
@@ -96,6 +80,24 @@ static bool resolve_probe_anchor(Document& doc,
 
 } // namespace
 
+// =============================================================================
+// OscilloscopeModel — partition lookup
+// =============================================================================
+
+OscilloscopeModel::DocumentProbes* OscilloscopeModel::find_doc(const editor::DocumentId& doc_id) {
+    auto it = docs_.find(doc_id);
+    return (it != docs_.end()) ? &it->second : nullptr;
+}
+
+const OscilloscopeModel::DocumentProbes* OscilloscopeModel::find_doc(const editor::DocumentId& doc_id) const {
+    auto it = docs_.find(doc_id);
+    return (it != docs_.end()) ? &it->second : nullptr;
+}
+
+// =============================================================================
+// OscilloscopeModel — color
+// =============================================================================
+
 uint32_t OscilloscopeModel::color_for_index(size_t i) {
     auto rgba = [](uint8_t r, uint8_t g, uint8_t b, uint8_t a) -> uint32_t {
         return static_cast<uint32_t>(r)
@@ -114,165 +116,109 @@ uint32_t OscilloscopeModel::color_for_index(size_t i) {
     return k[i % (sizeof(k) / sizeof(k[0]))];
 }
 
-void OscilloscopeModel::set_hover_signal(const editor::DocumentId& doc_id, ui::InternedId signal_iid) {
-    auto& state = hover_states_[doc_id.str()];
-    state.signal_iid = signal_iid;
-}
-
-void OscilloscopeModel::clear_hover_signal(const editor::DocumentId& doc_id) {
-    auto it = hover_states_.find(doc_id.str());
-    if (it != hover_states_.end()) {
-        it->second.signal_iid = ui::InternedId{};
-    }
-}
-
-const std::deque<float>& OscilloscopeModel::hover_samples(const editor::DocumentId& doc_id) const {
-    static const std::deque<float> empty;
-    auto it = hover_states_.find(doc_id.str());
-    return (it != hover_states_.end()) ? it->second.samples : empty;
-}
-
-ui::InternedId OscilloscopeModel::hover_signal_key(const editor::DocumentId& doc_id) const {
-    auto it = hover_states_.find(doc_id.str());
-    return (it != hover_states_.end()) ? it->second.signal_iid : ui::InternedId{};
-}
-
-void OscilloscopeModel::purge_hover_for(const editor::DocumentId& doc_id) {
-    hover_states_.erase(doc_id.str());
-}
-
-void OscilloscopeModel::purge_for(const editor::DocumentId& doc_id) {
-    // Remove probes owned by this document
-    std::vector<std::string> to_remove;
-    for (const auto& [probe_id, p] : probes_) {
-        if (p.document_id == doc_id) {
-            to_remove.push_back(probe_id);
-        }
-    }
-    for (const auto& id : to_remove) {
-        probes_.erase(id);
-        samples_.erase(id);
-    }
-
-    hover_states_.erase(doc_id.str());
-}
-
-void OscilloscopeModel::purge_all() {
-    probes_.clear();
-    samples_.clear();
-    hover_states_.clear();
-}
+// =============================================================================
+// OscilloscopeModel — probe lifecycle
+// =============================================================================
 
 void OscilloscopeModel::toggle_probe(Document& doc,
                                      const WindowScopeId& scope_id,
-                                     const std::string& wire_id,
+                                     ui::InternedId wire_iid,
                                      const ui::Pt* click_world) {
-    if (wire_id.empty()) return;
-    const std::string probe_id = make_probe_id(doc.interner(), doc.id(), scope_id, wire_id);
-    auto it = probes_.find(probe_id);
-    if (it != probes_.end()) {
-        probes_.erase(it);
-        samples_.erase(probe_id);
+    if (wire_iid.empty()) return;
+
+    auto& partition = docs_[doc.id()];
+    ProbeKey key{scope_id, wire_iid};
+
+    auto it = partition.probes.find(key);
+    if (it != partition.probes.end()) {
+        partition.probes.erase(it);
         return;
     }
 
     OscilloscopeProbe p;
-    p.probe_id = probe_id;
-    p.wire_id = wire_id;
-    p.document_id = doc.id();
-    p.scope_id = scope_id;
-    if (!resolve_probe_signal(doc, scope_id, wire_id, p.signal_iid, p.label)) return;
-    // signal_iid already resolved by resolve_probe_signal()
-    if (!resolve_probe_anchor(doc, wire_id, scope_id, click_world, p.world_pos)) return;
-    // Per-document color assignment: count existing probes for this doc.
-    size_t doc_probe_count = 0;
-    for (const auto& [pid, existing] : probes_) {
-        if (existing.document_id == doc.id()) ++doc_probe_count;
-    }
-    p.color = color_for_index(doc_probe_count);
+    p.wire_iid = wire_iid;
+    if (!resolve_probe_signal(doc, scope_id, wire_iid, p.signal_iid, p.label)) return;
+    if (!resolve_probe_anchor(doc, wire_iid, scope_id, click_world, p.world_pos)) return;
 
-    probes_[probe_id] = p;
-    samples_[probe_id] = std::deque<float>{};
+    // Per-document color assignment: count existing probes.
+    p.color = color_for_index(partition.probes.size());
+
+    partition.probes.emplace(key, std::move(p));
 }
 
-void OscilloscopeModel::remove_probe(const std::string& probe_id) {
-    probes_.erase(probe_id);
-    samples_.erase(probe_id);
+void OscilloscopeModel::purge_for(const editor::DocumentId& doc_id) {
+    docs_.erase(doc_id);
+    hover_states_.erase(doc_id);
 }
 
-bool OscilloscopeModel::has_probe(const std::string& probe_id) const {
-    return probes_.find(probe_id) != probes_.end();
+void OscilloscopeModel::purge_all() {
+    docs_.clear();
+    hover_states_.clear();
 }
 
-const OscilloscopeProbe* OscilloscopeModel::probe(const std::string& probe_id) const {
-    auto it = probes_.find(probe_id);
-    return (it == probes_.end()) ? nullptr : &it->second;
-}
+// =============================================================================
+// OscilloscopeModel — blueprint rebuild
+// =============================================================================
 
 void OscilloscopeModel::on_blueprint_changed(Document& doc) {
-    // Fast path: skip entirely when no probes exist for this document.
-    // Avoids allocating to_remove/updates vectors on every frame.
-    if (probes_.empty()) return;
+    auto* partition = find_doc(doc.id());
+    if (!partition) return;
+    if (partition->probes.empty()) return;
 
-    bool has_doc_probes = false;
-    for (const auto& [probe_id, p] : probes_) {
-        if (p.document_id == doc.id()) { has_doc_probes = true; break; }
-    }
-    if (!has_doc_probes) return;
+    // Collect keys to remove (can't erase while iterating).
+    std::vector<ProbeKey> to_remove;
 
-    std::vector<std::string> to_remove;
-    std::vector<std::pair<std::string, OscilloscopeProbe>> updates;
-    for (const auto& [probe_id, p] : probes_) {
-        if (p.document_id != doc.id()) {
+    for (auto& [key, probe] : partition->probes) {
+        // Re-resolve signal key — may change after sim rebuild.
+        if (!resolve_probe_signal(doc, key.scope_id, key.wire_iid,
+                                  probe.signal_iid, probe.label)) {
+            to_remove.push_back(key);
             continue;
         }
-        OscilloscopeProbe updated = p;
-        if (!resolve_probe_signal(doc, p.scope_id, p.wire_id, updated.signal_iid, updated.label)) {
-            to_remove.push_back(probe_id);
+        // Re-resolve anchor position — wire geometry may have changed.
+        // Copy old position to avoid aliasing: preferred_world and out_world
+        // must not point to the same object.
+        const ui::Pt old_pos = probe.world_pos;
+        if (!resolve_probe_anchor(doc, key.wire_iid, key.scope_id,
+                                  &old_pos, probe.world_pos)) {
+            to_remove.push_back(key);
             continue;
         }
-        // signal_iid already resolved by resolve_probe_signal()
-
-        if (!resolve_probe_anchor(doc, p.wire_id, p.scope_id, &p.world_pos, updated.world_pos)) {
-            to_remove.push_back(probe_id);
-            continue;
-        }
-        updates.emplace_back(probe_id, std::move(updated));
-    }
-    for (auto& [probe_id, updated] : updates) {
-        auto it = probes_.find(probe_id);
-        if (it != probes_.end()) it->second = std::move(updated);
-    }
-    for (const auto& id : to_remove) {
-        remove_probe(id);
     }
 
-    // Invalidate hover InternedId — it may be stale after a sim rebuild.
+    for (const auto& key : to_remove) {
+        partition->probes.erase(key);
+    }
+
+    // Invalidate hover InternedId — may be stale after sim rebuild.
     // Will be re-resolved lazily on next sample() call.
-    auto hover_it = hover_states_.find(doc.id().str());
+    auto hover_it = hover_states_.find(doc.id());
     if (hover_it != hover_states_.end()) {
         hover_it->second.signal_iid = ui::InternedId{};
     }
 }
 
+// =============================================================================
+// OscilloscopeModel — sampling
+// =============================================================================
+
 void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sample_dt_sec) {
     if (sample_dt_sec > 0.0f) sample_period_sec_ = sample_dt_sec;
-    for (auto& [probe_id, p] : probes_) {
-        if (p.document_id != doc.id()) {
-            continue;
-        }
-        auto& q = samples_[probe_id];
-        // Use pre-resolved InternedId when available
+
+    auto* partition = find_doc(doc.id());
+    if (!partition) return;
+
+    for (auto& [key, probe] : partition->probes) {
         float v = 0.0f;
-        if (simulation_running && !p.signal_iid.empty()) {
-            v = doc.simulation().get_signal_value(p.signal_iid);
+        if (simulation_running && !probe.signal_iid.empty()) {
+            v = doc.simulation().get_signal_value(probe.signal_iid);
         }
-        q.push_back(v);
-        while (q.size() > max_samples_) q.pop_front();
+        probe.samples.push_back(v);
+        while (probe.samples.size() > max_samples_) probe.samples.pop_front();
     }
 
-    // Per-document hover sampling — use already-resolved InternedId
-    auto hover_it = hover_states_.find(doc.id().str());
+    // Per-document hover sampling.
+    auto hover_it = hover_states_.find(doc.id());
     if (hover_it != hover_states_.end() && !hover_it->second.signal_iid.empty()) {
         float v = 0.0f;
         if (simulation_running) {
@@ -285,20 +231,67 @@ void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sam
     }
 }
 
+// =============================================================================
+// OscilloscopeModel — hover state
+// =============================================================================
+
+void OscilloscopeModel::set_hover_signal(const editor::DocumentId& doc_id, ui::InternedId signal_iid) {
+    auto& state = hover_states_[doc_id];
+    state.signal_iid = signal_iid;
+}
+
+void OscilloscopeModel::clear_hover_signal(const editor::DocumentId& doc_id) {
+    auto it = hover_states_.find(doc_id);
+    if (it != hover_states_.end()) {
+        it->second.signal_iid = ui::InternedId{};
+    }
+}
+
+const std::deque<float>& OscilloscopeModel::hover_samples(const editor::DocumentId& doc_id) const {
+    static const std::deque<float> empty;
+    auto it = hover_states_.find(doc_id);
+    return (it != hover_states_.end()) ? it->second.samples : empty;
+}
+
+ui::InternedId OscilloscopeModel::hover_signal_key(const editor::DocumentId& doc_id) const {
+    auto it = hover_states_.find(doc_id);
+    return (it != hover_states_.end()) ? it->second.signal_iid : ui::InternedId{};
+}
+
+void OscilloscopeModel::purge_hover_for(const editor::DocumentId& doc_id) {
+    hover_states_.erase(doc_id);
+}
+
+// =============================================================================
+// OscilloscopeModel — channel access
+// =============================================================================
+
 std::vector<OscilloscopeModel::ChannelView> OscilloscopeModel::channels_for(
         const editor::DocumentId& document_id) const {
+    const auto* partition = find_doc(document_id);
+    if (!partition) return {};
+
     std::vector<ChannelView> out;
-    out.reserve(probes_.size());
-    for (const auto& [probe_id, p] : probes_) {
-        if (p.document_id != document_id) {
-            continue;
-        }
-        auto it = samples_.find(probe_id);
-        if (it == samples_.end()) continue;
-        out.push_back(ChannelView{&p, &it->second});
+    out.reserve(partition->probes.size());
+    for (const auto& [key, probe] : partition->probes) {
+        out.push_back(ChannelView{&probe});
     }
+    // Sort by label for predictable user-visible ordering.
     std::sort(out.begin(), out.end(), [](const ChannelView& a, const ChannelView& b) {
-        return a.probe->probe_id < b.probe->probe_id;
+        return a.probe->label < b.probe->label;
     });
     return out;
+}
+
+void OscilloscopeModel::for_each_probe_in_scope(
+        const editor::DocumentId& doc_id,
+        const WindowScopeId& scope_id,
+        const std::function<void(const OscilloscopeProbe&)>& fn) const {
+    const auto* partition = find_doc(doc_id);
+    if (!partition) return;
+    for (const auto& [key, probe] : partition->probes) {
+        if (key.scope_id == scope_id) {
+            fn(probe);
+        }
+    }
 }
