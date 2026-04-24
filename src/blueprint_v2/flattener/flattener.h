@@ -6,6 +6,8 @@
 #include "blueprint_v2/path/path.h"
 #include <unordered_map>
 
+namespace core::utils { class UnionFind; }
+
 namespace bp2 {
 
 class Flattener {
@@ -27,6 +29,7 @@ private:
         Blueprint const& bp,
         Path prefix,
         std::unordered_map<Path, SignalIndex>& signals,
+        core::utils::UnionFind& uf,
         FlatNetlist& out);
 
     void emit_component(
@@ -34,25 +37,24 @@ private:
         Blueprint::Node const& node,
         Path prefix,
         std::unordered_map<Path, SignalIndex>& signals,
+        core::utils::UnionFind& uf,
         FlatNetlist& out);
 
     void process_wires(
         Blueprint const& bp,
         Path prefix,
         std::unordered_map<Path, SignalIndex>& signals,
+        core::utils::UnionFind& uf,
         FlatNetlist& out);
 
     void visit_blueprint_instance(
         Blueprint::Node const& node,
         Path prefix,
         std::unordered_map<Path, SignalIndex>& signals,
+        core::utils::UnionFind& uf,
         FlatNetlist& out);
 
     /// Resolve a wire endpoint within a scope blueprint.
-    ///
-    /// If ep.node refers to a leaf component, returns prefix / node / port.
-    /// If ep.node refers to a blueprint_instance, resolves through to the
-    /// inner bridge node's ext port: prefix / instance / bridge_node / ext.
     Path resolve_endpoint(
         Blueprint const& scope_bp,
         Path scope_prefix,
@@ -64,17 +66,17 @@ private:
         Blueprint const& inner_bp,
         ui::InternedId port_name) const;
 
+    /// Allocate a new provisional signal index, or return existing one.
     SignalIndex get_or_create_signal(
         Path port_path,
         Domain domain,
         std::unordered_map<Path, SignalIndex>& signals,
+        core::utils::UnionFind& uf,
         FlatNetlist& out);
 
-    void merge_signals(
-        SignalIndex keep,
-        SignalIndex remove,
-        std::unordered_map<Path, SignalIndex>& signals,
-        FlatNetlist& out);
+    /// Post-expansion: remap provisional signal indices to compact dense range
+    /// using UnionFind roots. Rebuilds out.signals with grouped connected_ports.
+    void compact_signals(core::utils::UnionFind& uf, FlatNetlist& out);
 };
 
 } // namespace bp2

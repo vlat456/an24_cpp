@@ -1182,3 +1182,105 @@ TEST(Flattener, Regression112_UnwiredInstance_NoCrash) {
     EXPECT_EQ(netlist.components.size(), 1u);
     assert_no_phantom_paths(netlist, arena, I);
 }
+
+// ==================================================================
+// Regression test: calling flatten() twice must produce identical results
+// (guards against stale UnionFind state when uf was a member)
+// ==================================================================
+
+TEST(Flattener, ReuseFlattenerProducesCorrectResultsAcrossDifferentBlueprints) {
+    ui::StringInterner I;
+    bp2::BlueprintLibrary library;
+    bp2::Flattener flattener(library);
+
+    // === First blueprint: bat → [inst].vin → r1 (2 signals expected) ===
+    {
+        bp2::Blueprint inner;
+        inner = inner.with_interface(bp2::Interface({
+            make_port(I, "vin", Domain::Electrical, bp2::Direction::Input),
+        }));
+        bp2::Blueprint::Node bridge = make_bridge_node(I, "vin", true, Domain::Electrical);
+        inner = inner.with_node(std::move(bridge));
+
+        bp2::Blueprint::Node r1;
+        r1.semantic.id = I.intern("r1");
+        r1.semantic.type = I.intern("Resistor");
+        r1.component().iface = bp2::Interface({
+            make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input),
+            make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
+        });
+        inner = inner.with_node(std::move(r1));
+
+        bp2::Blueprint::Wire iw;
+        iw.id = I.intern("iw1");
+        iw.source = {I.intern("vin"), I.intern("ext")};
+        iw.target = {I.intern("r1"), I.intern("v_in")};
+        iw.domain = Domain::Electrical;
+        inner = inner.with_wire(std::move(iw));
+
+        bp2::Blueprint root;
+        bp2::Blueprint::Node bat;
+        bat.semantic.id = I.intern("bat");
+        bat.semantic.type = I.intern("Battery");
+        bat.component().iface = bp2::Interface({
+            make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
+        });
+        root = root.with_node(std::move(bat));
+
+        bp2::Blueprint::Node inst;
+        inst.semantic.id = I.intern("inst");
+        inst.semantic.type = I.intern("Embedded");
+        inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
+            bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("Embedded"))))
+        };
+        root = root.with_node(std::move(inst));
+
+        bp2::Blueprint::Wire rw;
+        rw.id = I.intern("rw1");
+        rw.source = {I.intern("bat"), I.intern("v_out")};
+        rw.target = {I.intern("inst"), I.intern("vin")};
+        rw.domain = Domain::Electrical;
+        root = root.with_wire(std::move(rw));
+
+        bp2::PathArena arena(I);
+        bp2::FlatNetlist result = flattener.flatten(root, arena);
+
+        // bat.v_out, bridge.ext, bridge.port, r1.v_in all unified → 1 signal
+        // r1.v_out → 1 signal.  Total = 2 signals.
+        std::set<bp2::SignalIndex> unique_sigs;
+        for (auto const& comp : result.components) {
+            for (auto const& [_, sig] : comp.port_signals) {
+                unique_sigs.insert(sig);
+            }
+        }
+        EXPECT_EQ(unique_sigs.size(), 2u);
+        ASSERT_EQ(result.components.size(), 3u);  // bat, bridge, r1
+    }
+
+    // === Second blueprint: just a single leaf node (1 component, 2 signals) ===
+    {
+        bp2::Blueprint simple;
+        bp2::Blueprint::Node bat;
+        bat.semantic.id = I.intern("bat");
+        bat.semantic.type = I.intern("Battery");
+        bat.component().iface = bp2::Interface({
+            make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input),
+            make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output),
+        });
+        simple = simple.with_node(std::move(bat));
+
+        bp2::PathArena arena(I);
+        bp2::FlatNetlist result = flattener.flatten(simple, arena);
+
+        // No wires: 2 disconnected ports → 2 signals
+        ASSERT_EQ(result.components.size(), 1u);
+        EXPECT_EQ(result.components[0].port_signals.size(), 2u);
+
+        // The two port signals must be DIFFERENT indices (no wires to unify them)
+        auto sig0 = result.components[0].port_signals[0].second;
+        auto sig1 = result.components[0].port_signals[1].second;
+        EXPECT_NE(sig0, sig1)
+            << "Unconnected ports must not be unified (stale UF from first flatten would cause this)";
+    }
+}

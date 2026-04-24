@@ -164,8 +164,9 @@ JitBuildInput elaborate_for_jit(
     // Use component port_signals for the mapping: each entry maps
     // (component, port_name) → signal_index.
     //
-    // We remap FlatNetlist signal indices to a compact contiguous range,
-    // since merge_signals may leave gaps in the original index space.
+    // We remap FlatNetlist signal indices to a compact contiguous range.
+    // (After the UnionFind refactor, compact_signals() already produces dense
+    // indices, so this remap is an identity mapping — kept as a safety net.)
     //
     // Keys are interned via signal_key_interner — string construction happens
     // once at build time, runtime lookups use InternedId (integer comparison).

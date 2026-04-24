@@ -1,5 +1,9 @@
 #include "flattener.h"
 
+#include "core/utils/union_find.h"
+
+#include <algorithm>
+#include <cassert>
 #include <stdexcept>
 
 namespace bp2 {
@@ -12,8 +16,13 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
     FlatNetlist out;
     std::unordered_map<Path, SignalIndex> signals;
 
-    process_wires(root, arena_->root(), signals, out);
-    visit_blueprint(root, arena_->root(), signals, out);
+    // UnionFind is scoped to a single flatten() call — no stale state on reuse.
+    core::utils::UnionFind uf{0};
+
+    process_wires(root, arena_->root(), signals, uf, out);
+    visit_blueprint(root, arena_->root(), signals, uf, out);
+
+    compact_signals(uf, out);
 
     return out;
 }
@@ -151,13 +160,14 @@ void Flattener::visit_blueprint(
     Blueprint const& bp,
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
+    core::utils::UnionFind& uf,
     FlatNetlist& out) {
 
     for (auto const& node : bp.nodes()) {
         if (node.is_blueprint_instance()) {
-            visit_blueprint_instance(node, prefix, signals, out);
+            visit_blueprint_instance(node, prefix, signals, uf, out);
         } else {
-            emit_component(bp, node, prefix, signals, out);
+            emit_component(bp, node, prefix, signals, uf, out);
         }
     }
 }
@@ -165,8 +175,8 @@ void Flattener::visit_blueprint(
 // ==================================================================
 // emit_component — create a FlatNetlist::Component for a leaf node
 //
-// For structural bridge nodes, after emitting
-// the component we unify the ext and port signals, since they
+// For structural bridge nodes, after emitting the component we
+// record a UnionFind union between ext and port signals, since they
 // represent the same electrical point (the bridge is a pass-through).
 // ==================================================================
 
@@ -175,6 +185,7 @@ void Flattener::emit_component(
     Blueprint::Node const& node,
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
+    core::utils::UnionFind& uf,
     FlatNetlist& out) {
 
     Path node_path = arena_->make_node(prefix, node.semantic.id);
@@ -187,8 +198,6 @@ void Flattener::emit_component(
     comp.string_params = node.semantic.string_params;
 
     if (node.is_bridge_port()) {
-        // Preserve the authoritative public interface port id represented by
-        // this structural bridge node.
         comp.exposed_port_name = node.bridge_port().exposed_port;
     }
 
@@ -198,11 +207,10 @@ void Flattener::emit_component(
     for (auto const& port : bp.resolve_node_iface(node, Blueprint::NodeIfaceAuthority{arena_->interner()})) {
         Path port_path = arena_->make_port(node_path, port.name);
         SignalIndex sig = get_or_create_signal(
-            port_path, port.domain, signals, out);
+            port_path, port.domain, signals, uf, out);
         comp.ports.push_back(port);
         comp.port_signals.push_back({port.name, sig});
 
-        // Track ext/port signals for bridge unification
         std::string_view pname = arena_->resolve_id(port.name);
         if (pname == "ext") ext_sig = sig;
         else if (pname == "port") port_sig = sig;
@@ -210,35 +218,35 @@ void Flattener::emit_component(
 
     out.components.push_back(std::move(comp));
 
-    // Bridge ext/port unification: merge the two signals so that
-    // wires to bridge.ext and bridge.port end up on the same signal
+    // Bridge ext/port unification: these two signals are the same electrical point
     if (node.is_bridge_port()
         && ext_sig != UINT32_MAX && port_sig != UINT32_MAX
         && ext_sig != port_sig) {
-        merge_signals(ext_sig, port_sig, signals, out);
+        uf.unite(ext_sig, port_sig);
     }
 }
 
 // ==================================================================
-// process_wires — pre-allocate signals for wire endpoints, merge
+// process_wires — record unions for wire endpoints
 // ==================================================================
 
 void Flattener::process_wires(
     Blueprint const& bp,
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
+    core::utils::UnionFind& uf,
     FlatNetlist& out) {
 
     for (auto const& wire : bp.wires()) {
         SignalIndex src_sig = get_or_create_signal(
             resolve_endpoint(bp, prefix, wire.source),
-            wire.domain, signals, out);
+            wire.domain, signals, uf, out);
         SignalIndex tgt_sig = get_or_create_signal(
             resolve_endpoint(bp, prefix, wire.target),
-            wire.domain, signals, out);
+            wire.domain, signals, uf, out);
 
         if (src_sig != tgt_sig) {
-            merge_signals(src_sig, tgt_sig, signals, out);
+            uf.unite(src_sig, tgt_sig);
         }
     }
 }
@@ -251,6 +259,7 @@ void Flattener::visit_blueprint_instance(
     Blueprint::Node const& node,
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
+    core::utils::UnionFind& uf,
     FlatNetlist& out) {
 
     Path node_path = arena_->make_node(prefix, node.semantic.id);
@@ -267,20 +276,13 @@ void Flattener::visit_blueprint_instance(
 
     // Seed boundary signals: for each interface port, find the bridge node
     // and seed its ext path with the parent signal (if wired from outside).
-    //
-    // The outer wires (processed by the parent scope's process_wires) have
-    // already resolved to instance/bridge/ext via resolve_endpoint. We look
-    // up those paths in the parent signals map and propagate them into the
-    // nested scope.
     std::unordered_map<Path, SignalIndex> nested_signals;
-    std::unordered_map<Path, SignalIndex> seeded_boundary;
     for (auto const& port : inner->iface()) {
         Blueprint::Node const* bridge = find_bridge_for_port(*inner, port.name);
         if (!bridge) continue;
 
         Path bridge_path = arena_->make_node(node_path, bridge->semantic.id);
 
-        // Find the "ext" port ID from the bridge's interface
         ui::InternedId ext_id{};
         for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena_->interner()})) {
             std::string_view pname = arena_->resolve_id(p.name);
@@ -295,53 +297,43 @@ void Flattener::visit_blueprint_instance(
         auto it = signals.find(ext_path);
         if (it != signals.end()) {
             nested_signals[ext_path] = it->second;
-            seeded_boundary[ext_path] = it->second;
         }
     }
 
     // Process inner wires with paths resolved under node_path.
-    // resolve_endpoint handles nested blueprint instances recursively.
     for (auto const& wire : inner->wires()) {
         Path src = resolve_endpoint(*inner, node_path, wire.source);
         Path tgt = resolve_endpoint(*inner, node_path, wire.target);
 
         SignalIndex src_sig = get_or_create_signal(
-            src, wire.domain, nested_signals, out);
+            src, wire.domain, nested_signals, uf, out);
         SignalIndex tgt_sig = get_or_create_signal(
-            tgt, wire.domain, nested_signals, out);
+            tgt, wire.domain, nested_signals, uf, out);
 
         if (src_sig != tgt_sig) {
-            merge_signals(src_sig, tgt_sig, nested_signals, out);
+            uf.unite(src_sig, tgt_sig);
         }
     }
 
-    // Propagate boundary merges back to parent signal map.
-    // If a seeded boundary signal was merged into a different index,
-    // we must apply that same merge in the parent signals map.
-    for (auto const& [port_path, original_sig] : seeded_boundary) {
-        SignalIndex current_sig = nested_signals[port_path];
-        if (current_sig != original_sig) {
-            merge_signals(current_sig, original_sig, signals, out);
-        }
-    }
-
-    // Merge nested signal map back into parent
+    // Merge nested signal map back into parent so that sibling components
+    // at the same scope level can reference inner paths.
     for (auto const& [path, sig] : nested_signals) {
         signals[path] = sig;
     }
 
     // Emit inner leaf nodes and recurse into inner blueprint instances
-    visit_blueprint(*inner, node_path, nested_signals, out);
+    visit_blueprint(*inner, node_path, nested_signals, uf, out);
 }
 
 // ==================================================================
-// get_or_create_signal — find existing or allocate new signal
+// get_or_create_signal — find existing or allocate new provisional signal
 // ==================================================================
 
 SignalIndex Flattener::get_or_create_signal(
     Path port_path,
     Domain domain,
     std::unordered_map<Path, SignalIndex>& signals,
+    core::utils::UnionFind& uf,
     FlatNetlist& out) {
 
     auto it = signals.find(port_path);
@@ -349,6 +341,11 @@ SignalIndex Flattener::get_or_create_signal(
 
     SignalIndex idx = out.signal_count++;
     signals[port_path] = idx;
+
+    // Grow UnionFind to cover the new provisional index
+    if (idx >= static_cast<uint32_t>(uf.size())) {
+        uf.grow(idx + 1);
+    }
 
     FlatNetlist::Signal sig;
     sig.index = idx;
@@ -360,34 +357,55 @@ SignalIndex Flattener::get_or_create_signal(
 }
 
 // ==================================================================
-// merge_signals — rewrite all references from 'remove' to 'keep'
+// compact_signals — remap provisional indices to dense compact range
+//
+// After graph expansion, provisional signal indices may be unified
+// via UnionFind. This pass:
+//   1. Finds UF roots for each component port signal
+//   2. Assigns compact indices in first-encounter order
+//   3. Rebuilds the signals vector with grouped connected_ports
 // ==================================================================
 
-void Flattener::merge_signals(
-    SignalIndex keep,
-    SignalIndex remove,
-    std::unordered_map<Path, SignalIndex>& signals,
-    FlatNetlist& out) {
+void Flattener::compact_signals(core::utils::UnionFind& uf, FlatNetlist& out) {
+    // Phase 1: Assign compact indices in first-encounter order.
+    // This matches the ordering that elaborate_for_jit expects,
+    // making its remap pass an identity mapping.
+    std::unordered_map<uint32_t, uint32_t> root_to_compact;
+    uint32_t next_compact = 0;
 
-    if (keep == remove) return;
-
-    for (auto& [path, sig] : signals) {
-        if (sig == remove) sig = keep;
-    }
-
-    // Rewrite already-emitted component port_signals
     for (auto& comp : out.components) {
         for (auto& [name, sig] : comp.port_signals) {
-            if (sig == remove) sig = keep;
+            uint32_t root = uf.find(sig);
+            auto [it, inserted] = root_to_compact.emplace(root, next_compact);
+            if (inserted) next_compact++;
+            sig = it->second;
         }
     }
 
-    auto& keep_sig = out.signals[keep];
-    auto& remove_sig = out.signals[remove];
-    for (auto& p : remove_sig.connected_ports) {
-        keep_sig.connected_ports.push_back(p);
+    // Phase 2: Rebuild signals vector from provisional data,
+    // grouping connected_ports by compact index.
+    // First domain wins: the path-based lookup in get_or_create_signal
+    // already ensures the first allocation determines the domain; subsequent
+    // lookups return the existing signal.  Bridges may resolve to a different
+    // domain than the wire that first created the path (e.g. PortType::V →
+    // Electrical vs wire.domain=Logical), so last-wins would be wrong.
+    std::vector<FlatNetlist::Signal> compacted(next_compact);
+    for (auto& orig : out.signals) {
+        uint32_t root = uf.find(orig.index);
+        auto it = root_to_compact.find(root);
+        if (it == root_to_compact.end()) continue;  // orphaned — no component references it
+        uint32_t ci = it->second;
+        if (compacted[ci].connected_ports.empty()) {
+            compacted[ci].index = ci;
+            compacted[ci].domain = orig.domain;
+        }
+        for (auto& p : orig.connected_ports) {
+            compacted[ci].connected_ports.push_back(std::move(p));
+        }
     }
-    remove_sig.connected_ports.clear();
+
+    out.signals = std::move(compacted);
+    out.signal_count = next_compact;
 }
 
 } // namespace bp2

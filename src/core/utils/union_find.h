@@ -13,6 +13,8 @@ public:
         }
     }
 
+    size_t size() const { return parent_.size(); }
+
     uint32_t find(uint32_t x) {
         if (parent_[x] != x) {
             parent_[x] = find(parent_[x]);
@@ -21,11 +23,7 @@ public:
     }
 
     uint32_t find(uint32_t x) const {
-        while (parent_[x] != x) {
-            parent_[x] = parent_[parent_[x]];
-            x = parent_[x];
-        }
-        return x;
+        return const_cast<UnionFind*>(this)->find(x);
     }
 
     void unite(uint32_t a, uint32_t b) {
@@ -41,6 +39,15 @@ public:
         } else {
             parent_[rb] = ra;
             rank_[ra]++;
+        }
+    }
+
+    /// Extend the structure to hold `new_size` elements.
+    /// New entries are initialized as disjoint singletons.
+    void grow(size_t new_size) {
+        for (size_t i = parent_.size(); i < new_size; ++i) {
+            parent_.push_back(static_cast<uint32_t>(i));
+            rank_.push_back(0);
         }
     }
 
